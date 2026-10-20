@@ -1,0 +1,7 @@
+{
+  "en": "- Remove MCP prototype workflow control and persistent project binding so each operation can target the current project.\n- Preserve operation target, permission, editor context and Preview identity checks.",
+  "zh-CN": "- 移除 MCP 原型流程控制与持久项目绑定，每次操作独立校验当前目标项目。\n- 保留操作目标、权限、编辑器上下文与 Preview 身份校验。",
+  "zh-TW": "- 移除 MCP 原型流程控制與持久專案綁定，每次操作獨立驗證目前目標專案。\n- 保留操作目標、權限、編輯器環境與 Preview 身分驗證。",
+  "ja": "- MCP のプロトタイプフロー制御と永続的なプロジェクト紐付けを削除し、操作ごとに対象プロジェクトを検証します。\n- 操作対象、権限、エディターのコンテキストと Preview の識別情報の検証を維持します。",
+  "ko": "- MCP 프로토타입 흐름 제어와 영구 프로젝트 연결을 제거하고 작업마다 대상 프로젝트를 검증합니다.\n- 작업 대상, 권한, 편집기 컨텍스트 및 Preview 식별 검증을 유지합니다。"
+}

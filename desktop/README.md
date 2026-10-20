@@ -236,18 +236,14 @@ fixed read-only snippets, bounded layout reads and frame screenshots. macOS
 discovers Pen.app; other installs configure an absolute command and args in
 user-data/design-reference.json. It never parses raw Pen documents.
 
-For new full-project prototype generation, `prototype_task` pins reviewed source
-inventories and enforces one Page at a time against actual dispatch calls.
-Reference layout/image coverage, native structural readbacks, image comparisons
-and source-pinned Preview cases precede Page completion. Edits/session changes
-invalidate checkpoints. Task evidence is private under user-data/prototype-runs;
-the final task requires save/reopen and renewed checks. Visual observations are
-recorded judgments requiring independent review, not automatic pixel approval.
-See ai/plasmic/references/prototype-tasks.md for the source/inventory contract.
+Generation plans, progress and acceptance records belong to the agent's local
+working directory. Desktop MCP checks each operation's target, permissions and
+current editor context. Model, layout and reference verifiers inspect explicit
+inputs and write local reports without locking project navigation.
 
 Optional `PLASMIC_MCP_METRICS=/absolute/private/metrics.jsonl` in the MCP process
 records tool/operation, input/wire/text/image bytes and elapsed time without
-payload text. Task RPC counts include verifier traffic; provider/cache token
+payload text. RPC counts include verifier traffic; provider/cache token
 usage must be read from the actual model client, not inferred from byte counts.
 
 Run `npm test` for Desktop checks and `npx electron tests/reference-browser-native.cjs`
@@ -516,7 +512,6 @@ The server provides these tools:
 | `import_reference`                                      | Explicit editable/raster import into an independent artboard                                                |
 | `design_reference`                                      | Read-only Pen MCP frame layout, children and source screenshots                                              |
 | `preview`                                               | Authenticated native Preview snapshots, user interactions and DOM assertions                                 |
-| `prototype_task`                                        | Actual dispatch Page ordering and reference/model/image/runtime evidence                                    |
 | `search_stock_images`                                     | Commons images with license/source/attribution metadata                                                   |
 | `vectorize_image`                                         | Local raster tracing to SVG paths                                                                         |
 | `make_vector`                                             | SVG paths and union/intersection/subtraction/xor geometry                                                 |

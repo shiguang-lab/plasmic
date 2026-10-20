@@ -32,10 +32,10 @@ def complete_layout(evidence, node_id):
         return False
 
 
-def check(expected, readback, task):
+def check(expected, readback, evidence):
     errors = []
     models = {model["uuid"]: model for model in readback["results"]}
-    files = set(task.get("referenceFiles", []))
+    files = set(evidence.get("referenceFiles", []))
     for page in expected["pages"]:
         model = models.get(page["componentUuid"])
         refs, regions = page.get("references", []), page.get("regions", [])
@@ -57,10 +57,16 @@ def check(expected, readback, task):
             # lexical. Do not follow /tmp -> /private/tmp symlinks only here.
             file = os.path.abspath(ref["filePath"])
             key = json.dumps([file, ref["nodeId"]], ensure_ascii=False, separators=(",", ":"))
-            evidence = task.get("references", {}).get(key, {})
-            if file not in files or not complete_layout(evidence, ref["nodeId"]):
+            recorded = evidence.get("references", {}).get(key, {})
+            try:
+                source_valid = hashlib.sha256(Path(file).read_bytes()).hexdigest() == evidence.get("referenceHashes", {}).get(file)
+            except OSError:
+                source_valid = False
+            if not source_valid:
+                errors.append({"page": page.get("path"), "referenceId": ref["id"], "error": "Original Pen source hash is missing or changed"})
+            if file not in files or not complete_layout(recorded, ref["nodeId"]):
                 errors.append({"page": page.get("path"), "referenceId": ref["id"], "error": "Complete paginated native Pen layout read required; text-only summaries are insufficient"})
-            image = evidence.get("image", {})
+            image = recorded.get("image", {})
             try:
                 valid = (image.get("kind") == "reference" and image.get("source", {}).get("provider") == "pen-mcp"
                          and image["source"]["filePath"] == file and image["source"]["nodeId"] == ref["nodeId"]

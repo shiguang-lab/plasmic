@@ -12,9 +12,7 @@ Select the library and API version before reading component rules or composition
 
 ## Native component selection
 
-For editable prototypes, choose components **before markup**. Discover the target project's reusable business components/templates and installed registrations through MCP; search the matching catalog by the required role, then read candidate contracts. Do not decide on HTML first and inspect only the few components already chosen.
-
-Prefer an existing business component or matching template, then registered library components, then a composition of those components. A template must still fit the requirement and content-entry rules. Reuse real Props, Slots, states and events; CSS similarity is not component reuse. Do not install another library or add a Card merely to satisfy this preference.
+The skill's component-priority rule applies. Use the following roles to search the matching library catalog and select the relevant component/composition documents.
 
 | Required role | Select from the actual installed library |
 | --- | --- |
@@ -23,11 +21,11 @@ Prefer an existing business component or matching template, then registered libr
 | Feedback and overlays | Alert/Tag/Badge/Empty/Spin, Tooltip/Popconfirm/Modal/Drawer |
 | Arrangement and surfaces | Flex/Row/Col/Space where their layout role fits; Card only for an independent business surface |
 
-These are role examples, not cross-library API names. Classify the source purpose and read its applicable composition before selecting a registration. Map required widgets and built-in display capabilities in the source plan's components/controls/overlay inventories, including field presentation, actions, navigation and feedback; Table/Form/Descriptions alone are not complete coverage. Discover a required composition's cross-library participants even when they are not installed yet; install the selected dependency and read its contract, or report the concrete gap. An unread or absent import is not permission to redraw its widget. Inspect inactive states and use native Props/Slots rather than imitations. Reference pixels guide hierarchy, not implementation primitives.
+These are role examples, not cross-library API names. Classify the source purpose and read its applicable composition before selecting a registration. Record selected identities and ownership in the [native-component inventories](../requirement-alignment.md#presentation-copy-and-native-components). Discover a required composition's cross-library participants even when they are not installed yet; install the selected dependency and read its contract, or report the concrete gap. Inspect inactive states and their native visibility/content Slots.
 
-Plain div/section wrappers, span/p text, real navigation anchors, read-only pre/code and content graphics remain valid. Do not wrap every text node in a component or turn every wrapper into a surface. Root sizing and necessary Slot/semantic containers may use native elements and styles. Typography components are useful when their registered behavior or theme contract is needed.
+Typography components are useful when their registered behavior or theme contract is needed. Root sizing and necessary Slot/semantic container styles follow [shared layout](../design/layout.md).
 
-If verified current components and their supported compositions cannot express a required widget, record the affected named node, checked candidates/contracts, concrete gap and source in the task plan before writing it. Use an elementFallbacks entry as documented in [requirement alignment](../requirement-alignment.md#presentation-copy-and-native-components). A rendering error, unread contract, styling convenience or missing page binding is not a component capability gap. Correct usage or report the blocker; ordinary design work does not create a new component library. A declared fallback cannot override a required native identity, Form ownership or another applicable gate.
+Record a fallback permitted by the skill using the [elementFallbacks format](../requirement-alignment.md#presentation-copy-and-native-components).
 
 ## Read by actual library
 

@@ -83,7 +83,6 @@ async function runtimeCommand(input, documentId) {
   if (!el) throw new Error("Preview scroll root is unavailable");
   if (["click", "fill", "select", "press"].includes(input.action) && disabled(el)) throw new Error("Preview target is disabled");
   const targetInfo = { role: role(el), name: name(el) };
-  if (input.expectedTarget?.role && input.expectedTarget.role !== targetInfo.role || input.expectedTarget?.name !== undefined && input.expectedTarget.name !== targetInfo.name) throw new Error("Preview target does not match the source-derived runtime step");
   if (["click", "hover"].includes(input.action)) {
     el.scrollIntoView({ block: "nearest", inline: "nearest" });
     await settle();

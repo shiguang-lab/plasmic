@@ -14,10 +14,8 @@ bundled. This is not full Pen MCP parity.
   `import_reference` performs explicit editable/raster artboard imports. The
   public combined `browser` tool has been removed. Studio Preview belongs to
   `preview`, not the isolated reference browser.
-- `prototype_task` enforces actual per-Page write order and records source,
-  model/layout, images and pinned runtime case outcomes. Visual judgments remain
-  separately reviewable. Save/reopen requires renewed Page evidence.
-- Skill references, native capability preflight, reference/sequence checks and
+
+- Skill references, native capability preflight, reference checks and
   regression fixtures use these contracts. Transport byte metrics are optional;
   model token/cache usage remains a client/provider measurement.
 

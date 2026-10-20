@@ -10,7 +10,7 @@ open_design saves before switching editable projects. Read-only work uses the op
 
 Use model UUIDs; reread contracts after library changes. Prop registration preserves declared types, args and nested fields without executing callbacks.
 
-New generation uses [prototype_task](prototype-tasks.md). External-browser capture/import tools require a ready, editable project's edit page; local Pen reads do not require a canvas. Start reference_browser with load_page and an external HTTP(S) URL. preview owns runtime acceptance; failure blocks that check without reference-tool fallback.
+Generation planning and progress stay in the agent's local working directory. External-browser capture/import tools require a ready, editable project's edit page; local Pen reads do not require a canvas. Start reference_browser with load_page and an external HTTP(S) URL. preview owns runtime acceptance; failure blocks that check without reference-tool fallback.
 
 ## Mutate and persist
 

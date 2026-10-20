@@ -11,6 +11,7 @@ from unittest.mock import patch
 from verify_all import GATES, OVERVIEW_FIELDS, collect, run_suite, read_json, write_json, reusable_evidence, evidence_hashes
 import test_verify_forms
 import test_verify_shell_height
+import test_verify_references
 
 
 class SuiteTests(unittest.TestCase):
@@ -68,28 +69,46 @@ class SuiteTests(unittest.TestCase):
         self.assertTrue(report["passed"], report)
         self.assertEqual(report["acceptance"]["status"], "unverified")
 
-    def test_changing_reviewed_inventory_cannot_pass_using_the_generated_output(self):
-        import hashlib
-        file = self.root / "structure.json"
-        original = file.read_bytes()
-        archived = self.root / "reviewed-baseline"
-        archived.write_bytes(original)
-        digest = hashlib.sha256(original).hexdigest()
-        task = {"id": "run", "projectId": "project", "sessionId": self.context["sessionId"],
-                "build": self.capture["build"], "pinned": {str(file): digest},
-                "baseline": {str(file): {"file": str(archived), "sha256": digest}}}
-        raw = json.dumps(task).encode()
-        (self.root / "reference-evidence.json").write_bytes(raw)
-        self.capture["prototypeTask"] = {"runId": "run", "sha256": hashlib.sha256(raw).hexdigest()}
-        write_json(self.root / "capture.json", self.capture)
-        changed = json.loads(original)
-        changed["pages"][0]["copy"]["source"] = "weakened to match output"
-        write_json(file, changed)
+    def reference_inputs(self):
+        reference = test_verify_references.ReferenceTests()
+        reference.setUp()
+        self.addCleanup(reference.doCleanups)
+        reference.expected["pages"][0].update(path="/records")
+        reference.expected["pages"][0]["regions"][0]["nodeNames"] = ["AppShell"]
+        write_json(self.root / "references.json", reference.expected)
+        write_json(self.root / "reference-evidence.json", reference.evidence)
+        self.config["references"] = {"inventory": "references.json", "evidence": "reference-evidence.json"}
+        return reference
+
+    def test_reference_gate_uses_explicit_local_evidence_without_workflow_state(self):
+        reference = self.reference_inputs()
         report = self.run_suite()
-        self.assertFalse(report["passed"])
-        evidence = next(g for g in report["checks"] if g["gate"] == "evidence")
-        self.assertIn("Reviewed baseline changed", " ".join(evidence["report"]["errors"]))
-        self.assertEqual(report["acceptance"]["status"], "failed")
+        self.assertTrue(report["passed"], report)
+        reference.file.write_bytes(b"replaced source image")
+        report = self.run_suite()
+        self.assertEqual(next(c["status"] for c in report["checks"] if c["gate"] == "references"), "failed")
+        self.assertEqual(next(c["status"] for c in report["checks"] if c["gate"] == "model"), "passed")
+
+    def test_local_reference_evidence_is_pinned_once_and_changes_fail_integrity(self):
+        self.reference_inputs()
+        file = (self.root / "reference-evidence.json").resolve()
+        original = Path.read_bytes
+        reads = 0
+
+        def replace_after_load(path, *args, **kwargs):
+            nonlocal reads
+            data = original(path, *args, **kwargs)
+            if path == file:
+                reads += 1
+                if reads == 1:
+                    path.write_bytes(b'{"referenceFiles":[]}')
+            return data
+
+        with patch.object(Path, "read_bytes", replace_after_load):
+            report = self.run_suite()
+        self.assertEqual(reads, 2)
+        self.assertEqual(next(c["status"] for c in report["checks"] if c["gate"] == "references"), "passed")
+        self.assertEqual(next(c["status"] for c in report["checks"] if c["gate"] == "evidence"), "failed")
 
     def test_native_validation_is_mandatory_exact_and_literal(self):
         original = copy.deepcopy(self.capture)
@@ -115,29 +134,6 @@ class SuiteTests(unittest.TestCase):
             write_json(self.root / "structure.json", expected)
             report = self.run_suite()
             self.assertEqual(next(c["status"] for c in report["checks"] if c["gate"] == "structure"), "failed")
-
-    def test_task_evidence_is_loaded_once_and_a_replacement_fails_integrity(self):
-        raw = json.dumps({"id": "task", "projectId": "project", "sessionId": "editor-session", "build": self.capture["build"], "referenceFiles": []}).encode()
-        file = self.root / "reference-evidence.json"
-        file.write_bytes(raw)
-        write_json(self.root / "capture.json", {**self.capture, "prototypeTask": {"runId": "task", "sha256": hashlib.sha256(raw).hexdigest()}})
-        original = Path.read_bytes
-        reads = 0
-
-        def replace_after_load(path, *args, **kwargs):
-            nonlocal reads
-            data = original(path, *args, **kwargs)
-            if path == file:
-                reads += 1
-                if reads == 1:
-                    path.write_bytes(b'{"referenceFiles":["unreviewed.pen"]}')
-            return data
-
-        with patch.object(Path, "read_bytes", replace_after_load):
-            report = self.run_suite()
-        self.assertEqual(reads, 2)  # One pinned read, one final integrity check.
-        self.assertEqual(next(c["status"] for c in report["checks"] if c["gate"] == "references"), "not_applicable")
-        self.assertEqual(next(c["status"] for c in report["checks"] if c["gate"] == "evidence"), "failed")
 
     def test_reviewed_directory_names_are_checked_in_the_full_suite(self):
         self.config["page_layout"] = {"overviewName": "记录管理页面总览"}

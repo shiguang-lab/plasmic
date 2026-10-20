@@ -5,13 +5,27 @@ description: Inspect self-hosted Plasmic pages and templates, create or revise e
 
 # Plasmic
 
-This is a bootstrap skill. Workflows, component guidance and verification scripts live in a versioned resource bundle on the NAS, outside this installed skill.
+This skill owns core constraints. Detailed workflows, component selection and usage guidance, and verification scripts live in a versioned resource bundle on the NAS, outside this installed skill.
 
 ## Client implementation boundary
 
 Use the published CLI, documented Desktop MCP tools and resolved skill resources with the task's requirements and design files. Do not unpack, extract or decompile the Plasmic App, or read its internal Desktop/Studio implementation, packaged dependencies, extracted/copied artifacts or equivalent client repository source. This prohibition applies to the acting agent, delegated agents and their tool scripts, including troubleshooting and contract or validator discovery.
 
 If public tool contracts or skill documents are insufficient, retain the exact call and error, stop dependent work and report the missing contract or documentation. Do not inspect client internals or reverse-engineer private interfaces to continue. Codegen may inspect and edit the target application's source within the user's task; this does not authorize reading the Plasmic client implementation.
+
+## Component priority for prototype design
+
+Choose components before markup for every prototype creation or edit. Discover reusable business components/templates and library registrations through Desktop MCP by the required role, then read candidate contracts. Prefer an existing business component or matching template, then registered library components, then compositions of those components. Preserve the user's library choices and the target project's actual APIs; a template must fit the requirement. Do not install another library or add a Card merely to satisfy this preference.
+
+Use real Props, Slots, states and events for functional widgets, including actions, controls, navigation, repeated information, pagination, feedback and overlays. Do not redraw available components with HTML/CSS; visual similarity is not component reuse. Plain semantic text, necessary root/Slot/layout containers, genuine navigation anchors, read-only code and content graphics remain valid native elements; do not turn every text node or wrapper into a component or surface.
+
+Use a custom element widget only when verified current components and their supported compositions cannot express the required behavior. Before writing it, record the exact named node, checked candidates/contracts, concrete gap and requirement source in the task plan. An unread contract, absent import, rendering error, styling convenience or missing binding is not a capability gap. Correct usage or report the blocker; ordinary design work does not create a new component library. A fallback cannot override a required native identity, Form ownership or another acceptance gate.
+
+After resolving resources, use `references/libraries/index.md` for library/API matching and role-specific selection, and `references/requirement-alignment.md` for native-component inventories and the `elementFallbacks` format.
+
+## Prototype execution boundary
+
+Keep generation plans, progress, pending cases and acceptance records in the agent's working directory. Use Desktop MCP for individual design/read/Preview operations, with their target, permission and context checks. Verification scripts read explicit evidence and write local reports; they do not register workflows, persist project bindings or restrict project navigation.
 
 ## Task workflow
 

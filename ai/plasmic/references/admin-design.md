@@ -1,6 +1,6 @@
 # Admin design reference index
 
-Start with [library and API selection](libraries/index.md) and [native component selection](libraries/index.md#native-component-selection) before markup. Discover existing components by required role, then verify candidate contracts; do not redraw available widgets with HTML/CSS. Reuse the user's libraries and host shell; display names alone do not identify API versions.
+Use [library and API selection](libraries/index.md) and [native component selection](libraries/index.md#native-component-selection) for the target project's libraries, then select affected references below. Shell reuse follows [shared layout](design/layout.md).
 
 | Affected area | Read |
 | --- | --- |

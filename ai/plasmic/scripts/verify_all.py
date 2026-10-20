@@ -126,20 +126,9 @@ def valid_timestamp(value):
         return False
 
 
-def capture_errors(directory, project_id, capture, overview, models, loaded_hashes, page_path=None, reference_bytes=None):
+def capture_errors(directory, project_id, capture, overview, models, loaded_hashes, page_path=None):
     """Validate reusable raw evidence independently of previous gate outcomes."""
     errors = []
-    if capture.get("prototypeTask"):
-        recorded = capture["prototypeTask"]
-        file = directory / "reference-evidence.json"
-        try:
-            raw = file.read_bytes() if reference_bytes is None else reference_bytes
-            task = json.loads(raw)
-            if (not isinstance(task, dict) or hashlib.sha256(raw).hexdigest() != recorded.get("sha256") or task.get("id") != recorded.get("runId") or task.get("projectId") != project_id
-                    or task.get("sessionId") != capture.get("before", {}).get("sessionId") or task.get("build") != capture.get("build")):
-                errors.append("Controlled task/reference evidence identity or hash mismatch")
-        except (OSError, ValueError):
-            errors.append("Missing or invalid controlled task/reference evidence")
     inventory = page_inventory(overview, page_path)
     if capture.get("pagePath") != page_path:
         errors.append("Evidence scope differs from requested Page/full-project scope")
@@ -260,14 +249,6 @@ def collect(desktop, project_id, destination, reuse=None, page_path=None):
     capture = {"projectId": project_id, "desktopVersion": state.get("version"), "build": state.get("build"),
                "collectedAt": datetime.now(timezone.utc).isoformat(), "before": context_identity(before),
                "after": context_identity(after), "files": evidence_hashes(destination), "validation": validation}
-    task = state.get("prototypeTask")
-    if task:
-        if final_state.get("prototypeTask", {}).get("runId") != task.get("runId"):
-            raise ValueError("Controlled prototype task changed during collection")
-        raw = (Path(task["evidenceDirectory"]) / "task.json").read_bytes()
-        write_path = destination / "reference-evidence.json"
-        write_path.write_bytes(raw)
-        capture["prototypeTask"] = {"runId": task["runId"], "sha256": hashlib.sha256(raw).hexdigest()}
     if page_path is not None:
         capture["pagePath"] = page_path
     if reused:
@@ -284,6 +265,8 @@ def checked_inputs(config, base):
             continue
         if isinstance(spec.get("inventory"), str):
             files.add(base / spec["inventory"])
+        if name == "references" and isinstance(spec.get("evidence"), str):
+            files.add(base / spec["evidence"])
         if name == "slots" and isinstance(spec.get("pages"), list):
             files.update(base / page["intent"] for page in spec["pages"]
                          if isinstance(page, dict) and isinstance(page.get("intent"), str))
@@ -312,31 +295,12 @@ def run_suite(config, base, evidence, project_id, page_path=None):
             results.append({"gate": name, "status": "failed", "report": {"errorType": type(error).__name__, "error": str(error)}})
 
     capture, hashes, overview, readback, layouts = read_capture(evidence)
-    reference_bytes, task = b"", {}
-    if capture.get("prototypeTask"):
-        try:
-            reference_bytes = (evidence / "reference-evidence.json").read_bytes()
-            task = json.loads(reference_bytes)
-            if not isinstance(task, dict):
-                raise ValueError("Task evidence must be an object")
-        except (OSError, ValueError):
-            task = {}
     inventory = page_inventory(overview, page_path)
     all_pages = page_inventory(overview)
     scoped_overview = {"results": [{**item, "components": inventory} if item.get("__type") == "Project" else item for item in overview["results"]]}
 
     def evidence_check():
-        errors = capture_errors(evidence, project_id, capture, overview, readback["results"], hashes, page_path, reference_bytes)
-        if task:
-            for file, digest in task.get("pinned", {}).items():
-                try:
-                    archived = task.get("baseline", {}).get(file, {})
-                    if (hashlib.sha256(Path(file).read_bytes()).hexdigest() != digest
-                            or archived.get("sha256") != digest
-                            or hashlib.sha256(Path(archived["file"]).read_bytes()).hexdigest() != digest):
-                        errors.append("Reviewed baseline changed: " + file)
-                except (OSError, KeyError, TypeError):
-                    errors.append("Missing archived reviewed baseline: " + file)
+        errors = capture_errors(evidence, project_id, capture, overview, readback["results"], hashes, page_path)
         return {"passed": not errors, "errors": errors}
 
     run("evidence", evidence_check)
@@ -371,7 +335,7 @@ def run_suite(config, base, evidence, project_id, page_path=None):
             if not isinstance(spec, dict) or set(spec) - {"presets", "overviewName"}:
                 raise ValueError("page_layout accepts only presets and overviewName; defaults to Desktop and 页面总览")
             return verify_page_layout.check(overview, spec.get("presets"), spec.get("overviewName", "页面总览"))
-        allowed = {"pages"} if name == "slots" else set() if name == "shell_height" else {"inventory"}
+        allowed = {"pages"} if name == "slots" else set() if name == "shell_height" else {"inventory", "evidence"} if name == "references" else {"inventory"}
         if not isinstance(spec, dict) or set(spec) != allowed:
             raise ValueError(f"{name} requires exactly these configuration keys: {sorted(allowed)}")
         if name in ("structure", "forms", "descriptions", "overlays", "references"):
@@ -393,9 +357,8 @@ def run_suite(config, base, evidence, project_id, page_path=None):
             if Counter(p["componentUuid"] for p in expected["pages"]) != Counter(p["uuid"] for p in inventory):
                 raise ValueError("Full-project inventories must cover every Page, including explicit empty lists")
             if name == "references":
-                if not capture.get("prototypeTask"):
-                    raise ValueError("Reference acceptance requires actual design_reference reads from a controlled Desktop task")
-                return verify_references.check(expected, readback, task)
+                reference_evidence = json.loads(read_input(base / spec["evidence"]))
+                return verify_references.check(expected, readback, reference_evidence)
             return {"descriptions": verify_descriptions, "overlays": verify_overlays}[name].check(expected, readback)
         reports = []
         specs = selected_specs(spec.get("pages", [])) if name == "slots" else [{"componentUuid": page["uuid"]} for page in inventory]
@@ -416,9 +379,8 @@ def run_suite(config, base, evidence, project_id, page_path=None):
     for name in GATES:
         spec = config.get(name, {} if name in ("model", "rendering", "page_layout") else None)
         if name == "references" and spec is None:
-            if not task.get("referenceFiles"):
-                results.append({"gate": name, "status": "not_applicable", "report": {"reason": "No supplied design references recorded; this does not establish visual fidelity"}})
-                continue
+            results.append({"gate": name, "status": "not_applicable", "report": {"reason": "No reference gate configured; source coverage requires independent review"}})
+            continue
         if spec is None:
             results.append({"gate": name, "status": "unverified", "report": {"reason": "No reviewed gate configuration supplied"}})
         elif isinstance(spec, dict) and set(spec) == {"notApplicable"} and isinstance(spec["notApplicable"], str) and spec["notApplicable"].strip():
@@ -442,13 +404,12 @@ def run_suite(config, base, evidence, project_id, page_path=None):
         results[0]["report"].setdefault("errors", []).append("Verifier, inventory or intent changed during checks")
         results[0]["report"]["passed"] = False
     try:
-        stable = (evidence_hashes(evidence) == hashes and same_json(read_json(evidence / "capture.json"), capture)
-                  and (not capture.get("prototypeTask") or (evidence / "reference-evidence.json").read_bytes() == reference_bytes))
+        stable = (evidence_hashes(evidence) == hashes and same_json(read_json(evidence / "capture.json"), capture))
     except (OSError, ValueError):
         stable = False
     if not stable:
         results[0]["status"] = "failed"
-        results[0]["report"].setdefault("errors", []).append("Captured model/layout/task evidence changed during checks")
+        results[0]["report"].setdefault("errors", []).append("Captured model/layout evidence changed during checks")
         results[0]["report"]["passed"] = False
     passed = all(item["status"] in ("passed", "not_applicable") for item in results)
     return {"passed": passed,
@@ -501,14 +462,6 @@ def main():
         report = {"passed": False, "projectId": args.project_id, "checks": [{"gate": "collection", "status": "failed", "report": {"errorType": type(error).__name__, "error": str(error)}}],
                   "notChecked": NOT_CHECKED}
     write_report(args.output, report)
-    if args.profile and args.page and report["passed"] and report.get("capture", {}).get("prototypeTask"):
-        try:
-            checkpoint = Desktop(args.profile).call("prototype_task", {"action": "structural_check", "pagePath": args.page, "reportPath": str((args.output / "report.json").resolve())})
-            write_json(args.output / "checkpoint.json", checkpoint)
-        except (OSError, ValueError) as error:
-            report["passed"] = False
-            report["checks"].append({"gate": "prototype_checkpoint", "status": "failed", "report": {"error": str(error)}})
-            write_report(args.output, report)
     print(json.dumps({"passed": report["passed"], "report": str(args.output / "report.md"),
                       "checks": [{"gate": item["gate"], "status": item["status"]} for item in report["checks"]],
                       "notChecked": report["notChecked"]}))

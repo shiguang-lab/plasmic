@@ -102,7 +102,7 @@ test("failed Preview reports the supported recovery instead of suggesting a refe
   };
   await assert.rejects(controller.dispatch("preview", { action: "open", componentUuid: "page" }), /Native Preview did not open.*stop that acceptance.*Do not fall back/);
 });
-test("native execute aliases cannot bypass Preview evidence or mutation batch gates", async (t) => {
+test("native execute aliases retain the Preview and batch context entry points", async (t) => {
   const controller = new DesktopController(() => ({ isDestroyed: () => false }), {});
   t.after(() => controller.close());
   let calls = 0;
@@ -114,17 +114,40 @@ test("native execute aliases cannot bypass Preview evidence or mutation batch ga
   assert.equal(calls, 0);
 });
 
-test("recovering a bound project never auto-saves an unrelated editor opened outside the task", async (t) => {
-  const controller = new DesktopController(() => ({ isDestroyed: () => false }), {});
+test("project and dashboard navigation retain save, access and target checks", async (t) => {
+  let projectId = "first", url = "https://studio.example/projects/first", canEdit = true;
+  const calls = [];
+  const controller = new DesktopController(() => ({ isDestroyed: () => false,
+    webContents: { getURL: () => url },
+    loadURL: async (target) => { calls.push(["loadURL", target]); url = target; projectId = new URL(target).pathname.match(/^\/projects\/([^/]+)/)?.[1]; },
+  }), { studioOrigin: "https://studio.example" });
   t.after(() => controller.close());
-  await controller.task.loading;
-  controller.task.run = { projectId: "bound", ended: "cancelled" };
-  controller.state = async () => ({ ready: true, projectId: "unrelated" });
-  let saves = 0;
-  controller.saveBeforeNavigation = async () => { saves++; };
-  await assert.rejects(controller.dispatch("open_design", { projectId: "bound" }), /cannot save it/);
-  assert.equal(saves, 0);
+  controller.state = async () => ({ ready: !!projectId, projectId, url,
+    editorContext: { projectId, sessionId: "session", mode: "edit", canEdit } });
+  controller.ready = async () => {};
+  controller.editor = async (name) => {
+    calls.push([name]);
+    return name === "identify" ? { projectId, canEdit } : { saved: true };
+  };
+  controller.requestStudio = async () => ({});
+  await controller.dispatch("open_design", { projectId: "second" });
+  assert.deepEqual(calls.map(([name]) => name), ["identify", "save", "loadURL", "identify"]);
+  await controller.dispatch("execute", { name: "changeElement", input: { componentUuid: "page", elementUuid: "node", name: "Content" } });
+  assert.equal(calls.at(-1)[0], "changeElement");
+  canEdit = false;
+  const before = calls.length;
+  await assert.rejects(controller.dispatch("execute", { name: "changeElement", input: { componentUuid: "page" } }),
+    (error) => error.context.required.canEdit === true && error.context.operationExecuted === false);
+  assert.equal(calls.length, before);
+  await controller.dispatch("open_workspace", { workspaceId: "workspace" });
+  assert.equal(url, "https://studio.example/workspaces/workspace");
+  assert.equal(calls.slice(before).some(([name]) => name === "save"), false);
+  controller.requestStudio = async () => { throw new Error("Access denied"); };
+  await assert.rejects(controller.dispatch("open_workspace", { workspaceId: "forbidden" }), /Access denied/);
+  assert.equal(url, "https://studio.example/workspaces/workspace");
+  await assert.rejects(controller.dispatch("open_design", { projectId: "invalid/project" }), /Invalid projectId/);
 });
+
 test("reference navigation checks editor context after a queued Preview transition", async (t) => {
   const win = { isDestroyed: () => false, webContents: { getURL: () => "https://studio.example/projects/p" } };
   const controller = new DesktopController(() => win, { studioOrigin: "https://studio.example" });

@@ -29,15 +29,15 @@ The `page` kind describes a complete page layout; the source definitions are ord
 
 ## Read and compose through public tools
 
-Choose one public acquisition path before starting a controlled task. Record the consuming project and check [navigation/save side effects](desktop-mcp.md#read-and-target) before opening another project.
+Choose one public acquisition path before composition. Record the consuming project and check [navigation/save side effects](desktop-mcp.md#read-and-target) before opening another project.
 
 | Need | Public path |
 | --- | --- |
 | Template already imported | Read `collection:"importedProjects"`; use its actual dependency ID with `fromProject` to inspect selected components and nested definitions. No project switch is needed. |
 | Import a compatible published template for authorized composition | Discover `installLibrary` through `get_app_state`; call `execute {name:"installLibrary",input:{projectId:"CATALOG_PROJECT_ID"}}`, then reread installed versions and contracts. Inspect its dependency graph before separately installing/upgrading libraries. |
-| Read-only source inspection or reference composition | Use the already open source or imported dependency first. Open the catalog source only when navigation will not save unrelated edits, or that save is already authorized; otherwise report the blocked source read. Inspect selected live models and return to the consuming project under the same condition. Read-only inspection does not install libraries. Finish source navigation before starting a controlled task. |
+| Read-only source inspection or reference composition | Use the already open source or imported dependency first. Open the catalog source only when navigation will not save unrelated edits, or that save is already authorized; otherwise report the blocked source read. Inspect selected live models and return to the consuming project under the same condition. Read-only inspection does not install libraries. |
 
-`fromProject` addresses an already imported dependency; a catalog ID does not install or open it. A controlled task blocks cross-project navigation. Access/publication/dependency failures block the affected template path, not independent work. Never substitute an old business project or claim inaccessible source was inspected. Catalog UUIDs, versions, thumbnails and Slots are published index records; confirm live identity and access.
+`fromProject` addresses an already imported dependency; a catalog ID does not install or open it. Access/publication/dependency failures block the affected template path, not independent work. Never substitute an old business project or claim inaccessible source was inspected. Catalog UUIDs, versions, thumbnails and Slots are published index records; confirm live identity and access.
 
 Read the destination's actual UUIDs, registered keys, Props, Slots, defaults and event/ref signatures. Source identifiers and dependency versions do not establish destination identities. Select the available composition mechanism:
 
@@ -47,7 +47,7 @@ Read the destination's actual UUIDs, registered keys, Props, Slots, defaults and
 
 Use the selected library's native layout/surface components under [shared layout](design/layout.md) and [component selection](libraries/index.md#native-component-selection). Preserve real Slot ownership; clear unused demonstration content. Replace sample fields, columns, records, scopes and menus from the requirement. After insertion/detachment, reread the result, apply [node naming](design/naming.md), and bind current destination state/render scopes.
 
-Supplied Pen references follow [Pen reading](prototype-tasks.md#read-original-pen-references); the catalog's Pen path is provenance, not a required local file. Screenshots and archived acceptance models do not replace the live editable template model.
+Supplied Pen references follow [Pen evidence](design-references.md); the catalog's Pen path is provenance, not a required local file. Screenshots and archived acceptance models do not replace the live editable template model.
 
 ## Bind destination behavior
 

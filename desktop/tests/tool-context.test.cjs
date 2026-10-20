@@ -8,10 +8,11 @@ const { Client } = require("@modelcontextprotocol/sdk/client/index.js");
 const { StdioClientTransport } = require("@modelcontextprotocol/sdk/client/stdio.js");
 const { startRpc } = require("../src/local-rpc.cjs");
 const { currentContext } = require("../src/tool-context.cjs");
+let userDataDirectory = os.tmpdir();
 const originalLoad = Module._load;
 Module._load = function (name, ...args) {
   return name === "electron"
-    ? { app: { getPath: () => os.tmpdir() }, ipcMain: { on() {}, removeListener() {} } }
+    ? { app: { getPath: () => userDataDirectory }, ipcMain: { on() {}, removeListener() {} } }
     : originalLoad.call(this, name, ...args);
 };
 const { DesktopController } = require("../src/controller.cjs");
@@ -67,10 +68,23 @@ test("dashboard context fails immediately without opening or saving a project; m
   assert.deepEqual(calls, []);
   controller.requestStudio = async () => ({ projects: [] });
   assert.deepEqual(await controller.dispatch("list_projects", {}), { projects: [] });
-  const schema = await controller.dispatch("prototype_task", { action: "plan_schema" });
-  assert.equal(schema.planSchema.properties.documents.type, "object");
-  assert.equal(schema.planExample.documents.structure.pages.length, 1);
   assert.deepEqual(calls, []);
+});
+
+test("legacy local workflow state cannot affect status or block an ordinary edit", async (t) => {
+  const profile = await fs.mkdtemp(path.join(os.tmpdir(), "plasmic-legacy-state-"));
+  t.after(() => fs.rm(profile, { recursive: true, force: true }));
+  const pointer = path.join(profile, "prototype-task.json");
+  await fs.writeFile(pointer, "invalid obsolete task state");
+  const previousProfile = userDataDirectory;
+  userDataDirectory = profile;
+  t.after(() => { userDataDirectory = previousProfile; });
+  const { controller, calls } = fixture(t);
+  const status = await controller.dispatch("get_app_state", {});
+  assert.equal(Object.hasOwn(status, "prototypeTask"), false);
+  await controller.dispatch("execute", { name: "changeElement", input: { componentUuid: "page", elementUuid: "node", name: "Content" } });
+  assert.equal(calls.at(-1).name, "changeElement");
+  assert.equal(await fs.readFile(pointer, "utf8"), "invalid obsolete task state");
 });
 
 test("retained model identity cannot authorize a different route or session project", async (t) => {

@@ -75,7 +75,6 @@ app
       "open_org",
       "open_workspace",
       "preview",
-      "prototype_task",
       "read_image",
       "read_result",
       "read_skill",

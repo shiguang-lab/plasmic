@@ -4,7 +4,7 @@ Use [verify_all.py](../scripts/verify_all.py) from the resolved `resourceRoot` f
 
 ## Reviewed suite configuration
 
-Obtain the complete format and example from `prototype_task {action:"plan_schema"}` as described in [plan preparation](prototype-tasks.md#prepare-source-expectations), then create a task-local `suite.json` from independently reviewed requirements. All paths resolve relative to that file. The following is only the suite envelope. Prepare all inventories before starting; prepare each Page's Slot intent before its `begin_page` and scoped gate. The final full run requires every intent file.
+Create a local `suite.json` from independently reviewed requirements. All paths resolve relative to that file. The following is the suite envelope; inventory fields are documented in the linked region references and [requirement alignment](requirement-alignment.md). Prepare source-derived inventories before generation and each Page's Slot intent before its scoped check. The final full run requires every intent file. The agent owns the execution plan and progress; the verifier reads evidence and writes reports without changing Desktop task state or restricting navigation.
 
 ```json
 {
@@ -15,7 +15,7 @@ Obtain the complete format and example from `prototype_task {action:"plan_schema
   "overlays": {"inventory":"overlay-inventory.json"},
   "slots": {"pages":[{"path":"/records","intent":"records-intent.html"}]},
   "shell_height": {},
-  "references": {"inventory":"reference-inventory.json"}
+  "references": {"inventory":"reference-inventory.json","evidence":"reference-evidence.json"}
 }
 ```
 
@@ -28,7 +28,7 @@ Obtain the complete format and example from `prototype_task {action:"plan_schema
 | `slots` | Named pre-generation component intent and every supplied direct Slot; see [granularity](#slot-intent-granularity). May be inapplicable only when there are no component instances. |
 | `model` | Automatic: fresh native validate must return literal valid:true, no errors and exact scoped Page IDs. Retain warnings for review. |
 | `rendering` | Automatic: each Page has a ready, complete full snapshot with positive viewport dimensions, explicit image/problem lists and the current required checks. Overflow, sticky-cell control overflow and unloaded images fail; supported horizontal Table scrolling itself is valid. See [rendered inspection](desktop-inspection.md#geometry-and-static-screenshots). |
-| `references` | Required for supplied Pen references: actual MCP layout/image evidence and native-node mappings under [Pen reading](prototype-tasks.md#read-original-pen-references). Omit only when none were supplied. |
+| `references` | Required for supplied Pen references: actual MCP layout/image evidence and native-node mappings under [Pen evidence](design-references.md). Omit only when none were supplied. |
 | `shell_height` | Every routed supported shell Page's structure and measured shell/Layout/sidebar geometry. AppShell owns sizing; ancestor/instance dimension overrides are not required. See [height acceptance](design/layout.md#viewport-shell-height-acceptance). |
 
 Full suites cover standalone fixed-viewport Overseas/Antd-v6 Pages. All routes must appear in Form, Descriptions and overlay inventories, even when their reviewed lists are empty. Project-wide `notApplicable` cannot replace these inventories. Model, rendering, structure and page_layout cannot be exempted. `shell_height` accepts `{"notApplicable":"Reviewed reason and scope"}` only without supported shells. Omitted gates make the run incomplete. Other libraries/layouts use focused checks and report unsupported coverage.
@@ -76,13 +76,11 @@ With `--page /exact-route`, the same suite/inventories may include planned sibli
 
 After each Page gate, call get_screenshot for this Page and open the returned image. Record visible headers/rows, hierarchy, duplicate surfaces/titles and any clipping; then exercise Preview actions. Screenshot acquisition and App inspection feedback prove collection only, not visual approval. Failed or missing visual/runtime evidence prevents Page completion.
 
-Supported full generation uses the [controlled task](prototype-tasks.md). Desktop intercepts real mutation calls and blocks cross-Page business writes before execution. It records actual reference/model/layout/image/runtime calls; do not write a retrospective timeline or a passed:true review file. A successful live --page verifier automatically registers structural_check using matching native read signatures. Source edits, stale builds/sessions, altered images/reports and missing runtime case outcomes block advancement. Offline replay does not register a live checkpoint.
-
-During a task, the capture includes a hash-pinned reference-evidence.json snapshot of the actual Desktop recording. After save/reopen, Page checks and the final full report, call prototype_task finish, then audit its evidenceDirectory with `python3 RESOURCE_ROOT/scripts/verify_page_sequence.py /absolute/Desktop/prototype-runs/RUN_ID --report /absolute/task/page-sequence.json`. The script consumes actual Desktop events and files, not model-authored stage events. Its success verifies recording consistency; source interpretation and recorded visual judgments still need independent review.
+Keep actual reference/model/layout/image/runtime calls, observations and pending cases in the local working directory. A passing scoped report checks the captured Page only. After save/reopen, collect fresh evidence, run the full report and independently review source coverage, pixels and Preview outcomes. Do not synthesize a successful runtime trace or infer execution order from a final model.
 
 The runner matches get_app_state.buildId with get_build_info before/after collection, retaining full build provenance in evidence. It identifies the session, reads only Project identity/components/canvases/pageFrames/devicePresets, then complete Pages with view:full,depth:all (at most 30 per call) and full layout per Page without navigating. Project/branch/session/revision/changeCounter and fingerprints must remain stable. Structural/property reads cannot replace full Page evidence. Do not edit during collection. A revision alone does not prove saving; explicit save/reopen acceptance stays separate.
 
-The new output directory contains `overview.json`, `pages.json`, `layouts.json`, `capture.json`, `report.json` and `report.md`. Controlled tasks also capture `reference-evidence.json`; successful live Page registration writes `checkpoint.json`. Native validate input/result are retained in capture.json. Page snapshot errors remain visible in `layouts.json` and fail rendering/height checks. A collection error produces a failed report, retaining any evidence already collected. Existing output directories are refused to preserve prior runs. Reports record exact checker, inventory and intent hashes in `checkedInputs`. Inventories and intents are parsed from those same loaded bytes; changes to checked files during the run fail evidence integrity. Raw evidence remains reusable across rule changes only by rerunning every gate.
+The new output directory contains `overview.json`, `pages.json`, `layouts.json`, `capture.json`, `report.json` and `report.md`. Pen layout/image evidence is a separate local input under `references.evidence`. Native validate input/result are retained in capture.json. Page snapshot errors remain visible in `layouts.json` and fail rendering/height checks. A collection error produces a failed report, retaining any evidence already collected. Existing output directories are refused to preserve prior runs. Reports record exact checker, inventory and intent hashes in `checkedInputs`. Inventories and intents are parsed from those same loaded bytes; changes to checked files during the run fail evidence integrity. Raw evidence remains reusable across rule changes only by rerunning every gate.
 
 ## Reuse within the same live design state
 

@@ -5,7 +5,6 @@ const { canvasFrames, renderCanvas, exportCanvas } = require("./canvas.cjs");
 const { encodeImagePreview } = require("./image-preview.cjs");
 const { managementResult } = require("./management-result.cjs");
 const { editorOutput, editorOutputSchema } = require("./editor-output.cjs");
-const { PrototypeTask } = require("./prototype-task.cjs");
 const { DesignReference } = require("./design-reference.cjs");
 const { runPreview, previewFrame } = require("./preview-runtime.cjs");
 const { prototypeTools } = require("./prototype-mcp.cjs");
@@ -37,7 +36,6 @@ class DesktopController {
     this.operations = new Map();
     this.pending = new Map();
     this.queue = Promise.resolve();
-    this.task = new PrototypeTask(app.getPath("userData"), (name, input) => this.editor(name, input));
     this.references = new DesignReference(app.getPath("userData"));
     this.receive = (event, id, result) => {
       const pending = this.pending.get(id);
@@ -192,8 +190,7 @@ class DesktopController {
         skill: "plasmic",
       });
       if (identity.canEdit) {
-        const saved = await this.editor("save");
-        await this.task.after("execute", { name: "save", input: {} }, saved);
+        await this.editor("save");
       }
     }
   }
@@ -239,18 +236,15 @@ class DesktopController {
         await this.prepareSession();
         if (!["list_projects", "search_stock_images", "generate_image", "browser", "reference_browser", "import_reference", "design_reference", "capture_browser", "make_vector", "vectorize_image"].includes(method)) await this.waitForStartup();
         await this.checkContext(method, input);
-        const scope = await this.task.before(method, input);
-        const result = await this.execute(method, input);
-        return await this.task.after(method, input, result, scope);
+        return await this.execute(method, input);
       } catch (error) {
         if (method === "preview" || (method === "execute" && input?.name === "preview")) error.message += ". " + previewRecovery;
-        if (this.task.active) await this.task.event("call_failed", { method, operation: method === "execute" ? input.name : undefined, message: error.message }).catch(() => {});
         throw error;
       } finally {
         this.operations.delete(id);
       }
     };
-    if (!this.task.active && (
+    if (
       [
         "get_org",
         "list_orgs",
@@ -262,7 +256,7 @@ class DesktopController {
       method === "design_reference" ||
       (["make_vector", "vectorize_image"].includes(method) &&
         !input?.componentUuid)
-    )) {
+    ) {
       return run();
     }
     const result = this.queue.then(run, run);
@@ -288,7 +282,6 @@ class DesktopController {
     }
     if (method === "get_image_service_status") return require("./image-service.cjs").imageServiceStatus(app.getPath("userData"));
     if (method === "get_app_state") {
-      await this.task.loading;
       const { toolNames = [], schemaView = "input", view = "status" } = input;
       if (!["status", "tools"].includes(view)) throw new Error("Invalid app state view");
       if (!["input", "full"].includes(schemaView)) throw new Error("schemaView must be input or full");
@@ -315,7 +308,6 @@ class DesktopController {
         context: currentContext(state, this.config.studioOrigin),
         ...(state.build ? { buildId: buildIdentity(state.build) } : {}),
         ...(state.editorContext ? { editorContext: pick(state.editorContext, ["branchId", "sessionId"]) } : {}),
-        ...(this.task.status() ? { prototypeTask: this.task.status() } : {}),
       };
       if (toolNames.length || view === "tools") return {
         ...identity,
@@ -331,17 +323,6 @@ class DesktopController {
     const win = this.getWindow();
     if (!win || win.isDestroyed()) {
       throw new Error("Open the desktop editor window");
-    }
-    if (method === "prototype_task") {
-      if (["start", "resume", "revise"].includes(input.action)) this.task.build = require("../renderer/desktop-assets.json").build;
-      if (input.action === "start") {
-        const metadata = await this.invoke("metadata", { toolNames: ["read", "queryElements", "preview"] }, 3000);
-        for (const name of ["read", "queryElements"]) {
-          const props = metadata.tools[name]?.inputSchema?.properties;
-          if (!props?.view?.enum?.includes("properties") || props.propNames?.type !== "array") throw new Error("Desktop renderer/resource contract mismatch: " + name + " requires properties/propNames before generation");
-        }
-      }
-      return this.task.command(input);
     }
     if (method === "design_reference") return this.references.read(input);
     if (method === "preview") {
@@ -359,7 +340,7 @@ class DesktopController {
         if (input.action === "open") await previewFrame(win, result.componentUuid);
       } else {
         if (input.action === "state" && (before.mode !== "preview" || !before.previewContext?.componentUuid)) result = { ready: false };
-        else result = input.action === "state" ? { ready: true, viewport: (await previewFrame(win, before.previewContext.componentUuid)).layout } : await runPreview(win, { ...input, expectedTarget: this.task.expectedTarget() }, before);
+        else result = input.action === "state" ? { ready: true, viewport: (await previewFrame(win, before.previewContext.componentUuid)).layout } : await runPreview(win, input, before);
       }
       const after = await this.editor("getEditorContext");
       if (["projectId", "branchId", "sessionId", "revision", "changeCounter"].some((key) => before[key] !== after[key])) throw new Error("Preview operation changed the saved design/session; inspect the model before continuing");
@@ -486,9 +467,6 @@ class DesktopController {
         throw new Error("Invalid projectId");
       }
       const state = await this.state([]);
-      if (this.task.run && !["complete", "failed_start"].includes(this.task.run.ended) && state.ready && state.projectId !== this.task.run.projectId) {
-        throw new Error("Another project is active; the controlled task cannot save it while reopening its bound project");
-      }
       if (state.projectId !== input.projectId || input.reopen === true) {
         await this.saveBeforeNavigation(state);
         await win.loadURL(
@@ -514,7 +492,7 @@ class DesktopController {
       return this.editor("executeBatch", { operations: input.operations });
     }
     if (method === "execute") {
-      if (["preview", "executeBatch"].includes(input.name)) throw new Error("Use top-level preview or execute_batch so runtime evidence and Page mutation gates are enforced");
+      if (["preview", "executeBatch"].includes(input.name)) throw new Error("Use top-level preview or execute_batch so operation context is checked");
       try { return editorOutput(input.name, await this.editor(input.name, input.input)); }
       catch (error) {
         if (["insertHtml", "changeElement", "updateState"].includes(input.name)) error.message += ". Read the affected registered component contract (view:contract) and owning state/event context (view:context); correct this operation without changing the source expectations.";

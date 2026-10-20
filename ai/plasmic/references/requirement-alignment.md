@@ -30,7 +30,7 @@ Before markup, apply [native component selection](libraries/index.md#native-comp
 
 Classify switches by source purpose before recording a component identity. In the Antd-v6 list composition, content-scope navigation follows [Tabs](libraries/antd_v6/components/tabs.md); choosing a field value follows Radio.Group. Record the chosen native identity in components and real content/action Slot owners in the intent. A plan that merely repeats the generated selector has not reviewed this choice; structural identity checks cannot correct a wrongly classified source role.
 
-Plain semantic text, root/Slot containers, genuine navigation anchors and read-only code do not need exceptions. For a widget with a verified contract gap, add optional `elementFallbacks:[{"nodeName":"CustomWidget","reason":"Checked candidates/contracts and concrete unsupported behavior","source":"requirement section + contract evidence"}]` before generation. Name the exact node; exceptions do not cover descendants or override required native identities or other gates. The structure check rejects unreviewed raw controls/tables/dialogs, ARIA widgets and ordinary-element click targets. It verifies exception shape and exact targets, not the correctness of the rationale; independent contract review remains necessary. A native-component failure is not a reason to add an exception just to pass.
+For a fallback permitted by the skill's component-priority rule, add optional `elementFallbacks:[{"nodeName":"CustomWidget","reason":"Checked candidates/contracts and concrete unsupported behavior","source":"requirement section + contract evidence"}]` before generation. Each entry targets that exact node only, without covering descendants. The structure check rejects unreviewed raw controls/tables/dialogs, ARIA widgets and ordinary-element click targets. It verifies exception shape and exact targets, not the correctness of the rationale; independent contract review remains necessary.
 
 Review `copy` independently of output. `source` cites this review, `excluded` records requirement/process sentences that must not appear, and `help` records necessary user-facing instruction owners/text/sources. Keep scope/release notes, API/implementation rationale, permission-matrix explanations, acceptance steps and simulation/debug controls in the task report. Express behavior through actual UI state and concise actionable feedback. Preserve useful field constraints, irreversible-action warnings and failure guidance; do not remove all help text or use a global keyword blacklist.
 
@@ -50,9 +50,9 @@ Review `copy` independently of output. `source` cites this review, `excluded` re
 }
 ```
 
-The structure gate checks required native identities, recognized/unapproved Page-heading structures, declared excluded literal copy and the expected help text/bindings. These are static guards; unnamed visual headings, arbitrary prose meaning and dynamic rendered messages still require image/runtime review. Do not claim that a string scan understands every sentence or that zero generated Forms means no Form was required. Supported controlled tasks require these declarations before their first business write.
+The structure gate checks required native identities, recognized/unapproved Page-heading structures, declared excluded literal copy and the expected help text/bindings. These are static guards; unnamed visual headings, arbitrary prose meaning and dynamic rendered messages still require image/runtime review. Do not claim that a string scan understands every sentence or that zero generated Forms means no Form was required. Prepare these local declarations before generating business content.
 
-For controlled Overseas/Antd-v6 work, components also records role/purpose, native property constraints and Slot ownership as specified in [controlled tasks](prototype-tasks.md#prepare-source-expectations). A source-driven result table can use these acceptance entries (illustrative names and widths; measure the actual operation content):
+For Overseas/Antd-v6 checks, components also records role/purpose, native property constraints and Slot ownership. A source-driven result table can use these acceptance entries (illustrative names and widths; measure the actual operation content):
 
 ```json
 [
@@ -73,7 +73,7 @@ Shared pages must be exercised for every required type, including directly enter
 
 ## Structural gate
 
-Save a task-local `structure-expectation.json` before generating. It contains all planned Page paths and the full expected AppShell menu tree; give every Page and the navigation a requirement section/excerpt or explicit user-decision citation. Keys/routes are implementation choices; labels/hierarchy/ownership are source-derived. The following fragment illustrates navigation/binding fields only; it is not a complete controlled plan. Use `plan_schema` for all required declarations and derive routes from the source:
+Save a task-local `structure-expectation.json` before generating. It contains all planned Page paths and the full expected AppShell menu tree; give every Page and the navigation a requirement section/excerpt or explicit user-decision citation. Keys/routes are implementation choices; labels/hierarchy/ownership are source-derived. The following fragment illustrates navigation/binding fields only; combine it with the component/copy declarations above and derive routes from the source:
 
 ```json
 {

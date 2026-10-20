@@ -17,7 +17,7 @@ Select every applicable section: the reader includes descendants, ancestor intro
 
 ## Model reads and tool results
 
-Use [controlled task references](prototype-tasks.md#read-original-pen-references) when .pen files are supplied: top-level summaries first, then current-Page scoped properties and screenshots, with explicit state coverage. Avoid whole-document visitors that print every nested frame. Unchanged source evidence is reused by identity; text extraction alone is not reference fidelity.
+Use [Pen evidence](design-references.md) when .pen files are supplied: top-level summaries first, then current-Page scoped properties and screenshots, with explicit state coverage. Avoid whole-document visitors that print every nested frame. Unchanged source evidence is reused by identity; text extraction alone is not reference fidelity.
 
 MCP JSON appears once in `content.text`. For `ResultReference`, use `read_result(resultId, path)`: follow `nextOffset`, append nested entry keys to inspect `reference`s, and concatenate string `text` pages. Read needed fields rather than unrelated data. Snapshots persist within this connection, up to 16 / 64 MiB; consume them before eviction/disconnection. Never replay a successful mutation to recover output. Save complete required evidence locally; inspect every error/receipt, relevant contracts and failures. Do not truncate required Props, Slots, states or interactions, or guess identities.
 

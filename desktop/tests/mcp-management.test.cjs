@@ -77,6 +77,10 @@ test("management tools expose strict MCP schemas and forward valid calls through
       }),
     );
     const tools = (await client.listTools()).tools;
+    assert.equal(tools.some((tool) => tool.name === "prototype_task"), false);
+    const retired = await client.callTool({ name: "prototype_task", arguments: { action: "start" } });
+    assert.equal(retired.isError, true);
+    assert.match(retired.content[0].text, /Unknown desktop tool/);
     const valid = [
       ["get_app_state", {}],
       ["get_app_state", { toolNames: [] }],

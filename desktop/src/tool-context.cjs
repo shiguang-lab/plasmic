@@ -26,7 +26,6 @@ function requiredContext(method, input = {}) {
     return { surface: "editor", mode: "edit", canEdit: true };
   }
   if (method === "read_image") return { surface: "editor", mode: "edit" };
-  if (method === "prototype_task" && !["plan_schema", "state", "validate_plan", "cancel", "cancel_case"].includes(input.action)) return { surface: "editor" };
   return null;
 }
 

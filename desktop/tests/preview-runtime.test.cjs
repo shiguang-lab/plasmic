@@ -30,13 +30,12 @@ test("fill/select dispatch DOM events and assertions observe actual runtime valu
   w.document.getElementById("sql").addEventListener("input", (e) => events.push(e.target.value));
   const snapshot = await run({ action: "snapshot" });
   const sql = snapshot.elements.find((e) => e.name === "SQL");
-  await run({ action: "fill", ref: sql.ref, value: "SELECT uid FROM cdm_users", expectedTarget: { role: "textbox", name: "SQL" } });
+  await run({ action: "fill", ref: sql.ref, value: "SELECT uid FROM cdm_users" });
   assert.deepEqual(events, ["SELECT uid FROM cdm_users"]);
   assert.equal((await run({ action: "assert", checks: [{ kind: "value", role: "textbox", name: "SQL", value: events[0] }], timeoutMs: 0 })).passed, true);
   assert.equal((await run({ action: "assert", checks: [{ kind: "value", role: "textbox", name: "SQL", value: "wrong" }], timeoutMs: 0 })).passed, false);
   await run({ action: "select", ref: snapshot.elements.find((e) => e.name === "状态").ref, value: "disabled" });
   assert.equal(w.document.querySelector("select").value, "disabled");
-  await assert.rejects(run({ action: "fill", ref: sql.ref, value: "wrong", expectedTarget: { name: "Other" } }), /does not match/);
   await assert.rejects(run({ action: "click", ref: snapshot.elements.find((e) => e.name === "保存").ref }), /disabled/);
   w.document.getElementById("sql").remove();
   await assert.rejects(run({ action: "fill", ref: sql.ref, value: "wrong" }), /Stale/);
