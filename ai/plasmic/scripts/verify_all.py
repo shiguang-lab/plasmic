@@ -327,6 +327,16 @@ def run_suite(config, base, evidence, project_id, page_path=None):
 
     def evidence_check():
         errors = capture_errors(evidence, project_id, capture, overview, readback["results"], hashes, page_path, reference_bytes)
+        if task:
+            for file, digest in task.get("pinned", {}).items():
+                try:
+                    archived = task.get("baseline", {}).get(file, {})
+                    if (hashlib.sha256(Path(file).read_bytes()).hexdigest() != digest
+                            or archived.get("sha256") != digest
+                            or hashlib.sha256(Path(archived["file"]).read_bytes()).hexdigest() != digest):
+                        errors.append("Reviewed baseline changed: " + file)
+                except (OSError, KeyError, TypeError):
+                    errors.append("Missing archived reviewed baseline: " + file)
         return {"passed": not errors, "errors": errors}
 
     run("evidence", evidence_check)
@@ -440,9 +450,10 @@ def run_suite(config, base, evidence, project_id, page_path=None):
         results[0]["status"] = "failed"
         results[0]["report"].setdefault("errors", []).append("Captured model/layout/task evidence changed during checks")
         results[0]["report"]["passed"] = False
-    return {"passed": all(item["status"] in ("passed", "not_applicable") for item in results),
+    passed = all(item["status"] in ("passed", "not_applicable") for item in results)
+    return {"passed": passed,
             "scope": "automated gates only", "pagePath": page_path, "projectId": project_id, "capture": capture,
-            "acceptance": {"status": "unverified", "missing": NOT_CHECKED},
+            "acceptance": {"status": "unverified" if passed else "failed", "missing": NOT_CHECKED},
             "checkedInputs": inputs,
             "checks": results, "notChecked": NOT_CHECKED}
 

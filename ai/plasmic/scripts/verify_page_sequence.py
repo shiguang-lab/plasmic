@@ -19,29 +19,47 @@ def check(task, events):
     if not paths or len(set(paths)) != len(paths):
         raise ValueError('Distinct source-reviewed routes required')
     states = {route: set() for route in paths}
-    active, current_case = None, None
+    active, current_case, cancelled = None, None, False
     images = {}
+
+    def invalidate_targets(routes):
+        for spec in task['pages']:
+            for case in spec['runtimeCases']:
+                if case.get('targetPath') in routes:
+                    states[spec['path']].discard('case:' + case['id'])
+
     for event in events:
         kind, page = event['kind'], event.get('page')
-        if kind == 'begin_page':
+        if kind == 'cancelled':
+            cancelled = True
+        elif kind == 'resumed':
+            cancelled = False
+        elif kind == 'plan_revised':
+            affected = event.get('pages', paths)
+            for route in affected:
+                states[route] = {'begun'} if route == active else set()
+            invalidate_targets(affected)
+            current_case = None
+        elif kind == 'begin_page':
             if page not in states:
                 raise ValueError('Unknown Page in Desktop event stream')
             if active and active != page and 'complete' not in states[active]:
                 errors.append(f'{page}: advanced before {active} completed')
             active = page
             states[page].add('begun')
-        elif kind in {'reopened', 'external_change'}:
+        elif kind in {'reopened', 'external_change', 'build_changed'}:
             states = {route: set() for route in paths}
             current_case = None
             if kind == 'reopened':
                 active = None
-        elif kind == 'reference_read' and event.get('action') == 'read':
-            source = event['source']
-            for spec in task['pages']:
-                if any(ref['filePath'] == source['filePath'] and ref['nodeId'] == source['nodeId'] for ref in spec.get('references', [])):
-                    states[spec['path']] = {'begun'} if spec['path'] == active else set()
-                    current_case = None
+        elif kind == 'reference_changed':
+            for route in event['pages']:
+                states[route] = {'begun'} if route == active else set()
+            invalidate_targets(event['pages'])
+            current_case = None
         elif kind == 'mutation':
+            if cancelled:
+                errors.append('Design mutation after task cancellation without resuming its baseline')
             if event.get('emptyPagesOnly'):
                 continue
             if event.get('global'):
@@ -51,6 +69,10 @@ def check(task, events):
                     errors.append(f'{page}: mutation before its plan/reference gate')
                 states[page] = {'begun'}
             current_case = None
+            for spec in task['pages']:
+                for case in spec['runtimeCases']:
+                    if event.get('global') or case.get('targetPath') == page:
+                        states[spec['path']].discard('case:' + case['id'])
         elif kind == 'structural_check':
             if page != active or 'begun' not in states.get(page, set()):
                 errors.append(f'{page}: invalid structural checkpoint order')
@@ -98,9 +120,13 @@ def check(task, events):
     for file, digest in task['pinned'].items():
         if hashlib.sha256(Path(file).read_bytes()).hexdigest() != digest:
             errors.append('Source/plan changed: ' + file)
+        archived = task.get('baseline', {}).get(file)
+        if archived and hashlib.sha256(Path(archived['file']).read_bytes()).hexdigest() != digest:
+            errors.append('Archived reviewed baseline changed: ' + file)
     if task.get('ended') != 'complete' or events[-1]['kind'] != 'finished':
         errors.append('Desktop task has not completed save/reopen and final verification')
-    return {'passed': not errors, 'scope': 'actual Desktop event/evidence consistency; visual quality remains independent review', 'errors': errors, 'runId': task['id'], 'metrics': task.get('metrics', {})}
+    return {'passed': not errors, 'deliveryStatus': 'recorded_checks_complete' if not errors else 'incomplete',
+            'scope': 'actual Desktop event/evidence consistency; visual quality remains independent review', 'errors': errors, 'runId': task['id'], 'metrics': task.get('metrics', {}), 'pageMetrics': task.get('pageMetrics', {})}
 
 
 def main():

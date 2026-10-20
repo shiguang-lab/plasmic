@@ -1816,6 +1816,24 @@ describe("AI prototype editor tools", () => {
     expect(studioCtx.site.components).toHaveLength(1);
   });
 
+  it("reads the registered value-function signature before accepting a native function binding", async () => {
+    const site = createSite();
+    // Studio's internal function control is registered this way by Pagination.showTotal.
+    const meta = { name: "SummaryWidget", importPath: "./summary-widget", props: { summary: { type: "function", argNames: ["total", "range"], argValues: [12, [1, 10]] } as any } };
+    const definition = mkCodeComponent("SummaryWidget", meta, {});
+    definition.params.push(mkParam({ name: "summary", paramType: "prop", type: typeFactory.any() }));
+    site.components.push(definition);
+    const { studioCtx, call, createPage } = fixture(site);
+    vi.spyOn(studioCtx, "getCodeComponentMeta").mockImplementation((component) => component === definition ? meta : undefined);
+    const contract = (await call("read", { componentUuids: [definition.uuid], view: "contract" })).results[0];
+    expect(contract.props[0].registration).toMatchObject({ type: "function", args: [{ name: "total" }, { name: "range" }] });
+    const page = await createPage();
+    await call("insertHtml", { componentUuid: page.uuid, html: '<plasmic-component data-plasmic-component="SummaryWidget" data-props=\'{"summary":"{{ (total, range) => `共 ${total} 条` }}"}\'></plasmic-component>' });
+    const read = (await call("read", { componentUuids: [page.uuid], view: "full" })).results[0];
+    expect(read.baseVariantTplTree).toContain("(total, range)");
+    expect((await call("validate")).valid).toBe(true);
+  });
+
   it("renames existing nodes through an undoable batch without replacing them", async () => {
     const { studioCtx, call, createPage } = fixture();
     const page = await createPage();

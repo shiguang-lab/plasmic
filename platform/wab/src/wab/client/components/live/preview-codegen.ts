@@ -516,6 +516,7 @@ function createPreviewRender(
     },
     render: {
       root: `./${rootOutput.skeletonModuleFileName}`,
+      componentUuid: component.uuid,
       isPage: rootOutput.isPage,
       // The referenced dependencies' project CSS, including ones with no
       // rendered component (e.g. one contributing just a token or animation).

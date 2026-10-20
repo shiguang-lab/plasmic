@@ -33,13 +33,15 @@ def check(state):
     required = {
         "preview": {"open", "close", "state", "snapshot", "click", "hover", "fill", "select", "press", "scroll", "screenshot", "assert"},
         "design_reference": {"index", "read", "screenshot"},
-        "prototype_task": {"start", "begin_page", "structural_check", "review_visual", "begin_case", "cancel_case", "complete_page", "finish"},
-        "reference_browser": {"open", "load_page", "capture"},
+        "prototype_task": {"validate_plan", "start", "resume", "revise", "begin_page", "structural_check", "review_visual", "begin_case", "cancel_case", "complete_page", "finish"},
+        "reference_browser": {"load_page", "capture", "close"},
         "import_reference": {"editable", "screenshot"},
     }
     for name, actions in required.items():
         if not actions.issubset(capabilities.get(name, [])):
             errors.append(f"Missing runtime capability: {name} {sorted(actions - set(capabilities.get(name, [])))}")
+    if "open" in capabilities.get("reference_browser", []):
+        errors.append("reference_browser must not advertise source-free open; load_page must validate an explicit external URL before showing the panel")
     return {"passed": not errors, "scope": "advertised native model and runtime capabilities; actual UI behavior is checked per Page",
             "buildId": state.get("buildId"), "projectId": state.get("projectId"),
             "sessionId": state.get("editorContext", {}).get("sessionId"), "errors": errors}
@@ -51,6 +53,7 @@ def main():
     source.add_argument("--profile", type=Path, help="Desktop user-data directory")
     source.add_argument("--state", type=Path, help="Replay get_app_state(toolNames:read,queryElements,preview,validate) JSON")
     parser.add_argument("--report", type=Path)
+    parser.add_argument("--expectations", type=Path, help="Validate the source-reviewed suite before any business writes (requires --profile)")
     args = parser.parse_args()
     try:
         if args.profile:
@@ -59,9 +62,16 @@ def main():
         else:
             state = json.loads(args.state.read_text(encoding="utf-8"))
         report = check(state)
+        if report["passed"] and args.expectations:
+            if not args.profile:
+                raise ValueError("Plan validation requires --profile")
+            try:
+                report["plan"] = Desktop(args.profile).call("prototype_task", {"action": "validate_plan", "suitePath": str(args.expectations.resolve())})
+            except (OSError, ValueError) as error:
+                report.update(passed=False, errors=[str(error)], nextAction="Correct the reviewed inventory at the reported field path before generation; do not weaken expected behavior")
     except (OSError, ValueError, KeyError, TypeError) as error:
         report = {"passed": False, "errors": [str(error)]}
-    if not report["passed"]:
+    if not report["passed"] and "nextAction" not in report:
         report["nextAction"] = "Use a Desktop build implementing this resource's contracts before generation; do not guess older parameters or retry writes"
     output = json.dumps(report, ensure_ascii=False, indent=2) + "\n"
     if args.report:

@@ -493,6 +493,14 @@ export function registerTable(loader?: Registerable) {
           "plasmic-antd6-table-column-group",
         ],
       },
+      title: {
+        type: "slot",
+        displayName: "Title",
+        renderPropParams: ["currentPageData"],
+        hidePlaceholder: true,
+        description:
+          "Optional content above the column headers. Receives the current page rows as currentPageData; column headings use Column.title.",
+      },
       bordered: {
         type: "boolean",
         displayName: "Bordered",
@@ -513,7 +521,7 @@ export function registerTable(loader?: Registerable) {
         type: "custom",
         displayName: "Pagination",
         control: TablePaginationControl,
-        description: "Configure pagination and page size. Data binding supports the full pagination configuration.",
+        description: "False hides pagination; otherwise use native pagination options: current, pageSize/defaultPageSize, total, pageSizeOptions, showSizeChanger, and showTotal(total, range) returning content. Bind showTotal to display the total before the pager controls; keep paging and total under this one owner.",
       },
       scroll: {
         type: "custom",

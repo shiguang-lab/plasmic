@@ -14,4 +14,4 @@ Look up used registration keys in the [component catalog](catalog.md); read only
 
 ## Composition and acceptance
 
-[SearchForm + Tabs + Table](compositions/search-table.md) combines Overseas query/shell components with Antd-v6 content. Read [React UI](../react_ui/index.md) only when its registered ActionGroup is actually used. Apply the selected components' geometry and Preview checks; Form gates that inspect SearchForm controls belong to the matching Antd-v6 scope.
+[SearchForm + Tabs + Table](compositions/search-table.md) combines Overseas query/shell components with Antd-v6 content. For row operations, discover [React UI ActionGroup](../react_ui/components/action-group.md) before choosing the action implementation, including its library dependency and contract. Apply geometry and Preview checks; Form gates inspecting SearchForm controls use the matching Antd-v6 scope.

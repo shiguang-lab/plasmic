@@ -12,6 +12,10 @@ Where the component exposes native semantic classNames, merge them (including su
 
 Function events and render-slot Props expose native `args` names and types. Use the returned submit argument and lexical row variables; do not invent a data context for them.
 
+MCP prop registration reports the original declared type/signature and nested fields even when Studio stores an any type. Preserve the distinction between returning functions and event handlers. Export declarative metadata only; never invoke options, argValues, hidden callbacks or custom controls to discover a contract. An undeclared nested shape remains unknown.
+
+Identical descriptions/signatures and normalized choice lists appear once on the prop, rather than being repeated in registration. Verification failures report constrained property paths, not unrelated row datasets.
+
 ## Slots and editor state
 
 Empty code-component Slots retain the component’s native default; an explicit null expression remains an override. Check native default content, explicit null and custom Slot content on editor canvas and Preview. Keep temporary selection/reveal separate from persisted business props; follow each component’s actual Slot and visibility contract.

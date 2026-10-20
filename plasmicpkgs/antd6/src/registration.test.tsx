@@ -73,6 +73,7 @@ test("table supports a paginated, bounded viewport with fixed columns", () => {
         defaultPageSize: 20,
         pageSizeOptions: [20, 50, 100],
         showSizeChanger: true,
+        showTotal: (total: number, range: [number, number]) => `共 ${total} 条 · ${range[0]}–${range[1]}`,
       },
       children: React.createElement(column.component, {
         title: "Audience",
@@ -84,6 +85,9 @@ test("table supports a paginated, bounded viewport with fixed columns", () => {
     }),
   );
   assert.equal((html.match(/data-row-key=/g) || []).length, 20);
+  assert.match(html, /ant-pagination-total-text/);
+  assert.match(html, /共 41 条 · 1–20/);
+  assert(html.indexOf("ant-pagination-total-text") < html.indexOf('ant-pagination-prev'), "Native total precedes the pagination buttons");
   assert.match(html, /max-height:640px/);
   assert.match(html, /ant-table-cell-fix-end/);
   assert.match(html, /width:240px/);
@@ -93,6 +97,47 @@ test("table supports a paginated, bounded viewport with fixed columns", () => {
       table.meta.props.onChange,
   );
   assert(column.meta.props.width && column.meta.props.ellipsis);
+});
+
+test("table title is an optional native render slot with current page data", () => {
+  const table = components.get("plasmic-antd6-table")!;
+  const column = components.get("plasmic-antd6-table-column")!;
+  assert.equal(table.meta.props.title.type, "slot");
+  assert.deepEqual(table.meta.props.title.renderPropParams, ["currentPageData"]);
+  assert.equal(table.meta.props.title.defaultValue, undefined);
+
+  const rows = Array.from({ length: 3 }, (_, i) => ({
+    id: i + 1,
+    name: `Audience ${i + 1}`,
+  }));
+  // Exercise both the editable Column-node path and native columns prop path.
+  for (const columns of [
+    { children: React.createElement(column.component, { title: "Audience", dataIndex: "name" }) },
+    { columns: [{ title: "Audience", dataIndex: "name" }] },
+  ]) {
+    let currentPageData: readonly unknown[] | undefined;
+    const props = {
+      data: { data: rows },
+      rowKey: "id",
+      pagination: { defaultCurrent: 2, defaultPageSize: 2 },
+      ...columns,
+    };
+    const html = renderToStaticMarkup(
+      React.createElement(table.component, {
+        ...props,
+        title: (pageRows: readonly unknown[]) => {
+          currentPageData = pageRows;
+          return React.createElement(antd.Button, null, `本页 ${pageRows.length} 条`);
+        },
+      }),
+    );
+    assert.deepEqual(currentPageData, [rows[2]]);
+    assert.match(html, /ant-table-title[^>]*><button/);
+    assert.match(html, /本页 1 条/);
+    assert(html.indexOf("本页 1 条") < html.indexOf("<thead"), "Title renders above column headers");
+    assert.match(html, /Audience 3/);
+    assert.doesNotMatch(renderToStaticMarkup(React.createElement(table.component, props)), /ant-table-title/);
+  }
 });
 
 // The non-deprecated top-level visual components exported by antd 6.6.5.
@@ -304,6 +349,7 @@ test("optional decoration slots do not inject empty canvas placeholders", () => 
     badge: ["children"],
     alert: ["action"],
     card: ["title", "extra", "cover", "actions"],
+    table: ["title"],
     "card-meta": ["avatar"],
     empty: ["children"],
     "float-button": ["icon"],

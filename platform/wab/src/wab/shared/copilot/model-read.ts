@@ -51,6 +51,42 @@ export function projectReadFields(resource: Record<string, unknown>, options: Mo
   return selected;
 }
 
+/** Public registration data only; never evaluate metadata callbacks or serialize controls. */
+export function registrationContract(value: unknown, seen = new Set<object>()): Record<string, unknown> | undefined {
+  if (typeof value === "string") { return { type: value }; }
+  if (!value || typeof value !== "object" || seen.has(value)) { return undefined; }
+  const meta = value as Record<string, unknown>;
+  if (typeof meta.type !== "string") { return undefined; }
+  seen.add(value);
+  const result: Record<string, unknown> = { type: meta.type };
+  for (const key of ["displayName", "description", "required", "min", "max", "step", "editOnly", "uncontrolledProp"]) {
+    if (["string", "boolean", "number"].includes(typeof meta[key])) { result[key] = meta[key]; }
+  }
+  if (Array.isArray(meta.argTypes)) { result.args = meta.argTypes.map((arg) => ({ name: arg.name, ...registrationContract(arg.type, seen) })); }
+  else if (Array.isArray(meta.argNames)) { result.args = meta.argNames.map((name) => ({ name, type: "any" })); }
+  else if (Array.isArray(meta.renderPropParams)) { result.args = meta.renderPropParams.map((name) => ({ name, type: "any" })); }
+  if (meta.fields && typeof meta.fields === "object") { result.fields = Object.fromEntries(Object.entries(meta.fields).map(([name, type]) => [name, registrationContract(type, seen)]).filter(([, type]) => type)); }
+  if (meta.itemType) { result.itemType = registrationContract(meta.itemType, seen); }
+  if (Array.isArray(meta.allowedComponents)) { result.allowedComponents = meta.allowedComponents; }
+  if (typeof meta.options === "function") { result.optionsDynamic = true; }
+  else if (Array.isArray(meta.options)) { result.options = meta.options.map((option) => typeof option === "object" && option !== null ? { value: option.value, label: option.label } : option); }
+  seen.delete(value);
+  return result;
+}
+
+export function withRegisteredContracts(props: Record<string, unknown>[], metadata: Record<string, unknown>) {
+  return props.map((prop) => {
+    const registration = registrationContract(metadata[String(prop.name)]);
+    if (registration) {
+      for (const key of ["description", "args", "options"]) {
+        if (registration[key] !== undefined && JSON.stringify(registration[key]) === JSON.stringify(prop[key])) { delete registration[key]; }
+      }
+      if (prop.options !== undefined && registration.options !== undefined) { delete registration.options; }
+    }
+    return registration ? { ...prop, registration } : prop;
+  });
+}
+
 export const modelReadResultSchema = z.object({
   __type: z.literal("OutputResult"),
   results: z.array(z.record(z.unknown())),

@@ -4,6 +4,7 @@ export type PreviewRender =
   | { run: string }
   | {
       root: string;
+      componentUuid: string;
       isPage: boolean;
       depCss: string[];
       propsModule: string;
@@ -65,6 +66,7 @@ export function createPreview(
           className: `live-root-container ${
             spec.isPage ? "" : "live-root-container--centered"
           }`,
+          "data-plasmic-preview-component": spec.componentUuid,
         },
         h(Root, { ...props, __plasmicIsPreviewRoot: true }),
       );

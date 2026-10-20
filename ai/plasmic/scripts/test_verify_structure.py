@@ -127,6 +127,20 @@ class StructureTests(unittest.TestCase):
         page["baseVariantTplTree"] = original + '<plasmic-component data-plasmic-name="Region" data-plasmic-component="plasmicAntd6Descriptions"></plasmic-component>'
         self.assertTrue(self.result()["passed"])
 
+    def test_source_required_scope_tabs_reject_a_native_radio_substitute(self):
+        page = self.pages["results"][0]
+        original = page["baseVariantTplTree"]
+        self.expected["pages"][0]["components"] = [{"nodeName": "ContentScopes", "component": "plasmic-antd6-tabs", "source": "Reviewed requirement: switch result scopes, not a field value"}]
+        for control in ("radio-group", "radio-button", "segmented"):
+            page["baseVariantTplTree"] = original + '<plasmic-component data-plasmic-name="ContentScopes" data-plasmic-component="plasmic-antd6-' + control + '"></plasmic-component>'
+            self.assertTrue(any(e.get("check") == "nativeComponent" for e in self.result()["errors"]), control)
+        page["baseVariantTplTree"] = original + '<plasmic-component data-plasmic-name="ContentScopes" data-plasmic-component="plasmicAntd6Tabs"></plasmic-component>'
+        self.assertTrue(self.result()["passed"])
+        # Actual field-value choices retain their own registered contract.
+        self.expected["pages"][0]["components"][0]["component"] = "plasmic-antd6-radio-group"
+        page["baseVariantTplTree"] = original + '<plasmic-component data-plasmic-name="ContentScopes" data-plasmic-component="plasmicAntd6RadioGroup"></plasmic-component>'
+        self.assertTrue(self.result()["passed"])
+
     def test_page_titles_need_an_explicit_exception_but_native_region_titles_remain(self):
         page = self.pages["results"][0]
         original = page["baseVariantTplTree"]
@@ -214,17 +228,88 @@ class StructureTests(unittest.TestCase):
             self.assertEqual(self.result()["passed"], passed, self.result())
 
     def test_row_action_requires_live_render_control_and_registered_handler(self):
-        self.expected["pages"][0]["rowActions"] = [{"column": "Actions", "control": "ViewRecord", "event": "onClick", "source": "requirement §Record details"}]
+        self.expected["pages"][0]["rowActions"] = [{"column": "Actions", "control": "ViewRecord", "event": "onAction", "source": "requirement §Record details"}]
         page = self.pages["results"][0]
         original = page["baseVariantTplTree"]
-        column = '<plasmic-component data-plasmic-name="Actions" data-plasmic-component="plasmic-antd6-table-column" data-props=\'{"displayType":"custom"}\'><slot name="render"><plasmic-component id="view" data-plasmic-name="ViewRecord" data-plasmic-component="plasmic-antd6-button"></plasmic-component></slot></plasmic-component>'
+        column = '<plasmic-component data-plasmic-name="Actions" data-plasmic-component="plasmic-antd6-table-column" data-props=\'{"displayType":"custom"}\'><slot name="render"><plasmic-component id="view" data-plasmic-name="ViewRecord" data-plasmic-component="plasmic-react-ui-action-group"></plasmic-component></slot></plasmic-component>'
         page["baseVariantTplTree"] = original + column
         self.assertFalse(self.result()["passed"])
-        page["interactions"] = [{"elementUuid": "view", "eventName": "onClick"}]
+        page["interactions"] = [{"elementUuid": "view", "eventName": "onAction"}]
         self.assertTrue(self.result()["passed"])
         page["baseVariantTplTree"] = original + column.replace('"custom"', '"link"')
         self.assertFalse(self.result()["passed"])
         page["baseVariantTplTree"] = original + column.replace('name="render"', 'name="children"')
+        self.assertFalse(self.result()["passed"])
+
+    def test_reviewed_component_roles_cover_categories_actions_and_native_totals(self):
+        page = self.pages["results"][0]
+        original = page["baseVariantTplTree"]
+        def component(name, key, values=None, children=""):
+            encoded = html.escape(json.dumps(values or {}), quote=True)
+            return f'<plasmic-component data-plasmic-name="{name}" data-plasmic-component="{key}" data-props="{encoded}">{children}</plasmic-component>'
+        def use(name, key, role="widget", **extra):
+            return {"nodeName": name, "component": key, "role": role, "purpose": "Reviewed native presentation/interaction", "source": "requirement §Result fields and actions", **extra}
+        uses = [
+            use("Results", "plasmic-antd6-table", "pagination", props={"pagination": {"defaultPageSize": 20}}, dynamicProps=["pagination.showTotal"]),
+            use("Category", "plasmic-antd6-table-column", "category", props={"dataIndex": "category", "displayType": "tag"}, owner={"nodeName": "Results", "slot": "children"}),
+            use("Operations", "plasmic-antd6-table-column", props={"fixed": "right", "width": 200}),
+            use("Actions", "plasmic-react-ui-action-group", "row-actions", props={"max": 3}, dynamicProps=["items"], owner={"nodeName": "Operations", "slot": "render"}),
+        ]
+        category = component("Category", "plasmic-antd6-table-column", {"dataIndex": "category", "displayType": "tag"})
+        group = component("Actions", "plasmic-react-ui-action-group", {"max": 3, "items": [{"key": "detail", "label": "详情", "href": "{{ row.url }}"}]})
+        operations = component("Operations", "plasmic-antd6-table-column", {"fixed": "right", "width": 200}, '<slot name="render"><div>' + group + '</div></slot>')
+        valid = component("Results", "plasmic-antd6-table", {"data": {"data": []}, "pagination": {"defaultPageSize": 20, "showTotal": "{{ (total, range) => `共 ${total} 条` }}"}}, '<slot name="children">' + category + operations + '</slot>')
+        self.expected["pages"][0]["components"] = uses
+        page["baseVariantTplTree"] = original + valid
+        self.assertTrue(self.result()["passed"], self.result())
+        layout = component("ActionsLayout", "plasmic-antd6-flex", children='<slot name="children">' + group + '</slot>')
+        uses.append(use("ActionsLayout", "plasmic-antd6-flex", owner={"nodeName": "Operations", "slot": "render"}))
+        uses[3]["owner"] = {"nodeName": "ActionsLayout", "slot": "children"}
+        page["baseVariantTplTree"] = original + valid.replace(group, layout)
+        self.assertTrue(self.result()["passed"], self.result())
+        uses.pop()
+        uses[3]["owner"] = {"nodeName": "Operations", "slot": "render"}
+        for broken in [
+            valid.replace('&quot;displayType&quot;: &quot;tag&quot;', '&quot;displayType&quot;: &quot;text&quot;'),
+            valid.replace('plasmic-react-ui-action-group', 'plasmic-antd6-button'),
+            valid.replace('&quot;fixed&quot;: &quot;right&quot;', '&quot;fixed&quot;: &quot;left&quot;'),
+            valid.replace('&quot;max&quot;: 3', '&quot;max&quot;: 4'),
+            valid.replace(category + operations, operations + category),
+            valid.replace('showTotal', 'unrelated') + '<span>共 6 条</span>',
+            valid.replace(group, '') + group,
+        ]:
+            page["baseVariantTplTree"] = original + broken
+            self.assertFalse(self.result()["passed"], broken)
+        page["baseVariantTplTree"] = original + valid
+        uses.pop(1)
+        self.assertTrue(any("Every Column" in e.get("message", "") for e in self.result()["errors"]))
+
+    def test_native_bindings_can_target_nested_properties_without_sibling_evidence(self):
+        page = self.pages["results"][0]
+        original = page["baseVariantTplTree"]
+        self.expected["pages"][0]["bindings"] = [{"nodeName": "Results", "source": "requirement §Query total", "props": ["pagination.total"], "dynamicProps": ["pagination.total"], "propStateDependencies": {"pagination.total": ["matching"]}}]
+        for pagination, passed in [({"total": 6}, False), ({"total": "{{ $state.matching.length }}"}, True)]:
+            encoded = html.escape(json.dumps({"pagination": pagination}), quote=True)
+            page["baseVariantTplTree"] = original + '<plasmic-component data-plasmic-name="Results" data-plasmic-component="custom-results" data-props="' + encoded + '"></plasmic-component>'
+            self.assertEqual(self.result()["passed"], passed, self.result())
+
+    def test_external_pager_has_one_data_owner_and_no_duplicate_table_pager(self):
+        page = self.pages["results"][0]
+        original = page["baseVariantTplTree"]
+        self.expected["pages"][0]["components"] = [
+            {"nodeName": "Results", "component": "plasmic-antd6-table", "role": "widget", "purpose": "Paged data", "source": "requirement §External pager", "props": {"pagination": False}},
+            {"nodeName": "Field", "component": "plasmic-antd6-table-column", "role": "widget", "purpose": "Record identity", "source": "requirement §Field"},
+            {"nodeName": "Pager", "component": "plasmic-antd6-pagination", "role": "pagination", "purpose": "Source-required external pager", "source": "requirement §External pager", "dataOwner": "Results", "dynamicProps": ["showTotal"]},
+        ]
+        table = '<plasmic-component data-plasmic-name="Results" data-plasmic-component="plasmic-antd6-table" data-props=\'{"data":{"data":[]},"pagination":false}\'><slot name="children"><plasmic-component data-plasmic-name="Field" data-plasmic-component="plasmic-antd6-table-column" data-props=\'{"dataIndex":"id"}\'></plasmic-component></slot></plasmic-component>'
+        pager = '<plasmic-component data-plasmic-name="Pager" data-plasmic-component="plasmic-antd6-pagination" data-props=\'{"showTotal":"{{ total => total }}"}\'></plasmic-component>'
+        page["baseVariantTplTree"] = original + table + pager
+        self.assertTrue(self.result()["passed"], self.result())
+        for actual in [table.replace('"pagination":false', '"pagination":{}') + pager, table + pager + pager.replace('"Pager"', '"DuplicatePager"')]:
+            page["baseVariantTplTree"] = original + actual
+            self.assertFalse(self.result()["passed"])
+        self.expected["pages"][0]["components"][-1]["dataOwner"] = "MissingRegion"
+        page["baseVariantTplTree"] = original + table + pager
         self.assertFalse(self.result()["passed"])
 
     def test_steps_only_card_is_a_layout_wrapper(self):

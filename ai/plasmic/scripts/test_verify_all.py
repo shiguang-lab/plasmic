@@ -67,6 +67,29 @@ class SuiteTests(unittest.TestCase):
         self.assertTrue(report["passed"], report)
         self.assertEqual(report["acceptance"]["status"], "unverified")
 
+    def test_changing_reviewed_inventory_cannot_pass_using_the_generated_output(self):
+        import hashlib
+        file = self.root / "structure.json"
+        original = file.read_bytes()
+        archived = self.root / "reviewed-baseline"
+        archived.write_bytes(original)
+        digest = hashlib.sha256(original).hexdigest()
+        task = {"id": "run", "projectId": "project", "sessionId": self.context["sessionId"],
+                "build": self.capture["build"], "pinned": {str(file): digest},
+                "baseline": {str(file): {"file": str(archived), "sha256": digest}}}
+        raw = json.dumps(task).encode()
+        (self.root / "reference-evidence.json").write_bytes(raw)
+        self.capture["prototypeTask"] = {"runId": "run", "sha256": hashlib.sha256(raw).hexdigest()}
+        write_json(self.root / "capture.json", self.capture)
+        changed = json.loads(original)
+        changed["pages"][0]["copy"]["source"] = "weakened to match output"
+        write_json(file, changed)
+        report = self.run_suite()
+        self.assertFalse(report["passed"])
+        evidence = next(g for g in report["checks"] if g["gate"] == "evidence")
+        self.assertIn("Reviewed baseline changed", " ".join(evidence["report"]["errors"]))
+        self.assertEqual(report["acceptance"]["status"], "failed")
+
     def test_native_validation_is_mandatory_exact_and_literal(self):
         original = copy.deepcopy(self.capture)
         for change in (lambda c: c.pop("validation"),

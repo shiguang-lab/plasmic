@@ -10,6 +10,7 @@ const { DesignReference } = require("./design-reference.cjs");
 const { runPreview, previewFrame } = require("./preview-runtime.cjs");
 const { prototypeTools } = require("./prototype-mcp.cjs");
 const buildIdentity = (build) => createHash("sha256").update(JSON.stringify(build)).digest("hex");
+const previewRecovery = "Runtime acceptance remains incomplete. Use only preview for runtime inspection; if it is unavailable, stop that acceptance and report the error. Do not fall back to reference_browser, capture_browser or import_reference.";
 function validateResourceId(value, label) {
   if (typeof value !== "string" || !/^[A-Za-z0-9_-]+$/.test(value)) {
     throw new Error("Invalid " + label);
@@ -190,9 +191,25 @@ class DesktopController {
         skill: "plasmic",
       });
       if (identity.canEdit) {
-        await this.editor("save");
+        const saved = await this.editor("save");
+        await this.task.after("execute", { name: "save", input: {} }, saved);
       }
     }
+  }
+  referenceUrl(source) {
+    if (typeof source !== "string" || !source.trim()) throw new Error("Load an explicit external HTTP(S) reference URL through reference_browser load_page first");
+    const url = new URL(source);
+    if (!["http:", "https:"].includes(url.protocol)) throw new Error("Reference browsing requires an external HTTP(S) URL");
+    if (url.origin === this.config.studioOrigin) throw new Error("Reference source must be external to Studio; Studio runtime belongs to the authenticated preview tool. " + previewRecovery);
+    return url.href;
+  }
+  async requireReferenceEditor() {
+    const url = new URL(this.getWindow().webContents.getURL() || "about:blank");
+    const editorRoute = url.pathname.match(/^\/projects\/([^/]+)(?:\/-\/[^/]+)?\/?$/);
+    const required = "External reference tools require a ready, editable Studio project in edit mode.";
+    if (url.origin !== this.config.studioOrigin || !editorRoute) throw new Error(required);
+    const state = await this.state();
+    if (!state.ready || state.projectId !== editorRoute[1] || state.editorContext?.mode !== "edit" || state.editorContext.canEdit !== true) throw new Error(required);
   }
   dispatch(method, input) {
     if (["get_app_state", "get_build_info", "get_image_service_status"].includes(method)) {
@@ -212,6 +229,7 @@ class DesktopController {
         const result = await this.execute(method, input);
         return await this.task.after(method, input, result, scope);
       } catch (error) {
+        if (method === "preview" || (method === "execute" && input?.name === "preview")) error.message += ". " + previewRecovery;
         if (this.task.active) await this.task.event("call_failed", { method, operation: method === "execute" ? input.name : undefined, message: error.message }).catch(() => {});
         throw error;
       } finally {
@@ -226,13 +244,8 @@ class DesktopController {
         "list_projects",
         "search_stock_images",
         "generate_image",
-        "capture_browser",
       ].includes(method) ||
-      (method === "reference_browser" || method === "design_reference") ||
-      (method === "browser" &&
-        !["import_to_canvas", "screenshot_to_canvas", "undo_import"].includes(
-          input?.action,
-        )) ||
+      method === "design_reference" ||
       (["make_vector", "vectorize_image"].includes(method) &&
         !input?.componentUuid)
     )) {
@@ -261,6 +274,7 @@ class DesktopController {
     }
     if (method === "get_image_service_status") return require("./image-service.cjs").imageServiceStatus(app.getPath("userData"));
     if (method === "get_app_state") {
+      await this.task.loading;
       const { toolNames = [], schemaView = "input", view = "status" } = input;
       if (!["status", "tools"].includes(view)) throw new Error("Invalid app state view");
       if (!["input", "full"].includes(schemaView)) throw new Error("schemaView must be input or full");
@@ -285,7 +299,7 @@ class DesktopController {
       const identity = { ...pick(state, ["ready", "version", "orgId", "workspaceId", "projectId"]),
         ...(state.build ? { buildId: buildIdentity(state.build) } : {}),
         ...(state.editorContext ? { editorContext: pick(state.editorContext, ["branchId", "sessionId"]) } : {}),
-        ...(this.task.active ? { prototypeTask: this.task.status() } : {}),
+        ...(this.task.status() ? { prototypeTask: this.task.status() } : {}),
       };
       if (toolNames.length || view === "tools") return {
         ...identity,
@@ -321,8 +335,8 @@ class DesktopController {
     }
     if (method === "prototype_task") {
       await this.ready();
+      if (["start", "resume", "revise"].includes(input.action)) this.task.build = require("../renderer/desktop-assets.json").build;
       if (input.action === "start") {
-        this.task.build = require("../renderer/desktop-assets.json").build;
         const metadata = await this.invoke("metadata", { toolNames: ["read", "queryElements", "preview"] }, 3000);
         for (const name of ["read", "queryElements"]) {
           const props = metadata.tools[name]?.inputSchema?.properties;
@@ -345,10 +359,10 @@ class DesktopController {
       if (["open", "close"].includes(input.action)) {
         const { action, componentUuid, width, height } = input;
         result = await this.editor("preview", { action, ...(componentUuid ? { componentUuid } : {}), ...(width !== undefined ? { width } : {}), ...(height !== undefined ? { height } : {}) });
-        if (input.action === "open") await previewFrame(win);
+        if (input.action === "open") await previewFrame(win, result.componentUuid);
       } else {
         if (before.mode !== "preview" || !before.previewContext?.componentUuid) throw new Error("Open authenticated native Preview first");
-        result = input.action === "state" ? { ready: true, viewport: (await previewFrame(win)).layout } : await runPreview(win, { ...input, expectedTarget: this.task.expectedTarget() }, before);
+        result = input.action === "state" ? { ready: true, viewport: (await previewFrame(win, before.previewContext.componentUuid)).layout } : await runPreview(win, { ...input, expectedTarget: this.task.expectedTarget() }, before);
       }
       const after = await this.editor("getEditorContext");
       if (["projectId", "branchId", "sessionId", "revision", "changeCounter"].some((key) => before[key] !== after[key])) throw new Error("Preview operation changed the saved design/session; inspect the model before continuing");
@@ -467,7 +481,10 @@ class DesktopController {
         throw new Error("Invalid projectId");
       }
       const state = await this.state([]);
-      if (state.projectId !== input.projectId) {
+      if (this.task.run && !["complete", "failed_start"].includes(this.task.run.ended) && state.ready && state.projectId !== this.task.run.projectId) {
+        throw new Error("Another project is active; the controlled task cannot save it while reopening its bound project");
+      }
+      if (state.projectId !== input.projectId || input.reopen === true) {
         await this.saveBeforeNavigation(state);
         await win.loadURL(
           this.config.studioOrigin + "/projects/" + input.projectId,
@@ -488,12 +505,18 @@ class DesktopController {
       return { opened: true, projectId: identity.projectId, projectName: identity.projectName, canEdit: identity.canEdit };
     }
     if (method === "execute_batch") {
+      if (input.operations.some((op) => ["preview", "executeBatch"].includes(op.name))) throw new Error("Use top-level preview for runtime operations and execute_batch for one native mutation batch");
       await this.ready();
       return this.editor("executeBatch", { operations: input.operations });
     }
     if (method === "execute") {
+      if (["preview", "executeBatch"].includes(input.name)) throw new Error("Use top-level preview or execute_batch so runtime evidence and Page mutation gates are enforced");
       await this.ready();
-      return editorOutput(input.name, await this.editor(input.name, input.input));
+      try { return editorOutput(input.name, await this.editor(input.name, input.input)); }
+      catch (error) {
+        if (["insertHtml", "changeElement", "updateState"].includes(input.name)) error.message += ". Read the affected registered component contract (view:contract) and owning state/event context (view:context); correct this operation without changing the source expectations.";
+        throw error;
+      }
     }
     if (method === "get_editor_view") {
       await this.ready();
@@ -681,17 +704,16 @@ class DesktopController {
     }
     if (method === "reference_browser" || method === "import_reference") {
       if (!this.browser) throw new Error("The desktop reference browser is not ready");
-      const source = input.url || this.browser.state.url;
-      if (source) {
-        const url = new URL(source);
-        if (url.origin === this.config.studioOrigin && /\/projects\/[^/]+\/preview(?:\/|-full|$)/.test(url.pathname)) throw new Error("Studio Preview belongs to the authenticated preview tool; reference browsing/import cannot provide runtime acceptance");
-      }
+      if (method === "reference_browser" && input.action === "close") return this.browser.command(input);
+      if (method === "reference_browser" && !["load_page", "get_state", "select_element", "set_import_height", "capture", "cdp"].includes(input.action)) throw new Error("Use reference_browser load_page with an explicit external URL; a source-free open is not supported");
+      const source = method === "reference_browser" && input.action === "load_page" ? input.url : this.browser.state.url;
+      this.referenceUrl(source);
+      await this.requireReferenceEditor();
       if (method === "import_reference") {
         if (!["editable", "screenshot"].includes(input.action)) throw new Error("Invalid reference import mode");
         if (input.action === "editable" && input.target === "visible_area") throw new Error("Editable import supports full_page or selection");
         return this.browser.command({ ...input, action: input.action === "editable" ? "import_to_canvas" : "screenshot_to_canvas" });
       }
-      if (!["open", "load_page", "get_state", "select_element", "set_import_height", "capture", "cdp", "close"].includes(input.action)) throw new Error("Reference reads cannot import to canvas");
       if (input.action === "cdp") {
         const methods = new Set(["DOM.getDocument", "DOM.getFlattenedDocument", "DOM.describeNode", "DOM.getOuterHTML", "DOM.getAttributes", "DOM.getBoxModel", "DOM.getContentQuads", "DOM.querySelector", "DOM.querySelectorAll", "CSS.getComputedStyleForNode", "CSS.getMatchedStylesForNode", "Accessibility.getFullAXTree", "Accessibility.getPartialAXTree", "Page.captureScreenshot"]);
         if (input.method === "Runtime.evaluate") input = { ...input, params: { ...input.params, throwOnSideEffect: true, awaitPromise: false } };
@@ -702,11 +724,13 @@ class DesktopController {
     if (method === "browser") {
       if (!this.browser)
         throw new Error("The desktop reference browser is not ready");
+      if (input.action !== "close") await this.requireReferenceEditor();
+      if (input.action === "load_page") this.referenceUrl(input.url);
       return this.browser.command(input);
     }
     if (method === "capture_browser") {
-      const url = new URL(input.url);
-      if (url.origin === this.config.studioOrigin && /\/projects\/[^/]+\/preview(?:\/|-full|$)/.test(url.pathname)) throw new Error("Use native preview for Studio runtime inspection");
+      this.referenceUrl(input.url);
+      await this.requireReferenceEditor();
       return require("./browser-capture.cjs").captureBrowser(input);
     }
     if (method === "import_image") {

@@ -408,11 +408,6 @@ export const productPalette = (token: GlobalToken): CSSObject => ({
     background: token.colorFillSecondary,
     color: token.colorText,
   },
-  "& .PreselectBox .node-outline-tag": {
-    background: token.colorBgElevated,
-    boxShadow: token.boxShadowTertiary,
-  },
-  "& .PreselectBox .node-outline-tag > *": { opacity: 1 },
   "& .labeled-item__label": { color: token.colorText },
   "& .btn-link": { color: token.colorText },
   "& .btn-link:disabled": { color: token.colorTextDisabled },

@@ -1,6 +1,7 @@
 const fs = require("node:fs/promises");
 const path = require("node:path");
 const { createHash, randomUUID } = require("node:crypto");
+const { validatePlan, retains, intentNames } = require("./prototype-plan.cjs");
 const hash = (bytes) => createHash("sha256").update(bytes).digest("hex");
 const canonical = (value) => JSON.stringify(value, (_key, item) => item && typeof item === "object" && !Array.isArray(item) ? Object.fromEntries(Object.keys(item).sort().map((key) => [key, item[key]])) : item);
 const valueHash = (value) => hash(canonical(value));
@@ -17,15 +18,29 @@ const edits = new Set(["insertHtml", "importWebPage", "changeElement", "deleteEl
 
 // Task-local evidence/ordering, never a persisted Studio model or property schema.
 class PrototypeTask {
-  constructor(profile, editor, build) { Object.assign(this, { profile, editor, build }); }
+  constructor(profile, editor, build) { Object.assign(this, { profile, editor, build }); this.loading = this.restore(); }
+  async restore() {
+    try {
+      const pointer = JSON.parse(await fs.readFile(path.join(this.profile, "prototype-task.json")));
+      const directory = path.resolve(pointer.directory);
+      if (path.dirname(directory) !== path.join(this.profile, "prototype-runs")) throw new Error("Invalid prototype task directory");
+      const run = JSON.parse(await fs.readFile(path.join(directory, "task.json")));
+      if (run.ended !== "complete") this.run = run;
+    } catch (error) { if (error.code !== "ENOENT") throw error; }
+  }
   get active() { return !!this.run && !this.run.ended; }
   status() {
-    if (!this.active) return null;
+    if (!this.run) return null;
     const r = this.run, page = r.pages.find((p) => p.path === r.current);
-    return { runId: r.id, currentPage: r.current, phase: page?.phase || "reference-planning", completedPages: r.pages.filter((p) => p.phase === "complete").length, totalPages: r.pages.length,
+    const current = r.currentCase, runtime = current && r.pages.find((p) => p.path === current.page).runtimeCases.find((c) => c.id === current.id);
+    return { runId: r.id, projectId: r.projectId, resourceRelease: r.resourceRelease, suitePath: r.suitePath,
+      currentComponentUuid: page ? this.componentFor(page.path) : null, currentIntent: page?.intent,
+      status: r.ended || "in_progress", currentPage: r.current, phase: page?.phase || "reference-planning", completedPages: r.pages.filter((p) => p.phase === "complete").length, totalPages: r.pages.length,
       pendingCases: page ? (page.runtimeCases || []).filter((c) => !c.deferred && !page.cases[c.id]).map((c) => c.id) : [],
       pendingDeferredCases: r.pages.flatMap((p) => p.runtimeCases.filter((c) => c.deferred && !p.cases[c.id]).map((c) => ({ pagePath: p.path, caseId: c.id }))),
-      ...(r.currentCase ? { activeCase: { pagePath: r.currentCase.page, id: r.currentCase.id, step: r.currentCase.step } } : {}), evidenceDirectory: r.directory, metrics: r.metrics };
+      ...(current ? { activeCase: { pagePath: current.page, id: current.id, step: current.step,
+        ...(runtime.steps[current.step] ? { nextStep: runtime.steps[current.step] } : { assertions: runtime.assertions }) } } : {}), evidenceDirectory: r.directory, metrics: r.metrics,
+      nextAction: r.ended === "complete" ? "none" : r.ended === "cancelled" ? "resume" : !r.current ? "begin_page" : page.phase === "complete" ? (r.pages.some((p) => p.phase !== "complete") ? "begin_page" : "deferred_cases_and_final_verification") : !page.structural ? "verify_current_page" : !page.visual ? "review_current_page_images" : page.runtimeCases.some((c) => !c.deferred && !page.cases[c.id]) ? "begin_case" : "complete_page" };
   }
   expectedTarget() {
     const current = this.run?.currentCase;
@@ -34,12 +49,19 @@ class PrototypeTask {
   async pin(file) {
     const absolute = await fs.realpath(file), bytes = await fs.readFile(absolute);
     const digest = hash(bytes);
-    if (this.run.pinned[absolute] && this.run.pinned[absolute] !== digest) throw new Error("Reviewed task input changed; start a new task with the revised plan: " + absolute);
+    if (this.run.pinned[absolute] && this.run.pinned[absolute] !== digest) throw new Error("Reviewed task input changed; restore its archived baseline or use revise: " + absolute);
     this.run.pinned[absolute] = digest;
+    await this.archiveInput(absolute, bytes);
     return JSON.parse(bytes);
   }
+  async archiveInput(file, bytes) {
+    const digest = hash(bytes), snapshot = path.join(this.run.directory, "inputs", digest);
+    await fs.mkdir(path.dirname(snapshot), { recursive: true });
+    await fs.writeFile(snapshot, bytes, { mode: 0o600 });
+    this.run.baseline[file] = { file: snapshot, sha256: digest };
+  }
   async stablePlan() {
-    for (const [file, digest] of Object.entries(this.run.pinned)) if (hash(await fs.readFile(file)) !== digest) throw new Error("Reviewed task input changed: " + file);
+    for (const [file, digest] of Object.entries(this.run.pinned)) if (hash(await fs.readFile(file)) !== digest) throw new Error("Reviewed task input changed: " + file + "; restore the archived baseline or use revise for additive checks; never cancel to bypass acceptance");
   }
   async event(kind, detail = {}) {
     const record = { seq: ++this.run.seq, time: new Date().toISOString(), kind, ...detail };
@@ -47,6 +69,7 @@ class PrototypeTask {
     const temporary = path.join(this.run.directory, "task.json.tmp");
     await fs.writeFile(temporary, JSON.stringify(this.run, null, 2) + "\n", { mode: 0o600 });
     await fs.rename(temporary, path.join(this.run.directory, "task.json"));
+    await fs.writeFile(path.join(this.profile, "prototype-task.json"), JSON.stringify({ directory: this.run.directory }), { mode: 0o600 });
     return record;
   }
   async refreshPages() {
@@ -58,6 +81,7 @@ class PrototypeTask {
     if (context.projectId !== this.run.projectId || context.branchId !== this.run.branchId) throw new Error("Controlled prototype task belongs to a different project/branch");
     if (this.run.sessionId !== context.sessionId) {
       this.run.sessionId = context.sessionId;
+      this.run.contracts = {};
       for (const page of this.run.pages) this.invalidate(page);
       this.run.current = null;
       this.run.currentCase = null;
@@ -76,30 +100,54 @@ class PrototypeTask {
   }
   invalidate(page) { page.structural = null; page.visual = null; page.cases = {}; page.phase = "content"; }
   async start(input) {
+    await this.loading;
     if (this.active) throw new Error("A prototype task is already active; finish or cancel it first");
+    if (this.run?.ended === "cancelled") throw new Error("An incomplete task remains bound to its project and baseline; resume or revise it instead of replacing its checks");
     if (!path.isAbsolute(input.suitePath)) throw new Error("suitePath must be absolute");
+    if (!path.isAbsolute(input.resourceRoot || "")) throw new Error("Use the resolved resourceRoot to pin the actual verification scripts");
+    await this.command({ action: "validate_plan", suitePath: input.suitePath });
     input = { ...input, suitePath: await fs.realpath(input.suitePath) };
     const context = await this.editor("getEditorContext");
     if (context.projectId !== input.projectId || context.mode !== "edit" || !context.canEdit || !Array.isArray(input.referenceFiles) || input.referenceFiles.some((file) => !path.isAbsolute(file) || path.extname(file).toLowerCase() !== ".pen") || !/^[0-9a-f]{64}$/.test(input.resourceRelease || "")) throw new Error("start requires the current editable projectId, resourceRelease and original absolute .pen referenceFiles array");
     const id = randomUUID(), directory = path.join(this.profile, "prototype-runs", id);
     await fs.mkdir(directory, { recursive: true, mode: 0o700 });
-    this.run = { id, directory, projectId: context.projectId, branchId: context.branchId, sessionId: context.sessionId, initialSessionId: context.sessionId, lastIdentity: identity(context), resourceRelease: input.resourceRelease, referenceFiles: input.referenceFiles.map((file) => path.resolve(file)), build: this.build, seq: 0, current: null, pinned: {}, references: {}, models: {}, layouts: {}, images: {}, pages: [], components: {}, metrics: { calls: 0, inputBytes: 0, rpcOutputBytes: 0, imageBytes: 0, largestRpcOutputBytes: 0 } };
+    this.run = { id, directory, projectId: context.projectId, branchId: context.branchId, sessionId: context.sessionId, initialSessionId: context.sessionId, lastIdentity: identity(context), resourceRelease: input.resourceRelease, referenceFiles: input.referenceFiles.map((file) => path.resolve(file)), referenceHashes: {}, build: this.build, seq: 0, current: null, pinned: {}, baseline: {}, references: {}, contracts: {}, models: {}, layouts: {}, images: {}, pages: [], components: {}, metrics: { calls: 0, inputBytes: 0, rpcOutputBytes: 0, imageBytes: 0, largestRpcOutputBytes: 0 } };
     try {
       if (!input.sourceFiles?.length || input.sourceFiles.some((file) => !path.isAbsolute(file) || path.extname(file).toLowerCase() === ".pen")) throw new Error("Pin original requirement documents (or retained URL source copies) in sourceFiles; Pen documents use referenceFiles");
-      for (const file of input.sourceFiles) { const absolute = await fs.realpath(file); this.run.pinned[absolute] = hash(await fs.readFile(absolute)); }
+      const scripts = await fs.realpath(path.join(input.resourceRoot, "scripts"));
+      const verifiers = (await fs.readdir(scripts)).filter((name) => /^verify_.*\.py$/.test(name));
+      if (!verifiers.includes("verify_all.py")) throw new Error("Resolved resources must include verify_all.py");
+      this.run.verifierFiles = [];
+      for (const name of verifiers) {
+        const file = path.join(scripts, name), bytes = await fs.readFile(file);
+        this.run.pinned[file] = hash(bytes); await this.archiveInput(file, bytes); this.run.verifierFiles.push(file);
+      }
+      for (const file of input.sourceFiles) { const absolute = await fs.realpath(file), bytes = await fs.readFile(absolute); this.run.pinned[absolute] = hash(bytes); await this.archiveInput(absolute, bytes); }
       const suite = await this.pin(input.suitePath), base = path.dirname(input.suitePath);
       this.run.overviewName = suite.page_layout?.overviewName === undefined ? "页面总览" : suite.page_layout.overviewName;
       if (typeof this.run.overviewName !== "string" || !this.run.overviewName.trim()) throw new Error("Declare a reviewed overviewName; default is 页面总览");
       if (!suite.structure?.inventory || !suite.slots?.pages) throw new Error("Controlled generation requires source-reviewed structure and per-Page Slot intent");
       const structure = await this.pin(path.resolve(base, suite.structure.inventory));
+      this.run.structurePath = await fs.realpath(path.resolve(base, suite.structure.inventory));
       if (!structure.pages?.length || new Set(structure.pages.map((p) => p.path)).size !== structure.pages.length) throw new Error("Distinct source-reviewed Page routes required");
+      const documents = { structure };
       for (const name of ["forms", "descriptions", "overlays"]) {
         if (!suite[name]?.inventory) throw new Error("Required source inventory: " + name);
-        await this.pin(path.resolve(base, suite[name].inventory));
+        documents[name] = await this.pin(path.resolve(base, suite[name].inventory));
       }
       this.run.inventoryPaths = Object.fromEntries(["forms", "descriptions", "overlays"].map((name) => [name, path.resolve(base, suite[name].inventory)]));
+      this.run.planFiles = [input.suitePath, path.resolve(base, suite.structure.inventory), ...Object.values(this.run.inventoryPaths)];
       let references = { pages: [] };
       if (suite.references?.inventory) references = await this.pin(path.resolve(base, suite.references.inventory));
+      if (suite.references?.inventory) documents.references = references;
+      validatePlan(suite, documents);
+      if (suite.references?.inventory) this.run.planFiles.push(path.resolve(base, suite.references.inventory));
+      this.run.planFiles = await Promise.all(this.run.planFiles.map((file) => fs.realpath(file)));
+      for (const file of this.run.referenceFiles) {
+        const bytes = await fs.readFile(file), absolute = await fs.realpath(file);
+        this.run.referenceHashes[file] = hash(bytes); this.run.pinned[absolute] = hash(bytes);
+        await this.archiveInput(absolute, bytes);
+      }
       if (input.referenceFiles.length && !suite.references?.inventory) throw new Error("The supplied .pen references require a references inventory");
       const allowedFiles = new Set(input.referenceFiles.map((file) => path.resolve(file)));
       const usedFiles = new Set();
@@ -132,7 +180,70 @@ class PrototypeTask {
     } catch (error) { this.run.ended = "failed_start"; throw error; }
   }
   async command(input) {
+    await this.loading;
+    if (input.action === "validate_plan") {
+      if (!path.isAbsolute(input.suitePath || "")) throw new Error("validate_plan requires an absolute suitePath");
+      const suite = JSON.parse(await fs.readFile(input.suitePath)), base = path.dirname(input.suitePath), documents = {};
+      for (const name of ["structure", "forms", "descriptions", "overlays", ...(suite.references ? ["references"] : [])]) {
+        if (typeof suite[name]?.inventory !== "string") throw new Error("Invalid reviewed plan at " + name + "/inventory: expected path");
+        documents[name] = JSON.parse(await fs.readFile(path.resolve(base, suite[name].inventory)));
+      }
+      return { passed: true, pages: validatePlan(suite, documents).length };
+    }
     if (input.action === "start") return this.start(input);
+    if (["resume", "revise"].includes(input.action)) {
+      if (!this.run || ![undefined, "cancelled"].includes(this.run.ended)) throw new Error("An active or cancelled task is required");
+      if (input.action === "revise") {
+        const suite = JSON.parse(await fs.readFile(this.run.suitePath)), base = path.dirname(this.run.suitePath), documents = {};
+        for (const name of ["structure", "forms", "descriptions", "overlays", ...(suite.references ? ["references"] : [])]) documents[name] = JSON.parse(await fs.readFile(path.resolve(base, suite[name].inventory)));
+        validatePlan(suite, documents);
+        if (canonical(documents.structure.pages.map((p) => p.path)) !== canonical(this.run.pages.map((p) => p.path))) throw new Error("A revision retains the task's reviewed Page routes");
+        if (documents.references?.pages.some((p) => p.references.some((ref) => !this.run.referenceFiles.includes(path.resolve(ref.filePath))))) throw new Error("Reference revisions must use the original supplied Pen files");
+        const changed = [], affected = new Set();
+        for (const [file, digest] of Object.entries(this.run.pinned)) {
+          const bytes = await fs.readFile(file);
+          if (hash(bytes) === digest) continue;
+          const original = await fs.readFile(this.run.baseline[file].file);
+          const owner = this.run.pages.find((p) => p.intent === file);
+          if (owner) {
+            const beforeNames = intentNames(original.toString()), afterNames = intentNames(bytes.toString());
+            if (!beforeNames.size || [...beforeNames].some((name) => !afterNames.has(name))) throw new Error("Slot intent revision must preserve the named source targets: " + file);
+            changed.push({ file, bytes }); affected.add(owner.path); continue;
+          }
+          if (!this.run.planFiles.includes(file)) throw new Error("Original sources and verification scripts are immutable; restore " + file);
+          let before, after;
+          try { before = JSON.parse(original); after = JSON.parse(bytes); } catch { throw new Error("Original sources and Slot intents are immutable; restore " + file); }
+          if (!retains(before, after)) throw new Error("Revision removes or rewrites a reviewed expectation; restore " + file);
+          changed.push({ file, bytes });
+          if (Array.isArray(before.pages) && Array.isArray(after.pages)) {
+            for (const p of after.pages) if (canonical(p) !== canonical(before.pages.find((old) => old.path === p.path))) affected.add(p.path);
+            if (canonical({ ...before, pages: null }) !== canonical({ ...after, pages: null })) for (const p of this.run.pages) affected.add(p.path);
+          } else for (const p of this.run.pages) affected.add(p.path);
+        }
+        for (const item of changed) { this.run.pinned[item.file] = hash(item.bytes); await this.archiveInput(item.file, item.bytes); }
+        if (changed.length) for (const page of this.run.pages) {
+          page.runtimeCases = documents.structure.pages.find((p) => p.path === page.path).runtimeCases;
+          const references = documents.references?.pages.find((p) => p.path === page.path);
+          if (references) { page.references = references.references; page.regions = references.regions; }
+          if (affected.has(page.path)) { this.invalidate(page); page.dirty = this.run.seq + 1; }
+          for (const spec of page.runtimeCases) if (affected.has(spec.targetPath)) delete page.cases[spec.id];
+        }
+        this.run.currentCase = null;
+        await this.event("plan_revised", { inputs: changed.map((item) => item.file), pages: [...affected] });
+      }
+      await this.stablePlan();
+      if (this.build && canonical(this.run.build) !== canonical(this.build)) {
+        this.run.build = this.build; this.run.contracts = {};
+        this.run.currentCase = null;
+        for (const page of this.run.pages) this.invalidate(page);
+        await this.event("build_changed");
+      }
+      await this.context();
+      this.run.ended = undefined;
+      await this.event("resumed");
+      return this.status();
+    }
+    if (input.action === "state" && this.run) return this.status();
     if (!this.active) throw new Error("Start a controlled prototype task first");
     if (input.action === "state") return this.status();
     if (input.action === "cancel") { this.run.ended = "cancelled"; await this.event("cancelled"); return { status: "incomplete", evidenceDirectory: this.run.directory }; }
@@ -144,12 +255,16 @@ class PrototypeTask {
       if (context.mode !== "edit") throw new Error("Close native Preview before beginning Page edits");
       const previous = this.run.pages.find((p) => p.path === this.run.current);
       if (previous && previous !== page && previous.phase !== "complete") throw new Error("Complete current Page before beginning another: " + previous.path);
-      await this.pinIntent(page);
       for (const ref of page.references) {
+        if (hash(await fs.readFile(ref.filePath)) !== this.run.referenceHashes[ref.filePath]) throw new Error("Original Pen reference changed; restore the source before reusing its evidence");
         const observed = this.run.references[this.referenceKey(ref)];
         if (!observed?.complete || !observed?.image || observed.read.depth < 1 || !["id", "type", "layout", "width", "height", "padding", "gap", "justifyContent", "alignItems"].every((field) => observed.read.fields.includes(field))) throw new Error("Read complete paginated frame layout and acquire its screenshot through design_reference before content generation: " + ref.id);
         if (hash(await fs.readFile(observed.image.file)) !== observed.image.sha256) throw new Error("Reference screenshot changed after collection");
       }
+      const structure = JSON.parse(await fs.readFile(this.run.structurePath));
+      this.checkContractNames(structure.pages.find((p) => p.path === page.path).components.map((c) => c.component));
+      this.checkContracts(await fs.readFile(page.intent, "utf8"));
+      await this.pinIntent(page);
       this.run.current = page.path;
       page.phase = page.phase === "complete" ? "complete" : "content";
       await this.event("begin_page", { page: page.path, intent: page.intent });
@@ -207,14 +322,40 @@ class PrototypeTask {
   }
   componentFor(route) { return Object.keys(this.run.components).find((id) => this.run.components[id] === route); }
   referenceKey(ref) { return JSON.stringify([path.resolve(ref.filePath), ref.nodeId]); }
+  checkContracts(markup) {
+    const names = [...markup.matchAll(/data-plasmic-component\s*=\s*(["'])(.*?)\1/g)].map((match) => match[2]);
+    this.checkContractNames(names);
+  }
+  checkContractNames(names) {
+    const missing = [...new Set(names)].filter((name) => !this.run.contracts[name]);
+    if (missing.length) throw new Error("Read current registered component contracts before markup (execute read, view:contract): " + missing.slice(0, 12).join(", "));
+  }
+  async invalidateReference(key) {
+    const affected = [];
+    for (const page of this.run.pages) if (page.references.some((ref) => this.referenceKey(ref) === key) && page.structural) {
+      affected.push(page.path);
+      this.invalidate(page); page.dirty = this.run.seq + 1;
+      if (this.run.currentCase?.page === page.path) this.run.currentCase = null;
+    }
+    for (const page of this.run.pages) for (const spec of page.runtimeCases) if (affected.includes(spec.targetPath)) delete page.cases[spec.id];
+    if (affected.length) await this.event("reference_changed", { pages: affected });
+  }
   async pinIntent(page) {
     page.intent = await fs.realpath(page.intent);
     const bytes = await fs.readFile(page.intent), digest = hash(bytes);
     if (this.run.pinned[page.intent] && this.run.pinned[page.intent] !== digest) throw new Error("Page Slot intent changed after planning");
     this.run.pinned[page.intent] = digest;
+    await this.archiveInput(page.intent, bytes);
   }
   async before(method, input) {
-    if (!this.active || method === "prototype_task") return;
+    await this.loading;
+    if (method === "prototype_task") return;
+    const bound = this.run && this.run.ended !== "complete" && this.run.ended !== "failed_start";
+    if (bound && ((method === "open_design" && input.projectId !== this.run.projectId) || ["open_org", "open_workspace"].includes(method))) throw new Error("Controlled generation is bound to project " + this.run.projectId + "; reopen that project directly instead of navigating to another project/dashboard");
+    const mutations = method === "execute_batch" ? input.operations : method === "execute" ? [{ name: input.name }] : [];
+    if (bound && this.run.ended === "cancelled" && (mutations.some((op) => edits.has(op.name)) || ["import_reference", "import_image", "import_svg", "make_vector", "vectorize_image"].includes(method))) throw new Error("Task is incomplete and cancelled; resume the frozen plan before design writes");
+    if (!this.active) return;
+    if (this.run.currentCase && mutations.some((op) => edits.has(op.name))) throw new Error("Finish or cancel the runtime case before design writes; saved initial state changes cannot simulate Preview interactions");
     if (method === "import_reference") throw new Error("Reference import creates separate artboards; it is not a controlled native Page generation or runtime acceptance step");
     if (method === "preview" && this.run.currentCase) {
       const current = this.run.currentCase, page = this.run.pages.find((p) => p.path === current.page), spec = page.runtimeCases.find((c) => c.id === current.id);
@@ -237,6 +378,7 @@ class PrototypeTask {
       if (!edits.has(op.name)) continue;
       if (op.name === "importWebPage") throw new Error("Static reference artboard imports are not a controlled native Page generation step");
       const data = op.input || {};
+      if (op.name === "insertHtml" && typeof data.html === "string") this.checkContracts(data.html);
       if (op.name === "createComponent" && (data.type || "page") === "page") {
         const plan = this.run.pages.find((p) => p.path === data.path);
         if (!plan) throw new Error("Page route is outside the source-reviewed task plan");
@@ -267,6 +409,8 @@ class PrototypeTask {
     const metrics = this.run.metrics;
     metrics.calls++; metrics.inputBytes += inputBytes; metrics.rpcOutputBytes += outputBytes; metrics.largestRpcOutputBytes = Math.max(metrics.largestRpcOutputBytes, outputBytes);
     if (result.data) metrics.imageBytes += Buffer.from(result.data, "base64").length;
+    const pageMetrics = (this.run.pageMetrics ||= {})[this.run.current || "planning"] ||= { calls: 0, inputBytes: 0, rpcOutputBytes: 0 };
+    pageMetrics.calls++; pageMetrics.inputBytes += inputBytes; pageMetrics.rpcOutputBytes += outputBytes;
     await this.event("call", { method, operation: method === "execute" ? input.name : undefined, inputBytes, rpcOutputBytes: outputBytes, imageBytes: result.data ? Buffer.from(result.data, "base64").length : 0 });
     const ops = method === "execute_batch" ? input.operations : method === "execute" ? [{ name: input.name, input: input.input }] : [];
     const changed = ops.filter((o) => edits.has(o.name));
@@ -278,8 +422,12 @@ class PrototypeTask {
       if (canonical(scope.identity) !== canonical(identity(context))) throw new Error("Design/session changed during evidence acquisition; collect it again");
     }
     if (changed.length) {
+      if (changed.some((op) => ["installLibrary", "upgradeLibrary"].includes(op.name))) this.run.contracts = {};
       const global = !!scope?.global;
-      for (const page of this.run.pages) if (global || scope?.routes?.includes(page.path)) { this.invalidate(page); page.dirty = this.run.seq + 1; }
+      for (const page of this.run.pages) {
+        if (global || scope?.routes?.includes(page.path)) { this.invalidate(page); page.dirty = this.run.seq + 1; }
+        else for (const spec of page.runtimeCases) if (scope?.routes?.includes(spec.targetPath)) delete page.cases[spec.id];
+      }
       this.run.currentCase = null;
       await this.refreshPages();
       await this.context(true);
@@ -288,6 +436,10 @@ class PrototypeTask {
     if (method === "execute" && input.name === "read" && result.read?.depth === "all") {
       for (const model of result.results || []) if (model.type === "page" && typeof model.baseVariantTplTree === "string") this.run.models[model.uuid] = { hash: valueHash(model), sessionId: this.run.sessionId, seq: this.run.seq + 1 };
       await this.event("model_read", { componentUuids: (result.results || []).map((m) => m.uuid), identity: this.run.lastIdentity });
+    }
+    if (method === "execute" && input.name === "read" && input.input?.view === "contract") {
+      for (const component of result.results || []) if (component.name && Array.isArray(component.props)) this.run.contracts[component.name] = { hash: valueHash(component), sessionId: this.run.sessionId };
+      await this.event("contracts_read", { names: Object.keys(this.run.contracts) });
     }
     if (method === "snapshot_layout" && input.view === "full") { this.run.layouts[input.componentUuid] = { hash: valueHash(result), sessionId: this.run.sessionId, seq: this.run.seq + 1 }; await this.event("layout_read", { componentUuid: input.componentUuid, identity: this.run.lastIdentity }); }
     if (method === "execute" && input.name === "validate") {
@@ -299,20 +451,30 @@ class PrototypeTask {
       if (input.action !== "index") {
         const key = this.referenceKey(input), record = this.run.references[key] ||= {};
         if (input.action === "read") {
-          for (const page of this.run.pages) if (page.references.some((ref) => this.referenceKey(ref) === key) && page.structural) { this.invalidate(page); page.dirty = this.run.seq + 1; this.run.currentCase = null; }
-          if (result.read.offset === 0) { record.pages = {}; record.image = null; record.read = { fields: result.read.fields, depth: result.read.depth, total: result.total }; }
+          const sourceHash = hash(await fs.readFile(input.filePath));
+          if (sourceHash !== this.run.referenceHashes[path.resolve(input.filePath)]) throw new Error("Original Pen reference changed after planning");
+          if (result.read.offset === 0) {
+            const next = { fields: result.read.fields, depth: result.read.depth, total: result.total };
+            const reusable = record.complete && record.sourceHash === sourceHash && canonical(record.read) === canonical(next) && canonical(record.pages?.[0]) === canonical(result.items);
+            if (!reusable) { await this.invalidateReference(key); record.pages = {}; record.image = null; }
+            record.read = next; record.sourceHash = sourceHash;
+          }
           if (!record.read || record.read.total !== result.total || canonical(record.read.fields) !== canonical(result.read.fields) || record.read.depth !== result.read.depth) throw new Error("Reference pagination scope changed; restart at offset 0");
+          if (record.pages[result.read.offset] && canonical(record.pages[result.read.offset]) !== canonical(result.items)) { record.image = null; await this.invalidateReference(key); }
           record.pages[result.read.offset] = result.items;
           const items = [], offsets = Object.keys(record.pages).map(Number).sort((a, b) => a - b);
           let cursor = 0;
           for (const offset of offsets) { if (offset !== cursor) break; items.push(...record.pages[offset]); cursor += record.pages[offset].length; }
           record.complete = cursor === result.total && items.some((n) => n.id === input.nodeId && ["frame", "group"].includes(n.type));
-        } else if (result.data) { record.image = await this.archiveImage(result, null, "reference", result.source); result = { ...result, evidence: record.image }; }
+        } else if (result.data) {
+          if (record.image && hash(Buffer.from(result.data, "base64")) !== record.image.sha256) await this.invalidateReference(key);
+          record.image = await this.archiveImage(result, null, "reference", result.source); result = { ...result, evidence: record.image };
+        }
       }
       await this.event("reference_read", { action: input.action, source: result.source, read: result.read, evidence: result.evidence });
     }
     if ((method === "get_screenshot" || method === "preview") && result.data) {
-      const page = method === "preview" ? result.context?.previewContext?.path : this.run.components[input.componentUuid];
+      const page = this.run.components[method === "preview" ? result.context?.previewContext?.componentUuid : input.componentUuid];
       if (page) { const evidence = await this.archiveImage(result, page, method === "preview" ? "runtime" : "design"); result = { ...result, evidence }; await this.event("image", { page, evidence }); }
     }
     if (method === "preview") {
@@ -325,13 +487,14 @@ class PrototypeTask {
           current.step++;
         }
         current.actions.push(input.action);
-        if (input.action === "assert" && result.passed === true && result.checks?.length === spec.assertions.length && result.checks.every((c) => c.passed === true) && current.step === spec.steps.length && valueHash(input.checks) === valueHash(spec.assertions) && result.context?.previewContext?.path === (spec.targetPath || page.path)) {
+        const expectedPage = this.componentFor(spec.targetPath || page.path);
+        if (input.action === "assert" && result.passed === true && result.checks?.length === spec.assertions.length && result.checks.every((c) => c.passed === true) && current.step === spec.steps.length && valueHash(input.checks) === valueHash(spec.assertions) && expectedPage && result.context?.previewContext?.componentUuid === expectedPage) {
           page.cases[spec.id] = { seq: this.run.seq + 1, actions: current.actions, checks: result.checks, identity: identity(result.context) };
           this.run.currentCase = null;
         }
       }
       const casePage = current && this.run.pages.find((p) => p.path === current.page);
-      await this.event("preview", { page: result.context?.previewContext?.path, action: input.action, context: result.context, passed: result.passed, checks: result.checks, target: result.target, caseId: current?.id, step: current?.step, caseCompleted: !!(current && casePage.cases[current.id]) });
+      await this.event("preview", { page: this.run.components[result.context?.previewContext?.componentUuid], action: input.action, context: result.context, passed: result.passed, checks: result.checks, target: result.target, caseId: current?.id, step: current?.step, caseCompleted: !!(current && casePage.cases[current.id]) });
     }
     return result;
   }
@@ -356,7 +519,7 @@ class PrototypeTask {
       if (this.run.models[model.uuid]?.hash !== valueHash(model) || this.run.models[model.uuid]?.sessionId !== context.sessionId || this.run.layouts[model.uuid]?.hash !== valueHash(layouts[model.uuid]?.snapshot) || this.run.layouts[model.uuid]?.sessionId !== context.sessionId) throw new Error("Report data was not collected through actual Desktop model/layout calls in this editor session");
     }
     const inputs = report.checkedInputs?.files;
-    if (!Array.isArray(inputs) || !inputs.some((item) => path.basename(item.path) === "verify_all.py" && item.sha256)) throw new Error("Verification must retain checker and source-inventory hashes");
+    if (!Array.isArray(inputs) || !this.run.verifierFiles.every((file) => inputs.some((item) => item.path === file && item.sha256 === this.run.pinned[file]))) throw new Error("Verification must use the pinned resource verifier and source-inventory hashes");
     const suite = JSON.parse(await fs.readFile(this.run.suitePath));
     const requiredInputs = await Promise.all([suite.structure.inventory, ...Object.values(this.run.inventoryPaths), ...(suite.references ? [suite.references.inventory] : []), ...this.run.pages.filter((p) => !route || p.path === route).map((p) => p.intent)].map((file) => fs.realpath(path.resolve(path.dirname(this.run.suitePath), file))));
     for (const file of requiredInputs) if (!inputs.some((item) => item.path === file && item.sha256 === this.run.pinned[file])) throw new Error("Report does not use the reviewed source input: " + file);

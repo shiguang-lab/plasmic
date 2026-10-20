@@ -162,6 +162,14 @@ class FormCheckTests(unittest.TestCase):
         self.assertTrue(self.result(html)["passed"])
         self.assertTrue(self.result(html.replace('column-gap:', 'grid-column-gap:'))["passed"])
 
+    def test_page_form_layout_does_not_require_an_overlay_container(self):
+        html = self.grid_fixture()
+        html = html[html.index('>') + 1:-len('</plasmic-component>')]
+        self.expected["pages"][0]["forms"][0]["layout"].pop("modalWidth")
+        self.assertTrue(self.result(html)["passed"])
+        self.expected["pages"][0]["forms"][0]["layout"]["modalWidth"] = 640
+        self.assertFalse(self.result(html)["passed"])
+
     def test_shrinking_container_wrong_columns_gap_and_field_span_fail(self):
         html = self.grid_fixture()
         for old, new in [('width:100%', 'width:50%'), ('"width":"640"', '"width":"800"'), ('repeat(2', 'repeat(1'), ('column-gap:16px', 'column-gap:24px'), ('display:flex;flex-direction:column', 'display:flex;flex-direction:row'), ('display:flex;flex-direction:column', 'display:flex;flex-direction:column;row-gap:24px')]:

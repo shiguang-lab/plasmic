@@ -83,7 +83,6 @@ test("management tools expose strict MCP schemas and forward valid calls through
       ["get_app_state", { toolNames: ["read", "identify"] }],
       ["get_app_state", { view: "tools" }],
       ["get_app_state", { schemaView: "full", toolNames: ["executeBatch"] }],
-      ["reference_browser", { action: "open" }],
       [
         "reference_browser",
         { action: "load_page", url: "https://example.org", width: 1440 },
@@ -129,6 +128,9 @@ test("management tools expose strict MCP schemas and forward valid calls through
       valid.map(([method, input]) => ({ method, input })),
     );
     const invalid = [
+      ["execute", { name: "preview", input: { action: "open" } }],
+      ["execute", { name: "executeBatch", input: { operations: [] } }],
+      ["execute_batch", { operations: [{ name: "preview", input: { action: "open" } }] }],
       ["get_app_state", { toolNames: "read" }],
       ["get_app_state", { toolNames: [""] }],
       ["get_app_state", { toolNames: ["read", "read"] }],
@@ -137,6 +139,9 @@ test("management tools expose strict MCP schemas and forward valid calls through
       ["list_projects", { view: "full" }],
       ["list_projects", { view: "everything" }],
       ["reference_browser", { action: "implicit_import" }],
+      ["reference_browser", { action: "open" }],
+      ["reference_browser", { action: "load_page" }],
+      ["reference_browser", { action: "load_page", url: "file:///tmp/reference.html" }],
       ["reference_browser", { action: "import_to_canvas" }],
       ["browser", { action: "open" }],
       ["import_reference", { action: "editable", target: "viewport" }],
@@ -711,12 +716,15 @@ test("invalid resource IDs and creation inputs never reach the NAS", async (t) =
 test("opening dashboards waits for desktop startup", async (t) => {
   const { controller, calls } = fixture(t);
   let resolve;
+  let entered;
+  const started = new Promise((done) => { entered = done; });
   controller.waitForStartup = () =>
     new Promise((done) => {
       resolve = done;
+      entered();
     });
   const opening = controller.dispatch("open_org", { orgId: "org" });
-  await new Promise((done) => setImmediate(done));
+  await started;
   assert.deepEqual(calls, []);
   resolve();
   await opening;

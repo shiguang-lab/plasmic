@@ -1,6 +1,6 @@
 # SearchForm + Tabs + Table
 
-Applies to [Overseas](../index.md) query/shell components and [Ant Design v6](../../antd_v6/index.md) controls, Tabs and Table. Read [React UI](../../react_ui/index.md) only when its ActionGroup is used. Select these libraries through the [library index](../../index.md) before applying this recipe.
+Applies to [Overseas](../index.md) query/shell components and [Ant Design v6](../../antd_v6/index.md) controls, Tabs and Table. Lists with row operations also require discovering the registered [React UI ActionGroup](../../react_ui/components/action-group.md) and its library dependency before choosing the action implementation. Select these libraries through the [library index](../../index.md).
 
 Read component rules only for the affected parts: [SearchForm](../components/search-form.md), [Tabs](../../antd_v6/components/tabs.md), [Table](../../antd_v6/components/table.md), [Pagination](../../antd_v6/components/pagination.md), [Dropdown](../../antd_v6/components/dropdown.md), [ActionGroup](../../react_ui/components/action-group.md), [Tooltip](../../antd_v6/components/tooltip.md) and [Badge](../../antd_v6/components/badge.md). This file owns query/list composition and cross-region acceptance.
 
@@ -10,11 +10,13 @@ Query → list toolbar/Tabs → Table → pagination. Every list query region us
 
 Business actions such as create, import or launch belong to an editable business toolbar, distinct from SearchForm's query/reset/expand controls. When that toolbar is displayed above a SearchForm, align its actions to the content region's left edge using normal flex flow (`justify-content: flex-start`), with an 8px action gap and 16px separation from the filter row. The button's outer left edge aligns with the SearchForm's inner content edge, not with the label glyphs or the input after labelWidth. Do not push a lone business action to the far right. This is the admin query-region convention; page-header actions, Modal footers and the SearchForm's own action column retain their respective component/layout contracts. Preserve an explicitly approved ordering of toolbar and filters, and derive actions and permissions from the current requirement.
 
-Use Tabs for scopes such as All/Mine. Each Tab content Slot owns its Table, pagination and state; put a shared primary action in Tabs extra and keep one primary page action. Use [Card edge ownership](../../antd_v6/components/card.md#card-ownership) where Tabs and Table share a surface. Preserve identical column definitions for comparable All/Mine tables.
+Select [Tabs](../../antd_v6/components/tabs.md) for content scopes such as All/Mine before freezing the source inventory; button-shaped Radio.Group options remain field choices. Each Tab Item children Slot owns its Table, pagination and relevant state. Put a shared primary action once in Tabs tabBarExtraContentRight, using the live contract, and keep one primary page action. Use [Card edge ownership](../../antd_v6/components/card.md#card-ownership) where Tabs and Table share a surface. Preserve identical column definitions for comparable scopes.
 
 ## Pagination and scrolling
 
 Default page size 20 with options 20/50/100 unless the requirement says otherwise. Sample rows and total must agree, ideally at least three pages for pagination testing. Let the Table grow naturally; scroll the AppShell content region to reach pagination. For a Table inside a Modal, bound and scroll the Modal content region instead of the Table body, keeping the title and footer reachable. Verify 20/50/100 rows, expanded/collapsed filters and All/Mine scopes: the whole business region moves vertically while shell navigation stays fixed, with no second Table body scrollbar. Do not force a tall empty card; leave bottom spacing 16px once.
+
+Keep current/pageSize/total under one pagination owner. Prefer the Table's pagination for these lists; use its native showTotal(total, range) binding for total text before the pager controls. Never replace this capability with a sibling literal counter. A source-required standalone Pagination uses its own showTotal and requires disabling the duplicated Table pager. Bind totals to the full matching result set, then exercise zero results, reset, scope and page-size changes.
 
 ## Region acceptance
 

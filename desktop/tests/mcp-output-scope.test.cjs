@@ -24,7 +24,8 @@ test("public MCP output preserves the next-step inputs without UI state, permiss
   const context = { projectId: "project", branchId: null, sessionId: "session", revision: 3, changeCounter: 5,
     componentUuid: "page", selectedElementUuids: ["node"], editorView: view, browserImportCanvasName: "ImportCanvas", mode: "edit", canEdit: true };
   const contextSchema = { type: "object", properties: { projectId: { type: "string" }, editorView: { type: "object" }, browserImportCanvasName: { type: "string" } }, required: ["projectId", "editorView", "browserImportCanvasName"] };
-  const controller = new DesktopController(() => ({ isDestroyed: () => false }), {});
+  const controller = new DesktopController(() => ({ isDestroyed: () => false,
+    webContents: { getURL: () => "https://studio.example/projects/project" } }), { studioOrigin: "https://studio.example" });
   controller.state = async () => ({ running: true, ready: true, version: require("../package.json").version, build,
     projectId: "project", editorContext: context, browser: { recent: ["private history"] }, imageService: { configured: false },
     availableEditorTools: ["getEditorContext"], editorTools: { getEditorContext: { inputSchema: { type: "object" }, outputSchema: contextSchema } } });
@@ -74,7 +75,7 @@ test("public MCP output preserves the next-step inputs without UI state, permiss
     await call("execute", { name: "restoreEditorView", input: snapshot.view });
     assert.deepEqual(restored, view);
     assert.deepEqual(context.editorView, view);
-    for (const action of ["open", "load_page", "get_state", "select_element", "close"]) {
+    for (const action of ["load_page", "get_state", "select_element", "close"]) {
       const result = await call("reference_browser", { action, ...(action === "load_page" ? { url: "https://example.org" } : {}) });
       for (const key of ["recent", "result", "appearance", "platform"]) assert.equal(result[key], undefined);
       if (["get_state", "select_element"].includes(action)) assert.equal(result.selection.selector, "main");

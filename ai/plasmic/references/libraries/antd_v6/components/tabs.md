@@ -9,6 +9,8 @@ Library: [Ant Design v6](../index.md).
 
 Read the installed Tabs contract. Use actual [items](#items) represented by Tab Item nodes; do not draw tab labels above sibling content. [SearchForm + Tabs + Table](../../overseas/compositions/search-table.md) owns data-scope composition; [Card spacing](card.md#card-ownership) owns outer edge padding.
 
+Choose by the source's interaction role before markup. Switching a list's content scope, such as All/Mine or different result categories, uses Tabs with real Tab Item content. Radio.Group selects one field value; its button appearance does not make it content navigation. An explicit current user control choice prevails. Declare the selected Tabs identity in the source inventory and its content/action Slot ownership in the intent before generation; two adjacent options in a reference do not establish Radio semantics.
+
 Preserve registered motion defaults: animated=true, animateTabBar=true and animateTabContent=false. Do not disable all animation merely to switch Table content immediately; ink-bar and content animation are independent controls. Override these defaults only for an explicit requirement.
 
 In live Preview, switch Tabs in both directions and verify the animated ink-bar class, correct indicator bounds and matching content. Recheck delivered props and motion after save/reopen; static screenshots alone do not prove motion.

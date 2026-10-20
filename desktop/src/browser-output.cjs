@@ -1,5 +1,4 @@
 const fields = {
-  open: ["visible", "url", "title", "loading", "width", "height"],
   load_page: ["url", "title", "loading", "width", "height", "error"],
   get_state: ["visible", "url", "title", "loading", "busy", "width", "height", "zoom", "device", "importHeight", "picking", "error"],
   set_import_height: ["importHeight"],

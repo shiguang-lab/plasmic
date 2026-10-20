@@ -21,8 +21,10 @@ test("reference tools reject Studio Preview and keep external CDP read-only", as
   const controller = new DesktopController(() => win, { studioOrigin: "https://studio.example" });
   t.after(() => controller.close());
   const calls = [];
+  controller.state = async () => ({ ready: true, projectId: "p", editorContext: { mode: "edit", canEdit: true } });
   controller.browser = { state: { url: "https://example.org" }, dispose() {}, command: async (input) => { calls.push(input); return { performed: input.action }; } };
   await assert.rejects(controller.dispatch("reference_browser", { action: "load_page", url: "https://studio.example/projects/p/preview/page#live=true" }), /authenticated preview/);
+  await assert.rejects(controller.dispatch("reference_browser", { action: "load_page", url: "https://studio.example/projects/p" }), /external to Studio/);
   controller.browser.state.url = "https://studio.example/projects/p/preview/page";
   await assert.rejects(controller.dispatch("import_reference", { action: "editable" }), /authenticated preview/);
   controller.browser.state.url = "https://example.org";
@@ -31,6 +33,122 @@ test("reference tools reject Studio Preview and keep external CDP read-only", as
   assert.equal(calls[0].params.throwOnSideEffect, true); assert.equal(calls[0].params.awaitPromise, false);
   await controller.dispatch("import_reference", { action: "editable", target: "selection" });
   assert.equal(calls[1].action, "import_to_canvas");
+});
+test("reference tools reject source-free opens and unloaded sources before showing any panel", async (t) => {
+  const win = { isDestroyed: () => false, webContents: { getURL: () => "https://studio.example/projects/p" } };
+  const controller = new DesktopController(() => win, { studioOrigin: "https://studio.example" });
+  t.after(() => controller.close());
+  const calls = [];
+  controller.state = async () => ({ ready: true, projectId: "p", editorContext: { mode: "edit", canEdit: true } });
+  controller.browser = { state: { url: "" }, dispose() {}, command: async (input) => { calls.push(input); return {}; } };
+  for (const input of [{ action: "open" }, { action: "load_page" }, { action: "get_state" }, { action: "capture" }, { action: "load_page", url: "file:///tmp/reference.html" }]) {
+    await assert.rejects(controller.dispatch("reference_browser", input), /explicit external|HTTP\(S\)/);
+  }
+  assert.deepEqual(calls, []);
+  await controller.dispatch("reference_browser", { action: "load_page", url: "https://example.org/reference" });
+  assert.deepEqual(calls, [{ action: "load_page", url: "https://example.org/reference" }]);
+});
+test("reference UI, capture and imports require an editable project in edit mode", async (t) => {
+  let url = "https://studio.example/projects/p/preview/page";
+  let state = { ready: true, projectId: "p", editorContext: { mode: "edit", canEdit: true } };
+  const win = { isDestroyed: () => false, webContents: { getURL: () => url } };
+  const controller = new DesktopController(() => win, { studioOrigin: "https://studio.example" });
+  t.after(() => controller.close());
+  const calls = [];
+  controller.state = async () => state;
+  controller.browser = { state: { url: "https://example.org" }, dispose() {}, command: async (input) => { calls.push(input); return {}; } };
+  const editable = state;
+  const contexts = [
+    [url, editable],
+    ["https://studio.example/projects/p/preview-full/page", editable],
+    ["https://studio.example/workspaces/w", editable],
+    ["https://studio.example/desktop/unified-login", editable],
+    ["https://studio.example/projects/p/docs", editable],
+    ["https://external.example/projects/p", editable],
+    ["https://studio.example/projects/p", { ...editable, editorContext: { mode: "preview", canEdit: true } }],
+    ["https://studio.example/projects/p", { ...editable, editorContext: { mode: "edit", canEdit: false } }],
+    ["https://studio.example/projects/p", { ...editable, ready: false }],
+    ["https://studio.example/projects/p", { ...editable, projectId: "other" }],
+    ["https://studio.example/projects/p", { ...editable, editorContext: null }],
+  ];
+  for ([url, state] of contexts) {
+    for (const [method, input] of [
+      ["reference_browser", { action: "load_page", url: "https://example.org" }],
+      ["reference_browser", { action: "get_state" }],
+      ["reference_browser", { action: "capture" }],
+      ["import_reference", { action: "editable" }],
+      ["capture_browser", { url: "https://example.org" }],
+      ["browser", { action: "open" }],
+    ]) await assert.rejects(controller.dispatch(method, input), /require a ready, editable Studio project in edit mode/);
+  }
+  assert.deepEqual(calls, []);
+  await controller.dispatch("reference_browser", { action: "close" });
+  assert.deepEqual(calls, [{ action: "close" }]);
+  url = "https://studio.example/projects/p/-/Chinese-arena";
+  state = editable;
+  await controller.dispatch("reference_browser", { action: "load_page", url: "https://example.org" });
+  assert.equal(calls.at(-1).action, "load_page");
+});
+test("failed Preview reports the supported recovery instead of suggesting a reference browser", async (t) => {
+  const win = { isDestroyed: () => false };
+  const controller = new DesktopController(() => win, {});
+  t.after(() => controller.close());
+  controller.ready = async () => {};
+  controller.editor = async (name) => {
+    if (name === "getEditorContext") return { mode: "edit" };
+    throw new Error("Native Preview did not open");
+  };
+  await assert.rejects(controller.dispatch("preview", { action: "open", componentUuid: "page" }), /Native Preview did not open.*stop that acceptance.*Do not fall back/);
+});
+test("native execute aliases cannot bypass Preview evidence or mutation batch gates", async (t) => {
+  const controller = new DesktopController(() => ({ isDestroyed: () => false }), {});
+  t.after(() => controller.close());
+  let calls = 0;
+  controller.editor = async () => { calls++; };
+  for (const name of ["preview", "executeBatch"]) {
+    await assert.rejects(controller.dispatch("execute", { name, input: {} }), /top-level preview/);
+    await assert.rejects(controller.dispatch("execute_batch", { operations: [{ name, input: {} }] }), /top-level preview/);
+  }
+  assert.equal(calls, 0);
+});
+
+test("recovering a bound project never auto-saves an unrelated editor opened outside the task", async (t) => {
+  const controller = new DesktopController(() => ({ isDestroyed: () => false }), {});
+  t.after(() => controller.close());
+  await controller.task.loading;
+  controller.task.run = { projectId: "bound", ended: "cancelled" };
+  controller.state = async () => ({ ready: true, projectId: "unrelated" });
+  let saves = 0;
+  controller.saveBeforeNavigation = async () => { saves++; };
+  await assert.rejects(controller.dispatch("open_design", { projectId: "bound" }), /cannot save it/);
+  assert.equal(saves, 0);
+});
+test("reference navigation checks editor context after a queued Preview transition", async (t) => {
+  const win = { isDestroyed: () => false, webContents: { getURL: () => "https://studio.example/projects/p" } };
+  const controller = new DesktopController(() => win, { studioOrigin: "https://studio.example" });
+  t.after(() => controller.close());
+  let mode = "edit";
+  const calls = [];
+  const entered = deferred(), gate = deferred();
+  controller.state = async () => ({ ready: true, projectId: "p", editorContext: { mode, canEdit: true } });
+  controller.browser = { state: { url: "" }, dispose() {}, command: async (input) => { calls.push(input); return {}; } };
+  const execute = controller.execute.bind(controller);
+  controller.execute = async (method, input) => {
+    if (method !== "preview") return execute(method, input);
+    entered.resolve();
+    await gate.promise;
+    mode = "preview";
+    return {};
+  };
+  const preview = controller.dispatch("preview", { action: "open" });
+  await entered.promise;
+  const reference = assert.rejects(controller.dispatch("reference_browser", { action: "load_page", url: "https://example.org" }), /editable Studio project in edit mode/);
+  const internalBrowser = assert.rejects(controller.dispatch("browser", { action: "open" }), /editable Studio project in edit mode/);
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.deepEqual(calls, []);
+  gate.resolve();
+  await Promise.all([preview, reference, internalBrowser]);
+  assert.deepEqual(calls, []);
 });
 test("schema discovery preserves full contracts while status polling omits their repeated bodies", async (t) => {
   const controller = new DesktopController(() => null, {});

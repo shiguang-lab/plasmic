@@ -8,9 +8,9 @@ read returns counts without targets; collection pages inventory. Target componen
 
 open_design saves before switching editable projects. Read-only work uses the open target/dependencies; obtain authorization before switching would save unrelated work.
 
-Use model UUIDs, never DOM. Read installed Props/Slots/defaults/events/ref signatures; reread identities after library changes.
+Use model UUIDs; reread contracts after library changes. Prop registration preserves declared types, args and nested fields without executing callbacks.
 
-New supported generation uses [prototype_task](prototype-tasks.md). preview exercises native runtime; reference_browser reads external sources; import_reference creates independent reference artboards. Never import Preview or inspect it in the isolated browser.
+New generation uses [prototype_task](prototype-tasks.md). Reference tools require a ready, editable project's edit page. Start reference_browser with load_page and an external HTTP(S) URL. preview owns runtime acceptance; failure blocks that check without reference-tool fallback.
 
 ## Mutate and persist
 

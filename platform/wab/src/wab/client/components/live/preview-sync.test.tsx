@@ -87,6 +87,7 @@ afterEach(() => {
 });
 
 const spec: PreviewRender = {
+  componentUuid: "root-component",
   root: "./root.tsx",
   isPage: true,
   depCss: [],

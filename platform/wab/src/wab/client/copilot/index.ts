@@ -1,5 +1,5 @@
 import { resolveBatchInput, type MutationReceipt, type MutationIdentity } from "@/wab/shared/copilot/mutation-receipt";
-import { readDepth, selectedReadFields, projectReadFields, type ModelReadOptions } from "@/wab/shared/copilot/model-read";
+import { readDepth, selectedReadFields, projectReadFields, withRegisteredContracts, type ModelReadOptions } from "@/wab/shared/copilot/model-read";
 import {
   isCanvasElementVisible,
   revealCanvasElement,
@@ -420,6 +420,8 @@ function readNativeModel(studio: StudioCtx, component: Component, tpl: TplNode |
     for (const field of ["states", "interactions", "dataQueries", "legacyDataQueries", "variantSettings"]) {
       if (fields.includes(field) && resource[field] === undefined) { resource[field] = []; }
     }
+    const registration = fields.includes("props") && studio.getCodeComponentMeta(component);
+    if (registration && Array.isArray(resource.props)) { resource.props = withRegisteredContracts(resource.props, registration.props); }
     const actions = fields.includes("refActions") && studio.getCodeComponentMeta(component)?.refActions;
     if (actions) {
       resource.refActions = Object.entries(actions).map(([name, action]) => ({
@@ -2383,7 +2385,7 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
     const component = input.componentUuid ? findComponent(studio, input.componentUuid) : undefined;
     assert(!component || (studio.site.components.includes(component) && isPageComponent(component)), "Preview target must be a local Page");
     if (input.action === "close") {
-      preview.stopLiveMode();
+      await preview.stopLiveMode();
     } else {
       if (!preview.isLive) {
         await preview.toggleLiveMode();

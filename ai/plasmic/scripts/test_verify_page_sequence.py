@@ -63,8 +63,23 @@ class PageSequenceTests(unittest.TestCase):
         events = [*self.events[:-1], {"kind": "reopened"}, self.events[-1]]
         self.assertFalse(self.result(events)["passed"])
         self.task["pages"][0]["references"] = [{"filePath": "/tmp/original.pen", "nodeId": "frame"}]
-        events = [*self.events[:-1], {"kind": "reference_read", "action": "read", "source": {"filePath": "/tmp/original.pen", "nodeId": "frame"}}, self.events[-1]]
+        events = [*self.events[:-1], {"kind": "reference_changed", "pages": ["/list"]}, self.events[-1]]
         self.assertFalse(self.result(events)["passed"])
+
+    def test_unchanged_reference_acquisition_preserves_completed_evidence(self):
+        events = [*self.events[:-1], {"kind": "reference_read", "action": "read", "source": {"filePath": "/tmp/original.pen", "nodeId": "frame"}}, self.events[-1]]
+        self.assertTrue(self.result(events)["passed"])
+
+    def test_destination_revision_requires_repeating_dependent_navigation(self):
+        self.task["pages"][0]["runtimeCases"].append({"id": "navigate", "deferred": True, "targetPath": "/detail"})
+        navigation = [
+            {"kind": "begin_case", "page": "/list", "caseId": "navigate"},
+            {"kind": "preview", "page": "/detail", "caseId": "navigate", "caseCompleted": True, "passed": True, "checks": [{"passed": True}]},
+        ]
+        for change in ({"kind": "plan_revised", "pages": ["/detail"]}, {"kind": "reference_changed", "pages": ["/detail"]}):
+            events = [*self.events[:-1], *navigation, change, *copy.deepcopy(self.events[9:17]), self.events[-1]]
+            self.assertFalse(self.result(events)["passed"])
+            self.assertTrue(self.result([*events[:-1], *copy.deepcopy(navigation), events[-1]])["passed"])
 
     def test_changed_final_report_is_rejected(self):
         (self.base / "final-report.json").write_text('{"passed":false}')

@@ -220,7 +220,7 @@ def check(expectations, overview, readback):
                 candidates = [n for n in walk(form_children or {"children": []}) if node_name(n) == layout["container"]]
                 failures = []
                 modals = [n for n in walk(root) if identity(n) == "plasmicantd6modal" and any(child is form for child in walk(n))]
-                if len(modals) != 1 or str(props(modals[0]).get("width")) != str(layout["modalWidth"]):
+                if "modalWidth" in layout and (len(modals) != 1 or str(props(modals[0]).get("width")) != str(layout["modalWidth"])):
                     failures.append("Wrong Form Modal width")
                 if len(candidates) != 1:
                     failures.append("Expected one field layout container inside Form")

@@ -1,0 +1,7 @@
+{
+  "en": "- Strengthen prototype task validation, source alignment and native component contract discovery.\n- Add the native Table title render slot and clarify Tabs, Tag, ActionGroup and pagination usage.\n- Restrict reference-browser tools to editable Studio pages and improve Preview synchronization and evidence checks.\n- Improve canvas outline labels and keep their placement stable when changing selection.",
+  "zh-CN": "- 加强原型任务校验、需求对齐和原生组件契约发现。\n- 补齐 Table 原生 title 渲染插槽，完善 Tabs、Tag、ActionGroup 与分页使用规范。\n- 将参考浏览器工具限定在可编辑 Studio 页面，改善 Preview 同步与验收证据检查。\n- 优化画布轮廓标签，切换选中节点时保持位置稳定。",
+  "zh-TW": "- 加強原型任務驗證、需求對齊與原生元件契約探索。\n- 補齊 Table 原生 title 渲染插槽，完善 Tabs、Tag、ActionGroup 與分頁使用規範。\n- 將參考瀏覽器工具限定在可編輯 Studio 頁面，改善 Preview 同步與驗收證據檢查。\n- 改善畫布輪廓標籤，切換選取節點時保持位置穩定。",
+  "ja": "- プロトタイプのタスク検証、要件との整合性、ネイティブコンポーネントの契約取得を強化しました。\n- Table のネイティブ title レンダースロットを追加し、Tabs、Tag、ActionGroup、ページネーションの利用ガイドを更新しました。\n- 参照ブラウザーツールを編集可能な Studio ページに限定し、Preview の同期と検証結果の確認を改善しました。\n- キャンバスのアウトラインラベルを改善し、選択変更時の位置を安定させました。",
+  "ko": "- 프로토타입 작업 검증, 요구사항 정합성 및 네이티브 컴포넌트 계약 조회를 강화했습니다.\n- Table의 네이티브 title 렌더 슬롯을 추가하고 Tabs, Tag, ActionGroup 및 페이지 나누기 사용 지침을 보완했습니다.\n- 참조 브라우저 도구를 편집 가능한 Studio 페이지로 제한하고 Preview 동기화 및 검증 증거 확인을 개선했습니다.\n- 캔버스 윤곽선 레이블을 개선하고 선택 변경 시 위치를 안정화했습니다."
+}

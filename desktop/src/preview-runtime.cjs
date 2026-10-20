@@ -43,7 +43,7 @@ async function runtimeCommand(input, documentId) {
     if (!visible(el)) throw new Error("Preview target is hidden");
     return el;
   };
-  const settle = () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+  const settle = () => Promise.race([new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))), new Promise((resolve) => setTimeout(resolve, 100))]);
   if (input.action === "snapshot") {
     const all = nodes().filter((el) => role(el) || el.tabIndex >= 0 || ["auto", "scroll"].includes(getComputedStyle(el).overflowY));
     const items = all.slice(input.offset || 0, (input.offset || 0) + (input.limit || 40)).map((el) => {
@@ -111,14 +111,17 @@ async function runtimeCommand(input, documentId) {
   return { performed: input.action, target: targetInfo };
 }
 
-async function previewFrame(win) {
+async function previewFrame(win, componentUuid) {
   if (!/\/preview(?:\/|-full(?:\/|$))/.test(new URL(win.webContents.getURL()).pathname)) throw new Error("Open native Preview first; the reference browser is not a runtime Preview");
-  const frames = await canvasFrames(win, undefined, async function inspectPreview() {
+  const frames = await canvasFrames(win, undefined, async function inspectPreview(expected) {
     await Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 5000))]);
-    await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
-    const root = document.querySelector(".__wab_val_root");
-    return { ready: !!root && root.getBoundingClientRect().width > 0, width: innerWidth, height: innerHeight };
-  });
+    await Promise.race([new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))), new Promise((r) => setTimeout(r, 100))]);
+    const failure = document.querySelector("[data-plasmic-preview-error]");
+    if (failure) throw new Error("Native Preview render failed: " + failure.textContent.slice(0, 1200));
+    const root = document.querySelector(".live-root-container");
+    const identity = root?.getAttribute("data-plasmic-preview-component");
+    return { ready: !!root && root.getBoundingClientRect().width > 0 && (!expected || identity === expected), componentUuid: identity, width: innerWidth, height: innerHeight };
+  }, componentUuid);
   if (frames.length !== 1) throw new Error("Expected one active native Preview iframe");
   return frames[0];
 }
@@ -139,10 +142,10 @@ async function viewportRect(frame, viewport) {
 }
 
 async function runPreview(win, input, context) {
-  const { frame, layout } = await previewFrame(win);
+  const { frame, layout } = await previewFrame(win, context.previewContext?.componentUuid);
   const originalUrl = win.webContents.getURL();
   const settle = async () => {
-    try { await frame.executeJavaScript("new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)))"); }
+    try { await frame.executeJavaScript("Promise.race([new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))),new Promise(r=>setTimeout(r,100))])"); }
     catch (error) { if (!frame.isDestroyed?.() && win.webContents.getURL() === originalUrl && win.webContents.mainFrame.framesInSubtree.includes(frame)) throw error; }
   };
   if (input.action === "screenshot") {

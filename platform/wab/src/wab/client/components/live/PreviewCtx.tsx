@@ -47,7 +47,7 @@ import {
 } from "@/wab/shared/Variants";
 import * as Sentry from "@sentry/browser";
 import { notification } from "antd";
-import { Location } from "history";
+import { Location, parsePath } from "history";
 import _ from "lodash";
 import * as mobx from "mobx";
 import { makeObservable, observable } from "mobx";
@@ -248,7 +248,7 @@ export class PreviewCtx {
 
   async toggleLiveMode() {
     if (this.isLive) {
-      this._stopLiveMode();
+      await this._stopLiveMode();
     } else {
       if (this.popup) {
         notification.error({
@@ -263,9 +263,9 @@ export class PreviewCtx {
     }
   }
 
-  stopLiveMode() {
+  async stopLiveMode() {
     if (this.isLive) {
-      this._stopLiveMode();
+      await this._stopLiveMode();
     }
   }
 
@@ -275,13 +275,11 @@ export class PreviewCtx {
     this.previousLocation = history.location;
 
     const location = await getUrlsForLiveMode(this.studioCtx, false);
-    history.push(location);
+    await this.pushRouteToHistoryOrPopup(location);
   }
 
-  private _stopLiveMode() {
-    const history = this.studioCtx.appCtx.history;
-
-    history.push(
+  private async _stopLiveMode() {
+    await this.pushRouteToHistoryOrPopup(
       this.previousLocation ||
         APP_ROUTES.project.fill({ projectId: this.studioCtx.siteInfo.id }),
     );
@@ -333,6 +331,7 @@ export class PreviewCtx {
 
   async parseRoute() {
     const location = await this.getLocation();
+    this.isLive = !this.popup && isLiveMode(this.hostFrameCtx.history.location.pathname);
     if (!isLiveMode(location.pathname)) {
       this.previewData = undefined;
       return;
@@ -491,19 +490,39 @@ export class PreviewCtx {
   }
 
   private async pushRouteToHistoryOrPopup(
-    location: Partial<Location>,
+    location: string | Partial<Location>,
   ): Promise<void> {
+    const target = typeof location === "string" ? parsePath(location) : location;
     if (this.popup) {
       this.popup.postMessage(
         {
           source: "plasmic-studio",
           type: "pushHistory",
-          url: (location.pathname ?? "") + location.search + location.hash,
+          url: (target.pathname ?? "") + (target.search ?? "") + (target.hash ?? ""),
         },
         "*",
       );
     } else {
-      this.studioCtx.appCtx.history.push(location);
+      const history = this.hostFrameCtx.history;
+      const expected = { pathname: target.pathname ?? history.location.pathname, search: target.search ?? "", hash: target.hash ?? "" };
+      const matches = (current: Location) =>
+        (["pathname", "search", "hash"] as const).every(
+          (key) => (current[key] || "") === (expected[key] || ""),
+        );
+      await new Promise<void>((resolve, reject) => {
+        const dispose = history.listen(({ location: current }) => {
+          if (matches(current)) { clearTimeout(timer); dispose(); resolve(); }
+        });
+        const timer = setTimeout(() => {
+          dispose();
+          reject(new Error("Native Preview history synchronization timed out"));
+        }, 5000);
+        try {
+          this.studioCtx.appCtx.history.push(target);
+          if (matches(history.location)) { clearTimeout(timer); dispose(); resolve(); }
+        } catch (error) { clearTimeout(timer); dispose(); reject(error); }
+      });
+      await this.parseRoute();
     }
   }
 

@@ -202,6 +202,7 @@ const tools = [
       ...object({
         projectId: { type: "string", pattern: "^[A-Za-z0-9_-]+$" },
         componentUuid: { type: "string", minLength: 1 },
+        reopen: { type: "boolean", description: "Save and reopen this project in a new editor session, including when it is already active." },
       }),
       required: ["projectId"],
     },
@@ -212,7 +213,7 @@ const tools = [
       "Call a validated Studio operation. Supports read, createComponent (page/component), insertHtml, changeElement (props/layout), deleteElement, state/interactions/tokens, navigate, scrollElementIntoView (reveal rendered content without changing the design), validate, save and undo. Obtain exact input schemas from get_app_state. Read component props/slot contracts before editing. Native schemas describe complete values; MCP may return ResultReference for large results or SVG source, retrievable through read_result. Save explicitly after design changes.",
     inputSchema: {
       ...object({
-        name: { type: "string", enum: EDITOR_METHODS },
+        name: { type: "string", enum: EDITOR_METHODS.filter((name) => !["preview", "executeBatch"].includes(name)) },
         input: { type: "object" },
       }),
       required: ["name", "input"],
@@ -372,7 +373,7 @@ tools.push(
   {
     name: "capture_browser",
     description:
-      "Capture an HTTP(S) reference page or CSS-selected node in an isolated browser. Returns a compressed WebP preview (fullResolution for original-size lossless pixels) and a read_result reference to sanitized markup with computed styles for insertHtml. Does not share Studio cookies, modify the design or execute client-provided JavaScript. Cross-site scripts run only as part of normal browser page loading.",
+      "Capture an external HTTP(S) reference page or CSS-selected node while a ready, editable Studio project is open in edit mode. Returns a compressed WebP image (fullResolution for original-size lossless pixels) and a read_result reference to sanitized markup with computed styles for insertHtml. Native runtime acceptance belongs to preview; a failed preview leaves that acceptance incomplete. Does not share Studio cookies, modify the design or execute client-provided JavaScript. Cross-site scripts run only as part of normal browser page loading.",
     inputSchema: {
       ...object({
       fullResolution: { type: "boolean", description: "Return original-size lossless WebP instead of the default compressed preview (long edge at most 2048)." },
@@ -444,6 +445,7 @@ tools.push(
                       "save",
                       "undo",
                       "executeBatch",
+                      "preview",
                       "importWebPage",
                     ].includes(name),
                 ),

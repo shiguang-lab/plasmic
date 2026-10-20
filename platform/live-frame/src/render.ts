@@ -29,7 +29,7 @@ export function createRenderer(Sub: any) {
     return renderRoot(
       React.createElement(
         "div",
-        {},
+        { role: "alert", "data-plasmic-preview-error": true },
         message.startsWith("[host-app-error]")
           ? message
           : `Failed to load the preview - please refresh the browser to try again. \n\nIf the problem persists, please report a bug to Plasmic team. Thank you!\n\n${message}`,

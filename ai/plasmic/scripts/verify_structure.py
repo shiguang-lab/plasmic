@@ -53,10 +53,13 @@ def menu_tree(items):
     return result
 
 
-def check_components(nodes, path):
+def check_components(nodes, path, plan=None):
     errors = []
     for node in nodes:
         context = {"check": "component", "path": path, "node": node_name(node)}
+        if plan is not None and "components" in plan and (identity(node) == "plasmicantd6pagination" or identity(node) == "plasmicantd6table" and props(node).get("pagination") is not False):
+            if not any(c.get("nodeName") == node_name(node) and c.get("role") == "pagination" for c in plan["components"]):
+                errors.append({**context, "message": "Every active native pager needs an explicit reviewed pagination owner; disable unneeded Table pagination"})
         if identity(node) == "plasmicantd6table":
             values = props(node)
             if values.get("data") is None:
@@ -66,6 +69,8 @@ def check_components(nodes, path):
             if not columns:
                 errors.append({**context, "message": "Table requires real Table.Column nodes in its Columns children Slot; data alone does not define columns"})
             for column in columns:
+                if plan is not None and "components" in plan and not any(c.get("nodeName") == node_name(column) for c in plan["components"]):
+                    errors.append({**context, "column": node_name(column), "message": "Every Column needs a source-reviewed field/presentation decision in components"})
                 if not props(column).get("dataIndex") and not content(slot(column, "render")) and not any(
                     n.get("tag") == "plasmic-component" for n in walk(slot(column, "render") or {"children": []})
                 ):
@@ -84,6 +89,36 @@ def check_components(nodes, path):
                 if not extra_text and all(id(n) in owned for n in business):
                     errors.append({**context, "message": "SearchForm/Steps-only layout requires no surrounding Card; use a layout container"})
     return errors
+
+
+def prop_at(values, path):
+    for key in path.split("."):
+        if not isinstance(values, dict) or key not in values:
+            return None
+        values = values[key]
+    return values
+
+
+def matches_props(expected, actual):
+    if isinstance(expected, dict):
+        return isinstance(actual, dict) and all(k in actual and matches_props(v, actual[k]) for k, v in expected.items())
+    return json.dumps(expected, sort_keys=True) == json.dumps(actual, sort_keys=True)
+
+
+def component_owners(root):
+    owners = {}
+
+    def visit(node, owner=None, slot_name=None):
+        if node["tag"] == "plasmic-component":
+            owners[id(node)] = (owner, slot_name)
+            for child in node["children"]:
+                visit(child, node, child["attrs"].get("name") if child["tag"] == "slot" else None)
+        else:
+            for child in node["children"]:
+                visit(child, owner, slot_name)
+
+    visit(root)
+    return owners
 
 
 def element_fallbacks(plan):
@@ -136,6 +171,7 @@ def check_required_nodes(plan, nodes, page, path):
     conditional editability and query semantics still need exercised Preview.
     """
     errors = []
+    owners = component_owners(next(n for n in nodes if n["tag"] == "root"))
 
     def target(spec, key="nodeName"):
         found = [n for n in nodes if node_name(n) == spec.get(key)]
@@ -154,6 +190,47 @@ def check_required_nodes(plan, nodes, page, path):
         expected = re.sub(r"[^a-z0-9]", "", spec.get("component", "").lower())
         if node is not None and (not expected or node["tag"] != "plasmic-component" or identity(node) != expected):
             errors.append({"check": "nativeComponent", "path": path, "node": spec.get("nodeName"), "expected": spec.get("component"), "message": "Required source region must use the registered component; HTML tables, grids or styled text are not replacements"})
+        if node is None:
+            continue
+        context = {"check": "componentUse", "path": path, "node": spec["nodeName"]}
+        values, role = props(node), spec.get("role", "widget")
+        if not matches_props(spec.get("props", {}), values):
+            errors.append({**context, "message": "Native props differ from the reviewed property constraints", "properties": [key for key, value in spec["props"].items() if key not in values or not matches_props(value, values[key])]})
+        for prop in spec.get("dynamicProps", []):
+            encoded = json.dumps(prop_at(values, prop), ensure_ascii=False)
+            if "{{" not in encoded or "}}" not in encoded:
+                errors.append({**context, "property": prop, "message": "Required native binding is missing; sibling text is not a substitute"})
+        owner, slot_name = owners.get(id(node), (None, None))
+        if spec.get("owner") and (node_name(owner) if owner else None, slot_name) != (spec["owner"]["nodeName"], spec["owner"]["slot"]):
+            errors.append({**context, "message": "Component is outside its reviewed native owner/Slot"})
+        if role == "content-scope" and identity(node) != "plasmicantd6tabs":
+            errors.append({**context, "message": "Content-scope navigation requires native Tabs in this library suite"})
+        if role == "category" and not (identity(node) == "plasmicantd6tag" or identity(node) == "plasmicantd6tablecolumn" and values.get("displayType") == "tag"):
+            errors.append({**context, "message": "Category presentation requires native Tag or Column tag display"})
+        if role == "row-actions":
+            column, entry = owner, slot_name
+            while column and identity(column) != "plasmicantd6tablecolumn":
+                column, entry = owners.get(id(column), (None, None))
+            if identity(node) != "plasmicreactuiactiongroup" or entry != "render" or not column:
+                errors.append({**context, "message": "Row actions require native ActionGroup inside Column.render"})
+            elif props(column).get("fixed") != "right" or not isinstance(props(column).get("width"), (int, float)) or isinstance(props(column).get("width"), bool) or props(column)["width"] <= 0:
+                errors.append({**context, "message": "Operation Column must have fixed:right and a positive explicit width"})
+            else:
+                table = column
+                while table and identity(table) != "plasmicantd6table":
+                    table = owners.get(id(table), (None, None))[0]
+                columns = [c for c in walk(slot(table, "children") or {"children": []}) if identity(c) == "plasmicantd6tablecolumn"] if table else []
+                if not columns or columns[-1] is not column:
+                    errors.append({**context, "message": "Operation Column must be the Table's final leaf column"})
+        if role == "pagination":
+            table = identity(node) == "plasmicantd6table"
+            value = prop_at(values, "pagination.showTotal" if table else "showTotal")
+            if identity(node) not in {"plasmicantd6table", "plasmicantd6pagination"} or not isinstance(value, str) or "{{" not in value or "}}" not in value:
+                errors.append({**context, "message": "Pagination total belongs to the native showTotal binding"})
+            if not table:
+                regions = [n for n in nodes if node_name(n) == spec.get("dataOwner") and node_name(n)]
+                if len(regions) != 1 or regions[0] is node or identity(regions[0]) == "plasmicantd6table" and props(regions[0]).get("pagination") is not False:
+                    errors.append({**context, "message": "Standalone pagination needs one dataOwner with duplicated Table pagination disabled"})
 
     for spec in plan.get("controls", []):
         node = target(spec)
@@ -181,10 +258,10 @@ def check_required_nodes(plan, nodes, page, path):
         if (identity(column) != "plasmicantd6tablecolumn" or render is None
                 or props(column).get("displayType") not in (None, "custom")
                 or not any(n is control for n in walk(render))
-                or identity(control) not in {"plasmicantd6button", "plasmicreactuiactiongroup"}
+                or identity(control) != "plasmicreactuiactiongroup"
                 or not isinstance(spec.get("event"), str) or not spec["event"].strip()
                 or not has_event(control, spec["event"])):
-            errors.append({"check": "rowAction", "path": path, "column": spec.get("column"), "message": "Row action requires a real Button/ActionGroup with its registered event inside Column.render; link-formatted action text is insufficient"})
+            errors.append({"check": "rowAction", "path": path, "column": spec.get("column"), "message": "Row actions require native ActionGroup with the declared event inside Column.render"})
     return errors
 
 
@@ -271,9 +348,36 @@ def validate_page_plan(plan):
     components, copy = plan.get("components"), plan.get("copy")
     if not entries(components, ("nodeName", "component", "source")) or len({c["nodeName"] for c in components}) != len(components):
         raise ValueError("Required native component identities and sources must be planned independently of output")
+    for index, component in enumerate(components):
+        if component.get("role") not in {"widget", "content-scope", "category", "row-actions", "pagination"} or not text(component.get("purpose")):
+            raise ValueError(f"components/{index} needs an independently reviewed role and purpose")
+        if not isinstance(component.get("props", {}), dict):
+            raise ValueError(f"components/{index}/props must be an object of native property constraints")
+        if not isinstance(component.get("dynamicProps", []), list) or any(not text(p) for p in component.get("dynamicProps", [])):
+            raise ValueError(f"components/{index}/dynamicProps must be property paths")
+        if "owner" in component and (not isinstance(component["owner"], dict) or not all(text(component["owner"].get(k)) for k in ("nodeName", "slot"))):
+            raise ValueError(f"components/{index}/owner needs nodeName and native slot")
+        if component.get("role") == "pagination" and component["component"] == "plasmic-antd6-pagination" and not text(component.get("dataOwner")):
+            raise ValueError(f"components/{index}/dataOwner must identify the paged data region")
     if not isinstance(copy, dict) or not text(copy.get("source")) or not entries(copy.get("excluded"), ("text", "source")) or not entries(copy.get("help"), ("text", "source", "nodeName")):
         raise ValueError("Independent UI-copy review requires source, excluded and help arrays")
     element_fallbacks(plan)
+    if not isinstance(plan.get("controls", []), list):
+        raise ValueError("controls must be an array")
+    if not isinstance(plan.get("bindings", []), list):
+        raise ValueError("Declare source-derived bindings as an array, including [] when not applicable")
+    for index, control in enumerate(plan.get("controls", [])):
+        if not isinstance(control, dict) or not isinstance(control.get("props", {}), dict):
+            raise ValueError(f"controls/{index}/props must be an object")
+    for index, binding in enumerate(plan.get("bindings", [])):
+        if not isinstance(binding, dict):
+            raise ValueError(f"bindings/{index} must be an object")
+        for key in ("props", "dynamicProps", "events"):
+            if not isinstance(binding.get(key, []), list) or any(not text(v) for v in binding.get(key, [])):
+                raise ValueError(f"bindings/{index}/{key} must be a string array")
+        dependencies = binding.get("propStateDependencies", {})
+        if not isinstance(dependencies, dict) or any(not isinstance(v, list) or not v or any(not text(s) for s in v) for v in dependencies.values()):
+            raise ValueError(f"bindings/{index}/propStateDependencies must map prop names to state-path arrays")
 
 
 def check(expectation, overview, readback, page_path=None):
@@ -333,8 +437,8 @@ def check(expectation, overview, readback, page_path=None):
         duplicates = [name for name, count in Counter(names).items() if count > 1]
         if invalid or duplicates:
             errors.append({"check": "naming", "path": path, "invalid": invalid, "duplicates": duplicates, "message": "Explicit editable node names must be English PascalCase and distinct within the owning Page; meaning still requires review"})
-        errors.extend(check_components(nodes, path))
         plan = next((p for p in planned if p.get("path") == path), {})
+        errors.extend(check_components(nodes, path, plan))
         errors.extend(check_native_widgets(plan, nodes, page, path))
         errors.extend(check_required_nodes(plan, nodes, page, path))
         errors.extend(check_presentation(plan, root, path))
@@ -346,14 +450,14 @@ def check(expectation, overview, readback, page_path=None):
             node = matches[0]
             values = props(node)
             for prop in binding.get("props", []):
-                if prop not in values or values[prop] is None or values[prop] == "":
+                if prop_at(values, prop) is None or prop_at(values, prop) == "":
                     errors.append({"check": "binding", "path": path, "node": binding["nodeName"], "missingProp": prop})
             for prop in binding.get("dynamicProps", []):
-                encoded = json.dumps(values.get(prop), ensure_ascii=False)
+                encoded = json.dumps(prop_at(values, prop), ensure_ascii=False)
                 if "{{" not in encoded or "}}" not in encoded:
                     errors.append({"check": "binding", "path": path, "node": binding["nodeName"], "property": prop, "message": "Source requires dynamic data; a literal value is insufficient"})
             for prop, states in binding.get("propStateDependencies", {}).items():
-                encoded = json.dumps(values.get(prop), ensure_ascii=False)
+                encoded = json.dumps(prop_at(values, prop), ensure_ascii=False)
                 if not isinstance(states, list) or not states or any(not isinstance(s, str) or not re.fullmatch(r"[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)*", s) for s in states):
                     errors.append({"check": "expectation", "path": path, "message": "propStateDependencies requires nonempty native state paths"})
                     continue

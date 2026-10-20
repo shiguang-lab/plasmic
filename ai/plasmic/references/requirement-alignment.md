@@ -28,6 +28,8 @@ Admin Pages inside AppShell start with business content, without a standalone Pa
 
 Before markup, apply [native component selection](libraries/index.md#native-component-selection) and map every required functional widget to its real registration in `components`, `controls` and matching region inventories. Include actions, navigation, pagination, feedback and overlays, not just Table/Form/Descriptions. SearchForm owns filters; Form/Item owns submitted fields and Descriptions/Item owns read-only groups. Each required target must resolve to its declared identity. Region/Slot gates still check field ownership and completeness.
 
+Classify switches by source purpose before recording a component identity. In the Antd-v6 list composition, content-scope navigation follows [Tabs](libraries/antd_v6/components/tabs.md); choosing a field value follows Radio.Group. Record the chosen native identity in components and real content/action Slot owners in the intent. A plan that merely repeats the generated selector has not reviewed this choice; structural identity checks cannot correct a wrongly classified source role.
+
 Plain semantic text, root/Slot containers, genuine navigation anchors and read-only code do not need exceptions. For a widget with a verified contract gap, add optional `elementFallbacks:[{"nodeName":"CustomWidget","reason":"Checked candidates/contracts and concrete unsupported behavior","source":"requirement section + contract evidence"}]` before generation. Name the exact node; exceptions do not cover descendants or override required native identities or other gates. The structure check rejects unreviewed raw controls/tables/dialogs, ARIA widgets and ordinary-element click targets. It verifies exception shape and exact targets, not the correctness of the rationale; independent contract review remains necessary. A native-component failure is not a reason to add an exception just to pass.
 
 Review `copy` independently of output. `source` cites this review, `excluded` records requirement/process sentences that must not appear, and `help` records necessary user-facing instruction owners/text/sources. Keep scope/release notes, API/implementation rationale, permission-matrix explanations, acceptance steps and simulation/debug controls in the task report. Express behavior through actual UI state and concise actionable feedback. Preserve useful field constraints, irreversible-action warnings and failure guidance; do not remove all help text or use a global keyword blacklist.
@@ -36,9 +38,9 @@ Review `copy` independently of output. `source` cites this review, `excluded` re
 {
   "pageHeader": null,
   "components": [
-    {"nodeName":"RecordsTable","component":"plasmic-antd6-table","source":"requirement §Results"},
-    {"nodeName":"EditForm","component":"plasmic-antd6-form","source":"requirement §Edit"},
-    {"nodeName":"Summary","component":"plasmic-antd6-descriptions","source":"requirement §Summary"}
+    {"nodeName":"RecordsTable","component":"plasmic-antd6-table","role":"widget","purpose":"Required unpaged result region","source":"requirement §Results","props":{"pagination":false}},
+    {"nodeName":"EditForm","component":"plasmic-antd6-form","role":"widget","purpose":"Submitted business fields","source":"requirement §Edit"},
+    {"nodeName":"Summary","component":"plasmic-antd6-descriptions","role":"widget","purpose":"Read-only business attributes","source":"requirement §Summary"}
   ],
   "copy": {
     "source":"requirement §Fields + reviewed UI-copy decisions",
@@ -49,6 +51,19 @@ Review `copy` independently of output. `source` cites this review, `excluded` re
 ```
 
 The structure gate checks required native identities, recognized/unapproved Page-heading structures, declared excluded literal copy and the expected help text/bindings. These are static guards; unnamed visual headings, arbitrary prose meaning and dynamic rendered messages still require image/runtime review. Do not claim that a string scan understands every sentence or that zero generated Forms means no Form was required. Supported controlled tasks require these declarations before their first business write.
+
+For controlled Overseas/Antd-v6 work, components also records role/purpose, native property constraints and Slot ownership as specified in [controlled tasks](prototype-tasks.md#prepare-source-expectations). A source-driven result table can use these acceptance entries (illustrative names and widths; measure the actual operation content):
+
+```json
+[
+  {"nodeName":"Results","component":"plasmic-antd6-table","role":"pagination","purpose":"Paged matching records with native total","source":"requirement §Results","props":{"pagination":{"defaultPageSize":20,"pageSizeOptions":[20,50,100]}},"dynamicProps":["pagination.showTotal"]},
+  {"nodeName":"CategoryColumn","component":"plasmic-antd6-table-column","role":"category","purpose":"Mapped category label","source":"requirement §Category","props":{"dataIndex":"category","displayType":"tag"},"owner":{"nodeName":"Results","slot":"children"}},
+  {"nodeName":"ActionColumn","component":"plasmic-antd6-table-column","role":"widget","purpose":"Final fixed operation column","source":"requirement §Actions","props":{"fixed":"right","width":200}},
+  {"nodeName":"RowActions","component":"plasmic-react-ui-action-group","role":"row-actions","purpose":"Permission-filtered record operations","source":"requirement §Actions","props":{"max":3},"owner":{"nodeName":"ActionColumn","slot":"render"}}
+]
+```
+
+Inventory other Columns as well. Props are a partial match against actual native props, including nested objects; dynamicProps paths require actual bindings, not similar sibling text. A custom Tag uses its registered identity and Column.render owner instead of a tag display preset. Record content scopes as content-scope with actual Tabs identity; ordinary field choices remain widget controls. Roles/expected native identities must be independently reviewed before output, and cannot be relabeled just to pass a check. Plain semantic text/layout remains valid.
 
 ## Behavior and field matrix
 
@@ -91,7 +106,7 @@ Full-project suites require each Page to declare source-derived `bindings` befor
     {"nodeName":"RecordsTable","source":"requirement §Query results","props":["data"],"dynamicProps":["data"],"propStateDependencies":{"data":["appliedFilters"]}}
   ],
   "rowActions": [
-    {"column":"ActionColumn","control":"ViewRecord","event":"onClick","source":"requirement §Record details"}
+    {"column":"ActionColumn","control":"RowActions","event":"onAction","source":"requirement §Record local actions"}
   ]
 }
 ```
@@ -100,7 +115,7 @@ Full-project suites require each Page to declare source-derived `bindings` befor
 
 `dynamicProps` requires an expression somewhere in that prop; `propStateDependencies` additionally requires the named `$state` references in the saved prop. This is a necessary syntactic dependency check, not dataflow analysis: dead/incorrect expressions can still pass. Exercise nonmatching query → zero rows/total, reset → original matching data, scope changes and pagination in Preview. Updating filter state while retaining a literal Table dataset fails the required behavior even with a working click event.
 
-`rowActions` requires the named real Button/ActionGroup inside the named Column.render with the registered handler. A text cell formatted as a link is appropriate for actual URLs, not a substitute for a required record-detail action. Declare its real Drawer/Modal in the independent overlay inventory and check two different rows show their own details. Static wiring does not prove the click outcome; the independently exercised behavior matrix remains required.
+`rowActions` requires native ActionGroup inside the named Column.render with the declared handler for local effects. Navigation items use their actual href contract and source-derived runtime cases; do not invent an onClick/onAction merely to duplicate routing. A link-formatted text label is not a record action. Declare required overlays independently and check two different rows show their own details. Static wiring does not prove the click outcome.
 
 Read the public MCP overview and all full Page models into separate JSON files. Run:
 

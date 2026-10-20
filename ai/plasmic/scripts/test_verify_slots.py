@@ -98,6 +98,18 @@ class CardOwnershipTests(unittest.TestCase):
         moved = intent.replace(TABS, '') + TABS
         self.assertTrue(check(intent, moved)["wrongSlotOwners"])
 
+    def test_scope_tabs_own_each_panel_and_the_shared_action(self):
+        table = '<plasmic-component data-plasmic-name="Results" data-plasmic-component="plasmic-antd6-table"></plasmic-component>'
+        pager = '<plasmic-component data-plasmic-name="Pager" data-plasmic-component="plasmic-antd6-pagination"></plasmic-component>'
+        action = '<plasmic-component data-plasmic-name="Create" data-plasmic-component="plasmic-antd6-button"></plasmic-component>'
+        panels = '<slot name="items"><plasmic-component data-plasmic-name="AllPanel" data-plasmic-component="plasmic-antd6-tab-item"><slot name="label">All</slot><slot name="children">' + table + pager + '</slot></plasmic-component></slot>'
+        intent = TABS.replace('></plasmic-component>', '>' + panels + '<slot name="tabBarExtraContentRight">' + action + '</slot></plasmic-component>')
+        self.assertTrue(check(intent, intent)["passed"])
+        for component in (table, pager, action):
+            with self.subTest(component=component):
+                actual = intent.replace(component, '') + component
+                self.assertTrue(check(intent, actual)["wrongSlotOwners"])
+
     def test_unprovided_examples_still_fail(self):
         actual = CARD.replace('</plasmic-component>', '<slot name="title"><span id="example">Example</span></slot></plasmic-component>', 1)
         self.assertFalse(check(CARD, actual)["passed"])

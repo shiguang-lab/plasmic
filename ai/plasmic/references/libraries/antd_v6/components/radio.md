@@ -12,6 +12,8 @@ Library: [Ant Design v6](../index.md).
 
 Use Radio.Group for one choice from a visible set; each Radio or Radio.Button keeps its stable business value and label. Do not use separate booleans to simulate a mutually exclusive group. Group options and editable children are alternatives selected through the installed useChildren contract. Keep disabled choices visible when their meaning matters, and distinguish a disabled group from a disabled item.
 
+For list/content-scope navigation, select [Tabs](tabs.md) before constructing the source inventory. Radio.Button is a field-choice presentation and does not replace scope Tabs merely because both expose two options.
+
 ## Radio.Group and Radio.Button
 
 The group owns the selected value; inside Form, let the named Item own that binding. Read its registered onChange event/state helper instead of treating the native event as a bare business value. Radio.Button changes presentation, not the value model. Select a default only from the requirement, preserve zero/false values and test an absent initial selection.

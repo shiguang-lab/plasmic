@@ -83,7 +83,7 @@ Module._load = function (name, ...args) {
     ? { app: { isPackaged: true, getPath: () => require("node:os").tmpdir() }, BrowserWindow: Preview, ipcMain: { on() {}, removeListener() {} } }
     : originalLoad.call(this, name, ...args);
 };
-const { renderCanvas } = require("../src/canvas.cjs");
+const { renderCanvas, canvasFrames } = require("../src/canvas.cjs");
 const { DesktopController } = require("../src/controller.cjs");
 Module._load = originalLoad;
 function windowFor(dom) {
@@ -104,6 +104,17 @@ function windowFor(dom) {
     },
   };
 }
+
+test("image inspection is scoped to visible business content without hiding real broken images", async () => {
+  const dom = domFor('<body><main hidden><img src=""></main><div class="__wab_val_root"><div hidden><img id="hidden" src=""></div><div style="opacity:0"><img src=""></div><img id="business" src=""></div></body>');
+  try {
+    const [frame] = await canvasFrames(windowFor(dom));
+    assert.equal(frame.layout.images.length, 1);
+    assert.equal(frame.layout.images[0].loaded, false);
+    dom.window.document.querySelector("#business").hidden = true;
+    assert.equal((await canvasFrames(windowFor(dom)))[0].layout.images.length, 0);
+  } finally { dom.window.close(); }
+});
 
 test("static export preserves live form values and both scroll axes while removing authored scripts", async () => {
   const source = domFor(

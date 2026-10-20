@@ -12,8 +12,9 @@ export function useTagPlacement(
     visibility: "hidden",
     pointerEvents: "none",
   });
-  React.useEffect(() => {
-    const frame = requestAnimationFrame(() => {
+  // Measure the current label before paint so a new node never uses the previous
+  // node's placement for a frame.
+  React.useLayoutEffect(() => {
     const tag = tagRef.current;
     const parent = tag?.parentElement?.parentElement;
     if (!tag || !parent || !viewCtx) {
@@ -97,8 +98,6 @@ export function useTagPlacement(
     setPlacement((current) =>
       JSON.stringify(current) === JSON.stringify(next) ? current : next,
     );
-    });
-    return () => cancelAnimationFrame(frame);
   });
   return placement;
 }

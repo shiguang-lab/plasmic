@@ -18,13 +18,16 @@ async function inspectCanvas() {
   const elements = [...root.querySelectorAll("*")].filter(
     (el) => !["SCRIPT", "STYLE", "LINK"].includes(el.tagName),
   );
-  const visible = elements.filter(
-    (el) =>
-      el.getBoundingClientRect().width > 0 &&
-      el.getBoundingClientRect().height > 0 &&
-      getComputedStyle(el).visibility !== "hidden" &&
-      getComputedStyle(el).opacity !== "0",
-  );
+  const isVisible = (el) => {
+    if (el.closest('[hidden],[data-plasmic-editor-only]')) return false;
+    for (let node = el; node; node = node.parentElement) {
+      const style = getComputedStyle(node);
+      if (style.display === "none" || style.visibility === "hidden" || style.visibility === "collapse" || style.opacity === "0") return false;
+    }
+    const rect = el.getBoundingClientRect();
+    return rect.width > 0 && rect.height > 0;
+  };
+  const visible = elements.filter(isVisible);
   // Clone only for semantic text extraction; retain the live DOM for geometry.
   const textRoot = root.cloneNode(true);
   const textElements = [...textRoot.querySelectorAll("*")];
@@ -100,7 +103,7 @@ async function inspectCanvas() {
           right > left && (left < -1 || right > innerWidth + 1),
       };
     }),
-    images: [...document.images].map((el) => ({
+    images: [...root.querySelectorAll("img")].filter(isVisible).map((el) => ({
       elementUuid: el.getAttribute("data-plasmic-valkey")?.split(".").at(-1) || null,
       src: el.currentSrc || el.src,
       alt: el.alt,
@@ -223,8 +226,18 @@ async function readyDocument() {
     document.fonts.ready,
     new Promise((resolve) => setTimeout(resolve, 5000)),
   ]);
+  const root = document.querySelector(".__wab_val_root") || document.body;
+  const images = [...root.querySelectorAll("img")].filter((img) => {
+    if (img.closest('[hidden],[data-plasmic-editor-only]')) return false;
+    for (let node = img; node; node = node.parentElement) {
+      const style = getComputedStyle(node);
+      if (style.display === "none" || style.visibility === "hidden" || style.visibility === "collapse" || style.opacity === "0") return false;
+    }
+    const rect = img.getBoundingClientRect();
+    return rect.width > 0 && rect.height > 0;
+  });
   await Promise.all(
-    [...document.images].map((img) =>
+    images.map((img) =>
       img.complete
         ? Promise.resolve()
         : new Promise((resolve) => {
@@ -253,8 +266,8 @@ async function readyDocument() {
     document.body.scrollHeight,
   );
 }
-const js = (fn) => `(${fn.toString()})()`;
-async function canvasFrames(win, inspectionId, inspect = inspectCanvas) {
+const js = (fn, input) => `(${fn.toString()})(${JSON.stringify(input)})`;
+async function canvasFrames(win, inspectionId, inspect = inspectCanvas, input) {
   const previewMode = /\/preview(?:\/|-full(?:\/|$))/.test(new URL(win.webContents.getURL()).pathname);
   const end = Date.now() + 20000;
   while (Date.now() < end) {
@@ -281,7 +294,7 @@ async function canvasFrames(win, inspectionId, inspect = inspectCanvas) {
           );
           if (marker !== inspectionId) continue;
         }
-        const layout = await frame.executeJavaScript(js(inspect));
+        const layout = await frame.executeJavaScript(js(inspect, input));
         if (layout.ready) results.push({ frame, layout });
       } catch (error) {
         if (!frame.isDestroyed?.()) throw error;

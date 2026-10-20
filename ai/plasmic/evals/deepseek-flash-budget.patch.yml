@@ -1,0 +1,10 @@
+# DeepSeek Harness 0.2.1-rc.2 evaluation policy; does not modify the user prompt.
+- id: compaction-basic
+  config:
+    modelPolicies:
+      - provider: deepseek-official
+        model: deepseek-flash
+        thresholdRatio: 0.16
+        retainTokens: 32768
+        headroomTokens: 32768
+        maxTokens: 16384

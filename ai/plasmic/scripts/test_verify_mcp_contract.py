@@ -12,14 +12,20 @@ class ContractTests(unittest.TestCase):
         self.state["runtimeCapabilities"] = {
             "preview": ["open", "close", "state", "snapshot", "click", "hover", "fill", "select", "press", "scroll", "screenshot", "assert"],
             "design_reference": ["index", "read", "screenshot"],
-            "prototype_task": ["start", "begin_page", "structural_check", "review_visual", "begin_case", "cancel_case", "complete_page", "finish"],
-            "reference_browser": ["open", "load_page", "capture"], "import_reference": ["editable", "screenshot"],
+            "prototype_task": ["validate_plan", "start", "resume", "revise", "begin_page", "structural_check", "review_visual", "begin_case", "cancel_case", "complete_page", "finish"],
+            "reference_browser": ["load_page", "capture", "close"], "import_reference": ["editable", "screenshot"],
         }
         self.state["editorTools"]["validate"] = {"inputSchema": {"properties": {"componentUuids": {"type": "array"}}}}
         self.state["editorTools"]["preview"] = {"inputSchema": {"properties": {"action": {"enum": ["open", "close"]}, "componentUuid": {}, "width": {}, "height": {}}}}
 
     def test_current_advertised_contracts_pass(self):
         self.assertTrue(check(self.state)["passed"])
+
+    def test_source_free_reference_browser_cannot_pass_preflight(self):
+        self.state["runtimeCapabilities"]["reference_browser"].append("open")
+        report = check(self.state)
+        self.assertFalse(report["passed"])
+        self.assertIn("source-free open", " ".join(report["errors"]))
 
     def test_missing_runtime_interaction_or_reference_bridge_is_rejected(self):
         for name in self.state["runtimeCapabilities"]:

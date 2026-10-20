@@ -283,7 +283,7 @@ export function trapInteractionError(
     const stepName = interaction.interactionName;
     async function goToStep() {
       if (previewCtx) {
-        previewCtx.stopLiveMode();
+        await previewCtx.stopLiveMode();
         await when(() => !previewCtx.isLive);
       }
       if (studioCtx.isInteractiveMode) {
