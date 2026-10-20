@@ -1,0 +1,7 @@
+{
+  "en": "- Improve targeted model reads, batched editing results and component property contracts.\n- Add guided prototype tasks, design reference inspection and native Preview verification.\n- Improve browser imports, image handling and Desktop runtime isolation.\n- Simplify scan labels to Read or Edit and remove the duplicate top notification.\n- Refine preview controls, localized error feedback and prototype acceptance guidance.",
+  "zh-CN": "- 改进定向模型读取、批量编辑结果和组件属性契约。\n- 新增原型任务引导、设计参考检查和原生 Preview 验证。\n- 改进网页导入、图片处理及 Desktop 运行环境隔离。\n- 扫描标签仅显示“读取”或“编辑”，移除重复的顶部提示。\n- 优化预览操作、本地化错误反馈和原型验收规范。",
+  "zh-TW": "- 改善定向模型讀取、批次編輯結果及元件屬性契約。\n- 新增原型任務引導、設計參考檢查及原生 Preview 驗證。\n- 改善網頁匯入、圖片處理及 Desktop 執行環境隔離。\n- 掃描標籤僅顯示「讀取」或「編輯」，移除重複的頂部提示。\n- 改善預覽操作、在地化錯誤回饋及原型驗收規範。",
+  "ja": "- 対象を絞ったモデルの読み取り、一括編集の結果、コンポーネントのプロパティ契約を改善しました。\n- 原型作成タスクのガイド、デザイン資料の確認、ネイティブ Preview の検証を追加しました。\n- Web ページの取り込み、画像処理、Desktop 実行環境の分離を改善しました。\n- スキャンのラベルを「読み取り」または「編集」に統一し、重複する上部通知を削除しました。\n- プレビュー操作、各言語のエラー表示、原型の検証ガイドを改善しました。",
+  "ko": "- 대상 모델 읽기, 일괄 편집 결과 및 컴포넌트 속성 계약을 개선했습니다.\n- 프로토타입 작업 안내, 디자인 참조 검사 및 네이티브 Preview 검증을 추가했습니다.\n- 웹 페이지 가져오기, 이미지 처리 및 Desktop 런타임 격리를 개선했습니다.\n- 스캔 레이블을 읽기 또는 편집으로 통일하고 중복된 상단 알림을 제거했습니다.\n- 미리 보기 조작, 현지화된 오류 피드백 및 프로토타입 승인 지침을 개선했습니다."
+}
