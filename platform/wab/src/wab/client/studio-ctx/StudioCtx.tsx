@@ -1110,6 +1110,11 @@ export class StudioCtx extends WithDbCtx {
     }
   }
 
+  async ensureCodeComponentRegistrations() {
+    this.updatePkgsList(usedHostLessPkgs(this.site));
+    await this.hostLessPkgsLock;
+  }
+
   getHostLessComponentsMap() {
     return this.hostLessRegistry.getRegisteredCodeComponentsMap();
   }

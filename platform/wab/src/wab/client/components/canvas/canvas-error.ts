@@ -63,44 +63,25 @@ export const mkCanvasErrorBoundary = ownedComputedFn(
         this.componentDidMountOrUpdate();
       }
 
-      // Stable reference so the rerender-queue Set dedupes by identity.
+      private stopWatching?: () => void;
+
       private resetError = () => {
         this.setState({ error: null });
       };
 
       private componentDidMountOrUpdate() {
-        // Upon mount or update, if we're currently rendering an error,
-        // we add a listener for whenever a re-render happens, and forces
-        // this component to re-render. This would trigger the logic in
-        // getDerivedStateFromProps() and unset the error.
-        //
-        // Let's say there's some code component somewhere down this React
-        // tree that is throwing an error due to an invalid prop. The user
-        // may try to fix that prop, but nothing will re-render. That's
-        // because the fix does not cause the root component to re-render
-        // (because we cache rendering result at the TplNode level, so
-        // only affected TplNodes get re-rendered). And if the root component
-        // doesn't re-render, then this CanvasErrorBoundary installed at the
-        // root also won't re-render.
-        //
-        // We also can't just use mkUseCanvasObserver() like in other places,
-        // because we're not observing any reads off of any observable model
-        // in this component, so that also wouldn't trigger any re-rendering.
-        //
-        // Instead, we need to directly subscribe our this.forceUpdate() with
-        // the viewCtx, so that this is forced to re-render any time the viewCtx
-        // re-renders the canvas.
-        if (
-          this.state.error &&
-          !isPlasmicUndefinedDataErrorPromise(this.state.error)
-        ) {
-          // PlasmicUndefinedDataErrors are pending-query sentinels: they should
-          // propagate to a React Suspense boundary (or be swallowed gracefully
-          // by withErrorDisplayFallback). Registering a rerender observer for
-          // them creates an infinite loop — the observer resets state.error,
-          // the re-render re-throws the same pending promise, and so on.
-          viewCtx.addRerenderObserver(this.resetError);
+        if (this.state.error && !isPlasmicUndefinedDataErrorPromise(this.state.error)) {
+          // Subscribe without scheduling work: a persistent error must not
+          // drive its own retry loop. Model/dependency evaluation flushes this.
+          this.stopWatching ??= viewCtx.subscribeToCanvasChanges(this.resetError);
+        } else {
+          this.stopWatching?.();
+          this.stopWatching = undefined;
         }
+      }
+
+      componentWillUnmount() {
+        this.stopWatching?.();
       }
 
       render() {

@@ -732,3 +732,19 @@ test("authoring immediately previews changes to the uncontrolled default page si
   rerender(table(2));
   expect(container.querySelectorAll("tr[data-row-key]")).toHaveLength(2);
 });
+
+test("invalid tag mappings from persisted or dynamic props do not crash the table", () => {
+  const { container, rerender } = render(
+    <AntdTable data={{ data: [{ id: "1001", type: "常规" }] }} rowKey="id" pagination={false}>
+      <AntdColumn dataIndex="type" displayType="tag" tagOptions={{ 常规: { label: "常规", color: "geekblue" } } as any} />
+    </AntdTable>,
+  );
+  expect(screen.getByText("常规")).toBeTruthy();
+  rerender(
+    <AntdTable data={{ data: [{ id: "1001", type: "常规" }] }} rowKey="id" pagination={false}>
+      <AntdColumn dataIndex="type" displayType="tag" tagOptions={[{ value: "常规", label: "映射正常", color: "geekblue" }]} />
+    </AntdTable>,
+  );
+  expect(screen.getByText("映射正常")).toBeTruthy();
+  expect(container.querySelector(".ant-tag-geekblue")).toBeTruthy();
+});

@@ -518,6 +518,7 @@ async function runNativeBatch(
   validate?: (operation: PrototypeMutation) => void,
 ) {
   assertCanEditPrototype(studio);
+  await studio.ensureCodeComponentRegistrations();
   const changeCounter = studio._changeCounter;
   const assets: MutationAssets[] = [];
   const names = new Set<string>();
@@ -591,7 +592,7 @@ async function prepareMutationAssets(studio: StudioCtx, operation: PrototypeMuta
   const owner = mkComponent({ name: "", type: ComponentType.Frame, tplTree: mkTplTagX("div") });
   const frame = mkArenaFrame({ site: studio.site, component: owner, name: "", width: 1440, height: 900 });
   const vtm = new VariantTplMgr([new RootComponentVariantFrame(frame)], studio.site, studio.tplMgr(), new GlobalVariantFrame(studio.site, frame));
-  const html = await htmlToTpl(operation.input.html, { site: studio.site, vtm, appCtx: studio.appCtx, pageHrefs: true, ccRegistry: studio.codeComponentsRegistry });
+  const html = await htmlToTpl(operation.input.html, { site: studio.site, vtm, appCtx: studio.appCtx, pageHrefs: true, getCodeComponentMeta: (component) => studio.getCodeComponentMeta(component) });
   return { html, bindHtml: (component) => {
     if (html.isOk()) {
       const base = getBaseVariant(owner);
@@ -1836,6 +1837,9 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
   }),
   read: defineCopilotTool(meta.read, async (studio, input) => {
     const fields = selectedReadFields(input);
+    if (fields.includes("props") || fields.includes("refActions")) {
+      await studio.ensureCodeComponentRegistrations();
+    }
     const depth = readDepth(input);
     const read = { fields, depth: Number.isFinite(depth) ? depth : "all" as const,
       ...(input.propNames ? { propNames: input.propNames } : {}) };

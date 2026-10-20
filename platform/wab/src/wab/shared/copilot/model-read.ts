@@ -95,7 +95,7 @@ export function validateRegisteredValue(value: unknown, metadata: unknown, path:
   const contract = registrationContract(metadata);
   if (!contract || typeof value === "string" && isDynamicValue(value)) { return undefined; }
   if (value === undefined || value === null) { return contract.required ? `${path} is required` : undefined; }
-  if (contract.itemType) {
+  if (contract.type === "array" || contract.itemType) {
     if (!Array.isArray(value)) { return `${path} expects an array`; }
     for (const [i, item] of value.entries()) {
       const error = validateRegisteredValue(item, contract.itemType, `${path}[${i}]`);

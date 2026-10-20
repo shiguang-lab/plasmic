@@ -42,11 +42,14 @@ it("marks a view disposed before reentrant cleanup and keeps its render-state ha
   const evaluator = vi.fn(), canvas = vi.fn();
   const reaction = new Reaction("fixture", () => {});
   const states: boolean[] = [];
+  const uncommittedCanvasObservers = new Map();
   const view: ViewCtx = Object.assign(Object.create(ViewCtx.prototype), {
     frameState: frame,
     canvasCtx: { dispose: canvas }, csEvaluator: { dispose: evaluator },
-    canvasObservers: new Set([reaction]), disposals: [],
+    canvasObservers: new Set(), uncommittedCanvasObservers, canvasErrorObservers: new Set(), disposals: [],
   });
+  view.trackCanvasObserver(reaction);
+  expect(uncommittedCanvasObservers.size).toBe(1);
   const cleanup = vi.fn(() => {
     states.push(view.isDisposed);
     if (cleanup.mock.calls.length === 1) { view.dispose(); }
@@ -63,6 +66,7 @@ it("marks a view disposed before reentrant cleanup and keeps its render-state ha
   expect(released).toHaveBeenCalledTimes(1);
   expect(reaction.isDisposed).toBe(true);
   expect(view.canvasObservers.size).toBe(0);
+  expect(uncommittedCanvasObservers.size).toBe(0);
   expect(view.renderState).toBe(frame.renderState);
   expect(view.renderState.fullKey2val("gone")).toBeUndefined();
   frame.dispose();

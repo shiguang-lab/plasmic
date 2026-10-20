@@ -135,7 +135,7 @@ function AntdTag({
   ...props
 }) {
   const text = value == null ? "" : String(value);
-  const option = options?.find((item) => item.value === text);
+  const option = Array.isArray(options) ? options.find((item) => item?.value === text) : void 0;
   const colors = [
     "blue",
     "green",

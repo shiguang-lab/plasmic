@@ -57,3 +57,9 @@ test("existing normalized signatures, descriptions and choices are not repeated 
   expect(result[0].registration).toEqual({ type: "choice" });
   expect(result[1].registration).toEqual({ type: "eventHandler" });
 });
+
+test("array contracts reject dictionaries even without an item schema", () => {
+  expect(validateRegisteredValue({ a: 1 }, { type: "array" }, "items")).toBe("items expects an array");
+  expect(validateRegisteredValue([], { type: "array" }, "items")).toBeUndefined();
+  expect(validateRegisteredValue("{{ $state.items }}", { type: "array" }, "items")).toBeUndefined();
+});

@@ -1,3 +1,4 @@
+import type { CodeComponentMeta } from "@plasmicapp/host/registerComponent";
 import { AppCtx } from "@/wab/client/app-ctx";
 import {
   ImageAssetOpts,
@@ -166,7 +167,7 @@ export async function htmlToTpl(
     appCtx: AppCtx;
     pageHrefs: boolean;
     staticContent?: boolean;
-    ccRegistry?: CodeComponentsRegistry;
+    getCodeComponentMeta?: (component: Component) => CodeComponentMeta<any> | undefined;
   },
 ): Promise<Result<HtmlToTplResult, WIImportFailedError>> {
   const { site, vtm, appCtx, pageHrefs } = opts;
@@ -193,7 +194,7 @@ export async function htmlToTpl(
     errors,
     pageHrefs,
     staticContent: opts.staticContent,
-    ccRegistry: opts.ccRegistry,
+    getCodeComponentMeta: opts.getCodeComponentMeta,
   });
 
   if (tpls.length === 0) {
@@ -547,7 +548,7 @@ async function wiTreeToTpl(
     errors: WIError[];
     pageHrefs: boolean;
     staticContent?: boolean;
-    ccRegistry?: CodeComponentsRegistry;
+    getCodeComponentMeta?: (component: Component) => CodeComponentMeta<any> | undefined;
   },
 ) {
   const { site, vtm, appCtx, errors, pageHrefs } = opts;
@@ -865,7 +866,7 @@ async function wiTreeToTpl(
             propName,
             propValue,
             nodePath,
-            opts.ccRegistry?.getRegisteredCodeComponentsMap().get(component.name)?.meta.props[propName],
+            opts.getCodeComponentMeta?.(component)?.props[propName],
           ).match(
             ([param, argValue]) => {
               args[param.variable.name] = argValue;

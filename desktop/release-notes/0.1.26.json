@@ -1,0 +1,7 @@
+{
+  "en": "- Validate native component props against ready hostless contracts and safely render invalid Table tag options.\n- Stop canvas error retry loops and release abandoned render reactions.\n- Recover renderer failures to the dashboard by default and avoid repeated load-failure dialogs.",
+  "zh-CN": "- 根据已就绪的组件契约校验原生属性，安全处理 Table 非法标签选项。\n- 修复画布异常重试循环，释放被放弃渲染的响应式订阅。\n- 渲染进程异常后默认回到仪表盘，避免重复弹出加载失败提示。",
+  "zh-TW": "- 根據已就緒的元件契約驗證原生屬性，安全處理 Table 無效標籤選項。\n- 修復畫布異常重試循環，釋放已放棄渲染的響應式訂閱。\n- 渲染程序異常後預設返回儀表板，避免重複顯示載入失敗提示。",
+  "ja": "- 準備済みのコンポーネント定義でプロパティを検証し、Table の無効なタグ設定を安全に処理します。\n- キャンバスのエラー再試行ループを修正し、中断された描画のリアクションを解放します。\n- 描画プロセスの障害時は標準でダッシュボードに戻り、読み込み失敗ダイアログの重複を防ぎます。",
+  "ko": "- 준비된 컴포넌트 계약으로 속성을 검증하고 Table의 잘못된 태그 옵션을 안전하게 처리합니다.\n- 캔버스 오류 재시도 루프를 수정하고 중단된 렌더링의 반응형 구독을 해제합니다.\n- 렌더러 오류 발생 시 기본적으로 대시보드로 복구하고 로드 실패 대화상자의 중복 표시를 방지합니다."
+}

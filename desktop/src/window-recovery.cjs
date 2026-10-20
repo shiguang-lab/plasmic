@@ -1,5 +1,6 @@
 function attachWindowRecovery(win, { controller, dialog, homeUrl, t }) {
   let prompting = false;
+  let failedLoadUrl;
   const recover = async (kind) => {
     if (prompting || win.isDestroyed()) return;
     prompting = true;
@@ -23,7 +24,9 @@ function attachWindowRecovery(win, { controller, dialog, homeUrl, t }) {
           ? ["Keep Waiting", "Reload", "Open Dashboard"]
           : ["Reload", "Open Dashboard", "Cancel"]
         ).map((label) => t(label)),
-        defaultId: 0,
+        // Reopening the same saved canvas can repeat a deterministic crash.
+        // Keep reload explicit; the default escape route uses a fresh renderer.
+        defaultId: kind === "crash" ? 1 : 0,
         cancelId: unresponsive ? 0 : 2,
       });
       if (win.isDestroyed()) return;
@@ -50,10 +53,14 @@ function attachWindowRecovery(win, { controller, dialog, homeUrl, t }) {
     void recover("crash");
   });
   win.on("unresponsive", () => void recover("unresponsive"));
+  win.webContents.on("did-navigate", () => { failedLoadUrl = undefined; });
   win.webContents.on(
     "did-fail-load",
-    (_event, code, _description, _url, isMainFrame) => {
-      if (isMainFrame && code !== -3) void recover("load");
+    (_event, code, _description, url, isMainFrame) => {
+      // Authentication/navigation retries must not turn one failure into a dialog loop.
+      if (!isMainFrame || code === -3 || failedLoadUrl === url) return;
+      failedLoadUrl = url;
+      void recover("load");
     },
   );
   win.on("closed", () => controller.cancelPending(win, "Editor window closed"));

@@ -274,6 +274,7 @@ export function useStudioOps(
             vtm,
             appCtx: viewCtx.studioCtx.appCtx,
             pageHrefs: true,
+            getCodeComponentMeta: (component) => viewCtx.studioCtx.getCodeComponentMeta(component),
           },
         ),
       );

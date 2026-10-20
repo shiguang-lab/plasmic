@@ -34,86 +34,49 @@ export const mkUseCanvasObserver = computedFn(
       );
       const onUpdate = onUpdateCallback ?? rerenderOnEval;
 
-      // StrictMode/ConcurrentMode/Suspense may mean that our component is
-      // rendered and abandoned multiple times. The Reactions of abandoned
-      // renders are disposed with the ViewCtx's canvasObservers.
-      const reactionTrackingRef = sub.React.useRef<IReactionTracking | null>(
-        null,
-      );
-
-      if (!reactionTrackingRef.current) {
-        // First render for this component (or first time since a previous
-        // reaction from an abandoned render was disposed).
-
-        const newReaction = new Reaction(
-          observerComponentNameFor(baseComponentName),
-          () => {
-            // Observable has changed, meaning we want to re-render
-            // BUT if we're a component that hasn't yet got to the useEffect()
-            // stage, we might be a component that _started_ to render, but
-            // got dropped, and we don't want to make state changes then.
-            // (It triggers warnings in StrictMode, for a start.)
-            if (trackingData.mounted) {
-              // We have reached useEffect(), so we're mounted, and can trigger an update
+      const reactionTrackingRef = sub.React.useRef<IReactionTracking | null>(null);
+      const createTracking = (): IReactionTracking => {
+        const tracking: IReactionTracking = {
+          reaction: new Reaction(observerComponentNameFor(baseComponentName), () => {
+            if (tracking.mounted) {
               onUpdate();
             } else {
-              // We haven't yet reached useEffect(), so we'll need to trigger a re-render
-              // when (and if) useEffect() arrives.
-              trackingData.changedBeforeMount = true;
+              tracking.changedBeforeMount = true;
             }
-          },
-        );
-        vc.canvasObservers.add(newReaction);
-
-        const trackingData: IReactionTracking = {
-          reaction: newReaction,
+          }),
           mounted: false,
           changedBeforeMount: false,
         };
-        reactionTrackingRef.current = trackingData;
-      }
+        vc.trackCanvasObserver(tracking.reaction);
+        return tracking;
+      };
 
-      const { reaction } = reactionTrackingRef.current!;
+      if (!reactionTrackingRef.current || reactionTrackingRef.current.reaction.isDisposed) {
+        reactionTrackingRef.current = createTracking();
+      }
+      const { reaction } = reactionTrackingRef.current;
 
       sub.React.useEffect(() => {
-        // Called on first mount only
-        if (reactionTrackingRef.current) {
-          // Great. We've already got our reaction from our render;
-          // all we need to do is to record that it's now mounted,
-          // to allow future observable changes to trigger re-renders
-          reactionTrackingRef.current.mounted = true;
-          // Got a change before first mount, force an update
-          if (reactionTrackingRef.current.changedBeforeMount) {
-            reactionTrackingRef.current.changedBeforeMount = false;
-            onUpdate();
-          }
-        } else {
-          // The reaction we set up in our render has been disposed, e.g.
-          // StrictMode ran our effect cleanup before re-running the effect
-
-          // Re-create the reaction
-          reactionTrackingRef.current = {
-            reaction: new Reaction(
-              observerComponentNameFor(baseComponentName),
-              () => {
-                // We've definitely already been mounted at this point
-                onUpdate();
-              },
-            ),
-            mounted: true,
-            changedBeforeMount: false,
-          };
-          vc.canvasObservers.add(reactionTrackingRef.current.reaction);
-
+        let tracking = reactionTrackingRef.current;
+        if (!tracking || tracking.reaction.isDisposed) {
+          // StrictMode cleanup or a delayed commit may have disposed it.
+          tracking = createTracking();
+          reactionTrackingRef.current = tracking;
           forceUpdate();
         }
-
+        vc.commitCanvasObserver(tracking.reaction);
+        tracking.mounted = true;
+        if (tracking.changedBeforeMount) {
+          tracking.changedBeforeMount = false;
+          onUpdate();
+        }
+        const committed = tracking;
         return () => {
-          vc.canvasObservers.delete(reactionTrackingRef.current!.reaction);
-          if (!reactionTrackingRef.current!.reaction.isDisposed) {
-            reactionTrackingRef.current!.reaction.dispose();
+          committed.mounted = false;
+          vc.disposeCanvasObserver(committed.reaction);
+          if (reactionTrackingRef.current === committed) {
+            reactionTrackingRef.current = null;
           }
-          reactionTrackingRef.current = null;
         };
       }, [onUpdate]);
 

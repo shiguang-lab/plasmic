@@ -788,6 +788,31 @@ export class ViewCtx extends WithDbCtx {
   }
 
   canvasObservers = new Set<mobx.Reaction>();
+  private uncommittedCanvasObservers = new Map<mobx.Reaction, ReturnType<typeof setTimeout>>();
+
+  trackCanvasObserver(reaction: mobx.Reaction) {
+    if (this._isDisposed) {
+      reaction.dispose();
+      return;
+    }
+    this.canvasObservers.add(reaction);
+    // An abandoned React render never runs effect cleanup. A render resumed
+    // after this deadline recreates its reaction before tracking or committing.
+    this.uncommittedCanvasObservers.set(reaction, setTimeout(() => {
+      this.disposeCanvasObserver(reaction);
+    }, 10000));
+  }
+
+  commitCanvasObserver(reaction: mobx.Reaction) {
+    clearTimeout(this.uncommittedCanvasObservers.get(reaction));
+    this.uncommittedCanvasObservers.delete(reaction);
+  }
+
+  disposeCanvasObserver(reaction: mobx.Reaction) {
+    this.commitCanvasObserver(reaction);
+    this.canvasObservers.delete(reaction);
+    reaction.dispose();
+  }
 
   /**
    * Disposes any mobx observers, and try to cut as many cyclic dependencies
@@ -802,6 +827,9 @@ export class ViewCtx extends WithDbCtx {
       cancelAnimationFrame(this.canvasRerenderFrame);
     }
     this._canvasRerenderQueue?.clear();
+    this.canvasErrorObservers.clear();
+    this.uncommittedCanvasObservers.forEach(clearTimeout);
+    this.uncommittedCanvasObservers.clear();
     this.disposals.forEach((d) => d());
     this._highlightParamsDispose?.();
     this._editingTextResizeObserver?.disconnect();
@@ -1348,6 +1376,13 @@ export class ViewCtx extends WithDbCtx {
   // Use a set to avoid multiple calls to the same function as it can be registered
   // due to several changes to observables.
   private _canvasRerenderQueue: Set<() => void> = new Set();
+  private canvasErrorObservers = new Set<() => void>();
+  subscribeToCanvasChanges(f: () => void) {
+    if (!this._isDisposed) {
+      this.canvasErrorObservers.add(f);
+    }
+    return () => this.canvasErrorObservers.delete(f);
+  }
   private canvasRerenderFrame?: number;
   addRerenderObserver(f: () => void) {
     if (this._isDisposed) {
@@ -1378,7 +1413,7 @@ export class ViewCtx extends WithDbCtx {
     });
   }
   flushRerenderQueue() {
-    const rerenderFns = [...this._canvasRerenderQueue.keys()];
+    const rerenderFns = [...this._canvasRerenderQueue, ...this.canvasErrorObservers];
     this._canvasRerenderQueue.clear();
     this.canvasCtx.Sub.ReactDOM.unstable_batchedUpdates(() => {
       rerenderFns.forEach((f) => f());

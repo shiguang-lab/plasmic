@@ -164,7 +164,9 @@ export function AntdTag({
   automaticColor?: boolean;
 }) {
   const text = value == null ? "" : String(value);
-  const option = options?.find((item) => item.value === text);
+  const option = Array.isArray(options)
+    ? options.find((item) => item?.value === text)
+    : undefined;
   const colors = [
     "blue",
     "green",

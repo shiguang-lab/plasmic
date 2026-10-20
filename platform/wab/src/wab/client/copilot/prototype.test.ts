@@ -1915,6 +1915,44 @@ describe("AI prototype editor tools", () => {
     studioCtx.copilotActivity.dispose();
   });
 
+  it("awaits hostless contracts and uses the same array metadata for reads, insertion and edits", async () => {
+    const site = createSite();
+    const tagOptions = { type: "array", itemType: { type: "object", fields: { value: "string", label: "string", color: "color" } } };
+    const meta = { name: "HostlessColumn", importPath: "./column", props: { tagOptions: tagOptions as any } };
+    const definition = mkCodeComponent(meta.name, meta, {});
+    definition.params.push(mkParam({ name: "tagOptions", paramType: "prop", type: typeFactory.any() }));
+    site.components.push(definition);
+    const { studioCtx, call, createPage } = fixture(site);
+    const hostlessWindow = (studioCtx as any).hostLessPkgsFrame.contentWindow;
+    const hostlessRegistry = (studioCtx as any).hostLessRegistry;
+    const loadRegistrations = () => {
+      hostlessWindow.__PlasmicComponentRegistry = [];
+      hostlessRegistry.clear();
+      (studioCtx as any).hostLessPkgsLock = Promise.resolve().then(() => {
+        hostlessWindow.__PlasmicComponentRegistry = [{ component: () => null, meta }];
+        hostlessRegistry.clear();
+      });
+    };
+    loadRegistrations();
+    // Hostless registrations are absent from the app host's registry.
+    vi.spyOn(studioCtx.codeComponentsRegistry, "getRegisteredCodeComponentsMap").mockReturnValue(new Map());
+    const contract = (await call("read", { componentUuids: [definition.uuid], view: "contract" })).results[0];
+    expect(contract.props[0].registration).toMatchObject({ type: "array", itemType: { type: "object", fields: { value: { type: "string" } } } });
+    const page = await createPage();
+    const before = await call("read", { componentUuids: [page.uuid], view: "full" });
+    const bad = { 常规: { label: "常规", color: "geekblue" } };
+    loadRegistrations();
+    await expect(call("insertHtml", { componentUuid: page.uuid, html: `<plasmic-component data-plasmic-component="HostlessColumn" data-props='${JSON.stringify({ tagOptions: bad })}'></plasmic-component>` })).rejects.toThrow("tagOptions expects an array");
+    expect(await call("read", { componentUuids: [page.uuid], view: "full" })).toEqual(before);
+    const good = [{ value: "常规", label: "常规", color: "geekblue" }];
+    await call("insertHtml", { componentUuid: page.uuid, html: `<plasmic-component data-plasmic-component="HostlessColumn" data-props='${JSON.stringify({ tagOptions: good })}'></plasmic-component>` });
+    const column = ensure(flattenTpls(page.tplTree).find((tpl) => isKnownTplComponent(tpl) && tpl.component === definition), "Column missing");
+    const saved = await call("read", { componentUuids: [page.uuid], view: "full" });
+    await expect(call("changeElement", { componentUuid: page.uuid, elementUuid: column.uuid, props: { tagOptions: bad } })).rejects.toThrow("tagOptions expects an array");
+    expect(await call("read", { componentUuids: [page.uuid], view: "full" })).toEqual(saved);
+    studioCtx.copilotActivity.dispose();
+  });
+
   it("renames existing nodes through an undoable batch without replacing them", async () => {
     const { studioCtx, call, createPage } = fixture();
     const page = await createPage();

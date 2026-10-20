@@ -33,6 +33,7 @@ export async function pasteFromWebImporter(
       vtm: viewCtx.variantTplMgr(),
       appCtx: viewCtx.appCtx,
       pageHrefs: false,
+      getCodeComponentMeta: (definition) => studioCtx.getCodeComponentMeta(definition),
     }),
   );
 
