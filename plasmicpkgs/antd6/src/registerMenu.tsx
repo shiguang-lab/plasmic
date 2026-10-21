@@ -97,7 +97,7 @@ export const MENU_ITEM_TYPE = {
     if (item.type === "divider") {
       return "Divider";
     }
-    return item.label || item.value;
+    return item.label || item.key;
   },
   fields: {
     type: {
@@ -137,16 +137,7 @@ export const MENU_ITEM_TYPE = {
     },
   },
 };
-export const UNKEYED_MENU_ITEM_TYPE = {
-  ...MENU_ITEM_TYPE,
-  fields: Object.fromEntries(
-    Object.entries(MENU_ITEM_TYPE.fields).filter(([k]) => k !== "key"),
-  ),
-};
-
 (MENU_ITEM_TYPE.fields.children as any).itemType = MENU_ITEM_TYPE;
-(UNKEYED_MENU_ITEM_TYPE.fields.children as any).itemType =
-  UNKEYED_MENU_ITEM_TYPE;
 
 export function registerMenu(loader?: Registerable) {
   registerComponentHelper(loader, AntdMenu, {

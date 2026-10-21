@@ -38,11 +38,11 @@ scripts/build-plasmic-resources.mjs        构建资源与独立版本的 CLI �
 
 ## 规范维护边界
 
-新增规则先确定唯一维护位置；跨设计任务的核心约束维护在薄 SKILL，reference 只保留具体选型、使用和验证细节，并引用核心规范，不重复定义。保留组件特有的可观测行为；通用“保存/重开/截图不等于通过”由工作流与验收文档定义，组件可简短引用。规则区分能力事实、产品缺省约定、明确强制项和示例；任务个例不直接升级为全局要求。
+新增规则先确定唯一维护位置；薄 SKILL 仅保留资源加载、模式选择、参考模板和组件优先等稳定通用原则。具体组件规范、业务权限呈现、布局参数和验收流程由对应 reference 唯一维护，入口负责引导读取，不再复制这些细则。保留组件特有的可观测行为；通用“保存/重开/截图不等于通过”由工作流与验收文档定义，组件可简短引用。规则区分能力事实、产品缺省约定、明确强制项和示例；任务个例不直接升级为全局要求。
 
 | 内容 | 维护位置 |
 | --- | --- |
-| 资源加载、模式选择、客户端实现访问边界、组件优先核心规范及自定义例外条件 | 薄 SKILL |
+| 资源加载、模式选择、客户端实现访问边界、参考模板与组件优先原则 | 薄 SKILL |
 | 组件库/API 匹配与按角色选型 | libraries/index |
 | 任务步骤、受支持范围 | workflows；Pen 证据格式在 design-references |
 | 工具上下文/恢复、渲染、资源操作 | desktop-context / inspection / media |
@@ -218,6 +218,14 @@ CLI 主/次版本升级会发布当前包内容；补丁版本仅在实际包内
 ```
 
 使用现有 `plasmic-desktop-updates` Docker volume 与 nginx。NAS 发布后检查公开 HTTPS 的清单缓存策略和两个安装文件的哈希。npm 不可用时，可从 NAS 清单给出的 `cliUrl` 安装同一 CLI；更新工具会返回该 URL。
+
+## 本地开发资源
+
+本机测试使用当前 checkout 时，运行 `node scripts/install-local-plasmic-skill.mjs` 安装 DS（默认 `~/.agents`），用 `--target ~/.codex/skills/plasmic` 同步 Codex。入口链接到同一份 SKILL；`local-source.json` 指定本地 resolver，下一次 resolve 即读取当前内容和哈希，不访问 NAS，也不需要发布。
+
+resolver 在用户缓存目录提供仅含正式 references/scripts 的内容寻址快照，排除 eval、历史答案和测试文件。文件为普通文件，递归搜索不会因软链接而漏读；下一次 resolve 获取当前源码的新增、删除和修改，无需发布。本轮快照保持不变，便于版本复现。资源范围不等于文件系统权限隔离，生成任务仍只读取本轮来源和运行资源。`node --test scripts/plasmic-local-context.test.mjs` 检查快照稳定、最新内容解析、递归搜索、资源范围及幂等安装。
+
+App/MCP 使用同一个本地构建：`pnpm --dir desktop run package:local -- --install`。它重建 SDK、组件、Canvas 和 Studio，再签名安装；只更新 Skill 无法替换已运行 App 内的组件代码。安装后通过 `get_build_info` 核对实际本地 renderer/desktop 哈希。此流程不发布 npm 或 NAS。
 
 ## 验证
 

@@ -186,7 +186,8 @@ export function AppShell({
         className={className}
         style={{
           width: "100%",
-          height: "100vh",
+          // Studio's iframe can grow with content; use its authored viewport.
+          height: "var(--viewport-height, 100vh)",
           minWidth: 0,
           minHeight: 0,
           flexShrink: 0,

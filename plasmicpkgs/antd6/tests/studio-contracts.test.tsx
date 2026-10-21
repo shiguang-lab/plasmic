@@ -27,6 +27,7 @@ test("inactive tab selection reveals content only in editing, without business e
   const props = { activeKey: "first", items: tabs(true), onChange };
   const view = render(<Canvas><AntdTabs {...props as any} /></Canvas>);
   expect(screen.getByRole("tabpanel").textContent).toBe("Second content");
+  expect(screen.getByRole("tab", { selected: true }).textContent).toBe("Second");
   expect(onChange).not.toHaveBeenCalled();
   expect(props.activeKey).toBe("first");
   view.rerender(<Canvas><AntdTabs {...props as any} items={tabs(false)} /></Canvas>);
@@ -70,8 +71,10 @@ test("retained editing tab yields to configured key changes and removal", () => 
   expect(screen.getByRole("tabpanel").textContent).toBe("Second content");
   view.rerender(<Canvas><AntdTabs {...{ defaultActiveKey: "third", items: <>{tabs(false)}{third}</> } as any} /></Canvas>);
   expect(screen.getByRole("tabpanel").textContent).toBe("Third content");
+  expect(screen.getByRole("tab", { selected: true }).textContent).toBe("Third");
   view.rerender(<Canvas><AntdTabs {...{ defaultActiveKey: "first", items: <>{tabs(false)}{third}</> } as any} /></Canvas>);
   expect(screen.getByRole("tabpanel").textContent).toBe("First content");
+  expect(screen.getByRole("tab", { selected: true }).textContent).toBe("First");
   view.rerender(<Canvas><AntdTabs {...{ defaultActiveKey: "third", items: <>{tabs(true)}{third}</> } as any} /></Canvas>);
   view.rerender(<Canvas><AntdTabs {...{ defaultActiveKey: "third", items: third } as any} /></Canvas>);
   expect(screen.getByRole("tabpanel").textContent).toBe("Third content");

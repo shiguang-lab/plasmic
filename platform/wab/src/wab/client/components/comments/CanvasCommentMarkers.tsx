@@ -22,6 +22,7 @@ import {
   tryGetTplOwnerComponent,
 } from "@/wab/shared/core/tpls";
 import { ArenaFrame, ObjInst, TplNode } from "@/wab/shared/model/classes";
+import { Box } from "@/wab/shared/geom";
 import { mkSemVerSiteElement } from "@/wab/shared/site-diffs";
 import { Popover, Tooltip } from "antd";
 import $ from "jquery";
@@ -174,7 +175,11 @@ export const CanvasAddCommentMarker = observer(
             icon={{
               onClick: (e) => {
                 e.stopPropagation();
-                commentsCtx.openNewCommentDialog(viewCtx, tpl);
+                commentsCtx.openNewCommentDialog(
+                  viewCtx,
+                  tpl,
+                  Box.fromRectSides(e.currentTarget.getBoundingClientRect()),
+                );
               },
             }}
           />

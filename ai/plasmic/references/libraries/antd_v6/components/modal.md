@@ -6,9 +6,13 @@ Library: [Ant Design v6](../index.md).
 | --- | --- |
 | Modal | `plasmic-antd6-modal` |
 
-Read the installed Modal contract before changing its Props, Slots or events. [Overlays](../compositions/modal-drawer.md) owns Modal/Drawer composition, dismissal policy and the generation gate; [form composition](../compositions/form-layout.md#modal-form-layout) owns field columns and Modal width selection.
+Read the installed Modal contract before changing its Props, Slots or events. [Overlays](../compositions/modal-drawer.md) owns Modal/Drawer composition, viewport limits, dismissal policy and the generation gate; [Modal form layout](../compositions/form-layout.md#modal-form-layout) owns width, field columns, label placement and header copy when a business Form is present.
 
-Read Footer and Registration and runtime verification for every Modal; Submission for confirmation/business actions. Follow Form/layout references only when a business Form is present. Read-only content still requires the overlay generation gate, close/reopen, visual and persistence checks.
+Read Trigger ownership, Footer and Registration and runtime verification for every Modal; Submission for confirmation/business actions. Follow Form/layout references only when a business Form is present. Read-only content still requires the overlay generation gate, close/reopen, visual and persistence checks.
+
+## Trigger ownership
+
+The `trigger` Slot is a separate inline opener; a newly inserted Modal includes its registered sample Button. Binding `open` to external state does not clear that Slot. If another business control owns opening, explicitly supply `<slot name="trigger"></slot>` on insertion or delete its existing children through native operations. Reread the full model and inspect the whole closed Page for default openers outside AppShell. Do not suppress an unwanted opener with CSS, delete the business trigger, or remove the native Confirm/Cancel footer to solve a trigger problem. Declare `trigger: []` in overlay acceptance for external ownership; for an intended inline opener declare its ordered named controls.
 
 ## Footer
 

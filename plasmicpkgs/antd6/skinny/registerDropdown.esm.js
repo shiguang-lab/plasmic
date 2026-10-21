@@ -1,7 +1,7 @@
 import { Dropdown } from 'antd';
 import React from 'react';
 import { u as useCanvasOverlay, p as previewOpenProp } from './canvas-overlay-Dan70Oxr.esm.js';
-import { AntdMenu, UNKEYED_MENU_ITEM_TYPE } from './registerMenu.esm.js';
+import { AntdMenu, MENU_ITEM_TYPE } from './registerMenu.esm.js';
 import { r as registerComponentHelper } from './utils-Cmdig6Yl.esm.js';
 import '@plasmicapp/host';
 import '@plasmicapp/host/registerComponent';
@@ -19,7 +19,7 @@ function addKeysToUnkeyedMenuItems(unkeyedMenuItems, maybeGenKey) {
       return null;
     }
     const newItem = { ...item };
-    if (!newItem.key) {
+    if (newItem.key == null) {
       newItem.key = genKey();
     }
     if ("children" in newItem && newItem.children) {
@@ -113,16 +113,17 @@ function registerDropdown(loader) {
         type: "array",
         displayName: "Menu Items",
         hidden: (ps) => !!ps.useMenuItemsSlot,
-        itemType: UNKEYED_MENU_ITEM_TYPE,
+        description: "Menu items with stable keys. onAction receives the clicked item's key, not value or label. Set a unique key for every action, including nested items.",
+        itemType: MENU_ITEM_TYPE,
         defaultValue: [
           {
             type: "item",
-            value: "action1",
+            key: "action1",
             label: "Action 1"
           },
           {
             type: "item",
-            value: "action2",
+            key: "action2",
             label: "Action 2"
           }
         ]
@@ -215,6 +216,7 @@ function registerDropdown(loader) {
       },
       onAction: {
         type: "eventHandler",
+        description: "Called with the selected Menu item's key. Use explicit stable keys in menuItemsJson or MenuItem instances.",
         argTypes: [{ name: "key", type: "string" }]
       }
     },

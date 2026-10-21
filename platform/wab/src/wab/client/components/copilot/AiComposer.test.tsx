@@ -59,7 +59,7 @@ it("preserves the scope, removes attachments and blocks submission while unavail
   expect(submit).not.toHaveBeenCalled();
   rerender(<Composer running />);
   expect(screen.getByRole("textbox")).toHaveAttribute("contenteditable", "false");
-  expect(screen.getByRole("combobox", { name: "AI model" })).toBeDisabled();
+  expect(screen.getByRole("button", { name: "AI model" })).toBeDisabled();
   expect(screen.queryByRole("button", { name: "Send AI request" })).toBeNull();
   fireEvent.keyDown(screen.getByRole("textbox"), { key: "Enter" });
   fireEvent.click(screen.getByRole("button", { name: "Stop AI task" }));

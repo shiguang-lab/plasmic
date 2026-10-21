@@ -1,7 +1,7 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const { JSDOM } = require("jsdom");
-const { runtimeCommand, previewFrame } = require("../src/preview-runtime.cjs");
+const { runtimeCommand, previewFrame, runPreview } = require("../src/preview-runtime.cjs");
 
 function fixture(t) {
   const dom = new JSDOM('<body><label for="sql">SQL</label><textarea id="sql">SELECT old</textarea><button>查询</button><button disabled>保存</button><select aria-label="状态"><option value="active">启用</option><option value="disabled">停用</option></select><input type="password" value="secret"></body>', { runScripts: "outside-only" });
@@ -63,4 +63,105 @@ test("Preview render errors surface immediately instead of a misleading missing-
   w.document.fonts = { ready: Promise.resolve() }; w.requestAnimationFrame = (cb) => cb();
   const win = { webContents: { getURL: () => "https://studio.example/projects/p/preview/records", mainFrame: { framesInSubtree: [{ url: w.location.href, executeJavaScript: (s) => w.eval(s) }] } } };
   await assert.rejects(previewFrame(win, "page"), /Native Preview render failed: Invalid registered widget prop/);
+});
+
+test("committed Pages with a display:contents root are ready without a root border box", { timeout: 25000 }, async (t) => {
+  const dom = new JSDOM('<div class="live-root-container" style="display:contents" data-plasmic-preview-component="page"><button>运行</button></div>', { url: "https://canvas.example/#live=true", runScripts: "outside-only" });
+  t.after(() => dom.window.close());
+  const w = dom.window;
+  w.document.fonts = { ready: Promise.resolve() };
+  w.requestAnimationFrame = (cb) => cb();
+  assert.equal(w.document.querySelector(".live-root-container").getBoundingClientRect().width, 0);
+  const frame = { url: w.location.href, executeJavaScript: (s) => w.eval(s) };
+  const win = { webContents: { getURL: () => "https://studio.example/projects/p/preview/records", mainFrame: { framesInSubtree: [frame] } } };
+  assert.equal((await previewFrame(win, "page")).layout.ready, true);
+});
+
+function pendingRuntime(stage) {
+  const calls = [], abort = new AbortController();
+  let release, entered;
+  const started = new Promise((resolve) => { entered = resolve; });
+  const hang = () => { entered(); return new Promise((resolve) => { release = resolve; }); };
+  const layout = { ready: true, width: 1440, height: 720, componentUuid: "page" };
+  const target = { point: { x: 50, y: 15 }, target: { role: "button", name: "跳转" } };
+  const parent = { frames: [], executeJavaScript: async () => stage === "geometry" ? hang() : { x: 0, y: 0, sx: 1, sy: 1 } };
+  const frame = { parent, url: "https://canvas.example/#live=true", executeJavaScript: async (script) => {
+    if (script.includes("inspectPreview")) return stage === "discovery" ? hang() : layout;
+    if (script.startsWith("Promise.race")) return hang(); // Old iframe no longer answers after a click.
+    return stage === "target" ? hang() : { result: target };
+  } };
+  parent.frames = [frame];
+  const win = { webContents: {
+    getURL: () => "https://studio.example/projects/p/preview/records",
+    mainFrame: { framesInSubtree: [frame] }, getZoomFactor: () => 1,
+    capturePage: hang,
+    debugger: { isAttached: () => true, sendCommand: async (method, input) => {
+      calls.push({ method, ...input });
+      if (stage === "input") return hang();
+    } },
+  }, getContentBounds: () => ({ width: 1440, height: 720 }) };
+  return { win, abort, calls, started, release: (value = target) => release(value) };
+}
+
+for (const stage of ["discovery", "target", "geometry", "input", "settle", "capture"]) {
+  test(`Preview cancellation releases a stalled ${stage} wait without late input`, { timeout: 2000 }, async () => {
+    const f = pendingRuntime(stage);
+    const operation = runPreview(f.win, { action: stage === "capture" ? "screenshot" : "click", ref: "ref" }, { sessionId: "s", previewContext: { componentUuid: "page" } }, f.abort.signal);
+    const failed = assert.rejects(operation, /Preview deadline/);
+    await f.started;
+    f.abort.abort(new Error("Preview deadline"));
+    await failed;
+    const count = f.calls.length;
+    assert.equal(count, stage === "input" ? 1 : stage === "settle" ? 3 : 0);
+    f.release();
+    await new Promise((resolve) => setImmediate(resolve));
+    assert.equal(f.calls.length, count, "An expired command dispatched more input");
+  });
+}
+
+test("a cancelled Preview action releases the actual controller queue for close and model reads", { timeout: 2000 }, async (t) => {
+  const Module = require("node:module"), originalLoad = Module._load;
+  Module._load = function (name, ...args) {
+    return name === "electron" ? { app: { getPath: () => require("node:os").tmpdir() }, ipcMain: { on() {}, removeListener() {} } } : originalLoad.call(this, name, ...args);
+  };
+  const { DesktopController } = require("../src/controller.cjs");
+  Module._load = originalLoad;
+  const f = pendingRuntime("settle");
+  f.win.isDestroyed = () => false;
+  let mode = "preview";
+  f.win.webContents.getURL = () => `https://studio.example/projects/p${mode === "preview" ? "/preview/records" : ""}`;
+  const controller = new DesktopController(() => f.win, { studioOrigin: "https://studio.example" });
+  t.after(() => controller.close());
+  controller.checkContext = async () => {};
+  const events = [];
+  t.mock.method(AbortSignal, "timeout", (ms) => {
+    assert.equal(ms, 30000);
+    return f.abort.signal;
+  });
+  controller.editor = async (name, input) => {
+    if (name === "getEditorContext") return { mode, projectId: "p", sessionId: "s", changeCounter: 0, previewContext: { componentUuid: "page" } };
+    if (name === "preview") { events.push(input.action); mode = "edit"; return { closed: true }; }
+    events.push(name);
+    return { resumed: name };
+  };
+  const failed = assert.rejects(controller.dispatch("preview", { action: "click", ref: "ref" }), (error) => {
+    assert.match(error.message, /runtime timed out after 30 seconds/);
+    assert.equal(error.context.code, "PREVIEW_TIMEOUT");
+    assert.equal(error.context.operationExecuted, true);
+    assert.equal(error.context.canContinueRound, false);
+    assert.equal(error.context.recovery[0].arguments.action, "close");
+    return true;
+  });
+  await f.started;
+  const close = controller.dispatch("preview", { action: "close" });
+  const read = controller.dispatch("execute", { name: "read", input: {} });
+  f.abort.abort(new DOMException("deadline", "TimeoutError"));
+  await failed;
+  assert.equal((await close).context.mode, "edit");
+  assert.deepEqual(await read, { resumed: "read" });
+  assert.deepEqual(events, ["close", "read"]);
+  assert.equal(controller.operations.size, 0);
+  f.release();
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(f.calls.length, 3);
 });

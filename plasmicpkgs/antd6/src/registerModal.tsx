@@ -163,6 +163,7 @@ export function registerModal(loader?: Registerable) {
       },
       trigger: {
         type: "slot",
+        description: "Optional inline opener. Clear this Slot when another business control owns opening the Modal; binding open does not remove the default opener.",
         hidePlaceholder: true,
         defaultValue: {
           type: "component",

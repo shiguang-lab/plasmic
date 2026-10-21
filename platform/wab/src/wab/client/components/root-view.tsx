@@ -1,4 +1,5 @@
 import { Api, setUser } from "@/wab/client/api";
+import { asApiError } from "@/wab/client/api-error-presentation";
 import {
   AppCtx,
   NonAuthCtx,
@@ -30,6 +31,7 @@ import { providesAppCtx, useAppCtx } from "@/wab/client/contexts/AppContexts";
 import { useHostFrameCtxIfHostFrame } from "@/wab/client/frame-ctx/host-frame-ctx";
 import { analytics } from "@/wab/client/observability";
 import { useHistory, useLocation } from "@/wab/client/route/HistoryProvider";
+import { retryStartupRead } from "@/wab/client/startup-request";
 import { Redirect, RedirectAsync } from "@/wab/client/route/Redirect";
 import { Switch, switchCase, switchDefault } from "@/wab/client/route/Switch";
 import { useForceUpdate } from "@/wab/client/useForceUpdate";
@@ -528,8 +530,22 @@ export function Root() {
       const desktop = (window as Window & { desktopEnvironment?: {
         consumeStartupData?: (projectId: string) => Promise<import("@/wab/shared/ApiSchema").EditorBootstrapResponse | null>;
       } }).desktopEnvironment;
-      const bootstrap = await desktop?.consumeStartupData?.(projectLocation.projectId)
-        ?? await api.getEditorBootstrap(projectLocation.projectId, projectLocation.branchName);
+      const bootstrap = await (async () => {
+        try {
+          return await desktop?.consumeStartupData?.(projectLocation.projectId)
+            ?? await retryStartupRead(() => api.getEditorBootstrap(projectLocation.projectId, projectLocation.branchName));
+        } catch (error) {
+          const status = asApiError(error)?.statusCode;
+          // The combined request checks project access before the app knows
+          // who is signed in. Let normal initialization reach StudioFrame's
+          // sign-in / permission handling for a denied private project.
+          if (status === 401 || status === 403) {
+            return null;
+          }
+          throw error;
+        }
+      })();
+      if (bootstrap) {
       performance.mark("studio-bootstrap-ready");
       if (bootstrap.selfInfo) {setUser(bootstrap.selfInfo.user);}
       const branchId = bootstrap.branches.find((branch) => branch.name === bootstrap.branchName)?.id;
@@ -551,6 +567,7 @@ export function Root() {
           bundler, lastBundleVersion: bootstrap.latestBundleVersion, initialProjectInfo: bootstrap, initialProjectModel,
         }),
       };
+      }
     }
 
     const appData = loadAppCtxData({ api, topFrameApi }, true).then(
@@ -559,7 +576,7 @@ export function Root() {
     );
     const lastBundleVersion = await withHostFrameCache(
       "bundle", true, api, async () => {
-        const { latestBundleVersion } = await api.getLastBundleVersion();
+        const { latestBundleVersion } = await retryStartupRead(() => api.getLastBundleVersion());
         return latestBundleVersion;
       },
     );

@@ -86,6 +86,11 @@ branch readers. The response is private and `no-store`; it contains metadata,
 not the project model. The full app-context collections retain their existing
 contract for project navigation, membership and billing controls.
 
+Startup metadata reads retry an IAM HTTP 503 at most twice, after 250ms and
+500ms. Successful parallel reads are retained. Only an explicit HTTP 401 from
+the identity endpoint denotes an anonymous user; service failures remain
+retryable loading errors and must not redirect a signed-in user to login.
+
 Desktop validates its saved route through the same endpoint. Its trusted main
 frame may consume that response once for the same project within 30 seconds.
 Later opens and retries fetch fresh data. No model response is persisted in this

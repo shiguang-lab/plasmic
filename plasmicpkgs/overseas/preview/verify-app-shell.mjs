@@ -76,8 +76,32 @@ try {
   assert(action && action.y >= 64 && action.y + action.height <= 720, "Last action must be reachable inside the shell");
   assert.deepEqual(await header.boundingBox(), before, "Header must remain stationary during content scrolling");
   assert.equal(await page.evaluate(() => document.scrollingElement.scrollTop), 0);
+
+  // Studio auto-sizes the iframe to its content. Siblings after a viewport shell
+  // must not feed their height back into the shell on every measurement.
+  for (const height of [1024, 720]) {
+    await page.setViewportSize({ width: 1440, height });
+    await page.evaluate((height) => {
+      const root = document.getElementById("root");
+      root.style.setProperty("--viewport-height", `${height}px`);
+      root.querySelectorAll("[data-height-fixture]").forEach((el) => el.remove());
+      const sibling = document.createElement("div");
+      sibling.dataset.heightFixture = "true";
+      Object.assign(sibling.style, { height: "96px", minHeight: "96px", flexShrink: "0" });
+      root.append(sibling);
+    }, height);
+    for (let pass = 0; pass < 16; pass++) {
+      const measured = await page.evaluate(() => ({
+        shell: document.querySelector(".ant-layout-has-sider").parentElement.getBoundingClientRect().height,
+        content: document.getElementById("root").getBoundingClientRect().height,
+      }));
+      assert.equal(measured.shell, height, `Auto-height feedback on measurement ${pass}: ${JSON.stringify(measured)}`);
+      assert.equal(measured.content, height + 96);
+      await page.setViewportSize({ width: 1440, height: measured.content });
+    }
+  }
   assert.deepEqual(errors, []);
-  console.log("AppShell viewport sizing passed: auto/fixed-height parents, shorter viewport, parent width, saved CSS and long-content scrolling.");
+  console.log("AppShell viewport sizing passed: auto/fixed-height parents, shorter viewport, parent width, saved CSS, long-content scrolling and 16 auto-height measurements at 1024/720.");
 } finally {
   await browser.close();
 }

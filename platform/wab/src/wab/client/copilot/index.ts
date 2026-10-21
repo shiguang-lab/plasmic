@@ -1,5 +1,6 @@
 import { resolveBatchInput, type MutationReceipt, type MutationIdentity } from "@/wab/shared/copilot/mutation-receipt";
-import { readDepth, selectedReadFields, projectReadFields, withRegisteredContracts, type ModelReadOptions } from "@/wab/shared/copilot/model-read";
+import { flushSync } from "react-dom";
+import { readDepth, selectedReadFields, projectReadFields, registrationContract, withRegisteredContracts, type ModelReadOptions } from "@/wab/shared/copilot/model-read";
 import {
   isCanvasElementVisible,
   revealCanvasElement,
@@ -82,6 +83,7 @@ import {
   ComponentType,
   allComponentVariants,
   isCodeComponent,
+  isContextCodeComponent,
   isFrameComponent,
   isPageComponent,
   mkComponent,
@@ -442,8 +444,9 @@ function readNativeModel(studio: StudioCtx, component: Component, tpl: TplNode |
     };
   } else {
     resource = ["tree", "properties"].includes(options.view) && !options.fields?.some((field) =>
-      !["__type", "uuid", "name", "type", "rootElementUuid", "baseVariantTplTree", "tree", "properties", "styles", "attributes", "text", "editable", "source"].includes(field))
+      !["__type", "uuid", "name", "type", "isContext", "rootElementUuid", "baseVariantTplTree", "tree", "properties", "styles", "attributes", "text", "editable", "source"].includes(field))
       ? { __type: "Component", uuid: component.uuid, name: component.name, type: component.type,
+          ...(isContextCodeComponent(component) ? { isContext: true } : {}),
           ...(fields.includes("baseVariantTplTree") ? { baseVariantTplTree: tplToHtml(component.tplTree, studio.site, depth) } : {}) }
       : { ...buildComponentResource(component, { site: studio.site, depth, omitTree: !fields.includes("baseVariantTplTree") }) };
     resource.rootElementUuid = component.tplTree.uuid;
@@ -455,8 +458,19 @@ function readNativeModel(studio: StudioCtx, component: Component, tpl: TplNode |
     for (const field of ["states", "interactions", "dataQueries", "legacyDataQueries", "variantSettings"]) {
       if (fields.includes(field) && resource[field] === undefined) { resource[field] = []; }
     }
-    const registration = fields.includes("props") && studio.getCodeComponentMeta(component);
+    const contextRegistration = isContextCodeComponent(component) && fields.some((field) => ["props", "globalActions", "description"].includes(field))
+      ? studio.getContextsRegistration().find(({ meta }) => meta.name === component.name)?.meta : undefined;
+    const registration = fields.includes("props") && (contextRegistration ?? studio.getCodeComponentMeta(component));
     if (registration && Array.isArray(resource.props)) { resource.props = withRegisteredContracts(resource.props, registration.props); }
+    if (contextRegistration?.description) resource.description = contextRegistration.description;
+    if (fields.includes("globalActions") && contextRegistration) {
+      resource.globalActions = Object.entries(contextRegistration.globalActions ?? {}).map(([name, action]) => ({
+        name: `${component.name}.${name}`,
+        ...(action.displayName ? { displayName: action.displayName } : {}),
+        ...(action.description ? { description: action.description } : {}),
+        parameters: action.parameters.map(({ name, type }) => ({ name, ...registrationContract(type) })),
+      }));
+    }
     const actions = fields.includes("refActions") && studio.getCodeComponentMeta(component)?.refActions;
     if (actions) {
       resource.refActions = Object.entries(actions).map(([name, action]) => ({
@@ -622,7 +636,7 @@ function planMutation(studio: StudioCtx, operation: PrototypeMutation, assets: M
           "Canvas removed during batch",
         );
         if (operation.name === "deleteCanvas") {
-          studio.tplMgr().removeArena(arena);
+          studio.siteOps().removeMixedArena(arena);
         } else {
           assert(
             !studio.site.arenas.some(
@@ -1837,7 +1851,7 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
   }),
   read: defineCopilotTool(meta.read, async (studio, input) => {
     const fields = selectedReadFields(input);
-    if (fields.includes("props") || fields.includes("refActions")) {
+    if (fields.includes("props") || fields.includes("refActions") || fields.includes("globalActions")) {
       await studio.ensureCodeComponentRegistrations();
     }
     const depth = readDepth(input);
@@ -1860,6 +1874,7 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
         return { __type: "OutputResult" as const, results: [{
           __type: "Project", id: projectId,
           counts: { components: site.components.length, canvases: site.arenas.length,
+            globalContexts: site.globalContexts.length,
             pageFrames: site.pageArenas.reduce((total, arena) => total + [...arena.matrix.rows, ...arena.customMatrix.rows].reduce((count, row) => count + row.cols.length, 0), 0),
             devicePresets: frameSizeGroups.reduce((total, group) => total + group.sizes.length, 0),
             tokens: site.styleTokens.length, dataTokens: site.dataTokens.length,
@@ -1873,6 +1888,7 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
       const project = buildProjectResource(site, undefined, {
         projectId,
         components: includes("components"), tokens: includes("tokens"),
+        globalContexts: includes("globalContexts"),
         dataTokens: includes("dataTokens"), screenBreakpoints: includes("screenBreakpoints"),
         globalVariants: includes("globalVariantGroups"),
         imports: false,
@@ -2365,6 +2381,8 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
               path: `/${studio.previewCtx.previewPath.replace(/^\/+/, "")}`,
               width: previewFrame?.clientWidth || studio.previewCtx.width,
               height: previewFrame?.clientHeight || studio.previewCtx.height,
+              canGoBack: studio.previewCtx.canGoBack ?? false,
+              canGoForward: studio.previewCtx.canGoForward ?? false,
             }
           : studio.isInteractiveMode && vc
             ? {
@@ -2412,7 +2430,7 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
     assert(!preview.popup, "Close the external Preview window before using in-app Preview");
     assert(input.action === "close" || !studio.isInteractiveMode, "Exit interactive canvas mode before opening Preview");
     assert((input.width === undefined) === (input.height === undefined), "Preview width and height must be supplied together");
-    assert(input.action === "open" || (input.componentUuid === undefined && input.width === undefined && input.height === undefined), "close accepts no Page or viewport overrides");
+    assert(input.action === "open" || (input.componentUuid === undefined && input.width === undefined && input.height === undefined), `${input.action} accepts no Page or viewport overrides`);
     const component = input.componentUuid ? findComponent(studio, input.componentUuid) : undefined;
     assert(!component || (studio.site.components.includes(component) && isPageComponent(component)), "Preview target must be a local Page");
     if (input.action === "close") {
@@ -2428,6 +2446,15 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
         await studio.awaitStudioReady();
       }
       previewEditorViews.delete(studio);
+    } else if (input.action !== "open") {
+      assert(preview.isLive, "Open native Preview before navigating or refreshing");
+      if (input.action === "back") {
+        await preview.goBack();
+      } else if (input.action === "forward") {
+        await preview.goForward();
+      } else {
+        flushSync(() => preview.refresh());
+      }
     } else {
       if (!preview.isLive) {
         const view = editorView(studio);
@@ -2457,13 +2484,15 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
     await asyncTimeout(0);
     await preview.parseRoute();
     const active = preview.isLive;
-    assert(active === (input.action === "open"), "Native Preview route change did not complete");
+    assert(active === (input.action !== "close"), "Native Preview route change did not complete");
     assert(!active || !component || preview.component === component, "Native Preview opened a different Page");
     assert(!active || input.width === undefined || (preview.width === input.width && preview.height === input.height), "Native Preview viewport change did not complete");
     return { mode: active ? "preview" as const : "edit" as const,
       componentUuid: active ? preview.component?.uuid ?? null : null,
       path: active ? `/${preview.previewPath.replace(/^\/+/, "")}` : null,
-      width: active ? preview.width : null, height: active ? preview.height : null };
+      width: active ? preview.width : null, height: active ? preview.height : null,
+      canGoBack: active && (preview.canGoBack ?? false),
+      canGoForward: active && (preview.canGoForward ?? false) };
   }),
   restoreEditorView: defineCopilotTool(
     meta.restoreEditorView,

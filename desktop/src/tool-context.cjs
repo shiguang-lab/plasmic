@@ -92,8 +92,17 @@ function assertContext(required, state, studioOrigin) {
   return actual;
 }
 
-function errorPayload(error) {
-  return { message: error.message, ...(error.context || {}) };
+function errorPayload(error, depth = 0) {
+  // WebFrameMain.executeJavaScript can reject with a string containing the
+  // renderer's message and stack, even when the renderer threw an Error.
+  return {
+    message: typeof error?.message === "string" ? error.message : String(error),
+    ...(typeof error?.name === "string" ? { name: error.name } : {}),
+    ...(typeof error?.stack === "string" ? { stack: error.stack }
+      : typeof error === "string" && error.includes("\n") ? { stack: error } : {}),
+    ...(error?.cause !== undefined && depth < 4 ? { cause: errorPayload(error.cause, depth + 1) } : {}),
+    ...(error?.context || {}),
+  };
 }
 
 module.exports = { requiredContext, currentContext, assertContext, contextError, errorPayload };

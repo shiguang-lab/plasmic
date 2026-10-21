@@ -1,4 +1,5 @@
 import type { CodeComponentMeta } from "@plasmicapp/host/registerComponent";
+import { unwrap } from "@/wab/commons/neverthrow-utils";
 import { AppCtx } from "@/wab/client/app-ctx";
 import {
   ImageAssetOpts,
@@ -24,9 +25,10 @@ import {
   WIVariant,
 } from "@/wab/client/web-importer/types";
 import { ProjectId } from "@/wab/shared/ApiSchema";
-import { CodeComponentsRegistry } from "@/wab/shared/code-components/code-components";
+import { CodeComponentsRegistry, maybePropTypeToDefaultExpr } from "@/wab/shared/code-components/code-components";
 import { paramToVarName, toVarName } from "@/wab/shared/codegen/util";
 import { assert, assertNever, ensure, mkShortId } from "@/wab/shared/common";
+import { isContextCodeComponent } from "@/wab/shared/core/components";
 import {
   interpolatedStringToCodeExpr,
   interpolatedStringToExpr,
@@ -40,6 +42,7 @@ import {
   code,
   codeLit,
   customCode,
+  tryExtractJson,
   InteractionConditionalMode,
 } from "@/wab/shared/core/exprs";
 import { ImageAssetType } from "@/wab/shared/core/image-asset-type";
@@ -852,9 +855,32 @@ async function wiTreeToTpl(
         });
         return [];
       }
+      if (isContextCodeComponent(component)) {
+        errors.push({
+          code: "invalid-component-instance",
+          path: nodePath,
+          reason: `Component "${componentName}" is a global context and cannot be inserted into a component tree`,
+        });
+        return [];
+      }
 
       // Build args from props and slots
       const args: Record<string, any> = {};
+      const registration = opts.getCodeComponentMeta?.(component);
+      // Imported definitions can retain older registration defaults. Materialize
+      // changed current defaults on new instances, without rewriting the shared
+      // definition or any existing instance. Explicit props and Slots win below.
+      for (const param of component.params) {
+        const name = paramToVarName(component, param);
+        const metaProp = registration?.props[name];
+        if (!metaProp || typeof metaProp !== "object" || isSlot(param)
+            || !("defaultValue" in metaProp) || typeof metaProp.defaultValue === "function"
+            || Object.hasOwn(node.props ?? {}, name) || Object.hasOwn(node.slots ?? {}, name)) continue;
+        const currentDefault = unwrap(maybePropTypeToDefaultExpr(metaProp, name, componentName));
+        if (currentDefault && (!param.defaultExpr || !L.isEqual(tryExtractJson(currentDefault), tryExtractJson(param.defaultExpr)))) {
+          args[param.variable.name] = currentDefault;
+        }
+      }
 
       if (node.props) {
         for (const [propName, propValue] of Object.entries(node.props)) {
@@ -866,7 +892,7 @@ async function wiTreeToTpl(
             propName,
             propValue,
             nodePath,
-            opts.getCodeComponentMeta?.(component)?.props[propName],
+            registration?.props[propName],
           ).match(
             ([param, argValue]) => {
               args[param.variable.name] = argValue;
@@ -887,6 +913,15 @@ async function wiTreeToTpl(
               path: nodePath,
               component: componentName,
               slot: slotName,
+            });
+            continue;
+          }
+
+          if (!isSlot(param)) {
+            errors.push({
+              code: "invalid-slot",
+              path: nodePath,
+              reason: `Component "${componentName}" prop "${slotName}" is not a Slot; pass it in data-props`,
             });
             continue;
           }

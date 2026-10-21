@@ -1,5 +1,6 @@
 import { loadCacheKey } from "@/wab/client/LocalStorageKey";
 import { Api, setUser } from "@/wab/client/api";
+import { asApiError } from "@/wab/client/api-error-presentation";
 import { Router, isHostFrame } from "@/wab/client/cli-routes";
 import { getClientDevFlagOverrides } from "@/wab/client/client-dev-flags";
 import { StarterGroupProps } from "@/wab/client/components/StarterGroup";
@@ -7,6 +8,7 @@ import { App } from "@/wab/client/components/top-view";
 import { TopFrameApi } from "@/wab/client/frame-ctx/top-frame-api";
 import { getUiLocale } from "@/wab/client/i18n";
 import { translate } from "@/wab/client/i18n/locales";
+import { retryStartupRead } from "@/wab/client/startup-request";
 import { PromisifyMethods } from "@/wab/commons/promisify-methods";
 import {
   EditorBootstrapResponse,
@@ -19,7 +21,7 @@ import {
 } from "@/wab/shared/ApiSchema";
 import { FastBundler } from "@/wab/shared/bundler";
 import { parseBundle } from "@/wab/shared/bundles";
-import { ensure, swallowAsync } from "@/wab/shared/common";
+import { ensure } from "@/wab/shared/common";
 import { isAdminTeamEmail } from "@/wab/shared/devflag-utils";
 import {
   DEVFLAGS,
@@ -447,13 +449,20 @@ export async function loadAppCtxData(
   useCaching: boolean,
 ) {
   return Promise.all([
-    withHostFrameCache("selfInfo", useCaching, ctx.api, () =>
-      swallowAsync(ctx.api.getSelfInfo()),
-    ),
+    withHostFrameCache("selfInfo", useCaching, ctx.api, async () => {
+      try {
+        return await retryStartupRead(() => ctx.api.getSelfInfo());
+      } catch (error) {
+        if (asApiError(error)?.statusCode === 401) {
+          return undefined;
+        }
+        throw error;
+      }
+    }),
     withHostFrameCache("appConfig", useCaching, ctx.api, () =>
-      ctx.api.getAppConfig(),
+      retryStartupRead(() => ctx.api.getAppConfig()),
     ),
-    getAppCtxData(ctx),
+    retryStartupRead(() => getAppCtxData(ctx)),
   ]);
 }
 

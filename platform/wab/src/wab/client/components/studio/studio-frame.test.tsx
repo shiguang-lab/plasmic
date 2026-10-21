@@ -5,8 +5,9 @@ import { StudioFrame } from "@/wab/client/components/studio/studio-frame";
 import { providesAppCtx } from "@/wab/client/contexts/AppContexts";
 import { HistoryProvider } from "@/wab/client/route/HistoryProvider";
 import { getHostUrl } from "@/wab/client/utils/app-hosting-utils";
+import { ForbiddenError } from "@/wab/shared/ApiErrors/errors";
 import { ApiProject, ApiTrustedHost, ProjectId } from "@/wab/shared/ApiSchema";
-import { act, cleanup, render, screen } from "@testing-library/react";
+import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import * as React from "react";
 import { mock } from "vitest-mock-extended";
 
@@ -40,6 +41,33 @@ vi.mock("@/wab/client/utils/useBrowserNotification", () => ({
 }));
 
 afterEach(cleanup);
+
+it("sends an anonymous private-project visitor to sign in with the original preview route", async () => {
+  const { appCtx, api } = fakeAppCtx();
+  const route = "/projects/project/preview-full/customer-groups?branch=main#width=1440";
+  window.history.replaceState(null, "", route);
+  appCtx.history.replace(route);
+  appCtx.selfInfo = null;
+  appCtx.appConfigOverrides = {};
+  api.getProjects.mockRejectedValue(new ForbiddenError("Access denied"));
+  api.getTrustedHostsList.mockResolvedValue({ trustedHosts: [] });
+  try {
+    render(providesAppCtx(appCtx)(
+      <HistoryProvider history={appCtx.history}>
+        <AntdConfigProvider productUI>
+          <StudioStartupBoundary>
+            <StudioFrame projectId={"project" as ProjectId} refreshStudio={async () => undefined} />
+          </StudioStartupBoundary>
+        </AntdConfigProvider>
+      </HistoryProvider>,
+    ));
+    await waitFor(() => expect(appCtx.history.location.pathname).toBe("/login"));
+    expect(new URLSearchParams(appCtx.history.location.search).get("continueTo")).toBe(route);
+    expect(screen.queryByRole("alert")).toBeNull();
+  } finally {
+    window.history.replaceState(null, "", "/");
+  }
+});
 
 it("preserves the visible skeleton through metadata, host registration and dialogs until the canvas is ready", async () => {
   const { appCtx, api } = fakeAppCtx();

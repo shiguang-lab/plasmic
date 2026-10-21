@@ -1,14 +1,50 @@
 # Requirement alignment
 
-Use before requirement-driven generation, regeneration or an audit of page/navigation scope. The source inventory is a task artifact, not another component prop schema and not UI content.
+Use before requirement-driven generation or scope review. Keep source inventories outside UI; use native component props.
 
 Keep business-specific page counts, entity names, routes, menu trees, field dictionaries and approved layout decisions in that task's inventory. Do not promote them into this skill's defaults or add branches keyed by a requirement ID. Examples illustrate a mechanism only; a new requirement must produce a new inventory from its own sources. Select design rules for the actual product/platform and [component library](libraries/index.md); do not force the current admin or Antd-v6 defaults onto another scope.
 
+## Source and interaction rules
+
+Read current requirement sections completely before freezing scope, including fields, roles, state transitions and later decisions. Record source coverage; truncation is incomplete. Use the supplied sources and resolved runtime resources. Do not search repository evals, historical task answers or acceptance fixtures to derive this task's requirements.
+
+Build calls from current schemas and registered Props/Slots; serialize data-props as JSON, read each receipt and refresh identities after context changes. Imported definitions can retain older stored defaults; registration.defaultValue exposes a differing current literal insertion default. New HTML instances materialize it; existing instances require explicit correction. Dropdown JSON actions use stable unique key values, including nested items; onAction receives key, not value or label. Clear unused default Slots explicitly: an externally opened Modal needs an empty trigger Slot, while its native Confirm/Cancel footer is retained unless the required composition removes or replaces it.
+
+Use native href/Link or the documented navigation interaction for internal Page transitions. Do not assign window.location or call location.assign/replace for prototype routing: that navigates the canvas host iframe. Preserve only required role/record/entry/return context in supported destinations. Test every menu branch, direct entry and return after all destination Pages are complete.
+
+Name Page and task-owned canvas directories in Chinese by default; name editable internal nodes in concise English PascalCase. Rename the existing automatic overview through updateCanvas, preserving references. Name nodes during composition and verify hidden branches and save/reopen; see the naming reference for native rename operations.
+
+Before binding actions, follow [permission generation and acceptance](design/permissions.md): derive role × action × state/scope decisions from source, establish current-user context and reuse its checks for data, buttons, routes and submission. Separate metadata from condition/SQL edits and current state from ever-enabled history. Resolve conflicts; never freeze all editing because one field group is immutable.
+
+Record decisions in existing [actionContracts and runtime cases](design/component-policy.md#business-actions-and-transitions), including allowed non-administrator actions and real denied boundaries. Source-derived transitions retain from/to keys and displayed text; first selection and re-enable selection cannot share a catch-all retry target. Cover confirm/cancel and failure recovery. Keep fixture role/market/App setup outside business UI; absent setup leaves acceptance unverified.
+
+Normalize App 来源/App Source/app_source/appSource as candidates for the same App dimension. Distinguish global working context from a business field, SQL output column and historical provenance. When the requirement identifies the current App, preserve the AppShell context control and data/action propagation under [App source rules](libraries/overseas/components/app-shell.md#app-source-context). Removing a list/form App field does not opt out of global context. An explicit current instruction about the header takes precedence over ambiguous earlier “page has no App option” wording.
+
+Keep permission demonstrations out of the business UI: do not add role-view switches, administrator/operator/read-only buttons or current-role debug badges. Use one current-user context and representative records to express source-defined record access through the relevant row actions, fields and mutation guards. Where permissions differ between records, show or omit each action accordingly rather than exposing a global simulator. Exercise other roles through test setup or supported direct-entry context outside the page; preserve authorization guards when removing simulation controls.
+
 ## Source and scope
 
-Read the current requirement body and its page/navigation, field, permission and workflow sections. Record file/URL, version/date and section anchors. Apply explicit current user decisions first, then current requirements for business scope and behavior. For presentation, preserve approved design evidence; use applicable library/composition defaults for unspecified details. Explicit project policies such as [admin content entry](design/layout.md#admin-content-entry) state when a reference image alone is insufficient to opt into an exception. Record those adaptations; if the user explicitly requires conflicting exact reproduction, resolve that conflict before the affected edit. Live registered contracts determine what can actually be implemented, not permission to drop a required behavior. History, obsolete screenshots, previous models and generated code are evidence, not authority for current scope. Separate P0/P1/P2 or other release boundaries explicitly.
+Read the current requirement body and its page/navigation, field, permission and workflow sections. Record file/URL, version/date and section anchors. Apply explicit current user decisions first, then current requirements for business scope and behavior. Interpret presentation sources through [visual sources and component rules](#visual-sources-and-component-rules). Live registered contracts determine what can actually be implemented, not permission to drop a required behavior. History, obsolete screenshots, previous models and generated code are evidence, not authority for current scope. Separate P0/P1/P2 or other release boundaries explicitly.
 
-Record conflicts and their resolution with sources. If a conflict changes business behavior and the current text/user decisions do not resolve it, ask a focused question while continuing independent work. Do not silently select the convenient statement. Visual conventions must not remove required fields, change entry points, permission rules or page ownership.
+Resolve content differences before choosing components or layout. Current explicit user decisions take precedence; otherwise current requirements define business fields, actions, states and permissions, while the selected visual source defines their presentation. A visual source's missing field is not a removal decision. An obsolete visual field is not a reason to retain it against an explicit current removal. Record each difference and its source-backed resolution in the existing task inventory/reference-region decision. Ask about unresolved business conflicts before generating the affected branch, while continuing independent work.
+
+## Content before presentation
+
+For each in-scope region, reconcile the complete member set across its current requirement and visual source before markup: query fields, submitted fields, read-only attributes, result Columns, actions and states. Identify members by business meaning and owning region, then map them to native keys/values; a field and a global context control are not interchangeable merely because their labels overlap. Removing one obsolete member does not resolve other additions or differences in that region. Review both missing and unexpected members, not only totals.
+
+Keep the resolved members in the existing structure/field/action inventories, with source citations and explicit decisions for exclusions. After reading contracts, map every retained member to its actual native component, property/Slot owner and business key. Query Items use the existing `components` entries with native `props.name`, label/labelContent and `owner`; Form/Descriptions fields retain their existing dedicated inventories. Do not add a parallel field schema or derive this expectation from generated markup.
+
+Freeze this content expectation before selecting column density, copying a template or adapting a screenshot. Component choice, wrapping, collapse and visual adjustments preserve its members and meanings; they may change representation only under the owning rule. A native layout can hide a retained field temporarily but cannot justify omitting its model node or query behavior. A genuine scope change needs new source evidence or a current user decision, followed by an explicit inventory update.
+
+Before business writes, compare the source with this expectation member by member; after generation, compare the same expectation with the saved model's keys, labels, owners and native identities, including hidden branches. Check query/reset and applicable role/state behavior in Preview. Missing content is repaired in the output, not erased from the expectation. Static checks can compare declared members with the model; they cannot establish that the declaration faithfully covers source prose or images.
+
+## Visual sources and component rules
+
+Read and inspect the selected visual source for business regions, hierarchy, grouping, field/action placement and intended states. Compose its resolved content with native components and the applicable composition rules. Adaptations to dimensions, wrapping, demo titles or control styling follow the owning component reference, including [protected configuration](design/component-policy.md#protected-configuration) and [admin content entry](design/layout.md#admin-content-entry); they do not reopen the resolved content decisions.
+
+An instruction such as “界面以 .pen 为准” selects that visual source for presentation; still reconcile its content with current requirements under [content before presentation](#content-before-presentation). Do not silently select a screenshot's field list over the current requirement. Explicit layout/reproduction instructions take precedence over ordinary presentation defaults; resolve any remaining conflict before the affected composition.
+
+Record the draft's intended region and its native implementation/adaptation in the existing reference-region decisions. Compare source and output at the intended viewport and equivalent state. Verify complete model content separately from initial visibility: collapsing, inactive Tabs and closed overlays can hide retained content. Visual acceptance checks source structure, resolved content and native presentation together. Apply the same comparison to later revisions.
 
 ## Inventory before routes
 
@@ -24,52 +60,13 @@ Before generation, review coverage in both directions: every in-scope requiremen
 
 ## Presentation, copy and native components
 
-Apply [admin content entry](design/layout.md#admin-content-entry). Record `pageHeader:null`, or an explicit current user exception as `{"nodeName":"EntityHeader","source":"user decision ..."}`. Native region titles remain with their owners.
-
-Before markup, apply [native component selection](libraries/index.md#native-component-selection) and map every required functional widget to its real registration in `components`, `controls` and matching region inventories. Include actions, navigation, pagination, feedback and overlays, not just Table/Form/Descriptions. SearchForm owns filters; Form/Item owns submitted fields and Descriptions/Item owns read-only groups. Each required target must resolve to its declared identity. Region/Slot gates still check field ownership and completeness.
-
-Classify switches by source purpose before recording a component identity. In the Antd-v6 list composition, content-scope navigation follows [Tabs](libraries/antd_v6/components/tabs.md); choosing a field value follows Radio.Group. Record the chosen native identity in components and real content/action Slot owners in the intent. A plan that merely repeats the generated selector has not reviewed this choice; structural identity checks cannot correct a wrongly classified source role.
-
-For a fallback permitted by the skill's component-priority rule, add optional `elementFallbacks:[{"nodeName":"CustomWidget","reason":"Checked candidates/contracts and concrete unsupported behavior","source":"requirement section + contract evidence"}]` before generation. Each entry targets that exact node only, without covering descendants. The structure check rejects unreviewed raw controls/tables/dialogs, ARIA widgets and ordinary-element click targets. It verifies exception shape and exact targets, not the correctness of the rationale; independent contract review remains necessary.
-
-Review `copy` independently of output. `source` cites this review, `excluded` records requirement/process sentences that must not appear, and `help` records necessary user-facing instruction owners/text/sources. Keep scope/release notes, API/implementation rationale, permission-matrix explanations, acceptance steps and simulation/debug controls in the task report. Express behavior through actual UI state and concise actionable feedback. Preserve useful field constraints, irreversible-action warnings and failure guidance; do not remove all help text or use a global keyword blacklist.
-
-```json
-{
-  "pageHeader": null,
-  "components": [
-    {"nodeName":"RecordsTable","component":"plasmic-antd6-table","role":"widget","purpose":"Required unpaged result region","source":"requirement §Results","props":{"pagination":false}},
-    {"nodeName":"EditForm","component":"plasmic-antd6-form","role":"widget","purpose":"Submitted business fields","source":"requirement §Edit"},
-    {"nodeName":"Summary","component":"plasmic-antd6-descriptions","role":"widget","purpose":"Read-only business attributes","source":"requirement §Summary"}
-  ],
-  "copy": {
-    "source":"requirement §Fields + reviewed UI-copy decisions",
-    "excluded":[{"text":"P0 excludes the AI creation flow","source":"requirement §Release scope; implementation context, not UI copy"}],
-    "help":[{"nodeName":"RetentionHelp","text":"Deleting historical partitions cannot be undone.","source":"requirement §Retention"}]
-  }
-}
-```
-
-The structure gate checks required native identities, recognized/unapproved Page-heading structures, declared excluded literal copy and the expected help text/bindings. These are static guards; unnamed visual headings, arbitrary prose meaning and dynamic rendered messages still require image/runtime review. Do not claim that a string scan understands every sentence or that zero generated Forms means no Form was required. Prepare these local declarations before generating business content.
-
-For Overseas/Antd-v6 checks, components also records role/purpose, native property constraints and Slot ownership. A source-driven result table can use these acceptance entries (illustrative names and widths; measure the actual operation content):
-
-```json
-[
-  {"nodeName":"Results","component":"plasmic-antd6-table","role":"pagination","purpose":"Paged matching records with native total","source":"requirement §Results","props":{"pagination":{"defaultPageSize":20,"pageSizeOptions":[20,50,100]}},"dynamicProps":["pagination.showTotal"]},
-  {"nodeName":"CategoryColumn","component":"plasmic-antd6-table-column","role":"category","purpose":"Mapped category label","source":"requirement §Category","props":{"dataIndex":"category","displayType":"tag"},"owner":{"nodeName":"Results","slot":"children"}},
-  {"nodeName":"ActionColumn","component":"plasmic-antd6-table-column","role":"widget","purpose":"Final fixed operation column","source":"requirement §Actions","props":{"fixed":"right","width":200}},
-  {"nodeName":"RowActions","component":"plasmic-react-ui-action-group","role":"row-actions","purpose":"Permission-filtered record operations","source":"requirement §Actions","props":{"max":3},"owner":{"nodeName":"ActionColumn","slot":"render"}}
-]
-```
-
-Inventory other Columns as well. Props are a partial match against actual native props, including nested objects; dynamicProps paths require actual bindings, not similar sibling text. A custom Tag uses its registered identity and Column.render owner instead of a tag display preset. Record content scopes as content-scope with actual Tabs identity; ordinary field choices remain widget controls. Roles/expected native identities must be independently reviewed before output, and cannot be relabeled just to pass a check. Plain semantic text/layout remains valid.
+Before markup read [source presentation](design/source-presentation.md) for native roles, properties and ownership, and [authored content review](design/content-review.md) for the generation/acceptance schema for names and UI copy. Keep `pageHeader:null` unless the current user explicitly requests a heading.
 
 ## Behavior and field matrix
 
-For each required flow, record source, Page/variant, entry trigger, required fields, labels/defaults/enums, editable/read-only behavior, permission gates, state transitions, navigation and observable expected feedback. Use current requirement enums and mandatory fields, with actual registered props/slots/events as the implementation contract. Record mock data/API limitations separately. Test both positive and relevant blocked cases: a hidden list action does not prove its destination is protected; a toast does not prove the expected record changed.
+Map each flow's source rule to its native input fields/values, calculation or guard, event owner and observable output in the existing inventories and [business outcome cases](design/component-policy.md#business-outcome-cases). Include enums/defaults, editability, permissions, transitions and navigation. Required-only validation or a rule copied into help text does not implement a business algorithm.
 
-Shared pages must be exercised for every required type, including directly entering the route, switching from different list rows, type-specific field/Tab visibility and the correct return destination. Screenshot acceptance checks both editor and actual preview. Layout checks must include alignment/grouping against the approved design, not only absence of overflow. Record which cases ran and their observations.
+Derive expected results before generation; test changed inputs, repeat actions and source-required blocked cases against actual values/records, with feedback checked separately. Keep mock/API limits explicit. Shared Pages cover each type, direct entry, different rows, field/Tab visibility and return paths. Review editor/Preview pixels for source grouping/alignment and record actual observations.
 
 ## Structural gate
 

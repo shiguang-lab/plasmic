@@ -24,3 +24,5 @@ Use concise action/result labels consistent with the surrounding instructions an
 Visual `type` and native `htmlType` are separate contracts. Only the intended validated form submission uses submit semantics; cancel, navigation and auxiliary operations must not accidentally submit or reset the Form. Follow the installed Form/ref action contracts, including footer actions outside Form; do not wire both native submission and a click handler to perform the same mutation twice.
 
 Use [action-bar composition](../compositions/action-bars.md) for contextual order, alignment, grouped availability and combined Preview acceptance.
+
+A Button that opens menu choices follows [Dropdown trigger appearance](dropdown.md#trigger-appearance), including its trailing indicator and separation from any leading action icon. A direct-action Button keeps its ordinary action treatment.

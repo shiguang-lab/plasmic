@@ -46,6 +46,7 @@ export const CommentPostFormDialog = observer(function CommentPostFormDialog({
       <FloatingWindow
         handleSelector=".CommentDialogDragHandle"
         focusedMode={studioCtx.focusedMode}
+        initialAnchor={openedNewThread.anchor}
         initialWidth={300}
         disableHeightResize
         onClick={markThreadAsInteracted}

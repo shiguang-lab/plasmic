@@ -32,7 +32,7 @@ import {
   Theme,
   VariantGroup,
 } from "@/wab/shared/model/classes";
-import { getStylesFromRuleSet } from "@/wab/shared/web-exporter/component-exporter";
+import { buildElementProperties, getStylesFromRuleSet } from "@/wab/shared/web-exporter/component-exporter";
 import {
   type AnimationJson,
   type AnimationSummaryJson,
@@ -64,6 +64,7 @@ export function buildProjectResource(
   opts: {
     projectId: string;
     components?: boolean;
+    globalContexts?: boolean;
     screenBreakpoints?: boolean;
     globalVariants?: boolean;
     tokens?: boolean;
@@ -126,6 +127,12 @@ export function buildProjectResource(
         opts.components && owner.components,
         buildComponentSummary,
       ),
+      globalContexts: list(opts.globalContexts && owner.globalContexts, (context) => ({
+        uuid: context.uuid,
+        componentUuid: context.component.uuid,
+        name: context.component.name,
+        properties: buildElementProperties(context, owner).properties,
+      })),
       globalVariantGroups: list(
         opts.globalVariants &&
           owner.globalVariantGroups.filter(
@@ -193,6 +200,7 @@ function buildComponentSummary(comp: Component): ComponentSummaryJson {
     name: comp.name,
     uuid: comp.uuid,
     type: comp.type,
+    ...(comp.codeComponentMeta?.isContext ? { isContext: true as const } : {}),
     ...(path ? { pageMeta: { __type: "PageMeta", path } } : {}),
   };
 }

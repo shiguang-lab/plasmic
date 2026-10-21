@@ -115,6 +115,12 @@ function projectResourcesSchema() {
       .array(componentSummarySchema())
       .optional()
       .describe("Components, when requested."),
+    globalContexts: z.array(z.object({
+      uuid: z.string(),
+      componentUuid: z.string(),
+      name: z.string(),
+      properties: z.record(z.any()),
+    })).optional().describe("Installed project-wide context instances and stored overrides. These wrap pages automatically; they are not page-tree nodes. Read the definition's contract for defaults and globalActions."),
     globalVariantGroups: z
       .array(globalVariantGroupSchema())
       .optional()
@@ -238,6 +244,7 @@ export function componentSchema() {
     type: z
       .enum(["plain", "page", "code", "frame"])
       .describe("Component kind."),
+    isContext: z.literal(true).optional().describe("Global context definition, managed in project settings and never inserted into a page/component tree. Present in component inventories and retained by field projections."),
     pageMeta: pageMetaSchema()
       .optional()
       .describe("Page metadata, present for pages."),
@@ -279,6 +286,12 @@ export function componentSchema() {
       .describe(
         "Registered ref action names and ordered argument names. Call on $refs.<instanceName>; omitted args means the signature is unavailable.",
       ),
+    globalActions: z.array(z.object({
+      name: z.string().describe('Qualified dictionary key; call $globalActions["contextName.actionName"](...parameters). No page instance is needed.'),
+      displayName: z.string().optional(),
+      description: z.string().optional(),
+      parameters: z.array(z.object({ name: z.string() }).catchall(z.any())),
+    })).optional().describe("Live global-context actions with ordered declarative parameter contracts; separate from instance refActions."),
     props: z
       .array(propSchema())
       .describe(

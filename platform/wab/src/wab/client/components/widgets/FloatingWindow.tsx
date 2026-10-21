@@ -45,6 +45,7 @@ export const FloatingWindow = React.forwardRef(function FloatingWindow(
     focusedMode,
     initialWidth,
     initialHeight,
+    initialAnchor,
     disableWidthResize,
     disableHeightResize,
     hiddenByModal,
@@ -67,6 +68,8 @@ export const FloatingWindow = React.forwardRef(function FloatingWindow(
     initialWidth?: number;
     /** Initial height. Stored height from storageKey takes precedence. If unset, height will auto-size. */
     initialHeight?: number;
+    /** Viewport bounds of the trigger to open beside. Stored position takes precedence. */
+    initialAnchor?: Box;
     disableWidthResize?: boolean;
     disableHeightResize?: boolean;
     /** Hides the window, for a modal whose mask stops at a frame below this one. */
@@ -107,8 +110,25 @@ export const FloatingWindow = React.forwardRef(function FloatingWindow(
     const curWidth = windowBox.width;
     const curHeight = windowBox.height;
     const { minWidth, minHeight } = computeMinDimensions(windowEl);
-    const maxWidth = win.innerWidth - windowBox.left;
-    const maxHeight = win.innerHeight - windowBox.top;
+    let placementDelta = Pt.zero();
+    if (initialAnchor && !loadedState) {
+      const gap = 8;
+      const left =
+        initialAnchor.right() + gap + curWidth <= win.innerWidth
+          ? initialAnchor.right() + gap
+          : initialAnchor.left() - gap - curWidth;
+      placementDelta = new Pt(
+        L.clamp(left, 0, Math.max(0, win.innerWidth - curWidth)) -
+          windowBox.left,
+        L.clamp(
+          initialAnchor.top(),
+          0,
+          Math.max(0, win.innerHeight - curHeight),
+        ) - windowBox.top,
+      );
+    }
+    const maxWidth = win.innerWidth - windowBox.left - placementDelta.x;
+    const maxHeight = win.innerHeight - windowBox.top - placementDelta.y;
     // If the user can't resize, don't clamp and rely on CSS sizing instead.
     if (!disableWidthResize) {
       const newWidth = L.clamp(curWidth, minWidth, maxWidth);
@@ -123,13 +143,13 @@ export const FloatingWindow = React.forwardRef(function FloatingWindow(
 
     // Check offset.
     const clampedDelta = clampDelta(
-      0,
-      0,
+      placementDelta.x,
+      placementDelta.y,
       getHandleBox(windowEl, handleSelector),
       win,
     );
     setOffset(offset.plus(clampedDelta));
-  }, [focusedMode, handleSelector]);
+  }, [focusedMode, handleSelector, initialAnchor, loadedState]);
 
   const lastWindowStateRef = React.useRef<WindowState>({
     offset,

@@ -31,6 +31,21 @@ def model(footer=None, values=None, body="", kind="plasmic-antd6-modal"):
 
 
 class OverlayFooterTests(unittest.TestCase):
+    def test_external_controlled_modal_rejects_leftover_default_trigger(self):
+        expected = inventory(footer="none")
+        actual = model(values={"hideFooter": True, "open": "{{ $state.open }}"})
+        original = actual["results"][0]["baseVariantTplTree"]
+        actual["results"][0]["baseVariantTplTree"] = original.replace(
+            '<slot name="children">', '<slot name="trigger">' + button("ShowModal") + '</slot><slot name="children">', 1)
+        result = check(expected, actual)
+        self.assertFalse(result["passed"])
+        self.assertIn("Inline trigger", result["errors"][0]["error"])
+        expected["pages"][0]["overlays"][0]["trigger"] = ["ShowModal"]
+        self.assertTrue(check(expected, actual)["passed"])
+        expected["pages"][0]["overlays"][0]["trigger"] = []
+        actual["results"][0]["baseVariantTplTree"] = original.replace('<slot name="children">', '<slot name="trigger"></slot><slot name="children">', 1)
+        self.assertTrue(check(expected, actual)["passed"])
+
     def test_css_escapes_cannot_prove_footer_visibility(self):
         expected = inventory([action("Cancel"), action("Save", "business")])
         self.assertTrue(check(expected, model(button("Cancel") + button("Save")))["passed"])

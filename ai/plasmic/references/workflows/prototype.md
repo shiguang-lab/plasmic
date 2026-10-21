@@ -1,30 +1,48 @@
 # Product prototype workflow
 
-Resolve Team → Workspace → Project through [project management](../desktop-management.md), then reread identity and schemas. Edits require canEdit.
+Same agent/session: sources/contracts → plan/preflight → compose → saved-output acceptance → Preview → repairs. Review sources independently.
 
 ## Resolve scope and contracts
 
-Read the actual source and [requirement alignment](../requirement-alignment.md). Freeze source-derived routes, fields, actions, native component mappings and UI-copy decisions outside the UI. Follow [context reading](../context-reading.md) for complete source coverage with bounded tool results.
+1. Resolve Team → Workspace → Project through [management](../desktop-management.md); reread identity/schemas. New projects use their returned ID. Edits require canEdit.
+2. Read sources/[requirement alignment](../requirement-alignment.md); resolve visual differences. Before layout retain [content expectations](../requirement-alignment.md#content-before-presentation): fields, roles, transitions, copy, Page scope and deferred cases. Single-Page work excludes siblings. Follow [context reading](../context-reading.md); truncation is incomplete evidence.
+3. Use [native library selection](../libraries/index.md#native-component-selection). For Overseas/Antd6 read [selection](../libraries/antd_v6/selection.md) in full. Classify regions/fields/Columns/actions by purpose, follow rule owners, then read actual Props/Slots/events via MCP.
+4. Read [admin design](../admin-design.md), [templates](../admin-templates.md) and [catalog](../templates/admin/catalog.json). Before writes complete [source acquisition/evidence](../admin-templates.md#source-evidence-before-composition): select scenarios, inspect live models, record per-Page captures/adaptation. Acquire uninstalled sources; different fields need adaptation. Reference reconstruction need not import. Apply [content entry](../design/layout.md#admin-content-entry) and the selected composition, including [Overseas query/list](../libraries/overseas/compositions/search-table.md). Stability work reads [reproducibility](../reproducibility.md).
+5. Before business writes, create structure-expectation.json from source: components/roles/rules, field keys/owners, feedback, template evidence and cases. Apply [component policy](../design/component-policy.md): defaults, source-backed overrides, App context/consumers and row actions. Compare source members; run `python3 RESOURCE_ROOT/scripts/verify_selection.py /absolute/task/structure-expectation.json --report /absolute/task/selection-plan.json`. Inspect/repair until pass. --help is not execution; source completeness needs review. Never change expectations to approve output.
 
-Use [native component selection](../libraries/index.md#native-component-selection) for library/API matching and role-specific references; prepare compatible dependencies before freezing intent. For admin work, read [admin design](../admin-design.md), [templates](../admin-templates.md) and [catalog](../templates/admin/catalog.json), and apply [content entry](../design/layout.md#admin-content-entry). Use the matching composition for cross-region decisions; Overseas/Antd-v6 lists use [query/list composition](../libraries/overseas/compositions/search-table.md). Record the actual template reuse mechanism. Explicit regeneration/stability work also reads [reproducibility](../reproducibility.md).
+Before composition, prepare the actual [suite and region inventories](../verification.md#reviewed-suite-configuration) and Page Slot intent from source/contracts, using planned names/routes before UUIDs exist. Run `python3 RESOURCE_ROOT/scripts/verify_mcp_contract.py --profile "/absolute/Desktop user-data" --report /absolute/task/mcp-contract.json` before writes.
 
-For a supported full-project suite, run `python3 RESOURCE_ROOT/scripts/verify_mcp_contract.py --profile "/absolute/Desktop user-data" --report /absolute/task/mcp-contract.json`. Correct contract failures before business writes.
+## Execution plan and completion evidence
+
+Before writes, record stages/evidence paths in the existing plan, without another manifest. Track actual results and retain unfinished stages across recovery.
+
+| Plan stage | Completion evidence / next action |
+| --- | --- |
+| Prepare inputs | Suite, source/region inventories and Slot intent ready; source, selection and MCP checks pass. |
+| Compose Page | Content, states/events, overlays and mock/API effects complete or explicitly pending. |
+| Accept saved output | Save; scoped `verify_all.py` passes the [report contract](../verification.md#collect-and-verify); opened pixels have no unresolved findings. Repair/recheck here. |
+| Preview round N | Saved-output gates pass for all scoped Pages/destinations; collect round findings/pending cases. |
+| Repair batch | Close Preview; confirm project/edit mode and get_app_state.canEdit. Mutate, save, repeat saved-output gates. |
+| Persistence/delivery | Save/reopen/reread; repeat scoped checks and report runtime/persistence/pending work. |
+
+Keep saved-output acceptance separate from Preview/delivery. Selection `passed:true`, native `validate.valid:true`, save and screenshots do not replace its suite. Missing/failing evidence leaves stages incomplete.
 
 ## Complete one Page at a time
 
-For standalone fixed-viewport Overseas/Antd-v6 Pages use the [unified verifier](../verification.md). Focused edits, host-owned/content-growing layouts and other library scopes use scoped checks and report unsupported coverage.
+MCP does not manage stages. Keep plans/evidence outside UI; derive Slots from [Pen evidence](../design-references.md)/contracts and follow [naming](../design/naming.md). Preview adds no devices.
 
-The agent maintains the source inventory, plan, progress and evidence in its own working directory. Desktop MCP performs individual operations with target, permission and context checks; it does not register a generation workflow, bind a task to a project or enforce Page order. Source-reviewed screen/route identity comes from [requirement alignment](../requirement-alignment.md#inventory-before-routes); directory/node names and overview naming follow [naming](../design/naming.md). Prepare detailed Slot intent for the current Page after reading its [Pen evidence](../design-references.md) and live contracts. Use the requested native device scope; shorter Preview tests do not create new design columns.
+Run `verify_all.py --page /exact-route`, inspect the full error batch and [open pixels](../desktop-inspection.md) before advancing to siblings. Review hierarchy, copy, data, spacing and hidden states. Update expectations only from source evidence.
 
-Each Page must pass these distinct checks before sibling business content:
+Single-Page scope includes overlays, excludes sibling transitions. Unsupported layouts/libraries use focused checks. Follow [explicit recovery](../desktop-context.md).
 
-1. Generate native structure with real states/events and query/Form/row-action effects. Mock data still requires observable frontend behavior; source-required APIs that are not connected remain explicit limitations.
-2. Save and run `verify_all.py --page /exact-route` with the reviewed suite; fix applicable failures.
-3. Capture and **open** current pixels through [rendered inspection](../desktop-inspection.md). Compare source hierarchy, copy, data, spacing and relevant hidden states.
-4. Exercise source-derived native Preview cases, capture required state images and retain concrete visual comparisons in the local report. Cross-Page cases may wait for their destination and remain pending until exercised.
+## Final Preview review
 
-Failed or unavailable checks remain pending. Recover mode/context through [structured recovery](../desktop-context.md); Preview failure cannot be replaced by reference tools or saved-state edits.
+Complete in-scope Pages/destinations before Preview; placeholders do not qualify. Leave excluded transitions unexecuted.
+
+Maximum 10 rounds: collect planned issues, close, batch-repair, save/recheck, then reopen. Failed cases/target errors do not end a usable round; follow [recovery](../desktop-inspection.md#native-preview). Crash/unavailable runtime may end it early; retain findings/pending cases. Stop when cases pass; after round 10 report unresolved work. Do not retry timed-out calls into broken runtime or substitute reference tools.
+
+Retain rounds, cases, images, findings, repairs and outcomes, including failed/pending contexts. Compare with sources and apply [runtime evidence checks](../design/component-policy.md#native-runtime-evidence). Changed behavior needs fresh evidence; capability-test Pages and guessed event parameters cannot replace business checks.
 
 ## Final acceptance
 
-Save explicitly; use open_design with the same projectId and reopen:true for a fresh session, then repeat the affected model/image/runtime checks. For full-project generation, run the complete verifier after reopening and retain independent source, visual and Preview reviews. Focused edits report only their inspected scope and do not claim a full-project pass. Report source/resource versions, actual reuse, mock/API boundaries, evidence and pending checks; static checks do not prove visual fidelity or source interpretation.
+Save; open_design with the same projectId and reopen:true starts a new session. Reread/recheck scoped models. Report source/resource versions, catalog/live reads, actual reuse versus reference composition, mock/API boundaries and pending cases. Static passes/read references prove neither behavior nor persistence.

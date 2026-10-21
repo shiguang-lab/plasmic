@@ -55,16 +55,16 @@ const EDIT_TOOL_META = {
     toolName: "read",
     title: "Read project resources",
     description:
-      "Read native models with batched component/element targets. tree returns structure/Slot IDs without values; depth expands structure. properties reads base-variant values/styles/attributes/text (root for component targets); propNames selects only named values. contract returns registered Props/Slots/defaults/enums/event signatures; full fields provides parameter IDs and implementation metadata. context reads owning states/events/queries/variants. full preserves complete target markup and models. fields projects exact fields; omitted data is not empty. No targets returns project counts; collection/offset/limit pages inventory. Projects list dependency identities/versions; use fromProject to read each dependency's resources. Inherited nodes expose editable:false and source slot identity; imported definitions are read-only.",
+      "Read native models with batched component/element targets. tree returns structure/Slot IDs without values; depth expands structure. properties reads base-variant values/styles/attributes/text (root for component targets); propNames selects only named values. contract returns registered Props/Slots/defaults/enums/event signatures and globalActions. isContext:true identifies a project-wide global context, not an insertable component; this identity survives fields projections. Read collection:globalContexts for installed instances/settings and use qualified globalActions directly without a page wrapper. full fields provides parameter IDs and implementation metadata. context reads owning states/events/queries/variants. full preserves complete target markup and models. fields projects values; omitted data is not empty. No targets returns project counts; collection/offset/limit pages inventory. Projects list dependency identities/versions; use fromProject to read each dependency's resources. Inherited nodes expose editable:false and source slot identity; imported definitions are read-only.",
     inputSchema: z
       .object({
         ...modelReadOptions,
         collection: projectCollections.optional(),
         fromProject: uuid.optional().describe("Read scope: current project or a reachable native dependency ID, including indirect dependencies. Targets must belong to that project. Imported models remain read-only."),
-        nameContains: uuid.optional().describe("Case-insensitive inventory name filter; requires collection"),
+        nameContains: uuid.optional().describe("Case-insensitive inventory name filter; requires collection. Discover components and their real UUIDs/contracts together with collection:components, view:contract."),
         offset: z.number().int().nonnegative().default(0),
         limit: z.number().int().min(1).max(100).default(50),
-        componentUuids: z.array(uuid).max(30).optional(),
+        componentUuids: z.array(uuid).max(30).optional().describe("Exact model UUIDs returned by read inventories/contracts, never component names or registration keys. For name-based discovery use collection:components and nameContains, optionally view:contract."),
         elements: z.array(z.object(element).strict()).max(30).optional(),
       })
       .strict(),
@@ -301,7 +301,7 @@ const EDIT_TOOL_META = {
     toolName: "insertHtml",
     title: "Insert editable prototype markup",
     description:
-      'Convert HTML/CSS and <plasmic-component data-plasmic-component="exact registered name" data-plasmic-project="imported project ID" data-props=\'JSON\'> into editable canvas elements. Use <slot name="children">...</slot> for component slots. Read contracts first. CSS @media must match existing breakpoints. Defaults to append to root; replace requires an explicit elementUuid. Safely discarded styles, unknown props and invalid optional literal props are reported in successful result messages. Missing components and invalid required props, slots or bindings reject the whole call. For a missing component, read installed names/contracts, correct the reference and retry; do not drop the component or abandon the design task.',
+      'Convert HTML/CSS and <plasmic-component data-plasmic-component="exact registered name" data-plasmic-project="imported project ID" data-props=\'JSON\'> into editable canvas elements. Read contract.props before composition: type:slot uses <slot name="EXACT_PROP_NAME">...</slot>, other props use data-props. The same prop name can have different types on different components. data-plasmic-component uses the discovered registration name, not its UUID. CSS @media must match existing breakpoints. Defaults to append to root; replace requires an explicit elementUuid. Safely discarded styles, unknown props and invalid optional literal props are reported in successful result messages. Missing components and invalid required props, slots or bindings reject the whole call. For a missing component, read installed names/contracts, correct the reference and retry; do not drop the component or abandon the design task.',
     inputSchema: z
       .object({
         componentUuid: uuid,
@@ -559,11 +559,11 @@ const EDIT_TOOL_META = {
   },
   preview: {
     toolName: "preview",
-    title: "Open or close native Preview",
+    title: "Control native Preview",
     description:
-      "Open the authenticated in-app Preview or return to the original editor canvas, artboard, zoom and pan without saving or changing the design. close is idempotent and waits for the restored editor canvas, without requiring a working Preview iframe. open optionally selects a local Page and a Custom CSS viewport (width and height together); this does not add device columns. Returns route/viewport state, not rendering or behavior approval. Desktop runtime interactions use the top-level preview tool. The reference browser cannot substitute for native Preview.",
+      "Open the authenticated in-app Preview or return to the original editor canvas, artboard, zoom and pan without saving or changing the design. close is idempotent and waits for the restored editor canvas, without requiring a working Preview iframe. open optionally selects a local Page and a Custom CSS viewport (width and height together); this does not add device columns. back/forward traverse only the Preview page history and do nothing at its boundaries; refresh remounts only the runtime iframe. Returns route/viewport state and canGoBack/canGoForward, not rendering or behavior approval. Desktop runtime interactions use the top-level preview tool. The reference browser cannot substitute for native Preview.",
     inputSchema: z.object({
-      action: z.enum(["open", "close"]),
+      action: z.enum(["open", "close", "back", "forward", "refresh"]),
       componentUuid: uuid.optional(),
       width: z.number().int().min(240).max(7680).optional(),
       height: z.number().int().min(240).max(7680).optional(),
@@ -574,6 +574,8 @@ const EDIT_TOOL_META = {
       path: z.string().nullable(),
       width: z.number().nullable(),
       height: z.number().nullable(),
+      canGoBack: z.boolean(),
+      canGoForward: z.boolean(),
     }),
   },
   getEditorContext: {
@@ -616,6 +618,8 @@ const EDIT_TOOL_META = {
           path: z.string().nullable(),
           width: z.number(),
           height: z.number(),
+          canGoBack: z.boolean().optional(),
+          canGoForward: z.boolean().optional(),
         })
         .nullable(),
       path: z.array(

@@ -12,7 +12,19 @@ Select the library and API version before reading component rules or composition
 
 ## Native component selection
 
-The skill's component-priority rule applies. Use the following roles to search the matching library catalog and select the relevant component/composition documents.
+For the supported admin scope, read [protected composition policy](../design/component-policy.md) before choosing configuration. Native API capabilities do not authorize changing the owning reference's required generation baseline. The same inventory records source-backed exceptions, App context and business runtime cases; no detailed rule belongs in SKILL.md.
+
+First distinguish insertable components from project contexts. MCP inventories and projected contracts retain `isContext:true` on global-context definitions. Read the consuming project's `collection:"globalContexts"` for installed instances/overrides, then their live `globalActions` contracts. These contexts already wrap Pages; reuse their actions/settings rather than selecting them as page widgets. A `children` Slot or shared `type:"code"` does not change that ownership.
+
+Choose components before markup for every prototype creation or edit. Discover reusable business components/templates and library registrations through Desktop MCP by the required role, then read candidate contracts. Prefer an existing business component or matching template, then registered library components, then compositions of those components. Preserve the user's library choices and the target project's actual APIs; a template must fit the requirement. Do not install another library or add a Card merely to satisfy this preference.
+
+Use real Props, Slots, states and events for functional widgets, including actions, controls, navigation, repeated information, pagination, feedback and overlays. Do not redraw available components with HTML/CSS; visual similarity is not component reuse. Plain semantic text, necessary root/Slot/layout containers, genuine navigation anchors, read-only code and content graphics remain valid native elements; do not turn every text node or wrapper into a component or surface.
+
+Use a custom element widget only when verified current components and their supported compositions cannot express the required behavior. Before writing it, record the exact named node, checked candidates/contracts, concrete gap and requirement source in the task plan. An unread contract, absent import, rendering error, styling convenience or missing binding is not a capability gap. Correct usage or report the blocker; ordinary design work does not create a new component library. A fallback cannot override a required native identity, Form ownership or another acceptance gate.
+
+For Overseas/Antd-v6 admin prototypes, use the registered AppShell for standalone Pages; reuse an existing host shell only with verified host ownership, without drawing another shell. Map filters to SearchForm, submitted fields to Form/Form.Item, tables to Table/Column and read-only groups to Descriptions/Item through the selected libraries' real registrations. Standalone input controls do not replace Form ownership and validation. Read the admin templates and live contracts before composition. Inside AppShell, start with business content; omit standalone Page titles, headers, subtitles and introductions unless the current user explicitly requests them. Keep requirement scope, implementation notes and acceptance instructions outside the business UI.
+
+For the Overseas/Antd6 suite, read [purpose-first selection](antd_v6/selection.md) before choosing components, including competing candidates and feedback global actions. Keep source expectations independent of generated choices. Use the following roles to search other matching library catalogs and select relevant component/composition documents.
 
 | Required role | Select from the actual installed library |
 | --- | --- |
@@ -25,13 +37,13 @@ These are role examples, not cross-library API names. Classify the source purpos
 
 Typography components are useful when their registered behavior or theme contract is needed. Root sizing and necessary Slot/semantic container styles follow [shared layout](../design/layout.md).
 
-Record a fallback permitted by the skill using the [elementFallbacks format](../requirement-alignment.md#presentation-copy-and-native-components).
+Record a verified fallback using the [elementFallbacks format](../requirement-alignment.md#presentation-copy-and-native-components).
 
 ## Read by actual library
 
 1. Match the actual registration and implementation/API family to a scope above. A business-library prefix alone does not establish its underlying UI version; verify dependencies before selecting an Antd-v6 scope. Unknown versions remain unknown.
 2. Read that scope's index, look up used registration keys in its linked catalog, and read only the affected main-component documents, including their relevant child/variant sections. Verify live Props, Slots, defaults, events and state against the current project; a reference baseline does not replace its contracts.
-3. Read a composition recipe only when its declared participating libraries match the chosen components. Follow cross-library references only for components actually used. Keep each library's props, tokens, size values and behavior in its own scope; never apply Antd-v6 rules to Antd-v5 or another library solely because names look alike.
+3. Read a composition recipe only when its declared participating libraries match the chosen components. Follow the decision references for competing candidates before excluding them, then the selected components' cross-library contracts. Keep each library's props, tokens, size values and behavior in its own scope; never apply Antd-v6 rules to Antd-v5 or another library solely because names look alike.
 4. Select verifier scripts from the matching scope's index. Library-specific structural gates do not certify another library. Shared [layout](../design/layout.md), [keyboard/focus](../design/accessibility.md), [node naming](../design/naming.md) and [icon selection](../design/icons.md) rules apply independently of library choice.
 
 ## Missing or new library scopes

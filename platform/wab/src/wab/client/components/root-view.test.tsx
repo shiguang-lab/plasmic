@@ -1,5 +1,6 @@
 import { Root } from "@/wab/client/components/root-view";
 import { HistoryProvider } from "@/wab/client/route/HistoryProvider";
+import { HttpError } from "@/wab/shared/ApiErrors/ApiError";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { createMemoryHistory } from "history";
 import * as React from "react";
@@ -143,4 +144,26 @@ it("uses the project bootstrap once and reuses its permission and host metadata"
   expect(mocks.getLastBundleVersion).not.toHaveBeenCalled();
   expect(mocks.loadAppCtxData).not.toHaveBeenCalled();
   expect(mocks.loadAppCtx).toHaveBeenCalledWith(expect.objectContaining({ initialProjectInfo: data, lastBundleVersion: "version" }), true, [undefined, data.appConfig, data.appCtx]);
+});
+
+it.each([401, 403])("initializes identity after a denied project bootstrap (%s) so project access can be handled", async (status) => {
+  mocks.getEditorBootstrap.mockRejectedValue(new HttpError(status, "Access denied"));
+  mocks.loadAppCtx.mockRejectedValue(new Error("Stop after identity initialization"));
+  setup("/projects/project/preview-full/customer-groups?branch=main");
+  await screen.findByRole("alert");
+  expect(mocks.loadAppCtxData).toHaveBeenCalledOnce();
+  expect(mocks.getSiteInfo).not.toHaveBeenCalled();
+  expect(mocks.loadAppCtx).toHaveBeenCalledOnce();
+  const [ctx, caching, data] = mocks.loadAppCtx.mock.calls[0];
+  expect(ctx.initialProjectInfo).toBeUndefined();
+  expect(caching).toBe(true);
+  expect(data).toEqual([null, { config: {} }, { teams: [], workspaces: [], perms: [] }]);
+});
+
+it("keeps a failed project service retryable without treating it as an access denial", async () => {
+  mocks.getEditorBootstrap.mockRejectedValueOnce(new HttpError(502, "Bad Gateway"));
+  setup("/projects/project");
+  await screen.findByRole("alert");
+  expect(mocks.loadAppCtxData).not.toHaveBeenCalled();
+  expect(mocks.loadAppCtx).not.toHaveBeenCalled();
 });

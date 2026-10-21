@@ -1,6 +1,6 @@
 # Desktop MCP minimal examples
 
-Discover needed operations through `get_app_state({toolNames:["read","insertHtml"]})`: default schemas include complete inputs; `schemaView:"full"` adds output schemas. MCP execute_batch already defines its envelope; fetch individual operation contracts instead of native executeBatch’s full union. These are tool argument objects, not raw Studio REST requests. Replace placeholder UUIDs with identities from public model reads.
+Discover native operations through `get_app_state({view:"tools"})`, then `get_app_state({toolNames:["read","insertHtml"]})`: default schemas include complete inputs; `schemaView:"full"` adds output schemas. Top-level MCP tools have their schemas in tools/list; get_screenshot, snapshot_layout, execute_batch and get_app_state are not native operation names for toolNames. MCP execute_batch already defines its envelope; fetch individual operation contracts instead of native executeBatch’s full union. These are tool argument objects, not raw Studio REST requests. Replace placeholder UUIDs with identities from public model reads.
 
 Status uses `get_app_state({})` with a stable buildId; operation names use `{view:"tools"}`. `get_build_info` supplies provenance; `get_image_service_status` reports service availability. `get_editor_view` returns project/session identity and `view`, passed to execute restoreEditorView only for the same project. Ordinary getEditorContext excludes viewport/import internals. Normal executeBatch discovery returns `{mcpTool:"execute_batch"}`; `schemaView:"full"` retains its native union.
 
@@ -28,18 +28,19 @@ For node discovery and contract reads, keep output focused:
 
 ```json
 {"name":"queryElements","input":{"componentUuid":"page-uuid","nameContains":"Filter","limit":20,"fields":["uuid","name","registeredComponentUuid"]}}
+{"name":"read","input":{"collection":"components","fromProject":"IMPORTED_PROJECT_ID","nameContains":"badge","view":"contract","fields":["uuid","name","props"],"limit":10}}
 {"name":"read","input":{"componentUuids":["registered-component-uuid"],"view":"contract"}}
 {"name":"read","input":{"componentUuids":["page-uuid"],"view":"context"}}
 ```
 
-Follow `nextOffset` for more inventory entries. No targets/collection returns counts. Default `tree` contains structure only: component `tree`/`rootElementUuid`, or element `children`/named `slots`; child references retain UUIDs and inherited source identities. `depth` expands structure without props/styles/text. Batch needed node IDs in `elements`, then read values separately:
+The component collection contract read returns uuid/name/props together; use the returned UUID for a later targeted read, never a registration key such as plasmic-antd6-badge in componentUuids. Follow `nextOffset` for more inventory entries. No targets/collection returns counts. Default `tree` contains structure only: component `tree`/`rootElementUuid`, or element `children`/named `slots`; child references retain UUIDs and inherited source identities. `depth` expands structure without props/styles/text. Batch needed node IDs in `elements`, then read values separately:
 
 ```json
 {"name":"read","input":{"elements":[{"componentUuid":"page-uuid","elementUuid":"table-uuid"}],"view":"properties","propNames":["pagination","rowKey"]}}
 {"name":"read","input":{"elements":[{"componentUuid":"page-uuid","elementUuid":"shell-uuid"}],"view":"properties","fields":["uuid","styles"]}}
 ```
 
-`properties` reads base-variant values; `propNames` defaults to those values without unrelated styles/text. Explicit fields can request both. `contract.props` preserves types/defaults/enums/Slot and event signatures; parameter IDs and codeComponent metadata remain in full/explicit field reads. Read owning context/full for overrides/interactions. Rich text and complete subtree markup remain in full; explicit baseVariantTplTree also reads markup at the requested depth. Partial reads do not replace full Page gates.
+`properties` reads base-variant values; `propNames` defaults to those values without unrelated styles/text. Explicit fields can request both. `isContext:true` remains visible on global-context definitions even in narrow projections. `contract.props` preserves types/defaults/enums/Slot and event signatures; parameter IDs and codeComponent metadata remain in full/explicit field reads. Read owning context/full for overrides/interactions. Rich text and complete subtree markup remain in full; explicit baseVariantTplTree also reads markup at the requested depth. Partial reads do not replace full Page gates.
 
 For page/layout inventory without dependency catalogues:
 
@@ -84,9 +85,45 @@ Successful output has this shape (revision is illustrative):
 Record the receipt with project/branch identity; it is not an idempotency key for replaying edits. Save errors must not be reported as success. Reopen/reread and repeat affected checks separately. For collecting gate inputs and running the script suite, use [unified verification](verification.md).
 
 
+## Event arguments and step results
+
+Read each used event's named arguments once from its current contract, then use them directly: SearchForm onSearch(values), Form onFinish(values) and ActionGroup/Dropdown onAction(key) have different scopes. There is no generic $args substitute. For SearchForm, one customFunction step can apply `values` to the existing appliedFilters state and reset page to1; a separate return-value probe is unnecessary.
+
+`$steps` is a dictionary keyed by the normalized interaction-step name, not an array. When a later action needs a result, use a distinct already-normalized lowerCamelCase step name such as `captureSearchArgs`; a customFunction code expression `values` returns the object, and the next action reads `$steps.captureSearchArgs`. Do not use `$steps[0]` or a key from another handler. A missing public signature is a contract gap to report, not a reason to generate TestHarness Pages or repeatedly open Preview. Runtime acceptance remains in the completed business Page and its scoped overlays.
+
 ## Component instances
 
-Code components use `<plasmic-component data-plasmic-component="REGISTERED_NAME" data-plasmic-project="IMPORTED_PROJECT_ID" data-props='{"prop":"value"}'><slot name="children">Content</slot></plasmic-component>`. Names and values come from the registration. Instance styles affect layout; appearance uses real props. Do not insert scripts or invent native input handlers. Dynamic bindings use the discovered expression contract and available data scopes.
+Insertable code components use `<plasmic-component data-plasmic-component="REGISTERED_NAME" data-plasmic-project="IMPORTED_PROJECT_ID" data-props='{"prop":"value"}'><slot name="children">Content</slot></plasmic-component>`. Names and values come from the registration. Instance styles affect layout; appearance uses real props. Do not insert scripts or invent native input handlers. Dynamic bindings use the discovered expression contract and available data scopes.
+
+Generate each binding from that component's live `contract.props` type. For the Antd6 registrations, Input.placeholder is text while Select.placeholder is a Slot:
+
+```html
+<plasmic-component data-plasmic-component="plasmic-antd6-input" data-plasmic-project="IMPORTED_PROJECT_ID" data-plasmic-name="KeywordInput" data-props='{"placeholder":"搜索名称"}'></plasmic-component>
+<plasmic-component data-plasmic-component="plasmic-antd6-select" data-plasmic-project="IMPORTED_PROJECT_ID" data-plasmic-name="MarketSelect"><slot name="placeholder"><span data-plasmic-name="MarketPlaceholder">请选择市场</span></slot></plasmic-component>
+```
+
+These are syntax examples, not required business defaults. A Select with an initial all/market value needs no placeholder override. Preserve required help/content through the correct Slot instead of dropping it after a type error. Reread the affected contract when the installed library changes; saved readback must retain the intended prop values and Slot ownership.
+
+## Project global contexts
+
+An inventory entry with `isContext:true` is already managed outside the Page tree. Discover the consuming project's installed instance, then its definition and action contracts:
+
+```json
+{"name":"read","input":{"collection":"globalContexts"}}
+{"name":"read","input":{"componentUuids":["componentUuid-from-installed-context"],"view":"contract"}}
+```
+
+The first result lists instance `uuid`, definition `componentUuid`, registered `name` and stored `properties`; combine overrides with the definition's registered defaults. The second includes `globalActions[*].name` as the exact flat `$globalActions` key and `parameters` in call order. For a transient result use the discovered [Message action](libraries/antd_v6/components/config-provider.md#feedback-action-calls) in the existing event callback. The installed context supplies theme/portal ownership to Pages automatically. Neither using Message nor inheriting theme requires `insertHtml` for a provider. Explicit context setting changes require the advertised project-level editing capability; report its absence instead of composing another provider.
+
+## Dynamic native text
+
+`changeElement.text` writes plain text; a string containing `{{ ... }}` is not converted into a binding by that operation. To create a dynamic text leaf, use `insertHtml` with a native text element whose text contains the expression. For an existing message leaf inside a component Slot:
+
+```json
+{"name":"insertHtml","input":{"componentUuid":"page-uuid","elementUuid":"message-leaf-uuid","location":"replace","html":"<span data-plasmic-name=\"Message\">{{ $state.message }}</span>"}}
+```
+
+Use an existing state/data scope. Preserve the owning component, its Slot and unrelated business nodes; this replacement creates a new text-leaf UUID, so inspect references to the old leaf first. Do not prepend/append expression fragments to an existing text block or enumerate every possible message as conditional static nodes. Do not substitute a Badge, Input or another functional widget for ordinary message text. Read back the new leaf and verify an actual state change in Preview: serialized `{{ ... }}` text alone does not prove that a binding executes.
 
 ## Large results and layout reads
 

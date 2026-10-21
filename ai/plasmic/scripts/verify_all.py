@@ -21,13 +21,15 @@ import verify_overlays
 import verify_shell_height
 import verify_slots
 import verify_structure
+import verify_selection
+import verify_templates
 import verify_page_layout
 import verify_references
 import verify_rendering
 
 
 GATES = ("model", "rendering", "structure", "page_layout", "forms", "descriptions", "overlays", "slots", "shell_height", "references")
-NOT_CHECKED = ["source-interpretation", "visual fidelity and hierarchy", "Preview interactions and scrolling", "keyboard/focus accessibility", "save/reopen persistence"]
+NOT_CHECKED = ["source-interpretation", "actual template insertion/detachment", "visual fidelity and hierarchy", "Preview interactions and scrolling", "keyboard/focus accessibility", "save/reopen persistence"]
 
 
 def read_json(path):
@@ -271,6 +273,29 @@ def checked_inputs(config, base):
             files.update(base / page["intent"] for page in spec["pages"]
                          if isinstance(page, dict) and isinstance(page.get("intent"), str))
     contents = {path: path.read_bytes() if path.is_file() else None for path in sorted({path.resolve() for path in files})}
+    # Pin requirement files and raw template captures referenced by the plan.
+    def sources(value):
+        if isinstance(value, dict):
+            if {'path', 'sha256'}.issubset(value) and isinstance(value.get('path'), str):
+                path = Path(value['path'])
+                if path.is_absolute():
+                    yield path.resolve()
+            for child in value.values():
+                yield from sources(child)
+        elif isinstance(value, list):
+            for child in value:
+                yield from sources(child)
+    structure = config.get('structure', {})
+    if isinstance(structure, dict) and isinstance(structure.get('inventory'), str):
+        contents[verify_templates.CATALOG.resolve()] = verify_templates.CATALOG.read_bytes()
+        data = contents.get((base / structure['inventory']).resolve())
+        if data is not None:
+            try:
+                for path in sources(json.loads(data)):
+                    contents[path] = path.read_bytes() if path.is_file() else None
+            except (ValueError, OSError):
+                pass  # The independent structure gate reports invalid sources.
+    contents = dict(sorted(contents.items()))
     return ({"configurationSha256": hashlib.sha256(json.dumps(config, sort_keys=True).encode()).hexdigest(),
              "files": [{"path": str(path), "sha256": hashlib.sha256(data).hexdigest() if data is not None else None}
                        for path, data in contents.items()]}, contents)
@@ -341,15 +366,26 @@ def run_suite(config, base, evidence, project_id, page_path=None):
         if name in ("structure", "forms", "descriptions", "overlays", "references"):
             expected = json.loads(read_input(base / spec["inventory"]))
             if name == "structure":
+                plan_errors = []
                 for page in expected.get("pages", []):
                     if page_path is not None and page.get("path") != page_path:
                         continue
-                    verify_structure.validate_page_plan(page)
+                    try:
+                        verify_structure.validate_page_plan(page)
+                    except ValueError as error:
+                        plan_errors.append({"check": "structurePlan", "path": page.get("path"), "message": str(error)})
                     bindings = page.get("bindings")
                     reason = page.get("bindingsNotApplicable")
                     if not isinstance(bindings, list) or (not bindings and (not isinstance(reason, str) or not reason.strip())) or (bindings and reason is not None):
-                        raise ValueError(f"Page {page.get('path')} requires source-derived bindings, or bindings:[] with a reviewed bindingsNotApplicable reason")
-                return verify_structure.check(expected, overview, readback, page_path)
+                        plan_errors.append({"check": "structurePlan", "path": page.get("path"), "message": "Source-derived bindings required, or bindings:[] with a reviewed bindingsNotApplicable reason"})
+                # Bad inventory metadata must not hide independent selection/coverage findings.
+                report = {"passed": False, "errors": plan_errors} if plan_errors else verify_structure.check(expected, overview, readback, page_path)
+                report["errors"].extend(verify_structure.check_complete_names(readback))
+                selection = verify_selection.check(expected, readback, page_path)
+                report["selection"] = selection
+                report["errors"].extend(selection["errors"])
+                report["passed"] = not report["errors"]
+                return report
             expected = {**expected, "pages": selected_specs(expected["pages"])}
             if name == "forms":
                 return verify_forms.check(expected, scoped_overview, readback)

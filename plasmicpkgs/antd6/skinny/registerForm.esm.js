@@ -8,8 +8,9 @@ import { AntdCheckbox } from './registerCheckbox.esm.js';
 import { AntdDatePicker } from './registerDatePicker.esm.js';
 import { AntdRadioGroup } from './registerRadio.esm.js';
 import { AntdSelect } from './registerSelect.esm.js';
-export { FormGroup } from './FormGroup.esm.js';
+import { formRuleTypes } from './FormItem.esm.js';
 export { FormItemWrapper } from './FormItem.esm.js';
+export { FormGroup } from './FormGroup.esm.js';
 export { FormListWrapper } from './FormList.esm.js';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
@@ -168,7 +169,19 @@ function commonFormItemProps(usage) {
     },
     rules: {
       displayName: "Validation rules",
-      type: "formValidationRules"
+      type: "formValidationRules",
+      description: 'Wrapper rules, for example [{"ruleType":"required","message":"Enter a value"}]. Submit through the owning Form; raw Antd required:true rules are not this contract.',
+      itemType: {
+        type: "object",
+        fields: {
+          ruleType: { type: "choice", options: [...formRuleTypes], required: true },
+          length: "number",
+          pattern: "string",
+          message: "string",
+          options: { type: "array", itemType: { type: "object", fields: { value: "any" } } },
+          custom: { type: "function", argNames: ["rule", "value"] }
+        }
+      }
     },
     validateFirst: {
       type: "boolean",

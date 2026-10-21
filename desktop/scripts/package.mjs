@@ -85,7 +85,9 @@ const outputs = await build({
     protocols: [{ name: "Plasmic login", schemes: ["plasmic-desktop"] }],
     publish: { provider: "generic", url: `${config.updateUrl}/${platform}/${arch}/`, useMultipleRangeRequest: false },
     releaseInfo: releaseNotes ? { releaseNotes } : undefined,
-    mac: { target: ["dmg", "zip"], icon: "assets/icon.icns", identity: signingCertificate ? signingCertificate.fingerprint.replaceAll(":", "") : "-", type: "development", hardenedRuntime: false, notarize: false },
+    mac: { target: ["dmg", "zip"], icon: "assets/icon.icns", identity: signingCertificate ? signingCertificate.fingerprint.replaceAll(":", "") : "-", type: "development", hardenedRuntime: false, notarize: false,
+      // Start without a Dock identity before JavaScript can distinguish --mcp.
+      extendInfo: { LSUIElement: true } },
     win: { target: ["nsis"], icon: "assets/icon.ico" },
     nsis: { oneClick: true, perMachine: false, deleteAppDataOnUninstall: false },
     linux: { target: ["AppImage"], executableName: "plasmic", icon: "assets/icon.png", category: "Development" },

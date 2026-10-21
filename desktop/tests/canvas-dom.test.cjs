@@ -106,6 +106,47 @@ function windowFor(dom) {
   };
 }
 
+test("a frame-targeted layout read renders an offscreen Page without selecting the overview or changing it", async () => {
+  const overview = domFor('<html data-plasmic-frame-uuid="overview-frame"><body><div class="__wab_val_root"><span>Overview content</span></div></body></html>');
+  const page = domFor('<html data-plasmic-frame-uuid="page-frame"><body><div class="__wab_val_root"><span>Page content</span></div></body></html>');
+  const win = windowFor(overview);
+  const visibleFrames = win.webContents.mainFrame.framesInSubtree;
+  const originalHtml = overview.window.document.documentElement.outerHTML;
+  const calls = [];
+  const controller = new DesktopController(() => win, {});
+  controller.state = async () => ({ ready: true, projectId: "test", editorContext: { mode: "edit", frameUuid: "overview-frame" } });
+  controller.editor = async (method, input) => {
+    calls.push({ method, input });
+    if (method === "beginCanvasInspection") {
+      assert.deepEqual(input, { frameUuid: "page-frame" });
+      page.window.document.documentElement.setAttribute("data-plasmic-canvas-inspection", "page-lease");
+      visibleFrames.push(windowFor(page).webContents.mainFrame.framesInSubtree[0]);
+      return { inspectionId: "page-lease" };
+    }
+    assert.equal(method, "endCanvasInspection");
+    visibleFrames.pop();
+    page.window.document.documentElement.removeAttribute("data-plasmic-canvas-inspection");
+    return { released: true };
+  };
+  try {
+    const result = await controller.dispatch("snapshot_layout", { frameUuid: "page-frame", view: "full" });
+    assert.equal(result.frames.length, 1);
+    assert.equal(result.frames[0].frameUuid, "page-frame");
+    assert.ok(result.frames[0].elements.some((element) => element.text === "Page content"));
+    assert.equal(result.frames[0].elements.some((element) => element.text === "Overview content"), false);
+    assert.equal(visibleFrames.length, 1);
+    assert.equal(overview.window.document.documentElement.outerHTML, originalHtml);
+    assert.deepEqual(calls, [
+      { method: "beginCanvasInspection", input: { frameUuid: "page-frame" } },
+      { method: "endCanvasInspection", input: { inspectionId: "page-lease" } },
+    ]);
+  } finally {
+    controller.close();
+    overview.window.close();
+    page.window.close();
+  }
+});
+
 test("image inspection is scoped to visible business content without hiding real broken images", async () => {
   const dom = domFor('<body><main hidden><img src=""></main><div class="__wab_val_root"><div hidden><img id="hidden" src=""></div><div style="opacity:0"><img src=""></div><img id="business" src=""></div></body>');
   try {

@@ -21,7 +21,7 @@ const useStyles = createStyles(({ token }) => ({
     height: editorCanvasControlsLayout.height,
     boxSizing: "border-box",
     padding: 3,
-    borderRadius: 9,
+    borderRadius: token.borderRadius,
     background: token.colorBgContainer,
     border: `1px solid ${token.colorBorder}`,
     boxShadow: token.boxShadowSecondary,

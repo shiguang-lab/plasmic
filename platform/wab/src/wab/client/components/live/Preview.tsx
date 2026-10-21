@@ -59,6 +59,7 @@ const Preview = observer(function Preview(props: PreviewProps) {
         <PreviewTopBar dimensions={dimensions} />
       )}
       <PreviewFrame
+        key={previewCtx.refreshKey}
         previewCtx={previewCtx}
         onDimensionsChange={setDimensions}
       />

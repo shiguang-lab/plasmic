@@ -233,14 +233,11 @@ it("uses the chosen model and remembers it when reopening the panel", async () =
     });
   const first = mount();
   await screen.findByText("fixture-model");
-  fireEvent.mouseDown(screen.getByRole("combobox", { name: "AI model" }));
+  fireEvent.click(screen.getByRole("button", { name: "AI model" }));
   const alternate = await screen.findByText("alternate-model");
-  const holder = alternate.closest(".ant-select-dropdown-list-holder");
-  expect(holder).toBeInstanceOf(HTMLElement);
-  expect((holder as HTMLElement).style.maxHeight).toBe("");
-  expect((holder as HTMLElement).style.overflowY).toBe("");
+  expect(screen.getByRole("menu")).toBeInTheDocument();
   expect(alternate.closest("[data-overlayscrollbars]")).toHaveStyle({
-    maxHeight: "240px",
+    maxHeight: "min(240px, calc(100vh - 16px))",
   });
   fireEvent.click(alternate);
   fireEvent.input(screen.getByRole("textbox"), {
@@ -275,7 +272,7 @@ it("keeps the panel mounted when the running server omits the model list", async
     screen.getByRole("button", { name: "Send AI request" }),
   ).toBeDisabled();
   expect(
-    screen.queryByRole("combobox", { name: "AI model" }),
+    screen.queryByRole("button", { name: "AI model" }),
   ).not.toBeInTheDocument();
 });
 
@@ -412,8 +409,8 @@ it("switches top-frame modes without losing attachments, scope, model or multili
   await screen.findByRole("button", {
     name: "Remove attachment requirements.md",
   });
-  await screen.findByRole("combobox", { name: "AI model" });
-  fireEvent.mouseDown(screen.getByRole("combobox", { name: "AI model" }));
+  await screen.findByRole("button", { name: "AI model" });
+  fireEvent.click(screen.getByRole("button", { name: "AI model" }));
   fireEvent.click(await screen.findByText("alternate-model"));
   expect(state.session?.selectedModel).toBe("alternate-model");
   fireEvent.click(screen.getByRole("button", { name: "Open panel" }));

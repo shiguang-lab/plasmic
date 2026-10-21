@@ -40,6 +40,35 @@ prepare assets and package the app in one command:
 npm run package:local
 ```
 
+On macOS, build and install the current local App and the DS Plasmic skill without publishing:
+
+```sh
+pnpm --dir desktop run package:local --install
+```
+
+This saves the open design, quits Plasmic, backs up the installed App under
+`~/Library/Caches/Plasmic-local-backups`, installs the signed local build into
+`/Applications/Plasmic.app`, reopens it and verifies the running renderer/Desktop
+hashes. DS uses `~/.agents/skills/plasmic` (or `DSH_AGENTS_HOME/skills/plasmic`),
+with the canonical Skill entry and a snapshot of this checkout's references and scripts.
+Its `local-source.json` selects `scripts/plasmic-local-context.mjs`, which reads
+the current local resources and recomputes their content hash for each task;
+it does not resolve the NAS feed. The next task resolution picks up local reference edits;
+an active task retains its resource snapshot. Rerun the Skill installer to update
+the direct reference/script links used before task resolution.
+The resolver exposes a runtime-only content-addressed snapshot of references/scripts, excluding
+repository evals and tests. MCP `read_skill` honors the configured local source
+in `DSH_AGENTS_HOME` (default `~/.agents`); a broken explicit local source is an
+error rather than a fallback to NAS. App/component changes still require a local
+rebuild and install; Skill edits require no publication.
+App code changes require rerunning the local build/install command.
+
+For an isolated DS skills directory, install the same local source explicitly:
+
+```sh
+node scripts/install-local-plasmic-skill.mjs --target /absolute/agent-home/skills/plasmic
+```
+
 Both workspaces must already have their dependencies installed. This command
 links these local packages into the consumers' `node_modules` before building;
 reinstalling workspace dependencies restores normal dependency resolution.
@@ -228,6 +257,12 @@ remains a separate, temporary reference capture without canvas writes.
 
 Use `preview` for the existing authenticated native Preview: paged snapshots,
 click/hover/fill/select/press/scroll, DOM assertions and viewport screenshots.
+The Preview toolbar offers Back, Forward, Refresh and Exit preview. Back/Forward
+traverse only the current Preview session’s business page history; device changes
+and refresh do not create history entries. Refresh remounts only the runtime iframe.
+MCP `preview` supports `back`, `forward`, `refresh` and `close`; query `state` for
+`canGoBack`/`canGoForward` before navigating. Navigation actions return the updated
+flags, and boundary actions are safe no-ops. Closing clears that session’s history.
 The reference browser rejects Studio Preview URLs and exposes read-only CDP.
 It cannot verify authenticated business behavior. Imports are separate operations.
 
@@ -607,6 +642,19 @@ creates an Ant Design 6 page, reads and modifies it, validates and saves it,
 captures a WebP, reloads it from the NAS, and checks rejection of arbitrary code.
 It adds a uniquely named page to the acceptance project. Reports and screenshots
 are written to `PLASMIC_REPORT_DIR` (default `/tmp/plasmic-desktop-mcp-report`).
+
+`pnpm run test:preview-navigation` runs an isolated Electron regression against a
+local fixture server. It verifies recovery after navigation to a missing route
+and a renderer Promise that never settles: Preview reaches its 30-second runtime
+deadline, then queued close and read commands complete. It uses no NAS project or
+credentials. Set `PLASMIC_REPORT_DIR` to retain its JSON result.
+
+On macOS the bundle starts with `LSUIElement:true`, so a transport has no Dock
+identity before JavaScript executes. Only the GUI process holding the single
+instance lock promotes itself to a regular app. With one installed GUI running,
+`pnpm run test:macos-activation` checks the bundle flag and observes macOS
+activation policies during the discovery probe and initialized MCP startup.
+`PLASMIC_APP_PATH` selects a bundle; `PLASMIC_REPORT_DIR` retains the trace.
 
 Screenshots and exports clone the rendered canvas into an isolated window with
 scripting disabled and empty slot placeholders removed. They wait for fonts and

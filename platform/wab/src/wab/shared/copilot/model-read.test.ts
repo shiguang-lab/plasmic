@@ -1,4 +1,5 @@
 import { registrationContract, withRegisteredContracts, validateRegisteredValue } from "@/wab/shared/copilot/model-read";
+import { runInNewContext } from "node:vm";
 
 test("dynamic choices expose metadata without a fake static enum or callback evaluation", () => {
   const options = vi.fn(() => ["id"]);
@@ -62,4 +63,25 @@ test("array contracts reject dictionaries even without an item schema", () => {
   expect(validateRegisteredValue({ a: 1 }, { type: "array" }, "items")).toBe("items expects an array");
   expect(validateRegisteredValue([], { type: "array" }, "items")).toBeUndefined();
   expect(validateRegisteredValue("{{ $state.items }}", { type: "array" }, "items")).toBeUndefined();
+});
+
+test("contracts distinguish current registered defaults from older stored definition defaults without executing factories", () => {
+  const stored = [{ value: "old", label: "Old" }], current = [{ key: "create", label: "Create" }];
+  const [prop] = withRegisteredContracts([{ name: "items", default: stored }], { items: { type: "array", defaultValue: current } });
+  expect(prop.default).toEqual(stored);
+  expect(prop.registration).toEqual({ type: "array", defaultValue: current });
+  expect(withRegisteredContracts([{ name: "items", default: current }], { items: { type: "array", defaultValue: current } })[0].registration).toEqual({ type: "array" });
+  const factory = vi.fn();
+  expect(registrationContract({ type: "object", defaultValue: factory })).toEqual({ type: "object" });
+  expect(registrationContract({ type: "object", defaultValue: { toJSON: factory } })).toEqual({ type: "object" });
+  const cyclic: Record<string, unknown> = {}; cyclic.self = cyclic;
+  expect(registrationContract({ type: "object", defaultValue: cyclic })).toEqual({ type: "object" });
+  expect(factory).not.toHaveBeenCalled();
+});
+
+test("literal insertion defaults survive the canvas registration realm", () => {
+  const metadata = runInNewContext('({type:"array",defaultValue:[{key:"create",label:"Create"}]})');
+  const result = registrationContract(metadata);
+  expect(result).toEqual({ type: "array", defaultValue: [{ key: "create", label: "Create" }] });
+  expect(result?.defaultValue).not.toBe(metadata.defaultValue);
 });

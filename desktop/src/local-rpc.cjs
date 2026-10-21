@@ -132,8 +132,10 @@ async function requestRpc(profile, method, input = {}) {
       try {
         const response = JSON.parse(buffer);
         if (response.error) {
-          const { message, ...context } = response.error;
-          reject(Object.assign(new Error(message), Object.keys(context).length ? { context } : {}));
+          const { message, name, stack, cause, ...context } = response.error;
+          reject(Object.assign(new Error(message, cause === undefined ? undefined : { cause }),
+            name ? { name } : {}, stack ? { stack } : {},
+            Object.keys(context).length ? { context } : {}));
         } else {
           resolve(response.result);
         }

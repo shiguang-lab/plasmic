@@ -114,6 +114,20 @@ class CardOwnershipTests(unittest.TestCase):
         actual = CARD.replace('</plasmic-component>', '<slot name="title"><span id="example">Example</span></slot></plasmic-component>', 1)
         self.assertFalse(check(CARD, actual)["passed"])
 
+    def test_explicit_empty_header_slots_reject_retained_defaults(self):
+        expected = CARD.replace('<slot name="children">', '<slot name="title"></slot><slot name="extra"></slot><slot name="children">')
+        self.assertTrue(check(expected, expected)['passed'])
+        for slot_name in ['title', 'extra']:
+            for child in ['Card title', '<span id="sample">Card title</span>']:
+                with self.subTest(slot=slot_name, child=child):
+                    actual = expected.replace(f'<slot name="{slot_name}"></slot>', f'<slot name="{slot_name}">{child}</slot>')
+                    self.assert_only(check(expected, actual), 'unprovidedSlotChildren')
+
+    def test_hidden_default_does_not_fulfill_empty_header_intent(self):
+        expected = CARD.replace('<slot name="children">', '<slot name="title"></slot><slot name="children">')
+        actual = expected.replace('<slot name="title"></slot>', '<slot name="title">Card title</slot>').replace('data-plasmic-name="listCard"', '''data-plasmic-name="listCard" data-props='{"styles":{"header":{"display":"none"}}}' ''')
+        self.assert_only(check(expected, actual), 'unprovidedSlotChildren')
+
     def test_tabs_card_padding_is_not_information_card_padding(self):
         expected = CARD.replace('data-plasmic-name="listCard"', '''data-plasmic-name="listCard" data-props='{"styles":{"body":{"padding":"0 20px"}}}' ''')
         actual = expected.replace('0 20px', '16px 20px')

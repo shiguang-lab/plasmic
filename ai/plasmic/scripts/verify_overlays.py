@@ -184,6 +184,15 @@ def check(inventory, readback):
             if len(candidates) != 1:
                 continue
             node = candidates[0]
+            expected_trigger = spec.get("trigger", [])
+            if (not isinstance(expected_trigger, list) or any(not isinstance(name, str) or not name.strip() for name in expected_trigger)
+                    or len(set(expected_trigger)) != len(expected_trigger)):
+                raise ValueError("Overlay trigger must list distinct named inline roots, or [] for external ownership")
+            trigger_region = slot(node, "trigger")
+            trigger_nodes = [n for n in trigger_region["children"] if n["tag"] != "text" or n.get("text", "").strip()] if trigger_region else []
+            actual_trigger = [node_name(n) for n in trigger_nodes]
+            if actual_trigger != expected_trigger:
+                errors.append({**location, "error": "Inline trigger inventory mismatch; clear unused default trigger Slots", "actual": actual_trigger})
             expected_kind = re.sub(r"[^a-z0-9]", "", spec["component"].lower())
             if identity(node) != expected_kind:
                 errors.append({**location, "error": "Wrong registered overlay identity"})

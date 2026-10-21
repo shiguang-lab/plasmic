@@ -1,6 +1,7 @@
 const { app, BrowserWindow } = require("electron");
 const fs = require("node:fs/promises");
 const path = require("node:path");
+const { abortable } = require("./abortable.cjs");
 
 // Read rendered DOM, never Studio's private model or user-supplied JavaScript.
 async function inspectCanvas() {
@@ -288,10 +289,11 @@ async function readyDocument() {
   );
 }
 const js = (fn, input) => `(${fn.toString()})(${JSON.stringify(input)})`;
-async function canvasFrames(win, inspectionId, inspect = inspectCanvas, input) {
+async function canvasFrames(win, inspectionId, inspect = inspectCanvas, input, signal) {
   const previewMode = /\/preview(?:\/|$|-full(?:\/|$))/.test(new URL(win.webContents.getURL()).pathname);
   const end = Date.now() + 20000;
   while (Date.now() < end) {
+    signal?.throwIfAborted();
     const frames = win.webContents.mainFrame.framesInSubtree.filter((frame) => {
       if (inspectionId) return true;
       try {
@@ -310,19 +312,20 @@ async function canvasFrames(win, inspectionId, inspect = inspectCanvas, input) {
       if (frame.isDestroyed?.()) continue;
       try {
         if (inspectionId) {
-          const marker = await frame.executeJavaScript(
+          const marker = await abortable(signal, () => frame.executeJavaScript(
             'document.documentElement.getAttribute("data-plasmic-canvas-inspection")',
-          );
+          ));
           if (marker !== inspectionId) continue;
         }
-        const layout = await frame.executeJavaScript(js(inspect, input));
+        const layout = await abortable(signal, () => frame.executeJavaScript(js(inspect, input)));
         if (layout.ready) results.push({ frame, layout });
       } catch (error) {
+        signal?.throwIfAborted();
         if (!frame.isDestroyed?.()) throw error;
       }
     }
     if (results.length) return results;
-    await new Promise((resolve) => setTimeout(resolve, 150));
+    await abortable(signal, () => new Promise((resolve) => setTimeout(resolve, 150)));
   }
   throw new Error(
     "No rendered canvas available; open a page or component first",

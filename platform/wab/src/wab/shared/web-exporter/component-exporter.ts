@@ -1155,6 +1155,7 @@ export function buildComponentResource(
       : {}),
     uuid: component.uuid,
     type: component.type as ComponentJson["type"],
+    ...(component.codeComponentMeta?.isContext ? { isContext: true as const } : {}),
     ...(pageMeta ? { pageMeta } : {}),
     ...(fromProject ? { fromProject } : {}),
     ...(component.codeComponentMeta

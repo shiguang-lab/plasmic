@@ -2,6 +2,8 @@
 
 Read when supplied .pen files are part of the source. This is local evidence for read-only verification.
 
+Apply [visual sources and component rules](requirement-alignment.md#visual-sources-and-component-rules) before mapping frames. A supplied draft is not automatically a strict-reproduction specification. Use each region's existing `decision` to record its intended structure and native implementation, including required adaptations; assess visual fidelity against that decision and the applicable component rules.
+
 ## Read original Pen references
 
 For supplied .pen files, add references.inventory and references.evidence to the suite. Every Page maps actual source frame IDs and state regions to planned native node names:
@@ -11,6 +13,8 @@ For supplied .pen files, add references.inventory and references.evidence to the
 ```
 
 Use original absolute files through public Pen MCP/design_reference, never shell/JSON parsing of `.pen`. Read its live schemas and advertised skill; when `read_skill` advertises `path`, use `{"path":"execute.md"}`. design_reference index discovers top-level frames with pagination. Read current-Page frame properties at depth 1 or more, following nextOffset; include id/type/layout/width/height/padding/gap/justifyContent/alignItems. Read relevant descendants for typography/styles and acquire each frame screenshot. Layout text alone does not establish visual fidelity. Map every distinct state; consolidate only genuinely equivalent frames with a source-derived explanation.
+
+Use design_reference's own paging schema: index/read limit is at most 50 and read depth is at most 3; continue with returned nextOffset and discovered child IDs. Native model read and snapshot_layout have separate limits, so their page sizes do not define Pen parameters.
 
 Retain the actual MCP layout responses and source images in the local working directory, with source-file and image hashes. Reuse evidence only while the source identity is unchanged. Native Desktop remains the design device even for narrower references. Inspect image pixels with an image-capable reviewer; delivery of an image block does not prove perception. Without such review leave visual acceptance incomplete. Pen discovery/configuration follows the live design_reference contract.
 

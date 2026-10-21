@@ -16,6 +16,8 @@ Check the default down arrow on the editor canvas as well as in Preview, and ver
 
 Choose native options or the registered editable children path through useChildren; do not duplicate options in both. Select.Option and Select.OptGroup remain in this document. Values are stable business identities, group labels are presentation, and the selected value is not the display label unless the real contract says so.
 
+The Antd6 Select registers `placeholder` as a Slot; supply custom content through `<slot name="placeholder">...</slot>`, not data-props. Antd6 Input registers the same name as a text prop; do not copy that binding syntax to Select. See the [typed markup examples](../../../desktop-examples.md#component-instances). An initial selected “all” option is a value, not a placeholder, and needs no placeholder override.
+
 The maintained Studio metadata does not expose onSearch/filterOption/loading as normal controls, although the runtime wrapper forwards native Select props. Verify the actual supported advanced/native binding path before using remote search; do not invent a property control. The owning query handles stale responses and preserves a selected value's label while its options load. Server filtering does not require filtering the same results again locally. Do not replace a selected value merely because a temporary search result omits it.
 
 ## Acceptance

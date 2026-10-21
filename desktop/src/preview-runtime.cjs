@@ -2,6 +2,41 @@ const { randomUUID } = require("node:crypto");
 const { canvasFrames } = require("./canvas.cjs");
 const { encodeImagePreview } = require("./image-preview.cjs");
 const { sendCdp } = require("./cdp.cjs");
+const { abortable } = require("./abortable.cjs");
+const { errorPayload } = require("./tool-context.cjs");
+
+function frameIdentity(frame) {
+  try { return { url: frame.url, processId: frame.processId, routingId: frame.routingId }; }
+  catch { return { unavailable: true }; } // A disposed frame must not mask the original exception.
+}
+
+function previewError(error, input, diagnostics = {}) {
+  if (error?.context?.preview) return error;
+  const { message, name, stack, cause, ...details } = errorPayload(error);
+  const timedOut = name === "TimeoutError";
+  const code = details.code || (timedOut ? "PREVIEW_TIMEOUT"
+    : diagnostics.phase === "frame-discovery" ? "PREVIEW_UNAVAILABLE" : "PREVIEW_OPERATION_FAILED");
+  const targetFailure = code.startsWith("PREVIEW_TARGET_") || code === "PREVIEW_ACTION_NOT_APPLICABLE";
+  const runtimeAvailable = details.runtimeAvailable ?? (targetFailure ? true
+    : timedOut || diagnostics.phase === "frame-discovery" ? false : null);
+  const operationExecuted = Object.hasOwn(details, "operationExecuted") ? details.operationExecuted
+    : Object.hasOwn(diagnostics, "operationExecuted") ? diagnostics.operationExecuted : null;
+  const recovery = details.recovery || [{ tool: "preview", arguments: {
+    action: targetFailure ? "snapshot" : runtimeAvailable === false ? "close" : "state",
+  } }];
+  const { phase, target, documentId, source, ...context } = details;
+  return Object.assign(new Error(timedOut ? "Native Preview runtime timed out after 30 seconds" : message,
+    { cause: { message, ...(name ? { name } : {}), ...(stack ? { stack } : {}), ...(cause ? { cause } : {}) } }), {
+    context: { ...context, code, operationExecuted, runtimeAvailable,
+      canContinueRound: targetFailure ? true : runtimeAvailable === false ? false : null, recovery,
+      preview: { action: input.action, ...(input.ref ? { ref: input.ref } : {}),
+        editorContext: diagnostics.editorContext || null, frame: diagnostics.frame || null,
+        inputsDispatched: diagnostics.inputsDispatched || [],
+        ...(diagnostics.candidateFrames ? { candidateFrames: diagnostics.candidateFrames } : {}),
+        phase: phase || diagnostics.phase || "controller", source: source || diagnostics.source || "desktop",
+        ...(documentId ? { documentId } : {}), target: target || diagnostics.target || null } },
+  });
+}
 
 // Executed only in the existing live Preview iframe. Inputs are data, never code.
 async function runtimeCommand(input, documentId) {
@@ -29,7 +64,20 @@ async function runtimeCommand(input, documentId) {
     }
     return right > left && bottom > top;
   };
-  const role = (el) => el.getAttribute("role") || ({ BUTTON: "button", A: el.hasAttribute("href") ? "link" : "", TEXTAREA: "textbox", SELECT: "combobox", TABLE: "table", TR: "row", TD: "cell", TH: "columnheader", H1: "heading", H2: "heading", H3: "heading", DIALOG: "dialog", OPTION: "option" }[el.tagName]) || (el.tagName === "INPUT" ? ({ checkbox: "checkbox", radio: "radio", number: "spinbutton", button: "button", submit: "button", range: "slider" }[el.type] || "textbox") : "");
+  // Antd's virtual Select puts ARIA options in a zero-size sibling, while its
+  // rendered, clickable rows have no role/tabIndex. Bind refs to those rows,
+  // scoped to the popup actually owned by an expanded combobox.
+  const selectOptions = new Set();
+  for (const control of document.querySelectorAll('[role="combobox"][aria-expanded="true"]')) {
+    const ids = [control.getAttribute("aria-controls"), control.getAttribute("aria-owns")].filter(Boolean).join(" ").split(/\s+/);
+    for (const id of ids) {
+      const list = document.getElementById(id);
+      if (list?.getAttribute("role") !== "listbox") continue;
+      const popup = list.closest(".ant-select-dropdown");
+      for (const option of popup?.querySelectorAll(".ant-select-item-option") || []) selectOptions.add(option);
+    }
+  }
+  const role = (el) => el.getAttribute("role") || (selectOptions.has(el) ? "option" : "") || ({ BUTTON: "button", A: el.hasAttribute("href") ? "link" : "", TEXTAREA: "textbox", SELECT: "combobox", TABLE: "table", TR: "row", TD: "cell", TH: "columnheader", H1: "heading", H2: "heading", H3: "heading", DIALOG: "dialog", OPTION: "option" }[el.tagName]) || (el.tagName === "INPUT" ? ({ checkbox: "checkbox", radio: "radio", number: "spinbutton", button: "button", submit: "button", range: "slider" }[el.type] || "textbox") : "");
   const name = (el) => {
     const labelled = (el.getAttribute("aria-labelledby") || "").split(/\s+/).filter(Boolean).map((id) => document.getElementById(id)?.textContent || "").join(" ");
     return (el.getAttribute("aria-label") || labelled || (el.labels ? [...el.labels].map((n) => n.textContent).join(" ") : "") || el.getAttribute("alt") || el.getAttribute("placeholder") || el.getAttribute("title") || (el.matches("input,textarea,select") ? "" : el.innerText || el.textContent) || "").replace(/\s+/g, " ").trim();
@@ -37,10 +85,15 @@ async function runtimeCommand(input, documentId) {
   const disabled = (el) => !!el.disabled || el.matches(":disabled") || el.getAttribute("aria-disabled") === "true" || !!el.closest("[inert]");
   const nodes = () => [...document.body.querySelectorAll("*")].filter(visible);
   const find = (locator) => nodes().filter((el) => (!locator.role || role(el) === locator.role) && (locator.name === undefined || name(el) === locator.name));
+  let operationExecuted = false, phase = "target-resolution", targetInfo = null;
+  const fail = (code, message) => {
+    throw Object.assign(new Error(message), { context: { code, runtimeAvailable: true } });
+  };
   const target = () => {
     const el = store.nodes.get(input.ref);
-    if (!el?.isConnected || !input.ref?.startsWith(store.id + ":")) throw new Error("Stale Preview ref; take a new snapshot after navigation or element replacement");
-    if (!visible(el)) throw new Error("Preview target is hidden");
+    if (!el?.isConnected || !input.ref?.startsWith(store.id + ":")) fail("PREVIEW_TARGET_STALE", "Stale Preview ref; take a new snapshot after navigation or element replacement");
+    targetInfo = { role: role(el), name: name(el), tag: el.tagName.toLowerCase() };
+    if (!visible(el)) fail("PREVIEW_TARGET_HIDDEN", "Preview target is hidden");
     return el;
   };
   const settle = () => Promise.race([new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))), new Promise((resolve) => setTimeout(resolve, 100))]);
@@ -79,38 +132,57 @@ async function runtimeCommand(input, documentId) {
     do { checks = evaluate(); if (checks.every((c) => c.passed) || Date.now() >= deadline) break; await new Promise((r) => setTimeout(r, 100)); } while (true);
     return { passed: checks.every((c) => c.passed), checks };
   }
+  try {
   const el = input.ref ? target() : document.scrollingElement;
   if (!el) throw new Error("Preview scroll root is unavailable");
-  if (["click", "fill", "select", "press"].includes(input.action) && disabled(el)) throw new Error("Preview target is disabled");
-  const targetInfo = { role: role(el), name: name(el) };
+  targetInfo ||= { role: role(el), name: name(el), tag: el.tagName.toLowerCase() };
+  if (["click", "fill", "select", "press"].includes(input.action) && disabled(el)) fail("PREVIEW_TARGET_DISABLED", "Preview target is disabled");
   if (["click", "hover"].includes(input.action)) {
+    phase = "hit-test";
     el.scrollIntoView({ block: "nearest", inline: "nearest" });
     await settle();
     const rect = el.getBoundingClientRect(), point = { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 };
     const hit = document.elementFromPoint(point.x, point.y);
-    if (!hit || !(el === hit || el.contains(hit) || hit.contains(el))) throw new Error("Preview target is covered or outside the visible viewport");
+    targetInfo = { ...targetInfo, bounds: { x: rect.x, y: rect.y, width: rect.width, height: rect.height },
+      point, hit: hit ? { role: role(hit), name: name(hit), tag: hit.tagName.toLowerCase() } : null };
+    if (!hit || !(el === hit || el.contains(hit) || hit.contains(el))) fail("PREVIEW_TARGET_BLOCKED", "Preview target is covered or outside the visible viewport");
     return { point, target: targetInfo };
   }
   else if (input.action === "fill") {
-    if (!el.matches("input,textarea") || ["file", "checkbox", "radio", "button", "submit", "hidden"].includes(el.type) || el.readOnly) throw new Error("fill requires an editable text/number input or textarea");
+    if (!el.matches("input,textarea") || ["file", "checkbox", "radio", "button", "submit", "hidden"].includes(el.type) || el.readOnly) fail("PREVIEW_ACTION_NOT_APPLICABLE", "fill requires an editable text/number input or textarea");
+    phase = "dom-input"; operationExecuted = null;
     el.focus();
     const prototype = el.tagName === "TEXTAREA" ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
     Object.getOwnPropertyDescriptor(prototype, "value").set.call(el, input.value);
     el.dispatchEvent(new InputEvent("input", { bubbles: true, inputType: "insertText", data: input.value }));
     el.dispatchEvent(new Event("change", { bubbles: true }));
+    operationExecuted = true;
   } else if (input.action === "select") {
-    if (!(el instanceof HTMLSelectElement)) throw new Error("select requires a native select; for Antd popup selectors click the combobox and then its option from a new snapshot");
-    if (![...el.options].some((o) => o.value === input.value && !o.disabled)) throw new Error("Enabled option not found");
+    if (!(el instanceof HTMLSelectElement)) fail("PREVIEW_ACTION_NOT_APPLICABLE", "select requires a native select; for Antd popup selectors click the combobox and then its option from a new snapshot");
+    if (![...el.options].some((o) => o.value === input.value && !o.disabled)) fail("PREVIEW_ACTION_NOT_APPLICABLE", "Enabled option not found");
+    phase = "dom-input"; operationExecuted = null;
     Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, "value").set.call(el, input.value);
     el.dispatchEvent(new Event("input", { bubbles: true })); el.dispatchEvent(new Event("change", { bubbles: true }));
+    operationExecuted = true;
   } else if (input.action === "press") { el.focus(); return { focused: true, target: targetInfo }; }
-  else if (input.action === "scroll") el.scrollBy({ left: input.x || 0, top: input.y || 0, behavior: "instant" });
+  else if (input.action === "scroll") {
+    phase = "dom-scroll"; operationExecuted = null;
+    el.scrollBy({ left: input.x || 0, top: input.y || 0, behavior: "instant" });
+    operationExecuted = true;
+  }
   else throw new Error("Unsupported Preview action");
+  phase = "settle";
   await settle();
   return { performed: input.action, target: targetInfo };
+  } catch (error) {
+    const failure = error instanceof Error ? error : new Error(String(error), { cause: error });
+    failure.context = { ...failure.context, source: "renderer", phase, operationExecuted,
+      target: targetInfo, documentId: store.id };
+    throw failure;
+  }
 }
 
-async function previewFrame(win, componentUuid) {
+async function previewFrame(win, componentUuid, signal = AbortSignal.timeout(30000)) {
   if (!/\/preview(?:\/|$|-full(?:\/|$))/.test(new URL(win.webContents.getURL()).pathname)) throw new Error("Open native Preview first; the reference browser is not a runtime Preview");
   const frames = await canvasFrames(win, undefined, async function inspectPreview(expected) {
     await Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 5000))]);
@@ -119,63 +191,117 @@ async function previewFrame(win, componentUuid) {
     if (failure) throw new Error("Native Preview render failed: " + failure.textContent.slice(0, 1200));
     const root = document.querySelector(".live-root-container");
     const identity = root?.getAttribute("data-plasmic-preview-component");
-    return { ready: !!root && root.getBoundingClientRect().width > 0 && (!expected || identity === expected), componentUuid: identity, width: innerWidth, height: innerHeight };
-  }, componentUuid);
+    // Pages use display:contents here, so the committed root has no border box.
+    return { ready: !!root && innerWidth > 0 && innerHeight > 0 && (!expected || identity === expected), componentUuid: identity, width: innerWidth, height: innerHeight };
+  }, componentUuid, signal);
   if (frames.length !== 1) throw new Error("Expected one active native Preview iframe");
   return frames[0];
 }
 
-async function viewportRect(frame, viewport) {
+async function viewportRect(frame, viewport, signal) {
   let rect = { x: 0, y: 0, width: viewport.width, height: viewport.height };
   for (let child = frame; child.parent; child = child.parent) {
     const index = child.parent.frames.indexOf(child);
-    const box = await child.parent.executeJavaScript(`((index) => {
+    const box = await abortable(signal, () => child.parent.executeJavaScript(`((index) => {
       const el = [...document.querySelectorAll('iframe')].find(el => el.contentWindow === window.frames[index]);
       if (!el || !el.clientWidth || !el.clientHeight) throw new Error('Preview iframe is not visible');
       const r = el.getBoundingClientRect(), sx = r.width / el.offsetWidth, sy = r.height / el.offsetHeight;
       return {x:r.x+el.clientLeft*sx,y:r.y+el.clientTop*sy,sx,sy};
-    })(${index})`);
+    })(${index})`));
     rect = { x: box.x + rect.x * box.sx, y: box.y + rect.y * box.sy, width: rect.width * box.sx, height: rect.height * box.sy };
   }
   return Object.fromEntries(Object.entries(rect).map(([key, value]) => [key, Math.round(value)]));
 }
 
-async function runPreview(win, input, context) {
-  const { frame, layout } = await previewFrame(win, context.previewContext?.componentUuid);
+async function runPreview(win, input, context, signal = AbortSignal.timeout(30000)) {
+  const diagnostics = { phase: "frame-discovery", operationExecuted: false, editorContext: context,
+    frame: null, inputsDispatched: [] };
+  try {
+  const { frame, layout } = await previewFrame(win, context.previewContext?.componentUuid, signal);
+  diagnostics.frame = frameIdentity(frame);
+  if (input.action === "state") return { ready: true, viewport: layout };
   const originalUrl = win.webContents.getURL();
   const settle = async () => {
-    try { await frame.executeJavaScript("Promise.race([new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))),new Promise(r=>setTimeout(r,100))])"); }
-    catch (error) { if (!frame.isDestroyed?.() && win.webContents.getURL() === originalUrl && win.webContents.mainFrame.framesInSubtree.includes(frame)) throw error; }
+    try { await abortable(signal, () => frame.executeJavaScript("Promise.race([new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))),new Promise(r=>setTimeout(r,100))])")); }
+    catch (error) {
+      signal.throwIfAborted();
+      if (!frame.isDestroyed?.() && win.webContents.getURL() === originalUrl && win.webContents.mainFrame.framesInSubtree.includes(frame)) throw error;
+    }
   };
   if (input.action === "screenshot") {
-    const cssRect = await viewportRect(frame, { width: layout.width, height: layout.height });
+    diagnostics.phase = "geometry";
+    const cssRect = await viewportRect(frame, { width: layout.width, height: layout.height }, signal);
     const zoom = win.webContents.getZoomFactor();
     const rect = Object.fromEntries(Object.entries(cssRect).map(([k, v]) => [k, Math.round(v * zoom)]));
     const bounds = win.getContentBounds();
     if (rect.x < 0 || rect.y < 0 || rect.x + rect.width > bounds.width + 1 || rect.y + rect.height > bounds.height + 1) throw new Error("Native Preview is clipped by the App window; reveal the full viewport before recording a screenshot");
-    const image = await win.webContents.capturePage(rect);
-    return { ...await encodeImagePreview(image.toPNG(), { lossless: input.fullResolution === true }), viewport: { width: layout.width, height: layout.height }, presentationRect: rect };
+    diagnostics.phase = "capture";
+    const image = await abortable(signal, () => win.webContents.capturePage(rect));
+    return { ...await abortable(signal, () => encodeImagePreview(image.toPNG(), { lossless: input.fullResolution === true })), viewport: { width: layout.width, height: layout.height }, presentationRect: rect };
   }
-  const result = await frame.executeJavaScript(`(${runtimeCommand.toString()})(${JSON.stringify({ ...input, pageIdentity: [context.sessionId, context.previewContext?.componentUuid, context.previewContext?.path].join(":") })},${JSON.stringify(randomUUID())})`, true);
+  diagnostics.phase = "dom-command";
+  diagnostics.source = "renderer";
+  if (["fill", "select", "scroll", "press"].includes(input.action)) diagnostics.operationExecuted = null;
+  // Catch inside the renderer so Electron cannot flatten the exception into a
+  // string before its code, stack and execution state reach the main process.
+  const response = await abortable(signal, () => frame.executeJavaScript(`(${runtimeCommand.toString()})(${JSON.stringify({ ...input, pageIdentity: [context.sessionId, context.previewContext?.componentUuid, context.previewContext?.path].join(":") })},${JSON.stringify(randomUUID())}).then(result => ({result}), error => ({error: {
+    message: typeof error?.message === "string" ? error.message : String(error),
+    name: error?.name, stack: error?.stack, ...(error?.context || {})
+  }}))`, true));
+  if (response.error) {
+    const { message, name, stack, ...details } = response.error;
+    throw Object.assign(new Error(message), name ? { name } : {}, stack ? { stack } : {}, { context: details });
+  }
+  const result = response.result;
+  diagnostics.target = result.target;
+  diagnostics.source = "desktop";
+  if (["fill", "select", "scroll"].includes(input.action)) diagnostics.operationExecuted = true;
   if (["click", "hover"].includes(input.action)) {
-    const box = await viewportRect(frame, { width: layout.width, height: layout.height });
+    diagnostics.phase = "geometry";
+    const box = await viewportRect(frame, { width: layout.width, height: layout.height }, signal);
     const point = { x: box.x + result.point.x * box.width / layout.width, y: box.y + result.point.y * box.height / layout.height };
-    await sendCdp(win.webContents, "Input.dispatchMouseEvent", { type: "mouseMoved", ...point });
+    const send = async (params) => {
+      diagnostics.phase = params.type;
+      diagnostics.operationExecuted = null;
+      const dispatched = { type: params.type, status: "attempted" };
+      diagnostics.inputsDispatched.push(dispatched);
+      await abortable(signal, () => sendCdp(win.webContents, "Input.dispatchMouseEvent", params));
+      dispatched.status = "acknowledged";
+    };
+    await send({ type: "mouseMoved", ...point });
     if (input.action === "click") {
-      await sendCdp(win.webContents, "Input.dispatchMouseEvent", { type: "mousePressed", button: "left", clickCount: 1, ...point });
-      await sendCdp(win.webContents, "Input.dispatchMouseEvent", { type: "mouseReleased", button: "left", clickCount: 1, ...point });
+      await send({ type: "mousePressed", button: "left", clickCount: 1, ...point });
+      await send({ type: "mouseReleased", button: "left", clickCount: 1, ...point });
     }
+    diagnostics.operationExecuted = true;
+    diagnostics.phase = "settle";
     await settle();
     return { performed: input.action, target: result.target };
   }
   if (input.action === "press") {
     const codes = { Enter: 13, Escape: 27, Tab: 9, ArrowDown: 40, ArrowUp: 38, ArrowLeft: 37, ArrowRight: 39, Space: 32, Backspace: 8, Delete: 46, Home: 36, End: 35 };
     const key = input.key === "Space" ? " " : input.key;
-    await sendCdp(win.webContents, "Input.dispatchKeyEvent", { type: "keyDown", key, code: input.key, windowsVirtualKeyCode: codes[input.key], ...(input.key === "Enter" ? { text: "\r" } : input.key === "Space" ? { text: " " } : {}) });
-    await sendCdp(win.webContents, "Input.dispatchKeyEvent", { type: "keyUp", key, code: input.key, windowsVirtualKeyCode: codes[input.key] });
+    for (const type of ["keyDown", "keyUp"]) {
+      diagnostics.phase = type;
+      diagnostics.operationExecuted = null;
+      const dispatched = { type, status: "attempted" };
+      diagnostics.inputsDispatched.push(dispatched);
+      await abortable(signal, () => sendCdp(win.webContents, "Input.dispatchKeyEvent", { type, key, code: input.key, windowsVirtualKeyCode: codes[input.key],
+        ...(type === "keyDown" && input.key === "Enter" ? { text: "\r" } : type === "keyDown" && input.key === "Space" ? { text: " " } : {}) }));
+      dispatched.status = "acknowledged";
+    }
+    diagnostics.operationExecuted = true;
+    diagnostics.phase = "settle";
     await settle();
     return { ...result, performed: "press", key: input.key };
   }
   return result;
+  } catch (error) {
+    if (!diagnostics.frame) {
+      try { diagnostics.candidateFrames = win.webContents.mainFrame?.framesInSubtree?.map(frameIdentity); }
+      catch { /* Frame discovery can fail while the WebContents is being destroyed. */ }
+    }
+    throw previewError(error, input, diagnostics);
+  }
 }
-module.exports = { runPreview, runtimeCommand, previewFrame, viewportRect };
+module.exports = { runPreview, runtimeCommand, previewFrame, viewportRect, previewError };

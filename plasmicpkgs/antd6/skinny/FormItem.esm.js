@@ -9,6 +9,7 @@ import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
 
 const FormItem = Form.Item;
+const formRuleTypes = ["enum", "len", "max", "min", "regex", "required", "whitespace", "advanced"];
 function plasmicRulesToAntdRules(plasmicRules, label) {
   const effectiveLabel = label || "This field";
   const rules = [];
@@ -239,5 +240,5 @@ function FormItemForwarder({ formItemProps, ...props }) {
   });
 }
 
-export { FormItemWrapper };
+export { FormItemWrapper, formRuleTypes };
 //# sourceMappingURL=FormItem.esm.js.map

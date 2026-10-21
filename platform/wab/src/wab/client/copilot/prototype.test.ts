@@ -6,7 +6,7 @@ import { svgData } from "@/wab/client/clipboard/__testonly__/clipboard-test-data
 import { COPILOT_TOOLS } from "@/wab/client/copilot";
 import * as htmlImporter from "@/wab/client/operations/html-to-tpl";
 import { RSH } from "@/wab/shared/RuleSetHelpers";
-import { ensureBaseVariantSetting } from "@/wab/shared/Variants";
+import { ensureBaseVariantSetting, getBaseVariant } from "@/wab/shared/Variants";
 import { getTplComponentArg } from "@/wab/shared/TplMgr";
 import { fillVirtualSlotContents, isSlot } from "@/wab/shared/SlotUtils";
 import { mkCodeComponent } from "@/wab/shared/code-components/code-components";
@@ -15,7 +15,7 @@ import { ensure } from "@/wab/shared/common";
 import { mapCopilotToolsToJsonSchema } from "@/wab/shared/copilot/copilot-tool-types";
 import { PROTOTYPE_TOOL_META } from "@/wab/shared/copilot/prototype-tools";
 import { ComponentType, mkComponent } from "@/wab/shared/core/components";
-import { customCode, tryExtractJson } from "@/wab/shared/core/exprs";
+import { codeLit, customCode, tryExtractJson } from "@/wab/shared/core/exprs";
 import { mkParam } from "@/wab/shared/core/lang";
 import { createSite } from "@/wab/shared/core/sites";
 import {
@@ -23,17 +23,19 @@ import {
   mkValueStateForTextInput,
 } from "@/wab/shared/core/states";
 import * as taggedUnbundle from "@/wab/shared/core/tagged-unbundle";
-import { flattenTpls, mkSlot, mkTplTagX } from "@/wab/shared/core/tpls";
+import { flattenTpls, mkSlot, mkTplComponentX, mkTplTagX, trackComponentSite } from "@/wab/shared/core/tpls";
 import {
   ProjectDependency,
   DataToken,
   isKnownTplComponent,
   isKnownTplTag,
+  ensureKnownTplTag,
 } from "@/wab/shared/model/classes";
 import { typeFactory } from "@/wab/shared/model/model-util";
 import { runInAction } from "mobx";
 import { ok } from "neverthrow";
 import { vi } from "vitest";
+import { runInNewContext } from "node:vm";
 
 function fixture(site = createSite()) {
   const { studioCtx } = fakeStudioCtx({ site });
@@ -93,7 +95,7 @@ describe("AI prototype editor tools", () => {
     expect(scoped.results[0].props).toEqual([]);
     const contracts = await call("read", { fromProject: "library", collection: "components", nameContains: "form", view: "contract", fields: ["uuid", "name", "props"] });
     expect(contracts.results[0].components).toEqual([{ uuid: library.components[0].uuid, name: "SearchForm", props: [] }]);
-    expect(contracts.read.itemFields).toEqual(["uuid", "name", "props"]);
+    expect(contracts.read.itemFields).toEqual(["uuid", "name", "props", "isContext"]);
     const completeContracts = await call("read", { fromProject: "library", collection: "components", view: "contract", limit: 1 });
     expect(completeContracts.total).toBe(2);
     expect(completeContracts.nextOffset).toBe(1);
@@ -114,6 +116,65 @@ describe("AI prototype editor tools", () => {
     expect(ownInventory.results[0]).not.toHaveProperty("importedProjects");
     expect(ownInventory.results[0]).toHaveProperty("pageFrames");
   });
+  it("discovers global-context ownership, installed settings and qualified actions before any page writes", async () => {
+    const options = vi.fn(() => { throw new Error("Metadata must not run"); });
+    const meta = {
+      name: "ProjectFeedback", importPath: "./feedback", __isContext: true,
+      description: "Project-wide feedback settings",
+      props: { colorPrimary: { type: "color" as const, defaultValue: "#1677ff" } },
+      globalActions: {
+        showMessage: { parameters: [
+          { name: "kind", type: { type: "choice" as const, options } },
+          { name: "content", type: "string" as const },
+          { name: "duration", type: { type: "number" as const } },
+        ] },
+        clearMessages: { parameters: [] },
+      },
+    };
+    const definition = mkCodeComponent(meta.name, meta, {});
+    definition.params.push(mkParam({ name: "colorPrimary", paramType: "prop", type: typeFactory.color() }));
+    const library = createSite();
+    library.components.push(definition);
+    const site = createSite();
+    site.projectDependencies.push(new ProjectDependency({ name: "Feedback", pkgId: "feedback-pkg", projectId: "feedback-library", version: "1.0.0", uuid: "feedback-dep", site: library }));
+    const context = mkTplComponentX({ component: definition, baseVariant: getBaseVariant(definition), args: { colorPrimary: codeLit("#123456") } });
+    site.globalContexts.push(context);
+    const { studioCtx, call } = fixture(site);
+    const hostlessWindow = (studioCtx as any).hostLessPkgsFrame.contentWindow;
+    const hostlessRegistry = (studioCtx as any).hostLessRegistry;
+    hostlessWindow.__PlasmicContextRegistry = [];
+    hostlessRegistry.clear();
+    (studioCtx as any).hostLessPkgsLock = Promise.resolve().then(() => {
+      hostlessWindow.__PlasmicContextRegistry = [{ component: () => null, meta }];
+      hostlessRegistry.clear();
+    });
+    const counter = studioCtx._changeCounter;
+
+    const inventory = await call("read", { collection: "components", fromProject: "feedback-library" });
+    expect(inventory.results[0].components[0]).toMatchObject({ uuid: definition.uuid, type: "code", isContext: true });
+    // Reproduce the exact narrow projection used before the invalid DS insertion.
+    const narrow = await call("read", { componentUuids: [definition.uuid], view: "contract", fields: ["uuid", "name", "props", "states", "tree"] });
+    expect(narrow.results[0].isContext).toBe(true);
+    expect(narrow.results[0].props[0].registration).toMatchObject({ type: "color", defaultValue: "#1677ff" });
+    const contract = await call("read", { componentUuids: [definition.uuid], view: "contract" });
+    expect(contract.results[0]).toMatchObject({ isContext: true, description: meta.description, globalActions: [
+      { name: "ProjectFeedback.showMessage", parameters: [
+        { name: "kind", type: "choice", optionsDynamic: true },
+        { name: "content", type: "string" },
+        { name: "duration", type: "number" },
+      ] },
+      { name: "ProjectFeedback.clearMessages", parameters: [] },
+    ] });
+    const installed = await call("read", { collection: "globalContexts" });
+    expect(installed.results[0].globalContexts).toEqual([{ uuid: context.uuid, componentUuid: definition.uuid, name: meta.name, properties: { colorPrimary: "#123456" } }]);
+    expect((await call("read", { view: "full" })).results[0].globalContexts).toEqual(installed.results[0].globalContexts);
+    expect(PROTOTYPE_TOOL_META.read.inputSchema.parse({ collection: "globalContexts" })).toMatchObject({ collection: "globalContexts" });
+    expect(studioCtx.site.components).toHaveLength(0);
+    expect(studioCtx._changeCounter).toBe(counter);
+    expect(options).not.toHaveBeenCalled();
+    studioCtx.copilotActivity.dispose();
+  });
+
   it("reads complete indirect dependencies without expanding inventories or granting mutation access", async () => {
     const leaf = createSite();
     const component = mkComponent({ name: "NestedControl", type: ComponentType.Plain, tplTree: mkTplTagX("div", { name: "NestedRoot" }) });
@@ -1271,15 +1332,43 @@ describe("AI prototype editor tools", () => {
     await expect(call("preview", { action: "open", width: 1440 })).rejects.toThrow("supplied together");
     expect(preview.toggleLiveMode).not.toHaveBeenCalled();
     expect(await call("preview", { action: "open", componentUuid: page.uuid, width: 1440, height: 720 })).toEqual({
-      mode: "preview", componentUuid: page.uuid, path: "/list", width: 1440, height: 720,
+      mode: "preview", componentUuid: page.uuid, path: "/list", width: 1440, height: 720, canGoBack: false, canGoForward: false,
     });
     expect(preview.pushComponent).toHaveBeenCalledWith(page);
     expect(preview.pushViewport).toHaveBeenCalledWith({ viewport: "custom", width: 1440, height: 720 });
     await expect(call("preview", { action: "close", height: 720, width: 1440 })).rejects.toThrow("close accepts no");
-    expect(await call("preview", { action: "close" })).toEqual({ mode: "edit", componentUuid: null, path: null, width: null, height: null });
+    expect(await call("preview", { action: "close" })).toEqual({ mode: "edit", componentUuid: null, path: null, width: null, height: null, canGoBack: false, canGoForward: false });
     expect(await call("read", { view: "full" })).toEqual(before);
     preview.popup = {} as Window;
     await expect(call("preview", { action: "open" })).rejects.toThrow("external Preview");
+    studioCtx.copilotActivity.dispose();
+  });
+  it("delegates Preview navigation and refresh without opening Preview or editing models", async () => {
+    const { studioCtx, call } = fixture();
+    const preview = {
+      isLive: false, popup: undefined, component: undefined,
+      previewPath: "groups", width: 1440, height: 900,
+      canGoBack: true, canGoForward: false,
+      parseRoute: vi.fn().mockResolvedValue(undefined),
+      goBack: vi.fn(async () => { preview.canGoBack = false; preview.canGoForward = true; }),
+      goForward: vi.fn(async () => { preview.canGoBack = true; preview.canGoForward = false; }),
+      refresh: vi.fn(), toggleLiveMode: vi.fn(),
+    };
+    Object.assign(studioCtx, { previewCtx: preview });
+    const before = await call("read", { view: "full" });
+    for (const action of ["back", "forward", "refresh"]) {
+      await expect(call("preview", { action })).rejects.toThrow("Open native Preview before");
+    }
+    preview.isLive = true;
+    expect(await call("preview", { action: "back" })).toMatchObject({ mode: "preview", canGoBack: false, canGoForward: true });
+    expect(await call("preview", { action: "forward" })).toMatchObject({ mode: "preview", canGoBack: true, canGoForward: false });
+    expect(await call("preview", { action: "refresh" })).toMatchObject({ mode: "preview", canGoBack: true, canGoForward: false });
+    expect(preview.goBack).toHaveBeenCalledOnce();
+    expect(preview.goForward).toHaveBeenCalledOnce();
+    expect(preview.refresh).toHaveBeenCalledOnce();
+    expect(preview.toggleLiveMode).not.toHaveBeenCalled();
+    await expect(call("preview", { action: "back", width: 1440, height: 900 })).rejects.toThrow("back accepts no");
+    expect(await call("read", { view: "full" })).toEqual(before);
     studioCtx.copilotActivity.dispose();
   });
   it("closes a different Preview Page back to the original overview artboard and viewport, awaiting canvas recovery", async () => {
@@ -1452,6 +1541,146 @@ describe("AI prototype editor tools", () => {
     await expect(
       call("setPageViewport", { preset: "Unknown" }),
     ).rejects.toThrow("Unknown Studio device preset");
+  });
+  it("deletes the active canvas through native view cleanup and keeps metadata readable", async () => {
+    const { studioCtx, call, createPage } = fixture();
+    const page = await createPage();
+    await call("createCanvas", { name: "Temporary" });
+    await call("createArtboard", { canvasName: "Temporary", componentUuid: page.uuid, width: 1440, height: 1024 });
+    const arena = ensure(studioCtx.site.arenas.find((a) => a.name === "Temporary"), "Missing canvas");
+    studioCtx.switchToArena(arena);
+    const vc = ensure(studioCtx.tryGetViewCtxForFrame(arena.children[0]), "Missing view");
+    studioCtx.setStudioFocusOnFrame({ frame: arena.children[0], autoZoom: false });
+    const disposedWhenClearing: boolean[] = [];
+    const clearFocus = vc.clearViewCtxFocus.bind(vc);
+    vi.spyOn(vc, "clearViewCtxFocus").mockImplementation(() => {
+      disposedWhenClearing.push(vc.isDisposed);
+      clearFocus();
+    });
+    await call("deleteCanvas", { canvasName: "Temporary" });
+    expect(studioCtx.currentArena).not.toBe(arena);
+    expect(studioCtx.viewCtxs.includes(vc)).toBe(false);
+    expect(disposedWhenClearing).toEqual([false]);
+    expect(studioCtx.site.components).toContain(page);
+    expect(await call("getEditorContext")).toBeDefined();
+    await call("undo");
+    expect(studioCtx.site.arenas).toContain(arena);
+    expect(arena.children).toHaveLength(1);
+  });
+
+  it("rejects non-slot props used as slots without corrupting detached HTML variants", async () => {
+    const site = createSite();
+    const meta = { name: "InputField", importPath: "./input", props: { placeholder: "string", children: "slot" } } as const;
+    const definition = mkCodeComponent(meta.name, meta, {});
+    const children = mkParam({ name: "children", paramType: "slot", type: typeFactory.renderable() });
+    definition.params.push(mkParam({ name: "placeholder", paramType: "prop", type: typeFactory.text() }), children);
+    const slot = mkSlot(children, []);
+    ensureKnownTplTag(definition.tplTree).children.push(slot);
+    slot.parent = definition.tplTree;
+
+    site.components.push(definition);
+    const { studioCtx, call, createPage } = fixture(site);
+    studioCtx.tplMgr().ensureBaseVariantSetting(slot);
+    vi.spyOn(studioCtx, "getCodeComponentMeta").mockImplementation((component) => component === definition ? meta : undefined);
+    const page = await createPage();
+    const before = await call("read", { componentUuids: [page.uuid], view: "full" });
+    await expect(call("insertHtml", { componentUuid: page.uuid, html: '<plasmic-component data-plasmic-component="InputField"><slot name="placeholder">搜索客群</slot></plasmic-component>' })).rejects.toThrow(/prop "placeholder" is not a Slot; pass it in data-props/);
+    expect(await call("read", { componentUuids: [page.uuid], view: "full" })).toEqual(before);
+    await call("insertHtml", { componentUuid: page.uuid, html: '<plasmic-component data-plasmic-component="InputField" data-props=\'{"placeholder":"搜索客群"}\'><slot name="children"><span style="color:red">内容</span></slot></plasmic-component>' });
+    const model = (await call("read", { componentUuids: [page.uuid], view: "full" })).results[0];
+    expect(model.baseVariantTplTree).toContain("搜索客群");
+    expect(model.baseVariantTplTree).toContain("color: red");
+    expect((await call("validate")).valid).toBe(true);
+  });
+  it("discovers UUIDs and differing prop/Slot types together, then composes from those contracts", async () => {
+    const site = createSite();
+    const inputMeta = { name: "InputField", importPath: "./input", props: { placeholder: "string" } } as const;
+    const selectMeta = { name: "SelectField", importPath: "./select", props: { placeholder: "slot" } } as const;
+    const input = mkCodeComponent(inputMeta.name, inputMeta, {});
+    input.params.push(mkParam({ name: "placeholder", paramType: "prop", type: typeFactory.text() }));
+    const select = mkCodeComponent(selectMeta.name, selectMeta, {});
+    const placeholder = mkParam({ name: "placeholder", paramType: "slot", type: typeFactory.renderable() });
+    select.params.push(placeholder);
+    const placeholderSlot = mkSlot(placeholder, []);
+    ensureKnownTplTag(select.tplTree).children.push(placeholderSlot);
+    placeholderSlot.parent = select.tplTree;
+    site.components.push(input, select);
+    const { studioCtx, call, createPage } = fixture(site);
+    studioCtx.tplMgr().ensureBaseVariantSetting(placeholderSlot);
+    vi.spyOn(studioCtx, "getCodeComponentMeta").mockImplementation((component) =>
+      component === input ? inputMeta : component === select ? selectMeta : undefined);
+    const discovery = await call("read", { collection: "components", nameContains: "Field", view: "contract", fields: ["uuid", "name", "props"] });
+    const contracts = discovery.results[0].components;
+    expect(contracts).toHaveLength(2);
+    expect(contracts[0]).toMatchObject({ uuid: input.uuid, name: inputMeta.name, props: [{ name: "placeholder", type: "text" }] });
+    expect(contracts[1]).toMatchObject({ uuid: select.uuid, name: selectMeta.name, props: [{ name: "placeholder", type: "slot" }] });
+    const targeted = await call("read", { componentUuids: contracts.map((contract: { uuid: string }) => contract.uuid), view: "contract" });
+    expect(targeted.results.map((contract: { uuid: string }) => contract.uuid)).toEqual([input.uuid, select.uuid]);
+    const page = await createPage();
+    await call("insertHtml", {
+      componentUuid: page.uuid,
+      html: contracts.map((contract: { name: string; props: { name: string; type: string }[] }) => {
+        const field = ensure(contract.props.find((prop) => prop.name === "placeholder"), "Placeholder contract");
+        return field.type === "slot"
+          ? `<plasmic-component data-plasmic-component="${contract.name}"><slot name="placeholder"><span>Select a market</span></slot></plasmic-component>`
+          : `<plasmic-component data-plasmic-component="${contract.name}" data-props='{"placeholder":"Search name"}'></plasmic-component>`;
+      }).join(""),
+    });
+    const markup = (await call("read", { componentUuids: [page.uuid], view: "full" })).results[0].baseVariantTplTree;
+    expect(markup).toContain("Search name");
+    expect(markup).toContain("Select a market");
+    expect(markup).toContain('<slot name="placeholder">');
+    expect((await call("validate")).valid).toBe(true);
+  });
+  it("an explicit empty trigger Slot suppresses the registered default opener without resetting it", async () => {
+    const site = createSite();
+    const meta = { name: "ControlledDialog", importPath: "./dialog", props: { trigger: { type: "slot" as const } } };
+    const definition = mkCodeComponent(meta.name, meta, {});
+    const trigger = mkParam({ name: "trigger", paramType: "slot", type: typeFactory.renderable() });
+    definition.params.push(trigger);
+    const triggerSlot = mkSlot(trigger, []);
+    ensureKnownTplTag(definition.tplTree).children.push(triggerSlot);
+    triggerSlot.parent = definition.tplTree;
+    ensure(definition.codeComponentMeta, "Code contract").defaultSlotContents.trigger = { type: "text", value: "Show modal" };
+    site.components.push(definition);
+    trackComponentSite(definition, site);
+    const { studioCtx, call, createPage } = fixture(site);
+    studioCtx.tplMgr().ensureBaseVariantSetting(triggerSlot);
+    vi.spyOn(studioCtx, "getCodeComponentMeta").mockImplementation((component) => component === definition ? meta : undefined);
+    const page = await createPage("ControlledOverlay");
+    await call("insertHtml", { componentUuid: page.uuid, html: '<plasmic-component data-plasmic-component="ControlledDialog" data-plasmic-name="DefaultDialog"></plasmic-component><plasmic-component data-plasmic-component="ControlledDialog" data-plasmic-name="ExternalDialog"><slot name="trigger"></slot></plasmic-component>' });
+    const instances = flattenTpls(page.tplTree).filter(isKnownTplComponent);
+    expect(instances).toHaveLength(2);
+    const args = instances.map((instance) => ensure(getTplComponentArg(instance, instance.vsettings[0], trigger.variable), "Explicit trigger").expr);
+    expect(args[0]).toMatchObject({ tpl: [expect.anything()] });
+    expect(args[1]).toMatchObject({ tpl: [] });
+    const model = (await call("read", { componentUuids: [page.uuid], view: "full" })).results[0];
+    expect(model.baseVariantTplTree.match(/Show modal/g)).toHaveLength(1);
+    const validation = await call("validate");
+    expect(validation.valid, JSON.stringify(validation)).toBe(true);
+    studioCtx.copilotActivity.dispose();
+  });
+  it("new code-component instances use current registered defaults while old library definitions and explicit props stay intact", async () => {
+    const site = createSite();
+    const stored = [{ value: "old", label: "Old" }], current = [{ key: "create", label: "Create" }];
+    const meta = runInNewContext('({name:"CurrentMenu",importPath:"./menu",props:{items:{type:"array",defaultValue:[{key:"create",label:"Create"}]}}})');
+    const definition = mkCodeComponent(meta.name, meta, {});
+    const items = mkParam({ name: "items", paramType: "prop", type: typeFactory.any(), defaultExpr: codeLit(stored) });
+    definition.params.push(items);
+    site.components.push(definition);
+    const { studioCtx, call, createPage } = fixture(site);
+    vi.spyOn(studioCtx, "getCodeComponentMeta").mockImplementation((component) => component === definition ? meta : undefined);
+    const page = await createPage("CurrentDefaults");
+    await call("insertHtml", { componentUuid: page.uuid, html: '<plasmic-component data-plasmic-component="CurrentMenu" data-plasmic-name="DefaultMenu"></plasmic-component><plasmic-component data-plasmic-component="CurrentMenu" data-plasmic-name="ExplicitMenu" data-props=\'{"items":[{"key":"explicit","label":"Explicit"}]}\'></plasmic-component>' });
+    const instances = flattenTpls(page.tplTree).filter(isKnownTplComponent);
+    const values = instances.map((instance) => tryExtractJson(ensure(getTplComponentArg(instance, instance.vsettings[0], items.variable), "Inserted items").expr));
+    expect(values).toEqual([current, [{ key: "explicit", label: "Explicit" }]]);
+    expect(tryExtractJson(ensure(items.defaultExpr, "Stored default"))).toEqual(stored);
+    const contract = (await call("read", { componentUuids: [definition.uuid], view: "contract" })).results[0].props[0];
+    expect(contract.default).toEqual(stored);
+    expect(contract.registration.defaultValue).toEqual(current);
+    expect((await call("validate")).valid).toBe(true);
+    studioCtx.copilotActivity.dispose();
   });
   it("installs published libraries with the dependency manager and reloads registrations", async () => {
     const { studioCtx, call } = fixture();
@@ -2173,6 +2402,38 @@ describe("AI prototype editor tools", () => {
       expect(tryExtractJson(vs.args[0].expr)).toBe("Updated");
       expect(vs.args).toHaveLength(1);
       expect((await call("validate")).valid).toBe(true);
+    },
+  );
+
+  it.each(["ProjectEnvironment", "SharedNotifications"])(
+    "rejects global context %s in HTML without partial insertion or blocking editing",
+    async (name) => {
+      const site = createSite();
+      const meta = { name, importPath: "./context", props: {}, __isContext: true };
+      const context = mkCodeComponent(name, meta, {});
+      site.components.push(context);
+      const { studioCtx, call, createPage } = fixture(site);
+      const page = await createPage("ContextSafety");
+      const before = await call("read", { view: "full", componentUuids: [page.uuid] });
+      const contextHtml = `<plasmic-component data-plasmic-component="${name}" />`;
+
+      for (const html of [contextHtml, `<section>Valid sibling${contextHtml}</section>`]) {
+        await expect(call("insertHtml", { componentUuid: page.uuid, html })).rejects.toThrow(
+          `Component "${name}" is a global context and cannot be inserted into a component tree`,
+        );
+        expect(await call("read", { view: "full", componentUuids: [page.uuid] })).toEqual(before);
+        expect(await call("getEditorContext")).toMatchObject({ canEdit: true });
+        expect(studioCtx.blockChanges).toBe(false);
+        expect(studioCtx.isAtTip).toBe(true);
+      }
+
+      await expect(call("executeBatch", { operations: [
+        { name: "changeElement", input: { componentUuid: page.uuid, elementUuid: page.tplTree.uuid, name: "TransientRename" } },
+        { name: "insertHtml", input: { componentUuid: page.uuid, html: contextHtml } },
+      ] })).rejects.toThrow("is a global context");
+      expect(await call("read", { view: "full", componentUuids: [page.uuid] })).toEqual(before);
+      expect(await call("getEditorContext")).toMatchObject({ canEdit: true });
+      studioCtx.copilotActivity.dispose();
     },
   );
 

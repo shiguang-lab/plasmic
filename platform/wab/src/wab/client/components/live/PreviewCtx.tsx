@@ -97,6 +97,77 @@ export class PreviewCtx {
 
   previewData: PreviewDataOutput | undefined = undefined;
   private previousLocation: Partial<Location> | undefined = undefined;
+  private navigationEntries: Partial<Location>[] = [];
+  private navigationIndex = -1;
+  private navigating = false;
+  refreshKey = 0;
+
+  get canGoBack() {
+    return this.isLive && !this.navigating && this.navigationIndex > 0;
+  }
+
+  get canGoForward() {
+    return this.isLive && !this.navigating && this.navigationIndex < this.navigationEntries.length - 1;
+  }
+
+  private recordNavigation(location: Location) {
+    if (!this.isLive) {
+      this.navigationEntries = [];
+      this.navigationIndex = -1;
+      return;
+    }
+    const current = this.navigationEntries[this.navigationIndex];
+    // Device sizes and variant controls are presentation settings, not pages.
+    const pageKey = (entry: Partial<Location>) =>
+      JSON.stringify([entry.pathname, entry.search, new URLSearchParams(entry.hash?.replace(/^#/, "")).get("pageHash")]);
+    if (!current || pageKey(current) !== pageKey(location)) {
+      this.navigationEntries = this.navigationEntries.slice(0, this.navigationIndex + 1);
+      this.navigationEntries.push(location);
+      this.navigationIndex++;
+    } else {
+      this.navigationEntries[this.navigationIndex] = location;
+    }
+  }
+
+  async goBack() {
+    if (this.canGoBack) {
+      await this.goToNavigationEntry(this.navigationIndex - 1);
+    }
+  }
+
+  async goForward() {
+    if (this.canGoForward) {
+      await this.goToNavigationEntry(this.navigationIndex + 1);
+    }
+  }
+
+  private async goToNavigationEntry(index: number) {
+    const location = ensure(this.navigationEntries[index], "Missing Preview history entry");
+    const hash = new URLSearchParams(location.hash?.replace(/^#/, ""));
+    const currentHash = new URLSearchParams(this.hostFrameCtx.history.location.hash.replace(/^#/, ""));
+    for (const key of ["viewport", "width", "height"]) {
+      const value = currentHash.get(key);
+      if (value === null) { hash.delete(key); } else { hash.set(key, value); }
+    }
+    const previousIndex = this.navigationIndex;
+    this.navigating = true;
+    this.navigationIndex = index;
+    try {
+      // Replace the Studio route; never traverse the editor's browser history.
+      await this.pushRouteToHistoryOrPopup({ ...location, hash: hash.size ? `#${hash}` : "" }, true);
+    } catch (error) {
+      this.navigationIndex = previousIndex;
+      throw error;
+    } finally {
+      this.navigating = false;
+    }
+  }
+
+  refresh() {
+    if (this.isLive) {
+      this.refreshKey++;
+    }
+  }
 
   get previewPath() {
     return this.previewData?.previewPath || "";
@@ -159,10 +230,14 @@ export class PreviewCtx {
     public hostFrameCtx: HostFrameCtx,
     public studioCtx: StudioCtx,
   ) {
-    makeObservable(this, {
+    makeObservable<this, "navigationEntries" | "navigationIndex" | "navigating">(this, {
       previewData: observable,
       isLive: observable,
       popup: observable,
+      navigationEntries: observable.shallow,
+      navigationIndex: observable,
+      navigating: observable,
+      refreshKey: observable,
     });
     studioCtx.previewCtx = this;
 
@@ -176,6 +251,7 @@ export class PreviewCtx {
       if (!this.isLive && wasLive) {
         this.previousLocation = undefined;
       }
+      this.recordNavigation(location);
       spawn(this.parseRoute());
     };
     const disposeHistoryListener = hostFrameCtx.history.listen(({ location }) =>
@@ -442,7 +518,7 @@ export class PreviewCtx {
       const componentPath = getComponentByPath(this.studioCtx, url.pathname);
       const pageQuery = queryStringToRecord(url.search);
       return this.pushRoute({
-        componentPath: componentPath || href,
+        componentPath: componentPath || url.pathname,
         pageQuery,
         pageHash,
         allVariants: [],
@@ -491,6 +567,7 @@ export class PreviewCtx {
 
   private async pushRouteToHistoryOrPopup(
     location: string | Partial<Location>,
+    replace = false,
   ): Promise<void> {
     const target = typeof location === "string" ? parsePath(location) : location;
     if (this.popup) {
@@ -518,7 +595,7 @@ export class PreviewCtx {
           reject(new Error("Native Preview history synchronization timed out"));
         }, 5000);
         try {
-          this.studioCtx.appCtx.history.push(target);
+          this.studioCtx.appCtx.history[replace ? "replace" : "push"](target);
           if (matches(history.location)) { clearTimeout(timer); dispose(); resolve(); }
         } catch (error) { clearTimeout(timer); dispose(); reject(error); }
       });

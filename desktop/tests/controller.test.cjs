@@ -100,7 +100,15 @@ test("failed Preview reports the supported recovery instead of suggesting a refe
     if (name === "getEditorContext") return { mode: "edit" };
     throw new Error("Native Preview did not open");
   };
-  await assert.rejects(controller.dispatch("preview", { action: "open", componentUuid: "page" }), /Native Preview did not open.*stop that acceptance.*Do not fall back/);
+  await assert.rejects(controller.dispatch("preview", { action: "open", componentUuid: "page" }), (error) => {
+    assert.equal(error.message, "Native Preview did not open");
+    assert.equal(error.context.runtimeAvailable, null);
+    assert.equal(error.context.operationExecuted, null);
+    assert.equal(error.context.preview.phase, "transition");
+    assert.deepEqual(error.context.recovery, [{ tool: "preview", arguments: { action: "state" } }]);
+    assert.match(error.cause.stack, /controller.editor/);
+    return true;
+  });
 });
 test("native execute aliases retain the Preview and batch context entry points", async (t) => {
   const controller = new DesktopController(() => ({ isDestroyed: () => false }), {});
@@ -112,6 +120,25 @@ test("native execute aliases retain the Preview and batch context entry points",
     await assert.rejects(controller.dispatch("execute_batch", { operations: [{ name, input: {} }] }), /top-level preview/);
   }
   assert.equal(calls, 0);
+});
+
+test("Preview tolerates completion of an existing autosave but rejects design or session changes", async (t) => {
+  for (const [change, allowed] of [[{ revision: 2 }, true], [{ changeCounter: 2 }, false], [{ sessionId: "other" }, false], [{ projectId: "other" }, false]]) {
+    const win = { isDestroyed: () => false, webContents: { getURL: () => "https://studio.example/projects/p" } };
+    const controller = new DesktopController(() => win, { studioOrigin: "https://studio.example" });
+    t.after(() => controller.close());
+    const before = { projectId: "p", branchId: null, sessionId: "session", revision: 1, changeCounter: 1, mode: "edit" };
+    let reads = 0;
+    controller.state = async () => ({ ready: true, projectId: "p", editorContext: before });
+    controller.editor = async (name) => name === "getEditorContext"
+      ? reads++ === 0 ? before : { ...before, ...change }
+      : { mode: "edit" };
+    if (allowed) {
+      assert.equal((await controller.dispatch("preview", { action: "close" })).context.revision, 2);
+    } else {
+      await assert.rejects(controller.dispatch("preview", { action: "close" }), /changed the saved design\/session/);
+    }
+  }
 });
 
 test("project and dashboard navigation retain save, access and target checks", async (t) => {
@@ -183,7 +210,7 @@ test("schema discovery preserves full contracts while status polling omits their
   const state = { ready: true, projectId: "project", build: { sourceHash: "build", builtAt: "diagnostic" },
     browser: { appearance: "dark" }, imageService: { configured: false },
     editorContext: { sessionId: "session", changeCounter: 2, editorView: { scroll: { x: 100, y: 200 } } }, operations: [{ phase: "running" }],
-    editorTools: { read, save: { inputSchema: { type: "object" } }, executeBatch: batch }, availableEditorTools: ["read", "save", "executeBatch"] };
+    editorTools: { read, save: { inputSchema: { type: "object" } }, executeBatch: batch }, availableEditorTools: ["read", "save", "executeBatch", "executeLocalEdit"] };
   const scopes = [];
   controller.state = async (toolNames) => { scopes.push(toolNames); return state; };
   assert.equal((await controller.dispatch("get_app_state", {})).editorTools, undefined);
@@ -201,7 +228,7 @@ test("schema discovery preserves full contracts while status polling omits their
   assert.deepEqual((await controller.dispatch("get_app_state", { toolNames: ["read"], schemaView: "full" })).editorTools.read, read);
   assert.match(status.buildId, /^[a-f0-9]{64}$/);
   await assert.rejects(controller.dispatch("get_app_state", { view: "full" }), /Invalid app state view/);
-  assert.deepEqual((await controller.dispatch("get_app_state", { view: "tools" })).availableEditorTools, state.availableEditorTools);
+  assert.deepEqual((await controller.dispatch("get_app_state", { view: "tools" })).availableEditorTools, ["read", "save", "executeBatch"]);
   assert.deepEqual((await controller.dispatch("get_app_state", { toolNames: ["executeBatch"] })).editorTools, { executeBatch: { mcpTool: "execute_batch" } });
   assert.deepEqual(scopes.at(-1), []);
   assert.deepEqual((await controller.dispatch("get_app_state", { toolNames: ["executeBatch"], schemaView: "full" })).editorTools.executeBatch, batch);
@@ -372,6 +399,30 @@ test("exports pin the exact requested frame and release business rendering after
     { method: "endCanvasInspection", input: { inspectionId: "export-lease" } },
   ]);
   controller.close();
+});
+
+test("static reads pin explicit offscreen frames, including a frame on a supplied component", async (t) => {
+  const controller = new DesktopController(() => null, {});
+  t.after(() => controller.close());
+  const calls = [];
+  controller.editor = async (method, input) => {
+    calls.push({ method, input });
+    return { inspectionId: "frame-lease" };
+  };
+  for (const target of [{ frameUuid: "page-frame" }, { componentUuid: "page", frameUuid: "page-frame" }]) {
+    calls.length = 0;
+    await assert.rejects(controller.inspectCanvas(target, async (inspectionId) => {
+      assert.equal(inspectionId, "frame-lease");
+      throw new Error("Read failed");
+    }), /Read failed/);
+    assert.deepEqual(calls, [
+      { method: "beginCanvasInspection", input: target },
+      { method: "endCanvasInspection", input: { inspectionId: "frame-lease" } },
+    ]);
+  }
+  calls.length = 0;
+  await assert.rejects(controller.inspectCanvas({ mode: "workspace", frameUuid: "page-frame" }, () => {}), /current canvas/);
+  assert.deepEqual(calls, []);
 });
 
 test("workspace screenshots capture the editor when a project uses a custom host", async () => {

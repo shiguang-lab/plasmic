@@ -17,6 +17,8 @@ In live Preview, switch Tabs in both directions and verify the animated ink-bar 
 
 `tabBarExtraContentRight` is the registered Slot for trailing tab-bar actions. Shared versus scope-specific list action placement follows [query/list composition](../../overseas/compositions/search-table.md#query-and-list-structure).
 
+For an Overseas/Antd-v6 tabbed result list, the shared outer Card contains Tabs, while each Tab Item owns its Table. The Card owns the surface and outer horizontal inset; do not remove that shared surface or add nested Cards around individual Tabs/Tables. Read [Card ownership](card.md#card-ownership) and the full query/list structure before composing this layout.
+
 ## Items
 
 Each Tab Item is a separately registered child of [Tabs](tabs.md), with its unique key, label Slot and children content Slot. Place each scope's real Table, pagination and relevant state in that content Slot rather than under a sibling wrapper. Check inactive as well as active content and save/reopen ownership.

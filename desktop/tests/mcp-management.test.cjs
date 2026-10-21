@@ -77,11 +77,21 @@ test("management tools expose strict MCP schemas and forward valid calls through
       }),
     );
     const tools = (await client.listTools()).tools;
+    const editorNames = tools.find((tool) => tool.name === "get_app_state").inputSchema.properties.toolNames.items.enum;
+    assert.ok(editorNames.includes("read"));
+    assert.ok(editorNames.includes("executeBatch"));
+    for (const name of ["getScreenshot", "get_screenshot", "snapshot_layout", "execute_batch", "get_app_state"]) {
+      assert.equal(editorNames.includes(name), false, name);
+    }
     assert.equal(tools.some((tool) => tool.name === "prototype_task"), false);
     const retired = await client.callTool({ name: "prototype_task", arguments: { action: "start" } });
     assert.equal(retired.isError, true);
     assert.match(retired.content[0].text, /Unknown desktop tool/);
     const valid = [
+      ["preview", { action: "back" }],
+      ["preview", { action: "forward" }],
+      ["preview", { action: "refresh" }],
+      ["preview", { action: "state" }],
       ["get_app_state", {}],
       ["get_app_state", { toolNames: [] }],
       ["get_app_state", { toolNames: ["read", "identify"] }],
@@ -138,6 +148,8 @@ test("management tools expose strict MCP schemas and forward valid calls through
       ["get_app_state", { toolNames: "read" }],
       ["get_app_state", { toolNames: [""] }],
       ["get_app_state", { toolNames: ["read", "read"] }],
+      ...["getScreenshot", "get_screenshot", "snapshot_layout", "execute_batch", "get_app_state"].map((name) =>
+        ["get_app_state", { toolNames: ["read", name] }]),
       ["get_app_state", { view: "everything" }],
       ["get_app_state", { view: "full" }],
       ["list_projects", { view: "full" }],

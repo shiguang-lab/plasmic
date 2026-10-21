@@ -2,6 +2,8 @@ import { execFileSync } from "node:child_process";
 import { mkdir, readFile, rename, rm, symlink } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { installLocalApp } from "./install-local.mjs";
+import { installLocalSkill } from "../../scripts/install-local-plasmic-skill.mjs";
 
 const desktop = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -20,6 +22,9 @@ const env = {
   STATIC_URL: config.studioOrigin,
 };
 const linked = [];
+if (process.argv.includes("--install")) {
+  console.log(JSON.stringify(await installLocalSkill(), null, 2));
+}
 try {
   // Both workspaces must resolve the same local SDK and component builds.
   for (const consumer of [
@@ -97,6 +102,11 @@ try {
   execFileSync(process.execPath, [path.join(desktop, "scripts/package.mjs")], {
     stdio: "inherit",
   });
+  if (process.argv.includes("--install")) {
+    const metadata = JSON.parse(await readFile(path.join(desktop, "package.json"), "utf8"));
+    console.log(JSON.stringify(await installLocalApp(path.join(desktop, "dist", metadata.version,
+      `darwin-${process.arch}`, process.arch === "arm64" ? "mac-arm64" : "mac", "Plasmic.app")), null, 2));
+  }
 } finally {
   for (const { target, backup, existed } of linked.reverse()) {
     await rm(target, { recursive: true, force: true });

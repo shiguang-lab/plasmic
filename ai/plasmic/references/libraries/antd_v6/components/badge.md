@@ -7,7 +7,7 @@ Library: [Ant Design v6](../index.md).
 | Badge | `plasmic-antd6-badge` |
 | Badge.Ribbon | `plasmic-antd6-badge-ribbon` |
 
-Use Badge preset plus business text for status; Tag is for categories. Read the installed preset contract and keep status meaning consistent with the business value. Do not leave demo children/counts in status rendering.
+Use Badge `status` (a supported semantic preset) plus `text` for lifecycle/processing status. Categories choose text or Tag under the [Tag/text rules](tag.md#tag-or-text); an enum alone does not require either Badge or Tag. Read the installed `status`/`text` contract and keep status meaning consistent with the business value. Do not leave demo children/counts in status rendering.
 
 ## Count, dot and Badge.Ribbon
 

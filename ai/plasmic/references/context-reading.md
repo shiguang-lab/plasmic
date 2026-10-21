@@ -4,7 +4,9 @@ Preserve source coverage, hidden states, Preview, visual review and save/reopen 
 
 ## Read by task and section
 
-Read `mustRead` in full. Follow conditional references for the actual task/library/component; links do not require recursive full reading. Discover unknown scope before excluding it. Library indexes own shared rules; search catalogs for exact used registration keys, then read their component contracts. Read the complete admin-template catalog for selection and the selected live templates/nested definitions. Live metadata remains authoritative.
+Read `mustRead` in full. Follow conditional references for the source purpose and selected library. Read the applicable decision route and competing component distinctions before selecting; then read chosen component contracts. Unrelated links do not require recursive full reading. Discover unknown scope before excluding it. Library indexes own shared rules; search catalogs for exact used registration keys, then read their component contracts. Read the complete admin-template catalog for selection and the selected live templates/nested definitions. Live metadata remains authoritative.
+
+Keep discovery inside the resolved runtime resources and the current task's supplied sources. Local resources expose the same references/scripts scope as publication; repository evals and past task outputs are not requirement sources. Read current applicable source sections completely and retain their coverage ledger before markup; a first-N-lines excerpt does not cover later permissions, state rules or page decisions.
 
 Use the resource's section reader for conditional documents:
 

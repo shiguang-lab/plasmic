@@ -36,7 +36,7 @@ Before generation/editing, record each affected action group's context, ordered 
 
 ### Feedback and row confirmation
 
-Read [Ant Design System Settings](../components/config-provider.md) for themed feedback actions and [ActionGroup](../../react_ui/components/action-group.md) for row confirmation callbacks.
+Read [Ant Design System Settings action calls](../components/config-provider.md#feedback-action-calls) for themed feedback wiring and [ActionGroup](../../react_ui/components/action-group.md) for row confirmation callbacks. Verify the Message first appears after the action, then dismisses; a later absence assertion alone cannot establish success. Do not suppress a missing-action error or replace an available Message action with a custom Toast.
 
 Choose feedback from its purpose and the requirement. Copy, ordinary save, delete and status-change completion use a short Ant Design Message/toast; they must not insert a persistent page-top success Alert or change the list geometry. Use inline field errors for validation. Alert belongs to persistent contextual information, actionable failures or a result that the user must inspect. Notification is for longer asynchronous or cross-page information. Record exceptions explicitly when the requirement prescribes another behavior.
 

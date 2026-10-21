@@ -10,7 +10,7 @@ The maintained implementation uses @ant-design/icons 6.3.4. Verify the imported 
 
 Read when adding/changing icons in an editable prototype. Install Ant Design Icons through Component Store → Icons and confirm its imported library and specific icon registration in `read`. The top-level Icons entry is for project SVG assets; do not change it or inject the library into every host/project.
 
-Use independently registered `@ant-design/icons` components, such as `plasmic-antd-icon-PlusOutlined`, through Button's real icon Slot and iconPlacement. A trigger with two icons uses the leading action icon in icon and a separate dropdown indicator beside the text. Inherit color through currentColor; do not use a generic Icon/name wrapper, copied SVG paths, new project SVG assets or Unicode characters to imitate available library icons.
+Use independently registered `@ant-design/icons` components, such as `plasmic-antd-icon-PlusOutlined`, through Button's real icon Slot and iconPlacement. Button menu triggers follow [Dropdown appearance](../antd_v6/components/dropdown.md#trigger-appearance): a leading action icon belongs in icon; the separate DownOutlined indicator follows the text. Inherit color through currentColor; do not use a generic Icon/name wrapper, copied SVG paths, new project SVG assets or Unicode characters to imitate available library icons.
 
 Verify actual nodes, placement, inherited color and dropdown behavior in the delivered page, then save/reopen and reread.
 

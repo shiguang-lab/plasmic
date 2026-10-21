@@ -6,10 +6,12 @@ Does not interpret requirement prose or verify runtime/visual behavior.
 import argparse
 import json
 import re
+import verify_component_policy
 from collections import Counter
 from html.parser import HTMLParser
 from pathlib import Path
 from verify_bindings import role_menu
+from verify_selection import ROLES, category_errors
 from verify_forms import TextTree, walk, node_name, props, identity, slot, content
 
 
@@ -57,6 +59,55 @@ def check_components(nodes, path, plan=None):
     errors = []
     for node in nodes:
         context = {"check": "component", "path": path, "node": node_name(node)}
+        if identity(node) == "plasmicantd6dropdown":
+            values = props(node)
+            if not matches_props("contextMenu", values.get("trigger")):
+                trigger = slot(node, "children")
+                trigger_nodes = list(walk(trigger)) if trigger else []
+                for button in (n for n in trigger_nodes if identity(n) == "plasmicantd6button"):
+                    children, icon = slot(button, "children"), slot(button, "icon")
+                    child_nodes = list(walk(children)) if children else []
+                    text_positions = [i for i, n in enumerate(child_nodes) if n["tag"] == "text" and n.get("text", "").strip()]
+                    if not text_positions:
+                        continue
+                    icon_nodes = list(walk(icon)) if icon else []
+                    indicators = [n for n in walk(button) if n["tag"] == "plasmic-component" and identity(n) == "plasmicantdicondownoutlined"]
+                    valid = False
+                    if len(indicators) == 1:
+                        indicator = indicators[0]
+                        trailing_child = any(n is indicator and i > max(text_positions) for i, n in enumerate(child_nodes))
+                        has_icon = bool(content(icon)) or any(n["tag"] == "plasmic-component" for n in icon_nodes)
+                        placement = props(button).get("iconPlacement", "start")
+                        only_end_indicator = (any(n is indicator for n in icon_nodes)
+                                              and not content(icon)
+                                              and not any(n["tag"] == "plasmic-component" and identity(n).startswith("plasmicantdicon")
+                                                          and n is not indicator for n in icon_nodes))
+                        valid = (trailing_child and (not has_icon or matches_props("start", placement))
+                                 or only_end_indicator and matches_props("end", placement))
+                    if not valid:
+                        errors.append({"check": "dropdownIndicator", "path": path, "node": node_name(node),
+                                       "button": node_name(button),
+                                       "message": "Text Button Dropdown triggers require exactly one registered DownOutlined after the label, in children or icon with iconPlacement:end; popup arrow and Unicode are not trigger indicators"})
+            items = values.get("menuItemsJson")
+            if values.get("useMenuItemsSlot") is not True and isinstance(items, list):
+                keys = []
+                def visit(entries):
+                    for item in entries:
+                        if not isinstance(item, dict):
+                            continue
+                        if "value" in item:
+                            errors.append({**context, "message": "Dropdown uses key, not value; onAction receives the native Menu key"})
+                        if item.get("type", "item") not in {"divider", "group", "submenu"}:
+                            key = item.get("key")
+                            if not isinstance(key, str) or not key.strip():
+                                errors.append({**context, "message": "Every Dropdown business action requires an explicit stable string key"})
+                            else:
+                                keys.append(key)
+                        if isinstance(item.get("children"), list):
+                            visit(item["children"])
+                visit(items)
+                if len(set(keys)) != len(keys):
+                    errors.append({**context, "message": "Dropdown action keys must be unique across nested items"})
         if plan is not None and "components" in plan and (identity(node) == "plasmicantd6pagination" or identity(node) == "plasmicantd6table" and props(node).get("pagination") is not False):
             if not any(c.get("nodeName") == node_name(node) and c.get("role") == "pagination" for c in plan["components"]):
                 errors.append({**context, "message": "Every active native pager needs an explicit reviewed pagination owner; disable unneeded Table pagination"})
@@ -88,6 +139,21 @@ def check_components(nodes, path, plan=None):
                 extra_text = any(n.get("tag") == "text" and content(n) and id(n) not in owned for n in walk(children))
                 if not extra_text and all(id(n) in owned for n in business):
                     errors.append({**context, "message": "SearchForm/Steps-only layout requires no surrounding Card; use a layout container"})
+    return errors
+
+
+def check_complete_names(readback):
+    """Full-suite check: every editable authored node, including hidden branches."""
+    from verify_content import inventory
+    errors = []
+    for page in readback["results"]:
+        if page.get("type") != "page" or not isinstance(page.get("baseVariantTplTree"), str):
+            continue
+        for node in inventory(page)["nodes"]:
+            if not node["nodeName"]:
+                errors.append({"check": "naming", "path": page.get("pageMeta", {}).get("path"),
+                               **node,
+                               "message": "Name this authored node from its actual role and owner/Slot/text context; reconcile source intent, never number the error list"})
     return errors
 
 
@@ -145,18 +211,26 @@ def component_owners(root):
 
 
 def check_search_forms(plan, root, path):
-    """Check authored labels and reviewed row policy, not runtime folding."""
+    """Check authored labels and reviewed grid/row policy, not runtime folding."""
     nodes, errors = list(walk(root)), []
     owners = component_owners(root)
     declarations = {c.get("nodeName"): c for c in plan.get("components", [])}
     for form in (n for n in nodes if identity(n) == "plasmicoverseassearchform"):
         spec = declarations.get(node_name(form), {})
         expected_rows = spec.get("props", {}).get("minRows", 1)
+        if not matches_props(expected_rows, 1) and not verify_component_policy.approved_override(spec, 'minRows'):
+            expected_rows = 1
         actual_rows = props(form).get("minRows", 1)
         if not matches_props(expected_rows, actual_rows):
             errors.append({"check": "searchFormLayout", "path": path, "node": node_name(form),
                            "expectedMinRows": expected_rows, "actualMinRows": actual_rows,
                            "message": "SearchForm minRows must follow the reviewed value (default 1); extra rows can suppress the expand/collapse control"})
+        expected_columns = verify_component_policy.search_form_span(spec)
+        actual_columns = props(form).get("colSpan", 6)
+        if not matches_props(expected_columns, actual_columns):
+            errors.append({"check": "searchFormLayout", "path": path, "node": node_name(form),
+                           "expectedColSpan": expected_columns, "actualColSpan": actual_columns,
+                           "message": "SearchForm must match the reviewed four-column (6) or three-column (8) mode; other spans require an explicit requirement-document override"})
         for field in (n for n in nodes if identity(n) == "plasmicoverseassearchformitem"):
             parent = owners.get(id(field), (None, None))[0]
             while parent is not None and identity(parent) != "plasmicoverseassearchform":
@@ -166,6 +240,17 @@ def check_search_forms(plan, root, path):
             label, custom = props(field).get("label"), slot(field, "labelContent")
             has_custom = custom is not None and (content(custom).strip() or any(n["tag"] == "plasmic-component" for n in walk(custom)))
             field_spec = declarations.get(node_name(field), {})
+            expected_span = expected_columns
+            field_constraints = field_spec.get("props", {})
+            if field_constraints.get("span") is not None and verify_component_policy.approved_override(field_spec, 'span'):
+                expected_span = field_constraints["span"]
+            actual_span = props(field).get("span")
+            if actual_span is None:
+                actual_span = actual_columns
+            if not matches_props(expected_span, actual_span):
+                errors.append({"check": "searchFieldSpan", "path": path, "node": node_name(field),
+                               "form": node_name(form), "expectedSpan": expected_span, "actualSpan": actual_span,
+                               "message": "SearchForm.Item must inherit the reviewed Form colSpan unless its components entry declares a source-reviewed props.span override"})
             reviewed_empty = field_spec.get("source") and "label" in field_spec.get("props", {}) and field_spec["props"]["label"] == ""
             if not (isinstance(label, str) and label.strip() or has_custom or reviewed_empty):
                 errors.append({"check": "searchFieldLabel", "path": path, "node": node_name(field),
@@ -252,8 +337,7 @@ def check_required_nodes(plan, nodes, page, path):
             errors.append({**context, "message": "Component is outside its reviewed native owner/Slot"})
         if role == "content-scope" and identity(node) != "plasmicantd6tabs":
             errors.append({**context, "message": "Content-scope navigation requires native Tabs in this library suite"})
-        if role == "category" and not (identity(node) == "plasmicantd6tag" or identity(node) == "plasmicantd6tablecolumn" and values.get("displayType") == "tag"):
-            errors.append({**context, "message": "Category presentation requires native Tag or Column tag display"})
+        errors.extend({"path": path, **error} for error in category_errors(spec, node, plan.get("components", [])))
         if role == "row-actions":
             column, entry = owner, slot_name
             while column and identity(column) != "plasmicantd6tablecolumn":
@@ -346,8 +430,8 @@ def check_presentation(plan, root, path):
 
     normalize = lambda text: " ".join(text.split())
     copy = plan.get("copy", {})
-    if copy and (not copy.get("source", "").strip() or not isinstance(copy.get("excluded"), list) or not isinstance(copy.get("help"), list)):
-        raise ValueError("Copy review requires source, excluded and help arrays")
+    if copy and (not copy.get("source", "").strip() or not isinstance(copy.get("excluded"), list) or not isinstance(copy.get("entries"), list)):
+        raise ValueError("Copy review requires source, excluded and entries arrays")
     ui_keys = {"title", "label", "description", "help", "message", "placeholder", "children"}
 
     def literals(value):
@@ -372,12 +456,6 @@ def check_presentation(plan, root, path):
             raise ValueError("Excluded requirement/process copy needs text and source")
         if any(text in actual for actual in texts):
             errors.append({"check": "uiCopy", "path": path, "text": spec["text"], "message": "Requirement/process explanation leaked into UI copy"})
-    for spec in copy.get("help", []):
-        matches = [n for n in nodes if node_name(n) == spec.get("nodeName")]
-        if not spec.get("source", "").strip() or not spec.get("text", "").strip() or len(matches) != 1:
-            errors.append({"check": "uiCopy", "path": path, "node": spec.get("nodeName"), "message": "User-facing help needs an independently reviewed source, text and one named owner"})
-        elif normalize(spec["text"]) not in [normalize(content(matches[0])), *literals(props(matches[0])), *(normalize(value) for key, value in props(matches[0]).items() if key in ui_keys and isinstance(value, str))]:
-            errors.append({"check": "uiCopy", "path": path, "node": spec["nodeName"], "message": "User-facing help differs from the reviewed text/binding"})
     return errors
 
 
@@ -395,9 +473,15 @@ def validate_page_plan(plan):
     components, copy = plan.get("components"), plan.get("copy")
     if not entries(components, ("nodeName", "component", "source")) or len({c["nodeName"] for c in components}) != len(components):
         raise ValueError("Required native component identities and sources must be planned independently of output")
+    role_errors = []
     for index, component in enumerate(components):
-        if component.get("role") not in {"widget", "content-scope", "category", "row-actions", "pagination"} or not text(component.get("purpose")):
-            raise ValueError(f"components/{index} needs an independently reviewed role and purpose")
+        if component.get("role") not in {"widget", *ROLES}:
+            role_errors.append(f"components/{index} ({component['nodeName']}): unknown role {component.get('role')!r}")
+        if not text(component.get("purpose")):
+            role_errors.append(f"components/{index} ({component['nodeName']}): source-reviewed purpose required")
+    if role_errors:
+        raise ValueError("; ".join(role_errors) + ". Choose source-derived roles from references/libraries/antd_v6/selection.md: " + ", ".join(sorted({"widget", *ROLES})) + ". Do not relabel components to fit output.")
+    for index, component in enumerate(components):
         if not isinstance(component.get("props", {}), dict):
             raise ValueError(f"components/{index}/props must be an object of native property constraints")
         if not isinstance(component.get("dynamicProps", []), list) or any(not text(p) for p in component.get("dynamicProps", [])):
@@ -406,8 +490,8 @@ def validate_page_plan(plan):
             raise ValueError(f"components/{index}/owner needs nodeName and native slot")
         if component.get("role") == "pagination" and component["component"] == "plasmic-antd6-pagination" and not text(component.get("dataOwner")):
             raise ValueError(f"components/{index}/dataOwner must identify the paged data region")
-    if not isinstance(copy, dict) or not text(copy.get("source")) or not entries(copy.get("excluded"), ("text", "source")) or not entries(copy.get("help"), ("text", "source", "nodeName")):
-        raise ValueError("Independent UI-copy review requires source, excluded and help arrays")
+    if not isinstance(copy, dict) or not text(copy.get("source")) or not entries(copy.get("excluded"), ("text", "source")) or not entries(copy.get("entries"), ("text", "source", "nodeName", "at", "kind", "purpose")):
+        raise ValueError("Independent UI-copy review requires source, excluded and complete entries arrays")
     element_fallbacks(plan)
     if not isinstance(plan.get("controls", []), list):
         raise ValueError("controls must be an array")
@@ -487,6 +571,8 @@ def check(expectation, overview, readback, page_path=None):
         plan = next((p for p in planned if p.get("path") == path), {})
         errors.extend(check_components(nodes, path, plan))
         errors.extend(check_search_forms(plan, root, path))
+        errors.extend({**error, "path": path} for error in verify_component_policy.plan_errors(plan))
+        errors.extend({**error, "path": path} for error in verify_component_policy.check_page(plan, page))
         errors.extend(check_native_widgets(plan, nodes, page, path))
         errors.extend(check_required_nodes(plan, nodes, page, path))
         errors.extend(check_presentation(plan, root, path))
@@ -540,7 +626,15 @@ def main():
     parser.add_argument("pages", type=Path)
     parser.add_argument("--report", type=Path)
     args = parser.parse_args()
-    report = check(*(json.loads(path.read_text(encoding="utf-8")) for path in [args.expectation, args.overview, args.pages]))
+    expected, overview, pages = (json.loads(path.read_text(encoding="utf-8")) for path in [args.expectation, args.overview, args.pages])
+    report = check(expected, overview, pages)
+    # The CLI, like verify_all, is a full Page check. Internal structural helpers
+    # remain usable for focused contract diagnostics without granting acceptance.
+    from verify_selection import check as check_selection
+    report["selection"] = check_selection(expected, pages)
+    report["errors"].extend(report["selection"]["errors"])
+    report["errors"].extend(check_complete_names(pages))
+    report["passed"] = not report["errors"]
     output = json.dumps(report, ensure_ascii=False, indent=2) + "\n"
     if args.report:
         args.report.write_text(output, encoding="utf-8")

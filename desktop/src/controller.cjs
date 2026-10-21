@@ -6,11 +6,10 @@ const { encodeImagePreview } = require("./image-preview.cjs");
 const { managementResult } = require("./management-result.cjs");
 const { editorOutput, editorOutputSchema } = require("./editor-output.cjs");
 const { DesignReference } = require("./design-reference.cjs");
-const { runPreview, previewFrame } = require("./preview-runtime.cjs");
+const { runPreview, previewFrame, previewError } = require("./preview-runtime.cjs");
 const { prototypeTools } = require("./prototype-mcp.cjs");
 const { requiredContext, currentContext, assertContext, contextError } = require("./tool-context.cjs");
 const buildIdentity = (build) => createHash("sha256").update(JSON.stringify(build)).digest("hex");
-const previewRecovery = "Runtime acceptance remains incomplete. Use only preview for runtime inspection; if it is unavailable, stop that acceptance and report the error. Do not fall back to reference_browser, capture_browser or import_reference.";
 function validateResourceId(value, label) {
   if (typeof value !== "string" || !/^[A-Za-z0-9_-]+$/.test(value)) {
     throw new Error("Invalid " + label);
@@ -198,7 +197,7 @@ class DesktopController {
     if (typeof source !== "string" || !source.trim()) throw new Error("Load an explicit external HTTP(S) reference URL through reference_browser load_page first");
     const url = new URL(source);
     if (!["http:", "https:"].includes(url.protocol)) throw new Error("Reference browsing requires an external HTTP(S) URL");
-    if (url.origin === this.config.studioOrigin) throw new Error("Reference source must be external to Studio; Studio runtime belongs to the authenticated preview tool. " + previewRecovery);
+    if (url.origin === this.config.studioOrigin) throw new Error("Reference source must be external to Studio; use the authenticated preview tool for runtime inspection.");
     return url.href;
   }
   async requireReferenceEditor() {
@@ -238,7 +237,9 @@ class DesktopController {
         await this.checkContext(method, input);
         return await this.execute(method, input);
       } catch (error) {
-        if (method === "preview" || (method === "execute" && input?.name === "preview")) error.message += ". " + previewRecovery;
+        if (method === "preview" || (method === "execute" && input?.name === "preview")) {
+          throw previewError(error, input, { phase: "controller" });
+        }
         throw error;
       } finally {
         this.operations.delete(id);
@@ -292,7 +293,7 @@ class DesktopController {
       }
       const state = await this.state(toolNames.filter((name) => name !== "executeBatch" || schemaView === "full"));
       if (toolNames.length && !state.ready) throw contextError({ surface: "editor" }, currentContext(state, this.config.studioOrigin), "Open the intended design before requesting editor contracts");
-      const availableEditorTools = state.availableEditorTools || [];
+      const availableEditorTools = (state.availableEditorTools || []).filter((name) => EDITOR_METHODS.includes(name));
       for (const name of toolNames) {
         if (!availableEditorTools.includes(name)) {
           throw new Error(`Editor schema unavailable: ${name}`);
@@ -326,24 +327,35 @@ class DesktopController {
     }
     if (method === "design_reference") return this.references.read(input);
     if (method === "preview") {
-      const allowed = { open: ["componentUuid", "width", "height"], close: [], state: [], snapshot: ["offset", "limit", "textOffset", "textLimit"], click: ["ref"], hover: ["ref"], fill: ["ref", "value"], select: ["ref", "value"], press: ["ref", "key"], scroll: ["ref", "x", "y"], screenshot: ["fullResolution"], assert: ["checks", "timeoutMs"] };
+      const diagnostics = { phase: "validation", operationExecuted: false };
+      try {
+      const allowed = { open: ["componentUuid", "width", "height"], close: [], back: [], forward: [], refresh: [], state: [], snapshot: ["offset", "limit", "textOffset", "textLimit"], click: ["ref"], hover: ["ref"], fill: ["ref", "value"], select: ["ref", "value"], press: ["ref", "key"], scroll: ["ref", "x", "y"], screenshot: ["fullResolution"], assert: ["checks", "timeoutMs"] };
       if (!allowed[input.action] || Object.keys(input).some((key) => key !== "action" && !allowed[input.action].includes(key))) throw new Error("Invalid parameters for Preview action");
       if (["click", "hover", "fill", "select", "press"].includes(input.action) && !input.ref) throw new Error("Preview interaction requires a current snapshot ref");
       if (["fill", "select"].includes(input.action) && typeof input.value !== "string") throw new Error("Preview input requires a value string");
       if (input.action === "press" && !input.key) throw new Error("Preview press requires key");
       if (input.action === "assert" && !input.checks?.length) throw new Error("Preview assert requires checks");
       const before = await this.editor("getEditorContext");
+      diagnostics.editorContext = before;
       let result;
-      if (["open", "close"].includes(input.action)) {
+      if (["open", "close", "back", "forward", "refresh"].includes(input.action)) {
         const { action, componentUuid, width, height } = input;
+        diagnostics.phase = "transition"; diagnostics.operationExecuted = null;
         result = await this.editor("preview", { action, ...(componentUuid ? { componentUuid } : {}), ...(width !== undefined ? { width } : {}), ...(height !== undefined ? { height } : {}) });
-        if (input.action === "open") await previewFrame(win, result.componentUuid);
+        diagnostics.operationExecuted = true;
+        if (input.action !== "close") {
+          diagnostics.phase = "frame-discovery";
+          await previewFrame(win, result.componentUuid);
+        }
       } else {
         if (input.action === "state" && (before.mode !== "preview" || !before.previewContext?.componentUuid)) result = { ready: false };
-        else result = input.action === "state" ? { ready: true, viewport: (await previewFrame(win, before.previewContext.componentUuid)).layout } : await runPreview(win, input, before);
+        else result = await runPreview(win, input, before);
       }
+      diagnostics.phase = "context-read";
+      if (input.action !== "state") diagnostics.operationExecuted = true;
       const after = await this.editor("getEditorContext");
-      if (["projectId", "branchId", "sessionId", "revision", "changeCounter"].some((key) => before[key] !== after[key])) throw new Error("Preview operation changed the saved design/session; inspect the model before continuing");
+      // An autosave already in flight can advance revision without a model edit.
+      if (["projectId", "branchId", "sessionId", "changeCounter"].some((key) => before[key] !== after[key])) throw new Error("Preview operation changed the saved design/session; inspect the model before continuing");
       const actual = currentContext({ ready: true, projectId: after.projectId, editorContext: after, url: win.webContents?.getURL?.() }, this.config.studioOrigin);
       if (["open", "close"].includes(input.action) && (actual.surface !== "editor" || actual.routeProjectId || actual.sessionProjectId || actual.mode !== (input.action === "close" ? "edit" : "preview"))) {
         throw contextError({ surface: "editor", mode: input.action === "close" ? "edit" : "preview" },
@@ -351,8 +363,13 @@ class DesktopController {
           "Preview transition did not reach the requested mode; inspect current state before retrying", null);
       }
       return { ...result,
+        canGoBack: after.previewContext?.canGoBack ?? false,
+        canGoForward: after.previewContext?.canGoForward ?? false,
         ...(input.action === "close" ? { view: after.editorView ?? null } : {}),
         context: Object.fromEntries(["projectId", "branchId", "sessionId", "revision", "changeCounter", "componentUuid", "frameUuid", "mode", "previewKind", "previewContext"].map((key) => [key, after[key]])) };
+      } catch (error) {
+        throw previewError(error, input, diagnostics);
+      }
     }
     if (method === "get_org") {
       validateResourceId(input.orgId, "orgId");
@@ -963,23 +980,24 @@ class DesktopController {
     };
   }
   async inspectCanvas(input, read, forExport = false) {
-    if (input.mode === "workspace" && input.componentUuid) {
+    if (input.mode === "workspace" && (input.componentUuid || input.frameUuid)) {
       throw new Error(
-        "Workspace captures use the current canvas; use artboard mode to inspect componentUuid without navigation",
+        "Workspace captures use the current canvas; use artboard mode to inspect componentUuid/frameUuid without navigation",
       );
     }
-    if (!input.componentUuid && !forExport) {
+    if (!input.componentUuid && !input.frameUuid && !forExport) {
       return read(undefined);
     }
     const inspectionInput = {};
     if (input.componentUuid) {
       inspectionInput.componentUuid = input.componentUuid;
     }
+    if (input.frameUuid) {
+      inspectionInput.frameUuid = input.frameUuid;
+    }
     if (forExport) {
       inspectionInput.forExport = true;
-      if (input.frameUuid) {
-        inspectionInput.frameUuid = input.frameUuid;
-      } else if (!input.componentUuid) {
+      if (!input.frameUuid && !input.componentUuid) {
         const frames = await canvasFrames(this.getWindow());
         const matching = input.artboardElementUuid
           ? frames.filter(({ layout }) =>

@@ -5,7 +5,7 @@ import {
   previewOpenProp,
   useCanvasOverlay,
 } from "./canvas-overlay";
-import { AntdMenu as Menu, UNKEYED_MENU_ITEM_TYPE } from "./registerMenu";
+import { AntdMenu as Menu, MENU_ITEM_TYPE } from "./registerMenu";
 import { Registerable, registerComponentHelper } from "./utils";
 
 function addKeysToUnkeyedMenuItems(
@@ -25,7 +25,7 @@ function addKeysToUnkeyedMenuItems(
       return null;
     }
     const newItem = { ...item };
-    if (!newItem.key) {
+    if (newItem.key == null) {
       newItem.key = genKey();
     }
     if ("children" in newItem && newItem.children) {
@@ -94,9 +94,6 @@ export function AntdDropdown(
   );
 }
 
-/**
- * Note that we don't yet support the simpler `items` prop for configuration.
- */
 export function registerDropdown(loader?: Registerable) {
   registerComponentHelper(loader, AntdDropdown, {
     name: "plasmic-antd6-dropdown",
@@ -139,16 +136,17 @@ export function registerDropdown(loader?: Registerable) {
         type: "array",
         displayName: "Menu Items",
         hidden: (ps: any) => !!ps.useMenuItemsSlot,
-        itemType: UNKEYED_MENU_ITEM_TYPE as any,
+        description: "Menu items with stable keys. onAction receives the clicked item's key, not value or label. Set a unique key for every action, including nested items.",
+        itemType: MENU_ITEM_TYPE as any,
         defaultValue: [
           {
             type: "item",
-            value: "action1",
+            key: "action1",
             label: "Action 1",
           },
           {
             type: "item",
-            value: "action2",
+            key: "action2",
             label: "Action 2",
           },
         ],
@@ -243,6 +241,7 @@ export function registerDropdown(loader?: Registerable) {
       },
       onAction: {
         type: "eventHandler",
+        description: "Called with the selected Menu item's key. Use explicit stable keys in menuItemsJson or MenuItem instances.",
         argTypes: [{ name: "key", type: "string" }],
       } as any,
     },

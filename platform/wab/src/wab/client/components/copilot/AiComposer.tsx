@@ -3,7 +3,7 @@ import {
   AiAttachmentPicker,
   useAiAttachments,
 } from "@/wab/client/components/copilot/AiAttachments";
-import { AiModelSelect } from "@/wab/client/components/copilot/AiModelSelect";
+import { AiModelDropdown } from "@/wab/client/components/copilot/AiModelDropdown";
 import { useI18n } from "@/wab/client/i18n";
 import { StopOutlined } from "@ant-design/icons";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
@@ -39,7 +39,7 @@ const useStyles = createStyles(({ token }) => ({
     boxSizing: "border-box",
     padding: 7,
     display: "grid",
-    gridTemplateColumns: "auto minmax(0, 1fr) auto",
+    gridTemplateColumns: "auto minmax(0, 1fr) minmax(0, max-content)",
     alignItems: "center",
     gap: 6,
     background: token.colorBgContainer,
@@ -65,6 +65,7 @@ const useStyles = createStyles(({ token }) => ({
       borderRadius: 16,
       gridTemplateColumns: "auto minmax(0, 1fr)",
       "& [data-composer-part=input]": { gridColumn: "1 / -1", gridRow: 1 },
+      "& [role=textbox]": { minHeight: 66 },
       "& [data-composer-part=attachments]": { gridColumn: 1, gridRow: 2 },
       "& [data-composer-part=actions]": { gridColumn: 2, gridRow: 2 },
     },
@@ -129,8 +130,8 @@ const useStyles = createStyles(({ token }) => ({
     fontSize: 13,
   },
   actions: {
-    width: "100%",
-    maxWidth: 152,
+    width: "max-content",
+    maxWidth: "100%",
     justifySelf: "end",
     justifyContent: "flex-end",
     display: "flex",
@@ -329,7 +330,7 @@ export function AiComposer({
       </Scrollbar>
       <div className={styles.actions} data-composer-part="actions">
         {model && (
-          <AiModelSelect
+          <AiModelDropdown
             models={models ?? []}
             model={model}
             disabled={locked}

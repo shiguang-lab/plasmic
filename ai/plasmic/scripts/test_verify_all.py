@@ -24,6 +24,8 @@ class SuiteTests(unittest.TestCase):
         form = test_verify_forms.FormCheckTests()
         form.setUp()
         self.model = shell.readback["results"][0]
+        self.model["baseVariantTplTree"] = self.model["baseVariantTplTree"].replace('<div style=', '<div data-plasmic-name="Root" style=', 1)
+        form.html = form.html.replace('<span>Name</span>', '<span data-plasmic-name="NameLabel">Name</span>').replace('<span>Help</span>', '<span data-plasmic-name="NameHelp">Help</span>')
         self.model.update(uuid="page", name="记录列表", pageMeta={"path": "/records"},
                           props=[], states=[], interactions=[], variants=[], variantGroups=[])
         menu = [{"key": "records", "label": "Records", "href": "/records"}]
@@ -45,7 +47,25 @@ class SuiteTests(unittest.TestCase):
         write_json(self.root / "pages.json", self.readback)
         write_json(self.root / "layouts.json", {"page": {"snapshot": self.snapshot}})
         self.write_capture()
-        write_json(self.root / "structure.json", {"pages": [{"path": "/records", "name": "记录列表", "source": "requirement §Records", "pageHeader": None, "components": [], "copy": {"source": "requirement §Copy review", "excluded": [], "help": []}, "bindings": [], "bindingsNotApplicable": "Static fixture for native Form validation; no external business handlers"}],
+        source = self.root / 'requirement.md'
+        source.write_text('Single record administration; no application dimension.')
+        write_json(self.root / "structure.json", {"pages": [{"path": "/records", "name": "记录列表", "source": "requirement §Records", "pageHeader": None,
+                    "templates": [], "templatesNotApplicable": "Focused native Form fixture without a template-driven layout",
+                    "appContext": {"required": False, "evidence": {"path": str(source), "sha256": hashlib.sha256(source.read_bytes()).hexdigest(), "quote": source.read_text()}}, "components": [
+                       {"nodeName": "AppShell", "component": "plasmic-overseas-app-shell", "role": "shell", "purpose": "Standalone page navigation", "source": "requirement §Navigation", "rule": "references/libraries/overseas/components/app-shell.md"},
+                       {"nodeName": "Form", "component": "plasmic-antd6-form", "role": "submitted-form", "purpose": "Submitted name", "source": "requirement §Fields", "rule": "references/libraries/antd_v6/components/form.md"},
+                       {"nodeName": "Name", "component": "plasmic-antd6-input", "role": "widget", "purpose": "Editable name", "source": "requirement §Fields", "rule": "references/libraries/antd_v6/components/input.md"}],
+                    "nodes": [
+                       {"nodeName": "Root", "tag": "div", "owner": None, "purpose": "Bound page layout", "source": "requirement §Records"},
+                       {"nodeName": "NameField", "component": "plasmic-antd6-form-item", "owner": {"nodeName": "Form", "slot": "children"}, "purpose": "Submitted name field", "source": "requirement §Fields"},
+                       {"nodeName": "NameLabel", "tag": "span", "owner": {"nodeName": "NameField", "slot": "label"}, "purpose": "Name field label", "source": "requirement §Fields"},
+                       {"nodeName": "NameHelp", "tag": "span", "owner": {"nodeName": "NameField", "slot": "tooltip"}, "purpose": "Name field guidance", "source": "requirement §Fields"}],
+                    "feedback": [], "copy": {"source": "requirement §Copy review", "excluded": [], "entries": [
+                       {"nodeName": "AppShell", "at": "/props/menuItems/0/label", "text": "Records", "kind": "label", "purpose": "Record navigation", "source": "requirement §Navigation"},
+                       {"nodeName": "NameField", "at": "/props/rules/0/message", "text": "Required", "kind": "feedback", "purpose": "Required-field validation", "source": "requirement §Fields"},
+                       {"nodeName": "NameLabel", "at": "/text", "text": "Name", "kind": "label", "purpose": "Identify the name input", "source": "requirement §Fields"},
+                       {"nodeName": "NameHelp", "at": "/text", "text": "Help", "kind": "help", "purpose": "Name-entry guidance", "source": "requirement §Fields"}]},
+                    "bindings": [], "bindingsNotApplicable": "Static fixture for native Form validation; no external business handlers"}],
                    "navigation": {"items": menu, "source": "requirement §Navigation"}})
         form.expected["pages"][0].pop("componentUuid")
         form.expected["pages"][0]["path"] = "/records"
@@ -69,6 +89,42 @@ class SuiteTests(unittest.TestCase):
         self.assertTrue(report["passed"], report)
         self.assertEqual(report["acceptance"]["status"], "unverified")
 
+    def test_missing_template_source_plan_cannot_pass_the_structure_gate(self):
+        expected = read_json(self.root / 'structure.json')
+        del expected['pages'][0]['templates']
+        del expected['pages'][0]['templatesNotApplicable']
+        write_json(self.root / 'structure.json', expected)
+        report = self.run_suite()
+        structure = next(item for item in report['checks'] if item['gate'] == 'structure')
+        self.assertEqual(structure['status'], 'failed')
+        self.assertTrue(any(error['check'] == 'templateSource' for error in structure['report']['errors']))
+
+    def test_template_capture_is_pinned_against_changes_during_verification(self):
+        import verify_templates
+        from test_verify_templates import SourceDesktop
+        data = verify_templates.capture(SourceDesktop(), 'source', ['TabbedList'])
+        source = self.root / 'template-source.json'
+        write_json(source, data)
+        expected = read_json(self.root / 'structure.json')
+        page = expected['pages'][0]
+        page.pop('templatesNotApplicable')
+        page['templates'] = [{'sourceProjectId': 'source', 'componentName': 'TabbedList', 'mode': 'reference',
+                             'adaptation': 'Use source hierarchy with native fixture fields',
+                             'evidence': {'path': str(source), 'sha256': hashlib.sha256(source.read_bytes()).hexdigest()}}]
+        write_json(self.root / 'structure.json', expected)
+        original = verify_templates.check_page
+
+        def change_after_read(plan):
+            result = original(plan)
+            source.write_text(source.read_text() + '\n')
+            return result
+
+        with patch.object(verify_templates, 'check_page', side_effect=change_after_read):
+            report = self.run_suite()
+        self.assertFalse(report['passed'])
+        self.assertEqual(report['checks'][0]['status'], 'failed')
+        self.assertIn('Verifier, inventory or intent changed during checks', report['checks'][0]['report'].get('errors', []))
+
     def reference_inputs(self):
         reference = test_verify_references.ReferenceTests()
         reference.setUp()
@@ -79,6 +135,32 @@ class SuiteTests(unittest.TestCase):
         write_json(self.root / "reference-evidence.json", reference.evidence)
         self.config["references"] = {"inventory": "references.json", "evidence": "reference-evidence.json"}
         return reference
+
+    def test_full_suite_rejects_missing_selection_and_feedback_inventory(self):
+        original = read_json(self.root / "structure.json")
+        for mutate in (lambda p: p.update(components=[]),
+                       lambda p: p.pop("feedback"),
+                       lambda p: p["components"][0].update(role="widget")):
+            expected = copy.deepcopy(original)
+            mutate(expected["pages"][0])
+            write_json(self.root / "structure.json", expected)
+            report = self.run_suite()
+            self.assertEqual(next(c["status"] for c in report["checks"] if c["gate"] == "structure"), "failed")
+
+    def test_bad_plan_reports_all_roles_and_keeps_selection_findings(self):
+        expected = read_json(self.root / "structure.json")
+        plan = expected["pages"][0]
+        plan["components"][0].update(role="invented-shell")
+        plan["components"][1].update(role="invented-form", purpose="")
+        plan.pop("feedback")
+        write_json(self.root / "structure.json", expected)
+        result = next(c for c in self.run_suite()["checks"] if c["gate"] == "structure")
+        self.assertEqual(result["status"], "failed")
+        report = result["report"]
+        messages = json.dumps(report["errors"])
+        for required in ("invented-shell", "invented-form", "purpose required", "selection.md", "feedback"):
+            self.assertIn(required, messages)
+        self.assertFalse(report["selection"]["passed"])
 
     def test_reference_gate_uses_explicit_local_evidence_without_workflow_state(self):
         reference = self.reference_inputs()
@@ -128,12 +210,20 @@ class SuiteTests(unittest.TestCase):
 
     def test_full_suite_cannot_bypass_source_presentation_and_component_plan(self):
         original = read_json(self.root / "structure.json")
-        for key in ("name", "pageHeader", "components", "copy"):
+        for key in ("name", "pageHeader", "components", "nodes", "copy"):
             expected = copy.deepcopy(original)
             del expected["pages"][0][key]
             write_json(self.root / "structure.json", expected)
             report = self.run_suite()
             self.assertEqual(next(c["status"] for c in report["checks"] if c["gate"] == "structure"), "failed")
+
+    def test_full_suite_checks_authored_copy_in_both_directions(self):
+        expected = read_json(self.root / "structure.json")
+        expected["pages"][0]["copy"]["entries"] = []
+        write_json(self.root / "structure.json", expected)
+        report = self.run_suite()
+        structure = next(c["report"] for c in report["checks"] if c["gate"] == "structure")
+        self.assertTrue(any(e.get("check") == "copyCoverage" and e.get("nodeName") == "NameHelp" for e in structure["errors"]))
 
     def test_reviewed_directory_names_are_checked_in_the_full_suite(self):
         self.config["page_layout"] = {"overviewName": "记录管理页面总览"}
@@ -204,7 +294,7 @@ class SuiteTests(unittest.TestCase):
             report = self.run_suite()
             gate = next(check for check in report["checks"] if check["gate"] == "structure")
             self.assertEqual(gate["status"], "failed")
-            self.assertIn("source-derived bindings", gate["report"]["error"])
+            self.assertTrue(any("source-derived bindings" in error["message"].lower() for error in gate["report"]["errors"]))
 
     def test_page_scope_checks_current_page_without_passing_full_project(self):
         sibling = copy.deepcopy(self.model)
@@ -435,6 +525,7 @@ class SuiteTests(unittest.TestCase):
         files = {Path(item["path"]).name: item["sha256"] for item in first["files"]}
         self.assertEqual(files["forms.json"], hashlib.sha256((self.root / "forms.json").read_bytes()).hexdigest())
         self.assertEqual(files["verify_bindings.py"], hashlib.sha256(Path(__file__).with_name("verify_bindings.py").read_bytes()).hexdigest())
+        self.assertEqual(files["requirement.md"], hashlib.sha256((self.root / "requirement.md").read_bytes()).hexdigest())
         write_json(self.root / "forms.json", {"pages": []})
         second = self.run_suite()
         self.assertFalse(second["passed"])

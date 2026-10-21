@@ -592,6 +592,7 @@ export const registerConfigProvider = makeRegisterGlobalContext(
   {
     name: "plasmic-antd6-config-provider",
     displayName: "Ant Design System Settings",
+    description: "Project-wide Ant Design theme and feedback context, managed in System Settings. It wraps pages automatically; do not insert it into a page or component tree. Use its qualified showMessage/showNotification global actions without adding a wrapper.",
     props: {
       colorPrimary: {
         type: "color",

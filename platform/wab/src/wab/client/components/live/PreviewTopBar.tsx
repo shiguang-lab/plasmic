@@ -1,10 +1,13 @@
 import {
   ArrowLeftOutlined,
+  ArrowRightOutlined,
   CheckOutlined,
+  CloseOutlined,
   DesktopOutlined,
   DownOutlined,
   EllipsisOutlined,
   MobileOutlined,
+  ReloadOutlined,
   TabletOutlined,
 } from "@ant-design/icons";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
@@ -338,6 +341,29 @@ export const PreviewTopBar = observer(function PreviewTopBar({
   const [moreOpen, setMoreOpen] = useState(false);
   const [pageMenuOpen, setPageMenuOpen] = useState(false);
   const [sizeMenuOpen, setSizeMenuOpen] = useState(false);
+  React.useEffect(() => {
+    if (!sizeMenuOpen && !pageMenuOpen && !moreOpen) {
+      return;
+    }
+    let timeout: number | undefined;
+    const dismissOnFrameFocus = () => {
+      // Iframe clicks do not bubble to Antd's outside-click listener. Wait for
+      // the browser to update activeElement after the window loses focus.
+      window.clearTimeout(timeout);
+      timeout = window.setTimeout(() => {
+        if (document.activeElement instanceof HTMLIFrameElement) {
+          setSizeMenuOpen(false);
+          setPageMenuOpen(false);
+          setMoreOpen(false);
+        }
+      }, 0);
+    };
+    window.addEventListener("blur", dismissOnFrameFocus);
+    return () => {
+      window.removeEventListener("blur", dismissOnFrameFocus);
+      window.clearTimeout(timeout);
+    };
+  }, [sizeMenuOpen, pageMenuOpen, moreOpen]);
   const renderPageLabel = (name: string, icon: SvgIcon) => (
     <span className={styles.pageLabel} title={name}>
       <Icon icon={icon} size={18} />
@@ -690,6 +716,18 @@ export const PreviewTopBar = observer(function PreviewTopBar({
           />
         )}
         <div className={cx(styles.section, styles.rightSection)}>
+          <Tooltip title={t("Back")}>
+            <Button type="text" aria-label={t("Back")} icon={<ArrowLeftOutlined />}
+              disabled={!previewCtx.canGoBack} onClick={() => spawn(previewCtx.goBack())} />
+          </Tooltip>
+          <Tooltip title={t("Forward")}>
+            <Button type="text" aria-label={t("Forward")} icon={<ArrowRightOutlined />}
+              disabled={!previewCtx.canGoForward} onClick={() => spawn(previewCtx.goForward())} />
+          </Tooltip>
+          <Tooltip title={t("Refresh")}>
+            <Button type="text" aria-label={t("Refresh")} icon={<ReloadOutlined />}
+              onClick={() => previewCtx.refresh()} />
+          </Tooltip>
           {hasVariants && (
             <Popover
               open={moreOpen}
@@ -712,14 +750,14 @@ export const PreviewTopBar = observer(function PreviewTopBar({
           )}
           <Tooltip
             title={t("{part1} · Esc", {
-              part1: String(t("Back to editor")),
+              part1: String(t("Exit preview")),
             })}
           >
             <Button
               type="text"
-              aria-label={t("Back to editor")}
-              icon={<ArrowLeftOutlined />}
-              onClick={() => spawn(previewCtx.toggleLiveMode())}
+              aria-label={t("Exit preview")}
+              icon={<CloseOutlined />}
+              onClick={() => spawn(previewCtx.stopLiveMode())}
             />
           </Tooltip>
         </div>

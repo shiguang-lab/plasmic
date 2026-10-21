@@ -15,6 +15,7 @@ function _interopDefault (e) { return e && e.__esModule ? e : { default: e }; }
 var React__default = /*#__PURE__*/_interopDefault(React);
 
 const FormItem = Ant.Form.Item;
+const formRuleTypes = ["enum", "len", "max", "min", "regex", "required", "whitespace", "advanced"];
 function plasmicRulesToAntdRules(plasmicRules, label) {
   const effectiveLabel = label || "This field";
   const rules = [];
@@ -246,4 +247,5 @@ function FormItemForwarder({ formItemProps, ...props }) {
 }
 
 exports.FormItemWrapper = FormItemWrapper;
+exports.formRuleTypes = formRuleTypes;
 //# sourceMappingURL=FormItem.cjs.js.map

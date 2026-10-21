@@ -9,7 +9,7 @@ Library: [Ant Design v6](../index.md).
 | Form.Item | `plasmic-antd6-form-item` |
 | Form.List | `plasmic-antd6-form-list` |
 
-Read the installed Form contract before changing values, validation or submission. Read [Form Field](form.md#formitem) for field controls and [form composition](../compositions/form-layout.md) for page and Modal layouts.
+Read the installed Form contract before changing values, validation or submission. Read [Form Field](form.md#formitem) for field controls and [form composition](../compositions/form-layout.md) for page layouts. Every Form inside a Modal additionally reads [Modal form layout](../compositions/form-layout.md#modal-form-layout), which owns width, field columns, label placement and header copy for that composition.
 
 **Reading scope**
 
@@ -32,6 +32,8 @@ Editable business forms use the registered Antd6 Form with real Form Field/Form.
 Form disabled must remain effective, including ConfigProvider inheritance; temporary submission disabling must restore on both success and failure. Await validateFields and stop the mutation on rejection. Custom exact-length rules must actually reject invalid values. When concurrent submissions are explicitly permitted, submitting remains true until all finish.
 
 Verify dynamic initial values and custom rules execute in preview: a nested `{{ ... }}` binding inside `initialValues` or `rules` must be a native expression, not literal text. When uniqueness is required, test an existing key and a distinct key; for a numeric range, test its valid and invalid boundaries, including decimals according to the business rule. When a footer submits through a Form ref, test a form remount or reopening with another record so stale refs cannot silently bypass validation or submission.
+
+Generated/dependent values follow [business outcome cases](../../../design/component-policy.md#business-outcome-cases): read native Form values/refs, implement the source calculation and test changed inputs, repeated actions and conflicts. Required-only rules/help text do not implement that behavior.
 
 When correcting an existing Form, move controls into real Item children Slots to preserve UUIDs and applicable interactions. Replace manual field-error state and value-based submission handlers with native Form values and validation; remove obsolete wrappers and handlers. For adjacent controls/actions follow the direct-control and nested noStyle Item rules in [Form Field](form.md#field-instructions).
 

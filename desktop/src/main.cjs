@@ -749,7 +749,10 @@ function bootstrap() {
     });
     app
       .whenReady()
-      .then(() => {
+      .then(async () => {
+        // Only the GUI instance holding the lock becomes a regular Dock app.
+        app.setActivationPolicy?.("regular");
+        await app.dock?.show();
         if (app.isPackaged) {
           app.setAsDefaultProtocolClient("plasmic-desktop");
         }

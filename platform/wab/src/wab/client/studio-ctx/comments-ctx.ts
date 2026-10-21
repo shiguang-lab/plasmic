@@ -41,6 +41,7 @@ import {
   xGroupBy,
 } from "@/wab/shared/common";
 import { TplNamable } from "@/wab/shared/core/tpls";
+import { Box } from "@/wab/shared/geom";
 import { SEARCH_PARAM_COMMENT } from "@/wab/shared/route/app-routes";
 import { partition } from "lodash";
 import { autorun, observable, runInAction } from "mobx";
@@ -57,6 +58,7 @@ export interface OpenedThread {
 export interface OpenedNewThread {
   tpl: TplNamable;
   viewCtx: ViewCtx;
+  anchor?: Box;
   interacted: boolean;
 }
 
@@ -233,10 +235,10 @@ export class CommentsCtx {
     this._openedNewThread.set(undefined);
   }
 
-  openNewCommentDialog(viewCtx: ViewCtx, tpl: TplNamable) {
+  openNewCommentDialog(viewCtx: ViewCtx, tpl: TplNamable, anchor?: Box) {
     runInAction(() => {
       this._openedThread.set(undefined);
-      this._openedNewThread.set({ viewCtx, tpl, interacted: false });
+      this._openedNewThread.set({ viewCtx, tpl, anchor, interacted: false });
     });
   }
 

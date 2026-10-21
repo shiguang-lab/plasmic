@@ -347,7 +347,7 @@ export const useEditorLayoutStyles = createStyles(({ token }) => ({
         boxSizing: "border-box",
         padding: "0 8px",
         border: `1px solid ${token.colorBorder}`,
-        borderRadius: token.borderRadiusLG,
+        borderRadius: token.borderRadius,
         background: token.colorBgContainer,
         boxShadow: token.boxShadowSecondary,
         pointerEvents: "auto",

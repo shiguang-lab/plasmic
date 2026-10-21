@@ -10,8 +10,8 @@ var registerCheckbox = require('./registerCheckbox.cjs.js');
 var registerDatePicker = require('./registerDatePicker.cjs.js');
 var registerRadio = require('./registerRadio.cjs.js');
 var registerSelect = require('./registerSelect.cjs.js');
-var FormGroup = require('./FormGroup.cjs.js');
 var FormItem = require('./FormItem.cjs.js');
+var FormGroup = require('./FormGroup.cjs.js');
 var FormList = require('./FormList.cjs.js');
 require('@plasmicapp/host/registerComponent');
 require('@plasmicapp/host/registerGlobalContext');
@@ -170,7 +170,19 @@ function commonFormItemProps(usage) {
     },
     rules: {
       displayName: "Validation rules",
-      type: "formValidationRules"
+      type: "formValidationRules",
+      description: 'Wrapper rules, for example [{"ruleType":"required","message":"Enter a value"}]. Submit through the owning Form; raw Antd required:true rules are not this contract.',
+      itemType: {
+        type: "object",
+        fields: {
+          ruleType: { type: "choice", options: [...FormItem.formRuleTypes], required: true },
+          length: "number",
+          pattern: "string",
+          message: "string",
+          options: { type: "array", itemType: { type: "object", fields: { value: "any" } } },
+          custom: { type: "function", argNames: ["rule", "value"] }
+        }
+      }
     },
     validateFirst: {
       type: "boolean",
@@ -752,8 +764,8 @@ function registerForm(loader) {
 
 exports.formHelpers = Form.formHelpers;
 exports.FormWrapper = SchemaForm.FormWrapper;
-exports.FormGroup = FormGroup.FormGroup;
 exports.FormItemWrapper = FormItem.FormItemWrapper;
+exports.FormGroup = FormGroup.FormGroup;
 exports.FormListWrapper = FormList.FormListWrapper;
 exports.formTypeDescription = formTypeDescription;
 exports.registerForm = registerForm;

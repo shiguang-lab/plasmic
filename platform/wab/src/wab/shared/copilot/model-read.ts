@@ -1,13 +1,14 @@
 import { z } from "zod";
 import { isDynamicValue } from "@/wab/shared/dynamic-bindings";
+import { isPlainObject } from "lodash";
 
 const fullReadFields = [
   "__type", "uuid", "name", "type", "componentUuid", "rootElementUuid",
-  "tag", "registeredComponentUuid", "description", "pageMeta", "fromProject",
-  "codeComponent", "refActions", "props", "variants", "variantGroups", "states",
+  "tag", "registeredComponentUuid", "description", "pageMeta", "fromProject", "isContext",
+  "codeComponent", "refActions", "globalActions", "props", "variants", "variantGroups", "states",
   "dataQueries", "legacyDataQueries", "baseVariantTplTree", "variantSettings",
   "interactions", "id", "components", "canvases", "pageFrames", "devicePresets",
-  "screenBreakpoints", "tokens", "dataTokens", "globalVariantGroups", "importedProjects", "dataQueryFunctions",
+  "screenBreakpoints", "tokens", "dataTokens", "globalVariantGroups", "globalContexts", "importedProjects", "dataQueryFunctions",
 ] as const;
 export const readFields = z.enum([...fullReadFields, "tree", "children", "slots", "editable", "source", "properties", "styles", "attributes", "text"]);
 export const modelReadOptions = {
@@ -24,14 +25,15 @@ export type ModelReadOptions = {
 };
 export function selectedReadFields(options: ModelReadOptions) {
   if (options.fields) {
-    return options.fields;
+    // Context ownership is an identity invariant, including narrow prop reads.
+    return [...new Set([...options.fields, "isContext"])];
   }
-  const identity = ["__type", "uuid", "name", "type", "componentUuid", "rootElementUuid"];
+  const identity = ["__type", "uuid", "name", "type", "isContext", "componentUuid", "rootElementUuid"];
   switch (options.view) {
     case "full": return [...fullReadFields];
     case "tree": return [...identity, "tag", "registeredComponentUuid", "tree", "children", "slots", "editable", "source"];
     case "properties": return [...identity, "tag", "registeredComponentUuid", "properties", ...(options.propNames ? [] : ["styles", "attributes", "text"]), "editable", "source"];
-    case "contract": return [...identity.filter((field) => field !== "rootElementUuid"), "description", "fromProject", "props", "refActions", "variants", "variantGroups"];
+    case "contract": return [...identity.filter((field) => field !== "rootElementUuid"), "description", "fromProject", "props", "refActions", "globalActions", "variants", "variantGroups"];
     case "context": return [...identity, "pageMeta", "states", "interactions", "dataQueries", "legacyDataQueries", "variantSettings"];
   }
 }
@@ -52,6 +54,19 @@ export function projectReadFields(resource: Record<string, unknown>, options: Mo
   return selected;
 }
 
+/** Copy literal JSON defaults without invoking callbacks or toJSON methods. */
+function literalDefault(value: unknown, seen = new Set<object>()): unknown {
+  if (value === null || typeof value === "string" || typeof value === "boolean" || typeof value === "number" && Number.isFinite(value)) return value;
+  if (!value || typeof value !== "object" || seen.has(value)
+      || !isPlainObject(value) && !Array.isArray(value)) return undefined;
+  seen.add(value);
+  const entries = Object.entries(value).map(([key, item]) => [key, literalDefault(item, seen)] as const);
+  seen.delete(value);
+  if (Array.isArray(value) && entries.length !== value.length) return undefined;
+  if (entries.some(([, item]) => item === undefined)) return undefined;
+  return Array.isArray(value) ? entries.map(([, item]) => item) : Object.fromEntries(entries);
+}
+
 /** Public registration data only; never evaluate metadata callbacks or serialize controls. */
 export function registrationContract(value: unknown, seen = new Set<object>()): Record<string, unknown> | undefined {
   if (typeof value === "string") { return { type: value }; }
@@ -62,6 +77,10 @@ export function registrationContract(value: unknown, seen = new Set<object>()): 
   const result: Record<string, unknown> = { type: meta.type };
   for (const key of ["displayName", "description", "required", "min", "max", "step", "editOnly", "uncontrolledProp"]) {
     if (["string", "boolean", "number"].includes(typeof meta[key])) { result[key] = meta[key]; }
+  }
+  if (meta.type !== "slot") {
+    const value = literalDefault(meta.defaultValue);
+    if (value !== undefined) result.defaultValue = value;
   }
   if (Array.isArray(meta.argTypes)) { result.args = meta.argTypes.map((arg) => ({ name: arg.name, ...registrationContract(arg.type, seen) })); }
   else if (Array.isArray(meta.argNames)) { result.args = meta.argNames.map((name) => ({ name, type: "any" })); }
@@ -85,6 +104,7 @@ export function withRegisteredContracts(props: Record<string, unknown>[], metada
         if (registration[key] !== undefined && JSON.stringify(registration[key]) === JSON.stringify(prop[key])) { delete registration[key]; }
       }
       if (prop.options !== undefined && registration.options !== undefined) { delete registration.options; }
+      if (registration.defaultValue !== undefined && JSON.stringify(registration.defaultValue) === JSON.stringify(prop.default)) { delete registration.defaultValue; }
     }
     return registration ? { ...prop, registration } : prop;
   });
@@ -129,4 +149,4 @@ export const modelReadResultSchema = z.object({
   nextOffset: z.number().optional(),
 });
 
-export const projectCollections = z.enum(["components", "canvases", "pageFrames", "devicePresets", "screenBreakpoints", "tokens", "dataTokens", "globalVariantGroups", "importedProjects"]);
+export const projectCollections = z.enum(["components", "globalContexts", "canvases", "pageFrames", "devicePresets", "screenBreakpoints", "tokens", "dataTokens", "globalVariantGroups", "importedProjects"]);

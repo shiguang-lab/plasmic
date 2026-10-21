@@ -102,7 +102,8 @@ def check(intent, actual):
         identity = lambda node: re.sub(r"[^a-z0-9]", "", node["attrs"].get("data-plasmic-component", "").lower())
         if identity(expected[name]) != identity(found[name]):
             wrong_components.append(name)
-        slots = {n["attrs"].get("name") for n in expected[name]["children"] if n["tag"] == "slot"}
+        slots = {n["attrs"].get("name") for n in expected[name]["children"]
+                 if n["tag"] == "slot" and (n["children"] or n.get("text", "").strip())}
         for slot in found[name]["children"]:
             if slot["tag"] == "slot" and slot["attrs"].get("name") not in slots:
                 if slot.get("text", "").strip():

@@ -8,7 +8,7 @@ Library: [Ant Design v5](../index.md).
 
 ## Global theme context
 
-This registration is the library's global context, using its exposed colors, radius, line, control-height, size, wireframe, defaultDark and themeStyles/token mapping. It is not a second page shell or the whole native ConfigProvider API. Its implementation accepts locale in code but does not register a Studio locale control; Studio UI language does not force a canvas locale.
+This registration is the library's project-wide global context, using its exposed colors, radius, line, control-height, size, wireframe, defaultDark and themeStyles/token mapping. Studio wraps Pages with installed contexts automatically. Read the consuming project's `collection:"globalContexts"`, then the matching definition's `view:"contract"` for `isContext:true` and `globalActions`. Reuse that installed instance; its `children` Slot is runtime ownership, not an instruction to insert a page wrapper. Explicit project theme changes use System Settings/the advertised context-editing capability; a missing MCP capability is a gap to report. Its implementation accepts locale in code but does not register a Studio locale control; Studio UI language does not force a canvas locale.
 
 ## Feedback actions and acceptance
 

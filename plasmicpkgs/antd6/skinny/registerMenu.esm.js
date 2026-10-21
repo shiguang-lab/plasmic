@@ -85,7 +85,7 @@ const MENU_ITEM_TYPE = {
     if (item.type === "divider") {
       return "Divider";
     }
-    return item.label || item.value;
+    return item.label || item.key;
   },
   fields: {
     type: {
@@ -123,14 +123,7 @@ const MENU_ITEM_TYPE = {
     }
   }
 };
-const UNKEYED_MENU_ITEM_TYPE = {
-  ...MENU_ITEM_TYPE,
-  fields: Object.fromEntries(
-    Object.entries(MENU_ITEM_TYPE.fields).filter(([k]) => k !== "key")
-  )
-};
 MENU_ITEM_TYPE.fields.children.itemType = MENU_ITEM_TYPE;
-UNKEYED_MENU_ITEM_TYPE.fields.children.itemType = UNKEYED_MENU_ITEM_TYPE;
 function registerMenu(loader) {
   registerComponentHelper(loader, AntdMenu, {
     name: "plasmic-antd6-menu",
@@ -352,5 +345,5 @@ function registerMenu(loader) {
   });
 }
 
-export { AntdMenu, AntdMenuDivider, AntdMenuItem, AntdMenuItemGroup, AntdSubMenu, MENU_ITEM_TYPE, UNKEYED_MENU_ITEM_TYPE, menuChildrenToItems, registerMenu };
+export { AntdMenu, AntdMenuDivider, AntdMenuItem, AntdMenuItemGroup, AntdSubMenu, MENU_ITEM_TYPE, menuChildrenToItems, registerMenu };
 //# sourceMappingURL=registerMenu.esm.js.map

@@ -1875,6 +1875,12 @@ export class StudioCtx extends WithDbCtx {
       allLiveFrames.has(vc.arenaFrame()),
     );
 
+    // Clearing selection reads the evaluator; do it before disposing its view.
+    const focusedVc = this.focusedViewCtx();
+    if (focusedVc && !liveVcs.includes(focusedVc)) {
+      this.setStudioFocusOnFrame({ frame: undefined });
+    }
+
     if (liveVcs.length !== this.viewCtxs.length) {
       const disposedVcs = this.viewCtxs.filter((vc) => !liveVcs.includes(vc));
       disposedVcs.forEach((vc) => vc.dispose());
@@ -1889,11 +1895,6 @@ export class StudioCtx extends WithDbCtx {
       if (!allLiveFrames.has(frame)) {
         this.frameToViewCtxPromise.delete(frame);
       }
-    }
-
-    const focusedVc = this.focusedViewCtx();
-    if (focusedVc && !this.viewCtxs.includes(focusedVc)) {
-      this.setStudioFocusOnFrame({ frame: undefined });
     }
   }
 

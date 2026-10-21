@@ -16,6 +16,8 @@ MCP prop registration reports the original declared type/signature and nested fi
 
 Identical descriptions/signatures and normalized choice lists appear once on the prop, rather than being repeated in registration. Verification failures report constrained property paths, not unrelated row datasets.
 
+Global contexts use the context registration registry, separately from ordinary code-component registrations. Preserve their native `isContext` identity in inventory and projected reads; expose qualified global-action names and ordered declarative parameter types without executing metadata callbacks. Read installed instances/settings from the consuming project's native `globalContexts`, not from a library definition or an authored Page wrapper. Verify this discovery path before page mutations, including imported and hostless registrations.
+
 ## Slots and editor state
 
 Empty code-component Slots retain the component’s native default; an explicit null expression remains an override. Check native default content, explicit null and custom Slot content on editor canvas and Preview. Keep temporary selection/reveal separate from persisted business props; follow each component’s actual Slot and visibility contract.

@@ -1,6 +1,7 @@
 import { PreviewTopBar } from "@/wab/client/components/live/PreviewTopBar";
 import { HistoryProvider } from "@/wab/client/route/HistoryProvider";
 import {
+  act,
   cleanup,
   fireEvent,
   render as renderWithTestingLibrary,
@@ -23,6 +24,12 @@ const mocks = vi.hoisted(() => ({
     pushViewport: vi.fn(),
     pushComponent: vi.fn(),
     toggleLiveMode: vi.fn(),
+    stopLiveMode: vi.fn(),
+    goBack: vi.fn(),
+    goForward: vi.fn(),
+    refresh: vi.fn(),
+    canGoBack: false,
+    canGoForward: false,
   },
   variants: [] as object[],
   branching: true,
@@ -76,6 +83,8 @@ afterEach(() => {
 beforeEach(() => {
   mocks.variants = [];
   vi.clearAllMocks();
+  mocks.preview.canGoBack = false;
+  mocks.preview.canGoForward = false;
   mocks.preview.width = 1440;
   mocks.preview.height = 900;
   mocks.preview.studioCtx.site.components = [];
@@ -119,7 +128,7 @@ test.each(["darwin", "win32"])("registers empty preview regions and cleans up on
   expect(updateSlot).toBeTruthy();
   expect(
     updateSlot?.nextElementSibling?.contains(
-      screen.getByRole("button", { name: "Back to editor" }),
+      screen.getByRole("button", { name: "Exit preview" }),
     ),
   ).toBe(true);
   expect(updateSlot?.nextElementSibling?.contains(updateSlot)).toBe(false);
@@ -169,10 +178,10 @@ test.each(["darwin", "win32"])("registers empty preview regions and cleans up on
 });
 test("returns to the editor without a code generation entry", () => {
   render(<PreviewTopBar />);
-  const back = screen.getByRole("button", { name: "Back to editor" });
+  const back = screen.getByRole("button", { name: "Exit preview" });
   expect(screen.queryByRole("button", { name: "Code" })).toBeNull();
   fireEvent.click(back);
-  expect(mocks.preview.toggleLiveMode).toHaveBeenCalledOnce();
+  expect(mocks.preview.stopLiveMode).toHaveBeenCalledOnce();
 });
 test("displays the current name and preserves page, component and artboard navigation", async () => {
   const page = { uuid: "page2", name: "Page2", kind: "page" };
@@ -232,6 +241,48 @@ test("Escape closes the size menu without leaving preview", async () => {
   fireEvent.keyDown(viewport, { key: "Escape" });
   expect(viewport.getAttribute("aria-expanded")).toBe("false");
 });
+test("clicking into the preview iframe closes the size menu on every opening", async () => {
+  render(
+    <>
+      <PreviewTopBar />
+      <iframe title="Page preview" />
+    </>,
+  );
+  const viewport = screen.getByRole("button", { name: "Preview viewport" });
+  const frame = screen.getByTitle("Page preview");
+  for (let opening = 0; opening < 2; opening++) {
+    viewport.focus();
+    fireEvent.click(viewport);
+    expect(viewport.getAttribute("aria-expanded")).toBe("true");
+    fireEvent.blur(window);
+    frame.focus();
+    await waitFor(() =>
+      expect(viewport.getAttribute("aria-expanded")).toBe("false"),
+    );
+    expect(document.activeElement).toBe(frame);
+  }
+  expect(mocks.preview.pushViewport).not.toHaveBeenCalled();
+  expect(mocks.preview.toggleLiveMode).not.toHaveBeenCalled();
+});
+test("size inputs remain editable and clicking outside the popup closes it", async () => {
+  render(<PreviewTopBar />);
+  const viewport = screen.getByRole("button", { name: "Preview viewport" });
+  fireEvent.click(viewport);
+  const width = await screen.findByLabelText("Preview width");
+  width.focus();
+  fireEvent.blur(window);
+  await act(async () => {
+    await new Promise((resolve) => window.setTimeout(resolve, 0));
+  });
+  fireEvent.mouseDown(width);
+  fireEvent.change(width, { target: { value: "1280" } });
+  expect(viewport.getAttribute("aria-expanded")).toBe("true");
+  expect((width as HTMLInputElement).value).toBe("1280");
+  fireEvent.mouseDown(document.body);
+  await waitFor(() =>
+    expect(viewport.getAttribute("aria-expanded")).toBe("false"),
+  );
+});
 test("reopening dimensions reads current viewport and rejects fractional sizes", async () => {
   const view = render(<PreviewTopBar />);
   fireEvent.click(screen.getByRole("button", { name: "Preview viewport" }));
@@ -270,4 +321,27 @@ test("shows branch switching in preview when branching is enabled", () => {
   render(<PreviewTopBar />);
   expect(screen.queryByRole("button", { name: "Branches: main" })).toBeNull();
   mocks.branching = true;
+});
+
+test("preview navigation buttons follow availability and act only on Preview", () => {
+  const view = render(<PreviewTopBar />);
+  const back = screen.getByRole("button", { name: "Back" });
+  const forward = screen.getByRole("button", { name: "Forward" });
+  expect(back.hasAttribute("disabled")).toBe(true);
+  expect(forward.hasAttribute("disabled")).toBe(true);
+  fireEvent.click(back);
+  fireEvent.click(forward);
+  expect(mocks.preview.goBack).not.toHaveBeenCalled();
+  expect(mocks.preview.goForward).not.toHaveBeenCalled();
+  mocks.preview.canGoBack = true;
+  mocks.preview.canGoForward = true;
+  view.rerender(<PreviewTopBar dimensions={{ width: 1440, height: 900 }} />);
+  fireEvent.click(screen.getByRole("button", { name: "Back" }));
+  fireEvent.click(screen.getByRole("button", { name: "Forward" }));
+  fireEvent.click(screen.getByRole("button", { name: "Refresh" }));
+  expect(mocks.preview.goBack).toHaveBeenCalledOnce();
+  expect(mocks.preview.goForward).toHaveBeenCalledOnce();
+  expect(mocks.preview.refresh).toHaveBeenCalledOnce();
+  expect(mocks.preview.stopLiveMode).not.toHaveBeenCalled();
+  expect(mocks.preview.toggleLiveMode).not.toHaveBeenCalled();
 });

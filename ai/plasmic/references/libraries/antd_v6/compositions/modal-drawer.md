@@ -17,7 +17,7 @@ This rule does **not** remove Cancel/Close from a multi-button footer. Save + Ca
 
 ## Structure and close behavior
 
-Keep one native header/title and one footer owner. Bound long content using the shared scrolling contract; the close icon and any business footer stay reachable at the target viewport. No nested native scrolling, clipped last row or blank reserved footer after removal.
+Keep one native header/title and one footer owner. Form Modals leave at least 24px clearance at each viewport edge; constrain their outer width/height accordingly. Bound long body content using the shared scrolling contract, with the header and any business footer outside that scrolling region and reachable at the target viewport. No nested native scrolling, clipped last row or blank reserved footer after removal.
 
 Bind dismissal to the actual controlled open state. Available X/Cancel/Esc/mask paths follow the same dirty-input, cleanup and processing policy; closing does not imply backend cancellation. Failure preserves recoverable input. Selection/reveal must not persist an open initial state. In Preview verify close/reopen, retained business actions, keyboard focus and return to the trigger; editing also checks dirty input and processing restrictions. Save/reopen and reread after edits.
 
@@ -26,6 +26,8 @@ Bind dismissal to the actual controlled open state. Available X/Cancel/Esc/mask 
 Derive an independent acceptance inventory from requirements before generation. For each affected owning component, inventory every Modal/Drawer in its full public `baseVariantTplTree`, including hidden branches. Read referenced custom components separately; private internals need their own readback. The inventory is verification evidence, not persisted design props.
 
 Declare the exact component identity, expected usable `closeIcon`, footer mode (`none`, `native`, `custom`) and ordered visible `footerActions`. For a native Modal footer use `nativeCancel` and `nativeOk`; for a custom footer use actual Button node names. Each action declares `effect: "dismiss"` or `"business"`; a business action needs a concrete `reason`. Optional action `props` checks required handler/visibility values from the public readback. Review effects against actual interactions; do not derive them solely from labels or generated output.
+
+Also inventory inline `trigger` Slot roots by their ordered node names, e.g. `trigger:["OpenDetails"]`. Omitted `trigger` means `[]`: external business controls own opening and the Slot must be empty. The gate checks hidden/closed models too and rejects leftover default openers; do not accept them just because the overlay itself starts closed. Trigger ownership and footer ownership are independent.
 
 Plan Pages by exact path (or unique name / known componentUuid) through [unified verification](../../../verification.md#reviewed-suite-configuration). Its runner resolves selectors from current readbacks. The standalone command below requires actual componentUuid values already resolved; do not fabricate UUIDs before creating Pages. Example of a resolved inventory for a read-only SQL result:
 

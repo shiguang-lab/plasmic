@@ -102,12 +102,13 @@ const tools = [
   {
     name: "get_app_state",
     description:
-      "Read readiness, current project/session/model identity, selection and active operations. context reports surface, mode, previewKind, project/session, canvas identity and effective canEdit; ready is editor-model availability, not iframe rendering approval. view:tools lists operation names; toolNames selects complete input contracts. executeBatch points to execute_batch; read constituent contracts. schemaView:full adds complete output schemas and native batch inputs. Context mismatches include required/actual and explicit recovery calls; ordinary reads/writes never switch modes or projects. Reuse contracts only within the same buildId/session. Build provenance, image-service status and editor viewport have separate read tools.",
+      "Read readiness, current project/session/model identity, selection and active operations. context reports surface, mode, previewKind, project/session, canvas identity and effective canEdit; ready is editor-model availability, not iframe rendering approval. view:tools lists callable native editor operations; toolNames selects only those contracts for execute. Top-level MCP tools (including this tool, get_screenshot, snapshot_layout and execute_batch) already have contracts in tools/list; never request them in toolNames. executeBatch points to execute_batch; read constituent contracts. schemaView:full adds complete output schemas and native batch inputs. Context mismatches include required/actual and explicit recovery calls; ordinary reads/writes never switch modes or projects. Reuse contracts only within the same buildId/session. Build provenance, image-service status and editor viewport have separate read tools.",
     inputSchema: object({
       view: { type: "string", enum: ["status", "tools"] },
       toolNames: {
         type: "array",
-        items: { type: "string", minLength: 1 },
+        description: "Native editor operation names from availableEditorTools, not top-level MCP tool names. Omit for readiness; use view:tools for discovery.",
+        items: { type: "string", enum: EDITOR_METHODS },
         uniqueItems: true,
       },
       schemaView: { type: "string", enum: ["input", "full"], default: "input" },
@@ -223,7 +224,7 @@ const tools = [
   {
     name: "get_screenshot",
     description:
-      "Return a clean rendered artboard as a WebP preview (quality 85, long edge at most 2048; fullResolution requests original-size lossless WebP) without editor chrome or slot placeholders. artboardElementUuid selects the whole artboard containing that visible element, useful for same-sized pages in one overview. elementUuid crops a visible node (including repeated instances). frameUuid selects an exact artboard. Otherwise captures the focused artboard; ambiguous canvases require an explicit target. width resizes the selected static rendering. componentUuid renders in a background canvas without changing the active arena or selection. Use mode workspace for the current editor view; rect applies only to workspace and componentUuid is not accepted. Not an interactive preview.",
+      "Return a clean rendered artboard as a WebP preview (quality 85, long edge at most 2048; fullResolution requests original-size lossless WebP) without editor chrome or slot placeholders. Prefer componentUuid for a Page; frameUuid pins an exact artboard, including an offscreen Page or overview frame. Both use a background canvas without changing the active arena or selection; when combined the frame must belong to the component. artboardElementUuid selects the whole artboard containing that visible element; elementUuid crops a visible node (including repeated instances). Without a component/frame target captures the focused rendered artboard; ambiguous canvases require an explicit target. width resizes the selected static rendering. Use mode workspace for the current editor view; rect applies only to workspace and componentUuid/frameUuid are not accepted. Not an interactive preview.",
     inputSchema: object({
       fullResolution: { type: "boolean", description: "Return original-size lossless WebP instead of the default compressed preview (long edge at most 2048)." },
       componentUuid: { type: "string", minLength: 1 },
@@ -406,7 +407,7 @@ tools.push(
   {
     name: "read_skill",
     description:
-      "Read the bootstrap instructions for the current NAS-hosted Plasmic inspection, prototype and codegen workflows.",
+      "Read Plasmic workflow bootstrap instructions, honoring an explicitly configured local Skill source or otherwise resolving the published resources.",
     inputSchema: object({}),
   },
   {
@@ -472,7 +473,7 @@ tools.push(
   {
     name: "snapshot_layout",
     description:
-      "Read rendered layout. Default summary returns frame dimensions/counts and paginated problems. elements defaults to identity/geometry; request text/classes through fields. images/problems are paginated; full retains complete acceptance evidence. read.fields declares projections; omissions are not empty. Target frameUuid/elementUuid and follow nextOffset per frame. componentUuid inspects a background canvas without changing selection. Checks horizontal overflow, sticky Table-cell control containment (including native padding) and image loading; interactions, breakpoints and other overlap require Preview. Get editable IDs through execute read.",
+      "Read rendered layout. Default summary returns frame dimensions/counts and paginated problems. elements defaults to identity/geometry; request text/classes through fields. images/problems are paginated; full retains complete acceptance evidence. read.fields declares projections; omissions are not empty. Prefer componentUuid for a Page; frameUuid pins an exact artboard even when offscreen. Both inspect a background canvas without changing selection; when combined the frame must belong to the component. elementUuid filters that rendering; follow nextOffset per frame. Checks horizontal overflow, sticky Table-cell control containment (including native padding) and image loading; interactions, breakpoints and other overlap require Preview. Get editable IDs through execute read.",
     inputSchema: object({
       componentUuid: { type: "string", minLength: 1 },
       frameUuid: { type: "string", minLength: 1 },
@@ -542,13 +543,7 @@ async function serveMcp(profile) {
               request.params.arguments?.id,
             )
           : request.params.name === "read_skill"
-            ? {
-                instructions:
-                  "Run npx -y @plasmickit/cli@latest context resolve --mode inspect for read-only inspection, --mode prototype for design edits, or --mode codegen for native development. Read returned mustRead paths starting with referencePath. Stop dependent work if resolution fails; do not silently use stale references.",
-                resourceManifestUrl:
-                  require("../desktop.config.json").updateUrl +
-                  "/plasmic/latest.json",
-              }
+            ? await require("./skill-bootstrap.cjs").readSkillBootstrap()
             : await requestRpc(
                 profile,
                 request.params.name,

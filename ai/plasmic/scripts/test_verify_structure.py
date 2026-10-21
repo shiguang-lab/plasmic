@@ -1,17 +1,97 @@
 import copy
 import html
 import json
+import hashlib
+from pathlib import Path
+import tempfile
 import unittest
 
-from verify_structure import check, matches_props
+from verify_structure import check, check_complete_names, check_components, check_search_forms, matches_props
+from verify_forms import TextTree, walk
 
 
 class StructureTests(unittest.TestCase):
+    def test_full_suite_names_include_unnamed_roots_and_hidden_children(self):
+        markup = '<div id="root"><slot name="children"><span data-plasmic-name="Label">Text</span><div id="hidden" hidden></div></slot></div>'
+        self.assertEqual(len(check_complete_names({"results": [{"type": "page", "baseVariantTplTree": markup}]})), 2)
+        markup = markup.replace('id="root"', 'id="root" data-plasmic-name="Root"').replace('id="hidden"', 'id="hidden" data-plasmic-name="HiddenContent"')
+        self.assertEqual(check_complete_names({"results": [{"type": "page", "baseVariantTplTree": markup}]}), [])
+        inherited = '<div data-editable="false" id="library"><span id="inherited"></span></div><svg><path></path></svg>'
+        self.assertEqual(check_complete_names({"results": [{"type": "page", "baseVariantTplTree": inherited}]}), [])
+
+    def test_dropdown_json_actions_require_keys_including_nested_items(self):
+        original = self.pages["results"][0]["baseVariantTplTree"]
+        for items, passes in [
+            ([{"value": "onetime", "label": "一次性"}], False),
+            ([{"key": "onetime", "label": "一次性"}, {"key": "regular", "label": "常规"}], True),
+            ([{"type": "group", "children": [{"key": "same"}, {"key": "same"}]}], False),
+            ([{"type": "group", "children": [{"value": "regular"}]}], False),
+        ]:
+            values = html.escape(json.dumps({"menuItemsJson": items}), quote=True)
+            self.pages["results"][0]["baseVariantTplTree"] = original + '<plasmic-component data-plasmic-name="Create" data-plasmic-component="plasmic-antd6-dropdown" data-props="' + values + '"></plasmic-component>'
+            self.assertEqual(self.result()["passed"], passes)
+
+    def dropdown_markup(self, children, icon="", button_values=None, dropdown_values=None, wrap=False):
+        button_props = html.escape(json.dumps(button_values or {}), quote=True)
+        dropdown_props = html.escape(json.dumps(dropdown_values or {}), quote=True)
+        button = '<plasmic-component data-plasmic-name="Create" data-plasmic-component="plasmic-antd6-button" data-props="' + button_props + '"><slot name="children">' + children + '</slot><slot name="icon">' + icon + '</slot></plasmic-component>'
+        trigger = '<plasmic-component data-plasmic-component="plasmic-antd6-space"><slot name="children">' + button + '</slot></plasmic-component>' if wrap else button
+        return '<plasmic-component data-plasmic-name="CreateMenu" data-plasmic-component="plasmic-antd6-dropdown" data-props="' + dropdown_props + '"><slot name="children">' + trigger + '</slot></plasmic-component>'
+
+    def dropdown_errors(self, markup):
+        return check_components(list(walk(TextTree(markup).root)), "/records")
+
+    def test_dropdown_text_button_requires_one_trailing_native_chevron(self):
+        label = '<span>新建客群</span>'
+        down = '<plasmic-component data-plasmic-component="plasmicAntdIconDownOutlined"></plasmic-component>'
+        plus = '<plasmic-component data-plasmic-component="plasmicAntdIconPlusOutlined"></plasmic-component>'
+        for markup in (
+            self.dropdown_markup(label + down),
+            self.dropdown_markup(label + down, plus),
+            self.dropdown_markup(label, down, {"iconPlacement": "end"}),
+            self.dropdown_markup(label, down, {"iconPlacement": '{{ "end" }}'}),
+            self.dropdown_markup(label + down, plus, wrap=True),
+            self.dropdown_markup('<plasmic-component data-plasmic-component="plasmic-antd6-space"><slot name="children">' + label + down + '</slot></plasmic-component>'),
+        ):
+            with self.subTest(markup=markup):
+                self.assertEqual(self.dropdown_errors(markup), [])
+        for markup in (
+            self.dropdown_markup(label),
+            self.dropdown_markup(label, plus),
+            self.dropdown_markup(down + label),
+            self.dropdown_markup(label + down + down),
+            self.dropdown_markup(label + down, down, {"iconPlacement": "end"}),
+            self.dropdown_markup(label, down),
+            self.dropdown_markup(label + ' ▼'),
+            self.dropdown_markup(label, dropdown_values={"arrow": True}),
+            self.dropdown_markup(label + down, plus, {"iconPlacement": "end"}),
+        ):
+            with self.subTest(markup=markup):
+                self.assertEqual([e["check"] for e in self.dropdown_errors(markup)], ["dropdownIndicator"])
+
+    def test_dropdown_indicator_does_not_change_plain_buttons_or_icon_triggers(self):
+        plain_button = '<plasmic-component data-plasmic-component="plasmic-antd6-button"><slot name="children">保存</slot></plasmic-component>'
+        more = '<plasmic-component data-plasmic-component="plasmicAntdIconMoreOutlined"></plasmic-component>'
+        avatar = '<plasmic-component data-plasmic-component="plasmic-antd6-dropdown"><slot name="children"><plasmic-component data-plasmic-component="plasmic-antd6-avatar"></plasmic-component></slot></plasmic-component>'
+        for markup in (plain_button, self.dropdown_markup("", more), avatar,
+                       self.dropdown_markup("右键操作", dropdown_values={"trigger": "contextMenu"}),
+                       '<plasmic-component data-plasmic-component="plasmic-react-ui-action-group"></plasmic-component>'):
+            with self.subTest(markup=markup):
+                self.assertEqual(self.dropdown_errors(markup), [])
+
+    def test_dropdown_end_icon_slot_cannot_mix_indicator_with_other_icons_or_text(self):
+        down = '<plasmic-component data-plasmic-component="plasmicAntdIconDownOutlined"></plasmic-component>'
+        plus = '<plasmic-component data-plasmic-component="plasmicAntdIconPlusOutlined"></plasmic-component>'
+        for icon in (down + plus, plus + down, down + '<span>展开</span>'):
+            with self.subTest(icon=icon):
+                errors = self.dropdown_errors(self.dropdown_markup("新建客群", icon, {"iconPlacement": "end"}))
+                self.assertEqual([e["check"] for e in errors], ["dropdownIndicator"])
+
     def test_search_fields_need_labels_and_collapse_rows_cannot_be_changed_without_review(self):
         page = self.pages["results"][0]
         original = page["baseVariantTplTree"]
         def render(label, rows=1, custom=""):
-            form_props = html.escape(json.dumps({"colSpan": 6, "minRows": rows, "collapsed": False}), quote=True)
+            form_props = html.escape(json.dumps({"colSpan": 6, "minRows": rows, "collapsed": True}), quote=True)
             item_props = html.escape(json.dumps({"name": "keyword", "label": label}), quote=True)
             page["baseVariantTplTree"] = original + '<plasmic-component data-plasmic-name="Filters" data-plasmic-component="plasmic-overseas-search-form" data-props="' + form_props + '"><slot name="children"><plasmic-component data-plasmic-name="Keyword" data-plasmic-component="plasmic-overseas-search-form-item" data-props="' + item_props + '">' + custom + '<slot name="children"><plasmic-component data-plasmic-component="plasmic-antd6-input" data-props=\'{"placeholder":"搜索客群名称 / Key"}\'></plasmic-component></slot></plasmic-component></slot></plasmic-component>'
         render("")
@@ -23,11 +103,72 @@ class StructureTests(unittest.TestCase):
         render("", custom='<slot name="labelContent"><span>关键词</span></slot>')
         self.assertTrue(self.result()["passed"])
         self.expected["pages"][0]["components"] = [
-            {"nodeName": "Filters", "component": "plasmic-overseas-search-form", "source": "Explicit approved two-row query", "props": {"minRows": 2}},
+            {"nodeName": "Filters", "component": "plasmic-overseas-search-form", "source": "Explicit approved two-row query", "props": {"minRows": 2}, "overrides": self.override('minRows', 2)},
             {"nodeName": "Keyword", "component": "plasmic-overseas-search-form-item", "source": "Explicit approved label-free search", "props": {"label": ""}},
         ]
         render("", 2)
         self.assertTrue(self.result()["passed"])
+
+    def search_form_markup(self, name="Filters", field="Keyword", values=None, field_values=None):
+        form_props = html.escape(json.dumps(values or {}), quote=True)
+        item_props = html.escape(json.dumps({"name": field, "label": field, **(field_values or {})}), quote=True)
+        return '<plasmic-component data-plasmic-name="' + name + '" data-plasmic-component="plasmic-overseas-search-form" data-props="' + form_props + '"><slot name="children"><plasmic-component data-plasmic-name="' + field + '" data-plasmic-component="plasmic-overseas-search-form-item" data-props="' + item_props + '"></plasmic-component></slot></plasmic-component>'
+
+    def search_form_errors(self, markup, declarations=None):
+        return check_search_forms({"components": declarations or []}, TextTree(markup).root, "/records")
+
+    def test_search_field_span_inherits_reviewed_grid_without_undeclared_widening(self):
+        for value in (None, 6, '{{ 6 }}'):
+            with self.subTest(span=value):
+                self.assertEqual(self.search_form_errors(self.search_form_markup(field_values={"span": value})), [])
+        for value in (8, '{{ 8 }}', '{{ $state.columns }}'):
+            with self.subTest(span=value):
+                errors = self.search_form_errors(self.search_form_markup(field_values={"span": value}))
+                self.assertEqual([e["check"] for e in errors], ["searchFieldSpan"])
+                self.assertEqual(errors[0]["expectedSpan"], 6)
+
+    def test_search_field_span_override_needs_explicit_span_and_nonempty_source(self):
+        markup = self.search_form_markup(field="DateRange", field_values={"span": 8})
+        declaration = {"nodeName": "DateRange", "component": "plasmic-overseas-search-form-item",
+                       "source": "Approved date-range query layout", "props": {"span": 8}, "overrides": self.override('span', 8)}
+        self.assertEqual(self.search_form_errors(markup, [declaration]), [])
+        for source in (None, "", "  ", False):
+            with self.subTest(source=source):
+                errors = self.search_form_errors(markup, [{**declaration, "source": source, "overrides": {}}])
+                self.assertEqual([e["check"] for e in errors], ["searchFieldSpan"])
+        self.assertTrue(self.search_form_errors(markup, [{**declaration, "props": {}}]))
+
+    def test_search_form_columns_and_inherited_fields_follow_reviewed_parent(self):
+        markup = self.search_form_markup(values={"colSpan": 8})
+        self.assertEqual({e["check"] for e in self.search_form_errors(markup)}, {"searchFormLayout", "searchFieldSpan"})
+        declaration = {"nodeName": "Filters", "component": "plasmic-overseas-search-form",
+                       "source": "Original visual frame has multiple three-column field rows", "props": {"colSpan": 8}}
+        self.assertEqual(self.search_form_errors(markup, [declaration]), [])
+        self.assertEqual(self.search_form_errors(self.search_form_markup(values={"colSpan": '{{ 8 }}'}), [declaration]), [])
+        errors = self.search_form_errors(self.search_form_markup(values={"colSpan": '{{ $state.columns }}'}), [declaration])
+        self.assertEqual({e["check"] for e in errors}, {"searchFormLayout", "searchFieldSpan"})
+        self.assertEqual(self.search_form_errors(self.search_form_markup(values={"colSpan": 8}, field_values={"span": 8}), [declaration]), [])
+        errors = self.search_form_errors(self.search_form_markup(values={"colSpan": 8}, field_values={"span": 6}), [declaration])
+        self.assertEqual([e["check"] for e in errors], ["searchFieldSpan"])
+
+    def test_unsupported_search_grid_requires_a_requirement_document_exception(self):
+        markup = self.search_form_markup(values={"colSpan": 12})
+        declaration = {"nodeName": "Filters", "component": "plasmic-overseas-search-form",
+                       "source": "Visual draft has two columns", "props": {"colSpan": 12}}
+        self.assertEqual({e["check"] for e in self.search_form_errors(markup, [declaration])}, {"searchFormLayout", "searchFieldSpan"})
+        self.source.write_text('筛选区每行2列。')
+        declaration['overrides'] = {'colSpan': {'reason': 'Requirement specifies two columns',
+                                                'evidence': self.evidence('筛选区每行2列。')}}
+        self.assertEqual(self.search_form_errors(markup, [declaration]), [])
+
+    def test_search_field_span_policy_is_scoped_to_its_own_form(self):
+        markup = self.search_form_markup("FirstFilters", "FirstKeyword") + self.search_form_markup("SecondFilters", "SecondKeyword", {"colSpan": 8})
+        declaration = {"nodeName": "SecondFilters", "component": "plasmic-overseas-search-form",
+                       "source": "Approved second query region", "props": {"colSpan": 8}, "overrides": self.override('colSpan', 8)}
+        self.assertEqual(self.search_form_errors(markup, [declaration]), [])
+        widened = self.search_form_markup("FirstFilters", "FirstKeyword", field_values={"span": 8}) + self.search_form_markup("SecondFilters", "SecondKeyword", {"colSpan": 8})
+        errors = self.search_form_errors(widened, [declaration])
+        self.assertEqual([(e["check"], e["form"], e["node"]) for e in errors], [("searchFieldSpan", "FirstFilters", "FirstKeyword")])
 
     def test_reviewed_dropdown_must_occupy_the_tabs_extra_slot(self):
         page = self.pages["results"][0]
@@ -55,6 +196,10 @@ class StructureTests(unittest.TestCase):
         self.assertFalse(matches_props([1], [1, 2]))
 
     def setUp(self):
+        directory = tempfile.TemporaryDirectory()
+        self.addCleanup(directory.cleanup)
+        self.source = Path(directory.name) / 'requirement.md'
+        self.source.write_text('colSpan=8; span=8; minRows=2; Detail is visible to authorized readers.')
         self.menu = [{"key": "records", "label": "Records", "children": [
             {"key": "list", "label": "Record list", "href": "/records", "children": [
                 {"key": "detail", "label": "Record detail", "href": "/detail", "hidden": True}
@@ -64,6 +209,12 @@ class StructureTests(unittest.TestCase):
                          "navigation": {"source": "requirement §Navigation", "items": self.menu}}
         self.pages = {"results": [self.page("list", "/records"), self.page("detail", "/detail")]}
         self.overview = {"results": [{"__type": "Project", "components": copy.deepcopy(self.pages["results"])}]}
+
+    def override(self, key, value):
+        return {key: {'reason': 'Explicit source layout constraint', 'evidence': self.evidence(f'{key}={value}')}}
+
+    def evidence(self, quote):
+        return {'path': str(self.source), 'sha256': hashlib.sha256(self.source.read_bytes()).hexdigest(), 'quote': quote}
 
     def page(self, uuid, path, menu=None):
         props = html.escape(json.dumps({"menuItems": self.menu if menu is None else menu}), quote=True)
@@ -209,7 +360,7 @@ class StructureTests(unittest.TestCase):
     def test_copy_review_blocks_declared_process_notes_and_preserves_real_field_help(self):
         page = self.pages["results"][0]
         original = page["baseVariantTplTree"]
-        self.expected["pages"][0]["copy"] = {"source": "Reviewed requirement/UI copy", "excluded": [{"text": "AI creation is outside P0", "source": "requirement §Release scope, not UI copy"}], "help": [{"nodeName": "ExpiryHelp", "text": "1–365 days", "source": "requirement §Validity"}]}
+        self.expected["pages"][0]["copy"] = {"source": "Reviewed requirement/UI copy", "excluded": [{"text": "AI creation is outside P0", "source": "requirement §Release scope, not UI copy"}], "entries": []}
         help_text = '<span data-plasmic-name="ExpiryHelp">1–365 days</span>'
         page["baseVariantTplTree"] = original + help_text + '<span>AI creation is </span><span>outside P0</span>'
         self.assertFalse(self.result()["passed"])
@@ -217,8 +368,6 @@ class StructureTests(unittest.TestCase):
         data = html.escape(json.dumps({"onClick": "{{ console.log('AI creation is outside P0') }}", "data": {"notes": "AI creation is outside P0"}}), quote=True)
         page["baseVariantTplTree"] = original + help_text + '<plasmic-component data-plasmic-component="example-control" data-props="' + data + '"></plasmic-component>'
         self.assertTrue(self.result()["passed"])
-        page["baseVariantTplTree"] = original + help_text.replace("1–365", "1–100")
-        self.assertFalse(self.result()["passed"])
 
     def test_source_required_event_and_data_bindings_cannot_be_omitted(self):
         plan = self.expected["pages"][0]
@@ -301,9 +450,28 @@ class StructureTests(unittest.TestCase):
         page["baseVariantTplTree"] = original + column.replace('name="render"', 'name="children"')
         self.assertFalse(self.result()["passed"])
 
+    def test_category_text_is_valid_but_text_tag_substitution_fails(self):
+        page = self.pages["results"][0]
+        original = page["baseVariantTplTree"]
+        declaration = {"nodeName": "Type", "component": "plasmic-antd6-table-column", "role": "category",
+                       "purpose": "Single-value type shown as text in the visual draft", "source": "draft §Type cells",
+                       "props": {"dataIndex": "type", "displayType": "text"}}
+        self.expected["pages"][0]["components"] = [declaration]
+        for expected in ("text", "tag"):
+            declaration["props"]["displayType"] = expected
+            for actual in ("text", "tag"):
+                with self.subTest(expected=expected, actual=actual):
+                    encoded = html.escape(json.dumps({"dataIndex": "type", "displayType": actual}), quote=True)
+                    page["baseVariantTplTree"] = original + '<plasmic-component data-plasmic-name="Type" data-plasmic-component="plasmic-antd6-table-column" data-props="' + encoded + '"></plasmic-component>'
+                    result = self.result()
+                    self.assertEqual(result["passed"], actual == expected, result)
+                    if actual != expected:
+                        self.assertTrue(any(e["check"] == "categoryPresentation" for e in result["errors"]))
+
     def test_reviewed_component_roles_cover_categories_actions_and_native_totals(self):
         page = self.pages["results"][0]
         original = page["baseVariantTplTree"]
+        self.source.write_text(self.source.read_text() + ' The list supports viewing different records on the next page.')
         def component(name, key, values=None, children=""):
             encoded = html.escape(json.dumps(values or {}), quote=True)
             return f'<plasmic-component data-plasmic-name="{name}" data-plasmic-component="{key}" data-props="{encoded}">{children}</plasmic-component>'
@@ -320,6 +488,12 @@ class StructureTests(unittest.TestCase):
         operations = component("Operations", "plasmic-antd6-table-column", {"fixed": "right", "width": 200}, '<slot name="render"><div>' + group + '</div></slot>')
         valid = component("Results", "plasmic-antd6-table", {"data": {"data": []}, "pagination": {"defaultPageSize": 20, "showTotal": "{{ (total, range) => `共 ${total} 条` }}"}}, '<slot name="children">' + category + operations + '</slot>')
         self.expected["pages"][0]["components"] = uses
+        self.expected["pages"][0]["actionContracts"] = [{'nodeName': 'Actions', 'key': 'detail', 'confirm': False, 'transitions': [], 'evidence': self.evidence('Detail is visible to authorized readers. The list supports viewing different records on the next page.'),
+            'cases': [{'id': 'detail-allowed', 'kind': 'permission-allowed', 'nodeName': 'Actions', 'given': {'role': 'reader'}, 'checks': [{'kind': 'text', 'text': '详情', 'present': True}]},
+                      {'id': 'detail-denied', 'kind': 'permission-denied', 'nodeName': 'Actions', 'given': {'role': 'no-access'}, 'checks': [{'kind': 'text', 'text': '详情', 'present': False}]}]}]
+        self.expected["pages"][0]["runtimeCases"] = [{'id': 'results-next-page', 'kind': 'page-change', 'nodeName': 'Results',
+            'evidence': self.expected["pages"][0]["actionContracts"][0]['evidence'], 'given': {'current': 2},
+            'checks': [{'kind': 'text', 'text': 'record-next-page', 'present': True}]}]
         page["baseVariantTplTree"] = original + valid
         self.assertTrue(self.result()["passed"], self.result())
         layout = component("ActionsLayout", "plasmic-antd6-flex", children='<slot name="children">' + group + '</slot>')
@@ -356,11 +530,15 @@ class StructureTests(unittest.TestCase):
     def test_external_pager_has_one_data_owner_and_no_duplicate_table_pager(self):
         page = self.pages["results"][0]
         original = page["baseVariantTplTree"]
+        self.source.write_text(self.source.read_text() + ' The external pager shows different result records on the next page.')
         self.expected["pages"][0]["components"] = [
             {"nodeName": "Results", "component": "plasmic-antd6-table", "role": "widget", "purpose": "Paged data", "source": "requirement §External pager", "props": {"pagination": False}},
             {"nodeName": "Field", "component": "plasmic-antd6-table-column", "role": "widget", "purpose": "Record identity", "source": "requirement §Field"},
             {"nodeName": "Pager", "component": "plasmic-antd6-pagination", "role": "pagination", "purpose": "Source-required external pager", "source": "requirement §External pager", "dataOwner": "Results", "dynamicProps": ["showTotal"]},
         ]
+        self.expected["pages"][0]["runtimeCases"] = [{'id': 'pager-next-page', 'kind': 'page-change', 'nodeName': 'Pager',
+            'evidence': self.evidence('The external pager shows different result records on the next page.'), 'given': {'current': 2},
+            'checks': [{'kind': 'text', 'text': 'record-next-page', 'present': True}]}]
         table = '<plasmic-component data-plasmic-name="Results" data-plasmic-component="plasmic-antd6-table" data-props=\'{"data":{"data":[]},"pagination":false}\'><slot name="children"><plasmic-component data-plasmic-name="Field" data-plasmic-component="plasmic-antd6-table-column" data-props=\'{"dataIndex":"id"}\'></plasmic-component></slot></plasmic-component>'
         pager = '<plasmic-component data-plasmic-name="Pager" data-plasmic-component="plasmic-antd6-pagination" data-props=\'{"showTotal":"{{ total => total }}"}\'></plasmic-component>'
         page["baseVariantTplTree"] = original + table + pager
