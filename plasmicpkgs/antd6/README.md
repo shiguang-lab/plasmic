@@ -96,38 +96,26 @@ with separate editing and runtime behavior as in
 [Framer's overlay editor](https://www.framer.com/academy/lessons/overlays).
 
 ## Editing table columns
-
 Enter the Table through the canvas selection hierarchy, then click a column
 header or cell to select its Column. The
 hover outline covers the same column that a click selects, including its header
-and visible cells. **Column key** binds
-the field, and **Display as** selects Text, Tag, Link, Avatar, Image, Button, or
-Custom content for every row.
-
-Tag uses the field value automatically; array values display multiple tags.
-**Tag labels and colors** maps values to labels and colors. Unmapped values use
-**Default tag color** or a stable automatic color based on the value. Null values
-display an empty cell. Switching back to Text displays the original field value.
-
-Choose **Convert to custom template** in the Column settings to turn the current
-preset into ordinary editable nodes in **Custom render**, preserving field
-bindings and Tag mappings. Conversion is one undoable edit; selecting a column
-or pressing Enter does not change its preset. Select the Tag, button, image, or text to change
-its properties; add or arrange nodes in the render slot to compose richer cells.
-Its `cell`, `row`, and `index` bindings refer to each rendered row. The slot content
-buttons in Settings provide direct access to the template nodes. Switching a
-custom column to a preset keeps its existing template until an explicit conversion
-replaces it.
-
-Links use field values as URLs. Avatar and Image use them as image sources with
-a configurable pixel size. Link and Button labels can use a fixed label or the
-field value. **On cell click** receives the value, row, and row index; it remains
-available after a preset is converted to custom content. Design selection does
+and visible cells. **Data index** binds the field, and **Display type** selects
+Text or Custom render for every row. Text shows the field value; **Ellipsis**
+truncates it and shows a Tooltip only when the content overflows.
+Custom render shows the **Custom render** slot for every row. Its `cell`, `row`,
+and `index` bindings refer to each rendered row. Tag, Badge, Avatar, links,
+buttons and any other cell content are registered components placed in that
+slot, so every special presentation uses the same editing path. Select a node in
+the slot to change its properties. Bind Tag or Badge **Value** to `{{ cell }}`;
+the Tag's own **Tag labels and colors** map values to labels and colors, and
+Badge **Status labels** map values to a status preset and label. Older columns saved with a removed display
+preset render as plain text.
+**On cell click** fires when a button, link or avatar inside Custom render is
+clicked, and receives the cell value, row, and row index. Design selection does
 not invoke these actions or open image previews. Interactive preview and
 published pages keep native table interactions and omit selection highlights. Upgrade the
 hostless library metadata and load the rebuilt canvas runtime to expose these
 controls in existing Studio projects.
-
 ## Icons
 
 Install the independent **Ant Design Icons** library from **Component Store → Icons**.

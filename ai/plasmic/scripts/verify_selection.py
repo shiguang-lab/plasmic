@@ -97,6 +97,8 @@ def status_badge_errors(values, in_column, planned=False):
         value, options = values.get('value'), values.get('options')
         if not planned and (value is None or not str(value).strip()):
             errors.append('Mapped status Badge requires a nonempty value binding')
+        elif in_column and not planned and '{{' not in str(value):
+            errors.append('Status Badge in a Table Column must bind value to the row field, e.g. {{ cell }}; a literal value gives every row the same status')
         if not isinstance(options, list) or not options:
             errors.append('Status Badge options must be a literal nonempty list of {value,label,status}')
         else:
@@ -281,6 +283,7 @@ def check_page(plan, page):
     root = TextTree(page.get('baseVariantTplTree', '')).root
     nodes = list(authored(root))
     declarations = {c.get('nodeName'): c for c in plan.get('components', [])}
+    column_badges = set()  # Badges already checked through their status Column.
     for node in nodes:
         if node.get('tag') != 'plasmic-component':
             continue
@@ -302,9 +305,10 @@ def check_page(plan, page):
                 if not badges or values.get('displayType') not in (None, 'custom'):
                     errors.append({'check': 'statusPresentation', 'node': name, 'message': 'Status Column requires its native Badge render template; Tag/text presets are not status presentation'})
                 for badge in badges:
+                    column_badges.add(id(badge))
                     errors.extend({'check': 'statusPresentation', 'node': node_name(badge), 'message': message}
                                   for message in status_badge_errors(props(badge), True))
-            elif key == 'plasmicantd6badge':
+            elif key == 'plasmicantd6badge' and id(node) not in column_badges:
                 errors.extend({'check': 'statusPresentation', 'node': name, 'message': message}
                               for message in status_badge_errors(values, False))
         if key == 'plasmicantd6tablecolumn' and role != 'status':

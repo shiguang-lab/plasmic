@@ -71,11 +71,15 @@ class SelectionTests(unittest.TestCase):
                       {**mapped, 'options': [{**options[0], 'status': 'blue'}]},
                       {**mapped, 'status': 'success'},
                       {**mapped, 'options': '{{ $state.options }}'},
+                      {**mapped, 'value': 'ENABLED'},
                       {**mapped, 'color': '#52c41a'}, {**mapped, 'dot': True}, {**mapped, 'count': 1}):
             with self.subTest(wrong=wrong):
                 result = self.result(declarations, column_with(wrong))
                 self.assertFalse(result['passed'])
-                self.assertTrue(any(e['check'] == 'statusPresentation' for e in result['errors']), result)
+                messages = [e['message'] for e in result['errors'] if e['check'] == 'statusPresentation']
+                self.assertTrue(messages, result)
+                # A Badge checked through its status Column is not reported again standalone.
+                self.assertEqual(len(messages), len(set(messages)), result)
         self.assertTrue(self.result([declarations[1]], node('Indicator', badge, {'status': 'success', 'text': '启用'}))['passed'])
         self.assertFalse(self.result([declarations[1]], node('Indicator', badge, {'status': 'blue', 'text': 'x'}))['passed'])
         self.assertFalse(self.result([declarations[1]], node('Indicator', badge, {'count': 3}))['passed'])
