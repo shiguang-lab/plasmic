@@ -2,34 +2,19 @@ import {
   usePlasmicCanvasComponentInfo,
   usePlasmicCanvasContext,
 } from "@plasmicapp/host";
-import { Avatar, Button, Image, Table } from "antd";
+import { Table } from "antd";
 import type {
   ColumnGroupType,
   ColumnType,
   TableRowSelection,
 } from "antd/es/table/interface";
 import React from "react";
-import { AntdTag } from "./registerAdditional";
 import { AntdTooltip } from "./registerTooltip";
-import { columnTemplateHtml } from "./table-column-template";
 import { TablePaginationControl, TableScrollControl } from "./table-controls";
 import { Registerable, asArray, registerComponentHelper } from "./utils";
 
-export interface TagOption {
-  value: string;
-  label?: string;
-  color?: string;
-}
-
 export type AntdColumnProps = ColumnType<any> & {
-  displayType?:
-    "text" | "tag" | "link" | "avatar" | "image" | "button" | "custom";
-  tagOptions?: TagOption[];
-  tagColor?: string;
-  templateType?: AntdColumnProps["displayType"];
-  displayLabel?: string;
-  contentSize?: number;
-  openInNewTab?: boolean;
+  displayType?: "text" | "custom";
   onCellClick?: (cell: unknown, row: any, index: number) => void;
   children?: React.ReactNode;
   className?: string;
@@ -40,67 +25,12 @@ export type AntdColumnProps = ColumnType<any> & {
   };
 };
 
-function renderColumnValue(
-  value: unknown,
-  props: AntdColumnProps,
-  row: any,
-  rowIndex: number,
-  isEditing: boolean,
-) {
-  const text = value == null ? "" : String(value);
-  const label = props.displayLabel ?? text;
-  const size = props.contentSize ?? 32;
-  const onClick = isEditing
-    ? undefined
-    : () => props.onCellClick?.(value, row, rowIndex);
-  switch (props.displayType) {
-    case "link":
-      return text ? (
-        <a
-          href={text}
-          target={props.openInNewTab ? "_blank" : undefined}
-          rel={props.openInNewTab ? "noopener noreferrer" : undefined}
-          onClick={onClick}
-        >
-          {label}
-        </a>
-      ) : null;
-    case "avatar":
-      return text ? (
-        <Avatar src={text} size={size} alt={label} onClick={onClick} />
-      ) : null;
-    case "image":
-      return text ? (
-        <Image
-          src={text}
-          width={size}
-          height={size}
-          alt={label}
-          preview={!isEditing}
-          style={{ objectFit: "cover" }}
-        />
-      ) : null;
-    case "button":
-      return (
-        <Button size="small" onClick={onClick}>
-          {label}
-        </Button>
-      );
-  }
-  if (props.displayType !== "tag") {
-    return text;
-  }
-  return asArray(value)
-    .filter((item) => item != null)
-    .map((item, index) => (
-      <AntdTag
-        key={index}
-        value={String(item)}
-        options={props.tagOptions}
-        defaultColor={props.tagColor}
-        automaticColor
-      />
-    ));
+/** Custom render applies when selected explicitly, or when only a render slot is set. */
+function isCustomColumn(props: Pick<AntdColumnProps, "displayType" | "render">) {
+  return (
+    props.displayType === "custom" ||
+    (props.displayType === undefined && !!props.render)
+  );
 }
 
 /** Rendering the original column elements gives Studio a selectable Fiber for every cell. */
@@ -184,18 +114,13 @@ function getColumns(
       return getColumns(child.props.children, bodyCell, headerCell, isEditing);
     }
     const {
-      displayType,
-      templateType: _templateType,
-      tagOptions: _options,
-      tagColor: _color,
-      displayLabel: _label,
-      contentSize: _size,
-      openInNewTab: _target,
+      displayType: _displayType,
       onCellClick: _click,
       children: nested,
       render,
       ...column
     } = child.props;
+    const custom = isCustomColumn(child.props);
     const onHeaderCell: NonNullable<ColumnType<any>["onHeaderCell"]> = (
       col,
     ) => ({
@@ -224,9 +149,7 @@ function getColumns(
           const cellProps = column.onCell?.(row, index);
           return {
             ...cellProps,
-            ...(displayType === "custom" &&
-            !isEditing &&
-            child.props.onCellClick
+            ...(custom && !isEditing && child.props.onCellClick
               ? {
                   onClick: (event: React.MouseEvent<HTMLElement>) => {
                     cellProps?.onClick?.(event);
@@ -253,28 +176,11 @@ function getColumns(
           };
         },
         render: (value: any, row: any, index: number) =>
-          displayType === "custom" || (displayType === undefined && render)
-            ? (
-                render as
-                  | ((
-                      cell: unknown,
-                      row: any,
-                      index: number,
-                      column: unknown,
-                    ) => React.ReactNode)
-                  | undefined
-              )?.(value, row, index, {
-                text: value == null ? "" : String(value),
-                label:
-                  child.props.displayLabel ??
-                  (value == null ? "" : String(value)),
-                size: child.props.contentSize ?? 32,
-                openInNewTab: child.props.openInNewTab ?? false,
-                tagOptions: child.props.tagOptions ?? [],
-                tagColor: child.props.tagColor,
-                values: asArray(value).filter((item) => item != null),
-              })
-            : renderColumnValue(value, child.props, row, index, isEditing),
+          custom
+            ? render?.(value, row, index)
+            : value == null
+              ? ""
+              : String(value),
       },
     ];
   });
@@ -636,33 +542,7 @@ export function registerTable(loader?: Registerable) {
     displayName: "Column",
     styleSections: false,
     parentComponentName: "plasmic-antd6-table",
-    actions: [
-      {
-        type: "button-action",
-        label: "Convert to editable template",
-        hidden: (props: AntdColumnProps) =>
-          props.displayType === "custom" || !!props.render,
-        onClick: async ({ componentProps, studioOps }) => {
-          if (componentProps.render) {
-            return;
-          }
-          await studioOps.replaceSlotContent({
-            slotName: "render",
-            html: columnTemplateHtml(componentProps),
-            props: {
-              displayType: "custom",
-              templateType: componentProps.displayType ?? "text",
-            },
-          });
-        },
-      },
-    ],
     props: {
-      templateType: {
-        type: "choice",
-        options: ["text", "tag", "link", "avatar", "image", "button"],
-        hidden: () => true,
-      },
       title: {
         type: "slot",
         displayName: "Title",
@@ -678,92 +558,31 @@ export function registerTable(loader?: Registerable) {
         displayName: "Display type",
         options: [
           { value: "text", label: "Text" },
-          { value: "tag", label: "Tag" },
-          { value: "link", label: "Link" },
-          { value: "avatar", label: "Avatar" },
-          { value: "image", label: "Image" },
-          { value: "button", label: "Button" },
           { value: "custom", label: "Custom render" },
         ],
         defaultValueHint: (ps: AntdColumnProps) =>
           ps.render ? "custom" : "text",
         description:
-          "Applies to all rows. Convert to a template to select and edit its elements. Existing templates are preserved and can be restored by switching to Custom render.",
-      },
-      displayLabel: {
-        type: "string",
-        displayName: "Label",
-        description: "Uses the field value when unset. Also used as image alt text.",
-        hidden: (ps: AntdColumnProps) =>
-          !["link", "button", "avatar", "image"].includes(
-            (ps.displayType === "custom" ? ps.templateType : ps.displayType) ??
-              "text",
-          ),
-      },
-      contentSize: {
-        type: "number",
-        displayName: "Image / avatar size",
-        defaultValueHint: 32,
-        min: 1,
-        hidden: (ps: AntdColumnProps) =>
-          !["avatar", "image"].includes(
-            (ps.displayType === "custom" ? ps.templateType : ps.displayType) ??
-              "text",
-          ),
-      },
-      openInNewTab: {
-        type: "boolean",
-        displayName: "Open in new tab",
-        hidden: (ps: AntdColumnProps) =>
-          (ps.displayType === "custom" ? ps.templateType : ps.displayType) !==
-          "link",
+          "Applies to all rows. Text shows the field value. Custom render shows the Custom render slot for every row; place registered components such as Badge, Tag, Avatar or a link there.",
       },
       onCellClick: {
         type: "eventHandler",
         displayName: "On cell click",
-        description: "Triggered by clicking buttons, links, or avatars in this column. Also available to custom content.",
+        description:
+          "Triggered by clicking a button, link, or avatar inside Custom render. Receives the cell value, row, and row index.",
         argTypes: [
           { name: "cell", type: "object" },
           { name: "row", type: "object" },
           { name: "index", type: "number" },
         ],
-        hidden: (ps: AntdColumnProps) =>
-          !["button", "link", "avatar", "custom"].includes(
-            ps.displayType ?? "text",
-          ),
-      },
-      tagOptions: {
-        type: "array",
-        displayName: "Tag labels and colors",
-        hidden: (ps: AntdColumnProps) =>
-          (ps.displayType === "custom" ? ps.templateType : ps.displayType) !==
-          "tag",
-        description: "Map field values to labels and colors. Unmapped values are assigned colors automatically.",
-        itemType: {
-          type: "object",
-          nameFunc: (item: TagOption) => item.label || item.value,
-          fields: {
-            value: { type: "string", displayName: "Value" },
-            label: { type: "string", displayName: "Label" },
-            color: { type: "color", displayName: "Color" },
-          },
-        },
-      },
-      tagColor: {
-        type: "color",
-        displayName: "Default tag color",
-        description: "When unset, colors are assigned by value. Individual item colors take precedence.",
-        hidden: (ps: AntdColumnProps) =>
-          (ps.displayType === "custom" ? ps.templateType : ps.displayType) !==
-          "tag",
+        hidden: (ps: AntdColumnProps) => !isCustomColumn(ps),
       },
       render: {
         type: "slot",
-        renderPropParams: ["cell", "row", "index", "column"],
+        renderPropParams: ["cell", "row", "index"],
         hidePlaceholder: true,
         displayName: "Custom render",
-        hidden: (ps: AntdColumnProps) =>
-          (ps.displayType ?? (ps.render ? "custom" : "text")) !== "custom",
+        hidden: (ps: AntdColumnProps) => !isCustomColumn(ps),
       },
       align: {
         type: "choice",
@@ -798,7 +617,7 @@ export function registerTable(loader?: Registerable) {
         type: "boolean",
         displayName: "Ellipsis",
         description:
-          "Show ellipsis and a Tooltip only when content overflows. Convert to an editable template to customize the Tooltip content.",
+          "Show ellipsis and a Tooltip only when content overflows. For custom Tooltip content, place a Tooltip in Custom render.",
       },
     },
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerTable",

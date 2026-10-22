@@ -12,7 +12,34 @@ const AntdAffix = Ant.Affix;
 const AntdAlert = Ant.Alert;
 const AntdAnchor = Ant.Anchor;
 const AntdAutoComplete = Ant.AutoComplete;
-const AntdBadge = Ant.Badge;
+const badgeStatuses = [
+  "success",
+  "processing",
+  "default",
+  "error",
+  "warning"
+];
+function AntdBadge({
+  value,
+  options,
+  status,
+  text,
+  ...props
+}) {
+  if (value == null) {
+    return /* @__PURE__ */ React.createElement(Ant.Badge, { ...props, status, text });
+  }
+  const raw = String(value);
+  const option = Array.isArray(options) ? options.find((item) => item?.value === raw) : void 0;
+  return /* @__PURE__ */ React.createElement(
+    Ant.Badge,
+    {
+      ...props,
+      status: status ?? (badgeStatuses.includes(option?.status) ? option?.status : "default"),
+      text: text ?? (option?.label || raw)
+    }
+  );
+}
 const AntdBadgeRibbon = Ant.Badge.Ribbon;
 const AntdBorderBeam = Ant.BorderBeam;
 function AntdCard({
@@ -391,8 +418,26 @@ function registerAdditional(loader) {
     overflowCount: "number",
     color: { type: "color" },
     size: choice(["small", "medium"]),
-    status: choice(["success", "processing", "default", "error", "warning"]),
-    text: "string"
+    status: choice([...badgeStatuses]),
+    text: "string",
+    value: {
+      type: "string",
+      displayName: "Value",
+      description: "Bind the field value. A matching option supplies status and text; unmatched values show the raw value with the default status. Explicit Status and Text take precedence."
+    },
+    options: {
+      type: "array",
+      displayName: "Status labels",
+      itemType: {
+        type: "object",
+        nameFunc: (item) => item.label || item.value,
+        fields: {
+          value: { type: "string", displayName: "Value" },
+          label: { type: "string", displayName: "Label" },
+          status: { ...choice([...badgeStatuses]), displayName: "Status" }
+        }
+      }
+    }
   });
   register(loader, AntdBadgeRibbon, "badge-ribbon", "AntdBadgeRibbon", {
     children: slot("Ribbon content"),

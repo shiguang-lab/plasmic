@@ -11,7 +11,6 @@ import React from "react";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { AntdColumn, AntdTable } from "../src/registerTable";
 import { AntdTooltip, registerTooltip } from "../src/registerTooltip";
-import { columnTemplateHtml } from "../src/table-column-template";
 import type { Registerable } from "../src/utils";
 
 let width: number;
@@ -264,22 +263,7 @@ test.each(["", null])(
   },
 );
 
-test("ellipsis conversion exposes actual Tooltip title and children slots with current-row bindings", () => {
-  const root = document.createElement("div");
-  root.innerHTML = columnTemplateHtml({ dataIndex: "key", ellipsis: true });
-  const tooltip = root.querySelector("plasmic-component")!;
-  expect(tooltip.getAttribute("data-plasmic-component")).toBe(
-    "plasmic-antd6-tooltip",
-  );
-  expect(JSON.parse(tooltip.getAttribute("data-props")!)).toEqual({
-    onlyWhenOverflow: true,
-  });
-  expect(tooltip.querySelector('slot[name="children"]')?.textContent).toBe(
-    "{{ column.text }}",
-  );
-  expect(tooltip.querySelector('slot[name="title"]')?.textContent).toBe(
-    "{{ column.text }}",
-  );
+test("Tooltip registration exposes onlyWhenOverflow as a persisted boolean", () => {
   const registrations: any[] = [];
   registerTooltip({
     registerComponent: (_component, meta) => registrations.push(meta),
