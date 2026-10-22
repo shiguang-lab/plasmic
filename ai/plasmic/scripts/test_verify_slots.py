@@ -9,7 +9,15 @@ from verify_slots import check
 
 
 TABS = '<plasmic-component data-plasmic-name="scopeTabs" data-plasmic-component="plasmic-antd6-tabs"></plasmic-component>'
-CARD = '<plasmic-component data-plasmic-name="listCard" data-plasmic-component="plasmic-antd6-card"><slot name="children">' + TABS + '</slot></plasmic-component>'
+BODY = '''{"styles":{"body":{"padding":"0 20px"}}}'''
+
+
+def card(props=BODY, header='<slot name="title"></slot><slot name="extra"></slot>', content=TABS):
+    attrs = f" data-props='{props}'" if props else ''
+    return '<plasmic-component data-plasmic-name="listCard" data-plasmic-component="plasmic-antd6-card"' + attrs + '>' + header + '<slot name="children">' + content + '</slot></plasmic-component>'
+
+
+CARD = card()
 
 
 class CardOwnershipTests(unittest.TestCase):
@@ -49,7 +57,7 @@ class CardOwnershipTests(unittest.TestCase):
                 self.assert_only(check(intent, CARD), 'intentErrors')
 
     def test_card_padding_preserves_json_types(self):
-        expected = CARD.replace('data-plasmic-name="listCard"', '''data-plasmic-name="listCard" data-props='{"styles":{"body":{"padding":0}}}' ''')
+        expected = card('{"styles":{"body":{"padding":0}}}')
         self.assertTrue(check(expected, expected)['passed'])
         self.assert_only(check(expected, expected.replace('"padding":0', '"padding":false')), 'wrongCardPadding')
 
@@ -115,7 +123,7 @@ class CardOwnershipTests(unittest.TestCase):
         self.assertFalse(check(CARD, actual)["passed"])
 
     def test_explicit_empty_header_slots_reject_retained_defaults(self):
-        expected = CARD.replace('<slot name="children">', '<slot name="title"></slot><slot name="extra"></slot><slot name="children">')
+        expected = CARD
         self.assertTrue(check(expected, expected)['passed'])
         for slot_name in ['title', 'extra']:
             for child in ['Card title', '<span id="sample">Card title</span>']:
@@ -124,19 +132,41 @@ class CardOwnershipTests(unittest.TestCase):
                     self.assert_only(check(expected, actual), 'unprovidedSlotChildren')
 
     def test_hidden_default_does_not_fulfill_empty_header_intent(self):
-        expected = CARD.replace('<slot name="children">', '<slot name="title"></slot><slot name="children">')
-        actual = expected.replace('<slot name="title"></slot>', '<slot name="title">Card title</slot>').replace('data-plasmic-name="listCard"', '''data-plasmic-name="listCard" data-props='{"styles":{"header":{"display":"none"}}}' ''')
+        expected = CARD
+        actual = card('{"styles":{"body":{"padding":"0 20px"},"header":{"display":"none"}}}', '<slot name="title">Card title</slot><slot name="extra"></slot>')
         self.assert_only(check(expected, actual), 'unprovidedSlotChildren')
 
     def test_tabs_card_padding_is_not_information_card_padding(self):
-        expected = CARD.replace('data-plasmic-name="listCard"', '''data-plasmic-name="listCard" data-props='{"styles":{"body":{"padding":"0 20px"}}}' ''')
+        expected = CARD
         actual = expected.replace('0 20px', '16px 20px')
         self.assertEqual(check(expected, actual)["wrongCardPadding"], [{"card": "listCard", "property": "padding", "expected": "0 20px", "actual": "16px 20px"}])
         self.assertTrue(check(expected, expected)["passed"])
 
     def test_information_card_keeps_its_own_padding(self):
-        expected = CARD.replace('data-plasmic-name="listCard"', '''data-plasmic-name="listCard" data-props='{"styles":{"body":{"padding":"16px 20px"}}}' ''')
+        expected = card('{"styles":{"body":{"padding":"16px 20px"}}}', '', 'Summary')
         self.assertTrue(check(expected, expected)["passed"])
+
+    def test_tabs_first_card_without_planned_padding_fails(self):
+        for props in ['', '{"size":"medium","variant":"outlined"}', '{"styles":{"body":{"padding":"16px 20px"}}}', '{"styles":{"body":{"paddingTop":16}}}']:
+            with self.subTest(props=props):
+                planned = card(props)
+                self.assert_only(check(planned, planned), 'tabsCardPolicy')
+
+    def test_tabs_first_card_accepts_zero_top_forms(self):
+        for props in [BODY, '{"styles":{"body":{"padding":"0px 20px 0"}}}', '{"styles":{"body":{"padding":"16px 20px","paddingTop":0,"paddingBottom":0}}}']:
+            with self.subTest(props=props):
+                planned = card(props)
+                self.assertTrue(check(planned, planned)['passed'])
+
+    def test_tabs_first_card_must_plan_empty_header_slots(self):
+        for header in ['', '<slot name="title"></slot>', '<slot name="extra"></slot>']:
+            with self.subTest(header=header):
+                planned = card(header=header)
+                self.assert_only(check(planned, planned), 'tabsCardPolicy')
+
+    def test_tabs_inside_native_wrapper_is_still_tabs_first(self):
+        planned = card('', content='<div>' + TABS + '</div>')
+        self.assert_only(check(planned, planned), 'tabsCardPolicy')
 
     def test_native_names_use_public_readback_labels(self):
         expected = CARD.replace(TABS, '<div data-plasmic-name="listBody">' + TABS + '</div>')

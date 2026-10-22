@@ -62,6 +62,54 @@ def slot_owners(tree):
     return owners
 
 
+def component_identity(node):
+    return re.sub(r"[^a-z0-9]", "", node["attrs"].get("data-plasmic-component", "").lower())
+
+
+def edge_is_zero(body, edge):
+    """Resolve one body padding edge from padding shorthand and longhand."""
+    longhand = "padding" + edge.capitalize()
+    if longhand in body:
+        value = body[longhand]
+    elif "padding" in body:
+        parts = str(body["padding"]).split()
+        index = {"top": 0, "right": 1, "bottom": 2, "left": 3}[edge]
+        fallback = {1: [0, 0, 0, 0], 2: [0, 1, 0, 1], 3: [0, 1, 2, 1], 4: [0, 1, 2, 3]}.get(len(parts))
+        if not fallback:
+            return False
+        value = parts[fallback[index]]
+    else:
+        return False
+    return str(value).strip() in {"0", "0px"}
+
+
+def tabs_card_policy(intent_tree):
+    """A Card whose first content is Tabs must plan zero top padding and an empty header.
+
+    Tabs owns the top edge; without explicit styles.body padding the Card falls
+    back to its default padding, and omitted title/extra Slots keep defaults.
+    """
+    errors = []
+    for card in walk(intent_tree):
+        if card["tag"] != "plasmic-component" or component_identity(card) != "plasmicantd6card":
+            continue
+        content = next((n for n in card["children"] if n["tag"] == "slot" and n["attrs"].get("name") == "children"), None)
+        first = next((n for n in walk(content) if n is not content and n["tag"] == "plasmic-component"), None) if content else None
+        if not first or component_identity(first) != "plasmicantd6tabs":
+            continue
+        name = card["attrs"].get("data-plasmic-name")
+        props = json.loads(card["attrs"].get("data-props", "{}"))
+        styles = props.get("styles", {}) if isinstance(props.get("styles"), dict) else {}
+        body = styles.get("body", {}) if isinstance(styles.get("body"), dict) else {}
+        if not edge_is_zero(body, "top"):
+            errors.append({"card": name, "issue": "styles.body paddingTop must be 0 when Tabs is the first content", "body": body})
+        declared = {n["attrs"].get("name") for n in card["children"] if n["tag"] == "slot"}
+        for slot in ["title", "extra"]:
+            if slot not in declared:
+                errors.append({"card": name, "issue": f"declare an empty <slot name=\"{slot}\"></slot> for a headerless Tabs Card"})
+    return errors
+
+
 def check(intent, actual):
     intent_tree, actual_tree = Tree(intent).root, Tree(actual).root
     duplicates = []
@@ -93,6 +141,7 @@ def check(intent, actual):
     misplaced_card_content = []
     wrong_card_padding = []
     wrong_slot_owners = []
+    tabs_card_errors = tabs_card_policy(intent_tree)
     if not duplicates:
         intended_owners, actual_owners = slot_owners(intent_tree), slot_owners(actual_tree)
         for name in sorted(expected.keys() & found.keys()):
@@ -128,7 +177,7 @@ def check(intent, actual):
             actual_names = {node_name(n) for n in walk(actual_content) if node_name(n)} if actual_content else set()
             for child_name in sorted(intended_names - actual_names):
                 misplaced_card_content.append({"card": name, "component": child_name})
-    return {"intentErrors": intent_errors, "duplicateComponents": duplicates, "duplicateSlots": duplicate_slots, "missingComponents": missing, "wrongComponents": wrong_components, "wrongSlotOwners": wrong_slot_owners, "emptyCards": empty_cards, "cardContentOutsideSlot": misplaced_card_content, "wrongCardPadding": wrong_card_padding, "unprovidedSlotChildren": defaults, "passed": not any([intent_errors, duplicates, duplicate_slots, missing, wrong_components, wrong_slot_owners, empty_cards, misplaced_card_content, wrong_card_padding, defaults])}
+    return {"intentErrors": intent_errors, "duplicateComponents": duplicates, "duplicateSlots": duplicate_slots, "missingComponents": missing, "wrongComponents": wrong_components, "wrongSlotOwners": wrong_slot_owners, "emptyCards": empty_cards, "cardContentOutsideSlot": misplaced_card_content, "wrongCardPadding": wrong_card_padding, "tabsCardPolicy": tabs_card_errors, "unprovidedSlotChildren": defaults, "passed": not any([intent_errors, duplicates, duplicate_slots, missing, wrong_components, wrong_slot_owners, empty_cards, misplaced_card_content, wrong_card_padding, tabs_card_errors, defaults])}
 
 
 def main():
@@ -144,7 +193,7 @@ def main():
         parser.error("Select exactly one public MCP component readback")
     result = check(args.intent_html.read_text(encoding="utf-8"), models[0]["baseVariantTplTree"])
     print(json.dumps(result, ensure_ascii=False, indent=2))
-    structural_errors = any(result[key] for key in ["intentErrors", "duplicateComponents", "duplicateSlots", "missingComponents", "wrongComponents", "wrongSlotOwners", "emptyCards", "cardContentOutsideSlot", "wrongCardPadding"])
+    structural_errors = any(result[key] for key in ["intentErrors", "duplicateComponents", "duplicateSlots", "missingComponents", "wrongComponents", "wrongSlotOwners", "emptyCards", "cardContentOutsideSlot", "wrongCardPadding", "tabsCardPolicy"])
     raise SystemExit(0 if result["passed"] or (args.allow_defaults and not structural_errors) else 1)
 
 

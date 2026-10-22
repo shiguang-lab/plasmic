@@ -1,0 +1,7 @@
+{
+  "en": "- Use native Table column configuration and render slots for Tag and Badge status cells.\n- Add Badge value mapping and align component guidance with the registered contracts.\n- Strengthen prototype checks for table widths, scrolling, status columns, and headerless Tabs Card spacing.",
+  "zh-CN": "- 使用原生 Table 列配置，通过渲染插槽配置 Tag 和 Badge 状态单元格。\n- 新增 Badge 值映射，并统一组件指引与注册契约。\n- 加强表格列宽、横向滚动、状态列及无标题 Tabs Card 间距的原型校验。",
+  "zh-TW": "- 使用原生 Table 欄位設定，透過渲染插槽設定 Tag 和 Badge 狀態儲存格。\n- 新增 Badge 值對應，並統一元件指引與註冊契約。\n- 加強表格欄寬、橫向捲動、狀態欄及無標題 Tabs Card 間距的原型驗證。",
+  "ja": "- Table のネイティブ列設定と描画スロットで Tag と Badge のステータスセルを設定します。\n- Badge の値マッピングを追加し、ガイドを登録済みの仕様と統一しました。\n- 列幅、横スクロール、ステータス列、見出しのない Tabs Card の余白検証を強化しました。",
+  "ko": "- Table 기본 열 설정과 렌더링 슬롯으로 Tag 및 Badge 상태 셀을 구성합니다.\n- Badge 값 매핑을 추가하고 구성 요소 가이드를 등록된 계약과 일치시켰습니다.\n- 열 너비, 가로 스크롤, 상태 열 및 제목 없는 Tabs Card 간격 검증을 강화했습니다."
+}
