@@ -55,7 +55,8 @@ function design(index) {
     const menu = antd('menu', 'CatalogMenu', { mode: 'inline', defaultSelectedKeys: ['messages'] }, { children: ['messages', 'accounts', 'payments'].map((key, i) => antd('menu-item', ['MessagesModule', 'AccountsModule', 'PaymentsModule'][i], { key }, { children: ['消息模块', '账户模块', '支付模块'][i] })).join('') });
     const left = card('CatalogCard', flex('CatalogBody', antd('input-search', 'CatalogSearch', { placeholder: '搜索模块', allowClear: true }, {}, 'width:100%') + target('catalogItems', menu)), '模块目录');
     const content = tabs('Tabs', tab('all', '业务配置', 'BusinessConfigTab', flex('BusinessConfigContent', search('BusinessConfigSearchForm', 'Business', true) + table('BusinessConfigTable', sampleRows, 'Business', true))) + tab('platform', '平台配置', 'PlatformConfigTab', flex('PlatformConfigContent', search('PlatformConfigSearchForm', 'Platform', false) + table('PlatformConfigTable', sampleRows.slice(0, 8), 'Platform', false))), target('primaryActions', primaryAction()));
-    return antd('row', 'CatalogTabsSection', { gutter: 16, wrap: false, align: 'top' }, { children: antd('col', 'CatalogColumn', { flex: '248px' }, { children: left }, 'min-width:0') + antd('col', 'WorkspaceColumn', { flex: 'auto' }, { children: card('WorkspaceCard', content, null, null, '0 20px') }, 'min-width:0') }, 'width:100%;min-width:0');
+    // Antd Row gutter uses negative inline margins; a 100% width/max-width cap shifts the right edge inward by the gutter.
+    return antd('row', 'CatalogTabsSection', { gutter: 16, wrap: false, align: 'top' }, { children: antd('col', 'CatalogColumn', { flex: '248px' }, { children: left }, 'min-width:0') + antd('col', 'WorkspaceColumn', { flex: 'auto' }, { children: card('WorkspaceCard', content, null, null, '0 20px') }, 'min-width:0') }, 'min-width:0;max-width:none');
   };
   const descriptionItems = [
     { key: 'id', label: '编号', children: '1001' },
@@ -78,7 +79,7 @@ function design(index) {
   const drawerDetail = () => antd('drawer', 'Drawer', { placement: 'right', size: 640, open: false }, { title: target('drawerTitle', '查看资源'), children: target('detailContent', descriptions('Descriptions', 2)), footer: target('drawerActions', flex('FooterActions', button('CloseDetail', '关闭'), { vertical: false, justify: 'end', gap: 12 })) });
   const drawerForm = () => antd('drawer', 'Drawer', { placement: 'right', size: 640, open: false, destroyOnHidden: true }, { title: target('drawerTitle', '新增资源'), children: form(), footer: target('drawerActions', flex('FooterActions', button('CancelEdit', '取消') + button('SubmitRecord', '提交', { type: 'primary' }), { vertical: false, justify: 'end', gap: 12 })) });
   const shell = (content, active) => component('plasmic-overseas-app-shell', 'AppShell', { productName: '业务管理平台', userName: '示例用户', appSources: [{ value: 'demo', label: '示例应用' }], appSource: 'demo', currentTime: '2026-10-09T09:30:00+08:00', language: 'zh-CN', selectedMenuKey: active, menuItems: [{ key: 'resources', label: '资源管理', children: [{ key: 'list', label: '资源列表' }, { key: 'workspace', label: '配置工作区' }, { key: 'form', label: '新增资源', hidden: true }, { key: 'detail', label: '资源详情', hidden: true }] }] }, { children: content }, 'width:100%;height:100vh;min-width:1440px;min-height:0;max-height:100vh');
-  const own = (name, slots = {}) => component(name, name, {}, slots, 'width:100%;min-width:0');
+  const own = (name, slots = {}, styles = 'width:100%;min-width:0') => component(name, name, {}, slots, styles);
   const recordHeader = () => flex('DetailHeader', flex('DetailHeading', antd('tooltip', 'ReturnTooltip', { titleText: '返回资源列表', trigger: '{{ ["hover", "focus"] }}' }, { children: button('ReturnToList', '', { type: 'text' }, 'ArrowLeftOutlined') }) + antd('typography-title', 'RecordTitle', { level: 4 }, { children: '用户通知配置' }, 'margin:0;letter-spacing:normal'), { vertical: false, gap: 8, align: 'center' }, 'width:auto;min-width:0;flex:1') + antd('badge', 'RecordStatus', { status: 'success', text: '启用' }, {}, 'flex-shrink:0;white-space:nowrap'), { vertical: false, justify: 'space-between', align: 'center' });
   const templates = [
     { name: 'SearchTableSection', kind: 'section', pattern: 'standard-list', html: searchTable() },
@@ -90,7 +91,7 @@ function design(index) {
   ];
   const pages = () => [
     { name: 'StandardListPage', kind: 'page', pattern: 'standard-list', html: shell(own('SearchTableSection'), 'list') },
-    { name: 'SplitTabsPage', kind: 'page', pattern: 'split-tabs', html: shell(own('CatalogTabsSection'), 'workspace') },
+    { name: 'SplitTabsPage', kind: 'page', pattern: 'split-tabs', html: shell(own('CatalogTabsSection', {}, 'min-width:0;max-width:none'), 'workspace') },
     { name: 'BasicFormPage', kind: 'page', pattern: 'basic-form', html: shell(basicForm(), 'form') },
     { name: 'RecordDetailPage', kind: 'page', pattern: 'profile-basic', html: shell(flex('PageBody', recordHeader() + own('DetailSection')), 'detail'), propEdits: [{ nodeName: 'ReturnToList', props: { 'aria-label': '返回资源列表' } }] },
   ];

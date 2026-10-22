@@ -5498,5 +5498,22 @@
   "Imported \"{page}\" page from Figma": "Imported \"{page}\" page from Figma",
   "Check that the file is a valid .fig export and try again.": "Check that the file is a valid .fig export and try again.",
   "Inspecting": "Inspecting",
-  "Inspection complete": "Inspection complete"
+  "Inspection complete": "Inspection complete",
+  "Param": "Param",
+  "Function": "Function",
+  "Global changes": "Global changes",
+  "Change details": "Change details",
+  "Style token": "Style token",
+  "Data token": "Data token",
+  "Variant group": "Variant group",
+  "Failed to update libraries": "Failed to update libraries",
+  "Failed to update library": "Failed to update library",
+  "Export .plasmic": "Export .plasmic",
+  "Import .plasmic": "Import .plasmic",
+  "Export .plasmic…": "Export .plasmic…",
+  "Import .plasmic…": "Import .plasmic…",
+  "Failed to export .plasmic file": "Failed to export .plasmic file",
+  "Failed to import .plasmic file": "Failed to import .plasmic file",
+  "Imported project successfully": "Imported project successfully",
+  "Please select a valid .plasmic file.": "Please select a valid .plasmic file."
 }

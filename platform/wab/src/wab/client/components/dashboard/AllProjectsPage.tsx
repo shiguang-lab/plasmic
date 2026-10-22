@@ -1,6 +1,7 @@
 import NewProjectModal from "@/wab/client/components/NewProjectModal";
 import ProjectListItem from "@/wab/client/components/ProjectListItem";
 import { PublicLink } from "@/wab/client/components/PublicLink";
+import { ImportPlasmicButton } from "@/wab/client/components/dashboard/ImportPlasmicButton";
 import { NewProjectButton } from "@/wab/client/components/dashboard/NewProjectButton";
 import ProjectsFilter from "@/wab/client/components/dashboard/ProjectsFilter";
 import dashboard from "@/wab/client/components/dashboard/dashboard.module.scss";
@@ -53,6 +54,9 @@ const AllProjectsPage = React.forwardRef<HTMLDivElement>(
       (project) => project.workspaceId ?? "shared",
     );
 
+    const selectedWorkspaceId =
+      workspace === "all" ? undefined : (workspace as any);
+
     return (
       <section ref={ref} className={styles.root}>
         {documentTitle(t("All projects"))}
@@ -84,6 +88,7 @@ const AllProjectsPage = React.forwardRef<HTMLDivElement>(
           </Flex>
           <Flex align="center" wrap gap={12}>
             <NewProjectButton onClick={() => setShowNewProjectModal(true)} />
+            <ImportPlasmicButton workspaceId={selectedWorkspaceId} />
             <Segmented
               aria-label={t("View")}
               value={view}
@@ -144,7 +149,10 @@ const AllProjectsPage = React.forwardRef<HTMLDivElement>(
               }
             >
               {!matcher.hasQuery() && (
-                <NewProjectButton onClick={() => setShowNewProjectModal(true)} />
+                <Flex align="center" gap={8}>
+                  <NewProjectButton onClick={() => setShowNewProjectModal(true)} />
+                  <ImportPlasmicButton workspaceId={selectedWorkspaceId} />
+                </Flex>
               )}
             </Empty>
           ) : (

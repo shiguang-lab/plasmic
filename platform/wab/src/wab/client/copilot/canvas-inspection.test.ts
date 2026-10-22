@@ -91,7 +91,7 @@ it("expires abandoned inspections and restores the frame marker", async () => {
   try {
     const { studioCtx, component, iframe } = fixture();
     const inspection = await beginCanvasInspection(studioCtx, component);
-    await vi.advanceTimersByTimeAsync(120000);
+    await vi.advanceTimersByTimeAsync(600000);
     expect(iframe.getAttribute("data-plasmic-canvas-inspection")).toBe(
       "original",
     );
@@ -110,7 +110,7 @@ it("exports the requested frame without editing reveals and restores them on rel
     forExport: true,
   });
   expect(viewCtx.canvasExporting.get()).toBe(true);
-  expect(background.mock.calls[0][2]).toEqual({ frameUuid: "frame" });
+  expect(background.mock.calls[0][2]).toEqual({ frameUuid: "frame", timeoutMs: 600000 });
   expect(navigate).not.toHaveBeenCalled();
   await endCanvasInspection(studioCtx, inspection.inspectionId);
   expect(viewCtx.canvasExporting.get()).toBe(false);
@@ -137,7 +137,7 @@ it("shows inspection acquisition while pinned and clears it on success or expiry
     await vi.advanceTimersByTimeAsync(2000);
     expect(studioCtx.copilotActivity.requests).toHaveLength(0);
     await beginCanvasInspection(studioCtx, component);
-    await vi.advanceTimersByTimeAsync(120000);
+    await vi.advanceTimersByTimeAsync(600000);
     expect(studioCtx.copilotActivity.requests).toHaveLength(0);
   } finally {
     vi.useRealTimers();

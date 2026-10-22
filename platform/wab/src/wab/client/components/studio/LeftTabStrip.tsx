@@ -53,6 +53,7 @@ export interface NavMenuItem {
   className?: string;
   onClick?: () => void;
   showAlert?: "showAlert" | "showYellowCircle" | undefined;
+  isSelected?: boolean;
 }
 
 export interface NavMenuGroup {
@@ -290,6 +291,13 @@ More
     hasLabel: boolean,
     onClick: (() => void) | undefined,
   ) {
+    const isSelected =
+      item.isSelected ??
+      (item.tabKey &&
+        item.tabKey === studioCtx.leftTabKey &&
+        !studioCtx.showAddDrawer() &&
+        !studioCtx.panelsHidden);
+    const isSubmenuItem = onClick != null;
     return (
       (item.cond ?? true) && (
         <LeftTabButton
@@ -303,7 +311,8 @@ More
               item.onClick?.();
               if (item.tabKey) {
                 if (
-                  studioCtx.leftTabKey === item.tabKey &&
+                  !isSubmenuItem &&
+                  isSelected &&
                   !studioCtx.showAddDrawer() &&
                   !studioCtx.panelsHidden
                 ) {
@@ -319,23 +328,12 @@ More
               onClick?.();
             })
           }
-          expanded={
-            item.tabKey
-              ? studioCtx.leftTabKey === item.tabKey &&
-                !studioCtx.showAddDrawer() &&
-                !studioCtx.panelsHidden
-              : undefined
-          }
+          expanded={item.tabKey ? isSelected : undefined}
           data-test-tabkey={key}
           showAlert={item.showAlert}
           href={item.href}
           className={item.className}
-          isSelected={
-            item.tabKey &&
-            item.tabKey === studioCtx.leftTabKey &&
-            !studioCtx.showAddDrawer() &&
-            !studioCtx.panelsHidden
-          }
+          isSelected={isSelected}
         />
       )
     );
@@ -398,7 +396,8 @@ More
                         !studioCtx.panelsHidden &&
                         Object.values(item.items).some(
                           (i) =>
-                            !!i.tabKey && i.tabKey === studioCtx.leftTabKey,
+                            i.isSelected ??
+                            (!!i.tabKey && i.tabKey === studioCtx.leftTabKey),
                         ))
                     }
                   />
@@ -513,30 +512,44 @@ More
             },
           })}
           {canViewTab("libraries") &&
-            renderButtonGroup({
-              libraries: {
-                type: "group",
-                icon: <EditorToolIcon tool="Libraries" />,
-                title: t("Libraries"),
-                items: {
-                  store: {
-                    type: "item",
-                    tabKey: "libraries",
-                    icon: <ComponentsvgIcon />,
-                    label: t("Component store"),
-                    onClick: () => studioCtx.setLibraryTab("store"),
-                  },
-                  imports: {
-                    type: "item",
-                    tabKey: "libraries",
-                    icon: <ComponentssvgIcon />,
-                    label: t("Imported projects"),
-                    cond: isLoggedIn && canViewTab("imports"),
-                    onClick: () => studioCtx.setLibraryTab("imports"),
+            (() => {
+              const canViewImports = isLoggedIn && canViewTab("imports");
+              const isLibrariesOpen =
+                studioCtx.leftTabKey === "libraries" &&
+                !studioCtx.showAddDrawer() &&
+                !studioCtx.panelsHidden;
+              const isImportsActive =
+                isLibrariesOpen &&
+                canViewImports &&
+                studioCtx.libraryTab === "imports";
+              const isStoreActive = isLibrariesOpen && !isImportsActive;
+              return renderButtonGroup({
+                libraries: {
+                  type: "group",
+                  icon: <EditorToolIcon tool="Libraries" />,
+                  title: t("Libraries"),
+                  items: {
+                    store: {
+                      type: "item",
+                      tabKey: "libraries",
+                      icon: <ComponentsvgIcon />,
+                      label: t("Component store"),
+                      isSelected: isStoreActive,
+                      onClick: () => studioCtx.setLibraryTab("store"),
+                    },
+                    imports: {
+                      type: "item",
+                      tabKey: "libraries",
+                      icon: <ComponentssvgIcon />,
+                      label: t("Imported projects"),
+                      cond: canViewImports,
+                      isSelected: isImportsActive,
+                      onClick: () => studioCtx.setLibraryTab("imports"),
+                    },
                   },
                 },
-              },
-            })}
+              });
+            })()}
           <LeftTabButton
             label={t("AI")}
             tooltip={t("AI assistant")}

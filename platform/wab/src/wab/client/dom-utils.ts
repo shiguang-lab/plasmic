@@ -364,20 +364,36 @@ export async function maybeUploadImage(
 }
 
 export const getUploadedFile = (
-  f: (content: string) => void | Promise<void>,
+  f: (content: string, file?: File) => void | Promise<void>,
+  opts?: { accept?: string; onCancel?: () => void },
 ) => {
   const $input = $(".hidden-file-selector");
+  if (opts?.accept) {
+    $input.attr("accept", opts.accept);
+  }
+  const cleanup = () => {
+    $input.off("change cancel");
+    $input.val("");
+    $input.attr("accept", ".plasmic,.json,.txt");
+  };
   const handleFileChange = async () => {
     const files = $input.prop("files") as FileList | null;
     if (files && files.length > 0) {
-      const data = await readUploadedFileAsText(files[0]);
-      await f(data);
+      const file = files[0];
+      const data = await readUploadedFileAsText(file);
+      cleanup();
+      await f(data, file);
+    } else {
+      cleanup();
+      opts?.onCancel?.();
     }
-    $input.unbind("change", handleFileChange);
-    // Clear files so next time file selection will trigger change event
-    $input.val("");
   };
-  $input.change(handleFileChange);
+  $input.off("change cancel");
+  $input.on("change", handleFileChange);
+  $input.on("cancel", () => {
+    cleanup();
+    opts?.onCancel?.();
+  });
   $input.trigger("click");
 };
 

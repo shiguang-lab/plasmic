@@ -318,3 +318,74 @@ it("opening More preserves AI and clicking AI closes More", async () => {
     "false",
   );
 });
+
+it.each([
+  ["store", "Component store", "Imported projects"],
+  ["imports", "Imported projects", "Component store"],
+])(
+  "highlights only %s when Libraries is open with that active tab",
+  async (tab, activeLabel, inactiveLabel) => {
+    mocks.ctx.leftTabKey = "libraries";
+    mocks.ctx.libraryTab = tab;
+    mocks.ctx.drawer = false;
+    mocks.ctx.leftTabGroup = "libraries";
+    render(<LeftTabStrip useVersionsCTA={false} />);
+    const activeBtn = await screen.findByRole("button", { name: activeLabel });
+    const inactiveBtn = screen.getByRole("button", { name: inactiveLabel });
+    expect(activeBtn).toHaveAttribute("aria-current", "true");
+    expect(inactiveBtn).not.toHaveAttribute("aria-current");
+  },
+);
+
+it("switches library destination without closing panel when another choice is selected", async () => {
+  mocks.ctx.leftTabKey = "libraries";
+  mocks.ctx.libraryTab = "store";
+  mocks.ctx.drawer = false;
+  mocks.ctx.leftTabGroup = "libraries";
+  render(<LeftTabStrip useVersionsCTA={false} />);
+  fireEvent.click(
+    await screen.findByRole("button", { name: "Imported projects" }),
+  );
+  expect(mocks.ctx.libraryTab).toBe("imports");
+  expect(mocks.ctx.leftTabKey).toBe("libraries");
+});
+
+it("keeps panel open when currently active library choice is clicked again", async () => {
+  mocks.ctx.leftTabKey = "libraries";
+  mocks.ctx.libraryTab = "store";
+  mocks.ctx.drawer = false;
+  mocks.ctx.leftTabGroup = "libraries";
+  render(<LeftTabStrip useVersionsCTA={false} />);
+  fireEvent.click(
+    await screen.findByRole("button", { name: "Component store" }),
+  );
+  expect(mocks.ctx.leftTabKey).toBe("libraries");
+  expect(mocks.ctx.libraryTab).toBe("store");
+});
+
+it("switches destination in Assets menu and clicking active item keeps panel open", async () => {
+  mocks.ctx.leftTabKey = "tokens";
+  mocks.ctx.drawer = false;
+  mocks.ctx.leftTabGroup = "assets";
+  render(<LeftTabStrip useVersionsCTA={false} />);
+  fireEvent.click(
+    await screen.findByRole("button", { name: "Components" }),
+  );
+  expect(mocks.ctx.leftTabKey).toBe("components");
+
+  mocks.ctx.leftTabGroup = "assets";
+  fireEvent.click(
+    await screen.findByRole("button", { name: "Components" }),
+  );
+  expect(mocks.ctx.leftTabKey).toBe("components");
+});
+
+it("toggles panel closed only when rail button is clicked directly", async () => {
+  mocks.ctx.leftTabKey = "lint";
+  mocks.ctx.drawer = false;
+  mocks.ctx.panelsHidden = false;
+  render(<LeftTabStrip useVersionsCTA={false} />);
+  fireEvent.click(screen.getByRole("button", { name: "Issues" }));
+  expect(mocks.ctx.leftTabKey).toBeUndefined();
+});
+

@@ -51,3 +51,6 @@ playwright-report/
 
 # NAS deployment credentials
 /deploy/secrets/
+
+# Agent task scratch directories
+/.agents/

@@ -57,7 +57,7 @@ class DesktopController {
     };
     ipcMain.on("desktop:result", this.receive);
   }
-  invoke(method, input = {}, timeout = 90000) {
+  invoke(method, input = {}, timeout = 600000) {
     const window = this.getWindow();
     if (!window || window.isDestroyed()) {
       throw new Error("Open the desktop editor window");
@@ -66,7 +66,15 @@ class DesktopController {
       const id = randomUUID();
       const timer = setTimeout(() => {
         this.pending.delete(id);
-        reject(new Error("Editor command timed out: " + method));
+        reject(
+          new Error(
+            "Editor command timed out: " +
+              method +
+              (method === "beginCanvasInspection"
+                ? ". The background canvas re-render did not finish; on heavy multi-artboard canvases, navigate the artboard into view and capture with get_screenshot mode workspace instead of pinning componentUuid/frameUuid."
+                : ""),
+          ),
+        );
       }, timeout);
       this.pending.set(id, { window, timer, resolve, reject });
       window.webContents.send("desktop:invoke", { id, method, input });

@@ -4,9 +4,8 @@ import { showTemporaryPrompt } from "@/wab/client/components/quick-modals";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import { Textbox } from "@/wab/client/components/widgets/Textbox";
-import { getUiLocale, useI18n } from "@/wab/client/i18n";
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
-import { translate } from "@/wab/client/i18n/locales";
 import CodeIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Code";
 import ComponentIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Component";
 import ImageBlockIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__ImageBlock";
@@ -74,6 +73,103 @@ type PublishProjResponse = {
   title: string;
 };
 
+function DependencyVersionBanner(props: {
+  name: string;
+  curVersion?: string;
+  targetVersion?: string;
+  isHostless?: boolean;
+}) {
+  const { name, curVersion, targetVersion, isHostless } = props;
+  const isUpgrade = !!targetVersion && !!curVersion;
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        background: "var(--ui-elevated, rgba(255, 255, 255, 0.04))",
+        border: "1px solid var(--ui-border-subtle, rgba(255, 255, 255, 0.08))",
+        borderRadius: 8,
+        padding: "12px 16px",
+        marginBottom: 16,
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <Icon
+          icon={isHostless ? CodeIcon : ComponentIcon}
+          className="component-fg"
+        />
+        <div>
+          <div
+            style={{
+              fontWeight: 600,
+              fontSize: 14,
+              color: "var(--ui-text, #fff)",
+            }}
+          >
+            {name}
+          </div>
+          <div
+            style={{
+              fontSize: 11,
+              color: "var(--ui-muted, rgba(255, 255, 255, 0.45))",
+            }}
+          >
+            {isHostless ? (
+              <UiText message="Code library" />
+            ) : (
+              <UiText message="Shared project" />
+            )}
+          </div>
+        </div>
+      </div>
+      {isUpgrade ? (
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <span
+            style={{
+              padding: "2px 8px",
+              borderRadius: 4,
+              background: "rgba(255, 255, 255, 0.08)",
+              color: "var(--ui-muted, rgba(255, 255, 255, 0.65))",
+              fontSize: 12,
+              fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
+            }}
+          >
+            v{curVersion}
+          </span>
+          <span style={{ opacity: 0.45, fontSize: 12 }}>➔</span>
+          <span
+            style={{
+              padding: "2px 8px",
+              borderRadius: 4,
+              background: "rgba(114, 46, 209, 0.2)",
+              color: "#b37feb",
+              fontWeight: 600,
+              fontSize: 12,
+              fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
+            }}
+          >
+            v{targetVersion}
+          </span>
+        </div>
+      ) : curVersion ? (
+        <span
+          style={{
+            padding: "2px 8px",
+            borderRadius: 4,
+            background: "rgba(255, 255, 255, 0.08)",
+            color: "var(--ui-muted, rgba(255, 255, 255, 0.65))",
+            fontSize: 12,
+            fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
+          }}
+        >
+          v{curVersion}
+        </span>
+      ) : null}
+    </div>
+  );
+}
+
 export async function promptUpgradeDeps(props: {
   studioCtx: StudioCtx;
   targetDeps: ProjectDependency[];
@@ -86,38 +182,39 @@ export async function promptUpgradeDeps(props: {
       onOk={() => onSubmit(true)}
       okText={<UiText message="Confirm" />}
       cancelText={<UiText message="Cancel" />}
-      onCancel={() => onCancel()}
+      onCancel={onCancel}
+      styles={{
+        body: {
+          marginInline: -24,
+        },
+      }}
     >
       <Scrollbar style={{ maxHeight: "calc(80vh - 150px)" }}>
-        {targetDeps.map((targetDep) => {
-          const curDep = ensure(
-            studioCtx.site.projectDependencies.find(
-              (dep) => dep.pkgId === targetDep.pkgId,
-            ),
-            "Target dependency must be one of the existing project dependencies",
-          );
-          return (
-            <WarnChangeDep
-              studioCtx={studioCtx}
-              curDep={curDep}
-              targetDep={targetDep}
-              heading={
-                <p>
-                  <UiText
-                    message={
-                      "You are upgrading {part1} from {part2} to {part3}."
-                    }
-                    values={{
-                      part1: targetDep.name,
-                      part2: <strong>v{curDep.version}</strong>,
-                      part3: <strong>v{targetDep.version}</strong>,
-                    }}
+        <div style={{ paddingInline: 24 }}>
+          {targetDeps.map((targetDep) => {
+            const curDep = ensure(
+              studioCtx.site.projectDependencies.find(
+                (dep) => dep.pkgId === targetDep.pkgId,
+              ),
+              "Target dependency must be one of the existing project dependencies",
+            );
+            return (
+              <WarnChangeDep
+                studioCtx={studioCtx}
+                curDep={curDep}
+                targetDep={targetDep}
+                heading={
+                  <DependencyVersionBanner
+                    name={targetDep.name}
+                    curVersion={curDep.version}
+                    targetVersion={targetDep.version}
+                    isHostless={isHostLessPackage(curDep.site)}
                   />
-                </p>
-              }
-            />
-          );
-        })}
+                }
+              />
+            );
+          })}
+        </div>
       </Scrollbar>
     </Modal>
   ));
@@ -146,26 +243,29 @@ export async function promptUpgradeDep(props: {
       onOk={() => onSubmit(true)}
       okText={<UiText message="Confirm" />}
       cancelText={<UiText message="Cancel" />}
-      onCancel={() => onCancel()}
+      onCancel={onCancel}
+      styles={{
+        body: {
+          marginInline: -24,
+        },
+      }}
     >
       <Scrollbar style={{ maxHeight: "calc(80vh - 150px)" }}>
-        <WarnChangeDep
-          studioCtx={studioCtx}
-          curDep={curDep}
-          targetDep={targetDep}
-          heading={
-            <p>
-              <UiText
-                message={"You are upgrading {part1} from {part2} to {part3}."}
-                values={{
-                  part1: targetDep.name,
-                  part2: <strong>v{curDep.version}</strong>,
-                  part3: <strong>v{targetDep.version}</strong>,
-                }}
+        <div style={{ paddingInline: 24 }}>
+          <WarnChangeDep
+            studioCtx={studioCtx}
+            curDep={curDep}
+            targetDep={targetDep}
+            heading={
+              <DependencyVersionBanner
+                name={targetDep.name}
+                curVersion={curDep.version}
+                targetVersion={targetDep.version}
+                isHostless={isHostLessPackage(curDep.site)}
               />
-            </p>
-          }
-        />
+            }
+          />
+        </div>
       </Scrollbar>
     </Modal>
   ));
@@ -176,13 +276,6 @@ export async function promptDeleteDep(props: {
   curDep: ProjectDependency;
 }) {
   const { studioCtx, curDep } = props;
-  const depName = isHostLessPackage(curDep.site) ? (
-    translate(getUiLocale(), 'package "{name}"', { name: curDep.name })
-  ) : (
-    <>
-      "{curDep.name}" <strong>v{curDep.version}</strong>
-    </>
-  );
   return showTemporaryPrompt<DeleteDepResponse>((onSubmit, onCancel) => (
     <Modal
       title={
@@ -195,24 +288,28 @@ export async function promptDeleteDep(props: {
       onOk={() => onSubmit(true)}
       okText={<UiText message="Confirm" />}
       cancelText={<UiText message="Cancel" />}
-      onCancel={() => onCancel()}
+      onCancel={onCancel}
+      styles={{
+        body: {
+          marginInline: -24,
+        },
+      }}
     >
       <Scrollbar style={{ maxHeight: "calc(80vh - 150px)" }}>
-        <WarnChangeDep
-          studioCtx={studioCtx}
-          curDep={curDep}
-          targetDep={undefined}
-          heading={
-            <p>
-              <UiText
-                message={
-                  "You will no longer be able to use components, styles, and other assets from {part1}."
-                }
-                values={{ part1: depName }}
+        <div style={{ paddingInline: 24 }}>
+          <WarnChangeDep
+            studioCtx={studioCtx}
+            curDep={curDep}
+            targetDep={undefined}
+            heading={
+              <DependencyVersionBanner
+                name={curDep.name}
+                curVersion={curDep.version}
+                isHostless={isHostLessPackage(curDep.site)}
               />
-            </p>
-          }
-        />
+            }
+          />
+        </div>
       </Scrollbar>
     </Modal>
   ));
@@ -589,7 +686,35 @@ const WarnChangeDep = observer(function WarnChangeDep_(props: {
       {heading}
       {diffs.length > 0 && (
         <div className="mb-m">
-          <UiText message={"The changes are:"} />
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginBottom: 10,
+            }}
+          >
+            <span
+              style={{
+                fontWeight: 600,
+                fontSize: 13,
+                color: "var(--ui-text, #fff)",
+              }}
+            >
+              <UiText message={"Change details"} />
+            </span>
+            <span
+              style={{
+                fontSize: 12,
+                color: "var(--ui-muted, rgba(255, 255, 255, 0.45))",
+              }}
+            >
+              <UiText
+                message={"{count} changes"}
+                values={{ count: diffs.length }}
+              />
+            </span>
+          </div>
           <SiteDiffs diffs={diffs} />
         </div>
       )}

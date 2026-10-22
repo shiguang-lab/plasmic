@@ -341,6 +341,7 @@ export function makeDefaultStylesRules(
     const textSelector = `:where(.${makeWabHtmlTextClassName(opts)} ${tag})`;
     if (tag === "*") {
       return `
+        :where(*, *::before, *::after) { box-sizing: border-box; }
         :where(.${classNameBase}all) { ${makeDefaultStylesRuleBodyFor(tag)} }
         ${textSelector} { ${makeDefaultStylesRuleBodyFor(tag, true)} }
       `;
@@ -465,6 +466,7 @@ export function mkComponentRootResetRule(
   resolver: CssVarResolver,
 ) {
   const m = new Map<string, string>();
+  m.set("box-sizing", "border-box");
   componentRootResetProps.forEach((prop) => {
     const val = resolver.resolveThemeProp(prop);
     if (val) {

@@ -18,9 +18,12 @@ function documentContext(dom) {
     HTMLOptionElement: dom.window.HTMLOptionElement,
     requestAnimationFrame: (callback) => callback(),
     setTimeout,
+    URLSearchParams,
   };
 }
-function domFor(html) {
+// Canvas fixtures model Studio artboards that finished rendering, so they carry
+// the render-ready signal Studio sets; pass { renderReady: false } to opt out.
+function domFor(html, { renderReady = true } = {}) {
   const dom = new JSDOM(html, {
     url: "https://canvas.example/#canvas=true",
     runScripts: "dangerously",
@@ -37,6 +40,9 @@ function domFor(html) {
       width: 300,
       height: 20,
     });
+  }
+  if (renderReady) {
+    dom.window.document.documentElement.setAttribute("data-plasmic-render-ready", "");
   }
   return dom;
 }
@@ -322,6 +328,7 @@ test("exports valid rich text and strips selected column chrome without removing
   );
   try {
     const result = await renderCanvas(windowFor(source), {});
+    assert.equal(result.html.includes("data-plasmic-render-ready"), false);
     const standalone = domFor(result.html);
     const doc = standalone.window.document;
     assert.equal(doc.querySelectorAll("p").length, 2);
@@ -389,4 +396,16 @@ test("layout text excludes descendant CSS, scripts and hidden content", async ()
     controller.close();
     source.window.close();
   }
+});
+
+test("a code-component artboard without __wab_val_root is ready once Studio signals render-ready", async () => {
+  const dom = domFor('<html data-plasmic-frame-uuid="code-frame"><body><div class="AppShell"><span>Shell content</span></div></body></html>');
+  const frames = await canvasFrames(windowFor(dom));
+  assert.equal(frames.length, 1);
+  assert.equal(frames[0].layout.frameUuid, "code-frame");
+  assert.ok(frames[0].layout.elements.some((element) => element.text === "Shell content"));
+});
+test("an artboard without the render-ready signal or a live hash is not ready", async () => {
+  const dom = domFor('<html><body><div class="__wab_val_root"><span>Rendering</span></div></body></html>', { renderReady: false });
+  await assert.rejects(canvasFrames(windowFor(dom), undefined, undefined, undefined, AbortSignal.timeout(500)), { name: "TimeoutError" });
 });

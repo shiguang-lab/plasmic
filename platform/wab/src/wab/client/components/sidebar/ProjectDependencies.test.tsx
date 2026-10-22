@@ -23,6 +23,9 @@ const mocks = vi.hoisted(() => ({
   error: vi.fn(),
   promptDelete: vi.fn(),
   promptImport: vi.fn(),
+  promptUpgrade: vi.fn(),
+  upgrade: vi.fn(),
+  getPkgVersion: vi.fn(),
   add: vi.fn(),
 }));
 vi.mock("@/wab/client/contexts/StudioContexts", () => ({
@@ -30,7 +33,11 @@ vi.mock("@/wab/client/contexts/StudioContexts", () => ({
     appCtx: {
       selfInfo: { email: "user@example.com" },
       appConfig: { hostLessComponents: mocks.catalog },
+      api: {
+        getPkgVersion: mocks.getPkgVersion,
+      },
     },
+    bundler: () => ({}),
     canSave: () => mocks.canSave,
     getLeftTabPermission: () => mocks.permission,
     projectDependencyManager: {
@@ -39,6 +46,7 @@ vi.mock("@/wab/client/contexts/StudioContexts", () => ({
       removeByPkgId: mocks.remove,
       getHostLessPackageDependents: mocks.dependents,
       addByProjectId: mocks.add,
+      upgradeProjectDeps: mocks.upgrade,
     },
   }),
 }));
@@ -76,7 +84,7 @@ vi.mock("@/wab/client/components/modals/ImportProjectModal", () => ({
 }));
 vi.mock("@/wab/client/components/modals/UpgradeDepModal", () => ({
   promptDeleteDep: mocks.promptDelete,
-  promptUpgradeDep: vi.fn(),
+  promptUpgradeDep: mocks.promptUpgrade,
   promptUpgradeDeps: vi.fn(),
 }));
 vi.mock("@/wab/client/ErrorNotifications", () => ({ showError: mocks.error }));
@@ -109,7 +117,9 @@ vi.mock("@/wab/shared/core/sites", () => ({
   isHostLessPackage: (site: any) => !!site.hostLessPackageInfo,
 }));
 vi.mock("@/wab/shared/core/tagged-unbundle", () => ({
-  unbundleProjectDependency: vi.fn(),
+  unbundleProjectDependency: () => ({
+    projectDependency: { name: "antd6", site: {} },
+  }),
 }));
 vi.mock("@shiguang2/components/esm/scrollbar", () => ({
   Scrollbar: ({ children }: any) => <div>{children}</div>,
@@ -145,6 +155,11 @@ beforeEach(() => {
   mocks.refresh.mockResolvedValue(undefined);
   mocks.dependents.mockReturnValue([]);
   mocks.promptDelete.mockResolvedValue(true);
+  mocks.promptUpgrade.mockResolvedValue(true);
+  mocks.getPkgVersion.mockResolvedValue({
+    pkg: { projectId: "antd6" },
+    depPkgs: [],
+  });
 });
 afterEach(cleanup);
 
@@ -154,7 +169,10 @@ it("shows real names, stable types and imported versions without invented proven
   expect(screen.getByText("Code library")).toBeVisible();
   expect(screen.getByText("v0.4.7")).toBeVisible();
   expect(screen.getByText("3 libraries")).toBeVisible();
-  expect(screen.getAllByText("View update")).toHaveLength(1);
+  expect(screen.getAllByText("View update")).toHaveLength(2);
+  expect(screen.getByText("New version available v0.5.0")).toBeVisible();
+  expect(screen.getByText("New version available v1.5.0")).toBeVisible();
+  expect(screen.getByRole("button", { name: "Update all" })).toBeVisible();
   expect(
     screen
       .getByText("No version")
@@ -225,4 +243,14 @@ it("imports a project URL through the existing dependency manager", async () => 
   await waitFor(() =>
     expect(mocks.add).toHaveBeenCalledWith("business-library"),
   );
+});
+it("upgrades hostless code library through the upgrade prompt and dependency manager", async () => {
+  render(<ProjectDependenciesPanel />);
+  const viewUpdateButtons = screen.getAllByRole("button", {
+    name: "View update",
+  });
+  fireEvent.click(viewUpdateButtons[0]);
+  await waitFor(() => expect(mocks.getPkgVersion).toHaveBeenCalledWith("antd6", "0.5.0"));
+  await waitFor(() => expect(mocks.promptUpgrade).toHaveBeenCalled());
+  await waitFor(() => expect(mocks.upgrade).toHaveBeenCalled());
 });

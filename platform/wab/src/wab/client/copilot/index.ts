@@ -46,6 +46,7 @@ import { ensureOk } from "@/wab/commons/neverthrow-utils";
 import {
   cloneArenaFrame,
   ensureActivatedScreenVariantsForFrameByWidth,
+  FrameViewMode,
   getArenaFrames,
   getArenaType,
   getArenaUuidOrName,
@@ -55,7 +56,7 @@ import {
 } from "@/wab/shared/Arenas";
 import { VariantOptionsType } from "@/wab/shared/TplMgr";
 import { VariantTplMgr } from "@/wab/shared/VariantTplMgr";
-import { getBaseVariant, isScreenVariantGroup } from "@/wab/shared/Variants";
+import { getBaseVariant, isBaseVariant, isScreenVariantGroup } from "@/wab/shared/Variants";
 import { usedHostLessPkgs } from "@/wab/shared/cached-selectors";
 import { paramToVarName } from "@/wab/shared/codegen/util";
 import { assert, asyncTimeout, ensure, withTimeout } from "@/wab/shared/common";
@@ -108,9 +109,11 @@ import {
   getAllEventHandlersOfParamType,
   isTplImage,
   isTplTextBlock,
+  isTplVariantable,
   mkTplTagX,
   tplChildren,
 } from "@/wab/shared/core/tpls";
+import { RSH } from "@/wab/shared/RuleSetHelpers";
 import { normProp } from "@/wab/shared/css";
 import { ScreenSizeSpec } from "@/wab/shared/css-size";
 import { parseDataUrlToSvgXml } from "@/wab/shared/data-urls";
@@ -359,11 +362,21 @@ function findComponent(studio: StudioCtx, uuid: string, local = false) {
   return component;
 }
 
-function findElement(component: Component, uuid: string): TplNode {
-  return ensure(
-    flattenTpls(component.tplTree).find((t) => t.uuid === uuid),
-    `Element ${uuid} not found in component ${component.name}`,
-  );
+function findElement(component: Component, uuid: string, studio?: StudioCtx): TplNode {
+  const local = flattenTpls(component.tplTree).find((t) => t.uuid === uuid);
+  if (local) {
+    return local;
+  }
+  let hint = "";
+  if (studio) {
+    const owner = studio.site.components.find(
+      (c) => c !== component && flattenTpls(c.tplTree).some((t) => t.uuid === uuid),
+    );
+    if (owner) {
+      hint = `; it is defined in component "${owner.name}" (${owner.uuid}). Pass componentUuid: "${owner.uuid}".`;
+    }
+  }
+  throw new Error(`Element ${uuid} not found in component ${component.name}${hint}`);
 }
 
 function variantManager(studio: StudioCtx, component: Component) {
@@ -630,6 +643,10 @@ function planMutation(studio: StudioCtx, operation: PrototypeMutation, assets: M
     const arena = findCanvas(studio, operation.input.canvasName);
     return {
       components: [],
+      messages:
+        operation.name === "deleteCanvas"
+          ? [`Canvas "${operation.input.canvasName}" deleted.`]
+          : [`Canvas "${operation.input.canvasName}" renamed to "${operation.input.name}".`],
       apply: () => {
         assert(
           studio.site.arenas.includes(arena),
@@ -664,10 +681,23 @@ function planMutation(studio: StudioCtx, operation: PrototypeMutation, assets: M
           studio.site.arenas.includes(arena) && arena.children.includes(frame),
           "Artboard removed during batch",
         );
-        frame.width = input.width;
-        frame.height = input.height;
-        frame.left = input.x;
-        frame.top = input.y;
+        if (input.width !== undefined) frame.width = input.width;
+        if (input.height !== undefined) frame.height = input.height;
+        if (input.x !== undefined) frame.left = input.x;
+        if (input.y !== undefined) frame.top = input.y;
+        if (input.viewMode !== undefined) {
+          frame.viewMode = input.viewMode as FrameViewMode;
+          if (input.viewMode === "stretch") {
+            const root = frame.container.component.tplTree;
+            if (isTplVariantable(root)) {
+              for (const vs of root.vsettings) {
+                if (isBaseVariant(vs.variants)) {
+                  RSH(vs.rs, root).set("width", "stretch");
+                }
+              }
+            }
+          }
+        }
         ensureActivatedScreenVariantsForFrameByWidth(studio.site, frame);
       },
 
@@ -1038,7 +1068,7 @@ function planMutation(studio: StudioCtx, operation: PrototypeMutation, assets: M
         "Replacement requires an explicit elementUuid",
       );
       const target = input.elementUuid
-        ? findElement(component, input.elementUuid)
+        ? findElement(component, input.elementUuid, studio)
         : component.tplTree;
       const parsedResult = ensure(assets.html, "HTML not prepared");
       if (parsedResult.isErr()) {
@@ -1099,7 +1129,7 @@ function planMutation(studio: StudioCtx, operation: PrototypeMutation, assets: M
           input.repeat !== undefined,
         "Provide name, text, props, resetProps, styles, visibleIf or repeat",
       );
-      const tpl = findElement(component, input.elementUuid);
+      const tpl = findElement(component, input.elementUuid, studio);
       const variants = (input.variantUuids ?? []).map((uuid) =>
         ensure(
           [
@@ -1216,7 +1246,8 @@ function planMutation(studio: StudioCtx, operation: PrototypeMutation, assets: M
       break;
     }
     case "deleteElement": {
-      const tpl = findElement(component, operation.input.elementUuid);
+      const tpl = findElement(component, operation.input.elementUuid, studio);
+      messages.push(`Element "${tpl.name || tpl.uuid}" deleted.`);
       apply = () => {
         assert(
           findElement(component, tpl.uuid) === tpl,
@@ -1229,8 +1260,8 @@ function planMutation(studio: StudioCtx, operation: PrototypeMutation, assets: M
     case "copyElement":
     case "moveElement": {
       const input = operation.input;
-      const source = findElement(component, input.elementUuid);
-      const target = findElement(component, input.targetUuid);
+      const source = findElement(component, input.elementUuid, studio);
+      const target = findElement(component, input.targetUuid, studio);
       const copying = operation.name === "copyElement";
       if (!copying) {
         assert(source !== component.tplTree, "Cannot move root element");
@@ -1340,7 +1371,7 @@ function planMutation(studio: StudioCtx, operation: PrototypeMutation, assets: M
     }
     case "createInteraction": {
       const input = operation.input;
-      const tpl = findElement(component, input.elementUuid);
+      const tpl = findElement(component, input.elementUuid, studio);
       apply = () => {
         assert(
           findElement(component, tpl.uuid) === tpl,
@@ -1361,7 +1392,7 @@ function planMutation(studio: StudioCtx, operation: PrototypeMutation, assets: M
     case "updateInteraction":
     case "deleteInteraction": {
       const input = operation.input;
-      const tpl = findElement(component, input.elementUuid);
+      const tpl = findElement(component, input.elementUuid, studio);
       const handler = ensure(
         [
           ...getAllEventHandlersOfAttrType(component, tpl),
@@ -2439,13 +2470,16 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
     };
   }),
   preview: defineCopilotTool(meta.preview, async (studio, input) => {
-    const preview = ensure(studio.previewCtx, "Native Preview is unavailable");
-    assert(!preview.popup, "Close the external Preview window before using in-app Preview");
     assert(input.action === "close" || !studio.isInteractiveMode, "Exit interactive canvas mode before opening Preview");
     assert((input.width === undefined) === (input.height === undefined), "Preview width and height must be supplied together");
     assert(input.action === "open" || (input.componentUuid === undefined && input.width === undefined && input.height === undefined), `${input.action} accepts no Page or viewport overrides`);
     const component = input.componentUuid ? findComponent(studio, input.componentUuid) : undefined;
+    if (component && !isPageComponent(component)) {
+      throw new Error(`Preview target must be a local Page; "${component.name}" is a component. To inspect component rendering, navigate to its canvas artboard and use get_screenshot.`);
+    }
     assert(!component || (studio.site.components.includes(component) && isPageComponent(component)), "Preview target must be a local Page");
+    const preview = ensure(studio.previewCtx, "Native Preview is unavailable");
+    assert(!preview.popup, "Close the external Preview window before using in-app Preview");
     if (input.action === "close") {
       const wasPreview = preview.isLive || studio.isInteractiveMode;
       await preview.stopLiveMode();
@@ -2518,8 +2552,21 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
         !studio.isLiveMode && !studio.isInteractiveMode,
         "Return to edit mode before selecting an element",
       );
-      const component = findComponent(studio, input.componentUuid);
-      const tpl = findElement(component, input.elementUuid);
+      let component = findComponent(studio, input.componentUuid);
+      let tpl = flattenTpls(component.tplTree).find((t) => t.uuid === input.elementUuid);
+      if (!tpl) {
+        const owner = studio.site.components.find((c) =>
+          c !== component && flattenTpls(c.tplTree).some((t) => t.uuid === input.elementUuid),
+        );
+        if (owner) {
+          component = owner;
+          tpl = flattenTpls(owner.tplTree).find((t) => t.uuid === input.elementUuid);
+        }
+      }
+      assert(
+        tpl,
+        `Element ${input.elementUuid} not found in component ${component.name}`,
+      );
       const frames = getArenaFrames(studio.currentArena);
       const focusedFrame = input.frameUuid
         ? frames.find((frame) => frame.uuid === input.frameUuid)
@@ -2591,8 +2638,21 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
   scrollElementIntoView: defineCopilotTool(
     meta.scrollElementIntoView,
     async (studio, input) => {
-      const component = findComponent(studio, input.componentUuid);
-      const tpl = findElement(component, input.elementUuid);
+      let component = findComponent(studio, input.componentUuid);
+      let tpl = flattenTpls(component.tplTree).find((t) => t.uuid === input.elementUuid);
+      if (!tpl) {
+        const owner = studio.site.components.find((c) =>
+          c !== component && flattenTpls(c.tplTree).some((t) => t.uuid === input.elementUuid),
+        );
+        if (owner) {
+          component = owner;
+          tpl = flattenTpls(owner.tplTree).find((t) => t.uuid === input.elementUuid);
+        }
+      }
+      assert(
+        tpl,
+        `Element ${input.elementUuid} not found in component ${component.name}`,
+      );
       const frames = getArenaFrames(studio.currentArena);
       const candidates = studio.viewCtxs.filter(
         (vc) =>

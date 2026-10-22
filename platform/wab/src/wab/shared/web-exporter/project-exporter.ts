@@ -176,6 +176,7 @@ export function buildProjectResource(
         y: frame.top ?? 0,
         width: frame.width,
         height: getFrameHeight(frame),
+        viewMode: frame.viewMode,
       })),
     })),
     pageFrames: site.pageArenas.flatMap(arena => [...arena.matrix.rows, ...arena.customMatrix.rows].flatMap(row => row.cols.map(({frame}) => ({ componentUuid: arena.component.uuid, frameUuid: frame.uuid, width: frame.width, height: getFrameHeight(frame) })))),

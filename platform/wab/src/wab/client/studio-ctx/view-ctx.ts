@@ -1,3 +1,7 @@
+import {
+  isRenderReady,
+  setRenderReadyAttr,
+} from "@/wab/client/studio-ctx/render-ready";
 import { Adoptee, InsertionSpec } from "@/wab/client/Dnd";
 import { RunFn } from "@/wab/client/components/canvas/CanvasText";
 import { CanvasCtx } from "@/wab/client/components/canvas/canvas-ctx";
@@ -1444,6 +1448,9 @@ export class ViewCtx extends WithDbCtx {
           "frame-first-render",
           this.arenaFrame().uuid,
         );
+        this._evalInProgress = true;
+        this.refreshRenderReadyAttr();
+        try {
         await this.canvasCtx.hostLessPkgsLock;
         await this.csEvaluator.evalAsync();
         this.flushRerenderQueue();
@@ -1475,6 +1482,10 @@ export class ViewCtx extends WithDbCtx {
           renderDone();
           mobx.runInAction(() => this._initialRenderReady.set(true));
           this.studioCtx.recordCanvasFrameRendered(this.arenaFrame());
+        }
+        } finally {
+          this._evalInProgress = false;
+          this.refreshRenderReadyAttr();
         }
       }
     };
@@ -1511,6 +1522,10 @@ export class ViewCtx extends WithDbCtx {
       return;
     }
     spawn(this.syncQueue.push(opts));
+    if (opts.eval) {
+      // A re-render is pending; the canvas is not render-ready until it ends.
+      setRenderReadyAttr(this.maybeCanvasDoc(), false);
+    }
     if (opts.asap) {
       (this.syncQueue as any).process();
     }
@@ -1523,6 +1538,36 @@ export class ViewCtx extends WithDbCtx {
       this.flushRerenderQueue();
       mobx.runInAction(() => this.updateCtxPostChange());
     }
+    this.refreshRenderReadyAttr();
+  }
+
+  private _evalInProgress = false;
+
+  private maybeCanvasDoc(): Document | undefined {
+    if (this._isDisposed) {
+      return undefined;
+    }
+    try {
+      return this.canvasCtx.doc() ?? undefined;
+    } catch {
+      return undefined;
+    }
+  }
+
+  /**
+   * Syncs RENDER_READY_ATTR on the canvas iframe. Pending syncs are counted by
+   * queue length; the cargo worker running doEval is covered by
+   * _evalInProgress, so this is safe to call from inside the worker.
+   */
+  private refreshRenderReadyAttr() {
+    setRenderReadyAttr(
+      this.maybeCanvasDoc(),
+      isRenderReady({
+        initialRenderReady: this.initialRenderReady,
+        evalInProgress: this._evalInProgress,
+        pendingSyncs: this.syncQueue.length(),
+      })
+    );
   }
 
   triggerEditingTextDataPicker() {

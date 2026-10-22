@@ -4,6 +4,7 @@ import {
 } from "@/wab/client/components/dashboard/dashboard-actions";
 import { WorkspaceDataSourcesSkeleton } from "@/wab/client/components/dashboard/DashboardSkeletons";
 import DatabaseListItem from "@/wab/client/components/dashboard/DatabaseListItem";
+import { ImportPlasmicButton } from "@/wab/client/components/dashboard/ImportPlasmicButton";
 import { NewProjectButton } from "@/wab/client/components/dashboard/NewProjectButton";
 import ProjectsFilter, {
   ProjectsFilterProps,
@@ -292,7 +293,10 @@ function WorkspaceSection_(
       toolbar={
         <Flex align="center" wrap gap={12}>
           {canCreate && openTab === "projects" && (
-            <NewProjectButton onClick={() => setShowNewProjectModal(true)} />
+            <>
+              <NewProjectButton onClick={() => setShowNewProjectModal(true)} />
+              <ImportPlasmicButton workspaceId={workspace.id} />
+            </>
           )}
           {openTab === "dataSources" && newDataSourceButton}
           {projectFilters}

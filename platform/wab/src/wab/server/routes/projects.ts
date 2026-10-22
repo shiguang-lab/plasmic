@@ -103,6 +103,7 @@ import {
   UpdateHostUrlResponse,
   UpdateProjectReq,
   UpdateProjectResponse,
+  WorkspaceId,
 } from "@/wab/shared/ApiSchema";
 import { parseProjectBranchId } from "@/wab/shared/ApiSchemaUtil";
 import { accessLevelRank } from "@/wab/shared/EntUtil";
@@ -365,7 +366,7 @@ type DataSourceReplacement = {
 };
 
 export async function importProject(req: Request, res: Response) {
-  const {
+  let {
     name,
     data,
     publish,
@@ -375,6 +376,7 @@ export async function importProject(req: Request, res: Response) {
     dataSourceReplacement,
     migrationsStrict,
     projectDomains,
+    workspaceId,
   } = req.body as {
     data: string;
     name?: string;
@@ -385,19 +387,66 @@ export async function importProject(req: Request, res: Response) {
     updateImportedHostLess?: boolean;
     dataSourceReplacement?: DataSourceReplacement;
     projectDomains?: string[];
+    workspaceId?: WorkspaceId;
   };
 
-  const bundles = JSON.parse(data) as
-    [string, Bundle][] | ProjectFullDataResponse;
+  const isSystemAdmin =
+    process.env.NODE_ENV !== "production" ||
+    !!(req as any).shiguangIdentity?.roles?.includes("system-admin");
+
+  if (!isSystemAdmin) {
+    keepProjectIdsAndNames = false;
+    dataSourceReplacement = undefined;
+    projectDomains = undefined;
+    publish = false;
+    prefilled = false;
+  }
+
+  let parsed: any;
+  try {
+    parsed = typeof data === "string" ? JSON.parse(data) : data;
+  } catch (err) {
+    throw new BadRequestError("Invalid JSON in project data");
+  }
+
+  if (
+    parsed &&
+    typeof parsed === "object" &&
+    !Array.isArray(parsed) &&
+    parsed.format === "plasmic/project" &&
+    Array.isArray(parsed.bundles)
+  ) {
+    if (typeof parsed.name === "string" && parsed.name.trim()) {
+      name = parsed.name.trim();
+    }
+    parsed = parsed.bundles;
+  }
+
+  const bundles = parsed as [string, Bundle][] | ProjectFullDataResponse;
   const mgr = userDbMgr(req);
 
   if (!Array.isArray(bundles)) {
-    const project = await importFullProjectData(bundles, mgr, req.bundler);
+    if (!bundles || typeof bundles !== "object" || !("project" in bundles)) {
+      throw new BadRequestError(
+        "Invalid project file: expected a valid .plasmic project",
+      );
+    }
+    const project = await importFullProjectData(bundles, mgr, req.bundler, {
+      name,
+      workspaceId,
+    });
     res.json({
       projectId: project.id,
       projectApiToken: project.projectApiToken,
+      workspaceId: project.workspaceId,
     });
     return;
+  }
+
+  if (!bundles.length) {
+    throw new BadRequestError(
+      "Invalid project file: project data bundles are empty",
+    );
   }
 
   const bundler = req.bundler;
@@ -407,6 +456,7 @@ export async function importProject(req: Request, res: Response) {
     keepProjectIdsAndNames,
     dataSourceReplacement,
     migrationsStrict,
+    workspaceId,
   });
   req.promLabels.projectId = project.id;
 
@@ -457,6 +507,7 @@ export async function doImportProject(
     projectName?: string;
     migrationsStrict?: boolean;
     dataSourceReplacement?: DataSourceReplacement;
+    workspaceId?: WorkspaceId;
   },
 ): Promise<Project> {
   const depBundles = bundles.slice(0, bundles.length - 1);
@@ -582,6 +633,7 @@ export async function doImportProject(
       if (!newProjectId) {
         const { project } = await mgr.createProject({
           name: `Imported Dep${depBundles.length > 1 ? ` ${i + 1}` : ""}`,
+          workspaceId: opts?.workspaceId,
         });
         newProjectId = project.id;
       }
@@ -591,6 +643,7 @@ export async function doImportProject(
     // Add main project mapping
     const { project: mainProject } = await mgr.createProject({
       name: opts?.projectName || `Imported Project`,
+      workspaceId: opts?.workspaceId,
     });
     oldToNewProjectId.set(oldProjectId as ProjectId, mainProject.id);
   }
@@ -646,6 +699,7 @@ export async function doImportProject(
             projectId: opts?.keepProjectIdsAndNames
               ? projectDep.projectId
               : undefined,
+            workspaceId: opts?.workspaceId,
           });
           return project;
         }
@@ -720,8 +774,9 @@ export async function doImportProject(
       name:
         opts?.keepProjectIdsAndNames && opts?.projectName
           ? opts.projectName
-          : `Imported Project`,
+          : (opts?.projectName || `Imported Project`),
       projectId: opts?.keepProjectIdsAndNames ? oldProjectId : undefined,
+      workspaceId: opts?.workspaceId,
     });
     project = result.project;
     rev = result.rev;
@@ -833,10 +888,15 @@ async function importFullProjectData(
   data: ProjectFullDataResponse,
   mgr: DbMgr,
   bundler: Bundler,
+  opts?: {
+    name?: string;
+    workspaceId?: WorkspaceId;
+  },
 ) {
   const { branches, pkgVersions, project: projectData, revisions } = data;
   const { project: newProject } = await mgr.createProject({
-    name: `Imported Project (${projectData.name})`,
+    name: opts?.name || `Imported Project (${projectData.name})`,
+    workspaceId: opts?.workspaceId,
   });
   const newPkg = await mgr.createPkgByProjectId(newProject.id);
   const oldToNewPkgVersionId = new Map<string, string>();

@@ -26,6 +26,7 @@ import diffs from "@/wab/client/plasmic/plasmic_kit_merge_flow/PlasmicDiffs.modu
 import mergeFlow from "@/wab/client/plasmic/plasmic_kit_merge_flow/PlasmicMergeFlow.module.css";
 import branchPanel from "@/wab/client/plasmic/plasmic_kit_project_panel/PlasmicBranchPanel.module.css";
 import searchInput from "@/wab/client/plasmic/plasmic_kit_project_panel/PlasmicSearchInput.module.css";
+import dimTokenSelector from "@/wab/client/plasmic/plasmic_kit_style_controls/PlasmicDimTokenSelector.module.css";
 import styleSelectOption from "@/wab/client/plasmic/plasmic_kit_style_controls/PlasmicStyleSelect__Option.module.css";
 import styleOptionGroup from "@/wab/client/plasmic/plasmic_kit_style_controls/PlasmicStyleSelect__OptionGroup.module.css";
 import styleSelectOverlay from "@/wab/client/plasmic/plasmic_kit_style_controls/PlasmicStyleSelect__Overlay.module.css";
@@ -55,6 +56,8 @@ export const productPalette = (token: GlobalToken): CSSObject => ({
   "--ui-muted": token.colorTextSecondary,
   "--ui-placeholder": token.colorTextPlaceholder,
   "--ui-disabled": token.colorTextDisabled,
+  "--token-MJxs_G7Sqa": token.colorTextDisabled,
+  "--plasmic-token-textboxdisabled": token.colorTextDisabled,
   "--ui-accent": token.colorPrimary,
   "--ui-accent-text": token.colorPrimaryText,
   "--ui-hover": token.colorFillSecondary,
@@ -549,6 +552,9 @@ export const productPalette = (token: GlobalToken): CSSObject => ({
     background: token.colorBgContainerDisabled,
     color: token.colorTextDisabled,
   },
+  [`& .${dimTokenSelector.textboxdisabled}`]: {
+    color: token.colorTextDisabled,
+  },
   [`& .${textarea.rootwhiteBackground}, & .${textarea.textarea}`]: {
     background: token.colorBgContainer,
     color: token.colorText,
@@ -556,6 +562,12 @@ export const productPalette = (token: GlobalToken): CSSObject => ({
   [`& .${textarea.textareadisabled}`]: {
     background: token.colorBgContainerDisabled,
     color: token.colorTextDisabled,
+  },
+  "& .plasmic_tokens_gYEVvAzCcLMHDVPvuYxkFh": {
+    "--token-MJxs_G7Sqa": token.colorTextDisabled,
+    "--plasmic-token-textboxdisabled": token.colorTextDisabled,
+    "--token-4f35RzFNq": token.colorTextTertiary,
+    "--plasmic-token-text-unset": token.colorTextTertiary,
   },
   "& .plasmic_tokens_tXkSR39sgCDWSitZxC5xFV": {
     "--token-iCBCh1BQyu-W": token.colorFillQuaternary,

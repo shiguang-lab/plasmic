@@ -484,12 +484,14 @@ export abstract class SharedApi {
     opts?: {
       keepProjectIdsAndNames?: boolean;
       projectName?: string;
+      workspaceId?: WorkspaceId;
     },
-  ): Promise<{ projectId: ProjectId }> {
+  ): Promise<{ projectId: ProjectId; workspaceId?: WorkspaceId }> {
     return this.post(`/projects/import`, {
       data,
       keepProjectIdsAndNames: opts?.keepProjectIdsAndNames,
       name: opts?.projectName,
+      workspaceId: opts?.workspaceId,
     });
   }
 

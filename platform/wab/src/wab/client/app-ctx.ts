@@ -4,6 +4,7 @@ import { asApiError } from "@/wab/client/api-error-presentation";
 import { Router, isHostFrame } from "@/wab/client/cli-routes";
 import { getClientDevFlagOverrides } from "@/wab/client/client-dev-flags";
 import { StarterGroupProps } from "@/wab/client/components/StarterGroup";
+import { downloadBlob } from "@/wab/client/dom-utils";
 import { App } from "@/wab/client/components/top-view";
 import { TopFrameApi } from "@/wab/client/frame-ctx/top-frame-api";
 import { getUiLocale } from "@/wab/client/i18n";
@@ -18,6 +19,7 @@ import {
   ApiWorkspace,
   AppCtxResponse,
   PersonalApiToken,
+  WorkspaceId,
 } from "@/wab/shared/ApiSchema";
 import { FastBundler } from "@/wab/shared/bundler";
 import { parseBundle } from "@/wab/shared/bundles";
@@ -346,6 +348,40 @@ export class AppOps extends AppComponent {
       `${L.kebabCase(data.project.name)}_${new Date().toISOString()}.json`,
     );
     $link[0].click();
+  }
+
+  async exportPlasmicFile(projectId: string, suggestedName?: string) {
+    const { project, rev, depPkgs } = await this.api().getSiteInfo(projectId, {
+      revisionNum: DEVFLAGS.revisionNum ? DEVFLAGS.revisionNum : undefined,
+    });
+    const projectName = suggestedName || project.name || "project";
+    const exportData = {
+      format: "plasmic/project",
+      version: 1,
+      name: projectName,
+      projectId: project.id,
+      exportedAt: new Date().toISOString(),
+      bundles: [
+        ...depPkgs.map((info) => [info.id, info.model]),
+        [project.id, parseBundle(rev)],
+      ],
+    };
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], {
+      type: "application/json;charset=utf-8",
+    });
+    const safeBase =
+      (L.kebabCase(projectName) ||
+        projectName.replace(/[\/\\:*?"<>|]/g, "_").trim()) ||
+      "project";
+    const fileName = `${safeBase}.plasmic`;
+    downloadBlob(blob, fileName);
+  }
+
+  async importPlasmicFile(
+    data: string,
+    opts?: { projectName?: string; workspaceId?: WorkspaceId },
+  ) {
+    return await this.api().importProject(data, opts);
   }
 }
 

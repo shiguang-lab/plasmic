@@ -207,8 +207,12 @@ test("native menu availability follows ready, preview, permission and frame cont
   });
   const save = menu.submenu.find((entry) => entry.id === "desktop-save");
   const exp = menu.submenu.find((entry) => entry.id === "desktop-export");
+  const expPlasmic = menu.submenu.find((entry) => entry.id === "desktop-export-plasmic");
+  const impPlasmic = menu.submenu.find((entry) => entry.id === "desktop-import-plasmic");
   assert.equal(save.enabled, false);
   assert.equal(exp.enabled, false);
+  assert.equal(expPlasmic.enabled, false);
+  assert.ok(impPlasmic);
   await save.click();
   await exp.click();
   assert.deepEqual(calls, []);
@@ -217,18 +221,21 @@ test("native menu availability follows ready, preview, permission and frame cont
   const native = {
     getMenuItemById: (id) => menu.submenu.find((entry) => entry.id === id),
   };
-  state = { ready: true, editorContext: { canEdit: true } };
+  state = { ready: true, editorContext: { canEdit: true }, projectId: "proj-1" };
   updateFileMenuContext(native, state);
   assert.equal(save.enabled, true);
   assert.equal(exp.enabled, false);
+  assert.equal(expPlasmic.enabled, true);
   updateFileMenuContext(native, {
     ready: true,
     editorContext: { mode: "edit", canEdit: false, frameUuid: "frame" },
   });
   assert.equal(save.enabled, false);
   assert.equal(exp.enabled, true);
+  assert.equal(expPlasmic.enabled, false);
   updateFileMenuContext(native, { ready: false });
   assert.equal(save.enabled, false);
+  assert.equal(expPlasmic.enabled, false);
 });
 for (const fail of [false, true]) {
   test(`native export ${fail ? "failure preserves" : "confirmed overwrite replaces"} an existing file`, async () => {
@@ -277,6 +284,99 @@ for (const fail of [false, true]) {
     }
   });
 }
+
+test("native export .plasmic writes formatted json and saves first", async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "desktop-plasmic-"));
+  try {
+    const dest = path.join(dir, "MyProject.plasmic");
+    const errors = [];
+    const calls = [];
+    const state = {
+      ready: true,
+      projectId: "proj-abc",
+      editorContext: { canEdit: true },
+    };
+    const controller = {
+      state: async () => state,
+      dispatch: async (name, input) => calls.push([name, input]),
+    };
+    const menu = fileMenu({
+      controller,
+      workspace: { origin: "https://studio.test", recent: [] },
+      session: {
+        fetch: async (url) => {
+          assert.equal(url, "https://studio.test/api/v1/projects/proj-abc");
+          return {
+            ok: true,
+            json: async () => ({
+              project: { id: "proj-abc", name: "My Project" },
+              rev: { data: JSON.stringify({ root: "r1", map: {} }) },
+              depPkgs: [],
+            }),
+          };
+        },
+      },
+      getWindow: () => ({}),
+      dialog: {
+        showSaveDialog: async () => ({ filePath: dest, canceled: false }),
+        showErrorBox: (...args) => errors.push(args),
+      },
+    });
+    await menu.submenu.find((entry) => entry.id === "desktop-export-plasmic").click();
+    assert.deepEqual(calls, [["execute", { name: "save", input: {} }]]);
+    assert.equal(errors.length, 0);
+    const written = JSON.parse(fs.readFileSync(dest, "utf8"));
+    assert.equal(written.format, "plasmic/project");
+    assert.equal(written.name, "My Project");
+    assert.equal(written.projectId, "proj-abc");
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("native import .plasmic calls import api and opens design", async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "desktop-plasmic-import-"));
+  try {
+    const filePath = path.join(dir, "Test.plasmic");
+    fs.writeFileSync(
+      filePath,
+      JSON.stringify({ format: "plasmic/project", bundles: [] }),
+    );
+    const errors = [];
+    const calls = [];
+    const state = { ready: true };
+    const controller = {
+      state: async () => state,
+      dispatch: async (name, input) => calls.push([name, input]),
+    };
+    const menu = fileMenu({
+      controller,
+      workspace: { origin: "https://studio.test", recent: [] },
+      session: {
+        fetch: async (url, opts) => {
+          assert.equal(url, "https://studio.test/api/v1/projects/import");
+          assert.equal(opts.method, "POST");
+          return {
+            ok: true,
+            json: async () => ({ projectId: "imported-proj-xyz" }),
+          };
+        },
+      },
+      getWindow: () => ({}),
+      dialog: {
+        showOpenDialog: async () => ({ filePaths: [filePath], canceled: false }),
+        showErrorBox: (...args) => errors.push(args),
+      },
+    });
+    await menu.submenu.find((entry) => entry.id === "desktop-import-plasmic").click();
+    assert.equal(errors.length, 0);
+    assert.deepEqual(calls, [
+      ["open_design", { projectId: "imported-proj-xyz" }],
+    ]);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
 
 test("startup resumes dashboard routes independently of recent projects", async (t) => {
   const { workspace, dir } = startupFixture(t);

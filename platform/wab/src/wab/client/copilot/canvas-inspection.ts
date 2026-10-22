@@ -61,7 +61,7 @@ export function beginCanvasInspection(
             const timer = setTimeout(() => {
               expired = true;
               release();
-            }, 120000);
+            }, 600000);
             root.setAttribute("data-plasmic-canvas-inspection", inspectionId);
             active.set(inspectionId, { release: () => release(), finished });
             prepared = true;
@@ -91,7 +91,7 @@ export function beginCanvasInspection(
             }
           }
         },
-        { frameUuid: options.frameUuid },
+        { frameUuid: options.frameUuid, timeoutMs: 600000 },
       ),
     );
     finished.then(() => {

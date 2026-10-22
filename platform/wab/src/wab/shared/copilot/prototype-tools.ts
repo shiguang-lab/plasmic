@@ -55,7 +55,7 @@ const EDIT_TOOL_META = {
     toolName: "read",
     title: "Read project resources",
     description:
-      "Read native models with batched component/element targets. tree returns structure/Slot IDs without values; depth expands structure. properties reads base-variant values/styles/attributes/text (root for component targets); propNames selects only named values. contract returns registered Props/Slots/defaults/enums/event signatures and globalActions. isContext:true identifies a project-wide global context, not an insertable component; this identity survives fields projections. Read collection:globalContexts for installed instances/settings and use qualified globalActions directly without a page wrapper. full fields provides parameter IDs and implementation metadata. context reads owning states/events/queries/variants. full preserves complete target markup and models. fields projects values; omitted data is not empty. No targets returns project counts; collection/offset/limit pages inventory. Projects list dependency identities/versions; use fromProject to read each dependency's resources. Inherited nodes expose editable:false and source slot identity; imported definitions are read-only.",
+      "Read native models with batched component/element targets. tree returns structure/Slot IDs without values; depth expands structure. properties reads base-variant values/styles/attributes/text (root for component targets); propNames selects only named values (requires view:properties with targeted components/elements). contract returns registered Props/Slots/defaults/enums/event signatures and globalActions. isContext:true identifies a project-wide global context, not an insertable component; this identity survives fields projections. Read collection:globalContexts for installed instances/settings and use qualified globalActions directly without a page wrapper. full fields provides parameter IDs and implementation metadata. context reads owning states/events/queries/variants. full preserves complete target markup and models. fields projects values; omitted data is not empty. No targets returns project counts; collection/offset/limit pages inventory. Projects list dependency identities/versions; use fromProject to read each dependency's resources. Inherited nodes expose editable:false and source slot identity; imported definitions are read-only.",
     inputSchema: z
       .object({
         ...modelReadOptions,
@@ -129,7 +129,7 @@ const EDIT_TOOL_META = {
     toolName: "deleteCanvas",
     title: "Delete a freeform canvas",
     description:
-      "Remove a mixed arena and its preview frames; referenced pages and named components remain. Undo is supported.",
+      "Remove a mixed arena and its preview frames; referenced pages and named components remain. Returns standard mutation receipt with created: [] and confirmation messages. Undo is supported.",
     inputSchema: z.object({ canvasName: uuid }).strict(),
     outputSchema: mutationReceiptSchema,
   },
@@ -145,15 +145,16 @@ const EDIT_TOOL_META = {
     toolName: "updateArtboard",
     title: "Resize and arrange a preview artboard",
     description:
-      "Update viewport dimensions and position of an existing mixed-canvas frame, preserving its component reference.",
+      "Update viewport dimensions, position, or view mode (stretch to fill the canvas or centered with default padding) of an existing mixed-canvas frame, preserving its component reference.",
     inputSchema: z
       .object({
         canvasName: uuid,
         frameUuid: uuid,
-        width: z.number().int().min(320).max(4096),
-        height: z.number().int().min(1).max(16384),
-        x: z.number().min(0).max(100000),
-        y: z.number().min(0).max(100000),
+        width: z.number().int().min(320).max(4096).optional(),
+        height: z.number().int().min(1).max(16384).optional(),
+        x: z.number().min(0).max(100000).optional(),
+        y: z.number().min(0).max(100000).optional(),
+        viewMode: z.enum(["stretch", "centered"]).optional(),
       })
       .strict(),
     outputSchema: mutationReceiptSchema,
@@ -561,10 +562,10 @@ const EDIT_TOOL_META = {
     toolName: "preview",
     title: "Control native Preview",
     description:
-      "Open the authenticated in-app Preview or return to the original editor canvas, artboard, zoom and pan without saving or changing the design. close is idempotent and waits for the restored editor canvas, without requiring a working Preview iframe. open optionally selects a local Page and a Custom CSS viewport (width and height together); this does not add device columns. back/forward traverse only the Preview page history and do nothing at its boundaries; refresh remounts only the runtime iframe. Returns route/viewport state and canGoBack/canGoForward, not rendering or behavior approval. Desktop runtime interactions use the top-level preview tool. The reference browser cannot substitute for native Preview.",
+      "Open the authenticated in-app Preview or return to the original editor canvas, artboard, zoom and pan without saving or changing the design. close is idempotent and waits for the restored editor canvas, without requiring a working Preview iframe. open optionally selects a local Page (Pages only, not ordinary components; use get_screenshot to inspect component rendering) and a Custom CSS viewport (width and height together); this does not add device columns. back/forward traverse only the Preview page history and do nothing at its boundaries; refresh remounts only the runtime iframe. Returns route/viewport state and canGoBack/canGoForward, not rendering or behavior approval. Desktop runtime interactions use the top-level preview tool. The reference browser cannot substitute for native Preview.",
     inputSchema: z.object({
       action: z.enum(["open", "close", "back", "forward", "refresh"]),
-      componentUuid: uuid.optional(),
+      componentUuid: uuid.optional().describe("Page component UUID to open in Preview (local Pages only)"),
       width: z.number().int().min(240).max(7680).optional(),
       height: z.number().int().min(240).max(7680).optional(),
     }).strict(),
@@ -658,7 +659,7 @@ const EDIT_TOOL_META = {
     toolName: "selectElement",
     title: "Select a rendered element",
     description:
-      "Select an element in the current canvas without changing the design. frameUuid disambiguates artboards and instanceIndex selects a repeated instance. Navigate to the page first. Requires edit mode.",
+      "Select an element in the current canvas without changing the design. componentUuid must be the component defining elementUuid (nested elements belong to their defining component, not the host page). frameUuid disambiguates artboards and instanceIndex selects a repeated instance. Navigate to the page first. Requires edit mode.",
     inputSchema: z
       .object({
         ...element,

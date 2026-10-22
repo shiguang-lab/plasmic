@@ -278,8 +278,8 @@ export function extractTransitiveHostLessPackages(site: Site) {
   walkDependencyTree(site, "all").forEach((dep) => {
     if (
       isHostLessPackage(dep.site) &&
-      !site.projectDependencies.includes(dep) &&
-      !deps.includes(dep)
+      !site.projectDependencies.some((d) => d.pkgId === dep.pkgId) &&
+      !deps.some((d) => d.pkgId === dep.pkgId)
     ) {
       deps.push(dep);
     }
@@ -612,6 +612,9 @@ function ensureDirectDep(
     (d) => d.pkgId === dep.pkgId,
   );
   if (existingDep) {
+    if (existingDep.version === dep.version) {
+      return;
+    }
     throw new Error(
       `Cannot upgrade; "${oldDep?.name ?? `Project`}" depends on "${
         dep.name
@@ -1807,8 +1810,12 @@ function upgradeProjectDep(
 
   // Finally, swap out oldDep with newDep
   if (newDep) {
-    const index = site.projectDependencies.indexOf(oldDep);
-    site.projectDependencies[index] = newDep;
+    const index = site.projectDependencies.findIndex(
+      (d) => d === oldDep || d.pkgId === oldDep.pkgId,
+    );
+    if (index !== -1) {
+      site.projectDependencies[index] = newDep;
+    }
   } else {
     arrayRemove(site.projectDependencies, oldDep);
   }

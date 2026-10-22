@@ -164,6 +164,7 @@ export function projectSchema() {
               y: z.number(),
               width: z.number(),
               height: z.number(),
+              viewMode: z.string().optional(),
             }),
           ),
         }),

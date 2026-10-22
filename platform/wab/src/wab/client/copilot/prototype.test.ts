@@ -1504,9 +1504,41 @@ describe("AI prototype editor tools", () => {
       height: 1024,
       x: 0,
       y: 0,
+      viewMode: "stretch",
     });
     expect(frame.width).toBe(1440);
     expect(frame.height).toBe(1024);
+    expect(frame.viewMode).toBe("stretch");
+
+    const comp = mkComponent({
+      name: "Widget",
+      type: ComponentType.Plain,
+      tplTree: mkTplTagX("div"),
+    });
+    studioCtx.site.components.push(comp);
+    trackComponentSite(comp, studioCtx.site);
+    studioCtx.tplMgr().ensureBaseVariantSetting(comp.tplTree);
+    await call("createArtboard", {
+      canvasName: "Draft",
+      componentUuid: comp.uuid,
+      width: 1440,
+      height: 1024,
+    });
+    const compFrame = arena.children[1];
+    expect(compFrame.viewMode).toBe("centered");
+    await call("updateArtboard", {
+      canvasName: "Draft",
+      frameUuid: compFrame.uuid,
+      viewMode: "stretch",
+    });
+    expect(compFrame.viewMode).toBe("stretch");
+    await call("updateArtboard", {
+      canvasName: "Draft",
+      frameUuid: compFrame.uuid,
+      viewMode: "centered",
+    });
+    expect(compFrame.viewMode).toBe("centered");
+
     await call("updateCanvas", { canvasName: "Draft", name: "Overview" });
     expect(arena.name).toBe("Overview");
     await call("setPageViewport", { preset: "Desktop" });
@@ -3043,5 +3075,32 @@ it("marks inherited slot nodes as readonly and locates their real source contrac
   const span = ensure(flattenTpls(sourceComponent.tplTree).find(t => isKnownTplTag(t) && t.tag === "span"), "default span");
   await call("changeElement", { componentUuid: source.uuid, elementUuid: span.uuid, text: "Source edited" });
   expect((await call("read", { view: "full", componentUuids: [source.uuid] })).results[0].baseVariantTplTree).toContain("Source edited");
+  studioCtx.copilotActivity.dispose();
+});
+
+it("diagnoses elements defined in another component and confirms deleteCanvas with messages", async () => {
+  const { studioCtx, call, createPage } = fixture();
+  const child = (await call("createComponent", { name: "ChildComp", type: "component" })).created[0];
+  await call("insertHtml", { componentUuid: child.uuid, html: '<button id="btn">Click me</button>' });
+  const childComp = ensure(studioCtx.site.components.find((c) => c.uuid === child.uuid), "child");
+  const btn = ensure(flattenTpls(childComp.tplTree).find((t) => isKnownTplTag(t) && t.tag === "button"), "button");
+
+  const page = await createPage("HostPage");
+  // Mutation targeting child's element using page's componentUuid provides an informative hint
+  await expect(
+    call("changeElement", { componentUuid: page.uuid, elementUuid: btn.uuid, text: "New" }),
+  ).rejects.toThrow(`defined in component "ChildComp" (${child.uuid}). Pass componentUuid: "${child.uuid}"`);
+
+  // deleteCanvas returns explicit deletion message
+  await call("createCanvas", { name: "TestCanvas" });
+  const deleteResult = await call("deleteCanvas", { canvasName: "TestCanvas" });
+  expect(deleteResult.created).toEqual([]);
+  expect(deleteResult.messages).toContain('Canvas "TestCanvas" deleted.');
+
+  // Preview rejects non-page components with clear guidance
+  await expect(
+    call("preview", { action: "open", componentUuid: child.uuid }),
+  ).rejects.toThrow(`Preview target must be a local Page; "ChildComp" is a component. To inspect component rendering, navigate to its canvas artboard and use get_screenshot.`);
+
   studioCtx.copilotActivity.dispose();
 });

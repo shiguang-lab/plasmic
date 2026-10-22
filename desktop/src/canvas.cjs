@@ -58,7 +58,7 @@ async function inspectCanvas() {
   });
   return {
     ready:
-      !!document.querySelector(".__wab_val_root") ||
+      document.documentElement.hasAttribute("data-plasmic-render-ready") ||
       (new URLSearchParams(location.hash.slice(1)).get("live") === "true" &&
         visible.length > 0),
     frameUuid: document.documentElement.getAttribute("data-plasmic-frame-uuid"),
@@ -139,6 +139,7 @@ function snapshotDocument() {
   const clone = document.documentElement.cloneNode(true);
   clone.removeAttribute("data-plasmic-canvas-inspection");
   clone.removeAttribute("data-plasmic-frame-uuid");
+  clone.removeAttribute("data-plasmic-render-ready");
   const originals = document.documentElement.querySelectorAll("*");
   const copies = clone.querySelectorAll("*");
   // Preserve inherited typography when canvas reset CSS is reloaded for export.

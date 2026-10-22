@@ -5498,5 +5498,22 @@
   "Imported \"{page}\" page from Figma": "Figma から「{page}」ページをインポートしました",
   "Check that the file is a valid .fig export and try again.": "有効な Figma .fig エクスポートファイルであることを確認して、もう一度お試しください。",
   "Inspecting": "確認中",
-  "Inspection complete": "検査データの取得完了"
+  "Inspection complete": "検査データの取得完了",
+  "Param": "パラメータ",
+  "Function": "関数",
+  "Global changes": "グローバルな変更",
+  "Change details": "変更の詳細",
+  "Style token": "スタイルトークン",
+  "Data token": "データトークン",
+  "Variant group": "バリアントグループ",
+  "Failed to update libraries": "ライブラリの更新に失敗しました",
+  "Failed to update library": "ライブラリの更新に失敗しました",
+  "Export .plasmic": ".plasmic をエクスポート",
+  "Import .plasmic": ".plasmic をインポート",
+  "Export .plasmic…": ".plasmic をエクスポート…",
+  "Import .plasmic…": ".plasmic をインポート…",
+  "Failed to export .plasmic file": ".plasmic ファイルのエクスポートに失敗しました",
+  "Failed to import .plasmic file": ".plasmic ファイルのインポートに失敗しました",
+  "Imported project successfully": "プロジェクトが正常にインポートされました",
+  "Please select a valid .plasmic file.": "有効な .plasmic ファイルを選択してください。"
 }

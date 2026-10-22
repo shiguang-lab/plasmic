@@ -48,7 +48,7 @@ import React from "react";
 
 function isDevUser(studioCtx: StudioCtx) {
   return (
-    getPublicUrl().startsWith("http://localhost:3003") &&
+    getPublicUrl().startsWith("http://localhost:3003") ||
     isAdminTeamEmail(
       studioCtx.appCtx.selfInfo?.email,
       studioCtx.appCtx.appConfig,
@@ -172,8 +172,7 @@ const DependencyItem = observer(function DependencyItem(props: {
           <span>{t(isHostLessPkg ? "Code library" : "Shared project")}</span>
           {data.model.version && <span>{`v${data.model.version}`}</span>}
         </div>
-        {(!isHostLessPkg || isDevUser(studioCtx)) &&
-          !readOnly &&
+        {!readOnly &&
           data.latestPkgVersionMeta &&
           data.latestPkgVersionMeta.version !== data.model.version && (
             <div className="project-library-update">
@@ -181,33 +180,44 @@ const DependencyItem = observer(function DependencyItem(props: {
                 type="link"
                 size="small"
                 onClick={async () => {
-                  const { pkg: latest, depPkgs } =
-                    await studioCtx.appCtx.api.getPkgVersion(
-                      data.model.pkgId,
-                      data.latestPkgVersionMeta?.version,
+                  try {
+                    const { pkg: latest, depPkgs } =
+                      await studioCtx.appCtx.api.getPkgVersion(
+                        data.model.pkgId,
+                        data.latestPkgVersionMeta?.version,
+                      );
+
+                    const { projectDependency } = unbundleProjectDependency(
+                      studioCtx.bundler(),
+                      latest,
+                      depPkgs,
                     );
 
-                  const { projectDependency } = unbundleProjectDependency(
-                    studioCtx.bundler(),
-                    latest,
-                    depPkgs,
-                  );
+                    const answer = await promptUpgradeDep({
+                      studioCtx: studioCtx,
+                      targetDep: projectDependency,
+                    });
 
-                  const answer = await promptUpgradeDep({
-                    studioCtx: studioCtx,
-                    targetDep: projectDependency,
-                  });
-
-                  if (answer) {
-                    await studioCtx.projectDependencyManager.upgradeProjectDeps(
-                      [projectDependency],
-                    );
+                    if (answer) {
+                      await studioCtx.projectDependencyManager.upgradeProjectDeps(
+                        [projectDependency],
+                      );
+                    }
+                  } catch (e) {
+                    showError(e, {
+                      title: t("Failed to update library"),
+                    });
                   }
                 }}
               >
                 {t("View update")}
               </Button>
-              <Tag color="gold">{t("New version available")}</Tag>
+              <Tag color="gold">
+                {t("New version available")}
+                {data.latestPkgVersionMeta.version
+                  ? ` v${data.latestPkgVersionMeta.version}`
+                  : ""}
+              </Tag>
             </div>
           )}
       </div>
@@ -253,23 +263,29 @@ async function updateProjectsWithPrompt(
   studioCtx: StudioCtx,
   dependenciesWithUpdates: ProjectDependencyData[],
 ) {
-  const targetDeps = await Promise.all(
-    dependenciesWithUpdates.map(async (dep) => {
-      const { pkg: latest, depPkgs } = await studioCtx.appCtx.api.getPkgVersion(
-        dep.model.pkgId,
-        dep.latestPkgVersionMeta?.version,
-      );
+  try {
+    const targetDeps = await Promise.all(
+      dependenciesWithUpdates.map(async (dep) => {
+        const { pkg: latest, depPkgs } = await studioCtx.appCtx.api.getPkgVersion(
+          dep.model.pkgId,
+          dep.latestPkgVersionMeta?.version,
+        );
 
-      return unbundleProjectDependency(studioCtx.bundler(), latest, depPkgs)
-        .projectDependency;
-    }),
-  );
+        return unbundleProjectDependency(studioCtx.bundler(), latest, depPkgs)
+          .projectDependency;
+      }),
+    );
 
-  const shouldUpdate = await promptUpgradeDeps({ studioCtx, targetDeps });
-  if (!shouldUpdate) {
-    return;
+    const shouldUpdate = await promptUpgradeDeps({ studioCtx, targetDeps });
+    if (!shouldUpdate) {
+      return;
+    }
+    await studioCtx.projectDependencyManager.upgradeProjectDeps(targetDeps);
+  } catch (e) {
+    showError(e, {
+      title: translate(getUiLocale(), "Failed to update libraries"),
+    });
   }
-  await studioCtx.projectDependencyManager.upgradeProjectDeps(targetDeps);
 }
 
 async function trySwitchScreenVariant(
@@ -383,8 +399,7 @@ function _ProjectDependenciesPanel() {
     .filter(
       (dep) =>
         dep.latestPkgVersionMeta &&
-        dep.latestPkgVersionMeta.version !== dep.model.version &&
-        (!isHostLessPackage(dep.model.site) || isDevUser(sc)),
+        dep.latestPkgVersionMeta.version !== dep.model.version,
     );
 
   const rendered = renderItems();

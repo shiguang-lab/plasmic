@@ -1,3 +1,4 @@
+import { getUploadedFile } from "@/wab/client/dom-utils";
 import { BrandLink } from "@/wab/client/components/BrandLink";
 import { VersionsTab } from "@/wab/client/components/sidebar-tabs/versions-tab";
 import { useVersionsPublishNotice } from "@/wab/client/components/sidebar-tabs/versions-tab/useVersionsPublishNotice";
@@ -53,6 +54,7 @@ import {
   canPublishProject,
   getLeftTabPermission,
 } from "@/wab/shared/ui-config-utils";
+import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import { fixPageHrefsToLocal } from "@/wab/shared/utils/split-site-utils";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { Button, Menu, Popover, Tooltip, theme, message } from "antd";
@@ -235,6 +237,87 @@ function _TopBar({ preview }: TopBarProps) {
                   onClick={() => topFrameApi.setShowCloneProjectModal(true)}
                 >
                   {t("Duplicate project")}
+                </Menu.Item>,
+              );
+            }
+
+            {
+              push2(
+                <Menu.Item
+                  key="export-plasmic"
+                  onClick={async () => {
+                    try {
+                      if (studioCtx.canEditProject()) {
+                        await studioCtx.save();
+                      }
+                      await appCtx.ops?.exportPlasmicFile(
+                        studioCtx.siteInfo.id,
+                        studioCtx.siteInfo.name,
+                      );
+                    } catch (err) {
+                      void message.error({
+                        content: t("Failed to export .plasmic file"),
+                      });
+                    }
+                  }}
+                >
+                  {t("Export .plasmic")}
+                </Menu.Item>,
+              );
+            }
+
+            {
+              push2(
+                <Menu.Item
+                  key="import-plasmic"
+                  onClick={() => {
+                    getUploadedFile(
+                      async (content: string, file?: File) => {
+                        try {
+                          const parsed = JSON.parse(content);
+                          if (
+                            !parsed ||
+                            (typeof parsed !== "object" && !Array.isArray(parsed))
+                          ) {
+                            throw new Error(
+                              t("Please select a valid .plasmic file."),
+                            );
+                          }
+                          const suggestedName = file?.name?.replace(
+                            /\.(plasmic|json)$/i,
+                            "",
+                          );
+                          const result = await appCtx.api.importProject(
+                            content,
+                            {
+                              projectName: suggestedName,
+                              workspaceId:
+                                studioCtx.siteInfo.workspaceId ?? undefined,
+                            },
+                          );
+                          void message.success({
+                            content: t("Imported project successfully"),
+                          });
+                          window.location.href = APP_ROUTES.project.fill({
+                            projectId: result.projectId,
+                          });
+                        } catch (error) {
+                          void message.error({
+                            content:
+                              error instanceof Error &&
+                              error.message.includes(
+                                t("Please select a valid .plasmic file."),
+                              )
+                                ? error.message
+                                : t("Failed to import .plasmic file"),
+                          });
+                        }
+                      },
+                      { accept: ".plasmic,.json" },
+                    );
+                  }}
+                >
+                  {t("Import .plasmic")}
                 </Menu.Item>,
               );
             }

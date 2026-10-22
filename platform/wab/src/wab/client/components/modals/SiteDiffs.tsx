@@ -17,7 +17,6 @@ import VariantGroupIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Vari
 import TextInputIcon from "@/wab/client/plasmic/plasmic_kit_design_system/PlasmicIcon__TextInput";
 import VariantIcon from "@/wab/client/plasmic/plasmic_kit_design_system/PlasmicIcon__Variant";
 import RocketsvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__RocketSvg";
-import { MIXIN_CAP } from "@/wab/shared/Labels";
 import { ensure, withoutNils, xSetDefault } from "@/wab/shared/common";
 import { SplitType } from "@/wab/shared/core/splits";
 import type {
@@ -54,44 +53,53 @@ export const SiteDiffs = observer(function SideDiffs(props: {
   const globalDiffs = diffsByParent.get("global") || [];
 
   return (
-    <div>
-      <ul>
-        <ChangeSubSection diffs={globalDiffs} />
-      </ul>
-      <ul>
-        {[...diffsByParent.entries()].map(([parent, subDiffs]) => {
-          if (parent === "global") {
-            return null;
-          }
-          const [patches, others] = L.partition(
-            subDiffs,
-            (d) => d.releaseType === "patch",
-          );
-          return (
-            <li>
-              <div className={sty.item}>
-                <Icon icon={ComponentIcon} className="component-fg mr-sm" />
-                <UiText message={"Component"} />{" "}
-                <strong>
-                  {ensure(
-                    parentNameByUuid.get(parent),
-                    "Unexpected missing parent element in diffs",
-                  )}
-                </strong>
-              </div>
-              <ul className="pl-xxlg">
-                <ChangeSubSection diffs={others} />
-                {patches.length > 0 && (
-                  <li className={sty.item}>
-                    <Icon icon={ThemeIcon} className="dimfg mr-sm" />
-                    <UiText message={"Styles and elements updated"} />
-                  </li>
-                )}
-              </ul>
-            </li>
-          );
-        })}
-      </ul>
+    <div className={sty.root}>
+      {globalDiffs.length > 0 && (
+        <div className={sty.componentCard}>
+          <div className={sty.cardHeader}>
+            <Icon icon={GlobeIcon} className="dimfg mr-sm" />
+            <span className={sty.cardTitle}>
+              <UiText message={"Global changes"} />
+            </span>
+          </div>
+          <div className={sty.cardBody}>
+            <ChangeSubSection diffs={globalDiffs} />
+          </div>
+        </div>
+      )}
+      {[...diffsByParent.entries()].map(([parent, subDiffs]) => {
+        if (parent === "global") {
+          return null;
+        }
+        const [patches, others] = L.partition(
+          subDiffs,
+          (d) => d.releaseType === "patch",
+        );
+        const compName = ensure(
+          parentNameByUuid.get(parent),
+          "Unexpected missing parent element in diffs",
+        );
+        return (
+          <div key={parent} className={sty.componentCard}>
+            <div className={sty.cardHeader}>
+              <Icon icon={ComponentIcon} className="component-fg mr-sm" />
+              <span className={sty.cardTypeTag}>
+                <UiText message={"Component"} />
+              </span>
+              <span className={sty.cardTitle}>{compName}</span>
+            </div>
+            <div className={sty.cardBody}>
+              <ChangeSubSection diffs={others} />
+              {patches.length > 0 && (
+                <div className={sty.patchItem}>
+                  <Icon icon={ThemeIcon} className="dimfg mr-sm" />
+                  <UiText message={"Styles and elements updated"} />
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 });
@@ -161,19 +169,19 @@ export const SplitStatusUpdateSection = observer(
     return (
       <>
         {splitStatusUpdate.length > 0 && (
-          <li>
-            <div className={sty.headerItem}>
-              <Icon icon={RocketsvgIcon} className="dimfg mr-sm" />
+          <div className={sty.changeGroup}>
+            <div className={sty.badgeUpdated}>
+              <Icon icon={RocketsvgIcon} className="mr-xs" />
               <UiText message={"Split Status Updated"} />
             </div>
-            <ul className="pl-xxlg">
-              {splitStatusUpdate.map((diff) => (
-                <li className={sty.item}>
+            <div className={sty.entityList}>
+              {splitStatusUpdate.map((diff, i) => (
+                <div key={i} className={sty.entityItem}>
                   <SplitChangeEntity diff={diff} />
-                </li>
+                </div>
               ))}
-            </ul>
-          </li>
+            </div>
+          </div>
         )}
       </>
     );
@@ -253,71 +261,96 @@ const ChangeSubSection = observer(function ChangeSubSection(props: {
   const updateds = diffs.filter((f) => f.description === "updated");
 
   return (
-    <>
+    <div className={sty.subSection}>
       <SplitStatusUpdateSection diffs={diffs} />
-      {removeds.length > 0 && (
-        <li>
-          <div className={sty.headerItem}>
-            <Icon icon={CloseIcon} className="removed-fg mr-sm" />
-            <UiText message={"Removed"} />
-          </div>
-          <ul className="pl-xxlg">
-            {removeds.map((diff) => (
-              <li className={sty.item}>
-                <ChangeEntity diff={diff} />
-              </li>
-            ))}
-          </ul>
-        </li>
-      )}
       {addeds.length > 0 && (
-        <li>
-          <div className={sty.headerItem}>
-            <Icon icon={PlusIcon} className="added-fg mr-sm" />
+        <div className={sty.changeGroup}>
+          <div className={sty.badgeAdded}>
+            <Icon icon={PlusIcon} className="mr-xs" />
             <UiText message={"Added"} />
           </div>
-          <ul className="pl-xxlg">
-            {addeds.map((diff) => (
-              <li className={sty.item}>
+          <div className={sty.entityList}>
+            {addeds.map((diff, i) => (
+              <div key={i} className={sty.entityItem}>
                 <ChangeEntity diff={diff} />
-              </li>
+              </div>
             ))}
-          </ul>
-        </li>
-      )}
-      {renameds.length > 0 && (
-        <li>
-          <div className={sty.headerItem}>
-            <Icon icon={TextInputIcon} className="dimfg mr-sm" />
-            <UiText message={"Renamed"} />
           </div>
-          <ul className="pl-xxlg">
-            {renameds.map((diff) => (
-              <li className={sty.item}>
-                <ChangeRenamedEntity diff={diff} />
-              </li>
-            ))}
-          </ul>
-        </li>
+        </div>
       )}
       {updateds.length > 0 && (
-        <li>
-          <div className={sty.headerItem}>
-            <Icon icon={PencilIcon} className="dimfg mr-sm" />
+        <div className={sty.changeGroup}>
+          <div className={sty.badgeUpdated}>
+            <Icon icon={PencilIcon} className="mr-xs" />
             <UiText message={"Updated"} />
           </div>
-          <ul className="pl-xxlg">
-            {updateds.map((diff) => (
-              <li className={sty.item}>
+          <div className={sty.entityList}>
+            {updateds.map((diff, i) => (
+              <div key={i} className={sty.entityItem}>
                 <ChangeEntity diff={diff} />
-              </li>
+              </div>
             ))}
-          </ul>
-        </li>
+          </div>
+        </div>
       )}
-    </>
+      {renameds.length > 0 && (
+        <div className={sty.changeGroup}>
+          <div className={sty.badgeRenamed}>
+            <Icon icon={TextInputIcon} className="mr-xs" />
+            <UiText message={"Renamed"} />
+          </div>
+          <div className={sty.entityList}>
+            {renameds.map((diff, i) => (
+              <div key={i} className={sty.entityItem}>
+                <ChangeRenamedEntity diff={diff} />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      {removeds.length > 0 && (
+        <div className={sty.changeGroup}>
+          <div className={sty.badgeRemoved}>
+            <Icon icon={CloseIcon} className="mr-xs" />
+            <UiText message={"Removed"} />
+          </div>
+          <div className={sty.entityList}>
+            {removeds.map((diff, i) => (
+              <div key={i} className={sty.entityItem}>
+                <ChangeEntity diff={diff} />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
   );
 });
+
+function getEntityTypeLabel(type: SemVerSiteElement["type"]) {
+  switch (type) {
+    case "Component":
+      return <UiText message={"Component"} />;
+    case "Element":
+      return <UiText message={"Element"} />;
+    case "Param":
+      return <UiText message={"Param"} />;
+    case "Style token":
+      return <UiText message={"Style token"} />;
+    case "Data token":
+      return <UiText message={"Data token"} />;
+    case "Mixin":
+      return <UiText message={"Style presets"} />;
+    case "Function":
+      return <UiText message={"Function"} />;
+    case "Variant":
+      return <UiText message={"Variant"} />;
+    case "Variant group":
+      return <UiText message={"Variant group"} />;
+    default:
+      return type;
+  }
+}
 
 const ChangeEntity = observer(function ChangeEntity(props: {
   diff: ChangeLogEntry;
@@ -325,11 +358,11 @@ const ChangeEntity = observer(function ChangeEntity(props: {
   const entity = props.diff.newValue ?? props.diff.oldValue;
   if (entity) {
     return (
-      <>
-        <span className="mr-sm">{objIcon(entity)}</span>
-        {entity.type === "Mixin" ? MIXIN_CAP : entity.type}{" "}
-        <strong>{entity.name}</strong>
-      </>
+      <div className={sty.entityRow}>
+        <span className={sty.entityIcon}>{objIcon(entity)}</span>
+        <span className={sty.entityType}>{getEntityTypeLabel(entity.type)}</span>
+        <code className={sty.entityName}>{entity.name}</code>
+      </div>
     );
   }
   return null;
@@ -342,17 +375,13 @@ const SplitChangeEntity = observer(function SplitChangeEntity(props: {
   const newValue = props.diff.newValue;
   if (oldValue?.type === "Split Status" && newValue?.type === "Split Status") {
     return (
-      <>
-        <UiText
-          message={"{part1}{part2} from {part3} to {part4}"}
-          values={{
-            part1: <span className="mr-sm">{objIcon(newValue)}</span>,
-            part2: <strong>{newValue.name}</strong>,
-            part3: <strong>{oldValue.value}</strong>,
-            part4: <strong>{newValue.value}</strong>,
-          }}
-        />
-      </>
+      <div className={sty.entityRow}>
+        <span className={sty.entityIcon}>{objIcon(newValue)}</span>
+        <code className={sty.entityName}>{newValue.name}</code>
+        <span className={sty.renameArrow}>
+          {oldValue.value} ➔ {newValue.value}
+        </span>
+      </div>
     );
   }
   return null;
@@ -368,28 +397,20 @@ const ChangeRenamedEntity = observer(function ChangeRenamedEntity(props: {
   );
   if (entity) {
     return (
-      <>
-        <UiText
-          message={"{part1}{part2} {part3} renamed to {part4}"}
-          values={{
-            part1: <span className="mr-sm">{objIcon(entity)}</span>,
-            part2: entity.type,
-            part3: <strong>{entity.name}</strong>,
-            part4: (
-              <strong>
-                "
-                {
-                  ensure(
-                    diff.newValue,
-                    "Unexpected Rename diff element without newValue",
-                  ).name
-                }
-                "
-              </strong>
-            ),
-          }}
-        />
-      </>
+      <div className={sty.entityRow}>
+        <span className={sty.entityIcon}>{objIcon(entity)}</span>
+        <span className={sty.entityType}>{getEntityTypeLabel(entity.type)}</span>
+        <code className={sty.entityName}>{entity.name}</code>
+        <span className={sty.renameArrow}>➔</span>
+        <code className={sty.entityName}>
+          {
+            ensure(
+              diff.newValue,
+              "Unexpected Rename diff element without newValue",
+            ).name
+          }
+        </code>
+      </div>
     );
   }
   return null;

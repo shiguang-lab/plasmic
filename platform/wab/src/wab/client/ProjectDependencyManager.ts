@@ -24,7 +24,10 @@ import {
   walkDependencyTree,
 } from "@/wab/shared/core/project-deps";
 import { siteFinalStyleTokensAllDeps } from "@/wab/shared/core/site-style-tokens";
-import { getNonTransitiveDepDefaultComponents } from "@/wab/shared/core/sites";
+import {
+  getNonTransitiveDepDefaultComponents,
+  isHostLessPackage,
+} from "@/wab/shared/core/sites";
 import { unbundleProjectDependency } from "@/wab/shared/core/tagged-unbundle";
 import {
   deepTrackComponents,
@@ -46,7 +49,7 @@ import {
   isKnownSite,
 } from "@/wab/shared/model/classes";
 import L, { last } from "lodash";
-import { computed, observable } from "mobx";
+import { computed, observable, runInAction } from "mobx";
 
 export interface ProjectDependencyData {
   // `model` is the object stored in the Site
@@ -207,6 +210,9 @@ export class ProjectDependencyManager {
       const dep = ensure(queue.shift(), "Queue should not be empty");
       // If we've already seen this pkgId, make sure its the right version
       if (result[dep.pkgId]) {
+        if (isHostLessPackage(dep.site)) {
+          continue;
+        }
         assert(
           result[dep.pkgId].version === dep.version,
           `See pkgId=${dep.pkgId} name=${
@@ -475,12 +481,23 @@ export class ProjectDependencyManager {
 
   ensureCanUpgradeDeps(targetDeps: ProjectDependency[]) {
     const result: Dict<ProjectDependency> = {};
+    const targetMap = new Map(targetDeps.map((t) => [t.pkgId, t]));
     const queue = this.directDeps.get().map((d) => {
-      const newDep = targetDeps.find((t) => t.pkgId === d.model.pkgId);
-      return newDep ?? d.model;
+      return targetMap.get(d.model.pkgId) ?? d.model;
     });
     while (queue.length > 0) {
-      const dep = ensure(queue.shift(), "Queue should not be empty");
+      let dep = ensure(queue.shift(), "Queue should not be empty");
+      if (
+        isHostLessPackage(dep.site) &&
+        (targetMap.has(dep.pkgId) ||
+          this.directDeps.get().some((d) => d.model.pkgId === dep.pkgId))
+      ) {
+        dep =
+          targetMap.get(dep.pkgId) ??
+          this.directDeps
+            .get()
+            .find((d) => d.model.pkgId === dep.pkgId)!.model;
+      }
       // If we've already seen this pkgId, make sure its the right version
       if (result[dep.pkgId]) {
         if (result[dep.pkgId].version !== dep.version) {
@@ -507,6 +524,7 @@ export class ProjectDependencyManager {
   ) {
     this.ensureCanUpgradeDeps(targetDeps);
     await this._sc.siteOps().upgradeProjectDeps(targetDeps, opts);
+    this.syncDirectDeps();
     await this._fetchData();
     // invalidate cache after upgrading dep
     for (const dep of targetDeps) {
@@ -538,33 +556,35 @@ export class ProjectDependencyManager {
    * in site.projectDependencies
    */
   syncDirectDeps() {
-    const updatedDeps: ProjectDependency[] = [];
-    const deletedDeps: ProjectDependency[] = [];
-    for (const dep of this._sc.site.projectDependencies) {
-      if (!L.has(this._dependencyMap, dep.pkgId)) {
-        updatedDeps.push(dep);
-        this._trackDep(dep);
-      } else {
-        const prevDep = this._dependencyMap[dep.pkgId].model;
-        if (prevDep !== dep) {
-          this._untrackDep(prevDep);
+    return runInAction(() => {
+      const updatedDeps: ProjectDependency[] = [];
+      const deletedDeps: ProjectDependency[] = [];
+      for (const dep of this._sc.site.projectDependencies) {
+        if (!L.has(this._dependencyMap, dep.pkgId)) {
+          updatedDeps.push(dep);
           this._trackDep(dep);
+        } else {
+          const prevDep = this._dependencyMap[dep.pkgId].model;
+          if (prevDep !== dep) {
+            this._untrackDep(prevDep);
+            this._trackDep(dep);
+          }
         }
       }
-    }
 
-    for (const key of L.keys(this._dependencyMap)) {
-      if (!this._sc.site.projectDependencies.find((d) => d.pkgId === key)) {
-        const dep = this._dependencyMap[key].model;
-        this._untrackDep(dep);
-        deletedDeps.push(dep);
+      for (const key of L.keys(this._dependencyMap)) {
+        if (!this._sc.site.projectDependencies.find((d) => d.pkgId === key)) {
+          const dep = this._dependencyMap[key].model;
+          this._untrackDep(dep);
+          deletedDeps.push(dep);
+        }
       }
-    }
 
-    return {
-      updatedDeps,
-      deletedDeps,
-    };
+      return {
+        updatedDeps,
+        deletedDeps,
+      };
+    });
   }
 
   async fetchInsertableTemplate(projectId: string) {

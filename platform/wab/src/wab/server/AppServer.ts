@@ -1328,7 +1328,7 @@ export function addMainAppServerRoutes(
   // set project domains, thus we need to be more careful with it.
   app.post(
     "/api/v1/projects/import",
-    adminOrDevelopmentEnvOnly,
+    safeCast<RequestHandler>(authRoutes.teamApiUserAuth),
     withNext(importProject),
   );
   app.get(

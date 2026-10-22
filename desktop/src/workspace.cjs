@@ -230,7 +230,7 @@ function fileMenu({
   dialog,
   refresh,
   state: menuState,
-  t,
+  t = (x) => x,
 }) {
   const run = (action) => async () => {
     try {
@@ -257,7 +257,7 @@ function fileMenu({
       },
       {
         label: t("Recent Projects"),
-        submenu: workspace.recent.length
+        submenu: (workspace?.recent || []).length
           ? workspace.recent.map((entry) => ({
               label: entry.name || workspace.projectId(entry.url),
               click: run(async () => {
@@ -343,6 +343,107 @@ function fileMenu({
           }
         }),
       },
+      {
+        id: "desktop-export-plasmic",
+        label: t("Export .plasmic…"),
+        enabled: !!(menuState?.ready && menuState.projectId),
+        click: run(async () => {
+          const state = await controller.state();
+          if (!state.ready || !state.projectId) {
+            refresh();
+            return;
+          }
+          if (state.editorContext?.canEdit) {
+            await controller.dispatch("execute", { name: "save", input: {} });
+          }
+          const options = {
+            bypassCustomProtocolHandlers: true,
+            credentials: "include",
+            redirect: "manual",
+            cache: "no-store",
+            signal: AbortSignal.timeout(30000),
+          };
+          const res = await session.fetch(
+            `${workspace.origin}/api/v1/projects/${state.projectId}`,
+            options,
+          );
+          if (!res.ok) {
+            throw new Error(t("Failed to export .plasmic file"));
+          }
+          const { project, rev, depPkgs } = await res.json();
+          const projectName = project?.name || "project";
+          const output = await dialog.showSaveDialog(getWindow(), {
+            title: t("Export .plasmic"),
+            defaultPath: `${projectName}.plasmic`,
+            filters: [
+              { name: "Plasmic Project", extensions: ["plasmic"] },
+            ],
+          });
+          if (output.canceled || !output.filePath) {
+            return;
+          }
+          const exportData = {
+            format: "plasmic/project",
+            version: 1,
+            name: projectName,
+            projectId: project?.id || state.projectId,
+            exportedAt: new Date().toISOString(),
+            bundles: [
+              ...(depPkgs || []).map((info) => [
+                info.id,
+                typeof info.model === "string" ? JSON.parse(info.model) : info.model,
+              ]),
+              [
+                project?.id || state.projectId,
+                rev?.data
+                  ? typeof rev.data === "string"
+                    ? JSON.parse(rev.data)
+                    : rev.data
+                  : null,
+              ],
+            ],
+          };
+          fs.writeFileSync(output.filePath, JSON.stringify(exportData, null, 2), "utf-8");
+        }),
+      },
+      {
+        id: "desktop-import-plasmic",
+        label: t("Import .plasmic…"),
+        click: run(async () => {
+          const output = await dialog.showOpenDialog(getWindow(), {
+            title: t("Import .plasmic"),
+            filters: [
+              { name: "Plasmic Project", extensions: ["plasmic", "json"] },
+            ],
+            properties: ["openFile"],
+          });
+          if (output.canceled || !output.filePaths?.length) {
+            return;
+          }
+          const filePath = output.filePaths[0];
+          const content = fs.readFileSync(filePath, "utf-8");
+          const options = {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ data: content }),
+            bypassCustomProtocolHandlers: true,
+            credentials: "include",
+            redirect: "manual",
+            signal: AbortSignal.timeout(60000),
+          };
+          const res = await session.fetch(
+            `${workspace.origin}/api/v1/projects/import`,
+            options,
+          );
+          if (!res.ok) {
+            throw new Error(t("Failed to import .plasmic file"));
+          }
+          const { projectId } = await res.json();
+          if (projectId) {
+            await controller.dispatch("open_design", { projectId });
+          }
+        }),
+      },
       { type: "separator" },
       { role: "close", label: t("Close Window") },
     ],
@@ -357,5 +458,9 @@ function updateFileMenuContext(menu, state) {
     state.editorContext?.mode === "edit" &&
     state.editorContext.frameUuid
   );
+  const exportPlasmic = menu.getMenuItemById("desktop-export-plasmic");
+  if (exportPlasmic) {
+    exportPlasmic.enabled = !!(state?.ready && state.projectId);
+  }
 }
 module.exports = { DesktopWorkspace, fileMenu, updateFileMenuContext };

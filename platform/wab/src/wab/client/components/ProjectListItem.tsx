@@ -263,11 +263,14 @@ function ProjectListItem(props: ProjectListItemProps) {
                     <Menu.Item onClick={duplicateProject}>
                       {t("Duplicate project")}
                     </Menu.Item>
-                    {DEVFLAGS.demo && (
-                      <Menu.Item onClick={() => appOps.download(project.id)}>
-                        {t("Download project")}
-                      </Menu.Item>
-                    )}
+                    <Menu.Item
+                      key="export-plasmic"
+                      onClick={() => {
+                        void appOps.exportPlasmicFile(project.id, project.name);
+                      }}
+                    >
+                      {t("Export .plasmic")}
+                    </Menu.Item>
                     {workspaces && canMove && (
                       <Menu.Item
                         onClick={async () => {

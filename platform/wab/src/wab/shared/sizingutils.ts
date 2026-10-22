@@ -441,6 +441,7 @@ export function isStretchyComponent(
     !!val &&
     [
       "stretch",
+      "100%",
       CONTENT_LAYOUT_FULL_BLEED,
       CONTENT_LAYOUT_WIDE,
       "100vw",

@@ -212,19 +212,19 @@ const tools = [
   {
     name: "execute",
     description:
-      "Call a validated Studio operation. Supports read, createComponent (page/component), insertHtml, changeElement (props/layout), deleteElement, state/interactions/tokens, navigate, scrollElementIntoView (reveal rendered content without changing the design), validate, save and undo. Obtain exact input schemas from get_app_state. Read component props/slot contracts before editing. Native schemas describe complete values; MCP may return ResultReference for large results or SVG source, retrievable through read_result. Save explicitly after design changes.",
+      "Call a validated Studio operation as an envelope {name, input}, where input holds that operation's own parameters. Supports read, createComponent (page/component), insertHtml, changeElement (props/layout), deleteElement, state/interactions/tokens, navigate, scrollElementIntoView (reveal rendered content without changing the design), validate, save and undo. Parameterless operations (save, undo, validate) take no parameters, so input may be omitted. Reading specific element properties with propNames requires view: 'properties'. Targeting elementUuid in changeElement/selectElement requires its defining componentUuid, not the host page. deleteCanvas and deleteElement return standard mutation receipts with created: [] and messages confirming deletion. Obtain exact input schemas from get_app_state. Read component props/slot contracts before editing. Native schemas describe complete values; MCP may return ResultReference for large results or SVG source, retrievable through read_result. Save explicitly after design changes.",
     inputSchema: {
       ...object({
         name: { type: "string", enum: EDITOR_METHODS.filter((name) => !["preview", "executeBatch"].includes(name)) },
         input: { type: "object" },
       }),
-      required: ["name", "input"],
+      required: ["name"],
     },
   },
   {
     name: "get_screenshot",
     description:
-      "Return a clean rendered artboard as a WebP preview (quality 85, long edge at most 2048; fullResolution requests original-size lossless WebP) without editor chrome or slot placeholders. Prefer componentUuid for a Page; frameUuid pins an exact artboard, including an offscreen Page or overview frame. Both use a background canvas without changing the active arena or selection; when combined the frame must belong to the component. artboardElementUuid selects the whole artboard containing that visible element; elementUuid crops a visible node (including repeated instances). Without a component/frame target captures the focused rendered artboard; ambiguous canvases require an explicit target. width resizes the selected static rendering. Use mode workspace for the current editor view; rect applies only to workspace and componentUuid/frameUuid are not accepted. Not an interactive preview.",
+      "Return a clean rendered artboard as a WebP preview (quality 85, long edge at most 2048; fullResolution requests original-size lossless WebP) without editor chrome or slot placeholders. Prefer componentUuid for a Page; frameUuid pins an exact artboard, including an offscreen Page or overview frame. componentUuid/frameUuid isolate a single component or single artboard by rendering it on a background canvas without changing the active arena or selection; when combined the frame must belong to the component. This background re-render always runs even when the target is already on the visible canvas, so it stays clean and leaves the viewport untouched, but it can be slow and may time out on heavy multi-artboard canvases (freeform mixed canvases, overview/summary pages). For those, do not pin a target: first bring the artboard into view with execute navigate (componentUuid) to open its arena, then capture with mode workspace to grab the live current viewport in milliseconds (optionally with rect). artboardElementUuid selects the whole artboard containing that visible element; elementUuid crops a visible node (including repeated instances). Without a component/frame target captures the focused rendered artboard; ambiguous canvases require an explicit target. width resizes the selected static rendering. Use mode workspace for the current editor view; rect applies only to workspace and componentUuid/frameUuid are not accepted. Not an interactive preview.",
     inputSchema: object({
       fullResolution: { type: "boolean", description: "Return original-size lossless WebP instead of the default compressed preview (long edge at most 2048)." },
       componentUuid: { type: "string", minLength: 1 },
@@ -473,7 +473,7 @@ tools.push(
   {
     name: "snapshot_layout",
     description:
-      "Read rendered layout. Default summary returns frame dimensions/counts and paginated problems. elements defaults to identity/geometry; request text/classes through fields. images/problems are paginated; full retains complete acceptance evidence. read.fields declares projections; omissions are not empty. Prefer componentUuid for a Page; frameUuid pins an exact artboard even when offscreen. Both inspect a background canvas without changing selection; when combined the frame must belong to the component. elementUuid filters that rendering; follow nextOffset per frame. Checks horizontal overflow, sticky Table-cell control containment (including native padding) and image loading; interactions, breakpoints and other overlap require Preview. Get editable IDs through execute read.",
+      "Read rendered layout. Default summary returns frame dimensions/counts and paginated problems. elements defaults to identity/geometry; request text/classes through fields. images/problems are paginated; full retains complete acceptance evidence. read.fields declares projections; omissions are not empty. Prefer componentUuid for a Page; frameUuid pins an exact artboard even when offscreen. componentUuid/frameUuid inspect a single component or single artboard on a background canvas without changing selection; when combined the frame must belong to the component. This background re-render runs even when the target is already on the visible canvas and may be slow or time out on heavy multi-artboard canvases; for those, navigate the artboard into view with execute navigate (componentUuid) and read get_screenshot mode workspace instead of pinning a target. elementUuid filters that rendering; follow nextOffset per frame. Checks horizontal overflow, sticky Table-cell control containment (including native padding) and image loading; interactions, breakpoints and other overlap require Preview. Get editable IDs through execute read.",
     inputSchema: object({
       componentUuid: { type: "string", minLength: 1 },
       frameUuid: { type: "string", minLength: 1 },
@@ -526,6 +526,13 @@ async function serveMcp(profile) {
       const validator = validators.get(request.params.name);
       if (!validator) {
         throw new Error("Unknown desktop tool");
+      }
+      // execute accepts an optional input envelope: parameterless operations
+      // (save/undo/validate) may omit it, and an empty object can be dropped in
+      // transit. Normalize to {} so downstream native schemas see an object and
+      // report missing fields precisely instead of failing on undefined.
+      if (request.params.name === "execute" && request.params.arguments) {
+        request.params.arguments.input = request.params.arguments.input ?? {};
       }
       const checked = validator(request.params.arguments || {});
       if (!checked.valid) {
