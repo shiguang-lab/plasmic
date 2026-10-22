@@ -2,8 +2,8 @@
 """Check one standalone Overseas/Antd-v6 AppShell Page and its public snapshot.
 
 Inputs are a full execute/read Page result and component-targeted snapshot_layout.
-AppShell owns its viewport sizing. This checks model structure and rendered
-artboard geometry, not ancestor CSS, Preview scrolling or persistence.
+AppShell owns its fluid viewport sizing. This checks model structure and rendered
+viewport geometry, not ancestor CSS, Preview scrolling or persistence.
 """
 import argparse
 import json
@@ -41,8 +41,9 @@ def check(readback, snapshot):
     else:
         frame = frames[0]
         if (frame.get("ready") is not True or frame.get("truncated") is not False
-                or not finite_number(frame.get("height")) or frame["height"] <= 0):
-            errors.append("Snapshot must be ready, complete and have a positive viewport height")
+                or any(not finite_number(frame.get(axis)) or frame[axis] <= 0
+                       for axis in ("width", "height"))):
+            errors.append("Snapshot must be ready, complete and have positive viewport width and height")
         else:
             elements = frame.get("elements", [])
             layouts = [e for e in elements if "ant-layout-has-sider" in e.get("classes", "").split()]
@@ -68,11 +69,21 @@ def check(readback, snapshot):
                     measurements.append({"region": name, "top": top, "height": element["height"], "bottom": bottom})
                     if abs(top) > 1 or abs(bottom - frame["height"]) > 1:
                         errors.append(f"{name} must reach viewport top/bottom: top={top}, bottom={bottom}, viewport={frame['height']}")
+                    if name != "sidebar":
+                        left, width = element.get("x"), element.get("width")
+                        if not finite_number(left) or not finite_number(width) or width <= 0:
+                            errors.append(f"{name} needs finite numeric coordinates and positive width")
+                            continue
+                        right = left + width
+                        measurements[-1].update({"left": left, "width": width, "right": right})
+                        if abs(left) > 1 or abs(right - frame["width"]) > 1:
+                            errors.append(f"{name} must reach viewport left/right: left={left}, right={right}, viewport={frame['width']}")
     return {
         "passed": not errors,
         "componentUuid": pages[0]["uuid"] if len(pages) == 1 else None,
         "frameUuid": frames[0].get("frameUuid") if len(frames) == 1 else None,
         "viewportHeight": frames[0].get("height") if len(frames) == 1 else None,
+        "viewportWidth": frames[0].get("width") if len(frames) == 1 else None,
         "measurements": measurements,
         "errors": errors,
         "notChecked": ["subsequent-edit-sizing", "live-preview-scrolling", "save-reload-persistence"],

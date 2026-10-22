@@ -2047,8 +2047,21 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
       );
       const upgraded = projectDependency.version !== previousVersion;
       if (upgraded) {
+        // Align already installed dependencies with the selected publication in
+        // one transaction, so intermediate versions cannot conflict.
+        const requiredInstalledDeps = walkDependencyTree(
+          projectDependency.site,
+          "all",
+        ).filter((required) =>
+          studio.site.projectDependencies.some(
+            (installed) =>
+              installed.pkgId === required.pkgId &&
+              installed.version !== required.version,
+          ),
+        );
         await studio.projectDependencyManager.upgradeProjectDeps([
           projectDependency,
+          ...requiredInstalledDeps,
         ]);
       }
       return {

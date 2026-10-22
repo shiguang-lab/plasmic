@@ -127,13 +127,6 @@ export function EditorToolRail({
           </Scrollbar>
         }
       />
-      {navigator.userAgent.includes("PlasmicDesktop/") && (
-        <span
-          className="editor-update-below-rail"
-          data-desktop-update-slot="header"
-          data-desktop-update-position="above"
-        />
-      )}
     </div>
   );
 }

@@ -86,7 +86,7 @@ const EDIT_TOOL_META = {
     toolName: "upgradeLibrary",
     title: "Upgrade an installed component library",
     description:
-      "Upgrade an already installed library to its latest published package through Studio dependency operations. Keeps local pages and rewrites their references. Requires an editable project; save separately and read the new component contracts before use.",
+      "Upgrade an already installed library to its latest published package through Studio dependency operations. projectId is the library project ID. Atomically aligns its already installed dependencies to the exact versions required by that publication. Keeps local pages and rewrites their references. Requires an editable project; save separately and read the new component contracts before use.",
     inputSchema: z.object({ projectId: uuid }).strict(),
     outputSchema: z.object({
       projectId: uuid,

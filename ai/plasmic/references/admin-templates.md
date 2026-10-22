@@ -43,6 +43,8 @@ Acquire the selected live model before composing business content. Record the co
 
 Inspect the selected definition's complete tree/layout, Props/Slots/defaults, state and events, plus nested compositions and relevant library contracts. Return to the consuming project and reread its identity/registrations. Record which structure is retained and which fields, surfaces, defaults or interactions change. A directory description or thumbnail cannot supply this decision.
 
+Template publication pins its dependency versions. Confirm the installed graph and AppShell's saved defaults and instance dimensions against the [fluid shell contract](design/layout.md#standalone-appshell-golden-boilerplate); a current host implementation does not update an older published library model. When maintaining a template, upgrade its affected dependency, repair stale instance dimensions, save/publish, and then record the actual published versions in the catalog. The catalog's viewport is an artboard size, not a fixed Page or AppShell width.
+
 Read the destination's actual UUIDs, registered keys, Props, Slots, defaults and event/ref signatures. Source identifiers and dependency versions do not establish destination identities. Select the available composition mechanism:
 
 - A configured official template picker may inline the layout. Its presence requires actual UI/configuration evidence.

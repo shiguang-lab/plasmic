@@ -1787,6 +1787,51 @@ describe("AI prototype editor tools", () => {
       upgrade.mockRestore();
     }
   });
+  it("atomically aligns installed transitive dependencies while preserving unrelated libraries and graph validation", async () => {
+    const dep = (name: string, version: string, dependencies: ProjectDependency[] = []) => {
+      const site = createSite();
+      site.projectDependencies.push(...dependencies);
+      return new ProjectDependency({
+        name, version, pkgId: `pkg-${name}`, projectId: `library-${name}`,
+        uuid: `${name}-${version}`, site,
+      });
+    };
+    const oldShell = dep("shell", "1.4.0");
+    const oldTemplates = dep("templates", "0.0.1", [oldShell]);
+    const unrelated = dep("unrelated", "2.0.0");
+    const newShell = dep("shell", "1.7.0");
+    const newIntermediate = dep("intermediate", "1.0.0", [newShell]);
+    const published = dep("templates", "1.0.0", [newIntermediate]);
+    const site = createSite();
+    site.projectDependencies.push(oldTemplates, oldShell, unrelated);
+    const { studioCtx, call } = fixture(site);
+    const manager = studioCtx.projectDependencyManager;
+    // The old single-library operation fails before touching the model.
+    expect(() => manager.ensureCanUpgradeDeps([published])).toThrow("conflicting dependencies");
+    const originalFetch = studioCtx.appCtx.api.getPkgVersion;
+    const fetch = vi.fn().mockResolvedValue({ pkg: {}, depPkgs: [] });
+    studioCtx.appCtx.api.getPkgVersion = fetch;
+    const unbundle = vi.spyOn(taggedUnbundle, "unbundleProjectDependency")
+      .mockReturnValue({ projectDependency: published } as any);
+    const upgrade = vi.spyOn(manager, "upgradeProjectDeps")
+      .mockImplementation(async (targets) => manager.ensureCanUpgradeDeps(targets));
+    try {
+      expect((await call("upgradeLibrary", { projectId: oldTemplates.projectId })).upgraded).toBe(true);
+      expect(fetch).toHaveBeenCalledTimes(1);
+      expect(fetch).toHaveBeenCalledWith(oldTemplates.pkgId);
+      expect(upgrade).toHaveBeenCalledTimes(1);
+      expect(upgrade).toHaveBeenCalledWith([published, newShell]);
+      // An unrelated parent pinning the old shell must still block the upgrade.
+      runInAction(() => unrelated.site.projectDependencies.push(oldShell));
+      await expect(call("upgradeLibrary", { projectId: oldTemplates.projectId }))
+        .rejects.toThrow("conflicting dependencies");
+      expect(site.projectDependencies).toEqual([oldTemplates, oldShell, unrelated]);
+    } finally {
+      studioCtx.appCtx.api.getPkgVersion = originalFetch;
+      unbundle.mockRestore();
+      upgrade.mockRestore();
+    }
+  });
   it("rejects library upgrades on read-only projects and for uninstalled libraries", async () => {
     const { studioCtx, call } = fixture();
     await expect(

@@ -12,6 +12,8 @@ Library: [Ant Design v6](../index.md).
 
 ## Value and field ownership
 
+Apply [field semantics](../selection.md#field-semantics) before choosing Input. A time/date/quantity serialized as a string is not automatically a text field; use its semantic control and verified value conversion. Textual identifiers and explicit source-required text interactions retain Input.
+
 Use Input for ordinary text, Input.TextArea for multi-line text and Input.Password for an actual secret field. Keep the real control directly inside its owning [Form.Item](form.md#formitem); the Form owns its value and validation. Standalone Input uses its registered value state. Input/Password/TextArea onChange receives the native event; the registration's state helper extracts event.target.value. Do not bind an event object as the business value or assume all Input variants use that signature.
 
 Editable SQL/code needs an actual installed editor or TextArea. A syntax-colored `<pre>` is read-only content. Bind the editor's real value to formatting/validation/submission; typing after a successful validation/preflight must invalidate that result when required. Test changing the text and reading it back through the workflow, rather than only triggering buttons against an unchanged sample string.

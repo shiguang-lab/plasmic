@@ -92,6 +92,7 @@ export class FontManager {
   private _availLocalFonts = observable.set<string>();
   private _availHostManagedFonts = observable.set<string>();
   private _loaded = false;
+  private pendingLocalFonts = new Set<string>();
   private localFontInstallAttempts = new Set<FontInstallSpec>();
   private notifiers = new Map<string, ThrottledNotification>();
   // Fonts used in the Site
@@ -138,15 +139,16 @@ export class FontManager {
             };
           }),
         );
-        this.localFontInstallAttempts.forEach((spec) =>
-          this.tryWarnMissingPlasmicManagedFont(spec.fontFamily),
-        );
-        this._loaded = true;
         avails
           .filter(
             (f) => !googleFonts.map((spec) => spec.fontFamily).includes(f),
           )
           .forEach((f) => this._availLocalFonts.add(f));
+        this._loaded = true;
+        this.localFontInstallAttempts.forEach((spec) =>
+          this.tryWarnMissingPlasmicManagedFont(spec.fontFamily),
+        );
+        this.localFontInstallAttempts.clear();
       }),
     );
   }
@@ -280,7 +282,12 @@ export class FontManager {
   };
 
   private tryWarnMissingPlasmicManagedFont = (fontFamily: string) => {
-    if (isFontFamilyKeyword(fontFamily)) {
+    // The picker lists common fonts only; availability also includes detected
+    // local fonts and fonts supplied by the host. Wait for pending probes.
+    if (
+      this.pendingLocalFonts.has(fontFamily) ||
+      this.isUserManagedFontInstalled(fontFamily)
+    ) {
       return;
     }
     const availableFontFamilies = this._availPlasmicManagedFonts.map(
@@ -377,23 +384,30 @@ export class FontManager {
     }
     const installSpec = getFontSpec(fontFamily);
     this.usedFonts.push(installSpec);
-    this.installFont(
-      studioCtx.viewCtxs.map((vc) => vc.canvasCtx.$head()),
-      installSpec,
-    );
+    const install = () => {
+      this.installFont(
+        studioCtx.viewCtxs.map((vc) => vc.canvasCtx.$head()),
+        installSpec,
+      );
+      // Install font globally for style tokens.
+      this.installFont([$(document.head)], installSpec);
+    };
     if (installSpec.fontType === "local") {
       // This is mostly used by paste from Figma, where fonts are not added
       // to UserManagedFont list.
+      this.pendingLocalFonts.add(installSpec.fontFamily);
       spawn(
         asyncTestFonts([installSpec.fontFamily]).then((avails) => {
           if (avails.length === 1) {
             this._availLocalFonts.add(installSpec.fontFamily);
           }
+          this.pendingLocalFonts.delete(installSpec.fontFamily);
+          install();
         }),
       );
+    } else {
+      install();
     }
-    // Install font globally for style tokens.
-    this.installFont([$(document.head)], installSpec);
   };
 
   installDepFonts(studioCtx: StudioCtx, dep: ProjectDependency) {

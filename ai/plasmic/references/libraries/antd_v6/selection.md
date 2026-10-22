@@ -13,6 +13,10 @@ Applies to the Overseas / Antd6 / React UI admin suite. Classify the requirement
 | Repeated records / `data-table`, `pagination` | [Table](components/table.md), [Pagination](components/pagination.md) | All Columns inventoried; one native pagination owner and fixed row actions |
 | Content scopes / `content-scope` | [Tabs](components/tabs.md) | Tabs own content; not a Radio/Select field value |
 | Choose a field value / `field-choice` | [Radio](components/radio.md), [Select](components/select.md), [Segmented](components/segmented.md), [Checkbox](components/checkbox.md) | Required cardinality, searchability, values and Form/SearchForm ownership |
+| Daily clock time or time range / `widget` | [TimePicker](components/time-picker.md), [field semantics](#field-semantics) | Clock time versus dated instant or duration; native picker and value conversion |
+| Calendar date, dated time or date range / `widget` | [DatePicker](components/date-picker.md), [field semantics](#field-semantics) | Date-only versus date-and-time; range endpoints, supported showTime and timezone |
+| Free numeric quantity / `widget` | [InputNumber](components/input-number.md), [field semantics](#field-semantics) | Numeric quantity versus identifier or finite choice; units, precision and empty versus zero |
+| Free text or textual identifier / `widget` | [Input](components/input.md), [field semantics](#field-semantics) | Text semantics, leading zeros and actual secret/multiline/code requirements |
 | Lifecycle/processing state / `status` | [Badge](components/badge.md) | Status preset plus readable text; a Table status Column uses a Badge render template, not tag display |
 | Category/attribute / `category` | [Tag/text selection](components/tag.md#tag-or-text) | Category meaning does not require a Tag; default ordinary single values to text and preserve the source presentation |
 | Count/dot / `count` | [Badge](components/badge.md) | Count/dot is distinct from text status; meaningful zero and overflow |
@@ -28,6 +32,16 @@ Applies to the Overseas / Antd6 / React UI admin suite. Classify the requirement
 | Supplemental help / `help` | [Tooltip](components/tooltip.md), [Popover](components/popover.md), [Form label help](components/form.md#label-help) | Required constraints stay visible; field help belongs to Item; no interactive Tooltip |
 | Navigation / `navigation`, staged workflow / `workflow-progress` | [Menu](components/menu.md), [Breadcrumb](components/breadcrumb.md), [Steps + Form](compositions/step-form.md) | Routes/content navigation versus a field choice; Steps don't own business validation |
 | Other functional widgets / `widget` | The actual component document from [catalog](catalog.md) | Read its applicability, defaults, Slots, state/events and acceptance; widget cannot bypass a specific role above |
+
+## Field semantics
+
+For each editable Form, SearchForm or standalone field, derive the value's meaning from the requirement before choosing its control. A string payload, a rectangle in a design draft or a formatted sample such as `18:00:00` does not justify Input. Use the existing `components` declaration's `purpose`, `source`, `component`, `rule`, native props and owner; do not introduce another field schema.
+
+- A daily cutoff such as `18:00:00` is a wall-clock time: use TimePicker with the required hour/minute/second precision. A dated appointment needs DatePicker with supported time selection; a date-only field does not. A duration such as 36 hours is a quantity with units, not a clock time.
+- Use InputNumber for freely entered quantities. Numeric-looking identifiers, telephone numbers and codes remain text when formatting/leading zeros carry meaning. A finite set of retention-day options remains Select/Radio even though its values are numbers.
+- Preserve explicit user control choices and source-required specialized interactions. Record their rationale in the same purpose/source fields. If the installed picker cannot satisfy a required value/event contract, record the exact capability gap and unresolved behavior; do not silently replace it with Input or invent props. A screenshot's input-like appearance alone is not an explicit choice of Input.
+
+Before generation and during either review mode, compare each field's planned control with the original source, then compare the actual saved component with that plan. An incorrect Input in both plan and output is still a selection failure. Static checks establish identity/ownership and declared props, not semantic correctness. In Preview exercise the real picker or numeric interaction, initialization, changed value, invalid/empty handling and reset/reopening as applicable; inspect the submitted/query payload as well as the displayed value. Retain these cases in the existing runtime evidence, not a second checklist.
 
 ## Existing inventory, independent expectations
 

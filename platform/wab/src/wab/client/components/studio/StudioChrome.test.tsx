@@ -207,16 +207,18 @@ it("shows preview startup failures with retry without editor chrome", () => {
   expect(retry).toHaveBeenCalledOnce();
 });
 
-it("provides a desktop update slot outside and below the loading editor tool rail", () => {
+it("provides one desktop update slot after the loading editor brand capsule", () => {
   vi.spyOn(navigator, "userAgent", "get").mockReturnValue(
     "PlasmicDesktop/darwin",
   );
   const { container } = setup(<ApplicationPageLoading />);
   const slot = container.querySelector('[data-desktop-update-slot="header"]');
   expect(slot).toBeTruthy();
-  expect(slot?.previousElementSibling?.id).toBe("left-tab-strip");
-  expect(slot?.getAttribute("data-desktop-update-position")).toBe("above");
-  expect(slot?.closest("#left-tab-strip")).toBeNull();
+  expect(container.querySelectorAll('[data-desktop-update-slot="header"]')).toHaveLength(1);
+  expect(slot?.previousElementSibling?.querySelector(".editor-project-title")).toBeTruthy();
+  expect(slot?.closest(".canvas-editor__top-bar")).toBeTruthy();
+  expect(slot?.getAttribute("data-desktop-update-position")).toBeNull();
+  expect(slot?.closest(".editor-tool-rail-group")).toBeNull();
   vi.restoreAllMocks();
 });
 

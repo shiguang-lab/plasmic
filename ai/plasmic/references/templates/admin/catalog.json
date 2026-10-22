@@ -4,7 +4,7 @@
   "projectUrl": "https://studio.plasmic.shiguanglab.com/projects/145nN6S5QQBwgjtNUwuiQZ",
   "workspaceId": "b8k3wLnCGATcW6cAquxJ3K",
   "organizationId": "1SggWCFqHbS4RipBHnqVqY",
-  "publishedVersion": "0.0.1",
+  "publishedVersion": "1.0.0",
   "reference": {
     "file": "pen-antd-kit/libraries/templates.pen",
     "readVia": "Pen MCP",
@@ -24,7 +24,7 @@
     {
       "name": "overseas",
       "projectId": "f3f4ju424PVNTAQPkwovrE",
-      "version": "1.4.0",
+      "version": "1.7.0",
       "installed": true
     },
     {

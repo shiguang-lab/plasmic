@@ -28,7 +28,10 @@ import { SidebarModalProvider } from "@/wab/client/components/sidebar/SidebarMod
 import { DefaultStylesPanel } from "@/wab/client/components/sidebar/ThemesControls";
 import { UserManagedFontsPanel } from "@/wab/client/components/sidebar/UserManagedFonts";
 import LeftTabStrip from "@/wab/client/components/studio/LeftTabStrip";
-import { SidePanelShell } from "@/wab/client/components/studio/SidePanelShell";
+import {
+  SIDE_PANEL_TRANSITION_MS,
+  SidePanelShell,
+} from "@/wab/client/components/studio/SidePanelShell";
 import { providesSidebarPopupSetting } from "@/wab/client/components/style-controls/StyleComponent";
 import { editorLeftRailLayout } from "@/wab/client/components/ui/layout-styles";
 import { Icon } from "@/wab/client/components/widgets/Icon";
@@ -53,7 +56,27 @@ import { extractTokenUsages } from "@/wab/shared/core/styles";
 import { Component, DataToken, StyleToken } from "@/wab/shared/model/classes";
 import { LeftTabKey } from "@/wab/shared/ui-config-utils";
 import { observer } from "mobx-react";
+import { createStyles } from "antd-style";
 import React, { useState } from "react";
+
+const useStyles = createStyles(() => ({
+  railPosition: {
+    position: "absolute",
+    top: 0,
+    bottom: 0,
+    left: editorLeftRailLayout.panelGap,
+    pointerEvents: "none",
+    // Percentages follow width changes immediately; only opening/closing animates.
+    transform: `translateX(calc(-100% - ${editorLeftRailLayout.panelGap}px))`,
+    transition: `transform ${SIDE_PANEL_TRANSITION_MS}ms ease`,
+    "&[data-open='true']": { transform: "translateX(0)" },
+    "& > .editor-tool-rail-group": {
+      marginLeft: "100%",
+      pointerEvents: "auto",
+    },
+    "@media (prefers-reduced-motion: reduce)": { transition: "none" },
+  },
+}));
 
 interface LeftPaneProps {
   studioCtx: StudioCtx;
@@ -62,6 +85,7 @@ interface LeftPaneProps {
 
 const LeftPane = observer(function LeftPane(props: LeftPaneProps) {
   const { t } = useI18n();
+  const { styles } = useStyles();
   const { studioCtx } = props;
   const setNavigationTab = studioCtx.setNavigationPanel;
   useSignalListener(
@@ -105,6 +129,8 @@ const LeftPane = observer(function LeftPane(props: LeftPaneProps) {
     splits: "Split content",
   };
   const leftPaneRef = React.useRef<HTMLDivElement>(null);
+  const panelOpen = !!studioCtx.leftPanel && !studioCtx.panelsHidden;
+  const panelWidth = `min(${studioCtx.leftPaneWidth}px, calc(100vw - 72px))`;
 
   const { onDragStart, onDrag, onDragStop } = useResizableHandle({
     panelRef: leftPaneRef,
@@ -189,19 +215,27 @@ const LeftPane = observer(function LeftPane(props: LeftPaneProps) {
           left: editorLeftRailLayout.left,
           top: editorLeftRailLayout.top,
           bottom: editorLeftRailLayout.bottom,
+          width: editorLeftRailLayout.width,
         }}
         showControls={studioCtx.showDevControls}
         // onMouseEnter={() => setHover(true)}
         // onMouseLeave={() => setHover(false)}
       >
-        <LeftTabStrip useVersionsCTA={useVersionsCTA} />
+        <div
+          className={styles.railPosition}
+          data-open={panelOpen}
+          data-test-id="left-tool-rail-position"
+          style={{ width: panelWidth }}
+        >
+          <LeftTabStrip useVersionsCTA={useVersionsCTA} />
+        </div>
         <SidePanelShell
           ref={leftPaneRef}
-          open={!!studioCtx.leftPanel && !studioCtx.panelsHidden}
+          open={panelOpen}
           side="left"
           style={{
-            width: studioCtx.leftPaneWidth,
-            left: `calc(100% + ${editorLeftRailLayout.panelGap}px)`,
+            width: panelWidth,
+            left: 0,
           }}
         >
           {studioCtx.leftTabKey && studioCtx.leftTabKey !== "libraries" && (

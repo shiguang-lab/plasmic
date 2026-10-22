@@ -513,6 +513,21 @@ function LoggedInContainer(props: LoggedInContainerProps) {
   );
 }
 
+function StartupFailure({ retry, error }: { retry: () => void; error: unknown }) {
+  const location = useLocation();
+  return (
+    <React.Suspense fallback={<ApplicationPageLoading />}>
+      <ApplicationPageLoading
+        failure={asApiError(error)?.statusCode === 401 ? (
+          <ShiguangSignIn returnTo={location.pathname + location.search + location.hash} />
+        ) : (
+          <LoadingError onRetry={retry} />
+        )}
+      />
+    </React.Suspense>
+  );
+}
+
 export function Root() {
   const history = useHistory();
   const forceUpdate = useForceUpdate();
@@ -597,8 +612,8 @@ export function Root() {
     <widgets.Loadable
       loader={loader}
       loadingContents={() => <ApplicationPageLoading />}
-      failureContents={(retry) => (
-        <ApplicationPageLoading failure={<LoadingError onRetry={retry} />} />
+      failureContents={(retry, error) => (
+        <StartupFailure retry={retry} error={error} />
       )}
       contents={({ nonAuthCtx, appData }) => (
         <InitializedRoot
@@ -670,10 +685,8 @@ function InitializedRoot({
           <widgets.Loadable
             loader={loader}
             loadingContents={() => <ApplicationPageLoading />}
-            failureContents={(retry) => (
-              <ApplicationPageLoading
-                failure={<LoadingError onRetry={retry} />}
-              />
+            failureContents={(retry, error) => (
+              <StartupFailure retry={retry} error={error} />
             )}
             contents={(appCtx: /*TWZ*/ AppCtx) => {
               return providesAppCtx(appCtx)(

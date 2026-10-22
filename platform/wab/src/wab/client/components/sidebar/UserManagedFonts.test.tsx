@@ -3,6 +3,7 @@ import { FontManager } from "@/wab/client/fonts";
 import { ensure } from "@/wab/shared/common";
 import { createSite } from "@/wab/shared/core/sites";
 import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
+import { notification } from "antd";
 import $ from "jquery";
 import { observable, runInAction } from "mobx";
 import React from "react";
@@ -36,13 +37,17 @@ afterEach(() => {
   document.body.innerHTML = "";
 });
 
-async function setup(hostFamilies: string[] = []) {
+async function setup(hostFamilies: string[] = [], usedFont?: string) {
   // jsdom has no font layout; simulate the existing Studio width probe.
   document.body.innerHTML = '<span class="fontTester"></span>';
   vi.spyOn($.fn, "width").mockImplementation(function (this: JQuery) {
     return this.css("font-family").includes("Local Font") ? 200 : 100;
   } as any);
   const site = createSite();
+  if (usedFont) {
+    ensure(site.activeTheme, "theme").defaultStyle.rs.values["font-family"] =
+      usedFont;
+  }
   site.userManagedFonts = observable.array([
     "Host Font",
     "Missing Font",
@@ -120,6 +125,16 @@ it("recognizes a subsetted host-provided font without loading unused faces", asy
   expect(load).not.toHaveBeenCalled();
   expect(loadFace).not.toHaveBeenCalled();
   expect(warning("Host Font")).toBeNull();
+});
+
+it("does not warn about an available host font absent from the user font list", async () => {
+  const warn = vi.spyOn(notification, "warning");
+  const { manager } = await setup(["Custom Host Font"], "Custom Host Font");
+  manager.installAllUsedFonts([]);
+  manager.installAllUsedFonts([]);
+
+  expect(manager.missingUsedFonts()).not.toContain("Custom Host Font");
+  expect(warn).not.toHaveBeenCalled();
 });
 
 it("updates the open panel when a host font becomes available", async () => {

@@ -779,9 +779,7 @@ export const useEditorLayoutStyles = createStyles(({ token }) => ({
       width: editorLeftRailLayout.width,
       height: "100%",
       minHeight: 0,
-      gap: 12,
     },
-    "& .editor-update-below-rail": { flexShrink: 0 },
     "& #left-tab-strip": {
       boxSizing: "border-box",
       minHeight: 0,
@@ -984,7 +982,6 @@ export const useEditorLayoutStyles = createStyles(({ token }) => ({
       border: `1px solid ${token.colorBorder}`,
       borderRadius: token.borderRadiusLG,
       overflow: "hidden",
-      maxWidth: "calc(100vw - 72px)",
       background: token.colorBgContainer,
     },
     [`& .${leftPane.root}, & .${topBar.root}`]: {

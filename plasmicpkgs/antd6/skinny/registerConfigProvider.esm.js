@@ -72,7 +72,7 @@ function AntdConfigProvider(props) {
         colorTextBase: themeStyles.color
       })
     },
-    /* @__PURE__ */ React.createElement(App, null, /* @__PURE__ */ React.createElement(ForkedApp, null, /* @__PURE__ */ React.createElement(
+    /* @__PURE__ */ React.createElement(App, { style: { display: "contents" } }, /* @__PURE__ */ React.createElement(ForkedApp, null, /* @__PURE__ */ React.createElement(
       InnerConfigProvider,
       {
         loadingText,

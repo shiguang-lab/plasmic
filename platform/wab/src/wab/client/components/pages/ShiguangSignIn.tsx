@@ -4,9 +4,9 @@ import { Button } from "antd";
 import * as React from "react";
 import { useEffect } from "react";
 
-export function ShiguangSignIn() {
+export function ShiguangSignIn({ returnTo: requestedReturnTo }: { returnTo?: string } = {}) {
   const continueTo =
-    new URLSearchParams(window.location.search).get("continueTo") ?? "/";
+    requestedReturnTo ?? new URLSearchParams(window.location.search).get("continueTo") ?? "/";
   const target = new URL(continueTo, window.location.origin);
   const returnTo =
     target.origin === window.location.origin && target.pathname !== "/login"

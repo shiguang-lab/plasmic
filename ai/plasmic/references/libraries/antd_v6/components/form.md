@@ -17,7 +17,7 @@ Use `scripts/read_reference.py` from resourceRoot with the required `--section` 
 
 - Every business Form: `values-and-validation`, `events-and-ref-actions`, `acceptance`, `simplified-and-advanced-modes`.
 - Full-project generation or inventory audit: `project-inventory-and-acceptance`; a focused edit instead reads `focused-form-edits`.
-- Every editable field: `validation-order` and `label-and-control-layout`.
+- Every editable field: [field semantics](../selection.md#field-semantics), `validation-order` and `label-and-control-layout`.
 - Field-label help being added, changed or present in generated fields: `label-help`.
 - Visible field instructions being added, moved or present in generated fields: `field-instructions`.
 - Repeated fields or grouped paths: `formlist-and-form-field-group`.

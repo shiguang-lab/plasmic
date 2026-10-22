@@ -3,7 +3,7 @@
 [打开素材库](https://studio.plasmic.shiguanglab.com/projects/145nN6S5QQBwgjtNUwuiQZ) ·
 [查看组合演示](https://studio.plasmic.shiguanglab.com/projects/145nN6S5QQBwgjtNUwuiQZ/preview/templates)
 
-素材库位于 shuhe / Prototypes，已保存发布版本 **0.0.1**。它提供设计时可组合的页面、区块和抽屉素材。页面模板按照 Plasmic 官方方式保存为普通 Component；`TemplatePreview` 是唯一的演示 Page。
+素材库位于 shuhe / Prototypes，已保存发布版本 **1.0.0**。它提供设计时可组合的页面、区块和抽屉素材。页面模板按照 Plasmic 官方方式保存为普通 Component；`TemplatePreview` 是唯一的演示 Page。
 
 ## 模板目录
 
@@ -24,11 +24,13 @@
 
 ## 组件与布局
 
-基础控件直接使用已发布组件库：Antd6 **1.12.0**、Overseas **1.4.0**、Antd Icons **0.1.0**、React UI **0.1.0**。没有新增基础控件实现。
+基础控件直接使用已发布组件库：Antd6 **1.12.0**、Overseas **1.7.0**、Antd Icons **0.1.0**、React UI **0.1.0**。没有新增基础控件实现。
 
 布局使用真实 Antd `Flex`、`Row`、`Col`、`Space` 和 `Card`；外壳使用 Overseas `AppShell`。筛选使用 `SearchForm` / `SearchFormItem`，表格使用 `Table` / `TableColumn`，行操作使用 `ActionGroup`，字段使用 `Form` / `Form.Item`，详情使用 `Descriptions`，抽屉使用原生 `Drawer`。
 
 整页只保留一个 `AppShell`。已有外壳时使用 Section，Overlay 作为页面级兄弟节点插入。外壳负责页面纵向滚动；目录右栏自适应，表格使用原生横向滚动。两个抽屉的业务初始状态均为关闭。
+
+1440×1024 是设计画板尺寸。整页模板和 `TemplatePreview` 的 AppShell 使用 `width:100%; height:100vh; min-width:0`，随实际视口铺满；导入模板后核对实际依赖和实例样式，不能把旧发布包的固定尺寸当成当前组件默认值。
 
 ## 在项目中使用
 

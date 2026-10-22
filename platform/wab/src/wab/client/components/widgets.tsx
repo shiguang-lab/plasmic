@@ -155,12 +155,13 @@ type LoadableProps<T> = {
   loader: () => Promise<T>;
   contents: (data: T) => ReactNode;
   loadingContents: () => ReactNode;
-  failureContents?: (retry: () => void) => ReactNode;
+  failureContents?: (retry: () => void, error: unknown) => ReactNode;
 };
 type LoadableState<T> = {
   loaded: boolean;
   data: T | null;
   failed: boolean;
+  error?: unknown;
 };
 export class Loadable<T> extends React.Component<
   LoadableProps<T>,
@@ -190,7 +191,7 @@ export class Loadable<T> extends React.Component<
     return this.pLoad.cancel();
   }
   private load = async () => {
-    this.setState({ failed: false });
+    this.setState({ failed: false, error: undefined });
     const pending = makeCancelable(Promise.resolve().then(this.props.loader));
     this.pLoad = pending;
     try {
@@ -200,7 +201,7 @@ export class Loadable<T> extends React.Component<
       }
     } catch (error) {
       if (!this.unmounted && this.pLoad === pending) {
-        this.setState({ failed: true });
+        this.setState({ failed: true, error });
         reportError(error instanceof Error ? error : new Error(String(error)));
       }
     }
@@ -213,7 +214,7 @@ export class Loadable<T> extends React.Component<
     } else if (this.state.failed) {
       const retry = () => void this.load();
       return this.props.failureContents ? (
-        this.props.failureContents(retry)
+        this.props.failureContents(retry, this.state.error)
       ) : (
         <LoadingError onRetry={retry} />
       );

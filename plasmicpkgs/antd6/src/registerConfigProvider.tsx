@@ -129,7 +129,8 @@ export function AntdConfigProvider(
         colorTextBase: themeStyles.color,
       })}
     >
-      <App>
+      {/* Keep theme inheritance without inserting a sizing box in the canvas. */}
+      <App style={{ display: "contents" }}>
         <ForkedApp>
           <InnerConfigProvider
             loadingText={loadingText}

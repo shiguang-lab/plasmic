@@ -6,6 +6,18 @@
   padding-right: 144px;
 }
 
+.brandGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+
+  > :global([data-desktop-update-slot]) {
+    flex-shrink: 0;
+    pointer-events: auto;
+  }
+}
+
 .projectActions {
   display: flex;
   flex-direction: column;

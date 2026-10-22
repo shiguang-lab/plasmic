@@ -3,6 +3,7 @@ import { VersionsTab } from "@/wab/client/components/sidebar-tabs/versions-tab";
 import { useVersionsPublishNotice } from "@/wab/client/components/sidebar-tabs/versions-tab/useVersionsPublishNotice";
 import { EditorIconAction } from "@/wab/client/components/top-bar/EditorActions";
 import { TopBarChrome } from "@/wab/client/components/top-bar/TopBarChrome";
+import { EditorBrandGroup } from "@/wab/client/components/top-bar/EditorBrandGroup";
 import { useEditorPopupStyles } from "@/wab/client/components/ui/layout-styles";
 import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
@@ -493,8 +494,10 @@ function _TopBar({ preview }: TopBarProps) {
           className: `${styles.topBar} ${isMacDesktop ? styles.desktop : ""} ${isWindowsDesktop ? styles.desktopWindows : ""} ${isObserver ? "topbar--isObserver" : ""}`,
         }}
         left={{
+          wrap: (capsule) => (
+            <EditorBrandGroup ref={leftRef}>{capsule}</EditorBrandGroup>
+          ),
           props: {
-            ref: leftRef,
             style: isMacDesktop
               ? { paddingLeft: 96 }
               : undefined,

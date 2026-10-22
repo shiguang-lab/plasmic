@@ -120,9 +120,11 @@ test("dashboard route remount preserves ready state and editor visibility rules"
   await flush();
   assert.equal(ui.document.querySelector("#plasmic-desktop-update"), null);
   ui.document.body.innerHTML =
-    '<div id="left-tab-strip"><div></div></div><div class="editor-primary-actions"><span data-desktop-update-slot="header" data-desktop-update-position="above"></span><button>Avatar</button></div>';
+    '<div id="left-tab-strip"><div></div></div><header><div><div id="brand-capsule">Project</div><span data-desktop-update-slot="header"></span></div></header>';
   await flush();
-  assert.equal(control.dataset.tooltipSide, "above");
+  assert.equal(control.dataset.tooltipSide, "below");
+  assert.equal(control.parentElement.previousElementSibling.id, "brand-capsule");
+  assert.equal(control.closest("header") !== null, true);
   assert.equal(control.closest("#left-tab-strip"), null);
   ui.send({ phase: "current" });
   assert.equal(control.hidden, true);

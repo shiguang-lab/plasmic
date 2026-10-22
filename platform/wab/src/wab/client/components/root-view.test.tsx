@@ -47,7 +47,7 @@ vi.mock("@/wab/client/i18n", async (importOriginal) => ({
   useI18n: () => ({ t: (message: string) => message }),
 }));
 vi.mock("@/wab/client/components/pages/ShiguangSignIn", () => ({
-  ShiguangSignIn: () => <div>Ready</div>,
+  ShiguangSignIn: ({ returnTo }: { returnTo?: string }) => <div data-return-to={returnTo}>Ready</div>,
 }));
 
 beforeEach(() => {
@@ -166,4 +166,30 @@ it("keeps a failed project service retryable without treating it as an access de
   await screen.findByRole("alert");
   expect(mocks.loadAppCtxData).not.toHaveBeenCalled();
   expect(mocks.loadAppCtx).not.toHaveBeenCalled();
+});
+
+it.each(["bundle", "app-data", "app-context"])(
+  "sends an expired %s startup session to sign-in with the full preview location",
+  async (stage) => {
+    const denied = new HttpError(401, "Unauthorized");
+    mocks.getEditorBootstrap.mockRejectedValue(denied);
+    if (stage === "bundle") {
+      mocks.getLastBundleVersion.mockRejectedValue(denied);
+    } else if (stage === "app-data") {
+      mocks.loadAppCtxData.mockRejectedValue(denied);
+    } else {
+      mocks.loadAppCtx.mockRejectedValue(denied);
+    }
+    const path = "/projects/project/preview-full/audiences?market=MX#width=1440";
+    setup(path);
+    expect((await screen.findByText("Ready")).getAttribute("data-return-to")).toBe(path);
+    expect(screen.queryByRole("button", { name: "Retry" })).toBeNull();
+  },
+);
+
+it("does not treat a forbidden startup request as an expired session", async () => {
+  mocks.getLastBundleVersion.mockRejectedValue(new HttpError(403, "Forbidden"));
+  setup();
+  expect(await screen.findByRole("button", { name: "Retry" })).toBeTruthy();
+  expect(screen.queryByText("Ready")).toBeNull();
 });

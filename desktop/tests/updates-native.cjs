@@ -59,7 +59,7 @@ app
           frame.addEventListener("load", () => {
             const inner = frame.contentDocument;
             inner.open();
-            inner.write('<html><head><style>.studio{--ui-text:#edeef5;color:var(--ui-text);background:#171821;min-height:100vh}.dev-env{color:#1b1b18}</style></head><body style="margin:0"><div class="studio"><div class="dev-env" style="position:absolute;left:16px;top:40px;display:flex;flex-direction:column;align-items:center;gap:12px"><div id="left-tab-strip" style="width:56px;height:160px;border:1px solid #ddd">Tools</div><span data-desktop-update-slot="header" data-desktop-update-position="above"></span></div></div></body></html>');
+            inner.write('<html><head><style>.studio{--ui-text:#edeef5;color:var(--ui-text);background:#171821;min-height:100vh}.dev-env{color:#1b1b18}</style></head><body style="margin:0"><div class="studio"><header class="dev-env" style="position:absolute;left:8px;top:8px;display:flex;align-items:center;gap:8px"><div id="brand-capsule" style="height:42px;display:flex;align-items:center;padding:0 12px;border:1px solid #ddd;border-radius:21px">Project</div><span data-desktop-update-slot="header"></span></header><div id="left-tab-strip" style="position:absolute;left:8px;top:58px;width:36px;height:160px;border:1px solid #ddd">Tools</div></div></body></html>');
             inner.close();
           });
           document.body.append(frame);
@@ -335,18 +335,18 @@ app
       await editor.executeJavaScript(`(() => {
     const control = document.getElementById("plasmic-desktop-update");
     const button = control.querySelector("button");
-    return { inStrip: !!control.closest("#left-tab-strip"), width: button.getBoundingClientRect().width, iconWidth: button.querySelector("svg").getBoundingClientRect().width, position: getComputedStyle(control).position, afterRail: control.parentElement.previousElementSibling.id === "left-tab-strip" };
+    return { inStrip: !!control.closest("#left-tab-strip"), width: button.getBoundingClientRect().width, iconWidth: button.querySelector("svg").getBoundingClientRect().width, position: getComputedStyle(control).position, afterBrand: control.parentElement.previousElementSibling.id === "brand-capsule" };
   })()`),
       {
         inStrip: false,
         width: 32,
         iconWidth: 16,
         position: "relative",
-        afterRail: true,
+        afterBrand: true,
       },
     );
     await fs.writeFile(
-      path.join(os.tmpdir(), "plasmic-update-editor-below-rail.png"),
+      path.join(os.tmpdir(), "plasmic-update-editor-after-brand.png"),
       (await window.webContents.capturePage()).toPNG(),
     );
     assert.equal(
@@ -364,16 +364,16 @@ app
         `document.querySelector(".update-tooltip").matches(":popover-open")`,
       ),
       true,
-      "The floating tooltip must open above the download icon",
+      "The floating tooltip must open below the download icon",
     );
     assert(
       await editor.executeJavaScript(`(() => {
         const tooltip = document.querySelector(".update-tooltip");
         const button = document.querySelector(".update-action");
         return getComputedStyle(tooltip).overflow === "visible" &&
-          Math.abs(button.getBoundingClientRect().top - tooltip.getBoundingClientRect().bottom - 8) < 1;
+          Math.abs(tooltip.getBoundingClientRect().top - button.getBoundingClientRect().bottom - 8) < 1;
       })()`),
-      "The tooltip must sit above the icon without a native scroll container",
+      "The tooltip must sit below the icon without a native scroll container",
     );
     assert(
       await editor.executeJavaScript(
@@ -475,7 +475,7 @@ app
       null,
     );
     console.log(
-      "PASS: Bundled editor embeds the separate update button below its tool rail and validates cross-frame messages",
+      "PASS: Bundled editor embeds the separate update button after its brand capsule and validates cross-frame messages",
     );
     root = await fs.mkdtemp(path.join(os.tmpdir(), "plasmic-update-native-"));
     const cache = path.join(root, "updates");

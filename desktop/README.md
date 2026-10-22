@@ -291,7 +291,7 @@ platform and architecture. macOS selects `darwin/arm64/` or `darwin/x64/`; an In
 process running under Rosetta selects the native arm64 feed. GitHub is not contacted when checking, downloading or installing.
 The application checks immediately at startup and every ten minutes, then downloads
 new versions automatically in the background. Update controls mount only in explicit
-page slots: beside the brand on the dashboard and CMS, below the editor tool rail,
+page slots: beside the brand on the dashboard and CMS, after the editor's top-left brand capsule,
 and in the preview toolbar. All download controls show only a progress ring.
 Hover or keyboard focus shows the download percentage and version in a tooltip.
 When the verified download finishes, the main window's Software Update dialog opens with
