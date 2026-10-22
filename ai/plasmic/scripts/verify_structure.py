@@ -126,6 +126,7 @@ def check_components(nodes, path, plan=None):
                     n.get("tag") == "plasmic-component" for n in walk(slot(column, "render") or {"children": []})
                 ):
                     errors.append({**context, "column": node_name(column), "message": "Column requires a dataIndex or nonempty render Slot"})
+            errors.extend(table_width_errors(node, columns, context))
         if identity(node) == "plasmicantd6card":
             children = slot(node, "children")
             # A SearchForm already owns its surface. Layout-only wrappers do not
@@ -139,6 +140,78 @@ def check_components(nodes, path, plan=None):
                 extra_text = any(n.get("tag") == "text" and content(n) and id(n) not in owned for n in walk(children))
                 if not extra_text and all(id(n) in owned for n in business):
                     errors.append({**context, "message": "SearchForm/Steps-only layout requires no surrounding Card; use a layout container"})
+    return errors
+
+
+def static_literal(value):
+    """Decode a JSON literal expression such as {{ 96 }}; never evaluate JavaScript."""
+    if isinstance(value, str) and value.startswith("{{") and value.endswith("}}"):
+        try:
+            return json.loads(value[2:-2].strip())
+        except (ValueError, TypeError):
+            pass
+    return value
+
+
+def pixel_number(value):
+    return type(value) in (int, float) and value == value and value not in (float("inf"), float("-inf")) and value > 0
+
+
+def literal_scroll_x(scroll):
+    """Static scroll.x from {x: n}, a JSON literal binding or {{ {x:n, ...} }}."""
+    scroll = static_literal(scroll)
+    if isinstance(scroll, dict):
+        return static_literal(scroll.get("x"))
+    match = isinstance(scroll, str) and re.fullmatch(
+        r"\{\{\s*\(?\s*\{\s*x\s*:\s*(\d+(?:\.\d+)?)\s*(?:,[^{}]*)?\}\s*\)?\s*\}\}", scroll)
+    return float(match.group(1)) if match else None
+
+
+def estimated_title_width(text):
+    # Conservative header estimate for 14px semibold text: wide (CJK/full-width)
+    # glyphs 15px, others 9px. A heuristic gate; rendered headers remain authoritative.
+    return sum(4 if ch.isspace() else 15 if ord(ch) > 0x2E7F else 9 for ch in text)
+
+
+def table_width_errors(table, columns, context):
+    """Static Table width contract.
+
+    The antd6 wrapper merges scroll as {x: "max-content", ...scroll}. Without a
+    numeric scroll.x the native table uses auto layout, so Column.width is only
+    a minimum and content (long keys, Tags, ActionGroup) redistributes widths.
+    With all columns fixed, a wider container stretches every column,
+    including operations. Rendered widths, header wrapping and horizontal
+    scrolling still need layout evidence.
+    """
+    errors, widths, unset = [], [], []
+    for column in columns:
+        name = node_name(column)
+        if "width" not in props(column):
+            unset.append(name)
+            continue
+        width = static_literal(props(column)["width"])
+        if not pixel_number(width):
+            errors.append({**context, "column": name, "actual": props(column)["width"],
+                           "message": "Column.width must be a literal positive pixel number; strings and bindings do not size native columns reliably"})
+            continue
+        widths.append(width)
+        title = slot(column, "title")
+        text = " ".join(content(title).split()) if title else ""
+        padding = 16 if props(table).get("size", "large") == "large" else 8
+        if text and estimated_title_width(text) + 2 * padding > width:
+            errors.append({**context, "column": name, "title": text, "width": width,
+                           "requiredEstimate": estimated_title_width(text) + 2 * padding,
+                           "message": "Column title likely wraps at this width; widen the Column or use the reviewed shorter title, then measure the rendered header"})
+    if not widths:
+        return errors
+    if len(unset) != 1:
+        errors.append({**context, "unsetColumns": unset,
+                       "message": "Exactly one main text Column (name/title/description) must leave width unset to absorb remaining space; all other Columns use explicit widths"})
+    scroll_x = literal_scroll_x(props(table).get("scroll"))
+    fixed_sum = sum(widths)
+    if not pixel_number(scroll_x) or scroll_x <= fixed_sum:
+        errors.append({**context, "scrollX": props(table).get("scroll"), "fixedWidthSum": fixed_sum,
+                       "message": "Table with explicit Column widths requires numeric scroll.x = explicit widths + the main text Column baseline; otherwise the wrapper's max-content default makes widths minimums"})
     return errors
 
 

@@ -6,6 +6,9 @@ not infer visual hierarchy, text meaning or interactive state coverage.
 """
 from verify_shell_height import finite_number
 
+# Rounding up a measured ActionGroup width (e.g. 130 + 32 -> 162) stays within this.
+OPERATION_SLACK = 8
+
 
 def check(layouts, page_ids):
     errors = []
@@ -29,6 +32,18 @@ def check(layouts, page_ids):
                 or not isinstance(frame.get("images"), list) or not isinstance(frame.get("problems"), list)):
             errors.append({"page": uuid, "error": "Complete ready full layout, positive viewport and explicit image/problem lists required"})
             continue
+        # Sticky control cells report their required content width. Cells of one
+        # rendered column share x and width; size that column from its widest row.
+        columns = {}
+        for element in frame["elements"]:
+            required = element.get("cellContent", {}).get("requiredWidth")
+            if finite_number(required) and finite_number(element.get("x")) and finite_number(element.get("width")):
+                key = (round(element["x"]), round(element["width"]))
+                columns[key] = max(columns.get(key, 0), required)
+        for (x, width), required in sorted(columns.items()):
+            if width > required + OPERATION_SLACK:
+                errors.append({"page": uuid, "x": x, "width": width, "requiredWidth": required,
+                               "error": "Fixed control column is wider than its widest measured content plus padding; size Column.width from requiredWidth and check scroll.x"})
         problems = frame["problems"]
         if problems or any(e.get("horizontalOverflow") is True or e.get("cellContent", {}).get("overflow") is True for e in frame["elements"]) or any(i.get("loaded") is not True for i in frame["images"]):
             errors.append({"page": uuid, "error": "Unresolved rendered overflow/image problems", "problems": problems})

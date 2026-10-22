@@ -39,3 +39,15 @@ class RenderingTests(unittest.TestCase):
         self.assertFalse(check(self.layout, ["page"])["passed"])
         frame["elements"][0]["cellContent"]["overflow"] = False
         self.assertTrue(check(self.layout, ["page"])["passed"])
+    def test_fixed_operation_column_is_sized_from_its_widest_row(self):
+        frame = self.layout["page"]["snapshot"]["frames"][0]
+        def cell(required, width=220):
+            return {"tag": "td", "x": 1179, "width": width, "horizontalOverflow": False,
+                    "cellContent": {"overflow": False, "requiredWidth": required, "paddingLeft": 16, "paddingRight": 16}}
+        # Regression: a saved 220px operation column around 176px of actions.
+        frame["elements"] = [cell(176), cell(120)]
+        self.assertFalse(check(self.layout, ["page"])["passed"])
+        frame["elements"] = [cell(162, 162), cell(120, 162)]
+        self.assertTrue(check(self.layout, ["page"])["passed"])
+        frame["elements"] = [cell(155, 162)]
+        self.assertTrue(check(self.layout, ["page"])["passed"], "Rounding up stays within slack")

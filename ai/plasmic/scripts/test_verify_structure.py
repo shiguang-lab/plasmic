@@ -486,7 +486,7 @@ class StructureTests(unittest.TestCase):
         category = component("Category", "plasmic-antd6-table-column", {"dataIndex": "category", "displayType": "tag"})
         group = component("Actions", "plasmic-react-ui-action-group", {"max": 3, "items": [{"key": "detail", "label": "详情", "href": "{{ row.url }}"}]})
         operations = component("Operations", "plasmic-antd6-table-column", {"fixed": "right", "width": 200}, '<slot name="render"><div>' + group + '</div></slot>')
-        valid = component("Results", "plasmic-antd6-table", {"data": {"data": []}, "pagination": {"defaultPageSize": 20, "showTotal": "{{ (total, range) => `共 ${total} 条` }}"}}, '<slot name="children">' + category + operations + '</slot>')
+        valid = component("Results", "plasmic-antd6-table", {"data": {"data": []}, "scroll": {"x": 440}, "pagination": {"defaultPageSize": 20, "showTotal": "{{ (total, range) => `共 ${total} 条` }}"}}, '<slot name="children">' + category + operations + '</slot>')
         self.expected["pages"][0]["components"] = uses
         self.expected["pages"][0]["actionContracts"] = [{'nodeName': 'Actions', 'key': 'detail', 'confirm': False, 'transitions': [], 'evidence': self.evidence('Detail is visible to authorized readers. The list supports viewing different records on the next page.'),
             'cases': [{'id': 'detail-allowed', 'kind': 'permission-allowed', 'nodeName': 'Actions', 'given': {'role': 'reader'}, 'checks': [{'kind': 'text', 'text': '详情', 'present': True}]},
@@ -570,6 +570,36 @@ class StructureTests(unittest.TestCase):
         ]:
             self.pages["results"][0]["baseVariantTplTree"] = original + table.replace("{}", columns)
             self.assertEqual(self.result()["passed"], passed, self.result())
+
+    def test_table_column_widths_require_one_flexible_column_numeric_scroll_and_fitting_titles(self):
+        def column(name, values, title=None):
+            title_slot = f'<slot name="title"><span>{title}</span></slot>' if title else ""
+            return f'<plasmic-component data-plasmic-name="{name}" data-plasmic-component="plasmic-antd6-table-column" data-props=\'{json.dumps(values)}\'>{title_slot}</plasmic-component>'
+        def errors(columns, table_props):
+            markup = f'<plasmic-component data-plasmic-name="Records" data-plasmic-component="plasmic-antd6-table" data-props=\'{json.dumps({"data": {"data": []}, **table_props})}\'><slot name="children">{"".join(columns)}</slot></plasmic-component>'
+            return [e for e in check_components(list(walk(TextTree(markup).root)), "/records") if "scrollX" in e or "unsetColumns" in e or "title" in e or "actual" in e]
+        name = column("NameColumn", {"dataIndex": "name"}, "名称")
+        scene = column("SceneColumn", {"dataIndex": "scene", "width": 96}, "场景")
+        actions = column("ActionColumn", {"fixed": "right", "width": 162}, "操作")
+        self.assertEqual(errors([name, scene, actions], {"scroll": {"x": 522}}), [])
+        self.assertEqual(errors([column("Plain", {"dataIndex": "name"})], {}), [], "Natural layout without widths stays valid")
+        self.assertEqual(errors([name, scene, actions], {"scroll": {"x": "{{ 522 }}"}}), [], "JSON literal bindings are static")
+        self.assertEqual(errors([name, scene, actions], {"scroll": "{{ {x:522} }}"}), [], "Object-literal scroll bindings are static")
+        self.assertTrue(any("scrollX" in e for e in errors([name, scene, actions], {"scroll": "{{ {x:$state.width} }}"})))
+        # Regression: missing scroll.x lets max-content auto layout treat widths as minimums.
+        self.assertTrue(any("scrollX" in e for e in errors([name, scene, actions], {})))
+        self.assertTrue(any("scrollX" in e for e in errors([name, scene, actions], {"scroll": {"x": 258}})))
+        self.assertTrue(any("scrollX" in e for e in errors([name, scene, actions], {"scroll": {"x": "max-content"}})))
+        # Regression: every column fixed means a wider container stretches the operation column.
+        fixed_name = column("NameColumn", {"dataIndex": "name", "width": 264}, "名称")
+        self.assertTrue(any("unsetColumns" in e for e in errors([fixed_name, scene, actions], {"scroll": {"x": 600}})))
+        self.assertTrue(any("unsetColumns" in e for e in errors([name, column("Note", {"dataIndex": "note"}), actions], {"scroll": {"x": 600}})))
+        self.assertTrue(any("actual" in e for e in errors([name, column("Scene", {"dataIndex": "scene", "width": "96"}), actions], {"scroll": {"x": 600}})))
+        # Regression: a four-character semibold title wraps in a 90px large-table Column.
+        wide_title = column("SceneColumn", {"dataIndex": "scene", "width": 90}, "业务场景")
+        self.assertTrue(any(e.get("title") == "业务场景" for e in errors([name, wide_title, actions], {"scroll": {"x": 600}})))
+        wide_title = column("SceneColumn", {"dataIndex": "scene", "width": 96}, "业务场景")
+        self.assertEqual(errors([name, wide_title, actions], {"scroll": {"x": 600}}), [])
 
     def test_search_form_has_no_redundant_card_but_other_surfaces_remain_valid(self):
         original = self.pages["results"][0]["baseVariantTplTree"]
