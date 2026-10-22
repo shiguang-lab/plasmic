@@ -20,7 +20,7 @@ class PlanPreparationTests(unittest.TestCase):
         self.addCleanup(temp.cleanup)
         self.root = Path(temp.name)
         self.path = example(self.root / 'example')
-        self.plan = json.loads(self.path.read_text())
+        self.plan = json.loads(self.path.read_text(encoding="utf-8"))
 
     def cli(self, script, *args):
         return subprocess.run([sys.executable, '-B', str(SCRIPTS / script), *map(str, args)],
@@ -31,7 +31,7 @@ class PlanPreparationTests(unittest.TestCase):
         process = self.cli('verify_selection.py', self.path, '--report', report_path)
         self.assertEqual(process.returncode, 0, process.stderr + process.stdout)
         self.assertTrue(json.loads(process.stdout)['passed'])
-        report = json.loads(report_path.read_text())
+        report = json.loads(report_path.read_text(encoding="utf-8"))
         self.assertEqual(report['errors'], [])
         self.assertEqual(report['templates'][0]['status'], 'not_applicable')
         self.assertIn('visual and runtime acceptance', report['notChecked'])
@@ -40,7 +40,7 @@ class PlanPreparationTests(unittest.TestCase):
         self.assertEqual({c['key'] for c in page['actionContracts']}, {'view', 'disable'})
         # Real source provenance is checked; deleting or changing it cannot pass.
         source = self.path.parent / 'source.md'
-        source.write_text('changed source')
+        source.write_text('changed source', encoding="utf-8")
         self.assertFalse(check(self.plan)['passed'])
 
     def test_permission_example_preserves_allowed_roles_and_independent_scope_boundary(self):
@@ -144,7 +144,7 @@ class PlanPreparationTests(unittest.TestCase):
         output = self.root / 'prepared.json'
         process = self.cli('prepare_plan.py', 'ids', self.path, '--output', output)
         self.assertEqual(process.returncode, 0, process.stderr)
-        self.assertEqual(json.loads(output.read_text()), self.plan)
+        self.assertEqual(json.loads(output.read_text(encoding="utf-8")), self.plan)
         process = self.cli('prepare_plan.py', 'ids', self.path, '--output', self.path)
         self.assertNotEqual(process.returncode, 0)
         self.assertEqual(self.path.read_bytes(), before)

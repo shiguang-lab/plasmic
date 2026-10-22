@@ -22,7 +22,7 @@ class SelectionTests(unittest.TestCase):
         checked = 0
         for reference in ('references/design/source-presentation.md',
                           'references/libraries/antd_v6/selection.md'):
-            for block in re.findall(r'```json\n(.*?)\n```', (root / reference).read_text(), re.S):
+            for block in re.findall(r'```json\n(.*?)\n```', (root / reference).read_text(encoding="utf-8"), re.S):
                 value = json.loads(block)
                 if isinstance(value, list) and value and all('component' in item for item in value):
                     plan = {'components': value, 'feedback': []}

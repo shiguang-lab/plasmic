@@ -1,0 +1,7 @@
+{
+  "en": "- Improve Preview navigation, control interactions, runtime error reporting and permission checks.\n- Correct Dropdown/Menu contracts and AppShell viewport layout.\n- Improve AI composer controls, startup recovery and cancellable MCP reads.\n- Expand prototype planning, component selection and page acceptance resources; keep local Skill builds aligned with source.",
+  "zh-CN": "- 改进 Preview 导航、控件交互、运行错误报告与权限检查。\n- 修正 Dropdown/Menu 组件契约和 AppShell 视口布局。\n- 改进 AI 输入控件、启动恢复和可取消的 MCP 读取。\n- 完善原型规划、组件选择和逐页验收资源，使本地 Skill 构建与源码保持一致。",
+  "zh-TW": "- 改善 Preview 導覽、控制項互動、執行錯誤回報與權限檢查。\n- 修正 Dropdown/Menu 元件契約及 AppShell 視口版面。\n- 改善 AI 輸入控制項、啟動復原及可取消的 MCP 讀取。\n- 完善原型規劃、元件選擇及逐頁驗收資源，使本機 Skill 建置與原始碼保持一致。",
+  "ja": "- Preview のナビゲーション、操作、実行エラー報告と権限確認を改善します。\n- Dropdown/Menu のコンポーネント定義と AppShell の表示領域を修正します。\n- AI 入力、起動時の復旧、中断可能な MCP 読み取りを改善します。\n- 原型の計画、コンポーネント選択、ページ検証の資料を拡充し、ローカル Skill をソースに合わせます。",
+  "ko": "- Preview 탐색, 컨트롤 상호작용, 런타임 오류 보고 및 권한 확인을 개선합니다.\n- Dropdown/Menu 컴포넌트 계약과 AppShell 뷰포트 배치를 수정합니다.\n- AI 입력, 시작 복구 및 취소 가능한 MCP 읽기를 개선합니다.\n- 프로토타입 계획, 컴포넌트 선택 및 페이지 검증 자료를 보강하고 로컬 Skill 빌드를 소스와 일치시킵니다."
+}

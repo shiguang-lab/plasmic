@@ -116,7 +116,7 @@ class TemplateTests(unittest.TestCase):
 
     def test_changed_capture_and_duplicate_or_invalid_selections_fail(self):
         plan = self.plan()
-        self.file.write_text('{}')
+        self.file.write_text('{}', encoding="utf-8")
         self.assertFalse(check_page(plan)['passed'])
         plan = self.plan()
         plan['templates'].append(copy.deepcopy(plan['templates'][0]))
@@ -133,7 +133,7 @@ class TemplateTests(unittest.TestCase):
         self.assertIn('actual template insertion/detachment', result['notChecked'])
 
     def test_catalog_nested_templates_are_captured_and_required(self):
-        catalog = json.loads(CATALOG.read_text())
+        catalog = json.loads(CATALOG.read_text(encoding="utf-8"))
         project = catalog['projectId']
         self.assertEqual(source_names(project, ['StandardListPage']), ['StandardListPage', 'SearchTableSection'])
         self.data = capture(SourceDesktop(project), project, ['StandardListPage'])

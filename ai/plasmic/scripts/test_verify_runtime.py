@@ -11,8 +11,8 @@ class RuntimeTests(unittest.TestCase):
         temp = tempfile.TemporaryDirectory()
         self.addCleanup(temp.cleanup)
         path = Path(temp.name) / 'requirement.md'
-        path.write_text('停用后启用进入重新启用圈选中；需二次确认。')
-        evidence = {'path': str(path), 'sha256': hashlib.sha256(path.read_bytes()).hexdigest(), 'quote': path.read_text()}
+        path.write_text('停用后启用进入重新启用圈选中；需二次确认。', encoding="utf-8")
+        evidence = {'path': str(path), 'sha256': hashlib.sha256(path.read_bytes()).hexdigest(), 'quote': path.read_text(encoding="utf-8")}
         self.checks = [{'kind': 'text', 'text': '重新启用圈选中', 'present': True}]
         self.plan = {'pages': [{'path': '/groups', 'components': [], 'runtimeCases': [
             {'id': 're-enable', 'kind': 'state-transition', 'nodeName': 'Actions', 'evidence': evidence,

@@ -427,7 +427,7 @@ class SuiteTests(unittest.TestCase):
 
     def test_manifest_hash_mismatch_is_the_only_failing_gate(self):
         path = self.root / 'pages.json'
-        path.write_text(path.read_text() + ' ')
+        path.write_text(path.read_text(encoding='utf-8') + ' ', encoding='utf-8')
         report = self.run_suite()
         self.assertFalse(report['passed'])
         self.assertEqual([item['gate'] for item in report['checks'] if item['status'] not in ('passed', 'not_applicable')], ['evidence'])

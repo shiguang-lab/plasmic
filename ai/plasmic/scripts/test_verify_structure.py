@@ -156,7 +156,7 @@ class StructureTests(unittest.TestCase):
         declaration = {"nodeName": "Filters", "component": "plasmic-overseas-search-form",
                        "source": "Visual draft has two columns", "props": {"colSpan": 12}}
         self.assertEqual({e["check"] for e in self.search_form_errors(markup, [declaration])}, {"searchFormLayout", "searchFieldSpan"})
-        self.source.write_text('筛选区每行2列。')
+        self.source.write_text('筛选区每行2列。', encoding="utf-8")
         declaration['overrides'] = {'colSpan': {'reason': 'Requirement specifies two columns',
                                                 'evidence': self.evidence('筛选区每行2列。')}}
         self.assertEqual(self.search_form_errors(markup, [declaration]), [])
@@ -199,7 +199,7 @@ class StructureTests(unittest.TestCase):
         directory = tempfile.TemporaryDirectory()
         self.addCleanup(directory.cleanup)
         self.source = Path(directory.name) / 'requirement.md'
-        self.source.write_text('colSpan=8; span=8; minRows=2; Detail is visible to authorized readers.')
+        self.source.write_text('colSpan=8; span=8; minRows=2; Detail is visible to authorized readers.', encoding="utf-8")
         self.menu = [{"key": "records", "label": "Records", "children": [
             {"key": "list", "label": "Record list", "href": "/records", "children": [
                 {"key": "detail", "label": "Record detail", "href": "/detail", "hidden": True}
@@ -471,7 +471,7 @@ class StructureTests(unittest.TestCase):
     def test_reviewed_component_roles_cover_categories_actions_and_native_totals(self):
         page = self.pages["results"][0]
         original = page["baseVariantTplTree"]
-        self.source.write_text(self.source.read_text() + ' The list supports viewing different records on the next page.')
+        self.source.write_text(self.source.read_text(encoding="utf-8") + ' The list supports viewing different records on the next page.', encoding="utf-8")
         def component(name, key, values=None, children=""):
             encoded = html.escape(json.dumps(values or {}), quote=True)
             return f'<plasmic-component data-plasmic-name="{name}" data-plasmic-component="{key}" data-props="{encoded}">{children}</plasmic-component>'
@@ -530,7 +530,7 @@ class StructureTests(unittest.TestCase):
     def test_external_pager_has_one_data_owner_and_no_duplicate_table_pager(self):
         page = self.pages["results"][0]
         original = page["baseVariantTplTree"]
-        self.source.write_text(self.source.read_text() + ' The external pager shows different result records on the next page.')
+        self.source.write_text(self.source.read_text(encoding="utf-8") + ' The external pager shows different result records on the next page.', encoding="utf-8")
         self.expected["pages"][0]["components"] = [
             {"nodeName": "Results", "component": "plasmic-antd6-table", "role": "widget", "purpose": "Paged data", "source": "requirement §External pager", "props": {"pagination": False}},
             {"nodeName": "Field", "component": "plasmic-antd6-table-column", "role": "widget", "purpose": "Record identity", "source": "requirement §Field"},

@@ -19,7 +19,7 @@ class SelectionDiagnosticTests(unittest.TestCase):
         self.addCleanup(temp.cleanup)
         self.root = Path(temp.name)
         self.path = example(self.root / 'fixture')
-        self.plan = json.loads(self.path.read_text())
+        self.plan = json.loads(self.path.read_text(encoding="utf-8"))
         self.page = self.plan['pages'][0]
 
     def cli(self, *args):
@@ -77,12 +77,12 @@ class SelectionDiagnosticTests(unittest.TestCase):
     def test_batched_errors_are_saved_in_full_with_bounded_console_output(self):
         for _ in range(30):
             self.page['feedback'].append({'kind': 'unknown'})
-        self.path.write_text(json.dumps(self.plan))
+        self.path.write_text(json.dumps(self.plan), encoding="utf-8")
         report_path = self.root / 'report.json'
         process = self.cli('--report', report_path)
         self.assertEqual(process.returncode, 1, process.stderr)
         summary = json.loads(process.stdout)
-        report = json.loads(report_path.read_text())
+        report = json.loads(report_path.read_text(encoding="utf-8"))
         self.assertEqual(summary['errorCount'], len(report['errors']))
         self.assertEqual(len(summary['examples']), 8)
         self.assertEqual(summary['omittedErrorCount'], 52)
@@ -95,7 +95,7 @@ class SelectionDiagnosticTests(unittest.TestCase):
         self.assertEqual(json.loads(self.cli().stdout), report)
 
     def test_invalid_json_returns_filename_line_column_instead_of_traceback(self):
-        self.path.write_text('{\n "pages": [}\n')
+        self.path.write_text('{\n "pages": [}\n', encoding="utf-8")
         process = self.cli('--report', self.root / 'report.json')
         self.assertEqual(process.returncode, 1)
         error = json.loads(process.stdout)['examples'][0]

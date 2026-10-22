@@ -19,7 +19,7 @@ class PolicyTests(unittest.TestCase):
         self.path = Path(temp.name) / 'requirement.md'
 
     def evidence(self, text):
-        self.path.write_text(text)
+        self.path.write_text(text, encoding="utf-8")
         return {'path': str(self.path), 'sha256': hashlib.sha256(self.path.read_bytes()).hexdigest(), 'quote': text}
 
     def page(self, markup):
@@ -49,7 +49,7 @@ class PolicyTests(unittest.TestCase):
                 'overrides': {'max': {'reason': 'User specifies the action limit', 'evidence': evidence}}}
         self.assertEqual(policy_errors(spec, {'max': 5}), [])
         self.assertTrue(policy_errors(spec, {'max': 6}))
-        self.path.write_text('Requirement changed after planning')
+        self.path.write_text('Requirement changed after planning', encoding="utf-8")
         self.assertTrue(policy_errors(spec, {'max': 5}))
 
     def test_reviewed_three_column_mode_does_not_need_a_requirement_override(self):
