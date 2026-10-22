@@ -10,4 +10,4 @@ Read the installed Tooltip contract. Truncated text must expose its complete con
 
 Empty/null title disables fallback content. Editable children/title Slots retain their actual bindings; selection may reveal the overlay for editing without persisting open state. Verify hover/focus, complete content, overflow/non-overflow and empty/null title, and that hover never runs business actions or navigation. Check editor, Preview and saved/reopened readback; temporary reveals must not enter preview or exports.
 
-Use [Column editable templates](table.md#columns-and-content) for cell conversion and row render scope. Form label explanations use the real [Form.Item tooltip](form.md#label-help), rather than a separately composed help control.
+Table cells follow the [Column ellipsis guidance](table.md#columns-and-content) and [render templates](table.md#render-templates) for custom Tooltip content and row render scope. Form label explanations use the real [Form.Item tooltip](form.md#label-help), rather than a separately composed help control.

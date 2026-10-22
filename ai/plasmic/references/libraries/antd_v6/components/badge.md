@@ -9,6 +9,12 @@ Library: [Ant Design v6](../index.md).
 
 Use Badge `status` (a supported semantic preset) plus `text` for lifecycle/processing status. Categories choose text or Tag under the [Tag/text rules](tag.md#tag-or-text); an enum alone does not require either Badge or Tag. Read the installed `status`/`text` contract and keep status meaning consistent with the business value. Do not leave demo children/counts in status rendering.
 
+## Mapped status values
+
+Bind `value` and map it through `options` `[{value, label, status}]`; values compare as strings. Precedence: explicit `status`/`text` > the matching option > the raw value with `default` status. A null/undefined value keeps the plain Badge (count/dot unaffected). Map an empty string with an explicit `{value:""}` option when it needs a label.
+
+A status Badge in a Table Column's render uses `value` + `options` and omits explicit `status`/`text`, which would override every row ([render templates](table.md#render-templates)). Status is one of `success`, `processing`, `default`, `warning` or `error`. Never set `color`, `dot` or `count` on a status Badge. Every state shows complete visible text; a standalone status Badge may instead use a literal preset `status` plus `text`.
+
 ## Count, dot and Badge.Ribbon
 
 Count and dot are distinct from a text status. Read overflowCount/showZero and the supported size/color contract; zero is displayed or omitted intentionally rather than through a truthy fallback. Place a count on the actual related child control/content and avoid duplicating the same count in an unrelated decorative badge.

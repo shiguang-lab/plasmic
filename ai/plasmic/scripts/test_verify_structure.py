@@ -457,16 +457,36 @@ class StructureTests(unittest.TestCase):
                        "purpose": "Single-value type shown as text in the visual draft", "source": "draft §Type cells",
                        "props": {"dataIndex": "type", "displayType": "text"}}
         self.expected["pages"][0]["components"] = [declaration]
-        for expected in ("text", "tag"):
+        tag = {"nodeName": "TypeTag", "component": "plasmic-antd6-tag", "role": "category",
+               "purpose": "Single-value type shown as a Tag in the visual draft", "source": "draft §Type cells",
+               "owner": {"nodeName": "Type", "slot": "render"}}
+        render = '<slot name="render"><plasmic-component data-plasmic-name="TypeTag" data-plasmic-component="plasmic-antd6-tag" data-props="{}"></plasmic-component></slot>'
+        for expected in ("text", "custom"):
             declaration["props"]["displayType"] = expected
-            for actual in ("text", "tag"):
+            self.expected["pages"][0]["components"] = [declaration] + ([tag] if expected == "custom" else [])
+            for actual in ("text", "custom", "tag"):
                 with self.subTest(expected=expected, actual=actual):
                     encoded = html.escape(json.dumps({"dataIndex": "type", "displayType": actual}), quote=True)
-                    page["baseVariantTplTree"] = original + '<plasmic-component data-plasmic-name="Type" data-plasmic-component="plasmic-antd6-table-column" data-props="' + encoded + '"></plasmic-component>'
+                    body = render if actual == "custom" else ""
+                    column = '<plasmic-component data-plasmic-name="Type" data-plasmic-component="plasmic-antd6-table-column" data-props="' + encoded + '">' + body + '</plasmic-component>'
+                    page["baseVariantTplTree"] = original + column
                     result = self.result()
                     self.assertEqual(result["passed"], actual == expected, result)
                     if actual != expected:
                         self.assertTrue(any(e["check"] == "categoryPresentation" for e in result["errors"]))
+                    if actual == "tag":
+                        # Inside a Table the structure gate rejects the removed preset itself.
+                        page["baseVariantTplTree"] = original + '<plasmic-component data-plasmic-name="Results" data-plasmic-component="plasmic-antd6-table" data-props="{&quot;data&quot;: {&quot;data&quot;: []}, &quot;pagination&quot;: false}"><slot name="children">' + column + '</slot></plasmic-component>'
+                        self.assertTrue(any("presets were removed" in e.get("message", "") for e in self.result()["errors"]))
+
+    def test_table_rejects_removed_column_presets(self):
+        page = self.pages["results"][0]
+        column = '<plasmic-component data-plasmic-name="Owner" data-plasmic-component="plasmic-antd6-table-column" data-props="{&quot;dataIndex&quot;: &quot;avatar&quot;, &quot;displayType&quot;: &quot;avatar&quot;}"></plasmic-component>'
+        page["baseVariantTplTree"] += '<plasmic-component data-plasmic-name="Results" data-plasmic-component="plasmic-antd6-table" data-props="{&quot;data&quot;: {&quot;data&quot;: []}, &quot;pagination&quot;: false}"><slot name="children">' + column + '</slot></plasmic-component>'
+        result = self.result()
+        self.assertFalse(result["passed"])
+        self.assertIn({"check": "component", "path": "/records", "node": "Results", "column": "Owner",
+                       "message": "Table Column displayType must be text or custom; presets were removed"}, result["errors"])
 
     def test_reviewed_component_roles_cover_categories_actions_and_native_totals(self):
         page = self.pages["results"][0]
@@ -479,11 +499,13 @@ class StructureTests(unittest.TestCase):
             return {"nodeName": name, "component": key, "role": role, "purpose": "Reviewed native presentation/interaction", "source": "requirement §Result fields and actions", **extra}
         uses = [
             use("Results", "plasmic-antd6-table", "pagination", props={"pagination": {"defaultPageSize": 20}}, dynamicProps=["pagination.showTotal"]),
-            use("Category", "plasmic-antd6-table-column", "category", props={"dataIndex": "category", "displayType": "tag"}, owner={"nodeName": "Results", "slot": "children"}),
+            use("Category", "plasmic-antd6-table-column", "category", props={"dataIndex": "category", "displayType": "custom"}, owner={"nodeName": "Results", "slot": "children"}),
+            use("CategoryTag", "plasmic-antd6-tag", "category", owner={"nodeName": "Category", "slot": "render"}),
             use("Operations", "plasmic-antd6-table-column", props={"fixed": "right", "width": 200}),
             use("Actions", "plasmic-react-ui-action-group", "row-actions", props={"max": 3}, dynamicProps=["items"], owner={"nodeName": "Operations", "slot": "render"}),
         ]
-        category = component("Category", "plasmic-antd6-table-column", {"dataIndex": "category", "displayType": "tag"})
+        category_tag = component("CategoryTag", "plasmic-antd6-tag", {"value": "{{ cell }}"})
+        category = component("Category", "plasmic-antd6-table-column", {"dataIndex": "category", "displayType": "custom"}, '<slot name="render">' + category_tag + '</slot>')
         group = component("Actions", "plasmic-react-ui-action-group", {"max": 3, "items": [{"key": "detail", "label": "详情", "href": "{{ row.url }}"}]})
         operations = component("Operations", "plasmic-antd6-table-column", {"fixed": "right", "width": 200}, '<slot name="render"><div>' + group + '</div></slot>')
         valid = component("Results", "plasmic-antd6-table", {"data": {"data": []}, "scroll": {"x": 440}, "pagination": {"defaultPageSize": 20, "showTotal": "{{ (total, range) => `共 ${total} 条` }}"}}, '<slot name="children">' + category + operations + '</slot>')
@@ -498,13 +520,13 @@ class StructureTests(unittest.TestCase):
         self.assertTrue(self.result()["passed"], self.result())
         layout = component("ActionsLayout", "plasmic-antd6-flex", children='<slot name="children">' + group + '</slot>')
         uses.append(use("ActionsLayout", "plasmic-antd6-flex", owner={"nodeName": "Operations", "slot": "render"}))
-        uses[3]["owner"] = {"nodeName": "ActionsLayout", "slot": "children"}
+        uses[4]["owner"] = {"nodeName": "ActionsLayout", "slot": "children"}
         page["baseVariantTplTree"] = original + valid.replace(group, layout)
         self.assertTrue(self.result()["passed"], self.result())
         uses.pop()
-        uses[3]["owner"] = {"nodeName": "Operations", "slot": "render"}
+        uses[4]["owner"] = {"nodeName": "Operations", "slot": "render"}
         for broken in [
-            valid.replace('&quot;displayType&quot;: &quot;tag&quot;', '&quot;displayType&quot;: &quot;text&quot;'),
+            valid.replace(category_tag, '<span>{{ cell }}</span>'),
             valid.replace('plasmic-react-ui-action-group', 'plasmic-antd6-button'),
             valid.replace('&quot;fixed&quot;: &quot;right&quot;', '&quot;fixed&quot;: &quot;left&quot;'),
             valid.replace('&quot;max&quot;: 3', '&quot;max&quot;: 4'),

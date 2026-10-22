@@ -56,32 +56,90 @@ class SelectionTests(unittest.TestCase):
     def test_status_column_and_badge_use_native_render_not_tag_preset(self):
         column, badge = 'plasmic-antd6-table-column', 'plasmic-antd6-badge'
         declarations = [spec('Status', column, 'status'), spec('Indicator', badge, 'status')]
-        render = '<slot name="render">' + node('Indicator', badge, {'status': '{{ $ctx.row.status }}', 'text': '{{ $ctx.row.label }}'}) + '</slot>'
-        self.assertTrue(self.result(declarations, node('Status', column, {'displayType': 'custom'}, render))['passed'])
-        self.assertFalse(self.result(declarations, node('Status', column, {'displayType': 'tag'}, render))['passed'])
+        options = [{'value': 'ENABLED', 'label': '启用', 'status': 'success'},
+                   {'value': 'DISABLED', 'label': '停用', 'status': 'default'}]
+        mapped = {'value': '{{ cell }}', 'options': options}
+
+        def column_with(values, display='custom'):
+            render = '<slot name="render">' + node('Indicator', badge, values) + '</slot>'
+            return node('Status', column, {'displayType': display, 'dataIndex': 'status'}, render)
+
+        self.assertTrue(self.result(declarations, column_with(mapped))['passed'])
+        self.assertFalse(self.result(declarations, column_with(mapped, 'tag'))['passed'])
         self.assertFalse(self.result(declarations[:1], node('Status', column, {'displayType': 'tag'}))['passed'])
+        for wrong in ({'status': '{{ row.status }}', 'text': '{{ row.label }}'},
+                      {**mapped, 'options': [{**options[0], 'status': 'blue'}]},
+                      {**mapped, 'status': 'success'},
+                      {**mapped, 'options': '{{ $state.options }}'},
+                      {**mapped, 'color': '#52c41a'}, {**mapped, 'dot': True}, {**mapped, 'count': 1}):
+            with self.subTest(wrong=wrong):
+                result = self.result(declarations, column_with(wrong))
+                self.assertFalse(result['passed'])
+                self.assertTrue(any(e['check'] == 'statusPresentation' for e in result['errors']), result)
+        self.assertTrue(self.result([declarations[1]], node('Indicator', badge, {'status': 'success', 'text': '启用'}))['passed'])
+        self.assertFalse(self.result([declarations[1]], node('Indicator', badge, {'status': 'blue', 'text': 'x'}))['passed'])
         self.assertFalse(self.result([declarations[1]], node('Indicator', badge, {'count': 3}))['passed'])
         self.assertTrue(self.result([spec('Count', badge, 'count')], node('Count', badge, {'count': 3}))['passed'])
 
+    def test_planned_status_badge_props_use_the_same_contract(self):
+        badge = spec('Indicator', 'plasmic-antd6-badge', 'status')
+        options = [{'value': 'ENABLED', 'label': '启用', 'status': 'success'}]
+        self.assertEqual(plan_errors({'components': [{**badge, 'props': {'options': options}}], 'feedback': []}), [])
+        for wrong in ({'options': [{**options[0], 'status': 'blue'}]}, {'options': options, 'status': 'success'},
+                      {'options': options * 2}, {'color': 'green'}, {'dot': True}, {'count': 1}):
+            with self.subTest(wrong=wrong):
+                errors = plan_errors({'components': [{**badge, 'props': wrong}], 'feedback': []})
+                self.assertTrue(errors)
+                self.assertTrue(all(e['pointer'] == '/components/0/props' for e in errors))
+
     def test_category_preflight_requires_a_native_presentation_decision(self):
         column = spec('Type', 'plasmic-antd6-table-column', 'category')
-        for display in ('text', 'tag', 'custom'):
+        for display in ('text', 'custom'):
             with self.subTest(display=display):
                 self.assertEqual(plan_errors({'components': [{**column, 'props': {'displayType': display}}], 'feedback': []}), [])
-        for display in (None, 'link', '{{ $state.display }}'):
+        for display in (None, 'tag', 'link', '{{ $state.display }}'):
             with self.subTest(display=display):
                 self.assertTrue(plan_errors({'components': [{**column, 'props': {'displayType': display}}], 'feedback': []}))
 
+    def test_plan_rejects_removed_column_presets_for_any_role(self):
+        column = spec('Profile', 'plasmic-antd6-table-column', 'widget', props={'dataIndex': 'url', 'displayType': 'link'})
+        errors = plan_errors({'components': [column], 'feedback': []})
+        self.assertEqual([e['pointer'] for e in errors], ['/components/0/props/displayType'])
+
     def test_category_text_and_tag_are_independent_source_choices(self):
         column = 'plasmic-antd6-table-column'
-        for expected in ('text', 'tag'):
-            for actual in ('text', 'tag', 'link'):
+        render = '<slot name="render"><span>{{ cell }}</span></slot>'
+        for expected in ('text', 'custom'):
+            for actual in ('text', 'custom', 'tag', 'link'):
                 with self.subTest(expected=expected, actual=actual):
                     declarations = [spec('Type', column, 'category', props={'displayType': expected})]
-                    result = self.result(declarations, node('Type', column, {'displayType': actual, 'dataIndex': 'type'}))
+                    body = render if actual == 'custom' else ''
+                    result = self.result(declarations, node('Type', column, {'displayType': actual, 'dataIndex': 'type'}, body))
                     self.assertEqual(result['passed'], expected == actual, result)
                     if expected != actual:
-                        self.assertTrue(any(e['check'] == 'categoryPresentation' for e in result['errors']))
+                        self.assertTrue(any(e['check'] == 'categoryPresentation' for e in result['errors']), result)
+
+    def test_state_like_columns_require_status_role_or_reason(self):
+        column = 'plasmic-antd6-table-column'
+        for values in ({'dataIndex': 'status'}, {'dataIndex': 'auditState'}, {'dataIndex': 'order_status'},
+                       {'dataIndex': ['user', 'status']}, {'dataIndex': 'name', 'title': '审核状态'}):
+            with self.subTest(values=values):
+                declaration = spec('Type', column, 'category', props={'displayType': 'text', **values})
+                errors = plan_errors({'components': [declaration], 'feedback': []})
+                self.assertEqual([(e['check'], e['pointer']) for e in errors], [('statusRole', '/components/0/role')])
+                declaration['nonStatusReason'] = 'Address type label, not a lifecycle state'
+                self.assertEqual(plan_errors({'components': [declaration], 'feedback': []}), [])
+        for data_index in ('estate', 'statement'):
+            with self.subTest(dataIndex=data_index):
+                declaration = spec('Type', column, 'category', props={'displayType': 'text', 'dataIndex': data_index})
+                self.assertEqual(plan_errors({'components': [declaration], 'feedback': []}), [])
+        declarations = [spec('Audit', column, 'widget')]
+        markup = node('Audit', column, {'dataIndex': 'result'}, '<slot name="title"><span>状态</span></slot>')
+        result = self.result(declarations, markup)
+        self.assertFalse(result['passed'])
+        self.assertTrue(any(e['check'] == 'statusRole' for e in result['errors']), result)
+        declarations[0]['nonStatusReason'] = 'Audit outcome note, not a lifecycle state'
+        self.assertTrue(self.result(declarations, markup)['passed'])
 
     def test_custom_category_text_supports_tooltip_without_requiring_tag(self):
         column, tooltip = 'plasmic-antd6-table-column', 'plasmic-antd6-tooltip'

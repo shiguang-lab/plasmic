@@ -11,7 +11,7 @@ from collections import Counter
 from html.parser import HTMLParser
 from pathlib import Path
 from verify_bindings import role_menu
-from verify_selection import ROLES, category_errors
+from verify_selection import ROLES, COLUMN_DISPLAY_TYPES, category_errors
 from verify_forms import TextTree, walk, node_name, props, identity, slot, content
 
 
@@ -120,6 +120,8 @@ def check_components(nodes, path, plan=None):
             if not columns:
                 errors.append({**context, "message": "Table requires real Table.Column nodes in its Columns children Slot; data alone does not define columns"})
             for column in columns:
+                if props(column).get("displayType") not in (None, *COLUMN_DISPLAY_TYPES):
+                    errors.append({**context, "column": node_name(column), "message": "Table Column displayType must be text or custom; presets were removed"})
                 if plan is not None and "components" in plan and not any(c.get("nodeName") == node_name(column) for c in plan["components"]):
                     errors.append({**context, "column": node_name(column), "message": "Every Column needs a source-reviewed field/presentation decision in components"})
                 if not props(column).get("dataIndex") and not content(slot(column, "render")) and not any(

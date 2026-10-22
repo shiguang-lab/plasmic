@@ -77,6 +77,6 @@ RecordDetailPage ↔ BasicFormPage（两个路由）
 
 `design.cjs` 是初始组合的 HTML 构造函数，输入为 Desktop MCP 返回的真实组件索引。编辑已存在模板时，优先使用 Studio 或公共 MCP 原位修改，保持节点和 Slots 的身份。维护后保存并发布新素材库版本，再更新目录中的版本和实际 UUID。
 
-[`evidence/template-models.json`](evidence/template-models.json) 是已保存的 10 个模板读回快照。模型校验与 Slots、节点命名、两套表单的 6 个字段检查已通过；演示 Page 的 3 个字段另外通过技能 `verify_forms.py`。运行预览验证使用 1440×1024；未进行移动端适配验收。
+[`evidence/template-models.json`](evidence/template-models.json) 是已保存的 10 个模板读回快照。模型校验与 Slots、节点命名、两套表单的 6 个字段检查已通过；演示 Page 的 3 个字段另外通过技能 `verify_forms.py`。运行预览验证使用 1440×1024；未进行移动端适配验收。该快照早于 Table Column 预设移除：其中分类列仍使用已删除的 `displayType:"tag"` 预设，现在会按文本渲染；需按当前 `design.cjs` 重建模板、重新发布素材库并重新采集读回。
 
 `evidence/` 保存模型检查、表单检查、运行行为检查和截图。静态截图接口在本次会话中未能解析画布，截图通过真实运行预览取得。

@@ -61,6 +61,73 @@ FEEDBACK_CONTEXT = 'plasmic-antd6-config-provider'
 PROVIDER_CALL = re.compile(r'''//[^\r\n]*|/\*[\s\S]*?\*/|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|`(?:\\.|[^`\\])*`|(?<![\w$.])\$globalActions\s*\[\s*(?P<quote>["'])(?P<action>plasmic-antd6-config-provider\.(?:showMessage|showNotification))(?P=quote)\s*\]\s*\(''')
 
 
+# Table Column presets were removed; Tag/Badge/link/avatar are registered
+# components composed in Column.render.
+COLUMN_DISPLAY_TYPES = ('text', 'custom')
+BADGE_STATUSES = ('success', 'processing', 'default', 'error', 'warning')
+STATE_LIKE = 'State-like Column must use role:status with a Badge render, or record nonStatusReason'
+
+
+def state_like(data_index, title):
+    """Lexical hint only: a status/state/状态 field name or title."""
+    if isinstance(data_index, list):
+        data_index = data_index[-1] if data_index else None
+    for value in (data_index, title):
+        if not isinstance(value, str):
+            continue
+        if '状态' in value:
+            return True
+        words = re.sub(r'([A-Z]+)([A-Z][a-z])', r'\1 \2', re.sub(r'([a-z0-9])([A-Z])', r'\1 \2', value))
+        if {'status', 'state'} & {token.lower() for token in re.split(r'[^A-Za-z0-9]+', words) if token}:
+            return True
+    return False
+
+
+def status_badge_errors(values, in_column, planned=False):
+    """Status Badge contract: preset status + text, or value + options.
+
+    Inside a status Table Column the mapped form is required, otherwise every
+    row shows one literal status. A planned declaration may leave the value
+    binding to generation.
+    """
+    errors = [f'Status Badge must not set {key}; the status preset provides the color'
+              for key in ('color', 'dot', 'count') if values.get(key) is not None]
+    mapped = 'options' in values or values.get('value') is not None
+    if mapped:
+        value, options = values.get('value'), values.get('options')
+        if not planned and (value is None or not str(value).strip()):
+            errors.append('Mapped status Badge requires a nonempty value binding')
+        if not isinstance(options, list) or not options:
+            errors.append('Status Badge options must be a literal nonempty list of {value,label,status}')
+        else:
+            keys = []
+            for option in options:
+                if not isinstance(option, dict) or not isinstance(option.get('value'), str):
+                    errors.append('Each status Badge option requires a string value')
+                    continue
+                keys.append(option['value'])
+                if not isinstance(option.get('label'), str) or not option['label'].strip():
+                    errors.append(f'Status Badge option {option["value"]!r} requires a nonempty label')
+                if option.get('status') not in BADGE_STATUSES:
+                    errors.append(f'Status Badge option {option["value"]!r} status must be one of {", ".join(BADGE_STATUSES)}')
+            if len(set(keys)) != len(keys):
+                errors.append('Status Badge option values must be unique')
+        for key in ('status', 'text'):
+            if values.get(key) is not None:
+                errors.append(f'Mapped status Badge must not set explicit {key}; it overrides the options mapping')
+    elif in_column:
+        errors.append('Status Badge in a Table Column must map value + options; a literal status gives every row the same status')
+    elif not planned:
+        status = values.get('status')
+        if not isinstance(status, str) or '{{' in status:
+            errors.append('Status Badge status must be a literal preset; bind dynamic states with value + options')
+        elif status not in BADGE_STATUSES:
+            errors.append(f'Status Badge status must be one of {", ".join(BADGE_STATUSES)}')
+        if values.get('text') is None or not str(values.get('text')).strip():
+            errors.append('Status Badge requires visible text')
+    return errors
+
+
 def provider_call(code, action):
     return isinstance(code, str) and any(match.group('action') == action
         for match in PROVIDER_CALL.finditer(code))
@@ -100,7 +167,7 @@ def category_errors(spec, node, declarations):
     if spec.get('role') != 'category' or identity(node) != 'plasmicantd6tablecolumn':
         return []
     expected = spec.get('props', {}).get('displayType')
-    if expected not in ('text', 'tag', 'custom'):
+    if expected not in COLUMN_DISPLAY_TYPES:
         return []  # Report the missing source decision in plan_errors().
     values, render = props(node), slot(node, 'render')
     actual = values.get('displayType')
@@ -169,9 +236,20 @@ def plan_errors(plan):
             issue(pointer + '/component', 'Component is incompatible with its semantic role', node=name, role=role,
                   component=spec.get('component'), allowedComponents=sorted(ROLE_COMPONENTS[role]),
                   allowedRoles=sorted(r for r, keys in ROLES.items() if component in keys))
-        if role == 'category' and component == 'plasmicantd6tablecolumn' and spec.get('props', {}).get('displayType') not in ('text', 'tag', 'custom'):
-            issue(pointer + '/props/displayType', 'Declare native displayType from the source presentation; category alone does not require Tag',
-                  node=name, allowedValues=['text', 'tag', 'custom'])
+        values = spec.get('props') if isinstance(spec.get('props'), dict) else {}
+        if component == 'plasmicantd6tablecolumn':
+            if 'displayType' in values and values['displayType'] not in COLUMN_DISPLAY_TYPES:
+                issue(pointer + '/props/displayType', 'Table Column displayType must be text or custom; presets were removed - compose registered components in Custom render',
+                      node=name, actual=values['displayType'], allowedValues=list(COLUMN_DISPLAY_TYPES))
+            elif role == 'category' and values.get('displayType') not in COLUMN_DISPLAY_TYPES:
+                issue(pointer + '/props/displayType', 'Declare native displayType from the source presentation; category alone does not require Tag',
+                      node=name, allowedValues=list(COLUMN_DISPLAY_TYPES))
+            reason = spec.get('nonStatusReason')
+            if role != 'status' and state_like(values.get('dataIndex'), values.get('title')) and not (isinstance(reason, str) and reason.strip()):
+                issue(pointer + '/role', STATE_LIKE, check='statusRole', node=name, field=values.get('dataIndex') or values.get('title'))
+        if role == 'status' and component == 'plasmicantd6badge' and any(k in values for k in ('options', 'color', 'dot', 'count')):
+            for message in status_badge_errors(values, False, planned=True):
+                issue(pointer + '/props', message, node=name)
         if role in {'persistent-feedback', 'surface'} and not str(spec.get('condition', '')).strip():
             issue(pointer + '/condition', 'Declare the continuing condition or independently justified surface', node=name)
     feedback = plan.get('feedback')
@@ -223,8 +301,17 @@ def check_page(plan, page):
                 badges = [n for n in authored(render or {}) if identity(n) == 'plasmicantd6badge']
                 if not badges or values.get('displayType') not in (None, 'custom'):
                     errors.append({'check': 'statusPresentation', 'node': name, 'message': 'Status Column requires its native Badge render template; Tag/text presets are not status presentation'})
-            elif key == 'plasmicantd6badge' and (not values.get('status') or not values.get('text')):
-                errors.append({'check': 'statusPresentation', 'node': name, 'message': 'Status Badge requires native status and text bindings, not count/dot alone'})
+                for badge in badges:
+                    errors.extend({'check': 'statusPresentation', 'node': node_name(badge), 'message': message}
+                                  for message in status_badge_errors(props(badge), True))
+            elif key == 'plasmicantd6badge':
+                errors.extend({'check': 'statusPresentation', 'node': name, 'message': message}
+                              for message in status_badge_errors(values, False))
+        if key == 'plasmicantd6tablecolumn' and role != 'status':
+            reason = spec.get('nonStatusReason')
+            title = content(slot(node, 'title')) or values.get('title')
+            if state_like(values.get('dataIndex'), title) and not (isinstance(reason, str) and reason.strip()):
+                errors.append({'check': 'statusRole', 'node': name, 'message': STATE_LIKE})
         errors.extend(category_errors(spec, node, plan.get('components', [])))
     for spec in plan.get('feedback', []):
         if not isinstance(spec, dict):

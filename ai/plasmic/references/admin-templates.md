@@ -85,7 +85,7 @@ python3 RESOURCE_ROOT/scripts/verify_templates.py \
 
 It uses public model reads, resolves real UUIDs by name, includes catalog-owned nested compositions and retains full models/contracts with stable editor/build identity and the observed dependency version (null when unknown). It prints the evidence path/hash and requires a new output file. It never navigates, saves or installs; explicitly acquire unavailable sources through the paths above. Keep failed calls and report blocked acquisition.
 
-Open and interpret the captured model before composing; acquisition alone does not establish understanding. Record its evidence and run the existing `verify_selection.py structure-expectation.json --report selection-plan.json` preflight. Missing captures, catalog-only summaries, partial models, wrong identities and missing contracts fail the template-source check. Inspect all findings before generation instead of acquiring source during a later repair round.
+Open and interpret the captured model before composing; acquisition alone does not establish understanding. Record its evidence and run the existing `verify_selection.py structure-expectation.json --report selection-plan.json` preflight. Run it before generation and again with the saved/reopened readback; any failure blocks composition or delivery until fixed. Do not generate, deliver or relabel to pass. Missing captures, catalog-only summaries, partial models, wrong identities and missing contracts fail the template-source check. Inspect all findings before generation instead of acquiring source during a later repair round.
 
 ## Bind destination behavior
 

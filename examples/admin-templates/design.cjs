@@ -39,8 +39,8 @@ function design(index) {
   const columns = (prefix = '') => [
     column(`${prefix}IDColumn`, '编号', { dataIndex: 'id', width: 96 }),
     column(`${prefix}NameColumn`, '名称', { dataIndex: 'name', ellipsis: true }),
-    column(`${prefix}CategoryColumn`, '分类', { dataIndex: 'category', width: 112, displayType: 'tag', tagOptions: [{ value: '消息', label: '消息', color: 'blue' }, { value: '账户', label: '账户', color: 'purple' }] }),
-    column(`${prefix}StatusColumn`, '状态', { dataIndex: 'status', width: 104, displayType: 'custom' }, antd('badge', `${prefix}StatusBadge`, { status: '{{ row.status === "启用" ? "success" : "default" }}', text: '{{ row.status }}' })),
+    column(`${prefix}CategoryColumn`, '分类', { dataIndex: 'category', width: 112, displayType: 'custom' }, antd('tag', `${prefix}CategoryTag`, { value: '{{ cell }}', options: [{ value: '消息', label: '消息', color: 'blue' }, { value: '账户', label: '账户', color: 'purple' }] })),
+    column(`${prefix}StatusColumn`, '状态', { dataIndex: 'status', width: 104, displayType: 'custom' }, antd('badge', `${prefix}StatusBadge`, { value: '{{ cell }}', options: [{ value: '启用', label: '启用', status: 'success' }, { value: '停用', label: '停用', status: 'default' }] })),
     column(`${prefix}OwnerColumn`, '负责人', { dataIndex: 'owner', width: 112 }),
     column(`${prefix}UpdatedAtColumn`, '更新时间', { dataIndex: 'updatedAt', width: 200, ellipsis: true }),
     column(`${prefix}ActionsColumn`, '操作', { fixed: 'right', width: 168, displayType: 'custom' }, component('plasmic-react-ui-action-group', `${prefix}RecordActions`, { max: 3, items: [{ key: 'detail', label: '详情' }, { key: 'edit', label: '编辑' }, { key: 'copy', label: '复制' }, { key: 'disable', label: '停用', confirm: { title: '确认停用该记录？', okText: '停用', cancelText: '取消' } }], dropdownProps: { trigger: ['hover'] } })),

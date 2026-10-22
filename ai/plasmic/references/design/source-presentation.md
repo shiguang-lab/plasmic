@@ -21,5 +21,5 @@ For Overseas/Antd-v6 checks, components also records role/purpose, native proper
 ]
 ```
 
-Inventory other Columns as well. Props are a partial match against actual native props, including nested objects; dynamicProps paths require actual bindings, not similar sibling text. A custom Tag uses its registered identity and Column.render owner instead of a tag display preset. Record content scopes as content-scope with actual Tabs identity; field choices use field-choice; widget covers other controls only. Use source-reviewed roles/rules and event feedback from selection preflight; never relabel to pass. Plain semantic text/layout remains valid.
+Inventory other Columns as well. Props are a partial match against actual native props, including nested objects; dynamicProps paths require actual bindings, not similar sibling text. A custom Tag uses its registered identity inside Column.render; Column displayType is text or custom. Record content scopes as content-scope with actual Tabs identity; field choices use field-choice; widget covers other controls only. Use source-reviewed roles/rules and event feedback from selection preflight; never relabel to pass. Plain semantic text/layout remains valid.
 
