@@ -45,6 +45,8 @@ Read the registered Form event argument names/types and use the returned submit 
 
 Navigation after successful validation uses the native navigation interaction on Form onFinish, deriving its destination from validated values. The submit button calls Form submit and has no unconditional href. Discover the current schema; if this native action is unavailable report the blocked operation without upgrading the editor as part of a design task.
 
+Use the [submission example](../../../desktop-examples.md#form-submission-and-record-context) for destination checks. Reopening another record requires verified reset/set-fields behavior; changed initialValues alone do not prove Form state resets.
+
 ## Acceptance
 
 Read back Form/Item ownership, field names, rules, initial values and bindings. In real Preview, empty and whitespace-only required inputs must show native field errors and block mutation; correction clears the error and permits one submission. Check the consuming flow's loading, disabling, duplicate-submit prevention, failed save, retry and reset/reopening behavior where applicable. Wrapper-wide omitted/explicit/inherited-default combinations belong to [engineering verification](../../../engineering/component-contracts.md). For forms in an overlay, apply [Modal submission](modal.md#submission) and the [overlay close policy](../compositions/modal-drawer.md#structure-and-close-behavior). A visible asterisk, working success path or valid model alone does not pass validation acceptance. Save/reopen and reread changed contracts and bindings.
@@ -96,7 +98,7 @@ Show one actionable validation error per field at a time. Use native `validateFi
 
 ### Label and control layout
 
-Set Form `layout` explicitly from the task and available space. A compact field on a wide PC page can use horizontal label/control alignment with a content-sized label area; dense data entry, long labels or narrow/multi-column regions may use vertical layout. Neither direction is a universal Ant Design requirement. Preserve a layout explicitly chosen by the user. Align native description/errors with the control and verify label, control and instructions together; do not inherit large label spans from a generic form template without checking actual geometry.
+Follow [layout ownership](../compositions/form-layout.md#layout-ownership): wide page forms default to horizontal labels, narrow Modal/Drawer forms to vertical. Record mandatory `formLayout` and a concrete `layoutReason` for exceptions before generation. `verify_forms.py` checks explicit native layout and width ownership even without Grid expectations. Align native descriptions/errors with controls; verify actual geometry instead of inheriting template label spans.
 
 For a single horizontal field, prefer native content-sized label columns (`labelCol.flex="none"`, `wrapperCol.flex="1"` in the installed contract). Do not reserve a fixed label width for an absent Tooltip or a template's longer fields. Multiple stacked fields may share a label width to align their controls; choose that width from their actual longest label, required indicator, punctuation and configured Tooltip. Left-aligned fixed-width labels leave unused space after the colon, so verify the rendered colon-to-control distance instead of accepting the column width alone. Preserve native label punctuation/spacing; do not compensate with empty nodes, negative margins or internal component CSS overrides. Measure normal, required, configured/empty Tooltip and validation-error states after save/reopen.
 

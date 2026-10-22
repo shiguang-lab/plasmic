@@ -138,7 +138,7 @@ test("diagnosing a disposed frame cannot replace the discovery exception", async
   });
 });
 
-test("renderer diagnostics survive actual RPC and MCP without losing the cause or ending Preview", async (t) => {
+test("snapshot continuation and renderer diagnostics survive actual RPC and MCP", async (t) => {
   const f = fixture(t);
   const profile = await fs.mkdtemp(path.join(os.tmpdir(), "plasmic-preview-errors-"));
   const stop = await startRpc(profile, (method, input) => f.controller.dispatch(method, input));
@@ -147,6 +147,13 @@ test("renderer diagnostics survive actual RPC and MCP without losing the cause o
     await client.connect(new StdioClientTransport({ command: process.execPath,
       args: ["-e", `require(${JSON.stringify(require.resolve("../src/mcp.cjs"))}).serveMcp(${JSON.stringify(profile)})`], stderr: "pipe" }));
     const call = (arguments) => client.callTool({ name: "preview", arguments });
+    const first = JSON.parse((await call({ action: "snapshot", limit: 1 })).content[0].text);
+    assert.equal(first.continuation.tool, "preview");
+    const next = await client.callTool({ name: first.continuation.tool, arguments: first.continuation.arguments });
+    assert.equal(next.isError, false);
+    const second = JSON.parse(next.content[0].text);
+    assert.equal(second.elements[0].name, "保存");
+    assert.notEqual(second.elements[0].ref, first.elements[0].ref);
     const snapshot = JSON.parse((await call({ action: "snapshot" })).content[0].text);
     const ref = snapshot.elements.find((el) => el.name === "查询").ref;
     const failed = await call({ action: "click", ref });

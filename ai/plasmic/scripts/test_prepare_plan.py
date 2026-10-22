@@ -81,6 +81,55 @@ class PlanPreparationTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             evidence(source, '')
 
+    def test_runtime_manifest_cli_pins_real_files_and_leaves_cases_unexecuted(self):
+        pages = self.root / 'pages.json'
+        pages.write_text('{"results": []}', encoding='utf-8')
+        identity = {'projectId': 'p', 'branchId': None, 'sessionId': 's', 'revision': 1, 'changeCounter': 0}
+        capture = self.root / 'capture.json'
+        capture.write_text(json.dumps({'before': identity, 'after': identity,
+            'files': {'pages.json': hashlib.sha256(pages.read_bytes()).hexdigest()}}), encoding='utf-8')
+        output = self.root / 'runtime-manifest.json'
+        args = ('runtime-manifest', self.path, '--capture', capture, '--pages', pages, '--output', output)
+        process = self.cli('prepare_plan.py', *args)
+        self.assertEqual(process.returncode, 0, process.stderr)
+        result = json.loads(output.read_text(encoding='utf-8'))
+        self.assertEqual(result['planSha256'], hashlib.sha256(self.path.read_bytes()).hexdigest())
+        self.assertEqual(len(result['cases']), len(cases(self.plan['pages'][0])))
+        self.assertTrue(all(c['assertLine'] is None for c in result['cases']))
+        before = output.read_bytes()
+        self.assertNotEqual(self.cli('prepare_plan.py', *args).returncode, 0)
+        self.assertEqual(output.read_bytes(), before)
+        pages.write_text('{"results": ["changed"]}', encoding='utf-8')
+        bad = self.root / 'bad-manifest.json'
+        process = self.cli('prepare_plan.py', *args[:-1], bad)
+        self.assertNotEqual(process.returncode, 0)
+        self.assertFalse(bad.exists())
+
+    def test_runtime_cli_summary_preserves_full_missing_case_report(self):
+        from verify_runtime import make_manifest
+        pages = self.root / 'pages.json'
+        pages.write_text('{"results": []}', encoding='utf-8')
+        identity = {'projectId': 'p', 'branchId': None, 'sessionId': 's', 'revision': 1, 'changeCounter': 0}
+        capture = {'before': identity, 'after': identity,
+                   'files': {'pages.json': hashlib.sha256(pages.read_bytes()).hexdigest()}}
+        manifest = make_manifest(self.plan, capture, hashlib.sha256(self.path.read_bytes()).hexdigest(), capture['files']['pages.json'])
+        capture_path, manifest_path = self.root / 'capture.json', self.root / 'manifest.json'
+        capture_path.write_text(json.dumps(capture), encoding='utf-8')
+        manifest_path.write_text(json.dumps(manifest), encoding='utf-8')
+        trace, report = self.root / 'trace.jsonl', self.root / 'report.json'
+        trace.write_text('', encoding='utf-8')
+        args = ('--expectations', self.path, '--capture', capture_path, '--pages', pages,
+                '--manifest', manifest_path, '--trace', trace, '--report', report)
+        process = self.cli('verify_runtime.py', *args)
+        self.assertEqual(process.returncode, 1, process.stderr)
+        summary = json.loads(process.stdout)
+        full = json.loads(report.read_text(encoding='utf-8'))
+        self.assertEqual(full['executedCaseCount'], 0)
+        self.assertEqual(full['counts']['unexecuted'], len(manifest['cases']))
+        self.assertEqual(len(summary['errors']), 8)
+        self.assertEqual(summary['errorCount'], len(full['errors']))
+        self.assertEqual(json.loads(self.cli('verify_runtime.py', *args, '--full').stdout), full)
+
     def test_ids_preserve_unique_values_and_business_data_across_all_native_arrays(self):
         page = self.plan['pages'][0]
         page['appContext']['cases'] = [copy.deepcopy(page['runtimeCases'][0])]

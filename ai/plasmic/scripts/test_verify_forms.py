@@ -12,6 +12,10 @@ class FormCheckTests(unittest.TestCase):
     def setUp(self):
         self.expected = {"pages": [{"componentUuid": "page", "forms": [{"name": "Form", "fields": [{"nodeName": "NameField", "name": "name", "label": "Name", "control": "Name", "rules": [{"ruleType": "required"}], "tooltip": "Help"}]}]}]}
         self.html = '''<plasmic-component data-plasmic-component="plasmicAntd6Form" data-plasmic-name="Form" data-props='{"mode":"advanced"}'><slot name="children"><plasmic-component data-plasmic-component="plasmic-antd6-form-item" data-plasmic-name="NameField" data-props='{"name":"name","rules":[{"ruleType":"required","message":"Required"}]}'><slot name="label"><span>Name</span></slot><slot name="tooltip"><span>Help</span></slot><slot name="children"><plasmic-component data-plasmic-component="plasmic-antd6-input" data-plasmic-name="Name" data-props='{}'></plasmic-component></slot></plasmic-component></slot></plasmic-component>'''
+        self.expected["pages"][0]["forms"][0]["formLayout"] = "horizontal"
+        self.html = self.html.replace('{"mode":"advanced"}', '{"mode":"advanced","layout":"horizontal"}')
+        self.html = self.html.replace('data-plasmic-name="Form"', 'data-plasmic-name="Form" style="width:100%"')
+        self.html = self.html.replace('data-plasmic-name="Name"', 'data-plasmic-name="Name" style="width:100%"')
 
     def result(self, html):
         return check(self.expected, self.overview(), self.readback(html))
@@ -26,7 +30,7 @@ class FormCheckTests(unittest.TestCase):
         self.assertTrue(self.result(self.html)["passed"])
 
     def test_hidden_advanced_children_cannot_pass_in_simplified_mode(self):
-        for html in [self.html.replace('"advanced"', '"simplified"'), self.html.replace(' data-props=\'{"mode":"advanced"}\'', '')]:
+        for html in [self.html.replace('"advanced"', '"simplified"'), self.html.replace(' data-props=\'{"mode":"advanced","layout":"horizontal"}\'', '')]:
             result = self.result(html)
             self.assertFalse(result["passed"])
             self.assertIn("mode=advanced", result["errors"][0]["error"])
@@ -91,6 +95,97 @@ class FormCheckTests(unittest.TestCase):
         self.assertFalse(self.result(html.replace('"horizontal"', '"vertical"'))["passed"])
         self.assertFalse(self.result(html.replace('"validateFirst":true', '"validateFirst":false'))["passed"])
 
+    def test_layout_decision_is_required_and_cannot_silently_inherit_defaults(self):
+        form = self.expected["pages"][0]["forms"][0]
+        form.pop("formLayout")
+        result = self.result(self.html)
+        self.assertFalse(result["passed"])
+        self.assertIn("source-derived formLayout", str(result["errors"]))
+        form["formLayout"] = {"layout": "horizontal"}
+        self.assertFalse(self.result(self.html)["passed"])
+        form["formLayout"] = "horizontal"
+        self.assertFalse(self.result(self.html.replace(',"layout":"horizontal"', ''))["passed"])
+
+    def test_page_vertical_requires_reason_and_still_checks_width(self):
+        form = self.expected["pages"][0]["forms"][0]
+        form["formLayout"] = "vertical"
+        html = self.html.replace('"layout":"horizontal"', '"layout":"vertical"')
+        self.assertFalse(self.result(html)["passed"])
+        form["layoutReason"] = True
+        self.assertFalse(self.result(html)["passed"])
+        form["layoutReason"] = "Design source specifies long stacked field labels in a narrow page region"
+        self.assertTrue(self.result(html)["passed"])
+        self.assertFalse(self.result(html.replace('width:100%', 'width:240px'))["passed"])
+
+    def test_overlay_default_is_inferred_through_card_and_slots(self):
+        form = self.expected["pages"][0]["forms"][0]
+        for kind in ("modal", "drawer"):
+            with self.subTest(kind=kind):
+                html = '<plasmic-component data-plasmic-component="plasmic-antd6-' + kind + '"><slot name="children"><plasmic-component data-plasmic-component="plasmic-antd6-card"><slot name="children">' + self.html + '</slot></plasmic-component></slot></plasmic-component>'
+                form["formLayout"] = "horizontal"
+                form.pop("layoutReason", None)
+                self.assertFalse(self.result(html)["passed"])
+                form["layoutReason"] = "Wide overlay with short labels; control widths verified against the design source"
+                self.assertTrue(self.result(html)["passed"])
+                form.pop("layoutReason")
+                form["formLayout"] = "vertical"
+                self.assertTrue(self.result(html.replace('"layout":"horizontal"', '"layout":"vertical"'))["passed"])
+
+    def wrap_fields(self, opening, closing="</div>"):
+        prefix, rest = self.html.split('<slot name="children">', 1)
+        body, suffix = rest.rsplit('</slot>', 1)
+        return prefix + '<slot name="children">' + opening + body + closing + '</slot>' + suffix
+
+    def test_screenshot_shrink_is_rejected_without_optional_grid_inventory(self):
+        html = self.wrap_fields('<div style="display:grid;grid-template-columns:1fr 1fr;column-gap:24px">')
+        result = self.result(html)
+        self.assertFalse(result["passed"])
+        self.assertIn("intermediate layout wrappers", str(result["errors"]))
+        self.assertTrue(self.result(html.replace('display:grid;', 'display:grid;width:100%;'))["passed"])
+        self.assertTrue(self.result(html.replace('data-plasmic-name="Form" style="width:100%"', 'data-plasmic-name="Form" style="width:stretch;align-items:stretch"'))["passed"])
+
+    def test_nested_unnamed_wrapper_cannot_hide_shrink(self):
+        html = self.wrap_fields('<div style="width:100%;display:flex;flex-direction:column;align-items:flex-start"><div style="display:grid;grid-template-columns:1fr 1fr">', '</div></div>')
+        self.assertFalse(self.result(html)["passed"])
+        self.assertTrue(self.result(html.replace('display:grid;', 'display:grid;align-self:stretch;'))["passed"])
+        self.assertFalse(self.result(html.replace('display:grid;', 'display:grid;max-width:100%;'))["passed"])
+
+    def test_fixed_width_and_max_width_limits_fail_at_every_level(self):
+        html = self.wrap_fields('<div style="width:100%">')
+        for target in ['data-plasmic-name="Form"', 'data-plasmic-name="Name"']:
+            for size in ('width:240px', 'width:100%;max-width:500px'):
+                with self.subTest(target=target, size=size):
+                    self.assertFalse(self.result(html.replace(target + ' style="width:100%"', target + ' style="' + size + '"'))["passed"])
+        self.assertFalse(self.result(html.replace('data-plasmic-name="NameField"', 'data-plasmic-name="NameField" style="width:50%"'))["passed"])
+        self.assertFalse(self.result(html.replace('<div style="width:100%">', '<div style="width:100%;max-width:500px">'))["passed"])
+
+    def test_outer_surface_wrapper_must_also_fill(self):
+        html = '<plasmic-component data-plasmic-component="plasmic-antd6-card"><slot name="children"><div style="width:500px">' + self.html + '</div></slot></plasmic-component>'
+        self.assertFalse(self.result(html)["passed"])
+        self.assertTrue(self.result(html.replace('width:500px', 'width:100%'))["passed"])
+
+    def test_registered_flex_row_col_respect_allocated_column_width(self):
+        opening = '''<plasmic-component data-plasmic-component="plasmic-antd6-flex" style="width:100%" data-props='{"vertical":true,"align":"stretch"}'><slot name="children"><plasmic-component data-plasmic-component="plasmic-antd6-row" data-props='{"gutter":24}'><slot name="children"><plasmic-component data-plasmic-component="plasmic-antd6-col" data-props='{"span":12}'><slot name="children">'''
+        html = self.wrap_fields(opening, '</slot></plasmic-component>' * 3)
+        self.assertTrue(self.result(html)["passed"])
+        for old, new in [('"span":12', '"span":0'), ('"span":12', '"span":30'), ('"align":"stretch"', '"align":"start"'), ('"vertical":true', '"vertical":false')]:
+            with self.subTest(old=old, new=new):
+                self.assertFalse(self.result(html.replace(old, new))["passed"])
+        self.assertTrue(self.result(html.replace('"span":12', '"flex":"1"'))["passed"])
+
+    def test_compact_controls_are_not_forced_full_width(self):
+        html = self.html.replace('plasmic-antd6-input', 'plasmic-antd6-switch').replace('data-plasmic-name="Name" style="width:100%"', 'data-plasmic-name="Name"')
+        self.assertTrue(self.result(html)["passed"])
+        html = html.replace('plasmic-antd6-switch', 'plasmic-antd6-input-number')
+        self.assertFalse(self.result(html)["passed"])
+        field = self.expected["pages"][0]["forms"][0]["fields"][0]
+        field["controlWidthReason"] = True
+        self.assertFalse(self.result(html)["passed"])
+        field["controlWidthReason"] = "Three-digit day count beside a short inline instruction"
+        self.assertTrue(self.result(html)["passed"])
+        # A compact control exception never exempts the Form or its wrappers.
+        self.assertFalse(self.result(html.replace('width:100%', 'width:300px'))["passed"])
+
     def test_persistent_description_must_belong_to_item(self):
         self.expected["pages"][0]["forms"][0]["fields"][0]["description"] = "Default 14 days"
         html = self.html.replace('<slot name="label">', '<slot name="description"><span>Default 14 days</span></slot><slot name="label">')
@@ -142,6 +237,7 @@ class FormCheckTests(unittest.TestCase):
 
     def grid_fixture(self):
         form = self.expected["pages"][0]["forms"][0]
+        form["formLayout"] = "vertical"
         form["layout"] = {"container": "Fields", "modalWidth": 640, "columns": 2, "columnGap": 16, "rows": [{"container": "ShortRow", "fields": ["TypeField", "ScenarioField"]}]}
         form["fields"][0]["span"] = 2
         start = self.html.index('<plasmic-component data-plasmic-component="plasmic-antd6-form-item"')
@@ -154,7 +250,7 @@ class FormCheckTests(unittest.TestCase):
             form["fields"].append(field)
             short.append(item.replace('NameField', name + 'Field').replace('"name":"name"', '"name":"' + name.lower() + '"').replace('data-plasmic-name="Name"', 'data-plasmic-name="' + name + '"'))
         row = '<div label="ShortRow" style="display:grid;width:100%;grid-template-columns:repeat(2,minmax(0, 1fr));column-gap:16px">' + ''.join(short) + '</div>'
-        html = self.html[:start].replace('data-plasmic-name="Form"', 'data-plasmic-name="Form" style="width:100%"') + '<div label="Fields" style="display:flex;flex-direction:column;width:100%">' + item + row + '</div>' + self.html[end:]
+        html = self.html[:start].replace('"layout":"horizontal"', '"layout":"vertical"') + '<div label="Fields" style="display:flex;flex-direction:column;width:100%">' + item + row + '</div>' + self.html[end:]
         return '<plasmic-component data-plasmic-component="plasmic-antd6-modal" data-props=\'{"width":"640"}\'>' + html + '</plasmic-component>'
 
     def test_full_width_rows_and_short_field_pair_pass(self):
@@ -166,6 +262,8 @@ class FormCheckTests(unittest.TestCase):
         html = self.grid_fixture()
         html = html[html.index('>') + 1:-len('</plasmic-component>')]
         self.expected["pages"][0]["forms"][0]["layout"].pop("modalWidth")
+        self.expected["pages"][0]["forms"][0]["formLayout"] = "horizontal"
+        html = html.replace('"layout":"vertical"', '"layout":"horizontal"')
         self.assertTrue(self.result(html)["passed"])
         self.expected["pages"][0]["forms"][0]["layout"]["modalWidth"] = 640
         self.assertFalse(self.result(html)["passed"])
@@ -253,7 +351,7 @@ class FormCheckTests(unittest.TestCase):
         self.assertTrue(self.result(self.html + search)["passed"])
 
     def test_group_options_are_owned_by_the_group_control(self):
-        marker = '<plasmic-component data-plasmic-component="plasmic-antd6-input" data-plasmic-name="Name" data-props=\'{}\'></plasmic-component>'
+        marker = '<plasmic-component data-plasmic-component="plasmic-antd6-input" data-plasmic-name="Name" style="width:100%" data-props=\'{}\'></plasmic-component>'
         group = '<plasmic-component data-plasmic-component="plasmic-antd6-radio-group" data-plasmic-name="Name"><slot name="children"><plasmic-component data-plasmic-component="plasmic-antd6-radio-button" data-props=\'{"value":"option"}\'></plasmic-component></slot></plasmic-component>'
         self.assertTrue(self.result(self.html.replace(marker, group))["passed"])
         self.assertFalse(self.result(self.html+'<plasmic-component data-plasmic-component="plasmic-antd6-input-password"></plasmic-component>')["passed"])

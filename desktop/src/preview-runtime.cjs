@@ -112,8 +112,13 @@ async function runtimeCommand(input, documentId) {
     });
     const text = document.body.innerText || "";
     const start = input.textOffset || 0, end = Math.min(text.length, start + (input.textLimit || 3000));
+    const nextOffset = (input.offset || 0) + items.length;
     return { documentId: store.id, viewport: { width: innerWidth, height: innerHeight }, elements: items, total: all.length,
-      ...( (input.offset || 0) + items.length < all.length ? { nextOffset: (input.offset || 0) + items.length } : {}),
+      ...(nextOffset < all.length ? { nextOffset } : {}),
+      ...(nextOffset < all.length || end < text.length ? {
+        continuation: { tool: "preview", arguments: { action: "snapshot", offset: nextOffset,
+          limit: input.limit || 40, textOffset: end, textLimit: input.textLimit || 3000 } },
+      } : {}),
       text: { offset: start, value: text.slice(start, end), total: text.length, ...(end < text.length ? { nextOffset: end } : {}) } };
   }
   if (input.action === "assert") {

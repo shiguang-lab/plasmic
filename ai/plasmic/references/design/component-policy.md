@@ -105,6 +105,7 @@ These are fields of the **existing structure inventory**, not an additional chec
 | `actionContracts[*]` | Native action-owner `nodeName`, action `key`, `evidence`, **boolean** `confirm`, **array** `transitions`, nonempty `cases`. No-confirm/no-transition decisions are `false` and `[]`, not omitted values. |
 | `transitions[*]` | Exact source state `from`, target state `to`, displayed `text`; each needs a matching case `transition` object and target-text assertion. |
 | A runtime case | Nonempty Page-unique string `id`, string `kind`, native owner `nodeName`, nonempty `given` preconditions, nonempty `checks` array; source `evidence` unless inherited from context/action owner. |
+| Case `assertPath` | Optional exact local Preview destination path for a cross-page result. Defaults to the owning Page path. Plan it from the required navigation before execution; it is not a manifest override. |
 | Source `evidence` | Existing absolute UTF-8 file `path`, SHA-256 of its real bytes `sha256`, exact nonempty verbatim `quote`. Citation text alone is not this object. |
 | `checks[*].kind` | Native Preview assertion type: **`text`, `visible`, `count`, `value`** only. Its remaining fields follow the live Preview contract. Business case kinds such as `page-change` do not belong here. |
 
@@ -139,20 +140,4 @@ The states above illustrate a requirement-derived transition, not a universal li
 
 Run actual Preview cases only after all in-scope content and saved-model gates pass. Collect a round's issues before repairs, close Preview before edits, and retain the shared maximum of10 opens/review rounds. Crash/vanished UI can end a round early; a single failed assertion cannot. Capability probes and temporary TestHarness Pages do not belong in business prototype work.
 
-The monitor retains each native Preview call as a JSONL record with `input` and `result`. After the round, create a manifest bound to the exact plan and saved model file hashes:
-
-```json
-{
-  "planSha256":"HASH_OF_STRUCTURE_EXPECTATION_FILE",
-  "pagesSha256":"HASH_OF_CAPTURED_PAGES_FILE",
-  "cases":[{"path":"/groups","id":"enable-from-inactive","assertLine":42}]
-}
-```
-
-`assertLine` is the one-based physical line in that Preview JSONL, not a hand-written success flag. Every case needs a distinct native assertion whose input and returned checks exactly match the plan and whose context matches the captured project/branch/session/revision/changeCounter and Page. Do not reuse a different scenario's pass or post-repair results for an old model.
-
-```sh
-python3 RESOURCE_ROOT/scripts/verify_runtime.py --expectations /task/structure-expectation.json --manifest /task/runtime-manifest.json --trace /task/preview.jsonl --capture /task/verify-final/capture.json --pages /task/verify-final/pages.json --report /task/runtime-report.json
-```
-
-The checker is read-only and does not open Preview. It verifies declared native assertions; fixture authenticity, source meaning, visual quality and unasserted effects remain separate review dimensions. Pending cases and failed assertions prevent runtime acceptance. Never report a static gate pass as complete functional acceptance.
+Use [runtime evidence preparation and verification](../behavior-acceptance.md#record-and-verify-execution) for the existing manifest, exact-model trace matching, cross-page outcomes and per-case results. This executes no Preview actions and does not establish source completeness or fixture authenticity.

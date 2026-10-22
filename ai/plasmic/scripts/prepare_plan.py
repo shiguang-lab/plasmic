@@ -237,6 +237,11 @@ def main():
     show = commands.add_parser('show', help='Read only one JSON-pointer fragment from a plan/report')
     show.add_argument('file', type=Path)
     show.add_argument('--pointer', required=True)
+    runtime = commands.add_parser('runtime-manifest', help='Prepare the existing runtime evidence index; all cases start unexecuted')
+    runtime.add_argument('plan', type=Path)
+    runtime.add_argument('--capture', type=Path, required=True)
+    runtime.add_argument('--pages', type=Path, required=True)
+    runtime.add_argument('--output', type=Path, required=True)
     args = parser.parse_args()
     try:
         if args.command == 'example':
@@ -245,6 +250,17 @@ def main():
             result = evidence(args.source, args.quote)
         elif args.command == 'show':
             result = fragment(json.loads(args.file.read_text(encoding='utf-8')), args.pointer)
+        elif args.command == 'runtime-manifest':
+            from verify_runtime import make_manifest
+            raw = {name: getattr(args, name).read_bytes() for name in ('plan', 'capture', 'pages')}
+            manifest = make_manifest(json.loads(raw['plan']), json.loads(raw['capture']),
+                                     hashlib.sha256(raw['plan']).hexdigest(), hashlib.sha256(raw['pages']).hexdigest())
+            if any(getattr(args, name).read_bytes() != data for name, data in raw.items()):
+                raise ValueError('Plan or capture changed during preparation')
+            write_new(args.output, manifest)
+            result = {'output': str(args.output.resolve()), 'caseCount': len(manifest['cases']),
+                      'runtimeAcceptance': 'unverified',
+                      'next': 'Execute planned Preview cases; replace each null assertLine with its actual trace line, then run verify_runtime.py'}
         else:
             plan = json.loads(args.plan.read_text(encoding='utf-8'))
             if args.command == 'ids':

@@ -25,6 +25,33 @@ test("runtime snapshot is paged, redacts passwords, and expires refs on navigati
   await assert.rejects(run({ action: "fill", ref: page.elements[0].ref, value: "bad", pageIdentity: "session:other:/other" }), /Stale/);
 });
 
+test("snapshot continuation traverses both independent collections without repeating output", async (t) => {
+  for (const limits of [{ limit: 1, textLimit: 1000 }, { limit: 100, textLimit: 3 }, { limit: 2, textLimit: 5 }]) {
+    const { run } = fixture(t);
+    const full = await run({ action: "snapshot", limit: 100, textLimit: 1000 });
+    let input = { action: "snapshot", ...limits }, text = "", refs = [], steps = 0;
+    while (input) {
+      const part = await run(input);
+      refs.push(...part.elements.map((e) => e.ref));
+      text += part.text.value;
+      if (part.continuation) {
+        assert.equal(part.continuation.tool, "preview");
+        assert.ok(part.nextOffset !== undefined || part.text.nextOffset !== undefined);
+        assert.equal(part.continuation.arguments.limit, limits.limit);
+        assert.equal(part.continuation.arguments.textLimit, limits.textLimit);
+      } else {
+        assert.equal(part.nextOffset, undefined);
+        assert.equal(part.text.nextOffset, undefined);
+      }
+      input = part.continuation?.arguments;
+      assert.ok(++steps < 100, "continuation must terminate");
+    }
+    assert.deepEqual(refs, Array.from(full.elements, (e) => e.ref));
+    assert.equal(new Set(refs).size, refs.length);
+    assert.equal(text, full.text.value);
+  }
+});
+
 test("fill/select dispatch DOM events and assertions observe actual runtime values", async (t) => {
   const { run, w } = fixture(t), events = [];
   w.document.getElementById("sql").addEventListener("input", (e) => events.push(e.target.value));

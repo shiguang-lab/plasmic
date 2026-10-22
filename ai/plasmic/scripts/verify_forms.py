@@ -4,11 +4,15 @@
 Component-specific checks target the Antd-v6/Overseas registration contracts.
 See references/libraries/antd_v6/index.md for gate applicability.
 
-Expect {"pages": [{"path": "/records", "forms": [{"name": "Form", "fields":
+Expect {"pages": [{"path": "/records", "forms": [{"name": "Form", "formLayout": "horizontal", "fields":
 [{"nodeName": "NameField", "name": "name", "label": "Name", "control": "Name",
 "rules": [{"ruleType": "required"}], "tooltip": "Help"}]}]}]}.
 Rules are matched by their specified keys. Omit tooltip when none is expected.
-Optional formLayout checks native Form layout. Optional field validateFirst and
+Required formLayout checks native Form layout; layoutReason explains deviations
+from horizontal page / vertical overlay defaults. Width ownership is checked on
+every Form-to-field path, independently of optional CSS-grid expectations.
+Optional field controlWidthReason permits a deliberately compact text/select control.
+Optional field validateFirst and
 description check ordered validation and persistent Form.Item instructions.
 Optional descriptionPlacement=afterControl plus descriptionNode checks inline secondary
 Typography after the direct control, without duplicated native extra.
@@ -68,6 +72,99 @@ def editable(node):
         "radiogroup", "radiobutton", "switch", "slider", "rate", "upload", "uploadbutton",
         "mentions", "colorpicker",
     )}
+
+
+def layout_styles(node):
+    """Public authored styles plus the installed layout registration defaults."""
+    kind = identity(node)
+    values = props(node)
+    css = {}
+    if kind == "plasmicantd6form":
+        css.update(display="flex", **{"flex-direction": "column", "align-items": "flex-start"})
+    elif kind == "plasmicantd6formitem":
+        css["width"] = "stretch"
+    elif kind == "plasmicantd6flex":
+        css.update(display="flex", **{"flex-direction": "column" if values.get("vertical") is True else "row",
+                                      "align-items": values.get("align", "stretch")})
+    elif kind == "plasmicantd6row":
+        css.update(display="flex", **{"flex-direction": "row"})
+    css.update({key.strip(): value.strip() for key, value in styles(node).items()})
+    return css
+
+
+def fills_width(node, parent):
+    css = layout_styles(node)
+    if css.get("max-width", "none") not in {"none", "100%"}:
+        return False
+    width = css.get("width", "auto")
+    if width in {"100%", "stretch"}:
+        return True
+    if width != "auto" or parent is None:
+        return False
+    parent_css = layout_styles(parent)
+    if identity(node) == "plasmicantd6col" and identity(parent) == "plasmicantd6row":
+        values = props(node)
+        span = values.get("span")
+        flex = str(values.get("flex", ""))
+        return (type(span) is int and 1 <= span <= 24) or bool(re.fullmatch(r"[1-9]\d*(?:\s+1\s+0(?:px|%)?)?", flex))
+    if parent_css.get("display") in {"flex", "inline-flex"}:
+        if parent_css.get("flex-direction", "row") not in {"column", "column-reverse"}:
+            return bool(re.fullmatch(r"[1-9]\d*(?:\s+1\s+0(?:px|%)?)?", css.get("flex", "")))
+        return css.get("align-self", parent_css.get("align-items", "stretch")) == "stretch"
+    if parent_css.get("display") in {"grid", "inline-grid"}:
+        return css.get("justify-self", parent_css.get("justify-items", "stretch")) in {"normal", "stretch"}
+    # Block formatting fills its containing block; unknown component DOM does not prove it.
+    return css.get("display") in {"block", "flex", "grid"} or node["tag"] in {"div", "section", "form"}
+
+
+def check_form_layout(root, form, expected):
+    nodes = list(walk(root))
+    parents = {id(child): node for node in nodes for child in node["children"]}
+
+    def parent(node):
+        result = parents.get(id(node))
+        while result is not None and result["tag"] == "slot":
+            result = parents.get(id(result))
+        return result
+
+    ancestors = []
+    current = parent(form)
+    while current is not None:
+        ancestors.append(current)
+        current = parent(current)
+    overlay = any(identity(n) in {"plasmicantd6modal", "plasmicantd6drawer"} for n in ancestors)
+    default = "vertical" if overlay else "horizontal"
+    direction = expected.get("formLayout")
+    errors = []
+    valid_direction = isinstance(direction, str) and direction in {"horizontal", "vertical", "inline"}
+    if not valid_direction:
+        errors.append({"error": "Every Form requires a source-derived formLayout"})
+    elif props(form).get("layout") != direction:
+        errors.append({"error": "Wrong native Form layout"})
+    reason = expected.get("layoutReason")
+    if valid_direction and direction != default and not (isinstance(reason, str) and reason.strip()):
+        errors.append({"error": f"Non-default Form layout requires layoutReason (default: {default})"})
+
+    # Check all ancestors carrying field width, including unnamed nested wrappers.
+    # A missing optional grid inventory must never exempt these paths.
+    checked = set()
+    for item in (n for n in walk(slot(form, "children") or {"children": []}) if identity(n) == "plasmicantd6formitem"):
+        current = item
+        while current is not None:
+            if id(current) not in checked:
+                checked.add(id(current))
+                if not (identity(current) == "plasmicantd6formitem" and props(current).get("noStyle") is True) and not fills_width(current, parent(current)):
+                    errors.append({"node": node_name(current), "error": "Form, field and intermediate layout wrappers must fill their allocated width"})
+            if current is form:
+                break
+            current = parent(current)
+    # The Form itself can be trapped inside a shrinking wrapper in its surface.
+    for current in ancestors:
+        if identity(current) in {"plasmicantd6card", "plasmicantd6modal", "plasmicantd6drawer", "plasmicoverseasappshell"} or current["tag"] == "root":
+            break
+        if id(current) not in checked and not fills_width(current, parent(current)):
+            errors.append({"node": node_name(current), "error": "Form surface wrapper must fill its allocated width"})
+    return errors
 
 
 def scan_ownership(root, page):
@@ -205,8 +302,8 @@ def check(expectations, overview, readback):
             if props(form).get("mode", "simplified") != "advanced":
                 errors.append({"page": model["uuid"], "form": form_name, "error": "Form.Item inventory requires effective mode=advanced; simplified mode renders formItems instead of children"})
                 continue
-            if "formLayout" in expected_form and props(form).get("layout") != expected_form["formLayout"]:
-                errors.append({"page": model["uuid"], "form": form_name, "error": "Wrong native Form layout"})
+            errors.extend({"page": model["uuid"], "form": form_name, **error}
+                          for error in check_form_layout(root, form, expected_form))
             form_children = slot(form, "children")
             items = [n for n in walk(form_children or {"children": []}) if identity(n) == "plasmicantd6formitem"]
             actual_keys = [props(n).get("name") for n in items]
@@ -227,8 +324,8 @@ def check(expectations, overview, readback):
                 else:
                     container = candidates[0]
                     css = {k: v.strip() for k, v in styles(container).items()}
-                    if css.get("width") != "100%" or styles(form).get("width", "").strip() != "100%" or props(form).get("layout") == "horizontal":
-                        failures.append("Field layout container must fill a vertical Form")
+                    if css.get("width") != "100%" or styles(form).get("width", "").strip() != "100%":
+                        failures.append("Field layout container must fill Form width")
                     if not any(n is container for n in (form_children or {}).get("children", [])):
                         failures.append("Field layout container must be a direct Form child")
                     if css.get("display") != "flex" or css.get("flex-direction") != "column":
@@ -330,6 +427,16 @@ def check(expectations, overview, readback):
                     if len(controls) != 1:
                         failures.append("Control must be a direct Item child")
                     else:
+                        control = controls[0]
+                        compact = identity(control) in {"plasmicantd6" + suffix for suffix in (
+                            "checkbox", "checkboxgroup", "radio", "radiogroup", "radiobutton",
+                            "switch", "rate", "upload", "uploadbutton", "colorpicker",
+                        )}
+                        width_reason = field.get("controlWidthReason")
+                        if not compact and not (isinstance(width_reason, str) and width_reason.strip()):
+                            css = layout_styles(control)
+                            if css.get("width") not in {"100%", "stretch"} or css.get("max-width", "none") not in {"none", "100%"}:
+                                failures.append("Control must fill its allocated control column; compact controls require controlWidthReason")
                         direct = [n for n in children["children"] if n["tag"] != "text"]
                         if not editable(controls[0]) or direct[0] is not controls[0] or sum(editable(n) for n in direct) != 1:
                             failures.append("Item must have exactly one editable control as its first child")

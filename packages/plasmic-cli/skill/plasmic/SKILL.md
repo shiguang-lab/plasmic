@@ -33,6 +33,10 @@ For admin prototypes, read `references/admin-templates.md` and its catalog, insp
 
 Use the selected workflow for source interpretation, project selection, editing and verification. Keep plans and acceptance evidence outside the business UI. Inspect is read-only; prototype mutations require edit permission. Codegen uses the target application's architecture and codegen workflow; an explicit official Plasmic CLI request follows the guide's official-CLI reference.
 
+For prototype work, follow the workflow's execution-stage table. Derive observable acceptance cases from the current requirements before generation, prepare the current Page's detailed inputs, and retain actual gate/runtime results at each stage. Use existing preparation and verification commands; declarations, tool success and screenshots alone do not establish business acceptance.
+
+Use the workflow's review-mode rules to prefer an independent subagent when available, otherwise perform the same checks in the current conversation and disclose the fallback.
+
 ## Client implementation boundary
 
 Use documented Desktop MCP tools and resolved skill resources. Do not unpack, decompile or inspect Plasmic App/Desktop/Studio internals, packaged dependencies, copied artifacts or equivalent client repository source, including through delegated agents or scripts. Codegen may inspect the target application's source within the user's scope.

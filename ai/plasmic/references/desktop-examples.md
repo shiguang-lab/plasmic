@@ -91,6 +91,10 @@ Read each used event's named arguments once from its current contract, then use 
 
 `$steps` is a dictionary keyed by the normalized interaction-step name, not an array. When a later action needs a result, use a distinct already-normalized lowerCamelCase step name such as `captureSearchArgs`; a customFunction code expression `values` returns the object, and the next action reads `$steps.captureSearchArgs`. Do not use `$steps[0]` or a key from another handler. A missing public signature is a contract gap to report, not a reason to generate TestHarness Pages or repeatedly open Preview. Runtime acceptance remains in the completed business Page and its scoped overlays.
 
+## Form submission and record context
+
+For example, with the installed `onFinish(values)` contract, a required destination name comes from `values.name`, not the initial example name. Use the verified host route/context contract to carry the necessary values or stable record key; do not assume browser globals or a new global store. On the destination, resolve that key/context and populate all dependent fields. Test two submissions with distinct names and a rejected submission: each valid destination must retain its own values, while rejection must not navigate or mutate. For an editor reused across records, verify its registered reset/set-fields behavior; changing a constant initialValues object alone is not proof that reopening resets native Form state.
+
 ## Component instances
 
 Insertable code components use `<plasmic-component data-plasmic-component="REGISTERED_NAME" data-plasmic-project="IMPORTED_PROJECT_ID" data-props='{"prop":"value"}'><slot name="children">Content</slot></plasmic-component>`. Names and values come from the registration. Instance styles affect layout; appearance uses real props. Do not insert scripts or invent native input handlers. Dynamic bindings use the discovered expression contract and available data scopes.
@@ -103,6 +107,8 @@ Generate each binding from that component's live `contract.props` type. For the 
 ```
 
 These are syntax examples, not required business defaults. A Select with an initial all/market value needs no placeholder override. Preserve required help/content through the correct Slot instead of dropping it after a type error. Reread the affected contract when the installed library changes; saved readback must retain the intended prop values and Slot ownership.
+
+The same distinction applies to Column `render`: read its live Slot/render scope, place the registered control in that Slot, and bind record fields in the returned row scope. Do not send HTML or a function string as an ordinary `render` prop. For a local action that opens details, retain the clicked record/key in the existing page state and derive every information/parameter/result region from it. Exercise two records with different values or statuses; matching only the drawer title cannot validate its remaining fields. Missing returns use the source-defined empty/pending state, not another row's example payload.
 
 ## Project global contexts
 

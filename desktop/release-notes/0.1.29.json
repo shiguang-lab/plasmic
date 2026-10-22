@@ -1,0 +1,7 @@
+{
+  "en": "- Improve MCP Preview snapshots with continuation instructions for remaining controls and text, helping agents inspect complete pages without repeating output.",
+  "zh-CN": "- 改进 MCP Preview 快照，为尚未读取的控件和文本提供续读指引，帮助 Agent 完整检查页面并避免重复读取。",
+  "zh-TW": "- 改善 MCP Preview 快照，為尚未讀取的控制項與文字提供續讀指引，協助 Agent 完整檢查頁面並避免重複讀取。",
+  "ja": "- MCP Preview のスナップショットに、残りの操作要素とテキストを取得する手順を追加しました。Agent が重複を避けながらページ全体を確認できます。",
+  "ko": "- MCP Preview 스냅샷에 남은 컨트롤과 텍스트를 이어서 읽는 안내를 추가하여 Agent가 중복 없이 전체 페이지를 검사할 수 있도록 개선했습니다."
+}

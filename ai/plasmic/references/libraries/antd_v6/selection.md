@@ -31,7 +31,7 @@ Applies to the Overseas / Antd6 / React UI admin suite. Classify the requirement
 
 ## Existing inventory, independent expectations
 
-The same agent derives expectations from the source before generation and checks output against them afterward. This is a separate reasoning pass, not a second model.
+Derive expectations from the source before generation, then check output against them using the workflow's [review mode](../../review-mode.md). The reviewer also checks the inventory against the original source for omissions.
 
 Extend the existing structure inventory's `components`; do not introduce a second prop schema or copy the generated model into the expectation. Each declaration records `nodeName`, actual `component`, semantic `role`, source-derived `purpose`, `source` citation and `rule` (resource-relative reference path, optionally with anchor). Use the same native `props`, `dynamicProps` and `owner` constraints as the structure gate. Every authored functional instance, including hidden branches, needs a selection. Ordinary layout, icons and registered child Items are covered by their owner/Slot/field inventories. A business composition still needs a source purpose and its verified contract.
 
@@ -67,7 +67,7 @@ Before markup, run `python3 scripts/verify_selection.py structure-expectation.js
 
 Use [prepare_plan.py](../../../scripts/prepare_plan.py) instead of assembling another plan schema or repeatedly patching a task-specific Python builder. It reads/writes the existing structure inventory; it never generates a prototype, infers permissions or executes Preview. The [native field/key reference](../../design/component-policy.md#plan-fields-and-case-kinds) defines the input shape. Do not target a fixed number of actions/cases or pad a plan to match an example; derive coverage from the current source.
 
-Generate the minimal complete **input-format fixture**, then exercise the same full-Page preflight used for a real plan:
+When the native plan format is unfamiliar, generate the complete **input-format fixture**, then exercise the same full-Page preflight used for a real plan. Skip this demonstration when the task already has a valid plan:
 
 ```sh
 python3 RESOURCE_ROOT/scripts/prepare_plan.py example /task/plan-format-example
@@ -85,6 +85,8 @@ python3 RESOURCE_ROOT/scripts/prepare_plan.py clone-actions /task/plan-with-ids.
 ```
 
 `evidence` emits only a native path/hash/quote and rejects non-verbatim text. It does not refresh old evidence after a requirement changes; reread and review the decision first. `ids` fills missing/duplicate IDs across the Page's existing case arrays, preserving unique IDs, the first duplicate occurrence and all business fields. Plan-edit commands refuse existing outputs and leave inputs untouched.
+
+Use `verify_selection.py PLAN --page /exact-route --report REPORT` for the current Page while siblings are still being prepared; omit `--page` for the complete preflight. Keep shared source scope/navigation decisions in the same inventory. After saved-output capture, `prepare_plan.py runtime-manifest` prepares the existing [runtime evidence index](../../design/component-policy.md#native-runtime-evidence) with real file hashes and all case IDs, leaving every execution unclaimed. It does not generate expected results or infer matches from coincidentally identical assertions.
 
 `clone-actions` is appropriate only when two already-declared row-action owners share the same reviewed rules. It copies contracts, updates their native owner/case nodeName and assigns new IDs without rewriting source excerpts, fixture values, selectors or other nodes. It rejects duplicate action keys, conflicting target contracts and invalid owners/IDs. Review target scope, row fixtures and native assertions before preflight; different permission/state behavior needs its own source-derived cases. Context/action cases inherit owner evidence, so do not repeat it per case unless the source differs. No parallel coverage document or generated prop schema is needed.
 

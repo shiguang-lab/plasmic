@@ -273,6 +273,11 @@ def plan_errors(plan):
                             errors.append({'check': 'runtimePlan', **location, 'pointer': pointer + f'/checks/{j}' + ('/kind' if isinstance(assertion, dict) else ''),
                                            'allowedKinds': ['text', 'visible', 'count', 'value'], 'message': 'Case checks must use native Preview assert contracts'})
             if isinstance(case, dict):
+                if 'assertPath' in case and (not isinstance(case['assertPath'], str)
+                        or not case['assertPath'].startswith('/') or case['assertPath'].startswith('//')
+                        or any(c.isspace() for c in case['assertPath'])):
+                    errors.append({'check': 'runtimePlan', **location, 'pointer': pointer + '/assertPath',
+                                   'message': 'assertPath must be the exact local Preview destination path, planned before execution'})
                 try:
                     source_text(case.get('evidence'))
                 except (ValueError, OSError, UnicodeError) as ex:

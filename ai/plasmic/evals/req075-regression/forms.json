@@ -4,6 +4,7 @@
       "forms": [
         {
           "name": "NewGroupForm",
+          "formLayout": "vertical",
           "fields": [
             {
               "nodeName": "NewNameField",
@@ -106,6 +107,7 @@
         },
         {
           "name": "EditGroupForm",
+          "formLayout": "vertical",
           "fields": [
             {
               "nodeName": "EditNameField",
@@ -183,6 +185,7 @@
         },
         {
           "name": "ExportForm",
+          "formLayout": "vertical",
           "fields": [
             {
               "nodeName": "ExportTypeField",
@@ -226,6 +229,7 @@
       "forms": [
         {
           "name": "RegularForm",
+          "formLayout": "horizontal",
           "fields": [
             {
               "nodeName": "GroupNameField",
@@ -328,12 +332,14 @@
       "forms": [
         {
           "name": "OnetimeForm",
+          "formLayout": "horizontal",
           "fields": [
             {
               "nodeName": "ExpiryField",
               "name": "expiry",
               "label": "有效期（天）",
               "control": "Expiry",
+              "controlWidthReason": "Compact 1–365 day input beside inline expiry instructions",
               "rules": [
                 {
                   "ruleType": "required",
@@ -362,6 +368,7 @@
       "forms": [
         {
           "name": "Form",
+          "formLayout": "vertical",
           "fields": [
             {
               "nodeName": "ApplicationTypeField",

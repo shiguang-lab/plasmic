@@ -66,7 +66,7 @@ Before markup read [source presentation](design/source-presentation.md) for nati
 
 Map each flow's source rule to its native input fields/values, calculation or guard, event owner and observable output in the existing inventories and [business outcome cases](design/component-policy.md#business-outcome-cases). Include enums/defaults, editability, permissions, transitions and navigation. Required-only validation or a rule copied into help text does not implement a business algorithm.
 
-Derive expected results before generation; test changed inputs, repeat actions and source-required blocked cases against actual values/records, with feedback checked separately. Keep mock/API limits explicit. Shared Pages cover each type, direct entry, different rows, field/Tab visibility and return paths. Review editor/Preview pixels for source grouping/alignment and record actual observations.
+Use [source-driven acceptance](behavior-acceptance.md#plan-from-the-source) to derive expected results before generation, review source coverage and verify business outcomes. Reuse the existing runtime case arrays; keep mock/API limits and excluded transitions explicit. Shared Pages cover distinct records/types, direct entry/back, field/Tab visibility and applicable role/state branches. Review editor/Preview pixels for grouping/alignment separately.
 
 ## Structural gate
 
