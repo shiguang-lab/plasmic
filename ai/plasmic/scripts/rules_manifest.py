@@ -29,7 +29,7 @@ def manifest():
         for document, entry in data.get('documents', {}).items():
             for key in entry.get('registrations', []):
                 registrations[norm(key)] = {
-                    'key': key, 'library': data['library'], 'document': f'{base}/{document}',
+                    'key': key, 'library': data['library'], 'document': f'{base}/{document}', 'base': base,
                     'decisions': entry.get('decisions', {}).get(key, [])}
         for prefix, document in data.get('prefixes', {}).items():
             prefixes.append((norm(prefix), f'{base}/{document}'))
@@ -57,6 +57,9 @@ def decisions_for(key):
 
 
 def decision_rule(key, item):
+    if item.get('document'):
+        entry = registration(key) or {}
+        return f"{entry.get('base', '')}/{item['document']}#{item['rule']}"
     return f"{document_for(key)}#{item['rule']}"
 
 

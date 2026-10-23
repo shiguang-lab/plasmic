@@ -18,6 +18,7 @@ Read the installed Form contract before changing values, validation or submissio
 The [rules card](../../../planning.md#rules-card-and-read-ledger) delivers Generation rules for composition and the whole document for acceptance; a focused edit uses `scripts/read_reference.py` with these `--section` selectors. Read all sections whose conditions apply; an unknown field/flow scope requires discovery before exclusion.
 
 - Every business Form: `values-and-validation`, `events-and-ref-actions`, `acceptance`, `simplified-and-advanced-modes`.
+- Any Form before markup: [form layout](../compositions/form-layout.md#layout-ownership) `layout-ownership` (label direction and column pairing are decided first; a non-default direction needs cited or measured evidence).
 - Full-project generation or inventory audit: `project-inventory-and-acceptance`; a focused edit instead reads `focused-form-edits`.
 - Every editable field: [field semantics](../selection.md#field-semantics), `validation-order` and `label-and-control-layout`.
 - Field-label help being added, changed or present in generated fields: `label-help`.
@@ -25,7 +26,7 @@ The [rules card](../../../planning.md#rules-card-and-read-ledger) delivers Gener
 - Repeated fields or grouped paths: `formlist-and-form-field-group`.
 - Hidden, conditional or dependent fields: `conditional-and-dependent-fields`.
 
-The section reader retains the Form.Item ownership introduction when selecting its subsections. Use `--section formitem` when all field subsections apply.
+Section reads retain Form.Item ownership; use `--section formitem` for all field subsections.
 
 ### Values and validation
 
@@ -65,7 +66,7 @@ For a local field/validation/layout change, inspect the entire affected owning F
 
 ### Form.Item
 
-Read the installed Form Field/Form.Item contract before editing a field. Native field names, rules, labels and control ownership remain the source of truth.
+Installed Form Field/Form.Item contracts own field names, rules, labels and controls.
 
 #### Label help
 
@@ -74,6 +75,16 @@ Field-label explanations belong in the real Form.Item `tooltip` prop/Slot. Keep 
 For each field tooltip, verify the native icon is in the label, hover opens the expected content, the control remains usable, and clearing tooltip removes the icon. Recheck editor, actual preview and saved readback. Do not force persisted open state for inspection. Verify required indicators and tooltip coexist without duplicate marks or a second label model.
 
 #### Field instructions
+
+Triage every piece of field copy before choosing a Slot or a component:
+
+| Question | Decision |
+| --- | --- |
+| Does the user need to perceive this text at all, or is it requirement/implementation description? | Not user-facing: render nothing. Record the text in the field's `excludedCopy` with its source quote so the omission is reviewable. |
+| Must it be visible while entering the value (format, range, constraint)? | User-facing now: use an inline instruction for a short note beside a compact control, or `description` for one short line below. |
+| Is it background, definition or rationale the user opens on demand? | User-facing on demand: use the label `tooltip`. Never paste it as a persistent description. |
+
+Record the decision as `copyTriage` on the field — `perceive-now`, `perceive-on-demand` or `not-user-facing` — and keep it consistent with what the model renders: a `description` requires `perceive-now`, a `tooltip` requires `perceive-on-demand`, and `not-user-facing` may render neither and must cite the excluded text. A tooltip adds a help icon to the label, so the measured shared label width must include that icon.
 
 Decide instruction placement before choosing a Slot. These are field-specific instructions, not the form’s horizontal/vertical layout. Use the requirement, actual control width, expected text length and measured space at the target viewport; do not automatically place every instruction below the input or rely on a fixed character-count threshold.
 
@@ -84,9 +95,9 @@ Decide instruction placement before choosing a Slot. These are field-specific in
 | Optional label definition/background that is unnecessary while entering the value | Use the real Item `tooltip`. Keep essential format/range information visible. |
 | Validation failure | Keep the native error below the control, independent of the instruction position; show one actionable error at a time. |
 
-Ant Design Form.Item `extra` has no native placement switch; do not invent an `extraPosition` prop or move its internal DOM with absolute positioning, transforms or selectors. For inline instructions, use supported component composition. The installed Antd6 Form Field wrapper forwards value/events to its first direct control; for a simple compact field, retain that control as the first child and add one secondary Typography.Text sibling after it in the same `children` Slot. Use native Form `styles.content={display:"flex",alignItems:"center",gap:12}` when all fields in that Form support this composition; it styles the control content region, so errors and below-control extra retain their native layout. This prop is form-wide: inspect every field, and do not apply it to unrelated full-width or stacked fields. If a Flex/Space wrapper is necessary, use the native outer labeled Item and nested `noStyle` named Item pattern: only the inner Item owns the field name/rules/value, the control is its direct child, and the outer Item owns label/required/error layout. Read and verify that exact installed contract. Never place a Flex between a named Item and its bound control without an appropriate nested Item. Native React code generation must use Ant Design’s [complex form control](https://ant.design/components/form/#components-form-demo-complex-form-control) pattern rather than assuming the Plasmic wrapper’s forwarding behavior is an Ant Design default.
+Form.Item `extra` has no native placement switch: do not invent `extraPosition` or reposition internal DOM. The Antd6 wrapper forwards value/events to its first direct control. For compact inline instructions, keep that control first and add registered secondary Typography.Text in the same `children` Slot. Native Form `styles.content={display:"flex",alignItems:"center",gap:12}` applies form-wide; verify every field supports it and that errors/extra retain their native layout. Do not apply it to unrelated full-width/stacked fields. If Flex/Space is necessary, use a labeled outer Item and nested named `noStyle` Item: inner Item owns name/rules/value with the control directly below it; outer Item owns label/required/errors. Verify the installed contract. Never put Flex between a named Item and its control without the nested Item. Native React codegen follows Ant Design’s [complex form control](https://ant.design/components/form/#components-form-demo-complex-form-control), not the wrapper’s forwarding behavior.
 
-Below-control instructions use the wrapper’s `description` (editable Slot in advanced mode, text in simplified mode). Native extra starts below the control/error area and uses the theme’s secondary text color/font/spacing. Inline instructions use the same secondary hierarchy, a 12px control-to-text gap and complete readable text. Keep exactly one instruction at the chosen location; remove obsolete standalone siblings and bottom extra when moving to inline. Do not use `help` for persistent instructions because it replaces native errors. Do not move instruction text into the input’s suffix: suffix belongs inside the control. When available width no longer accommodates the full instruction, choose below rather than shrinking the control, clipping text or forcing nowrap.
+Below-control instructions use `description` (advanced Slot, simplified text), mapped to native extra below controls/errors with theme secondary typography. Inline instructions use the same hierarchy, a 12px control-to-text gap and complete readable text. Keep one approved instruction; remove obsolete siblings/extra when moving it. Persistent instructions must not use `help`, which replaces errors, or input suffix. If space is insufficient, place instructions below rather than shrinking controls, clipping text or forcing nowrap.
 
 Record `description`, `descriptionPlacement` (`below` by default or `afterControl`) and, for inline text, `descriptionNode` in the independent field inventory. These are acceptance expectations, not new component props. Read back native ownership and secondary Typography, then verify actual normal, empty, invalid and corrected states: one error below the control, persistent instructions at the approved location, no duplicate text, no crowding/overlap, and no vertical shift of inline text when an error appears. Recheck after save/reopen. A correct Slot or screenshot of the initial value alone does not pass this acceptance.
 
@@ -98,11 +109,11 @@ Show one actionable validation error per field at a time. Use native `validateFi
 
 Follow [layout ownership](../compositions/form-layout.md#layout-ownership): wide page forms default to horizontal labels, narrow Modal/Drawer forms to vertical. Record mandatory `formLayout` and a concrete `layoutReason` for exceptions before generation. `verify_forms.py` checks explicit native layout and width ownership even without Grid expectations. Align native descriptions/errors with controls; verify actual geometry instead of inheriting template label spans.
 
-For a single horizontal field, prefer native content-sized label columns (`labelCol.flex="none"`, `wrapperCol.flex="1"` in the installed contract). Do not reserve a fixed label width for an absent Tooltip or a template's longer fields. Multiple stacked fields may share a label width to align their controls; choose that width from their actual longest label, required indicator, punctuation and configured Tooltip. Left-aligned fixed-width labels leave unused space after the colon, so verify the rendered colon-to-control distance instead of accepting the column width alone. Preserve native label punctuation/spacing; do not compensate with empty nodes, negative margins or internal component CSS overrides. Measure normal, required, configured/empty Tooltip and validation-error states after save/reopen.
+For one horizontal field, use native content-sized label columns (`labelCol.flex="none"`, `wrapperCol.flex="1"`) when supported. Do not reserve width for an absent Tooltip or longer template fields. Stacked fields can share width measured from actual labels, required indicators, punctuation and configured Tooltips. Verify colon-to-control spacing, especially with left-aligned fixed labels. Preserve native punctuation/spacing; no empty nodes, negative margins or internal CSS overrides. Measure normal, required, configured/empty Tooltip and validation-error states after save/reopen.
 
 ### Simplified and advanced modes
 
-The registered default mode is `simplified`. Editable Form.Item children require `data-props='{"mode":"advanced"}'` on Form. Without this setting the runtime renders formItems and can leave authored children hidden behind default Name/Message/Submit fields. The Form.Item inventory gate therefore requires effective advanced mode; it cannot verify a simplified field schema by scanning children. For simplified forms verify the actual formItems/dataFormItems contract and runtime separately. Read the actual mode, formItems/dataFormItems and children contract. Simplified configuration and advanced editable Item nodes express the same business fields through different editing paths; do not maintain a second set of values or duplicate field labels/controls in both. Choose the mode needed for the actual field composition. A mode conversion preserves names, rules, values, submission and interactions, and must be reread rather than assumed from its visual result.
+Form defaults to `simplified`; editable Form.Item children require `data-props='{"mode":"advanced"}'` on Form. Otherwise runtime uses formItems and may hide authored children behind default Name/Message/Submit fields. The Item inventory gate requires effective advanced mode; it cannot scan a simplified field schema. Verify simplified formItems/dataFormItems contracts and runtime separately. Both modes represent the same business fields through different editing paths: do not duplicate values, labels or controls. Choose the needed mode; conversions preserve names, rules, values, submission and interactions and require readback.
 
 ### Form.List and Form Field Group
 

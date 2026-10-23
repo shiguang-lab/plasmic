@@ -2823,7 +2823,6 @@
   "Change not applied because {part1} dynamically sets the variant value for {part2}.": "{part1} が {part2} のバリアント値を動的に設定しているため、変更を適用できません。",
   "The application tried to go to a different page{part1}.": "アプリが別のページ{part1}へ移動しようとしました。",
   "Plasmic Studio detected and ignored a login or logout event. To view this artboard as a different user, click the \"View as...\" dropdown in the top bar.": "ログインまたはログアウトのイベントを検出して無視しました。別のユーザーとして表示するには、上部の「ユーザーとして表示」メニューを使ってください。",
-  "Error in {part1} interaction": "{part1} インタラクションのエラー",
   "This element already contains slots {part1}. You cannot nest slots.": "この要素にはスロット {part1} があるため、スロットを入れ子にできません。",
   "This element contains elements linked to props {part1}.": "この要素にはプロパティ {part1} に関連付けられた要素があります。",
   "Selected elements contain reference to \"{part1}\". {part2}": "選択した要素は「{part1}」を参照しています。{part2}",
@@ -2918,8 +2917,6 @@
   "project": "プロジェクト",
   "in a new tab": "新しいタブで",
   "The component {name} may not work properly because some props have an invalid value:": "コンポーネント {name} は一部のプロパティが無効なため、正しく動作しない可能性があります：",
-  "Error in {property} of step \"{step}\". {edit}": "ステップ「{step}」の {property} にエラーがあります。{edit}",
-  "Error in step \"{step}\". {edit}": "ステップ「{step}」にエラーがあります。{edit}",
   "create such a {kind}": "このような{kind}を作成",
   "Select All": "すべて選択",
   "AI": "AI",
@@ -5515,5 +5512,12 @@
   "Failed to export .plasmic file": ".plasmic ファイルのエクスポートに失敗しました",
   "Failed to import .plasmic file": ".plasmic ファイルのインポートに失敗しました",
   "Imported project successfully": "プロジェクトが正常にインポートされました",
-  "Please select a valid .plasmic file.": "有効な .plasmic ファイルを選択してください。"
+  "Please select a valid .plasmic file.": "有効な .plasmic ファイルを選択してください。",
+  "Could not run step \"{step}\".": "ステップ「{step}」を実行できませんでした。",
+  "Component registration failed": "コンポーネントの登録に失敗しました",
+  "Could not start Plasmic.": "Plasmic を起動できませんでした。",
+  "MCP configuration unavailable.": "MCP 設定を読み込めません。",
+  "Could not update MCP configuration.": "MCP 設定の更新に失敗しました。",
+  "Default component added": "既定のコンポーネントを追加しました",
+  "Image uploaded with warnings": "画像をアップロードしました。一部を確認してください"
 }

@@ -22,6 +22,8 @@ Assign review only: inspect saved models/contracts, run applicable verification 
 
 One agent controls the shared Desktop at a time. Save and hand over before review; the main agent pauses editor/Preview operations until the child returns control. Verify live identity on handoff and reacquisition. Context isolation does not isolate the application, filesystem or Preview state. Use fresh captures after model/session changes and the existing evidence-reuse rules otherwise.
 
+Copy economy needs review even when the budgets pass: confirm each action label uses the source's own short UI wording, each field label is a bare noun, each fact appears once, and no validation algorithm or implementation note reaches the UI. Inventory `role`/`copyTriage` fields record the decision; the reviewer checks the wording itself, not only the counts.
+
 Rules without a gate need explicit review. For each component on the Page's `prepare_plan.py rules --stage accept` card, check that component's hard constraints and the selected section rules against the saved model and pixels, and report each rule as its own result. Examples: which Column is the main text Column and whether its ellipsis Tooltip works, field-semantics control choice, Card surface justification and edge ownership, Tag-versus-text presentation. A passing gate or a read ledger does not cover them.
 
 Return scoped checks with passed, failed, unexecuted and invalid-evidence results; for findings include location, source-backed expected versus actual behavior, impact, reproduction steps and evidence paths bound to the checked state. Missing evidence must remain explicit. Return compact findings and complete evidence on disk through the host's supported completion/message mechanism.

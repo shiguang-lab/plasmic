@@ -1,0 +1,7 @@
+{
+  "en": "- Merge duplicate canvas scans across overlapping component and frame scopes.\n- Show concise, localized error messages instead of long diagnostics across Studio and Desktop.\n- Return MCP failures as msg and detail, preserving full diagnostics and documented recovery.\n- Validate empty navigation targets before running interactions.\n- Align Badge and Drawer registrations with their native contracts and strengthen prototype form, overlay, record-context and runtime acceptance rules.",
+  "zh-CN": "- 合并不同组件与画布范围命中同一节点时的重复扫描。\n- Studio 与 Desktop 错误提示统一为简短、本地化的信息，不再直接显示长篇诊断。\n- MCP 失败返回 msg 和 detail，完整保留诊断信息并同步恢复文档。\n- 交互执行前明确校验空导航目标。\n- 修正 Badge、Drawer 原生注册契约，完善表单、浮层、记录上下文与运行时验收规范。",
+  "zh-TW": "- 合併不同元件與畫布範圍命中同一節點時的重複掃描。\n- Studio 與 Desktop 錯誤提示統一為簡短、在地化的資訊，不再直接顯示冗長診斷。\n- MCP 失敗回傳 msg 與 detail，完整保留診斷並同步復原文件。\n- 互動執行前明確驗證空白導覽目標。\n- 修正 Badge、Drawer 原生註冊契約，完善表單、浮層、紀錄情境與執行階段驗收規範。",
+  "ja": "- コンポーネントとフレームの範囲が重なる場合の重複スキャンを統合しました。\n- Studio と Desktop のエラー表示を短いローカライズ済みメッセージに統一しました。\n- MCP エラーを msg と detail に分離し、詳細診断と復旧手順を保持しました。\n- 空のナビゲーション先を実行前に検証します。\n- Badge と Drawer の登録をネイティブ契約に合わせ、フォーム、オーバーレイ、レコードの文脈と実行時検証を改善しました。",
+  "ko": "- 구성 요소와 프레임 범위가 겹칠 때 같은 노드의 중복 스캔을 병합합니다.\n- Studio와 Desktop 오류를 간결하고 현지화된 메시지로 표시합니다.\n- MCP 오류를 msg와 detail로 분리하고 전체 진단과 복구 지침을 유지합니다.\n- 상호 작용 실행 전에 비어 있는 탐색 대상을 검증합니다.\n- Badge와 Drawer 등록을 기본 계약에 맞추고 폼, 오버레이, 레코드 문맥 및 런타임 검증 규칙을 개선했습니다."
+}

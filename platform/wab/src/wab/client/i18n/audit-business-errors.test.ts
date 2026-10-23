@@ -3,7 +3,7 @@ const { scanSource } =
     scanSource: (
       source: string,
       file: string,
-    ) => { errors: unknown[]; sinks: unknown[] };
+    ) => { errors: unknown[]; sinks: unknown[]; toastSinks: unknown[] };
   };
 it("inventories server business errors and permissions, including decorated TypeScript", () => {
   const result = scanSource(
@@ -29,4 +29,21 @@ it("flags raw error descriptions while accepting the subscribed error renderer",
       "client/view.tsx",
     ).sinks,
   ).toHaveLength(0);
+});
+
+it("detects diagnostic bodies in notifications, including helper renderers and templates", () => {
+  for (const body of [
+    'notification.error({message: error.message})',
+    'message.error({content: error.stack})',
+    'notification.open({description: <ErrorDescription error={error} />})',
+    'notification.warning({description: `${err}`})',
+    'message.error(getErrorMessage(error))',
+  ]) {
+    expect(scanSource(body, "client/view.tsx").toastSinks).toHaveLength(1);
+  }
+});
+
+it("keeps production toast entry points free of raw diagnostics", () => {
+  const { audit } = require("../../../../tools/i18n/audit-business-errors.cjs");
+  expect(audit().rawToastSinks).toEqual([]);
 });

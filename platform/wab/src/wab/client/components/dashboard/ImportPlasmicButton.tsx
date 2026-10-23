@@ -45,7 +45,7 @@ export function ImportPlasmicButton(props: {
           void message.error({
             content:
               error instanceof Error && error.message.includes(t("Please select a valid .plasmic file."))
-                ? error.message
+                ? t("Please select a valid .plasmic file.")
                 : t("Failed to import .plasmic file"),
           });
           setLoading(false);

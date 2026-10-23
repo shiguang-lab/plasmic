@@ -30,7 +30,7 @@ import {
   gatherSvgColors,
   isSVG,
 } from "@/wab/shared/svg-utils";
-import { notification } from "antd";
+import { message, notification } from "antd";
 import * as downscale from "downscale";
 import $ from "jquery";
 import { isString } from "lodash";
@@ -337,7 +337,8 @@ export async function maybeUploadImage(
       imageFile: blob,
     });
     if (uploadedImage.warning) {
-      notification.warning({ message: uploadedImage.warning, duration: 0 });
+      console.warn("Image upload warning", uploadedImage.warning);
+      void message.warning({ content: translate(getUiLocale(), "Image uploaded with warnings"), duration: 4 });
     }
     imageResult = new ResizableImage(
       uploadedImage.dataUri,

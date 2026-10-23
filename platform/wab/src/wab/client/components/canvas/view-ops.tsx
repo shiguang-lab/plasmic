@@ -1164,7 +1164,7 @@ export class ViewOps {
       tplMgr: this.tplMgr(),
     });
     if (result.isErr()) {
-      notification.error({ message: result.error.message });
+      showError(result.error, { title: translate(getUiLocale(), "Operation failed") });
     }
   }
 
@@ -2903,10 +2903,7 @@ export class ViewOps {
       this.site(),
     );
     if (removalError) {
-      notification.error({
-        message: translate(getUiLocale(), "Cannot move elements"),
-        description: removalError.message,
-      });
+      showError(removalError, { title: translate(getUiLocale(), "Cannot move elements") });
       return false;
     }
     const copies = clips.map((clip) => this.adaptTplForPaste(clip));
@@ -3328,11 +3325,7 @@ export class ViewOps {
         );
       }
       for (const warning of warnings) {
-        notification.warning({
-          message: translate(getUiLocale(), "Fallback omitted"),
-          description: warning,
-          duration: 0,
-        });
+        showError(warning, { title: translate(getUiLocale(), "Fallback omitted"), type: "warning" });
       }
       const arena = this.viewCtx().studioCtx.currentArena;
       const key = common.mkUuid();

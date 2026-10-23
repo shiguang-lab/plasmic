@@ -8,19 +8,43 @@ The execution queue checks context before running each tool, including `execute`
 
 ```json
 {
-  "error": "Tool requires edit mode; current context is Preview.",
-  "code": "CONTEXT_MISMATCH",
-  "operationExecuted": false,
-  "required": { "surface": "editor", "mode": "edit", "canEdit": true },
-  "actual": { "surface": "editor", "mode": "preview", "previewKind": "in-app", "projectId": "PROJECT_ID", "sessionId": "SESSION_ID", "ready": true },
-  "recovery": [
-    { "tool": "preview", "arguments": { "action": "close" } },
-    { "tool": "get_app_state", "arguments": {} }
-  ]
+  "msg": "Switch to the required editor context.",
+  "detail": {
+    "message": "Tool requires edit mode; current context is Preview.",
+    "code": "CONTEXT_MISMATCH",
+    "operationExecuted": false,
+    "required": {
+      "surface": "editor",
+      "mode": "edit",
+      "canEdit": true
+    },
+    "actual": {
+      "surface": "editor",
+      "mode": "preview",
+      "previewKind": "in-app",
+      "projectId": "PROJECT_ID",
+      "sessionId": "SESSION_ID",
+      "ready": true
+    },
+    "recovery": [
+      {
+        "tool": "preview",
+        "arguments": {
+          "action": "close"
+        }
+      },
+      {
+        "tool": "get_app_state",
+        "arguments": {}
+      }
+    ]
+  }
 }
 ```
 
-`required.previewKind` may list allowed values. A recovery step with `requiresInput` needs those arguments resolved from the task and live inventory before execution; retained editor selection does not identify the intended runtime Page. Follow the public recovery calls, confirm the intended project/session and required mode, then retry only when `operationExecuted:false` establishes that the original operation did not run. `operationExecuted:null` means a transition was attempted but did not reach its required mode; inspect current state before retrying. Reacquire Preview snapshot refs after opening or replacing runtime content; never replay expired refs. If no editor/canvas is selected, resolve the intended project/Page and explicitly call `open_design` or `navigate`; do not guess a target. External Preview must be closed through its own window. Empty recovery means no supported automatic tool recovery is available.
+All diagnostic fields below are inside `detail`; `msg` is only the short user-facing summary. If `detail.__type` is `ResultReference`, use `read_result({resultId: detail.resultId})` and follow its pagination to retrieve the diagnostics before deciding recovery or retry.
+
+`detail.required.previewKind` may list allowed values. A step in `detail.recovery` with `requiresInput` needs those arguments resolved from the task and live inventory before execution; retained editor selection does not identify the intended runtime Page. Follow the public recovery calls, confirm the intended project/session and required mode, then retry only when `detail.operationExecuted:false` establishes that the original operation did not run. `detail.operationExecuted:null` means a transition was attempted but did not reach its required mode; inspect current state before retrying. Reacquire Preview snapshot refs after opening or replacing runtime content; never replay expired refs. If no editor/canvas is selected, resolve the intended project/Page and explicitly call `open_design` or `navigate`; do not guess a target. External Preview must be closed through its own window. Empty recovery means no supported automatic tool recovery is available.
 
 A context mismatch is a recoverable tool failure, not a reason to ask the user at every transition. If recovery fails, stop dependent work and report its exact error instead of looping, restarting the App, using reference tools as runtime fallback or reading client internals. Other failures do not assert that no write occurred: read back the affected model before retrying a mutation whose outcome is unknown.
 

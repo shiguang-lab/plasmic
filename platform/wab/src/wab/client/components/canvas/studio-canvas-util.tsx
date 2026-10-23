@@ -10,20 +10,16 @@ import {
   getMostRecentFiberVersion,
   globalHookCtx,
 } from "@/wab/client/react-global-hook/globalHook";
-import { ACTIONS_META } from "@/wab/client/state-management/interactions-meta";
-import { RightTabKey, StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { isAbsoluteUrl } from "@/wab/commons/urls";
-import { maybePropTypeToDisplayName } from "@/wab/shared/code-components/code-components";
-import { CustomError, delay, hackyCast, unexpected } from "@/wab/shared/common";
+import { CustomError, hackyCast, unexpected } from "@/wab/shared/common";
 import { PageComponent } from "@/wab/shared/core/components";
 import { InteractionArgLoc, InteractionLoc } from "@/wab/shared/core/exprs";
-import { getDisplayNameOfEventHandlerKey } from "@/wab/shared/core/tpls";
 import { getMatchingPagePathParams } from "@/wab/shared/utils/url-utils";
-import { notification } from "antd";
-import { when } from "mobx";
-import { ok } from "neverthrow";
+import { message, notification } from "antd";
 import React from "react";
+import { ok } from "neverthrow";
 
 export function hasLinkedSelectable(x: JQuery, viewCtx: ViewCtx) {
   return x.toArray().some((elt) => {
@@ -269,110 +265,15 @@ export function trapInteractionError(
   loc: InteractionLoc | InteractionArgLoc,
   error: Error,
 ) {
-  const previewCtx = studioCtx.previewCtx;
   const found = studioCtx.tplMgr().findInteractionByUuid(loc.interactionUuid);
-  let title = (
-    <>
-      <UiText message={"Error in interaction"} />
-    </>
-  );
-  let details = <></>;
-  if (found) {
-    const { component, tpl, eventHandlerKey, eventHandler, interaction } =
-      found;
-    const stepName = interaction.interactionName;
-    async function goToStep() {
-      if (previewCtx) {
-        await previewCtx.stopLiveMode();
-        await when(() => !previewCtx.isLive);
-      }
-      if (studioCtx.isInteractiveMode) {
-        studioCtx.isInteractiveMode = false;
-      }
-      await studioCtx.setStudioFocusOnTpl(component, tpl);
-      await studioCtx.change(() => {
-        studioCtx.switchRightTab(RightTabKey.interactions);
-        return ok();
-      });
-      studioCtx.highlightInteractionRequested.dispatch({
-        eventHandler,
-        interaction,
-        argName: loc.type === "InteractionArgLoc" ? loc.argName : undefined,
-      });
-      await delay(1000);
-      notification.destroy("interaction-error");
-    }
-    title = (
-      <>
-        <UiText
-          message={"Error in {part1} interaction"}
-          values={{
-            part1: (
-              <strong>
-                {getDisplayNameOfEventHandlerKey(eventHandlerKey, { tpl })}
-              </strong>
-            ),
-          }}
-        />
-      </>
-    );
-    details = (() => {
-      switch (loc.type) {
-        case "InteractionArgLoc": {
-          const propLabel = maybePropTypeToDisplayName(
-            ACTIONS_META[interaction.actionName].parameters[loc.argName],
-          );
-          return (
-            <>
-              <p>
-                <UiText
-                  message={'Error in {property} of step "{step}". {edit}'}
-                  values={{
-                    property: <strong>{propLabel}</strong>,
-                    step: <strong>{stepName}</strong>,
-                    edit: (
-                      <LinkButton onClick={goToStep}>
-                        <UiText message={"Edit step"} />
-                      </LinkButton>
-                    ),
-                  }}
-                />
-              </p>
-
-              <pre style={{ whiteSpace: "pre-wrap" }}>
-                <code>{error.message}</code>
-              </pre>
-            </>
-          );
-        }
-        case "InteractionLoc":
-          return (
-            <>
-              <p>
-                <UiText
-                  message={'Error in step "{step}". {edit}'}
-                  values={{
-                    step: <strong>{stepName}</strong>,
-                    edit: (
-                      <LinkButton onClick={goToStep}>
-                        <UiText message={"Edit step"} />
-                      </LinkButton>
-                    ),
-                  }}
-                />
-              </p>
-              <pre style={{ whiteSpace: "pre-wrap" }}>
-                <code>{error.message}</code>
-              </pre>
-            </>
-          );
-      }
-    })();
-  }
-  notification.error({
+  console.error("Interaction failed", { location: loc, error });
+  void message.error({
     key: "interaction-error",
-    message: title,
-    description: details,
-    duration: 0,
+    content: found
+      ? translate(getUiLocale(), 'Could not run step "{step}".', {
+          step: found.interaction.interactionName,
+        })
+      : translate(getUiLocale(), "Error in interaction"),
+    duration: 4,
   });
 }

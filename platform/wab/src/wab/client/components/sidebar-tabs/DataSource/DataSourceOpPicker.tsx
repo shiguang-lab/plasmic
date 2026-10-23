@@ -1,7 +1,4 @@
-import {
-  ErrorDescription,
-  getErrorType,
-} from "@/wab/client/api-error-presentation";
+
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import { getUiLocale, useI18n } from "@/wab/client/i18n";
 import { translateUiLabel } from "@/wab/client/i18n/locales";
@@ -91,7 +88,7 @@ import {
   useDataSource,
   useTopFrameApi,
 } from "@/wab/client/contexts/AppContexts";
-import { reportSilentErrorMessage } from "@/wab/client/ErrorNotifications";
+import { showError, reportSilentErrorMessage } from "@/wab/client/ErrorNotifications";
 import { useAsyncStrict } from "@/wab/client/hooks/useAsyncStrict";
 import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
 import SearchIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Search";
@@ -2105,15 +2102,11 @@ function DataSourceOpDataPreview(props: {
         setMutateOpResults(result);
       } catch (err) {
         const sourceMeta = source && getDataSourceMeta(source.source);
-        notification.open({
-          type: getErrorType(err),
-          message: uiT('Operation "{part1}" failed', {
+        showError(err, { title: uiT('Operation "{part1}" failed', {
             part1:
               sourceMeta?.ops.find((op) => op.name === opExpr.opName)?.label ??
               opExpr.opName,
-          }),
-          description: <ErrorDescription error={err} />,
-        });
+          }) });
       }
       setExecuteQueue(rest);
     }

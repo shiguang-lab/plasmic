@@ -27,42 +27,7 @@ const badgeStatuses = [
   "warning",
 ] as const;
 export type BadgeStatus = (typeof badgeStatuses)[number];
-export interface BadgeValueOption {
-  value: string;
-  label?: string;
-  status?: BadgeStatus;
-}
-/** Maps a field value to a preset status and label; explicit status/text win. */
-export function AntdBadge({
-  value,
-  options,
-  status,
-  text,
-  ...props
-}: React.ComponentProps<typeof Ant.Badge> & {
-  value?: string | number | boolean;
-  options?: BadgeValueOption[];
-}) {
-  if (value == null) {
-    return <Ant.Badge {...props} status={status} text={text} />;
-  }
-  const raw = String(value);
-  const option = Array.isArray(options)
-    ? options.find((item) => item?.value === raw)
-    : undefined;
-  return (
-    <Ant.Badge
-      {...props}
-      status={
-        status ??
-        (badgeStatuses.includes(option?.status as BadgeStatus)
-          ? option?.status
-          : "default")
-      }
-      text={text ?? (option?.label || raw)}
-    />
-  );
-}
+export const AntdBadge: typeof Ant.Badge = Ant.Badge;
 export const AntdBadgeRibbon: typeof Ant.Badge.Ribbon = Ant.Badge.Ribbon;
 export const AntdBorderBeam: typeof Ant.BorderBeam = Ant.BorderBeam;
 export function AntdCard({
@@ -549,25 +514,6 @@ export function registerAdditional(loader?: Registerable) {
     size: choice(["small", "medium"]),
     status: choice([...badgeStatuses]),
     text: "string",
-    value: {
-      type: "string",
-      displayName: "Value",
-      description:
-        "Bind the field value. A matching option supplies status and text; unmatched values show the raw value with the default status. Explicit Status and Text take precedence.",
-    },
-    options: {
-      type: "array",
-      displayName: "Status labels",
-      itemType: {
-        type: "object",
-        nameFunc: (item: BadgeValueOption) => item.label || item.value,
-        fields: {
-          value: { type: "string", displayName: "Value" },
-          label: { type: "string", displayName: "Label" },
-          status: { ...choice([...badgeStatuses]), displayName: "Status" },
-        },
-      },
-    },
   });
   register(loader, AntdBadgeRibbon, "badge-ribbon", "AntdBadgeRibbon", {
     children: slot("Ribbon content"),

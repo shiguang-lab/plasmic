@@ -158,9 +158,10 @@ test("snapshot continuation and renderer diagnostics survive actual RPC and MCP"
     const ref = snapshot.elements.find((el) => el.name === "查询").ref;
     const failed = await call({ action: "click", ref });
     assert.equal(failed.isError, true);
-    const payload = JSON.parse(failed.content[0].text);
+    const { msg, detail: payload } = JSON.parse(failed.content[0].text);
+    assert.equal(msg, "The target is covered by another element.");
     assert.equal(payload.code, "PREVIEW_TARGET_BLOCKED");
-    assert.match(payload.error, /covered/);
+    assert.match(payload.message, /covered/);
     assert.match(payload.cause.stack, /runtimeCommand/);
     assert.equal(payload.preview.ref, ref);
     assert.equal(payload.preview.frame.processId, 12);

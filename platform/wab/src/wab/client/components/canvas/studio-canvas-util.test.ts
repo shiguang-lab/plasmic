@@ -1,4 +1,8 @@
-import { absorbLinkClick } from "@/wab/client/components/canvas/studio-canvas-util";
+import { message, notification } from "antd";
+import { mock } from "vitest-mock-extended";
+import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { InteractionLoc } from "@/wab/shared/core/exprs";
+import { absorbLinkClick, trapInteractionError } from "@/wab/client/components/canvas/studio-canvas-util";
 
 describe("absorbLinkClick", () => {
   const onAnchorClick = vi.fn();
@@ -60,4 +64,21 @@ describe("absorbLinkClick", () => {
     expect(onAnchorClick).not.toHaveBeenCalled();
     expect(event.defaultPrevented).toBe(false);
   });
+});
+
+it("shows a brief expiring interaction message while retaining diagnostic context", () => {
+  const notificationSpy = vi.spyOn(notification, "error");
+  const messageSpy = vi.spyOn(message, "error").mockImplementation(() => (() => {}) as any);
+  const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+  const error = new Error("Cannot read properties of null (reading 'startsWith')");
+  const loc = { type: "InteractionLoc", interactionUuid: "step" } as InteractionLoc;
+  const studio = mock<StudioCtx>();
+  studio.tplMgr.mockReturnValue({ findInteractionByUuid: () => ({ interaction: { interactionName: "openTarget" } }) } as any);
+  trapInteractionError(studio, loc, error);
+  expect(messageSpy).toHaveBeenCalledWith({
+    key: "interaction-error", content: 'Could not run step "openTarget".', duration: 4,
+  });
+  expect(notificationSpy).not.toHaveBeenCalled();
+  expect(consoleSpy).toHaveBeenCalledWith("Interaction failed", { location: loc, error });
+  vi.restoreAllMocks();
 });

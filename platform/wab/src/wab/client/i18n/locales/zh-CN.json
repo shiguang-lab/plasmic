@@ -2823,7 +2823,6 @@
   "Change not applied because {part1} dynamically sets the variant value for {part2}.": "变更未应用，因为 {part1} 动态设置了 {part2} 的变体值。",
   "The application tried to go to a different page{part1}.": "应用尝试跳转到其他页面{part1}。",
   "Plasmic Studio detected and ignored a login or logout event. To view this artboard as a different user, click the \"View as...\" dropdown in the top bar.": "Plasmic Studio 已忽略检测到的登录或退出事件。要以其他用户身份查看此画板，请使用顶部的“以用户身份查看”菜单。",
-  "Error in {part1} interaction": "{part1} 交互发生错误",
   "This element already contains slots {part1}. You cannot nest slots.": "此元素已包含插槽 {part1}，无法嵌套插槽。",
   "This element contains elements linked to props {part1}.": "此元素包含关联到属性 {part1} 的元素。",
   "Selected elements contain reference to \"{part1}\". {part2}": "选中元素包含对“{part1}”的引用。{part2}",
@@ -2918,8 +2917,6 @@
   "project": "项目",
   "in a new tab": "在新标签页中",
   "The component {name} may not work properly because some props have an invalid value:": "组件 {name} 的部分属性值无效，可能无法正常工作：",
-  "Error in {property} of step \"{step}\". {edit}": "步骤“{step}”的 {property} 发生错误。{edit}",
-  "Error in step \"{step}\". {edit}": "步骤“{step}”发生错误。{edit}",
   "create such a {kind}": "创建此类{kind}",
   "Select All": "全选",
   "AI": "AI",
@@ -5515,5 +5512,12 @@
   "Failed to export .plasmic file": "导出 .plasmic 文件失败",
   "Failed to import .plasmic file": "导入 .plasmic 文件失败",
   "Imported project successfully": "项目导入成功",
-  "Please select a valid .plasmic file.": "请选择有效的 .plasmic 文件。"
+  "Please select a valid .plasmic file.": "请选择有效的 .plasmic 文件。",
+  "Could not run step \"{step}\".": "步骤“{step}”执行失败。",
+  "Component registration failed": "组件注册失败",
+  "Could not start Plasmic.": "无法启动 Plasmic。",
+  "MCP configuration unavailable.": "无法读取 MCP 配置。",
+  "Could not update MCP configuration.": "MCP 配置更新失败。",
+  "Default component added": "已添加默认组件",
+  "Image uploaded with warnings": "图片已上传，部分内容需检查"
 }

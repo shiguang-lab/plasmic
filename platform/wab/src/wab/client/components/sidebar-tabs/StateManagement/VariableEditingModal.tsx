@@ -1,3 +1,4 @@
+import { showError } from "@/wab/client/ErrorNotifications";
 import VariableEditingForm, {
   StateVariableDraft,
 } from "@/wab/client/components/sidebar-tabs/StateManagement/VariableEditingForm";
@@ -16,7 +17,7 @@ import {
   mkState,
 } from "@/wab/shared/core/states";
 import { Component, State } from "@/wab/shared/model/classes";
-import { notification } from "antd";
+
 import React from "react";
 
 export function VariableEditingModal({
@@ -77,10 +78,7 @@ export function VariableEditingModal({
         }),
       );
       if (result.isErr()) {
-        notification.error({
-          message: translate(getUiLocale(), "Cannot create state variable"),
-          description: result.error.message,
-        });
+        showError(result.error, { title: translate(getUiLocale(), "Cannot create state variable") });
         return;
       }
       onClose();

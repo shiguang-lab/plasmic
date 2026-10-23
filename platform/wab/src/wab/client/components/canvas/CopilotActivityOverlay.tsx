@@ -3,12 +3,15 @@ import {
   ActivityTarget,
   CanvasActivity,
   activityText,
+  currentActivity,
 } from "@/wab/client/copilot/activity";
 import { useI18n } from "@/wab/client/i18n";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { getArenaName, getFrameHeight } from "@/wab/shared/Arenas";
 import { ancestorsUp, flattenTpls } from "@/wab/shared/core/tpls";
+import { ensure } from "@/wab/shared/common";
+import { groupBy } from "lodash";
 import { ArenaFrame, TplNode } from "@/wab/shared/model/classes";
 import { createStyles } from "antd-style";
 import classNames from "classnames";
@@ -161,7 +164,7 @@ export const CopilotActivityOverlay = observer(function CopilotActivityOverlay({
   if (!viewCtx) {
     return null;
   }
-  const regions = studioCtx.copilotActivity.regions.filter(
+  const matchingRegions = studioCtx.copilotActivity.regions.filter(
     ({ target }) =>
       (!target.componentUuid ||
         target.componentUuid === frame.container.component.uuid) &&
@@ -170,6 +173,19 @@ export const CopilotActivityOverlay = observer(function CopilotActivityOverlay({
           getArenaName(studioCtx.currentArena) === target.canvasName)) &&
       (!target.frameUuid || target.frameUuid === frame.uuid),
   );
+  // Scope fields select frames; once matched, they do not distinguish nodes.
+  // A whole-component request and its root Tpl also address the same region.
+  const regions = Object.entries(groupBy(matchingRegions, ({ target }) =>
+    target.elementUuid ?? frame.container.component.tplTree.uuid,
+  )).map(([key, matches]) => ({
+    ...matches[0],
+    key,
+    request: ensure(
+      currentActivity(matches.map(({ request }) => request).sort((a, b) => a.id - b.id)),
+      "Matching activity region has no requests",
+    ),
+    scanning: matches.some(({ scanning }) => scanning),
+  }));
   const tpls = new Map(
     regions.some(({ target }) => target.elementUuid)
       ? flattenTpls(frame.container.component.tplTree).map((tpl) => [tpl.uuid, tpl])

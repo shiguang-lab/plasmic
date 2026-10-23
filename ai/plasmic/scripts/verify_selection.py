@@ -86,49 +86,50 @@ def state_like(data_index, title):
 
 
 def status_badge_errors(values, in_column, planned=False):
-    """Status Badge contract: preset status + text, or value + options.
+    """Status Badge uses only the installed official preset props: status + text.
 
-    Inside a status Table Column the mapped form is required, otherwise every
-    row shows one literal status. A planned declaration may leave the value
-    binding to generation.
+    A per-row status column maps the row value inside the binding expression and
+    records that mapping on the Column declaration; registered components never
+    gain non-official props such as value/options.
     """
     errors = [f'Status Badge must not set {key}; the status preset provides the color'
               for key in ('color', 'dot', 'count') if values.get(key) is not None]
-    mapped = 'options' in values or values.get('value') is not None
-    if mapped:
-        value, options = values.get('value'), values.get('options')
-        if not planned and (value is None or not str(value).strip()):
-            errors.append('Mapped status Badge requires a nonempty value binding')
-        elif in_column and not planned and '{{' not in str(value):
-            errors.append('Status Badge in a Table Column must bind value to the row field, e.g. {{ cell }}; a literal value gives every row the same status')
-        if not isinstance(options, list) or not options:
-            errors.append('Status Badge options must be a literal nonempty list of {value,label,status}')
-        else:
-            keys = []
-            for option in options:
-                if not isinstance(option, dict) or not isinstance(option.get('value'), str):
-                    errors.append('Each status Badge option requires a string value')
-                    continue
-                keys.append(option['value'])
-                if not isinstance(option.get('label'), str) or not option['label'].strip():
-                    errors.append(f'Status Badge option {option["value"]!r} requires a nonempty label')
-                if option.get('status') not in BADGE_STATUSES:
-                    errors.append(f'Status Badge option {option["value"]!r} status must be one of {", ".join(BADGE_STATUSES)}')
-            if len(set(keys)) != len(keys):
-                errors.append('Status Badge option values must be unique')
-        for key in ('status', 'text'):
-            if values.get(key) is not None:
-                errors.append(f'Mapped status Badge must not set explicit {key}; it overrides the options mapping')
-    elif in_column:
-        errors.append('Status Badge in a Table Column must map value + options; a literal status gives every row the same status')
+    extended = [key for key in ('value', 'options') if values.get(key) is not None]
+    if extended:
+        errors.append('Status Badge props must match the installed official contract; '
+                      f'{", ".join(extended)} is not an official prop — map the row value inside the status/text expression')
+    status, text = values.get('status'), values.get('text')
+    if in_column:
+        if planned:
+            return errors
+        if not isinstance(status, str) or '{{' not in status:
+            errors.append('Status Badge in a Table Column must bind status to a row expression, e.g. {{ row.state === "ACTIVE" ? "success" : "default" }}; a literal status gives every row the same color')
+        if not isinstance(text, str) or '{{' not in text:
+            errors.append('Status Badge in a Table Column must bind text to the row label expression')
     elif not planned:
-        status = values.get('status')
         if not isinstance(status, str) or '{{' in status:
-            errors.append('Status Badge status must be a literal preset; bind dynamic states with value + options')
+            errors.append('Standalone status Badge takes a literal preset status; map dynamic states on the Column expression')
         elif status not in BADGE_STATUSES:
             errors.append(f'Status Badge status must be one of {", ".join(BADGE_STATUSES)}')
-        if values.get('text') is None or not str(values.get('text')).strip():
-            errors.append('Status Badge requires visible text')
+        if text is None or not str(text).strip() or '{{' in str(text):
+            errors.append('Standalone status Badge requires visible literal text')
+    return errors
+
+
+def status_map_errors(spec):
+    """A per-row status Column records the value → {status,label} mapping it renders."""
+    mapping = spec.get('statusMap')
+    if not isinstance(mapping, dict) or not mapping:
+        return ['Status Column must record statusMap {value: {status, label}} for every state it renders']
+    errors = []
+    for value, entry in mapping.items():
+        if not isinstance(entry, dict):
+            errors.append(f'statusMap[{value!r}] needs status and label')
+            continue
+        if entry.get('status') not in BADGE_STATUSES:
+            errors.append(f'statusMap[{value!r}] status must be one of {", ".join(BADGE_STATUSES)}')
+        if not isinstance(entry.get('label'), str) or not entry['label'].strip():
+            errors.append(f'statusMap[{value!r}] needs a nonempty label')
     return errors
 
 
@@ -371,6 +372,8 @@ def plan_errors(plan):
             continue
         if all(isinstance(spec.get(k), str) for k in ('nodeName', 'event')):
             keys.setdefault((spec['nodeName'], spec['event']), []).append(pointer)
+        if isinstance(spec.get('notApplicable'), str) and spec['notApplicable'].strip():
+            continue
         if not all(isinstance(spec.get(k), str) and spec[k].strip() for k in ('nodeName', 'event', 'source', 'success', 'failure')):
             issue(pointer, 'feedback needs a source, event owner and independent success/failure expectations',
                   required=['nodeName', 'event', 'source', 'success', 'failure'])
@@ -409,6 +412,9 @@ def check_page(plan, page):
                 badges = [n for n in authored(render or {}) if identity(n) == 'plasmicantd6badge']
                 if not badges or values.get('displayType') not in (None, 'custom'):
                     errors.append({'check': 'statusPresentation', 'node': name, 'message': 'Status Column requires its native Badge render template; Tag/text presets are not status presentation'})
+                if badges:
+                    errors.extend({'check': 'statusPresentation', 'node': name, 'message': message}
+                                  for message in status_map_errors(spec))
                 for badge in badges:
                     column_badges.add(id(badge))
                     errors.extend({'check': 'statusPresentation', 'node': node_name(badge), 'message': message}
@@ -428,6 +434,10 @@ def check_page(plan, page):
         matches = [n for n in nodes if node_name(n) == spec.get('nodeName')]
         if len(matches) != 1:
             errors.append({'check': 'feedback', 'node': spec.get('nodeName'), 'message': 'One real feedback event owner required'})
+            continue
+        if isinstance(spec.get('notApplicable'), str) and spec['notApplicable'].strip():
+            # No official transient-feedback component is registered in this library;
+            # the reviewed decision records that the outcome shows through state instead.
             continue
         node = matches[0]
         handler = props(node).get(spec.get('event'))
@@ -480,6 +490,16 @@ def required_reads(plan, stage='compose'):
             add(path, stage_anchors(path))
             if anchor and needed[path] is not None:
                 needed[path].add(anchor)
+        owner_document = (rules_manifest.document_for(spec.get('component', '')) or '').split('#', 1)[0]
+        for item in rules_manifest.decisions_for(spec.get('component', '')):
+            # A decision owned by another document must be read explicitly; a decision
+            # inside the component's own document is already covered by the stage template.
+            decision_path, _, decision_anchor = rules_manifest.decision_rule(spec.get('component', ''), item).partition('#')
+            if decision_path == owner_document or not (RESOURCE_ROOT / decision_path).is_file():
+                continue
+            add(decision_path, stage_anchors(decision_path))
+            if decision_anchor and needed.get(decision_path) is not None:
+                needed[decision_path].add(decision_anchor)
     return needed
 
 

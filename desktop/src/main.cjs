@@ -135,9 +135,10 @@ function protectWindow(win) {
       await controller.saveBeforeNavigation(await controller.state([]));
       await win.loadURL(url);
     })().catch((error) => {
+      console.error("Desktop navigation failed", error);
       dialog.showErrorBox(
         desktopI18n.t("Operation Failed"),
-        desktopI18n.t(error.message),
+        desktopI18n.t("Please try again"),
       );
     });
     return { action: "deny" };
@@ -767,14 +768,16 @@ function bootstrap() {
         });
       })
       .catch((error) => {
-        dialog.showErrorBox("Plasmic could not start", error.message);
+        console.error("Desktop startup failed", error);
+        dialog.showErrorBox(desktopI18n.t("Error"), desktopI18n.t("Could not start Plasmic."));
         app.quit();
       });
     app.on("activate", () => {
       if (!mainWindow) {
-        ensureDesktop().catch((error) =>
-          dialog.showErrorBox("Startup failed", error.message),
-        );
+        ensureDesktop().catch((error) => {
+          console.error("Desktop startup failed", error);
+          dialog.showErrorBox(desktopI18n.t("Error"), desktopI18n.t("Could not start Plasmic."));
+        });
       }
     });
     app.on("window-all-closed", () => {

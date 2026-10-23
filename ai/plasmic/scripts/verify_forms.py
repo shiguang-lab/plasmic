@@ -8,8 +8,12 @@ Expect {"pages": [{"path": "/records", "forms": [{"name": "Form", "formLayout": 
 [{"nodeName": "NameField", "name": "name", "label": "Name", "control": "Name",
 "rules": [{"ruleType": "required"}], "tooltip": "Help"}]}]}]}.
 Rules are matched by their specified keys. Omit tooltip when none is expected.
-Required formLayout checks native Form layout; layoutReason explains deviations
-from horizontal page / vertical overlay defaults. Width ownership is checked on
+Required formLayout checks native Form layout. A non-default direction needs a
+structured layoutReason: {"kind":"source","evidence":{path,sha256,quote}} quoting a
+source that states the label direction, or {"kind":"measurement","labelWidth":n,
+"controlMinWidth":n,"regionWidth":n} where the measured label crowds the control.
+Free-text justifications are rejected; if no such evidence exists, use the default.
+Width ownership is checked on
 every Form-to-field path, independently of optional CSS-grid expectations.
 Optional field controlWidthReason permits a deliberately compact text/select control.
 Optional field validateFirst and
@@ -31,6 +35,258 @@ import re
 from collections import Counter
 from pathlib import Path
 from verify_slots import Tree, walk
+
+
+LAYOUT_QUOTE = re.compile(r"横向|纵向|水平|垂直|标签|label|column|列|stacked|side-by-side|inline", re.I)
+
+
+MODAL_WIDTHS = (520, 640, 720, 800)
+
+
+def modal_layout_problems(expected, layout, root, form):
+    problems = []
+    raw_width = layout.get("modalWidth")
+    width = int(str(raw_width).replace("px", "")) if str(raw_width).replace("px", "").isdigit() else None
+    columns = layout.get("columns")
+    if width not in MODAL_WIDTHS:
+        problems.append(f"Overlay Form must record modalWidth in {MODAL_WIDTHS}")
+    if columns not in (1, 2):
+        problems.append("Overlay Form uses one or two columns")
+    if columns == 2 and width is not None and width < 720:
+        problems.append("Two-column Overlay Form needs at least 720px width")
+    parents = {id(child): parent for parent in walk(root) for child in parent["children"]}
+    modal = next((n for n in walk(root) if identity(n) == "plasmicantd6modal" and form in list(walk(n))), None)
+    if modal is None:
+        return problems
+    for child in (slot(modal, "children") or {}).get("children", []):
+        stack = [child]
+        while stack:
+            node = stack.pop()
+            if node is form or identity(node) == "plasmicantd6form" or form in list(walk(node)):
+                continue
+            if node["tag"] == "text" and node.get("text", "").strip():
+                problems.append("Remove subtitle or workflow instruction text from the Modal body; keep the title and fields")
+                break
+            stack.extend(node.get("children", []))
+    return problems
+
+
+def inside_overlay(root, node):
+    parents = {id(child): parent for parent in walk(root) for child in parent["children"]}
+    cursor = parents.get(id(node))
+    while cursor is not None:
+        if identity(cursor) in {"plasmicantd6modal", "plasmicantd6drawer"}:
+            return True
+        cursor = parents.get(id(cursor))
+    return False
+
+
+def normalize_copy(text):
+    return re.sub(r"[\s*`「」]", "", text or "")
+
+
+def copy_coverage_problem(expected_form):
+    """Every source copy unit is classified; every rendered copy maps back to a unit."""
+    units = expected_form.get("sourceCopyUnits")
+    fields = {f["nodeName"]: f for f in expected_form.get("fields", [])}
+    rendered = [(f["nodeName"], key, f.get(key)) for f in fields.values()
+                for key in ("description", "tooltip") if f.get(key)]
+    if not isinstance(units, list):
+        if rendered:
+            return ["Form renders field copy without sourceCopyUnits; extract every requirement sentence attached to a field first"]
+        return []
+    from verify_component_policy import source_text
+    problems, covered = [], set()
+    for unit in units:
+        if not isinstance(unit, dict) or not isinstance(unit.get("text"), str) or not isinstance(unit.get("field"), str):
+            problems.append("sourceCopyUnits entries need field, text, decision and source")
+            continue
+        decision = unit.get("decision")
+        if decision not in ("perceive-now", "perceive-on-demand", "not-user-facing"):
+            problems.append(f"Copy unit for {unit['field']} needs decision perceive-now, perceive-on-demand or not-user-facing")
+            continue
+        try:
+            quote = source_text(unit.get("source")) and unit["source"]["quote"]
+        except (ValueError, OSError, UnicodeError) as error:
+            problems.append(f"Copy unit for {unit['field']} has unusable source evidence: {error}")
+            continue
+        if normalize_copy(unit["text"]) not in normalize_copy(quote):
+            problems.append(f"Copy unit for {unit['field']} is not a verbatim part of its source quote; do not paraphrase requirement copy")
+            continue
+        field = fields.get(unit["field"])
+        if field is None:
+            problems.append(f"Copy unit targets unknown field {unit['field']}")
+            continue
+        if decision == "perceive-now":
+            if field.get("description") != unit["text"]:
+                problems.append(f"Copy unit for {unit['field']} is perceive-now but the field description does not match it")
+            covered.add((unit["field"], "description", unit["text"]))
+        elif decision == "perceive-on-demand":
+            if field.get("tooltip") != unit["text"]:
+                problems.append(f"Copy unit for {unit['field']} is perceive-on-demand but the label tooltip does not match it")
+            covered.add((unit["field"], "tooltip", unit["text"]))
+        else:
+            if unit["text"] in (field.get("description"), field.get("tooltip")):
+                problems.append(f"Copy unit for {unit['field']} is not-user-facing but the field renders it")
+            excluded = [item.get("text") for item in field.get("excludedCopy", []) if isinstance(item, dict)]
+            if unit["text"] not in excluded:
+                problems.append(f"Not-user-facing copy for {unit['field']} must be listed in excludedCopy")
+    for name, key, text in rendered:
+        if (name, key, text) not in covered:
+            problems.append(f"Field {name} renders {key} copy with no sourceCopyUnit; every rendered sentence must trace to the requirement")
+    return problems
+
+
+def copy_triage_problem(field):
+    """Render only text the user must perceive; classify it before choosing tooltip or description."""
+    triage = field.get("copyTriage")
+    description = field.get("description")
+    tooltip = field.get("tooltip")
+    if description and triage != "perceive-now":
+        return (f"Field {field['nodeName']} renders a persistent description without copyTriage=perceive-now; "
+                "classify the copy first (visible now, on demand via tooltip, or not user-facing)")
+    if tooltip and triage not in ("perceive-on-demand", "perceive-now"):
+        return (f"Field {field['nodeName']} renders a label tooltip without a copyTriage decision")
+    if triage == "not-user-facing":
+        if description or tooltip:
+            return (f"Field {field['nodeName']} is marked not-user-facing but renders copy; remove it")
+        excluded = field.get("excludedCopy")
+        if not isinstance(excluded, list) or not excluded:
+            return (f"Field {field['nodeName']} drops source copy without excludedCopy evidence")
+        from verify_component_policy import source_text
+        for item in excluded:
+            if not isinstance(item, dict) or not isinstance(item.get("text"), str):
+                return "excludedCopy entries need the verbatim text and its source evidence"
+            try:
+                source_text(item.get("source"))
+            except (ValueError, OSError, UnicodeError) as error:
+                return f"Field {field['nodeName']} excludedCopy evidence is unusable: {error}"
+    return None
+
+
+def label_width_problem(label_width, has_tooltip):
+    if not isinstance(label_width, dict):
+        return "Grid Form needs labelWidth {longestLabel, labelTextPx, requiredMarkPx, helpIconPx, measuredPx}"
+    parts = [label_width.get(k) for k in ("labelTextPx", "requiredMarkPx", "helpIconPx", "paddingPx", "measuredPx")]
+    if not all(isinstance(n, (int, float)) and n >= 0 for n in parts):
+        return "labelWidth needs non-negative labelTextPx, requiredMarkPx, helpIconPx, paddingPx and measuredPx"
+    label, mark, icon, padding, measured = parts
+    if has_tooltip and icon <= 0:
+        return "A label tooltip adds a help icon; helpIconPx must be measured and included in the label width"
+    if not has_tooltip and icon != 0:
+        return "helpIconPx must be 0 when no field shows a label tooltip"
+    if padding < 8:
+        return "labelWidth needs at least 8px trailing label padding; a tighter value overlaps the control"
+    if abs(measured - (label + mark + icon + padding)) > 2:
+        return ("measuredPx must equal labelTextPx + requiredMarkPx + helpIconPx + paddingPx (within 2px); "
+                "recalculate from the rendered label including the help icon and its padding")
+    return None
+
+
+def description_budget_problem(columns, fields):
+    """A multi-column Form keeps descriptions to one short line; background text belongs in the tooltip."""
+    if not isinstance(columns, int) or columns < 3:
+        return None
+    for field in fields:
+        text = field.get("description")
+        if isinstance(text, str) and len(text) > 40:
+            return (f"Field {field['nodeName']} carries a long persistent description in a {columns}-column Form; "
+                    "move background text to the label tooltip")
+    return None
+
+
+def alignment_reason_problem(reason):
+    if not isinstance(reason, dict):
+        return ('A non-default label alignment needs structured evidence, not prose: '
+                '{"kind":"source","evidence":{path,sha256,quote}} that states the alignment.')
+    if reason.get("kind") != "source":
+        return 'labelAlignReason kind must be "source" with path, sha256 and a verbatim quote'
+    from verify_component_policy import source_text
+    try:
+        source_text(reason.get("evidence"))
+    except (ValueError, OSError, UnicodeError) as error:
+        return f"labelAlignReason source evidence is unusable: {error}"
+    if not re.search(r"左对齐|right|left|对齐", reason["evidence"].get("quote", ""), re.I):
+        return "labelAlignReason quote does not state the alignment"
+    return None
+
+
+def columns_reason_problem(reason):
+    if not isinstance(reason, dict):
+        return ('Page Form default is three fields per row; another count needs structured columnsReason '
+                '{"kind":"measurement","controlWidth":n,"columnWidth":n} or a source quote.')
+    kind = reason.get("kind")
+    if kind == "source":
+        from verify_component_policy import source_text
+        try:
+            source_text(reason.get("evidence"))
+        except (ValueError, OSError, UnicodeError) as error:
+            return f"columnsReason source evidence is unusable: {error}"
+        return None
+    if kind == "measurement":
+        control = reason.get("controlWidth")
+        column = reason.get("columnWidth")
+        if not all(isinstance(n, (int, float)) and n > 0 for n in (control, column)):
+            return "columnsReason measurement needs positive controlWidth and columnWidth"
+        if control * 3 <= column:
+            return "Three columns already fit the measured control width; keep the default"
+        return None
+    return 'columnsReason kind must be "source" or "measurement"'
+
+
+def width_reason_problem(reason):
+    """A compact control must cite a source or measured narrower width; prose is not evidence."""
+    if not isinstance(reason, dict):
+        return ('Compact text/selection control needs structured controlWidthReason evidence, not prose: '
+                '{"kind":"source","evidence":{path,sha256,quote}} or '
+                '{"kind":"measurement","controlWidth":n,"columnWidth":n}.')
+    kind = reason.get("kind")
+    if kind == "source":
+        from verify_component_policy import source_text
+        try:
+            source_text(reason.get("evidence"))
+        except (ValueError, OSError, UnicodeError) as error:
+            return f"controlWidthReason source evidence is unusable: {error}"
+        return None
+    if kind == "measurement":
+        width = reason.get("controlWidth")
+        column = reason.get("columnWidth")
+        if not all(isinstance(n, (int, float)) and n > 0 for n in (width, column)):
+            return "controlWidthReason measurement needs positive controlWidth and columnWidth"
+        if width >= column:
+            return "Measured control width is not narrower than its column; let the control fill the column"
+        return None
+    return 'controlWidthReason kind must be "source" or "measurement"; prose justifications are not accepted'
+
+
+def layout_reason_problem(reason, direction, default):
+    """Reject prose justifications; require source or measurement evidence."""
+    if not isinstance(reason, dict):
+        return (f"Non-default Form layout ({direction}) needs structured layoutReason evidence, not prose "
+                f"(default is {default}). Set layout={default}, or provide "
+                '{"kind":"source","evidence":{path,sha256,quote}} or {"kind":"measurement",...}.')
+    kind = reason.get("kind")
+    if kind == "source":
+        from verify_component_policy import source_text
+        try:
+            source_text(reason.get("evidence"))
+        except (ValueError, OSError, UnicodeError) as error:
+            return f"layoutReason source evidence is unusable: {error}"
+        quote = reason["evidence"].get("quote", "")
+        if not LAYOUT_QUOTE.search(quote):
+            return ("layoutReason source quote does not state the label direction or column layout; "
+                    "quote the sentence that explicitly requires it")
+        return None
+    if kind == "measurement":
+        numbers = [reason.get(key) for key in ("labelWidth", "controlMinWidth", "regionWidth")]
+        if not all(isinstance(n, (int, float)) and n > 0 for n in numbers):
+            return ("layoutReason measurement needs positive labelWidth, controlMinWidth and regionWidth")
+        label, control, region = numbers
+        if label + control <= region:
+            return ("Measured widths do not show crowding (labelWidth + controlMinWidth <= regionWidth); "
+                    f"use the default layout={default}")
+        return None
+    return ('layoutReason kind must be "source" or "measurement"; prose justifications are not accepted')
 
 
 class TextTree(Tree):
@@ -142,8 +398,10 @@ def check_form_layout(root, form, expected):
     elif props(form).get("layout") != direction:
         errors.append({"error": "Wrong native Form layout"})
     reason = expected.get("layoutReason")
-    if valid_direction and direction != default and not (isinstance(reason, str) and reason.strip()):
-        errors.append({"error": f"Non-default Form layout requires layoutReason (default: {default})"})
+    if valid_direction and direction != default:
+        problem = layout_reason_problem(reason, direction, default)
+        if problem:
+            errors.append({"error": problem, "rule": "references/libraries/antd_v6/compositions/form-layout.md#layout-ownership"})
 
     # Check all ancestors carrying field width, including unnamed nested wrappers.
     # A missing optional grid inventory must never exempt these paths.
@@ -350,12 +608,48 @@ def check(expectations, overview, readback):
                         if row_css.get("row-gap", row_css.get("grid-row-gap", "0px")) not in ("0", "0px"):
                             failures.append("Field row must not duplicate native Item spacing")
                         actual = [node_name(n) for n in row_node["children"] if n["tag"] != "text"]
-                        if actual != row["fields"] or len(actual) != columns:
-                            failures.append("Field row must contain the expected complete field group")
+                        required = columns if row is not layout["rows"][-1] else None
+                        if actual != row["fields"] or (required and len(actual) != required) or len(actual) > columns:
+                            failures.append(f"Field row {row['container']} must contain the expected complete field group: {actual} != {row['fields']}")
                         for name in row["fields"]:
                             if name in row_owners:
                                 failures.append("Field appears in multiple layout rows")
                             row_owners[name] = row_node
+                if layout and inside_overlay(root, form):
+                    failures.extend(modal_layout_problems(expected_form, layout, root, form))
+                if layout and inside_overlay(root, form):
+                    for expected_field in expected_form["fields"]:
+                        if expected_field.get("description"):
+                            failures.append(f"Overlay field {expected_field['nodeName']} carries a persistent description; move it to the label tooltip and keep the Modal body to fields only")
+                label_width = expected_form.get("labelWidth")
+                if layout and not inside_overlay(root, form):
+                    if not (isinstance(label_width, dict) and isinstance(label_width.get("longestLabel"), str)):
+                        failures.append("Grid Form needs labelWidth {longestLabel, labelTextPx, requiredMarkPx, helpIconPx, measuredPx}")
+                    else:
+                        problem = label_width_problem(label_width, any(f.get("tooltip") for f in expected_form["fields"]))
+                        if problem:
+                            failures.append(problem)
+                        else:
+                            label_col = props(form).get("labelCol")
+                            flex = label_col.get("flex") if isinstance(label_col, dict) else None
+                            if flex != f'{int(label_width["measuredPx"])}px':
+                                failures.append(f"Native labelCol must be {{flex: \"{int(label_width['measuredPx'])}px\"}} to match the measured label width")
+                    align = expected_form.get("labelAlign", "right")
+                    native_align = props(form).get("labelAlign", "right")
+                    if native_align != align:
+                        failures.append("Native labelAlign must match the recorded alignment")
+                    if align != "right":
+                        problem = alignment_reason_problem(expected_form.get("labelAlignReason"))
+                        if problem:
+                            failures.append(problem)
+                    budget = description_budget_problem(layout["columns"], expected_form["fields"])
+                    if budget:
+                        failures.append(budget)
+                    failures.extend(copy_coverage_problem(expected_form))
+                    if layout["columns"] != 3:
+                        problem = columns_reason_problem(expected_form.get("columnsReason"))
+                        if problem:
+                            failures.append(problem)
                 if failures:
                     errors.append({"page": model["uuid"], "form": form_name, "errors": failures})
             for field in expected_form["fields"]:
@@ -373,6 +667,9 @@ def check(expectations, overview, readback):
                             failures.append("Wrong field row/span placement")
                         if styles(item).get("width", "").strip() != "100%":
                             failures.append("Field must fill its allocated row or column")
+                    triage = copy_triage_problem(field)
+                    if triage:
+                        failures.append(triage)
                     values = props(item)
                     if values.get("name") != field["name"]:
                         failures.append("Wrong field key")
@@ -432,11 +729,13 @@ def check(expectations, overview, readback):
                             "checkbox", "checkboxgroup", "radio", "radiogroup", "radiobutton",
                             "switch", "rate", "upload", "uploadbutton", "colorpicker",
                         )}
-                        width_reason = field.get("controlWidthReason")
-                        if not compact and not (isinstance(width_reason, str) and width_reason.strip()):
+                        if not compact:
                             css = layout_styles(control)
-                            if css.get("width") not in {"100%", "stretch"} or css.get("max-width", "none") not in {"none", "100%"}:
-                                failures.append("Control must fill its allocated control column; compact controls require controlWidthReason")
+                            fills = css.get("width") in {"100%", "stretch"} and css.get("max-width", "none") in {"none", "100%"}
+                            if not fills:
+                                problem = width_reason_problem(field.get("controlWidthReason"))
+                                if problem:
+                                    failures.append(problem)
                         direct = [n for n in children["children"] if n["tag"] != "text"]
                         if not editable(controls[0]) or direct[0] is not controls[0] or sum(editable(n) for n in direct) != 1:
                             failures.append("Item must have exactly one editable control as its first child")
@@ -444,6 +743,15 @@ def check(expectations, overview, readback):
                             failures.append("Control value conflicts with Form ownership")
                 if failures:
                     errors.append({"page": model["uuid"], "form": form_name, "field": field["name"], "errors": failures})
+        reasons = {}
+        for expected_form in page["forms"]:
+            reason = expected_form.get("layoutReason")
+            if isinstance(reason, dict):
+                reasons.setdefault(json.dumps(reason, sort_keys=True, ensure_ascii=False), []).append(expected_form["name"])
+        for forms in reasons.values():
+            if len(forms) > 1:
+                errors.append({"page": model["uuid"], "forms": forms,
+                               "error": "Duplicated layoutReason across Forms; each deviation needs its own evidence"})
     return {"passed": not errors, "checkedFields": checked, "errors": errors}
 
 

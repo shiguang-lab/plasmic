@@ -154,7 +154,8 @@
     try {
       return await api.command(value);
     } catch (error) {
-      document.getElementById("message").textContent = error.message;
+      console.error("Reference browser command failed", error);
+      document.getElementById("message").textContent = t("Operation failed");
       document.getElementById("notice").hidden = false;
       document.getElementById("notice").dataset.error = "true";
       return null;
@@ -162,6 +163,7 @@
   }
   function render(snapshot) {
     const previous = state;
+    if (snapshot.error && snapshot.error !== previous?.error) console.error("Reference browser failed", snapshot.error);
     state = snapshot;
     if (
       !snapshot.visible ||
@@ -331,7 +333,7 @@
             ? "Preparing editable layers…"
             : "Creating layers…",
         )
-      : snapshot.error || snapshot.notice || "";
+      : snapshot.error ? t("Operation failed") : snapshot.notice || "";
     button("cancel").hidden = snapshot.busy !== "preparing";
     for (const action of ["locate", "undo_import"])
       button(action).hidden = !snapshot.result || !!snapshot.busy;
@@ -386,9 +388,11 @@
           }, 1400);
         } catch (error) {
           delete node.dataset.copied;
-          document.getElementById("copy-status").textContent = error.message;
-          node.dataset.tooltip = error.message;
-          if (tooltipAnchor === node) tooltip.textContent = error.message;
+          console.error("Reference browser copy failed", error);
+          const summary = t("Copy failed. Please try again.");
+          document.getElementById("copy-status").textContent = summary;
+          node.dataset.tooltip = summary;
+          if (tooltipAnchor === node) tooltip.textContent = summary;
         }
       });
       return node;

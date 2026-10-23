@@ -2823,7 +2823,6 @@
   "Change not applied because {part1} dynamically sets the variant value for {part2}.": "{part1}이(가) {part2}의 변형 값을 동적으로 설정하므로 변경 사항을 적용하지 않았습니다.",
   "The application tried to go to a different page{part1}.": "앱이 다른 페이지{part1}(으)로 이동하려 했습니다.",
   "Plasmic Studio detected and ignored a login or logout event. To view this artboard as a different user, click the \"View as...\" dropdown in the top bar.": "로그인 또는 로그아웃 이벤트를 감지하여 무시했습니다. 다른 사용자로 보려면 상단의 \"사용자로 보기\" 메뉴를 사용하세요.",
-  "Error in {part1} interaction": "{part1} 상호작용 오류",
   "This element already contains slots {part1}. You cannot nest slots.": "이 요소에 이미 슬롯 {part1}이(가) 있어 슬롯을 중첩할 수 없습니다.",
   "This element contains elements linked to props {part1}.": "이 요소에는 속성 {part1}에 연결된 요소가 있습니다.",
   "Selected elements contain reference to \"{part1}\". {part2}": "선택한 요소에 \"{part1}\" 참조가 있습니다. {part2}",
@@ -2918,8 +2917,6 @@
   "project": "프로젝트",
   "in a new tab": "새 탭에서",
   "The component {name} may not work properly because some props have an invalid value:": "컴포넌트 {name}의 일부 속성 값이 잘못되어 올바르게 동작하지 않을 수 있습니다:",
-  "Error in {property} of step \"{step}\". {edit}": "\"{step}\" 단계의 {property}에 오류가 있습니다. {edit}",
-  "Error in step \"{step}\". {edit}": "\"{step}\" 단계에 오류가 있습니다. {edit}",
   "create such a {kind}": "이러한 {kind} 만들기",
   "Select All": "모두 선택",
   "AI": "AI",
@@ -5515,5 +5512,12 @@
   "Failed to export .plasmic file": ".plasmic 파일 내보내기 실패",
   "Failed to import .plasmic file": ".plasmic 파일 가져오기 실패",
   "Imported project successfully": "프로젝트를 성공적으로 가져왔습니다",
-  "Please select a valid .plasmic file.": "올바른 .plasmic 파일을 선택해 주세요。"
+  "Please select a valid .plasmic file.": "올바른 .plasmic 파일을 선택해 주세요。",
+  "Could not run step \"{step}\".": "\"{step}\" 단계를 실행하지 못했습니다.",
+  "Component registration failed": "구성 요소 등록 실패",
+  "Could not start Plasmic.": "Plasmic을 시작하지 못했습니다.",
+  "MCP configuration unavailable.": "MCP 설정을 읽을 수 없습니다.",
+  "Could not update MCP configuration.": "MCP 설정을 업데이트하지 못했습니다.",
+  "Default component added": "기본 구성 요소가 추가되었습니다",
+  "Image uploaded with warnings": "이미지가 업로드되었습니다. 일부 내용을 확인해 주세요"
 }

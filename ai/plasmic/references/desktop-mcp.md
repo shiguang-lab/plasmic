@@ -32,4 +32,4 @@ save returns projectId/revision/saved; reopen/reread proves persistence. Batches
 - Admin regions: [admin index](admin-design.md).
 - Explicit platform/component work: [engineering verification](engineering/component-contracts.md).
 
-Use public tools; report gaps. Never assume source access or upgrade the editor. Mode errors: [recovery](desktop-context.md).
+Use public tools; report gaps. Never assume source access or upgrade the editor. Errors use `{msg,detail}`: [recovery](desktop-context.md).

@@ -224,6 +224,28 @@ def check(inventory, readback):
                 for key, value in expected.get("props", {}).items():
                     if json.dumps(values.get(key), sort_keys=True) != json.dumps(value, sort_keys=True):
                         errors.append({**location, "action": expected["name"], "error": "Action prop mismatch", "prop": key})
+            width = spec.get("width")
+            if width is not None and identity(node) == "plasmicantd6drawer":
+                native_width = props(node).get("width")
+                if not isinstance(width, (int, float)) or width < 360:
+                    raise ValueError("Drawer width must be a pixel number of at least 360")
+                if native_width != width:
+                    errors.append({**location, "error": "Drawer width mismatch", "actual": native_width})
+            size = spec.get("size")
+            if size is not None:
+                if identity(node) != "plasmicantd6drawer":
+                    raise ValueError("Only a Drawer records size")
+                if size not in {"default", "large"}:
+                    raise ValueError("Drawer size must be default or large")
+                native_size = props(node).get("size") or "default"
+                if native_size != size:
+                    errors.append({**location, "error": "Drawer size mismatch", "actual": native_size})
+            if width is not None and identity(node) not in {"plasmicantd6modal", "plasmicantd6drawer"}:
+                raise ValueError("width applies to a Modal or Drawer only")
+            if width is not None and identity(node) == "plasmicantd6modal":
+                native_width = str(props(node).get("width"))
+                if native_width != str(width):
+                    errors.append({**location, "error": "Modal width mismatch", "actual": native_width})
             if close and len(actual) == 1 and actions[0]["effect"] == "dismiss":
                 errors.append({**location, "error": "Sole exit-only footer button duplicates usable header close icon", "action": actions[0]["name"]})
     return {"passed": not errors, "errors": errors}

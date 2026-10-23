@@ -180,5 +180,57 @@ class CardOwnershipTests(unittest.TestCase):
         self.assertIn({"card": "listCard", "component": "listBody"}, check(expected, actual)["cardContentOutsideSlot"])
 
 
+class CardActionPlacementTests(unittest.TestCase):
+    def tree(self, markup):
+        from verify_slots import Tree
+        return Tree(markup).root
+
+    def markup(self, extra="", content=None):
+        content = content or (
+            '<div data-plasmic-name="Toolbar">'
+            '<plasmic-component data-plasmic-name="Fmt" data-plasmic-component="plasmicAntd6Button"></plasmic-component>'
+            '<plasmic-component data-plasmic-name="Chk" data-plasmic-component="plasmicAntd6Button"></plasmic-component>'
+            '</div>')
+        return ('<plasmic-component data-plasmic-name="SqlCard" data-plasmic-component="plasmicAntd6Card">'
+                '<slot name="title"><span data-plasmic-name="SqlCardTitle">SQL 圈选</span></slot>'
+                f'<slot name="extra">{extra}</slot><slot name="children">{content}</slot>'
+                '</plasmic-component>')
+
+    def test_card_scoped_buttons_belong_in_extra_slot(self):
+        from verify_slots import card_action_placement
+        issues = card_action_placement(self.tree(self.markup()))
+        self.assertIn("extra Slot", str(issues))
+        moved = self.markup(extra='<span data-plasmic-name="SqlCardActions">格式化 校验</span>')
+        self.assertEqual(card_action_placement(self.tree(moved)), [])
+
+    def test_toolbar_with_filters_is_not_card_scoped_actions(self):
+        from verify_slots import card_action_placement
+        filtered = self.markup(content=(
+            '<div data-plasmic-name="Toolbar">'
+            '<plasmic-component data-plasmic-name="Keyword" data-plasmic-component="plasmicAntd6Input"></plasmic-component>'
+            '<plasmic-component data-plasmic-name="Fmt" data-plasmic-component="plasmicAntd6Button"></plasmic-component>'
+            '</div>'))
+        self.assertEqual(card_action_placement(self.tree(filtered)), [])
+
+
+class OverlayCloseSlotTests(unittest.TestCase):
+    def tree(self, markup):
+        from verify_slots import Tree
+        return Tree(markup).root
+
+    def test_empty_close_icon_slot_is_rejected(self):
+        from verify_slots import overlay_close_slot
+        hidden = ('<plasmic-component data-plasmic-name="M" data-plasmic-component="plasmicAntd6Modal">'
+                  '<slot name="closeIcon"></slot><slot name="children"></slot></plasmic-component>')
+        self.assertIn("hides the native close control", str(overlay_close_slot(self.tree(hidden))))
+        native = ('<plasmic-component data-plasmic-name="M" data-plasmic-component="plasmicAntd6Modal">'
+                  '<slot name="children"></slot></plasmic-component>')
+        self.assertEqual(overlay_close_slot(self.tree(native)), [])
+        custom = ('<plasmic-component data-plasmic-name="M" data-plasmic-component="plasmicAntd6Modal">'
+                  '<slot name="closeIcon"><plasmic-component data-plasmic-name="X" data-plasmic-component="plasmicAntdIconCloseOutlined"></plasmic-component></slot>'
+                  '<slot name="children"></slot></plasmic-component>')
+        self.assertEqual(overlay_close_slot(self.tree(custom)), [])
+
+
 if __name__ == "__main__":
     unittest.main()

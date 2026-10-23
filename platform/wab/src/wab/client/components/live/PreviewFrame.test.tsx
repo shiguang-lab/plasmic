@@ -1,3 +1,4 @@
+import { trapInteractionError } from "@/wab/client/components/canvas/studio-canvas-util";
 import { PreviewCtx } from "@/wab/client/components/live/PreviewCtx";
 import { useLivePreview } from "@/wab/client/components/live/PreviewFrame";
 import { act, cleanup, renderHook } from "@testing-library/react";
@@ -181,4 +182,13 @@ it.each([true, false])("isolates package installation across reset (old resolves
     expect(mocks.exec).toHaveBeenCalledExactlyOnceWith(window, "new package");
     expect(mocks.push).toHaveBeenCalledExactlyOnceWith(window);
   }
+});
+
+it.each([null, undefined, "", "   "])("reports an empty navigation destination (%s) without a null property error", async (destination) => {
+  await setup(false);
+  const loc = { type: "InteractionLoc", actionName: "navigation", interactionUuid: "openTarget" };
+  const run = () => (window as any).__PlasmicWrapUserFunction(loc, vi.fn(), { destination });
+  expect(run).toThrow("Navigation destination must be a non-empty string");
+  expect(trapInteractionError).toHaveBeenCalledWith(expect.anything(), loc,
+    expect.objectContaining({ message: "Navigation destination must be a non-empty string" }));
 });

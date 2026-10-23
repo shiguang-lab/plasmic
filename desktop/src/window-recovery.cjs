@@ -42,7 +42,8 @@ function attachWindowRecovery(win, { controller, dialog, homeUrl, t }) {
         await win.loadURL(homeUrl);
       }
     } catch (error) {
-      dialog.showErrorBox(t("Recovery Failed"), t(error.message));
+      console.error("Window recovery failed", error);
+      dialog.showErrorBox(t("Recovery Failed"), t("Please try again"));
     } finally {
       prompting = false;
     }

@@ -360,7 +360,10 @@ class StructureTests(unittest.TestCase):
     def test_copy_review_blocks_declared_process_notes_and_preserves_real_field_help(self):
         page = self.pages["results"][0]
         original = page["baseVariantTplTree"]
-        self.expected["pages"][0]["copy"] = {"source": "Reviewed requirement/UI copy", "excluded": [{"text": "AI creation is outside P0", "source": "requirement §Release scope, not UI copy"}], "entries": []}
+        source = Path(tempfile.mkdtemp()) / "req.md"
+        source.write_text("AI creation is outside P0 scope", encoding="utf-8")
+        evidence = {"path": str(source), "sha256": hashlib.sha256(source.read_bytes()).hexdigest(), "quote": source.read_text()}
+        self.expected["pages"][0]["copy"] = {"source": "Reviewed requirement/UI copy", "excluded": [{"text": "AI creation is outside P0", "source": "requirement §Release scope, not UI copy", "evidence": evidence}], "entries": []}
         help_text = '<span data-plasmic-name="ExpiryHelp">1–365 days</span>'
         page["baseVariantTplTree"] = original + help_text + '<span>AI creation is </span><span>outside P0</span>'
         self.assertFalse(self.result()["passed"])
@@ -368,6 +371,72 @@ class StructureTests(unittest.TestCase):
         data = html.escape(json.dumps({"onClick": "{{ console.log('AI creation is outside P0') }}", "data": {"notes": "AI creation is outside P0"}}), quote=True)
         page["baseVariantTplTree"] = original + help_text + '<plasmic-component data-plasmic-component="example-control" data-props="' + data + '"></plasmic-component>'
         self.assertTrue(self.result()["passed"])
+
+    def test_copy_budget_and_repetition(self):
+        from verify_structure import copy_budget_errors
+        self.assertEqual(copy_budget_errors([{"nodeName": "Save", "role": "button", "text": "保存 SQL"}]), [])
+        over = copy_budget_errors([{"nodeName": "Save", "role": "button", "text": "保存 SQL 并立即上线"}])
+        self.assertIn("exceeds the 6-character budget", str(over))
+        dup = copy_budget_errors([{"nodeName": "Banner", "role": "hint", "text": "预跑成功后可保存 SQL"},
+                                  {"nodeName": "Footer", "role": "hint", "text": "预跑成功后可保存 SQL"}])
+        self.assertIn("state each fact once", str(dup))
+        # Column titles may legitimately repeat across tables; data values never count.
+        self.assertEqual(copy_budget_errors([{"nodeName": "A", "role": "columnTitle", "text": "状态"},
+                                             {"nodeName": "B", "role": "columnTitle", "text": "状态"}]), [])
+
+    def test_action_labels_are_length_budgeted(self):
+        page = self.pages["results"][0]
+        plan = self.expected["pages"][0]
+        page["baseVariantTplTree"] = page["baseVariantTplTree"] + '<span data-plasmic-name="Check">校验语句合法性</span>'
+        plan["copy"] = {"source": "Reviewed requirement/UI copy", "excluded": [], "entries": [
+            {"nodeName": "Check", "at": "/text", "text": "校验语句合法性", "kind": "action",
+             "copyTriage": "perceive-now", "purpose": "Run the SQL check", "source": "requirement §SQL", "role": "button"}]}
+        self.assertIn("Action label exceeds the copy budget", str(self.result()["errors"]))
+        plan["copy"]["entries"][0]["text"] = "校验"
+        page["baseVariantTplTree"] = page["baseVariantTplTree"].replace("校验语句合法性", "校验")
+        self.assertNotIn("Action label exceeds the copy budget", str(self.result()["errors"]))
+        plan["copy"]["entries"] = []
+
+    def test_every_copy_entry_needs_a_triage_decision(self):
+        page = self.pages["results"][0]
+        plan = self.expected["pages"][0]
+        plan["copy"] = {"source": "Reviewed requirement/UI copy", "excluded": [], "entries": [
+            {"nodeName": "Title", "at": "/text", "text": "Results", "kind": "label", "purpose": "Section label", "source": "requirement §List", "role": "other"}]}
+        page["baseVariantTplTree"] = page["baseVariantTplTree"] + '<span data-plasmic-name="Title">Results</span>'
+        self.assertIn("Declare copyTriage", str(self.result()["errors"]))
+        plan["copy"]["entries"][0]["copyTriage"] = "perceive-now"
+        self.assertNotIn("Declare copyTriage", str(self.result()["errors"]))
+        # Behaviour prose declared as not-user-facing must move to copy.excluded.
+        plan["copy"]["entries"][0].update(text="Syntax check: SELECT only", copyTriage="not-user-facing")
+        page["baseVariantTplTree"] = self.pages["results"][0]["baseVariantTplTree"].replace("Results", "Syntax check: SELECT only")
+        self.assertIn("must move to copy.excluded", str(self.result()["errors"]))
+        plan["copy"]["entries"] = []
+        plan["copy"]["excluded"] = []
+
+    def test_excluded_copy_requires_verbatim_hashed_evidence(self):
+        page = self.pages["results"][0]
+        original = page["baseVariantTplTree"]
+        source = Path(tempfile.mkdtemp()) / "req.md"
+        source.write_text("AI 生成 SQL 不在 P0 范围", encoding="utf-8")
+        evidence = {"path": str(source), "sha256": hashlib.sha256(source.read_bytes()).hexdigest(), "quote": source.read_text()}
+        plan = self.expected["pages"][0]
+        plan["copy"] = {"source": "Reviewed requirement/UI copy", "excluded": [], "entries": []}
+        self.assertTrue(self.result()["passed"])
+        # A paraphrase that never appears in the source fails.
+        plan["copy"]["excluded"] = [{"text": "AI 能力后续再做", "source": "requirement §Release scope", "evidence": evidence}]
+        self.assertIn("verbatim", str(self.result()["errors"]))
+        # The exact requirement sentence is accepted while it stays out of the UI.
+        plan["copy"]["excluded"] = [{"text": "AI 生成 SQL 不在 P0 范围", "source": "requirement §Release scope", "evidence": evidence}]
+        self.assertTrue(self.result()["passed"])
+        # Too stale, missing evidence and duplicates fail.
+        plan["copy"]["excluded"][0]["text"] = "AI 生成 SQL 不在 P0 范围"
+        plan["copy"]["excluded"][0].pop("evidence")
+        self.assertIn("hashed source evidence", str(self.result()["errors"]))
+        plan["copy"]["excluded"][0]["evidence"] = dict(evidence, sha256="0" * 64)
+        self.assertIn("hashed source evidence", str(self.result()["errors"]))
+        plan["copy"]["excluded"] = [dict(plan["copy"]["excluded"][0], evidence=evidence, text="AI 生成 SQL 不在 P0 范围")] * 2
+        self.assertIn("Duplicate excluded copy", str(self.result()["errors"]))
+        page["baseVariantTplTree"] = original
 
     def test_source_required_event_and_data_bindings_cannot_be_omitted(self):
         plan = self.expected["pages"][0]
@@ -722,6 +791,75 @@ class StructureTests(unittest.TestCase):
             pages['results'] = [self.page('list', '/records', invalid), self.page('detail', '/detail', invalid)]
             with self.subTest(property=key, value=value):
                 self.assertFalse(check(expected, self.overview, pages)['passed'])
+
+
+class RecordContextTests(unittest.TestCase):
+    def page(self, **overrides):
+        page = {"path": "/records/1", "recordPage": True, "routePattern": "/records/[id]",
+                "params": ["id"], "recordSource": "groups table"}
+        page.update(overrides)
+        return page
+
+    def test_record_page_without_param_is_rejected(self):
+        from verify_structure import record_context_errors
+        errors = record_context_errors({"pages": [self.page(params=[])]})
+        self.assertIn("at least one route param", json.dumps(errors, ensure_ascii=False))
+
+    def test_path_must_match_pattern(self):
+        from verify_structure import record_context_errors
+        errors = record_context_errors({"pages": [self.page(path="/records")]})
+        self.assertIn("must match routePattern", json.dumps(errors, ensure_ascii=False))
+
+    def test_action_must_carry_declared_param(self):
+        from verify_structure import record_context_errors
+        plan = {"pages": [self.page()],
+                "rowActions": [{"column": "Actions", "kind": "detail", "carries": "groupKey", "destination": "/records/1"}]}
+        errors = record_context_errors(plan)
+        self.assertIn("as a route param", json.dumps(errors, ensure_ascii=False))
+
+    def test_complete_record_context_passes(self):
+        from verify_structure import record_context_errors
+        plan = {"pages": [self.page()],
+                "rowActions": [{"column": "Actions", "kind": "detail", "carries": "id", "destination": "/records/1"}]}
+        self.assertEqual(record_context_errors(plan), [])
+
+    def test_non_record_action_is_ignored(self):
+        from verify_structure import record_context_errors
+        plan = {"pages": [], "rowActions": [{"column": "Actions", "kind": "toggle"}]}
+        self.assertEqual(record_context_errors(plan), [])
+
+
+class ModeRecordPageTests(unittest.TestCase):
+    def page(self, **overrides):
+        page = {"path": "/records/1/edit", "recordPage": True,
+                "routePattern": "/records/[id]/[mode]", "params": ["id", "mode"],
+                "recordSource": "groups table", "modes": ["edit", "condition"],
+                "readOnlyMode": "condition",
+                "components": [{"nodeName": "BasicForm", "props": {"disabled": "{{ $ctx.params.mode === 'condition' }}"}}]}
+        page.update(overrides)
+        return page
+
+    def test_modes_require_mode_param(self):
+        from verify_structure import record_context_errors
+        page = self.page(path="/records/1/edit", routePattern="/records/1/edit", params=["id"])
+        errors = record_context_errors({"pages": [page]})
+        self.assertIn("route param segment for its mode", json.dumps(errors, ensure_ascii=False))
+
+    def test_modes_require_a_mode_binding(self):
+        from verify_structure import record_context_errors
+        page = self.page(components=[{"nodeName": "BasicForm", "props": {}}])
+        errors = record_context_errors({"pages": [page]})
+        self.assertIn("bind at least one control to a declared route param", json.dumps(errors, ensure_ascii=False))
+
+    def test_read_only_mode_must_be_declared(self):
+        from verify_structure import record_context_errors
+        page = self.page(readOnlyMode="readonly")
+        errors = record_context_errors({"pages": [page]})
+        self.assertIn("readOnlyMode must be one of the declared modes", json.dumps(errors, ensure_ascii=False))
+
+    def test_complete_mode_page_passes(self):
+        from verify_structure import record_context_errors
+        self.assertEqual(record_context_errors({"pages": [self.page()]}), [])
 
 
 if __name__ == "__main__":

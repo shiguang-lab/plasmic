@@ -20,8 +20,9 @@ function render(items) {
     name.textContent = item.label;
     const detail = document.createElement("div");
     detail.className = "detail" + (item.error ? " error" : "");
+    if (item.error) console.error("MCP configuration unavailable", item.error);
     detail.textContent = t(
-      item.error ||
+      item.error ? "MCP configuration unavailable." :
         (item.enabled
           ? "Configured"
           : item.selected
@@ -52,13 +53,14 @@ function render(items) {
           ),
         );
         showNotice(
-          result.error ||
+          result.error ? "Could not update MCP configuration." :
             "Configuration updated. Restart the client or refresh its MCP configuration.",
           !!result.error,
         );
-      } catch {
+      } catch (error) {
+        console.error("MCP configuration update failed", error);
         showNotice(
-          "Unable to update the MCP configuration. Close this dialog and try again.",
+          "Could not update MCP configuration.",
           true,
         );
         render(items);

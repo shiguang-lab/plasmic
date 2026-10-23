@@ -186,10 +186,13 @@ test("context error and recovery survive RPC and MCP, allowing one explicit clos
   try {
     await client.connect(new StdioClientTransport({ command: process.execPath,
       args: ["-e", `require(${JSON.stringify(require.resolve("../src/mcp.cjs"))}).serveMcp(${JSON.stringify(profile)})`], stderr: "pipe" }));
+    assert.match(client.getInstructions(), /JSON \{msg,detail\}/);
+    assert.match(client.getInstructions(), /detail\.operationExecuted/);
     const args = { name: "changeElement", input: { componentUuid: "page", elementUuid: "node", name: "Content" } };
     const failed = await client.callTool({ name: "execute", arguments: args });
     assert.equal(failed.isError, true);
-    const error = JSON.parse(failed.content[0].text);
+    const { msg, detail: error } = JSON.parse(failed.content[0].text);
+    assert.equal(msg, "Switch to the required editor context.");
     assert.equal(error.code, "CONTEXT_MISMATCH");
     assert.equal(error.operationExecuted, false);
     assert.equal(error.actual.mode, "preview");

@@ -32,7 +32,38 @@ def planned_cases(plan):
             wanted[key] = case
     if not wanted:
         errors.append({'message': 'Nonempty source-planned runtime cases required'})
+    errors.extend(record_case_errors(plan))
     return wanted, errors
+
+
+
+def record_case_errors(plan):
+    """Every record Page needs two executed cases that differ by record and expect different content."""
+    errors = []
+    for page in plan.get('pages', []):
+        if not page.get('recordPage'):
+            continue
+        cases = [c for c in (page.get('cases') or [])
+                 if isinstance(c, dict) and isinstance(c.get('given'), dict)
+                 and isinstance(c['given'].get('routeParams'), dict) and c['given']['routeParams']]
+        if len(cases) < 2:
+            errors.append({'message': 'Record Page needs at least two record cases (distinct identities)',
+                           'path': page.get('path')})
+            continue
+        params = [json.dumps(c['given'].get('routeParams'), sort_keys=True) for c in cases]
+        expects = [json.dumps([a.get('text') for a in (c.get('checks') or []) if isinstance(a, dict)], sort_keys=True)
+                   for c in cases]
+        if len(set(params)) < 2:
+            errors.append({'message': 'Record cases must use distinct route params', 'path': page.get('path')})
+        if len(set(expects)) < 2:
+            errors.append({'message': 'Record cases must assert different destination content', 'path': page.get('path')})
+        for case in cases:
+            texts = [a.get('text') for a in (case.get('checks') or [])
+                     if isinstance(a, dict) and a.get('kind') == 'text']
+            if not texts:
+                errors.append({'message': 'Record case needs a text check to prove the destination resolved it',
+                               'path': page.get('path'), 'id': case.get('id')})
+    return errors
 
 
 def make_manifest(plan, capture, plan_hash, pages_hash):

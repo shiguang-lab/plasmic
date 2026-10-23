@@ -1,3 +1,4 @@
+import { showError } from "@/wab/client/ErrorNotifications";
 import { FieldAriaProps } from "@/wab/client/components/aria-utils";
 import ListItem from "@/wab/client/components/ListItem";
 import ListSectionHeader from "@/wab/client/components/ListSectionHeader";
@@ -1104,10 +1105,7 @@ function useDimValue(opts: DimValueOpts) {
       if (result.valid) {
         return true;
       }
-      notification.error({
-        message: studioUiT('Invalid value "{part1}"', { part1: String(val) }),
-        description: result.error || "Invalid value",
-      });
+      showError(result.error || "Invalid value", { title: studioUiT("Invalid value") });
       return false;
     }
 
@@ -1117,12 +1115,7 @@ function useDimValue(opts: DimValueOpts) {
       if (allowFunctions && isDimCssFunction(formattedValue)) {
         const result = validateDimCssFunction(formattedValue, allowedUnits);
         if (!result.valid) {
-          notification.error({
-            message: studioUiT('Invalid CSS function "{part1}"', {
-              part1: String(newValue),
-            }),
-            description: result.error,
-          });
+          showError(result.error, { title: studioUiT("Invalid value") });
           return false;
         }
         continue;

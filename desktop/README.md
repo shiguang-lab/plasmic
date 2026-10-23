@@ -539,6 +539,20 @@ application itself runs with `--mcp` as a dedicated stdio process; the normal GU
 process owns the editor. The configuration uses an absolute executable path, so
 copy it again after moving the application.
 
+Failed tool calls set `isError:true`; the JSON in `content[0].text` is
+`{ "msg": "Tool call failed.", "detail": { "message": "Original exception" } }`.
+Show the short `msg` in user-facing feedback. Inspect `detail` for the original
+message, name, stack, cause, error code, execution status, context and recovery
+steps when available. These diagnostic fields belong inside `detail`.
+If `detail.__type` is `ResultReference`, retrieve it with
+`read_result({resultId: detail.resultId})` and follow its pagination before
+choosing recovery or retry. Retry a mutation only when
+`detail.operationExecuted === false` or readback confirms its outcome.
+The server also publishes these rules in MCP initialization `instructions`, so
+AI clients receive the error contract when connecting. See the
+[context and recovery contract](../ai/plasmic/references/desktop-context.md)
+for a complete example.
+
 The server provides these tools:
 
 | Tool                                                      | Function                                                                                                  |

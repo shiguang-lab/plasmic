@@ -1,3 +1,4 @@
+import { showError } from "@/wab/client/ErrorNotifications";
 import { freeTrialKey } from "@/wab/client/LocalStorageKey";
 import { DashboardPageLoading } from "@/wab/client/components/dashboard/DashboardPageLoading";
 import FreeTrialModal from "@/wab/client/components/dashboard/FreeTrialModal";
@@ -51,13 +52,9 @@ function TeamPage_(props: TeamPageProps, ref: HTMLElementRefOf<"div">) {
     if (inviteId) {
       const response = await appCtx.api.joinTeam({ teamId, inviteId });
       if (!response.status) {
-        notification.error({
-          message: translate(getUiLocale(), "Not able to join {part1}", {
+        showError(response.reason, { title: translate(getUiLocale(), "Not able to join {part1}", {
             part1: translateUiLabel(getUiLocale(), ORGANIZATION_LOWER),
-          }),
-          description: response.reason,
-          duration: 0,
-        });
+          }) });
         appCtx.router.routeTo(APP_ROUTES.dashboard.fill({}));
         return undefined;
       }

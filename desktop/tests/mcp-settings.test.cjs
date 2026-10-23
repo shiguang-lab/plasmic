@@ -169,3 +169,27 @@ test("shares Studio appearance with the existing native dialog and protects its 
     /Invalid MCP settings page/,
   );
 });
+
+test("configuration failures show concise summaries and retain full local diagnostics", async (t) => {
+  const { JSDOM } = require("jsdom");
+  const dom = new JSDOM('<h1 id="title" tabindex="-1"></h1><div id="clients"></div><div id="notice"></div><button id="close"></button><button id="copy"></button>', { runScripts: "outside-only" });
+  t.after(() => dom.window.close());
+  const detail = "PRIVATE_DIAGNOSTIC:" + "server stack trace\n".repeat(2000);
+  const logs = [];
+  dom.window.console.error = (...args) => logs.push(args);
+  dom.window.desktopUiI18n = { t: (key) => key, subscribe: () => {} };
+  const item = { id: "client", label: "Client", enabled: false, error: detail };
+  dom.window.mcpSettings = {
+    get: async () => ({ clients: [item] }),
+    set: async () => ({ clients: [item], error: detail }),
+    close: () => {}, copy: async () => {},
+  };
+  dom.window.eval(fs.readFileSync(require.resolve("../src/mcp-settings-renderer.js"), "utf8"));
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(dom.window.document.querySelector(".detail").textContent, "MCP configuration unavailable.");
+  dom.window.document.querySelector('[role="switch"]').click();
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(dom.window.document.getElementById("notice").textContent, "Could not update MCP configuration.");
+  assert.ok(!dom.window.document.body.textContent.includes("PRIVATE_DIAGNOSTIC"));
+  assert.ok(logs.some((args) => args.includes(detail)));
+});

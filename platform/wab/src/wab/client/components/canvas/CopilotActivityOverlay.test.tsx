@@ -67,6 +67,41 @@ function nestedActivity() {
   return { studioCtx, frame, parent, child, descendant, sibling, target };
 }
 
+it.each(["inspection", "edit"] as const)("merges overlapping scope aliases for the same %s node without releasing other requests", (kind) => {
+  const { studioCtx, frame, child, target } = nestedActivity();
+  const activity = studioCtx.copilotActivity;
+  const finishFirst = activity.begin([target(child.uuid)], kind);
+  const { container } = render(<CopilotActivityOverlay studioCtx={studioCtx} frame={frame} />);
+  const region = container.querySelector("[data-copilot-target]");
+  let finishSecond = finishFirst;
+  act(() => {
+    finishSecond = activity.begin([
+      { ...target(child.uuid), frameUuid: frame.uuid },
+      { elementUuid: child.uuid, label: "Child" },
+    ], kind);
+  });
+  expect(activity.regions).toHaveLength(3);
+  expect(container.querySelectorAll("[data-copilot-target]")).toHaveLength(1);
+  expect(container.querySelector("[data-copilot-target]")).toBe(region);
+  act(() => {
+    finishSecond("success");
+    vi.advanceTimersByTime(2000);
+  });
+  expect(container.querySelector("[data-copilot-target]")).toBe(region);
+  expect(region?.getAttribute("data-status")).toBe("running");
+  act(() => finishFirst("error"));
+  expect(container.querySelector("[data-copilot-target]")).toBeNull();
+  activity.dispose();
+});
+
+it.each(["inspection", "edit"] as const)("merges whole-component and root-node %s requests", (kind) => {
+  const { studioCtx, frame, target } = nestedActivity();
+  studioCtx.copilotActivity.begin([target(), target(frame.container.component.tplTree.uuid)], kind);
+  const { container } = render(<CopilotActivityOverlay studioCtx={studioCtx} frame={frame} />);
+  expect(container.querySelectorAll("[data-copilot-target]")).toHaveLength(1);
+  studioCtx.copilotActivity.dispose();
+});
+
 it.each([
   ["inspection", "element"],
   ["edit", "element"],
@@ -152,7 +187,7 @@ it("renders a single persistent scan DOM node until its last reference expires",
   vi.spyOn(window, "requestAnimationFrame").mockReturnValue(1);
   const { studioCtx } = fakeStudioCtx();
   const activity = studioCtx.copilotActivity;
-  const component = mock<Component>({ uuid: "page", type: "page" });
+  const component = mock<Component>({ uuid: "page", type: "page", tplTree: mkTplTagX("div") });
   const frame = mock<IArenaFrame>({
     width: 1440,
     height: 1024,
@@ -204,7 +239,7 @@ it.each([
   vi.useFakeTimers();
   vi.spyOn(window, "requestAnimationFrame").mockReturnValue(1);
   const { studioCtx } = fakeStudioCtx();
-  const component = mock<Component>({ uuid: "page", type: "page" });
+  const component = mock<Component>({ uuid: "page", type: "page", tplTree: mkTplTagX("div") });
   const frame = mock<IArenaFrame>({
     width: 1440,
     height: 1024,

@@ -1,4 +1,5 @@
-import { getErrorMessage } from "@/wab/client/api-error-presentation";
+import { showError } from "@/wab/client/ErrorNotifications";
+
 import { mkEventHandlerEnv } from "@/wab/client/components/canvas/canvas-rendering";
 import { getUiLocale } from "@/wab/client/i18n";
 import { translate } from "@/wab/client/i18n/locales";
@@ -24,7 +25,7 @@ import {
 import { isValidJavaScriptCode, parseJsCode } from "@/wab/shared/parser-utils";
 import { matchesQueryCacheKey } from "@plasmicapp/data-sources";
 import { ancestor as traverse } from "acorn-walk";
-import { notification } from "antd";
+
 import { findLast, isString } from "lodash";
 
 function wrapInteractionCode(interactionCode: string) {
@@ -226,12 +227,9 @@ export function runInteractionCode(
       viewCtx.canvasCtx.win(),
     );
   } catch (err) {
-    notification.error({
-      message: translate(getUiLocale(), "Error when running step {part1}", {
+    showError(err, { title: translate(getUiLocale(), "Error when running step {part1}", {
         part1: String(interaction.interactionName),
-      }),
-      description: getErrorMessage(err),
-    });
+      }) });
   }
 }
 

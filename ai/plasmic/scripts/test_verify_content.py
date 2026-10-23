@@ -30,11 +30,11 @@ class ContentTests(unittest.TestCase):
                  'purpose': 'Explain query output shape before submission', 'source': 'REQ §SQL input'}],
             'copy': {'source': 'REQ §SQL input interpreted for user entry', 'excluded': [], 'entries': [
                 self.entry('QueryField', '/props/rules/0/message', '请填写查询', 'feedback'),
-                self.entry('QueryLabel', '/text', 'SQL 查询', 'label'),
+                self.entry('QueryLabel', '/text', 'SQL 查询', 'label', 'fieldLabel'),
                 self.entry('QueryHelp', '/text', self.help, 'help')]}}
 
-    def entry(self, name, at, value, kind):
-        return {'nodeName': name, 'at': at, 'text': value, 'kind': kind,
+    def entry(self, name, at, value, kind, role='other'):
+        return {'nodeName': name, 'at': at, 'text': value, 'kind': kind, 'role': role,
                 'purpose': 'Support entering and submitting the SQL query', 'source': 'REQ §SQL input'}
 
     def result(self, markup=None, plan=None):

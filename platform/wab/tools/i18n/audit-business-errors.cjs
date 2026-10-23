@@ -6,7 +6,7 @@ const base = path.resolve(__dirname, "../../src/wab");
 
 function scanSource(source, file) {
   const errors = [],
-    sinks = [];
+    sinks = [], toastSinks = [];
   const ast = parse(source, {
     sourceType: "module",
     sourceFilename: file,
@@ -18,6 +18,21 @@ function scanSource(source, file) {
       line: node.loc.start.line,
       source: source.slice(node.start, node.end),
     };
+  }
+  function containsDiagnostic(node) {
+    if (!node || typeof node !== "object") return false;
+    if (node.type === "ConditionalExpression") return containsDiagnostic(node.consequent) || containsDiagnostic(node.alternate);
+    if (node.type === "MemberExpression" && ["message", "description", "stack", "error", "errorMsg", "reason", "warning"].includes(node.property.name)
+        && (/err|error|exception/i.test(source.slice(node.object.start, node.object.end)) || ["error", "errorMsg", "reason", "warning"].includes(node.property.name))) return true;
+    if (node.type === "CallExpression" && ["getErrorMessage", "String"].includes(node.callee.name)
+        && (node.callee.name === "getErrorMessage" || /err|error|exception/i.test(source.slice(node.start, node.end)))) return true;
+    if (node.type === "JSXOpeningElement" && node.name.name === "ErrorDescription") return true;
+    if (node.type === "Identifier" && ["errorMessage", "invalidCodeMessage", "invalidMessage"].includes(node.name)) return true;
+    if (node.type === "TemplateLiteral" && node.expressions.some((expression) =>
+        /^(err\w*|error\w*|e)$/.test(source.slice(expression.start, expression.end)))) return true;
+    return Object.entries(node).some(([key, value]) =>
+      !["loc", "extra", "comments"].includes(key) && (Array.isArray(value)
+        ? value.some(containsDiagnostic) : value?.type && containsDiagnostic(value)));
   }
   function walk(node) {
     if (!node || typeof node !== "object") {
@@ -51,6 +66,10 @@ function scanSource(source, file) {
     ) {
       sinks.push(item(node));
     }
+    if (file.startsWith("client/") && node.type === "CallExpression" && node.callee.type === "MemberExpression"
+        && ["notification", "message", "antdMessage"].includes(node.callee.object.name)
+        && ["open", "error", "warning", "info"].includes(node.callee.property.name)
+        && node.arguments.some(containsDiagnostic)) toastSinks.push(item(node));
     for (const [key, value] of Object.entries(node)) {
       if (["loc", "extra", "comments"].includes(key)) {
         continue;
@@ -63,13 +82,13 @@ function scanSource(source, file) {
     }
   }
   walk(ast);
-  return { errors, sinks };
+  return { errors, sinks, toastSinks };
 }
 
 function audit() {
   let filesScanned = 0;
   const errorSources = [],
-    rawDisplaySinks = [];
+    rawDisplaySinks = [], rawToastSinks = [];
   function walk(dir) {
     for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
       const file = path.join(dir, e.name);
@@ -96,13 +115,14 @@ function audit() {
         );
         errorSources.push(...result.errors);
         rawDisplaySinks.push(...result.sinks);
+        rawToastSinks.push(...result.toastSinks);
       }
     }
   }
   for (const dir of ["server", "shared", "client"]) {
     walk(path.join(base, dir));
   }
-  return { filesScanned, errorSources, rawDisplaySinks };
+  return { filesScanned, errorSources, rawDisplaySinks, rawToastSinks };
 }
 module.exports = { scanSource, audit };
 if (require.main === module) {

@@ -175,7 +175,18 @@
         "plasmic-antd6-form-group",
         "plasmic-antd6-form-item",
         "plasmic-antd6-form-list"
-      ]
+      ],
+      "decisions": {
+        "plasmic-antd6-form": [
+          {
+            "prop": "layout",
+            "nullable": false,
+            "rule": "layout-ownership",
+            "note": "Decide label direction before markup. Page Form: horizontal with right-aligned labels and three short fields per row; use two only with measured crowding. Modal/Drawer Form: vertical. A non-default direction needs structured layoutReason evidence, not prose.",
+            "document": "compositions/form-layout.md"
+          }
+        ]
+      }
     },
     "components/grid.md": {
       "registrations": [

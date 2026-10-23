@@ -53,7 +53,7 @@ class SuiteTests(unittest.TestCase):
                     "templates": [], "templatesNotApplicable": "Focused native Form fixture without a template-driven layout",
                     "appContext": {"required": False, "evidence": {"path": str(source), "sha256": hashlib.sha256(source.read_bytes()).hexdigest(), "quote": source.read_text()}}, "components": [
                        {"nodeName": "AppShell", "component": "plasmic-overseas-app-shell", "role": "shell", "purpose": "Standalone page navigation", "source": "requirement §Navigation", "rule": "references/libraries/overseas/components/app-shell.md"},
-                       {"nodeName": "Form", "component": "plasmic-antd6-form", "role": "submitted-form", "purpose": "Submitted name", "source": "requirement §Fields", "rule": "references/libraries/antd_v6/components/form.md"},
+                       {"nodeName": "Form", "component": "plasmic-antd6-form", "role": "submitted-form", "purpose": "Submitted name", "source": "requirement §Fields", "rule": "references/libraries/antd_v6/components/form.md", "props": {"layout": "horizontal"}},
                        {"nodeName": "Name", "component": "plasmic-antd6-input", "role": "widget", "purpose": "Editable name", "source": "requirement §Fields", "rule": "references/libraries/antd_v6/components/input.md"}],
                     "nodes": [
                        {"nodeName": "Root", "tag": "div", "owner": None, "purpose": "Bound page layout", "source": "requirement §Records"},
@@ -61,10 +61,10 @@ class SuiteTests(unittest.TestCase):
                        {"nodeName": "NameLabel", "tag": "span", "owner": {"nodeName": "NameField", "slot": "label"}, "purpose": "Name field label", "source": "requirement §Fields"},
                        {"nodeName": "NameHelp", "tag": "span", "owner": {"nodeName": "NameField", "slot": "tooltip"}, "purpose": "Name field guidance", "source": "requirement §Fields"}],
                     "feedback": [], "copy": {"source": "requirement §Copy review", "excluded": [], "entries": [
-                       {"nodeName": "AppShell", "at": "/props/menuItems/0/label", "text": "Records", "kind": "label", "purpose": "Record navigation", "source": "requirement §Navigation"},
-                       {"nodeName": "NameField", "at": "/props/rules/0/message", "text": "Required", "kind": "feedback", "purpose": "Required-field validation", "source": "requirement §Fields"},
-                       {"nodeName": "NameLabel", "at": "/text", "text": "Name", "kind": "label", "purpose": "Identify the name input", "source": "requirement §Fields"},
-                       {"nodeName": "NameHelp", "at": "/text", "text": "Help", "kind": "help", "purpose": "Name-entry guidance", "source": "requirement §Fields"}]},
+                       {"nodeName": "AppShell", "role": "other", "at": "/props/menuItems/0/label", "text": "Records", "kind": "label", "copyTriage": "perceive-now", "purpose": "Record navigation", "source": "requirement §Navigation"},
+                       {"nodeName": "NameField", "role": "other", "at": "/props/rules/0/message", "text": "Required", "kind": "feedback", "copyTriage": "perceive-now", "purpose": "Required-field validation", "source": "requirement §Fields"},
+                       {"nodeName": "NameLabel", "role": "fieldLabel", "at": "/text", "text": "Name", "kind": "label", "copyTriage": "perceive-now", "purpose": "Identify the name input", "source": "requirement §Fields"},
+                       {"nodeName": "NameHelp", "role": "help", "at": "/text", "text": "Help", "kind": "help", "copyTriage": "perceive-now", "purpose": "Name-entry guidance", "source": "requirement §Fields"}]},
                     "bindings": [], "bindingsNotApplicable": "Static fixture for native Form validation; no external business handlers"}],
                    "navigation": {"items": menu, "source": "requirement §Navigation"}})
         form.expected["pages"][0].pop("componentUuid")

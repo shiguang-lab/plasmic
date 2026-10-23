@@ -1,7 +1,5 @@
-import {
-  ErrorDescription,
-  getErrorType,
-} from "@/wab/client/api-error-presentation";
+import { showError } from "@/wab/client/ErrorNotifications";
+
 import { BottomModalButtons } from "@/wab/client/components/BottomModal";
 import { StringPropEditor } from "@/wab/client/components/sidebar-tabs/ComponentProps/StringPropEditor";
 import { DataPickerTypesSchema } from "@/wab/client/components/sidebar-tabs/DataBinding/DataPicker";
@@ -89,7 +87,7 @@ import { convertToFunction } from "@/wab/shared/parser-utils";
 import { renameDataTokenInExpr } from "@/wab/shared/refactoring";
 import { smartHumanize } from "@/wab/shared/strs";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
-import { notification } from "antd";
+
 import { groupBy } from "lodash";
 import { reaction } from "mobx";
 import { observer } from "mobx-react";
@@ -478,14 +476,10 @@ export const ServerQueryOpDraftForm = observer(
           }),
         });
       } catch (error) {
-        notification.open({
-          type: getErrorType(error),
-          message: translate(
+        showError(error, { title: translate(
             getUiLocale(),
             "Failed to install custom function",
-          ),
-          description: <ErrorDescription error={error} />,
-        });
+          ) });
       } finally {
         setIsInstalling(false);
       }

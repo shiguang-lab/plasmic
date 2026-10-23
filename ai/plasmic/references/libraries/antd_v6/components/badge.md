@@ -11,11 +11,19 @@ Library: [Ant Design v6](../index.md).
 
 Use Badge `status` (a supported semantic preset) plus `text` for lifecycle/processing status. Categories choose text or Tag under the [Tag/text rules](tag.md#tag-or-text); an enum alone does not require either Badge or Tag. Read the installed `status`/`text` contract and keep status meaning consistent with the business value. Do not leave demo children/counts in status rendering.
 
-### Mapped status values
+### Status columns and row mapping
 
-Bind `value` and map it through `options` `[{value, label, status}]`; values compare as strings. Precedence: explicit `status`/`text` > the matching option > the raw value with `default` status. A null/undefined value keeps the plain Badge (count/dot unaffected). Map an empty string with an explicit `{value:""}` option when it needs a label.
+Badge exposes only the upstream Ant Design props — `status`, `text`, `count`, `dot`, `color`, `size`, `overflowCount`, `showZero`, `children`. Never add or rely on a non-official prop such as `value`/`options`: the registered contract must stay identical to the official component.
 
-A status Badge in a Table Column's render uses `value` + `options` and omits explicit `status`/`text`, which would override every row ([render templates](table.md#render-templates)). Status is one of `success`, `processing`, `default`, `warning` or `error`. Never set `color`, `dot` or `count` on a status Badge. Every state shows complete visible text; a standalone status Badge may instead use a literal preset `status` plus `text`.
+A per-row status therefore maps the row value inside the binding expressions, not in a custom prop:
+
+| Prop | Requirement |
+| --- | --- |
+| `status` | Expression that maps the row state to one of `success`, `processing`, `default`, `warning` or `error` |
+| `text` | Expression that renders the row's visible status label |
+| Column declaration | `statusMap` `{value: {status, label}}` recording the mapping the expression renders, covering every state |
+
+A literal `status`/`text` in a status Column gives every row the same presentation and fails generation. A standalone status Badge may use a literal preset `status` plus literal `text`. Every state shows complete visible text; color never carries meaning alone.
 
 ### Count, dot and Badge.Ribbon
 

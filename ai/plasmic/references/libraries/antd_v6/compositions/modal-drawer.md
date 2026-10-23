@@ -17,11 +17,23 @@ This rule does **not** remove Cancel/Close from a multi-button footer. Save + Ca
 - Pagination, table row actions and body controls do not turn an exit-only footer into a multi-button footer. Count buttons in the actual footer only. Disabled buttons still occupy that footer; check each required runtime state when buttons are conditionally hidden.
 - If no usable close icon exists, do not remove the only usable exit. Keep the supported dismissal path or enable the native icon where the requirement permits it. Do not add a custom header close icon.
 
+### Drawer sizing
+
+A Drawer sizes its panel through the official `width` prop (pixels); `size` is only the official `default`/`large` choice. Choose the width by the content that must stay readable without horizontal scrolling, and record the number in the overlay inventory:
+
+| Content | Width |
+| --- | --- |
+| Read-only key/value detail, short help, a compact confirm | 480 |
+| A Form or a Table | 640 |
+| Code or SQL text, long values | 720 |
+
+A Modal records its exact `width` in the same inventory, matching the width decision from [Form layout](form-layout.md#modal-form-layout) or the result content. Neither value may be left implicit.
+
 ### Structure and close behavior
 
 Keep one native header/title and one footer owner. Form Modals leave at least 24px clearance at each viewport edge; constrain their outer width/height accordingly. Bound long body content using the shared scrolling contract, with the header and any business footer outside that scrolling region and reachable at the target viewport. No nested native scrolling, clipped last row or blank reserved footer after removal.
 
-Bind dismissal to the actual controlled open state. Available X/Cancel/Esc/mask paths follow the same dirty-input, cleanup and processing policy; closing does not imply backend cancellation. Failure preserves recoverable input. Selection/reveal must not persist an open initial state. In Preview verify close/reopen, retained business actions, keyboard focus and return to the trigger; editing also checks dirty input and processing restrictions. Save/reopen and reread after edits.
+Never declare an empty `closeIcon` Slot: an empty declaration replaces the native icon with nothing, so the overlay loses its close control. Omit the Slot to keep the native icon, or place one registered Icon plus its close handler. `verify_slots.py` rejects an intended empty `closeIcon` Slot, and the overlay inventory still records `closeIcon: true`. Bind dismissal to the actual controlled open state. Available X/Cancel/Esc/mask paths follow the same dirty-input, cleanup and processing policy; closing does not imply backend cancellation. Failure preserves recoverable input. Selection/reveal must not persist an open initial state. In Preview verify close/reopen, retained business actions, keyboard focus and return to the trigger; editing also checks dirty input and processing restrictions. Save/reopen and reread after edits. For every overlay whose inventory records `closeIcon: true`, the opened Preview must visibly show the close control; confirm the same after save/reopen and record that check in the review evidence.
 
 ### Generation gate
 

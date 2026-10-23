@@ -1,3 +1,4 @@
+import { showError } from "@/wab/client/ErrorNotifications";
 import { elementSchemaToTplAndLogErrors } from "@/wab/client/code-components/code-components";
 import { getUiLocale } from "@/wab/client/i18n";
 import { translate } from "@/wab/client/i18n/locales";
@@ -55,13 +56,7 @@ export const getComponentPresets = computedFn(function getComponentPresets(
         schema,
       );
       if (maybeTpl.isErr()) {
-        notification.error({
-          message: translate(
-            getUiLocale(),
-            "Type error while registering code templates",
-          ),
-          description: maybeTpl.error.message,
-        });
+        showError(maybeTpl.error, { title: translate(getUiLocale(), "Component registration failed") });
         return undefined;
       }
       const tpl = maybeTpl.value as TplComponent;

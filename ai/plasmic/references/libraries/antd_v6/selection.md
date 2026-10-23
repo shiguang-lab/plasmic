@@ -58,8 +58,8 @@ Record per-event operation feedback on each Page, independently of generated han
 ```json
 {
   "components": [
-    {"nodeName":"StateColumn","component":"plasmic-antd6-table-column","role":"status","purpose":"Lifecycle state","source":"requirements §States","rule":"references/libraries/antd_v6/components/badge.md","props":{"dataIndex":"state","displayType":"custom","width":128}},
-    {"nodeName":"StateBadge","component":"plasmic-antd6-badge","role":"status","purpose":"State text and semantic dot","source":"requirements §States","rule":"references/libraries/antd_v6/components/badge.md","props":{"options":[{"value":"ACTIVE","label":"启用","status":"success"},{"value":"INACTIVE","label":"停用","status":"default"}]},"owner":{"nodeName":"StateColumn","slot":"render"}}
+    {"nodeName":"StateColumn","component":"plasmic-antd6-table-column","role":"status","purpose":"Lifecycle state","source":"requirements §States","rule":"references/libraries/antd_v6/components/badge.md","props":{"dataIndex":"state","displayType":"custom","width":128},"statusMap":{"ACTIVE":{"status":"success","label":"启用"},"INACTIVE":{"status":"default","label":"停用"}}},
+    {"nodeName":"StateBadge","component":"plasmic-antd6-badge","role":"status","purpose":"State text and semantic dot","source":"requirements §States","rule":"references/libraries/antd_v6/components/badge.md","props":{"status":"{{ row.state === 'ACTIVE' ? 'success' : 'default' }}","text":"{{ row.stateLabel }}"},"owner":{"nodeName":"StateColumn","slot":"render"}}
   ],
   "feedback": [
     {"nodeName":"RowActions","event":"onAction","kind":"transient","source":"requirements §Actions","success":"After confirmed mutation, actual row changes and one success Message dismisses without moving content","failure":"Rejected or failed mutation leaves the row unchanged and shows one error Message"}

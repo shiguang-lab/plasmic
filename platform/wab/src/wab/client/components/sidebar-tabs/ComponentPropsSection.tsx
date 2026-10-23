@@ -1,7 +1,5 @@
-import {
-  ErrorDescription,
-  getErrorType,
-} from "@/wab/client/api-error-presentation";
+import { showError } from "@/wab/client/ErrorNotifications";
+
 import { COMMANDS } from "@/wab/client/commands/command";
 import { WithContextMenu } from "@/wab/client/components/ContextMenu";
 import { TextAndShortcut } from "@/wab/client/components/menu-builder";
@@ -716,10 +714,7 @@ export function InteractionExprEditor(props: {
           );
           const invalidCodeMessage = validateInteractionCode(runValue);
           if (invalidCodeMessage) {
-            notification.error({
-              message: studioUiT("Invalid run code"),
-              description: invalidCodeMessage,
-            });
+            showError(invalidCodeMessage, { title: studioUiT("Invalid run code") });
             return;
           }
           if (
@@ -742,11 +737,7 @@ export function InteractionExprEditor(props: {
             );
             setHidePreview(false);
           } catch (err) {
-            notification.open({
-              type: getErrorType(err),
-              message: studioUiT("Failed to run this action"),
-              description: <ErrorDescription error={err} />,
-            });
+            showError(err, { title: studioUiT("Failed to run this action") });
           }
         }}
       />

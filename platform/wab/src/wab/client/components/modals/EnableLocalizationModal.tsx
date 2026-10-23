@@ -1,3 +1,4 @@
+import { showError } from "@/wab/client/ErrorNotifications";
 import { AppCtx } from "@/wab/client/app-ctx";
 import {
   promptBilling,
@@ -165,13 +166,10 @@ async function canEnableLocalization(appCtx: AppCtx, project: ApiProject) {
     return false;
   } else if (promptResult.type === "fail") {
     // Show errors
-    notification.warning({
-      message: translate(
+    showError(promptResult.errorMsg, { title: translate(
         getUiLocale(),
         "Issue with payment, please try again.",
-      ),
-      description: promptResult.errorMsg,
-    });
+      ), type: "warning" });
     return false;
   }
 

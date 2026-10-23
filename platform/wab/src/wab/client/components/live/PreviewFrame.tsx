@@ -120,6 +120,9 @@ export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
     ) => {
       try {
         if (isInteractionLoc(loc) && loc.actionName === "navigation") {
+          if (typeof args.destination !== "string" || !args.destination.trim()) {
+            throw new Error("Navigation destination must be a non-empty string");
+          }
           if (args.destination.startsWith("#")) {
             frameWindow.document
               .getElementById(args.destination.substring(1))

@@ -17,7 +17,8 @@ UI_KEYS = {'title', 'label', 'text', 'description', 'help', 'tooltip', 'placehol
            'checkedChildren', 'unCheckedChildren', 'addonBefore', 'addonAfter', 'extra',
            'caption', 'content', 'value', 'defaultValue'}
 UI_COLLECTIONS = {'items', 'options', 'menuItems', 'menuItemsJson', 'rules'}
-COPY_KINDS = {'label', 'placeholder', 'value', 'help', 'warning', 'feedback'}
+COPY_KINDS = {'label', 'placeholder', 'value', 'help', 'warning', 'feedback', 'action'}
+COPY_ROLES = {'button', 'fieldLabel', 'columnTitle', 'placeholder', 'title', 'help', 'hint', 'value', 'other'}
 
 
 def text(value):
@@ -163,9 +164,11 @@ def plan_errors(plan):
     keys = []
     for i, spec in enumerate(copy['entries']):
         pointer = f'/copy/entries/{i}'
-        if not isinstance(spec, dict) or not all(text(spec.get(k)) for k in ('nodeName', 'at', 'text', 'source', 'purpose')):
-            issue(pointer, 'Every UI literal/binding needs a named location, exact text, source and user purpose')
+        if not isinstance(spec, dict) or not all(text(spec.get(k)) for k in ('nodeName', 'at', 'text', 'source', 'purpose', 'role')):
+            issue(pointer, 'Every UI literal/binding needs a named location, exact text, role, source and user purpose')
             continue
+        if spec.get('role') not in COPY_ROLES:
+            issue(pointer + '/role', 'Declare the copy role so length and repetition budgets apply', allowedValues=sorted(COPY_ROLES))
         if spec['nodeName'] not in names:
             issue(pointer + '/nodeName', 'Copy owner must occur in components or nodes')
         if spec.get('kind') not in COPY_KINDS:

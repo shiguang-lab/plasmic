@@ -2823,7 +2823,6 @@
   "Change not applied because {part1} dynamically sets the variant value for {part2}.": "Change not applied because {part1} dynamically sets the variant value for {part2}.",
   "The application tried to go to a different page{part1}.": "The application tried to go to a different page{part1}.",
   "Plasmic Studio detected and ignored a login or logout event. To view this artboard as a different user, click the \"View as...\" dropdown in the top bar.": "Plasmic Studio detected and ignored a login or logout event. To view this artboard as a different user, click the \"View as...\" dropdown in the top bar.",
-  "Error in {part1} interaction": "Error in {part1} interaction",
   "This element already contains slots {part1}. You cannot nest slots.": "This element already contains slots {part1}. You cannot nest slots.",
   "This element contains elements linked to props {part1}.": "This element contains elements linked to props {part1}.",
   "Selected elements contain reference to \"{part1}\". {part2}": "Selected elements contain reference to \"{part1}\". {part2}",
@@ -2918,8 +2917,6 @@
   "project": "project",
   "in a new tab": "in a new tab",
   "The component {name} may not work properly because some props have an invalid value:": "The component {name} may not work properly because some props have an invalid value:",
-  "Error in {property} of step \"{step}\". {edit}": "Error in {property} of step \"{step}\". {edit}",
-  "Error in step \"{step}\". {edit}": "Error in step \"{step}\". {edit}",
   "create such a {kind}": "create such a {kind}",
   "Select All": "Select All",
   "AI": "AI",
@@ -5515,5 +5512,12 @@
   "Failed to export .plasmic file": "Failed to export .plasmic file",
   "Failed to import .plasmic file": "Failed to import .plasmic file",
   "Imported project successfully": "Imported project successfully",
-  "Please select a valid .plasmic file.": "Please select a valid .plasmic file."
+  "Please select a valid .plasmic file.": "Please select a valid .plasmic file.",
+  "Could not run step \"{step}\".": "Could not run step \"{step}\".",
+  "Component registration failed": "Component registration failed",
+  "Could not start Plasmic.": "Could not start Plasmic.",
+  "MCP configuration unavailable.": "MCP configuration unavailable.",
+  "Could not update MCP configuration.": "Could not update MCP configuration.",
+  "Default component added": "Default component added",
+  "Image uploaded with warnings": "Image uploaded with warnings"
 }

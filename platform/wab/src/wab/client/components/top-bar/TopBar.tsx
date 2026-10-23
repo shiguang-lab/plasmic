@@ -311,7 +311,7 @@ function _TopBar({ preview }: TopBarProps) {
                               error.message.includes(
                                 t("Please select a valid .plasmic file."),
                               )
-                                ? error.message
+                                ? t("Please select a valid .plasmic file.")
                                 : t("Failed to import .plasmic file"),
                           });
                         }

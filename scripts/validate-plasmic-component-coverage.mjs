@@ -87,12 +87,15 @@ function validateRulesManifest(resources, directory, indexed) {
     const content = resources.get(document);
     for (const key of entry.registrations) listed.set(key, document);
     const decisions = Object.entries(entry.decisions || {});
-    assert.equal(content.includes("\n## Plan decisions\n"), decisions.length > 0, `Plan decisions section must match rules.json: ${document}`);
+    assert.equal(content.includes("\n## Plan decisions\n"), decisions.some(([, items]) => items.some((item) => !item.document || item.document === file)), `Plan decisions section must match rules.json: ${document}`);
     for (const [key, items] of decisions) {
       assert(entry.registrations.includes(key), `Decision for a foreign registration: ${key}`);
       for (const item of items) {
-        assert(headingIds(content).has(item.rule), `Missing decision anchor: ${document}#${item.rule}`);
-        assert(content.includes(`| \`${key}\` | \`${item.prop}\``), `Plan decisions table omits ${key} ${item.prop}: ${document}`);
+        const decisionDocument = item.document ? resolve(item.document) : document;
+        const decisionContent = resources.get(decisionDocument);
+        assert(decisionContent.includes("\n## Plan decisions\n"), `Missing Plan decisions section: ${decisionDocument}`);
+        assert(headingIds(decisionContent).has(item.rule), `Missing decision anchor: ${decisionDocument}#${item.rule}`);
+        assert(decisionContent.includes(`| \`${key}\` | \`${item.prop}\``), `Plan decisions table omits ${key} ${item.prop}: ${decisionDocument}`);
       }
     }
   }

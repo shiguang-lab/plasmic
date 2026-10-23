@@ -496,29 +496,32 @@ export function mkEventHandlerEnv(
       fn: () => any,
       args: Record<string, any>,
     ) => {
-      if (isInteractionLoc(loc)) {
-        // Special handling for some interactions on canvas.
-
-        if (loc.actionName === "navigation") {
-          const destination = `${args.destination}`;
-          if (destination.startsWith("#")) {
-            win.document
-              .getElementById(destination.substring(1))
-              ?.scrollIntoView({ behavior: "smooth" });
-          } else {
-            showCanvasPageNavigationNotification(
-              studioCtx,
-              `${args.destination}`,
-            );
-          }
-          return;
-        } else if (loc.actionName === "login" || loc.actionName === "logout") {
-          showCanvasAuthNotification("interactive mode");
-          return;
-        }
-      }
-
       try {
+        if (isInteractionLoc(loc)) {
+          // Special handling for some interactions on canvas.
+
+          if (loc.actionName === "navigation") {
+            if (typeof args.destination !== "string" || !args.destination.trim()) {
+              throw new Error("Navigation destination must be a non-empty string");
+            }
+            const destination = args.destination;
+            if (destination.startsWith("#")) {
+              win.document
+                .getElementById(destination.substring(1))
+                ?.scrollIntoView({ behavior: "smooth" });
+            } else {
+              showCanvasPageNavigationNotification(
+                studioCtx,
+                `${args.destination}`,
+              );
+            }
+            return;
+          } else if (loc.actionName === "login" || loc.actionName === "logout") {
+            showCanvasAuthNotification("interactive mode");
+            return;
+          }
+        }
+
         return fn();
       } catch (error) {
         trapInteractionError(studioCtx, loc, error);

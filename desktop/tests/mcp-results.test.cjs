@@ -80,3 +80,18 @@ test("layout summaries keep complete counts and problems, scoped pages and full 
   assert.deepEqual(full.elements, layout.elements);
   assert.deepEqual(full.images, layout.images);
 });
+
+test("errors keep a short msg while retaining complete diagnostics within the response budget", () => {
+  const store = new McpResults();
+  const detail = { message: "Invalid target", code: "TARGET_INVALID", operationExecuted: false,
+    cause: { stack: '诊断\n"'.repeat(40000) }, recovery: [{ tool: "get_app_state", arguments: {} }] };
+  const response = store.error("Tool call failed.", detail);
+  assert.equal(response.isError, true);
+  const payload = decode(response);
+  assert.equal(payload.msg, "Tool call failed.");
+  assert.equal(payload.detail.__type, "ResultReference");
+  assert.deepEqual(recover(store, payload.detail.resultId), detail);
+  assert.deepEqual(decode(store.error("Tool call failed.", { message: "Original exception" })), {
+    msg: "Tool call failed.", detail: { message: "Original exception" },
+  });
+});

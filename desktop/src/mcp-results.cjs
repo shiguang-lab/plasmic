@@ -33,6 +33,11 @@ class McpResults {
   output(value) {
     return message(fits(value) ? value : this.retain(value));
   }
+  error(msg, detail) {
+    const value = { msg, detail };
+    if (!fits(value)) value.detail = this.retain(detail);
+    return { ...message(value), isError: true };
+  }
   read({ resultId, path = [], offset = 0, limit = 16000 }) {
     if (!this.results.has(resultId)) throw new Error("Result expired or belongs to another MCP connection. Re-read source data; do not repeat a successful mutation.");
     let value = this.results.get(resultId).value;

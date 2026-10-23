@@ -1,3 +1,6 @@
+import { translate } from "@/wab/client/i18n/locales";
+import { getUiLocale } from "@/wab/client/i18n";
+import { showError } from "@/wab/client/ErrorNotifications";
 import type { FullCodeEditor } from "@/wab/client/components/coding/FullCodeEditor";
 import {
   SidebarModal,
@@ -58,15 +61,7 @@ export function checkSyntaxError(val: string) {
     );
   } catch (err) {
     if (err instanceof SyntaxError) {
-      notification.warning({
-        message: <UiText message="Syntax error" />,
-        description: (
-          <UiText
-            message="The expression has a syntax error. Fix it before saving. {error}"
-            values={{ error: err.message }}
-          />
-        ),
-      });
+      showError(err, { title: translate(getUiLocale(), "Syntax error"), type: "warning" });
       return false;
     }
   }
@@ -230,10 +225,7 @@ export const CodeEditor = observer(function CodeEditor(props: {
         setDraft(undefined);
         return true;
       } catch (err) {
-        notification.warning({
-          message: <UiText message="Invalid JSON" />,
-          description: `${err}`,
-        });
+        showError(err, { title: translate(getUiLocale(), "Invalid JSON"), type: "warning" });
         return false;
       }
     } else {

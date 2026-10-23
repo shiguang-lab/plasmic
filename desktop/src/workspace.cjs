@@ -236,7 +236,8 @@ function fileMenu({
     try {
       await action();
     } catch (error) {
-      dialog.showErrorBox(t("Operation Failed"), t(error.message));
+      console.error("Desktop operation failed", error);
+      dialog.showErrorBox(t("Operation Failed"), t("Please try again"));
     }
   };
   return {

@@ -163,14 +163,14 @@ test("internal navigation waits for saving and stays put if saving fails", async
   rejectSave(new Error("Save failed"));
   await new Promise(setImmediate);
   assert.deepEqual(s.navigatedUrls, []);
-  assert.deepEqual(s.errors, [{ title: "Operation Failed", message: "Save failed" }]);
+  assert.deepEqual(s.errors, [{ title: "Operation Failed", message: "Please try again" }]);
 });
 
 test("failed internal navigation reports the error without opening another window", async () => {
   const s = setup({ load: async () => { throw new Error("Load failed"); } });
   assert.equal(s.handle(config.studioOrigin + "/projects/project").action, "deny");
   await new Promise(setImmediate);
-  assert.deepEqual(s.errors, [{ title: "Operation Failed", message: "Load failed" }]);
+  assert.deepEqual(s.errors, [{ title: "Operation Failed", message: "Please try again" }]);
 });
 
 test("external links, sign-in and blank popups cannot create application windows", () => {

@@ -8,18 +8,36 @@ Choose names while deciding each node's role. Existing `components` entries alre
 
 For each name, read the source role, actual content and owner together. Ask whether the editor name would distinguish the node without opening its props. A label for a Key field can be `KeyLabel`; a table header can be `AllGroupsKeyTitle` when scope is needed. Ordinary layout may use `Toolbar` or `Flex` when that explains its role. Choose words for the actual scope rather than expanding every name. Numbers are valid when they express business meaning; traversal position, error order and arbitrary serial suffixes are not naming evidence. Preserve an already clear name. Follow [naming](naming.md) for native renaming and identity preservation.
 
-Interpret requirement sentences before using them as interface copy. Classify their purpose: a visible label/value, information needed for a user's current decision, an operation result, or a rule implemented by behavior. A system validation algorithm, implementation rationale, scope statement or permission matrix usually belongs in behavior/reporting. Do not paste it into a nearby Form description merely because it mentions the same field. A genuine input/output constraint or recovery instruction can be useful help, including technical vocabulary where the user's operation requires it.
+Interpret requirement sentences before using them as interface copy — this applies to every authored literal, not only Form help. Classify each one: a visible label/value, information needed for a user's current decision, an operation result, or a rule implemented by behavior. Validation algorithms and rule lists (`语法校验：仅只读 SELECT…`, `底表校验：FROM 表属于…`) are behaviour; show the outcome, not the algorithm. Keep labels to the source's own UI wording (a wireframe `[校验]` stays `校验`; do not expand it into the rule name). A system validation algorithm, implementation rationale, scope statement or permission matrix usually belongs in behavior/reporting. Do not paste it into a nearby Form description merely because it mentions the same field. A genuine input/output constraint or recovery instruction can be useful help, including technical vocabulary where the user's operation requires it.
 
 Record **all authored UI literals and bindings**, not only suspicious words or selected help. `copy.entries` uses:
 
 - `nodeName`: the actual named text node or component owning the value.
 - `at`: `/text` for that node's direct text, `/slots/<nativeSlot>/text` for text directly inside a component Slot, or `/props/<nativePropertyPath>` using JSON-pointer escaping.
-- `text`: exact literal or binding source; `kind`: `label`, `placeholder`, `value`, `help`, `warning` or `feedback`.
+- `text`: exact literal or binding source; `kind`: `label`, `placeholder`, `value`, `help`, `warning`, `feedback` or `action` (button/menu labels, length-checked).
 - `source`: the requirement section/excerpt or explicit user decision; `purpose`: the specific user decision/action this copy supports at this location. A source citation alone does not justify showing its prose.
 
 The collector inspects authored text and native text-bearing props, including nested option/menu labels, validation messages and hidden branches. Text-valued native `value`/`defaultValue` props are candidates; option keys are separate from displayed labels. Discover additional visible prop names from the actual component contract and declare their paths in that node's `copyProps`, relative to its native props (e.g. `['/caption']`). Do not put event handlers or whole data sources there. Whole data sources remain business data review; dynamic copy is reviewed as a binding plus its resolved values in Preview. Read inherited defaults from the live template/contract and inspect their rendered result; do not invent task-authored declarations for read-only library internals.
 
-Use `copy.excluded` for source-specific requirement/process passages kept outside UI, with a source for each. This supplements exhaustive copy coverage; an empty exclusion list never approves unreviewed help. An empty entries array is valid only when there is no authored UI text. Do not infer approval from omitted inventory or blacklist words globally.
+### Copy economy
+
+Every literal is budgeted. Write the shortest text that still supports the user's next decision; the requirement document is not the copy deck.
+
+Declare a `role` on every entry; the gate applies that role's budget and a repetition check. Roles: `button`, `fieldLabel`, `columnTitle`, `placeholder`, `title`, `help`, `hint`, `value`, `other`. Length is counted in characters after trimming.
+
+| Owner (`role`) | Budget | Rule |
+| --- | --- | --- |
+| Action label (`button`) | verb, or verb + object, ≤ 6 Chinese characters | Use the wireframe/requirement's own UI wording (`[校验]` stays `校验`); never a rule, algorithm or API name (`校验语句合法性` is wrong) |
+| Field label | noun, ≤ 10 characters | No parenthetical notes, no trailing colon in code (the control renders it), required state comes from the rule not the label |
+| Column title | noun, ≤ 8 characters | Do not repeat the Table's own scope in every column |
+| Placeholder | one short example or format, ≤ 16 characters | Instructions belong to field help, never the placeholder |
+| Section/card title | noun phrase | Do not restate the page directory name or the first field's label |
+| Help/tooltip | one sentence | Long prose goes to the tooltip or `copy.excluded`; a multi-column Form caps `description` (see form-layout) |
+| Footer hint | current prerequisite only | Never a process narrative (`提交后自动预跑，预跑成功后可保存 SQL / 上线`) |
+
+State each fact once, at the single owner where the user acts on it: a constraint shown in a banner must not repeat in the field help, the card description and the footer hint. A read-only summary surface such as a detail Card lists only the facts the requirement assigns to it; do not append a behaviour explanation (refresh cadence, retention policy, refresh semantics) that a KPI or sibling Card already owns — the fact keeps its single owner and the summary keeps its real content. `button`, `help`, `hint` and `title` entries are compared for repeats and fail when the same text appears at two owners; data values and column titles may legitimately repeat. Prefer the field-level owner for input constraints and the banner only for page-wide scope. Use operator vocabulary from the requirement glossary; internal identifiers, algorithm names, table names and permission matrices stay out of the UI.
+
+Use `copy.excluded` for source-specific requirement/process passages kept outside UI. Each exclusion carries `{text, source, evidence}`, where `evidence` is `{path, sha256, quote}` for the requirement file: `text` must appear verbatim in that quote (markdown emphasis and wrapping whitespace ignored), a paraphrase or stale hash fails, and the same text cannot be excluded twice. The structural gate also fails when an excluded passage appears in the rendered UI copy. This supplements exhaustive copy coverage; an empty exclusion list never approves unreviewed help. An empty entries array is valid only when there is no authored UI text. Do not infer approval from omitted inventory or blacklist words globally.
 
 Example fragment (combine with the Page's component/template/behavior inventories):
 

@@ -1,3 +1,4 @@
+import { showError } from "@/wab/client/ErrorNotifications";
 import { openNewTab } from "@/wab/client/cli-routes";
 import RowItem from "@/wab/client/components/RowItem";
 import CommentIndicatorIcon from "@/wab/client/components/comments/CommentIndicatorIcon";
@@ -429,9 +430,7 @@ function buildCodeComponentMenuItems(
               }
             },
             (err) => {
-              notification.error({
-                message: err.message,
-              });
+              showError(err, { title: translate(getUiLocale(), "Operation failed") });
               reportError(err);
             },
           );

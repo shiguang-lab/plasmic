@@ -518,7 +518,7 @@ async function serveMcp(profile) {
   const results = new McpResults();
   const server = new Server(
     { name: "plasmic-desktop", version: require("../package.json").version },
-    { capabilities: { tools: {} } },
+    { capabilities: { tools: {} }, instructions: "Failed tool calls return isError:true and JSON {msg,detail}. Show msg to the user; inspect detail for the original message, stack, error code, execution status, context and recovery steps. If detail is a ResultReference, use read_result before recovery or retry. Do not replay mutations unless detail.operationExecuted is false or readback confirms the outcome." },
   );
   server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools }));
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
@@ -572,8 +572,13 @@ async function serveMcp(profile) {
       if (image) response.content.push({ type: "image", data, mimeType: metadata.mimeType });
       return transportResult(request, response, started);
     } catch (error) {
-      const { message, ...details } = errorPayload(error);
-      return transportResult(request, { ...results.output({ error: message, ...details }), isError: true }, started);
+      const detail = errorPayload(error);
+      const msg = detail.code === "CONTEXT_MISMATCH" ? "Switch to the required editor context."
+        : detail.code === "PREVIEW_TARGET_BLOCKED" ? "The target is covered by another element."
+        : detail.code === "PREVIEW_TIMEOUT" ? "Preview timed out."
+        : detail.code?.startsWith("PREVIEW_") ? "Preview operation failed."
+        : "Tool call failed.";
+      return transportResult(request, results.error(msg, detail), started);
     }
   });
   await server.connect(new StdioServerTransport());

@@ -53,3 +53,16 @@ test("rules.json mirrors the catalog and resolves decision anchors", () => {
   assert.throws(() => check([...files, rules({ "components/form.md": { ...decided["components/form.md"],
     decisions: { "plasmic-antd6-form": [{ prop: "size", rule: "usage" }] } } })]), /omits plasmic-antd6-form size/);
 });
+
+test("plan decisions resolve and validate their composition document", () => {
+  const composition = { path: `${root}/compositions/form-layout.md`, content: '# Form layout\n\n## Plan decisions\n\n| `plasmic-antd6-form` | `layout` | Decide. |\n\n## Generation rules\n\n### Layout ownership\nReal layout.' };
+  const rules = { path: `${root}/rules.json`, content: JSON.stringify({ documents: {
+    "components/form.md": { registrations: registrations.map((item) => item.name), decisions: {
+      "plasmic-antd6-form": [{ prop: "layout", rule: "layout-ownership", document: "compositions/form-layout.md" }]
+    } }
+  } }) };
+  assert.deepEqual(check([...fixture(), composition, rules]), { libraries: 1, registrations: 2 });
+  assert.throws(() => check([...fixture(), rules]), /Missing rules.json target/);
+  assert.throws(() => check([...fixture(), { ...composition, content: composition.content.replace('### Layout ownership', '### Other') }, rules]), /Missing decision anchor/);
+  assert.throws(() => check([...fixture(), { ...composition, content: composition.content.replace('`layout`', '`other`') }, rules]), /Plan decisions table omits/);
+});

@@ -1,7 +1,8 @@
-import {
-  ErrorDescription,
-  getErrorType,
-} from "@/wab/client/api-error-presentation";
+import { DATA_SOURCE_CAP, DATA_SOURCE_LOWER } from "@/wab/shared/Labels";
+import { translate } from "@/wab/client/i18n/locales";
+import { getUiLocale } from "@/wab/client/i18n";
+import { showError } from "@/wab/client/ErrorNotifications";
+
 import { AppCtx } from "@/wab/client/app-ctx";
 import { ConnectOAuthButton } from "@/wab/client/components/auth/ConnectOAuth";
 import styles from "@/wab/client/components/auth/ConnectOAuth.module.scss";
@@ -25,7 +26,7 @@ import {
   ListAuthIntegrationsResponse,
   WorkspaceId,
 } from "@/wab/shared/ApiSchema";
-import { DATA_SOURCE_CAP, DATA_SOURCE_LOWER } from "@/wab/shared/Labels";
+
 import { ensure, notNil } from "@/wab/shared/common";
 import {
   DataSourceType,
@@ -322,17 +323,7 @@ export function DataSourceModal({
               });
             }
           } else {
-            notification.open({
-              type: getErrorType(
-                deserializeApiError(connectionTest.result.error, 400),
-              ),
-              message: uiT("Connection failed"),
-              description: (
-                <ErrorDescription
-                  error={deserializeApiError(connectionTest.result.error, 400)}
-                />
-              ),
-            });
+            showError(deserializeApiError(connectionTest.result.error, 400), { title: uiT("Connection failed") });
           }
         } else {
           void message.success({
@@ -346,11 +337,7 @@ export function DataSourceModal({
 
         return connectionTest;
       } catch (err) {
-        notification.open({
-          type: getErrorType(err),
-          message: uiT("Connection failed"),
-          description: <ErrorDescription error={err} />,
-        });
+        showError(err, { title: uiT("Connection failed") });
         return { result: { connected: false } };
       }
     },
@@ -476,15 +463,11 @@ export function DataSourceModal({
               onDone();
             } catch (err) {
               setIsLoading(false);
-              notification.open({
-                type: getErrorType(err),
-                message: uiT(
+              showError(err, { title: uiT(
                   editingDataSource === "new"
                     ? "Error creating data source"
                     : "Error updating data source",
-                ),
-                description: <ErrorDescription error={err} />,
-              });
+                ) });
             }
           } else {
             void message.error({
@@ -667,10 +650,7 @@ function CredentialsAndSettingsSection(props: {
         credentials: { credentials: jsonObj },
       });
     } catch (err) {
-      notification.warning({
-        message: <UiText message={"Invalid JSON"} />,
-        description: `${err}`,
-      });
+      showError(err, { title: translate(getUiLocale(), "Invalid JSON"), type: "warning" });
     }
   };
 

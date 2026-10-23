@@ -1,4 +1,4 @@
-import { notifyReferencingNode } from "@/wab/client/ErrorNotifications";
+import { showError, notifyReferencingNode } from "@/wab/client/ErrorNotifications";
 import { AppCtx } from "@/wab/client/app-ctx";
 import { FrameClip } from "@/wab/client/clipboard/local";
 import { RenameArenaProps } from "@/wab/client/commands/arena/renameArena";
@@ -872,7 +872,7 @@ export class SiteOps {
       this.tplMgr,
     );
     if (result.isErr()) {
-      notification.error({ message: result.error.message });
+      showError(result.error, { title: translate(getUiLocale(), "Operation failed") });
     }
   }
 
@@ -1137,16 +1137,13 @@ export class SiteOps {
       tplMgr: this.tplMgr,
     });
     if (result.isErr()) {
-      notification.error({
-        message: update.accessType
+      showError(result.error, { title: update.accessType
           ? translate(getUiLocale(), 'Cannot set access type to "{type}"', {
               type: update.accessType,
             })
           : update.initialValue !== undefined
             ? translate(getUiLocale(), "Cannot set initial value")
-            : translate(getUiLocale(), "Cannot update variable"),
-        description: result.error.message,
-      });
+            : translate(getUiLocale(), "Cannot update variable") });
     }
   }
 
@@ -1305,7 +1302,7 @@ export class SiteOps {
     );
 
     if (result.isErr() && !result.error.cancelled) {
-      const key = mkUuid();
+
       if (result.error.variantGroupRefs) {
         this.notifyVariantGroupReferenced(
           component,
@@ -1313,11 +1310,7 @@ export class SiteOps {
           "Cannot delete variant group",
         );
       } else {
-        notification.error({
-          key,
-          message: translate(getUiLocale(), "Cannot delete variant group"),
-          description: result.error.message,
-        });
+        showError(result.error, { title: translate(getUiLocale(), "Cannot delete variant group") });
       }
     }
   }
@@ -1332,12 +1325,8 @@ export class SiteOps {
     );
 
     if (result.isErr() && !result.error.cancelled) {
-      const key = mkUuid();
-      notification.error({
-        key,
-        message: translate(getUiLocale(), "Cannot delete variant group"),
-        description: result.error.message,
-      });
+
+      showError(result.error, { title: translate(getUiLocale(), "Cannot delete variant group") });
     }
   }
 
@@ -1352,7 +1341,7 @@ export class SiteOps {
     );
 
     if (result.isErr() && !result.error.cancelled) {
-      const key = mkUuid();
+
       if (result.error.variantGroupRefs) {
         this.notifyVariantGroupReferenced(
           component,
@@ -1360,11 +1349,7 @@ export class SiteOps {
           "Cannot delete variant",
         );
       } else {
-        notification.error({
-          key,
-          message: translate(getUiLocale(), "Cannot delete variant"),
-          description: result.error.message,
-        });
+        showError(result.error, { title: translate(getUiLocale(), "Cannot delete variant") });
       }
       return;
     }
@@ -1448,12 +1433,8 @@ export class SiteOps {
 
     if (result.isErr()) {
       if (!result.error.cancelled) {
-        const key = mkUuid();
-        notification.error({
-          key,
-          message: translate(getUiLocale(), "Cannot delete variant group"),
-          description: result.error.message,
-        });
+
+        showError(result.error, { title: translate(getUiLocale(), "Cannot delete variant group") });
       }
       return;
     }

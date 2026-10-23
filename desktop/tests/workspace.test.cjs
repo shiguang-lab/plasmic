@@ -185,7 +185,7 @@ test("native save uses the same public operation and reports failures", async ()
     throw new Error("保存失败");
   };
   await save.click();
-  assert.deepEqual(errors, [["Operation Failed", "保存失败"]]);
+  assert.deepEqual(errors, [["Operation Failed", "Please try again"]]);
 });
 test("native menu availability follows ready, preview, permission and frame context", async () => {
   const calls = [],

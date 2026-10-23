@@ -339,7 +339,7 @@
               "name": "expiry",
               "label": "有效期（天）",
               "control": "Expiry",
-              "controlWidthReason": "Compact 1–365 day input beside inline expiry instructions",
+              "controlWidthReason": {"kind": "measurement", "controlWidth": 180, "columnWidth": 420},
               "rules": [
                 {
                   "ruleType": "required",

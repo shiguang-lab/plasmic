@@ -1,3 +1,5 @@
+import { translate } from "@/wab/client/i18n/locales";
+import { showError } from "@/wab/client/ErrorNotifications";
 import { ArrayPrimitiveEditor } from "@/wab/client/components/sidebar-tabs/ComponentProps/ArrayPrimitiveEditor";
 import { ChoicePropEditor } from "@/wab/client/components/sidebar-tabs/ComponentProps/ChoicePropEditor";
 import { notifyLinkedPropDrift } from "@/wab/client/components/sidebar-tabs/linked-prop-utils";
@@ -329,7 +331,7 @@ export function ComponentPropModal(props: ComponentPropModalProps) {
       });
     });
     if (saved.isErr()) {
-      notification.error({ message: saved.error.message });
+      showError(saved.error, { title: translate(getUiLocale(), "Operation failed") });
       return;
     }
     const savedParam = saved.value;

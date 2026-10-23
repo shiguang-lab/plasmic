@@ -479,6 +479,29 @@ def check_required_nodes(plan, nodes, page, path):
     return errors
 
 
+COPY_BUDGET = {"button": 6, "fieldLabel": 10, "columnTitle": 8, "placeholder": 16,
+               "title": 12, "help": 80, "hint": 20}
+PROSE_ROLES = {"button", "help", "hint", "title"}
+
+
+def copy_budget_errors(entries):
+    """Length and repetition budgets from the copy economy table."""
+    errors, seen = [], {}
+    for entry in entries:
+        role, text = entry.get("role"), str(entry.get("text", "")).strip()
+        limit = COPY_BUDGET.get(role)
+        if limit and len(text) > limit:
+            errors.append({"check": "uiCopy", "text": text, "node": entry.get("nodeName"),
+                           "message": f"{role} copy exceeds the {limit}-character budget; shorten it to the source's own UI wording"})
+        if role in PROSE_ROLES and text and not text.startswith("{{"):
+            seen.setdefault((role, text), []).append(entry.get("nodeName"))
+    for (role, text), owners in seen.items():
+        if len(owners) > 1:
+            errors.append({"check": "uiCopy", "text": text, "nodes": owners,
+                           "message": f"Same {role} copy appears at multiple owners; state each fact once"})
+    return errors
+
+
 def check_presentation(plan, root, path):
     """Static heading/copy guards; source interpretation and pixels need review."""
     errors, nodes = [], list(walk(root))
@@ -533,10 +556,38 @@ def check_presentation(plan, root, path):
     for node in nodes:
         if node["tag"] == "plasmic-component":
             texts.extend(literals(props(node)))
+    for entry in copy.get("entries", []) if isinstance(copy, dict) else []:
+        triage = entry.get("copyTriage")
+        label = entry.get("text", "")
+        if triage is None:
+            errors.append({"check": "uiCopy", "path": path, "text": label, "node": entry.get("nodeName"),
+                           "message": "Declare copyTriage for every authored literal: perceive-now, perceive-on-demand or not-user-facing; long prose needs a reviewed decision"})
+        elif entry.get("kind") == "action" and len(str(label).strip()) > 6:
+            errors.append({"check": "uiCopy", "path": path, "text": label, "node": entry.get("nodeName"),
+                           "message": "Action label exceeds the copy budget; use the source's short UI wording (verb or verb + object)"})
+        elif triage == "not-user-facing":
+            errors.append({"check": "uiCopy", "path": path, "text": label, "node": entry.get("nodeName"),
+                           "message": "not-user-facing copy must move to copy.excluded with hashed evidence, not render in the UI"})
+    if isinstance(copy, dict) and isinstance(copy.get("entries"), list):
+        errors.extend({**error, "path": path} for error in copy_budget_errors(copy["entries"]))
+    excluded_texts = set()
     for spec in copy.get("excluded", []):
         text = normalize(spec.get("text", ""))
-        if not text or not spec.get("source", "").strip():
+        if not text or not str(spec.get("source", "")).strip():
             raise ValueError("Excluded requirement/process copy needs text and source")
+        if text in excluded_texts:
+            errors.append({"check": "uiCopy", "path": path, "text": spec["text"], "message": "Duplicate excluded copy entry"})
+        excluded_texts.add(text)
+        try:
+            quote = verify_component_policy.source_text(spec.get("evidence")) and spec["evidence"]["quote"]
+        except (ValueError, OSError, UnicodeError) as error:
+            errors.append({"check": "uiCopy", "path": path, "text": spec["text"],
+                           "message": f"Excluded copy needs hashed source evidence with the verbatim quote: {error}"})
+            continue
+        squash = lambda value: re.sub(r"[\s*`「」]", "", value or "")
+        if squash(text) not in squash(quote):
+            errors.append({"check": "uiCopy", "path": path, "text": spec["text"],
+                           "message": "Excluded copy is not a verbatim part of its source quote; quote the requirement sentence"})
         if any(text in actual for actual in texts):
             errors.append({"check": "uiCopy", "path": path, "text": spec["text"], "message": "Requirement/process explanation leaked into UI copy"})
     return errors
@@ -573,7 +624,17 @@ def validate_page_plan(plan):
             raise ValueError(f"components/{index}/owner needs nodeName and native slot")
         if component.get("role") == "pagination" and component["component"] == "plasmic-antd6-pagination" and not text(component.get("dataOwner")):
             raise ValueError(f"components/{index}/dataOwner must identify the paged data region")
-    if not isinstance(copy, dict) or not text(copy.get("source")) or not entries(copy.get("excluded"), ("text", "source")) or not entries(copy.get("entries"), ("text", "source", "nodeName", "at", "kind", "purpose")):
+    if isinstance(copy, dict) and isinstance(copy.get("entries"), list):
+        for item in copy["entries"]:
+            triage = item.get("copyTriage") if isinstance(item, dict) else None
+            if triage is not None and triage not in {"perceive-now", "perceive-on-demand", "not-user-facing"}:
+                raise ValueError("copyTriage must be perceive-now, perceive-on-demand or not-user-facing")
+    excluded_ok = isinstance(copy, dict) and isinstance(copy.get("excluded"), list) and all(
+        isinstance(item, dict) and text(item.get("text")) and text(item.get("source"))
+        and isinstance(item.get("evidence"), dict)
+        and all(text(item["evidence"].get(key)) for key in ("path", "sha256", "quote"))
+        for item in copy.get("excluded", []))
+    if not isinstance(copy, dict) or not text(copy.get("source")) or not excluded_ok or not entries(copy.get("entries"), ("text", "source", "nodeName", "at", "kind", "purpose")):
         raise ValueError("Independent UI-copy review requires source, excluded and complete entries arrays")
     element_fallbacks(plan)
     if not isinstance(plan.get("controls", []), list):
@@ -594,6 +655,84 @@ def validate_page_plan(plan):
             raise ValueError(f"bindings/{index}/propStateDependencies must map prop names to state-path arrays")
 
 
+
+def route_matches(pattern, path):
+    """A declared record route pattern must match the Page path with one segment per param."""
+    import re
+    regex = re.escape(pattern)
+    for name in re.findall(r"\[([^\]]+)\]", pattern):
+        regex = regex.replace(re.escape("[" + name + "]"), "[^/]+")
+    return bool(re.fullmatch(regex, path))
+
+
+def record_context_errors(plan):
+    """Record pages must own a route param, and record actions must carry it.
+
+    A prototype may not pass a clicked record through globals, query strings or
+    shared state: the destination Page has to resolve the identity from its own
+    route. This check is declarative; runtime isolation still needs Preview cases.
+    """
+    errors = []
+    record_pages = {p.get("path"): p for p in plan.get("pages", []) if p.get("recordPage")}
+    for path, page in record_pages.items():
+        pattern = page.get("routePattern")
+        params = page.get("params") or []
+        if not isinstance(pattern, str) or not pattern.strip():
+            errors.append({"check": "recordPage", "path": path, "message": "Record Page must declare routePattern with its dynamic segments"})
+            continue
+        if not params:
+            errors.append({"check": "recordPage", "path": path, "message": "Record Page must declare at least one route param"})
+        for param in params:
+            if "[" + param + "]" not in pattern:
+                errors.append({"check": "recordPage", "path": path, "param": param, "message": "routePattern must contain [" + param + "]"})
+        if "[" in pattern and not route_matches(pattern, path):
+            errors.append({"check": "recordPage", "path": path, "routePattern": pattern,
+                           "message": "Page path must match routePattern, one segment per param"})
+        if not page.get("recordSource"):
+            errors.append({"check": "recordPage", "path": path, "message": "Record Page must declare where the record comes from"})
+        modes = page.get("modes") or []
+        if modes:
+            if not isinstance(modes, list) or any(not isinstance(m, str) or not m.strip() for m in modes):
+                errors.append({"check": "recordPage", "path": path, "message": "recordPage modes must be nonempty names"})
+            elif "[" not in pattern or not params:
+                errors.append({"check": "recordPage", "path": path, "modes": modes,
+                               "message": "A mode-aware record Page needs a route param segment for its mode"})
+            else:
+                # Generic: the Page must consume one of its declared params, not a
+                # specific param name this task happens to use.
+                bindings = [c.get("nodeName") for c in page.get("components", [])
+                            for value in (c.get("props") or {}).values()
+                            if isinstance(value, str)
+                            and any("$ctx.params." + q in value for q in params)]
+                if not bindings:
+                    errors.append({"check": "recordPage", "path": path, "modes": modes,
+                                   "message": "Mode-aware Page must bind at least one control to a declared route param (for example Form.disabled)"})
+                read_only = page.get("readOnlyMode")
+                if read_only and read_only not in modes:
+                    errors.append({"check": "recordPage", "path": path, "readOnlyMode": read_only,
+                                   "message": "readOnlyMode must be one of the declared modes"})
+    for spec in plan.get("rowActions", []):
+        # Generic: an action participates in record context only when it declares
+        # an identity to carry or a destination to resolve. Action names come
+        # from the task inventory; the gate never hardcodes business kinds.
+        if not spec.get("carries") and not spec.get("destination"):
+            continue
+        carries = spec.get("carries")
+        if not isinstance(carries, str) or not carries.strip():
+            errors.append({"check": "recordAction", "path": spec.get("column"), "message": "Record action must declare the identity it carries (carries)"})
+            continue
+        destination = spec.get("destination")
+        page = record_pages.get(destination)
+        if page is None:
+            errors.append({"check": "recordAction", "path": spec.get("column"), "destination": destination,
+                           "message": "Record action destination must be a declared recordPage"})
+            continue
+        if carries not in (page.get("params") or []):
+            errors.append({"check": "recordAction", "path": spec.get("column"), "carries": carries,
+                           "message": "Destination record Page must declare the carried identity as a route param"})
+    return errors
+
+
 def check(expectation, overview, readback, page_path=None):
     errors = []
     planned = expectation.get("pages", [])
@@ -602,6 +741,7 @@ def check(expectation, overview, readback, page_path=None):
         errors.append({"check": "expectation", "message": "Nonempty page inventory with source citations required"})
     if not isinstance(navigation.get("source"), str) or not navigation["source"].strip():
         errors.append({"check": "expectation", "message": "Navigation source citation required"})
+    errors.extend(record_context_errors(expectation))
     try:
         expected_menu = menu_tree(navigation.get("items"))
     except ValueError as exc:

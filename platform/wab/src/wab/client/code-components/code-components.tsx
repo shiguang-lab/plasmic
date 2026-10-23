@@ -1,15 +1,5 @@
-import { reportError } from "@/wab/client/ErrorNotifications";
-import {
-  confirmRemovedCodeComponentVariants,
-  confirmRemovedTokens,
-  duplicateCodeComponentErrorDescription,
-  fixInvalidReactVersion,
-  fixMissingCodeComponents,
-  notifyInvalidImportName,
-  promptHostLessPackageInfo,
-  showModalToRefreshCodeComponentProps,
-  unknownCodeComponentErrorDescription,
-} from "@/wab/client/components/modals/codeComponentModals";
+import { showError, reportError } from "@/wab/client/ErrorNotifications";
+import { confirmRemovedCodeComponentVariants, confirmRemovedTokens, fixInvalidReactVersion, fixMissingCodeComponents, notifyInvalidImportName, promptHostLessPackageInfo, showModalToRefreshCodeComponentProps } from "@/wab/client/components/modals/codeComponentModals";
 import { updateSiteCustomFunctions } from "@/wab/client/components/modals/customFunctionModals";
 import { reactConfirm } from "@/wab/client/components/quick-modals";
 import {
@@ -25,38 +15,8 @@ import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { trackEvent } from "@/wab/client/tracking";
 import { isBuiltinCodeComponent } from "@/wab/shared/code-components/builtin-code-components";
-import {
-  BadElementSchemaError,
-  BadPresetSchemaError,
-  CodeComponentRegistrationTypeError,
-  CodeComponentSyncCallbackFns,
-  CodeComponentsRegistry,
-  CyclicComponentReferencesError,
-  DuplicateCodeComponentError,
-  DuplicatedComponentParamError,
-  InvalidCodeLibraryError,
-  InvalidCustomFunctionError,
-  InvalidTokenError,
-  SelfReferencingComponent,
-  UnknownComponentError,
-  UnknownComponentPropError,
-  appendCodeComponentMetaToModel,
-  elementSchemaToTpl,
-  getPropTypeType,
-  syncCodeComponents,
-} from "@/wab/shared/code-components/code-components";
-import {
-  WritablePart,
-  assert,
-  assignReadonly,
-  ensure,
-  ensureInstance,
-  removeWhere,
-  safeCast,
-  switchType,
-  unexpected,
-  xDifference,
-} from "@/wab/shared/common";
+import { BadPresetSchemaError, CodeComponentSyncCallbackFns, CodeComponentsRegistry, SelfReferencingComponent, UnknownComponentError, UnknownComponentPropError, appendCodeComponentMetaToModel, elementSchemaToTpl, getPropTypeType, syncCodeComponents } from "@/wab/shared/code-components/code-components";
+import { WritablePart, assert, assignReadonly, ensure, ensureInstance, removeWhere, safeCast, xDifference } from "@/wab/shared/common";
 import { getComponentPropTypes } from "@/wab/shared/component-props";
 import {
   CodeComponent,
@@ -117,11 +77,9 @@ export const ccClientCallbackFns: CodeComponentSyncCallbackFns = {
   onStaleProps: async (ctx, userStaleDiffs, _opts) => {
     return await showModalToRefreshCodeComponentProps(userStaleDiffs, _opts);
   },
-  onNewDefaultComponents: (message) => {
-    notification.warning({
-      message,
-      duration: 5,
-    });
+  onNewDefaultComponents: (detail) => {
+    console.info("Default component added", detail);
+    void antdMessage.info({ content: translate(getUiLocale(), "Default component added"), duration: 4 });
   },
   onSchemaToTplWarnings: (warnings) => {
     warnings.forEach((err) => {
@@ -132,7 +90,7 @@ export const ccClientCallbackFns: CodeComponentSyncCallbackFns = {
     });
   },
   onSchemaToTplError: (err) => {
-    void antdMessage.error(err.message);
+    void showError(err, { title: translate(getUiLocale(), "Component registration failed") });
   },
   onElementStyleWarnings: (warnings) => {
     warnings.forEach((err) => {
@@ -142,10 +100,8 @@ export const ccClientCallbackFns: CodeComponentSyncCallbackFns = {
       }
     });
   },
-  onInvalidJsonForDefaultValue: (message) => {
-    notification.warning({
-      message,
-    });
+  onInvalidJsonForDefaultValue: (detail) => {
+    showError(detail, { title: translate(getUiLocale(), "Invalid JSON"), type: "warning" });
   },
   onUpdatedTokens(opts) {
     const { newTokens, updatedTokens, removedTokens } = opts;
@@ -287,90 +243,7 @@ export async function syncCodeComponentsAndHandleErrors(
       /**/
     },
     safeCast<(err: Error) => void>((err) => {
-      switchType(err)
-        .when(DuplicateCodeComponentError, (duplicatedCompErr) => {
-          notification.error({
-            message: duplicatedCompErr.message,
-            description: duplicateCodeComponentErrorDescription,
-            duration: 0,
-          });
-        })
-        .when(UnknownComponentError, (unknownCompErr) => {
-          notification.error({
-            message: unknownCompErr.message,
-            description: unknownCodeComponentErrorDescription(unknownCompErr),
-            duration: 0,
-          });
-        })
-        .when(CodeComponentRegistrationTypeError, (typeErr) => {
-          notification.error({
-            message: translate(
-              getUiLocale(),
-              "Type error while registering code components",
-            ),
-            description: typeErr.message,
-            duration: 0,
-          });
-        })
-        .when(CyclicComponentReferencesError, (cyclicRefsErr) => {
-          notification.error({
-            message: cyclicRefsErr.message,
-            description: translate(
-              getUiLocale(),
-              "Some registered components reference each other in the default slot values in a cycle. Please make sure this chain of references doesn't contain any cycles.",
-            ),
-            duration: 0,
-          });
-        })
-        .when(SelfReferencingComponent, (refError) => {
-          notification.error({
-            message: refError.message,
-            description: translate(
-              getUiLocale(),
-              "Some registered components reference itself in the slot default value, resulting in a cycle.",
-            ),
-            duration: 0,
-          });
-        })
-        .when(UnknownComponentPropError, (propErr) => {
-          notification.error({
-            message: propErr.message,
-            description: translate(
-              getUiLocale(),
-              "When registering {part1}, expected to find prop {part2}",
-              {
-                part1: String(propErr.componentName),
-                part2: String(propErr.propName),
-              },
-            ),
-            duration: 0,
-          });
-        })
-        .when(InvalidTokenError, (err2) => {
-          notification.error({
-            message: err2.message,
-          });
-        })
-        .when(DuplicatedComponentParamError, (paramErr) => {
-          notification.error({
-            message: translate(getUiLocale(), "Duplicated prop and state name"),
-            description: paramErr.message,
-            duration: 0,
-          });
-        })
-        .when([InvalidCustomFunctionError, InvalidCodeLibraryError], (err2) => {
-          notification.error({
-            message: err2.message,
-            duration: 0,
-          });
-        })
-        .when(BadElementSchemaError, (err2) => {
-          notification.error({
-            message: err2.message,
-            duration: 0,
-          });
-        })
-        .elseUnsafe(() => unexpected());
+      showError(err, { title: translate(getUiLocale(), "Component registration failed") });
       return new Promise((_resolve) => {
         // Never resolve since Studio can have components in invalid states
       });
@@ -640,11 +513,7 @@ export function elementSchemaToTplAndLogErrors(
     );
 
     warnings.forEach((err) => {
-      notification.error({
-        message: err.message,
-        description: err.description,
-        duration: 0,
-      });
+      showError(err, { title: translate(getUiLocale(), "Component registration failed") });
       if (err.shouldLogError) {
         reportError(new Error(err.message));
       }

@@ -31,6 +31,25 @@ def model(footer=None, values=None, body="", kind="plasmic-antd6-modal"):
 
 
 class OverlayFooterTests(unittest.TestCase):
+    def test_drawer_size_and_modal_width_are_recorded(self):
+        expected = inventory(actions=[action("Back", "dismiss"), action("Save", "business")], footer="custom")
+        expected["pages"][0]["overlays"][0]["width"] = "720px"
+        actual = model(footer=button("Back") + button("Save"), values={"open": "{{ $state.open }}", "width": "720px"})
+        self.assertTrue(check(expected, actual)["passed"])
+        expected["pages"][0]["overlays"][0]["width"] = "520px"
+        self.assertIn("Modal width mismatch", str(check(expected, actual)["errors"]))
+        drawer_expected = inventory(actions=[], footer="none", kind="plasmic-antd6-drawer")
+        drawer_expected["pages"][0]["overlays"][0]["width"] = 720
+        drawer_actual = model(body="<span>SQL</span>", kind="plasmic-antd6-drawer", values={"open": "{{ $state.open }}", "width": 720})
+        self.assertTrue(check(drawer_expected, drawer_actual)["passed"])
+        drawer_expected["pages"][0]["overlays"][0]["width"] = 480
+        self.assertIn("Drawer width mismatch", str(check(drawer_expected, drawer_actual)["errors"]))
+        drawer_expected["pages"][0]["overlays"][0].pop("width")
+        drawer_expected["pages"][0]["overlays"][0]["size"] = "large"
+        drawer_actual = model(body="<span>SQL</span>", kind="plasmic-antd6-drawer", values={"open": "{{ $state.open }}", "size": "large"})
+        self.assertTrue(check(drawer_expected, drawer_actual)["passed"])
+
+
     def test_external_controlled_modal_rejects_leftover_default_trigger(self):
         expected = inventory(footer="none")
         actual = model(values={"hideFooter": True, "open": "{{ $state.open }}"})

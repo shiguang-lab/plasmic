@@ -1,7 +1,6 @@
-import {
-  ErrorDescription,
-  getErrorType,
-} from "@/wab/client/api-error-presentation";
+import { HighlightBlinker } from "@/wab/commons/components/HighlightBlinker";
+import { showError } from "@/wab/client/ErrorNotifications";
+
 import { getComponentPresets } from "@/wab/client/code-components/code-presets";
 import { useFocusManager } from "@/wab/client/components/aria-utils";
 import {
@@ -93,7 +92,7 @@ import { normalizeTemplateSpec, StudioCtx } from "@/wab/client/studio-ctx/Studio
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { TutorialEventsType } from "@/wab/client/tours/tutorials/tutorials-events";
 import { isFlexContainer } from "@/wab/client/utils/tpl-client-utils";
-import { HighlightBlinker } from "@/wab/commons/components/HighlightBlinker";
+
 import { MaybeWrap } from "@/wab/commons/components/ReactUtil";
 import { isBuiltinCodeComponent } from "@/wab/shared/code-components/builtin-code-components";
 import { ServerQueryOp } from "@/wab/shared/codegen/react-p/server-queries/utils";
@@ -165,19 +164,7 @@ import {
   canInsertHostlessPackage,
 } from "@/wab/shared/ui-config-utils";
 import { ArrowLeftOutlined } from "@ant-design/icons";
-import {
-  Button as AntButton,
-  message as antMessage,
-  Empty,
-  Flex,
-  Input,
-  InputRef,
-  Menu,
-  notification,
-  Select,
-  Tabs,
-  Typography,
-} from "antd";
+import { Button as AntButton, message as antMessage, Empty, Flex, Input, InputRef, Menu, Select, Tabs, Typography } from "antd";
 import cn from "classnames";
 import { UseComboboxGetItemPropsOptions } from "downshift";
 import L, { groupBy, partition, sortBy, uniq } from "lodash";
@@ -799,11 +786,7 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
           onInserted(item, null);
         } catch (error) {
           if (pageTemplate) {
-            notification.open({
-              type: getErrorType(error),
-              message: uiT("Failed to create page"),
-              description: <ErrorDescription error={error} />,
-            });
+            showError(error, { title: uiT("Failed to create page") });
           } else {
             notifyInstallableFailure(item.label, (error as any).message);
           }

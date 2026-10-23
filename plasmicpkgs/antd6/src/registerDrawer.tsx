@@ -73,7 +73,8 @@ export function registerDrawer(loader?: Registerable) {
       open: {
         type: "boolean",
       },
-      size: { type: "number", defaultValueHint: 378 },
+      size: { type: "choice", options: ["default", "large"], defaultValueHint: "default" },
+      width: { type: "number" },
       mask: { type: "object" },
       destroyOnHidden: { type: "boolean" },
       placement: {

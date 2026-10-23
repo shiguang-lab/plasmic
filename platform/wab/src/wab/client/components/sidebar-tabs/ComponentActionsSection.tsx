@@ -1,7 +1,4 @@
-import {
-  ErrorDescription,
-  getErrorType,
-} from "@/wab/client/api-error-presentation";
+
 import { getUiLocale } from "@/wab/client/i18n";
 import { translate } from "@/wab/client/i18n/locales";
 import {
@@ -9,7 +6,7 @@ import {
   isKnownRenderExpr,
 } from "@/wab/shared/model/classes";
 /** @format */
-import { reportError } from "@/wab/client/ErrorNotifications";
+import { showError, reportError } from "@/wab/client/ErrorNotifications";
 import { ConnectToDBTableModal } from "@/wab/client/components/sidebar-tabs/DataSource/ConnectToDBTable";
 import { updateOrCreateExpr } from "@/wab/client/components/sidebar-tabs/PropEditorRow";
 import { htmlForComponentAction } from "@/wab/client/components/sidebar-tabs/component-action-html";
@@ -193,11 +190,7 @@ export function useStudioOps(
       const { tpl, warnings: componentWarnings } = maybeError.value;
 
       componentWarnings.forEach((err) => {
-        notification.error({
-          message: err.message,
-          description: err.description,
-          duration: 0,
-        });
+        showError(err, { title: translate(getUiLocale(), "Operation failed") });
         if (err.shouldLogError) {
           reportError(new Error(err.message));
         }
@@ -452,11 +445,7 @@ function ButtonAction<P>({
               )
               .then(ensureOk)
               .catch((error) => {
-                notification.open({
-                  type: getErrorType(error),
-                  message: translate(getUiLocale(), "Component action failed"),
-                  description: <ErrorDescription error={error} />,
-                });
+                showError(error, { title: translate(getUiLocale(), "Component action failed") });
                 reportError(error);
               }),
           );

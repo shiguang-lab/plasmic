@@ -1,11 +1,8 @@
 import {
-  ErrorDescription,
   asApiError,
   getApiErrorPresentation,
 } from "@/wab/client/api-error-presentation";
-import { getUiLocale } from "@/wab/client/i18n";
 import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
-import { translate } from "@/wab/client/i18n/locales";
 import { analytics } from "@/wab/client/observability";
 import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { UserError } from "@/wab/shared/UserError";
@@ -24,7 +21,7 @@ import { DEVFLAGS } from "@/wab/shared/devflags";
 import { isStampedIgnoreError } from "@/wab/shared/error-handling";
 import { TplNode } from "@/wab/shared/model/classes";
 import * as Sentry from "@sentry/browser";
-import { message as antdMessage, notification } from "antd";
+import { message as antdMessage } from "antd";
 import { IconType } from "antd/lib/notification/interface";
 import React from "react";
 
@@ -35,7 +32,7 @@ const errorMessageCounters = new Map<string, number>();
 // (there is some magic that React does across execution contexts) but this only
 // happens in development and not production.
 export function showError(
-  error: Error,
+  error: unknown,
   opts?: {
     title?: string;
     description?: string;
@@ -43,32 +40,21 @@ export function showError(
   },
 ) {
   const { title = "Unexpected error", description, type } = opts ?? {};
+  const normalized = normalizeError(error);
   const businessError = asApiError(error);
+  console.error("Studio operation failed", { error, title, description });
   const deriveErrorInfo = () => {
-    if (error.message?.includes("XHRStatus0Error")) {
-      return {
-        title: translate(getUiLocale(), "Temporarily disconnected"),
-        description: translate(
-          getUiLocale(),
-          "Your browser is disconnected from Plasmic. Saving is paused, and will resume soon!",
-        ),
-        type: type ?? ("warning" as const),
-      };
-    } else if (businessError) {
-      const presentation = getApiErrorPresentation(businessError);
-      return {
-        title: opts?.title ?? presentation.title,
-        description: undefined,
-        type: presentation.type,
-      };
-    } else {
-      return {
-        title: error instanceof UserError ? error.message : title,
-        description:
-          error instanceof UserError ? error.description : `${error}`,
-        type: type ?? ("error" as const),
-      };
+    if (normalized.message?.includes("XHRStatus0Error")) {
+      return { title: "Temporarily disconnected", type: type ?? ("warning" as const) };
     }
+    if (businessError) {
+      const presentation = getApiErrorPresentation(businessError);
+      return { title: opts?.title ?? presentation.title, type: type ?? presentation.type };
+    }
+    return {
+      title: opts?.title ?? (error instanceof UserError ? "Operation failed" : title),
+      type: type ?? ("error" as const),
+    };
   };
 
   const info = deriveErrorInfo();
@@ -83,24 +69,12 @@ export function showError(
       )}
     </>
   );
-  const detail =
-    description !== undefined ? (
-      <UiLabel text={description} />
-    ) : businessError ? (
-      <ErrorDescription error={businessError} />
-    ) : (
-      <UiLabel text={info.description ?? ""} />
-    );
   const onClose = () => errorMessageCounters.delete(info.title);
   void antdMessage.open({
     type: info.type,
     key: info.title,
-    content: (
-      <>
-        <div>{heading}</div>
-        <div>{detail}</div>
-      </>
-    ),
+    content: heading,
+    duration: 4,
     onClose,
   });
 }
@@ -246,19 +220,20 @@ export function notifyReferencingNode(
     ? tryGetTplOwnerComponent(referencingNode)
     : undefined;
   const key = mkUuid();
-  notification.error({
+  console.error("Referenced node operation failed", { title, detail: message, referencingNode });
+  void antdMessage.error({
     key,
-    message: title,
-    description: (
+    duration: 4,
+    content: (
       <>
-        {message}{" "}
+        <UiLabel text={title} />{" "}
         {referencingNode && owningComponent ? (
           <a
             onClick={() => {
               spawn(
                 studioCtx.setStudioFocusOnTpl(owningComponent, referencingNode),
               );
-              notification.destroy(key);
+              antdMessage.destroy(key);
             }}
           >
             <UiText message={"[Go to reference]"} />

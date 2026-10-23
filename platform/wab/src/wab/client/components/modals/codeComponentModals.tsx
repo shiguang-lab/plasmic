@@ -1,3 +1,4 @@
+import { showError } from "@/wab/client/ErrorNotifications";
 import { getUiLocale, useI18n } from "@/wab/client/i18n";
 import { translate } from "@/wab/client/i18n/locales";
 import { UiText } from "@/wab/client/i18n/UiText";
@@ -868,17 +869,7 @@ export function notifyInstallableSuccess(
 }
 
 export function notifyInstallableFailure(name: string, errorMessage: string) {
-  notification.error({
-    message: (
-      <>
-        <UiText
-          message={"{part1} was not installed!"}
-          values={{ part1: name }}
-        />
-      </>
-    ),
-    description: errorMessage,
-  });
+  showError(errorMessage, { title: translate(getUiLocale(), "Component registration failed") });
 }
 
 export function notifyCodeLibraryInstalled(
