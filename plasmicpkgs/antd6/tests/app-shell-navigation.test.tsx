@@ -47,7 +47,7 @@ test("route changes reveal the current branch, allow manual closing, and highlig
   view.rerender(shell("/route/users"));
   expect(selected()).toBe("用户管理");
   expect(expanded("配置管理")).toBe("true");
-  view.rerender(shell("/route/groups/detail/?tab=members"));
+  view.rerender(shell("/route/groups/detail/GRP_REGULAR_1006/?tab=members"));
   expect(selected()).toBe("客群列表");
   expect(expanded("客户运营")).toBe("true");
   expect(screen.queryByRole("menuitem", { name: "客群详情" })).toBeNull();
@@ -83,7 +83,7 @@ test("the live preview retains manually expanded menus across page remounts and 
   await navigate("/preview/groups");
   fireEvent.click(screen.getByRole("menuitem", { name: "报表管理", exact: true }));
   expect(expanded("报表管理")).toBe("true");
-  for (const route of ["/preview/users", "/preview/groups", "/preview/users"]) {
+  for (const route of ["/preview/users", "/preview/groups/detail/GRP_REGULAR_1006", "/preview/users"]) {
     await navigate(route);
     expect(selected()).toBe(route.endsWith("users") ? "用户管理" : "客群列表");
     expect(expanded("客户运营")).toBe("true");

@@ -61,3 +61,39 @@ test("route-derived breadcrumbs include every parent and hidden detail routes", 
   assert(!menu.includes("常规客群详情"));
   assert.match(menu, /ant-menu-item-selected[^>]*[\s\S]*?客群列表/);
 });
+
+test("detail IDs inherit the longest menu route and keep the visible parent selected", () => {
+  assert.deepEqual(
+    findMenuPath(routes, "/groups/detail/GRP_REGULAR_1006/?tab=members", "sql").map(item => item.key),
+    ["customers", "groups", "detail"],
+  );
+  assert.deepEqual(findMenuPath(routes, "/groups/unknown").map(item => item.key), ["customers", "groups"]);
+  assert.deepEqual(findMenuPath(routes, "/groups/detail-extra").map(item => item.key), ["customers", "groups"]);
+  assert.deepEqual(findMenuPath(routes, "/groups-extra/detail"), []);
+
+  const shell = components.get("plasmic-overseas-app-shell")!;
+  const html = renderToStaticMarkup(<PageParamsProvider route="/groups/detail/[id]" params={{ id: "GRP_REGULAR_1006" }}>
+    <shell.component menuItems={routes} currentTime="00:00" />
+  </PageParamsProvider>);
+  const breadcrumb = html.match(/<nav[^>]*ant-breadcrumb[\s\S]*?<\/nav>/)![0];
+  assert.match(breadcrumb, /常规客群详情/);
+  const menu = html.match(/<ul[^>]*role="menu"[\s\S]*?<\/ul>/)![0];
+  assert.match(menu, /ant-menu-item-selected[^>]*[\s\S]*?客群列表/);
+  assert(!menu.includes("常规客群详情"));
+});
+
+test("exact routes outrank parent routes regardless of menu order, and the root only matches itself", () => {
+  const items: ShellMenuItem[] = [
+    { key: "home", href: "/" },
+    { key: "groups", href: "/groups" },
+    { key: "detail", href: "/groups/detail/?tab=overview" },
+    { key: "record", href: "/groups/detail/GRP_REGULAR_1006" },
+  ];
+  for (const menu of [items, [...items].reverse()]) {
+    assert.deepEqual(findMenuPath(menu, "/groups/detail/GRP_REGULAR_1006").map(item => item.key), ["record"]);
+    assert.deepEqual(findMenuPath(menu, "/groups/detail/GRP_REGULAR_1007").map(item => item.key), ["detail"]);
+    assert.deepEqual(findMenuPath(menu, "/").map(item => item.key), ["home"]);
+    assert.deepEqual(findMenuPath(menu, "/unlisted"), []);
+    assert.deepEqual(findMenuPath(menu, "/unlisted", "groups").map(item => item.key), ["groups"]);
+  }
+});

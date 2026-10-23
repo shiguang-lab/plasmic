@@ -34,12 +34,26 @@ menuItemType.fields.children.itemType = menuItemType;
 
 const routePath = (href) => href.split(/[?#]/)[0].replace(/\/+$/, "") || "/";
 function findMenuPath(items, pagePath, selectedKey) {
-  for (const item of items) {
-    const childPath = findMenuPath(item.children ?? [], pagePath, pagePath ? void 0 : selectedKey);
-    if (childPath.length) return [item, ...childPath];
-    if (item.type !== "divider" && (pagePath ? !!item.href && routePath(item.href) === routePath(pagePath) : item.key === selectedKey)) return [item];
-  }
-  return pagePath && selectedKey !== void 0 ? findMenuPath(items, void 0, selectedKey) : [];
+  const currentPath = pagePath ? routePath(pagePath) : void 0;
+  let matchedPath = [];
+  let matchedLength = 0;
+  let selectedPath = [];
+  const visit = (entries, ancestors) => {
+    for (const item of entries) {
+      const path = [...ancestors, item];
+      visit(item.children ?? [], path);
+      if (item.type === "divider") continue;
+      if (!selectedPath.length && item.key === selectedKey) selectedPath = path;
+      if (!currentPath || !item.href) continue;
+      const hrefPath = routePath(item.href);
+      if ((currentPath === hrefPath || hrefPath !== "/" && currentPath.startsWith(`${hrefPath}/`)) && hrefPath.length > matchedLength) {
+        matchedPath = path;
+        matchedLength = hrefPath.length;
+      }
+    }
+  };
+  visit(items, []);
+  return matchedPath.length ? matchedPath : selectedPath;
 }
 function visibleMenuItems(items) {
   return items.filter((item) => !item.hidden).map((item) => {
