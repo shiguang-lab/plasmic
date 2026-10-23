@@ -40,18 +40,18 @@ describe("ImportPlasmicButton", () => {
 
   it("renders with the expected label and icon", () => {
     render(<ImportPlasmicButton />);
-    const button = screen.getByRole("button", { name: /import \.plasmic/i });
+    const button = screen.getByRole("button", { name: /^import$/i });
     expect(button).toBeInTheDocument();
     expect(button).not.toBeDisabled();
   });
 
-  it("triggers getUploadedFile with .plasmic and .json filter when clicked", () => {
+  it("restricts the file picker to .plasmic when clicked", () => {
     const spy = vi.spyOn(domUtils, "getUploadedFile").mockImplementation(() => {});
     render(<ImportPlasmicButton workspaceId={"ws-123" as any} />);
-    fireEvent.click(screen.getByRole("button", { name: /import \.plasmic/i }));
+    fireEvent.click(screen.getByRole("button", { name: /^import$/i }));
     expect(spy).toHaveBeenCalledWith(
       expect.any(Function),
-      expect.objectContaining({ accept: ".plasmic,.json" }),
+      expect.objectContaining({ accept: ".plasmic" }),
     );
   });
 
@@ -71,7 +71,7 @@ describe("ImportPlasmicButton", () => {
     });
 
     render(<ImportPlasmicButton workspaceId={"ws-123" as any} />);
-    fireEvent.click(screen.getByRole("button", { name: /import \.plasmic/i }));
+    fireEvent.click(screen.getByRole("button", { name: /^import$/i }));
 
     await waitFor(() => {
       expect(mocks.importProject).toHaveBeenCalledWith(
@@ -93,11 +93,11 @@ describe("ImportPlasmicButton", () => {
 
   it("handles invalid json content gracefully", async () => {
     vi.spyOn(domUtils, "getUploadedFile").mockImplementation((callback) => {
-      void callback("invalid json", undefined);
+      void callback("invalid json", new File(["invalid json"], "Project.plasmic"));
     });
 
     render(<ImportPlasmicButton />);
-    fireEvent.click(screen.getByRole("button", { name: /import \.plasmic/i }));
+    fireEvent.click(screen.getByRole("button", { name: /^import$/i }));
 
     await waitFor(() => {
       expect(mocks.error).toHaveBeenCalled();
@@ -105,8 +105,21 @@ describe("ImportPlasmicButton", () => {
     expect(mocks.importProject).not.toHaveBeenCalled();
   });
 
+  it.each(["Project.json", "Project.txt"])("rejects %s even if its content is valid JSON", async (name) => {
+    const content = JSON.stringify({ format: "plasmic/project", bundles: [] });
+    vi.spyOn(domUtils, "getUploadedFile").mockImplementation((callback) => {
+      void callback(content, new File([content], name));
+    });
+    render(<ImportPlasmicButton />);
+    fireEvent.click(screen.getByRole("button", { name: /^import$/i }));
+    await waitFor(() => expect(mocks.error).toHaveBeenCalledWith(
+      expect.objectContaining({ content: "Please select a valid .plasmic file." }),
+    ));
+    expect(mocks.importProject).not.toHaveBeenCalled();
+  });
+
   it("honors disabled prop", () => {
     render(<ImportPlasmicButton disabled />);
-    expect(screen.getByRole("button", { name: /import \.plasmic/i })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /^import$/i })).toBeDisabled();
   });
 });

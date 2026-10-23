@@ -8,8 +8,12 @@ from verify_selection import check_page, plan_errors
 
 
 def spec(name, component, role, **extra):
-    return {'nodeName': name, 'component': component, 'role': role, 'purpose': 'Source-reviewed business purpose',
-            'source': 'requirement §Fields/Actions', 'rule': 'references/libraries/antd_v6/selection.md', **extra}
+    value = {'nodeName': name, 'component': component, 'role': role, 'purpose': 'Source-reviewed business purpose',
+             'source': 'requirement §Fields/Actions', 'rule': 'references/libraries/antd_v6/selection.md', **extra}
+    if component == 'plasmic-antd6-table-column':
+        # Width is a separate plan decision covered by test_reference_plan; null keeps it unset.
+        value['props'] = {'width': None, **value.get('props', {})}
+    return value
 
 
 def node(name, component, values=None, body=''):
@@ -55,7 +59,7 @@ class SelectionTests(unittest.TestCase):
 
     def test_status_column_and_badge_use_native_render_not_tag_preset(self):
         column, badge = 'plasmic-antd6-table-column', 'plasmic-antd6-badge'
-        declarations = [spec('Status', column, 'status'), spec('Indicator', badge, 'status')]
+        declarations = [spec('Status', column, 'status', props={'displayType': 'custom'}), spec('Indicator', badge, 'status')]
         options = [{'value': 'ENABLED', 'label': '启用', 'status': 'success'},
                    {'value': 'DISABLED', 'label': '停用', 'status': 'default'}]
         mapped = {'value': '{{ cell }}', 'options': options}
@@ -100,7 +104,7 @@ class SelectionTests(unittest.TestCase):
         column = spec('Type', 'plasmic-antd6-table-column', 'category')
         for display in ('text', 'custom'):
             with self.subTest(display=display):
-                self.assertEqual(plan_errors({'components': [{**column, 'props': {'displayType': display}}], 'feedback': []}), [])
+                self.assertEqual(plan_errors({'components': [{**column, 'props': {'displayType': display, 'width': None}}], 'feedback': []}), [])
         for display in (None, 'tag', 'link', '{{ $state.display }}'):
             with self.subTest(display=display):
                 self.assertTrue(plan_errors({'components': [{**column, 'props': {'displayType': display}}], 'feedback': []}))
@@ -137,7 +141,7 @@ class SelectionTests(unittest.TestCase):
             with self.subTest(dataIndex=data_index):
                 declaration = spec('Type', column, 'category', props={'displayType': 'text', 'dataIndex': data_index})
                 self.assertEqual(plan_errors({'components': [declaration], 'feedback': []}), [])
-        declarations = [spec('Audit', column, 'widget')]
+        declarations = [spec('Audit', column, 'widget', props={'displayType': 'text'})]
         markup = node('Audit', column, {'dataIndex': 'result'}, '<slot name="title"><span>状态</span></slot>')
         result = self.result(declarations, markup)
         self.assertFalse(result['passed'])

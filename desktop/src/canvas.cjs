@@ -1,7 +1,8 @@
-const { app, BrowserWindow } = require("electron");
+const { app, BrowserWindow, nativeImage } = require("electron");
 const fs = require("node:fs/promises");
 const path = require("node:path");
 const { abortable } = require("./abortable.cjs");
+const { expandFullContent } = require("./canvas-full-content.cjs");
 
 // Read rendered DOM, never Studio's private model or user-supplied JavaScript.
 async function inspectCanvas() {
@@ -135,7 +136,7 @@ async function inspectCanvas() {
     })),
   };
 }
-function snapshotDocument() {
+function snapshotDocument(input) {
   const clone = document.documentElement.cloneNode(true);
   clone.removeAttribute("data-plasmic-canvas-inspection");
   clone.removeAttribute("data-plasmic-frame-uuid");
@@ -145,6 +146,7 @@ function snapshotDocument() {
   // Preserve inherited typography when canvas reset CSS is reloaded for export.
   originals.forEach((el, index) => {
     const copy = copies[index];
+    if (input?.fullContent && el.tagName === "IMG") copy.setAttribute("loading", "eager");
     if (el instanceof HTMLInputElement) {
       // File values cannot be assigned; no selected file is included in an export.
       if (el.type !== "file") copy.setAttribute("value", el.value);
@@ -367,7 +369,7 @@ async function renderCanvas(win, input = {}) {
         "Multiple artboards available; select an artboard or specify frameUuid",
       );
   }
-  const html = await selected.frame.executeJavaScript(js(snapshotDocument));
+  const html = await selected.frame.executeJavaScript(js(snapshotDocument, { fullContent: input.fullContent }));
   const width = input.width || selected.layout.width;
   const height = input.height || selected.layout.height;
   if (height > 16384)
@@ -394,6 +396,11 @@ async function renderCanvas(win, input = {}) {
       "data:text/html;charset=utf-8," + encodeURIComponent(html),
     );
     await preview.webContents.executeJavaScript(js(readyDocument));
+    const fullContent = input.fullContent
+      ? await preview.webContents.executeJavaScript(js(expandFullContent))
+      : undefined;
+    const captureWidth = fullContent?.width ?? width;
+    const captureHeight = fullContent?.height ?? height;
     let rect;
     if (input.elementUuid) {
       rect = await preview.webContents.executeJavaScript(`(() => {
@@ -406,35 +413,55 @@ async function renderCanvas(win, input = {}) {
       if (
         rect.x < 0 ||
         rect.y < 0 ||
-        rect.x + rect.width > width ||
-        rect.y + rect.height > height
+        rect.x + rect.width > captureWidth ||
+        rect.y + rect.height > captureHeight
       )
         throw new Error(
           "Element extends beyond the captured artboard; increase width/height",
         );
     }
-    // Offscreen windows expose their rendered bitmap through paint events.
-    // capturePage can fail with UnknownVizError on hidden offscreen surfaces.
-    const bitmap = await new Promise((resolve, reject) => {
-      const contents = preview.webContents;
-      const cleanup = () => {
-        clearTimeout(timer);
-        contents.removeListener("paint", painted);
-      };
-      const painted = (_event, _dirty, image) => {
-        const size = image.getSize();
-        if (size.width !== width || size.height !== height) return;
-        cleanup();
-        resolve(image);
-      };
-      const timer = setTimeout(() => {
-        cleanup();
-        reject(new Error("Offscreen canvas did not finish painting"));
-      }, 10000);
-      contents.on("paint", painted);
-      contents.invalidate();
-    });
-    const image = rect ? bitmap.crop(rect) : bitmap;
+    let image;
+    if (fullContent) {
+      const clip = rect ?? { x: 0, y: 0, width: captureWidth, height: captureHeight };
+      if (clip.width > 16383 || clip.height > 16383 || clip.width * clip.height > 20000000) {
+        throw new Error("Full-content screenshot exceeds 16383 pixels per side or 20 megapixels; select a smaller elementUuid region");
+      }
+      const debuggerClient = preview.webContents.debugger;
+      debuggerClient.attach("1.3");
+      try {
+        const captured = await debuggerClient.sendCommand("Page.captureScreenshot", {
+          format: "png",
+          captureBeyondViewport: true,
+          clip: { ...clip, scale: 1 },
+        });
+        image = nativeImage.createFromBuffer(Buffer.from(captured.data, "base64"));
+      } finally {
+        debuggerClient.detach();
+      }
+    } else {
+      // Offscreen windows expose their rendered bitmap through paint events.
+      // capturePage can fail with UnknownVizError on hidden offscreen surfaces.
+      const bitmap = await new Promise((resolve, reject) => {
+        const contents = preview.webContents;
+        const cleanup = () => {
+          clearTimeout(timer);
+          contents.removeListener("paint", painted);
+        };
+        const painted = (_event, _dirty, image) => {
+          const size = image.getSize();
+          if (size.width !== width || size.height !== height) return;
+          cleanup();
+          resolve(image);
+        };
+        const timer = setTimeout(() => {
+          cleanup();
+          reject(new Error("Offscreen canvas did not finish painting"));
+        }, 10000);
+        contents.on("paint", painted);
+        contents.invalidate();
+      });
+      image = rect ? bitmap.crop(rect) : bitmap;
+    }
     let webp;
     if (input.format === "webp") {
       const dataUrl = image.toDataURL();
@@ -472,8 +499,9 @@ async function renderCanvas(win, input = {}) {
       image,
       html,
       webp,
-      width: rect?.width || width,
-      height: rect?.height || height,
+      width: rect?.width || captureWidth,
+      height: rect?.height || captureHeight,
+      ...(fullContent ? { fullContent } : {}),
       frameUuid: selected.layout.frameUuid,
       sourceViewport: {
         width: selected.layout.width,

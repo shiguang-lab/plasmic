@@ -168,6 +168,21 @@ checks account for ancestor clipping and internal scroll containers. Static
 exports preserve current form values and nested scroll positions; authored
 scripts are removed and only the generated scroll restorer is permitted to run.
 
+For content review, use `get_screenshot` with `fullContent: true` (artboard mode).
+It expands nested horizontal and vertical scroll regions and their clipping
+ancestors in the isolated static copy, then captures beyond the original viewport.
+It leaves the live DOM, scroll offsets and saved design unchanged. `elementUuid`
+crops the expanded node; workspace mode rejects `fullContent`. Long captures
+default to original-size lossless WebP so text stays readable; explicitly set
+`fullResolution: false` for a compressed preview. The response's `fullContent`
+metadata records the expanded regions, full dimensions, `coverage: "rendered-dom"`
+and limitations. Virtualized items absent from the DOM and content not yet loaded
+are not included. Use Preview scrolling for those runtime checks. Captures are
+limited to 16383 pixels per side and 20 megapixels; crop a smaller element on
+larger pages. This expanded layout supplements a normal viewport screenshot for
+layout acceptance. Run `pnpm exec electron tests/canvas-full-content.cjs` from
+`desktop/` for native geometry, pixel, crop and source-preservation checks.
+
 Projected code-component parts can mark DOM roots with
 `data-plasmic-canvas-part="part-name"` inside a
 `data-plasmic-canvas-part-scope` ancestor. Studio unifies the bounds of matching
@@ -539,7 +554,7 @@ The server provides these tools:
 | `execute` / `execute_batch`                               | Validated edits; a batch rolls back completely on failure and is one undo step                            |
 | `read_result` | Read retained JSON/SVG/HTML results by path and pagination without rerunning operations |
 | `snapshot_layout`                                         | Rendered desktop/mobile geometry and image load status                                                    |
-| `get_screenshot`                                          | Clean static artboard WebP preview; `fullResolution` requests lossless pixels; `mode: "workspace"` captures the editor                                        |
+| `get_screenshot`                                          | Clean static artboard WebP preview; `fullContent: true` captures expanded scroll content; `fullResolution` requests lossless pixels; `mode: "workspace"` captures the editor                                        |
 | `import_image` / `read_image`                             | Import a local raster into NAS and read design image pixels                                               |
 | `export_design` / `export_pages`                          | Static exports and ordered multi-page PDF                                                                 |
 | `export_code`                                             | Editable React/TypeScript/CSS from NAS codegen                                                            |

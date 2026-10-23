@@ -7,13 +7,15 @@ Library: [Ant Design v6](../index.md).
 | Checkbox | `plasmic-antd6-checkbox` |
 | Checkbox.Group | `plasmic-antd6-checkbox-group` |
 
+## Generation rules
+
 In a business Form or SearchForm, use the registered checked value-prop contract rather than a competing control binding. Read [Form](form.md) or [SearchForm.Item](../../overseas/components/search-form.md#searchformitem). Group array state follows [Checkbox.Group](#checkboxgroup).
 
-## Checkbox.Group
+### Checkbox.Group
 
 Checkbox Group state is an array. Registered state and events must preserve its native value type. Verify controlled/uncontrolled selections and clearing against the installed contract.
 
-## Choice and acceptance
+### Choice and acceptance
 
 A standalone Checkbox expresses a boolean; a Group expresses a set of stable option values. Native onChange event extraction for the standalone control and Group's array callback are distinct contracts. An indeterminate visual state describes partial selection and does not replace the actual checked value or selected set.
 

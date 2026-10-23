@@ -820,6 +820,9 @@ class DesktopController {
     if (
       ["snapshot_layout", "export_design", "get_screenshot"].includes(method)
     ) {
+      if (input.fullContent && input.mode === "workspace") {
+        throw new Error("fullContent requires artboard mode; workspace captures only the visible editor");
+      }
       return this.inspectCanvas(
         input,
         async (inspectionId) => {
@@ -853,10 +856,11 @@ class DesktopController {
               inspectionId,
             });
             return {
-              ...(await encodeImagePreview(result.image.toPNG(), { lossless: input.fullResolution === true })),
+              ...(await encodeImagePreview(result.image.toPNG(), { lossless: input.fullResolution ?? input.fullContent ?? false })),
               rendering: "static",
               sourceViewport: result.sourceViewport,
               resized: result.resized,
+              ...(result.fullContent ? { fullContent: result.fullContent } : {}),
             };
           }
           if (input.elementUuid) {

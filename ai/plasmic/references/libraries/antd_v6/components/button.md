@@ -6,7 +6,9 @@ Library: [Ant Design v6](../index.md).
 | --- | --- |
 | Button | `plasmic-antd6-button` |
 
-## Types and labels
+## Generation rules
+
+### Types and labels
 
 Each action group has at most one primary action, derived from the user's main task in that region. Coordinate with the existing one-primary-page-action convention: do not independently promote every Card, row or auxiliary operation. A group with no dominant action may use only default buttons. Loading/disabled are states of the intended type, not new hierarchy roles; a disabled screenshot alone cannot prove the enabled hierarchy.
 

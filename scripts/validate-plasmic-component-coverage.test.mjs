@@ -39,3 +39,17 @@ test("bundle coverage rejects index ownership, missing metadata and caption drif
   assert.throws(() => check([files[0], { ...files[1], content: "# Form\n\n## Usage\nNo registration table." }]), /Missing registration metadata/);
   assert.throws(() => check([{ ...files[0], content: files[0].content.replace("form.md", "missing.md") }, files[1]]), /Missing component document/);
 });
+test("rules.json mirrors the catalog and resolves decision anchors", () => {
+  const files = fixture().map((file) => file.path.endsWith("form.md")
+    ? { ...file, content: file.content.replace("## Usage", "## Plan decisions\n\n| `plasmic-antd6-form` | `layout` | Decide. |\n\n## Usage") }
+    : file);
+  const rules = (documents) => ({ path: `${root}/rules.json`, content: JSON.stringify({ library: "antd_v6", documents, checks: {} }) });
+  const decided = { "components/form.md": { registrations: registrations.map((item) => item.name),
+    decisions: { "plasmic-antd6-form": [{ prop: "layout", rule: "usage" }] } } };
+  assert.deepEqual(check([...files, rules(decided)]), { libraries: 1, registrations: 2 });
+  assert.throws(() => check([...files, rules({ "components/form.md": { registrations: ["plasmic-antd6-form"] } })]), /Plan decisions section must match|ownership mismatch/);
+  assert.throws(() => check([...files, rules({ "components/form.md": { ...decided["components/form.md"],
+    decisions: { "plasmic-antd6-form": [{ prop: "layout", rule: "missing" }] } } })]), /Missing decision anchor/);
+  assert.throws(() => check([...files, rules({ "components/form.md": { ...decided["components/form.md"],
+    decisions: { "plasmic-antd6-form": [{ prop: "size", rule: "usage" }] } } })]), /omits plasmic-antd6-form size/);
+});

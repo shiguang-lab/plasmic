@@ -1,5 +1,7 @@
 # Detail-header composition
 
+## Generation rules
+
 Applies to [Ant Design v6](../index.md) Card/Button/Tooltip and [Ant Design Icons](../../antd_icons/index.md). Read [Overseas](../../overseas/index.md) when the page uses its AppShell. Match the actual participants through [library selection](../../index.md).
 
 ### Detail page header

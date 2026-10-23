@@ -1,7 +1,7 @@
 import path from "node:path";
 import { MODE_REFERENCES } from "../packages/plasmic-cli/src/protocol.mjs";
 
-function headingIds(content) {
+export function headingIds(content) {
   const counts = new Map();
   return new Set(
     [...content.matchAll(/^#{1,6} (.+)$/gm)].map((match) => {
@@ -62,6 +62,12 @@ export function validateReferences(files, entrypoints) {
     }
     edges.set(filename, links);
   }
+  validateStageTemplates(resources);
+  validateRuleTargets(resources, "references/gate-rules.json", (data) => [
+    ...Object.values(data.gates),
+    ...Object.values(data.checks),
+    ...Object.values(data.pageDecisions),
+  ]);
   const reachable = new Set();
   const pending = [entrypoints.guide];
   while (pending.length) {
@@ -98,4 +104,42 @@ export function validateReferences(files, entrypoints) {
     }
   }
   return readingBytes;
+}
+
+const STAGES = ["Plan decisions", "Generation rules", "Acceptance checks"];
+
+// Library documents share one stage template so rules cards can select
+// sections by stage instead of per-component section lists.
+function validateStageTemplates(resources) {
+  for (const [filename, content] of resources) {
+    if (!/^references\/libraries\/[^/]+\/(components|compositions)\/[^/]+\.md$/.test(filename)) {
+      continue;
+    }
+    const stages = [...content.matchAll(/^## (.+)$/gm)].map((match) => match[1].trim());
+    const unknown = stages.filter((stage) => !STAGES.includes(stage));
+    if (unknown.length) {
+      throw new Error(`Non-template level-2 headings in ${filename}: ${unknown.join(", ")}`);
+    }
+    if (!stages.includes("Generation rules")) {
+      throw new Error(`Missing Generation rules section: ${filename}`);
+    }
+    const order = stages.map((stage) => STAGES.indexOf(stage));
+    if (order.some((value, index) => index && value <= order[index - 1])) {
+      throw new Error(`Stage sections out of order or duplicated: ${filename}`);
+    }
+  }
+}
+
+export function validateRuleTargets(resources, filename, targets) {
+  const content = resources.get(filename);
+  if (content === undefined) {
+    throw new Error(`Missing rule map: ${filename}`);
+  }
+  for (const target of targets(JSON.parse(content))) {
+    const [file, anchor] = target.split("#");
+    const document = resources.get(file);
+    if (document === undefined || (anchor && !headingIds(document).has(anchor))) {
+      throw new Error(`Missing rule target ${target} in ${filename}`);
+    }
+  }
 }

@@ -89,6 +89,20 @@ class SuiteTests(unittest.TestCase):
         self.assertTrue(report["passed"], report)
         self.assertEqual(report["acceptance"]["status"], "unverified")
 
+    def test_gate_results_and_diagnostics_name_their_rule_owner(self):
+        passing = {c["gate"]: c for c in self.run_suite()["checks"]}
+        self.assertEqual(passing["structure"]["rule"], "references/requirement-alignment.md#structural-gate")
+        self.assertEqual(passing["forms"]["rule"], "references/libraries/antd_v6/components/form.md#project-inventory-and-acceptance")
+        plan = json.loads((self.root / "structure.json").read_text())
+        del plan["pages"][0]["templates"]
+        (self.root / "structure.json").write_text(json.dumps(plan))
+        structure = next(c for c in self.run_suite()["checks"] if c["gate"] == "structure")
+        self.assertEqual(structure["status"], "failed")
+        diagnostics = [e for e in structure["report"]["errors"] if isinstance(e, dict)]
+        self.assertTrue(diagnostics)
+        self.assertTrue(all(e.get("rule") for e in diagnostics), diagnostics)
+        self.assertIn("references/admin-templates.md#source-evidence-before-composition", {e["rule"] for e in diagnostics})
+
     def test_missing_template_source_plan_cannot_pass_the_structure_gate(self):
         expected = read_json(self.root / 'structure.json')
         del expected['pages'][0]['templates']

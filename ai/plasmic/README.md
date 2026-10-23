@@ -14,6 +14,9 @@ ai/plasmic/references/model-reading.md     只读解读与 coding 共用的模�
 ai/plasmic/references/codegen/             项目工程、交互与验收规范
 ai/plasmic/references/design/              通用布局、键盘焦点、命名和图标选择规则
 ai/plasmic/references/libraries/index.md   按项目真实组件库和 API 版本选择规范
+ai/plasmic/references/libraries/*/rules.json  注册 → 规范文档、plan 决策项、门禁检查锚点的唯一机器可读映射
+ai/plasmic/references/gate-rules.json      门禁、通用诊断与页面级 plan 决策的规则归属
+ai/plasmic/references/planning.md          Page plan 脚手架、决策、规则卡、读取台账与修复循环
 ai/plasmic/references/libraries/antd_v6/   Ant Design 6 的组件与组合规范
 ai/plasmic/references/libraries/antd_v5/   Ant Design 5 已注册组件的独立规范
 ai/plasmic/references/libraries/overseas/  Overseas 组件库规范
@@ -32,6 +35,10 @@ scripts/build-plasmic-resources.mjs        构建资源与独立版本的 CLI �
 
 设计前通过 MCP 核对 imported project、注册 key、importPath 和可确认的实现版本；Studio 发布版本、wrapper npm 版本和底层 UI 版本分别记录。组合规范声明参与库，静态检查脚本只用于其已支持的库契约。没有匹配规范时依据真实实现、注册和通用设计规则完成可确认部分，明确缺少的规范覆盖；不回退套用 Antd 6，也不为适配模板切换目标组件库。组件库使用 `antd_v6`、`antd_v5`、`overseas`、`react_ui`、`antd_icons` 这样的单层目录名。目录标识注册组件库，底层依赖版本记入库索引的依赖说明，不追加到目录名。新增组件库时增加独立目录和索引、验证对应组件及依赖后接入总索引；不创建空版本占位或版本间重定向。
 
+组件与组合文档统一使用阶段模板：开头为标题、库、注册表和可选的 **Hard constraints**；随后依次是 `## Plan decisions`（仅当 rules.json 声明决策项）、`## Generation rules`、`## Acceptance checks`，原主题小节降为 `###`。规则卡按阶段取节：编排读 Plan decisions + Generation rules，验收读全文；不再为单个组件维护必读章节清单。新增组件时写入模板文档并在 rules.json 增加一条，构建会校验模板、目录、决策表和锚点一致。
+
+Page plan 流程：`prepare_plan.py scaffold` 按 rules.json 写入规则归属、基线值和 `"__DECIDE__"` 空位；预检拒绝未决或缺失的决策（`null` 表示刻意不设置）；`rules --stage compose|accept` 生成规则卡并报告字节量；`verify_selection.py --reads` 校验读取台账；所有门禁诊断带 `rule` 锚点。规则卡过大时按 Page 交给新上下文编排，而不是跳读。
+
 通用布局维护尺寸与伸缩、对齐、间距归属、内容溢出、响应式范围、吸附和滚动原则；各库的 Flex/Grid/Space/Layout 等文档维护真实 Props/Slots。组合文件维护实际区域关系和跨组件交互，不重复父组件或通用布局规则。
 
 在已准备依赖的仓库根目录运行 `node scripts/validate-plasmic-component-coverage.mjs`，通过各库真实 `registerAll` 核对主组件归属、全部注册 key、最终显示名及图标目录。资源构建会额外检查组件文档与库索引的一致性，再校验链接、标题锚点、可达性和阅读预算。源码覆盖检查不替代组件运行或设计交付验收。
@@ -47,7 +54,9 @@ scripts/build-plasmic-resources.mjs        构建资源与独立版本的 CLI �
 | 任务步骤、受支持范围 | workflows；Pen 证据格式在 design-references |
 | 工具上下文/恢复、渲染、资源操作 | desktop-context / inspection / media |
 | 需求优先级、范围与验收声明含义 | requirement-alignment |
-| 组件 Props/Slots 使用与特有行为 | 匹配库的 components |
+| 组件 Props/Slots 使用与特有行为 | 匹配库的 components（统一阶段模板） |
+| 注册归属、plan 决策项、诊断锚点 | 各库 `rules.json`、`gate-rules.json`；组件文档的 Plan decisions 表与之一致 |
+| 证据完整性（不改期望、不自评、不省略检查） | verification 的 Evidence integrity，其它文档只链接 |
 | 跨组件区域关系与动作位置 | 匹配库的 compositions |
 | 脚本输入、证据、复用与通过条件 | verification；格式以公开 plan_schema 为准 |
 | 平台工程验证 | engineering；发布维护说明留在本 README |
@@ -242,6 +251,6 @@ python3 ai/plasmic/scripts/test_verify_structure.py
 
 ## 渐进式资源检查
 
-构建器直接检查维护中的 references：本地链接、标题锚点、从 guide 的可达性以及注册组件目录覆盖；不生成或注入文档副本。guide 和 Desktop 核心契约各不超过 4 KiB，工作流各不超过 6 KiB，单份场景 reference 不超过 20 KiB，每个模式的 mustRead 总量不超过 24 KiB。超限应按真实场景拆分或去重，不能仅提高预算绕过检查。预算衡量 UTF-8 文本量，不代表模型 token 数或行为正确率。
+构建器直接检查维护中的 references：本地链接、标题锚点、从 guide 的可达性以及注册组件目录覆盖；不生成或注入文档副本。guide 和 Desktop 核心契约各不超过 4 KiB，工作流各不超过 6 KiB，单份场景 reference 不超过 20 KiB，每个模式的 mustRead 总量不超过 24 KiB。mustRead 只覆盖入口；实际负载以规则卡的 `totalBytes` 衡量，`handoffRecommended` 为真时按 Page 隔离上下文。超限应按真实场景拆分或去重，不能仅提高预算绕过检查。预算衡量 UTF-8 文本量，不代表模型 token 数或行为正确率。
 
 官方 `@plasmicapp/cli` 与资源 CLI 分工见 [工具选择](references/guide.md#tool-choice) 和 [官方 CLI](references/official-cli.md)。MCP 完整组件读取包含配置的现代/旧查询定义及注册 import 身份；集成设置和源码不随模型读取下载，未知参数或未核对的迁移条件必须明确。

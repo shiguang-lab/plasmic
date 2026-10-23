@@ -7,10 +7,12 @@ Library: [React UI](../index.md).
 | ResourceAuthorization | `plasmic-react-ui-resource-authorization` |
 | ResourceAuthorization.Record | `plasmic-react-ui-resource-authorization-record` |
 
+## Generation rules
+
 ResourceAuthorization creates personalized authorization for a user or department.
 ResourceAuthorization.Record views permissions and deletes personalized policies.
 
-## Trigger and open state
+### Trigger and open state
 
 Place a Button in the wrapper's `trigger` slot to open the drawer. Bind the
 resource props directly to that row's values; each instance owns its open state
@@ -47,7 +49,7 @@ does not automatically reveal the drawer. Verify creation, validation, close,
 deletion confirmation and refresh behavior through Preview with the consuming
 host configured.
 
-## Native React code generation
+### Native React code generation
 
 `trigger` and `onOpenChange` are wrapper additions. Native `@react/ui`
 ResourceAuthorization and ResourceAuthorization.Record do not accept them.

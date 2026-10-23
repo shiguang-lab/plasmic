@@ -4,10 +4,13 @@ import {
   activityBounds,
   CopilotActivityOverlay,
 } from "@/wab/client/components/canvas/CopilotActivityOverlay";
+import { ActivityTarget } from "@/wab/client/copilot/activity";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { IArenaFrame } from "@/wab/shared/Arenas";
 import { ensure } from "@/wab/shared/common";
+import { mkTplTagX } from "@/wab/shared/core/tpls";
+import { ValTag } from "@/wab/shared/core/val-nodes";
 import { Component, TplComponent } from "@/wab/shared/model/classes";
 import { act, cleanup, render } from "@testing-library/react";
 import { theme } from "antd";
@@ -21,6 +24,127 @@ afterEach(() => {
   cleanup();
   vi.useRealTimers();
   document.body.replaceChildren();
+});
+
+function nestedActivity() {
+  vi.useFakeTimers();
+  vi.spyOn(window, "requestAnimationFrame").mockReturnValue(1);
+  const { studioCtx } = fakeStudioCtx();
+  const descendant = mkTplTagX("span");
+  const child = mkTplTagX("div", {}, [descendant]);
+  const parent = mkTplTagX("div", {}, [child]);
+  const sibling = mkTplTagX("div");
+  const component = mock<Component>({
+    uuid: "page",
+    type: "page",
+  });
+  const frame = mock<IArenaFrame>({
+    uuid: "frame",
+    width: 1440,
+    height: 1024,
+    _height: observable.box(1024),
+    container: mock<TplComponent>({ component }),
+  });
+  component.tplTree = mkTplTagX("div", {}, [parent, sibling]);
+  const element = document.createElement("div");
+  document.body.append(element);
+  rect(element, 10, 10, 100, 100);
+  const renderState = mock<ViewCtx["renderState"]>();
+  renderState.tpl2bestVal.mockReturnValue(mock<ValTag>());
+  renderState.sel2dom.mockReturnValue([element]);
+  const viewCtx = mock<ViewCtx>();
+  viewCtx.arenaFrame.mockReturnValue(frame);
+  Object.defineProperties(viewCtx, {
+    studioCtx: { value: mock<StudioCtx>({ zoom: 1 }) },
+    renderState: { value: renderState },
+  });
+  vi.spyOn(studioCtx, "tryGetViewCtxForFrame").mockReturnValue(viewCtx);
+  const target = (elementUuid?: string): ActivityTarget => ({
+    componentUuid: component.uuid,
+    elementUuid,
+    label: elementUuid ?? "Page",
+  });
+  return { studioCtx, frame, parent, child, descendant, sibling, target };
+}
+
+it.each([
+  ["inspection", "element"],
+  ["edit", "element"],
+  ["inspection", "page"],
+  ["edit", "page"],
+] as const)("shows only the outermost %s scan within a %s target and restores children after it expires", (kind, scope) => {
+  const { studioCtx, frame, parent, child, descendant, sibling, target } = nestedActivity();
+  const activity = studioCtx.copilotActivity;
+  activity.begin([target(descendant.uuid), target(child.uuid), target(sibling.uuid)], kind);
+  const parentUuid = scope === "page" ? undefined : parent.uuid;
+  const finishParent = activity.begin([target(parentUuid)], kind);
+  const { container } = render(
+    <CopilotActivityOverlay studioCtx={studioCtx} frame={frame} />,
+  );
+  const visibleTargets = () => Array.from(container.querySelectorAll("[data-copilot-target]"), (region) => region.getAttribute("data-copilot-target"));
+  const expected = scope === "page" ? ["page"] : [sibling.uuid, parent.uuid];
+  expect(visibleTargets()).toEqual(expected);
+  expect(activity.regions).toHaveLength(4);
+  act(() => {
+    finishParent("success");
+    vi.advanceTimersByTime(1999);
+  });
+  expect(visibleTargets()).toEqual(expected);
+  act(() => {
+    vi.advanceTimersByTime(1);
+  });
+  expect(visibleTargets()).toEqual([child.uuid, sibling.uuid]);
+  activity.dispose();
+});
+
+it.each([
+  ["inspection", "edit"],
+  ["edit", "inspection"],
+] as const)("keeps a child %s scan under a parent %s scan while hiding same-kind descendants", (childKind, parentKind) => {
+  const { studioCtx, frame, parent, child, descendant, target } = nestedActivity();
+  const activity = studioCtx.copilotActivity;
+  activity.begin([target(parent.uuid), target(descendant.uuid)], parentKind);
+  activity.begin([target(child.uuid)], childKind);
+  const { container } = render(
+    <CopilotActivityOverlay studioCtx={studioCtx} frame={frame} />,
+  );
+  expect(container.querySelectorAll("[data-copilot-target]")).toHaveLength(2);
+  expect(container.querySelector(`[data-copilot-target="${parent.uuid}"]`)?.getAttribute("data-kind")).toBe(parentKind);
+  expect(container.querySelector(`[data-copilot-target="${child.uuid}"]`)?.getAttribute("data-kind")).toBe(childKind);
+  expect(container.querySelector(`[data-copilot-target="${descendant.uuid}"]`)).toBeNull();
+  activity.dispose();
+});
+
+it("does not suppress a child for ancestors targeted in another component or frame", () => {
+  const { studioCtx, frame, parent, child, target } = nestedActivity();
+  const activity = studioCtx.copilotActivity;
+  activity.begin([
+    { ...target(parent.uuid), componentUuid: "other-page" },
+    { ...target(parent.uuid), frameUuid: "other-frame" },
+    target(child.uuid),
+  ]);
+  const { container } = render(
+    <CopilotActivityOverlay studioCtx={studioCtx} frame={frame} />,
+  );
+  expect(container.querySelectorAll("[data-copilot-target]")).toHaveLength(1);
+  expect(container.querySelector("[data-copilot-target]")?.getAttribute("data-copilot-target")).toBe(child.uuid);
+  activity.dispose();
+});
+
+it("uses captured ancestors for removed targets and releases suppression when a parent fails", () => {
+  const { studioCtx, frame, parent, target } = nestedActivity();
+  const activity = studioCtx.copilotActivity;
+  activity.begin([{ ...target("removed"), ancestorUuids: [parent.uuid] }]);
+  const finishParent = activity.begin([target(parent.uuid)]);
+  const { container } = render(
+    <CopilotActivityOverlay studioCtx={studioCtx} frame={frame} />,
+  );
+  expect(container.querySelectorAll("[data-copilot-target]")).toHaveLength(1);
+  expect(container.querySelector('[data-copilot-target="removed"]')).toBeNull();
+  act(() => finishParent("error"));
+  expect(container.querySelectorAll("[data-copilot-target]")).toHaveLength(1);
+  expect(container.querySelector('[data-copilot-target="removed"]')).toBeTruthy();
+  activity.dispose();
 });
 
 it("renders a single persistent scan DOM node until its last reference expires", () => {

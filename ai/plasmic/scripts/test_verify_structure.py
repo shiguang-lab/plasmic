@@ -485,7 +485,7 @@ class StructureTests(unittest.TestCase):
         page["baseVariantTplTree"] += '<plasmic-component data-plasmic-name="Results" data-plasmic-component="plasmic-antd6-table" data-props="{&quot;data&quot;: {&quot;data&quot;: []}, &quot;pagination&quot;: false}"><slot name="children">' + column + '</slot></plasmic-component>'
         result = self.result()
         self.assertFalse(result["passed"])
-        self.assertIn({"check": "component", "path": "/records", "node": "Results", "column": "Owner",
+        self.assertIn({"check": "component", "path": "/records", "node": "Results", "registration": "plasmicantd6table", "column": "Owner",
                        "message": "Table Column displayType must be text or custom; presets were removed"}, result["errors"])
 
     def test_reviewed_component_roles_cover_categories_actions_and_native_totals(self):

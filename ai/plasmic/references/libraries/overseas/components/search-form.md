@@ -7,9 +7,26 @@ Library: [Overseas](../index.md).
 | SearchForm | `plasmic-overseas-search-form` |
 | SearchForm.Item | `plasmic-overseas-search-form-item` |
 
+**硬约束**（读取任何小节时都会附带）：
+
+- 常规只用四列 `colSpan=6` 或三列 `colSpan=8`；三列仅在视觉稿多行三列对齐时选择，其他值需要需求文档原文的[来源例外](../../../design/component-policy.md#protected-configuration)。
+- `minRows=1`、运行态初始 `collapsed=true`；Item 不覆盖 span。
+- 每个筛选字段都是真实 SearchForm.Item，逐项记入 `components` 并归属 SearchForm `children` Slot；不得为凑满一行删减或合并字段。
+- 查询与提交表单分离：业务提交字段使用 Form；SearchForm 自带卡片表面，外面不再包 Card。
+
+## Plan decisions
+
+Declare these native props in each planned instance before markup. `prepare_plan.py scaffold` writes `"__DECIDE__"` (or the baseline) for each; selection preflight rejects pending or missing values. `null` means deliberately unset and is accepted only where marked.
+
+| Registration | Prop | Decision |
+| --- | --- | --- |
+| `plasmic-overseas-search-form` | `colSpan` | 6 (four columns) by default; 8 only for a multi-row three-column draft; other values need a source override. See [rule](#布局与状态). |
+
+## Generation rules
+
 设计来源为 fintechgrowthui 的 SearchForm；该来源不是任务必需的本地文件。Overseas 实现保留查询卡片、24 栅格、末行右侧操作、展开/收起、字段初始值及业务清除值语义，使用 Ant Design 6。输入控件由画布节点提供。
 
-## 可编辑结构
+### 可编辑结构
 
 Read [SearchForm.Item](search-form.md#searchformitem) for field Props, control value/event mapping and label/help Slots.
 
@@ -17,7 +34,7 @@ Read [SearchForm.Item](search-form.md#searchformitem) for field Props, control v
 
 SearchForm 提供 Extra actions (`extraActions`) Slot，用于查询辅助操作，位于查询/重置之后。新建、导入等业务动作按[列表组合](../compositions/search-table.md#query-and-list-structure)放置，不因存在此 Slot 就放入查询操作列。内置按钮文本通过属性编辑，其行为固定为提交和重置。
 
-## 布局与状态
+### 布局与状态
 
 先按[业务内容与视觉适配](../../../requirement-alignment.md#content-before-presentation)确定完整筛选字段，并在现有 `components` 清单中逐项记录 Item 的业务键、标签、来源和 SearchForm Slot 归属，再选择列数。列数只规定排版密度，不限制字段总数；不能通过漏项、删项、合并不同字段或移到无关的全局控件来凑满一行。超过一行的字段保留真实 Item，由原生换行与折叠承接；需求明确移除字段时才更新字段清单。
 
@@ -49,7 +66,7 @@ SearchForm 提供 Extra actions (`extraActions`) Slot，用于查询辅助操作
 
 `onSearch(values)` 在校验通过后返回全部已注册字段；`onReset(values)` 返回重置后的值；`onValuesChange(values)` 提供当前草稿（包含折叠字段），对应 readonly `values` 状态。查询不会自动改变应用的数据；页面交互将提交值赋给 appliedFilters 并将 page 设为 1。重置事件做同样的应用状态更新。`collapsed` 为可写状态；ref actions 为 `submit()`、`reset()`、`setFieldsValue(values)`。
 
-## 页面生成
+### 页面生成
 
 每个查询字段默认提供可见的 `label` 或真实 `labelContent`，包括关键词输入；placeholder 仅作为输入提示，不能替代标签，也不能为了给输入框更多空间而把 label 清空。标签文本从业务字段含义确定，并重新测量整个表单的 labelWidth。明确要求无标签的特殊搜索入口需在 source-reviewed Item 的 `props.label:""` 和来源中单独声明；参考图中只有 placeholder 不自动构成这一例外。
 
@@ -82,13 +99,7 @@ SearchForm 提供 Extra actions (`extraActions`) Slot，用于查询辅助操作
 
 实际 MCP 插入时，每个组件还需指定 `data-plasmic-project`，其值来自当前项目的 imported project ID，Overseas 和 Antd6 分别指定。
 
-## 交付与验证
-
-按 Page/Tab 清点所有生成的 SearchForm，包括初始不活跃的 Tabs。独立于生成结果记录预期栅格、有效 Item span、共享 labelWidth 和折叠状态。逐项校验整体 colSpan 与 `Item.span ?? Form.colSpan`，未声明例外的字段须继承预期列宽；隐藏字段也检查。在目标视口检查编辑器和真实 Preview，测量列宽/行位置、标签与标点是否完整、控件可用空间；验证查询/重置。有折叠区时验证隐藏字段的值和双向展开/收起；未超出 minRows 时确认不显示多余折叠按钮。保存/重开后再次检查，分别记录模型、几何、截图和交互结果。未访问 Tabs 或未测量条件保持未验证；模型验证、Slot/路由检查和 Skill 格式验证不能证明视觉验收。失败时同步修正生成输入和交付模型。
-
-组件实现、注册和发布由单独授权的工程任务处理，使用[工程验证](../../../engineering/component-contracts.md)。原型验收针对当前实际版本，不要求 Agent 构建或读取客户端内部产物。
-
-## SearchForm.Item
+### SearchForm.Item
 
 Read the actual registered child contract before editing a query field. The owning [SearchForm](search-form.md) controls grid, shared labels, collapse and query/reset state.
 
@@ -99,3 +110,11 @@ Item 的 Control (`children`) Slot 放一个值控件，例如 Antd6 Input、Sel
 Custom label (labelContent) and help are real editable Slots. Custom label overrides the text label; help supplies supporting text or validation feedback.
 
 Check the real Item/control Slot ownership, unique field key and span override in editor, Preview and saved/reopened readback. Use the parent [acceptance](search-form.md) to verify initial/reset/clear values, validation and collapsed fields.
+
+## Acceptance checks
+
+### 交付与验证
+
+按 Page/Tab 清点所有生成的 SearchForm，包括初始不活跃的 Tabs。独立于生成结果记录预期栅格、有效 Item span、共享 labelWidth 和折叠状态。逐项校验整体 colSpan 与 `Item.span ?? Form.colSpan`，未声明例外的字段须继承预期列宽；隐藏字段也检查。在目标视口检查编辑器和真实 Preview，测量列宽/行位置、标签与标点是否完整、控件可用空间；验证查询/重置。有折叠区时验证隐藏字段的值和双向展开/收起；未超出 minRows 时确认不显示多余折叠按钮。保存/重开后再次检查，分别记录模型、几何、截图和交互结果。未访问 Tabs 或未测量条件保持未验证；模型验证、Slot/路由检查和 Skill 格式验证不能证明视觉验收。失败时同步修正生成输入和交付模型。
+
+组件实现、注册和发布由单独授权的工程任务处理，使用[工程验证](../../../engineering/component-contracts.md)。原型验收针对当前实际版本，不要求 Agent 构建或读取客户端内部产物。

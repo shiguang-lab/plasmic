@@ -457,6 +457,9 @@ test("workspace screenshots capture the editor when a project uses a custom host
   const full = await controller.dispatch("get_screenshot", { mode: "workspace", fullResolution: true });
   assert.equal(full.encoding, "lossless");
   assert.equal(full.width, 1600);
+  calls.length = 0;
+  await assert.rejects(controller.dispatch("get_screenshot", { mode: "workspace", fullContent: true }), /fullContent requires artboard mode/);
+  assert.deepEqual(calls, []);
   controller.close();
 });
 

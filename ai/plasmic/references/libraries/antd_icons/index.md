@@ -1,6 +1,6 @@
 # Ant Design Icons reference index
 
-Library: antd-icons, registered by @shiguang-lab/plasmic-antd-icons. Registrations match `plasmic-antd-icon-*`; the suffix, display name and importName are the actual catalog icon name. Match the imported library and native API through [library selection](../index.md).
+Library: antd-icons, registered by @shiguang-lab/plasmic-antd-icons. Registrations match `plasmic-antd-icon-*`; the suffix, display name and importName are the actual catalog icon name. Match the imported library and native API through [library selection](../index.md). [rules.json](rules.json) maps the icon prefix to its rule owner for the planning scripts.
 
 ## Dependencies
 

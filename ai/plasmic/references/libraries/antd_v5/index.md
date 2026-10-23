@@ -6,7 +6,7 @@ Library: @plasmicpkgs/antd5 registrations (plasmic-antd5-*). The maintained pack
 
 One document owns each main component, including registered children, groups and variants. Table and several controls expose a narrower wrapper contract than the full native Ant Design API. Registration identities and the final Studio display names below are actual facts, including Table (deprecated).
 
-Look up used registration keys in the [component catalog](catalog.md); read only their matching component documents. The catalog is a lookup table, not an additional mandatory full read.
+Look up used registration keys in the [component catalog](catalog.md); read only their matching component documents. The catalog is a lookup table, not an additional mandatory full read. [rules.json](rules.json) is the machine-readable owner map (registration → document, plan decisions, gate check anchors) used by the planning scripts; do not read it in full.
 
 ## Design and verification
 

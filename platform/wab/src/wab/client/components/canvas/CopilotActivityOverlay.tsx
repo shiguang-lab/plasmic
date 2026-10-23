@@ -8,7 +8,7 @@ import { useI18n } from "@/wab/client/i18n";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { getArenaName, getFrameHeight } from "@/wab/shared/Arenas";
-import { flattenTpls } from "@/wab/shared/core/tpls";
+import { ancestorsUp, flattenTpls } from "@/wab/shared/core/tpls";
 import { ArenaFrame, TplNode } from "@/wab/shared/model/classes";
 import { createStyles } from "antd-style";
 import classNames from "classnames";
@@ -161,27 +161,51 @@ export const CopilotActivityOverlay = observer(function CopilotActivityOverlay({
   if (!viewCtx) {
     return null;
   }
+  const regions = studioCtx.copilotActivity.regions.filter(
+    ({ target }) =>
+      (!target.componentUuid ||
+        target.componentUuid === frame.container.component.uuid) &&
+      (!target.canvasName ||
+        (studioCtx.currentArena &&
+          getArenaName(studioCtx.currentArena) === target.canvasName)) &&
+      (!target.frameUuid || target.frameUuid === frame.uuid),
+  );
+  const tpls = new Map(
+    regions.some(({ target }) => target.elementUuid)
+      ? flattenTpls(frame.container.component.tplTree).map((tpl) => [tpl.uuid, tpl])
+      : [],
+  );
+  // Keep nested activity of a different kind, but show each kind only at its
+  // outermost target. Retain the requests so children return when parents finish.
+  const visibleRegions = regions.filter(({ key, target, request }) => {
+    if (!target.elementUuid) {
+      return true;
+    }
+    const tpl = tpls.get(target.elementUuid);
+    const ancestorUuids = new Set(
+      tpl
+        ? ancestorsUp(tpl, true).map((ancestor) => ancestor.uuid)
+        : target.ancestorUuids,
+    );
+    return !regions.some(
+      (parent) =>
+        parent.key !== key &&
+        parent.request.kind === request.kind &&
+        (!parent.target.elementUuid ||
+          ancestorUuids.has(parent.target.elementUuid)),
+    );
+  });
   return (
     <>
-      {studioCtx.copilotActivity.regions
-        .filter(
-          ({ target }) =>
-            (!target.componentUuid ||
-              target.componentUuid === frame.container.component.uuid) &&
-            (!target.canvasName ||
-              (studioCtx.currentArena &&
-                getArenaName(studioCtx.currentArena) === target.canvasName)) &&
-            (!target.frameUuid || target.frameUuid === frame.uuid),
-        )
-        .map(({ key, request, target, scanning }) => (
-          <ActivityRegion
-            key={key}
-            viewCtx={viewCtx}
-            request={request}
-            target={target}
-            scanning={scanning}
-          />
-        ))}
+      {visibleRegions.map(({ key, request, target, scanning }) => (
+        <ActivityRegion
+          key={key}
+          viewCtx={viewCtx}
+          request={request}
+          target={target}
+          scanning={scanning}
+        />
+      ))}
     </>
   );
 });

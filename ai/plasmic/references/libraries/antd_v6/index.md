@@ -6,7 +6,7 @@ Organize documents by the [Ant Design component catalog](https://ant.design/comp
 
 Use this library's theme tokens for color, typography, borders and radius. Read size options per component: most registered controls use medium, List uses default and Table defaults to large. Do not import another component/major's size spelling or defaults. Project composition spacing defaults are blocks 16px, inline actions 8px and Drawer footer actions 12px; explicit approved designs take precedence.
 
-Before registration selection, read the applicable [purpose-first decision routes](selection.md). Look up used registration keys in the [component catalog](catalog.md); read only their matching component documents. The catalog is a lookup table, not an additional mandatory full read.
+Before registration selection, read the applicable [purpose-first decision routes](selection.md). Look up used registration keys in the [component catalog](catalog.md); read only their matching component documents. The catalog is a lookup table, not an additional mandatory full read. [rules.json](rules.json) is the machine-readable owner map (registration → document, plan decisions, gate check anchors) used by the planning scripts; do not read it in full.
 
 ## Compositions and dependent libraries
 

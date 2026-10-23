@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "library": "react_ui",
+  "purpose": "Machine-readable rule owners: registration -> document, plan decisions and gate check anchors. Paths are relative to this library directory.",
+  "documents": {
+    "components/action-group.md": {
+      "registrations": [
+        "plasmic-react-ui-action-group"
+      ],
+      "decisions": {
+        "plasmic-react-ui-action-group": [
+          {
+            "prop": "max",
+            "baseline": 3,
+            "nullable": false,
+            "rule": "generation-rules",
+            "note": "Mandatory generation baseline; only a verified source override changes it."
+          }
+        ]
+      }
+    },
+    "components/resource-authorization.md": {
+      "registrations": [
+        "plasmic-react-ui-resource-authorization",
+        "plasmic-react-ui-resource-authorization-record"
+      ]
+    }
+  },
+  "checks": {
+    "rowAction": "components/action-group.md",
+    "actionConfirmation": "components/action-group.md"
+  }
+}

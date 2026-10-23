@@ -1,0 +1,470 @@
+{
+  "schemaVersion": 1,
+  "library": "antd_v6",
+  "purpose": "Machine-readable rule owners: registration -> document, plan decisions and gate check anchors. Paths are relative to this library directory.",
+  "documents": {
+    "components/affix.md": {
+      "registrations": [
+        "plasmic-antd6-affix"
+      ]
+    },
+    "components/alert.md": {
+      "registrations": [
+        "plasmic-antd6-alert"
+      ]
+    },
+    "components/anchor.md": {
+      "registrations": [
+        "plasmic-antd6-anchor"
+      ]
+    },
+    "components/app-shell.md": {
+      "registrations": [
+        "plasmic-antd6-app-shell"
+      ]
+    },
+    "components/auto-complete.md": {
+      "registrations": [
+        "plasmic-antd6-auto-complete"
+      ]
+    },
+    "components/avatar.md": {
+      "registrations": [
+        "plasmic-antd6-avatar",
+        "plasmic-antd6-avatar-group"
+      ]
+    },
+    "components/badge.md": {
+      "registrations": [
+        "plasmic-antd6-badge",
+        "plasmic-antd6-badge-ribbon"
+      ]
+    },
+    "components/border-beam.md": {
+      "registrations": [
+        "plasmic-antd6-border-beam"
+      ]
+    },
+    "components/breadcrumb.md": {
+      "registrations": [
+        "plasmic-antd6-breadcrumb",
+        "plasmic-antd6-breadcrumb-item"
+      ]
+    },
+    "components/button.md": {
+      "registrations": [
+        "plasmic-antd6-button"
+      ]
+    },
+    "components/calendar.md": {
+      "registrations": [
+        "plasmic-antd6-calendar"
+      ]
+    },
+    "components/card.md": {
+      "registrations": [
+        "plasmic-antd6-card",
+        "plasmic-antd6-card-grid",
+        "plasmic-antd6-card-meta"
+      ],
+      "decisions": {
+        "plasmic-antd6-card": [
+          {
+            "prop": "size",
+            "baseline": "medium",
+            "nullable": false,
+            "rule": "card-ownership",
+            "note": "Current contract baseline."
+          },
+          {
+            "prop": "variant",
+            "baseline": "outlined",
+            "nullable": false,
+            "rule": "card-ownership",
+            "note": "Current contract baseline; never the legacy bordered prop."
+          },
+          {
+            "prop": "styles.body.padding",
+            "nullable": false,
+            "rule": "card-ownership",
+            "note": "Explicit body padding assigned to one edge owner, for example 0 20px for a Tabs-first list Card."
+          }
+        ]
+      }
+    },
+    "components/carousel.md": {
+      "registrations": [
+        "plasmic-antd6-carousel"
+      ]
+    },
+    "components/cascader.md": {
+      "registrations": [
+        "plasmic-antd6-cascader",
+        "plasmic-antd6-cascader-panel"
+      ]
+    },
+    "components/checkbox.md": {
+      "registrations": [
+        "plasmic-antd6-checkbox",
+        "plasmic-antd6-checkbox-group"
+      ]
+    },
+    "components/collapse.md": {
+      "registrations": [
+        "plasmic-antd6-collapse",
+        "plasmic-antd6-collapse-item"
+      ]
+    },
+    "components/color-picker.md": {
+      "registrations": [
+        "plasmic-antd6-color-picker"
+      ]
+    },
+    "components/config-provider.md": {
+      "registrations": [
+        "plasmic-antd6-config-provider"
+      ]
+    },
+    "components/date-picker.md": {
+      "registrations": [
+        "plasmic-antd6-date-picker",
+        "plasmic-antd6-date-range-picker"
+      ]
+    },
+    "components/descriptions.md": {
+      "registrations": [
+        "plasmic-antd6-descriptions",
+        "plasmic-antd6-descriptions-item"
+      ]
+    },
+    "components/divider.md": {
+      "registrations": [
+        "plasmic-antd6-divider"
+      ]
+    },
+    "components/drawer.md": {
+      "registrations": [
+        "plasmic-antd6-drawer"
+      ]
+    },
+    "components/dropdown.md": {
+      "registrations": [
+        "plasmic-antd6-dropdown"
+      ]
+    },
+    "components/empty.md": {
+      "registrations": [
+        "plasmic-antd6-empty"
+      ]
+    },
+    "components/flex.md": {
+      "registrations": [
+        "plasmic-antd6-flex"
+      ]
+    },
+    "components/float-button.md": {
+      "registrations": [
+        "plasmic-antd6-back-top",
+        "plasmic-antd6-float-button",
+        "plasmic-antd6-float-button-group"
+      ]
+    },
+    "components/form.md": {
+      "registrations": [
+        "plasmic-antd6-form",
+        "plasmic-antd6-form-group",
+        "plasmic-antd6-form-item",
+        "plasmic-antd6-form-list"
+      ]
+    },
+    "components/grid.md": {
+      "registrations": [
+        "plasmic-antd6-col",
+        "plasmic-antd6-row"
+      ]
+    },
+    "components/image.md": {
+      "registrations": [
+        "plasmic-antd6-image",
+        "plasmic-antd6-image-preview-group"
+      ]
+    },
+    "components/input-number.md": {
+      "registrations": [
+        "plasmic-antd6-input-number"
+      ]
+    },
+    "components/input.md": {
+      "registrations": [
+        "plasmic-antd6-input",
+        "plasmic-antd6-input-otp",
+        "plasmic-antd6-input-password",
+        "plasmic-antd6-input-search",
+        "plasmic-antd6-textarea"
+      ]
+    },
+    "components/layout.md": {
+      "registrations": [
+        "plasmic-antd6-layout",
+        "plasmic-antd6-layout-content",
+        "plasmic-antd6-layout-footer",
+        "plasmic-antd6-layout-header",
+        "plasmic-antd6-layout-sider"
+      ]
+    },
+    "components/list.md": {
+      "registrations": [
+        "plasmic-antd6-list",
+        "plasmic-antd6-list-item",
+        "plasmic-antd6-list-item-meta"
+      ]
+    },
+    "components/listy.md": {
+      "registrations": [
+        "plasmic-antd6-listy"
+      ]
+    },
+    "components/masonry.md": {
+      "registrations": [
+        "plasmic-antd6-masonry"
+      ]
+    },
+    "components/mentions.md": {
+      "registrations": [
+        "plasmic-antd6-mentions"
+      ]
+    },
+    "components/menu.md": {
+      "registrations": [
+        "plasmic-antd6-menu",
+        "plasmic-antd6-menu-divider",
+        "plasmic-antd6-menu-item",
+        "plasmic-antd6-menu-item-group",
+        "plasmic-antd6-submenu"
+      ]
+    },
+    "components/modal.md": {
+      "registrations": [
+        "plasmic-antd6-modal"
+      ]
+    },
+    "components/pagination.md": {
+      "registrations": [
+        "plasmic-antd6-pagination"
+      ]
+    },
+    "components/popconfirm.md": {
+      "registrations": [
+        "plasmic-antd6-popconfirm"
+      ]
+    },
+    "components/popover.md": {
+      "registrations": [
+        "plasmic-antd6-popover"
+      ]
+    },
+    "components/progress.md": {
+      "registrations": [
+        "plasmic-antd6-progress"
+      ]
+    },
+    "components/qr-code.md": {
+      "registrations": [
+        "plasmic-antd6-qr-code"
+      ]
+    },
+    "components/radio.md": {
+      "registrations": [
+        "plasmic-antd6-radio",
+        "plasmic-antd6-radio-button",
+        "plasmic-antd6-radio-group"
+      ]
+    },
+    "components/rate.md": {
+      "registrations": [
+        "plasmic-antd6-rate"
+      ]
+    },
+    "components/result.md": {
+      "registrations": [
+        "plasmic-antd6-result"
+      ]
+    },
+    "components/segmented.md": {
+      "registrations": [
+        "plasmic-antd6-segmented"
+      ]
+    },
+    "components/select.md": {
+      "registrations": [
+        "plasmic-antd6-option",
+        "plasmic-antd6-option-group",
+        "plasmic-antd6-select"
+      ]
+    },
+    "components/skeleton.md": {
+      "registrations": [
+        "plasmic-antd6-skeleton",
+        "plasmic-antd6-skeleton-avatar",
+        "plasmic-antd6-skeleton-button",
+        "plasmic-antd6-skeleton-image",
+        "plasmic-antd6-skeleton-input",
+        "plasmic-antd6-skeleton-node"
+      ]
+    },
+    "components/slider.md": {
+      "registrations": [
+        "plasmic-antd6-slider"
+      ]
+    },
+    "components/space.md": {
+      "registrations": [
+        "plasmic-antd6-space",
+        "plasmic-antd6-space-compact"
+      ]
+    },
+    "components/spin.md": {
+      "registrations": [
+        "plasmic-antd6-spin"
+      ]
+    },
+    "components/splitter.md": {
+      "registrations": [
+        "plasmic-antd6-splitter",
+        "plasmic-antd6-splitter-panel"
+      ]
+    },
+    "components/statistic.md": {
+      "registrations": [
+        "plasmic-antd6-statistic",
+        "plasmic-antd6-statistic-timer"
+      ]
+    },
+    "components/steps.md": {
+      "registrations": [
+        "plasmic-antd6-steps"
+      ]
+    },
+    "components/switch.md": {
+      "registrations": [
+        "plasmic-antd6-switch"
+      ]
+    },
+    "components/table.md": {
+      "registrations": [
+        "plasmic-antd6-table",
+        "plasmic-antd6-table-column",
+        "plasmic-antd6-table-column-group"
+      ],
+      "decisions": {
+        "plasmic-antd6-table": [
+          {
+            "prop": "scroll",
+            "nullable": true,
+            "rule": "content-and-scroll-width",
+            "note": "Numeric x greater than the explicit Column widths sum whenever any Column has a width; null keeps the wrapper default for an all-text Table without widths."
+          },
+          {
+            "prop": "pagination",
+            "nullable": false,
+            "rule": "data-identity-sorting-and-pagination",
+            "note": "false, or the native paging object with one declared ownership mode."
+          }
+        ],
+        "plasmic-antd6-table-column": [
+          {
+            "prop": "width",
+            "nullable": true,
+            "rule": "content-and-scroll-width",
+            "note": "Literal pixel width from the title and values; null only for the single main text Column."
+          },
+          {
+            "prop": "displayType",
+            "nullable": false,
+            "rule": "render-templates",
+            "note": "text or custom, from the source presentation."
+          }
+        ]
+      }
+    },
+    "components/tabs.md": {
+      "registrations": [
+        "plasmic-antd6-tab-item",
+        "plasmic-antd6-tabs"
+      ]
+    },
+    "components/tag.md": {
+      "registrations": [
+        "plasmic-antd6-tag",
+        "plasmic-antd6-tag-checkable"
+      ]
+    },
+    "components/time-picker.md": {
+      "registrations": [
+        "plasmic-antd6-time-picker",
+        "plasmic-antd6-time-range-picker"
+      ]
+    },
+    "components/timeline.md": {
+      "registrations": [
+        "plasmic-antd6-timeline"
+      ]
+    },
+    "components/tooltip.md": {
+      "registrations": [
+        "plasmic-antd6-tooltip"
+      ]
+    },
+    "components/tour.md": {
+      "registrations": [
+        "plasmic-antd6-tour"
+      ]
+    },
+    "components/transfer.md": {
+      "registrations": [
+        "plasmic-antd6-transfer"
+      ]
+    },
+    "components/tree-select.md": {
+      "registrations": [
+        "plasmic-antd6-tree-select"
+      ]
+    },
+    "components/tree.md": {
+      "registrations": [
+        "plasmic-antd6-directory-tree",
+        "plasmic-antd6-tree"
+      ]
+    },
+    "components/typography.md": {
+      "registrations": [
+        "plasmic-antd6-typography",
+        "plasmic-antd6-typography-link",
+        "plasmic-antd6-typography-paragraph",
+        "plasmic-antd6-typography-text",
+        "plasmic-antd6-typography-title"
+      ]
+    },
+    "components/upload.md": {
+      "registrations": [
+        "plasmic-antd6-upload",
+        "plasmic-antd6-upload-dragger"
+      ]
+    },
+    "components/watermark.md": {
+      "registrations": [
+        "plasmic-antd6-watermark"
+      ]
+    }
+  },
+  "checks": {
+    "tableWidth": "components/table.md#content-and-scroll-width",
+    "tableWidthPlan": "components/table.md#content-and-scroll-width",
+    "statusPresentation": "components/badge.md",
+    "statusRole": "components/badge.md",
+    "categoryPresentation": "components/tag.md#tag-or-text",
+    "paginationControls": "components/pagination.md",
+    "dropdownIndicator": "components/dropdown.md#trigger-appearance",
+    "feedback": "components/config-provider.md#feedback-action-calls"
+  }
+}

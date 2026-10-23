@@ -1,0 +1,184 @@
+{
+  "schemaVersion": 1,
+  "library": "antd_v5",
+  "purpose": "Machine-readable rule owners: registration -> document, plan decisions and gate check anchors. Paths are relative to this library directory.",
+  "documents": {
+    "components/avatar.md": {
+      "registrations": [
+        "plasmic-antd5-avatar",
+        "plasmic-antd5-avatar-group"
+      ]
+    },
+    "components/breadcrumb.md": {
+      "registrations": [
+        "plasmic-antd5-breadcrumb",
+        "plasmic-antd5-breadcrumb-item"
+      ]
+    },
+    "components/button.md": {
+      "registrations": [
+        "plasmic-antd5-button"
+      ]
+    },
+    "components/checkbox.md": {
+      "registrations": [
+        "plasmic-antd5-checkbox",
+        "plasmic-antd5-checkbox-group"
+      ]
+    },
+    "components/collapse.md": {
+      "registrations": [
+        "plasmic-antd5-collapse",
+        "plasmic-antd5-collapse-item",
+        "plasmic-antd5-single-collapse"
+      ]
+    },
+    "components/color-picker.md": {
+      "registrations": [
+        "plasmic-antd5-color-picker"
+      ]
+    },
+    "components/config-provider.md": {
+      "registrations": [
+        "plasmic-antd5-config-provider"
+      ]
+    },
+    "components/date-picker.md": {
+      "registrations": [
+        "plasmic-antd5-date-picker",
+        "plasmic-antd5-date-range-picker"
+      ]
+    },
+    "components/drawer.md": {
+      "registrations": [
+        "plasmic-antd5-drawer"
+      ]
+    },
+    "components/dropdown.md": {
+      "registrations": [
+        "plasmic-antd5-dropdown"
+      ]
+    },
+    "components/form.md": {
+      "registrations": [
+        "plasmic-antd5-form",
+        "plasmic-antd5-form-group",
+        "plasmic-antd5-form-item",
+        "plasmic-antd5-form-list"
+      ]
+    },
+    "components/input-number.md": {
+      "registrations": [
+        "plasmic-antd5-input-number"
+      ]
+    },
+    "components/input.md": {
+      "registrations": [
+        "plasmic-antd5-input",
+        "plasmic-antd5-input-password",
+        "plasmic-antd5-textarea"
+      ]
+    },
+    "components/menu.md": {
+      "registrations": [
+        "plasmic-antd5-menu",
+        "plasmic-antd5-menu-divider",
+        "plasmic-antd5-menu-item",
+        "plasmic-antd5-menu-item-group",
+        "plasmic-antd5-submenu"
+      ]
+    },
+    "components/modal.md": {
+      "registrations": [
+        "plasmic-antd5-modal"
+      ]
+    },
+    "components/pagination.md": {
+      "registrations": [
+        "plasmic-antd5-pagination"
+      ]
+    },
+    "components/popover.md": {
+      "registrations": [
+        "plasmic-antd5-popover"
+      ]
+    },
+    "components/progress.md": {
+      "registrations": [
+        "plasmic-antd5-progress"
+      ]
+    },
+    "components/radio.md": {
+      "registrations": [
+        "plasmic-antd5-radio",
+        "plasmic-antd5-radio-button",
+        "plasmic-antd5-radio-group"
+      ]
+    },
+    "components/rate.md": {
+      "registrations": [
+        "plasmic-antd5-rate"
+      ]
+    },
+    "components/segmented.md": {
+      "registrations": [
+        "plasmic-antd5-segmented",
+        "plasmic-antd5-segmented-option"
+      ]
+    },
+    "components/select.md": {
+      "registrations": [
+        "plasmic-antd5-option",
+        "plasmic-antd5-option-group",
+        "plasmic-antd5-select"
+      ]
+    },
+    "components/slider.md": {
+      "registrations": [
+        "plasmic-antd5-range-slider",
+        "plasmic-antd5-slider",
+        "plasmic-antd5-slider-mark"
+      ]
+    },
+    "components/steps.md": {
+      "registrations": [
+        "plasmic-antd5-steps"
+      ]
+    },
+    "components/switch.md": {
+      "registrations": [
+        "plasmic-antd5-switch"
+      ]
+    },
+    "components/table.md": {
+      "registrations": [
+        "plasmic-antd5-table",
+        "plasmic-antd5-table-column",
+        "plasmic-antd5-table-column-group"
+      ]
+    },
+    "components/tabs.md": {
+      "registrations": [
+        "plasmic-antd5-tab-item",
+        "plasmic-antd5-tabs"
+      ]
+    },
+    "components/tooltip.md": {
+      "registrations": [
+        "plasmic-antd5-tooltip"
+      ]
+    },
+    "components/tree.md": {
+      "registrations": [
+        "plasmic-antd5-directory-tree",
+        "plasmic-antd5-tree"
+      ]
+    },
+    "components/upload.md": {
+      "registrations": [
+        "plasmic-antd5-upload"
+      ]
+    }
+  },
+  "checks": {}
+}

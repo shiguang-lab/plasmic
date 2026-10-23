@@ -21,12 +21,15 @@ export function ImportPlasmicButton(props: {
       async (content: string, file?: File) => {
         setLoading(true);
         try {
+          if (!file?.name.toLowerCase().endsWith(".plasmic")) {
+            throw new Error(t("Please select a valid .plasmic file."));
+          }
           // Validate JSON
           const parsed = JSON.parse(content);
           if (!parsed || (typeof parsed !== "object" && !Array.isArray(parsed))) {
             throw new Error(t("Please select a valid .plasmic file."));
           }
-          const suggestedName = file?.name?.replace(/\.(plasmic|json)$/i, "");
+          const suggestedName = file.name.replace(/\.plasmic$/i, "");
           const result = await appCtx.api.importProject(content, {
             projectName: suggestedName,
             workspaceId: props.workspaceId,
@@ -49,7 +52,7 @@ export function ImportPlasmicButton(props: {
         }
       },
       {
-        accept: ".plasmic,.json",
+        accept: ".plasmic",
         onCancel: () => setLoading(false),
       },
     );
@@ -65,7 +68,7 @@ export function ImportPlasmicButton(props: {
       icon={<ImportOutlined aria-hidden />}
       onClick={handleImport}
     >
-      {t("Import .plasmic")}
+      {t("Import")}
     </Button>
   );
 }

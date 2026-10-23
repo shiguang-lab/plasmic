@@ -6,6 +6,16 @@ Library: [React UI](../index.md).
 | --- | --- |
 | ActionGroup | `plasmic-react-ui-action-group` |
 
+## Plan decisions
+
+Declare these native props in each planned instance before markup. `prepare_plan.py scaffold` writes `"__DECIDE__"` (or the baseline) for each; selection preflight rejects pending or missing values. `null` means deliberately unset and is accepted only where marked.
+
+| Registration | Prop | Decision |
+| --- | --- | --- |
+| `plasmic-react-ui-action-group` | `max` (baseline `3`) | Mandatory generation baseline; only a verified source override changes it. See [rule](#generation-rules). |
+
+## Generation rules
+
 Read the registered @react/ui ActionGroup contract. Pass complete permission-filtered items and let the component fold them. **max=3 is the mandatory generation baseline**, including More as one of those three positions. Only an explicit current-user/source requirement may override it with [verifiable source evidence](../../../design/component-policy.md#protected-configuration). The number of actions, a wider viewport or the wish to show all buttons is not an exception. Do not truncate the authorized items; retain them in native folding. Rows with fewer authorized actions naturally show fewer controls. ActionGroup uses Antd6’s medium size spelling. [Column](../../antd_v6/components/table.md#operation-column-sizing) owns operation-column measurements.
 
 PC More menus default to dropdownProps.trigger=["hover"]; explicit click/touch requirements and trigger-specific acceptance follow [Dropdown](../../antd_v6/components/dropdown.md). Preserve ordering and danger/disabled behavior after permission filtering and folding.

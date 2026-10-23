@@ -15,6 +15,8 @@ python3 RESOURCE_ROOT/scripts/read_reference.py RESOURCE_ROOT/references/librari
 python3 RESOURCE_ROOT/scripts/read_reference.py RESOURCE_ROOT/references/libraries/antd_v6/components/form.md --section values-and-validation --section events-and-ref-actions --section acceptance --log /absolute/task/reference-reads.jsonl
 ```
 
+Library documents use a stage template: the preamble (registration and hard constraints, always included), **Plan decisions**, **Generation rules** and **Acceptance checks**. For a planned Page, the [rules card](planning.md#rules-card-and-read-ledger) lists the stage sections each declaration needs; `verify_selection.py --reads LEDGER` fails when one was not read at the current hash.
+
 Select every applicable section: the reader includes descendants, ancestor introductions and registration preamble without duplicates. Unknown selectors fail. An outline is discovery, not a completed read. Read the full document when all sections apply. Retain release/hash, read ledger, requirement decisions and pending evidence across compaction; reread rules whose understanding was lost. Refresh changed library/session contracts.
 
 ## Model reads and tool results
@@ -31,7 +33,7 @@ At each Page boundary retain route/IDs, decisions, resource/build identity, evid
 
 Use [unified verification](verification.md): collect complete Pages/layouts once per design state, then rerun every applicable gate against those files. Inspect compact statuses and failed-check details; retain complete evidence and reports. Repeated component instructions do not require duplicate captures.
 
-Live model reuse requires matching project/branch/session/revision/changeCounter/build and file hashes; always refresh layouts. Fresh save/reopen captures, actual Preview, screenshots, layout/scroll review and source-derived acceptance remain mandatory. Offline replay proves only the captured state. Missing or failed checks never become passes to save context.
+Live model reuse requires matching project/branch/session/revision/changeCounter/build and file hashes; always refresh layouts. Fresh save/reopen captures, actual Preview, screenshots, layout/scroll review and source-derived acceptance remain mandatory. Offline replay proves only the captured state.
 
 For long external Markdown, use the same reader on `/absolute/requirements.md`: `--outline`, then `--section EXACT_ANCHOR --log /absolute/task/source-reads.jsonl`. Read relevant sections and latest decisions completely; record provisional citations, coverage and scope before Pen/library discovery, then reconcile them with actual design evidence/contracts before freezing the plan. A truncated file view is incomplete; do not mix character offsets with line ranges or assume omitted sections were read.
 

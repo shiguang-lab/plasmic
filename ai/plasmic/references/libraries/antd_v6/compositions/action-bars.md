@@ -1,12 +1,14 @@
 # Action-bar composition
 
+## Generation rules
+
 Applies to [Ant Design v6](../index.md) actions/feedback. [Overseas](../../overseas/index.md) participates when SearchForm actions are present; [React UI](../../react_ui/index.md) participates when ActionGroup is used. Read only the actual participants after [library selection](../../index.md).
 
-## Buttons and action bars
+### Buttons and action bars
 
 Use [Ant Design button guidance](https://ant.design/docs/spec/buttons), the [Button contract](https://ant.design/components/button/) and native [Modal defaults](https://ant.design/components/modal/) as component references. [Atlassian panel footers](https://atlassian.design/components/panel/usage) also place the secondary action before the primary action. The placement table below defines this project's LTR admin convention by context; it is not a universal ordering rule for every platform or toolbar. Explicit user-approved layouts and the target component's verified contract take precedence. Preserve the business page language and actual registered Props/Slots.
 
-### Placement and ordering
+#### Placement and ordering
 
 | Context | Placement and order |
 | --- | --- |
@@ -26,7 +28,7 @@ Read [Button](../components/button.md) for types, labels, htmlType and submissio
 
 
 
-### Availability and acceptance
+#### Availability and acceptance
 
 Derive visibility, enabled state and loading from the requirement's permissions, prerequisites and active operation. Follow existing permission filtering before folding. Explain unavailable prerequisites beside the affected region/bar in readable text; do not rely solely on a Tooltip attached to a disabled button. Invalid form fields normally use the native submit-and-show-validation path; do not disable submit solely to avoid displaying validation errors unless the requirement specifies that behavior.
 
@@ -34,7 +36,7 @@ During processing show loading on the initiating action, use the consuming flow'
 
 Before generation/editing, record each affected action group's context, ordered labels, actual effects, intended types, primary action, permission/prerequisite rules and required states in the task's acceptance matrix. Read back the real Button/Modal/Drawer/ActionGroup props and handlers, including native footer ownership and any `type`/`color`/`variant` precedence in the installed contract. In Preview check available, prerequisite-blocked, processing, failure and success states where applicable: enabled hierarchy, stable order, matching labels/effects, validation, single submission and safe cancel/close behavior. Verify keyboard focus/activation, supported Enter submission and long-label/footer reachability at the target viewport; then save/reopen and reread the affected groups. Record unexecuted cases as unverified. A screenshot of disabled buttons or a correct DOM order alone does not pass this acceptance.
 
-### Feedback and row confirmation
+#### Feedback and row confirmation
 
 Read [Ant Design System Settings action calls](../components/config-provider.md#feedback-action-calls) for themed feedback wiring and [ActionGroup](../../react_ui/components/action-group.md) for row confirmation callbacks. Verify the Message first appears after the action, then dismisses; a later absence assertion alone cannot establish success. Do not suppress a missing-action error or replace an available Message action with a custom Toast.
 
@@ -44,7 +46,6 @@ Read [Popconfirm](../components/popconfirm.md) for row-confirmation anchoring, d
 
 For existing copy actions, exercise repeated use and verify the new row/total as well as message dismissal and stable layout. For actions requiring row confirmation, apply [Popconfirm acceptance](../components/popconfirm.md), including another row and relevant permissions. Do not add copy or confirmation features solely to run this checklist.
 
-
-## Native navigation
+### Native navigation
 
 Bind navigation through the actual [ActionGroup](../../react_ui/components/action-group.md) or [Form event/ref contract](../components/form.md#events-and-ref-actions). Derive destinations from the requirement and validated values; verify the complete route/state handoff in Preview.

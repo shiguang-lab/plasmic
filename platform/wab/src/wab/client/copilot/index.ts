@@ -1247,7 +1247,7 @@ function planMutation(studio: StudioCtx, operation: PrototypeMutation, assets: M
     }
     case "deleteElement": {
       const tpl = findElement(component, operation.input.elementUuid, studio);
-      messages.push(`Element "${tpl.name || tpl.uuid}" deleted.`);
+      messages.push(`Element "${("name" in tpl && tpl.name) || tpl.uuid}" deleted.`);
       apply = () => {
         assert(
           findElement(component, tpl.uuid) === tpl,

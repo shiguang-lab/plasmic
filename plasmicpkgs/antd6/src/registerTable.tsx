@@ -434,7 +434,7 @@ export function registerTable(loader?: Registerable) {
         displayName: "Scroll",
         control: TableScrollControl,
         description:
-          "Horizontal width accepts pixels, percentages, or max-content. Leave it unset to fit content. The table body grows with content when height is unset.",
+          "Horizontal width accepts pixels, percentages, or max-content. Leave it unset to fit content (defaults to max-content). When columns set widths, use a pixel width so those widths stay fixed; with max-content, column widths act as minimums. The table body grows with content when height is unset.",
       },
       onChange: {
         type: "eventHandler",
@@ -611,7 +611,8 @@ export function registerTable(loader?: Registerable) {
       width: {
         type: "number",
         displayName: "Width",
-        description: "Column width in pixels. Applies to the header and all rows.",
+        description:
+          "Column width in pixels. Applies to the header and all rows. Stays fixed only when the Table's horizontal scroll width is a pixel value; otherwise it acts as a minimum width.",
       },
       ellipsis: {
         type: "boolean",

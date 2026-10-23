@@ -413,7 +413,7 @@ function fileMenu({
           const output = await dialog.showOpenDialog(getWindow(), {
             title: t("Import .plasmic"),
             filters: [
-              { name: "Plasmic Project", extensions: ["plasmic", "json"] },
+              { name: "Plasmic Project", extensions: ["plasmic"] },
             ],
             properties: ["openFile"],
           });
@@ -421,6 +421,9 @@ function fileMenu({
             return;
           }
           const filePath = output.filePaths[0];
+          if (path.extname(filePath).toLowerCase() !== ".plasmic") {
+            throw new Error(t("Please select a valid .plasmic file."));
+          }
           const content = fs.readFileSync(filePath, "utf-8");
           const options = {
             method: "POST",

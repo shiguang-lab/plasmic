@@ -1,10 +1,12 @@
 # Modal + Drawer composition
 
+## Generation rules
+
 Applies to [Ant Design v6](../index.md) registrations and theme behavior. Select the matching project library through the [library index](../../index.md) before using this recipe; another library or major requires its own verified composition rules.
 
 Read before creating, editing or reviewing a Modal/Drawer, including result tables and read-only details. Use the actual registered component's Props, Slots, defaults and events. Read [Modal](../components/modal.md) only when using Modal; read [Form layout](form-layout.md) only when the overlay contains a business Form. Read [Actions](action-bars.md) for present action groups and [Layout](../../../design/layout.md) for bounded scrolling. A read-only detail Drawer does not require Form or Modal rules.
 
-## Footer with only an exit button
+### Footer with only an exit button
 
 When the native top-right close icon is enabled and usable, do not retain a footer whose sole visible button only dismisses the overlay. Remove that button and the now-unused footer; use the native close icon for dismissal. This applies to Cancel, Close, Done, Return and differently named buttons with the same actual effect. Judge the handler/state transition, not the label.
 
@@ -15,13 +17,13 @@ This rule does **not** remove Cancel/Close from a multi-button footer. Save + Ca
 - Pagination, table row actions and body controls do not turn an exit-only footer into a multi-button footer. Count buttons in the actual footer only. Disabled buttons still occupy that footer; check each required runtime state when buttons are conditionally hidden.
 - If no usable close icon exists, do not remove the only usable exit. Keep the supported dismissal path or enable the native icon where the requirement permits it. Do not add a custom header close icon.
 
-## Structure and close behavior
+### Structure and close behavior
 
 Keep one native header/title and one footer owner. Form Modals leave at least 24px clearance at each viewport edge; constrain their outer width/height accordingly. Bound long body content using the shared scrolling contract, with the header and any business footer outside that scrolling region and reachable at the target viewport. No nested native scrolling, clipped last row or blank reserved footer after removal.
 
 Bind dismissal to the actual controlled open state. Available X/Cancel/Esc/mask paths follow the same dirty-input, cleanup and processing policy; closing does not imply backend cancellation. Failure preserves recoverable input. Selection/reveal must not persist an open initial state. In Preview verify close/reopen, retained business actions, keyboard focus and return to the trigger; editing also checks dirty input and processing restrictions. Save/reopen and reread after edits.
 
-## Generation gate
+### Generation gate
 
 Derive an independent acceptance inventory from requirements before generation. For each affected owning component, inventory every Modal/Drawer in its full public `baseVariantTplTree`, including hidden branches. Read referenced custom components separately; private internals need their own readback. The inventory is verification evidence, not persisted design props.
 

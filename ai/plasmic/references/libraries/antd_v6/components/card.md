@@ -8,7 +8,26 @@ Library: [Ant Design v6](../index.md).
 | Card.Grid | `plasmic-antd6-card-grid` |
 | Card.Meta | `plasmic-antd6-card-meta` |
 
-## Card ownership
+**Hard constraints** (always delivered with any section):
+
+- Use Card only for an independently justified business surface (record `condition`); never around SearchForm, AppShell, Steps or every section, and avoid nested Cards.
+- Initial data-props: `{"size":"medium","variant":"outlined","styles":{"body":{...}}}`; never the legacy `bordered` prop or a padded native wrapper.
+- A headerless Card supplies explicit empty `title` and `extra` Slots in the initial markup.
+- A Tabs-first list Card uses body padding `0 20px`: Tabs owns the top edge, Table pagination owns the bottom edge. See [Card ownership](#card-ownership).
+
+## Plan decisions
+
+Declare these native props in each planned instance before markup. `prepare_plan.py scaffold` writes `"__DECIDE__"` (or the baseline) for each; selection preflight rejects pending or missing values. `null` means deliberately unset and is accepted only where marked.
+
+| Registration | Prop | Decision |
+| --- | --- | --- |
+| `plasmic-antd6-card` | `size` (baseline `"medium"`) | Current contract baseline. See [rule](#card-ownership). |
+| `plasmic-antd6-card` | `variant` (baseline `"outlined"`) | Current contract baseline; never the legacy bordered prop. See [rule](#card-ownership). |
+| `plasmic-antd6-card` | `styles.body.padding` | Explicit body padding assigned to one edge owner, for example 0 20px for a Tabs-first list Card. See [rule](#card-ownership). |
+
+## Generation rules
+
+### Card ownership
 
 Use the registered `plasmic-antd6-card` for a business surface with card appearance: a list containing toolbar/Tabs/Table/pagination, grouped form information, a detail information panel or a metric card. Read the installed Card contract before generation. A background, border, radius and padding on a native section/div do not fulfill this requirement. Use registered Antd6 Flex, Row/Col and Space for layout without a card surface; native main/section/div remain appropriate when semantic grouping is needed; SearchForm and AppShell keep their own surfaces, without an extra Card around them. Avoid nested cards unless the source explicitly requires separate surfaces.
 
@@ -26,7 +45,7 @@ After save/reopen, measure Card inner body → every wrapper → Tabs top and Ta
 
 Record the planned Card names and contents in the generation input and acceptance matrix. Readback must show real Card instances and the intended business nodes inside their children Slots; reject native substitutes, empty Cards with sibling content and imported sample children. When migrating an existing surface, insert Card, move existing content with moveElement to preserve UUIDs/state/interactions, then remove the obsolete native surface. Check complete-page geometry and save/reopen persistence. Use verify_slots.py with the intended Card markup to check component identity and content ownership, in addition to screenshot review.
 
-## Card.Meta, Card.Grid and action Slots
+### Card.Meta, Card.Grid and action Slots
 
 Meta owns its title/description/avatar inside the Card. Grid is a real Card subregion with its children/hoverable contract; it is not Row/Col Grid or a reason to nest another surface around every item. Use either structure only for the actual content arrangement and keep complete labels/values in their supported Slots.
 

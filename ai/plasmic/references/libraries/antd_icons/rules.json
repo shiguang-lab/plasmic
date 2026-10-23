@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "library": "antd_icons",
+  "purpose": "Machine-readable rule owners for icon registrations matching the prefix.",
+  "prefixes": {
+    "plasmic-antd-icon-": "index.md#icon-usage-and-acceptance"
+  },
+  "documents": {},
+  "checks": {}
+}

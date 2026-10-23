@@ -6,13 +6,15 @@ Library: [Ant Design v6](../index.md).
 | --- | --- |
 | Pagination | `plasmic-antd6-pagination` |
 
+## Generation rules
+
 Read the installed Pagination or Table pagination contract before binding page state. [SearchForm + Tabs + Table](../../overseas/compositions/search-table.md#pagination-and-scrolling) owns the business page size, totals and scroll reachability.
 
 Read [Table paging data and acceptance](table.md#pagination-test-data-and-acceptance) for normal-state fixture size, simulated records and proof of real page transitions. This also applies when native Pagination pages a separate result region; scope the assertions to that region and this pager.
 
 Pagination initializes its derived indexes from current/default props without emitting a business onChange; changes after user interaction update both page and index values. For wrapper changes, verify initialization separately from user page/page-size changes and test both controlled and uncontrolled props.
 
-## Business paging and acceptance
+### Business paging and acceptance
 
 Use one pagination owner for current, pageSize and total. Server-side total is the full matching result count; client-side slicing happens only in the declared client owner. Read actual onChange/onShowSizeChange and any derived indexes before mapping them to request parameters. Do not add a separate Pagination beside a Table that already owns the same paging controls.
 

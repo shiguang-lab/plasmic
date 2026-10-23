@@ -10,7 +10,7 @@ The current maintained implementation declares antd 6.6.5 and @ant-design/icons 
 
 Read [Ant Design v6](../antd_v6/index.md) for actual Antd controls placed in SearchForm.Item and [Ant Design Icons](../antd_icons/index.md) when composing its icons. These components keep their own contracts; this business library does not redefine them.
 
-Look up used registration keys in the [component catalog](catalog.md); read only their matching component documents. The catalog is a lookup table, not an additional mandatory full read.
+Look up used registration keys in the [component catalog](catalog.md); read only their matching component documents. The catalog is a lookup table, not an additional mandatory full read. [rules.json](rules.json) is the machine-readable owner map (registration → document, plan decisions, gate check anchors) used by the planning scripts; do not read it in full.
 
 ## Composition and acceptance
 

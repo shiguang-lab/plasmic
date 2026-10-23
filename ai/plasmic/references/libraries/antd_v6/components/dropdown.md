@@ -6,13 +6,15 @@ Library: [Ant Design v6](../index.md).
 | --- | --- |
 | Dropdown | `plasmic-antd6-dropdown` |
 
+## Generation rules
+
 For PC pointer interaction, ordinary Dropdown menus **must use the hover generation baseline**, including creation, language and account menus. Keep Ant Design enter/leave delays so moving from the trigger into the menu does not close it; item selection executes the action and closes the menu. Use click only for an explicit click/touch requirement and record its [source-backed override](../../../design/component-policy.md#protected-configuration); contextMenu requires an actual right-click requirement. Availability of the trigger Prop is not permission to choose click for convenience. ActionGroup's equivalent protected property is dropdownProps.trigger=["hover"].
 
 Read the live contract: Dropdown exposes trigger="hover". [ActionGroup](../../react_ui/components/action-group.md) has its own dropdownProps mapping. Select, Cascader and date pickers remain click-operated form controls; Popconfirm remains an explicit click confirmation.
 
 Preserve a source-defined grouped create menu as one Dropdown trigger with its ordered menu choices. Discover `children`, `menuItems`/`menuItemsJson`, `useMenuItemsSlot` and `onAction` from the installed contract; a list of possible destinations is not permission to replace the menu with sibling Buttons. Shared tabbed-list actions follow [the Tabs extra ownership rule](../../overseas/compositions/search-table.md#query-and-list-structure).
 
-## Trigger appearance
+### Trigger appearance
 
 Use a stable trigger treatment for each interaction role. For an ordinary hover/click Dropdown opened by a **text Button**, always show one trailing registered `DownOutlined` indicator. Keep it present in both open and closed states and when permission filtering leaves only one menu choice. A leading action icon, such as `PlusOutlined` for creation, does not replace this indicator. A direct-action Button without a menu has no dropdown indicator. Icon-only More triggers already communicate a menu; shared ActionGroup/AppShell controls keep their own native indicators without an additional one. An actual contextMenu/right-click entry does not require this button treatment.
 

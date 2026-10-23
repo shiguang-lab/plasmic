@@ -10,9 +10,11 @@ Library: [Ant Design v6](../index.md).
 | Typography.Text | `plasmic-antd6-typography-text` |
 | Typography.Title | `plasmic-antd6-typography-title` |
 
-## Text
+## Generation rules
 
-### Supporting text hierarchy
+### Text
+
+#### Supporting text hierarchy
 
 Classify text by its role before composition. Neutral supporting descriptions use the theme's **secondary** description hierarchy, whether they appear beside/below a control, under an editor, in a Card, or as a caption/usage constraint. This includes format/range instructions, SQL/data restrictions, supplementary context and routine explanatory notes. Their position does not change their hierarchy. Primary text is reserved for headings, labels and actual business values/content; do not mute a required value merely because it appears in a description region. Error, warning and success feedback retain their native semantic treatment; secondary is not a replacement for feedback colors.
 
@@ -22,7 +24,7 @@ Before generation/editing, inventory supporting text roles, expected text/bindin
 
 For standalone native headings and component-title composition, read [information headings](../compositions/summary-metrics.md#heading-composition).
 
-## Title, Paragraph, Link and Typography
+### Title, Paragraph, Link and Typography
 
 Title owns the intended heading level through its actual level contract. Choose it from the page's semantic hierarchy, then apply supported theme/style sizing; an arbitrary large Text is not an equivalent heading. Paragraph is complete prose with wrapping and any supported copyable/ellipsis behavior. Link has a real href/target and navigational meaning; do not replace local actions with a decorative link whose target is fabricated. Typography is the family container, not another surface or a second heading model.
 

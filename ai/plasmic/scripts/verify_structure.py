@@ -58,7 +58,7 @@ def menu_tree(items):
 def check_components(nodes, path, plan=None):
     errors = []
     for node in nodes:
-        context = {"check": "component", "path": path, "node": node_name(node)}
+        context = {"check": "component", "path": path, "node": node_name(node), "registration": identity(node)}
         if identity(node) == "plasmicantd6dropdown":
             values = props(node)
             if not matches_props("contextMenu", values.get("trigger")):
@@ -128,7 +128,7 @@ def check_components(nodes, path, plan=None):
                     n.get("tag") == "plasmic-component" for n in walk(slot(column, "render") or {"children": []})
                 ):
                     errors.append({**context, "column": node_name(column), "message": "Column requires a dataIndex or nonempty render Slot"})
-            errors.extend(table_width_errors(node, columns, context))
+            errors.extend(table_width_errors(node, columns, {**context, "check": "tableWidth"}))
         if identity(node) == "plasmicantd6card":
             children = slot(node, "children")
             # A SearchForm already owns its surface. Layout-only wrappers do not
@@ -185,21 +185,27 @@ def table_width_errors(table, columns, context):
     including operations. Rendered widths, header wrapping and horizontal
     scrolling still need layout evidence.
     """
-    errors, widths, unset = [], [], []
+    entries = []
     for column in columns:
-        name = node_name(column)
-        if "width" not in props(column):
+        title = slot(column, "title")
+        entries.append((node_name(column), props(column), " ".join(content(title).split()) if title else ""))
+    return column_width_errors(props(table), entries, context)
+
+
+def column_width_errors(table_props, entries, context):
+    """Shared by the saved-model gate and plan preflight: entries are (name, props, title)."""
+    errors, widths, unset = [], [], []
+    for name, values, text in entries:
+        if values.get("width") is None:
             unset.append(name)
             continue
-        width = static_literal(props(column)["width"])
+        width = static_literal(values["width"])
         if not pixel_number(width):
-            errors.append({**context, "column": name, "actual": props(column)["width"],
+            errors.append({**context, "column": name, "actual": values["width"],
                            "message": "Column.width must be a literal positive pixel number; strings and bindings do not size native columns reliably"})
             continue
         widths.append(width)
-        title = slot(column, "title")
-        text = " ".join(content(title).split()) if title else ""
-        padding = 16 if props(table).get("size", "large") == "large" else 8
+        padding = 16 if table_props.get("size", "large") == "large" else 8
         if text and estimated_title_width(text) + 2 * padding > width:
             errors.append({**context, "column": name, "title": text, "width": width,
                            "requiredEstimate": estimated_title_width(text) + 2 * padding,
@@ -209,10 +215,10 @@ def table_width_errors(table, columns, context):
     if len(unset) != 1:
         errors.append({**context, "unsetColumns": unset,
                        "message": "Exactly one main text Column (name/title/description) must leave width unset to absorb remaining space; all other Columns use explicit widths"})
-    scroll_x = literal_scroll_x(props(table).get("scroll"))
+    scroll_x = literal_scroll_x(table_props.get("scroll"))
     fixed_sum = sum(widths)
     if not pixel_number(scroll_x) or scroll_x <= fixed_sum:
-        errors.append({**context, "scrollX": props(table).get("scroll"), "fixedWidthSum": fixed_sum,
+        errors.append({**context, "scrollX": table_props.get("scroll"), "fixedWidthSum": fixed_sum,
                        "message": "Table with explicit Column widths requires numeric scroll.x = explicit widths + the main text Column baseline; otherwise the wrapper's max-content default makes widths minimums"})
     return errors
 
@@ -263,7 +269,9 @@ def matches_props(expected, actual):
         return value
     expected, actual = static(expected), static(actual)
     if isinstance(expected, dict):
-        return isinstance(actual, dict) and all(k in actual and matches_props(v, actual[k]) for k, v in expected.items())
+        # A planned null is a deliberate "leave unset" decision: the prop must be absent.
+        return isinstance(actual, dict) and all(actual.get(k) is None if v is None else k in actual and matches_props(v, actual[k])
+                                                for k, v in expected.items())
     if isinstance(expected, list):
         return isinstance(actual, list) and len(expected) == len(actual) and all(matches_props(a, b) for a, b in zip(expected, actual))
     return json.dumps(expected, sort_keys=True) == json.dumps(actual, sort_keys=True)
@@ -399,10 +407,10 @@ def check_required_nodes(plan, nodes, page, path):
             errors.append({"check": "nativeComponent", "path": path, "node": spec.get("nodeName"), "expected": spec.get("component"), "message": "Required source region must use the registered component; HTML tables, grids or styled text are not replacements"})
         if node is None:
             continue
-        context = {"check": "componentUse", "path": path, "node": spec["nodeName"]}
+        context = {"check": "componentUse", "path": path, "node": spec["nodeName"], "registration": spec.get("component")}
         values, role = props(node), spec.get("role", "widget")
         if not matches_props(spec.get("props", {}), values):
-            errors.append({**context, "message": "Native props differ from the reviewed property constraints", "properties": [key for key, value in spec["props"].items() if key not in values or not matches_props(value, values[key])]})
+            errors.append({**context, "message": "Native props differ from the reviewed property constraints (null means deliberately unset)", "properties": [key for key, value in spec["props"].items() if not matches_props({key: value}, values)]})
         for prop in spec.get("dynamicProps", []):
             encoded = json.dumps(prop_at(values, prop), ensure_ascii=False)
             if "{{" not in encoded or "}}" not in encoded:

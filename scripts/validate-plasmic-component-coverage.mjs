@@ -3,6 +3,7 @@ import { readFile, readdir } from "node:fs/promises";
 import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { headingIds } from "./validate-plasmic-references.mjs";
 
 // Bundle validation needs only the index and document metadata. The source CLI
 // additionally checks those records against the actual registerAll calls.
@@ -26,6 +27,7 @@ export function validateComponentReferences(files, registrations = []) {
         indexed.set(key[1], { document, caption: row[2] });
       }
     }
+    validateRulesManifest(resources, directory, indexed);
     if (library === "antd_icons") {
       assert(index.includes("`plasmic-antd-icon-*`"), "Missing icon catalog coverage");
       libraries++;
@@ -62,6 +64,40 @@ export function validateComponentReferences(files, registrations = []) {
     for (const name of covered.keys()) assert(actual.has(name), `Unknown documented registration: ${name}`);
   }
   return { libraries, registrations: covered.size };
+}
+
+// rules.json is the machine-readable owner map. It must mirror the catalog
+// exactly, and every decision/check must resolve to a real heading.
+function validateRulesManifest(resources, directory, indexed) {
+  const source = resources.get(`${directory}/rules.json`);
+  if (source === undefined) return; // Markdown-only bundles (source CLI checks) skip it.
+  const manifest = JSON.parse(source);
+  const resolve = (target) => {
+    const [file, anchor] = target.split("#");
+    const document = path.posix.join(directory, file);
+    assert(resources.has(document), `Missing rules.json target: ${document}`);
+    assert(!anchor || headingIds(resources.get(document)).has(anchor), `Missing rules.json anchor: ${target}`);
+    return document;
+  };
+  for (const target of Object.values(manifest.prefixes || {})) resolve(target);
+  for (const target of Object.values(manifest.checks || {})) resolve(target);
+  const listed = new Map();
+  for (const [file, entry] of Object.entries(manifest.documents || {})) {
+    const document = resolve(file);
+    const content = resources.get(document);
+    for (const key of entry.registrations) listed.set(key, document);
+    const decisions = Object.entries(entry.decisions || {});
+    assert.equal(content.includes("\n## Plan decisions\n"), decisions.length > 0, `Plan decisions section must match rules.json: ${document}`);
+    for (const [key, items] of decisions) {
+      assert(entry.registrations.includes(key), `Decision for a foreign registration: ${key}`);
+      for (const item of items) {
+        assert(headingIds(content).has(item.rule), `Missing decision anchor: ${document}#${item.rule}`);
+        assert(content.includes(`| \`${key}\` | \`${item.prop}\``), `Plan decisions table omits ${key} ${item.prop}: ${document}`);
+      }
+    }
+  }
+  for (const [key, entry] of indexed) assert.equal(listed.get(key), entry.document, `rules.json ownership mismatch: ${key}`);
+  for (const key of listed.keys()) assert(indexed.has(key), `rules.json lists an unindexed registration: ${key}`);
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
@@ -103,7 +139,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     for (const entry of await readdir(path.join(repo, "ai/plasmic", directory), { withFileTypes: true })) {
       const name = path.posix.join(directory, entry.name);
       if (entry.isDirectory()) await visit(name);
-      else if (entry.name.endsWith(".md")) files.push({ path: name, content: await readFile(path.join(repo, "ai/plasmic", name), "utf8") });
+      else if (entry.name.endsWith(".md") || entry.name === "rules.json") files.push({ path: name, content: await readFile(path.join(repo, "ai/plasmic", name), "utf8") });
     }
   }
   await visit("references/libraries");

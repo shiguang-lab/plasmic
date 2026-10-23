@@ -6,7 +6,9 @@ Library: [Overseas](../index.md).
 | --- | --- |
 | AppShell | `plasmic-overseas-app-shell` |
 
-## Standalone Page boilerplate
+## Generation rules
+
+### Standalone Page boilerplate
 
 Start from the [golden boilerplate](../../../design/layout.md#standalone-appshell-golden-boilerplate): keep the Page's existing default root and insert AppShell directly, with business content in `children`. AppShell's outer DOM owns `width:100%; height:var(--viewport-height, 100vh); min-width:0; min-height:0; flex-shrink:0`; registration defaults remain `width:100%; height:100vh`. The Studio variable anchors height to the authored viewport while its iframe measures content; Preview/export use the live viewport fallback. Do not append another sizing wrapper or configure ancestor heights to fill the shell. Reuse the existing shell when the host owns navigation.
 
@@ -14,7 +16,7 @@ For a standalone admin preview use the registered `plasmic-overseas-app-shell` c
 
 Use [viewport/layout rules](../../../design/layout.md) for component-owned sizing, bounded scrolling and target device geometry. The shell fills viewport height independently of the Page root height. Apply the [shell height gate and Preview acceptance](../../../design/layout.md#viewport-shell-height-acceptance) before delivery and after save/reload.
 
-## App source context
+### App source context
 
 Recognize App 来源, App Source, app_source, appSource, appId/app_id/application_id, app_name, 应用标识/应用名称, multi-App requirements and equivalent identifiers of the current work App. Record a source-backed `appContext` decision using the [context inventory](../../../design/component-policy.md#app-context-inventory). When the requirement distinguishes Apps, keep the native header AppSource control. “No App source filter/form option” removes the business field, not the shell's working context. Only an explicit current instruction excluding the top-level/global switcher overrides this baseline; do not infer it from a SQL validation or form-field restriction. A generic application title alone does not establish multiple working Apps; resolve that semantic distinction from the source.
 
@@ -22,7 +24,7 @@ Populate `appSources` from the requirement/authorized configuration, not demo de
 
 Inventory in-scope consumers and verify app-switch plus their context-data/create/export/navigation cases. Check initial entry, option authorization, switched data, new-object source, export target, and supported direct entry/back navigation. Keep switcher context separate from business filter reset. One authorized App is not permission to fabricate another; show its real identity and report unavailable switching coverage. Cross-page persistence follows the actual host/router contract below.
 
-## Menu routes and context
+### Menu routes and context
 
 `menuItems` is the real registered array prop. Prefer a static complete tree when destinations and visibility are static. The shell uses `pagePath` for selection/breadcrumbs and passes each `href` to the host's Plasmic Link; it does not append the current query or transfer role/environment state itself. `appSource` and `language` controls do not establish cross-page persistence.
 

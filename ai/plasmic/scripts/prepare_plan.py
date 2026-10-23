@@ -11,6 +11,7 @@ import hashlib
 import json
 from pathlib import Path
 import re
+import shlex
 
 from verify_component_policy import case_groups, source_text
 
@@ -164,15 +165,15 @@ def example(directory):
             component('Filters', 'plasmic-overseas-search-form', 'query', query, 'overseas/components/search-form.md', props={'colSpan': 6}),
             component('Keyword', 'plasmic-overseas-search-form-item', 'widget', query, 'overseas/components/search-form.md', props={'name': 'keyword', 'label': '关键词'}, owner={'nodeName': 'Filters', 'slot': 'children'}),
             component('KeywordInput', 'plasmic-antd6-input', 'widget', query, 'antd_v6/components/input.md', owner={'nodeName': 'Keyword', 'slot': 'children'}),
-            component('Results', 'plasmic-antd6-table', 'pagination', paging, 'antd_v6/components/table.md', props={'pagination': {'defaultPageSize': 20, 'pageSizeOptions': [20, 50], 'showSizeChanger': True}}),
-            component('NameColumn', 'plasmic-antd6-table-column', 'widget', query, 'antd_v6/components/table.md', props={'dataIndex': 'name'}, owner={'nodeName': 'Results', 'slot': 'children'}),
-            component('StateColumn', 'plasmic-antd6-table-column', 'status', status, 'antd_v6/components/badge.md', props={'dataIndex': 'status', 'displayType': 'custom'}, owner={'nodeName': 'Results', 'slot': 'children'}),
+            component('Results', 'plasmic-antd6-table', 'pagination', paging, 'antd_v6/components/table.md', props={'pagination': {'defaultPageSize': 20, 'pageSizeOptions': [20, 50], 'showSizeChanger': True}, 'scroll': {'x': 468}}),
+            component('NameColumn', 'plasmic-antd6-table-column', 'widget', query, 'antd_v6/components/table.md', props={'dataIndex': 'name', 'displayType': 'text', 'width': None}, owner={'nodeName': 'Results', 'slot': 'children'}),
+            component('StateColumn', 'plasmic-antd6-table-column', 'status', status, 'antd_v6/components/badge.md', props={'dataIndex': 'status', 'displayType': 'custom', 'width': 128}, owner={'nodeName': 'Results', 'slot': 'children'}),
             component('StateBadge', 'plasmic-antd6-badge', 'status', status, 'antd_v6/components/badge.md',
                       props={'options': [{'value': 'ACTIVE', 'label': '启用', 'status': 'success'},
                                          {'value': 'INACTIVE', 'label': '停用', 'status': 'default'}]},
                       dynamicProps=['value'], owner={'nodeName': 'StateColumn', 'slot': 'render'}),
-            component('ActionColumn', 'plasmic-antd6-table-column', 'widget', action, 'react_ui/components/action-group.md', props={'fixed': 'right', 'width': 100}, owner={'nodeName': 'Results', 'slot': 'children'}),
-            component('RowActions', 'plasmic-react-ui-action-group', 'row-actions', action, 'react_ui/components/action-group.md', owner={'nodeName': 'ActionColumn', 'slot': 'render'})],
+            component('ActionColumn', 'plasmic-antd6-table-column', 'widget', action, 'react_ui/components/action-group.md', props={'fixed': 'right', 'width': 100, 'displayType': 'custom'}, owner={'nodeName': 'Results', 'slot': 'children'}),
+            component('RowActions', 'plasmic-react-ui-action-group', 'row-actions', action, 'react_ui/components/action-group.md', props={'max': 3}, owner={'nodeName': 'ActionColumn', 'slot': 'render'})],
         'bindings': [{'nodeName': 'Results', 'source': str(source), 'dynamicProps': ['data'], 'props': ['data'], 'propStateDependencies': {'data': ['rows', 'appliedFilters', 'viewer']}},
                      {'nodeName': 'Filters', 'source': str(source), 'events': ['onSearch', 'onReset']},
                      {'nodeName': 'RowActions', 'source': str(source), 'dynamicProps': ['items'],
@@ -220,9 +221,87 @@ def example(directory):
     return path
 
 
+def rules(plan, route, ledger, stage='compose'):
+    """Per-Page reading card: exact reader commands for every required section."""
+    from read_reference import select
+    from verify_selection import RESOURCE_ROOT, required_reads
+    page = page_at(plan, route)
+    reads, total = [], 0
+    for path, anchors in sorted(required_reads(page, stage).items()):
+        absolute = RESOURCE_ROOT / path
+        command = ['python3', str(RESOURCE_ROOT / 'scripts/read_reference.py'), str(absolute)]
+        for anchor in sorted(anchors or ()):
+            command += ['--section', anchor]
+        command += ['--log', str(Path(ledger).resolve())]
+        content = absolute.read_text(encoding='utf-8')
+        size = len((select(content, sorted(anchors)) if anchors else content).encode())
+        total += size
+        reads.append({'rule': path, 'sections': sorted(anchors) if anchors is not None else 'full', 'bytes': size,
+                      'command': ' '.join(shlex.quote(part) for part in command), 'args': command})
+    follow = ('verify_selection.py PLAN --page ' + route + ' --reads ' + str(Path(ledger).resolve())
+              if stage == 'compose' else 'saved-output review of every listed rule')
+    # Large cards are a signal to compose this Page in a fresh context, never to skip reads.
+    return {'page': route, 'stage': stage, 'reads': reads, 'totalBytes': total, 'handoffRecommended': total > 49152,
+            'next': 'Run every command, apply each document\'s hard constraints and decision rows, then ' + follow}
+
+
+def set_path(values, path, value):
+    keys = path.split('.')
+    for key in keys[:-1]:
+        values = values.setdefault(key, {})
+        if not isinstance(values, dict):
+            raise ValueError('Cannot scaffold nested decision under a non-object prop: ' + path)
+    values.setdefault(keys[-1], value)
+
+
+def scaffold(minimal):
+    """Add rule owners, baselines and "__DECIDE__" slots; never business values."""
+    from rules_manifest import PENDING, decisions_for, document_for, manifest
+    result = copy.deepcopy(minimal)
+    if not isinstance(result.get('pages'), list) or not result['pages']:
+        raise ValueError('Minimal plan needs pages:[{path, components:[...]}]')
+    for page in result['pages']:
+        if not isinstance(page.get('path'), str) or not page['path'].startswith('/'):
+            raise ValueError('Every Page needs its exact absolute route path')
+        components = page.get('components')
+        if not isinstance(components, list) or not components:
+            raise ValueError(page['path'] + ': list the planned functional instances in components')
+        for spec in components:
+            if not isinstance(spec, dict) or not all(isinstance(spec.get(k), str) and spec[k].strip() for k in ('nodeName', 'component', 'role')):
+                raise ValueError(page['path'] + ': each component needs nodeName, component and role')
+            owner = document_for(spec['component'])
+            if 'rule' not in spec:
+                if not owner:
+                    raise ValueError(f"{spec['nodeName']}: no rule owner for {spec['component']}; supply rule explicitly")
+                spec['rule'] = owner
+            for key in ('purpose', 'source'):
+                spec.setdefault(key, PENDING)
+            if spec['role'] in ('surface', 'persistent-feedback'):
+                spec.setdefault('condition', PENDING)
+            props = spec.setdefault('props', {})
+            for item in decisions_for(spec['component']):
+                set_path(props, item['prop'], item.get('baseline', PENDING))
+        roles = {spec['role'] for spec in components}
+        for key in manifest()['pageDecisions']:
+            if key == 'appContext' and 'shell' not in roles or key in ('rowActions', 'actionContracts') and 'row-actions' not in roles:
+                continue
+            page.setdefault(key, PENDING)
+    from verify_selection import pending_pointers
+    pending = sum(1 for _ in pending_pointers(result))
+    return result, pending
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest='command', required=True)
+    card = commands.add_parser('rules', help='List the reference sections the Page plan requires, with reader commands')
+    card.add_argument('plan', type=Path)
+    card.add_argument('--page', required=True)
+    card.add_argument('--ledger', type=Path, required=True)
+    card.add_argument('--stage', choices=('compose', 'accept'), default='compose')
+    build = commands.add_parser('scaffold', help='Add rule owners, baselines and __DECIDE__ slots to a minimal declaration list')
+    build.add_argument('plan', type=Path)
+    build.add_argument('--output', type=Path, required=True)
     demo = commands.add_parser('example', help='Write a runnable format fixture into a new local directory')
     demo.add_argument('directory', type=Path)
     ev = commands.add_parser('evidence', help='Emit a native file hash and verified exact quote')
@@ -251,6 +330,15 @@ def main():
             result = {'plan': str(example(args.directory)), 'preflight': 'passed', 'runtimeAcceptance': 'unverified'}
         elif args.command == 'evidence':
             result = evidence(args.source, args.quote)
+        elif args.command == 'rules':
+            result = rules(json.loads(args.plan.read_text(encoding='utf-8')), args.page, args.ledger, args.stage)
+            for read in result['reads']:
+                read.pop('args')
+        elif args.command == 'scaffold':
+            plan, pending = scaffold(json.loads(args.plan.read_text(encoding='utf-8')))
+            write_new(args.output, plan)
+            result = {'output': str(args.output.resolve()), 'pendingDecisions': pending,
+                      'next': 'Replace every "__DECIDE__" from the source and the rule in the same declaration, then run rules --stage compose and verify_selection.py --reads'}
         elif args.command == 'show':
             result = fragment(json.loads(args.file.read_text(encoding='utf-8')), args.pointer)
         elif args.command == 'runtime-manifest':

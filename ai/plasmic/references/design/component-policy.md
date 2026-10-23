@@ -28,7 +28,7 @@ Use the same task-local `components` inventory, real prop names and native owner
 }
 ```
 
-The checker reads the real file and exact excerpt, verifies its hash and recognizes explicit native property/value constraints or the supported equivalent layout wording. A citation saying only “keyword search” cannot approve span12. State the real requirement, not a statement authored afterward to justify output. If a genuine source decision cannot be represented by the bounded checker, report that concrete limitation; do not edit the source quote or weaken the gate. Source meaning and source conflicts still require review.
+The checker reads the real file and exact excerpt, verifies its hash and recognizes explicit native property/value constraints or the supported equivalent layout wording. A citation saying only “keyword search” cannot approve span12. State the real requirement, not a statement authored afterward to justify output. If a genuine source decision cannot be represented by the bounded checker, report that concrete limitation under [evidence integrity](../verification.md#evidence-integrity). Source meaning and source conflicts still require review.
 
 `verify_selection.py` checks the policy before writes; `verify_structure.py` checks the saved values independently of the proposed `props`. Updating `props` to match wrong output cannot authorize an exception. Requirement evidence is included in the unified runner's pinned inputs; source changes invalidate the review.
 
@@ -75,7 +75,7 @@ In existing cases, `given` records real setup, input values, selected record/con
 
 ### Native assertion examples
 
-The following **case fragment** illustrates an assumed source: live total = quantity × unit price, displayed in a read-only textbox to two decimals; copying ITEM-001 twice allocates ITEM-002 and ITEM-003. These are fixture rules, not platform defaults or rules for another requirement. Supply each case's real source `evidence` (or inherit it within an action contract), native owners and complete Page inventory before preflight; use the [runnable format example](../libraries/antd_v6/selection.md#runnable-plan-format-and-mechanical-preparation) for the envelope.
+The following **case fragment** illustrates an assumed source: live total = quantity × unit price, displayed in a read-only textbox to two decimals; copying ITEM-001 twice allocates ITEM-002 and ITEM-003. These are fixture rules, not platform defaults or rules for another requirement. Supply each case's real source `evidence` (or inherit it within an action contract), native owners and complete Page inventory before preflight; use the [runnable format example](../planning.md#format-example-and-mechanical-helpers) for the envelope.
 
 ```json
 [
@@ -85,7 +85,7 @@ The following **case fragment** illustrates an assumed source: live total = quan
 ]
 ```
 
-The row count assumes one visible header plus three data rows in this isolated table fixture. Derive counts from the actual component/fixture. `checks.value` is a string. Use current snapshot roles/names; `nodeName` identifies the planned owner and does **not** scope a DOM assertion. Resolve ambiguous/hidden/virtualized content through the real UI, not diagnostic controls added to the business page. Native assertions support exact text/value/count/visibility, not arbitrary regex, uniqueness or arithmetic operators: choose concrete expected results for each fixture. Do not insert unsupported assertion fields or weaken expectations to match output. Preserve setup and observations when an outcome cannot be asserted; report it unverified.
+The row count assumes one visible header plus three data rows in this isolated table fixture. Derive counts from the actual component/fixture. `checks.value` is a string. Use current snapshot roles/names; `nodeName` identifies the planned owner and does **not** scope a DOM assertion. Resolve ambiguous/hidden/virtualized content through the real UI, not diagnostic controls added to the business page. Native assertions support exact text/value/count/visibility, not arbitrary regex, uniqueness or arithmetic operators: choose concrete expected results for each fixture. Do not insert unsupported assertion fields. Preserve setup and observations when an outcome cannot be asserted; report it unverified.
 
 A prototype implements executable behavior within its declared data scope. It can detect collisions among available records and reject conflicts; true global uniqueness, concurrent writes, authorization and external jobs require the real service. Missing service access is a reported boundary, not permission to omit local calculations/guards or claim global acceptance. Keep live execution in the [Preview review](../workflows/prototype.md#final-preview-review); native trace matching verifies executed assertions, not the completeness of the source-derived cases.
 
@@ -93,11 +93,12 @@ A prototype implements executable behavior within its declared data scope. It ca
 
 ### Plan fields and case kinds
 
-These are fields of the **existing structure inventory**, not an additional checklist or component API. Generate a runnable complete format example with the [selection preparation helper](../libraries/antd_v6/selection.md#runnable-plan-format-and-mechanical-preparation); the fragments below illustrate individual decisions only.
+These are fields of the **existing structure inventory**, not an additional checklist or component API. Generate a runnable complete format example with the [selection preparation helper](../planning.md#format-example-and-mechanical-helpers); the fragments below illustrate individual decisions only.
 
 | Native location/key | Shape and meaning |
 | --- | --- |
 | Root `pages` | Array of Page objects; each has exact absolute route `path` and native `components` inventory. A fragment without `path` is not a full Page preflight. |
+| Decision values | `"__DECIDE__"` marks a [plan decision](../planning.md#plan-decisions) still pending and always fails preflight. `null` on a decided prop means deliberately unset; the saved-model gate then requires it to be absent. |
 | `components[*]` | `nodeName`, registered `component`, semantic `role`, source-derived `purpose`, citation `source`, resource-relative `rule`; existing native `props`, `dynamicProps` and `owner:{nodeName,slot}` constrain the same model. Use the selection decision table for exact roles. |
 | `templates` | Existing template selections/capture evidence; see [template sources](../admin-templates.md#source-evidence-before-composition). No-fit uses `templates:[]` plus a source-reviewed `templatesNotApplicable`, never an omitted read. |
 | `feedback` | Array, including `[]` if no operation feedback. Entries need `nodeName`, native `event`, `kind:transient/asynchronous`, `source`, `success`, `failure`. |

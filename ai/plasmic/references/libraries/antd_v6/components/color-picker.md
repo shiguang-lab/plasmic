@@ -6,9 +6,11 @@ Library: [Ant Design v6](../index.md).
 | --- | --- |
 | Color Picker | `plasmic-antd6-color-picker` |
 
+## Generation rules
+
 ColorPicker updates its value on change while preserving the separate completion callback. For wrapper changes, verify value updates and completion callback timing separately against the installed Ant Design version.
 
-## Value and acceptance
+### Value and acceptance
 
 Read the wrapper's serialized color/state/event shape and supported format, disabled, allowClear, trigger and displayed-text controls. A native Color object and the business's stored color string are different contracts; do not infer the payload from the visible label. Use a color field only when users actually configure color, rather than replacing theme-owned semantic status colors.
 

@@ -58,6 +58,20 @@ Call `snapshot_layout` directly for each Page without `navigate`:
 
 This pins a background canvas without changing the active arena/selection. Check frame readiness and truncation. Use [rendered inspection](desktop-inspection.md) for actual Preview interactions.
 
+Call `get_screenshot` directly for a content review that includes nested scroll regions:
+
+```json
+{"componentUuid":"page-uuid","fullContent":true}
+```
+
+To capture only an expanded section, use its model element UUID:
+
+```json
+{"componentUuid":"page-uuid","elementUuid":"section-uuid","fullContent":true}
+```
+
+Full-content captures default to original-size lossless pixels. Read the returned `fullContent` coverage and limitations; virtualized items absent from the DOM still require Preview scrolling. For viewport layout review, omit `fullContent`. See [rendered inspection](desktop-inspection.md#geometry-and-static-screenshots) for mode restrictions and size limits.
+
 For a standalone Overseas/Antd-v6 AppShell Page, keep the default root returned by `createComponent` and insert the shell directly. AppShell owns `width:100%` and `height:100vh` on its outer DOM; no root-height or shell percentage-height mutation is needed. Use the [golden boilerplate](design/layout.md#standalone-appshell-golden-boilerplate) and measure the rendered shell after content edits.
 
 New IDs can be bound and used in the same batch:

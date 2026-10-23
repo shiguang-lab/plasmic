@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "library": "overseas",
+  "purpose": "Machine-readable rule owners: registration -> document, plan decisions and gate check anchors. Paths are relative to this library directory.",
+  "documents": {
+    "components/app-shell.md": {
+      "registrations": [
+        "plasmic-overseas-app-shell"
+      ]
+    },
+    "components/search-form.md": {
+      "registrations": [
+        "plasmic-overseas-search-form-item",
+        "plasmic-overseas-search-form"
+      ],
+      "decisions": {
+        "plasmic-overseas-search-form": [
+          {
+            "prop": "colSpan",
+            "nullable": false,
+            "rule": "布局与状态",
+            "note": "6 (four columns) by default; 8 only for a multi-row three-column draft; other values need a source override."
+          }
+        ]
+      }
+    }
+  },
+  "checks": {
+    "searchFormLayout": "components/search-form.md#布局与状态",
+    "searchFieldSpan": "components/search-form.md#布局与状态",
+    "searchFieldLabel": "components/search-form.md#searchformitem"
+  }
+}

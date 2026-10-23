@@ -1,16 +1,18 @@
 # Descriptions + Statistic + Card
 
+## Generation rules
+
 Applies to [Ant Design v6](../index.md) registrations and theme behavior. Select the matching project library through the [library index](../../index.md) before using this recipe; another library or major requires its own verified composition rules.
 
 Read [Typography Text](../components/typography.md#text) for supporting-text hierarchy, [Descriptions](../components/descriptions.md) for read-only fields and its inventory gate, [Statistic](../components/statistic.md) for numeric content, and [Badge](../components/badge.md) for status. This file owns region selection, metric arrangements and heading composition.
 
-## Read-only and editable regions
+### Read-only and editable regions
 
 Choose components from each region's information role before generating markup. A group of read-only label/value fields uses the installed Descriptions component, including summaries inside create/edit pages, Drawers and confirmations. Mixed regions compose Descriptions alongside Form/Form.Item for editable values; being on an edit page does not make the read-only summary ordinary text. Keep necessary user-facing help as text, entity names in the information group, and emphasized metrics in Statistic. A standalone entity header requires the explicit user request described in the [header recipe](detail-header.md). Requirement rationale and implementation commentary stay outside the UI.
 
 Descriptions owns each read-only group’s title and fields. The outer Card/layout owns spacing between that group and an adjacent [Form](../components/form.md); inspect each region’s independent inventory and binding values. Keep narrative/help, entity headings and metrics in their intended roles rather than concatenating all information into one text block.
 
-## Overview metrics and information cards
+### Overview metrics and information cards
 
 Before generation, record each field's source, role (label/value/unit/comparison/section heading), applicable types, empty-state meaning and action destination in the task plan. Choose the composition from these roles and the available content width; do not derive it from a previous generated screenshot. Business field names, mock values and page-specific card arrangements stay in the task workspace.
 
@@ -39,7 +41,7 @@ Derive all regions from consistent data/state. Do not invent comparisons without
 
 Cover populated values, legitimate zero/empty data, absent comparison baseline, type-specific hidden fields and longest relevant content where applicable. Exercise Tooltip hover/focus and actual summary actions. Record model, geometry, visual review and interaction conclusions separately. Fix the generation source when a rule fails, rather than declaring acceptance from a one-off model patch.
 
-## Heading composition
+### Heading composition
 
 Use a registered component's actual heading Slot when the heading belongs to that component, such as Descriptions title, Card title or Modal title. Keep text editable and let the installed Ant Design theme own its typography and internal spacing. Do not nest a styled native heading inside the Slot or place a duplicate heading beside it to imitate the component. A separately composed business section may use an appropriate semantic heading. This does not authorize a standalone Page heading; the [admin content-entry rule](../../../design/layout.md#admin-content-entry) applies first. Different legitimate heading roles retain their own scale.
 

@@ -5,6 +5,7 @@ Does not infer business meaning from labels, execute JS or certify Preview.
 Uses the existing structure inventory, not a second component prop model.
 """
 import argparse
+import hashlib
 import json
 import re
 from collections import Counter
@@ -13,6 +14,7 @@ from verify_forms import TextTree, walk, identity, node_name, props, slot, conte
 import verify_component_policy
 import verify_templates
 import verify_content
+import rules_manifest
 
 
 def norm(value):
@@ -201,6 +203,107 @@ def category_errors(spec, node, declarations):
     return []
 
 
+MISSING = object()
+
+
+def prop_value(values, path):
+    for key in path.split('.'):
+        if not isinstance(values, dict) or key not in values:
+            return MISSING
+        values = values[key]
+    return values
+
+
+def pending_pointers(value, pointer=''):
+    if value == rules_manifest.PENDING:
+        yield pointer
+    elif isinstance(value, dict):
+        for key, child in value.items():
+            yield from pending_pointers(child, f"{pointer}/{str(key).replace('~', '~0').replace('/', '~1')}")
+    elif isinstance(value, list):
+        for index, child in enumerate(value):
+            yield from pending_pointers(child, f'{pointer}/{index}')
+
+
+def decision_errors(plan):
+    """Generic, manifest-driven: no pending slots, every declared decision made."""
+    errors = []
+    declarations = plan.get('components') if isinstance(plan.get('components'), list) else []
+    page_rules = rules_manifest.manifest()['pageDecisions']
+    for pointer in pending_pointers(plan):
+        parts = pointer.split('/')
+        rule = page_rules.get(parts[1]) if len(parts) > 1 else None
+        if len(parts) > 3 and parts[1] == 'components' and parts[2].isdigit() and int(parts[2]) < len(declarations) and isinstance(declarations[int(parts[2])], dict):
+            spec = declarations[int(parts[2])]
+            prop = '.'.join(p.replace('~1', '/').replace('~0', '~') for p in parts[4:]) if parts[3] == 'props' else None
+            item = next((d for d in rules_manifest.decisions_for(spec.get('component', '')) if d['prop'] == prop), None)
+            rule = rules_manifest.decision_rule(spec['component'], item) if item else rules_manifest.document_for(spec.get('component', ''))
+        errors.append({'check': 'decisionPending', 'pointer': pointer,
+                       'rule': rule or rules_manifest.manifest()['checks']['decisionPending'],
+                       'message': 'Replace the scaffolded "__DECIDE__" value from the source and the owning rule before markup'})
+    for i, spec in enumerate(declarations):
+        if not isinstance(spec, dict):
+            continue
+        values = spec.get('props') if isinstance(spec.get('props'), dict) else {}
+        for item in rules_manifest.decisions_for(spec.get('component', '')):
+            value = prop_value(values, item['prop'])
+            if value is MISSING or value is None and not item.get('nullable'):
+                errors.append({'check': 'planDecision', 'pointer': f'/components/{i}/props/' + item['prop'].replace('.', '/'),
+                               'node': spec.get('nodeName'), 'prop': item['prop'], 'nullable': bool(item.get('nullable')),
+                               **({'baseline': item['baseline']} if 'baseline' in item else {}),
+                               'rule': rules_manifest.decision_rule(spec['component'], item),
+                               'message': 'Declare this native prop before markup' + ('; null means deliberately unset' if item.get('nullable') else '')})
+    return errors
+
+
+def table_plan_errors(declarations):
+    """Freeze the Table width contract in the plan, before markup.
+
+    Applies the saved-model gate's rules to declared Column props, and checks
+    that the width-free main Column is ordinary text rather than a status,
+    category or operation Column. Rendered widths still need layout evidence.
+    """
+    from verify_structure import column_width_errors
+    errors = []
+    def owned(owner, slot_name='children'):
+        return [(i, c) for i, c in enumerate(declarations) if isinstance(c.get('owner'), dict)
+                and c['owner'].get('nodeName') == owner and c['owner'].get('slot', 'children') == slot_name]
+    def values(spec):
+        return spec.get('props') if isinstance(spec.get('props'), dict) else {}
+    action_columns = {c['owner'].get('nodeName') for c in declarations
+                      if c.get('role') == 'row-actions' and isinstance(c.get('owner'), dict)}
+    for t_index, table in enumerate(declarations):
+        if norm(table.get('component', '')) != 'plasmicantd6table':
+            continue
+        leaves = []
+        for i, child in owned(table.get('nodeName')):
+            key = norm(child.get('component', ''))
+            if key == 'plasmicantd6tablecolumngroup':
+                leaves += [(j, c) for j, c in owned(child.get('nodeName')) if norm(c.get('component', '')) == 'plasmicantd6tablecolumn']
+            elif key == 'plasmicantd6tablecolumn':
+                leaves.append((i, child))
+        if not leaves:
+            continue
+        context = {'check': 'tableWidthPlan', 'node': table.get('nodeName'), 'pointer': f'/components/{t_index}/props'}
+        for i, column in leaves:
+            if column.get('nodeName') in action_columns and (values(column).get('fixed') != 'right' or values(column).get('width') is None):
+                errors.append({**context, 'column': column.get('nodeName'), 'pointer': f'/components/{i}/props',
+                               'message': 'Plan the operation Column with fixed:"right" and a measured numeric width before markup'})
+        typed = [c for _, c in leaves if c.get('role') in ('status', 'category') or c.get('nodeName') in action_columns]
+        if typed and not any(values(c).get('width') is not None for _, c in leaves):
+            errors.append({**context, 'message': 'Decide Column widths in the plan: status, category and operation Columns use explicit widths, one main text Column absorbs the remainder, and Table scroll.x is numeric'})
+            continue
+        entries = [(c.get('nodeName'), values(c), values(c).get('title') if isinstance(values(c).get('title'), str) else '') for _, c in leaves]
+        errors.extend({**e, 'check': 'tableWidthPlan', 'pointer': f'/components/{t_index}/props'} for e in column_width_errors(values(table), entries, context))
+        unset = [(i, c) for i, c in leaves if values(c).get('width') is None]
+        if any(values(c).get('width') is not None for _, c in leaves) and len(unset) == 1:
+            i, main = unset[0]
+            if main.get('role') != 'widget' or main.get('nodeName') in action_columns:
+                errors.append({**context, 'column': main.get('nodeName'), 'pointer': f'/components/{i}/role',
+                               'message': 'The width-free Column absorbs remaining space and must be the main text Column (role:widget); status, category and operation Columns need explicit widths'})
+    return errors
+
+
 def plan_errors(plan):
     declarations = plan.get('components')
     if not isinstance(declarations, list) or any(not isinstance(c, dict) for c in declarations):
@@ -254,6 +357,8 @@ def plan_errors(plan):
                 issue(pointer + '/props', message, node=name)
         if role in {'persistent-feedback', 'surface'} and not str(spec.get('condition', '')).strip():
             issue(pointer + '/condition', 'Declare the continuing condition or independently justified surface', node=name)
+    errors.extend(table_plan_errors(declarations))
+    errors.extend(decision_errors(plan))
     feedback = plan.get('feedback')
     if not isinstance(feedback, list):
         issue('/feedback', 'Declare source-derived feedback:[] even when no operation feedback is required')
@@ -338,7 +443,92 @@ def check_page(plan, page):
     return errors
 
 
-def check(expected, readback=None, page_path=None):
+RESOURCE_ROOT = rules_manifest.RESOURCE_ROOT
+
+
+def required_reads(plan, stage='compose'):
+    """{resource-relative path: set of anchors, or None for the full document}.
+
+    Each declaration needs its own `rule` and its registration's owner document
+    (rules.json). Stage-template documents deliver their preamble plus Plan
+    decisions and Generation rules when composing, and the complete document
+    for acceptance. Other documents and explicit anchors are read as declared.
+    """
+    needed = {}
+    def add(path, anchors):
+        if anchors is None or needed.get(path, set()) is None:
+            needed[path] = None
+        else:
+            needed.setdefault(path, set()).update(anchors)
+    def stage_anchors(path):
+        stages = rules_manifest.stage_sections(path)
+        if stage == 'accept' or 'generation-rules' not in stages:
+            return None
+        return {anchor for anchor in stages if anchor != 'acceptance-checks'}
+    for spec in plan.get('components', []) if isinstance(plan.get('components'), list) else []:
+        if not isinstance(spec, dict):
+            continue
+        rule = spec.get('rule')
+        if isinstance(rule, str) and rule.startswith('references/') and (RESOURCE_ROOT / rule.split('#', 1)[0]).is_file():
+            path, _, anchor = rule.partition('#')
+            add(path, stage_anchors(path))
+            if anchor and needed[path] is not None:
+                needed[path].add(anchor)
+        owner = rules_manifest.document_for(spec.get('component', ''))
+        if owner:
+            path, _, anchor = owner.partition('#')
+            add(path, stage_anchors(path))
+            if anchor and needed[path] is not None:
+                needed[path].add(anchor)
+    return needed
+
+
+def read_coverage_errors(plan, ledger, stage='compose'):
+    """Compare the read_reference.py ledger with the Page's required reads.
+
+    Proves only that the current bytes of each section were emitted to the
+    agent, not that they were understood or followed.
+    """
+    from read_reference import sections
+    errors = []
+    for path, anchors in sorted(required_reads(plan, stage).items()):
+        file = RESOURCE_ROOT / path
+        text = file.read_text(encoding='utf-8')
+        digest = hashlib.sha256(text.encode()).hexdigest()
+        _, headings = sections(text)
+        covered, full = set(), False
+        for record in ledger:
+            if not str(record.get('path', '')).endswith('/' + path) or record.get('sha256') != digest or record.get('outline'):
+                continue
+            if not record.get('sections'):
+                full = True
+                continue
+            for heading in headings:
+                for chosen in record['sections']:
+                    parent = next((h for h in headings if h['anchor'] == chosen), None)
+                    if parent and parent['start'] <= heading['start'] < parent['end']:
+                        covered.add(heading['anchor'])
+        if full:
+            continue
+        missing = sorted(set(h['anchor'] for h in headings) - covered) if anchors is None else sorted(anchors - covered)
+        if missing:
+            errors.append({'check': 'referenceReads', 'rule': path, 'missingSections': missing,
+                           'message': 'Read these current sections with read_reference.py --log before composing; see prepare_plan.py rules'})
+    return errors
+
+
+def load_ledger(filename):
+    records = []
+    for number, line in enumerate(Path(filename).read_text(encoding='utf-8').splitlines(), 1):
+        if line.strip():
+            try:
+                records.append(json.loads(line))
+            except json.JSONDecodeError as error:
+                raise json.JSONDecodeError(f'{filename}:{number}: {error.msg}', error.doc, error.pos)
+    return records
+
+
+def check(expected, readback=None, page_path=None, reads=None):
     errors = []
     templates = []
     content_reports = []
@@ -347,11 +537,14 @@ def check(expected, readback=None, page_path=None):
         errors.append({'check': 'selectionPlan', 'message': 'Nonempty page inventory required'})
     for page_index, plan in plans:
         path = plan.get('path')
-        template_report = verify_templates.check_page(plan)
+        template_report = ({'passed': False, 'errors': []} if plan.get('templates') == rules_manifest.PENDING
+                           else verify_templates.check_page(plan))  # Reported once as decisionPending.
         templates.append({'path': path, **template_report})
         errors.extend({'path': path, 'check': 'templateSource', 'pointer': f'/pages/{page_index}/templates', 'message': message} for message in template_report['errors'])
         if not isinstance(path, str) or not path.startswith('/'):
             errors.append({'check': 'selectionPlan', 'message': 'Every planned Page requires its exact absolute route before composition'})
+        if reads is not None:
+            errors.extend({'path': path, **e} for e in read_coverage_errors(plan, reads))
         if readback is None:
             issues = plan_errors(plan) + verify_content.plan_errors(plan)
         else:
@@ -361,6 +554,12 @@ def check(expected, readback=None, page_path=None):
                 reviewed = verify_content.check_page(plan, pages[0])
                 content_reports.append({'path': path, **reviewed})
                 issues += reviewed['errors']
+        rules_manifest.annotate({'errors': issues}, 'selection', plan.get('components'))
+        # While a decision is pending, report it once: drop derivative findings
+        # about the same placeholder (its pointer, or the placeholder value).
+        pending = {e['pointer'] for e in issues if e.get('check') == 'decisionPending'}
+        issues = [e for e in issues if e.get('check') == 'decisionPending' or not pending or
+                  e.get('pointer') not in pending and rules_manifest.PENDING not in json.dumps(e, ensure_ascii=False)]
         for error in issues:
             error = {'path': path, **error}
             if 'pointer' in error:
@@ -368,6 +567,7 @@ def check(expected, readback=None, page_path=None):
                 if 'relatedPointers' in error:
                     error['relatedPointers'] = [f'/pages/{page_index}' + p for p in error['relatedPointers']]
             errors.append(error)
+    rules_manifest.annotate({'errors': errors}, 'selection')
     return {'passed': not errors, 'errors': errors, 'templates': templates, 'content': content_reports,
             'notChecked': ['source meaning and completeness', 'actual template insertion/detachment', 'JS execution', 'visual and runtime acceptance']}
 
@@ -393,6 +593,7 @@ def main():
     parser.add_argument('readback', nargs='?')
     parser.add_argument('--page')
     parser.add_argument('--report')
+    parser.add_argument('--reads', help='read_reference.py --log ledger; require current reads of each Page rule section')
     parser.add_argument('--full', action='store_true', help='Print the complete report even when --report saves it')
     args = parser.parse_args()
     inputs = {}
@@ -400,7 +601,9 @@ def main():
         for filename in (args.expectation, args.readback):
             if filename:
                 inputs[filename] = json.loads(Path(filename).read_text(encoding='utf-8'))
-        report = check(inputs[args.expectation], inputs.get(args.readback), args.page)
+        filename = args.reads
+        reads = load_ledger(args.reads) if args.reads else None
+        report = check(inputs[args.expectation], inputs.get(args.readback), args.page, reads)
     except json.JSONDecodeError as error:
         report = {'passed': False, 'errors': [{'check': 'input', 'file': filename, 'line': error.lineno,
                   'column': error.colno, 'message': error.msg}]}

@@ -274,6 +274,9 @@ function _TopBar({ preview }: TopBarProps) {
                     getUploadedFile(
                       async (content: string, file?: File) => {
                         try {
+                          if (!file?.name.toLowerCase().endsWith(".plasmic")) {
+                            throw new Error(t("Please select a valid .plasmic file."));
+                          }
                           const parsed = JSON.parse(content);
                           if (
                             !parsed ||
@@ -283,8 +286,8 @@ function _TopBar({ preview }: TopBarProps) {
                               t("Please select a valid .plasmic file."),
                             );
                           }
-                          const suggestedName = file?.name?.replace(
-                            /\.(plasmic|json)$/i,
+                          const suggestedName = file.name.replace(
+                            /\.plasmic$/i,
                             "",
                           );
                           const result = await appCtx.api.importProject(
@@ -313,7 +316,7 @@ function _TopBar({ preview }: TopBarProps) {
                           });
                         }
                       },
-                      { accept: ".plasmic,.json" },
+                      { accept: ".plasmic" },
                     );
                   }}
                 >

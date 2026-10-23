@@ -21,6 +21,7 @@ import verify_overlays
 import verify_shell_height
 import verify_slots
 import verify_structure
+import rules_manifest
 import verify_selection
 import verify_templates
 import verify_page_layout
@@ -261,6 +262,10 @@ def collect(desktop, project_id, destination, reuse=None, page_path=None):
 
 def checked_inputs(config, base):
     files = set(Path(__file__).parent.glob("verify_*.py"))
+    # Rule owners decide plan decisions and diagnostic anchors; pin them too.
+    files.add(Path(rules_manifest.__file__))
+    files.add(rules_manifest.RESOURCE_ROOT / "references/gate-rules.json")
+    files.update((rules_manifest.RESOURCE_ROOT / "references/libraries").glob("*/rules.json"))
     for name in GATES:
         spec = config.get(name)
         if not isinstance(spec, dict):
@@ -311,13 +316,24 @@ def run_suite(config, base, evidence, project_id, page_path=None):
             raise FileNotFoundError(path)
         return data
 
+    def plan_components():
+        structure = config.get("structure")
+        try:
+            expected = json.loads(read_input(base / structure["inventory"])) if isinstance(structure, dict) and isinstance(structure.get("inventory"), str) else {}
+        except (OSError, ValueError, KeyError):
+            return []
+        return [c for page in expected.get("pages", []) if isinstance(page, dict) for c in page.get("components", []) if isinstance(c, dict)]
+
     def run(name, action):
         try:
             report = action()
-            results.append({"gate": name, "status": "passed" if report.get("passed") is True else "failed", "report": report})
+            results.append({"gate": name, "status": "passed" if report.get("passed") is True else "failed",
+                            "rule": rules_manifest.manifest()["gates"].get(name),
+                            "report": rules_manifest.annotate(report, name, plan_components())})
         except Exception as error:
             # A malformed input or checker error must not hide the other gates.
-            results.append({"gate": name, "status": "failed", "report": {"errorType": type(error).__name__, "error": str(error)}})
+            results.append({"gate": name, "status": "failed", "rule": rules_manifest.manifest()["gates"].get(name),
+                            "report": {"errorType": type(error).__name__, "error": str(error)}})
 
     capture, hashes, overview, readback, layouts = read_capture(evidence)
     inventory = page_inventory(overview, page_path)
@@ -499,7 +515,10 @@ def main():
                   "notChecked": NOT_CHECKED}
     write_report(args.output, report)
     print(json.dumps({"passed": report["passed"], "report": str(args.output / "report.md"),
-                      "checks": [{"gate": item["gate"], "status": item["status"]} for item in report["checks"]],
+                      "checks": [{"gate": item["gate"], "status": item["status"],
+                                  **({"rule": item["rule"]} if item.get("rule") and item["status"] == "failed" else {})}
+                                 for item in report["checks"]],
+                      "repair": "For each failed gate, read the rule of every diagnostic in report.json before repairing the batch",
                       "notChecked": report["notChecked"]}))
     raise SystemExit(0 if report["passed"] else 1)
 

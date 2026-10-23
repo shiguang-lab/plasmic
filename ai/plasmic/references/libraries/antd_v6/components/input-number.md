@@ -6,12 +6,16 @@ Library: [Ant Design v6](../index.md).
 | --- | --- |
 | Number Input | `plasmic-antd6-input-number` |
 
+## Generation rules
+
 Numeric input state is numeric. Registered state and event types must match the actual runtime value; verify controlled/uncontrolled values and explicit zero against the installed contract.
 
-## Range, precision and empty values
+### Range, precision and empty values
 
 Read the actual min/max/step, controls, value/defaultValue and onChange contract. Empty is distinct from zero; do not convert an empty field to zero through a truthy fallback. Decimal/integer restrictions and formatting come from the requirement. Native numeric or string-mode capabilities must be verified before using them; do not add an unregistered precision/stringMode prop solely because another InputNumber wrapper supports it.
 
-## Acceptance
+## Acceptance checks
+
+### Acceptance
 
 Test typing, increment/decrement, zero, negative/decimal values when allowed, empty/clearing and range boundaries. Keep Form as the value/validation owner and distinguish a component's editing behavior from a business validation rule. Check returned values, disabled/readOnly behavior and reopening a different record, including an invalid value corrected before submission.

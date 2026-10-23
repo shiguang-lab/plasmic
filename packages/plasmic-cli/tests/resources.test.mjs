@@ -453,6 +453,28 @@ test("built NAS artifacts install a working CLI binary and only the thin skill",
       ),
     /reading budget/,
   );
+  const replace = (filename, change) =>
+    files.map((file) => (file.path === filename ? { ...file, content: change(file.content) } : file));
+  assert.throws(
+    () =>
+      validateReferences(
+        replace("references/libraries/antd_v6/components/avatar.md", (content) =>
+          content.replace("## Generation rules", "## Usage"),
+        ),
+        built.manifest.entrypoints,
+      ),
+    /Non-template level-2 headings/,
+  );
+  assert.throws(
+    () =>
+      validateReferences(
+        replace("references/gate-rules.json", (content) =>
+          content.replace("#structural-gate", "#missing-anchor"),
+        ),
+        built.manifest.entrypoints,
+      ),
+    /Missing rule target/,
+  );
   const archivedFiles = (
     await run("tar", ["-tzf", path.join(built.directory, "plasmic-cli.tgz")])
   ).stdout

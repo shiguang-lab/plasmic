@@ -364,7 +364,10 @@ test("native import .plasmic calls import api and opens design", async () => {
       },
       getWindow: () => ({}),
       dialog: {
-        showOpenDialog: async () => ({ filePaths: [filePath], canceled: false }),
+        showOpenDialog: async (_window, options) => {
+          assert.deepEqual(options.filters, [{ name: "Plasmic Project", extensions: ["plasmic"] }]);
+          return { filePaths: [filePath], canceled: false };
+        },
         showErrorBox: (...args) => errors.push(args),
       },
     });
