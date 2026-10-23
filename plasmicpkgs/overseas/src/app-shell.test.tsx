@@ -42,7 +42,9 @@ const routes: ShellMenuItem[] = [
 
 test("route-derived breadcrumbs include every parent and hidden detail routes", () => {
   assert.deepEqual(findMenuPath(routes, "/groups/detail/?tab=members", "sql").map(i => i.key), ["customers", "groups", "detail"]);
-  assert.deepEqual(findMenuPath(routes, "/groups-extra", "groups"), []);
+  assert.deepEqual(findMenuPath(routes, "/groups-extra"), []);
+  assert.deepEqual(findMenuPath(routes, "/unlisted", "groups").map(i => i.key), ["customers", "groups"]);
+  assert.deepEqual(findMenuPath(routes, "/sql", "groups").map(i => i.key), ["sql"]);
   assert.deepEqual(findMenuPath(routes, undefined, "detail").map(i => i.key), ["customers", "groups", "detail"]);
   const visible = visibleMenuItems(routes);
   assert.equal(visible[0].children![0].children, undefined);

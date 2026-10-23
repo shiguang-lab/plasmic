@@ -1,5 +1,5 @@
 import { MenuUnfoldOutlined, MenuFoldOutlined, GlobalOutlined, SwapOutlined, DownOutlined } from '@ant-design/icons';
-import { usePlasmicLink, useSelector } from '@plasmicapp/host';
+import { usePlasmicCanvasContext, usePlasmicLink, useSelector } from '@plasmicapp/host';
 import registerComponent from '@plasmicapp/host/registerComponent';
 import { theme, Select, ConfigProvider, Layout, Avatar, Menu, Button, Breadcrumb, Dropdown } from 'antd';
 import React, { useState, useEffect } from 'react';
@@ -35,11 +35,11 @@ menuItemType.fields.children.itemType = menuItemType;
 const routePath = (href) => href.split(/[?#]/)[0].replace(/\/+$/, "") || "/";
 function findMenuPath(items, pagePath, selectedKey) {
   for (const item of items) {
-    const childPath = findMenuPath(item.children ?? [], pagePath, selectedKey);
+    const childPath = findMenuPath(item.children ?? [], pagePath, pagePath ? void 0 : selectedKey);
     if (childPath.length) return [item, ...childPath];
     if (item.type !== "divider" && (pagePath ? !!item.href && routePath(item.href) === routePath(pagePath) : item.key === selectedKey)) return [item];
   }
-  return [];
+  return pagePath && selectedKey !== void 0 ? findMenuPath(items, void 0, selectedKey) : [];
 }
 function visibleMenuItems(items) {
   return items.filter((item) => !item.hidden).map((item) => {
@@ -62,6 +62,7 @@ const DEFAULT_MENU_ITEMS = [
   { key: "errors", label: "\u9519\u8BEF\u7801\u7BA1\u7406" },
   { key: "settings", label: "\u4E2D\u53F0\u914D\u7F6E\u7BA1\u7406" }
 ];
+const menuOpenKeysByWindow = /* @__PURE__ */ new WeakMap();
 function AppShell({
   className,
   productName = "\u589E\u957F\u7BA1\u7406\u5E73\u53F0",
@@ -92,6 +93,7 @@ function AppShell({
   children
 }) {
   const { token } = theme.useToken();
+  const canvas = usePlasmicCanvasContext();
   const [localCollapsed, setCollapsed] = useState(false);
   const [localLanguage, setLanguage] = useState();
   const [localSource, setSource] = useState();
@@ -123,6 +125,36 @@ function AppShell({
     selectedMenuKey ?? localMenu
   );
   const selectedKey = [...menuPath].reverse().find((item) => !item.hidden && item.type !== "group")?.key;
+  const navigationKey = JSON.stringify(menuItems, ["key", "href", "hidden", "type", "children"]);
+  const routeKey = JSON.stringify([pagePath, menuPath.map((item) => item.key)]);
+  const routeOpenKeys = menuPath.filter((item) => !item.hidden && item.type !== "group" && item.children?.some((child) => !child.hidden)).map((item) => item.key);
+  const rememberedKeys = !canvas && typeof window !== "undefined" ? menuOpenKeysByWindow.get(window)?.get(navigationKey) ?? [] : [];
+  const [menuState, setMenuState] = useState(() => ({
+    inCanvas: !!canvas,
+    navigationKey,
+    routeKey,
+    openKeys: Array.from(/* @__PURE__ */ new Set([...rememberedKeys, ...routeOpenKeys]))
+  }));
+  if (menuState.inCanvas !== !!canvas || menuState.navigationKey !== navigationKey || menuState.routeKey !== routeKey) {
+    setMenuState({
+      inCanvas: !!canvas,
+      navigationKey,
+      routeKey,
+      openKeys: Array.from(/* @__PURE__ */ new Set([
+        ...menuState.inCanvas === !!canvas && menuState.navigationKey === navigationKey ? menuState.openKeys : rememberedKeys,
+        ...routeOpenKeys
+      ]))
+    });
+  }
+  useEffect(() => {
+    if (canvas) return;
+    let menus = menuOpenKeysByWindow.get(window);
+    if (!menus) {
+      menus = /* @__PURE__ */ new Map();
+      menuOpenKeysByWindow.set(window, menus);
+    }
+    menus.set(menuState.navigationKey, menuState.openKeys);
+  }, [canvas, menuState]);
   const breadcrumbItems = [
     { title: productName },
     ...menuPath.filter((item) => item.label).map((item) => ({
@@ -230,7 +262,10 @@ function AppShell({
             theme: "light",
             inlineCollapsed: isCollapsed,
             items: linkedMenu(visibleMenuItems(menuItems ?? [])),
-            defaultOpenKeys: menuPath.slice(0, -1).filter((item) => !item.hidden).map((item) => item.key),
+            openKeys: isCollapsed ? [] : menuState.openKeys,
+            onOpenChange: (openKeys) => {
+              if (!isCollapsed) setMenuState({ ...menuState, openKeys });
+            },
             selectedKeys: selectedKey ? [selectedKey] : [],
             onClick: ({ key }) => {
               setMenu(key);

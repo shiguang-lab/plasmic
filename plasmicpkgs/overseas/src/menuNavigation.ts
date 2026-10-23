@@ -16,13 +16,16 @@ const routePath = (href: string) => href.split(/[?#]/)[0].replace(/\/+$/, "") ||
 /** Find the complete menu ancestry, including routes hidden from the sidebar. */
 export function findMenuPath(items: ShellMenuItem[], pagePath?: string, selectedKey?: string): ShellMenuItem[] {
   for (const item of items) {
-    const childPath = findMenuPath(item.children ?? [], pagePath, selectedKey);
+    const childPath = findMenuPath(item.children ?? [], pagePath, pagePath ? undefined : selectedKey);
     if (childPath.length) return [item, ...childPath];
     if (item.type !== "divider" && (pagePath
       ? !!item.href && routePath(item.href) === routePath(pagePath)
       : item.key === selectedKey)) return [item];
   }
-  return [];
+  // Search the entire tree for a route before falling back to an explicit key.
+  return pagePath && selectedKey !== undefined
+    ? findMenuPath(items, undefined, selectedKey)
+    : [];
 }
 
 /** Hidden page routes still describe navigation, but do not create sidebar items. */

@@ -1,0 +1,7 @@
+{
+  "en": "- Keep AppShell menu selection and parent menus in sync when switching preview pages or returning to a previous route.\n- Preserve expanded menu groups across page remounts in the same preview window and restore them after collapsing the sidebar.\n- Keep canvas editing separate from runtime menu state and support explicit selection for menus without route links.",
+  "zh-CN": "- 预览切页或返回历史路由时，同步 AppShell 菜单高亮并自动展开父级菜单。\n- 同一预览窗口内保留页面重新挂载前的菜单展开状态，侧栏折叠后可恢复展开分组。\n- 隔离画布编辑与运行时菜单状态，支持无路由链接菜单的显式选中配置。",
+  "zh-TW": "- 預覽切頁或返回歷史路由時，同步 AppShell 選單反白並自動展開父層選單。\n- 在同一預覽視窗內保留頁面重新掛載前的選單展開狀態，側欄收合後可還原展開群組。\n- 隔離畫布編輯與執行階段選單狀態，支援無路由連結選單的明確選取設定。",
+  "ja": "- プレビューのページ切り替えや前のルートに戻った際、AppShell のメニュー選択と親メニューの展開を同期します。\n- 同じプレビューウィンドウ内でページが再マウントされてもメニューの展開状態を保持し、サイドバーを再び開いた際に復元します。\n- キャンバス編集と実行時のメニュー状態を分離し、ルートリンクのないメニューの明示的な選択に対応しました。",
+  "ko": "- 미리보기 페이지 전환이나 이전 경로로 돌아갈 때 AppShell 메뉴 선택과 상위 메뉴 펼침 상태를 동기화합니다.\n- 같은 미리보기 창에서 페이지가 다시 마운트되어도 메뉴 펼침 상태를 유지하고 사이드바를 다시 열면 복원합니다.\n- 캔버스 편집과 런타임 메뉴 상태를 분리하고 경로 링크가 없는 메뉴의 명시적 선택을 지원합니다."
+}

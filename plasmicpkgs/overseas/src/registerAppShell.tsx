@@ -5,7 +5,7 @@ import {
   MenuUnfoldOutlined,
   SwapOutlined,
 } from "@ant-design/icons";
-import { usePlasmicLink, useSelector } from "@plasmicapp/host";
+import { usePlasmicCanvasContext, usePlasmicLink, useSelector } from "@plasmicapp/host";
 import registerComponent, {
   CodeComponentMeta,
 } from "@plasmicapp/host/registerComponent";
@@ -73,6 +73,10 @@ export const DEFAULT_MENU_ITEMS = [
   { key: "settings", label: "中台配置管理" },
 ];
 
+// Pages can remount the shell during navigation. Keep only menu presentation
+// state in the current window, scoped to the navigation tree, outside the canvas.
+const menuOpenKeysByWindow = new WeakMap<Window, Map<string, string[]>>();
+
 export function AppShell({
   className,
   productName = "增长管理平台",
@@ -103,6 +107,7 @@ export function AppShell({
   children,
 }: AppShellProps) {
   const { token } = theme.useToken();
+  const canvas = usePlasmicCanvasContext();
   const [localCollapsed, setCollapsed] = useState(false);
   const [localLanguage, setLanguage] = useState<string>();
   const [localSource, setSource] = useState<string>();
@@ -137,6 +142,41 @@ export function AppShell({
   const selectedKey = [...menuPath]
     .reverse()
     .find((item) => !item.hidden && item.type !== "group")?.key;
+  const navigationKey = JSON.stringify(menuItems, ["key", "href", "hidden", "type", "children"]);
+  const routeKey = JSON.stringify([pagePath, menuPath.map((item) => item.key)]);
+  const routeOpenKeys = menuPath
+    .filter((item) => !item.hidden && item.type !== "group" &&
+      item.children?.some((child) => !child.hidden))
+    .map((item) => item.key);
+  const rememberedKeys = !canvas && typeof window !== "undefined"
+    ? menuOpenKeysByWindow.get(window)?.get(navigationKey) ?? []
+    : [];
+  const [menuState, setMenuState] = useState(() => ({
+    inCanvas: !!canvas,
+    navigationKey,
+    routeKey,
+    openKeys: Array.from(new Set([...rememberedKeys, ...routeOpenKeys])),
+  }));
+  if (menuState.inCanvas !== !!canvas || menuState.navigationKey !== navigationKey || menuState.routeKey !== routeKey) {
+    setMenuState({
+      inCanvas: !!canvas,
+      navigationKey,
+      routeKey,
+      openKeys: Array.from(new Set([
+        ...(menuState.inCanvas === !!canvas && menuState.navigationKey === navigationKey ? menuState.openKeys : rememberedKeys),
+        ...routeOpenKeys,
+      ])),
+    });
+  }
+  useEffect(() => {
+    if (canvas) return;
+    let menus = menuOpenKeysByWindow.get(window);
+    if (!menus) {
+      menus = new Map();
+      menuOpenKeysByWindow.set(window, menus);
+    }
+    menus.set(menuState.navigationKey, menuState.openKeys);
+  }, [canvas, menuState]);
   const breadcrumbItems = [
     { title: productName },
     ...menuPath
@@ -254,10 +294,10 @@ export function AppShell({
               theme="light"
               inlineCollapsed={isCollapsed}
               items={linkedMenu(visibleMenuItems(menuItems ?? []))}
-              defaultOpenKeys={menuPath
-                .slice(0, -1)
-                .filter((item) => !item.hidden)
-                .map((item) => item.key)}
+              openKeys={isCollapsed ? [] : menuState.openKeys}
+              onOpenChange={(openKeys) => {
+                if (!isCollapsed) setMenuState({ ...menuState, openKeys });
+              }}
               selectedKeys={selectedKey ? [selectedKey] : []}
               onClick={({ key }) => {
                 setMenu(key);
