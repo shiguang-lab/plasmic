@@ -1,8 +1,31 @@
 import unittest
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+import tempfile
 from read_reference import sections, select
 
 
 class ReferenceTests(unittest.TestCase):
+    def test_command_emits_utf8_and_canonical_paths_with_non_utf8_defaults(self):
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / "中文.md"
+            ledger = Path(directory) / "读取.jsonl"
+            content = "# 表格\n## 宽度\n保留一列自适应。\n"
+            source.write_text(content, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(Path(__file__).with_name("read_reference.py")),
+                 str(source), "--log", str(ledger)],
+                env={**os.environ, "PYTHONUTF8": "0", "PYTHONIOENCODING": "cp1252"},
+                capture_output=True, check=True,
+            )
+            record, output = result.stdout.decode("utf-8").split("\n", 1)
+            self.assertEqual(json.loads(record)["path"], source.resolve().as_posix())
+            self.assertEqual(json.loads(ledger.read_text(encoding="utf-8")), json.loads(record))
+            self.assertEqual(output, content + "\n")
+
     def test_complete_sections_preserve_nested_acceptance_and_fences(self):
         source = "# Form\n\nMetadata\n\n## Rules\nContract\n### Acceptance\nCheck\n```md\n## Not a heading\n```\n## Other\nUnrelated\n"
         result = select(source, ["rules", "acceptance"])

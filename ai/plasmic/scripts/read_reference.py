@@ -5,6 +5,7 @@ import hashlib
 import json
 from pathlib import Path
 import re
+import sys
 
 
 def sections(content):
@@ -62,7 +63,8 @@ def main():
     mode.add_argument("--outline", action="store_true")
     parser.add_argument("--log", type=Path, help="Append read scope/hash/bytes to a task-local JSONL ledger")
     args = parser.parse_args()
-    content = args.file.read_text()
+    sys.stdout.reconfigure(encoding="utf-8")
+    content = args.file.read_text(encoding="utf-8")
     if args.outline:
         lines, headings = sections(content)
         output = json.dumps([{**{k: v for k, v in h.items() if k in ("anchor", "level")},
@@ -70,10 +72,10 @@ def main():
                              for h in headings], ensure_ascii=False)
     else:
         output = select(content, args.section) if args.section else content
-    record = {"path": str(args.file.resolve()), "sha256": hashlib.sha256(content.encode()).hexdigest(),
+    record = {"path": args.file.resolve().as_posix(), "sha256": hashlib.sha256(content.encode()).hexdigest(),
               "sections": args.section or [], "outline": args.outline, "bytes": len(output.encode())}
     if args.log:
-        with args.log.open("a") as file:
+        with args.log.open("a", encoding="utf-8") as file:
             file.write(json.dumps(record, ensure_ascii=False) + "\n")
     print(json.dumps(record, ensure_ascii=False))
     print(output)
