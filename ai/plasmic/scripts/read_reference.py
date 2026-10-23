@@ -63,7 +63,7 @@ def main():
     mode.add_argument("--outline", action="store_true")
     parser.add_argument("--log", type=Path, help="Append read scope/hash/bytes to a task-local JSONL ledger")
     args = parser.parse_args()
-    sys.stdout.reconfigure(encoding="utf-8")
+    sys.stdout.reconfigure(encoding="utf-8", newline="\n")
     content = args.file.read_text(encoding="utf-8")
     if args.outline:
         lines, headings = sections(content)
