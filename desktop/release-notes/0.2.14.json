@@ -1,0 +1,7 @@
+{
+  "en": "- Restore the macOS Dock icon when returning from Dynamic Island to the main window or fullscreen mode.",
+  "zh-CN": "- 修复从灵动岛切回主窗口或全屏模式后，macOS Dock 未显示应用图标的问题。",
+  "zh-TW": "- 修正從靈動島切回主視窗或全螢幕模式後，macOS Dock 未顯示應用程式圖示的問題。",
+  "ja": "- Dynamic Island からメインウィンドウまたは全画面表示に戻る際、macOS Dock にアプリアイコンが表示されない問題を修正しました。",
+  "ko": "- Dynamic Island에서 기본 창 또는 전체 화면 모드로 돌아갈 때 macOS Dock에 앱 아이콘이 표시되지 않는 문제를 수정했습니다."
+}

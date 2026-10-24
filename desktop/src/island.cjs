@@ -193,6 +193,11 @@ function createIsland({ getWindow, controller, i18n, appearance, config, signIn,
     } else {
       mode = value; stop(); window?.hide();
       publish();
+      // Restoring a window does not restore the macOS foreground app identity.
+      if (process.platform === "darwin") {
+        app.setActivationPolicy("regular");
+        await app.dock.show();
+      }
       if (win.isMinimized()) win.restore();
       win.show(); win.focus();
       await fullscreen(win, value === "fullscreen");
