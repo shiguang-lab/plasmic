@@ -158,13 +158,14 @@ class DesktopController {
     }
     throw new Error("Design did not become ready");
   }
-  async requestStudio(path, body) {
+  async requestStudio(path, body, signal) {
     const response = await this.getWindow().webContents.session.fetch(
       this.config.studioOrigin + path,
       {
         bypassCustomProtocolHandlers: true,
         credentials: "include",
         redirect: "manual",
+        ...(signal ? { signal } : {}),
         method: body === undefined ? "GET" : "POST",
         headers: {
           Accept: "application/json",

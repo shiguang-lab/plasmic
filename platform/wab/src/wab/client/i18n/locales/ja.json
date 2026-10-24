@@ -5575,5 +5575,15 @@
   "Exit Dynamic Island mode": "Dynamic Island モードを終了",
   "Quit application": "アプリを終了",
   "Waiting for MCP operations to finish…": "MCP の処理が完了するのを待っています…",
-  "Plasmic is restarting to install an update. Retry after it reopens.": "Plasmic は更新のインストールのため再起動しています。再起動後にお試しください。"
+  "Plasmic is restarting to install an update. Retry after it reopens.": "Plasmic は更新のインストールのため再起動しています。再起動後にお試しください。",
+  "Workspaces": "ワークスペース",
+  "Account overview": "アカウント概要",
+  "Accessible resources": "アクセス可能なリソース",
+  "Loading account information…": "アカウント情報を読み込み中…",
+  "Sign in to view account information": "ログインしてアカウント情報を表示",
+  "Account statistics unavailable": "アカウントの統計を取得できません",
+  "Waiting for sign-in": "ログイン待ち",
+  "Statistics unavailable": "統計を取得できません",
+  "{count} projects": "{count} プロジェクト",
+  "Signed out": "未ログイン"
 }

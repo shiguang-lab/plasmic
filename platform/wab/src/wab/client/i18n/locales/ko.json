@@ -5575,5 +5575,15 @@
   "Exit Dynamic Island mode": "다이내믹 아일랜드 모드 종료",
   "Quit application": "프로그램 종료",
   "Waiting for MCP operations to finish…": "MCP 작업이 완료되기를 기다리는 중…",
-  "Plasmic is restarting to install an update. Retry after it reopens.": "Plasmic이 업데이트를 설치하기 위해 다시 시작하고 있습니다. 다시 열린 후 재시도하세요."
+  "Plasmic is restarting to install an update. Retry after it reopens.": "Plasmic이 업데이트를 설치하기 위해 다시 시작하고 있습니다. 다시 열린 후 재시도하세요.",
+  "Workspaces": "워크스페이스",
+  "Account overview": "계정 개요",
+  "Accessible resources": "접근 가능한 리소스",
+  "Loading account information…": "계정 정보를 불러오는 중…",
+  "Sign in to view account information": "로그인하여 계정 정보 확인",
+  "Account statistics unavailable": "계정 통계를 사용할 수 없습니다",
+  "Waiting for sign-in": "로그인 대기",
+  "Statistics unavailable": "통계 사용 불가",
+  "{count} projects": "프로젝트 {count}개",
+  "Signed out": "로그아웃됨"
 }

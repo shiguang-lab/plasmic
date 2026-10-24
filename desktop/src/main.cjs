@@ -433,6 +433,7 @@ async function startDesktop() {
     );
     presentation = createIsland({ getWindow: () => mainWindow, controller,
       i18n: desktopI18n, appearance: desktopAppearance, config,
+      signIn: () => unifiedAuth.show(),
       changed: (mode) => {
         const menu = Menu.getApplicationMenu();
         const activeMode = menu?.getMenuItemById(`presentation-${mode}`);

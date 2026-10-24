@@ -4,6 +4,7 @@ const path = require("node:path");
 const { pathToFileURL } = require("node:url");
 const { currentContext } = require("./tool-context.cjs");
 const { captureIslandView } = require("./island-capture.cjs");
+const { IslandAccount } = require("./island-account.cjs");
 
 const MODES = ["window", "fullscreen", "island"];
 const CLOSE_ACTIONS = ["ask", "island", "quit"];
@@ -15,7 +16,7 @@ function containsPoint(point, rect) {
   return (point.x - x) ** 2 + (point.y - y) ** 2 <= radius ** 2;
 }
 
-function createIsland({ getWindow, controller, i18n, appearance, config, changed = () => {} }) {
+function createIsland({ getWindow, controller, i18n, appearance, config, signIn, changed = () => {} }) {
   const page = pathToFileURL(path.join(__dirname, "island.html")).href;
   const preference = path.join(app.getPath("userData"), "presentation.json");
   let saved = {};
@@ -29,6 +30,8 @@ function createIsland({ getWindow, controller, i18n, appearance, config, changed
   let transitions = Promise.resolve();
   let fullscreenWait, navigationUrl;
   let refreshTimer, captureTimer, hitTimer;
+  let cookies, cookieChanged, lastResource;
+  const account = new IslandAccount(path => controller.requestStudio(path, undefined, AbortSignal.timeout(10_000)), publish);
   function persist() {
     const position = window && !window.isDestroyed() ? window.getPosition() : saved.position;
     saved = { mode, position, closeAction };
@@ -36,7 +39,7 @@ function createIsland({ getWindow, controller, i18n, appearance, config, changed
     fs.renameSync(preference + ".tmp", preference);
   }
   function snapshot() {
-    return { mode, expanded, context, image, stale, update: updates?.state, updateOpen,
+    return { mode, expanded, context: { ...context, ...(!context.allowed ? { account: account.snapshot() } : {}) }, image, stale, update: updates?.state, updateOpen,
       updateWaiting: updates?.state.phase === "installing" && controller.activity.operations.size > 0,
       appearance: appearance.snapshot(), localization: i18n.snapshot(),
       activity: controller.activity.snapshot(context.projectId, context.sessionId) };
@@ -63,7 +66,8 @@ function createIsland({ getWindow, controller, i18n, appearance, config, changed
     } finally { reading = false; }
   }
   function updateContext(state) {
-    const routeProject = state.url ? new URL(state.url).pathname.match(/^\/projects\/([^/]+)/)?.[1] : null;
+    const pathname = state.url ? new URL(state.url).pathname : "";
+    const routeProject = pathname.match(/^\/projects\/([^/]+)/)?.[1] || null;
     const actual = currentContext({ ...state, projectId: state.projectId ?? routeProject }, config.studioOrigin), editor = state.editorContext || {};
     // Routes govern image eligibility only; call lifetime and hover own the shape.
     const loading = !actual.ready || !actual.mode || !!actual.sessionProjectId || !!actual.routeProjectId;
@@ -81,6 +85,12 @@ function createIsland({ getWindow, controller, i18n, appearance, config, changed
       projectSummary: !loading ? editor.projectSummary : null,
       saveStatus: !loading ? editor.saveStatus : null,
       scale: !loading && mode === "edit" ? editor.editorView?.scale : null };
+    context.orgId = pathname.match(/^\/orgs\/([^/]+)/)?.[1] || null;
+    context.workspaceId = pathname.match(/^\/workspaces\/([^/]+)/)?.[1] || null;
+    if (!allowed) {
+      if (!state.url || new URL(state.url).origin !== config.studioOrigin || actual.surface === "login") account.clear("signed-out");
+      else void account.refresh();
+    }
   }
   async function capture() {
     const win = getWindow();
@@ -248,6 +258,7 @@ function createIsland({ getWindow, controller, i18n, appearance, config, changed
     if (!fromIsland) throw new Error("Invalid presentation page");
     if (command === "menu") { menu(window); return { mode }; }
     if (command === "state") return snapshot();
+    if (command === "sign-in") { await showMainWindow(); return signIn(); }
     if (command === "update-open") { openUpdates(); return; }
     if (command === "update-close") {
       if (updates?.state.phase !== "installing") { updateOpen = false; hoverUntil = performance.now() + 350; publish(); }
@@ -272,7 +283,14 @@ function createIsland({ getWindow, controller, i18n, appearance, config, changed
   };
   function placeWindowAfterDrag() { saved.position = window.getPosition(); placeWindow(); }
   ipcMain.handle("desktop:presentation", handler);
-  const unsubscribe = controller.activity.subscribe(publish);
+  const unsubscribe = controller.activity.subscribe(() => {
+    const latest = controller.activity.latest;
+    if (latest?.id !== lastResource && latest?.phase === "completed" && ["create_project", "create_workspace", "create_org"].includes(latest.method)) {
+      lastResource = latest.id;
+      account.invalidate(false);
+    }
+    publish();
+  });
   const stopLocale = i18n.subscribe(publish), stopAppearance = appearance.subscribe(publish);
   return { get mode() { return mode; }, get closeAction() { return closeAction; }, setMode, setCloseAction, closingAction, menu, snapshot, openUpdates,
     attachUpdates(manager) {
@@ -282,7 +300,24 @@ function createIsland({ getWindow, controller, i18n, appearance, config, changed
       publish();
     },
     attach(win) {
+      cookies = win.webContents.session.cookies;
+      const values = new Map();
+      const key = cookie => `${cookie.domain}:${cookie.path}:${cookie.name}`;
+      void cookies.get({ url: config.studioOrigin }).then(items => {
+        for (const cookie of items) if (cookie.httpOnly && !values.has(key(cookie))) values.set(key(cookie), cookie.value);
+      }).catch(() => {});
+      cookieChanged = (_event, cookie, cause, removed) => {
+        const host = new URL(config.studioOrigin).hostname, domain = cookie.domain.replace(/^\./, "");
+        if (!cookie.httpOnly || !(host === domain || host.endsWith(`.${domain}`)) || removed && cause === "overwrite") return;
+        const id = key(cookie), next = removed ? null : cookie.value;
+        if (values.get(id) === next) return;
+        values.set(id, next);
+        account.invalidate();
+        publish(); void refresh();
+      };
+      cookies.on("changed", cookieChanged);
       const invalidate = (url) => {
+        account.invalidate(false);
         updateContext({ url: typeof url === "string" ? url : win.webContents.getURL(), ready: false });
         publish(); void refresh();
       };
@@ -300,7 +335,7 @@ function createIsland({ getWindow, controller, i18n, appearance, config, changed
       win.on("leave-full-screen", () => nativeMode("window"));
       win.once("closed", () => { if (fullscreenWait?.win === win) fullscreenWait.finish(); stop(); window?.hide(); });
     },
-    dispose() { disposed = true; fullscreenWait?.finish(); stop(); unsubscribe(); stopLocale(); stopAppearance(); updates?.removeListener("status", publish); ipcMain.removeHandler("desktop:presentation"); window?.destroy(); },
+    dispose() { disposed = true; account.dispose(); cookies?.removeListener("changed", cookieChanged); fullscreenWait?.finish(); stop(); unsubscribe(); stopLocale(); stopAppearance(); updates?.removeListener("status", publish); ipcMain.removeHandler("desktop:presentation"); window?.destroy(); },
   };
 }
 module.exports = { createIsland, containsPoint, MODES, CLOSE_ACTIONS };

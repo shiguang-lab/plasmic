@@ -32,6 +32,20 @@ function inspectViewport(mode, expectedComponent) {
       }
     }
     rect = { x: left, y: top, width: right - left, height: bottom - top };
+    // Frame the union of visible artboards, not the focused page. Keep their
+    // real backgrounds and relative positions; only trim surrounding workspace.
+    const artboards = [...canvas.querySelectorAll('iframe.canvas-editor__viewport')]
+      .filter(el => el.checkVisibility({ checkVisibilityCSS: true, checkOpacity: true }))
+      .map(el => el.getBoundingClientRect())
+      .filter(r => r.width > 0 && r.height > 0 && r.right > left && r.left < right && r.bottom > top && r.top < bottom);
+    if (artboards.length) {
+      const padding = 16;
+      const x = Math.max(left, Math.min(...artboards.map(r => r.left)) - padding);
+      const y = Math.max(top, Math.min(...artboards.map(r => r.top)) - padding);
+      const endX = Math.min(right, Math.max(...artboards.map(r => r.right)) + padding);
+      const endY = Math.min(bottom, Math.max(...artboards.map(r => r.bottom)) + padding);
+      rect = { x, y, width: endX - x, height: endY - y };
+    }
   }
   return rect.width > 0 && rect.height > 0 ? rect : null;
 }

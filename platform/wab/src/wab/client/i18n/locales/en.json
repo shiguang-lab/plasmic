@@ -5575,5 +5575,15 @@
   "Exit Dynamic Island mode": "Exit Dynamic Island mode",
   "Quit application": "Quit application",
   "Waiting for MCP operations to finish…": "Waiting for MCP operations to finish…",
-  "Plasmic is restarting to install an update. Retry after it reopens.": "Plasmic is restarting to install an update. Retry after it reopens."
+  "Plasmic is restarting to install an update. Retry after it reopens.": "Plasmic is restarting to install an update. Retry after it reopens.",
+  "Workspaces": "Workspaces",
+  "Account overview": "Account overview",
+  "Accessible resources": "Accessible resources",
+  "Loading account information…": "Loading account information…",
+  "Sign in to view account information": "Sign in to view account information",
+  "Account statistics unavailable": "Account statistics unavailable",
+  "Waiting for sign-in": "Waiting for sign-in",
+  "Statistics unavailable": "Statistics unavailable",
+  "{count} projects": "{count} projects",
+  "Signed out": "Signed out"
 }

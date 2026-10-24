@@ -1,0 +1,7 @@
+{
+  "en": "- Show account identity, organization/workspace context and accessible resource totals on non-canvas pages, with a sign-in action when signed out.\n- Improve compact status labels, task and operation hierarchy, loading animations, and theme/language information.\n- Frame multi-page canvas previews with less surrounding whitespace while preserving page proportions and spacing.\n- Refine update cards with a clear title, secondary status and compact text actions.",
+  "zh-CN": "- 非画布页面显示账号身份、组织与工作区信息及可访问资源统计，未登录时可直接进入登录。\n- 优化小条状态、任务与操作信息层级、加载动画及主题和语言信息。\n- 多页面画布减少外围留白，保留页面比例与真实间距。\n- 优化更新卡片的标题、状态层级和紧凑文字操作。",
+  "zh-TW": "- 非畫布頁面顯示帳號身分、組織與工作區資訊及可存取資源統計，未登入時可直接進入登入。\n- 最佳化小條狀態、任務與操作資訊層級、載入動畫及主題和語言資訊。\n- 多頁面畫布減少外圍留白，保留頁面比例與實際間距。\n- 最佳化更新卡片的標題、狀態層級和精簡文字操作。",
+  "ja": "- キャンバス以外の画面にアカウント、組織・ワークスペース、アクセス可能なリソース数を表示し、未ログイン時のログイン操作を追加しました。\n- コンパクト表示の状態、タスクと操作の情報階層、読み込みアニメーション、テーマと言語の表示を改善しました。\n- 複数ページのキャンバスでは外側の余白を減らし、ページの縦横比と実際の間隔を維持します。\n- 更新カードのタイトルと状態を整理し、コンパクトなテキスト操作に変更しました。",
+  "ko": "- 캔버스 외 화면에 계정, 조직 및 작업 공간, 접근 가능한 리소스 수를 표시하고 로그아웃 상태에서 로그인할 수 있도록 했습니다.\n- 작은 막대의 상태, 작업 및 실행 정보의 계층, 로딩 애니메이션, 테마와 언어 표시를 개선했습니다.\n- 여러 페이지 캔버스의 바깥 여백을 줄이고 페이지 비율과 실제 간격을 유지합니다.\n- 업데이트 카드의 제목과 상태를 정리하고 간결한 텍스트 작업 버튼을 적용했습니다."
+}

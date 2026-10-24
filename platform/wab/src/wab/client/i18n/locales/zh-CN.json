@@ -5575,5 +5575,15 @@
   "Exit Dynamic Island mode": "退出灵动岛模式",
   "Quit application": "退出程序",
   "Waiting for MCP operations to finish…": "正在等待 MCP 操作完成…",
-  "Plasmic is restarting to install an update. Retry after it reopens.": "Plasmic 正在重启安装更新，请在重新打开后重试。"
+  "Plasmic is restarting to install an update. Retry after it reopens.": "Plasmic 正在重启安装更新，请在重新打开后重试。",
+  "Workspaces": "工作区",
+  "Account overview": "账号概览",
+  "Accessible resources": "可访问资源",
+  "Loading account information…": "正在加载账号信息…",
+  "Sign in to view account information": "登录后查看账号信息",
+  "Account statistics unavailable": "账号统计暂不可用",
+  "Waiting for sign-in": "等待登录",
+  "Statistics unavailable": "统计暂不可用",
+  "{count} projects": "{count} 个项目",
+  "Signed out": "未登录"
 }

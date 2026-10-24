@@ -7,6 +7,7 @@ test("canvas mirror excludes floating editor chrome, follows panel visibility, a
   const dom = new JSDOM('<div class="canvas-editor__canvas-clipper"><iframe class="canvas-editor__viewport"></iframe></div><aside class="canvas-editor__left-pane-container"></aside><aside class="canvas-editor__left-pane" hidden></aside><aside class="canvas-editor__right-pane"></aside><header class="canvas-editor__top-bar"></header><footer data-test-id="canvas-view-controls"></footer>', { runScripts: "outside-only" });
   t.after(() => dom.window.close());
   const doc = dom.window.document;
+  doc.querySelector('iframe').checkVisibility = () => false;
   const rects = [
     [".canvas-editor__canvas-clipper", 0, 0, 1000, 700],
     [".canvas-editor__left-pane-container", 8, 58, 36, 634],
@@ -30,6 +31,27 @@ test("canvas mirror excludes floating editor chrome, follows panel visibility, a
   assert.equal(inspect().x, 312);
   doc.querySelector(".canvas-editor__right-pane").hidden = true;
   assert.equal(inspect().width, 688);
+});
+
+test("editor framing trims only outer workspace around every visible artboard and preserves empty/Preview views", (t) => {
+  const dom = new JSDOM('<div class="canvas-editor__canvas-clipper"><iframe class="canvas-editor__viewport"></iframe><iframe class="canvas-editor__viewport"></iframe><iframe class="canvas-editor__viewport"></iframe></div><div class="live-root-container" data-plasmic-preview-component="page"></div>', {runScripts:'outside-only'});
+  t.after(() => dom.window.close());
+  const doc = dom.window.document;
+  const boxes = [[0,0,1000,700],[150,100,200,300],[450,150,300,400],[1100,0,200,300]];
+  [doc.querySelector('.canvas-editor__canvas-clipper'),...doc.querySelectorAll('iframe')].forEach((el,index) => {
+    const [x,y,width,height]=boxes[index];
+    el.checkVisibility=()=>!el.hidden;
+    el.getBoundingClientRect=()=>({x,y,width,height,left:x,top:y,right:x+width,bottom:y+height});
+  });
+  const inspect=(mode='edit')=>JSON.parse(JSON.stringify(dom.window.eval(`(${inspectViewport.toString()})(${JSON.stringify(mode)},"page")`)));
+  const before=doc.body.innerHTML;
+  assert.deepEqual(inspect(),{x:134,y:84,width:632,height:482});
+  assert.equal(doc.body.innerHTML,before,'framing must not pan, zoom or mutate the source');
+  doc.querySelectorAll('iframe')[1].hidden=true;
+  assert.deepEqual(inspect(),{x:134,y:84,width:232,height:332},'hidden and offscreen pages do not pull framing away');
+  doc.querySelector('iframe').hidden=true;
+  assert.deepEqual(inspect(),{x:0,y:0,width:1000,height:700},'empty workspace stays visible');
+  assert.deepEqual(inspect('preview'),{x:0,y:0,width:1024,height:768},'Preview retains its real full viewport');
 });
 
 test("native capture maps nested frame borders/scales and retains source aspect ratio while hidden", async () => {

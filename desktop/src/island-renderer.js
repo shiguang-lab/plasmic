@@ -111,6 +111,27 @@
     completed: '<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3"><path d="m2 6 3 3 5-6"/></svg>',
     failed: "!", blocked: "!", queued: "·",
   };
+  const saveStates = {saved:"Saved",pending:"Unsaved changes",saving:"Saving",error:"Save failed",blocked:"Saving blocked",unlogged:"Sign in to save"};
+  function renderContext(hasActivity) {
+    const context = state.context, account = context.account;
+    const mode = context.allowed ? context.mode === "preview" ? "Preview" : "Canvas" : "Account";
+    $("context").textContent = $("context").title = t(mode);
+    if (hasActivity) return;
+    let title, detail;
+    if (context.allowed) {
+      title = context.viewName || context.projectName || t("Canvas");
+      detail = context.loading ? t("Loading…") : context.mode === "preview" ? t("Preview") : t(saveStates[context.saveStatus] || "Canvas");
+    } else {
+      title = account?.user?.name || t(account?.status === "signed-out" ? "Waiting for sign-in" : "Account overview");
+      detail = account?.status === "ready" ? t("{count} projects", {count:account.counts.projects})
+        : t(account?.status === "error" ? "Statistics unavailable" : account?.status === "signed-out" ? "Signed out" : "Loading…");
+    }
+    $("project").textContent = title;
+    $("pill-context").textContent = detail;
+    $("capsule-handle").title = [title, detail, context.allowed ? context.projectName : account?.user?.email].filter(Boolean).join(" · ");
+    $("capsule-handle").setAttribute("aria-label", $("capsule-handle").title);
+    document.body.dataset.error = String(context.allowed ? ["error","blocked","unlogged"].includes(context.saveStatus) : account?.status === "error");
+  }
   function renderActivity() {
     const { task, operation } = activity();
     const kind = operation?.kind;
@@ -119,55 +140,121 @@
     const stages = { read: "Reading", write: "Applying changes", view: "Navigating", save: "Saving", preview: "Interacting with preview" };
     const completed = { resource: "Operation complete", read: "Read complete", write: "Changes applied", view: "View updated", save: "Saved", preview: "Interaction complete" };
     const taskStage = task?.status === "running" ? task.stage : null;
-    const title = task?.title || (operation ? t(operation.label || titles[kind] || "Running MCP operation") : state.context.projectName || "Plasmic");
+    const context = state.context;
+    const title = task?.title || operation?.subject || (context.allowed ? context.viewName || context.pageName || context.projectName : operation?.label ? t(operation.label) : context.account?.user?.name)
+      || t(titles[kind] || "Running MCP operation");
     const error = task?.error || operation?.error;
     const active = busy();
     document.body.dataset.busy = String(!!active);
     document.body.dataset.working = String(!!active && !["blocked", "failed", "completed"].includes(status));
     document.body.dataset.blocked = String(status === "blocked");
     document.body.dataset.error = String(!!error || ["blocked", "failed"].includes(status));
+    $("mission").hidden = false;
     $("mission").textContent = $("mission").title = title;
     $("phase").hidden = !task && !operation;
     $("phase-text").textContent = t(status === "blocked" ? "Blocked" : status === "failed" ? "Operation failed"
       : status === "queued" ? "Queued" : status === "completed" ? completed[kind] || "Task complete"
-      : taskStage || stages[kind] || "In progress");
+      : taskStage || (operation?.subject && operation.label) || stages[kind] || "In progress");
     // Task and stage names are caller-provided content, not language-pack keys.
     if (taskStage && !["failed", "blocked", "completed", "queued"].includes(status)) $("phase-text").textContent = taskStage;
+    $("phase-text").title = $("phase-text").textContent;
     $("phase-icon").innerHTML = icons[status] || icons.running;
-    const planned = task?.stageIndex && task?.stageCount;
-    $("stage-count").textContent = planned ? `${task.stageIndex}/${task.stageCount}` : "";
-    $("progress").hidden = !planned;
+    const planned = !!(task?.stageIndex && task?.stageCount);
+    $("stage-count").textContent = [planned ? `${task.stageIndex}/${task.stageCount}` : "", activity().queued ? `${t("Queued")} ${activity().queued}` : ""].filter(Boolean).join(" · ");
+    $("stage-count").title = activity().queued ? t("{count} queued", {count:activity().queued}) : $("stage-count").textContent;
+    $("progress").hidden = !planned || !!error;
     if (planned) $("progress").firstElementChild.style.width = `${100 * task.stageIndex / task.stageCount}%`;
     $("issue").hidden = !error;
     $("issue-text").textContent = error || "";
     $("issue").title = error || "";
     const hasActivity = !!task || !!operation;
-    $("summary").hidden = hasActivity;
-    if (!hasActivity) renderSummary();
-    $("project").textContent = hasActivity ? title : state.context.projectName || "Plasmic";
+    const info = document.querySelector(".info");
+    info.dataset.activity = String(hasActivity);
+    info.dataset.planned = String(planned && !error);
+    info.dataset.issue = String(!!error);
+    info.dataset.viewLoading = String(!!(context.allowed && context.loading && !hasActivity));
+    $("summary").hidden = hasActivity || !state.context.allowed || state.context.loading;
+    $("account-detail").hidden = hasActivity || context.allowed || !!error;
+    $("account-preferences").hidden = true;
+    $("account-loading").hidden = true;
+    $("account-presence").hidden = true;
+    $("account-sign-in").hidden = true;
+    if (!state.context.allowed) renderAccount(hasActivity);
+    else renderSummary(hasActivity);
+    $("project").textContent = hasActivity ? title : state.context.allowed ? state.context.projectName || "Plasmic" : state.context.account?.user?.name || "Plasmic";
     $("pill-context").textContent = hasActivity ? $("phase-text").textContent : "";
     $("queue").hidden = !activity().queued;
     $("queue").textContent = activity().queued || "";
     $("queue").title = t("{count} queued", {count: activity().queued});
-    $("capsule-handle").title = (hasActivity ? [title, operation?.label ? t(operation.label) : operation?.operation, operation?.subject, taskStage, $("phase-text").textContent, error,
-      activity().queued ? $("queue").title : null] : [state.context.projectName || "Plasmic"]).filter(Boolean).join(" · ");
+    $("capsule-handle").title = [...new Set((hasActivity ? [title, context.viewName, operation?.label ? t(operation.label) : null, taskStage, $("phase-text").textContent, error,
+      activity().queued ? $("queue").title : null] : [title]).filter(Boolean))].join(" · ");
     $("capsule-handle").setAttribute("aria-label", $("capsule-handle").title);
+    renderContext(hasActivity);
+    document.querySelector(".dot").hidden = !active && document.body.dataset.error !== "true";
   }
-  function renderSummary() {
-    const context = state.context, summary = context.projectSummary;
+  function renderAccount(hasActivity) {
+    const context = state.context, account = context.account || { status: "loading" };
+    const ready = account.status === "ready";
+    const loading = account.status === "loading";
+    const info = document.querySelector(".info");
+    info.dataset.identityLoading = String(loading && !account.user);
+    const workspace = account.workspaces?.find(item => item.id === context.workspaceId);
+    const team = account.teams?.find(item => item.id === (context.orgId || workspace?.teamId));
+    const location = [team?.name, workspace?.name].filter(Boolean).join(" · ");
+    const labels = { loading: "Loading account information…", "signed-out": "Sign in to view account information", error: "Account statistics unavailable", ready: "Signed in" };
+    const status = t(labels[account.status] || labels.loading);
+    $("page").textContent = account.user?.name || (loading ? "" : "Plasmic");
+    $("page").title = account.user?.email || $("page").textContent;
+    $("account-presence").hidden = !account.user;
+    $("account-presence").title = t("Signed in");
+    $("account-presence").setAttribute("aria-label", t("Signed in"));
+    $("account-loading").hidden = !loading || hasActivity;
+    $("account-loading-label").textContent = t(labels.loading);
+    $("account-detail").hidden ||= loading && !hasActivity || !account.user?.email;
+    if (!hasActivity) {
+      $("mission").hidden = loading;
+      $("mission").textContent = loading ? "" : account.status === "signed-out" ? t("Sign in to Plasmic") : location || t("Account overview");
+      $("mission").title = $("mission").textContent;
+    }
+    $("account-email").textContent = account.user?.email || "";
+    $("account-email").title = account.user?.email || "";
+    $("account-sign-in").hidden = hasActivity || account.status !== "signed-out";
+    $("account-sign-in").textContent = t("Sign in");
+    $("account-preferences").hidden = hasActivity || loading || !account.user;
+    $("account-theme-label").textContent = t("Theme");
+    $("account-language-label").textContent = t("Language");
+    $("account-theme").textContent = $("account-theme").title = t(state.appearance === "light" ? "Light" : "Dark");
+    // Native language names match Studio's language selector.
+    const languages = { en:"English", "zh-CN":"简体中文", "zh-TW":"繁體中文", ja:"日本語", ko:"한국어" };
+    $("account-language").textContent = $("account-language").title = languages[window.desktopUiI18n.snapshot().locale];
+    $("account-overview").setAttribute("aria-label", t("Accessible resources"));
+    $("account-overview").setAttribute("aria-busy", String(account.status === "loading"));
+    $("account-statistics").hidden = !ready;
+    $("account-stats-loading").hidden = !loading;
+    $("account-empty").hidden = ready || loading;
+    $("account-empty").textContent = ready || loading ? "" : status;
+    for (const [id, key, label] of [["organization", "organizations", "Organizations"], ["workspace", "workspaces", "Workspaces"], ["project", "projects", "Projects"]]) {
+      $(`${id}-count`).textContent = ready ? account.counts[key] : "";
+      $(`${key}-label`).textContent = t(label);
+    }
+  }
+  function renderSummary(hasActivity) {
+    const context = state.context, summary = context.loading ? null : context.projectSummary;
     $("page").textContent = context.projectName || "Plasmic";
     $("page").title = context.projectName || "Plasmic";
-    $("mission").textContent = context.loading ? t("Loading current view…") : context.viewName || t("No canvas open");
-    $("mission").title = [context.viewName, context.previewContext?.path].filter(Boolean).join(" · ");
+    if (!hasActivity) {
+      $("mission").textContent = context.loading ? t("Loading current view…") : context.viewName || t("No canvas open");
+      $("mission").title = [context.viewName, context.previewContext?.path].filter(Boolean).join(" · ");
+    }
     $("summary").querySelector(".counts").hidden = !summary;
     $("page-count").textContent = summary?.pages ?? "";
     $("component-count").textContent = summary?.components ?? "";
     $("pages-label").textContent = $("pages-label").title = t("Pages");
     $("components-label").textContent = $("components-label").title = t("Components");
-    const states = {saved:"Saved",pending:"Unsaved changes",saving:"Saving",error:"Save failed",blocked:"Saving blocked",unlogged:"Sign in to save"};
-    $("save-state").hidden = !context.saveStatus;
-    $("save-state").dataset.status = context.saveStatus || "";
-    $("save-text").textContent = states[context.saveStatus] ? t(states[context.saveStatus]) : "";
+    const saveStatus = context.loading ? null : context.saveStatus;
+    $("save-state").hidden = !saveStatus;
+    $("save-state").dataset.status = saveStatus || "";
+    $("save-text").textContent = saveStates[saveStatus] ? t(saveStates[saveStatus]) : "";
     $("save-state").title = $("save-text").textContent;
     const preview = context.previewContext;
     const dimensions = context.mode === "preview" && preview?.width > 0 && preview?.height > 0;
@@ -176,7 +263,7 @@
     $("view-metric").title = t(dimensions ? "Viewport" : "Zoom");
   }
   function renderImage() {
-    const image = state.image, valid = !!image && image.identity === state.context.identity;
+    const image = state.image, valid = state.context.allowed && !!image && image.identity === state.context.identity;
     if (!valid) {
       imageVersion++; loadingSource = frameSource = undefined;
       frameImage = undefined;
@@ -196,7 +283,7 @@
       loader.src = image.src;
     }
     if (valid && image.src === frameSource) frameImage = image;
-    $("unavailable").hidden = !!frameSource;
+    $("unavailable").hidden = !state.context.allowed || !!frameSource;
     $("unavailable").textContent = t(!state.context.allowed ? "No canvas open" : state.context.loading ? "Loading current view…" : "Waiting for current view…");
     $("stale").hidden = !state.stale || !frameSource;
     $("stale").textContent = t("Previous frame");
@@ -236,8 +323,9 @@
     if (value.localization) window.desktopUiI18n.setSnapshot(value.localization);
     document.documentElement.dataset.uiAppearance = value.appearance;
     shell.dataset.allowed = String(value.context.allowed);
-    const context = value.context.mode === "preview" ? "Preview" : value.context.allowed ? "Edit mode" : "";
-    $("context").textContent = t(context);
+    $("card").querySelector(".body").dataset.view = value.context.allowed ? "canvas" : "account";
+    $("card").querySelector(".visual").hidden = !value.context.allowed;
+    $("account-overview").hidden = value.context.allowed;
     $("page").textContent = value.context.pageName || value.context.projectName || "Plasmic";
     $("page").title = value.context.pageName || value.context.projectName || "Plasmic";
     open(value.expanded === true);
@@ -252,6 +340,7 @@
   }
   $("update-install").onclick = () => { $("update-install").disabled = true; void send("update-install"); };
   $("update-later").onclick = $("update-dismiss").onclick = () => void send("update-close");
+  $("account-sign-in").onclick = () => void send("sign-in");
   shell.addEventListener("contextmenu", (event) => { event.preventDefault(); void send("menu"); });
   shell.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && state?.updateOpen) { event.preventDefault(); void send("update-close"); }

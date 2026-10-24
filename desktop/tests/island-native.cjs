@@ -12,6 +12,7 @@ const { EventEmitter } = require("node:events");
 const { UpdateManager } = require("../src/update-manager.cjs");
 const { createUpdateDialog } = require("../src/update-dialog.cjs");
 const { createIsland, containsPoint } = require("../src/island.cjs");
+const { UnifiedAuthWindow, AUTH_PATH } = require("../src/unified-auth-window.cjs");
 const { createDesktopI18n } = require("../src/i18n.cjs");
 const { createDesktopAppearance } = require("../src/ui-appearance.cjs");
 const { startRpc } = require("../src/local-rpc.cjs");
@@ -100,7 +101,17 @@ app.whenReady().then(async () => {
     contextIsolation: true, nodeIntegration: false, backgroundThrottling: false,
   } });
   controller = new DesktopController(() => main, { studioOrigin: origin });
-  presentation = createIsland({ getWindow: () => main, controller, config: { studioOrigin: origin }, i18n, appearance });
+  const accountData = { user:{id:"account-a",firstName:"演示账号",lastName:"",email:"demo@example.test"},
+    teams:[{id:"team",name:"业务组织"}],workspaces:[{id:"w",teamId:"team",name:"采购工作区"}],projects:[{id:"p"},{id:"p2"}] };
+  const requestStudio = controller.requestStudio.bind(controller);
+  controller.requestStudio = async (url, input, signal) => {
+    if (url === "/api/v1/auth/self") return {user:accountData.user};
+    if (url === "/api/v1/app-ctx") return {teams:accountData.teams,workspaces:accountData.workspaces};
+    if (url === '/api/v1/projects?query=%22all%22') return {projects:accountData.projects};
+    return requestStudio(url,input,signal);
+  };
+  const auth = new UnifiedAuthWindow(main, origin);
+  presentation = createIsland({ getWindow: () => main, controller, config: { studioOrigin: origin }, i18n, appearance, signIn: () => auth.show() });
   presentation.attach(main);
   await main.loadURL(origin + "/projects/p");
   await until(async () => (await controller.state()).ready, "editor bridge ready");
@@ -143,13 +154,15 @@ app.whenReady().then(async () => {
   const read = call("execute", { name: "read", input: { collection: "components" } });
   await until(async () => await inspect(`document.getElementById('shell').dataset.expanded==='true' && document.getElementById('phase-text').textContent===${JSON.stringify(i18n.t("Reading"))}`), "real MCP read expands");
   assert.equal(await inspect("document.getElementById('summary').hidden"), true, "actual MCP work replaces idle information");
+  assert.equal(await inspect("document.getElementById('mission').textContent"), "审批组合画布", "reads identify the actual canvas instead of repeating the action");
+  assert.equal(await inspect("document.getElementById('context').textContent"), "画布");
   await until(() => presentation.snapshot().image?.src, "hidden compositor capture");
   await until(async () => await inspect("!document.getElementById('feedback').hidden && document.getElementById('feedback').dataset.kind==='read' && getComputedStyle(document.querySelector('.feedback-sweep')).animationName==='feedback-scan'"), "real read scans the mirrored view");
   await inspect("window.scanNode=document.querySelector('.feedback-sweep');window.scanTime=scanNode.getAnimations()[0].currentTime;true");
   await delay(200);
   assert.equal(await inspect("document.querySelector('.feedback-sweep')===scanNode && scanNode.getAnimations()[0].currentTime>scanTime+100"), true, "capture updates must not restart the scan animation");
   const before = presentation.snapshot().image;
-  assert.equal(before.width, 820); assert.equal(before.height, 570);
+  assert.equal(before.width, 756); assert.equal(before.height, 546);
   await read;
   await until(async () => await inspect("!document.getElementById('mirror').hidden"), "mirror displays");
   assert.equal(await inspect("getComputedStyle(document.getElementById('mirror')).objectFit"), "contain");
@@ -176,6 +189,12 @@ app.whenReady().then(async () => {
   assert.equal(await inspect("document.getElementById('save-state').hidden"), true, "loading cannot claim a previous save state");
   assert.equal(await inspect("document.getElementById('shell').dataset.expanded"), "true");
   assert.equal(await inspect("document.getElementById('unavailable').textContent"), i18n.t("Loading current view…"));
+  await until(async()=>await inspect("document.querySelector('.info').dataset.viewLoading==='true'"),"idle loading message occupies the remaining left content area");
+  assert.equal(await inspect(`(() => {
+    const mission=document.getElementById('mission').getBoundingClientRect(),range=document.createRange();
+    range.selectNodeContents(document.getElementById('unavailable'));const text=range.getBoundingClientRect();
+    return Math.abs(mission.y+mission.height/2-text.y-text.height/2)<=3 && document.getElementById('summary').hidden;
+  })()`),true,"left loading copy aligns vertically with the right loading copy without summary overlap");
   fs.writeFileSync(path.join(reportDir, "loading.png"), (await island.webContents.capturePage()).toPNG());
   await delay(700);
   await main.webContents.executeJavaScript("window.PLASMIC_AI_TOOLS=fixtureTools;true");
@@ -191,6 +210,17 @@ app.whenReady().then(async () => {
   const task = { taskId: "approval-task", projectId: "p", sequence: 0, title: "调整审批表格", status: "running", stage: "调整操作列", stageIndex: 2, stageCount: 3 };
   await call("report_task", task);
   await until(async () => await inspect("document.getElementById('mission').textContent==='调整审批表格' && document.getElementById('stage-count').textContent==='2/3'"), "task metadata");
+  for (const locale of ["en","zh-CN","zh-TW","ja","ko"]) {
+    i18n.setLocale(locale);
+    await until(async () => await inspect(`document.documentElement.lang===${JSON.stringify(locale)}`), `${locale} activity hierarchy`);
+    assert.equal(await inspect(`(() => {
+      const info=document.querySelector('.info'),mission=document.getElementById('mission').getBoundingClientRect(),phase=document.getElementById('phase').getBoundingClientRect(),progress=document.getElementById('progress').getBoundingClientRect(),visual=document.querySelector('.visual').getBoundingClientRect();
+      return info.scrollHeight<=info.clientHeight && mission.top-document.getElementById('drag-handle').getBoundingClientRect().bottom>=6
+        && phase.top-mission.bottom>=6 && progress.top>=phase.bottom && Math.abs(progress.bottom-visual.bottom)<=3
+        && document.getElementById('summary').hidden && !document.getElementById('activity-detail');
+    })()`), true, `${locale} task, status and progress have breathing room without overflow or metadata stacking`);
+  }
+  i18n.setLocale("zh-CN");
   assert.equal(await inspect("document.getElementById('feedback').hidden"), true, "task metadata alone must not invent scans");
   await main.webContents.executeJavaScript("history.pushState({},'', '/projects/p?arena=other')");
   await delay(650);
@@ -206,15 +236,20 @@ app.whenReady().then(async () => {
   await write;
   await until(async () => await inspect("document.getElementById('phase-text').textContent==='更改已应用'"), "write completion is not saved");
   await until(() => presentation.snapshot().image?.src !== before.src, "hidden view updates after write");
+  assert.equal(await inspect("document.getElementById('summary').hidden"),true,"ordinary project statistics stay hidden during activity");
   const dark = await island.webContents.capturePage();
   fs.writeFileSync(path.join(reportDir, "edit.png"), dark.toPNG());
   await until(async () => await inspect("!document.getElementById('summary').hidden && document.getElementById('save-state').dataset.status==='pending'"), "write completion returns to genuine unsaved status");
   await call("execute",{name:"save",input:{}});
+  await until(async () => await inspect("document.getElementById('context').textContent==='画布' && document.getElementById('phase-text').textContent==='已保存' && document.getElementById('summary').hidden"), "save result appears once while the canvas context remains stable");
+  await delay(300);
+  fs.writeFileSync(path.join(reportDir,"save-result.png"),(await island.webContents.capturePage()).toPNG());
   await until(async () => await inspect("!document.getElementById('summary').hidden && document.getElementById('save-state').dataset.status==='saved'"), "successful save updates idle information");
   assert.equal(await inspect("document.getElementById('save-text').scrollWidth <= document.getElementById('save-text').clientWidth"), true, "Chinese saved status fits");
   await call("execute", { name: "changeElement", input: { elementUuid: "missing" } }, true);
   await until(async () => await inspect("document.getElementById('issue-text').textContent.includes('Element missing')"), "actual editor error");
   assert.equal(await inspect("document.getElementById('feedback').hidden"), true, "failed calls clear visual feedback");
+  assert.equal(await inspect("document.getElementById('summary').hidden && document.getElementById('progress').hidden"),true,"error details take priority over ordinary statistics and progress");
   passed.push("task stages, explicit plan, blocker persistence, actual write/result/error and continuously updating hidden mirror");
 
   await main.webContents.executeJavaScript("history.pushState({},'', '/projects/p/docs')");
@@ -224,28 +259,45 @@ app.whenReady().then(async () => {
   assert.equal(presentation.snapshot().image, null);
   await main.webContents.executeJavaScript("history.pushState({},'', '/workspaces/w')");
   await until(() => presentation.snapshot().context.surface === "dashboard" && presentation.snapshot().context.projectId === null, "workspace dashboard");
+  await until(async () => await inspect("document.getElementById('project-count').textContent==='2' && !document.getElementById('account-statistics').hidden"), "real account reads populate dashboard statistics");
+  assert.equal(await inspect("document.querySelector('.visual').hidden && document.getElementById('unavailable').hidden && document.getElementById('summary').hidden"),true,"dashboard has no canvas or project placeholder");
+  assert.equal(await inspect("document.getElementById('mission').textContent"),"业务组织 · 采购工作区");
+  assert.equal(await inspect("document.getElementById('account-email').textContent"),"demo@example.test");
+  assert.equal(await inspect(`(() => {
+    const mark=document.getElementById('account-presence'),name=document.getElementById('page').getBoundingClientRect(),r=mark.getBoundingClientRect();
+    return !mark.hidden && mark.getAttribute('aria-label')==='已登录' && r.left>=name.right && r.left-name.right<=8 && !document.getElementById('account-status');
+  })()`),true,"signed-in indicator stays beside the account name instead of occupying the footer");
+  fs.writeFileSync(path.join(reportDir,"account-idle.png"),(await island.webContents.capturePage()).toPNG());
   elapsed += 600_001;
   await until(async () => await inspect("document.getElementById('shell').dataset.expanded==='false'"), "ten idle minutes collapse on dashboard");
   await delay(500);
   await until(async () => await inspect("Math.abs(document.getElementById('shell').getBoundingClientRect().width - document.getElementById('capsule').getBoundingClientRect().width - 2) < 1"), "capsule fits its content");
-  assert.ok(await inspect("document.getElementById('shell').getBoundingClientRect().width < 180"), "idle capsule has no excessive fixed width");
+  assert.ok(await inspect("document.getElementById('shell').getBoundingClientRect().width <= 280"), "contextual capsule fits the compact limit");
+  assert.equal(await inspect("document.getElementById('pill-context').textContent"),i18n.t("{count} projects",{count:2}));
+  fs.writeFileSync(path.join(reportDir,"account-capsule.png"),(await island.webContents.capturePage()).toPNG());
   const originalRequest = controller.requestStudio;
   let releaseCreate;
-  controller.requestStudio = async (url, input) => {
+  controller.requestStudio = async (url, input, signal) => {
+    if (input === undefined) return originalRequest.call(controller,url,input,signal);
     assert.equal(url, "/api/v1/projects");
     if(input.name === "失败项目") throw new Error("创建权限被拒绝");
     await new Promise(resolve => {releaseCreate=resolve});
+    accountData.projects.push({id:`created-${accountData.projects.length}`});
     return {project:{id:"new-project",name:input.name}};
   };
   const creating = call("create_project", {name:"新建审批项目"});
-  await until(async () => await inspect("document.getElementById('project').textContent==='创建项目' && document.body.dataset.working==='true'"), "project creation shows in capsule");
+  await until(async () => await inspect("document.getElementById('project').textContent==='新建审批项目' && document.body.dataset.working==='true'"), "project creation shows in capsule");
   const failing = call("create_project", {name:"失败项目"}, true);
   await until(async () => await inspect("!document.getElementById('queue').hidden && document.getElementById('queue').textContent==='1'"), "queued work shows in capsule");
   assert.ok(await inspect("document.getElementById('capsule-handle').title.includes('新建审批项目')"), "capsule exposes the actual resource name");
   assert.equal(await inspect("document.getElementById('shell').dataset.expanded"), "true", "project creation expands a dashboard card too");
+  assert.equal(await inspect("document.querySelector('.visual').hidden && !document.getElementById('account-overview').hidden"),true,"resource work keeps account statistics instead of a canvas");
+  assert.equal(await inspect("document.getElementById('stage-count').textContent"),`${i18n.t("Queued")} 1`,"the expanded card also shows its queue");
+  await delay(600);
   fs.writeFileSync(path.join(reportDir, "capsule-running.png"), (await island.webContents.capturePage()).toPNG());
   await delay(2400);
   releaseCreate(); await creating; await failing;
+  await until(async () => await inspect("document.getElementById('project-count').textContent==='3'"),"successful creation refreshes account totals");
   await until(async () => await inspect("document.body.dataset.error==='true' && document.getElementById('pill-context').textContent==='操作失败'"), "capsule error");
   await delay(2400);
   assert.ok(await inspect("document.getElementById('capsule-handle').title.includes('创建权限被拒绝')"), "failed operations stay inspectable until the next meaningful call");
@@ -255,9 +307,65 @@ app.whenReady().then(async () => {
   releaseCreate(); await recovering;
   await until(async () => await inspect("document.getElementById('pill-context').textContent==='操作完成'"), "capsule result");
   fs.writeFileSync(path.join(reportDir, "capsule-result.png"), (await island.webContents.capturePage()).toPNG());
-  await until(async () => await inspect("document.getElementById('project').textContent==='Plasmic' && document.getElementById('pill-context').textContent===''"), "capsule result expires back to compact idle");
+  await until(async () => await inspect("document.getElementById('project').textContent==='演示账号' && document.getElementById('pill-context').textContent==='4 个项目' && document.getElementById('project-count').textContent==='4'"), "capsule result expires back to account identity and updated statistics");
   controller.requestStudio = originalRequest;
-  passed.push("dashboard calls expand with no stale canvas; actual subject, queue, persistent error and recovery remain visible");
+  accountData.user = null;
+  const cookie = {domain:"island.studio.test",path:"/",name:"session",httpOnly:true,value:"signed-out"};
+  main.webContents.session.cookies.emit("changed",{},cookie,"explicit",false);
+  assert.equal(presentation.snapshot().context.account.user,undefined,"auth changes synchronously clear the old account");
+  await until(async () => await inspect("document.getElementById('account-email').textContent==='' && document.getElementById('account-statistics').hidden"),"logout removes identity and totals");
+  await until(async () => await inspect("!document.getElementById('account-sign-in').hidden"),"signed-out account offers sign-in");
+  for (const locale of ["en","zh-CN","zh-TW","ja","ko"]) {
+    i18n.setLocale(locale);
+    await until(async () => await inspect(`document.getElementById('account-sign-in').textContent===${JSON.stringify(i18n.t("Sign in"))}`), `${locale} sign-in action localizes`);
+    assert.equal(await inspect(`(() => {
+      const button=document.getElementById('account-sign-in'),b=button.getBoundingClientRect(),m=document.getElementById('mission').getBoundingClientRect(),info=document.querySelector('.info').getBoundingClientRect();
+      return b.width>0 && button.scrollWidth<=button.clientWidth && b.top>=m.bottom && b.bottom<=info.bottom && b.right<=info.right;
+    })()`),true,`${locale} sign-in button fits without overlap`);
+  }
+  i18n.setLocale("zh-CN");
+  assert.equal(main.isVisible(),false);
+  await inspect("document.getElementById('account-sign-in').click();true");
+  await until(() => main.webContents.getURL()===origin+AUTH_PATH && main.isVisible(),"island sign-in reveals the main window and opens existing login page");
+  assert.equal(presentation.mode,"island","login preserves island mode");
+  // Login returns to Studio with the main window still visible and island mode active.
+  // No external SSO is used by this fixture.
+  await main.loadURL(origin + "/");
+  accountData.user = {id:"account-b",firstName:"另一账号",email:"other@example.test"};
+  accountData.projects=[];
+  const accountRequest=controller.requestStudio;
+  let releaseIdentity, releaseStatistics;
+  const identityGate=new Promise(resolve=>{releaseIdentity=resolve}),statisticsGate=new Promise(resolve=>{releaseStatistics=resolve});
+  controller.requestStudio=async(url,...args)=>{
+    if(url==='/api/v1/auth/self')await identityGate;
+    if(url==='/api/v1/app-ctx')await statisticsGate;
+    return accountRequest(url,...args);
+  };
+  main.webContents.session.cookies.emit("changed",{},{...cookie,value:"account-b"},"explicit",false);
+  await until(async()=>await inspect("!document.getElementById('account-loading').hidden && !document.getElementById('account-stats-loading').hidden && document.getElementById('mission').hidden && document.getElementById('account-empty').hidden && document.getElementById('account-presence').hidden"),"both account columns show skeletons without repeated loading copy or old identity");
+  await delay(350);
+  fs.writeFileSync(path.join(reportDir,"account-loading.png"),(await island.webContents.capturePage()).toPNG());
+  releaseIdentity();
+  await until(async()=>await inspect("document.getElementById('page').textContent==='另一账号' && !document.getElementById('account-presence').hidden && !document.getElementById('account-loading').hidden && !document.getElementById('account-stats-loading').hidden"),"verified identity appears while statistics are still loading");
+  releaseStatistics();
+  await until(async () => await inspect("document.getElementById('account-email').textContent==='other@example.test' && document.getElementById('project-count').textContent==='0'"),"replacement account has its own identity and totals");
+  assert.equal(await inspect("document.getElementById('account-sign-in').hidden"),true,"verified login replaces the sign-in button with account information");
+  controller.requestStudio=accountRequest;
+  for (const locale of ["en","zh-CN","zh-TW","ja","ko"]) {
+    i18n.setLocale(locale);
+    await until(async () => await inspect(`document.documentElement.lang===${JSON.stringify(locale)}`),`${locale} account labels render`);
+    assert.equal(await inspect("document.getElementById('account-overview').scrollWidth <= document.getElementById('account-overview').clientWidth"),true,`${locale} account card fits`);
+    assert.equal(await inspect(`(() => {
+      const prefs=document.getElementById('account-preferences'),r=prefs.getBoundingClientRect();
+      return !prefs.hidden && prefs.scrollWidth<=prefs.clientWidth && [...prefs.querySelectorAll('dd')].every(el=>el.scrollWidth<=el.clientWidth)
+        && r.top>=document.getElementById('mission').getBoundingClientRect().bottom && r.bottom<=document.getElementById('account-email').getBoundingClientRect().top;
+    })()`),true,`${locale} theme and language fit between location and email without overlap`);
+  }
+  appearance.set("light");
+  await until(async()=>await inspect(`document.getElementById('account-theme').textContent===${JSON.stringify(i18n.t("Light"))}`),"account metadata follows the real appearance snapshot");
+  appearance.set("dark");
+  i18n.setLocale("zh-CN");
+  passed.push("account overview uses API totals without a canvas; creation refreshes totals; logout clears old identities; island sign-in opens the existing login page and preserves mode; verified replacement restores account data; localized labels fit; MCP subject, queue, persistent error and recovery remain visible");
 
   const openingEditor = main.loadURL(origin + "/projects/p?slow=1");
   await until(() => presentation.snapshot().context.allowed && presentation.snapshot().context.loading, "dashboard to editor loading card");
@@ -430,6 +538,15 @@ app.whenReady().then(async () => {
     await until(async()=>await inspect(`document.documentElement.lang===${JSON.stringify(locale)}`),"update language "+locale);
     assert.equal(await inspect("document.getElementById('update-panel').scrollHeight<=document.getElementById('update-panel').clientHeight"),true,"update pane fits "+locale);
     assert.equal(await inspect("document.getElementById('update-install').scrollHeight<=document.getElementById('update-install').clientHeight"),true,"install label fits "+locale);
+    assert.equal(await inspect(`(() => {
+      const el=id=>document.getElementById(id), rect=id=>el(id).getBoundingClientRect(),panel=rect('update-panel');
+      const heading=rect('update-heading'),status=rect('update-title'),detail=rect('update-description'),actions=document.querySelector('.update-actions').getBoundingClientRect();
+      const controls=['update-dismiss','update-later','update-install'].map(el).filter(node=>!node.hidden);
+      return parseFloat(getComputedStyle(el('update-heading')).fontSize)>parseFloat(getComputedStyle(el('update-title')).fontSize)
+        && heading.bottom<=status.top && status.bottom<=detail.top && detail.bottom<=actions.top
+        && controls.every(node=>{const r=node.getBoundingClientRect();return r.width>0 && node.scrollWidth<=node.clientWidth && r.left>=panel.left+10 && r.right<=panel.right-10 && r.bottom<=panel.bottom-10;})
+        && ['update-later','update-install'].every(id=>getComputedStyle(el(id)).backgroundColor==='rgba(0, 0, 0, 0)');
+    })()`),true,"update title, state and compact text actions retain hierarchy and spacing "+locale);
     if(locale==="zh-CN") {
       appearance.set("dark");await delay(200);
       fs.writeFileSync(path.join(reportDir,"update-ready-zh-dark.png"),(await island.webContents.capturePage()).toPNG());

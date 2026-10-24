@@ -18,7 +18,7 @@
  <section id="card" inert aria-hidden="true">
   <div class="body">
    <section class="info">
-    <div class="identity" id="drag-handle"><span aria-hidden="true">◈</span><span id="page"></span><span id="context"></span><button id="card-update" class="update-indicator" type="button" hidden></button></div>
+    <div class="identity" id="drag-handle"><span aria-hidden="true">◈</span><span id="page"></span><span id="account-presence" role="img" hidden></span><span id="context"></span><button id="card-update" class="update-indicator" type="button" hidden></button></div>
     <div id="mission"></div>
     <div id="phase" role="status" aria-live="polite"><span id="phase-icon" aria-hidden="true"></span><span id="phase-text"></span><span id="stage-count"></span></div>
     <div id="progress" hidden aria-hidden="true"><span></span></div>
@@ -26,7 +26,20 @@
      <div class="counts"><span><b id="page-count"></b><span id="pages-label"></span></span><span><b id="component-count"></b><span id="components-label"></span></span></div>
      <div class="view-status"><span id="save-state"><i aria-hidden="true"></i><span id="save-text"></span></span><span id="view-metric"></span></div>
     </div>
+    <div id="account-detail" hidden><span id="account-email"></span></div>
+    <dl id="account-preferences" hidden><div><dt id="account-theme-label"></dt><dd id="account-theme"></dd></div><div><dt id="account-language-label"></dt><dd id="account-language"></dd></div></dl>
+    <div id="account-loading" class="skeleton-surface" role="status" hidden><span id="account-loading-label" class="sr-only"></span></div>
+    <button id="account-sign-in" type="button" hidden></button>
     <div id="issue" role="alert" hidden><span aria-hidden="true">!</span><span id="issue-text"></span></div>
+   </section>
+   <section id="account-overview" aria-label="Account overview" hidden>
+    <div id="account-stats-loading" class="skeleton-surface" aria-hidden="true" hidden></div>
+    <div id="account-statistics" hidden>
+     <div><span id="organizations-label"></span><b id="organization-count"></b></div>
+     <div><span id="workspaces-label"></span><b id="workspace-count"></b></div>
+     <div><span id="projects-label"></span><b id="project-count"></b></div>
+    </div>
+    <div id="account-empty" role="status"></div>
    </section>
    <section class="visual">
     <img id="mirror" alt="" draggable="false" hidden>
@@ -35,14 +48,19 @@
    </section>
   </div>
   <section id="update-panel" aria-labelledby="update-heading" hidden>
-   <div class="update-content">
-    <div id="update-heading" class="identity"></div>
-    <strong id="update-title" role="status" aria-live="polite"></strong>
+   <div class="update-header">
+    <h2 id="update-heading"></h2>
     <div id="update-versions"></div>
-    <p id="update-description"></p>
-    <progress id="update-progress" max="100" value="0" hidden></progress>
+    <button id="update-dismiss" type="button">×</button>
    </div>
-   <div class="update-actions"><button id="update-dismiss" type="button">×</button><button id="update-install" type="button" hidden></button><button id="update-later" type="button"></button></div>
+   <div class="update-content">
+    <div id="update-title" role="status" aria-live="polite"></div>
+    <p id="update-description"></p>
+   </div>
+   <div class="update-footer">
+    <progress id="update-progress" max="100" value="0" hidden></progress>
+    <div class="update-actions"><button id="update-later" type="button"></button><button id="update-install" type="button" hidden></button></div>
+   </div>
   </section>
  </section>
 </div>
