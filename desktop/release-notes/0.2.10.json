@@ -1,0 +1,7 @@
+{
+  "en": "- Balance Dynamic Island spacing with a narrower canvas area and more room for project information, while preserving preview height and aspect ratio.",
+  "zh-CN": "- 优化灵动岛左右布局，收窄画布区域并增加信息区空间与中间间距，保持预览高度和画面比例不变。",
+  "zh-TW": "- 最佳化靈動島左右配置，縮窄畫布區域並增加資訊區空間與中間間距，保持預覽高度及畫面比例不變。",
+  "ja": "- Dynamic Island のキャンバス領域を狭め、情報領域と中央の余白を広げました。プレビューの高さと縦横比は維持されます。",
+  "ko": "- Dynamic Island의 캔버스 영역을 좁히고 정보 영역과 가운데 간격을 넓혔습니다. 미리보기 높이와 화면 비율은 유지됩니다."
+}
