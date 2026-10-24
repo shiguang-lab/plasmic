@@ -13,11 +13,12 @@
 <div id="shell" data-expanded="false" tabindex="0" aria-haspopup="menu">
  <div id="capsule">
   <button id="capsule-handle" type="button" aria-haspopup="menu"><span aria-hidden="true" class="brand">◈</span><span id="project">Plasmic</span><span id="pill-context"></span><span id="queue" hidden></span><span class="dot" aria-hidden="true"></span></button>
+  <button id="capsule-update" class="update-indicator" type="button" hidden></button>
  </div>
  <section id="card" inert aria-hidden="true">
   <div class="body">
    <section class="info">
-    <div class="identity" id="drag-handle"><span aria-hidden="true">◈</span><span id="page"></span><span id="context"></span></div>
+    <div class="identity" id="drag-handle"><span aria-hidden="true">◈</span><span id="page"></span><span id="context"></span><button id="card-update" class="update-indicator" type="button" hidden></button></div>
     <div id="mission"></div>
     <div id="phase" role="status" aria-live="polite"><span id="phase-icon" aria-hidden="true"></span><span id="phase-text"></span><span id="stage-count"></span></div>
     <div id="progress" hidden aria-hidden="true"><span></span></div>
@@ -33,6 +34,16 @@
     <span id="unavailable" hidden></span><span id="stale" hidden></span>
    </section>
   </div>
+  <section id="update-panel" aria-labelledby="update-heading" hidden>
+   <div class="update-content">
+    <div id="update-heading" class="identity"></div>
+    <strong id="update-title" role="status" aria-live="polite"></strong>
+    <div id="update-versions"></div>
+    <p id="update-description"></p>
+    <progress id="update-progress" max="100" value="0" hidden></progress>
+   </div>
+   <div class="update-actions"><button id="update-dismiss" type="button">×</button><button id="update-install" type="button" hidden></button><button id="update-later" type="button"></button></div>
+  </section>
  </section>
 </div>
 </body>

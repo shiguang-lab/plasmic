@@ -5573,5 +5573,7 @@
   "Viewport": "檢視區",
   "Show main window": "顯示主視窗",
   "Exit Dynamic Island mode": "退出動態島模式",
-  "Quit application": "結束程式"
+  "Quit application": "結束程式",
+  "Waiting for MCP operations to finish…": "正在等待 MCP 操作完成…",
+  "Plasmic is restarting to install an update. Retry after it reopens.": "Plasmic 正在重新啟動以安裝更新，請在重新開啟後重試。"
 }

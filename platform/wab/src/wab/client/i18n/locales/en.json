@@ -5573,5 +5573,7 @@
   "Viewport": "Viewport",
   "Show main window": "Show main window",
   "Exit Dynamic Island mode": "Exit Dynamic Island mode",
-  "Quit application": "Quit application"
+  "Quit application": "Quit application",
+  "Waiting for MCP operations to finish…": "Waiting for MCP operations to finish…",
+  "Plasmic is restarting to install an update. Retry after it reopens.": "Plasmic is restarting to install an update. Retry after it reopens."
 }

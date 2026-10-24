@@ -5573,5 +5573,7 @@
   "Viewport": "ビューポート",
   "Show main window": "メインウィンドウを表示",
   "Exit Dynamic Island mode": "Dynamic Island モードを終了",
-  "Quit application": "アプリを終了"
+  "Quit application": "アプリを終了",
+  "Waiting for MCP operations to finish…": "MCP の処理が完了するのを待っています…",
+  "Plasmic is restarting to install an update. Retry after it reopens.": "Plasmic は更新のインストールのため再起動しています。再起動後にお試しください。"
 }

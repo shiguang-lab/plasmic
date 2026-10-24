@@ -8,6 +8,9 @@ const path = require("node:path");
 const { Client } = require("@modelcontextprotocol/sdk/client/index.js");
 const { StdioClientTransport } = require("@modelcontextprotocol/sdk/client/stdio.js");
 const { DesktopController } = require("../src/controller.cjs");
+const { EventEmitter } = require("node:events");
+const { UpdateManager } = require("../src/update-manager.cjs");
+const { createUpdateDialog } = require("../src/update-dialog.cjs");
 const { createIsland, containsPoint } = require("../src/island.cjs");
 const { createDesktopI18n } = require("../src/i18n.cjs");
 const { createDesktopAppearance } = require("../src/ui-appearance.cjs");
@@ -43,8 +46,9 @@ const editorScript = `
     componentUuid:'page', componentName:fixture.name, frameUuid:'frame', editorView:{arenaId:'arena',scale:.65},
     previewContext:fixture.mode==='preview'?{componentUuid:fixture.page,componentName:'审批预览',path:fixture.path,width:360,height:560}:null });
   window.PLASMIC_AI_TOOLS = {
-    _meta:{read:{},changeElement:{},save:{},preview:{},getEditorContext:{}},
+    _meta:{read:{},changeElement:{},save:{},preview:{},getEditorContext:{},identify:{}},
     getEditorContext:async()=>result(context()),
+    identify:async()=>result(context()),
     read:async input=>{fixture.calls.push('read');await new Promise(r=>setTimeout(r,900));return result({nodes:['Table']});},
     changeElement:async input=>{fixture.calls.push('changeElement');await new Promise(r=>setTimeout(r,900));
       if(input.elementUuid==='missing')return {success:false,error:{message:'Element missing'}};
@@ -352,7 +356,7 @@ app.whenReady().then(async () => {
   try {
     await inspect("document.getElementById('shell').dispatchEvent(new MouseEvent('contextmenu',{bubbles:true,cancelable:true}));true");
     await until(() => contextMenu, "island native context menu");
-    assert.deepEqual(contextMenu.items.filter(item=>item.type!=="separator").map(item=>item.label), ["Show main window","Exit Dynamic Island mode","Quit application"]);
+    assert.deepEqual(contextMenu.items.filter(item=>item.type!=="separator").map(item=>item.label), ["Show main window","Check for Updates…","Exit Dynamic Island mode","Quit application"]);
     assert.ok(contextMenu.items.every(item=>item.type!=="radio"), "context actions are not display-mode radio choices");
     presentation.setCloseAction("island");
     contextMenu.getMenuItemById("island-show-main").click();
@@ -378,6 +382,94 @@ app.whenReady().then(async () => {
   assert.equal(presentation.mode, "island"); assert.equal(main.isFullScreen(), false); assert.equal(main.isVisible(), false);
   assert.equal(JSON.parse(fs.readFileSync(path.join(profile, "presentation.json"))).mode, "island");
   passed.push("right-click actions distinguish showing main from exiting island, remove floating icons, retain Preview; real fullscreen transitions and rapid mode changes serialize correctly; local preference persists");
+  // Both surfaces share a real UpdateManager; only the network and final OS restart are fixtures.
+  const updater = new EventEmitter();
+  let checks=0, downloads=0, installs=0, finishDownload;
+  const version = {version:"0.2.9",localizedReleaseNotes:{en:"- Dynamic Island updates", "zh-CN":"- 灵动岛更新"}};
+  updater.checkForUpdates = async()=>{checks++;updater.emit("checking-for-update");updater.emit("update-available",version)};
+  updater.downloadUpdate = async()=>{downloads++;updater.emit("download-progress",{percent:42.8});await new Promise(resolve=>{finishDownload=resolve});updater.emit("update-downloaded",version)};
+  updater.quitAndInstall = async()=>{
+    installs++;
+    assert.equal((await controller.state()).editorContext.mode,"edit","leave Preview before saving for restart");
+    assert.equal(await main.webContents.executeJavaScript("fixture.saveStatus"),"saved");
+  };
+  const updates = new UpdateManager({updater,version:"0.2.8",enabled:true,beforeInstall:()=>controller.prepareUpdate()});
+  presentation.attachUpdates(updates);
+  elapsed+=600_001;
+  await until(async()=>await inspect("document.getElementById('shell').dataset.expanded==='false'"),"idle before background update");
+  const checking=updates.command("check");
+  await until(async()=>await inspect("!document.getElementById('capsule-update').hidden && document.getElementById('capsule-update').dataset.phase==='downloading'"),"capsule download ring");
+  assert.equal(await inspect("document.getElementById('shell').dataset.expanded"),"false","downloads never force expansion");
+  assert.ok(await inspect("document.getElementById('capsule-update').title.includes('42%')"));
+  await delay(550);
+  fs.writeFileSync(path.join(reportDir,"update-capsule.png"),(await island.webContents.capturePage()).toPNG());
+  cursor={x:islandX+228,y:islandY+30};
+  await until(async()=>await inspect("document.getElementById('shell').dataset.expanded==='true'"),"hover card update icon");
+  await delay(550);
+  fs.writeFileSync(path.join(reportDir,"update-card-icon.png"),(await island.webContents.capturePage()).toPNG());
+  cursor={x:-10000,y:-10000};
+  await until(async()=>await inspect("document.getElementById('shell').dataset.expanded==='false'"),"return to capsule before update details");
+  await inspect("document.getElementById('capsule-update').click();true");
+  await until(async()=>await inspect("!document.getElementById('update-panel').hidden && document.getElementById('shell').dataset.expanded==='true'"),"island update pane");
+  assert.equal(main.isVisible(),false,"island updates must not reveal the main window");
+  assert.equal(await inspect("document.getElementById('card').querySelector('.body').hidden"),true);
+  assert.equal(await inspect("document.getElementById('update-progress').value"),42);
+  updater.emit("download-progress",{percent:67.9});
+  await until(async()=>await inspect("document.getElementById('update-progress').value===67"),"shared download progress");
+  await delay(600);
+  assert.equal(await inspect("Math.round(document.getElementById('shell').getBoundingClientRect().height)"),136);
+  assert.equal(await inspect("document.getElementById('update-panel').scrollHeight <= document.getElementById('update-panel').clientHeight"),true,"update pane fits without a new scroll area");
+  fs.writeFileSync(path.join(reportDir,"update-downloading.png"),(await island.webContents.capturePage()).toPNG());
+  finishDownload();await checking;
+  await until(async()=>await inspect("!document.getElementById('update-install').disabled"),"island explicit install confirmation");
+  assert.equal(installs,0);
+  await delay(300);
+  fs.writeFileSync(path.join(reportDir,"update-ready.png"),(await island.webContents.capturePage()).toPNG());
+  for (const locale of ["zh-CN","zh-TW","ja","ko","en"]) {
+    i18n.setLocale(locale);
+    await until(async()=>await inspect(`document.documentElement.lang===${JSON.stringify(locale)}`),"update language "+locale);
+    assert.equal(await inspect("document.getElementById('update-panel').scrollHeight<=document.getElementById('update-panel').clientHeight"),true,"update pane fits "+locale);
+    assert.equal(await inspect("document.getElementById('update-install').scrollHeight<=document.getElementById('update-install').clientHeight"),true,"install label fits "+locale);
+    if(locale==="zh-CN") {
+      appearance.set("dark");await delay(200);
+      fs.writeFileSync(path.join(reportDir,"update-ready-zh-dark.png"),(await island.webContents.capturePage()).toPNG());
+      appearance.set("light");
+    }
+  }
+  await inspect("document.getElementById('update-later').click();true");
+  await until(async()=>await inspect("document.getElementById('shell').dataset.expanded==='false'"),"Later returns to capsule");
+  assert.equal(presentation.snapshot().update.phase,"downloaded");
+  await delay(550);
+  fs.writeFileSync(path.join(reportDir,"update-capsule-ready.png"),(await island.webContents.capturePage()).toPNG());
+  await assert.rejects(inspect("desktopIsland.command('update-install')"),/confirmation is not open/);
+
+  await presentation.setMode("window");
+  await main.webContents.executeJavaScript("desktopUpdates.onOpen(status=>{window.sharedUpdate=status});true");
+  const openMainUpdate=createUpdateDialog(updates,main);
+  main.webContents.emit("did-finish-load");
+  openMainUpdate();
+  await until(async()=>(await main.webContents.executeJavaScript("window.sharedUpdate?.phase"))==="downloaded","main-window dialog receives the same download");
+  assert.equal(await main.webContents.executeJavaScript("sharedUpdate.version"),"0.2.9");
+  assert.equal(checks,1);assert.equal(downloads,1,"switching surfaces must not start another download");
+  await presentation.setMode("island");
+  presentation.openUpdates();
+  await until(async()=>await inspect("!document.getElementById('update-panel').hidden"),"ready update returns to island");
+  const pendingRead=call("execute",{name:"read",input:{collection:"components"}});
+  const queuedRead=call("execute",{name:"read",input:{collection:"components"}});
+  await until(()=>controller.activity.operations.size===2,"running and queued calls before restart");
+  await inspect("document.getElementById('update-install').click();true");
+  await until(()=>presentation.snapshot().updateWaiting,"install waits for MCP calls");
+  await until(async()=>await inspect("document.getElementById('update-description').textContent==='Waiting for MCP operations to finish…'"),"real wait status");
+  assert.equal(installs,0);
+  await inspect("desktopIsland.command('update-close')");
+  assert.equal(presentation.snapshot().updateOpen,true,"install confirmation cannot disappear mid-install");
+  await call("get_app_state",{},true);
+  await pendingRead;await queuedRead;
+  await until(()=>installs===1,"save precedes mocked OS restart");
+  assert.equal(updates.state.phase,"installing");
+  assert.equal(main.isVisible(),false);
+  assert.equal(checks,1);assert.equal(downloads,1);
+  passed.push("shared update manager across standard/island modes; background ring, fixed-size confirmation/progress, Later and no main-window reveal; install drains MCP, closes Preview and saves before restart");
   const entering = presentation.setMode("fullscreen");
   await until(() => main.listenerCount("enter-full-screen") > 1, "fullscreen transition starts");
   main.close();

@@ -62,7 +62,11 @@ class UpdateManager extends EventEmitter {
     if (!this.enabled) return this.state;
     if (!["check", "download", "install"].includes(command))
       throw new Error("Invalid update command");
-    if (this.running) return this.running;
+    if (this.running) {
+      if (command !== "install" || this.state.phase !== "downloaded") return this.running;
+      await this.running;
+      if (this.running) return this.running;
+    }
     if (
       command === "check" &&
       ["downloaded", "installing"].includes(this.state.phase)

@@ -116,6 +116,10 @@ if (!process.versions.electron) {
     } else if (stage === "reopen") {
       await waitIsland();
       assert.equal(shown, 0, "cold island start never shows the main window");
+      Menu.getApplicationMenu().getMenuItemById("check-for-updates").click();
+      await until(async()=>await island().webContents.executeJavaScript("!document.getElementById('update-panel').hidden"),"native app menu routes to island update pane");
+      assert.equal(main.isVisible(),false);assert.equal(shown,0,"checking updates in island mode never reveals main");
+      await island().webContents.executeJavaScript("document.getElementById('update-later').click();true");
       app.emit("activate"); await pause(150);
       assert.equal(main.isVisible(), false);
       app.emit("second-instance", {}, ["Plasmic"]); await pause(150);
@@ -127,6 +131,10 @@ if (!process.versions.electron) {
       const menu=await islandMenu();
       menu.getMenuItemById("island-show-main").click();
       await until(()=>main.isVisible() && island().isVisible(),"show main keeps island enabled");
+      await main.webContents.executeJavaScript("desktopUpdates.onOpen(status=>{window.updateOpened=status});true");
+      Menu.getApplicationMenu().getMenuItemById("check-for-updates").click();
+      await until(async()=>await main.webContents.executeJavaScript("!!window.updateOpened"),"visible main routes to its own update dialog");
+      assert.equal(await island().webContents.executeJavaScript("document.getElementById('update-panel').hidden"),true);
       assert.equal(preference().mode,"island");assert.equal(preference().closeAction,"island");
       app.emit("activate");await pause(150);
       assert.equal(main.isVisible(),true,"Dock keeps an explicitly opened main window visible");

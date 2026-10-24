@@ -34,6 +34,18 @@ function manager(updater, beforeInstall = async () => {}) {
     beforeInstall,
   });
 }
+test("install confirmation at the download completion event waits for the download command to settle", async () => {
+  const updater=new EventEmitter();let release,installing,installs=0;
+  const updates=manager(updater);
+  updater.checkForUpdates=async()=>updater.emit("update-available",manifest);
+  updater.downloadUpdate=async()=>{updater.emit("update-downloaded",manifest);await new Promise(resolve=>{release=resolve})};
+  updater.quitAndInstall=async()=>installs++;
+  updates.on("status",status=>{if(status.phase==="downloaded")queueMicrotask(()=>{installing=updates.command("install")})});
+  const checking=updates.command("check");
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(installs,0);release();await checking;await installing;
+  assert.equal(installs,1);assert.equal(updates.state.phase,"installing");
+});
 test("checks download automatically but installation waits for confirmation and saves before quitting", async () => {
   const updater = new EventEmitter();
   const order = [];

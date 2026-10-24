@@ -17,6 +17,36 @@ const deferred = () => {
   });
   return { promise, resolve };
 };
+test("update preparation drains parallel and queued MCP calls, rejects new calls, then saves", async (t) => {
+  const win = {isDestroyed:()=>false,webContents:{getURL:()=>"https://studio.example/projects/p"}};
+  const controller = new DesktopController(()=>win,{studioOrigin:"https://studio.example"});
+  t.after(()=>controller.close());
+  controller.state = async()=>({ready:true,projectId:"p",editorContext:{mode:"edit",canEdit:true}});
+  const first=deferred(), second=deferred(), order=[];
+  controller.execute = async method => {await (method==="list_projects"?first:second).promise; order.push(method);};
+  controller.editor = async name=>{order.push(name);return {canEdit:true}};
+  const resource=controller.dispatch("list_projects",{}), read=controller.dispatch("execute",{name:"read",input:{}});
+  const preparing=controller.prepareUpdate();
+  await assert.rejects(controller.dispatch("get_app_state",{}),/restarting to install/);
+  first.resolve();await resource;
+  assert.deepEqual(order,["list_projects"],"do not save while another tool is running");
+  second.resolve();await read;await preparing;
+  assert.deepEqual(order,["list_projects","execute","identify","save"]);
+  assert.equal(controller.updating,true);
+});
+test("updates close Preview before saving and a failed save releases the MCP gate", async (t) => {
+  const controller=new DesktopController(()=>null,{studioOrigin:"https://studio.example"});
+  t.after(()=>controller.close());
+  let mode="preview";const order=[];
+  controller.state=async()=>({ready:true,projectId:"p",editorContext:{mode}});
+  controller.execute=async(method,input)=>{assert.equal(method,"preview");assert.equal(input.action,"close");mode="edit";order.push("close preview")};
+  controller.editor=async name=>{order.push(name);if(name==="save")throw new Error("Save failed");return {canEdit:true}};
+  await assert.rejects(controller.prepareUpdate(),/Save failed/);
+  assert.deepEqual(order,["close preview","identify","save"]);
+  assert.equal(controller.updating,false);
+  controller.execute=async()=>({accepted:true});
+  assert.deepEqual(await controller.dispatch("get_build_info",{}),{accepted:true});
+});
 test("the dispatcher intercepts quiet calls as well as queued tools, but internal state polling stays passive", async (t) => {
   const controller = new DesktopController(() => null, { studioOrigin: "https://studio.example" });
   t.after(() => controller.close());

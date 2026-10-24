@@ -10,6 +10,7 @@ const { runPreview, previewFrame, previewError } = require("./preview-runtime.cj
 const { prototypeTools } = require("./prototype-mcp.cjs");
 const { requiredContext, currentContext, assertContext, contextError } = require("./tool-context.cjs");
 const { IslandActivity } = require("./island-activity.cjs");
+const { uiError } = require("./ui-error.cjs");
 const buildIdentity = (build) => createHash("sha256").update(JSON.stringify(build)).digest("hex");
 function validateResourceId(value, label) {
   if (typeof value !== "string" || !/^[A-Za-z0-9_-]+$/.test(value)) {
@@ -228,6 +229,7 @@ class DesktopController {
     return assertContext(required, { ...state, ...(url ? { url } : {}) }, this.config.studioOrigin);
   }
   dispatch(method, input) {
+    if (this.updating) return Promise.reject(uiError("Plasmic is restarting to install an update. Retry after it reopens."));
     if (!input || typeof input !== "object" || Array.isArray(input)) return Promise.reject(new Error("Arguments must be an object"));
     const id = randomUUID();
     this.activity.enqueue(id, method, input);
@@ -282,6 +284,24 @@ class DesktopController {
       () => {},
     );
     return result;
+  }
+  async prepareUpdate() {
+    this.updating = true;
+    try {
+      // Stop accepting new calls and drain the complete group, including parallel resources.
+      if (this.operations.size) await new Promise((resolve) => {
+        const stop = this.activity.subscribe(() => { if (!this.operations.size) { stop(); resolve(); } });
+      });
+      let state = await this.state();
+      if (!state.projectId) return;
+      if (!state.ready) throw uiError("The current design is not ready. Wait for it to load before installing the update.");
+      if (state.editorContext?.mode === "preview") {
+        await this.execute("preview", { action: "close" });
+        state = await this.state();
+        if (!state.ready) throw uiError("The current design is not ready. Wait for it to load before installing the update.");
+      }
+      await this.saveBeforeNavigation(state);
+    } catch (error) { this.updating = false; throw error; }
   }
   async execute(method, input) {
     if (!input || typeof input !== "object" || Array.isArray(input)) {

@@ -7,6 +7,7 @@
   let received = false, frameSource, frameImage, loadingSource, imageVersion = 0;
   let animation, lastTime, lastHit = 0;
   let feedbackKey, feedbackId;
+  let showingUpdate = false;
   const spring = { width: 130, height: 40, radius: 20, vw: 0, vh: 0, vr: 0 };
   const send = (command, value) => api.command(command, value).catch(console.error);
   const activity = () => state?.activity || {};
@@ -48,6 +49,62 @@
     card.setAttribute("aria-hidden", String(!value));
     $("capsule").inert = value;
     motion();
+  }
+  function renderUpdate() {
+    const update = state.update || {phase:"disabled"};
+    const {phase, version, currentVersion} = update;
+    const percent = Number.isFinite(update.percent) ? Math.min(100, Math.max(0, Math.floor(update.percent))) : 0;
+    const visible = ["available", "downloading", "downloaded", "installing"].includes(phase);
+    const description = phase === "downloading" ? t("Downloading {version} · {progress}%", {version, progress:percent})
+      : phase === "downloaded" ? t("Update {version} is ready. Restart Plasmic to install.", {version})
+      : phase === "installing" ? t("Saving your design and preparing to install…")
+      : phase === "available" ? t("Preparing update {version}", {version}) : t("Checking for updates…");
+    const icon = phase === "installing" ? '<path d="M8 2a6 6 0 1 1-6 6"/>'
+      : phase === "downloading" ? `<circle cx="8" cy="8" r="6" opacity=".3"/><circle cx="8" cy="8" r="6" stroke-dasharray="${percent*37.7/100} 37.7" transform="rotate(-90 8 8)"/>`
+      : '<path d="M8 2v8m-3-3 3 3 3-3M3 11v3h10v-3"/>';
+    for (const button of [$("capsule-update"), $("card-update")]) {
+      button.hidden = !visible;
+      button.dataset.phase = phase;
+      button.title = description;
+      button.setAttribute("aria-label", description);
+      button.setAttribute("aria-busy", String(["checking","available","downloading","installing"].includes(phase)));
+      const glyph = `${phase}:${percent}`;
+      if (button.dataset.glyph !== glyph) {
+        button.dataset.glyph = glyph;
+        button.innerHTML = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${icon}</svg>`;
+      }
+    }
+    const panelOpen = state.updateOpen === true;
+    $("card").querySelector(".body").hidden = panelOpen;
+    $("update-panel").hidden = !panelOpen;
+    const labels = {
+      idle:["Checking for updates…", "Looking for the latest version of Plasmic."],
+      checking:["Checking for updates…", "Looking for the latest version of Plasmic."],
+      available:["Preparing update…", "The update will download automatically in the background."],
+      downloading:["Downloading update…", "You can close this dialog and keep working while the download continues."],
+      downloaded:["Ready to install", "Your current design will be saved before Plasmic restarts."],
+      installing:["Installing update…", state.updateWaiting ? "Waiting for MCP operations to finish…" : "Saving your design and preparing to restart Plasmic."],
+      current:["You're up to date", "You're running the latest version of Plasmic."],
+      disabled:["Updates unavailable", "Open the installed Plasmic app to check for updates."],
+    };
+    const [title, detail] = labels[phase] || labels.idle;
+    const text = (id, value) => { if ($(id).textContent !== value) $(id).textContent = value; };
+    text("update-heading", t("Software Update"));
+    text("update-title", t(title));
+    text("update-versions", version ? `${currentVersion || "—"} → ${version}` : currentVersion || "—");
+    text("update-description", t(detail));
+    text("update-install", t(phase === "installing" ? "Installing…" : "Restart and Install"));
+    text("update-later", t(["available", "downloaded"].includes(phase) ? "Later" : "Close"));
+    $("update-progress").hidden = phase !== "downloading";
+    $("update-progress").value = percent;
+    $("update-progress").setAttribute("aria-label", description);
+    if (phase === "downloading") text("update-title", `${t(title)} ${percent}%`);
+    $("update-install").hidden = !["downloaded", "installing"].includes(phase);
+    $("update-install").disabled = phase !== "downloaded";
+    $("update-later").disabled = $("update-dismiss").disabled = phase === "installing";
+    $("update-dismiss").setAttribute("aria-label", t("Close software update"));
+    if (panelOpen && !showingUpdate) (phase === "downloaded" ? $("update-install") : $("update-later")).focus();
+    showingUpdate = panelOpen;
   }
   const icons = {
     running: '<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M6 1a5 5 0 1 1-5 5"/></svg>',
@@ -184,17 +241,24 @@
     $("page").textContent = value.context.pageName || value.context.projectName || "Plasmic";
     $("page").title = value.context.pageName || value.context.projectName || "Plasmic";
     open(value.expanded === true);
-    renderImage(); renderActivity(); renderFeedback(); motion();
+    renderImage(); renderActivity(); renderFeedback(); renderUpdate(); motion();
   }
   api.onState((value) => { received = true; render(value); });
   void api.command("state").then((value) => { if (!received) render(value); }).catch(console.error);
   $("capsule-handle").onclick = () => { if (!dragged) void send("menu"); };
+  for (const button of [$("capsule-update"), $("card-update")]) {
+    button.addEventListener("pointerdown", event => event.stopPropagation());
+    button.onclick = () => void send("update-open");
+  }
+  $("update-install").onclick = () => { $("update-install").disabled = true; void send("update-install"); };
+  $("update-later").onclick = $("update-dismiss").onclick = () => void send("update-close");
   shell.addEventListener("contextmenu", (event) => { event.preventDefault(); void send("menu"); });
   shell.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && state?.updateOpen) { event.preventDefault(); void send("update-close"); }
     if (event.key === "ContextMenu" || event.shiftKey && event.key === "F10") { event.preventDefault(); void send("menu"); }
   });
   let dragging = false, dragged = false, start;
-  for (const handle of [$("capsule-handle"), $("drag-handle")]) {
+  for (const handle of [$("capsule-handle"), $("drag-handle"), $("update-heading")]) {
     handle.addEventListener("pointerdown", (event) => {
       if (event.button !== 0) return;
       dragging = false; dragged = false; start = { x: event.screenX, y: event.screenY };

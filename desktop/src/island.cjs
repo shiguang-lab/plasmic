@@ -25,6 +25,7 @@ function createIsland({ getWindow, controller, i18n, appearance, config, changed
   let window, context = { allowed: false }, image = null, stale = false, epoch = 0;
   let disposed = false, expanded = false, reading = false, capturing = false, drag, hit, inside = false;
   let hoverUntil = 0;
+  let updates, updateOpen = false;
   let transitions = Promise.resolve();
   let fullscreenWait, navigationUrl;
   let refreshTimer, captureTimer, hitTimer;
@@ -35,11 +36,13 @@ function createIsland({ getWindow, controller, i18n, appearance, config, changed
     fs.renameSync(preference + ".tmp", preference);
   }
   function snapshot() {
-    return { mode, expanded, context, image, stale, appearance: appearance.snapshot(), localization: i18n.snapshot(),
+    return { mode, expanded, context, image, stale, update: updates?.state, updateOpen,
+      updateWaiting: updates?.state.phase === "installing" && controller.activity.operations.size > 0,
+      appearance: appearance.snapshot(), localization: i18n.snapshot(),
       activity: controller.activity.snapshot(context.projectId, context.sessionId) };
   }
   function publish() {
-    expanded = mode === "island" && (controller.activity.keepExpanded() || inside || performance.now() < hoverUntil);
+    expanded = mode === "island" && (updateOpen || controller.activity.keepExpanded() || inside || performance.now() < hoverUntil);
     if (window && !window.isDestroyed()) window.webContents.send("desktop:island-state", snapshot());
   }
   async function refresh() {
@@ -81,7 +84,7 @@ function createIsland({ getWindow, controller, i18n, appearance, config, changed
   }
   async function capture() {
     const win = getWindow();
-    if (capturing || disposed || mode !== "island" || !expanded || !context.allowed || context.loading || !win || win.isDestroyed()) return;
+    if (capturing || disposed || mode !== "island" || !expanded || updateOpen || !context.allowed || context.loading || !win || win.isDestroyed()) return;
     capturing = true;
     const version = epoch;
     try {
@@ -103,7 +106,7 @@ function createIsland({ getWindow, controller, i18n, appearance, config, changed
       window.setIgnoreMouseEvents(!inside, { forward: true });
       publish();
     }
-    if (expanded && !inside && performance.now() >= hoverUntil && !controller.activity.keepExpanded()) publish();
+    if (expanded && !updateOpen && !inside && performance.now() >= hoverUntil && !controller.activity.keepExpanded()) publish();
   }
   function placeWindow() {
     const validPosition = Array.isArray(saved.position) && saved.position.length === 2 && saved.position.every(Number.isFinite);
@@ -144,7 +147,7 @@ function createIsland({ getWindow, controller, i18n, appearance, config, changed
   function stop() {
     for (const timer of [refreshTimer, captureTimer, hitTimer]) clearInterval(timer);
     refreshTimer = captureTimer = hitTimer = undefined;
-    epoch++; image = null; expanded = false; drag = undefined; inside = false; hoverUntil = 0;
+    epoch++; image = null; expanded = false; updateOpen = false; drag = undefined; inside = false; hoverUntil = 0;
   }
   function setMode(value) {
     if (!MODES.includes(value)) throw new Error("Invalid display mode");
@@ -202,9 +205,17 @@ function createIsland({ getWindow, controller, i18n, appearance, config, changed
     await setMode("window");
     if (closeAction === "island") setCloseAction("ask");
   }
+  function openUpdates() {
+    if (!updates || mode !== "island") return;
+    updateOpen = true;
+    publish();
+    window?.showInactive();
+    if (["idle", "current"].includes(updates.state.phase)) void updates.command("check");
+  }
   function menu(parent) {
     Menu.buildFromTemplate([
       { id: "island-show-main", label: i18n.t("Show main window"), click: () => void showMainWindow().catch(console.error) },
+      { id: "island-updates", label: i18n.t("Check for Updates…"), enabled: !!updates, click: openUpdates },
       { type: "separator" },
       { id: "island-exit", label: i18n.t("Exit Dynamic Island mode"), click: () => void exitIsland().catch(console.error) },
       { id: "island-quit", label: i18n.t("Quit application"), click: () => app.quit() },
@@ -237,6 +248,15 @@ function createIsland({ getWindow, controller, i18n, appearance, config, changed
     if (!fromIsland) throw new Error("Invalid presentation page");
     if (command === "menu") { menu(window); return { mode }; }
     if (command === "state") return snapshot();
+    if (command === "update-open") { openUpdates(); return; }
+    if (command === "update-close") {
+      if (updates?.state.phase !== "installing") { updateOpen = false; hoverUntil = performance.now() + 350; publish(); }
+      return;
+    }
+    if (command === "update-install") {
+      if (!updateOpen || updates?.state.phase !== "downloaded") throw new Error("Update confirmation is not open");
+      return updates.command("install");
+    }
     if (command === "hit") {
       if (!input || !["x", "y", "width", "height", "radius"].every((key) => Number.isFinite(input[key])) ||
         input.x < 0 || input.y < 0 || input.width < 0 || input.height < 0 || input.x + input.width > 456 || input.y + input.height > 180 || input.radius < 0) throw new Error("Invalid island region");
@@ -254,7 +274,13 @@ function createIsland({ getWindow, controller, i18n, appearance, config, changed
   ipcMain.handle("desktop:presentation", handler);
   const unsubscribe = controller.activity.subscribe(publish);
   const stopLocale = i18n.subscribe(publish), stopAppearance = appearance.subscribe(publish);
-  return { get mode() { return mode; }, get closeAction() { return closeAction; }, setMode, setCloseAction, closingAction, menu, snapshot,
+  return { get mode() { return mode; }, get closeAction() { return closeAction; }, setMode, setCloseAction, closingAction, menu, snapshot, openUpdates,
+    attachUpdates(manager) {
+      updates?.removeListener("status", publish);
+      updates = manager;
+      updates.on("status", publish);
+      publish();
+    },
     attach(win) {
       const invalidate = (url) => {
         updateContext({ url: typeof url === "string" ? url : win.webContents.getURL(), ready: false });
@@ -274,7 +300,7 @@ function createIsland({ getWindow, controller, i18n, appearance, config, changed
       win.on("leave-full-screen", () => nativeMode("window"));
       win.once("closed", () => { if (fullscreenWait?.win === win) fullscreenWait.finish(); stop(); window?.hide(); });
     },
-    dispose() { disposed = true; fullscreenWait?.finish(); stop(); unsubscribe(); stopLocale(); stopAppearance(); ipcMain.removeHandler("desktop:presentation"); window?.destroy(); },
+    dispose() { disposed = true; fullscreenWait?.finish(); stop(); unsubscribe(); stopLocale(); stopAppearance(); updates?.removeListener("status", publish); ipcMain.removeHandler("desktop:presentation"); window?.destroy(); },
   };
 }
 module.exports = { createIsland, containsPoint, MODES, CLOSE_ACTIONS };

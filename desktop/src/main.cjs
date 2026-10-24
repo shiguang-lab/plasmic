@@ -1,4 +1,3 @@
-const { uiError } = require("./ui-error.cjs");
 const {
   app,
   BrowserWindow,
@@ -562,22 +561,19 @@ async function startDesktop() {
       getWindow: () => mainWindow,
       session: desktopSession,
       showUpdateDialog: () => openUpdates(),
-      beforeInstall: async () => {
-        const state = await controller.state();
-        if (state.projectId) {
-          if (!state.ready) {
-            throw uiError(
-              "The current design is not ready. Wait for it to load before installing the update.",
-            );
-          }
-          await controller.dispatch("execute", { name: "save", input: {} });
-        }
-      },
+      beforeInstall: () => controller.prepareUpdate(),
     });
+    updates.on("status", (status) => { if (status.phase !== "installing") controller.updating = false; });
   }
-  openUpdates = createUpdateDialog(updates, win);
+  presentation.attachUpdates(updates);
+  const openWindowUpdates = createUpdateDialog(updates, win);
+  openUpdates = () => {
+    if (presentation.mode === "island" && !win.isVisible()) presentation.openUpdates();
+    else openWindowUpdates();
+  };
   function buildMenu() {
     const checkForUpdatesItem = {
+      id: "check-for-updates",
       label: t("Check for Updates…"),
       click: () => openUpdates(),
     };
