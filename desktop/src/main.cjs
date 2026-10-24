@@ -31,6 +31,7 @@ const { startRpc } = require("./local-rpc.cjs");
 const { McpIntegrations } = require("./mcp-integrations.cjs");
 const { createMcpSettings } = require("./mcp-settings.cjs");
 const { createDesktopAppearance } = require("./ui-appearance.cjs");
+const { createIsland, MODES, CLOSE_ACTIONS } = require("./island.cjs");
 const desktopAppearance = createDesktopAppearance(
   nativeTheme.shouldUseDarkColors ? "dark" : "light",
 );
@@ -42,7 +43,7 @@ const {
   updateFileMenuContext,
 } = require("./workspace.cjs");
 const { attachWindowRecovery } = require("./window-recovery.cjs");
-let controller, stopRpc, openMcpSettings, updates, openUpdates, workspace;
+let controller, stopRpc, openMcpSettings, updates, openUpdates, workspace, presentation;
 let quitting = false;
 
 let mainWindow;
@@ -293,6 +294,7 @@ async function startDesktop() {
       contextIsolation: true,
       sandbox: true,
       webSecurity: true,
+      backgroundThrottling: false,
     },
   });
   mainWindow.webContents.setUserAgent(
@@ -430,6 +432,16 @@ async function startDesktop() {
       () => startingDesktop,
       () => desktopLogin.noteActivity(),
     );
+    presentation = createIsland({ getWindow: () => mainWindow, controller,
+      i18n: desktopI18n, appearance: desktopAppearance, config,
+      changed: (mode) => {
+        const menu = Menu.getApplicationMenu();
+        const activeMode = menu?.getMenuItemById(`presentation-${mode}`);
+        const activeCloseAction = menu?.getMenuItemById(`close-action-${presentation.closeAction}`);
+        if (activeMode) activeMode.checked = true;
+        if (activeCloseAction) activeCloseAction.checked = true;
+      },
+    });
     controller.browser = new ReferenceBrowser({
       getParent: () => mainWindow,
       dispatch: (method, input) => controller.dispatch(method, input),
@@ -450,6 +462,7 @@ async function startDesktop() {
       controller.dispatch(method, input),
     );
     app.once("will-quit", () => {
+      presentation.dispose();
       controller.close();
       void stopRpc();
     });
@@ -459,6 +472,7 @@ async function startDesktop() {
     config.studioOrigin,
   );
   const win = mainWindow;
+  presentation.attach(win);
   win.webContents.on("did-navigate", (_event, url) =>
     workspace.rememberUrl(url),
   );
@@ -504,16 +518,24 @@ async function startDesktop() {
       }
     });
   }, 5000);
-  let closing = false;
+  let closeRequest;
   win.on("close", (event) => {
-    if (closing || quitting || win.webContents.isCrashed()) {
+    if (quitting || win.webContents.isCrashed()) {
       return;
     }
     event.preventDefault();
-    void capture().finally(() => {
-      closing = true;
-      win.close();
-    });
+    if (closeRequest) return;
+    closeRequest = (async () => {
+      const action = presentation.mode === "island" ? "island" : await presentation.closingAction();
+      if (!action || quitting || win.isDestroyed()) return;
+      await capture();
+      if (quitting || win.isDestroyed()) return;
+      if (action === "island") await presentation.setMode("island");
+      else { quitting = true; app.quit(); }
+    })().catch((error) => {
+      console.error("Cannot close main window:", error);
+      dialog.showErrorBox(t("Operation Failed"), t("Please try again"));
+    }).finally(() => { closeRequest = undefined; });
   });
   const beforeQuit = (event) => {
     if (quitting) {
@@ -530,7 +552,7 @@ async function startDesktop() {
     clearInterval(workspaceTimer);
     app.removeListener("before-quit", beforeQuit);
   });
-  mainWindow.once("ready-to-show", () => mainWindow.show());
+  mainWindow.once("ready-to-show", () => { if (presentation.mode !== "island") win.show(); });
   mainWindow.on("closed", () => {
     mainWindow = undefined;
   });
@@ -603,6 +625,18 @@ async function startDesktop() {
       {
         label: t("View"),
         submenu: [
+          { label: t("Display mode"), submenu: MODES.map((value, index) => ({
+            id: `presentation-${value}`, type: "radio", checked: presentation.mode === value,
+            label: t(["Standard window", "Full screen", "Dynamic Island"][index]),
+            ...(value === "island" ? { accelerator: "CmdOrCtrl+Shift+I" } : {}),
+            click: () => void presentation.setMode(value).catch(console.error),
+          })) },
+          { label: t("When closing the main window"), submenu: CLOSE_ACTIONS.map((value, index) => ({
+            id: `close-action-${value}`, type: "radio", checked: presentation.closeAction === value,
+            label: t(["Ask every time", "Switch to Dynamic Island", "Quit Plasmic"][index]),
+            click: () => presentation.setCloseAction(value),
+          })) },
+          { type: "separator" },
           {
             label: t("Import from the web"),
             accelerator: "CmdOrCtrl+Shift+U",
@@ -617,10 +651,11 @@ async function startDesktop() {
             ? [{ role: "toggleDevTools", label: t("Toggle Developer Tools") }]
             : []),
           { type: "separator" },
-          { role: "resetZoom", label: t("Actual Size") },
-          { role: "zoomIn", label: t("Zoom In") },
-          { role: "zoomOut", label: t("Zoom Out") },
-          { role: "togglefullscreen", label: t("Toggle Full Screen") },
+          { label: t("Actual Size"), accelerator: "CmdOrCtrl+0", click: () => mainWindow?.webContents.setZoomLevel(0) },
+          { label: t("Zoom In"), accelerator: "CmdOrCtrl+Plus", click: () => mainWindow?.webContents.setZoomLevel(mainWindow.webContents.getZoomLevel() + .5) },
+          { label: t("Zoom Out"), accelerator: "CmdOrCtrl+-", click: () => mainWindow?.webContents.setZoomLevel(mainWindow.webContents.getZoomLevel() - .5) },
+          { label: t("Toggle Full Screen"), accelerator: process.platform === "darwin" ? "Ctrl+Command+F" : "F11",
+            click: () => void presentation.setMode(presentation.mode === "fullscreen" ? "window" : "fullscreen").catch(console.error) },
         ],
       },
       {
@@ -689,6 +724,7 @@ async function startDesktop() {
     }
     await unifiedAuth.navigation;
   }
+  await presentation.setMode(presentation.mode);
   if (process.platform === "darwin") {
     await acknowledgeMacUpdate(app);
   }
@@ -715,20 +751,18 @@ function bootstrap() {
   if (!app.requestSingleInstanceLock()) {
     app.quit();
   } else {
-    const showDesktop = async () => {
+    const showDesktop = async (forceMain = false) => {
       await app.whenReady();
       const win = mainWindow || (await ensureDesktop());
-      if (win.isMinimized()) {
-        win.restore();
-      }
-      win.show();
-      win.focus();
+      if (!forceMain && presentation.mode === "island" && win.isVisible()) win.focus();
+      else await presentation.setMode(forceMain ? "window" : presentation.mode);
+      return win;
     };
     const handleAppCallback = async (url) => {
       if (!url.startsWith(APP_CALLBACK_URL + "?")) {
         return;
       }
-      await showDesktop();
+      await showDesktop(true);
       unifiedAuth?.login.acceptCallback(url);
     };
     app.on("second-instance", (_event, argv) => {
@@ -773,7 +807,12 @@ function bootstrap() {
         app.quit();
       });
     app.on("activate", () => {
-      if (!mainWindow) {
+      if (mainWindow && presentation) {
+        if (!startingDesktop) {
+          if (presentation.mode === "island" && mainWindow.isVisible()) mainWindow.focus();
+          else void presentation.setMode(presentation.mode).catch(console.error);
+        }
+      } else if (!mainWindow) {
         ensureDesktop().catch((error) => {
           console.error("Desktop startup failed", error);
           dialog.showErrorBox(desktopI18n.t("Error"), desktopI18n.t("Could not start Plasmic."));

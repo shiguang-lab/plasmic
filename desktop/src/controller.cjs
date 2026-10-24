@@ -9,6 +9,7 @@ const { DesignReference } = require("./design-reference.cjs");
 const { runPreview, previewFrame, previewError } = require("./preview-runtime.cjs");
 const { prototypeTools } = require("./prototype-mcp.cjs");
 const { requiredContext, currentContext, assertContext, contextError } = require("./tool-context.cjs");
+const { IslandActivity } = require("./island-activity.cjs");
 const buildIdentity = (build) => createHash("sha256").update(JSON.stringify(build)).digest("hex");
 function validateResourceId(value, label) {
   if (typeof value !== "string" || !/^[A-Za-z0-9_-]+$/.test(value)) {
@@ -32,7 +33,8 @@ class DesktopController {
     this.config = config;
     this.waitForStartup = waitForStartup;
     this.prepareSession = prepareSession;
-    this.operations = new Map();
+    this.activity = new IslandActivity();
+    this.operations = this.activity.operations;
     this.pending = new Map();
     this.queue = Promise.resolve();
     this.references = new DesignReference(app.getPath("userData"));
@@ -121,7 +123,7 @@ class DesktopController {
       editorTools: metadata.tools,
       availableEditorTools: metadata.availableEditorTools || [],
       editorContext: metadata.editorContext ?? null,
-      operations: [...this.operations.values()],
+      operations: [...this.operations.values()].filter((operation) => operation.kind),
     };
   }
   async ready() {
@@ -227,34 +229,40 @@ class DesktopController {
   }
   dispatch(method, input) {
     if (!input || typeof input !== "object" || Array.isArray(input)) return Promise.reject(new Error("Arguments must be an object"));
-    if (["get_app_state", "get_build_info", "get_image_service_status"].includes(method)) {
-      return this.execute(method, input);
-    }
     const id = randomUUID();
-    this.operations.set(id, { id, method, phase: "queued" });
+    this.activity.enqueue(id, method, input);
     const run = async () => {
-      this.operations.set(id, {
-        id,
-        method,
-        phase: "running",
-        startedAt: new Date().toISOString(),
-      });
+      this.activity.start(id);
+      let failure;
       try {
+        if (method === "report_task") {
+          const state = await this.state();
+          const context = currentContext(state, this.config.studioOrigin);
+          if (context.surface !== "editor" || !context.ready || context.sessionProjectId || context.routeProjectId || context.projectId !== input.projectId) throw new Error("The task project is not open");
+          return this.activity.reportTask(input, context.sessionId);
+        }
+        if (["get_app_state", "get_build_info", "get_image_service_status"].includes(method)) return await this.execute(method, input);
         await this.prepareSession();
         if (!["list_projects", "search_stock_images", "generate_image", "browser", "reference_browser", "import_reference", "design_reference", "capture_browser", "make_vector", "vectorize_image"].includes(method)) await this.waitForStartup();
-        await this.checkContext(method, input);
+        this.activity.bind(id, await this.checkContext(method, input), this.getWindow()?.webContents?.getURL?.());
         return await this.execute(method, input);
       } catch (error) {
+        failure = error;
         if (method === "preview" || (method === "execute" && input?.name === "preview")) {
-          throw previewError(error, input, { phase: "controller" });
+          failure = previewError(error, input, { phase: "controller" });
+          throw failure;
         }
         throw error;
       } finally {
-        this.operations.delete(id);
+        this.activity.finish(id, failure);
       }
     };
     if (
       [
+        "report_task",
+        "get_app_state",
+        "get_build_info",
+        "get_image_service_status",
         "get_org",
         "list_orgs",
         "list_workspaces",

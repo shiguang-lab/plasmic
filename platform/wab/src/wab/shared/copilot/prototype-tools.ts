@@ -587,6 +587,9 @@ const EDIT_TOOL_META = {
     inputSchema: z.object({}).strict(),
     outputSchema: z.object({
       projectName: z.string(),
+      projectSummary: z.object({ pages: z.number().int().nonnegative(), components: z.number().int().nonnegative() }),
+      saveStatus: z.enum(["saved", "pending", "saving", "error", "blocked", "unlogged"]),
+      canvasName: z.string().nullable(),
       projectId: uuid,
       branchId: uuid.nullable(),
       sessionId: uuid,
@@ -616,6 +619,7 @@ const EDIT_TOOL_META = {
       previewContext: z
         .object({
           componentUuid: uuid.nullable(),
+          componentName: z.string().nullable(),
           path: z.string().nullable(),
           width: z.number(),
           height: z.number(),

@@ -283,6 +283,7 @@ export const CanvasFrame = observer(function CanvasFrame({
           "data-plasmic-frame-uuid",
           arenaFrame.uuid,
         );
+      ctx.doc().documentElement.setAttribute("data-plasmic-component-uuid", arenaFrame.container.component.uuid);
       onFrameLoad(arenaFrame, ctx);
 
       setCreatedVc(true);

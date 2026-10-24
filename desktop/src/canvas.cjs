@@ -140,6 +140,7 @@ function snapshotDocument(input) {
   const clone = document.documentElement.cloneNode(true);
   clone.removeAttribute("data-plasmic-canvas-inspection");
   clone.removeAttribute("data-plasmic-frame-uuid");
+  clone.removeAttribute("data-plasmic-component-uuid");
   clone.removeAttribute("data-plasmic-render-ready");
   const originals = document.documentElement.querySelectorAll("*");
   const copies = clone.querySelectorAll("*");

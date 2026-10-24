@@ -48,6 +48,7 @@ import {
   ensureActivatedScreenVariantsForFrameByWidth,
   FrameViewMode,
   getArenaFrames,
+  getArenaName,
   getArenaType,
   getArenaUuidOrName,
   getFrameHeight,
@@ -2402,6 +2403,12 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
             }
           : null,
       projectName: studio.siteInfo.name,
+      projectSummary: {
+        pages: studio.site.components.filter(isPageComponent).length,
+        components: studio.site.components.filter((component) => !isPageComponent(component) && !isCodeComponent(component) && !isFrameComponent(component)).length,
+      },
+      saveStatus: studio.saveStatus,
+      canvasName: studio.currentArena ? getArenaName(studio.currentArena) : null,
       projectId: studio.siteInfo.id,
       branchId: studio.dbCtx().branchInfo?.id ?? null,
       sessionId: studio.aiSessionId,
@@ -2422,6 +2429,7 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
         studio.isLiveMode && studio.previewCtx
           ? {
               componentUuid: studio.previewCtx.component?.uuid ?? null,
+              componentName: studio.previewCtx.component?.name ?? null,
               path: `/${studio.previewCtx.previewPath.replace(/^\/+/, "")}`,
               width: previewFrame?.clientWidth || studio.previewCtx.width,
               height: previewFrame?.clientHeight || studio.previewCtx.height,
@@ -2431,6 +2439,7 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
           : studio.isInteractiveMode && vc
             ? {
                 componentUuid: vc.currentComponent().uuid,
+                componentName: vc.currentComponent().name,
                 path: vc.currentComponent().pageMeta?.path ?? null,
                 width: vc.arenaFrame().width,
                 height: getFrameHeight(vc.arenaFrame()),

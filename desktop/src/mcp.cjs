@@ -90,6 +90,22 @@ const resourceId = { type: "string", pattern: "^[A-Za-z0-9_-]+$" };
 const resourceName = { type: "string", pattern: "\\S" };
 const tools = [
   {
+    name: "report_task",
+    description: "Report the actual current task and execution stage to Desktop Dynamic Island. Requires the current ready project. Start with running and a stable taskId, then monotonically increase sequence for stage/result updates. Status blocked requires a real blocker; completed/failed ends the task. Supply stageIndex and stageCount together only for an explicit, known plan, never inferred from tool calls. This is ephemeral UI metadata: it neither edits nor saves designs. Native MCP read/write/Preview activity is displayed automatically even without task reports.",
+    inputSchema: { ...object({
+      taskId: { type: "string", minLength: 1, maxLength: 240 },
+      projectId: resourceId,
+      sequence: { type: "integer", minimum: 0 },
+      title: { type: "string", minLength: 1, maxLength: 240 },
+      stage: { type: "string", maxLength: 240 },
+      status: { enum: ["running", "blocked", "completed", "failed"] },
+      stageIndex: { type: "integer", minimum: 1 },
+      stageCount: { type: "integer", minimum: 1 },
+      error: { type: "string", maxLength: 1600 },
+    }), required: ["taskId", "projectId", "sequence", "title", "status"],
+      dependencies: { stageIndex: ["stageCount"], stageCount: ["stageIndex"] } },
+  },
+  {
     name: "read_result",
     description: "Read a retained MCP result without rerunning its operation. Use resultId from ResultReference; path is an array of object keys/array indices. Returns entries with value or reference; append the entry key to path to inspect a reference. Follow nextOffset for every page. Strings use UTF-16 offsets and text chunks (limit up to 16000); collections return at most 50 entries. Retains up to 16 snapshots / 64 MiB in this connection. Omitted data is not empty; never repeat a successful mutation to obtain its result.",
     inputSchema: { ...object({

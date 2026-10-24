@@ -95,6 +95,7 @@ test("update UI is injected and served locally without fetching NAS static asset
     /script defer src="https:\/\/studio.plasmic.shiguanglab.com\/static\/desktop\/update-ui.js"/,
   );
   assert.match(studioHtml, /static\/desktop\/update-dialog.js/);
+  assert.doesNotMatch(studioHtml, /presentation-ui.js/);
   assert.equal((studioHtml.match(/renderer-i18n.js/g) || []).length, 1);
   assert.ok(
     studioHtml.indexOf("renderer-i18n.js") <
@@ -109,6 +110,7 @@ test("update UI is injected and served locally without fetching NAS static asset
   );
   const canvasHtml = await canvas.text();
   assert.match(canvasHtml, /static\/desktop\/update-ui.js/);
+  assert.doesNotMatch(canvasHtml, /presentation-ui.js/);
   assert.equal((canvasHtml.match(/renderer-i18n.js/g) || []).length, 1);
   assert.doesNotMatch(
     canvasHtml,

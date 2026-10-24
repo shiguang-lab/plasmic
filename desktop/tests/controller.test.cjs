@@ -17,6 +17,51 @@ const deferred = () => {
   });
   return { promise, resolve };
 };
+test("the dispatcher intercepts quiet calls as well as queued tools, but internal state polling stays passive", async (t) => {
+  const controller = new DesktopController(() => null, { studioOrigin: "https://studio.example" });
+  t.after(() => controller.close());
+  const gate = deferred(), started = deferred();
+  controller.state = async () => ({ready:false});
+  await controller.state();
+  assert.equal(controller.activity.keepExpanded(), false);
+  controller.execute = async () => { started.resolve(); return gate.promise; };
+  let notifications = 0;
+  controller.activity.subscribe(() => notifications++);
+  const call = controller.dispatch("get_app_state", {});
+  await started.promise;
+  assert.equal(controller.activity.operations.size, 1);
+  assert.equal(controller.activity.keepExpanded(), true);
+  gate.resolve({ready:false}); await call;
+  assert.equal(controller.activity.operations.size, 0);
+  assert.equal(controller.activity.keepExpanded(), true);
+  const until = controller.activity.idleUntil;
+  await controller.state();
+  assert.equal(controller.activity.idleUntil, until);
+  assert.ok(notifications >= 2, "call arrival and completion both notify the island");
+  controller.execute = async () => {throw new Error("failed metadata")};
+  await assert.rejects(controller.dispatch("get_build_info", {}), /failed metadata/);
+  assert.equal(controller.activity.operations.size, 0, "failures release the active call");
+});
+test("task reports update during a long-running MCP operation and reject unrelated page contexts", { timeout: 2000 }, async (t) => {
+  const win = { isDestroyed: () => false, webContents: { getURL: () => "https://studio.example/projects/p" } };
+  const controller = new DesktopController(() => win, { studioOrigin: "https://studio.example" });
+  t.after(() => controller.close());
+  let url = "https://studio.example/projects/p";
+  controller.state = async () => ({ ready: true, projectId: "p", url, editorContext: { mode: "edit", canEdit: true, sessionId: "s" } });
+  const started = deferred(), release = deferred();
+  controller.execute = async () => { started.resolve(); return release.promise; };
+  const operation = controller.dispatch("execute", { name: "read", input: {} });
+  await started.promise;
+  const task = { taskId: "t", projectId: "p", sequence: 0, title: "读取设计", stage: "读取组件", status: "running" };
+  try {
+    assert.deepEqual(await controller.dispatch("report_task", task), { accepted: true });
+    assert.equal(controller.activity.snapshot("p", "s").task.stage, "读取组件");
+    assert.equal(controller.activity.snapshot("p", "s").operation.phase, "running");
+    await assert.rejects(controller.dispatch("report_task", { ...task, projectId: "other" }), /not open/);
+    url = "https://studio.example/projects/p/docs";
+    await assert.rejects(controller.dispatch("report_task", { ...task, sequence: 1 }), /not open/);
+  } finally { release.resolve({}); await operation; }
+});
 test("reference tools reject Studio Preview and keep external CDP read-only", async (t) => {
   const win = { isDestroyed: () => false, webContents: { getURL: () => "https://studio.example/projects/p" } };
   const controller = new DesktopController(() => win, { studioOrigin: "https://studio.example" });

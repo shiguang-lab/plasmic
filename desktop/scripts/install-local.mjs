@@ -49,7 +49,9 @@ export async function installLocalApp(source) {
     try { await rename(staging, target); }
     catch (error) { if (previous) await rename(backup, target); throw error; }
   } finally { await rm(staging, { recursive: true, force: true }); }
-  execFileSync("/usr/bin/open", [target]);
+  // A prohibited --mcp process may still be registered as this application.
+  // Start the GUI explicitly; its own single-instance lock handles GUI reuse.
+  execFileSync("/usr/bin/open", ["-n", target]);
   let actual;
   for (let i = 0; i < 60; i++) {
     try {

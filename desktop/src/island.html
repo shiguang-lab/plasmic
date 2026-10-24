@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en" data-ui-appearance="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src data:">
+<title>Plasmic</title>
+<link rel="stylesheet" href="island.css">
+<script defer src="renderer-i18n.js"></script>
+<script defer src="island-renderer.js"></script>
+</head>
+<body>
+<div id="shell" data-expanded="false" tabindex="0" aria-haspopup="menu">
+ <div id="capsule">
+  <button id="capsule-handle" type="button" aria-haspopup="menu"><span aria-hidden="true" class="brand">◈</span><span id="project">Plasmic</span><span id="pill-context"></span><span id="queue" hidden></span><span class="dot" aria-hidden="true"></span></button>
+ </div>
+ <section id="card" inert aria-hidden="true">
+  <div class="body">
+   <section class="info">
+    <div class="identity" id="drag-handle"><span aria-hidden="true">◈</span><span id="page"></span><span id="context"></span></div>
+    <div id="mission"></div>
+    <div id="phase" role="status" aria-live="polite"><span id="phase-icon" aria-hidden="true"></span><span id="phase-text"></span><span id="stage-count"></span></div>
+    <div id="progress" hidden aria-hidden="true"><span></span></div>
+    <div id="summary" hidden>
+     <div class="counts"><span><b id="page-count"></b><span id="pages-label"></span></span><span><b id="component-count"></b><span id="components-label"></span></span></div>
+     <div class="view-status"><span id="save-state"><i aria-hidden="true"></i><span id="save-text"></span></span><span id="view-metric"></span></div>
+    </div>
+    <div id="issue" role="alert" hidden><span aria-hidden="true">!</span><span id="issue-text"></span></div>
+   </section>
+   <section class="visual">
+    <img id="mirror" alt="" draggable="false" hidden>
+    <div id="feedback" aria-hidden="true" hidden></div>
+    <span id="unavailable" hidden></span><span id="stale" hidden></span>
+   </section>
+  </div>
+ </section>
+</div>
+</body>
+</html>

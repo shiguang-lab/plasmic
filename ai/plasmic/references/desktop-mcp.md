@@ -14,7 +14,7 @@ Discover UUIDs/names/contracts together with read {collection:"components",nameC
 
 Global contexts retain isContext:true in inventories/projections and belong to project settings, not the Page tree. Read collection:globalContexts in the consuming project for installed instances, definition componentUuid and stored properties. Read the definition's contract.globalActions for qualified keys and ordered parameters; call directly without a Page wrapper. See [context discovery](desktop-examples.md#project-global-contexts).
 
-Generation planning and progress stay in the agent's local working directory. External-browser capture/import tools require a ready, editable project's edit page; local Pen reads do not require a canvas. Start reference_browser with load_page and an external HTTP(S) URL. preview owns runtime acceptance; failure blocks that check without reference-tool fallback.
+Keep plans/progress locally. External-browser capture/import tools require a ready, editable project's edit page; local Pen reads do not require a canvas. Start reference_browser with load_page and an external HTTP(S) URL. preview owns runtime acceptance; failure blocks that check without reference-tool fallback.
 
 ## Mutate and persist
 
@@ -25,6 +25,8 @@ Generate [markup](desktop-examples.md#component-instances) from each component's
 save returns projectId/revision/saved; reopen/reread proves persistence. Batches do not save. Imports are read-only; library changes mutate. validate checks invariants only, not pixels/behavior. Failed validation/project changes block save; after failure/session change reread identity and identify.
 
 ## Conditional capabilities
+
+- Dynamic Island tasks: [activity](desktop-island.md).
 
 - Teams, workspaces, projects: [management](desktop-management.md).
 - Geometry, images, native Preview: [rendered inspection](desktop-inspection.md).

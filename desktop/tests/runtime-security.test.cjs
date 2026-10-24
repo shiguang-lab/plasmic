@@ -66,7 +66,11 @@ test("the production View menu has no developer tools entry", () => {
   const source = fs.readFileSync(path.join(__dirname, "../src/main.cjs"), "utf8");
   const menu = source.match(/\{\s+label: t\("View"\),[\s\S]*?\n      \},/)[0];
   for (const isPackaged of [true, false]) {
-    const view = vm.runInNewContext("(" + menu.slice(0, -1) + ")", { app: { isPackaged }, t: (key) => key });
+    const view = vm.runInNewContext("(" + menu.slice(0, -1) + ")", {
+      app: { isPackaged }, t: (key) => key, process: { platform: "darwin" },
+      MODES: ["window", "fullscreen", "island"], presentation: { mode: "window" },
+      CLOSE_ACTIONS: ["ask", "island", "quit"],
+    });
     assert.equal(view.submenu.some((item) => item.role === "toggleDevTools"), !isPackaged);
   }
 });

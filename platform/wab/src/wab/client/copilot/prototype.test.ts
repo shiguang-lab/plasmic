@@ -1232,6 +1232,21 @@ describe("AI prototype editor tools", () => {
     });
     studioCtx.copilotActivity.dispose();
   });
+  it("reports native project counts, current canvas name and save state without changing the model", async () => {
+    const { studioCtx, call, createPage } = fixture();
+    await createPage("Overview");
+    await createPage("Detail");
+    await call("createComponent", {name:"SharedPanel",type:"component"});
+    await call("createCanvas", {name:"BusinessFlow"});
+    await call("navigateCanvas", {canvasName:"BusinessFlow"});
+    const before = await call("read", {view:"full"});
+    const context = await call("getEditorContext");
+    expect(context.projectSummary).toEqual({pages:2,components:1});
+    expect(context.canvasName).toBe("BusinessFlow");
+    expect(context.saveStatus).toBe(studioCtx.saveStatus);
+    expect(await call("read", {view:"full"})).toEqual(before);
+    studioCtx.copilotActivity.dispose();
+  });
   it("reports a blocked editor as non-editable", async () => {
     const { studioCtx, call } = fixture();
     studioCtx.blockChanges = true;
@@ -1306,6 +1321,7 @@ describe("AI prototype editor tools", () => {
       canEdit: false,
       previewContext: {
         componentUuid: sql.uuid,
+        componentName: "SQL",
         path: "/sql",
         width: 1440,
         height: 1024,
