@@ -26,8 +26,7 @@ save returns projectId/revision/saved; reopen/reread proves persistence. Batches
 
 ## Conditional capabilities
 
-- Dynamic Island tasks: [activity](desktop-island.md).
-
+- Dynamic Island: [activity](desktop-island.md).
 - Teams, workspaces, projects: [management](desktop-management.md).
 - Geometry, images, native Preview: [rendered inspection](desktop-inspection.md).
 - Images, SVG, capture/export: [media](desktop-media.md).
