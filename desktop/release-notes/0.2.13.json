@@ -1,0 +1,7 @@
+{
+  "en": "- Check for updates every minute in both the main window and Dynamic Island, while keeping active downloads and updates ready to install uninterrupted.",
+  "zh-CN": "- 主窗口与灵动岛每分钟检查一次更新，不打断正在进行的下载或待安装更新。",
+  "zh-TW": "- 主視窗與靈動島每分鐘檢查一次更新，不中斷進行中的下載或待安裝更新。",
+  "ja": "- メインウィンドウと Dynamic Island で毎分更新を確認し、ダウンロード中やインストール待ちの更新は中断しません。",
+  "ko": "- 기본 창과 Dynamic Island에서 매분 업데이트를 확인하며, 진행 중인 다운로드와 설치 대기 중인 업데이트는 중단하지 않습니다."
+}

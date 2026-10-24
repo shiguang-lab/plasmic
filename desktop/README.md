@@ -304,14 +304,14 @@ for actual Chromium selection, navigation, isolation and import integration.
 Updates use `desktop.config.json`'s HTTPS `updateUrl`. Feeds are partitioned by
 platform and architecture. macOS selects `darwin/arm64/` or `darwin/x64/`; an Intel
 process running under Rosetta selects the native arm64 feed. GitHub is not contacted when checking, downloading or installing.
-The application checks immediately at startup and every ten minutes, then downloads
+The application checks immediately at startup and every minute, then downloads
 new versions automatically in the background. Update controls mount only in explicit
 page slots: beside the brand on the dashboard and CMS, after the editor's top-left brand capsule,
 and in the preview toolbar. All download controls show only a progress ring.
 Hover or keyboard focus shows the download percentage and version in a tooltip.
 When the verified download finishes, the update icon indicates it is ready. Clicking it opens Software Update with
 **Restart and Install** and **Later**. Choosing Later leaves the ready icon visible.
-Clicking the update control reopens the dialog; it does not restart the app directly. Update failures are logged locally and treated as no update; no error indicator or exception is displayed. Automatic checks continue every ten minutes. The dialog uses bundled local frontend
+Clicking the update control reopens the dialog; it does not restart the app directly. Update failures are logged locally and treated as no update; no error indicator or exception is displayed. Automatic checks continue every minute. The dialog uses bundled local frontend
 resources, a light appearance and isolated styles in the main document; it creates no
 additional Electron window and works on the login page without a server request.
 Closing the dialog leaves background downloads running. Installation remains in the

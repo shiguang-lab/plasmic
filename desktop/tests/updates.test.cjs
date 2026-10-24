@@ -158,12 +158,12 @@ test("startup downloads in the background and periodic checks cannot interrupt t
   updates.start();
   await new Promise((resolve) => setImmediate(resolve));
   assert.equal(updates.state.phase, "downloading");
-  t.mock.timers.tick(10 * 60 * 1000);
+  t.mock.timers.tick(60 * 1000);
   assert.equal(checks, 1);
   assert.equal(downloads, 1);
   finish();
   await updates.running;
-  t.mock.timers.tick(10 * 60 * 1000);
+  t.mock.timers.tick(60 * 1000);
   assert.equal(updates.state.phase, "downloaded");
   assert.equal(checks, 1);
 });
@@ -296,7 +296,7 @@ test("development and unpacked launches keep updates disabled even after an upda
   for (const command of ["check", "download", "install"])
     assert.equal((await updates.command(command)).phase, "disabled");
 });
-test("installed clients check immediately at startup and every ten minutes until stopped", async (t) => {
+test("installed clients check immediately at startup and every minute until stopped", async (t) => {
   t.mock.timers.enable({ apis: ["setInterval"] });
   const updater = new EventEmitter();
   let checks = 0;
@@ -309,16 +309,16 @@ test("installed clients check immediately at startup and every ten minutes until
   updates.start();
   assert.equal(checks, 1);
   await updates.running;
-  t.mock.timers.tick(10 * 60 * 1000 - 1);
+  t.mock.timers.tick(60 * 1000 - 1);
   assert.equal(checks, 1);
   t.mock.timers.tick(1);
   await updates.running;
   assert.equal(checks, 2);
-  t.mock.timers.tick(10 * 60 * 1000);
+  t.mock.timers.tick(60 * 1000);
   await updates.running;
   assert.equal(checks, 3);
   updates.stop();
-  t.mock.timers.tick(10 * 60 * 1000);
+  t.mock.timers.tick(60 * 1000);
   assert.equal(checks, 3);
 });
 test("release validation refuses incomplete or modified artifacts before NAS upload", async (t) => {
@@ -420,7 +420,7 @@ for (const mode of ["rejection", "event"]) {
       ),
       false,
     );
-    t.mock.timers.tick(10 * 60 * 1000);
+    t.mock.timers.tick(60 * 1000);
     await updates.running;
     assert.equal(checks, 2);
     assert.equal(updates.state.phase, "downloaded");
@@ -462,7 +462,7 @@ test("a failed background download clears its badge and is retried at the next p
   ]) {
     assert.equal(updates.state[key], undefined);
   }
-  t.mock.timers.tick(10 * 60 * 1000);
+  t.mock.timers.tick(60 * 1000);
   await updates.running;
   assert.equal(checks, 2);
   assert.equal(downloads, 2);

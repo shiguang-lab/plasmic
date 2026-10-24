@@ -111,7 +111,7 @@ class UpdateManager extends EventEmitter {
         if (["idle", "current", "available"].includes(this.state.phase))
           void this.command("check");
       },
-      10 * 60 * 1000,
+      60 * 1000,
     );
     this.interval.unref();
   }
