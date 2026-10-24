@@ -12,7 +12,6 @@ const { EventEmitter } = require("node:events");
 const { UpdateManager } = require("../src/update-manager.cjs");
 const { createUpdateDialog } = require("../src/update-dialog.cjs");
 const { createIsland, containsPoint } = require("../src/island.cjs");
-const { UnifiedAuthWindow, AUTH_PATH } = require("../src/unified-auth-window.cjs");
 const { createDesktopI18n } = require("../src/i18n.cjs");
 const { createDesktopAppearance } = require("../src/ui-appearance.cjs");
 const { startRpc } = require("../src/local-rpc.cjs");
@@ -110,8 +109,7 @@ app.whenReady().then(async () => {
     if (url === '/api/v1/projects?query=%22all%22') return {projects:accountData.projects};
     return requestStudio(url,input,signal);
   };
-  const auth = new UnifiedAuthWindow(main, origin);
-  presentation = createIsland({ getWindow: () => main, controller, config: { studioOrigin: origin }, i18n, appearance, signIn: () => auth.show() });
+  presentation = createIsland({ getWindow: () => main, controller, config: { studioOrigin: origin }, i18n, appearance });
   presentation.attach(main);
   await main.loadURL(origin + "/projects/p");
   await until(async () => (await controller.state()).ready, "editor bridge ready");
@@ -324,13 +322,6 @@ app.whenReady().then(async () => {
     })()`),true,`${locale} sign-in button fits without overlap`);
   }
   i18n.setLocale("zh-CN");
-  assert.equal(main.isVisible(),false);
-  await inspect("document.getElementById('account-sign-in').click();true");
-  await until(() => main.webContents.getURL()===origin+AUTH_PATH && main.isVisible(),"island sign-in reveals the main window and opens existing login page");
-  assert.equal(presentation.mode,"island","login preserves island mode");
-  // Login returns to Studio with the main window still visible and island mode active.
-  // No external SSO is used by this fixture.
-  await main.loadURL(origin + "/");
   accountData.user = {id:"account-b",firstName:"另一账号",email:"other@example.test"};
   accountData.projects=[];
   const accountRequest=controller.requestStudio;
@@ -365,7 +356,7 @@ app.whenReady().then(async () => {
   await until(async()=>await inspect(`document.getElementById('account-theme').textContent===${JSON.stringify(i18n.t("Light"))}`),"account metadata follows the real appearance snapshot");
   appearance.set("dark");
   i18n.setLocale("zh-CN");
-  passed.push("account overview uses API totals without a canvas; creation refreshes totals; logout clears old identities; island sign-in opens the existing login page and preserves mode; verified replacement restores account data; localized labels fit; MCP subject, queue, persistent error and recovery remain visible");
+  passed.push("account overview uses API totals without a canvas; creation refreshes totals; logout clears old identities; verified replacement restores account data; localized labels and sign-in action fit; MCP subject, queue, persistent error and recovery remain visible");
 
   const openingEditor = main.loadURL(origin + "/projects/p?slow=1");
   await until(() => presentation.snapshot().context.allowed && presentation.snapshot().context.loading, "dashboard to editor loading card");
@@ -468,13 +459,13 @@ app.whenReady().then(async () => {
     assert.ok(contextMenu.items.every(item=>item.type!=="radio"), "context actions are not display-mode radio choices");
     presentation.setCloseAction("island");
     contextMenu.getMenuItemById("island-show-main").click();
-    await until(() => main.isVisible() && island.isVisible(), "temporarily show main alongside island");
-    assert.equal(presentation.mode,"island"); assert.equal(presentation.closeAction,"island");
-    assert.equal(JSON.parse(fs.readFileSync(path.join(profile,"presentation.json"))).mode,"island");
+    await until(() => main.isVisible() && !island.isVisible(), "show main hides the island");
+    assert.equal(presentation.mode,"window"); assert.equal(presentation.closeAction,"island");
+    assert.equal(JSON.parse(fs.readFileSync(path.join(profile,"presentation.json"))).mode,"window");
     assert.equal((await controller.state()).editorContext.mode,"preview");
     main.minimize();
     contextMenu.getMenuItemById("island-show-main").click();
-    await until(() => main.isVisible() && !main.isMinimized(), "show main restores minimized window");
+    await until(() => main.isVisible() && !main.isMinimized() && !island.isVisible(), "show main restores minimized window without the island");
     contextMenu.getMenuItemById("island-exit").click();
     await until(() => presentation.mode === "window" && presentation.closeAction === "ask" && main.isVisible() && !island.isVisible(), "explicit exit clears island preference");
     assert.deepEqual(JSON.parse(fs.readFileSync(path.join(profile,"presentation.json"))).closeAction,"ask");

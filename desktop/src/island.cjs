@@ -202,14 +202,7 @@ function createIsland({ getWindow, controller, i18n, appearance, config, signIn,
     return { mode };
   }
   function showMainWindow() {
-    const next = transitions.then(() => {
-      const win = getWindow();
-      if (disposed || !win || win.isDestroyed()) return;
-      if (win.isMinimized()) win.restore();
-      win.show(); win.focus();
-    });
-    transitions = next.catch(() => {});
-    return next;
+    return setMode("window");
   }
   async function exitIsland() {
     await setMode("window");

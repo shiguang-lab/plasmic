@@ -107,7 +107,7 @@ jobs:
         with:
           node-version: 24
       - run: npm ci --prefix desktop
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2, Node 24
         with:
           name: desktop-renderer
       - run: tar -xzf renderer.tar.gz -C desktop
@@ -134,6 +134,7 @@ jobs:
           version=$(node -p 'require("./desktop/package.json").version')
           echo "DESKTOP_VERSION=$version" >> "$GITHUB_ENV"
           node desktop/scripts/package.mjs '${{ matrix.platform }}' '${{ matrix.arch }}' --notes "desktop/release-notes/$version.md"
+          node --input-type=module -e 'import { validateRelease } from "./desktop/scripts/release-artifacts.mjs"; const [platform, arch, version] = process.argv.slice(1); await validateRelease(`desktop/dist/${version}/${platform}-${arch}`, platform, version, arch);' '${{ matrix.platform }}' '${{ matrix.arch }}' "$version"
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.platform }}-${{ matrix.arch }}
@@ -158,19 +159,19 @@ jobs:
         with:
           node-version: 24
       - run: npm ci --prefix desktop
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2, Node 24
         with:
           name: darwin-arm64
           path: installers/darwin-arm64
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2, Node 24
         with:
           name: darwin-x64
           path: installers/darwin-x64
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2, Node 24
         with:
           name: win32-x64
           path: installers/win32-x64
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2, Node 24
         with:
           name: linux-x64
           path: installers/linux-x64

@@ -751,8 +751,7 @@ function bootstrap() {
     const showDesktop = async (forceMain = false) => {
       await app.whenReady();
       const win = mainWindow || (await ensureDesktop());
-      if (!forceMain && presentation.mode === "island" && win.isVisible()) win.focus();
-      else await presentation.setMode(forceMain ? "window" : presentation.mode);
+      await presentation.setMode(forceMain ? "window" : presentation.mode);
       return win;
     };
     const handleAppCallback = async (url) => {
@@ -806,8 +805,7 @@ function bootstrap() {
     app.on("activate", () => {
       if (mainWindow && presentation) {
         if (!startingDesktop) {
-          if (presentation.mode === "island" && mainWindow.isVisible()) mainWindow.focus();
-          else void presentation.setMode(presentation.mode).catch(console.error);
+          void presentation.setMode(presentation.mode).catch(console.error);
         }
       } else if (!mainWindow) {
         ensureDesktop().catch((error) => {

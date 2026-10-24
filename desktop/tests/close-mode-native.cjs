@@ -130,17 +130,24 @@ if (!process.versions.electron) {
       assert.equal(Menu.getApplicationMenu().getMenuItemById("close-action-island").checked, true);
       const menu=await islandMenu();
       menu.getMenuItemById("island-show-main").click();
-      await until(()=>main.isVisible() && island().isVisible(),"show main keeps island enabled");
+      await until(()=>main.isVisible() && !island().isVisible(),"show main hides island");
       await main.webContents.executeJavaScript("desktopUpdates.onOpen(status=>{window.updateOpened=status});true");
       Menu.getApplicationMenu().getMenuItemById("check-for-updates").click();
       await until(async()=>await main.webContents.executeJavaScript("!!window.updateOpened"),"visible main routes to its own update dialog");
       assert.equal(await island().webContents.executeJavaScript("document.getElementById('update-panel').hidden"),true);
-      assert.equal(preference().mode,"island");assert.equal(preference().closeAction,"island");
+      assert.equal(preference().mode,"window");assert.equal(preference().closeAction,"island");
       app.emit("activate");await pause(150);
       assert.equal(main.isVisible(),true,"Dock keeps an explicitly opened main window visible");
+      assert.equal(island().isVisible(),false,"Dock cannot reopen island beside main");
       app.emit("second-instance",{},["Plasmic"]);await pause(150);
       assert.equal(main.isVisible(),true,"reopening keeps an explicitly opened main window visible");
+      assert.equal(island().isVisible(),false,"relaunch cannot reopen island beside main");
       main.close();await waitIsland();assert.equal(prompts,0,"temporary main closes back to island without a dialog");
+      await until(async()=>await island().webContents.executeJavaScript("!document.getElementById('account-sign-in').hidden"),"signed-out island offers sign-in");
+      await island().webContents.executeJavaScript("document.getElementById('account-sign-in').click();true");
+      await until(()=>main.isVisible() && !island().isVisible() && new URL(main.webContents.getURL()).pathname==='/desktop/unified-login',"sign-in switches exclusively to the existing main-window login page");
+      assert.equal(preference().mode,"window");assert.equal(preference().closeAction,"island","sign-in retains the remembered closing preference");
+      main.close();await waitIsland();assert.equal(prompts,0,"login window closes back to island without a dialog");
       pass();menu.getMenuItemById("island-quit").click();
     } else if(stage === "exit") {
       await waitIsland();
