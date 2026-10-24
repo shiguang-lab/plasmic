@@ -67,6 +67,33 @@ function nestedActivity() {
   return { studioCtx, frame, parent, child, descendant, sibling, target };
 }
 
+it("shows one cursor for edits, preserves it for the next target, and clears failed work", () => {
+  const { studioCtx, frame, child, sibling, target } = nestedActivity();
+  let callbacks: FrameRequestCallback[] = [];
+  vi.mocked(window.requestAnimationFrame).mockImplementation((callback) => { callbacks.push(callback); return callbacks.length; });
+  const finish = studioCtx.copilotActivity.begin([target(child.uuid)]);
+  const { container, unmount } = render(<CopilotActivityOverlay studioCtx={studioCtx} frame={frame} />);
+  const step = () => act(() => {
+    const batch = callbacks;
+    callbacks = [];
+    batch.forEach((callback) => callback(performance.now() + 250));
+  });
+  step(); step();
+  const root = ensure(container.querySelector<HTMLElement>("[data-plasmic-agent-cursor]"), "Edit cursor was not mounted");
+  expect(root.style.display).toBe("block");
+  let finishNext = finish;
+  act(() => {
+    finishNext = studioCtx.copilotActivity.begin([target(sibling.uuid)]);
+  });
+  step();
+  expect(container.querySelectorAll("[data-plasmic-agent-cursor]")).toHaveLength(1);
+  expect(container.querySelector("[data-plasmic-agent-cursor]")).toBe(root);
+  act(() => { finish("error"); finishNext("error"); });
+  expect(root.style.display).toBe("none");
+  unmount();
+  expect(root.isConnected).toBe(false);
+});
+
 it.each(["inspection", "edit"] as const)("merges overlapping scope aliases for the same %s node without releasing other requests", (kind) => {
   const { studioCtx, frame, child, target } = nestedActivity();
   const activity = studioCtx.copilotActivity;

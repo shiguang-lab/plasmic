@@ -42,6 +42,7 @@ function previewError(error, input, diagnostics = {}) {
 async function runtimeCommand(input, documentId) {
   const key = "__plasmicRuntimeInspection";
   if (!globalThis[key] || globalThis[key].page !== input.pageIdentity) {
+    dispatchEvent(new CustomEvent("plasmic-agent-cursor", { detail: { action: "clear" } }));
     globalThis[key] = { page: input.pageIdentity, id: documentId, next: 0, ids: new WeakMap(), nodes: new Map() };
   }
   const store = globalThis[key];
@@ -97,6 +98,16 @@ async function runtimeCommand(input, documentId) {
     return el;
   };
   const settle = () => Promise.race([new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))), new Promise((resolve) => setTimeout(resolve, 100))]);
+  const showCursor = (element, hitPoint) => {
+    const r = element.getBoundingClientRect();
+    const left = Math.max(0, r.left), top = Math.max(0, r.top);
+    const right = Math.min(innerWidth, r.right), bottom = Math.min(innerHeight, r.bottom);
+    if (right <= left || bottom <= top) return;
+    const point = hitPoint || { x: (left + right) / 2, y: (top + bottom) / 2 };
+    dispatchEvent(new CustomEvent("plasmic-agent-cursor", { detail: {
+      action: "move", element, point: { x: point.x - r.left, y: point.y - r.top },
+    } }));
+  };
   if (input.action === "snapshot") {
     const all = nodes().filter((el) => role(el) || el.tabIndex >= 0 || ["auto", "scroll"].includes(getComputedStyle(el).overflowY));
     const items = all.slice(input.offset || 0, (input.offset || 0) + (input.limit || 40)).map((el) => {
@@ -151,10 +162,12 @@ async function runtimeCommand(input, documentId) {
     targetInfo = { ...targetInfo, bounds: { x: rect.x, y: rect.y, width: rect.width, height: rect.height },
       point, hit: hit ? { role: role(hit), name: name(hit), tag: hit.tagName.toLowerCase() } : null };
     if (!hit || !(el === hit || el.contains(hit) || hit.contains(el))) fail("PREVIEW_TARGET_BLOCKED", "Preview target is covered or outside the visible viewport");
+    showCursor(el, point);
     return { point, target: targetInfo };
   }
   else if (input.action === "fill") {
     if (!el.matches("input,textarea") || ["file", "checkbox", "radio", "button", "submit", "hidden"].includes(el.type) || el.readOnly) fail("PREVIEW_ACTION_NOT_APPLICABLE", "fill requires an editable text/number input or textarea");
+    showCursor(el);
     phase = "dom-input"; operationExecuted = null;
     el.focus();
     const prototype = el.tagName === "TEXTAREA" ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
@@ -165,14 +178,16 @@ async function runtimeCommand(input, documentId) {
   } else if (input.action === "select") {
     if (!(el instanceof HTMLSelectElement)) fail("PREVIEW_ACTION_NOT_APPLICABLE", "select requires a native select; for Antd popup selectors click the combobox and then its option from a new snapshot");
     if (![...el.options].some((o) => o.value === input.value && !o.disabled)) fail("PREVIEW_ACTION_NOT_APPLICABLE", "Enabled option not found");
+    showCursor(el);
     phase = "dom-input"; operationExecuted = null;
     Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, "value").set.call(el, input.value);
     el.dispatchEvent(new Event("input", { bubbles: true })); el.dispatchEvent(new Event("change", { bubbles: true }));
     operationExecuted = true;
-  } else if (input.action === "press") { el.focus(); return { focused: true, target: targetInfo }; }
+  } else if (input.action === "press") { showCursor(el); el.focus(); return { focused: true, target: targetInfo }; }
   else if (input.action === "scroll") {
     phase = "dom-scroll"; operationExecuted = null;
     el.scrollBy({ left: input.x || 0, top: input.y || 0, behavior: "instant" });
+    showCursor(el);
     operationExecuted = true;
   }
   else throw new Error("Unsupported Preview action");
@@ -180,6 +195,7 @@ async function runtimeCommand(input, documentId) {
   await settle();
   return { performed: input.action, target: targetInfo };
   } catch (error) {
+    dispatchEvent(new CustomEvent("plasmic-agent-cursor", { detail: { action: "clear" } }));
     const failure = error instanceof Error ? error : new Error(String(error), { cause: error });
     failure.context = { ...failure.context, source: "renderer", phase, operationExecuted,
       target: targetInfo, documentId: store.id };
@@ -219,10 +235,18 @@ async function viewportRect(frame, viewport, signal) {
 }
 
 async function runPreview(win, input, context, signal = AbortSignal.timeout(30000)) {
+  let feedbackFrame;
+  const notifyCursor = async (action) => {
+    if (!feedbackFrame) return;
+    try {
+      await feedbackFrame.executeJavaScript(`dispatchEvent(new CustomEvent("plasmic-agent-cursor", {detail:{action:${JSON.stringify(action)}}}))`);
+    } catch { /* Feedback cleanup must not mask navigation or input errors. */ }
+  };
   const diagnostics = { phase: "frame-discovery", operationExecuted: false, editorContext: context,
     frame: null, inputsDispatched: [] };
   try {
   const { frame, layout } = await previewFrame(win, context.previewContext?.componentUuid, signal);
+  feedbackFrame = frame;
   diagnostics.frame = frameIdentity(frame);
   if (input.action === "state") return { ready: true, viewport: layout };
   const originalUrl = win.webContents.getURL();
@@ -241,7 +265,17 @@ async function runPreview(win, input, context, signal = AbortSignal.timeout(3000
     const bounds = win.getContentBounds();
     if (rect.x < 0 || rect.y < 0 || rect.x + rect.width > bounds.width + 1 || rect.y + rect.height > bounds.height + 1) throw new Error("Native Preview is clipped by the App window; reveal the full viewport before recording a screenshot");
     diagnostics.phase = "capture";
-    const image = await abortable(signal, () => win.webContents.capturePage(rect));
+    let image;
+    try {
+      await abortable(signal, () => frame.executeJavaScript(`(() => {
+        dispatchEvent(new CustomEvent("plasmic-agent-cursor", {detail:{action:"hide"}}));
+        return Promise.race([new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))),new Promise(r=>setTimeout(r,100))]);
+      })()`));
+      image = await abortable(signal, () => win.webContents.capturePage(rect));
+    } finally {
+      // Also restore after cancellation; a destroyed/navigated frame needs no feedback.
+      void notifyCursor("show");
+    }
     return { ...await abortable(signal, () => encodeImagePreview(image.toPNG(), { lossless: input.fullResolution === true })), viewport: { width: layout.width, height: layout.height }, presentationRect: rect };
   }
   diagnostics.phase = "dom-command";
@@ -302,6 +336,7 @@ async function runPreview(win, input, context, signal = AbortSignal.timeout(3000
   }
   return result;
   } catch (error) {
+    void notifyCursor("clear");
     if (!diagnostics.frame) {
       try { diagnostics.candidateFrames = win.webContents.mainFrame?.framesInSubtree?.map(frameIdentity); }
       catch { /* Frame discovery can fail while the WebContents is being destroyed. */ }

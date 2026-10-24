@@ -14,6 +14,7 @@ import {
 import { useTopFrameApi } from "@/wab/client/contexts/AppContexts";
 import { scriptExec } from "@/wab/client/dom-utils";
 import { useI18n } from "@/wab/client/i18n";
+import { installPreviewAgentCursor } from "@/wab/client/copilot/agent-cursor";
 import { maybeToggleTrailingSlash } from "@/wab/client/utils/app-hosting-utils";
 import { isComponentArena } from "@/wab/shared/Arenas";
 import { usedHostLessPkgs } from "@/wab/shared/cached-selectors";
@@ -31,6 +32,7 @@ import {
 import { getDedicatedArena } from "@/wab/shared/core/sites";
 import { getPublicUrl, getStaticBaseUrl } from "@/wab/shared/urls";
 import { createStyles } from "antd-style";
+import { theme } from "antd";
 import { autorun } from "mobx";
 import { observer } from "mobx-react";
 import React from "react";
@@ -53,10 +55,33 @@ interface LivePreview {
 
 export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
   const topFrameApi = useTopFrameApi();
+  const { t } = useI18n();
+  const { token } = theme.useToken();
   const full = previewCtx.full;
   const frameRef = React.useRef<Window | null>(null);
   const frameGeneration = React.useRef(0);
   const [frameLoaded, setFrameLoaded] = React.useState(false);
+
+  React.useEffect(() => {
+    const win = frameRef.current;
+    if (!frameLoaded || !win) {
+      return;
+    }
+    const dispose = installPreviewAgentCursor(win, {
+      label: t("AI assistant"),
+      color: token.colorPrimary,
+      scale: () => {
+        const iframe = win.frameElement;
+        return iframe ? iframe.getBoundingClientRect().width / (iframe as HTMLElement).offsetWidth || 1 : 1;
+      },
+    });
+    const stop = autorun(() => {
+      // SPA navigation keeps the iframe but must discard the previous target.
+      void previewCtx.previewData;
+      win.dispatchEvent(new (win as Window & typeof globalThis).CustomEvent("plasmic-agent-cursor", { detail: { action: "clear" } }));
+    });
+    return () => { stop(); dispose(); };
+  }, [frameLoaded, frameRef.current, previewCtx, t, token.colorPrimary]);
 
   const usedPkgs = usedHostLessPkgs(previewCtx.studioCtx.site);
   const [installedPkgs, setInstalledPkgs] = React.useState<string[]>([]);

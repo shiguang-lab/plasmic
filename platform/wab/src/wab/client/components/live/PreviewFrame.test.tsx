@@ -3,6 +3,7 @@ import { PreviewCtx } from "@/wab/client/components/live/PreviewCtx";
 import { useLivePreview } from "@/wab/client/components/live/PreviewFrame";
 import { act, cleanup, renderHook } from "@testing-library/react";
 import { mock } from "vitest-mock-extended";
+import { observable, runInAction } from "mobx";
 
 const mocks = vi.hoisted(() => ({
   api: { setStudioReady: vi.fn().mockResolvedValue(undefined) },
@@ -45,6 +46,32 @@ beforeEach(() => {
   mocks.load.mockResolvedValue(undefined);
 });
 afterEach(cleanup);
+
+it("clears SPA navigation feedback and removes the cursor layer on reset and close", async () => {
+  const data = observable.box<PreviewCtx["previewData"]>(undefined, { deep: false });
+  const previewCtx = mock<PreviewCtx>({ full: false, isLive: false, popup: undefined, pageHash: "" });
+  Object.defineProperty(previewCtx, "previewData", { get: () => data.get() });
+  const hook = renderHook(() => useLivePreview(previewCtx));
+  hook.result.current.frameRef.current = window;
+  await act(async () => hook.result.current.onLoad());
+  expect(document.querySelectorAll("[data-plasmic-agent-cursor]")).toHaveLength(2);
+  const events: string[] = [];
+  const listen = (event: Event) => events.push((event as CustomEvent).detail.action);
+  window.addEventListener("plasmic-agent-cursor", listen);
+  try {
+    act(() => runInAction(() => data.set(mock<NonNullable<PreviewCtx["previewData"]>>({ previewPath: "/next" }))));
+    expect(events).toEqual(["clear"]);
+    act(() => hook.result.current.reset());
+    expect(document.querySelector("[data-plasmic-agent-cursor]")).toBeNull();
+    hook.result.current.frameRef.current = window;
+    await act(async () => hook.result.current.onLoad());
+    expect(document.querySelectorAll("[data-plasmic-agent-cursor]")).toHaveLength(2);
+    hook.unmount();
+    expect(document.querySelector("[data-plasmic-agent-cursor]")).toBeNull();
+  } finally {
+    window.removeEventListener("plasmic-agent-cursor", listen);
+  }
+});
 
 async function setup(full: boolean) {
   const previewCtx = mock<PreviewCtx>({

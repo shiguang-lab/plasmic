@@ -1,4 +1,5 @@
 import styles from "@/wab/client/components/canvas/CopilotActivityOverlay.module.scss";
+import { createAgentCursor } from "@/wab/client/copilot/agent-cursor";
 import {
   ActivityTarget,
   CanvasActivity,
@@ -11,7 +12,7 @@ import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { getArenaName, getFrameHeight } from "@/wab/shared/Arenas";
 import { ancestorsUp, flattenTpls } from "@/wab/shared/core/tpls";
 import { ensure } from "@/wab/shared/common";
-import { groupBy } from "lodash";
+import { findLast, groupBy } from "lodash";
 import { ArenaFrame, TplNode } from "@/wab/shared/model/classes";
 import { createStyles } from "antd-style";
 import classNames from "classnames";
@@ -77,11 +78,13 @@ const ActivityRegion = observer(function ActivityRegion({
   request,
   target,
   scanning,
+  onBounds,
 }: {
   viewCtx: ViewCtx;
   request: CanvasActivity;
   target: ActivityTarget;
   scanning: boolean;
+  onBounds?: (bounds: Bounds | undefined) => void;
 }) {
   const { t } = useI18n();
   const { styles: themeStyles } = useActivityStyles();
@@ -125,11 +128,12 @@ const ActivityRegion = observer(function ActivityRegion({
           ? previous
           : bounds;
       });
+      onBounds?.(bounds);
       animation = requestAnimationFrame(update);
     };
     update();
     return () => cancelAnimationFrame(animation);
-  }, [viewCtx, target]);
+  }, [viewCtx, target, onBounds]);
 
   if (!region) {
     return null;
@@ -160,10 +164,28 @@ export const CopilotActivityOverlay = observer(function CopilotActivityOverlay({
   studioCtx: StudioCtx;
   frame: ArenaFrame;
 }) {
+  const cursorHost = React.useRef<HTMLDivElement>(null);
+  const cursor = React.useRef<ReturnType<typeof createAgentCursor>>();
+  const previousRequest = React.useRef<CanvasActivity>();
+  const { t } = useI18n();
+  const { styles: themeStyles } = useActivityStyles();
   const viewCtx = studioCtx.tryGetViewCtxForFrame(frame);
-  if (!viewCtx) {
-    return null;
-  }
+  React.useEffect(() => {
+    if (!cursorHost.current || !viewCtx) {
+      return;
+    }
+    const host = cursorHost.current;
+    const instance = createAgentCursor(host, {
+      label: t("AI assistant"),
+      color: getComputedStyle(host).getPropertyValue("--scan-color").trim(),
+      scale: () => studioCtx.zoom,
+    });
+    cursor.current = instance;
+    return () => {
+      instance.dispose();
+      cursor.current = undefined;
+    };
+  }, [studioCtx, viewCtx, t]);
   const matchingRegions = studioCtx.copilotActivity.regions.filter(
     ({ target }) =>
       (!target.componentUuid ||
@@ -173,6 +195,29 @@ export const CopilotActivityOverlay = observer(function CopilotActivityOverlay({
           getArenaName(studioCtx.currentArena) === target.canvasName)) &&
       (!target.frameUuid || target.frameUuid === frame.uuid),
   );
+  const cursorRequest = currentActivity(
+    matchingRegions.map((region) => region.request).filter((r) => r.kind === "edit").sort((a, b) => a.id - b.id),
+  );
+  React.useEffect(() => {
+    // Failed requests disappear immediately; successful feedback may fade out.
+    if (!cursorRequest && previousRequest.current?.status === "running") {
+      cursor.current?.clear();
+    }
+    previousRequest.current = cursorRequest;
+  }, [cursorRequest]);
+  const onBounds = React.useCallback((bounds: Bounds | undefined) => {
+    if (!bounds || !cursorRequest) {
+      cursor.current?.clear();
+      return;
+    }
+    cursor.current?.update(cursorRequest.id, {
+      x: bounds.left + bounds.width / 2,
+      y: bounds.top + bounds.height / 2,
+    }, cursorRequest.status === "running");
+  }, [cursorRequest]);
+  if (!viewCtx) {
+    return null;
+  }
   // Scope fields select frames; once matched, they do not distinguish nodes.
   // A whole-component request and its root Tpl also address the same region.
   const regions = Object.entries(groupBy(matchingRegions, ({ target }) =>
@@ -211,8 +256,11 @@ export const CopilotActivityOverlay = observer(function CopilotActivityOverlay({
           ancestorUuids.has(parent.target.elementUuid)),
     );
   });
+  const cursorRegion = findLast(visibleRegions, (region) => region.request.id === cursorRequest?.id)
+    ?? findLast(visibleRegions, (region) => region.request.kind === "edit");
   return (
     <>
+      <div ref={cursorHost} className={classNames(styles.cursorHost, themeStyles.root)} />
       {visibleRegions.map(({ key, request, target, scanning }) => (
         <ActivityRegion
           key={key}
@@ -220,6 +268,7 @@ export const CopilotActivityOverlay = observer(function CopilotActivityOverlay({
           request={request}
           target={target}
           scanning={scanning}
+          onBounds={key === cursorRegion?.key ? onBounds : undefined}
         />
       ))}
     </>

@@ -12,12 +12,23 @@
 - 区域随真实 DOM 位置更新，裁切到画板及内部滚动容器。边框和标签随画布缩放保持可读尺寸；减少动态效果的系统设置使用静态提示。
 - 提示不拦截指针、不改变选中状态，不属于 Site 数据、撤销记录或画板导出内容。
 
+## 代理光标
+
+- 编辑页的实际编辑目标同时驱动代理光标。连续操作复用光标并平滑移动；长操作期间保持可见，结束后闲置 5 秒再淡出 1.5 秒。失败立即清理；读取扫描不会创建光标。
+- 编辑页和原生 Preview 复用光标运动与外观。光标使用本地化的 AI 助手标签，采用当前主题主色；图标与标签在画布和预览视口缩放时保持屏幕尺寸稳定。
+- Preview 的点击、悬停、输入、选项选择、按键和滚动显示目标位置。点击和悬停使用既有命中检测得到的真实点，真实输入继续通过既有 DOM/CDP 链路执行。状态、快照和断言保持静默。
+- Preview 光标跟随目标的滚动和位置变化；目标移除或隐藏、切页、关闭和失败会清理。截图期间隐藏反馈层，截图结束后恢复，捕获失败也会清理。
+- 光标标签和图标放在独立 Shadow DOM 中，不进入业务文本检查；反馈层不拦截指针，也不改变页面业务状态。系统减少动态效果时，位置直接更新并停用浮动。
+
 ## 验证
 
 在 `platform/wab` 运行：
 
 ```bash
 pnpm test --project studio src/wab/client/copilot/activity.test.ts src/wab/client/components/canvas/CopilotActivityOverlay.test.tsx src/wab/client/copilot/prototype.test.ts src/wab/client/copilot/scroll-element.test.ts
+pnpm test --project studio src/wab/client/copilot/agent-cursor.test.ts src/wab/client/components/live/PreviewFrame.test.tsx
 ```
+
+在 `desktop` 运行 `node --test tests/preview-runtime.test.cjs`，覆盖真实目标反馈、只读静默、失败清理和截图隐藏/恢复。
 
 覆盖读取与查询成功/失败静默、SVG 读取失败静默、范围内只读调用静默、实际批量编辑反馈、错误返回与立即清理，以及并发引用、计时器、DOM 复用、区域裁切和滚动辅助调用。

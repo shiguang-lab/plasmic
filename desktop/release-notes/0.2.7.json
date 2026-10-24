@@ -1,0 +1,7 @@
+{
+  "en": "- Show an animated AI cursor at MCP editing targets and native Preview interactions, including clicks, hover, text input, selection, keyboard input, and scrolling.\n- Keep cursor motion continuous and its screen size stable while zooming; clear stale feedback on navigation, refresh, and failures.\n- Keep cursor overlays out of Preview screenshots and business text inspection without intercepting user input.\n- Highlight the corresponding parent AppShell menu on detail routes.",
+  "zh-CN": "- MCP 编辑和原生预览操作显示 AI 光标，覆盖点击、悬停、填写、选择、按键和滚动。\n- 连续操作时平滑移动，缩放时保持光标大小稳定；切页、刷新和失败时清理旧反馈。\n- 光标不拦截用户操作，不进入预览截图和业务文本检查。\n- 详情页路由正确高亮对应的 AppShell 父级菜单。",
+  "zh-TW": "- MCP 編輯和原生預覽操作顯示 AI 游標，涵蓋點擊、懸停、填寫、選取、按鍵和捲動。\n- 連續操作時平滑移動，縮放時維持游標大小穩定；切換頁面、重新整理和失敗時清除舊回饋。\n- 游標不攔截使用者操作，不出現在預覽截圖和業務文字檢查中。\n- 詳情頁路由正確反白對應的 AppShell 父層選單。",
+  "ja": "- MCP 編集とネイティブプレビューのクリック、ホバー、入力、選択、キー操作、スクロールに AI カーソルを表示します。\n- 連続操作では滑らかに移動し、ズーム時も表示サイズを維持します。ページ遷移、再読み込み、失敗時には古い表示を消去します。\n- カーソルはユーザー操作を妨げず、プレビューのスクリーンショットや業務テキストの検査に含まれません。\n- 詳細ページのルートで対応する AppShell の親メニューを正しく選択します。",
+  "ko": "- MCP 편집 및 네이티브 미리보기의 클릭, 호버, 입력, 선택, 키보드 조작과 스크롤에 AI 커서를 표시합니다.\n- 연속 작업에서는 부드럽게 이동하고 확대·축소 시에도 표시 크기를 유지합니다. 페이지 전환, 새로고침 및 실패 시 이전 피드백을 정리합니다.\n- 커서는 사용자 입력을 가로채지 않으며 미리보기 스크린샷과 업무 텍스트 검사에 포함되지 않습니다.\n- 상세 페이지 경로에서 해당 AppShell 상위 메뉴를 올바르게 선택합니다."
+}

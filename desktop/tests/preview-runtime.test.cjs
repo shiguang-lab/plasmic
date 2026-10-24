@@ -68,6 +68,37 @@ test("fill/select dispatch DOM events and assertions observe actual runtime valu
   await assert.rejects(run({ action: "fill", ref: sql.ref, value: "wrong" }), /Stale/);
 });
 
+test("Preview feedback follows real targets, keeps reads silent, and clears failed interactions", async (t) => {
+  const { run, w } = fixture(t), feedback = [];
+  w.addEventListener("plasmic-agent-cursor", (e) => feedback.push(e.detail));
+  const snapshot = await run({ action: "snapshot" });
+  assert.equal(feedback.filter((e) => e.action === "move").length, 0);
+  const query = snapshot.elements.find((e) => e.name === "查询");
+  w.document.elementFromPoint = () => w.document.querySelector("button");
+  w.document.querySelector("button").scrollIntoView = () => {};
+  const result = await run({ action: "hover", ref: query.ref });
+  assert.equal(feedback.at(-1).element, w.document.querySelector("button"));
+  assert.deepEqual({ ...feedback.at(-1).point }, { x: result.point.x, y: result.point.y });
+  await run({ action: "fill", ref: snapshot.elements.find((e) => e.name === "SQL").ref, value: "new" });
+  assert.equal(feedback.at(-1).element, w.document.querySelector("textarea"));
+  await assert.rejects(run({ action: "click", ref: snapshot.elements.find((e) => e.name === "保存").ref }), /disabled/);
+  assert.equal(feedback.at(-1).action, "clear");
+});
+
+test("Preview screenshots hide feedback and restore it even when capture fails", async () => {
+  const calls = [];
+  const frame = { url: "https://canvas.example/#live=true", executeJavaScript: async (script) => {
+    if (script.includes("inspectPreview")) return { ready: true, width: 800, height: 600 };
+    calls.push(script.includes('action:"hide"') ? "hide" : script.includes('action:"clear"') ? "clear" : "show");
+  } };
+  const win = { getContentBounds: () => ({ width: 800, height: 600 }), webContents: {
+    getURL: () => "https://studio.example/projects/p/preview/records", getZoomFactor: () => 1,
+    mainFrame: { framesInSubtree: [frame] }, capturePage: async () => { calls.push("capture"); throw new Error("capture failed"); },
+  } };
+  await assert.rejects(runPreview(win, { action: "screenshot" }, { sessionId: "s" }), /capture failed/);
+  assert.deepEqual(calls, ["hide", "capture", "show", "clear"]);
+});
+
 test("background runtime discovery uses the committed Preview root and waits for the requested Page", { timeout: 2000 }, async (t) => {
   const dom = new JSDOM('<div class="live-root-container" data-plasmic-preview-component="old-page"><button>运行</button></div>', { url: "https://canvas.example/#live=true", runScripts: "outside-only" });
   t.after(() => dom.window.close());
