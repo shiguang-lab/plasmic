@@ -549,7 +549,7 @@ to register Plasmic automatically; disable it to remove its Plasmic entry.
 Selections are saved and reapplied at startup. Restart or refresh the client
 after changing its configuration. Other servers are preserved, and conflicting
 entries are reported without being overwritten. Claude Code, Codex, Gemini,
-Antigravity 2.0, OpenCode, Kiro, and Claude Desktop are supported (Claude Desktop
+Antigravity 2.0, OpenCode, Kiro, DeepSeek Harness, and Claude Desktop are supported (Claude Desktop
 on macOS and Windows). The dialog also provides a copyable JSON configuration
 for other MCP clients. Start the desktop and sign in before using editor tools. The packaged
 application itself runs with `--mcp` as a dedicated stdio process; the normal GUI
@@ -663,7 +663,10 @@ new elements and registered Ant Design 6 instances are inserted with `insertHtml
 Call `validate`, inspect a screenshot and then `save`. Changes persist through the
 NAS API and remain editable in Studio.
 
+DeepSeek Harness uses its Desktop profile at `$DSH_HOME/profiles/desktop/cordis.patch.yml` (default `~/.dsh`). The switch inserts/removes only the `plasmic-desktop` instance of `@deepseek-ai/dsh-mcp-client`, preserving other patches, comments and unevaluated `!!js` expressions. It does not configure CLI profiles such as headless/web. DSH profile hot reload loads the plugin; verify actual tools in the current session, or reopen the session if its tool inventory has not refreshed.
+
 The stdio process forwards commands to a local Unix socket (Windows named pipe).
+Configure the stdio server in each Agent client and restart its session; another client’s registration does not expose tools to that session. Native MCP supplies schemas through `tools/list`. Script RPC uses `{token,method,input}`: `method` is a top-level tool such as `list_orgs`, `create_project` or `open_design`. Only native editor operations such as `read` and `save` use `method:execute` with `input:{name,input}`. Misplaced tool names return `INVALID_TOOL_ROUTE` and an unexecuted corrected call before editor-context checks; no automatic rerouting occurs. See [Agent transports and routing](../ai/plasmic/references/desktop-transports.md).
 A random token and owner-only files in the Electron user-data directory protect
 that connection. Editing commands run serially through the sandboxed preload and the
 existing `PLASMIC_AI_TOOLS` transaction API. Read-only canvas inspection uses

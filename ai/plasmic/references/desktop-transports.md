@@ -1,0 +1,49 @@
+# Agent transports and tool routing
+
+Prefer the native MCP stdio server (`/Applications/Plasmic.app/Contents/MacOS/Plasmic --mcp`) configured in the **current Agent client/session**. A registration in another client does not make tools available here. Start a new session after configuring it; inspect the actual tool inventory and use MCP `tools/list` schemas.
+
+## Automatic setup when session tools are absent
+
+1. Identify the client hosting this session from trusted runtime context or its public CLI/help. Detecting several installed clients does not identify the current one. Inspect only that client's MCP configuration, respecting its config-directory overrides and project/global scope. For DeepSeek Harness, identify its profile and patch schema through public settings/help; Desktop and CLI profiles are separate. Do not assume another client's configuration applies.
+2. Verify the installed Plasmic executable. macOS normally uses `/Applications/Plasmic.app/Contents/MacOS/Plasmic`; check that it exists. Use the verified installed path on other systems. Configure stdio with that command and `args:["--mcp"]`; no token or copied RPC credentials belong in this configuration.
+3. Within the authorized Desktop task and the host's permissions, add only the missing `plasmic-desktop` entry. Use the client's public MCP add command where available; otherwise edit its verified configuration in its real format. Keep unrelated servers/settings/comments and extra options on an existing matching entry. If an entry already launches the verified executable with `--mcp`, do nothing. A disabled entry or different command is a conflict: report it without overwriting the user's choice. Do not add blanket approval or trust settings.
+4. Parse/read back the result without printing secrets and verify it still contains the intended command/arguments and unrelated configuration. Repeating this procedure must leave one entry. A public server probe can check startup but does not prove this session loaded tools.
+5. Use a documented client reload/reconnect action if supported. Otherwise tell the user the exact file changed and ask them to open a new session; do not terminate or restart their conversation automatically. Confirm the actual tool inventory and call native `get_app_state` before claiming native MCP is available. If config location/schema or reload support is unknown, name that missing contract instead of guessing. Missing tools never justify placing top-level tools inside `execute`.
+
+## DeepSeek Harness Desktop profile
+
+Profile-based DSH Desktop uses `$DSH_HOME/profiles/desktop/cordis.patch.yml`, with `DSH_HOME` defaulting to `~/.dsh`. This is a YAML **patch list**, not a `mcpServers` mapping. Plasmic Desktop's MCP settings include a DeepSeek Harness switch that manages this entry. An Agent using a CLI profile must identify that profile instead; changing the Desktop profile does not configure headless/web profiles.
+
+Append this insert patch only when the same instance/server namespace is absent, using the verified executable path:
+
+```yaml
+- insert:
+    - id: plasmic-desktop
+      name: '@deepseek-ai/dsh-mcp-client'
+      config:
+        transport: stdio
+        serverName: plasmic-desktop
+        command: /Applications/Plasmic.app/Contents/MacOS/Plasmic
+        args: ["--mcp"]
+```
+
+Preserve all other patches and literal `!!js` expressions without evaluating them. DSH hot-reloads profile patches; verify the session's tool inventory after reload. If tools are not refreshed, open a new session. TOML/JSON clients require their own documented structure. Installed skill files do not execute setup on their own: the Agent follows these steps when invoked and Desktop access is needed.
+
+## Calls after connection
+
+Authenticated local RPC is a script transport, not an editor operation namespace. Its `method` is a top-level Desktop tool name and `input` is that tool's arguments. It does not provide MCP's schema discovery or connection-scoped result references. Do not infer a native operation from a top-level tool name.
+
+| Intent | Native MCP call | Local RPC `method` / `input` |
+| --- | --- | --- |
+| List organizations | `list_orgs({})` | `list_orgs` / `{}` |
+| List projects | `list_projects({workspaceId})` | `list_projects` / `{workspaceId}` |
+| Create a project | `create_project({name,workspaceId})` | `create_project` / `{name,workspaceId}` |
+| Open a project | `open_design({projectId})` | `open_design` / `{projectId}` |
+| Read model | `execute({name:"read",input:{collection:"components"}})` | `execute` / `{name:"read",input:{collection:"components"}}` |
+| Save | `execute({name:"save",input:{}})` | `execute` / `{name:"save",input:{}}` |
+| Preview | `preview({action:"state"})` | `preview` / `{action:"state"}` |
+
+RPC envelopes also contain the local authentication token; never print or include it in evidence. `verify_all.Desktop.call(tool, arguments)` calls top-level tools; `.execute(operation, input)` wraps native editor operations only. `ready:false` on a project list is normal: discovery, creation and opening a project do not need an existing editor. `read` and `save` are not top-level tools.
+
+Misplaced tool names return `INVALID_TOOL_ROUTE` with `operationExecuted:false` and a corrected `recovery` call, before editor-context checks or execution. Inspect the correction; supply any `requiresInput` fields from real identities. The server never silently reroutes or runs the correction. This differs from `CONTEXT_MISMATCH`, which means a correctly routed editor operation needs the stated editor context.
+

@@ -185,3 +185,75 @@ test("Codex existing explicit parent table is not redefined", (t) => {
   manager.set("codex", false);
   assert.equal(fs.readFileSync(file, "utf8"), original);
 });
+
+
+test("DSH desktop profile registers once, restores a moved executable, and removes only its plugin", (t) => {
+  const YAML = require("yaml");
+  const { manager, options } = fixture(t);
+  const client = manager.clients.find((item) => item.id === "dsh");
+  assert.equal(client.label, "DeepSeek Harness");
+  assert.equal(client.file, path.join(options.home, ".dsh/profiles/desktop/cordis.patch.yml"));
+  const original = `# Keep profile comments
+- id: agent-default-model
+  name: '@deepseek-ai/dsh-agent-default-model'
+  config:
+    provider: example
+    model: example
+- insert:
+    - id: other-mcp
+      name: '@deepseek-ai/dsh-mcp-client'
+      config:
+        transport: stdio
+        serverName: other
+        command: other
+    - id: conditional
+      name: other-plugin
+      disabled: !!js "!ctx.get('example')"
+`;
+  const parse = () => YAML.parse(fs.readFileSync(client.file, "utf8"), { customTags: [{ tag: "tag:yaml.org,2002:js", resolve: (value) => value }] });
+  const rows = () => parse().flatMap((patch) => patch.insert || []);
+  save(client.file, original);
+  manager.set("dsh", true); manager.set("dsh", true);
+  assert.equal(rows().filter((row) => row.config?.serverName === NAME).length, 1);
+  assert.deepEqual(rows().find((row) => row.id === NAME), { id: NAME, name: "@deepseek-ai/dsh-mcp-client", config: manager.entry("dsh") });
+  assert.equal(manager.status().find((item) => item.id === "dsh").enabled, true);
+  assert.match(fs.readFileSync(client.file, "utf8"), /!!js/);
+  const moved = new McpIntegrations({ ...options, command: "/new/Plasmic" });
+  moved.restore();
+  assert.equal(rows().find((row) => row.id === NAME).config.command, "/new/Plasmic");
+  moved.set("dsh", false);
+  assert.deepEqual(parse(), YAML.parse(original, { customTags: [{ tag: "tag:yaml.org,2002:js", resolve: (value) => value }] }));
+  assert.match(fs.readFileSync(client.file, "utf8"), /Keep profile comments/);
+});
+
+test("DSH creates an empty patch list and honors DSH_HOME without touching other profiles", (t) => {
+  for (const [value, relative] of [["~/custom-dsh", "custom-dsh"], ["  ", ".dsh"]]) {
+    const { manager, options } = fixture(t, { env: { DSH_HOME: value } });
+    const client = manager.clients.find((item) => item.id === "dsh");
+    assert.equal(client.file, path.join(options.home, relative, "profiles/desktop/cordis.patch.yml"));
+    manager.set("dsh", true);
+    assert.equal(manager.status().find((item) => item.id === "dsh").enabled, true);
+    assert.equal(fs.existsSync(path.join(options.home, relative, "profiles/headless/cordis.patch.yml")), false);
+    manager.set("dsh", false);
+    assert.deepEqual(require("yaml").parse(fs.readFileSync(client.file, "utf8")), []);
+  }
+});
+
+test("DSH rejects malformed, duplicate, disabled and conflicting profile entries without overwriting", (t) => {
+  const { manager } = fixture(t);
+  const file = manager.clients.find((item) => item.id === "dsh").file;
+  const YAML = require("yaml");
+  const row = { id: NAME, name: "@deepseek-ai/dsh-mcp-client", config: manager.entry("dsh") };
+  for (const original of [
+    "mcpServers: {}\n", "[broken", YAML.stringify([{ insert: [row, row] }]),
+    YAML.stringify([{ insert: [{ ...row, disabled: true }] }]),
+    YAML.stringify([{ insert: [{ ...row, id: "manual-server" }] }]),
+    YAML.stringify([{ insert: [{ ...row, config: { ...row.config, command: "other" } }] }]),
+  ]) {
+    save(file, original);
+    assert.throws(() => manager.set("dsh", true));
+    assert.throws(() => manager.set("dsh", false));
+    assert.equal(fs.readFileSync(file, "utf8"), original);
+    assert.ok(manager.status().find((item) => item.id === "dsh").error);
+  }
+});

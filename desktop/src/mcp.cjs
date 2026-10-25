@@ -228,7 +228,7 @@ const tools = [
   {
     name: "execute",
     description:
-      "Call a validated Studio operation as an envelope {name, input}, where input holds that operation's own parameters. Supports read, createComponent (page/component), insertHtml, changeElement (props/layout), deleteElement, state/interactions/tokens, navigate, scrollElementIntoView (reveal rendered content without changing the design), validate, save and undo. Parameterless operations (save, undo, validate) take no parameters, so input may be omitted. Reading specific element properties with propNames requires view: 'properties'. Targeting elementUuid in changeElement/selectElement requires its defining componentUuid, not the host page. deleteCanvas and deleteElement return standard mutation receipts with created: [] and messages confirming deletion. Obtain exact input schemas from get_app_state. Read component props/slot contracts before editing. Native schemas describe complete values; MCP may return ResultReference for large results or SVG source, retrievable through read_result. Save explicitly after design changes.",
+      "Call only a native editor operation from availableEditorTools; never put top-level list_orgs, list_projects, create_project, open_design or preview here. Use an envelope {name, input}, where input holds that operation's own parameters. Supports read, createComponent (page/component), insertHtml, changeElement (props/layout), deleteElement, state/interactions/tokens, navigate, scrollElementIntoView (reveal rendered content without changing the design), validate, save and undo. Parameterless operations (save, undo, validate) take no parameters, so input may be omitted. Reading specific element properties with propNames requires view: 'properties'. Targeting elementUuid in changeElement/selectElement requires its defining componentUuid, not the host page. deleteCanvas and deleteElement return standard mutation receipts with created: [] and messages confirming deletion. Obtain exact input schemas from get_app_state. Read component props/slot contracts before editing. Native schemas describe complete values; MCP may return ResultReference for large results or SVG source, retrievable through read_result. Save explicitly after design changes.",
     inputSchema: {
       ...object({
         name: { type: "string", enum: EDITOR_METHODS.filter((name) => !["preview", "executeBatch"].includes(name)) },
@@ -523,6 +523,27 @@ tools.push(
     },
   },
 );
+const toolNames = new Set(tools.map((tool) => tool.name));
+function assertToolRouting(method, input = {}) {
+  let message, recovery;
+  if (method === "execute" && toolNames.has(input.name)) {
+    message = `Call top-level ${input.name} directly, not as an execute editor operation. Use the parameters from execute.input; management tools do not require editor context.`;
+    recovery = [{ tool: input.name, arguments: input.input || {} }];
+  } else if (!toolNames.has(method) && EDITOR_METHODS.includes(method)) {
+    const tool = method === "executeBatch" ? "execute_batch" : "execute";
+    message = `${method} is a native editor operation. Call ${tool} instead.`;
+    recovery = [{ tool, arguments: tool === "execute" ? { name: method, input } : input }];
+  } else if (method === "get_app_state" && Array.isArray(input.toolNames)) {
+    const misplaced = input.toolNames.filter((name) => toolNames.has(name));
+    if (misplaced.length) {
+      message = `${misplaced.join(", ")} are top-level Desktop tools. Their schemas come from MCP tools/list; get_app_state.toolNames accepts only native editor operations from availableEditorTools.`;
+      recovery = misplaced.map((name) => ({ tool: name, requiresInput: tools.find((tool) => tool.name === name).inputSchema.required || [] }));
+    }
+  }
+  if (message) throw Object.assign(new Error(message), { context: {
+    code: "INVALID_TOOL_ROUTE", operationExecuted: false, recovery,
+  } });
+}
 const schemaValidator = new AjvJsonSchemaValidator();
 const validators = new Map(
   tools.map((tool) => [
@@ -534,12 +555,13 @@ async function serveMcp(profile) {
   const results = new McpResults();
   const server = new Server(
     { name: "plasmic-desktop", version: require("../package.json").version },
-    { capabilities: { tools: {} }, instructions: "Failed tool calls return isError:true and JSON {msg,detail}. Show msg to the user; inspect detail for the original message, stack, error code, execution status, context and recovery steps. If detail is a ResultReference, use read_result before recovery or retry. Do not replay mutations unless detail.operationExecuted is false or readback confirms the outcome." },
+    { capabilities: { tools: {} }, instructions: "Call top-level tools such as list_orgs, list_projects, create_project, open_design and preview directly. Only native editor operations such as read and save belong in execute {name,input}; discover them with get_app_state view:tools. Management and open_design work without an existing editor. Failed tool calls return isError:true and JSON {msg,detail}. Show msg to the user; inspect detail for the original message, stack, error code, execution status, context and recovery steps. If detail is a ResultReference, use read_result before recovery or retry. Do not replay mutations unless detail.operationExecuted is false or readback confirms the outcome." },
   );
   server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools }));
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const started = Date.now();
     try {
+      assertToolRouting(request.params.name, request.params.arguments || {});
       const validator = validators.get(request.params.name);
       if (!validator) {
         throw new Error("Unknown desktop tool");
@@ -589,7 +611,8 @@ async function serveMcp(profile) {
       return transportResult(request, response, started);
     } catch (error) {
       const detail = errorPayload(error);
-      const msg = detail.code === "CONTEXT_MISMATCH" ? "Switch to the required editor context."
+      const msg = detail.code === "INVALID_TOOL_ROUTE" ? detail.message
+        : detail.code === "CONTEXT_MISMATCH" ? "Switch to the required editor context."
         : detail.code === "PREVIEW_TARGET_BLOCKED" ? "The target is covered by another element."
         : detail.code === "PREVIEW_TIMEOUT" ? "Preview timed out."
         : detail.code?.startsWith("PREVIEW_") ? "Preview operation failed."
@@ -600,4 +623,4 @@ async function serveMcp(profile) {
   await server.connect(new StdioServerTransport());
   return server;
 }
-module.exports = { serveMcp, EDITOR_METHODS };
+module.exports = { serveMcp, EDITOR_METHODS, assertToolRouting };

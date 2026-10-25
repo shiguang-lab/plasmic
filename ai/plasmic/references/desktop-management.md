@@ -3,7 +3,7 @@
 Resolve Team → Workspace → Project before entering design. Org and Team refer
 to the same platform resource: MCP uses `orgId`, and responses retain `team` or
 `teams`. Use public Desktop MCP tools and the signed-in account's permissions.
-Discovery and resource creation work without a ready Studio editor.
+Discovery, resource creation and open_design work without a ready Studio editor. These are top-level tools, never execute operation names; use Desktop.call rather than Desktop.execute in public script clients. See [transport and routing](desktop-transports.md).
 
 Queries/creation return resource IDs/names/parents only. No permissions, members, billing, configuration or full-detail bypass is exposed. The platform enforces access; confirm current edit capability with identify after opening. A creation result supplies project/workspace/team identity, not a revision object; read current revision from the opened editor context.
 

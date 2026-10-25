@@ -1,0 +1,7 @@
+{
+  "en": "- Add DeepSeek Harness to MCP settings using its Desktop profile patch format, preserving other plugins and configuration.\n- Detect misplaced top-level tools and native editor operations before context checks in both MCP and local RPC, with explicit corrected calls and no automatic execution.",
+  "zh-CN": "- MCP 设置新增 DeepSeek Harness，使用 Desktop profile 的实际配置格式，保留其它插件和配置。\n- MCP 与本地 RPC 在上下文检查前识别工具调用层级错误，返回明确的正确调用方式，不自动执行纠正后的操作。",
+  "zh-TW": "- MCP 設定新增 DeepSeek Harness，使用 Desktop profile 的實際設定格式，保留其他外掛與設定。\n- MCP 與本機 RPC 在情境檢查前識別工具呼叫層級錯誤，回傳明確的正確呼叫方式，不自動執行修正後的操作。",
+  "ja": "- MCP 設定に DeepSeek Harness を追加し、Desktop プロファイルの形式で他のプラグインや設定を保持します。\n- MCP とローカル RPC で、コンテキスト確認前にツールの呼び出し先の誤りを検出し、正しい呼び出しを案内します。修正後の操作は自動実行しません。",
+  "ko": "- MCP 설정에 DeepSeek Harness를 추가하고 Desktop 프로필 형식으로 다른 플러그인과 설정을 유지합니다.\n- MCP와 로컬 RPC에서 컨텍스트 확인 전에 잘못된 도구 호출 경로를 감지하고 올바른 호출을 안내합니다. 수정된 작업은 자동 실행하지 않습니다."
+}

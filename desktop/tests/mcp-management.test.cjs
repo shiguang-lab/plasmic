@@ -189,6 +189,16 @@ test("management tools expose strict MCP schemas and forward valid calls through
       const result = await client.callTool({ name, arguments: input });
       assert.equal(result.isError, true, name);
     }
+    for (const name of ["list_orgs", "list_projects", "create_project", "open_design"]) {
+      const input = { name: "Draft", projectId: "project" };
+      const result = await client.callTool({ name: "execute", arguments: { name, input } });
+      assert.equal(result.isError, true);
+      const error = JSON.parse(result.content[0].text);
+      assert.equal(error.detail.code, "INVALID_TOOL_ROUTE");
+      assert.equal(error.detail.operationExecuted, false);
+      assert.deepEqual(error.detail.recovery, [{ tool: name, arguments: input }]);
+      assert.match(error.msg, /Call top-level/);
+    }
     assert.equal(forwarded.length, valid.length);
   } finally {
     await client.close();
@@ -773,5 +783,38 @@ test("app state identifies organization and workspace dashboards without editor 
     for (const [key, value] of Object.entries(expected))
       assert.equal(state[key], value);
     assert.equal(state.ready, false);
+  }
+});
+
+
+test("RPC rejects misplaced tools before session or context checks and preserves corrected call parameters", async (t) => {
+  const { requestRpc } = require("../src/local-rpc.cjs");
+  const { controller, calls } = fixture(t);
+  controller.prepareSession = controller.state = async () => assert.fail("Routing errors must not access an editor or session");
+  const profile = await fs.mkdtemp(path.join(os.tmpdir(), "plasmic-tool-routing-"));
+  const stop = await startRpc(profile, (method, input) => controller.dispatch(method, input));
+  try {
+    const examples = [
+      ["execute", { name: "list_orgs", input: {} }, { tool: "list_orgs", arguments: {} }],
+      ["execute", { name: "create_project", input: { name: "Draft", workspaceId: "workspace" } },
+        { tool: "create_project", arguments: { name: "Draft", workspaceId: "workspace" } }],
+      ["execute", { name: "open_design", input: { projectId: "project" } }, { tool: "open_design", arguments: { projectId: "project" } }],
+      ["read", { collection: "components" }, { tool: "execute", arguments: { name: "read", input: { collection: "components" } } }],
+      ["save", {}, { tool: "execute", arguments: { name: "save", input: {} } }],
+      ["get_app_state", { toolNames: ["open_design"] }, { tool: "open_design", requiresInput: ["projectId"] }],
+    ];
+    for (const [method, input, corrected] of examples) {
+      await assert.rejects(requestRpc(profile, method, input), (error) => {
+        assert.equal(error.context.code, "INVALID_TOOL_ROUTE");
+        assert.equal(error.context.operationExecuted, false);
+        assert.deepEqual(error.context.recovery, [corrected]);
+        return true;
+      });
+    }
+    assert.deepEqual(calls, []);
+    assert.equal(controller.operations.size, 0);
+  } finally {
+    await stop();
+    await fs.rm(profile, { recursive: true, force: true });
   }
 });

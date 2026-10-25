@@ -1,6 +1,6 @@
 const { app, ipcMain, nativeImage } = require("electron");
 const { randomUUID, createHash } = require("node:crypto");
-const { EDITOR_METHODS } = require("./mcp.cjs");
+const { EDITOR_METHODS, assertToolRouting } = require("./mcp.cjs");
 const { canvasFrames, renderCanvas, exportCanvas } = require("./canvas.cjs");
 const { encodeImagePreview } = require("./image-preview.cjs");
 const { managementResult } = require("./management-result.cjs");
@@ -232,6 +232,7 @@ class DesktopController {
   dispatch(method, input) {
     if (this.updating) return Promise.reject(uiError("Plasmic is restarting to install an update. Retry after it reopens."));
     if (!input || typeof input !== "object" || Array.isArray(input)) return Promise.reject(new Error("Arguments must be an object"));
+    try { assertToolRouting(method, input); } catch (error) { return Promise.reject(error); }
     const id = randomUUID();
     this.activity.enqueue(id, method, input);
     const run = async () => {

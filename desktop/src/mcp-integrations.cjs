@@ -4,6 +4,8 @@ const os = require("node:os");
 const { isDeepStrictEqual } = require("node:util");
 const jsonc = require("jsonc-parser");
 const toml = require("smol-toml");
+const YAML = require("yaml");
+const DSH_PLUGIN = "@deepseek-ai/dsh-mcp-client";
 const NAME = "plasmic-desktop";
 const BEGIN = "# BEGIN Plasmic Desktop MCP";
 const END = "# END Plasmic Desktop MCP";
@@ -19,6 +21,7 @@ const CLIENTS = [
     "Claude Desktop",
     "Library/Application Support/Claude/claude_desktop_config.json",
   ],
+  ["dsh", "DeepSeek Harness", ".dsh/profiles/desktop/cordis.patch.yml"],
 ];
 function object(value) {
   return value && typeof value === "object" && !Array.isArray(value);
@@ -56,6 +59,11 @@ class McpIntegrations {
       if (id === "codex" && env.CODEX_HOME) {
         file = path.join(env.CODEX_HOME, "config.toml");
       }
+      if (id === "dsh") {
+        const root = env.DSH_HOME?.trim() || path.join(home, ".dsh");
+        const expanded = root === "~" ? home : /^~[\\/]/.test(root) ? path.join(home, root.slice(2)) : root;
+        file = path.resolve(expanded, "profiles/desktop/cordis.patch.yml");
+      }
       if (id === "opencode") {
         file = path.join(
           env.XDG_CONFIG_HOME || path.join(home, ".config"),
@@ -80,6 +88,7 @@ class McpIntegrations {
     });
   }
   entry(id) {
+    if (id === "dsh") return { transport: "stdio", serverName: NAME, ...this.launch };
     if (id === "opencode") {
       return {
         type: "local",
@@ -101,6 +110,25 @@ class McpIntegrations {
       : "";
     let data;
     try {
+      if (client.id === "dsh") {
+        // DSH profiles are patch lists. Preserve !!js scalars without evaluating them.
+        const document = YAML.parseDocument(text.trim() ? text : "[]\n", {
+          customTags: [{ tag: "tag:yaml.org,2002:js", resolve: (value) => value }],
+        });
+        if (document.errors.length || !YAML.isSeq(document.contents)) throw new Error();
+        const matches = [];
+        const match = (node) => {
+          if (YAML.isMap(node) && (node.get("id") === NAME || node.getIn(["config", "serverName"]) === NAME)) matches.push(node);
+        };
+        YAML.visit(document, { Map(_key, node) { match(node); }, Alias(_key, node) { match(node.resolve(document)); } });
+        if (matches.length > 1) throw new Error();
+        const node = matches[0];
+        const insert = document.contents.items.map((row) => YAML.isMap(row) && row.get("insert", true))
+          .find((items) => YAML.isSeq(items) && items.items.includes(node));
+        const managed = node && insert && node.get("id") === NAME && node.get("name") === DSH_PLUGIN
+          && node.items.every((item) => ["id", "name", "config"].includes(item.key.value));
+        return { document, node, insert, existing: node ? managed ? node.get("config", true).toJSON() : node.toJSON() : undefined };
+      }
       if (client.id === "codex") {
         data = toml.parse(text);
       } else {
@@ -169,14 +197,28 @@ class McpIntegrations {
     if (client.unsupported) {
       throw new Error("Claude Desktop is not supported on Linux.");
     }
-    const { text, data, key, existing } = this.read(client);
+    const read = this.read(client);
+    const { text, data, key, existing } = read;
     if (existing !== undefined && !this.owned(id, existing)) {
       throw new Error(
         "A different configuration with the same name already exists. It was not overwritten.",
       );
     }
     let result;
-    if (id === "codex") {
+    if (id === "dsh") {
+      const { document, node, insert } = read;
+      if (enabled) {
+        if (node) node.set("config", document.createNode(this.entry(id)));
+        else document.add(document.createNode({ insert: [{ id: NAME, name: DSH_PLUGIN, config: this.entry(id) }] }));
+      } else if (node) {
+        insert.items.splice(insert.items.indexOf(node), 1);
+        if (!insert.items.length) {
+          const index = document.contents.items.findIndex((row) => YAML.isMap(row) && row.get("insert", true) === insert);
+          if (document.contents.items[index].items.length === 1) document.delete(index);
+        }
+      }
+      result = document.toString();
+    } else if (id === "codex") {
       // Only remove our delimited table. Keep all unrelated TOML text and comments.
       const start = text.indexOf(BEGIN),
         end = text.indexOf(END);
