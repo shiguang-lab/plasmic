@@ -10,7 +10,7 @@ Read resolved `mustRead` files and [context/evidence rules](context-reading.md),
 | Create/revise an editable design | [prototype](workflows/prototype.md), requires `canEdit` |
 | Implement/update native React project code | [codegen](workflows/codegen.md), reads design, writes target code |
 
-Switch modes with the task; review never authorizes edits. Check only present/required behavior and reuse current evidence. Discover the accessible project and identify the session using configured Desktop MCP/live schemas. Save/reopen, installation and repair require edit authorization. Studio: `https://studio.plasmic.shiguanglab.com`.
+Switch modes with the task; review never authorizes edits. Check only present/required behavior and reuse current evidence. Discover the accessible project and identify the session using configured Desktop MCP/live schemas. Save/reopen, installation and repair require edit authorization. Studio: `https://plasmic-studio.shiguanglab.com`.
 
 ## Tool choice
 

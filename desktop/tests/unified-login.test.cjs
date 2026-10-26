@@ -6,7 +6,7 @@ const {
   DesktopUnifiedLogin,
   AUTH_ORIGIN,
 } = require("../src/unified-login.cjs");
-const studioOrigin = "https://studio.plasmic.shiguanglab.com";
+const studioOrigin = "https://plasmic-studio.shiguanglab.com";
 function fixture(options = {}) {
   const calls = [];
   const session = {

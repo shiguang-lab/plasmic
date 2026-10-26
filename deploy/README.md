@@ -132,14 +132,18 @@ contract; it does not implement the cloud hosting API.
 ## Published websites
 
 The preview service serves interactive published pages at
-`preview.plasmic.shiguanglab.com`. See the [runtime and deployment instructions](../platform/preview/README.md)
+`plasmic-preview.shiguanglab.com`. See the [runtime and deployment instructions](../platform/preview/README.md)
 for publishing, gateway routing, DNS/TLS and verification. Deploy all three images
 and run migrations before starting preview.
 
 ## Public domains
 
-Studio uses https://studio.plasmic.shiguanglab.com and its canvas uses the separate origin
-https://canvas.plasmic.shiguanglab.com. Configure both DNS A records to point to Seoul (43.128.155.40).
+For a deployment moving from the former multi-level domains, follow the
+[domain deployment procedure](domain-migration.md), including private environment
+files, database URLs and installed Desktop/CLI clients.
+
+Studio uses https://plasmic-studio.shiguanglab.com and its canvas uses the separate origin
+https://plasmic-canvas.shiguanglab.com. Configure both DNS A records to point to Seoul (43.133.249.44).
 The shared relay config is maintained in `shiguang/deploy/umami`: HAProxy routes
 SNI to Caddy on loopback ports 8454/8455, and Caddy forwards over Tailscale to
 the access gateway on NAS port 3600. Its Plasmic routes forward to NAS ports
@@ -163,11 +167,11 @@ architecture-specific ZIP archives for in-app updates.
 See [desktop release instructions](../desktop/README.md#nas-updates-and-releases)
 for versioning, other platforms and installation behavior.
 
-For an existing deployment, set `STUDIO_ORIGIN=https://studio.plasmic.shiguanglab.com`
-and `CANVAS_ORIGIN=https://canvas.plasmic.shiguanglab.com` in the NAS `.env`.
+For an existing deployment, set `STUDIO_ORIGIN=https://plasmic-studio.shiguanglab.com`
+and `CANVAS_ORIGIN=https://plasmic-canvas.shiguanglab.com` in the NAS `.env`.
 Changing `.env` alone does not change persisted database URLs. Update
-`defaultHostUrl` to `https://canvas.plasmic.shiguanglab.com/static/host.html` and
-`codegenOriginHost` to `https://studio.plasmic.shiguanglab.com` in the dev flag
+`defaultHostUrl` to `https://plasmic-canvas.shiguanglab.com/static/host.html` and
+`codegenOriginHost` to `https://plasmic-studio.shiguanglab.com` in the dev flag
 overrides, along with component catalog image URLs, project host URLs and asset
 URLs that use these origins. Preserve external project hosts and unrelated URLs.
 Apply the shared HAProxy/Caddy configuration and recreate server/web so their
@@ -270,7 +274,7 @@ The registration package is distributed with the web image. For a separate
 Codegen or Loader application, install it before syncing/rendering components:
 
 ```sh
-npm install https://studio.plasmic.shiguanglab.com/static/packages/shiguang-lab-plasmic-antd6-0.0.1.tgz
+npm install https://plasmic-studio.shiguanglab.com/static/packages/shiguang-lab-plasmic-antd6-0.0.1.tgz
 ```
 
 ## AI prototype editing

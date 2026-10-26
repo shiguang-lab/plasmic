@@ -32,7 +32,7 @@ describe("PlasmicImg", () => {
 for (const format of [undefined, "png", "webp"] as const) {
   it(`keeps uploaded self-hosted images on their original host (${format})`, () => {
     const url =
-      "https://studio.plasmic.shiguanglab.com/assets/4af2ee2780865f194dcf0ac761833eaf.jpg";
+      "https://plasmic-studio.shiguanglab.com/assets/4af2ee2780865f194dcf0ac761833eaf.jpg";
     const markup = renderToStaticMarkup(
       <PlasmicImg
         src={{ src: url, fullWidth: 800, fullHeight: 900 }}

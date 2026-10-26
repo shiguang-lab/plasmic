@@ -57,7 +57,7 @@ async function main() {
         readableByPublic: true,
       });
       const imageUrl =
-        "https://studio.plasmic.shiguanglab.com/static/img/react-ui.svg";
+        "https://plasmic-studio.shiguanglab.com/static/img/react-ui.svg";
       const entry: CatalogPackage = {
         type: "hostless-package",
         name: "React UI",

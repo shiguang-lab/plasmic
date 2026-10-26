@@ -7,7 +7,7 @@ import { describe, expect, it } from "vitest";
 
 describe("publication navigation", () => {
   const current =
-    "https://preview.plasmic.shiguanglab.com/p/0123456789/groups?status=active";
+    "https://plasmic-preview.shiguanglab.com/p/0123456789/groups?status=active";
   it("keeps project links scoped and preserves query parameters and anchors", () => {
     expect(publicationHref("0123456789", "/detail?id=42#info", current)).toBe(
       "/p/0123456789/detail?id=42#info",

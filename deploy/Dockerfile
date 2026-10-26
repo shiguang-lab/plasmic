@@ -47,6 +47,7 @@ COPY --chown=node:node deploy/nas-icons.ts src/wab/server/nas-icons.ts
 COPY --chown=node:node deploy/nas-react-ui.ts src/wab/server/nas-react-ui.ts
 COPY --chown=node:node deploy/nas-ai-init.ts src/wab/server/nas-ai-init.ts
 COPY --chown=node:node deploy/ai-chat/migrate-message-channels.cjs /plasmic/deploy/ai-chat/migrate-message-channels.cjs
+COPY --chown=node:node deploy/migrate-domains.cjs /plasmic/deploy/migrate-domains.cjs
 COPY deploy/server-entrypoint.sh /usr/local/bin/plasmic-server
 RUN chmod +x /usr/local/bin/plasmic-server
 USER node

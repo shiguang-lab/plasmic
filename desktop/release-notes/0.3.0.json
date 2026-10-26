@@ -1,0 +1,7 @@
+{
+  "en": "- Update Studio, canvas, and Desktop update endpoints to the new Plasmic domains.\n- Install this release manually to switch from the previous update domain.",
+  "zh-CN": "- 更新 Studio、画布与桌面更新服务至新的 Plasmic 域名。\n- 请手动安装此版本，以切换原有更新域名。",
+  "zh-TW": "- 更新 Studio、畫布與桌面更新服務至新的 Plasmic 網域。\n- 請手動安裝此版本，以切換原有更新網域。",
+  "ja": "- Studio、キャンバス、デスクトップ更新の接続先を新しい Plasmic ドメインに更新しました。\n- 以前の更新ドメインから切り替えるには、このバージョンを手動でインストールしてください。",
+  "ko": "- Studio, 캔버스 및 데스크톱 업데이트 주소를 새 Plasmic 도메인으로 변경했습니다.\n- 이전 업데이트 도메인에서 전환하려면 이 버전을 수동으로 설치하세요."
+}

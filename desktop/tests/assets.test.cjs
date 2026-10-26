@@ -92,7 +92,7 @@ test("update UI is injected and served locally without fetching NAS static asset
   const studioHtml = await response.text();
   assert.match(
     studioHtml,
-    /script defer src="https:\/\/studio.plasmic.shiguanglab.com\/static\/desktop\/update-ui.js"/,
+    /script defer src="https:\/\/plasmic-studio.shiguanglab.com\/static\/desktop\/update-ui.js"/,
   );
   assert.match(studioHtml, /static\/desktop\/update-dialog.js/);
   assert.doesNotMatch(studioHtml, /presentation-ui.js/);
@@ -119,11 +119,11 @@ test("update UI is injected and served locally without fetching NAS static asset
   );
   assert.match(
     canvasHtml,
-    /data-studio-origin="https:\/\/studio.plasmic.shiguanglab.com"/,
+    /data-studio-origin="https:\/\/plasmic-studio.shiguanglab.com"/,
   );
   assert.match(
     canvasHtml,
-    /data-canvas-origin="https:\/\/canvas.plasmic.shiguanglab.com"/,
+    /data-canvas-origin="https:\/\/plasmic-canvas.shiguanglab.com"/,
   );
   const script = await pageHandler(
     new Request(config.studioOrigin + "/static/desktop/update-ui.js"),
@@ -247,7 +247,7 @@ test("The packaged editor bridge is injected and served locally, including HEAD 
     const html = await response.text();
     assert.match(
       html,
-      /<script defer src="https:\/\/studio.plasmic.shiguanglab.com\/static\/desktop\/editor-bridge.js"><\/script><\/head>/,
+      /<script defer src="https:\/\/plasmic-studio.shiguanglab.com\/static\/desktop\/editor-bridge.js"><\/script><\/head>/,
     );
     const head = await bridged(
       new Request(config.studioOrigin + "/", { method: "HEAD" }),
@@ -270,7 +270,7 @@ test("The packaged editor bridge is injected and served locally, including HEAD 
 test("Project requests reuse bundled Google font faces; other families remain remote", async () => {
   let fetched = 0;
   const bundledFontCss =
-    "@font-face {font-family: 'Roboto'; font-weight: 400; src: url(https://studio.plasmic.shiguanglab.com/static/desktop-fonts/roboto.ttf);} @font-face {font-family: 'Inter'; font-weight: 400; src: url(https://studio.plasmic.shiguanglab.com/static/desktop-fonts/inter.ttf);}";
+    "@font-face {font-family: 'Roboto'; font-weight: 400; src: url(https://plasmic-studio.shiguanglab.com/static/desktop-fonts/roboto.ttf);} @font-face {font-family: 'Inter'; font-weight: 400; src: url(https://plasmic-studio.shiguanglab.com/static/desktop-fonts/inter.ttf);}";
   const fonts = createAssetHandler({
     root,
     ...config,

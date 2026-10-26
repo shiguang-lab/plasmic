@@ -55,7 +55,7 @@ async function main() {
         readableByPublic: true,
       });
       const imageUrl =
-        "https://studio.plasmic.shiguanglab.com/static/img/antd-icons.svg";
+        "https://plasmic-studio.shiguanglab.com/static/img/antd-icons.svg";
       const entry: CatalogPackage = {
         type: "hostless-package",
         name: "Ant Design Icons",

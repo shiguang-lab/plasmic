@@ -1,7 +1,7 @@
 # Admin Templates
 
-[打开素材库](https://studio.plasmic.shiguanglab.com/projects/145nN6S5QQBwgjtNUwuiQZ) ·
-[查看组合演示](https://studio.plasmic.shiguanglab.com/projects/145nN6S5QQBwgjtNUwuiQZ/preview/templates)
+[打开素材库](https://plasmic-studio.shiguanglab.com/projects/145nN6S5QQBwgjtNUwuiQZ) ·
+[查看组合演示](https://plasmic-studio.shiguanglab.com/projects/145nN6S5QQBwgjtNUwuiQZ/preview/templates)
 
 素材库位于 shuhe / Prototypes，已保存发布版本 **1.0.0**。它提供设计时可组合的页面、区块和抽屉素材。页面模板按照 Plasmic 官方方式保存为普通 Component；`TemplatePreview` 是唯一的演示 Page。
 

@@ -116,8 +116,8 @@ app.whenReady().then(async () => {
     "https",
     createAssetHandler({
       root: path.join(dir, variant),
-      studioOrigin: "https://studio.plasmic.shiguanglab.com",
-      canvasOrigin: "https://canvas.plasmic.shiguanglab.com",
+      studioOrigin: "https://plasmic-studio.shiguanglab.com",
+      canvasOrigin: "https://plasmic-canvas.shiguanglab.com",
       remoteFetch,
       localCanvasLibraries: libs,
     }),

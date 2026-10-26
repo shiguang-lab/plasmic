@@ -54,7 +54,7 @@ section('登录网页与 Desktop','完成浏览器授权，确认桌面应用也
  '在统一账号页面下方点击<strong>Google（彩色 G）图标</strong>，选择注册时使用的同一个 Google 账号，完成登录与授权。',
  '浏览器完成授权后，允许打开 Plasmic Desktop。未自动返回时，点击授权页的“Open Plasmic Desktop”或对应中文按钮。',
  '回到 Desktop，确认能看到项目列表或工作区。浏览器授权成功后，还需确认 Desktop 已实际登录。'])+
- p('网页入口：<a href="https://studio.plasmic.shiguanglab.com/" target="_blank" rel="noopener">Studio ↗</a>。网页和 Desktop 使用同一账号及云端项目。')+'</div></div>'+
+ p('网页入口：<a href="https://plasmic-studio.shiguanglab.com/" target="_blank" rel="noopener">Studio ↗</a>。网页和 Desktop 使用同一账号及云端项目。')+'</div></div>'+
  image('12-desktop-login.png','Desktop 登录入口，沿用 2026-10-11 界面记录。',[(73,65,'点击登录')])+
  note('账号问题','选择正确的 Google 账号；无法登录时使用登录页的“无法登录？”入口。网页已登录不等于 Desktop 已建立会话。')+
  '<h3>客户端自动更新</h3>'+

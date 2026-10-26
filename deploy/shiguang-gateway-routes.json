@@ -1,7 +1,7 @@
 {
   "routes": [
     {
-      "host": "studio.plasmic.shiguanglab.com",
+      "host": "plasmic-studio.shiguanglab.com",
       "path_prefix": "/api/auth/session",
       "exact_path": true,
       "product_id": "plasmic-auth",
@@ -15,7 +15,7 @@
       "forward_session_cookie": true
     },
     {
-      "host": "studio.plasmic.shiguanglab.com",
+      "host": "plasmic-studio.shiguanglab.com",
       "path_prefix": "/api/auth/logout",
       "exact_path": true,
       "product_id": "plasmic-auth",
@@ -33,7 +33,7 @@
       "audience": "plasmic-api",
       "required_entitlements": ["plasmic:access"],
       "forward_authorization": false,
-      "host": "studio.plasmic.shiguanglab.com",
+      "host": "plasmic-studio.shiguanglab.com",
       "path_prefix": "/api/v1/",
       "upstream": "http://100.87.115.78:3900",
       "public": true,
@@ -44,7 +44,7 @@
       "audience": "plasmic-api",
       "required_entitlements": [],
       "forward_authorization": false,
-      "host": "studio.plasmic.shiguanglab.com",
+      "host": "plasmic-studio.shiguanglab.com",
       "path_prefix": "/",
       "upstream": "http://100.87.115.78:3900",
       "public": true
@@ -54,7 +54,7 @@
       "audience": "plasmic-api",
       "required_entitlements": [],
       "forward_authorization": false,
-      "host": "canvas.plasmic.shiguanglab.com",
+      "host": "plasmic-canvas.shiguanglab.com",
       "path_prefix": "/",
       "upstream": "http://100.87.115.78:3901",
       "public": true
@@ -66,7 +66,7 @@
       "forward_authorization": false,
       "forward_session_cookie": false,
       "forward_gateway_token": false,
-      "host": "preview.plasmic.shiguanglab.com",
+      "host": "plasmic-preview.shiguanglab.com",
       "path_prefix": "/",
       "upstream": "http://100.87.115.78:3902",
       "public": true

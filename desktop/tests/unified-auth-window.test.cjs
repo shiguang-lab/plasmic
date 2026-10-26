@@ -5,7 +5,7 @@ const {
   UnifiedAuthWindow,
   AUTH_PATH,
 } = require("../src/unified-auth-window.cjs");
-const origin = "https://studio.plasmic.shiguanglab.com";
+const origin = "https://plasmic-studio.shiguanglab.com";
 function window() {
   const win = new EventEmitter();
   win.url = origin + "/login";

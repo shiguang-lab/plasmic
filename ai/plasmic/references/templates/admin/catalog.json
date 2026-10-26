@@ -1,7 +1,7 @@
 {
   "projectId": "145nN6S5QQBwgjtNUwuiQZ",
   "projectName": "Admin Templates",
-  "projectUrl": "https://studio.plasmic.shiguanglab.com/projects/145nN6S5QQBwgjtNUwuiQZ",
+  "projectUrl": "https://plasmic-studio.shiguanglab.com/projects/145nN6S5QQBwgjtNUwuiQZ",
   "workspaceId": "b8k3wLnCGATcW6cAquxJ3K",
   "organizationId": "1SggWCFqHbS4RipBHnqVqY",
   "publishedVersion": "1.0.0",
@@ -57,7 +57,7 @@
         "tableColumns"
       ],
       "nestedTemplates": [],
-      "imageUrl": "https://studio.plasmic.shiguanglab.com/assets/14c0d7f606b19372175549b28570f8ce.png"
+      "imageUrl": "https://plasmic-studio.shiguanglab.com/assets/14c0d7f606b19372175549b28570f8ce.png"
     },
     {
       "componentName": "TabsTableSection",
@@ -73,7 +73,7 @@
         "primaryActions"
       ],
       "nestedTemplates": [],
-      "imageUrl": "https://studio.plasmic.shiguanglab.com/assets/2854b95def5be0f0512422706daaf3d4.png"
+      "imageUrl": "https://plasmic-studio.shiguanglab.com/assets/2854b95def5be0f0512422706daaf3d4.png"
     },
     {
       "componentName": "CatalogTabsSection",
@@ -91,7 +91,7 @@
         "primaryActions"
       ],
       "nestedTemplates": [],
-      "imageUrl": "https://studio.plasmic.shiguanglab.com/assets/45d2f931c5c14e021424bdde44db08a7.png"
+      "imageUrl": "https://plasmic-studio.shiguanglab.com/assets/45d2f931c5c14e021424bdde44db08a7.png"
     },
     {
       "componentName": "DetailSection",
@@ -107,7 +107,7 @@
         "relatedContent"
       ],
       "nestedTemplates": [],
-      "imageUrl": "https://studio.plasmic.shiguanglab.com/assets/19c7041c79d38dd5e1b6aee0046753d2.png"
+      "imageUrl": "https://plasmic-studio.shiguanglab.com/assets/19c7041c79d38dd5e1b6aee0046753d2.png"
     },
     {
       "componentName": "DrawerDetailSection",
@@ -124,7 +124,7 @@
         "drawerActions"
       ],
       "nestedTemplates": [],
-      "imageUrl": "https://studio.plasmic.shiguanglab.com/assets/343cb2922395575e3c1e77e1ccc7bdbb.png"
+      "imageUrl": "https://plasmic-studio.shiguanglab.com/assets/343cb2922395575e3c1e77e1ccc7bdbb.png"
     },
     {
       "componentName": "DrawerFormSection",
@@ -141,7 +141,7 @@
         "drawerActions"
       ],
       "nestedTemplates": [],
-      "imageUrl": "https://studio.plasmic.shiguanglab.com/assets/c6b1ce6185c0f5573daf0acdeb58cc77.png"
+      "imageUrl": "https://plasmic-studio.shiguanglab.com/assets/c6b1ce6185c0f5573daf0acdeb58cc77.png"
     },
     {
       "componentName": "StandardListPage",
@@ -156,7 +156,7 @@
       "nestedTemplates": [
         "SearchTableSection"
       ],
-      "imageUrl": "https://studio.plasmic.shiguanglab.com/assets/638032a646429300de1a26853fd38639.png"
+      "imageUrl": "https://plasmic-studio.shiguanglab.com/assets/638032a646429300de1a26853fd38639.png"
     },
     {
       "componentName": "SplitTabsPage",
@@ -171,7 +171,7 @@
       "nestedTemplates": [
         "CatalogTabsSection"
       ],
-      "imageUrl": "https://studio.plasmic.shiguanglab.com/assets/26c082c5c44d38efa8f5be958049e2c4.png"
+      "imageUrl": "https://plasmic-studio.shiguanglab.com/assets/26c082c5c44d38efa8f5be958049e2c4.png"
     },
     {
       "componentName": "BasicFormPage",
@@ -187,7 +187,7 @@
         "formActions"
       ],
       "nestedTemplates": [],
-      "imageUrl": "https://studio.plasmic.shiguanglab.com/assets/b41bada2c2a3f1f974e869eae513f28e.png"
+      "imageUrl": "https://plasmic-studio.shiguanglab.com/assets/b41bada2c2a3f1f974e869eae513f28e.png"
     },
     {
       "componentName": "RecordDetailPage",
@@ -202,7 +202,7 @@
       "nestedTemplates": [
         "DetailSection"
       ],
-      "imageUrl": "https://studio.plasmic.shiguanglab.com/assets/2ef2071613bf6b032795a2a7bb633244.png"
+      "imageUrl": "https://plasmic-studio.shiguanglab.com/assets/2ef2071613bf6b032795a2a7bb633244.png"
     }
   ],
   "compositions": [
@@ -256,7 +256,7 @@
     "name": "TemplatePreview",
     "uuid": "SkI5nLNWy2UT",
     "path": "/templates",
-    "url": "https://studio.plasmic.shiguanglab.com/projects/145nN6S5QQBwgjtNUwuiQZ/preview/templates",
+    "url": "https://plasmic-studio.shiguanglab.com/projects/145nN6S5QQBwgjtNUwuiQZ/preview/templates",
     "purpose": "筛选表格与两个原生抽屉的组合演示；成功表单提交只关闭抽屉，不调用业务保存接口。"
   }
 }

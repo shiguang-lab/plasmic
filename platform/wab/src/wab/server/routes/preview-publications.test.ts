@@ -82,7 +82,7 @@ const bundle = (paths = ["/groups", "/detail/[id]"]) => ({
 });
 
 beforeEach(() => {
-  process.env.PREVIEW_ORIGIN = "https://preview.plasmic.shiguanglab.com";
+  process.env.PREVIEW_ORIGIN = "https://plasmic-preview.shiguanglab.com";
   state.record = undefined;
   state.pkg = { id: "pkg" };
   state.version = "1.0.0";
@@ -96,7 +96,7 @@ describe("website publication lifecycle", () => {
     await publishPreviewPublication(req(), response);
     const first = response.json.mock.calls[0][0].publication;
     expect(first.url).toMatch(
-      /^https:\/\/preview\.plasmic\.shiguanglab\.com\/s\/[\w-]{10}$/,
+      /^https:\/\/plasmic-preview\.shiguanglab\.com\/s\/[\w-]{10}$/,
     );
     expect(first.entryPath).toBe("/groups");
     expect(first.bundle).toBeUndefined();

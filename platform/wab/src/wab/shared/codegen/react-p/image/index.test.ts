@@ -6,7 +6,7 @@ import { mock } from "vitest-mock-extended";
 
 it("preserves the uploaded asset origin in the canvas and serialized image source", () => {
   const src =
-    "https://studio.plasmic.shiguanglab.com/assets/4af2ee2780865f194dcf0ac761833eaf.jpg";
+    "https://plasmic-studio.shiguanglab.com/assets/4af2ee2780865f194dcf0ac761833eaf.jpg";
   const asset = mock<ImageAsset>({
     type: ImageAssetType.Picture,
     dataUri: src,

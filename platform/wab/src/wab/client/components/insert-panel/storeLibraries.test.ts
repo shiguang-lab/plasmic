@@ -95,7 +95,7 @@ it("uses the bundled version icon for each Ant Design library even when catalog 
         Object.assign(entry.hostLessPackageInfo, {
           codeName,
           projectId: [`${codeName}-project`],
-          imageUrl: "https://studio.plasmic.shiguanglab.com/static/img/antd6.svg",
+          imageUrl: "https://plasmic-studio.shiguanglab.com/static/img/antd6.svg",
         });
       }
       return entry;
@@ -109,7 +109,7 @@ it("uses the bundled version icon for each Ant Design library even when catalog 
     expect(libraries.find((library) => library.key === "antd6-project")?.imageUrl)
       .toBe(globalStatic("img/antd6.svg"));
     expect(libraries.find((library) => library.key === "custom-project")?.imageUrl)
-      .toBe("https://studio.plasmic.shiguanglab.com/static/img/antd6.svg");
+      .toBe("https://plasmic-studio.shiguanglab.com/static/img/antd6.svg");
   }
 });
 

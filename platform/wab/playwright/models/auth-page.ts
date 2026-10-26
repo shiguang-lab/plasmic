@@ -14,7 +14,7 @@ export class AuthPage extends BaseModel {
 
   async authenticate(email: string) {
     const baseURL =
-      process.env.WAB_HOST || "https://studio.plasmic.shiguanglab.com";
+      process.env.WAB_HOST || "https://plasmic-studio.shiguanglab.com";
     await this.page.context().addCookies([shiguangSession(email, baseURL)]);
     await this.page.goto(baseURL);
   }

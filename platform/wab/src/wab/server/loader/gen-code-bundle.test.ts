@@ -194,7 +194,7 @@ describe("genPublishedLoaderCodeBundle", () => {
   }
 
   it("resolves Project library artifacts for prefill and separates caches by code digest", async () => {
-    vi.stubEnv("PREVIEW_ORIGIN", "https://preview.plasmic.shiguanglab.com");
+    vi.stubEnv("PREVIEW_ORIGIN", "https://plasmic-preview.shiguanglab.com");
     const artifact = { digest: "fixed-v1" } as LibraryArtifact;
     vi.mocked(getPublishedProjectLibraryArtifacts).mockResolvedValue([artifact]);
     try {

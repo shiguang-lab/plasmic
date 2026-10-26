@@ -11,7 +11,7 @@ and rejects project revision writes. It never saves the benchmark model.
 ```sh
 export PLASMIC_SELECTION_REPORT_DIR=/absolute/private/report
 export PLASMIC_SELECTION_STORAGE_STATE=/absolute/private/playwright-storage-state.json
-export PLASMIC_SELECTION_PROJECT_URL='https://studio.plasmic.shiguanglab.com/projects/PROJECT_ID'
+export PLASMIC_SELECTION_PROJECT_URL='https://plasmic-studio.shiguanglab.com/projects/PROJECT_ID'
 export PLASMIC_SELECTION_TARGET='{"name":"AppShell","select":[282,55],"blank":[100,500]}'
 export PLASMIC_SELECTION_BUILD=before
 ```

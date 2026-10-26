@@ -1,7 +1,7 @@
 # Published websites
 
-`preview.plasmic.shiguanglab.com` serves public, interactive published pages without
-Studio controls. Set `PREVIEW_ORIGIN=https://preview.plasmic.shiguanglab.com` in the
+`plasmic-preview.shiguanglab.com` serves public, interactive published pages without
+Studio controls. Set `PREVIEW_ORIGIN=https://plasmic-preview.shiguanglab.com` in the
 NAS `.env`. Run the database migration and deploy matching server, web and preview
 images. The server advertises the configured origin to Studio on existing databases;
 bootstrap is not needed for an upgrade.
@@ -12,7 +12,7 @@ changes and creates a project version when needed before building the website;
 it also works for projects that have never published a version. Use **Copy link**
 to share the result. Select **Update website when publishing a version** to include
 the website in the dialog's main **Publish** action.
-The link has the form `https://preview.plasmic.shiguanglab.com/s/<code>` and redirects
+The link has the form `https://plasmic-preview.shiguanglab.com/s/<code>` and redirects
 to `/p/<code>/<page-path>`. Updating the website keeps that link. **Unpublish website**
 disables the public routes and removes the stored bundle; republishing reuses the link.
 
@@ -47,10 +47,12 @@ The external route is HAProxy SNI → Caddy on loopback 8456 → NAS access gate
 gateway routes and apply the shared `shiguang/deploy/umami/Caddyfile` and
 `haproxy.cfg`. The route is public and does not forward session cookies,
 authorization or gateway identity. Nginx also removes cookies and authorization.
-Caddy uses the TLS-ALPN ACME challenge.
+Caddy uses the HTTP-01 ACME challenge through HAProxy port 80 and its loopback
+HTTP listener on port 8088.
 
-Add a DNS **A** record for `preview.plasmic.shiguanglab.com` pointing to
-**43.128.155.40**, with DNS-only routing so TLS-ALPN can reach HAProxy/Caddy.
+Add a DNS **A** record for `plasmic-preview.shiguanglab.com` pointing to
+**43.133.249.44**. Cloudflare proxying is supported; allow the HTTP-01 challenge
+path through the edge to the origin.
 After DNS resolves and the relay config is active, Caddy obtains the certificate
 automatically. Test `/api/healthcheck` and a published short link over HTTPS.
 
@@ -143,7 +145,7 @@ To verify the generic npm/tarball registration lifecycle against the disposable
 
 ```sh
 DATABASE_URI=postgresql://postgres:password@localhost:5432/plasmic_preview_test \
-PREVIEW_ORIGIN=https://preview.plasmic.shiguanglab.com \
+PREVIEW_ORIGIN=https://plasmic-preview.shiguanglab.com \
 bash tools/run.bash src/wab/server/db/publish-library.e2e.ts
 ```
 

@@ -42,7 +42,7 @@ for case in cases:
   elif case['id']==4:
    reference=any(r['path'].endswith('/official-cli.md') for r in refs);values[0]=values[0] and reference;evidence[0]+=f" official-cli reference read={reference}."
    args=[c['args'] for c in official];info=[a for a in args if a and a[0]=='info' and '--help' not in a];values.append(bool(info) and any('--help' in a for a in args) and any('--version' in a for a in args));evidence.append(f'official-calls.jsonl actual commands={args}')
-   desired=bool(info) and all('--projects' in a and a[a.index('--projects')+1]=='official-evaluation-project' and '--host' in a and a[a.index('--host')+1]=='https://studio.plasmic.shiguanglab.com' for a in info)
+   desired=bool(info) and all('--projects' in a and a[a.index('--projects')+1]=='official-evaluation-project' and '--host' in a and a[a.index('--host')+1]=='https://plasmic-studio.shiguanglab.com' for a in info)
    values.append(desired and '2.3.0' in result);evidence.append('Recorded info command uses the exact requested project/self-host URL; result.md reports fixture version 2.3.0.')
    values.append(not writes and all(a[0]=='info' or '--help' in a or '--version' in a for a in args));evidence.append('No sync/export/code generation or design writes; existing target config remains intact.')
    values.append(True);evidence.append('Full result.md reviewed inline: only returned project metadata/version claimed, no editor-model, API or runtime acceptance claims.')

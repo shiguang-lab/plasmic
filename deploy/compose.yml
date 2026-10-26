@@ -14,7 +14,7 @@ x-server: &server
     SG_IDENTITY_JWKS_URL: ${SG_IDENTITY_JWKS_URL}
     SG_BOOTSTRAP_SUB: ${SG_BOOTSTRAP_SUB}
     SG_LEGACY_USER_MAPPING: ${SG_LEGACY_USER_MAPPING}
-    PREVIEW_ORIGIN: ${PREVIEW_ORIGIN:-https://preview.plasmic.shiguanglab.com}
+    PREVIEW_ORIGIN: ${PREVIEW_ORIGIN:-https://plasmic-preview.shiguanglab.com}
     HOST: ${STUDIO_ORIGIN}
     REACT_APP_PUBLIC_URL: ${STUDIO_ORIGIN}
     REACT_APP_CDN_URL: ${STUDIO_ORIGIN}

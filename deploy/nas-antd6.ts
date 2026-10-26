@@ -54,7 +54,7 @@ async function main() {
         const pkg = ensure(await db.getPkgByProjectId(dependency.projectId), "Missing library package");
         const version = await db.getPkgVersion(pkg.id, dependency.version);
         const hasCodeArtifacts = !!(await em.findOne(HostlessLibraryVersion, { pkgVersionId: version.id }));
-        const imageUrl = `https://studio.plasmic.shiguanglab.com/static/img/${library.image}`;
+        const imageUrl = `https://plasmic-studio.shiguanglab.com/static/img/${library.image}`;
         const shared = {
           type: "hostless-package" as const, name: library.name, codeName, hasCodeArtifacts,
           codeLink: `https://github.com/shiguang-lab/plasmic/tree/master/plasmicpkgs/${codeName}`,

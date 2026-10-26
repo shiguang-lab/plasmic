@@ -2042,7 +2042,7 @@ describe("AI prototype editor tools", () => {
       studioCtx.site.imageAssets.find((a) => a.uuid === resource.assetUuid),
       "Asset missing",
     );
-    asset.dataUri = "https://studio.plasmic.shiguanglab.com/assets/fixture.svg";
+    asset.dataUri = "https://plasmic-studio.shiguanglab.com/assets/fixture.svg";
     const fetcher = vi.spyOn(globalThis, "fetch");
     try {
       fetcher.mockResolvedValueOnce(

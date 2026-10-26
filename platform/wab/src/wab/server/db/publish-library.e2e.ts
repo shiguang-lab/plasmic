@@ -53,7 +53,7 @@ async function main() {
       await fs.writeFile(configFile, JSON.stringify({ name, packages: { [packageName]: `file:${tarball}` } }));
     };
     const publish = (...args: string[]) => exec("bash", ["tools/run.bash", "src/wab/server/db/publish-library.ts", configFile, ...args], {
-      cwd: process.cwd(), env: { ...process.env, DATABASE_URI: uri, PREVIEW_ORIGIN: "https://preview.plasmic.shiguanglab.com" }, timeout: 120000,
+      cwd: process.cwd(), env: { ...process.env, DATABASE_URI: uri, PREVIEW_ORIGIN: "https://plasmic-preview.shiguanglab.com" }, timeout: 120000,
     });
     await pack("fixed-v1");
     await publish();

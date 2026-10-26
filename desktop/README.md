@@ -381,7 +381,7 @@ This pulls the image on the NAS and recreates only `desktop-releases`. The initi
 setup adds that service to the deployed Compose configuration and reloads Studio's
 Nginx route. The existing web service proxies `/desktop-updates/` to this static
 service; no separate public port or binary-upload directory is needed. Downloads and
-`latest.json` use `https://studio.plasmic.shiguanglab.com/desktop-updates/`. JSON and
+`latest.json` use `https://plasmic-studio.shiguanglab.com/desktop-updates/`. JSON and
 YAML have `no-store` caching; versioned files are immutable and support HTTP ranges.
 CORS allows the Shiguang website to fetch public metadata and HEAD installer sizes
 without account credentials. Website builds do not embed release versions.
