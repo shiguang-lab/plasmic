@@ -5619,5 +5619,19 @@
   "Workspace projects": "작업 공간 프로젝트",
   "Users with access": "접근 가능한 사용자",
   "No workspace selected": "선택한 작업 공간 없음",
-  "Step {current}/{total}": "{current}/{total} 단계"
+  "Step {current}/{total}": "{current}/{total} 단계",
+  "Import from Pen": "Pen에서 가져오기",
+  "Choose a .pen file or ZIP. For designs with libraries, images or scripts, select the folder containing the design and its dependencies.": ".pen 파일 또는 ZIP을 선택하세요. 라이브러리, 이미지 또는 스크립트가 있으면 디자인과 종속 파일이 포함된 폴더를 선택하세요.",
+  "Choose Pen file or ZIP": "Pen 파일 또는 ZIP 선택",
+  "Choose Pen folder": "Pen 폴더 선택",
+  "Select Pen design to import": "가져올 Pen 디자인 선택",
+  "Select Pen canvas to import": "가져올 Pen 캔버스 선택",
+  "Imported \"{page}\" canvas from Pen": "Pen에서 \"{page}\" 캔버스를 가져왔습니다",
+  "Some Pen effects were simplified": "일부 Pen 효과가 단순화되었습니다",
+  "Could not import Pen file": "Pen 파일을 가져올 수 없습니다",
+  "Check the file and include its libraries, images and scripts in the selected folder or ZIP.": "파일을 확인하고 선택한 폴더 또는 ZIP에 라이브러리, 이미지, 스크립트를 포함하세요.",
+  "Image crop transforms are not preserved": "이미지 자르기 변환은 유지되지 않습니다",
+  "Centered and outer strokes are imported as inner borders": "중앙 및 바깥쪽 선은 안쪽 테두리로 가져옵니다",
+  "Non-solid borders are not preserved": "단색이 아닌 테두리는 유지되지 않습니다",
+  "Ellipse arcs are imported as complete ellipses": "타원 호는 전체 타원으로 가져옵니다"
 }

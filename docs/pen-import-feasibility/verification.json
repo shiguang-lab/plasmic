@@ -1,0 +1,176 @@
+{
+  "business": [
+    {
+      "name": "场景A-客群列表",
+      "layers": 180,
+      "assets": 3,
+      "warnings": []
+    },
+    {
+      "name": "C99-常规客群圈选P1",
+      "layers": 350,
+      "assets": 29,
+      "warnings": []
+    },
+    {
+      "name": "场景A-添加条件",
+      "layers": 63,
+      "assets": 3,
+      "warnings": []
+    },
+    {
+      "name": "场景C-维度逻辑",
+      "layers": 86,
+      "assets": 17,
+      "warnings": []
+    },
+    {
+      "name": "场景B03-客群详情-P1",
+      "layers": 66,
+      "assets": 1,
+      "warnings": []
+    },
+    {
+      "name": "场景C01-一次性客群上传",
+      "layers": 93,
+      "assets": 8,
+      "warnings": []
+    },
+    {
+      "name": "00-全流程路径概览",
+      "layers": 98,
+      "assets": 1,
+      "warnings": []
+    },
+    {
+      "name": "场景C-新建客群（基本信息弹窗）",
+      "layers": 56,
+      "assets": 4,
+      "warnings": []
+    },
+    {
+      "name": "Modal-预跑成功",
+      "layers": 19,
+      "assets": 2,
+      "warnings": []
+    },
+    {
+      "name": "Modal-预跑进行中",
+      "layers": 18,
+      "assets": 3,
+      "warnings": []
+    },
+    {
+      "name": "Modal-预跑失败",
+      "layers": 21,
+      "assets": 3,
+      "warnings": []
+    },
+    {
+      "name": "场景B01-客群详情（一次性详情）",
+      "layers": 65,
+      "assets": 1,
+      "warnings": []
+    },
+    {
+      "name": "场景C03-常规客群SQL建群（新建/编辑）",
+      "layers": 118,
+      "assets": 11,
+      "warnings": []
+    },
+    {
+      "name": "场景B02-常规客群详情（概览查看）",
+      "layers": 78,
+      "assets": 2,
+      "warnings": []
+    },
+    {
+      "name": "场景B01-预跑结果（一次性客群）",
+      "layers": 112,
+      "assets": 1,
+      "warnings": []
+    },
+    {
+      "name": "查看详情-客群基本信息",
+      "layers": 70,
+      "assets": 0,
+      "warnings": []
+    },
+    {
+      "name": "查看详情-客群基本信息（常规）",
+      "layers": 91,
+      "assets": 0,
+      "warnings": []
+    },
+    {
+      "name": "查看详情-客群基本信息（B03）",
+      "layers": 88,
+      "assets": 1,
+      "warnings": []
+    },
+    {
+      "name": "查看详情-客群基本信息（一次性详情）",
+      "layers": 69,
+      "assets": 0,
+      "warnings": []
+    },
+    {
+      "name": "配置效果示意",
+      "layers": 67,
+      "assets": 1,
+      "warnings": []
+    },
+    {
+      "name": "场景B02-常规客群详情（观测查看）",
+      "layers": 190,
+      "assets": 10,
+      "warnings": []
+    },
+    {
+      "name": "场景B02-常规客群详情（成员查看）",
+      "layers": 99,
+      "assets": 1,
+      "warnings": []
+    },
+    {
+      "name": "场景B02-常规客群详情（圈选记录查看）",
+      "layers": 107,
+      "assets": 1,
+      "warnings": []
+    },
+    {
+      "name": "场景B02-常规客群详情（刷新记录查看）",
+      "layers": 99,
+      "assets": 1,
+      "warnings": []
+    },
+    {
+      "name": "场景B02-常规客群详情（应用记录查看）",
+      "layers": 95,
+      "assets": 1,
+      "warnings": []
+    }
+  ],
+  "templates": {
+    "layers": 3483,
+    "assets": 135,
+    "warnings": []
+  },
+  "sources": [
+    {
+      "file": "/Users/yanxianliang/overseas/pd-atlas/03_迭代需求交付/01_业务需求/REQ075_客群管理平台P0需求/1.需求/海外客群管理平台.pen",
+      "version": "2.17",
+      "sha256": "f34209846bdf780f4c80980d553ee9504e3b9f3d09dd414146eb53e75b420b17"
+    },
+    {
+      "file": "/Users/yanxianliang/overseas/pen-antd-kit/libraries/templates.pen",
+      "version": "2.20",
+      "sha256": "edace0f686a3464e84b6622da61b41d8439d79f711d3a6ef7c2e6992a36d6df3"
+    },
+    {
+      "file": "/Users/yanxianliang/overseas/pen-antd-kit/libraries/antd.lib.pen",
+      "version": "2.20",
+      "sha256": "ad39c8455dc66a0f6bbcb0075596c55efb3ca48eec7b7f876ce0bb4b5a2d9582"
+    }
+  ]
+}

@@ -20,6 +20,7 @@ import FigmasvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIc
 import FontFamily2SvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__FontFamily2Svg";
 import KeyframesIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__Keyframes";
 import Paintbrush2SvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__Paintbrush2Svg";
+import PencilSvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__PencilSvg";
 import PhotosvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__PhotoSvg";
 import SearchSvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__SearchSvg";
 import SplitSvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__SplitSvg";
@@ -70,6 +71,7 @@ const LeftTabStrip = observer(function LeftTabStrip(props: LeftTabStripProps) {
   const studioCtx = useStudioCtx();
   const figmaFileInput = React.useRef<HTMLInputElement>(null);
   const [importingFigma, setImportingFigma] = React.useState(false);
+  const [importingPen, setImportingPen] = React.useState(false);
   const openGroup = studioCtx.leftTabGroup;
   const setOpenGroup = (group: string | undefined) =>
     studioCtx.setLeftTabGroup(group);
@@ -249,9 +251,30 @@ More
           label: t("Import from Figma"),
           cond: canViewTab("figma"),
           onClick: () => {
-            if (!importingFigma) {
+            if (!importingFigma && !importingPen) {
               figmaFileInput.current?.click();
             }
+          },
+        },
+        pen: {
+          type: "item",
+          icon: <PencilSvgIcon />,
+          label: t("Import from Pen"),
+          cond: canViewTab("pen"),
+          onClick: () => {
+            if (importingFigma || importingPen) {return;}
+            setImportingPen(true);
+            spawn(
+              (async () => {
+                try {
+                  const { importPenFile } =
+                    await import("@/wab/client/pen-importer/import-file");
+                  await importPenFile(studioCtx);
+                } finally {
+                  setImportingPen(false);
+                }
+              })(),
+            );
           },
         },
       },
@@ -431,7 +454,7 @@ More
             onChange={(event) => {
               const file = event.currentTarget.files?.[0];
               event.currentTarget.value = "";
-              if (!file || importingFigma) {
+              if (!file || importingFigma || importingPen) {
                 return;
               }
               setImportingFigma(true);
@@ -577,6 +600,7 @@ More
             splits: mainGroups.more.items.splits,
             expressions: mainGroups.more.items.expressions,
             figma: mainGroups.more.items.figma,
+            pen: mainGroups.more.items.pen,
           },
         },
       })}

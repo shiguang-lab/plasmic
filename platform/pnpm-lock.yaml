@@ -1179,6 +1179,9 @@ importers:
       '@graphiql/toolkit':
         specifier: ^0.11.3
         version: 0.11.3(@types/node@24.12.2)(graphql-ws@5.16.0(graphql@16.13.2))(graphql@16.13.2)
+      '@jitl/quickjs-singlefile-browser-release-sync':
+        specifier: 0.31.0
+        version: 0.31.0
       '@octokit/app':
         specifier: 16.1.2
         version: 16.1.2(patch_hash=9e7952e20fd240b64e2d3fed37dbd15ac2b0944cc0d6c9643725b24b6e042d87)
@@ -1524,6 +1527,9 @@ importers:
       jsdom:
         specifier: ^22.1.0
         version: 22.1.0
+      jsonc-parser:
+        specifier: 3.3.1
+        version: 3.3.1
       jsonrepair:
         specifier: 3.15.0
         version: 3.15.0
@@ -1536,6 +1542,9 @@ importers:
       lodash:
         specifier: ^4.18.1
         version: 4.18.1
+      lucide:
+        specifier: 1.61.0
+        version: 1.61.0
       memoize-one:
         specifier: ^6.0.0
         version: 6.0.0
@@ -1665,6 +1674,9 @@ importers:
       prom-client:
         specifier: ^14.2.0
         version: 14.2.0
+      quickjs-emscripten-core:
+        specifier: 0.31.0
+        version: 0.31.0
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -3928,6 +3940,12 @@ packages:
   '@jest/types@30.5.1':
     resolution: {integrity: sha512-LvVYn83nnXPl+Rg98nvcFgjx6nRMTArhSn6RAX/w3ELn54S8A42TYZvsCMdGUqTM8S0wyXbtlQdU6Hi6dykj9g==}
     engines: {node: ^18.14.0 || ^20.0.0 || ^22.0.0 || >=24.0.0}
+
+  '@jitl/quickjs-ffi-types@0.31.0':
+    resolution: {integrity: sha512-1yrgvXlmXH2oNj3eFTrkwacGJbmM0crwipA3ohCrjv52gBeDaD7PsTvFYinlAnqU8iPME3LGP437yk05a2oejw==}
+
+  '@jitl/quickjs-singlefile-browser-release-sync@0.31.0':
+    resolution: {integrity: sha512-JctBiLmRpxEp83gJWhDcBuFqm5X7T683OLmncN9g0chAHkC8+y5cJmgknaAk5Rb/ANDR3pXMMnGdnGXDdysfBQ==}
 
   '@jridgewell/gen-mapping@0.3.13':
     resolution: {integrity: sha512-2kkt/7niJ6MgEPxF0bYdQ6etZaA+fQvDcLKckhy1yIQOzaoKjBBjSj63/aLVjYE3qhRt5dvM+uUyfCg6UKCBbA==}
@@ -13325,6 +13343,9 @@ packages:
     peerDependencies:
       react: ^16.5.1 || ^17.0.0 || ^18.0.0
 
+  lucide@1.61.0:
+    resolution: {integrity: sha512-RPNMBgej6WjPKuCNEODg83CF8lnraCeDOsZ3HZ7KvUYf0O5hdJBzer/Ax/meBHl3xvrp5NmKX0IDA5myyzlvGw==}
+
   lz-string@1.5.0:
     resolution: {integrity: sha512-h5bgJWpxJNswbU7qCrV0tIKQCaS3blPDrqKWx+QxzuzL1zGUzij9XCWLrSLsJPu5t+eWA/ycetzYAO5IOMcWAQ==}
     hasBin: true
@@ -15104,6 +15125,9 @@ packages:
 
   quick-format-unescaped@4.0.4:
     resolution: {integrity: sha512-tYC1Q1hgyRuHgloV/YXs2w15unPVh8qfu/qCTfhTYamaw7fyhumKa2yGpdSo87vY32rIclj+4fWYQXUMs9EHvg==}
+
+  quickjs-emscripten-core@0.31.0:
+    resolution: {integrity: sha512-oQz8p0SiKDBc1TC7ZBK2fr0GoSHZKA0jZIeXxsnCyCs4y32FStzCW4d1h6E1sE0uHDMbGITbk2zhNaytaoJwXQ==}
 
   quill-delta@3.6.3:
     resolution: {integrity: sha512-wdIGBlcX13tCHOXGMVnnTVFtGRLoP0imqxM696fIPwIf5ODIYUHIvHbZcyvGlZFiFhK5XzDC2lpjbxRhnM05Tg==}
@@ -20961,6 +20985,12 @@ snapshots:
       '@types/node': 24.12.2
       '@types/yargs': 17.0.35
       chalk: 4.1.2
+
+  '@jitl/quickjs-ffi-types@0.31.0': {}
+
+  '@jitl/quickjs-singlefile-browser-release-sync@0.31.0':
+    dependencies:
+      '@jitl/quickjs-ffi-types': 0.31.0
 
   '@jridgewell/gen-mapping@0.3.13':
     dependencies:
@@ -32322,6 +32352,8 @@ snapshots:
     dependencies:
       react: 18.3.1
 
+  lucide@1.61.0: {}
+
   lz-string@1.5.0: {}
 
   magic-string@0.25.9:
@@ -34498,6 +34530,10 @@ snapshots:
   querystringify@2.2.0: {}
 
   quick-format-unescaped@4.0.4: {}
+
+  quickjs-emscripten-core@0.31.0:
+    dependencies:
+      '@jitl/quickjs-ffi-types': 0.31.0
 
   quill-delta@3.6.3:
     dependencies:

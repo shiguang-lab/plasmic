@@ -5619,5 +5619,19 @@
   "Workspace projects": "工作区项目",
   "Users with access": "有权限用户",
   "No workspace selected": "未选择工作区",
-  "Step {current}/{total}": "第 {current}/{total} 步"
+  "Step {current}/{total}": "第 {current}/{total} 步",
+  "Import from Pen": "从 Pen 导入",
+  "Choose a .pen file or ZIP. For designs with libraries, images or scripts, select the folder containing the design and its dependencies.": "请选择 .pen 文件或 ZIP。设计包含组件库、图片或脚本时，请选择包含设计及其依赖的文件夹。",
+  "Choose Pen file or ZIP": "选择 Pen 文件或 ZIP",
+  "Choose Pen folder": "选择 Pen 文件夹",
+  "Select Pen design to import": "选择要导入的 Pen 设计",
+  "Select Pen canvas to import": "选择要导入的 Pen 画布",
+  "Imported \"{page}\" canvas from Pen": "已从 Pen 导入“{page}”画布",
+  "Some Pen effects were simplified": "部分 Pen 效果已简化",
+  "Could not import Pen file": "无法导入 Pen 文件",
+  "Check the file and include its libraries, images and scripts in the selected folder or ZIP.": "请检查文件，并确保所选文件夹或 ZIP 中包含其组件库、图片和脚本。",
+  "Image crop transforms are not preserved": "图片裁剪变换未保留",
+  "Centered and outer strokes are imported as inner borders": "居中和外描边已转换为内边框",
+  "Non-solid borders are not preserved": "非纯色边框未保留",
+  "Ellipse arcs are imported as complete ellipses": "椭圆弧已转换为完整椭圆"
 }

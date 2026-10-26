@@ -5619,5 +5619,19 @@
   "Workspace projects": "ワークスペースのプロジェクト",
   "Users with access": "アクセス可能ユーザー",
   "No workspace selected": "ワークスペース未選択",
-  "Step {current}/{total}": "{current}/{total} ステップ"
+  "Step {current}/{total}": "{current}/{total} ステップ",
+  "Import from Pen": "Pen からインポート",
+  "Choose a .pen file or ZIP. For designs with libraries, images or scripts, select the folder containing the design and its dependencies.": ".pen ファイルまたは ZIP を選択してください。ライブラリ、画像、スクリプトを含む場合は、それらを含むフォルダーを選択してください.",
+  "Choose Pen file or ZIP": "Pen ファイルまたは ZIP を選択",
+  "Choose Pen folder": "Pen フォルダーを選択",
+  "Select Pen design to import": "インポートする Pen デザインを選択",
+  "Select Pen canvas to import": "インポートする Pen キャンバスを選択",
+  "Imported \"{page}\" canvas from Pen": "Pen から「{page}」キャンバスをインポートしました",
+  "Some Pen effects were simplified": "一部の Pen 効果が簡略化されました",
+  "Could not import Pen file": "Pen ファイルをインポートできませんでした",
+  "Check the file and include its libraries, images and scripts in the selected folder or ZIP.": "ファイルを確認し、必要なライブラリ、画像、スクリプトをフォルダーまたは ZIP に含めてください.",
+  "Image crop transforms are not preserved": "画像の切り抜き変換は保持されません",
+  "Centered and outer strokes are imported as inner borders": "中央と外側の線は内側の枠線としてインポートされます",
+  "Non-solid borders are not preserved": "単色以外の枠線は保持されません",
+  "Ellipse arcs are imported as complete ellipses": "楕円弧は完全な楕円としてインポートされます"
 }

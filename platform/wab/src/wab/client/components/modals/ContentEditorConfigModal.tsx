@@ -666,6 +666,8 @@ function leftTabKeyToLabel(key: LeftTabUiKey) {
       return "Lint issues";
     case "figma":
       return "Figma";
+    case "pen":
+      return "Pen";
     case "expressions":
       return "Expressions";
     default:

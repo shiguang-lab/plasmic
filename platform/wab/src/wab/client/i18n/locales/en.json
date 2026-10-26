@@ -5619,5 +5619,19 @@
   "Workspace projects": "Workspace projects",
   "Users with access": "Users with access",
   "No workspace selected": "No workspace selected",
-  "Step {current}/{total}": "Step {current}/{total}"
+  "Step {current}/{total}": "Step {current}/{total}",
+  "Import from Pen": "Import from Pen",
+  "Choose a .pen file or ZIP. For designs with libraries, images or scripts, select the folder containing the design and its dependencies.": "Choose a .pen file or ZIP. For designs with libraries, images or scripts, select the folder containing the design and its dependencies.",
+  "Choose Pen file or ZIP": "Choose Pen file or ZIP",
+  "Choose Pen folder": "Choose Pen folder",
+  "Select Pen design to import": "Select Pen design to import",
+  "Select Pen canvas to import": "Select Pen canvas to import",
+  "Imported \"{page}\" canvas from Pen": "Imported \"{page}\" canvas from Pen",
+  "Some Pen effects were simplified": "Some Pen effects were simplified",
+  "Could not import Pen file": "Could not import Pen file",
+  "Check the file and include its libraries, images and scripts in the selected folder or ZIP.": "Check the file and include its libraries, images and scripts in the selected folder or ZIP.",
+  "Image crop transforms are not preserved": "Image crop transforms are not preserved",
+  "Centered and outer strokes are imported as inner borders": "Centered and outer strokes are imported as inner borders",
+  "Non-solid borders are not preserved": "Non-solid borders are not preserved",
+  "Ellipse arcs are imported as complete ellipses": "Ellipse arcs are imported as complete ellipses"
 }

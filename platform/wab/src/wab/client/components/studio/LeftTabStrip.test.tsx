@@ -13,6 +13,7 @@ const mocks = vi.hoisted(() => ({
   ctx: undefined as any,
   toggleAi: vi.fn().mockResolvedValue(undefined),
   importFigmaFile: vi.fn().mockResolvedValue(undefined),
+  importPenFile: vi.fn().mockResolvedValue(undefined),
 }));
 vi.mock("@/wab/client/contexts/StudioContexts", () => ({
   useStudioCtx: () => mocks.ctx,
@@ -25,6 +26,9 @@ vi.mock("@/wab/client/contexts/AppContexts", () => ({
 }));
 vi.mock("@/wab/client/figma-importer/import-file", () => ({
   importFigmaFile: mocks.importFigmaFile,
+}));
+vi.mock("@/wab/client/pen-importer/import-file", () => ({
+  importPenFile: mocks.importPenFile,
 }));
 vi.mock("@/wab/client/components/widgets", () => ({}));
 vi.mock("@/wab/client/components/ui/layout-styles", () => ({
@@ -57,6 +61,7 @@ vi.mock("@/wab/client/components/studio/LeftTabButton", () => ({
 beforeEach(() => {
   mocks.toggleAi.mockClear();
   mocks.importFigmaFile.mockClear();
+  mocks.importPenFile.mockClear();
   mocks.ctx = observable({
     appCtx: { selfInfo: {} },
     site: { globalContexts: [] },
@@ -101,6 +106,28 @@ beforeEach(() => {
   });
 });
 afterEach(cleanup);
+it.each([false, true])(
+  "places Pen import immediately after Figma in web and Desktop (Desktop: %s)",
+  async (desktop) => {
+    vi.spyOn(navigator, "userAgent", "get").mockReturnValue(
+      desktop ? "PlasmicDesktop/darwin" : "Mozilla/5.0",
+    );
+    render(<LeftTabStrip useVersionsCTA={false} />);
+    fireEvent.click(screen.getByRole("button", { name: "More" }));
+    const pen = await screen.findByRole("button", { name: "Import from Pen" });
+    const labels = screen
+      .getAllByRole("button")
+      .map((button) => button.textContent);
+    expect(labels.indexOf("Import from Pen")).toBe(
+      labels.indexOf("Import from Figma") + 1,
+    );
+    fireEvent.click(pen);
+    await waitFor(() =>
+      expect(mocks.importPenFile).toHaveBeenCalledExactlyOnceWith(mocks.ctx),
+    );
+    vi.restoreAllMocks();
+  },
+);
 it.each([false, true])(
   "imports .fig from the existing Figma entry in web and Desktop (Desktop: %s)",
   async (desktop) => {

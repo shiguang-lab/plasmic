@@ -17,7 +17,7 @@ patch releases continue to compare inputs before publication.
 
 CLI (`cli-v<version>`) and resources (`resources-v<version>`) have separate workflows
 and versions. Neither runs on a Studio or Desktop tag. CLI publication compares
-actual npm package contents; resources compare their source inputs since the preceding
+actual npm package contents. An explicit package.json version matching a newer CLI tag publishes that version even when the code is unchanged; resources compare their source inputs since the preceding
 resource tag and reuse the verified, already-published npm CLI artifact.
 See [release setup and version checks](../ai/plasmic/README.md#tag-自动发布).
 Run `node scripts/release-plan.mjs <tag>` on the release commit to inspect the plan.

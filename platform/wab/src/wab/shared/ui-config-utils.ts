@@ -160,6 +160,7 @@ export const LEFT_TAB_UI_KEYS = [
   "iconsSection",
 
   "figma",
+  "pen",
 ] as const;
 
 export type LeftTabUiKey = (typeof LEFT_TAB_UI_KEYS)[number];
@@ -432,6 +433,7 @@ const LEFT_TAB_CONTENT_CREATOR_DEFAULT: Record<LeftTabUiKey, UiAccess> = {
   lint: "writable",
   expressions: "writable",
   figma: "hidden",
+  pen: "hidden",
   animationSequences: "hidden",
 };
 

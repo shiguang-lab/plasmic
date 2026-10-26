@@ -9,7 +9,7 @@ import path from "node:path";
 import { buildCli, buildResources } from "../../../scripts/build-plasmic-resources.mjs";
 import { prepareRelease, publishedCli, publishCli, releaseVersion } from "../scripts/publish.mjs";
 import { prepareResources } from "../../../scripts/release-resources.mjs";
-import { compareVersions } from "../src/protocol.mjs";
+import { CLI_VERSION, compareVersions } from "../src/protocol.mjs";
 
 test("only stable repository version tags release the CLI", () => {
   assert.equal(releaseVersion("0.0.35"), "0.0.35");
@@ -127,6 +127,20 @@ test("a new minor or major series publishes unchanged CLI contents", async (t) =
       (await inspectCliArtifact(bytes)).contentHash,
     );
   }
+});
+
+test("an explicit source version publishes an aligned patch release with unchanged code", async (t) => {
+  const parts = CLI_VERSION.split(".").map(Number);
+  assert.ok(parts[2] > 0);
+  parts[2]--;
+  const previousVersion = parts.join(".");
+  const bytes = await buildCli(previousVersion);
+  const options = await registryFixture(t, bytes, previousVersion);
+  const built = await prepareRelease({ ...options, tag: CLI_VERSION });
+  assert.equal(built.skipped, false);
+  const artifact = await readFile(path.join(built.directory, "plasmic-cli.tgz"));
+  assert.equal((await inspectCliArtifact(artifact)).version, CLI_VERSION);
+  assert.equal((await inspectCliArtifact(artifact)).contentHash, (await inspectCliArtifact(bytes)).contentHash);
 });
 
 for (const filename of ["src/index.mjs", "skill/plasmic/SKILL.md"]) {

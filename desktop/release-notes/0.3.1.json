@@ -1,7 +1,7 @@
 {
-  "en": "- Refine Dynamic Island corners, spacing, footer icon alignment, and the centered workspace empty state.\n- Show a wider signed-out capsule with Plasmic and a separate Sign in link; hovering keeps it compact.\n- Start browser authorization directly from the island and complete sign-in on callback without showing the main window.",
-  "zh-CN": "- 优化灵动岛圆角、留白、底部图标对齐与未选择工作区时的居中提示。\n- 未登录胶囊加宽，显示 Plasmic 与独立登录链接，鼠标悬停保持收起。\n- 在灵动岛直接发起浏览器授权，回跳后完成登录，全程不显示主窗口。",
-  "zh-TW": "- 優化靈動島圓角、留白、底部圖示對齊與未選擇工作區時的置中提示。\n- 未登入膠囊加寬，顯示 Plasmic 與獨立登入連結，滑鼠停留時保持收合。\n- 在靈動島直接發起瀏覽器授權，回跳後完成登入，全程不顯示主視窗。",
-  "ja": "- Dynamic Island の角丸、余白、フッターアイコンの配置とワークスペース未選択時の中央表示を調整しました。\n- 未ログイン時は Plasmic と独立したログインリンクを表示する幅広のカプセルになり、ホバーしても展開しません。\n- ブラウザー認証を直接開始し、メインウィンドウを表示せずに認証後のコールバックでログインを完了します。",
-  "ko": "- Dynamic Island의 모서리, 여백, 하단 아이콘 정렬과 작업 공간 미선택 안내의 가운데 정렬을 개선했습니다.\n- 로그아웃 상태에서는 Plasmic과 별도의 로그인 링크가 있는 넓은 캡슐을 표시하며, 마우스를 올려도 펼쳐지지 않습니다.\n- 브라우저 인증을 바로 시작하고, 메인 창을 표시하지 않고 콜백으로 로그인을 완료합니다."
+  "en": "- Import Pen files, folders, and ZIP archives into editable Studio layers, including library references, images, and sandboxed scripts.\n- Refine Dynamic Island corners, spacing, footer icon alignment, and the centered workspace empty state.\n- Show a wider signed-out capsule with Plasmic and a separate Sign in link; hovering keeps it compact.\n- Start browser authorization directly from the island and complete sign-in on callback without showing the main window.",
+  "zh-CN": "- 支持将 Pen 文件、文件夹及 ZIP 导入为 Studio 可编辑图层，解析组件库引用、图片与沙箱脚本。\n- 优化灵动岛圆角、留白、底部图标对齐与未选择工作区时的居中提示。\n- 未登录胶囊加宽，显示 Plasmic 与独立登录链接，鼠标悬停保持收起。\n- 在灵动岛直接发起浏览器授权，回跳后完成登录，全程不显示主窗口。",
+  "zh-TW": "- 支援將 Pen 檔案、資料夾及 ZIP 匯入為 Studio 可編輯圖層，解析元件庫參照、圖片與沙箱指令碼。\n- 優化靈動島圓角、留白、底部圖示對齊與未選擇工作區時的置中提示。\n- 未登入膠囊加寬，顯示 Plasmic 與獨立登入連結，滑鼠停留時保持收合。\n- 在靈動島直接發起瀏覽器授權，回跳後完成登入，全程不顯示主視窗。",
+  "ja": "- Pen ファイル、フォルダー、ZIP を編集可能な Studio レイヤーとしてインポートし、ライブラリ参照、画像、サンドボックス化したスクリプトに対応しました。\n- Dynamic Island の角丸、余白、フッターアイコンの配置とワークスペース未選択時の中央表示を調整しました。\n- 未ログイン時は Plasmic と独立したログインリンクを表示する幅広のカプセルになり、ホバーしても展開しません。\n- ブラウザー認証を直接開始し、メインウィンドウを表示せずに認証後のコールバックでログインを完了します。",
+  "ko": "- Pen 파일, 폴더 및 ZIP을 편집 가능한 Studio 레이어로 가져오며, 라이브러리 참조, 이미지 및 샌드박스 스크립트를 지원합니다.\n- Dynamic Island의 모서리, 여백, 하단 아이콘 정렬과 작업 공간 미선택 안내의 가운데 정렬을 개선했습니다.\n- 로그아웃 상태에서는 Plasmic과 별도의 로그인 링크가 있는 넓은 캡슐을 표시하며, 마우스를 올려도 펼쳐지지 않습니다.\n- 브라우저 인증을 바로 시작하고, 메인 창을 표시하지 않고 콜백으로 로그인을 완료합니다."
 }
