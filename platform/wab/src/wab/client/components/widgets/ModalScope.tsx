@@ -14,7 +14,8 @@ export type ModalScopeProps = Omit<
 /**
  * For popup-like components (e.g. DataPicker) that behave like a modal.
  *
- * This component adds a wrapping <div> that trap focus and key events.
+ * This component adds a wrapping <div> that traps focus and key events.
+ * Opening the scope preserves focus unless a child explicitly requests autofocus.
  */
 export function ModalScope({ containFocus = true, ...props }: ModalScopeProps) {
   return (

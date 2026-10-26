@@ -62,7 +62,7 @@ test("native settings paint the initial appearance and ignore an older response 
   );
 });
 
-test("MCP loading survives locale updates, recovers through Retry and restores focus after toggling", async (t) => {
+test("MCP loading survives locale updates, recovers through Retry without moving focus after toggling", async (t) => {
   const html = fs.readFileSync(
     path.join(__dirname, "../src/mcp-settings.html"),
     "utf8",
@@ -136,8 +136,9 @@ test("MCP loading survives locale updates, recovers through Retry and restores f
   toggle.click();
   await flush();
   assert.equal(toggles, 1);
+  assert.equal(dom.window.document.activeElement, dom.window.document.body);
   assert.equal(
-    dom.window.document.activeElement.getAttribute("aria-checked"),
+    clients.querySelector('[role="switch"]').getAttribute("aria-checked"),
     "true",
   );
 });
