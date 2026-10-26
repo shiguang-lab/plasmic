@@ -18,7 +18,7 @@
     const dt = Math.min((now - (lastTime || now - 16)) / 1000, .025);
     lastTime = now;
     const width = opened ? expandedWidth : Math.min(280, $("capsule").scrollWidth + 2);
-    const target = { width, height: opened ? 144 : 40, radius: opened ? 23 : 20 };
+    const target = { width, height: opened ? 144 : 40, radius: opened ? 12 : 20 };
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     let settled = true;
     for (const [key, velocity, stiffness, damping] of [["width", "vw", 520, 39], ["height", "vh", 430, 34], ["radius", "vr", 470, 38]]) {
@@ -138,6 +138,8 @@
     const failed = status === "failed", blocked = status === "blocked";
     const saveIssue = context.allowed && !context.loading && ["error","blocked","unlogged"].includes(context.saveStatus);
     const signIn = context.allowed ? context.saveStatus === "unlogged" : account.status === "signed-out";
+    const signedOut = !context.allowed && signIn;
+    $("capsule-sign-in").hidden = !signedOut; text("capsule-sign-in",t("Sign in"));
     const issue = failed || blocked || saveIssue || !context.allowed && account.status === "error";
     const working = !issue && status === "running";
     document.body.dataset.working = String(working);
@@ -170,12 +172,12 @@
       left = [["Organizations",account.counts?.organizations],["Workspaces",account.counts?.workspaces],["Projects",account.counts?.projects]];
       if (workspace) right = [["Workspace projects",workspace.projects],["Users with access",workspace.members]];
       else empty = t(account.status === "loading" ? "Loading account information…" : "No workspace selected");
-    } else empty = t("Access your projects and workspaces");
+    }
     statistics("left-statistics", left, context.allowed ? !!context.loading : account.status === "loading");
     statistics("right-statistics", right);
     $("account-empty").hidden = !empty; text("account-empty", empty);
     document.querySelector(".right").dataset.statistics = String(!hasVisual);
-    $("account-sign-in").hidden = !signIn;
+    $("account-sign-in").hidden = !signIn || signedOut;
     text("account-sign-in",t("Sign in"));
     if (signIn) { $("account-empty").hidden = true; document.querySelector(".visual").hidden = true; }
     const stages = {read:"Reading",write:"Applying changes",view:"Navigating",save:"Saving",preview:"Interacting with preview"};
@@ -211,11 +213,12 @@
     let compactPhase = phase;
     if (!hasActivity && !context.allowed) compactPhase = account.status === "ready" ? t("{count} projects",{count:account.counts.projects}) : signIn ? "" : t(account.status === "error" ? "Statistics unavailable" : "Loading…");
     else if (!hasActivity && context.mode === "preview" && !issue) compactPhase = t("Preview");
+    if (signedOut) { compactTitle = "Plasmic"; compactPhase = ""; }
     text("project",compactTitle);text("pill-context",compactPhase);
-    $("queue").hidden = !queued; text("queue",queued ? `+${queued}` : "");
+    $("queue").hidden = signedOut || !queued; text("queue",queued ? `+${queued}` : "");
     $("queue").title = t("{count} queued",{count:queued});$("queue").setAttribute("aria-label",$("queue").title);
     $("capsule-handle").title = [compactTitle,compactPhase,details].filter(Boolean).join(" · ");$("capsule-handle").setAttribute("aria-label",$("capsule-handle").title);
-    document.querySelector(".dot").hidden = !working && !issue;
+    document.querySelector(".dot").hidden = signedOut || !working && !issue;
   }
   function renderImage() {
     const image = state.image, valid = state.context.allowed && !!image && image.identity === state.context.identity;
@@ -294,7 +297,9 @@
   }
   $("update-install").onclick = () => { $("update-install").disabled = true; void send("update-install"); };
   $("update-later").onclick = $("update-dismiss").onclick = () => void send("update-close");
-  $("account-sign-in").onclick = () => void send("sign-in");
+  for (const button of [$("capsule-sign-in"), $("account-sign-in")]) {
+    button.onclick = () => void send("sign-in");
+  }
 
   $("update-retry").onclick = () => void send("update-check");
   const detail = $("issue-detail"), tooltip = $("issue-tooltip");

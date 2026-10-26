@@ -30,8 +30,8 @@ const cases=[
  ['account-loading',{context:{allowed:false,account:{status:'loading'}}}],
  ['statistics-loading',{context:{allowed:false,account:{status:'loading',user}}}],
  ['statistics-error',{context:{allowed:false,account:{status:'error',user}}}],
- ['signed-out',{context:{allowed:false,account:{status:'signed-out'}}}],
- ['signed-out-failure',{context:{allowed:false,account:{status:'signed-out'}},activity:op('resource','failed',{error:'Sign-in required'})}],
+ ['signed-out',{expanded:false,context:{allowed:false,account:{status:'signed-out'}}}],
+ ['signed-out-failure',{expanded:false,context:{allowed:false,account:{status:'signed-out'}},activity:op('resource','failed',{error:'Sign-in required'})}],
  ['resource',{context:{allowed:false,account},activity:op('resource','running',{label:'Generating image'})}],
  ...['idle','checking','available','downloading','downloaded','installing','current','disabled','error'].map(phase=>['update-'+phase,{updateOpen:true,update:{phase,currentVersion:'0.2.17',version:'0.2.18',percent:42}}]),
  ['install-waiting',{updateOpen:true,update:{phase:'installing',currentVersion:'0.2.17',version:'0.2.18'},updateWaiting:true}],
@@ -62,16 +62,18 @@ app.whenReady().then(async()=>{
     const errors=[];
     for(const node of document.querySelectorAll('button,.statistics,.identity,.info-footer'))if(visible(node)&&!within(node,shell))errors.push(node.id||node.className);
     if(!el('update-panel').hidden){for(const node of document.querySelectorAll('#update-panel button'))if(visible(node)&&(node.scrollWidth>node.clientWidth||node.scrollHeight>node.clientHeight))errors.push('update control clipping');}
-    else{
+    else if(el('shell').dataset.expanded==='true'){
      if(left.right>right.left||right.width!==144||main.top-shell.top!==34)errors.push('unstable columns');
      for(const stats of document.querySelectorAll('.statistics'))if(visible(stats)){const box=rect(stats.closest('.info,.right'));if(!within(stats,box)||stats.scrollHeight>stats.clientHeight)errors.push('statistics overflow');}
      if(!document.querySelector('.visual').hidden&&(Math.abs(visual.width/visual.height-16/9)>.001||visual.top-header.bottom<7||footer.top-visual.bottom<7))errors.push('preview ratio or spacing');
      const prefs=[...document.querySelectorAll('.preference')].filter(visible);if(!el('phase').hidden&&rect(el('phase')).left<rect(prefs.at(-1)).right)errors.push('footer collision');
     }
-    return {width:shell.width,height:shell.height,errors,phase:el('phase-text').textContent,heading:el('page').textContent,fit:getComputedStyle(el('mirror')).objectFit,signIn:!el('account-sign-in').hidden};
+    return {width:shell.width,height:shell.height,errors,phase:el('phase-text').textContent,heading:el('page').textContent,fit:getComputedStyle(el('mirror')).objectFit,signIn:visible(el('capsule-sign-in'))||visible(el('account-sign-in')),brand:el('project').textContent,compactSignIn:visible(el('capsule-sign-in'))};
    })()`);
    const label=appearance+'/'+locale+'/'+name;
-   assert.equal(result.width,360,label+' width');assert.equal(result.height,144,label+' height');assert.deepEqual(result.errors,[],label);
+   if(name.startsWith('signed-out')){assert.ok(result.width<=280,label+' compact width');assert.equal(result.height,40,label+' compact height');assert.equal(result.brand,'Plasmic',label+' brand');assert.ok(result.compactSignIn,label+' compact sign-in');}
+   else{assert.equal(result.width,360,label+' width');assert.equal(result.height,144,label+' height');}
+   assert.deepEqual(result.errors,[],label);
    assert.equal(result.fit,'contain',label+' image must not stretch');
    if(name==='stages')assert.equal(result.phase,task.stage,label+' real action');
    if(name==='task-failed')assert.equal(result.phase,messages['Task failed'],label+' failure priority');

@@ -433,7 +433,7 @@ async function startDesktop() {
     );
     presentation = createIsland({ getWindow: () => mainWindow, controller,
       i18n: desktopI18n, appearance: desktopAppearance, config,
-      signIn: () => unifiedAuth.show(),
+      signIn: () => unifiedAuth.begin(),
       changed: (mode) => {
         const menu = Menu.getApplicationMenu();
         const activeMode = menu?.getMenuItemById(`presentation-${mode}`);
@@ -748,17 +748,17 @@ function bootstrap() {
   if (!app.requestSingleInstanceLock()) {
     app.quit();
   } else {
-    const showDesktop = async (forceMain = false) => {
+    const showDesktop = async () => {
       await app.whenReady();
       const win = mainWindow || (await ensureDesktop());
-      await presentation.setMode(forceMain ? "window" : presentation.mode);
+      await presentation.setMode(presentation.mode);
       return win;
     };
     const handleAppCallback = async (url) => {
       if (!url.startsWith(APP_CALLBACK_URL + "?")) {
         return;
       }
-      await showDesktop(true);
+      await showDesktop();
       unifiedAuth?.login.acceptCallback(url);
     };
     app.on("second-instance", (_event, argv) => {

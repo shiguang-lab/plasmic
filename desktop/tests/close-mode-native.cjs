@@ -17,7 +17,7 @@ if (!process.versions.electron) {
       assert.equal(result.status, 0, result.error?.message || `Close-mode ${stage} failed`);
       assert.equal(JSON.parse(fs.readFileSync(path.join(profile, `passed-${stage}.json`))).passed, true);
     }
-    console.log("Close-mode native acceptance passed: cancel, remember/unremember, repeat close, cold start, temporary show, Dock/relaunch, explicit exit, preference changes and context-menu Quit.");
+    console.log("Close-mode native acceptance passed: cancel, remember/unremember, repeat close, cold start, temporary show, Dock/relaunch, browser login and callbacks with main hidden, explicit exit, preference changes and context-menu Quit.");
   } finally { fs.rmSync(profile, { recursive: true, force: true }); }
 } else {
   const { app, BrowserWindow, dialog, Menu, session } = require("electron");
@@ -27,6 +27,7 @@ if (!process.versions.electron) {
   const stage = process.argv[2];
   const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
   let main, shown = 0, prompt, prompts = 0, completed = false;
+  let authorization, signedIn = false, ticketReturnUrl;
   const timeout = setTimeout(() => { console.error("Close-mode stage timed out:", stage); app.exit(1); }, 35000);
   const preference = () => JSON.parse(fs.readFileSync(path.join(profile, "presentation.json")));
   async function until(check, label) {
@@ -56,6 +57,19 @@ if (!process.versions.electron) {
   });
   const originalLoad = Module._load;
   Module._load = function (request, parent, isMain) {
+    if (request === "./open-browser.cjs" && parent.filename.endsWith("/src/main.cjs")) {
+      return { openBrowser: async url => { authorization = new URL(url); } };
+    }
+    if (request === "./session-ticket.cjs" && parent.filename.endsWith("/src/unified-login.cjs")) {
+      // IAM is a fixture; the OAuth flow, protocol events, cookies and windows are real.
+      return { consumeSessionTicket: async ({ session: ses, url, returnUrl }) => {
+        assert.equal(url, "https://shiguanglab.com/oauth/web-session?ticket=fixture");
+        assert.equal(returnUrl, ticketReturnUrl);
+        signedIn = true;
+        await ses.cookies.set({ url: config.studioOrigin, name: "session", value: "island-login-fixture", httpOnly: true, secure: true });
+        await ses.cookies.flushStore();
+      } };
+    }
     if (request === "./asset-handler.cjs" && parent.filename.endsWith("/src/main.cjs")) {
       return { createAssetHandler: () => async () => new Response(`<html><body>Close-mode fixture<script>
         addEventListener('message',event=>{
@@ -70,7 +84,26 @@ if (!process.versions.electron) {
   Module._load = originalLoad;
   app.whenReady().then(async () => {
     const ses = session.fromPartition("persist:plasmic-desktop");
-    ses.fetch = async () => Response.json({ authenticated: true });
+    ses.fetch = async (request, init) => {
+      const url = new URL(typeof request === "string" ? request : request.url);
+      if (url.pathname === "/oauth/token") {
+        const form = new URLSearchParams(init.body);
+        assert.equal(form.get("grant_type"), "authorization_code");
+        assert.equal(form.get("code"), "c".repeat(43));
+        const { createHash } = require("node:crypto");
+        assert.equal(createHash("sha256").update(form.get("code_verifier")).digest("base64url"), authorization.searchParams.get("code_challenge"));
+        return Response.json({ token_type: "Bearer", access_token: "fixture-access", refresh_token: "fixture-refresh", expires_in: 900 });
+      }
+      if (url.pathname === "/oauth/web-session-ticket") {
+        assert.equal(init.headers.Authorization, "Bearer fixture-access");
+        ticketReturnUrl = new URLSearchParams(init.body).get("return_to");
+        return Response.json({ url: "https://shiguanglab.com/oauth/web-session?ticket=fixture" });
+      }
+      if (url.pathname === "/api/v1/auth/self") return Response.json({ user: signedIn ? { id: "island-user", firstName: "浏览器登录账号" } : null });
+      if (url.pathname === "/api/v1/app-ctx") return Response.json({ teams: [], workspaces: [] });
+      if (url.pathname === "/api/v1/projects") return Response.json({ projects: [] });
+      return Response.json({ authenticated: true });
+    };
     await until(() => main && !main.webContents.isLoadingMainFrame() && fs.existsSync(path.join(profile, "presentation.json")), "main app startup");
     await until(() => Menu.getApplicationMenu()?.getMenuItemById("close-action-ask"), "native menu ready");
     const island = () => BrowserWindow.getAllWindows().find((win) => win !== main && win.webContents.getURL().endsWith("/island.html"));
@@ -150,11 +183,29 @@ if (!process.versions.electron) {
       assert.equal(main.isVisible(),true,"reopening keeps an explicitly opened main window visible");
       assert.equal(island().isVisible(),false,"relaunch cannot reopen island beside main");
       main.close();await waitIsland();assert.equal(prompts,0,"temporary main closes back to island without a dialog");
-      await until(async()=>await island().webContents.executeJavaScript("!document.getElementById('account-sign-in').hidden"),"signed-out island offers sign-in");
-      await island().webContents.executeJavaScript("document.getElementById('account-sign-in').click();true");
-      await until(()=>main.isVisible() && !island().isVisible() && new URL(main.webContents.getURL()).pathname==='/desktop/unified-login',"sign-in switches exclusively to the existing main-window login page");
-      assert.equal(preference().mode,"window");assert.equal(preference().closeAction,"island","sign-in retains the remembered closing preference");
-      main.close();await waitIsland();assert.equal(prompts,0,"login window closes back to island without a dialog");
+      await until(async()=>await island().webContents.executeJavaScript("!document.getElementById('capsule-sign-in').hidden"),"signed-out island offers sign-in");
+      const shownBeforeLogin = shown;
+      const loginMainUrl = main.webContents.getURL();
+      await island().webContents.executeJavaScript("document.getElementById('capsule-sign-in').click();true");
+      await until(()=>authorization,"island opens browser authorization directly");
+      assert.equal(authorization.origin,"https://shiguanglab.com");
+      assert.equal(authorization.pathname,"/oauth/authorize");
+      assert.equal(main.webContents.getURL(),loginMainUrl,"starting browser login does not navigate the hidden main window");
+      assert.equal(main.isVisible(),false);assert.equal(island().isVisible(),true);
+      const callback = new URL("plasmic-desktop://oauth/callback");
+      callback.searchParams.set("state",authorization.searchParams.get("state"));
+      callback.searchParams.set("code","c".repeat(43));
+      // Both platform entry points must preserve the same presentation mode.
+      app.emit("open-url",{preventDefault(){}},callback.href);
+      app.emit("second-instance",{},["Plasmic",callback.href]);
+      await until(async()=>await island().webContents.executeJavaScript("document.getElementById('capsule-sign-in').hidden && document.getElementById('user-name').textContent==='浏览器登录账号'"),"browser callback authenticates the island account");
+      assert.equal(preference().mode,"island");assert.equal(preference().closeAction,"island","sign-in retains the remembered closing preference");
+      assert.equal(shown,shownBeforeLogin,"neither login nor browser callback shows the main window");
+      assert.equal(main.isVisible(),false);assert.equal(island().isVisible(),true);
+      if(process.platform === "darwin")assert.equal(app.dock.isVisible(),false,"browser callback keeps the Dock hidden");
+      assert.equal(prompts,0,"browser login does not trigger a close prompt");
+      // Later cold-start stages own their own session fixture.
+      fs.rmSync(path.join(profile,"device-session.json"),{force:true});
       pass();menu.getMenuItemById("island-quit").click();
     } else if(stage === "exit") {
       await waitIsland();

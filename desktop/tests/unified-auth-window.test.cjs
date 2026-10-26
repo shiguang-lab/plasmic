@@ -19,6 +19,30 @@ function window() {
   win.isDestroyed = () => false;
   return win;
 }
+test("island login opens the browser without a main-window prompt and completes in the background", async () => {
+  const win = window();
+  win.show = win.focus = () => assert.fail("Island login must keep the main window hidden");
+  let finish, starts = 0, opened;
+  const callback = new Promise(resolve => { finish = resolve; });
+  const auth = new UnifiedAuthWindow(win, origin, url => { opened = url; }, {
+    start: async ({ openBrowser }) => {
+      starts++;
+      await openBrowser("https://shiguanglab.com/oauth/authorize");
+      await callback;
+    },
+  });
+  const signingIn = auth.begin();
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(opened,"https://shiguanglab.com/oauth/authorize");
+  assert.equal(auth.status.phase,"waiting");
+  assert.deepEqual(win.loads,[],"Browser authorization starts without loading the main-window login page");
+  await auth.begin();
+  assert.equal(starts,1,"Repeated island clicks share the pending browser authorization");
+  finish();
+  await signingIn;
+  assert.deepEqual(win.loads,[origin + "/"]);
+  assert.equal(auth.status.phase,"success");
+});
 test("central return_to reaches the original project in the same window", async () => {
   const win = window();
   win.show = win.focus = () =>

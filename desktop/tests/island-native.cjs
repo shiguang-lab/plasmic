@@ -114,7 +114,8 @@ app.whenReady().then(async () => {
     if (url === "/api/v1/workspaces/w") return {workspace:{team:{id:"team"}},perms:[{userId:accountData.user?.id,teamId:"team",accessLevel:"owner"}]};
     return requestStudio(url,input,signal);
   };
-  presentation = createIsland({ getWindow: () => main, controller, config: { studioOrigin: origin }, i18n, appearance });
+  let signInCalls = 0;
+  presentation = createIsland({ signIn: () => { signInCalls++; }, getWindow: () => main, controller, config: { studioOrigin: origin }, i18n, appearance });
   presentation.attach(main);
   await main.loadURL(origin + "/projects/p");
   await until(async () => (await controller.state()).ready, "editor bridge ready");
@@ -352,12 +353,13 @@ app.whenReady().then(async () => {
   main.webContents.session.cookies.emit("changed",{},cookie,"explicit",false);
   assert.equal(presentation.snapshot().context.account.user,undefined,"auth changes synchronously clear the old account");
   await until(async () => await inspect("document.getElementById('user-name').textContent!=='演示账号' && document.getElementById('left-statistics').hidden"),"logout removes identity and totals");
-  await until(async () => await inspect("!document.getElementById('account-sign-in').hidden"),"signed-out account offers sign-in");
+  await until(async () => await inspect("!document.getElementById('capsule-sign-in').hidden"),"signed-out account offers sign-in");
   for (const locale of ["en","zh-CN","zh-TW","ja","ko"]) {
     i18n.setLocale(locale);
-    await until(async () => await inspect(`document.getElementById('account-sign-in').textContent===${JSON.stringify(i18n.t("Sign in"))}`), `${locale} sign-in action localizes`);
+    await until(async () => await inspect(`document.getElementById('capsule-sign-in').textContent===${JSON.stringify(i18n.t("Sign in"))}`), `${locale} sign-in action localizes`);
+    await until(async()=>await inspect("Math.abs(document.getElementById('shell').getBoundingClientRect().width-Math.min(280,document.getElementById('capsule').scrollWidth+2))<.1 && document.getElementById('shell').getBoundingClientRect().height===40"),`${locale} login capsule settles`);
     assert.equal(await inspect(`(() => {
-      const button=document.getElementById('account-sign-in'),b=button.getBoundingClientRect(),right=document.querySelector('.right').getBoundingClientRect();
+      const button=document.getElementById('capsule-sign-in'),b=button.getBoundingClientRect(),right=document.getElementById('shell').getBoundingClientRect();
       return b.width>0 && button.scrollWidth<=button.clientWidth && b.left>=right.left && b.top>=right.top && b.bottom<=right.bottom && b.right<=right.right;
     })()`),true,`${locale} sign-in button fits without overlap`);
   }
@@ -641,6 +643,24 @@ app.whenReady().then(async () => {
   assert.equal(main.isVisible(),false);
   assert.equal(checks,1);assert.equal(downloads,1);
   passed.push("shared update manager across standard/island modes; background ring, fixed-size confirmation/progress, Later and no main-window reveal; install drains MCP, closes Preview and saves before restart");
+  await presentation.setMode("window");
+  await main.loadURL(origin + "/login");
+  await presentation.setMode("island");
+  await until(async()=>await inspect("!document.getElementById('capsule-sign-in').hidden && document.getElementById('shell').dataset.expanded==='false'"),"login capsule stays compact");
+  await delay(600);
+  const [loginX,loginY] = island.getPosition();
+  cursor = {x:loginX+228,y:loginY+30};
+  await delay(500);
+  assert.equal(presentation.snapshot().expanded,false,"signed-out native hover cannot expand");
+  assert.equal(await inspect("document.getElementById('shell').dataset.expanded"),"false");
+  assert.equal(await inspect("document.getElementById('project').textContent"),"Plasmic");
+  fs.writeFileSync(path.join(reportDir,"signed-out-capsule.png"),(await island.webContents.capturePage()).toPNG());
+  await inspect("document.getElementById('capsule-sign-in').click();true");
+  await until(()=>signInCalls===1,"login link invokes the existing sign-in flow");
+  assert.equal(main.isVisible(),false,"login link keeps the main window hidden");
+  assert.equal(presentation.mode,"island");
+  cursor = {x:-10000,y:-10000};
+  passed.push("signed-out capsule keeps the Plasmic brand and localized login link; native hover stays compact; login invokes sign-in while the main window stays hidden");
   const entering = presentation.setMode("fullscreen");
   await until(() => main.listenerCount("enter-full-screen") > 1, "fullscreen transition starts");
   main.close();

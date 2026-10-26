@@ -97,7 +97,9 @@ test('account totals are on the left and selected workspace counts on the right 
  ui.send({activity:{operation:{kind:'resource',phase:'running',label:'Creating project',subject:'New orders'}}});
  assert.equal(ui.el('phase-text').textContent,'Creating project');assert.equal(ui.el('page').textContent,'Team · Work');assert.deepEqual(numbers(ui,'right-statistics'),['6','8']);
  ui.send({context:{allowed:false,account:{status:'signed-out'}},activity:{}});
- assert.deepEqual(numbers(ui,'left-statistics'),[]);assert.deepEqual(numbers(ui,'right-statistics'),[]);assert.equal(ui.el('user-name').textContent,'Signed out');assert.equal(ui.el('account-sign-in').hidden,false);
+ assert.deepEqual(numbers(ui,'left-statistics'),[]);assert.deepEqual(numbers(ui,'right-statistics'),[]);assert.equal(ui.el('user-name').textContent,'Signed out');assert.equal(ui.el('account-sign-in').hidden,true);
+ assert.equal(ui.el('capsule-sign-in').hidden,false);assert.equal(ui.el('project').textContent,'Plasmic');assert.equal(ui.el('shell').dataset.expanded,'false');
+ ui.el('capsule-sign-in').click();await flush();assert.equal(ui.commands.at(-1),'sign-in');
 });
 test('missing statistics never become zero and no-canvas resources swap sides in the fixed grid',async(t)=>{
  const ui=await fixture(t);ui.send({context:{allowed:false,account:{status:'loading'}}});assert.deepEqual(numbers(ui,'left-statistics'),['—','—','—']);

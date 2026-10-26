@@ -48,7 +48,8 @@ function createIsland({ getWindow, controller, i18n, appearance, config, signIn,
   }
   function publish() {
     const wasExpanded = expanded;
-    expanded = mode === "island" && (updateOpen || controller.activity.keepExpanded() || inside || performance.now() < hoverUntil);
+    const signedOut = !context.allowed && account.snapshot().status === "signed-out";
+    expanded = mode === "island" && (updateOpen || !signedOut && (controller.activity.keepExpanded() || inside || performance.now() < hoverUntil));
     if (wasExpanded && !expanded) {
       mirror.close(controller.activity.snapshot(context.projectId, context.sessionId).operation, framingOperations());
       image = null; stale = false;
@@ -76,7 +77,7 @@ function createIsland({ getWindow, controller, i18n, appearance, config, signIn,
     const pathname = state.url ? new URL(state.url).pathname : "";
     const routeProject = pathname.match(/^\/projects\/([^/]+)/)?.[1] || null;
     const actual = currentContext({ ...state, projectId: state.projectId ?? routeProject }, config.studioOrigin), editor = state.editorContext || {};
-    // Routes govern image eligibility only; call lifetime and hover own the shape.
+    // Editor routes govern image eligibility; signed-out accounts stay compact.
     const loading = !actual.ready || !actual.mode || !!actual.sessionProjectId || !!actual.routeProjectId;
     const allowed = actual.surface === "editor" && (loading || actual.mode !== "preview" || actual.previewKind === "in-app");
     const sameProject = actual.projectId === context.projectId;
@@ -270,7 +271,7 @@ function createIsland({ getWindow, controller, i18n, appearance, config, signIn,
     if (command === "menu") { menu(window); return { mode }; }
     if (command === "state") return snapshot();
     if (command === "show-main") return showMainWindow();
-    if (command === "sign-in") { await showMainWindow(); return signIn(); }
+    if (command === "sign-in") return signIn();
     if (command === "update-open") { openUpdates(); return; }
     if (command === "update-check") {
       if (!updateOpen || updates?.state.phase !== "error") throw new Error("Update retry is not available");
