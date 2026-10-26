@@ -8,6 +8,13 @@ Library: [Ant Design v6](../index.md).
 
 ## Generation rules
 
+### Design defaults
+
+- Use for a workflow with three to five ordered stages that the user moves through.
+- Horizontal, at the top of the step-form Page, outside any Card; titles are short stage nouns; the current stage comes from the workflow state.
+
+### Usage and behavior
+
 Preserve the installed Ant Design default current step unless the requirement supplies an explicit value. Registration hints must not seed a different runtime current step.
 
 ### Stages and outcomes

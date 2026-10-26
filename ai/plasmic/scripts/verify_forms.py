@@ -10,7 +10,8 @@ Expect {"pages": [{"path": "/records", "forms": [{"name": "Form", "formLayout": 
 Rules are matched by their specified keys. Omit tooltip when none is expected.
 Required formLayout checks native Form layout. A non-default direction needs a
 structured layoutReason: {"kind":"source","evidence":{path,sha256,quote}} quoting a
-source that states the label direction, or {"kind":"measurement","labelWidth":n,
+source that states the label direction, {"kind":"reference","referenceId":id,
+"evidence":{path,sha256,quote}} selecting a verified visual source, or {"kind":"measurement","labelWidth":n,
 "controlMinWidth":n,"regionWidth":n} where the measured label crowds the control.
 Free-text justifications are rejected; if no such evidence exists, use the default.
 Width ownership is checked on
@@ -20,8 +21,10 @@ Optional field validateFirst and
 description check ordered validation and persistent Form.Item instructions.
 Optional descriptionPlacement=afterControl plus descriptionNode checks inline secondary
 Typography after the direct control, without duplicated native extra.
-Optional form layout specifies container, columns, columnGap and paired rows
-[{container, fields: [nodeName, ...]}]; fields specify full-row or single-column span.
+A Page Form (outside Modal/Drawer) with two or more fields requires layout
+{container, columns, gutter}: one registered Row whose Cols each hold one Item
+(span 24/columns, or 24 for a full-row field). Overlay or authored CSS-grid
+layouts specify container, columns, columnGap and rows [{container, fields}].
 All project Pages and business Forms must be inventoried, including empty-form Pages.
 Standalone controls require {nodeName, reason} entries in page.standaloneControls.
 This checks the saved component contract, not runtime validation or geometry.
@@ -31,6 +34,7 @@ from reusable inventories. Missing or ambiguous selectors never fall back silent
 """
 import argparse
 import json
+import math
 import re
 from collections import Counter
 from pathlib import Path
@@ -40,25 +44,94 @@ from verify_slots import Tree, walk
 LAYOUT_QUOTE = re.compile(r"横向|纵向|水平|垂直|标签|label|column|列|stacked|side-by-side|inline", re.I)
 
 
-MODAL_WIDTHS = (520, 640, 720, 800)
+PAGE_FORM_RULE = "references/libraries/antd_v6/compositions/form-layout.md#page-form-structure"
+# Registered controls whose native styles fill the Form.Item control column (verified in rendered bounds).
+DEFAULT_FILL = {"plasmicantd6input", "plasmicantd6inputpassword", "plasmicantd6textarea", "plasmicantd6select"}
 
 
-def modal_layout_problems(expected, layout, root, form):
+def row_col_problems(rows, layout, fields):
+    """Rows own every field in reading order (one Row, or one per field group):
+    one Item per Col and uniform short-field spans."""
     problems = []
-    raw_width = layout.get("modalWidth")
-    width = int(str(raw_width).replace("px", "")) if str(raw_width).replace("px", "").isdigit() else None
     columns = layout.get("columns")
-    if width not in MODAL_WIDTHS:
-        problems.append(f"Overlay Form must record modalWidth in {MODAL_WIDTHS}")
+    if columns not in (1, 2, 3, 4):
+        return ["Row/Col field layout needs columns 1-4 (three for a Page Form)"]
+    cols = []
+    for row in rows:
+        gutter = props(row).get("gutter")
+        gutter = gutter[0] if isinstance(gutter, list) and gutter else gutter
+        if gutter != layout.get("gutter", 16):
+            problems.append(f"Field Row {node_name(row)} gutter must be {layout.get('gutter', 16)}")
+        if props(row).get("wrap") is False:
+            problems.append("Field Row must wrap so every row shares the same Col edges")
+        if styles(row).get("max-width", "").strip() != "none":
+            problems.append("Field Row needs max-width:none; Row gutter uses negative margins and a 100% cap shifts its right edge")
+        cols.extend(n for n in (slot(row, "children") or {"children": []})["children"] if n["tag"] != "text")
+    placed = []
+    for col in cols:
+        if identity(col) != "plasmicantd6col":
+            problems.append(f"Field Row children must be Cols, found {node_name(col) or identity(col)}; do not nest per-line rows")
+            continue
+        inner = [n for n in (slot(col, "children") or {"children": []})["children"] if n["tag"] != "text"]
+        if len(inner) != 1 or identity(inner[0]) != "plasmicantd6formitem":
+            problems.append(f"Col {node_name(col)} must hold exactly one Form.Item")
+            continue
+        placed.append((node_name(inner[0]), props(col).get("span")))
+    expected = [f["nodeName"] for f in fields]
+    if [name for name, _ in placed] != expected:
+        problems.append(f"Field Row must hold every field once in reading order: {[n for n, _ in placed]} != {expected}")
+    spans = {f["nodeName"]: f.get("span", 1) for f in fields}
+    for name, span in placed:
+        want = 24 if spans.get(name) == columns else 24 // columns
+        if spans.get(name) not in (1, columns):
+            problems.append(f"Field {name} span must be 1 or {columns} (full row)")
+        elif span != want:
+            problems.append(f"Col for {name} must use span {want} ({'full row' if want == 24 else f'{columns} per row'})")
+    return problems
+
+
+def pixel_dimension(value):
+    if type(value) in (int, float):
+        return value if math.isfinite(value) and value > 0 else None
+    if isinstance(value, str) and re.fullmatch(r"(?:\d+(?:\.\d+)?|\.\d+)(?:px)?", value.strip()):
+        number = float(value.strip().removesuffix("px"))
+        return number if number > 0 else None
+    return None
+
+
+def valid_dimension(value, drawer=False):
+    if pixel_dimension(value) is not None:
+        return True
+    if not isinstance(value, str):
+        return False
+    value = value.strip()
+    if drawer and value in {"default", "large"}:
+        return True
+    return bool(re.fullmatch(r"(?:\d+(?:\.\d+)?|\.\d+)(?:%|em|rem|ex|ch|vw|vh|vmin|vmax|[dsl]v[wh]|cm|mm|in|pt|pc)", value)
+                and float(re.match(r"[\d.]+", value).group()) > 0
+                or re.fullmatch(r"(?:calc|min|max|clamp|var)\(.+\)", value))
+
+
+def overlay_layout_problems(layout, root, form):
+    problems = []
+    overlay = owning_overlay(root, form)
+    drawer = overlay is not None and identity(overlay) == "plasmicantd6drawer"
+    key, native = ("drawerSize", "size") if drawer else ("modalWidth", "width")
+    raw_width = layout.get(key)
+    width = pixel_dimension(raw_width)
+    columns = layout.get("columns")
+    if not valid_dimension(raw_width, drawer):
+        problems.append(f"Overlay Form must record a valid {key}: positive pixels, CSS length" + (" or default/large preset" if drawer else ""))
+    actual = props(overlay).get(native, "default" if drawer else 520) if overlay is not None else None
+    if actual != raw_width and not (width is not None and pixel_dimension(actual) == width):
+        problems.append(f"Wrong Form {'Drawer size' if drawer else 'Modal width'}")
     if columns not in (1, 2):
         problems.append("Overlay Form uses one or two columns")
-    if columns == 2 and width is not None and width < 720:
-        problems.append("Two-column Overlay Form needs at least 720px width")
-    parents = {id(child): parent for parent in walk(root) for child in parent["children"]}
-    modal = next((n for n in walk(root) if identity(n) == "plasmicantd6modal" and form in list(walk(n))), None)
-    if modal is None:
+    # Native size alone cannot establish control width (padding, placement and content vary).
+    # The rendering gate verifies fit; recommended size tiers are composition defaults.
+    if drawer or overlay is None:
         return problems
-    for child in (slot(modal, "children") or {}).get("children", []):
+    for child in (slot(overlay, "children") or {}).get("children", []):
         stack = [child]
         while stack:
             node = stack.pop()
@@ -71,14 +144,18 @@ def modal_layout_problems(expected, layout, root, form):
     return problems
 
 
-def inside_overlay(root, node):
+def owning_overlay(root, node):
     parents = {id(child): parent for parent in walk(root) for child in parent["children"]}
     cursor = parents.get(id(node))
     while cursor is not None:
         if identity(cursor) in {"plasmicantd6modal", "plasmicantd6drawer"}:
-            return True
+            return cursor
         cursor = parents.get(id(cursor))
-    return False
+    return None
+
+
+def inside_overlay(root, node):
+    return owning_overlay(root, node) is not None
 
 
 def normalize_copy(text):
@@ -164,10 +241,37 @@ def copy_triage_problem(field):
     return None
 
 
+def measurement_problem(value):
+    """measuredPx comes from a retained snapshot_layout capture, not from arithmetic or memory."""
+    import hashlib
+    if not isinstance(value, dict) or not isinstance(value.get("path"), str) or not isinstance(value.get("sha256"), str):
+        return ("labelWidth.measuredFrom needs {path, sha256} of the snapshot_layout capture the label was measured in; "
+                "plan with estimatedPx, render, then measure")
+    path = Path(value["path"])
+    if not path.is_absolute() or not path.is_file():
+        return "labelWidth.measuredFrom must identify an existing absolute layout capture"
+    if hashlib.sha256(path.read_bytes()).hexdigest() != value["sha256"]:
+        return "The layout capture changed after measurement; remeasure the label"
+    return None
+
+
 def label_width_problem(label_width, has_tooltip):
+    """labelWidth is the rendered width of the longest label (text, required mark,
+    colon and any help icon) plus at least 8px, measured in a retained layout
+    capture (measuredFrom). A decomposition, when supplied, must add up."""
     if not isinstance(label_width, dict):
-        return "Grid Form needs labelWidth {longestLabel, labelTextPx, requiredMarkPx, helpIconPx, measuredPx}"
-    parts = [label_width.get(k) for k in ("labelTextPx", "requiredMarkPx", "helpIconPx", "paddingPx", "measuredPx")]
+        return "Grid Form needs labelWidth {longestLabel, measuredPx, measuredFrom}"
+    measured = label_width.get("measuredPx")
+    if not isinstance(measured, (int, float)) or measured <= 0:
+        return ("labelWidth needs a positive measuredPx: the rendered longest label including its required mark, "
+                "colon and help icon, plus at least 8px")
+    problem = measurement_problem(label_width.get("measuredFrom"))
+    if problem:
+        return problem
+    decomposition = ("labelTextPx", "requiredMarkPx", "helpIconPx", "paddingPx")
+    if not any(k in label_width for k in decomposition):
+        return None
+    parts = [label_width.get(k) for k in (*decomposition, "measuredPx")]
     if not all(isinstance(n, (int, float)) and n >= 0 for n in parts):
         return "labelWidth needs non-negative labelTextPx, requiredMarkPx, helpIconPx, paddingPx and measuredPx"
     label, mark, icon, padding, measured = parts
@@ -259,13 +363,63 @@ def width_reason_problem(reason):
     return 'controlWidthReason kind must be "source" or "measurement"; prose justifications are not accepted'
 
 
-def layout_reason_problem(reason, direction, default):
-    """Reject prose justifications; require source or measurement evidence."""
+def reference_layout_problem(reason, direction, context, form_name):
+    """Check source selection and retained reference evidence, not image semantics."""
+    from verify_component_policy import source_text
+    from verify_references import reference_problems
+    try:
+        source_text(reason.get("evidence"))
+    except (ValueError, OSError, UnicodeError) as error:
+        return f"layoutReason source selection evidence is unusable: {error}"
+    if not context or not isinstance(context.get("page"), dict):
+        return ("Reference layoutReason needs the current Page's reference inventory and evidence; "
+                "configure suite references or pass --references-inventory and --references-evidence")
+    page = context["page"]
+    refs = [ref for ref in page.get("references", []) if ref.get("id") == reason.get("referenceId")]
+    if len(refs) != 1:
+        return "Reference layoutReason must identify one existing referenceId on the current Page"
+    ref = refs[0]
+    problems = reference_problems(ref, context.get("evidence", {}))
+    if problems:
+        return "Reference layoutReason evidence is unusable: " + "; ".join(problems)
+    quote = reason["evidence"]["quote"]
+    # A mention of a file is not a user decision to use it for presentation.
+    # Generic '.pen' selects a source only when this Page has one source file.
+    source_name = Path(ref["filePath"]).name
+    source_files = {r.get("filePath") for r in page.get("references", [])}
+    source_token = re.escape(ref["filePath"]) + "|" + re.escape(source_name)
+    if len(source_files) == 1:
+        source_token += r"|(?<![A-Za-z0-9_.-])\.pen(?![A-Za-z0-9_.-])"
+    source_token = "(?:" + source_token + ")"
+    selects = re.search(r"以[^。；;,，\n]*" + source_token + r"[^。；;,，\n]*为准|"
+                        r"(?:按照|按|遵循|参照|还原|复现)\s*[`\"']?" + source_token + r"|"
+                        r"(?:follow|match|reproduce|use)\s+(?:the\s+)?(?:attached\s+)?[`\"']?" + source_token, quote, re.I)
+    # Negation must govern the matched source-selection verb, not another
+    # instruction elsewhere in the quote (for example, "do not change content").
+    negates = selects and re.search(r"(?:不要|不能|无需|不得|不必|不|别)\s*$|\b(?:do\s+not|don't|not|never)\s*$",
+                                    quote[:selects.start()], re.I)
+    if not selects or negates:
+        return "Reference layoutReason source quote must explicitly select this visual source for presentation"
+    regions = [region for region in page.get("regions", [])
+               if region.get("referenceId") == ref["id"] and form_name in region.get("nodeNames", [])]
+    patterns = {"vertical": r"纵向|垂直|vertical|stacked", "horizontal": r"横向|水平|horizontal|side-by-side", "inline": r"inline|行内"}
+    if len(regions) != 1 or not isinstance(regions[0].get("decision"), str):
+        return "Reference layoutReason needs one reviewed source region mapped to this Form's actual node name"
+    decision = regions[0]["decision"]
+    if not re.search(r"标签|labels?", decision, re.I) or not re.search(patterns[direction], decision, re.I):
+        return "Reference region decision must record the reviewed Form label direction and native adaptation"
+    return None
+
+
+def layout_reason_problem(reason, direction, default, reference_context=None, form_name=None):
+    """Reject prose justifications; require source, reference or measurement evidence."""
     if not isinstance(reason, dict):
         return (f"Non-default Form layout ({direction}) needs structured layoutReason evidence, not prose "
                 f"(default is {default}). Set layout={default}, or provide "
-                '{"kind":"source","evidence":{path,sha256,quote}} or {"kind":"measurement",...}.')
+                '{"kind":"source","evidence":{path,sha256,quote}}, a verified reference, or {"kind":"measurement",...}.')
     kind = reason.get("kind")
+    if kind == "reference":
+        return reference_layout_problem(reason, direction, reference_context, form_name)
     if kind == "source":
         from verify_component_policy import source_text
         try:
@@ -286,7 +440,7 @@ def layout_reason_problem(reason, direction, default):
             return ("Measured widths do not show crowding (labelWidth + controlMinWidth <= regionWidth); "
                     f"use the default layout={default}")
         return None
-    return ('layoutReason kind must be "source" or "measurement"; prose justifications are not accepted')
+    return ('layoutReason kind must be "source", "reference" or "measurement"; prose justifications are not accepted')
 
 
 class TextTree(Tree):
@@ -373,7 +527,45 @@ def fills_width(node, parent):
     return css.get("display") in {"block", "flex", "grid"} or node["tag"] in {"div", "section", "form"}
 
 
-def check_form_layout(root, form, expected):
+def page_form_problems(root, form, expected_form, layout):
+    """Label width, alignment, column count and copy budget for a page (non-overlay) Form."""
+    failures = []
+    label_width = expected_form.get("labelWidth")
+    horizontal = expected_form.get("formLayout") == "horizontal"
+    if layout and not inside_overlay(root, form):
+        if not horizontal:
+            pass  # Vertical labels have no shared label column to measure.
+        elif not (isinstance(label_width, dict) and isinstance(label_width.get("longestLabel"), str)):
+            failures.append("Horizontal Page Form needs labelWidth {longestLabel, measuredPx}")
+        else:
+            problem = label_width_problem(label_width, any(f.get("tooltip") for f in expected_form["fields"]))
+            if problem:
+                failures.append(problem)
+            else:
+                label_col = props(form).get("labelCol")
+                flex = label_col.get("flex") if isinstance(label_col, dict) else None
+                if flex != f'{int(label_width["measuredPx"])}px':
+                    failures.append(f"Native labelCol must be {{flex: \"{int(label_width['measuredPx'])}px\"}} to match the measured label width")
+        align = expected_form.get("labelAlign", "right")
+        native_align = props(form).get("labelAlign", "right")
+        if horizontal and native_align != align:
+            failures.append("Native labelAlign must match the recorded alignment")
+        if horizontal and align != "right":
+            problem = alignment_reason_problem(expected_form.get("labelAlignReason"))
+            if problem:
+                failures.append(problem)
+        budget = description_budget_problem(layout.get("columns"), expected_form["fields"])
+        if budget:
+            failures.append(budget)
+        failures.extend(copy_coverage_problem(expected_form))
+        if layout.get("columns") != 3:
+            problem = columns_reason_problem(expected_form.get("columnsReason"))
+            if problem:
+                failures.append(problem)
+    return failures
+
+
+def check_form_layout(root, form, expected, reference_context=None):
     nodes = list(walk(root))
     parents = {id(child): node for node in nodes for child in node["children"]}
 
@@ -399,7 +591,7 @@ def check_form_layout(root, form, expected):
         errors.append({"error": "Wrong native Form layout"})
     reason = expected.get("layoutReason")
     if valid_direction and direction != default:
-        problem = layout_reason_problem(reason, direction, default)
+        problem = layout_reason_problem(reason, direction, default, reference_context, expected.get("name"))
         if problem:
             errors.append({"error": problem, "rule": "references/libraries/antd_v6/compositions/form-layout.md#layout-ownership"})
 
@@ -507,7 +699,12 @@ def resolve_pages(planned, inventory):
     return resolved
 
 
-def check(expectations, overview, readback):
+def check(expectations, overview, readback, references=None):
+    from plan_inventories import pending_count
+    pending = pending_count(expectations)
+    if pending:
+        return {"passed": False, "checkedFields": 0,
+                "errors": [{"error": "Decide every __DECIDE__ value in the Form inventory before verification", "pending": pending}]}
     errors = []
     checked = 0
     planned = expectations.get("pages", [])
@@ -516,9 +713,12 @@ def check(expectations, overview, readback):
     if len(projects) != 1:
         errors.append({"error": "Exactly one public MCP Project overview required"})
     inventory = [m for m in projects[0].get("components", []) if m.get("type") == "page"] if len(projects) == 1 else []
+    reference_pages = {}
     try:
         planned = resolve_pages(planned, inventory)
-    except ValueError as error:
+        if references is not None:
+            reference_pages = {page["componentUuid"]: page for page in resolve_pages(references["inventory"]["pages"], inventory)}
+    except (ValueError, KeyError, TypeError) as error:
         return {"passed": False, "checkedFields": 0, "errors": errors + [{"error": str(error)}]}
     expected_ids = [p.get("componentUuid") for p in planned]
     if not planned or len(set(expected_ids)) != len(expected_ids) or not all(expected_ids):
@@ -561,24 +761,69 @@ def check(expectations, overview, readback):
                 errors.append({"page": model["uuid"], "form": form_name, "error": "Form.Item inventory requires effective mode=advanced; simplified mode renders formItems instead of children"})
                 continue
             errors.extend({"page": model["uuid"], "form": form_name, **error}
-                          for error in check_form_layout(root, form, expected_form))
+                          for error in check_form_layout(root, form, expected_form,
+                              {"page": reference_pages.get(model["uuid"]), "evidence": references.get("evidence", {})} if references else None))
             form_children = slot(form, "children")
-            items = [n for n in walk(form_children or {"children": []}) if identity(n) == "plasmicantd6formitem"]
+            # Native unnamed Items can align action buttons without owning a value.
+            # Keep unnamed editable controls in the field comparison so a missing
+            # field name still fails rather than becoming an action-only Item.
+            items = [n for n in walk(form_children or {"children": []}) if identity(n) == "plasmicantd6formitem"
+                     and (props(n).get("name") is not None
+                          or any(editable(child) for child in walk(slot(n, "children") or {"children": []})))]
             actual_keys = [props(n).get("name") for n in items]
             expected_keys = [f["name"] for f in expected_form["fields"]]
             if len(set(expected_keys)) != len(expected_keys) or Counter(actual_keys) != Counter(expected_keys):
                 errors.append({"page": model["uuid"], "form": form_name, "error": "Field key inventory mismatch", "expected": expected_keys, "actual": actual_keys})
             layout = expected_form.get("layout")
+            if isinstance(layout, dict) and any(key in layout for key in ("modalWidth", "drawerSize")) and not inside_overlay(root, form):
+                errors.append({"page": model["uuid"], "form": form_name,
+                               "error": "Overlay dimensions require the owning Modal or Drawer"})
+            if "sourceCopyUnits" in expected_form and (not layout or inside_overlay(root, form)):
+                errors.extend({"page": model["uuid"], "form": form_name, "error": error}
+                              for error in copy_coverage_problem(expected_form))
             container = None
             row_owners = {}
-            if layout:
-                candidates = [n for n in walk(form_children or {"children": []}) if node_name(n) == layout["container"]]
+            row_col = False
+            if (not layout and not inside_overlay(root, form) and len(expected_form["fields"]) >= 2
+                    and expected_form.get("formLayout") in ("horizontal", "vertical")):
+                errors.append({"page": model["uuid"], "form": form_name, "rule": PAGE_FORM_RULE,
+                               "error": "Page Form needs its layout inventory {container, columns, gutter} and field spans; "
+                                        "arrange fields with one Row of span-8 Cols (three per row)"})
+            names = layout.get("container") if isinstance(layout, dict) else None
+            names = [names] if isinstance(names, str) else names
+            if layout and (not isinstance(names, list) or not names or any(not isinstance(n, str) for n in names)):
+                errors.append({"page": model["uuid"], "form": form_name, "rule": PAGE_FORM_RULE,
+                               "error": "Form layout inventory must name its container (one Row, or a list with one Row per field group)"})
+                layout = None
+            if layout and len(names) > 1:
+                # Grouped Form: one Row per field group, each inside its group surface within the Form.
+                failures, rows = [], []
+                for name in names:
+                    found = [n for n in walk(form_children or {"children": []}) if node_name(n) == name]
+                    if len(found) != 1 or identity(found[0]) != "plasmicantd6row":
+                        failures.append(f"Expected one field Row {name} inside the Form")
+                    else:
+                        rows.append(found[0])
+                if len(rows) == len(names):
+                    failures.extend(row_col_problems(rows, layout, expected_form["fields"]))
+                if inside_overlay(root, form):
+                    failures.extend(overlay_layout_problems(layout, root, form))
+                failures.extend(page_form_problems(root, form, expected_form, layout))
+                if failures:
+                    errors.append({"page": model["uuid"], "form": form_name, "rule": PAGE_FORM_RULE, "errors": failures})
+                row_col, layout_checked = True, True
+            else:
+                layout_checked = False
+            if layout and not layout_checked:
+                candidates = [n for n in walk(form_children or {"children": []}) if node_name(n) == names[0]]
                 failures = []
-                modals = [n for n in walk(root) if identity(n) == "plasmicantd6modal" and any(child is form for child in walk(n))]
-                if "modalWidth" in layout and (len(modals) != 1 or str(props(modals[0]).get("width")) != str(layout["modalWidth"])):
-                    failures.append("Wrong Form Modal width")
                 if len(candidates) != 1:
                     failures.append("Expected one field layout container inside Form")
+                elif identity(candidates[0]) == "plasmicantd6row":
+                    container, row_col = candidates[0], True
+                    if not any(n is container for n in (form_children or {}).get("children", [])):
+                        failures.append("Field layout Row must be a direct Form child")
+                    failures.extend(row_col_problems([container], layout, expected_form["fields"]))
                 else:
                     container = candidates[0]
                     css = {k: v.strip() for k, v in styles(container).items()}
@@ -590,7 +835,9 @@ def check(expectations, overview, readback):
                         failures.append("Expected stacked full-width field rows")
                     if css.get("row-gap", "0px") not in ("0", "0px"):
                         failures.append("Field rows must not duplicate native Item spacing")
-                    for row in layout["rows"]:
+                    if not isinstance(layout.get("rows"), list):
+                        failures.append("CSS-grid field layout needs rows; prefer one Row of Cols for Page Forms")
+                    for row in layout.get("rows") or []:
                         matches = [n for n in container["children"] if node_name(n) == row["container"]]
                         if len(matches) != 1:
                             failures.append("Expected one direct field row: " + row["container"])
@@ -616,40 +863,12 @@ def check(expectations, overview, readback):
                                 failures.append("Field appears in multiple layout rows")
                             row_owners[name] = row_node
                 if layout and inside_overlay(root, form):
-                    failures.extend(modal_layout_problems(expected_form, layout, root, form))
+                    failures.extend(overlay_layout_problems(layout, root, form))
                 if layout and inside_overlay(root, form):
                     for expected_field in expected_form["fields"]:
                         if expected_field.get("description"):
                             failures.append(f"Overlay field {expected_field['nodeName']} carries a persistent description; move it to the label tooltip and keep the Modal body to fields only")
-                label_width = expected_form.get("labelWidth")
-                if layout and not inside_overlay(root, form):
-                    if not (isinstance(label_width, dict) and isinstance(label_width.get("longestLabel"), str)):
-                        failures.append("Grid Form needs labelWidth {longestLabel, labelTextPx, requiredMarkPx, helpIconPx, measuredPx}")
-                    else:
-                        problem = label_width_problem(label_width, any(f.get("tooltip") for f in expected_form["fields"]))
-                        if problem:
-                            failures.append(problem)
-                        else:
-                            label_col = props(form).get("labelCol")
-                            flex = label_col.get("flex") if isinstance(label_col, dict) else None
-                            if flex != f'{int(label_width["measuredPx"])}px':
-                                failures.append(f"Native labelCol must be {{flex: \"{int(label_width['measuredPx'])}px\"}} to match the measured label width")
-                    align = expected_form.get("labelAlign", "right")
-                    native_align = props(form).get("labelAlign", "right")
-                    if native_align != align:
-                        failures.append("Native labelAlign must match the recorded alignment")
-                    if align != "right":
-                        problem = alignment_reason_problem(expected_form.get("labelAlignReason"))
-                        if problem:
-                            failures.append(problem)
-                    budget = description_budget_problem(layout["columns"], expected_form["fields"])
-                    if budget:
-                        failures.append(budget)
-                    failures.extend(copy_coverage_problem(expected_form))
-                    if layout["columns"] != 3:
-                        problem = columns_reason_problem(expected_form.get("columnsReason"))
-                        if problem:
-                            failures.append(problem)
+                failures.extend(page_form_problems(root, form, expected_form, layout))
                 if failures:
                     errors.append({"page": model["uuid"], "form": form_name, "errors": failures})
             for field in expected_form["fields"]:
@@ -660,7 +879,7 @@ def check(expectations, overview, readback):
                     failures.append("Expected one Form.Item in Form children")
                 else:
                     item = candidates[0]
-                    if layout:
+                    if layout and not row_col:  # Row/Col placement is checked by row_col_problems.
                         span = field.get("span", layout["columns"])
                         parent = container if span == layout["columns"] else row_owners.get(field["nodeName"])
                         if span not in (1, layout["columns"]) or parent is None or not any(n is item for n in parent["children"]):
@@ -731,7 +950,9 @@ def check(expectations, overview, readback):
                         )}
                         if not compact:
                             css = layout_styles(control)
-                            fills = css.get("width") in {"100%", "stretch"} and css.get("max-width", "none") in {"none", "100%"}
+                            # Antd Input/Select/TextArea fill their Form.Item unless authored narrower.
+                            width = css.get("width", "100%" if identity(control) in DEFAULT_FILL else "auto")
+                            fills = width in {"100%", "stretch"} and css.get("max-width", "none") in {"none", "100%"}
                             if not fills:
                                 problem = width_reason_problem(field.get("controlWidthReason"))
                                 if problem:
@@ -752,7 +973,8 @@ def check(expectations, overview, readback):
             if len(forms) > 1:
                 errors.append({"page": model["uuid"], "forms": forms,
                                "error": "Duplicated layoutReason across Forms; each deviation needs its own evidence"})
-    return {"passed": not errors, "checkedFields": checked, "errors": errors}
+    return {"passed": not errors, "checkedFields": checked, "errors": errors,
+            "notChecked": ["correctness of visual source interpretation", "visual fidelity"]}
 
 
 def main():
@@ -760,9 +982,15 @@ def main():
     parser.add_argument("expectations", type=Path)
     parser.add_argument("mcp_read", type=Path)
     parser.add_argument("--overview", type=Path, required=True)
+    parser.add_argument("--references-inventory", type=Path)
+    parser.add_argument("--references-evidence", type=Path)
     args = parser.parse_args()
+    if bool(args.references_inventory) != bool(args.references_evidence):
+        parser.error("--references-inventory and --references-evidence must be supplied together")
+    references = {"inventory": json.loads(args.references_inventory.read_text(encoding="utf-8")),
+                  "evidence": json.loads(args.references_evidence.read_text(encoding="utf-8"))} if args.references_inventory else None
     expected = json.loads(args.expectations.read_text(encoding="utf-8"))
-    result = check(expected, json.loads(args.overview.read_text(encoding="utf-8")), json.loads(args.mcp_read.read_text(encoding="utf-8")))
+    result = check(expected, json.loads(args.overview.read_text(encoding="utf-8")), json.loads(args.mcp_read.read_text(encoding="utf-8")), references)
     print(json.dumps(result, ensure_ascii=False, indent=2))
     raise SystemExit(0 if result["passed"] else 1)
 

@@ -332,7 +332,7 @@ async function canvasFrames(win, inspectionId, inspect = inspectCanvas, input, s
     await abortable(signal, () => new Promise((resolve) => setTimeout(resolve, 150)));
   }
   throw new Error(
-    "No rendered canvas available; open a page or component first",
+    "No rendered canvas available: no artboard reported render-ready within 20s. Pass componentUuid or frameUuid to render a background artboard, or retry after the canvas finishes loading",
   );
 }
 async function renderCanvas(win, input = {}) {

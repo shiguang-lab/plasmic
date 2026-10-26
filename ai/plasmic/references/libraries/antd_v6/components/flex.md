@@ -8,6 +8,11 @@ Library: [Ant Design v6](../index.md).
 
 ## Generation rules
 
+### Design defaults
+
+- Content root inside AppShell: vertical, gap 16, filling the width. Stacked blocks inside one surface: vertical, gap 16.
+- Horizontal rows of mixed items use `align: "center"`; wrapping groups of Tags or filters use wrap with gap 8.
+
 ### Row and column flow
 
 Use registered Flex for related siblings and page/section columns. vertical controls the axis; align, justify, wrap and numeric gap follow this registration. Choose alignment from the content roles rather than forcing every row to center. Filling children need supported sizing and minWidth/minHeight constraints along the actual ancestor chain; Flex alone does not establish a bounded height or a scroll owner.

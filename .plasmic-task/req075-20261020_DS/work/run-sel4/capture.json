@@ -1,0 +1,51 @@
+{
+  "projectId": "uSwwgCkC1ujK3EVVPvmHdW",
+  "desktopVersion": "0.2.15",
+  "build": {
+    "kind": "release",
+    "revision": "e5fd1fcf11163ecf2cbb259fa64d7dfac41de521",
+    "dirty": false,
+    "builtAt": "2026-10-25T01:22:17.122Z",
+    "rendererHash": "62b48ea523424adc4821f4e978b47411acafd8c085b6c4d5370ae21933cbc06a",
+    "desktopHash": "6dad1b3d886b27d74cdd86e05e277fe6d92709ffc74edfe9df09dab26142bcfe"
+  },
+  "collectedAt": "2026-10-25T03:54:24.641664+00:00",
+  "before": {
+    "projectId": "uSwwgCkC1ujK3EVVPvmHdW",
+    "branchId": null,
+    "sessionId": "5zXK8lDocMXa",
+    "revision": 58,
+    "changeCounter": 117
+  },
+  "after": {
+    "projectId": "uSwwgCkC1ujK3EVVPvmHdW",
+    "branchId": null,
+    "sessionId": "5zXK8lDocMXa",
+    "revision": 58,
+    "changeCounter": 117
+  },
+  "files": {
+    "overview.json": "c32da1aa060933d1824532153aa768a15d59d3c937dff5120a8ac9018a7a3e23",
+    "pages.json": "3add8a0456eb49c4c13bc79933d1a2c7ca63bfa1144f4383c208dc1bd7ce6dda",
+    "layouts.json": "2c9a663c629662226e83881b98507d7b38847e40f2ef7f3cf70bac9940691ac3"
+  },
+  "validation": {
+    "componentUuids": [
+      "YW4MQIakrQnt"
+    ],
+    "result": {
+      "check": "model",
+      "notChecked": [
+        "visual-layout",
+        "interactions",
+        "responsive-breakpoints"
+      ],
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "pages": 1,
+      "components": 1
+    }
+  },
+  "pagePath": "/groups/selector"
+}

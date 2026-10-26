@@ -1,10 +1,7 @@
 import { usePlasmicCanvasContext, usePlasmicCanvasComponentInfo } from '@plasmicapp/host';
 import { Table } from 'antd';
 import React from 'react';
-import { AntdTooltip } from './registerTooltip.esm.js';
 import { b as asArray, r as registerComponentHelper } from './utils-Cmdig6Yl.esm.js';
-import 'classnames';
-import './canvas-overlay-Dan70Oxr.esm.js';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
 
@@ -136,9 +133,6 @@ function TableScrollControl({
   )));
 }
 
-function isCustomColumn(props) {
-  return props.displayType === "custom" || props.displayType === void 0 && !!props.render;
-}
 function AntdColumn(props) {
   const canvas = usePlasmicCanvasContext();
   const selection = usePlasmicCanvasComponentInfo(props);
@@ -156,10 +150,9 @@ function AntdColumn(props) {
       onClick: isEditing ? (event) => event.preventDefault() : cell.props.onClick,
       "data-plasmic-canvas-part": isEditing ? "column" : void 0,
       "data-plasmic-table-column-selected": isSelected || void 0,
-      style: cell.props.style,
-      title: props.ellipsis ? void 0 : cell.props.title
+      style: cell.props.style
     },
-    props.ellipsis ? /* @__PURE__ */ React.createElement(AntdTooltip, { onlyWhenOverflow: true }, props.children) : props.children
+    props.children
   );
 }
 const AntdColumnGroup = Object.assign(
@@ -188,14 +181,7 @@ function getColumns(children, bodyCell, headerCell, isEditing) {
     if (child.type === React.Fragment) {
       return getColumns(child.props.children, bodyCell, headerCell, isEditing);
     }
-    const {
-      displayType: _displayType,
-      onCellClick: _click,
-      children: nested,
-      render,
-      ...column
-    } = child.props;
-    const custom = isCustomColumn(child.props);
+    const { onCellClick: _click, children: nested, render, ...column } = child.props;
     const onHeaderCell = (col) => ({
       ...column.onHeaderCell?.(col),
       __plasmic_column__: { element: child, type: headerCell }
@@ -219,7 +205,7 @@ function getColumns(children, bodyCell, headerCell, isEditing) {
           const cellProps = column.onCell?.(row, index);
           return {
             ...cellProps,
-            ...custom && !isEditing && child.props.onCellClick ? {
+            ...render && !isEditing && child.props.onCellClick ? {
               onClick: (event) => {
                 cellProps?.onClick?.(event);
                 const action = event.target.closest?.(
@@ -239,7 +225,8 @@ function getColumns(children, bodyCell, headerCell, isEditing) {
             __plasmic_column__: { element: child, type: bodyCell }
           };
         },
-        render: (value, row, index) => custom ? render?.(value, row, index) : value == null ? "" : String(value)
+        // Without a render slot, Ant Design renders the field value natively.
+        ...render ? { render } : {}
       }
     ];
   });
@@ -378,8 +365,7 @@ const AntdTable = React.forwardRef(function AntdTable2(props, ref) {
       dataSource: data?.data,
       rowSelection: selection,
       rowKey,
-      ...rest,
-      scroll: { x: "max-content", ...rest.scroll }
+      ...rest
     }
   );
 });
@@ -433,7 +419,7 @@ function registerTable(loader) {
         type: "custom",
         displayName: "Scroll",
         control: TableScrollControl,
-        description: "Horizontal width accepts pixels, percentages, or max-content. Leave it unset to fit content. The table body grows with content when height is unset."
+        description: "Native Ant Design scroll. Horizontal width accepts pixels, percentages, or max-content; unset keeps the table within its container without horizontal scrolling. The table body grows with content when height is unset."
       },
       onChange: {
         type: "eventHandler",
@@ -551,15 +537,12 @@ function registerTable(loader) {
         displayName: "Data index",
         description: "The data field used by this column. Changes apply to every row."
       },
-      displayType: {
-        type: "choice",
-        displayName: "Display type",
-        options: [
-          { value: "text", label: "Text" },
-          { value: "custom", label: "Custom render" }
-        ],
-        defaultValueHint: (ps) => ps.render ? "custom" : "text",
-        description: "Applies to all rows. Text shows the field value. Custom render shows the Custom render slot for every row; place registered components such as Badge, Tag, Avatar or a link there."
+      render: {
+        type: "slot",
+        renderPropParams: ["cell", "row", "index"],
+        hidePlaceholder: true,
+        displayName: "Custom render",
+        description: "Native Column.render for every row, receiving cell, row and index. Leave it empty to show the field value."
       },
       onCellClick: {
         type: "eventHandler",
@@ -570,14 +553,7 @@ function registerTable(loader) {
           { name: "row", type: "object" },
           { name: "index", type: "number" }
         ],
-        hidden: (ps) => !isCustomColumn(ps)
-      },
-      render: {
-        type: "slot",
-        renderPropParams: ["cell", "row", "index"],
-        hidePlaceholder: true,
-        displayName: "Custom render",
-        hidden: (ps) => !isCustomColumn(ps)
+        hidden: (ps) => !ps.render
       },
       align: {
         type: "choice",
@@ -606,12 +582,12 @@ function registerTable(loader) {
       width: {
         type: "number",
         displayName: "Width",
-        description: "Column width in pixels. Applies to the header and all rows."
+        description: "Native column width in pixels, applied to the header and all rows."
       },
       ellipsis: {
         type: "boolean",
         displayName: "Ellipsis",
-        description: "Show ellipsis and a Tooltip only when content overflows. For custom Tooltip content, place a Tooltip in Custom render."
+        description: "Native single-line ellipsis; the cell keeps the browser title for the full text. Place a Tooltip in Custom render for a styled popup."
       }
     },
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerTable",

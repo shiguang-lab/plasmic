@@ -59,10 +59,6 @@ export function registerForm(loader?: Registerable) {
     displayName: "Form",
     description:
       "[Learn how to use forms](https://docs.plasmic.app/learn/forms/)",
-    defaultStyles: {
-      layout: "vbox",
-      alignItems: "flex-start",
-    },
     props: {
       disabled: { type: "boolean", defaultValueHint: false },
       mode: {
@@ -170,7 +166,7 @@ export function registerForm(loader?: Registerable) {
         displayName: "Form layout",
         type: "choice",
         options: ["horizontal", "vertical", "inline"],
-        defaultValue: "vertical",
+        defaultValueHint: "horizontal",
       },
       styles: {
         displayName: "Semantic styles",
@@ -184,22 +180,16 @@ export function registerForm(loader?: Registerable) {
         options: ["left", "right"],
         defaultValueHint: "right",
         advanced: true,
-        hidden: (ps: any) => ps.layout !== "horizontal",
+        hidden: (ps: any) => (ps.layout ?? "horizontal") !== "horizontal",
       },
       labelCol: colProp(
         "Label layout",
-        {
-          span: 8,
-          horizontalOnly: true,
-        },
+        undefined,
         "Set the width and offset of the labels",
       ),
       wrapperCol: colProp(
         "Control layout",
-        {
-          span: 16,
-          horizontalOnly: true,
-        },
+        undefined,
         "Set the width and offset of the form controls",
       ),
       colon: {

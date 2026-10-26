@@ -35,8 +35,11 @@ def sections(content):
     return lines, headings
 
 
-def select(content, anchors):
+def selected_lines(content, anchors=None):
+    """Exact emitted line indices, including the preamble and ancestor introductions."""
     lines, headings = sections(content)
+    if not anchors:
+        return set(range(len(lines)))
     by_anchor = {item["anchor"]: item for item in headings}
     missing = set(anchors) - by_anchor.keys()
     if missing:
@@ -52,7 +55,12 @@ def select(content, anchors):
             if parent["start"] < section["start"] < parent["end"] and parent["level"] < section["level"]:
                 intro_end = next((h["start"] for h in headings if h["start"] > parent["start"]), parent["end"])
                 selected.update(range(parent["start"], intro_end))
-    return "".join(line for i, line in enumerate(lines) if i in selected)
+    return selected
+
+
+def select(content, anchors):
+    selected = selected_lines(content, anchors)
+    return "".join(line for i, line in enumerate(content.splitlines(keepends=True)) if i in selected)
 
 
 def main():
@@ -74,11 +82,13 @@ def main():
         output = select(content, args.section) if args.section else content
     record = {"path": args.file.resolve().as_posix(), "sha256": hashlib.sha256(content.encode()).hexdigest(),
               "sections": args.section or [], "outline": args.outline, "bytes": len(output.encode())}
+    # A closed/truncated output must never certify a read in the ledger. Flush
+    # all reference bytes before recording their successful delivery.
+    sys.stdout.write(json.dumps(record, ensure_ascii=False) + "\n" + output + "\n")
+    sys.stdout.flush()
     if args.log:
         with args.log.open("a", encoding="utf-8") as file:
             file.write(json.dumps(record, ensure_ascii=False) + "\n")
-    print(json.dumps(record, ensure_ascii=False))
-    print(output)
 
 
 if __name__ == "__main__":

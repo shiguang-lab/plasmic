@@ -9,6 +9,11 @@ Library: [Ant Design v6](../index.md).
 
 ## Generation rules
 
+### Design defaults
+
+- Use for choosing a path through a fixed-depth hierarchy (region, category levels).
+- Fills its column; placeholder `请选择` + the field noun.
+
 ### Hierarchical choice
 
 Use Cascader for a choice expressed as a hierarchy path. Maintain options with stable values and meaningful labels; a single value is a path array, while multiple selection uses the native collection of paths. Do not flatten paths into labels or reuse TreeSelect's value model. Keep the selected path and its labels valid when options reload.

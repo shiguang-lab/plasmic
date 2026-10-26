@@ -10,6 +10,11 @@ Library: [Ant Design v6](../index.md).
 
 ## Generation rules
 
+### Design defaults
+
+- Use for a few repeated items without comparable columns (activity, notices, checklists); records with attributes use Table.
+- Each item shows its title, short description and at most two actions.
+
 ### Static or data-driven items
 
 Use List for repeated content whose structure is an item rather than a table column matrix. Static children and dataSource/renderItem are distinct ownership paths; choose the one required by the content. The registered renderItem Slot exposes item and index bindings. Keep stable item identity and use each row's actual data rather than duplicating the first sample item.

@@ -11,7 +11,6 @@ import {
   optionGroupComponentName,
   selectComponentName,
 } from "./names";
-import { reactNodeToString } from "./react-utils";
 import {
   Registerable,
   registerComponentHelper,
@@ -74,22 +73,6 @@ export function AntdSelect(
           },
         };
       }}
-      optionFilterProp={
-        curated.optionFilterProp ?? (curated.options ? "label" : undefined)
-      }
-      filterOption={
-        curated.filterOption ??
-        (curated.optionFilterProp
-          ? undefined
-          : (input, option) =>
-              reactNodeToString(
-                useChildren
-                  ? option?.children
-                  : (option?.label ?? option?.value ?? ""),
-              )
-                .toLowerCase()
-                .includes(input.toLowerCase()))
-      }
       suffixIcon={suffixIcon}
     />
   );
@@ -231,9 +214,9 @@ export function registerSelect(loader?: Registerable) {
         defaultValueHint: false,
       },
       showSearch: {
-        type: "boolean",
-        defaultValueHint: (ps: any) =>
-          ps.mode === "multiple" || ps.mode === "tags",
+        type: "object",
+        description:
+          'Native boolean or search configuration, such as {"optionFilterProp":"label"}. Unset disables search in single mode and enables it in multiple/tags mode. Ant Design filters by value by default.',
         advanced: true,
       },
       status: {

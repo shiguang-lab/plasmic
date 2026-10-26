@@ -39,17 +39,18 @@ function design(index) {
   const columns = (prefix = '') => [
     column(`${prefix}IDColumn`, '编号', { dataIndex: 'id', width: 96 }),
     column(`${prefix}NameColumn`, '名称', { dataIndex: 'name', ellipsis: true }),
-    column(`${prefix}CategoryColumn`, '分类', { dataIndex: 'category', width: 112, displayType: 'custom' }, antd('tag', `${prefix}CategoryTag`, { value: '{{ cell }}', options: [{ value: '消息', label: '消息', color: 'blue' }, { value: '账户', label: '账户', color: 'purple' }] })),
-    column(`${prefix}StatusColumn`, '状态', { dataIndex: 'status', width: 104, displayType: 'custom' }, antd('badge', `${prefix}StatusBadge`, { value: '{{ cell }}', options: [{ value: '启用', label: '启用', status: 'success' }, { value: '停用', label: '停用', status: 'default' }] })),
+    // Native Tag/Badge: the bindings map the row value to the official color/status props.
+    column(`${prefix}CategoryColumn`, '分类', { dataIndex: 'category', width: 112 }, antd('tag', `${prefix}CategoryTag`, { color: "{{ ({ '消息': 'blue', '账户': 'purple' })[cell] }}" }, { children: '<span>{{ cell }}</span>' })),
+    column(`${prefix}StatusColumn`, '状态', { dataIndex: 'status', width: 104 }, antd('badge', `${prefix}StatusBadge`, { status: "{{ cell === '启用' ? 'success' : 'default' }}", text: '{{ cell }}' })),
     column(`${prefix}OwnerColumn`, '负责人', { dataIndex: 'owner', width: 112 }),
     column(`${prefix}UpdatedAtColumn`, '更新时间', { dataIndex: 'updatedAt', width: 200, ellipsis: true }),
-    column(`${prefix}ActionsColumn`, '操作', { fixed: 'right', width: 168, displayType: 'custom' }, component('plasmic-react-ui-action-group', `${prefix}RecordActions`, { max: 3, items: [{ key: 'detail', label: '详情' }, { key: 'edit', label: '编辑' }, { key: 'copy', label: '复制' }, { key: 'disable', label: '停用', confirm: { title: '确认停用该记录？', okText: '停用', cancelText: '取消' } }], dropdownProps: { trigger: ['hover'] } })),
+    column(`${prefix}ActionsColumn`, '操作', { fixed: 'right', width: 168 }, component('plasmic-react-ui-action-group', `${prefix}RecordActions`, { max: 3, items: [{ key: 'detail', label: '详情' }, { key: 'edit', label: '编辑' }, { key: 'copy', label: '复制' }, { key: 'disable', label: '停用', danger: true }], dropdownProps: { trigger: ['hover'] } })),
   ].join('');
   const table = (name = 'Table', rows = sampleRows, prefix = '', editable = true) => antd('table', name, { data: `{{ ${JSON.stringify({ data: rows })} }}`, rowKey: '{{ "id" }}', size: 'large', pagination: { defaultPageSize: 20, pageSizeOptions: [20, 50, 100], showSizeChanger: true }, scroll: { x: 1080 } }, { children: editable ? target('tableColumns', columns(prefix)) : columns(prefix) }, 'width:100%;min-width:0');
   const primaryAction = () => button('CreateRecord', '新建', { type: 'primary' }, 'PlusOutlined');
   const tab = (key, label, name, content) => antd('tab-item', name, { key }, { label: esc(label), children: content });
   const tabs = (name, items, extra = '') => antd('tabs', name, { defaultActiveKey: '{{ "all" }}', size: 'medium', type: 'line' }, { items, ...(extra ? { tabBarExtraContentRight: extra } : {}) }, 'width:100%;min-width:0');
-  const searchTable = () => flex('SearchTableSection', search() + card('ListCard', table(), target('listTitle', '资源列表'), target('primaryActions', primaryAction())));
+  const searchTable = () => flex('SearchTableSection', search() + card('ListCard', table(), target('listTitle', '资源列表'), target('primaryActions', primaryAction()), '16px 20px 0'));
   const tabsTable = () => card('TabsTableSection', tabs('Tabs', tab('all', '全部', 'AllRecordsTab', table('AllRecordsTable', sampleRows, 'All', true)) + tab('mine', '我负责的', 'MyRecordsTab', table('MyRecordsTable', sampleRows.filter(r => r.owner === '王晓'), 'My', false)), target('primaryActions', primaryAction())), null, null, '0 20px');
   const catalog = () => {
     const menu = antd('menu', 'CatalogMenu', { mode: 'inline', defaultSelectedKeys: ['messages'] }, { children: ['messages', 'accounts', 'payments'].map((key, i) => antd('menu-item', ['MessagesModule', 'AccountsModule', 'PaymentsModule'][i], { key }, { children: ['消息模块', '账户模块', '支付模块'][i] })).join('') });
@@ -67,20 +68,26 @@ function design(index) {
     { key: 'description', label: '说明', children: '用于管理用户通知的展示内容与启用状态。', span: 3 },
   ];
   const descriptions = (name = 'Descriptions', columnCount = 3, title = '基本信息') => antd('descriptions', name, { column: columnCount, size: 'medium', items: descriptionItems }, { title: esc(title) }, 'width:100%');
-  const detail = () => flex('DetailSection', card('BasicInformationCard', target('summaryContent', descriptions())) + card('RelatedRecordsCard', target('relatedContent', table('RelatedRecordsTable', sampleRows.slice(0, 3), 'Related', false)), '关联记录'));
-  const formFields = () => [
+  const detail = () => flex('DetailSection', card('BasicInformationCard', target('summaryContent', descriptions())) + card('RelatedRecordsCard', target('relatedContent', table('RelatedRecordsTable', sampleRows.slice(0, 3), 'Related', false)), '关联记录', null, '16px 20px 0'));
+  const formFieldItems = () => [
     ['NameField', 'name', '名称', antd('input', 'RecordName', { placeholder: '请输入名称', maxLength: 80, size: 'medium' }, {}, 'width:100%'), [{ ruleType: 'required', message: '请输入名称' }, { ruleType: 'whitespace', message: '请输入名称' }]],
     ['CategoryField', 'category', '分类', select('RecordCategory', ['消息', '账户']), [{ ruleType: 'required', message: '请选择分类' }]],
     ['DescriptionField', 'description', '说明', antd('textarea', 'RecordDescription', { placeholder: '请输入说明', autoSize: true, maxLength: 500 }, {}, 'width:100%'), []],
-  ].map(([nodeName, name, label, child, rules]) => antd('form-item', nodeName, { name, rules }, { label: esc(label), children: child })).join('');
+  ].map(([nodeName, name, label, child, rules]) => antd('form-item', nodeName, { name, rules }, { label: esc(label), children: child }));
+  const formFields = () => formFieldItems().join('');
+  // Page Forms use horizontal right-aligned labels and one Row of Cols: span 8 per short field, 24 per full-row field.
+  // See ai/plasmic/references/libraries/antd_v6/compositions/form-layout.md#page-form-structure.
+  // Row gutter uses negative inline margins, so the Row keeps max-width:none and stretches instead of width:100%.
+  const pageFormFields = () => formFieldItems().map((item, i) => antd('col', ['NameCol', 'CategoryCol', 'DescriptionCol'][i], { span: i === 2 ? 24 : 8 }, { children: item })).join('');
   const form = (editable = true) => antd('form', 'Form', { mode: 'advanced', layout: 'vertical', autoDisableWhileSubmitting: true }, { children: editable ? target('formFields', formFields()) : formFields() }, 'width:100%;max-width:720px;min-width:0');
-  const formActions = () => antd('space', 'FormButtons', { orientation: 'horizontal', size: 8 }, { children: button('CancelEdit', '取消') + button('SubmitRecord', '提交', { type: 'primary', submitsForm: true }) });
-  const basicForm = () => card('FormCard', flex('FormContent', antd('form', 'Form', { mode: 'advanced', layout: 'vertical', autoDisableWhileSubmitting: true }, { children: target('formFields', formFields()) + target('formActions', formActions()) }, 'width:100%;max-width:720px;min-width:0')), target('formTitle', '新增资源'));
+  // Live template: labelCol measured from the rendered label (名称 + required mark + colon = 58px).
+  // Actions follow Antd's pattern: a Form.Item with a blank label and colon:false shares that labelCol, so they align with the controls.
+  const pageFormActions = () => antd('form-item', 'FormActions', { colon: false }, { label: '\u00a0', children: antd('space', 'FormButtons', { orientation: 'horizontal', size: 8 }, { children: button('SubmitRecord', '提交', { type: 'primary', submitsForm: true }) + button('CancelEdit', '取消') }) });
+  const basicForm = () => card('FormCard', flex('FormContent', antd('form', 'Form', { mode: 'advanced', layout: 'horizontal', labelAlign: 'right', labelCol: { flex: '58px' }, wrapperCol: { flex: 1 }, autoDisableWhileSubmitting: true }, { children: target('formFields', antd('row', 'Fields', { gutter: 16, wrap: true }, { children: pageFormFields() }, 'align-self:stretch;max-width:none;min-width:0')) + target('formActions', pageFormActions()) }, 'width:100%;min-width:0;padding:0')), null, null, '24px 20px 0');
   const drawerDetail = () => antd('drawer', 'Drawer', { placement: 'right', size: 640, open: false }, { title: target('drawerTitle', '查看资源'), children: target('detailContent', descriptions('Descriptions', 2)), footer: target('drawerActions', flex('FooterActions', button('CloseDetail', '关闭'), { vertical: false, justify: 'end', gap: 12 })) });
   const drawerForm = () => antd('drawer', 'Drawer', { placement: 'right', size: 640, open: false, destroyOnHidden: true }, { title: target('drawerTitle', '新增资源'), children: form(), footer: target('drawerActions', flex('FooterActions', button('CancelEdit', '取消') + button('SubmitRecord', '提交', { type: 'primary' }), { vertical: false, justify: 'end', gap: 12 })) });
   const shell = (content, active) => component('plasmic-overseas-app-shell', 'AppShell', { productName: '业务管理平台', userName: '示例用户', appSources: [{ value: 'demo', label: '示例应用' }], appSource: 'demo', currentTime: '2026-10-09T09:30:00+08:00', language: 'zh-CN', selectedMenuKey: active, menuItems: [{ key: 'resources', label: '资源管理', children: [{ key: 'list', label: '资源列表' }, { key: 'workspace', label: '配置工作区' }, { key: 'form', label: '新增资源', hidden: true }, { key: 'detail', label: '资源详情', hidden: true }] }] }, { children: content }, 'width:100%;height:100vh;min-width:1440px;min-height:0;max-height:100vh');
   const own = (name, slots = {}, styles = 'width:100%;min-width:0') => component(name, name, {}, slots, styles);
-  const recordHeader = () => flex('DetailHeader', flex('DetailHeading', antd('tooltip', 'ReturnTooltip', { titleText: '返回资源列表', trigger: '{{ ["hover", "focus"] }}' }, { children: button('ReturnToList', '', { type: 'text' }, 'ArrowLeftOutlined') }) + antd('typography-title', 'RecordTitle', { level: 4 }, { children: '用户通知配置' }, 'margin:0;letter-spacing:normal'), { vertical: false, gap: 8, align: 'center' }, 'width:auto;min-width:0;flex:1') + antd('badge', 'RecordStatus', { status: 'success', text: '启用' }, {}, 'flex-shrink:0;white-space:nowrap'), { vertical: false, justify: 'space-between', align: 'center' });
   const templates = [
     { name: 'SearchTableSection', kind: 'section', pattern: 'standard-list', html: searchTable() },
     { name: 'TabsTableSection', kind: 'section', pattern: 'standard-list', html: tabsTable() },
@@ -93,9 +100,9 @@ function design(index) {
     { name: 'StandardListPage', kind: 'page', pattern: 'standard-list', html: shell(own('SearchTableSection'), 'list') },
     { name: 'SplitTabsPage', kind: 'page', pattern: 'split-tabs', html: shell(own('CatalogTabsSection', {}, 'min-width:0;max-width:none'), 'workspace') },
     { name: 'BasicFormPage', kind: 'page', pattern: 'basic-form', html: shell(basicForm(), 'form') },
-    { name: 'RecordDetailPage', kind: 'page', pattern: 'profile-basic', html: shell(flex('PageBody', recordHeader() + own('DetailSection')), 'detail'), propEdits: [{ nodeName: 'ReturnToList', props: { 'aria-label': '返回资源列表' } }] },
+    { name: 'RecordDetailPage', kind: 'page', pattern: 'profile-basic', html: shell(flex('PageBody', own('DetailSection')), 'detail') },
   ];
-  return { templates, pages, component, antd, flex, shell, table, search, fields, descriptions, form, formFields, button, recordHeader, card, tabs, tab, text, sampleRows };
+  return { templates, pages, component, antd, flex, shell, table, search, fields, descriptions, form, formFields, button, card, tabs, tab, text, sampleRows };
 }
 
 module.exports = { design, sampleRows };

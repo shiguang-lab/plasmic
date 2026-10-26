@@ -7,12 +7,12 @@ Library: [Overseas](../index.md).
 | SearchForm | `plasmic-overseas-search-form` |
 | SearchForm.Item | `plasmic-overseas-search-form-item` |
 
-**硬约束**（读取任何小节时都会附带）：
+**Hard constraints** (always delivered with any section):
 
-- 常规只用四列 `colSpan=6` 或三列 `colSpan=8`；三列仅在视觉稿多行三列对齐时选择，其他值需要需求文档原文的[来源例外](../../../design/component-policy.md#protected-configuration)。
-- `minRows=1`、运行态初始 `collapsed=true`；Item 不覆盖 span。
-- 每个筛选字段都是真实 SearchForm.Item，逐项记入 `components` 并归属 SearchForm `children` Slot；不得为凑满一行删减或合并字段。
-- 查询与提交表单分离：业务提交字段使用 Form；SearchForm 自带卡片表面，外面不再包 Card。
+- Use only four columns (`colSpan=6`) or three columns (`colSpan=8`); choose three columns only for a visual draft with multiple aligned three-column rows. Any other value needs a requirement-document [source exception](../../../design/component-policy.md#protected-configuration).
+- `minRows=1` and runtime initial `collapsed=true`; Items inherit the column span except a recorded [measured or source span exception](#layout-and-state).
+- Every filter field is a real SearchForm.Item, declared in `components` and owned by the SearchForm `children` Slot; never drop or merge fields to fill a row.
+- Query and submission stay separate: submitted business fields use Form. SearchForm owns its card surface; never wrap it in a Card. Inside the content root Flex (gap 16) set `marginBottom` 0.
 
 ## Plan decisions
 
@@ -20,61 +20,73 @@ Declare these native props in each planned instance before markup. `prepare_plan
 
 | Registration | Prop | Decision |
 | --- | --- | --- |
-| `plasmic-overseas-search-form` | `colSpan` | 6 (four columns) by default; 8 only for a multi-row three-column draft; other values need a source override. See [rule](#布局与状态). |
+| `plasmic-overseas-search-form` | `colSpan` | 6 (four columns) by default; 8 only for a multi-row three-column draft; other values need a source override. See [rule](#layout-and-state). |
+| `plasmic-overseas-search-form` | `marginBottom` (baseline `0`) | The parent content Flex owns the 16px gap. See [rule](#layout-and-state). |
 
 ## Generation rules
 
-设计来源为 fintechgrowthui 的 SearchForm；该来源不是任务必需的本地文件。Overseas 实现保留查询卡片、24 栅格、末行右侧操作、展开/收起、字段初始值及业务清除值语义，使用 Ant Design 6。输入控件由画布节点提供。
+### Design defaults
 
-### 可编辑结构
+- Use for the query criteria above a list; submitted business fields use Form, not SearchForm.
+- Four columns (`colSpan` 6) and `minRows` 1 by default; label width measured from the longest label; query/reset sit in the action column; more than one row collapses.
+- It owns a card appearance: never wrap it in a Card; inside the content root Flex (gap 16) its `marginBottom` is 0.
 
-Read [SearchForm.Item](search-form.md#searchformitem) for field Props, control value/event mapping and label/help Slots.
+### Usage and behavior
 
-`plasmic-overseas-search-form` 的 Fields (`children`) Slot 放置 `plasmic-overseas-search-form-item` 实例。一个实例代表一个字段，字段顺序就是画布节点顺序。插入、复制、删除、移动和修改通过 Studio/MCP 的现有节点操作完成，无独立的字段数组或另一套简化模式。
+The design source is fintechgrowthui's SearchForm; that source is not a required local file. The Overseas implementation keeps the query card, the 24-column grid, the trailing right-aligned action column, expand/collapse, field initial values and business clear-value semantics on Ant Design 6. Input controls are canvas nodes.
 
-SearchForm 提供 Extra actions (`extraActions`) Slot，用于查询辅助操作，位于查询/重置之后。新建、导入等业务动作按[列表组合](../compositions/search-table.md#query-and-list-structure)放置，不因存在此 Slot 就放入查询操作列。内置按钮文本通过属性编辑，其行为固定为提交和重置。
+### Editable structure
 
-### 布局与状态
+Read [SearchForm.Item](#searchformitem) for field Props, control value/event mapping and label/help Slots.
 
-先按[业务内容与视觉适配](../../../requirement-alignment.md#content-before-presentation)确定完整筛选字段，并在现有 `components` 清单中逐项记录 Item 的业务键、标签、来源和 SearchForm Slot 归属，再选择列数。列数只规定排版密度，不限制字段总数；不能通过漏项、删项、合并不同字段或移到无关的全局控件来凑满一行。超过一行的字段保留真实 Item，由原生换行与折叠承接；需求明确移除字段时才更新字段清单。
+The Fields (`children`) Slot of `plasmic-overseas-search-form` holds `plasmic-overseas-search-form-item` instances. One instance is one field, and node order is field order. Insert, copy, delete, move and edit fields through existing Studio/MCP node operations; there is no separate field array or simplified mode.
 
-常规生成只有四列和三列两种模式。`colSpan` 是每个字段占用的 24 栅格份数，不是列数：四列写 `colSpan=6`，三列写 `colSpan=8`；不能把“四列”写成 `colSpan=4`。
+The Extra actions (`extraActions`) Slot holds query helpers placed after query/reset. Business actions such as create or import follow the [list composition](../compositions/search-table.md#query-and-list-structure); the Slot's existence does not move them into the query action column. Built-in button text is editable through props; their behavior is fixed to submit and reset.
 
-生成前按以下顺序选择，后续调整使用同一依据：
+### Layout and state
 
-1. 需求文档明确规定列数或栅格时按文档执行；四列、三列以外的配置也必须有该文档的明确要求，并按[来源例外](../../../design/component-policy.md#protected-configuration)记录原文、哈希和属性覆盖。
-2. 文档未指定时，只有视觉稿的筛选字段明确排成多行、每行按三列对齐，才选择三列 `colSpan=8`。读取原图，在现有 reference-region `decision` 中记录画板、视口和多行三列的观察。只数筛选字段，不把查询/重置操作当成字段；末行不满时仍按三列对齐。
-3. 其他情况固定选择四列 `colSpan=6`：包括没有视觉稿、布局不清楚、单行三个字段，以及视觉稿显示其他列数。其他列数只是无效的视觉输入，忽略该排列并按四列重排，不照搬为新的模式，也不为了把所有字段塞在一行而压窄列宽。
+First resolve the complete filter set under [content before presentation](../../../requirement-alignment.md#content-before-presentation) and record each Item's business key, label, source and SearchForm Slot owner in the existing `components` inventory; only then choose the column count. The column count sets density, not the number of fields: never omit, delete, merge different fields or move one to an unrelated global control to fill a row. Fields beyond one row stay real Items and use native wrapping and collapse; update the field inventory only when the requirement explicitly removes a field.
 
-在生成前的 `components` 中记录选定的真实 `props.colSpan` 和来源；三列是受支持的常规模式，不需要伪造需求文档来申请例外。静态脚本核对模式与保存值，不能证明原图确实满足“多行三列”，该判断保留原图证据并独立审查。原生 API 的其他栅格值保留给需求文档明确要求的例外，不作为模型自行选型的候选。
+Ordinary generation has exactly two modes. `colSpan` is the 24-column share per field, not a column count: four columns is `colSpan=6`, three columns is `colSpan=8`; never write four columns as `colSpan=4`.
 
-两种常规模式均采用 `minRows=1` 和运行态初始 `collapsed=true`，Item 不覆盖 span，继承选定列宽。选择三列不代表初始展开或常驻多行；这些初始状态只有明确需求才允许覆盖。动作使用末行剩余栅格；末行占满时换行。超出 minRows 时提供折叠；折叠至少保留第一个字段。小屏保持原组件 xs=24、sm=12、md=指定 span 的响应式栅格。
+Choose before generation, in this order, and use the same basis for later adjustments:
 
-`Item.span` 优先于 `Form.colSpan`，因此检查每个字段的有效 span，不能混合三列与四列模式。跨列例外须有需求文档明确要求，在生成前按 Item 声明 `props.span` 和有真实文件、原文、哈希的 `overrides.span`。日期区间、长 placeholder、字段数量或可用空白都不自动授权跨列；不能先扩大字段再改期望清单放行。栅格 span 不是固定像素上限，实际宽度仍取决于容器、gutter 与 labelWidth；后者按最长真实标签测量，不冻结为示例数值。
+1. When the requirement document states a column count or grid, follow it. Values other than four or three columns also need that explicit document text, recorded as a [source exception](../../../design/component-policy.md#protected-configuration) with quote, hash and property override.
+2. Otherwise choose three columns (`colSpan=8`) only when the visual draft clearly arranges the filter fields in several rows aligned to three columns. Read the original image and record the artboard, viewport and the multi-row three-column observation in the existing reference-region `decision`. Count filter fields only, not the query/reset actions; a short last row still aligns to three columns.
+3. In every other case use four columns (`colSpan=6`): no visual draft, an unclear layout, a single row of three fields, or a draft showing another column count. Other counts are invalid visual input: re-flow into four columns rather than adopting a new mode or narrowing columns to fit every field into one row.
 
-`labelWidth` 是可选的共享标签栏宽度，单位为 px，没有固定默认值；选中 SearchForm 后在属性面板的 Label width 中修改，导入库的契约必须包含它。
+Record the selected `props.colSpan` and its source in `components` before generation; three columns is a supported regular mode and needs no fabricated requirement exception. The static script checks the mode and saved value; it cannot prove that the image really shows multiple three-column rows, so keep the image evidence for independent review. Other native grid values are reserved for explicit requirement exceptions, never a model's own choice.
 
-未配置 `labelWidth` 时，各标签按内容宽度显示；配置后所有 Item 使用共享宽度。生成前检查全部标签，包括初始折叠字段、自定义标签、必填和帮助标记、组件生成的冒号及其原生间距；按实际字体和最长标签选择足够的单行宽度，并确认目标视口仍有可用的控件空间。标签变化后重新评估整个表单，不把页面选择的宽度写入组件默认值。标签使用纯文本，不手动追加冒号、空格或 CSS 偏移来补偿窄标签栏。
+Both modes use `minRows=1` and runtime initial `collapsed=true`; Items do not override span and inherit the selected column width. Three columns does not mean initially expanded or several permanent rows; those initial states need an explicit requirement. Actions use the remaining grid of the last row and wrap when it is full. Beyond minRows the form collapses and always keeps at least the first field. Small screens keep the component's responsive grid xs=24, sm=12, md=selected span.
 
-编辑器强制展开时必须显示“收起”、向上指示和 `aria-expanded=true`；Preview 使用实际 collapsed 状态。检查短/长标签的控件起点、完整单行文字、冒号到控件的原生间距，以及双向展开/收起；清除 labelWidth 后恢复内容宽度，不裁切或省略标签。
+`Item.span` takes precedence over `Form.colSpan`, so check every field's effective span and never mix the three- and four-column modes. A wider field has two accepted bases, declared before generation as the Item's `props.span` plus `overrides.span`:
 
-卡片使用主题背景和边框，内边距 16px/20px、圆角 8px，默认下间距 16px；父级已有 gap 时设置 marginBottom=0。`embedded` 移除卡片和外间距。className 接收画布样式。
+- **Source**: the requirement document explicitly requires the wider field; record the real file, quote and hash.
+- **Measurement**: the field's control cannot work in one column at the target viewport. Record `{"reason": "...", "measurement": {"controlMinWidth": N, "columnControlWidth": M, "layout": {"path": "/abs/layout.json", "sha256": "..."}}}`, where `controlMinWidth` is the rendered width the control needs for its complete realistic value (for example a date range with both endpoints) and `columnControlWidth` is the measured control width in one column from that `snapshot_layout` file. The span may be exactly twice the inherited span, and only when `controlMinWidth` exceeds `columnControlWidth`.
 
-编辑画布展示全部字段，便于选取和修改；交互预览/运行态遵循 collapsed。折叠仅隐藏列，字段不卸载，初始值、校验和提交均包含折叠字段。若折叠区字段校验失败，表单请求展开，以显示可修改的错误字段。
+A date range, long placeholder, field count or free space alone does not authorize a wider field; measure it. Never widen a field first and then change the expectation to pass. A grid span is not a fixed pixel width: actual width depends on the container, gutter and labelWidth; measure labelWidth from the longest real label, not an example value.
 
-初始值优先级为 Item.initialValue > Form.initialValues > Item.clearValue，保留 0、false 和空字符串。运行中的初始值用于初始化及重置，不覆盖用户当前草稿；编辑器修改默认值会更新字段预览。重置先恢复初始值，再用明确设置的 clearValue 覆盖；输入清除至 null/undefined 也恢复 clearValue。
+`labelWidth` is an optional shared label column width in px with no fixed default; select the SearchForm and edit Label width in the property panel. The imported library contract must include it.
 
-`onSearch(values)` 在校验通过后返回全部已注册字段；`onReset(values)` 返回重置后的值；`onValuesChange(values)` 提供当前草稿（包含折叠字段），对应 readonly `values` 状态。查询不会自动改变应用的数据；页面交互将提交值赋给 appliedFilters 并将 page 设为 1。重置事件做同样的应用状态更新。`collapsed` 为可写状态；ref actions 为 `submit()`、`reset()`、`setFieldsValue(values)`。
+Without `labelWidth`, labels take their content width; with it, every Item uses the shared width. Before generation check every label, including initially collapsed fields, custom labels, required and help marks, the generated colon and its native spacing; choose a single-line width that fits the longest label in the actual font while the target viewport still leaves usable control space. Re-evaluate the whole form after label changes, and do not write the Page's width into the component default. Labels are plain text: do not append colons, spaces or CSS offsets to compensate for a narrow label column.
 
-### 页面生成
+The card uses the theme background and border, 16px/20px padding, an 8px radius and a default 16px bottom margin; set marginBottom=0 when the parent provides a gap. `embedded` removes the card and its outer spacing. className receives canvas styles.
 
-每个查询字段默认提供可见的 `label` 或真实 `labelContent`，包括关键词输入；placeholder 仅作为输入提示，不能替代标签，也不能为了给输入框更多空间而把 label 清空。标签文本从业务字段含义确定，并重新测量整个表单的 labelWidth。明确要求无标签的特殊搜索入口需在 source-reviewed Item 的 `props.label:""` 和来源中单独声明；参考图中只有 placeholder 不自动构成这一例外。
+The editor canvas shows all fields so they can be selected and edited; interactive Preview and runtime follow `collapsed`. Collapse only hides columns: fields stay mounted, and initial values, validation and submission include collapsed fields. When a collapsed field fails validation, the form requests expansion so the error is editable.
 
-标准列表保留 `minRows=1`。只有需求明确要求初始展开并保留收起按钮时，才通过来源例外设置 `collapsed=false`，不要通过增加 minRows 实现初始展开。五个 span=6 的字段跨两行：minRows=1 显示展开/收起，minRows=2 会使两行全部成为常驻区域而不显示按钮；只有明确批准常驻两行时才在计划中声明后者。编辑器强制展示全部字段与运行态的折叠设置分别验收。
+Initial-value precedence is Item.initialValue > Form.initialValues > Item.clearValue, preserving 0, false and empty strings. Runtime initial values initialize and reset; they never overwrite the user's current draft, and editing a default in the editor updates the field preview. Reset restores initial values, then applies any explicitly set clearValue; clearing an input to null/undefined also restores clearValue.
 
-后台四列组合（colSpan=6、minRows=1）只有三个普通字段时，查询/重置位于同一行第四格，不显示多余的展开控件。检查 Item 的实际 span；日期范围等较宽控件也保持继承，只有明确的来源例外允许跨列，可用空白不构成修改理由。
+`onSearch(values)` returns all registered fields after validation; `onReset(values)` returns the reset values; `onValuesChange(values)` provides the current draft (including collapsed fields) and backs the readonly `values` state. Querying does not change applied data by itself: the page interaction assigns the submitted values to appliedFilters and sets page to 1. The reset event performs the same applied-state update. `collapsed` is writable state; ref actions are `submit()`, `reset()` and `setFieldsValue(values)`.
 
-列表查询区统一使用 Overseas SearchForm，按需求插入真实 Item 和 Antd6 控件，默认四列 colSpan=6。不得生成另一套原生查询网格、重复查询按钮，或不可编辑的 fields/element JSON。生成前读取目标已安装 Overseas 和 Antd6 契约；依赖准备遵循[库选择](../../index.md)，缺少能力时明确报告，不把组件升级或发布作为默认修复。字段增删排序使用节点操作，查询/重置事件接页面状态。
+### Page generation
+
+Every query field has a visible `label` or real `labelContent`, including keyword inputs. A placeholder is an input hint; it does not replace the label, and the label is never cleared to give the input more room. Derive the label from the business field and re-measure the form's labelWidth. A deliberately unlabeled special search entry needs its own source-reviewed Item declaration with `props.label:""` and the source; a placeholder-only reference image is not that exception.
+
+A standard list keeps `minRows=1`. Only a requirement that explicitly asks for an initially expanded form with a collapse button allows `collapsed=false`, through a source exception; never expand initially by raising minRows. Five fields at span=6 cover two rows: minRows=1 shows expand/collapse, while minRows=2 makes both rows permanent with no toggle; declare the latter in the plan only when two permanent rows are explicitly approved. The editor's forced full display and the runtime collapse setting are accepted separately.
+
+In the admin four-column composition (colSpan=6, minRows=1) with only three ordinary fields, query/reset occupy the fourth cell of the same row and no extra expand control appears. Check each Item's actual span; wider controls such as date ranges also inherit unless a recorded span exception applies.
+
+Every list query region uses Overseas SearchForm with real Items and Antd6 controls, four columns (colSpan=6) by default. Never generate a native query grid, duplicate query buttons or a non-editable fields/element JSON. Read the target's installed Overseas and Antd6 contracts before generation; prepare dependencies through [library selection](../../index.md), report missing capability explicitly, and do not treat a component upgrade or publication as the default fix. Add, remove and reorder fields with node operations; wire query/reset events to page state.
 
 ```html
 <plasmic-component
@@ -89,7 +101,7 @@ SearchForm 提供 Extra actions (`extraActions`) Slot，用于查询辅助操作
       <slot name="children">
         <plasmic-component
           data-plasmic-component="plasmic-antd6-input"
-          data-props='{"placeholder":"请输入关键词","allowClear":true}'
+          data-props='{"placeholder":"请输入关键词","allowClear":true,"size":"medium"}'
         ></plasmic-component>
       </slot>
     </plasmic-component>
@@ -97,24 +109,26 @@ SearchForm 提供 Extra actions (`extraActions`) Slot，用于查询辅助操作
 </plasmic-component>
 ```
 
-实际 MCP 插入时，每个组件还需指定 `data-plasmic-project`，其值来自当前项目的 imported project ID，Overseas 和 Antd6 分别指定。
+For an actual MCP insertion every component also sets `data-plasmic-project` to the current project's imported project ID, separately for Overseas and Antd6.
 
 ### SearchForm.Item
 
-Read the actual registered child contract before editing a query field. The owning [SearchForm](search-form.md) controls grid, shared labels, collapse and query/reset state.
+Read the actual registered child contract before editing a query field. The owning [SearchForm](#editable-structure) controls the grid, shared labels, collapse and query/reset state.
 
-每个 Item 的 `name` 是唯一的字段键；`label`、`span`、`initialValue`、`clearValue`、`required`、`requiredMessage`、`rules`、`valuePropName` 和 `trigger` 可编辑、可绑定表达式。`name` 为单个字符串键，不解释点分路径。`rules` 为 Ant Design Form.Item 的规则数组。
+Each Item's `name` is its unique field key; `label`, `span`, `initialValue`, `clearValue`, `required`, `requiredMessage`, `rules`, `valuePropName` and `trigger` are editable and bindable. `name` is a single string key; dotted paths are not interpreted. `rules` is an Ant Design Form.Item rule array.
 
-Item 的 Control (`children`) Slot 放一个值控件，例如 Antd6 Input、Select、DatePicker、Checkbox 或自定义组件。控件自身的 placeholder、options、模式、格式、禁用状态等在该控件上编辑；初始值在 Item/Form 上配置，避免同时给控件绑定独立受控值。默认以 `value` / `onChange` 绑定；支持注册控件的 `__plasmicFormFieldMeta.valueProp`（Checkbox/Switch 的 `checked`），以及 Item 手动指定属性和事件名。控件事件仍会调用原本的事件处理器。
+The Item's Control (`children`) Slot holds one value control, such as Antd6 Input, Select, DatePicker, Checkbox or a custom component. Edit the control's placeholder, options, mode, format and disabled state on the control; configure initial values on the Item/Form and do not also bind an independent controlled value. Binding defaults to `value` / `onChange`; registered controls' `__plasmicFormFieldMeta.valueProp` (`checked` for Checkbox/Switch) and Item-specified prop/event names are supported. The control's own event handlers still run.
 
 Custom label (labelContent) and help are real editable Slots. Custom label overrides the text label; help supplies supporting text or validation feedback.
 
-Check the real Item/control Slot ownership, unique field key and span override in editor, Preview and saved/reopened readback. Use the parent [acceptance](search-form.md) to verify initial/reset/clear values, validation and collapsed fields.
-
 ## Acceptance checks
 
-### 交付与验证
+### Delivery and verification
 
-按 Page/Tab 清点所有生成的 SearchForm，包括初始不活跃的 Tabs。独立于生成结果记录预期栅格、有效 Item span、共享 labelWidth 和折叠状态。逐项校验整体 colSpan 与 `Item.span ?? Form.colSpan`，未声明例外的字段须继承预期列宽；隐藏字段也检查。在目标视口检查编辑器和真实 Preview，测量列宽/行位置、标签与标点是否完整、控件可用空间；验证查询/重置。有折叠区时验证隐藏字段的值和双向展开/收起；未超出 minRows 时确认不显示多余折叠按钮。保存/重开后再次检查，分别记录模型、几何、截图和交互结果。未访问 Tabs 或未测量条件保持未验证；模型验证、Slot/路由检查和 Skill 格式验证不能证明视觉验收。失败时同步修正生成输入和交付模型。
+When the editor forces expansion it shows "收起", an upward indicator and `aria-expanded=true`; Preview uses the actual collapsed state. Check control start positions for short and long labels, complete single-line text, the native colon-to-control spacing and both directions of expand/collapse; clearing labelWidth restores content width without clipping or eliding labels.
 
-组件实现、注册和发布由单独授权的工程任务处理，使用[工程验证](../../../engineering/component-contracts.md)。原型验收针对当前实际版本，不要求 Agent 构建或读取客户端内部产物。
+Check real Item/control Slot ownership, unique field keys and span overrides in the editor, Preview and saved/reopened readback, and verify initial/reset/clear values, validation and collapsed fields.
+
+Inventory every generated SearchForm per Page/Tab, including initially inactive Tabs. Record the expected grid, effective Item spans, shared labelWidth and collapse state independently of the generated output. Check the overall colSpan and `Item.span ?? Form.colSpan` field by field; fields without a declared exception inherit the expected column width, including hidden fields. At the target viewport check the editor and real Preview: measure column widths/row positions, complete labels and punctuation and usable control space; exercise query/reset. With a collapsed region verify hidden field values and both directions of expand/collapse; without one, confirm that no extra toggle appears. Record model, geometry, screenshot and interaction results separately; unvisited Tabs and unmeasured conditions stay unverified. Correct the generation input and delivered model together on failure.
+
+Component implementation, registration and publication are separately authorized engineering tasks under [engineering verification](../../../engineering/component-contracts.md). Prototype acceptance targets the actual installed version and does not require the agent to build or read client internals.

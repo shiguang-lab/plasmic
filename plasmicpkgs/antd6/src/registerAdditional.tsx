@@ -80,19 +80,12 @@ export const AntdFloatButtonGroup: typeof Ant.FloatButton.Group =
   Ant.FloatButton.Group;
 export const AntdBackTop: typeof Ant.FloatButton.BackTop =
   Ant.FloatButton.BackTop;
-export function AntdImage({
-  objectFit,
-  style,
-  ...props
-}: React.ComponentProps<typeof Ant.Image> & {
-  objectFit?: React.CSSProperties["objectFit"];
-}) {
+export function AntdImage(props: React.ComponentProps<typeof Ant.Image>) {
   const canvas = usePlasmicCanvasContext();
   return (
     <Ant.Image
       {...props}
       preview={canvas && !canvas.interactive ? false : props.preview}
-      style={{ ...style, ...(objectFit ? { objectFit } : {}) }}
     />
   );
 }
@@ -152,57 +145,7 @@ export const AntdSplitterPanel: typeof Ant.Splitter.Panel = Ant.Splitter.Panel;
 export const AntdStatistic: typeof Ant.Statistic = Ant.Statistic;
 export const AntdStatisticTimer: typeof Ant.Statistic.Timer =
   Ant.Statistic.Timer;
-export interface TagValueOption {
-  value: string;
-  label?: string;
-  color?: string;
-}
-export function AntdTag({
-  value,
-  options,
-  defaultColor,
-  automaticColor,
-  children,
-  color,
-  ...props
-}: React.ComponentProps<typeof Ant.Tag> & {
-  value?: string | number | boolean;
-  options?: TagValueOption[];
-  defaultColor?: string;
-  automaticColor?: boolean;
-}) {
-  const text = value == null ? "" : String(value);
-  const option = Array.isArray(options)
-    ? options.find((item) => item?.value === text)
-    : undefined;
-  const colors = [
-    "blue",
-    "green",
-    "orange",
-    "purple",
-    "cyan",
-    "magenta",
-    "red",
-    "gold",
-  ];
-  const hash = Array.from(text).reduce(
-    (current, char) => (current * 31 + char.charCodeAt(0)) >>> 0,
-    0,
-  );
-  return (
-    <Ant.Tag
-      {...props}
-      color={
-        color ??
-        (option?.color ||
-          defaultColor ||
-          (automaticColor ? colors[hash % colors.length] : undefined))
-      }
-    >
-      {children ?? option?.label ?? text}
-    </Ant.Tag>
-  );
-}
+export const AntdTag: typeof Ant.Tag = Ant.Tag;
 export const AntdTagCheckable: typeof Ant.Tag.CheckableTag =
   Ant.Tag.CheckableTag;
 export const AntdTimeline: typeof Ant.Timeline = Ant.Timeline;
@@ -217,22 +160,7 @@ export const AntdTypographyParagraph: typeof Ant.Typography.Paragraph =
 export const AntdTypographyLink: typeof Ant.Typography.Link =
   Ant.Typography.Link;
 export const AntdWatermark: typeof Ant.Watermark = Ant.Watermark;
-export function AntdInputOTP({
-  onChange,
-  onComplete,
-  ...rest
-}: Omit<React.ComponentProps<typeof Ant.Input.OTP>, "onChange" | "onInput"> & {
-  onChange?: (value: string) => void;
-  onComplete?: (value: string) => void;
-}) {
-  return (
-    <Ant.Input.OTP
-      {...rest}
-      onInput={(values) => onChange?.(values.join(""))}
-      onChange={onComplete}
-    />
-  );
-}
+export const AntdInputOTP: typeof Ant.Input.OTP = Ant.Input.OTP;
 export function AntdInputSearch({
   onChange,
   ...rest
@@ -617,7 +545,7 @@ export function registerAdditional(loader?: Registerable) {
         },
       ],
     },
-    gutter: { type: "number", defaultValue: 16 },
+    gutter: { type: "number", defaultValueHint: 0 },
     align: choice(["top", "middle", "bottom", "stretch"]),
     justify: choice([
       "start",
@@ -631,7 +559,7 @@ export function registerAdditional(loader?: Registerable) {
   });
   register(loader, AntdCol, "col", "AntdCol", {
     children: slot("Column"),
-    span: { type: "number", defaultValue: 12 },
+    span: "number",
     offset: "number",
     order: "number",
     flex: "string",
@@ -704,7 +632,7 @@ export function registerAdditional(loader?: Registerable) {
     children: slot("Flex content"),
     vertical: "boolean",
     wrap: choice(["nowrap", "wrap", "wrap-reverse"]),
-    gap: { type: "number", defaultValue: 16 },
+    gap: "number",
     align: choice(["stretch", "center", "start", "end", "baseline"]),
     justify: choice([
       "start",
@@ -757,7 +685,6 @@ export function registerAdditional(loader?: Registerable) {
     height: "number",
     preview: "boolean",
     fallback: "imageUrl",
-    objectFit: choice(["fill", "contain", "cover", "none", "scale-down"]),
   });
   register(
     loader,
@@ -838,7 +765,7 @@ export function registerAdditional(loader?: Registerable) {
         { key: "2", content: "Second item" },
       ],
     },
-    height: { type: "number", defaultValue: 240 },
+    height: "number",
     virtual: "boolean",
     sticky: "boolean",
   });
@@ -850,8 +777,8 @@ export function registerAdditional(loader?: Registerable) {
         { key: "2", data: { content: "Second tile" } },
       ],
     },
-    columns: { type: "number", defaultValue: 2 },
-    gutter: { type: "number", defaultValue: 16 },
+    columns: { type: "number", defaultValueHint: 3 },
+    gutter: { type: "number", defaultValueHint: 0 },
   });
   register(
     loader,
@@ -884,7 +811,14 @@ export function registerAdditional(loader?: Registerable) {
       description: { type: "slot", hidePlaceholder: true },
       okText: "string",
       cancelText: "string",
+      okButtonProps: "object",
       disabled: "boolean",
+      open: {
+        type: "boolean",
+        description:
+          "Native controlled open state. Leave unset for the native click trigger; bind it when another action, such as an ActionGroup item, requests confirmation.",
+      },
+      onOpenChange: event("open", "boolean"),
       onConfirm: event("event", "object"),
       onCancel: event("event", "object"),
     },
@@ -937,7 +871,7 @@ export function registerAdditional(loader?: Registerable) {
   const spaceProps: Props = {
     children: slot("Spaced content"),
     orientation: choice(["horizontal", "vertical"]),
-    size: { type: "number", defaultValue: 16 },
+    size: { type: "number", defaultValueHint: 8, description: "Gap in pixels. Unset uses the native small size." },
   };
   register(loader, AntdSpace, "space", "AntdSpace", {
     ...spaceProps,
@@ -985,7 +919,6 @@ export function registerAdditional(loader?: Registerable) {
       },
       onResize: event("sizes", "object"),
     },
-    { defaultStyles: { height: "240px", width: "100%" } },
   );
   register(loader, AntdSplitterPanel, "splitter-panel", "AntdSplitterPanel", {
     children: slot("Panel"),
@@ -1018,26 +951,6 @@ export function registerAdditional(loader?: Registerable) {
     },
   );
   register(loader, AntdTag, "tag", "AntdTag", {
-    value: {
-      type: "string",
-      displayName: "Value",
-      description: "Read the bound value. Configure its label and color below.",
-    },
-    options: {
-      type: "array",
-      displayName: "Tag labels and colors",
-      itemType: {
-        type: "object",
-        nameFunc: (item: TagValueOption) => item.label || item.value,
-        fields: {
-          value: { type: "string", displayName: "Value" },
-          label: { type: "string", displayName: "Label" },
-          color: { type: "color", displayName: "Color" },
-        },
-      },
-    },
-    defaultColor: { type: "color", displayName: "Default color" },
-    automaticColor: { type: "boolean", displayName: "Assign colors automatically" },
     closeIcon: { type: "slot", hidePlaceholder: true },
     children: { ...slot("Tag"), hidePlaceholder: true },
     color: { type: "color" },
@@ -1151,9 +1064,12 @@ export function registerAdditional(loader?: Registerable) {
     "typography-title",
     "AntdTypographyTitle",
     {
-      ...textProps,
+      // Typography.Title has no native strong prop.
+      ...Object.fromEntries(
+        Object.entries(textProps).filter(([name]) => name !== "strong"),
+      ),
       children: slot("Heading"),
-      level: { type: "choice", options: [1, 2, 3, 4, 5], defaultValueHint: 2 },
+      level: { type: "choice", options: [1, 2, 3, 4, 5], defaultValueHint: 1 },
     },
   );
   register(
@@ -1190,13 +1106,19 @@ export function registerAdditional(loader?: Registerable) {
     "AntdInputOTP",
     {
       value: "string",
-      length: { type: "number", defaultValue: 6 },
+      length: { type: "number", defaultValueHint: 6 },
       disabled: "boolean",
       mask: "boolean",
       size: sizes,
       variant,
-      onChange: event("value", "string"),
-      onComplete: event("value", "string"),
+      onChange: {
+        ...event("value", "string"),
+        description: "Native onChange: fires with the complete code once every cell is filled.",
+      },
+      onInput: {
+        ...event("values", "object"),
+        description: "Native onInput: fires on each cell edit with the array of cell values.",
+      },
     },
     { states: valueState("text") },
   );

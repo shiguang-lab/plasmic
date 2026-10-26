@@ -8,6 +8,13 @@ Library: [Ant Design v6](../index.md).
 
 ## Generation rules
 
+### Design defaults
+
+- Use for choosing from a hierarchy where any level can be selected; a fixed-depth path uses Cascader.
+- Fills its column; `showSearch` above twenty nodes; `allowClear` in query and optional fields.
+
+### Usage and behavior
+
 Single/multiple/checkable values may be scalars, arrays or labeled objects. Registered state and event types must represent those modes. For wrapper changes, test actual mode/value combinations and controlled/uncontrolled behavior against the installed Ant Design version.
 
 ### Hierarchy and field ownership

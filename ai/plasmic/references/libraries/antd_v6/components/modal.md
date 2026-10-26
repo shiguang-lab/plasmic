@@ -8,6 +8,14 @@ Library: [Ant Design v6](../index.md).
 
 ## Generation rules
 
+### Design defaults
+
+- Use for a short task or decision that interrupts the current flow; an edit that needs the list context or many fields uses a Drawer or a form Page.
+- Width per [scale](../../../design/scale.md): 520 for one column, 720 for two. The title names the operation; the native footer keeps cancel before the confirming action, labelled with the actual action.
+- A Form inside uses vertical labels under [Modal form layout](../compositions/form-layout.md#modal-form-layout).
+
+### Usage and behavior
+
 Read the installed Modal contract before changing its Props, Slots or events. [Overlays](../compositions/modal-drawer.md) owns Modal/Drawer composition, viewport limits, dismissal policy and the generation gate; [Modal form layout](../compositions/form-layout.md#modal-form-layout) owns width, field columns, label placement and header copy when a business Form is present.
 
 Read Trigger ownership, Footer and Registration and runtime verification for every Modal; Submission for confirmation/business actions. Follow Form/layout references only when a business Form is present. Read-only content still requires the overlay generation gate, close/reopen, visual and persistence checks.

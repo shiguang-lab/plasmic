@@ -11,7 +11,7 @@ from collections import Counter
 from html.parser import HTMLParser
 from pathlib import Path
 from verify_bindings import role_menu
-from verify_selection import ROLES, COLUMN_DISPLAY_TYPES, category_errors
+from verify_selection import ROLES, RETIRED_COLUMN_PROPS, column_presentation_errors
 from verify_forms import TextTree, walk, node_name, props, identity, slot, content
 
 
@@ -120,15 +120,17 @@ def check_components(nodes, path, plan=None):
             if not columns:
                 errors.append({**context, "message": "Table requires real Table.Column nodes in its Columns children Slot; data alone does not define columns"})
             for column in columns:
-                if props(column).get("displayType") not in (None, *COLUMN_DISPLAY_TYPES):
-                    errors.append({**context, "column": node_name(column), "message": "Table Column displayType must be text or custom; presets were removed"})
+                for key in RETIRED_COLUMN_PROPS:
+                    if key in props(column):
+                        errors.append({**context, "column": node_name(column), "message": f"{key} is not a native Table Column prop; the render Slot alone decides presentation"})
                 if plan is not None and "components" in plan and not any(c.get("nodeName") == node_name(column) for c in plan["components"]):
                     errors.append({**context, "column": node_name(column), "message": "Every Column needs a source-reviewed field/presentation decision in components"})
                 if not props(column).get("dataIndex") and not content(slot(column, "render")) and not any(
                     n.get("tag") == "plasmic-component" for n in walk(slot(column, "render") or {"children": []})
                 ):
                     errors.append({**context, "column": node_name(column), "message": "Column requires a dataIndex or nonempty render Slot"})
-            errors.extend(table_width_errors(node, columns, {**context, "check": "tableWidth"}))
+            specs = [c for c in (plan or {}).get("components", []) if c.get("nodeName") == node_name(node)]
+            errors.extend(table_width_errors(node, columns, {**context, "check": "tableWidth"}, specs[0] if len(specs) == 1 else None))
         if identity(node) == "plasmicantd6card":
             children = slot(node, "children")
             # A SearchForm already owns its surface. Layout-only wrappers do not
@@ -175,24 +177,21 @@ def estimated_title_width(text):
     return sum(4 if ch.isspace() else 15 if ord(ch) > 0x2E7F else 9 for ch in text)
 
 
-def table_width_errors(table, columns, context):
-    """Static Table width contract.
+def table_width_errors(table, columns, context, spec=None):
+    """Project width policy, distinct from native Table sizing capabilities.
 
-    The antd6 wrapper merges scroll as {x: "max-content", ...scroll}. Without a
-    numeric scroll.x the native table uses auto layout, so Column.width is only
-    a minimum and content (long keys, Tags, ActionGroup) redistributes widths.
-    With all columns fixed, a wider container stretches every column,
-    including operations. Rendered widths, header wrapping and horizontal
-    scrolling still need layout evidence.
+    The wrapper leaves scroll unset by default. Rendered widths, header wrapping
+    and horizontal scrolling require layout evidence under either the numeric
+    baseline or a source-approved native max-content choice.
     """
     entries = []
     for column in columns:
         title = slot(column, "title")
         entries.append((node_name(column), props(column), " ".join(content(title).split()) if title else ""))
-    return column_width_errors(props(table), entries, context)
+    return column_width_errors(props(table), entries, context, spec)
 
 
-def column_width_errors(table_props, entries, context):
+def column_width_errors(table_props, entries, context, spec=None):
     """Shared by the saved-model gate and plan preflight: entries are (name, props, title)."""
     errors, widths, unset = [], [], []
     for name, values, text in entries:
@@ -202,7 +201,7 @@ def column_width_errors(table_props, entries, context):
         width = static_literal(values["width"])
         if not pixel_number(width):
             errors.append({**context, "column": name, "actual": values["width"],
-                           "message": "Column.width must be a literal positive pixel number; strings and bindings do not size native columns reliably"})
+                           "message": "Project width policy requires a literal positive pixel Column.width so planned widths can be checked"})
             continue
         widths.append(width)
         padding = 16 if table_props.get("size", "large") == "large" else 8
@@ -217,9 +216,12 @@ def column_width_errors(table_props, entries, context):
                        "message": "Exactly one main text Column (name/title/description) must leave width unset to absorb remaining space; all other Columns use explicit widths"})
     scroll_x = literal_scroll_x(table_props.get("scroll"))
     fixed_sum = sum(widths)
-    if not pixel_number(scroll_x) or scroll_x <= fixed_sum:
+    content_sized = (scroll_x == "max-content" and isinstance(spec, dict)
+                     and literal_scroll_x(spec.get("props", {}).get("scroll")) == scroll_x
+                     and verify_component_policy.approved_override(spec, "scroll.x"))
+    if not content_sized and (not pixel_number(scroll_x) or scroll_x <= fixed_sum):
         errors.append({**context, "scrollX": table_props.get("scroll"), "fixedWidthSum": fixed_sum,
-                       "message": "Table with explicit Column widths requires numeric scroll.x = explicit widths + the main text Column baseline; otherwise the wrapper's max-content default makes widths minimums"})
+                       "message": "Project width policy requires numeric scroll.x greater than the explicit widths sum; native max-content requires a source-backed scroll.x override and rendered width verification"})
     return errors
 
 
@@ -411,6 +413,13 @@ def check_required_nodes(plan, nodes, page, path):
         values, role = props(node), spec.get("role", "widget")
         if not matches_props(spec.get("props", {}), values):
             errors.append({**context, "message": "Native props differ from the reviewed property constraints (null means deliberately unset)", "properties": [key for key, value in spec["props"].items() if not matches_props({key: value}, values)]})
+        if identity(node) == "plasmicantd6card" and spec.get("header") in ("none", "title", "title+extra"):
+            has_title, has_extra = (bool(content(slot(node, name))) for name in ("title", "extra"))
+            expected = {"none": (False, False), "title": (True, False), "title+extra": (True, True)}[spec["header"]]
+            if (has_title, has_extra) != expected:
+                errors.append({**context, "check": "cardHeader", "header": spec["header"],
+                               "actual": {"title": has_title, "extra": has_extra},
+                               "message": "Saved Card header differs from the planned header decision; a header always carries its title"})
         for prop in spec.get("dynamicProps", []):
             encoded = json.dumps(prop_at(values, prop), ensure_ascii=False)
             if "{{" not in encoded or "}}" not in encoded:
@@ -420,7 +429,7 @@ def check_required_nodes(plan, nodes, page, path):
             errors.append({**context, "message": "Component is outside its reviewed native owner/Slot"})
         if role == "content-scope" and identity(node) != "plasmicantd6tabs":
             errors.append({**context, "message": "Content-scope navigation requires native Tabs in this library suite"})
-        errors.extend({"path": path, **error} for error in category_errors(spec, node, plan.get("components", [])))
+        errors.extend({"path": path, **error} for error in column_presentation_errors(spec, node, plan.get("components", [])))
         if role == "row-actions":
             column, entry = owner, slot_name
             while column and identity(column) != "plasmicantd6tablecolumn":
@@ -470,7 +479,6 @@ def check_required_nodes(plan, nodes, page, path):
             continue
         render = slot(column, "render")
         if (identity(column) != "plasmicantd6tablecolumn" or render is None
-                or props(column).get("displayType") not in (None, "custom")
                 or not any(n is control for n in walk(render))
                 or identity(control) != "plasmicreactuiactiongroup"
                 or not isinstance(spec.get("event"), str) or not spec["event"].strip()
@@ -485,14 +493,19 @@ PROSE_ROLES = {"button", "help", "hint", "title"}
 
 
 def copy_budget_errors(entries):
-    """Length and repetition budgets from the copy economy table."""
+    """Length and repetition budgets from the copy economy table (content-review.md#copy-economy).
+
+    Lengths are display units: a CJK/fullwidth character is 1, any other character 0.5,
+    so the same budget fits Chinese and English UI. Bindings are reviewed in Preview.
+    """
+    from verify_content import copy_role, copy_units
     errors, seen = [], {}
     for entry in entries:
-        role, text = entry.get("role"), str(entry.get("text", "")).strip()
+        role, text = copy_role(entry), str(entry.get("text", "")).strip()
         limit = COPY_BUDGET.get(role)
-        if limit and len(text) > limit:
-            errors.append({"check": "uiCopy", "text": text, "node": entry.get("nodeName"),
-                           "message": f"{role} copy exceeds the {limit}-character budget; shorten it to the source's own UI wording"})
+        if limit and not text.startswith("{{") and copy_units(text) > limit:
+            errors.append({"check": "uiCopy", "text": text, "node": entry.get("nodeName"), "role": role,
+                           "message": f"{role} copy exceeds its {limit}-unit budget (CJK character 1, other character 0.5); shorten it to the source's own UI wording"})
         if role in PROSE_ROLES and text and not text.startswith("{{"):
             seen.setdefault((role, text), []).append(entry.get("nodeName"))
     for (role, text), owners in seen.items():
@@ -556,16 +569,11 @@ def check_presentation(plan, root, path):
     for node in nodes:
         if node["tag"] == "plasmic-component":
             texts.extend(literals(props(node)))
+    from verify_content import copy_triage
     for entry in copy.get("entries", []) if isinstance(copy, dict) else []:
-        triage = entry.get("copyTriage")
         label = entry.get("text", "")
-        if triage is None:
-            errors.append({"check": "uiCopy", "path": path, "text": label, "node": entry.get("nodeName"),
-                           "message": "Declare copyTriage for every authored literal: perceive-now, perceive-on-demand or not-user-facing; long prose needs a reviewed decision"})
-        elif entry.get("kind") == "action" and len(str(label).strip()) > 6:
-            errors.append({"check": "uiCopy", "path": path, "text": label, "node": entry.get("nodeName"),
-                           "message": "Action label exceeds the copy budget; use the source's short UI wording (verb or verb + object)"})
-        elif triage == "not-user-facing":
+        # Budgets (including action labels) are applied once in copy_budget_errors.
+        if copy_triage(entry) == "not-user-facing":
             errors.append({"check": "uiCopy", "path": path, "text": label, "node": entry.get("nodeName"),
                            "message": "not-user-facing copy must move to copy.excluded with hashed evidence, not render in the UI"})
     if isinstance(copy, dict) and isinstance(copy.get("entries"), list):
@@ -602,6 +610,10 @@ def validate_page_plan(plan):
 
     if not text(plan.get("name")):
         raise ValueError("Declare the source-reviewed Page directory name before generation; default to Chinese business wording")
+    if plan.get("pageType") is None:
+        raise ValueError("Declare the Page type (pageType) from references/design/page-types.md before generation")
+    if "wireframe" not in plan:
+        raise ValueError("Declare the Page wireframe inventory {source, items}, or {notApplicable: reason} when the source has no text wireframe")
     if "pageHeader" not in plan or plan["pageHeader"] is not None and (not isinstance(plan["pageHeader"], dict) or not all(text(plan["pageHeader"].get(k)) for k in ("nodeName", "source"))):
         raise ValueError("Declare pageHeader:null, or a named region with an explicit current user request source")
     components, copy = plan.get("components"), plan.get("copy")
@@ -688,6 +700,10 @@ def record_context_errors(plan):
         if "[" in pattern and not route_matches(pattern, path):
             errors.append({"check": "recordPage", "path": path, "routePattern": pattern,
                            "message": "Page path must match routePattern, one segment per param"})
+        elif isinstance(path, str) and any("[" + param + "]" not in path for param in params):
+            # The plan path is the Plasmic page path (pageMeta.path); concrete URLs belong in case assertPath.
+            errors.append({"check": "recordPage", "path": path, "routePattern": pattern,
+                           "message": "Record Page path is the Plasmic page path with its [param] segments (equal to routePattern); put concrete Preview URLs in runtime case assertPath"})
         if not page.get("recordSource"):
             errors.append({"check": "recordPage", "path": path, "message": "Record Page must declare where the record comes from"})
         modes = page.get("modes") or []
@@ -711,7 +727,10 @@ def record_context_errors(plan):
                 if read_only and read_only not in modes:
                     errors.append({"check": "recordPage", "path": path, "readOnlyMode": read_only,
                                    "message": "readOnlyMode must be one of the declared modes"})
-    for spec in plan.get("rowActions", []):
+    actions = [a for a in plan.get("rowActions", []) if isinstance(a, dict)]
+    actions += [a for page in plan.get("pages", []) if isinstance(page, dict)
+                for a in (page.get("rowActions") if isinstance(page.get("rowActions"), list) else []) if isinstance(a, dict)]
+    for spec in actions:
         # Generic: an action participates in record context only when it declares
         # an identity to carry or a destination to resolve. Action names come
         # from the task inventory; the gate never hardcodes business kinds.

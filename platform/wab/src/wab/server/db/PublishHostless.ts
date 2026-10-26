@@ -1,7 +1,4 @@
-import {
-  updateHostlessPackage,
-  type HostlessParamRemovals,
-} from "@/wab/server/code-components/code-components";
+import { updateHostlessPackage } from "@/wab/server/code-components/code-components";
 import { DEFAULT_DATABASE_URI } from "@/wab/server/config";
 import {
   getLastBundleVersion,
@@ -32,6 +29,7 @@ const { Command } = require("commander");
 async function publishHostlessProjects(
   em: EntityManager,
   selectedProjectId?: ProjectId,
+  breaking = false,
 ) {
   const db = new DbMgr(em, SUPER_USER);
   await ensureDevFlags(db);
@@ -67,7 +65,7 @@ async function publishHostlessProjects(
       continue;
     }
 
-    if (await publishHostlessProject(db, projectId, { plumeSite })) {
+    if (await publishHostlessProject(db, projectId, { plumeSite, breaking })) {
       logger().info("Project updated");
       updatedProjects.push(project.name);
     } else {
@@ -81,8 +79,9 @@ export async function publishHostlessProject(
   projectId: ProjectId,
   opts?: {
     plumeSite?: Site;
-    removedParams?: HostlessParamRemovals;
     hostLessPackageInfo?: HostLessPackageInfo;
+    /** Mark nested prop-schema or runtime behavior changes that remove no top-level param. */
+    breaking?: boolean;
   },
 ) {
   const project = await db.getProjectById(projectId);
@@ -109,17 +108,13 @@ export async function publishHostlessProject(
       name, npmPkg, cssImport, deps, registerCalls, minimumReactVersion,
     });
   }
-  const hasBreakingParamRemoval = site.components.some((component) =>
-    component.params.some((param) =>
-      opts?.removedParams?.[component.name]?.includes(param.variable.name),
-    ),
-  );
-  await updateHostlessPackage(
+  // Params the new registrations no longer declare make this a breaking release.
+  const removedParams = await updateHostlessPackage(
     site,
     project.name,
     plumeSite,
-    opts?.removedParams,
   );
+  const hasBreakingParamRemoval = Object.keys(removedParams).length > 0;
   const newBundle = bundler.bundle(
     siteOrProjectDep,
     latestVersion.id,
@@ -139,12 +134,7 @@ export async function publishHostlessProject(
   assertSiteInvariants(site);
   logger().info("Saving new version and publishing...");
   // Make sure we're able to identify whether the project changed or not
-  await updateHostlessPackage(
-    site,
-    project.name,
-    plumeSite,
-    opts?.removedParams,
-  );
+  await updateHostlessPackage(site, project.name, plumeSite);
   const newBundle2 = bundler.bundle(
     siteOrProjectDep,
     latestVersion.id,
@@ -174,7 +164,7 @@ export async function publishHostlessProject(
     projectId,
     semver.inc(
       latestVersion.version,
-      hasBreakingParamRemoval ? "major" : "minor",
+      hasBreakingParamRemoval || opts?.breaking ? "major" : "minor",
     ) ?? undefined,
     [],
     "",
@@ -202,6 +192,7 @@ async function main() {
   const opts = new Command("custom-script")
     .option("-db, --dburi <dburi>", "Database uri", DEFAULT_DATABASE_URI)
     .option("--project-id <projectId>", "Publish only this hostless project")
+    .option("--breaking", "Publish changed libraries as a major version")
     .parse(process.argv)
     .opts();
   await ensureDbConnections(opts.dburi, {
@@ -211,7 +202,7 @@ async function main() {
 
   try {
     await con.transaction(async (em) => {
-      await publishHostlessProjects(em, opts.projectId);
+      await publishHostlessProjects(em, opts.projectId, opts.breaking);
     });
   } finally {
     await closeDbConnections();

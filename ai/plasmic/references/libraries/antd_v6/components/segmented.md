@@ -8,6 +8,11 @@ Library: [Ant Design v6](../index.md).
 
 ## Generation rules
 
+### Design defaults
+
+- Use for switching a view mode or granularity inside one region (list/card view, day/week); content scopes use Tabs, form values use Radio.
+- Two to five short options.
+
 ### View or option selection
 
 Use Segmented for a compact mutually exclusive set, such as a display mode. Use [Tabs](tabs.md) when each option owns a content panel with its own tab semantics. The current registration exposes options, value/defaultValue, size, block, disabled and onChange; do not add a v5 Segmented Option node or invent an editable option Slot.

@@ -8,6 +8,12 @@ Library: [Ant Design v6](../index.md).
 
 ## Generation rules
 
+### Design defaults
+
+- Use for a condition that stays relevant to a region; a finished operation result uses a Message.
+- Type follows the condition (`info`, `success`, `warning`, `error`) with the icon shown; it spans the width of the affected surface, placed at its top or directly below the input it reports on.
+- One short title; a description only for the reason and the recovery step.
+
 ### Persistent regional feedback
 
 Use Alert for information, warning or failure that remains relevant to a region. Read its title, description, icon, action, type, banner and closable contract. Include the affected context and a useful recovery action when one exists; do not display a generic error as a successful empty list. Native semantic color is supplemental to readable text.

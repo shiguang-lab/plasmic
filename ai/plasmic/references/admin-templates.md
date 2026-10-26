@@ -12,6 +12,8 @@ Derive page inventory, data scopes and required behavior from the current requir
 
 Select by structure and interaction scope. Different business fields, data, Tab labels or overlays are normal adaptations, not evidence that no template fits. A missing installation is an acquisition state, not a scenario mismatch. For All/Mine views inside AppShell, inspect TabsTableSection before deriving the consuming composition; the scenario match does not authorize copying sample content.
 
+Match per region, not only per Page. A Page whose overall flow matches no template still has regions that do: a create/edit field group matches BasicFormPage's FormCard and formFields, a read-only group matches DetailSection's information Card, a list matches SearchTableSection or TabsTableSection. Inspect and record each matching region's template. Template field arrangement, label direction, Descriptions column and Card header are drafts: [Form layout](libraries/antd_v6/compositions/form-layout.md), [Descriptions columns](libraries/antd_v6/components/descriptions.md#column-and-span) and [Card headers](libraries/antd_v6/components/card.md#card-headers) take precedence.
+
 Apply [content entry](design/layout.md#admin-content-entry) and [native component planning](requirement-alignment.md#presentation-copy-and-native-components) when adapting the template. Decorative template content does not create a business requirement.
 
 | Scenario | Template composition |
@@ -72,7 +74,7 @@ Keep selections in each Page of the existing structure expectation, without a pa
 }
 ```
 
-`mode` declares planned `reference` or `import`, not proof of actual reuse. If no scenario fits, declare `templates:[]` and a nonempty `templatesNotApplicable` reason describing the source-backed structural mismatch. “Not preinstalled” or “different fields” is not a mismatch. An inaccessible selected source remains blocked/unverified, not a no-fit exemption.
+`mode` declares planned `reference` or `import`, not proof of actual reuse. If no scenario fits, declare `templates:[]` and a nonempty `templatesNotApplicable` reason that names each region of the Page (form, read-only group, list, overlay) and its source-backed structural mismatch; a mismatch of the whole flow does not exempt its regions. “Not preinstalled” or “different fields” is not a mismatch. An inaccessible selected source remains blocked/unverified, not a no-fit exemption.
 
 Use the read-only collector while the source is open or already imported:
 
@@ -85,14 +87,14 @@ python3 RESOURCE_ROOT/scripts/verify_templates.py \
 
 It uses public model reads, resolves real UUIDs by name, includes catalog-owned nested compositions and retains full models/contracts with stable editor/build identity and the observed dependency version (null when unknown). It prints the evidence path/hash and requires a new output file. It never navigates, saves or installs; explicitly acquire unavailable sources through the paths above. Keep failed calls and report blocked acquisition.
 
-Open and interpret the captured model before composing; acquisition alone does not establish understanding. Record its evidence and run the existing `verify_selection.py structure-expectation.json --report selection-plan.json` preflight. Run it before generation and again with the saved/reopened readback; any failure blocks composition or delivery until fixed. Do not generate, deliver or relabel to pass. Missing captures, catalog-only summaries, partial models, wrong identities and missing contracts fail the template-source check. Inspect all findings before generation instead of acquiring source during a later repair round.
+Open and interpret the captured model before composing; acquisition alone does not establish understanding. Record its evidence, complete the [compose-card reads](planning.md#rules-card-and-read-ledger), then run `verify_selection.py structure-expectation.json --reads /task/reference-reads.jsonl --report selection-plan.json` with that actual ledger. Run it before generation; the saved/reopened structure gate rechecks template evidence and read coverage. Any failure blocks composition or delivery until fixed. Do not generate, deliver or relabel to pass. Missing captures, catalog-only summaries, partial models, wrong identities and missing contracts fail the template-source check. Inspect all findings before generation instead of acquiring source during a later repair round.
 
 ## Bind destination behavior
 
 Official template insertion may remove source custom State, events and queries. Ordinary component imports and detachment have different ownership; none proves that page-level business bindings are ready. Read the resulting model and bind the current project's real contracts:
 
 - SearchForm `onSearch`/`onReset` update applied filters and reset pagination; distinguish draft values from applied query state.
-- Each Tab owns its intended Table/data scope. Catalog selection, pagination and row actions use current business state and permissions.
+- Adapt Tab/Table ownership to the source: independent Tab content owns its Table; explicit shared-Table scopes follow [query/list composition](libraries/overseas/compositions/search-table.md#query-and-list-structure). Catalog selection, pagination and row actions use current business state and permissions.
 - Create/view/edit triggers control the native Drawer `open` state. For an imported overlay whose internals are private, detach the composition before binding page-level Drawer state and Form refs. Close and Cancel write the correct closed state; selection-only editor reveal must not persist `open=true`.
 - Use native Form/Form.Item field ownership and validation. Read the registered rule shape; do not substitute raw Antd rule objects when the wrapper uses another shape. The advanced Form places fields in its real children Slot. Footer submission calls that Form's actual `submit` ref action, and `onFinish` performs the required save/navigation/close flow only after validation and successful business processing.
 - Bind current page routes, menu hrefs, row actions and return navigation. The source preview's successful Submit closes a Drawer; it does not save a business record or supply a business API.

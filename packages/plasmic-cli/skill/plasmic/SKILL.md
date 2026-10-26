@@ -1,6 +1,7 @@
 ---
 name: plasmic
-description: Inspect self-hosted Plasmic pages and templates, create or revise editable prototypes, and implement native React code from Plasmic designs.
+compatibility: Requires Node.js >=22.12, Python >=3.9 available as python3, and signed-in Plasmic Desktop MCP for design inspection or editing.
+description: Inspect self-hosted Plasmic pages and templates, create or revise editable Plasmic prototypes, and implement native React code from Plasmic designs. Use for Plasmic Studio/Desktop MCP work such as 原型设计, 后台页面原型 (list/form/detail pages), 按需求或线框/设计稿生成页面, 解读模板或页面, and 根据 Plasmic 设计生成代码. Not for generic React pages without a Plasmic design, or for developing the Plasmic platform itself.
 ---
 
 # Plasmic
@@ -23,7 +24,7 @@ npx -y @plasmickit/cli@latest context resolve --mode codegen
 
 Read every returned `mustRead` file, starting with `referencePath`. Resolve linked documents from the returned `resourceRoot`; follow the workflow's scenario-specific reading and evidence requirements. Resource readiness does not mean the documents have been read. For a task spanning modes, resolve and read each workflow before its work begins.
 
-The published resolver checks the NAS release manifest and verifies resource hashes. Stop dependent work on failure; do not silently use stale references. If it requires a newer CLI before npm has that version, install its returned `cliUrl` and rerun. Relay meaningful preparation progress from stderr; stdout contains the result. Report local versus published resources accurately.
+Both resolvers verify that Python 3.9+ is available as `python3` for reference readers and gates. The published resolver also checks the NAS release manifest and verifies resource hashes. Stop dependent work on failure; do not silently use stale references. If it requires a newer CLI before npm has that version, install its returned `cliUrl` and rerun. Relay meaningful preparation progress from stderr; stdout contains the result. Report local versus published resources accurately.
 
 ## Ensure Desktop MCP access
 

@@ -12,7 +12,7 @@
 | `StandardListPage` | 外壳、筛选、分页表格、行操作 | RiMP8 |
 | `SplitTabsPage` | 外壳、左侧目录、右侧标签工作区 | rlAE5 |
 | `BasicFormPage` | 外壳、独立新增或编辑表单 | FhyyS |
-| `RecordDetailPage` | 外壳、返回入口、详情摘要、关联表格 | vjnvs |
+| `RecordDetailPage` | 外壳、详情摘要、关联表格 | vjnvs |
 | `SearchTableSection` | 已有外壳中的筛选和表格 | RiMP8 |
 | `TabsTableSection` | 全部、我负责的等互斥列表 | RiMP8，按标签列表组合规则提取 |
 | `CatalogTabsSection` | 已有外壳中的目录和标签工作区 | rlAE5 |
@@ -78,5 +78,11 @@ RecordDetailPage ↔ BasicFormPage（两个路由）
 `design.cjs` 是初始组合的 HTML 构造函数，输入为 Desktop MCP 返回的真实组件索引。编辑已存在模板时，优先使用 Studio 或公共 MCP 原位修改，保持节点和 Slots 的身份。维护后保存并发布新素材库版本，再更新目录中的版本和实际 UUID。
 
 [`evidence/template-models.json`](evidence/template-models.json) 是已保存的 10 个模板读回快照。模型校验与 Slots、节点命名、两套表单的 6 个字段检查已通过；演示 Page 的 3 个字段另外通过技能 `verify_forms.py`。运行预览验证使用 1440×1024；未进行移动端适配验收。该快照早于 Table Column 预设移除：其中分类列仍使用已删除的 `displayType:"tag"` 预设，现在会按文本渲染；需按当前 `design.cjs` 重建模板、重新发布素材库并重新采集读回。
+
+`design.cjs` 中的 `BasicFormPage` 使用横向右对齐标签，一个 `Row`（gutter 16）承载全部字段，短字段 `Col span=8`、整行字段 `span=24`，与 [Form layout](../../ai/plasmic/references/libraries/antd_v6/compositions/form-layout.md#page-form-structure) 一致。`labelCol` 的 58px 只对应当前示例标签，替换字段后按最长真实标签实测。表单操作使用空标签、`colon:false` 的 Form.Item，沿用表单的 labelCol 对齐。
+
+本地列表卡和关联记录卡以分页 Table 结尾，body 为 `16px 20px 0`；BasicFormPage 的 FormCard 为 `24px 20px 0`、Form 自身 padding 为 0。两个 Drawer 使用 Antd 的数值 `size:640`。RecordDetailPage 从业务内容开始，不包含独立页面头。
+
+**这些本地改动尚未完成素材库发布和验收。** 目录仍指向 1.0.0，已发布 BasicFormPage 仍是纵向单列；现有在线草稿的操作区也尚未同步为上述 Form.Item 结构。更新组件库后，须在 Studio 或公共 MCP 中原位同步模板、预览验证并发布新版本，再核对目录版本、实际 Slots 和 UUID，重新采集 `evidence/template-models.json` 与运行证据。现有截图和检查结果不能证明新模板已通过验收。
 
 `evidence/` 保存模型检查、表单检查、运行行为检查和截图。静态截图接口在本次会话中未能解析画布，截图通过真实运行预览取得。

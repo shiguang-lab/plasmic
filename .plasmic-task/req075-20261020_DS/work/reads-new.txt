@@ -1,0 +1,1352 @@
+
+
+##### references/libraries/antd_v6/components/alert.md ['generation-rules'] #####
+{"path": "/Users/yanxianliang/Library/Caches/Plasmic/skill-resources/fde603147191239d/b6625b87b5d40d1d29f578a4fb41cfefdf615776dcd8ae0414e29eff153f64f7/references/libraries/antd_v6/components/alert.md", "sha256": "ee2b3fbe6275fd3dd57cb56aec97a42a94e3a3b9614922d30a719521e10e3beb", "sections": ["generation-rules"], "outline": false, "bytes": 1225}
+# Alert
+
+Library: [Ant Design v6](../index.md).
+
+| Registered component | Registration key |
+| --- | --- |
+| Alert | `plasmic-antd6-alert` |
+
+## Generation rules
+
+### Persistent regional feedback
+
+Use Alert for information, warning or failure that remains relevant to a region. Read its title, description, icon, action, type, banner and closable contract. Include the affected context and a useful recovery action when one exists; do not display a generic error as a successful empty list. Native semantic color is supplemental to readable text.
+
+Choose the surface using [feedback selection](../compositions/action-bars.md#feedback-and-row-confirmation) before binding content. Routine operation success/failure, including an export task being created, uses the [ConfigProvider Message action](config-provider.md), not a persistent Alert. An Alert is justified by an ongoing condition in the affected region, such as unavailable data with a retry action or a restriction that still applies. Stable does not mean static text: bind its title/description through [native text bindings](../../../desktop-examples.md#dynamic-native-text) and its type to that ongoing condition; remove or update it when the condition resolves.
+
+
+
+
+##### references/libraries/antd_v6/components/button.md ['generation-rules'] #####
+{"path": "/Users/yanxianliang/Library/Caches/Plasmic/skill-resources/fde603147191239d/b6625b87b5d40d1d29f578a4fb41cfefdf615776dcd8ae0414e29eff153f64f7/references/libraries/antd_v6/components/button.md", "sha256": "279b16c44a96b4b7b2a028525536f9b272b1899b3350acb7df2cbbcaaa2cbe5f", "sections": ["generation-rules"], "outline": false, "bytes": 3013}
+# Button
+
+Library: [Ant Design v6](../index.md).
+
+| Registered component | Registration key |
+| --- | --- |
+| Button | `plasmic-antd6-button` |
+
+## Generation rules
+
+### Types and labels
+
+Each action group has at most one primary action, derived from the user's main task in that region. Coordinate with the existing one-primary-page-action convention: do not independently promote every Card, row or auxiliary operation. A group with no dominant action may use only default buttons. Loading/disabled are states of the intended type, not new hierarchy roles; a disabled screenshot alone cannot prove the enabled hierarchy.
+
+| Meaning | Button treatment |
+| --- | --- |
+| Main task completion | `primary`; use the actual theme/contract, not a hand-painted brand color. |
+| Secondary business action | `default`; use `text` for low-emphasis auxiliary actions where the owning pattern supports it. |
+| Cancel/back in a completion footer | `default` by default; a verified native/approved pattern may use `text`. Ordinary cancellation does not use `primary` or `danger`. |
+| Add an item inside a collection | `dashed` when the owning component/pattern calls for it; not a generic secondary-action style. |
+| Navigation | Real supported Link/href navigation; a visual `link` Button type alone does not establish routing semantics. Table action appearance follows its ActionGroup contract. |
+| Destructive/risky change | Use the supported `danger` treatment for verified destructive consequences, such as deletion or revoking access. Publish/go-live is not automatically danger. Confirmation and default focus follow the actual risk/requirement; a protective confirmation may emphasize cancel when that is the recommended choice. |
+
+Use concise action/result labels consistent with the surrounding instructions and actual event: distinguish save, submit for approval, run, publish, cancel editing, return and stop a running task. Do not use a generic submit label for an operation described elsewhere as a run/test, or claim a close action stops backend work. Routine Modal labels follow its [footer contract](modal.md#footer). Do not manually insert spaces into two-character Chinese labels; preserve native typography/spacing.
+
+Visual `type` and native `htmlType` are separate contracts. Only the intended validated form submission uses submit semantics; cancel, navigation and auxiliary operations must not accidentally submit or reset the Form. Follow the installed Form/ref action contracts, including footer actions outside Form; do not wire both native submission and a click handler to perform the same mutation twice.
+
+Use [action-bar composition](../compositions/action-bars.md) for contextual order, alignment, grouped availability and combined Preview acceptance.
+
+A Button that opens menu choices follows [Dropdown trigger appearance](dropdown.md#trigger-appearance), including its trailing indicator and separation from any leading action icon. A direct-action Button keeps its ordinary action treatment.
+
+
+
+##### references/libraries/antd_v6/components/card.md ['generation-rules', 'plan-decisions'] #####
+{"path": "/Users/yanxianliang/Library/Caches/Plasmic/skill-resources/fde603147191239d/b6625b87b5d40d1d29f578a4fb41cfefdf615776dcd8ae0414e29eff153f64f7/references/libraries/antd_v6/components/card.md", "sha256": "627db3c07eeb4b0e38dca2f73c6a5b89a66749b71adce19a0fa4da6e55ff6459", "sections": ["generation-rules", "plan-decisions"], "outline": false, "bytes": 8506}
+# Card
+
+Library: [Ant Design v6](../index.md).
+
+| Registered component | Registration key |
+| --- | --- |
+| Card | `plasmic-antd6-card` |
+| Card.Grid | `plasmic-antd6-card-grid` |
+| Card.Meta | `plasmic-antd6-card-meta` |
+
+**Hard constraints** (always delivered with any section):
+
+- Use Card only for an independently justified business surface (record `condition`); never around SearchForm, AppShell, Steps or every section, and avoid nested Cards.
+- Initial data-props: `{"size":"medium","variant":"outlined","styles":{"body":{...}}}`; never the legacy `bordered` prop or a padded native wrapper.
+- A headerless Card supplies explicit empty `title` and `extra` Slots in the initial markup.
+- A Tabs-first list Card uses body padding `0 20px`: Tabs owns the top edge, Table pagination owns the bottom edge. See [Card ownership](#card-ownership).
+
+## Plan decisions
+
+Declare these native props in each planned instance before markup. `prepare_plan.py scaffold` writes `"__DECIDE__"` (or the baseline) for each; selection preflight rejects pending or missing values. `null` means deliberately unset and is accepted only where marked.
+
+| Registration | Prop | Decision |
+| --- | --- | --- |
+| `plasmic-antd6-card` | `size` (baseline `"medium"`) | Current contract baseline. See [rule](#card-ownership). |
+| `plasmic-antd6-card` | `variant` (baseline `"outlined"`) | Current contract baseline; never the legacy bordered prop. See [rule](#card-ownership). |
+| `plasmic-antd6-card` | `styles.body.padding` | Explicit body padding assigned to one edge owner, for example 0 20px for a Tabs-first list Card. See [rule](#card-ownership). |
+
+## Generation rules
+
+### Card ownership
+
+Use the registered `plasmic-antd6-card` for a business surface with card appearance: a list containing toolbar/Tabs/Table/pagination, grouped form information, a detail information panel or a metric card. Read the installed Card contract before generation. A background, border, radius and padding on a native section/div do not fulfill this requirement. Use registered Antd6 Flex, Row/Col and Space for layout without a card surface; native main/section/div remain appropriate when semantic grouping is needed; SearchForm and AppShell keep their own surfaces, without an extra Card around them. Avoid nested cards unless the source explicitly requires separate surfaces.
+
+Card-scoped actions belong in the Card `extra` Slot, right-aligned in the header — for example `格式化` and `校验` acting on this Card's SQL editor, or a disclosure such as `查看 SQL ›`. Do not insert a separate button row above the body when the Card already has a header: the row wastes a full line and separates the actions from the content they control. Keep a body toolbar when the actions belong to a wider region (multiple Cards or Tabs), when the Card is headerless (use Tabs `extra` or an in-body toolbar aligned with the region), or when the same row also carries filters or search fields. Card `actions` is the footer contract, not the header slot.
+
+Place business nodes in Card's children Slot; keep Tables inside their existing Tab content slots. Use title and extra slots only when the design calls for a Card header; do not add a header solely because Card supports one. Appearance comes from Card's theme and supported props. With the current contract, use size=medium and variant=outlined; configure body padding through styles.body rather than a padded outer section. A plain information/form/metric card typically uses 16px vertically/20px horizontally. This is not a universal Card padding preset: Tabs and Table spacing ownership below takes precedence. Layout components inside children may provide gap or columns but must not repeat the surface or body padding. Card grows with its content; the AppShell remains the vertical scroll owner.
+
+For a headerless Tabs/list Card, clear the header Slots in the **initial** insertHtml: supply `<slot name="title"></slot>` and `<slot name="extra"></slot>`. Omitting a Slot retains its registered default; the current title default is `Card title`, even with hidePlaceholder=true. “No header” therefore requires explicit empty Slots, not just body padding. Include these empty Slots in the intended markup and verify saved readback has no header children; hiding a retained sample title with styles.header.display=none does not clear it. When a Card header is required, supply its source-derived title instead (16px/600, with counts at secondary hierarchy).
+
+When Tabs is the first content and its tab bar already supplies top spacing, set Card body and all intervening wrappers' paddingTop to 0. Do not reintroduce that space as margin, a translated/absolute offset or an empty header. When the last Panel content is a Table whose pagination already supplies bottom spacing, set Card body, Panel and intervening wrappers' paddingBottom to 0; do not add fixed-height slack or a spacer. For the current Antd6 list composition, styles.body.padding is `0 20px`: Tabs owns the top and Table's pagination margin owns the 16px bottom gap. Keep left/right Card body padding 20px. Do not modify Tabs internal label padding or Table pagination margin to compensate for an outer spacing error. For other compositions inspect the actual component spacing and assign each edge to one owner.
+
+Write this padding explicitly in the Card's initial data-props, including in ad hoc build scripts: `{"size":"medium","variant":"outlined","styles":{"body":{"padding":"0 20px"}}}`. Omitting styles.body does not mean "no padding"; the Card falls back to its default body padding and pushes Tabs down. Do not use the legacy `bordered` prop. `verify_slots.py` checks the planned markup itself: its `tabsCardPolicy` rejects a Tabs-first Card (Tabs as first component content, through native wrappers) whose planned styles.body has no zero top edge, or that lacks empty title/extra Slots. A missing plan is not accepted because the readback matches it.
+
+For Cards containing mixed Tab panels, assign bottom spacing per panel. A Table panel may rely on its pagination margin, but a Descriptions/form/text panel has no such owner: when Card body paddingBottom is 0, give that panel one 16px bottom padding. Put this padding outside conditional sections so hiding a type-specific section does not remove the gap. Do not add padding to Descriptions internals or increase the Card padding globally, which would double the spacing on Table panels. Check every panel and relevant visibility state, including a missing pagination footer, by measuring its final visible content to the Card inner bottom.
+
+After save/reopen, measure Card inner body → every wrapper → Tabs top and Table bottom → wrappers → Card inner bottom. Top offsets must be 0 when Tabs owns top spacing, and external bottom offsets must be 0 when Table owns bottom spacing. With the current bordered Card, the outer 1px border is not body padding. Check the pagination's own bottom gap separately (currently 16px). Reject an extra 16px outer gap even when total spacing looks balanced; verify both model padding and rendered geometry.
+
+Record the planned Card names and contents in the generation input and acceptance matrix. Readback must show real Card instances and the intended business nodes inside their children Slots; reject native substitutes, empty Cards with sibling content and imported sample children. When migrating an existing surface, insert Card, move existing content with moveElement to preserve UUIDs/state/interactions, then remove the obsolete native surface. Check complete-page geometry and save/reopen persistence. Use verify_slots.py with the intended Card markup to check component identity and content ownership, in addition to screenshot review.
+
+### Card.Meta, Card.Grid and action Slots
+
+Meta owns its title/description/avatar inside the Card. Grid is a real Card subregion with its children/hoverable contract; it is not Row/Col Grid or a reason to nest another surface around every item. Use either structure only for the actual content arrangement and keep complete labels/values in their supported Slots.
+
+Card actions are editable Slot children converted by this wrapper to the native actions array. Cover, extra and actions have different roles; do not repeat a page's primary action in each Slot. Verify real permission-dependent actions, long Meta text, cover sizing, loading-to-content and Grid boundaries. Hoverable presentation alone does not make the Card navigate or provide a keyboard action.
+
+
+
+##### references/libraries/antd_v6/components/descriptions.md ['generation-rules'] #####
+{"path": "/Users/yanxianliang/Library/Caches/Plasmic/skill-resources/fde603147191239d/b6625b87b5d40d1d29f578a4fb41cfefdf615776dcd8ae0414e29eff153f64f7/references/libraries/antd_v6/components/descriptions.md", "sha256": "f34091c6ed5f95103416ce956c6852a5bff46ccef4f1a794fb94a3134ad100a2", "sections": ["generation-rules"], "outline": false, "bytes": 5296}
+# Descriptions
+
+Library: [Ant Design v6](../index.md).
+
+| Registered component | Registration key |
+| --- | --- |
+| Descriptions | `plasmic-antd6-descriptions` |
+| Descriptions.Item | `plasmic-antd6-descriptions-item` |
+
+## Generation rules
+
+Choose Descriptions for source-defined labeled read-only field groups before composition, and inventory their fields independently of output. A group rendered as loose labels/values cannot justify omitting its required native structure from acceptance. Full suites require per-Page inventories (explicit empty groups where the source has none), rather than a project-wide notApplicable based on having generated no Descriptions.
+
+Read before composing a read-only label/value group. [Descriptions + Statistic + Card](../compositions/summary-metrics.md) owns region selection, metric arrangements and adjacent editable Forms.
+
+Read the installed Descriptions and Item contracts. A Card is optional; layout and Tab containers are valid. Give each region one heading owner, avoiding a Card title that repeats the Descriptions title. For an editable prototype with a known field set, use real Descriptions.Item nodes with editable label/children Slots. Its children Slot accepts real [Descriptions Item](descriptions.md#descriptionsitem) nodes. The advanced native items array or expression remains available for data-driven groups and takes precedence over children, including an empty array. Do not set items when the fields must be edited as nodes.
+
+Use the real title Slot with editable text for a group heading. Let the component theme own title typography and title-to-fields spacing; do not imitate it with a separate native heading above an untitled Descriptions. Keep spacing between groups on their containing layout. Select `column` and item spans from available width and realistic value lengths. A Key/identifier does not automatically occupy a full row: keep it in a normal cell when the complete expected value fits, and allocate additional span only when real content would otherwise crowd or truncate. Inspect row packing and avoid large unexplained gaps. Preserve the native theme's label/value hierarchy and internal spacing. The outer Card/layout owns spacing between the summary and Form. Check full long values, wrapping and empty values in Preview; do not silently truncate required identifiers or replace valid zero/false with an empty marker.
+
+### Acceptance inventory
+
+Before insertion, freeze a requirement-derived information inventory independently of the generated HTML. For each reviewed Page, use its planned `path` (or unique existing `name` / known `componentUuid`) and `groups`; each group records its instance `name`, containing region `container`, `title` (empty when intentionally untitled), `column` and either ordered `itemSlots` entries (`name`, `key`, `label`, `children`, optional `span`) or the exact native `items` array/binding expression. Item Slot label/content expectations are their text or binding strings; verify nested rich components and their props separately through the Slot checks and model read. Keep these task-specific expectations outside the product model. Use [verify_all](../../../verification.md#collect-and-verify) to resolve these planned Page selectors against fresh readbacks. The standalone command `python3 scripts/verify_descriptions.py <resolved-inventory.json> <mcp-read.json>` instead requires actual `componentUuid` values already resolved from those readbacks. Check the inserted and saved/reopened models; never fabricate a UUID before creation. Before insertion, review the independent inventory; absent target nodes cannot pass the model gate. It checks component identity, group/container ownership, title, ordered Item nodes, spans and field/binding equality. A missing Descriptions, text substitute or altered field/binding fails even when Slot checks pass. Expressions are never executed by the checker; Preview must separately prove values render correctly. This gate does not detect regions omitted from the reviewed inventory or certify geometry, business APIs or independent AI generation quality.
+
+### Native code generation
+
+When the target has the verified native Ant Design items contract, convert this wrapper's Descriptions.Item nodes to items, preserving key/span, order, bindings, conditions and repetition. Slots remain ReactNode, parent items take precedence, and editing wrappers are removed. For a different target library/API, follow the actual two-sided implementation contract in [model reading](../../../model-reading.md); do not copy this items conversion without checking it.
+
+### Descriptions.Item
+
+Use this registered child inside [Descriptions](descriptions.md). Each field has independent label and children Slots, a stable business key and the native span prop. Labels and values may contain text bindings, tags, links or other registered components; do not concatenate several fields into one Item or put React markup in JSON.
+
+Choose span against the parent column count, available width and realistic value lengths. Keep required identifiers complete and preserve legitimate zero/false. Check ordered fields, rich children, bindings and packing through the parent [acceptance inventory](descriptions.md#acceptance-inventory) and real Preview.
+
+
+
+##### references/libraries/antd_v6/components/form.md ['generation-rules'] #####
+{"path": "/Users/yanxianliang/Library/Caches/Plasmic/skill-resources/fde603147191239d/b6625b87b5d40d1d29f578a4fb41cfefdf615776dcd8ae0414e29eff153f64f7/references/libraries/antd_v6/components/form.md", "sha256": "6d40d410e61794841d6dff57b0a66900c39cfdb5136c283e04c85962e41d513d", "sections": ["generation-rules"], "outline": false, "bytes": 19534}
+# Form
+
+Library: [Ant Design v6](../index.md).
+
+| Registered component | Registration key |
+| --- | --- |
+| Form | `plasmic-antd6-form` |
+| Form Field Group | `plasmic-antd6-form-group` |
+| Form.Item | `plasmic-antd6-form-item` |
+| Form.List | `plasmic-antd6-form-list` |
+
+## Generation rules
+
+Read the installed Form contract before changing values, validation or submission. Read [Form Field](form.md#formitem) for field controls and [form composition](../compositions/form-layout.md) for page layouts. Every Form inside a Modal additionally reads [Modal form layout](../compositions/form-layout.md#modal-form-layout), which owns width, field columns, label placement and header copy for that composition.
+
+**Reading scope**
+
+The [rules card](../../../planning.md#rules-card-and-read-ledger) delivers Generation rules for composition and the whole document for acceptance; a focused edit uses `scripts/read_reference.py` with these `--section` selectors. Read all sections whose conditions apply; an unknown field/flow scope requires discovery before exclusion.
+
+- Every business Form: `values-and-validation`, `events-and-ref-actions`, `acceptance`, `simplified-and-advanced-modes`.
+- Any Form before markup: [form layout](../compositions/form-layout.md#layout-ownership) `layout-ownership` (label direction and column pairing are decided first; a non-default direction needs cited or measured evidence).
+- Full-project generation or inventory audit: `project-inventory-and-acceptance`; a focused edit instead reads `focused-form-edits`.
+- Every editable field: [field semantics](../selection.md#field-semantics), `validation-order` and `label-and-control-layout`.
+- Field-label help being added, changed or present in generated fields: `label-help`.
+- Visible field instructions being added, moved or present in generated fields: `field-instructions`.
+- Repeated fields or grouped paths: `formlist-and-form-field-group`.
+- Hidden, conditional or dependent fields: `conditional-and-dependent-fields`.
+
+Section reads retain Form.Item ownership; use `--section formitem` for all field subsections.
+
+### Values and validation
+
+Editable business forms use the registered Antd6 Form with real Form Field/Form.Item instances and their label/children Slots. Read the registered rule shape: this wrapper uses rule objects such as `{"ruleType":"required"}`, not raw Antd `{required:true}`. Overseas SearchForm.Item has its own rule contract; do not copy between them. Give each field its actual name and validation rules through the installed contract; let Form own required indicators, punctuation, error state, error messages and field values. A literal `*` in label text or a separate red error div is not required-field validation. Derive initial values at Form/Item level without competing control value bindings. Use required and whitespace rules for required text when blank-only values are invalid; choose other rules from the requirement. Submit through the supported Form action/validated event or await its registered validateFields action before a mutation. Rejected validation keeps the Modal open, identifies the field, and performs no mutation.
+
+Form disabled must remain effective, including ConfigProvider inheritance; temporary submission disabling must restore on both success and failure. Await validateFields and stop the mutation on rejection. Custom exact-length rules must actually reject invalid values. When concurrent submissions are explicitly permitted, submitting remains true until all finish.
+
+Verify dynamic initial values and custom rules execute in preview: a nested `{{ ... }}` binding inside `initialValues` or `rules` must be a native expression, not literal text. When uniqueness is required, test an existing key and a distinct key; for a numeric range, test its valid and invalid boundaries, including decimals according to the business rule. When a footer submits through a Form ref, test a form remount or reopening with another record so stale refs cannot silently bypass validation or submission.
+
+Generated/dependent values follow [business outcome cases](../../../design/component-policy.md#business-outcome-cases): read native Form values/refs, implement the source calculation and test changed inputs, repeated actions and conflicts. Required-only rules/help text do not implement that behavior.
+
+When correcting an existing Form, move controls into real Item children Slots to preserve UUIDs and applicable interactions. Replace manual field-error state and value-based submission handlers with native Form values and validation; remove obsolete wrappers and handlers. For adjacent controls/actions follow the direct-control and nested noStyle Item rules in [Form Field](form.md#field-instructions).
+
+### Events and ref actions
+
+Read the component's registered `refActions` and ordered `args` before invoking a Form ref. `args: []` means no parameters; missing `args` means the signature is unknown. Ref keys use camelCase node names, such as `$refs.createForm` for `CreateForm`. A footer calls the verified submit action; only the validated Form event performs the business mutation.
+
+Read the registered Form event argument names/types and use the returned submit argument; do not invent a separate data context for submitted values. When renaming a Form, reread submit/cancel ref bindings so the renamed Form remains callable.
+
+Navigation after successful validation uses the native navigation interaction on Form onFinish, deriving its destination from validated values. The submit button calls Form submit and has no unconditional href. Discover the current schema; if this native action is unavailable report the blocked operation without upgrading the editor as part of a design task.
+
+Use the [submission example](../../../desktop-examples.md#form-submission-and-record-context) for destination checks. Reopening another record requires verified reset/set-fields behavior; changed initialValues alone do not prove Form state resets.
+
+### Project inventory and acceptance
+
+Derive expected Forms and fields from the submitted business workflow before generation. The absence of Form nodes in output cannot justify a notApplicable gate or moving submitted fields into standalone-control exemptions. Those exemptions cover independently owned controls such as query inputs/SQL editing, not a missing business Form. Full suites use explicit per-Page inventories, including empty lists only where the reviewed source has no submitted field group.
+
+Prefer `{"path":"/records","forms":[...]}` for each Page in reusable inventories. The gate resolves the exact `pageMeta.path` from overview to the current UUID. A unique `name` or explicit `componentUuid` also works; if multiple selectors are supplied they must agree. Missing, ambiguous, empty or duplicate resolutions fail; a miss does not silently fall back to an old UUID. Omit UUIDs from inventories shared across projects. Semantic keys such as `list` require an explicit path/name mapping. See [unified verification](../../../verification.md) for collecting evidence and running all applicable gates.
+
+For full-project generation or a form inventory audit, inventory every project Page, business Form and field across inactive Tabs and Modals before editing. Pages without business Forms still declare `forms: []`. Record field keys, labels, required/whitespace/business rules and tooltip content independently of the generated output. Run `python3 scripts/verify_forms.py <expectations.json> <mcp-read.json> --overview <mcp-overview.json>` against full public MCP readbacks and again after save/reopen. The overview must cover the entire project. This mandatory gate rejects missing/extra Pages, Forms or fields, unowned editable controls, competing values, label stars, separate field-help Tooltip/buttons/icons, manually bound field-error blocks and advanced validators stored as literal strings. Declare genuinely standalone controls, such as a separately validated SQL editor, in each Page's `standaloneControls: [{nodeName: "SQLEditor", reason: "Separate SQL validation workflow"}]`; entries must be named, unique, used and outside business Forms. SearchForm Items retain their own control ownership. The static scan checks model patterns and contracts; runtime validation still requires preview acceptance.
+
+Run the component-specific Form/Item and Modal checks as applicable. Review the combined region in editor and real Preview: label/control/instruction alignment, native errors, validation expansion and reachable footer at the requested viewport. Save/reopen and reread model ownership and bindings. Record model, geometry and runtime outcomes separately.
+
+### Focused form edits
+
+For a local field/validation/layout change, inspect the entire affected owning Form and relevant hidden branches against the current requirement, preserving unrelated Pages. Check control ownership, values/rules, submit/ref actions and actual error/save/reopen behavior. Run the full-project verifier only with a complete reviewed inventory and overview; do not trim the overview or claim a full-project pass from a partial check. Full regeneration continues to require the complete inventory gate above.
+
+### Form.Item
+
+Installed Form Field/Form.Item contracts own field names, rules, labels and controls.
+
+#### Label help
+
+Field-label explanations belong in the real Form.Item `tooltip` prop/Slot. Keep the label plain and let Form.Item place its native help icon beside the label; do not build a separate Tooltip/button beside the control or type an `i`/question mark as an icon. Advanced Form Fields expose editable tooltip content; simplified Form fields expose tooltip text in their field configuration. Read the installed contract first. If tooltip is absent, report the missing public contract and leave that requirement unresolved; an ordinary design task does not update registrations or publish libraries.
+
+For each field tooltip, verify the native icon is in the label, hover opens the expected content, the control remains usable, and clearing tooltip removes the icon. Recheck editor, actual preview and saved readback. Do not force persisted open state for inspection. Verify required indicators and tooltip coexist without duplicate marks or a second label model.
+
+#### Field instructions
+
+Triage every piece of field copy before choosing a Slot or a component:
+
+| Question | Decision |
+| --- | --- |
+| Does the user need to perceive this text at all, or is it requirement/implementation description? | Not user-facing: render nothing. Record the text in the field's `excludedCopy` with its source quote so the omission is reviewable. |
+| Must it be visible while entering the value (format, range, constraint)? | User-facing now: use an inline instruction for a short note beside a compact control, or `description` for one short line below. |
+| Is it background, definition or rationale the user opens on demand? | User-facing on demand: use the label `tooltip`. Never paste it as a persistent description. |
+
+Record the decision as `copyTriage` on the field — `perceive-now`, `perceive-on-demand` or `not-user-facing` — and keep it consistent with what the model renders: a `description` requires `perceive-now`, a `tooltip` requires `perceive-on-demand`, and `not-user-facing` may render neither and must cite the excluded text. A tooltip adds a help icon to the label, so the measured shared label width must include that icon.
+
+Decide instruction placement before choosing a Slot. These are field-specific instructions, not the form’s horizontal/vertical layout. Use the requirement, actual control width, expected text length and measured space at the target viewport; do not automatically place every instruction below the input or rely on a fixed character-count threshold.
+
+| Condition | Placement and component contract |
+| --- | --- |
+| Short, supplementary instruction next to a compact control, with enough width for the complete control, 12px gap and complete instruction | Place after the control in the same row; vertically align with the control. Use registered Typography.Text with `type=secondary` inside that field’s content region. |
+| Long, multi-line, important explanatory text; narrow/multi-column area; a full-width control; or inline text would crowd, truncate or wrap awkwardly | Place below using the Form Item `description` Slot/text configuration, which maps to native `extra`. Align its left edge with the control column. |
+| Optional label definition/background that is unnecessary while entering the value | Use the real Item `tooltip`. Keep essential format/range information visible. |
+| Validation failure | Keep the native error below the control, independent of the instruction position; show one actionable error at a time. |
+
+Form.Item `extra` has no native placement switch: do not invent `extraPosition` or reposition internal DOM. The Antd6 wrapper forwards value/events to its first direct control. For compact inline instructions, keep that control first and add registered secondary Typography.Text in the same `children` Slot. Native Form `styles.content={display:"flex",alignItems:"center",gap:12}` applies form-wide; verify every field supports it and that errors/extra retain their native layout. Do not apply it to unrelated full-width/stacked fields. If Flex/Space is necessary, use a labeled outer Item and nested named `noStyle` Item: inner Item owns name/rules/value with the control directly below it; outer Item owns label/required/errors. Verify the installed contract. Never put Flex between a named Item and its control without the nested Item. Native React codegen follows Ant Design’s [complex form control](https://ant.design/components/form/#components-form-demo-complex-form-control), not the wrapper’s forwarding behavior.
+
+Below-control instructions use `description` (advanced Slot, simplified text), mapped to native extra below controls/errors with theme secondary typography. Inline instructions use the same hierarchy, a 12px control-to-text gap and complete readable text. Keep one approved instruction; remove obsolete siblings/extra when moving it. Persistent instructions must not use `help`, which replaces errors, or input suffix. If space is insufficient, place instructions below rather than shrinking controls, clipping text or forcing nowrap.
+
+Record `description`, `descriptionPlacement` (`below` by default or `afterControl`) and, for inline text, `descriptionNode` in the independent field inventory. These are acceptance expectations, not new component props. Read back native ownership and secondary Typography, then verify actual normal, empty, invalid and corrected states: one error below the control, persistent instructions at the approved location, no duplicate text, no crowding/overlap, and no vertical shift of inline text when an error appears. Recheck after save/reopen. A correct Slot or screenshot of the initial value alone does not pass this acceptance.
+
+#### Validation order
+
+Show one actionable validation error per field at a time. Use native `validateFirst=true`, with required/blank checks first, format/type/range checks next and business/remote checks last. The Antd6 Form Field wrapper defaults to this ordered short-circuit behavior and exposes the actual prop; Ant Design itself defaults to collecting errors. Do not hide the second error with CSS or slice displayed messages after all rules run. Inventory the expected `validateFirst`, instruction text and placement, verify saved props/Slots, then test an empty value, a nonempty invalid value and a corrected value: exactly one native field error in each invalid state, persistent instructions remain visible, and correction removes the error.
+
+#### Label and control layout
+
+Follow [layout ownership](../compositions/form-layout.md#layout-ownership): wide page forms default to horizontal labels, narrow Modal/Drawer forms to vertical. Record mandatory `formLayout` and a concrete `layoutReason` for exceptions before generation. `verify_forms.py` checks explicit native layout and width ownership even without Grid expectations. Align native descriptions/errors with controls; verify actual geometry instead of inheriting template label spans.
+
+For one horizontal field, use native content-sized label columns (`labelCol.flex="none"`, `wrapperCol.flex="1"`) when supported. Do not reserve width for an absent Tooltip or longer template fields. Stacked fields can share width measured from actual labels, required indicators, punctuation and configured Tooltips. Verify colon-to-control spacing, especially with left-aligned fixed labels. Preserve native punctuation/spacing; no empty nodes, negative margins or internal CSS overrides. Measure normal, required, configured/empty Tooltip and validation-error states after save/reopen.
+
+### Simplified and advanced modes
+
+Form defaults to `simplified`; editable Form.Item children require `data-props='{"mode":"advanced"}'` on Form. Otherwise runtime uses formItems and may hide authored children behind default Name/Message/Submit fields. The Item inventory gate requires effective advanced mode; it cannot scan a simplified field schema. Verify simplified formItems/dataFormItems contracts and runtime separately. Both modes represent the same business fields through different editing paths: do not duplicate values, labels or controls. Choose the needed mode; conversions preserve names, rules, values, submission and interactions and require readback.
+
+### Form.List and Form Field Group
+
+Form.List owns an array field and its repeated Item children. Read its name/initialValue and registered add(defaultValue, insertIndex), remove(index) and move(from, to) ref actions. The repeated field context and relative Item names form the actual nested path. Keep stable repeated-node identity separate from the current array position; do not store a static index in every copied row or bind each child to a second page-level value.
+
+Form Field Group is this wrapper's named path grouping helper, not an invented Antd static Form.Group API. Its name prefixes its children through the real group context; it does not introduce another Form or submission owner. Both helpers are maintained here rather than in separate component files.
+
+Verify adding an empty/defaulted row, editing distinct rows, removal from the middle, moving rows when used, nested groups and the actual submitted array/object. Values, validation errors and labels must stay attached to the intended record. Group/list actions obey the same disabled/submission policy as the owning Form. Check repeated fields after save/reopen and in hidden Tab/overlay branches.
+
+### Conditional and dependent fields
+
+Use the registered dependencies/shouldUpdate, hidden, preserve and noStyle contracts according to the actual Form mode. Decide whether each field remains valid, is cleared or is excluded from the payload when its prerequisite changes. A visually collapsed valid field still belongs to the form; an inapplicable hidden field must not block submission unexpectedly. Do not infer backend omission from CSS hiding or overwrite edited values when remote options arrive.
+
+For dependent choices, preserve still-valid values and remove invalid ones under the requirement's policy. Test both directions of each condition, dependencies changing after edits, hidden validation errors, reopening another record and nested list paths. Use [step-form composition](../compositions/step-form.md) only when the workflow actually has stages.
+
+
+
+
+##### references/libraries/antd_v6/components/input-number.md ['generation-rules'] #####
+{"path": "/Users/yanxianliang/Library/Caches/Plasmic/skill-resources/fde603147191239d/b6625b87b5d40d1d29f578a4fb41cfefdf615776dcd8ae0414e29eff153f64f7/references/libraries/antd_v6/components/input-number.md", "sha256": "34e98d3c34348a2d85516ee6cdde0d140fead398007192ef1511aa9111ea8479", "sections": ["generation-rules"], "outline": false, "bytes": 849}
+# InputNumber
+
+Library: [Ant Design v6](../index.md).
+
+| Registered component | Registration key |
+| --- | --- |
+| Number Input | `plasmic-antd6-input-number` |
+
+## Generation rules
+
+Numeric input state is numeric. Registered state and event types must match the actual runtime value; verify controlled/uncontrolled values and explicit zero against the installed contract.
+
+### Range, precision and empty values
+
+Read the actual min/max/step, controls, value/defaultValue and onChange contract. Empty is distinct from zero; do not convert an empty field to zero through a truthy fallback. Decimal/integer restrictions and formatting come from the requirement. Native numeric or string-mode capabilities must be verified before using them; do not add an unregistered precision/stringMode prop solely because another InputNumber wrapper supports it.
+
+
+
+
+##### references/libraries/antd_v6/components/input.md ['generation-rules'] #####
+{"path": "/Users/yanxianliang/Library/Caches/Plasmic/skill-resources/fde603147191239d/b6625b87b5d40d1d29f578a4fb41cfefdf615776dcd8ae0414e29eff153f64f7/references/libraries/antd_v6/components/input.md", "sha256": "8f51b19796b4c20882831c28a8b2ab527ab79686044bc176e830dec2b5f35cc4", "sections": ["generation-rules"], "outline": false, "bytes": 2537}
+# Input
+
+Library: [Ant Design v6](../index.md).
+
+| Registered component | Registration key |
+| --- | --- |
+| Input | `plasmic-antd6-input` |
+| Input.OTP | `plasmic-antd6-input-otp` |
+| Input.Password | `plasmic-antd6-input-password` |
+| Input.Search | `plasmic-antd6-input-search` |
+| Input.TextArea | `plasmic-antd6-textarea` |
+
+## Generation rules
+
+### Value and field ownership
+
+Apply [field semantics](../selection.md#field-semantics) before choosing Input. A time/date/quantity serialized as a string is not automatically a text field; use its semantic control and verified value conversion. Textual identifiers and explicit source-required text interactions retain Input.
+
+Use Input for ordinary text, Input.TextArea for multi-line text and Input.Password for an actual secret field. Keep the real control directly inside its owning [Form.Item](form.md#formitem); the Form owns its value and validation. Standalone Input uses its registered value state. Input/Password/TextArea onChange receives the native event; the registration's state helper extracts event.target.value. Do not bind an event object as the business value or assume all Input variants use that signature.
+
+Editable SQL/code needs an actual installed editor or TextArea. A syntax-colored `<pre>` is read-only content. Bind the editor's real value to formatting/validation/submission; typing after a successful validation/preflight must invalidate that result when required. Test changing the text and reading it back through the workflow, rather than only triggering buttons against an unchanged sample string.
+
+Read actual size, variant, disabled, readOnly, allowClear and maxLength controls. Placeholder is an example or hint, not the label. Prefix/suffix are inside the control; field instructions and external actions belong to the surrounding composition. Do not add unsupported addon props from another Antd version. TextArea autoSize and field width must accommodate its required content without clipping validation below it.
+
+### Search and OTP
+
+Input.Search forwards a string through onChange and onSearch. One search action owns Enter/button submission; do not issue duplicate requests from both callbacks. Its loading state follows the actual query. Input.OTP exposes string onChange for intermediate input and onComplete for complete input; a partially filled code must not run completion work. Password visibility remains the native interaction and must not change the stored value. These variants are maintained here rather than in separate files.
+
+
+
+
+##### references/libraries/antd_v6/components/modal.md ['generation-rules'] #####
+{"path": "/Users/yanxianliang/Library/Caches/Plasmic/skill-resources/fde603147191239d/b6625b87b5d40d1d29f578a4fb41cfefdf615776dcd8ae0414e29eff153f64f7/references/libraries/antd_v6/components/modal.md", "sha256": "a22f77b07884cc38e2d20da55d31c78be4986edfde6eb255ee51a190096ebfe7", "sections": ["generation-rules"], "outline": false, "bytes": 4200}
+# Modal
+
+Library: [Ant Design v6](../index.md).
+
+| Registered component | Registration key |
+| --- | --- |
+| Modal | `plasmic-antd6-modal` |
+
+## Generation rules
+
+Read the installed Modal contract before changing its Props, Slots or events. [Overlays](../compositions/modal-drawer.md) owns Modal/Drawer composition, viewport limits, dismissal policy and the generation gate; [Modal form layout](../compositions/form-layout.md#modal-form-layout) owns width, field columns, label placement and header copy when a business Form is present.
+
+Read Trigger ownership, Footer and Registration and runtime verification for every Modal; Submission for confirmation/business actions. Follow Form/layout references only when a business Form is present. Read-only content still requires the overlay generation gate, close/reopen, visual and persistence checks.
+
+### Trigger ownership
+
+The `trigger` Slot is a separate inline opener; a newly inserted Modal includes its registered sample Button. Binding `open` to external state does not clear that Slot. If another business control owns opening, explicitly supply `<slot name="trigger"></slot>` on insertion or delete its existing children through native operations. Reread the full model and inspect the whole closed Page for default openers outside AppShell. Do not suppress an unwanted opener with CSS, delete the business trigger, or remove the native Confirm/Cancel footer to solve a trigger problem. Declare `trigger: []` in overlay acceptance for external ownership; for an intended inline opener declare its ordered named controls.
+
+### Footer
+
+For a Modal with one routine confirmation action plus cancel, keep the component's default footer and locale-owned button text. Omit okText/cancelText and custom footer children; do not recreate the two default buttons just to attach events, loading or disabled state. Bind onOk/onCancel and use the real confirmLoading/okButtonProps/cancelButtonProps contracts for submission state. A source-required specific action/risk label may override supported button text while retaining the native footer. A custom footer is appropriate when the required workflow has multiple distinct operation actions (for example draft/save/publish). Follow [overlay footer selection](../compositions/modal-drawer.md#footer-with-only-an-exit-button) and [buttons and action bars](../compositions/action-bars.md#buttons-and-action-bars) for the required actions and their order, types and availability. An explicit user requirement overrides this default. Remove obsolete custom footer buttons and their handlers when replacing them; field cleanup follows [Form](form.md).
+
+Studio renders an empty code-component Slot as undefined, preserving the native default; explicit footer=null or hideFooter=true removes the footer. Restore defaults through changeElement resetProps after deleting custom footer children, and reset obsolete okText/cancelText/hideFooter overrides too. Do not use an empty Slot to request footer removal. Check actual runtime buttons after cleanup. Code export can serialize empty RenderExpr Slots differently; Preview evidence does not verify exported-code behavior.
+
+Read-only overlays whose composition requires no footer use the current Antd6 hideFooter=true after verifying the installed contract. footer=null also hides the native footer.
+
+### Submission
+
+Modal OK invokes its callback without closing automatically. Bind a real validation/save flow and explicitly change the open state only after success; invalid input or failed saving must leave the form available for correction. Cancel/close must clear the open state under the owning [close policy](../compositions/modal-drawer.md#structure-and-close-behavior).
+
+When the footer is outside Form, do not assume browser implicit Enter submission works: verify the supported input Enter event reaches the same Form validation and duplicate-submit guard as onOk, preventing the default event if needed. [Form acceptance](form.md#acceptance) requires visible inline errors as well as blocked saving. Inspect the reachable native footer and required controls in editor/Preview, then save/reopen and reread; a working success path alone does not pass.
+
+
+
+
+##### references/libraries/antd_v6/components/radio.md ['generation-rules'] #####
+{"path": "/Users/yanxianliang/Library/Caches/Plasmic/skill-resources/fde603147191239d/b6625b87b5d40d1d29f578a4fb41cfefdf615776dcd8ae0414e29eff153f64f7/references/libraries/antd_v6/components/radio.md", "sha256": "89dae2fa87e25bebf2d60bba0a00703f938ff3fe74a880eaf209568286691e3d", "sections": ["generation-rules"], "outline": false, "bytes": 1303}
+# Radio
+
+Library: [Ant Design v6](../index.md).
+
+| Registered component | Registration key |
+| --- | --- |
+| Radio | `plasmic-antd6-radio` |
+| Radio.Button | `plasmic-antd6-radio-button` |
+| Radio.Group | `plasmic-antd6-radio-group` |
+
+## Generation rules
+
+### Choice and values
+
+Use Radio.Group for one choice from a visible set; each Radio or Radio.Button keeps its stable business value and label. Do not use separate booleans to simulate a mutually exclusive group. Group options and editable children are alternatives selected through the installed useChildren contract. Keep disabled choices visible when their meaning matters, and distinguish a disabled group from a disabled item.
+
+For list/content-scope navigation, select [Tabs](tabs.md) before constructing the source inventory. Radio.Button is a field-choice presentation and does not replace scope Tabs merely because both expose two options.
+
+### Radio.Group and Radio.Button
+
+The group owns the selected value; inside Form, let the named Item own that binding. Read its registered onChange event/state helper instead of treating the native event as a bare business value. Radio.Button changes presentation, not the value model. Select a default only from the requirement, preserve zero/false values and test an absent initial selection.
+
+
+
+
+##### references/libraries/antd_v6/components/steps.md ['generation-rules'] #####
+{"path": "/Users/yanxianliang/Library/Caches/Plasmic/skill-resources/fde603147191239d/b6625b87b5d40d1d29f578a4fb41cfefdf615776dcd8ae0414e29eff153f64f7/references/libraries/antd_v6/components/steps.md", "sha256": "2c33725918107931644c9e09d805792456c4df7e901074c9b67d3316beab94e8", "sections": ["generation-rules"], "outline": false, "bytes": 697}
+# Steps
+
+Library: [Ant Design v6](../index.md).
+
+| Registered component | Registration key |
+| --- | --- |
+| Steps | `plasmic-antd6-steps` |
+
+## Generation rules
+
+Preserve the installed Ant Design default current step unless the requirement supplies an explicit value. Registration hints must not seed a different runtime current step.
+
+### Stages and outcomes
+
+Steps describes the actual workflow's stages through items/current/status, not a fabricated progression animation. Use stable stage meaning and distinguish current stage from completed/failed status. A click/onChange reports the requested stage; it does not validate the Form, save data or authorize skipping prerequisites by itself.
+
+
+
+
+##### references/libraries/antd_v6/components/table.md ['generation-rules', 'plan-decisions'] #####
+{"path": "/Users/yanxianliang/Library/Caches/Plasmic/skill-resources/fde603147191239d/b6625b87b5d40d1d29f578a4fb41cfefdf615776dcd8ae0414e29eff153f64f7/references/libraries/antd_v6/components/table.md", "sha256": "3d9ca4bdfccff8ecce865a6684c5ccc141186e4bb02ee1006105562bee85b95e", "sections": ["generation-rules", "plan-decisions"], "outline": false, "bytes": 18937}
+# Table
+
+Library: [Ant Design v6](../index.md).
+
+| Registered component | Registration key |
+| --- | --- |
+| Table | `plasmic-antd6-table` |
+| Table.Column | `plasmic-antd6-table-column` |
+| Table.ColumnGroup | `plasmic-antd6-table-column-group` |
+
+**Hard constraints** (always delivered with any section):
+
+- Decide every Column's literal pixel `width` in the plan before markup. When any Column has a width, exactly one main text Column (`role:widget`, text presentation) leaves width unset and Table `scroll` sets numeric `x` greater than the explicit widths sum. Without numeric `scroll.x` the wrapper's `max-content` default turns widths into minimums. See [content and scroll width](#content-and-scroll-width).
+- Size each width from its title as well as its values; status/time/short fields are fixed, never the main column.
+- Row operations: registered ActionGroup in the last leaf Column.render, `fixed:"right"` and a measured numeric width ([operation column sizing](#operation-column-sizing)).
+- Column `displayType` is `text` or `custom`; status Columns render a mapped Badge, categories default to text.
+- Paginated lists need a fixture larger than the initial pageSize and first/second/return page cases.
+
+## Plan decisions
+
+Declare these native props in each planned instance before markup. `prepare_plan.py scaffold` writes `"__DECIDE__"` (or the baseline) for each; selection preflight rejects pending or missing values. `null` means deliberately unset and is accepted only where marked.
+
+| Registration | Prop | Decision |
+| --- | --- | --- |
+| `plasmic-antd6-table` | `scroll` (`null` allowed) | Numeric x greater than the explicit Column widths sum whenever any Column has a width; null keeps the wrapper default for an all-text Table without widths. See [rule](#content-and-scroll-width). |
+| `plasmic-antd6-table` | `pagination` | false, or the native paging object with one declared ownership mode. See [rule](#data-identity-sorting-and-pagination). |
+| `plasmic-antd6-table-column` | `width` (`null` allowed) | Literal pixel width from the title and values; null only for the single main text Column. See [rule](#content-and-scroll-width). |
+| `plasmic-antd6-table-column` | `displayType` | text or custom, from the source presentation. See [rule](#render-templates). |
+
+## Generation rules
+
+Read the installed Table contract and the real [Column](table.md#columns) instances. Before choosing a Column's presentation, classify its source purpose using [selection](../selection.md): lifecycle/processing fields follow [Badge](badge.md), category/attribute fields choose text or Tag under [Tag/text rules](tag.md#tag-or-text), and operations follow ActionGroup. Read that rule owner; Table metadata describes capabilities, not the right semantic choice. [SearchForm + Tabs + Table composition](../../overseas/compositions/search-table.md) owns filters, scopes, vertical scrolling and business pagination; [Tab Item](tabs.md#items) owns each panel content Slot.
+
+### Complete editable table
+
+Before inserting each Table, read its live Table and Column contracts and inventory every Column's source purpose, native presentation, dataIndex/render scope and width. Keep category Columns as role:category for both text and Tag. Pin native props.displayType to text or custom from the source decision. Ordinary single-value categories default to text. When Tag is justified, place a registered Tag in Column.render ([render templates](#render-templates)), not styled spans. For custom presentation declare the actual component/Slot owners; a text template remains valid without a Tag. Row operations use registered [ActionGroup](../../react_ui/components/action-group.md) in Column.render, in the last leaf Column with fixed=right and measured width. Discover its library before choosing substitutes. Pagination totals use native showTotal(total, range). Insert real Column nodes in Table children; ColumnGroup is for grouped headers. Read back visible headers and two distinct rows before advancing. The structural gate checks required identities, props, Slots and complete Column coverage; review the draft and equivalent Tabs for presentation consistency.
+
+For a required record action, declare `rowActions` in the [source inventory](../../../requirement-alignment.md#structural-gate). Do not use link formatting for an action label such as “查看”: it consumes a URL. Use ActionGroup items in the live row scope, item href for navigation and onAction(key) for local effects. The destination or overlay must show the clicked record, carried by its own route param rather than a global; declare it per [record context](../../../design/record-context.md) and verify with two distinct records. A registered Button in Column.render remains valid for an explicitly required cell control, not a replacement for the row-operation group. For query-driven tables declare dynamic data/state dependencies; test a nonmatching keyword, zero rows **and total**, then reset and recovery. Event presence does not establish the effect.
+
+### Data contract
+
+The registered `data` is queryData; runtime rows come from `data.data`. Static data uses a JSON result object: `data-props='{"data":{"data":[{"id":"one","count":0}]}}'`; an empty result is `{"data":[]}`. An array alone is invalid. For an existing array state `rows`, use `{"data":{"data":"{{ $state.rows }}"}}` or the whole expression `{{ ({data: $state.rows}) }}`. Native result metadata is retained. Do not delete required data to bypass errors. Build JSON with a serializer; when generating HTML in another language, verify its final binding delimiters before insertion. Read Column scopes; verify visible rows, total, page and pageSize against the requirement.
+
+### Title render Slot
+
+Table's optional native `title` render Slot owns required content above the column headers and receives `currentPageData`, the current page rows. Insert editable content in this Slot rather than inventing a `header` prop; each column heading still uses `Column.title`. Leave it unset when no table-top content is required. This capability does not opt in to a standalone Page heading. When using its data scope, verify content after filtering, pagination and an empty result, then save/reopen and reread the Slot and bindings.
+
+### Content and scroll width
+
+Use real Antd6 Table columns and render Slots. Place operations last and fixed right, size the column to visible actions, and use the registered [ActionGroup](../../react_ui/components/action-group.md). Preserve complete source values and meaningful 0/false. Wide content scrolls horizontally within the Table, never widens the viewport. Read [Tooltip](tooltip.md) before configuring overflow content.
+
+Fix widths for short fields, status, time and operations; assign remaining container space only to the main text column. When any Column has a width, leave exactly one main text Column without width and set a numeric `scroll.x` equal to the explicit widths plus that column's baseline (for example `{"x":1494}`), so the browser cannot proportionally expand fixed columns. The wrapper merges `scroll` as `{x:"max-content", ...scroll}`: without a numeric `scroll.x` the native table uses auto layout, every width becomes a minimum, content such as long keys, Tags or ActionGroup widens columns, and ellipsis stops truncating. Column widths are literal pixel numbers. Size each width from its title as well as its values; a four-character Chinese title needs at least 88px in a large Table. Plan preflight and the structure gate enforce these widths; the rendering gate also measures fixed control columns. Inactive Tabs need their own layout capture. Preserve widths when the sum exceeds the viewport; verify horizontal scrolling and the fixed-column boundary. Static Pen full-column views are a source presentation convention; in the interactive App verify every column by scrolling and retain measurements and screenshots in the acceptance evidence.
+
+After save/reopen, read both column props and rendered header/cell widths. Check All/Mine use the same definitions, the operation width equals measured content plus padding, remaining space only enlarges the text column, the longest status and timestamps fit, ellipsis preserves complete values, and the horizontal track/fixed columns/pagination remain usable. Report these as individual checks with evidence, not a generic screenshot approval or model-validation result.
+
+### Selection
+
+Selection must persist without a state binding, and controlled selection must follow the bound keys. Clear selection and radio/checkbox modes must work. For wrapper changes, test omitted, explicit and controlled/uncontrolled values with the installed Ant Design version.
+
+### Columns
+
+Read the installed Column contract for fields, render Slots, widths and overflow. The owning [Table](table.md) defines selection, total scroll width and pagination.
+
+#### Columns and content
+
+For tables, record each field's purpose, longest common real value, required complete boundary value, width and overflow policy in the sidecar acceptance report. Retain the requested App viewport and verify the actual component metrics; do not copy widths from a differently sized reference composition.
+
+Use these starting widths in pixels: short IDs/counts and type/scenario 96–128; status and people 128–176; timestamps 160–192; names 200–280; keys/code 240–320; notes 280–360. Keep ID/count/time/enumeration/status values complete. Name/key/people may ellipsize under the [Tooltip overflow contract](tooltip.md); details or copy are additional ways to access the value. Set the real Table.Column ellipsis prop instead of shortening data or merely styling a span. Verify actual overflow and complete Tooltip text before claiming success; configuration alone is insufficient.
+
+Text Columns with ellipsis automatically show an onlyWhenOverflow Tooltip with the complete value. For custom Tooltip content, place a registered Tooltip (onlyWhenOverflow=true) in Column.render with children/title Slots bound to the row scope. Edit these actual nodes; do not add a parallel tooltip configuration schema or copy a row's static text across all rows. A custom title may combine current-row fields; keep display and title bindings consistent with the intended complete content. Verify at least two distinct rows, text/template content, 0/false/empty values and resized columns, then save/reopen. Apply [Tooltip acceptance](tooltip.md) to hover/focus and temporary editing reveals.
+
+#### Render templates
+
+Column `displayType` is `text` or `custom`; presets were removed. Custom render composes registered components in the `render` Slot, whose scope is the bare names `cell`, `row` and `index` (no `column` or `$ctx` prefix). Copyable starting points, values illustrative:
+
+```html
+<!-- Status: Badge maps the value; never color/dot/count -->
+<plasmic-component data-plasmic-name="Status" data-plasmic-component="plasmic-antd6-table-column" data-props='{"dataIndex":"status","width":128,"displayType":"custom"}'><slot name="render"><plasmic-component data-plasmic-name="StatusBadge" data-plasmic-component="plasmic-antd6-badge" data-props='{"status":"{{ row.status === &#39;ENABLED&#39; ? &#39;success&#39; : &#39;default&#39; }}","text":"{{ row.statusLabel }}"}'></plasmic-component></slot></plasmic-component>
+<!-- Single-value category Tag -->
+<plasmic-component data-plasmic-name="CategoryTag" data-plasmic-component="plasmic-antd6-tag" data-props='{"value":"{{ cell }}","options":[{"value":"MESSAGE","label":"消息","color":"blue"}]}'></plasmic-component>
+<!-- Multi-value Tags -->
+<plasmic-component data-plasmic-name="LabelTag" data-plasmic-component="plasmic-antd6-tag" data-repeat="{{ cell || [] }}" data-repeat-item="tagValue" data-props='{"value":"{{ tagValue }}"}'></plasmic-component>
+<!-- URL link -->
+<a href="{{ cell }}" target="_blank" rel="noopener noreferrer" data-visible-if="{{ !!cell }}">{{ cell }}</a>
+<!-- Avatar -->
+<plasmic-component data-plasmic-name="OwnerAvatar" data-plasmic-component="plasmic-antd6-avatar" data-visible-if="{{ !!cell }}" data-props='{"src":"{{ cell }}","size":32,"alt":"{{ row.name }}"}'></plasmic-component>
+```
+
+Name each instance for its role. Generate `data-props` with a JSON serializer: in a single-quoted attribute encode a literal `'` as `&#39;`; in a double-quoted attribute encode every `"` as `&quot;`. A status Column maps the row value inside the Badge `status`/`text` expressions and records `statusMap` on the Column; never add non-official props to the registered component. Verify two distinct rows, unmapped and empty values after save/reopen.
+
+#### Operation column sizing
+
+Measure the widest visible permission-filtered ActionGroup for valid rows in the current role, add actual left/right cell padding, and round up for the fixed-right operation column. Exclude hidden menu widths. An existing width is not evidence that it still fits after replacing the action component.
+
+Measure the complete rendered buttons, including More's arrow, gaps and button padding. Check the rightmost control against the cell's **content** right edge after native cell padding, rather than only the viewport or table edge. Read actual rendered cell width as well as Column.width: Table layout can redistribute space. `snapshot_layout` reports `cellContent` measurements and `table-cell-control-overflow` when controls in a sticky cell intrude into its padding or escape it. Size from `requiredWidth`, then remeasure both Tabs, all applicable action/permission combinations and horizontal scroll positions. These measurements do not set a universal column width.
+
+#### Table.ColumnGroup
+
+Use the real ColumnGroup children/title contract for a required grouped header. Keep actual Column nodes and their render scopes inside that group; a decorative row above the Table is not a grouped header. Verify group order, fixed/scrolling boundaries and the complete leaf-column content after save/reopen.
+
+### Data identity, sorting and pagination
+
+The wrapper's data input is the actual registered data-source contract, not an assumed native dataSource prop. Use a unique stable business field as rowKey, especially when selection, refresh or sorting is involved. Array indexes and display labels do not identify rows across those transitions. Read the ordered onChange arguments: pagination, filters, sorter and extra. Map their real values to the owning workflow rather than treating the first argument as a row.
+
+Declare client-side or server-side ownership for sorting, filtering and paging. Server-side total is the full matching count, not the current row count; do not slice an already paged response again. Reset or retain current page according to the changed filters/scope and requirement. Do not promise a sorting/filtering column control absent from the installed registration. Use [Pagination](pagination.md) and the matching query composition for the actual configuration.
+
+Choose one ownership mode before binding. For local data with component-owned paging, `pagination:{defaultPageSize:20,showSizeChanger:true,pageSizeOptions:[20,50]}` initializes an editable pager without freezing its size (values here are illustrative). If application state owns paging, bind `pagination.current` and `pagination.pageSize` to the existing states and update both from the registered Table `onChange` argument `pagination.current` / `pagination.pageSize`. Reset current on the source-defined filter change. A constant `pageSize:20` is a controlled value, so displaying a size changer does not make size changes work. Verify the installed contract before using this pattern, and check resulting rows as well as the pager label.
+
+For selection, bind selectedRowKeys only when intentionally controlled and use the actual onSelectedRowKeysChange/ref actions. Define whether selection covers the current page, retains keys across pages, or resets after filters/mutations; the current wrapper does not certify arbitrary cross-page retention. Verify keys still identify the intended records after refresh. [Bulk-action composition](../compositions/bulk-actions.md) owns batch effects and permission handling.
+
+### Pagination test data and acceptance
+
+Before generation, prepare a normal initial dataset for every paginated list/Tab in scope. After its initial filters, current App/market, role and record permissions are applied, the actual matching result count must exceed the initial pageSize: at least pageSize + 1. For a 20-row page this means at least 21 matching records; 25–30 usually suffice. The raw backing array's length is insufficient when the initial visible scope contains fewer records. Empty, sparse and failed-query fixtures are separate cases and cannot replace this normal paging dataset.
+
+Prototype fixtures may extend the supplied examples with explicitly simulated local records that obey the source fields, enums, relationships and permissions. Record their simulated nature in the task evidence; do not add debug labels or controls to the business UI. Give every record a complete, unique stable rowKey. Keep the real matching count, native total and retrievable records consistent; a larger total with only a few actual records does not satisfy this rule. With server paging, the backing query/API must really return the subsequent page. If authoritative source/access restrictions prevent sufficient permitted data, report pagination as unverified rather than inventing real records or claiming a pass.
+
+Use the existing native paging props and runtime cases to record the initial pageSize, matching count, active scope/filters and distinct expected record IDs before composition; do not derive these expectations from the finished screenshot or create another data schema. If a larger pageSize must also support a tested page turn, prepare enough matching records for that tested size too.
+
+In real Preview, scope assertions to the actual Table and its native pager:
+
+1. On page 1, verify the first-page record IDs, rendered record count, current page, pageSize and matching total.
+2. Go to page 2, verify different expected record IDs and the correct slice size; first-page records must not simply remain repeated. This must demonstrate real records beyond the first page, not just an active page-number change.
+3. Return to page 1 and verify its original records and the unchanged total.
+4. When a size changer is available, change pageSize and verify the resulting rows, current-page policy and total separately. Also exercise filtering/reset and scope changes under their source-defined page policy.
+
+Retain the native assertion trace for these cases under [runtime evidence](../../../design/component-policy.md#native-runtime-evidence). Static structure and declared case names do not establish the filtered dataset size or a real page transition. A pager visible beside a short sample or a changed counter alone does not pass.
+
+
+
+
+##### references/libraries/antd_v6/compositions/form-layout.md ['generation-rules', 'layout-ownership', 'plan-decisions'] #####
+{"path": "/Users/yanxianliang/Library/Caches/Plasmic/skill-resources/fde603147191239d/b6625b87b5d40d1d29f578a4fb41cfefdf615776dcd8ae0414e29eff153f64f7/references/libraries/antd_v6/compositions/form-layout.md", "sha256": "174d0c943ea46aeff8e07b96854ed63f17b375ffc5014a0fedf13b20ab66ee61", "sections": ["generation-rules", "layout-ownership", "plan-decisions"], "outline": false, "bytes": 15721}
+# Form layout
+
+Applies to [Ant Design v6](../index.md) registrations and theme behavior. Select the matching project library through the [library index](../../index.md) before using this recipe; another library or major requires its own verified composition rules.
+
+Read [Form](../components/form.md) for values, validation and submission, and [Form Field](../components/form.md#formitem) for field ownership, help, instructions and label layout. For a Form inside a Modal, additionally read [Modal](../components/modal.md) for native footer/submission behavior. For a Form inside any overlay, read [Overlays](modal-drawer.md) for dismissal. A standalone Form does not load overlay rules. Component rules are maintained in those references; this file owns layout and region acceptance.
+
+Read this file through `read_reference.py`: include `layout-ownership` for every Form; include `modal-form-layout` only for Forms in a Modal. All applicable acceptance requirements remain mandatory.
+
+## Plan decisions
+
+Declare these native props in each planned Form before markup. `prepare_plan.py scaffold` writes `"__DECIDE__"` for each; selection preflight rejects pending values.
+
+| Registration | Prop | Decision |
+| --- | --- | --- |
+| `plasmic-antd6-form` | `layout` | `horizontal` for a Page create/edit Form, `vertical` for a Form inside a Modal or Drawer. See [rule](#layout-ownership). |
+| `plasmic-antd6-form` | `labelAlign` | `right` (native default) for horizontal labels. See [rule](#columns-and-label-width). |
+| `plasmic-antd6-form` | `labelCol` | `{"flex": "<measured>px"}` from the longest actual label for a horizontal Page Form. See [rule](#columns-and-label-width). |
+
+## Generation rules
+
+### Layout ownership
+
+Use real labeled inputs, Selects, Buttons and feedback. Modals/Drawers keep the full source page behind them, close unrelated menus, and retain a reachable footer. Keep destructive or unauthorized actions gated according to the source. Loading, failure, success and recovery states belong to the actual flow; do not manufacture generic state boards or placeholder future features.
+
+Compose editable fields as a business Form; adjacent read-only summaries follow [information composition](summary-metrics.md). Keep each field’s real control in its Item children Slot while arranging the Items through registered layout components. Follow [action bars](action-bars.md#buttons-and-action-bars) for workflow ordering and availability.
+
+Choose label direction and field columns separately before markup. Only the current user or the requirement document can make an explicit layout choice; a Pen frame, template, screenshot or previously generated page is a draft, not that choice. If a draft conflicts with these defaults, follow the defaults or ask the user. Otherwise use the defaults:
+
+| Context | Label direction | Field allocation |
+| --- | --- | --- |
+| Desktop page create/edit form with short labels and sufficient width | Horizontal; native labelAlign=right with a shared labelCol width measured from the longest actual label | Three short fields per row by default; two when the measured control width does not fit three; full row for textarea, editor, Key or other long values |
+| Narrow Modal or Drawer | Vertical, to preserve control width | Usually one column; pair only when realistic values, help and errors fit |
+| Long labels, complex fields or narrow page regions | Vertical when horizontal labels would crowd controls | Long Keys, URLs, editors and multi-line input use a full row |
+
+A wide overlay can justify horizontal labels; a page can justify vertical labels.
+
+#### Columns and label width
+
+Background and definition text belongs in the label `tooltip`, not in a persistent description. In a multi-column Form a persistent description is limited to one short line of format or range information; long explanatory paragraphs make a grid row tall and crowded, so move them to the label tooltip (the user opens it on demand) or drop them. `verify_forms.py` rejects a description longer than a short line in a three-column Page Form.
+
+A Page create/edit Form uses three fields per row. Use two rows of two only when measured control widths show three would crowd them (`columnsReason` measurement), and cite a source for any other count. A trailing row may hold fewer than three fields; every other row holds exactly three, and a full-row field is a direct child of the layout container rather than an Item alone inside its own row.
+
+Labels are right-aligned. Horizontal labels align on their right edge with `labelAlign="right"`; left alignment needs a source quote that states it (`labelAlignReason`). Size the shared label column from the longest real label plus its required mark and any help icon, set it as `labelCol={flex: "<measured>px"}`, and record the decomposition `labelWidth: {longestLabel, labelTextPx, requiredMarkPx, helpIconPx, paddingPx, measuredPx}` in the field inventory. Measure the real rendered label: `measuredPx = labelTextPx + requiredMarkPx + helpIconPx + paddingPx`, keeping at least 8px trailing padding. When a field shows a label tooltip its icon occupies width, so a column sized without it overlaps the control; re-measure after adding or removing a tooltip. `verify_forms.py` rejects a missing measurement, a native `labelCol` that disagrees with it, a left-aligned Form without a source, and a page Form that deviates from three columns without a measurement showing crowding. Do not inherit the registered vertical default or a template's label spans without making this decision. For one compact horizontal field use content-sized native labels; for multiple fields choose a shared label width from the longest actual label/required mark/help icon. Keep errors and descriptions aligned with controls. Do not force all fields to share one span or widen a compact control merely to remove whitespace.
+
+Every Form and intermediate field-layout wrapper fills its allocated surface/cell through width:100% or proven stretch alignment; grid/flex children use min-width:0. A Form with align-items:flex-start does not stretch an un-sized child, and 1fr 1fr divides that child's width without expanding it. max-width:100% only caps width. Prefer full-width registered Flex and Row/Col with verified gutter/span contracts. Col occupies its intended column, not 100% of its Row. Fill each Form.Item and normal text/selection control's allocated area; keep Switch/Checkbox and deliberately compact controls content-sized. An internal wrapper must not accidentally constrain the whole form.
+
+Record mandatory `formLayout` for every Form in the independent field inventory. A non-default direction needs machine-checkable evidence, never a prose justification:
+
+- `layoutReason: {"kind": "source", "evidence": {"path": "/abs/requirement.md", "sha256": "…", "quote": "…"}}` — the quote must be verbatim and must itself state the label direction or column layout.
+- `layoutReason: {"kind": "measurement", "labelWidth": 220, "controlMinWidth": 160, "regionWidth": 360}` — measured widths must show that horizontal labels crowd the control.
+
+A bare string, a boolean or a partial object fails generation, and one reason object cannot be reused by two Forms. If you cannot cite or measure the deviation, change the Form to the default instead of writing a reason. Infer page versus Modal/Drawer from the actual owning model, not a claimed context. Deliberately compact text/selection controls need a field `controlWidthReason` in the same structured form — `{"kind": "measurement", "controlWidth": 180, "columnWidth": 420}` or a `source` quote that specifies the narrower control — including inline-instruction compositions; a control narrower than its column with a prose or missing reason fails generation. These are acceptance metadata, not component props. `verify_forms.py` requires the recorded direction to match explicit native props and checks all Form-to-field width paths, including unnamed wrappers, without requiring optional Grid expectations. It accepts native Row/Col allocation and provable stretch; unknown sizing remains unresolved, not a pass. Use explicit public styles when the static contract cannot prove the width, then verify Preview.
+
+For every affected page and opened overlay, inspect real Preview at the target viewport in normal and validation-error states, then after save/reopen. Record the surface, Form, each field-layout wrapper, Item and control bounds with the screenshot. Check allocated edges after padding/gutter/label space, longest realistic values, full-row fields, equal paired columns, label alignment, readable instructions and errors without overlap. Exercise long Key/person selections. Horizontal labels alone do not fix shrinking wrappers. Model checks cannot certify these rendered measurements; missing Preview evidence leaves layout acceptance unverified.
+
+Spacing between adjacent components has one owner. When the last Form.Item already supplies its theme margin-bottom, a following Alert/help block must not add another margin-top or parent row-gap on the same boundary. Preserve native Form.Item spacing and set the extra wrapper gap/margin to zero for that composition. If a different composition intentionally transfers spacing to the parent, remove the matching child margin instead of stacking both. Verify the rendered control/error-to-next-block distance in normal and validation-error states; checking Alert's margin alone misses parent gap and Form.Item margin.
+
+### Modal form layout
+
+Choose the field arrangement from the complete inventory, content lengths and filling dependencies, then select Modal width. Preserve the designated visual draft under [requirement alignment](../../../requirement-alignment.md); the following product defaults fill unspecified decisions and are not Ant Design component defaults. A wider Modal can still contain a single-column Form.
+
+#### Width and columns
+
+| Content and workflow | Arrangement | Desktop width |
+| --- | --- | --- |
+| A short basic form or fields with a strong sequential dependency | One column | Default 520px |
+| Related, independently fillable short fields can be paired and pairing meaningfully reduces excessive single-column height | Two equal columns; long fields span both | Default 720px |
+| Long names, Keys, text or complex controls dominate | Keep one column; widen for actual content | 640–720px |
+| Two columns are justified but realistic person/entity selections, multi-selects or adjacent actions still crowd them | Two columns with full-row exceptions | 800px, with a recorded content/geometry reason |
+
+Two columns require both a meaningful field pairing and sufficient space: after actual body padding and the 16px column gap, each control has roughly 240px or more usable width and its longest expected label/value, instruction and error fit. Field count alone does not select two columns. If that space is unavailable, use one column. Do not widen solely to make a form look larger, remove fields to reduce height, or reorder dependent inputs to fill a grid. Use one or two columns unless an explicit dense-entry requirement specifies otherwise.
+
+#### Field allocation
+
+| Field content | Default allocation |
+| --- | --- |
+| Long business names, generated/editable Keys, URLs or addresses | Full row |
+| Textarea, code/rich-text editors, upload lists and complex nested fields | Full row |
+| Short enums such as type/status/scenario, short numbers, single date/time | Half row when the label, control, help and error all fit |
+| Person/entity Select, multi-select, date range | Decide from the longest expected content; use a full row when a half row would truncate or crowd it |
+| Switch/Checkbox and fixed read-only metadata | Compact related group or information row; avoid a large empty control area |
+
+Input component type alone does not determine column span. Pair related short fields; make an unpaired final field span the row or choose a narrower single-column Modal. Do not leave an unexplained empty half-row beside an editable field. A full-row Key with an adjacent regeneration action must reserve action space without wrapping or overlapping it.
+
+#### Labels and spacing
+
+Default this Modal composition to explicit Form layout="vertical": each Item's label stays above its control in both one- and two-column arrangements. Apply the layout decision and justified exceptions above. Keep native label/required/help/error ownership from [Form](../components/form.md#formitem).
+
+Apply width ownership above to the Modal body. Use equal columns, a 16px column gap and explicit full-row spans. Verify actual component geometry rather than assuming native CSS grid properties apply to Row/Col. Preserve native Form.Item vertical spacing; do not add parent row-gap on top of it. Keep each real control directly in its Item children Slot even when the Items are arranged in a grid.
+
+#### Header and field guidance
+
+Keep one native Modal title that names the operation. Do not add a subtitle, workflow introduction, generic filling instructions or a repeated “Basic information” heading before the fields. Omit text such as “Fill in the basic information to enter the creation page”; express the next step through the actual native footer action under [Modal](../components/modal.md#footer).
+
+Necessary user-facing constraints stay with their fields through [field instructions](../components/form.md#field-instructions) or [label help](../components/form.md#label-help). State only what the user needs to enter or decide; do not paste implementation notes, source-system reuse, API/uid behavior or requirement prose into the Form. A generated editable Key may need a short uniqueness/editability instruction; detailed derivation rules belong in field help only when useful to the user.
+
+#### Layout acceptance
+
+Before markup, record the source-selected width, native Form layout, complete ordered fields and full-row/paired allocations in the existing field/layout inventory. Keep native component props as the implementation contract. Apply [overlay structure and close behavior](modal-drawer.md#structure-and-close-behavior) for viewport limits, body scrolling, reachable header/footer and closing/reopening; apply [Modal submission](../components/modal.md#submission) for validation and pending/failure behavior.
+
+For Antd6 Row/Col layouts, verify real gutter/span props and rendered column widths, full-row fields and ownership; the optional CSS-grid row check below does not validate Row/Col props. Form field/validation checks still apply to every layout.
+
+For authored CSS-grid rows, additionally record `layout: {container: "NewGroupFields", modalWidth: 720, columns: 2, columnGap: 16, rows: [{container: "NewTypeScenarioRow", fields: ["NewTypeField", "NewScenarioField"]}]}` and each field's `span` (1 or 2) in the independent field inventory. Place fields structurally the way the check reads them: every row container holds exactly `columns` Items except a trailing partial row, and a full-row field (`span` = `columns`) is a direct child of the layout container between those rows, not an Item alone inside its own row container. Omit modalWidth for page Forms. `verify_forms.py` checks the Modal width, full-width stacked container and paired rows, columns/gap, complete field group and full-row/half-row placement for either label direction. A mismatch fails generation. Run before delivery and after save/reopen. Apply the Preview checks above, including invalid, corrected and reopened states and reachable native footer. Capture the opened Modal, not its background or hidden editor node. Update generation source and delivered model together when fixing a layout failure.
+
+
+
+##### references/libraries/antd_v6/compositions/modal-drawer.md ['generation-rules'] #####
+{"path": "/Users/yanxianliang/Library/Caches/Plasmic/skill-resources/fde603147191239d/b6625b87b5d40d1d29f578a4fb41cfefdf615776dcd8ae0414e29eff153f64f7/references/libraries/antd_v6/compositions/modal-drawer.md", "sha256": "25eaf15dac40551d1f83f9ef1e55d15c71dcbd23f91dad4bea89859f2444fe6c", "sections": ["generation-rules"], "outline": false, "bytes": 8831}
+# Modal + Drawer composition
+
+## Generation rules
+
+Applies to [Ant Design v6](../index.md) registrations and theme behavior. Select the matching project library through the [library index](../../index.md) before using this recipe; another library or major requires its own verified composition rules.
+
+Read before creating, editing or reviewing a Modal/Drawer, including result tables and read-only details. Use the actual registered component's Props, Slots, defaults and events. Read [Modal](../components/modal.md) only when using Modal; read [Form layout](form-layout.md) only when the overlay contains a business Form. Read [Actions](action-bars.md) for present action groups and [Layout](../../../design/layout.md) for bounded scrolling. A read-only detail Drawer does not require Form or Modal rules.
+
+### Footer with only an exit button
+
+When the native top-right close icon is enabled and usable, do not retain a footer whose sole visible button only dismisses the overlay. Remove that button and the now-unused footer; use the native close icon for dismissal. This applies to Cancel, Close, Done, Return and differently named buttons with the same actual effect. Judge the handler/state transition, not the label.
+
+This rule does **not** remove Cancel/Close from a multi-button footer. Save + Cancel, Confirm + Cancel, and other required action groups may retain the exit button even with a header close icon. Keep native ownership through the [Modal footer contract](../components/modal.md#footer), with order and hierarchy from [Actions](action-bars.md). Do not hide native Cancel from a normal two-button Modal merely because X exists.
+
+- Read-only results, details and help with no required business operation normally need no footer. Apply the component's actual removal contract ([Modal](../components/modal.md#footer) or Drawer footer Slot); do not leave an empty footer Slot, spacer or separator.
+- A single button that downloads, submits, stops work or returns to a previous workflow step is a business action and can remain. “Return to SQL editing” is an exit-only action if it merely closes the current result overlay; it is a business action if it performs a required distinct transition. Record and verify that effect.
+- Pagination, table row actions and body controls do not turn an exit-only footer into a multi-button footer. Count buttons in the actual footer only. Disabled buttons still occupy that footer; check each required runtime state when buttons are conditionally hidden.
+- If no usable close icon exists, do not remove the only usable exit. Keep the supported dismissal path or enable the native icon where the requirement permits it. Do not add a custom header close icon.
+
+### Drawer sizing
+
+A Drawer sizes its panel through the official `width` prop (pixels); `size` is only the official `default`/`large` choice. Choose the width by the content that must stay readable without horizontal scrolling, and record the number in the overlay inventory:
+
+| Content | Width |
+| --- | --- |
+| Read-only key/value detail, short help, a compact confirm | 480 |
+| A Form or a Table | 640 |
+| Code or SQL text, long values | 720 |
+
+A Modal records its exact `width` in the same inventory, matching the width decision from [Form layout](form-layout.md#modal-form-layout) or the result content. Neither value may be left implicit.
+
+### Structure and close behavior
+
+Keep one native header/title and one footer owner. Form Modals leave at least 24px clearance at each viewport edge; constrain their outer width/height accordingly. Bound long body content using the shared scrolling contract, with the header and any business footer outside that scrolling region and reachable at the target viewport. No nested native scrolling, clipped last row or blank reserved footer after removal.
+
+Never declare an empty `closeIcon` Slot: an empty declaration replaces the native icon with nothing, so the overlay loses its close control. Omit the Slot to keep the native icon, or place one registered Icon plus its close handler. `verify_slots.py` rejects an intended empty `closeIcon` Slot, and the overlay inventory still records `closeIcon: true`. Bind dismissal to the actual controlled open state. Available X/Cancel/Esc/mask paths follow the same dirty-input, cleanup and processing policy; closing does not imply backend cancellation. Failure preserves recoverable input. Selection/reveal must not persist an open initial state. In Preview verify close/reopen, retained business actions, keyboard focus and return to the trigger; editing also checks dirty input and processing restrictions. Save/reopen and reread after edits. For every overlay whose inventory records `closeIcon: true`, the opened Preview must visibly show the close control; confirm the same after save/reopen and record that check in the review evidence.
+
+### Generation gate
+
+Derive an independent acceptance inventory from requirements before generation. For each affected owning component, inventory every Modal/Drawer in its full public `baseVariantTplTree`, including hidden branches. Read referenced custom components separately; private internals need their own readback. The inventory is verification evidence, not persisted design props.
+
+Declare the exact component identity, expected usable `closeIcon`, footer mode (`none`, `native`, `custom`) and ordered visible `footerActions`. For a native Modal footer use `nativeCancel` and `nativeOk`; for a custom footer use actual Button node names. Each action declares `effect: "dismiss"` or `"business"`; a business action needs a concrete `reason`. Optional action `props` checks required handler/visibility values from the public readback. Review effects against actual interactions; do not derive them solely from labels or generated output.
+
+Also inventory inline `trigger` Slot roots by their ordered node names, e.g. `trigger:["OpenDetails"]`. Omitted `trigger` means `[]`: external business controls own opening and the Slot must be empty. The gate checks hidden/closed models too and rejects leftover default openers; do not accept them just because the overlay itself starts closed. Trigger ownership and footer ownership are independent.
+
+Plan Pages by exact path (or unique name / known componentUuid) through [unified verification](../../../verification.md#reviewed-suite-configuration). Its runner resolves selectors from current readbacks. The standalone command below requires actual componentUuid values already resolved; do not fabricate UUIDs before creating Pages. Example of a resolved inventory for a read-only SQL result:
+
+```json
+{"pages":[{"componentUuid":"reviewed-owner-uuid","overlays":[{"name":"SQLPreview","component":"plasmic-antd6-modal","closeIcon":true,"footer":"none","footerActions":[]}]}]}
+```
+
+Run `python3 scripts/verify_overlays.py <inventory.json> <mcp-read.json>` using scripts from the resolved resource root, before delivery and again on saved/reopened readbacks. It rejects missing/extra overlays, mismatched footer/action inventories and a sole exit-only footer button with a usable close icon. A normal multi-button Confirm + Cancel footer must pass. Flat native Button object bindings with literal values or simple `$state`/`$ctx` property reads are inspected without execution. Quoted literal text cannot substitute for a read binding. Dynamic `disabled`/`loading` does not alter the visible action inventory; inventory action `props` can require its exact binding. Dynamic `hidden`/`style`, non-boolean hidden values, prototype keys, spreads, computed keys and unsupported expressions still fail. Conditional visibility that cannot be resolved statically fails with a request for state-specific evidence; do not execute expressions or assume dynamic configuration is hidden. For Antd6, explicit `closable: true` or an object preserves the native fallback icon even with top-level `closeIcon: false/null`; object `disabled` must be a literal boolean. Literal custom icons follow React rendering: numbers including `0` render, booleans/null/blank text do not. Nonempty custom `closeIcon` Slots cannot be classified as the native fallback; their unresolved rendered availability fails the gate. `hideFooter` must also be a literal boolean. Hidden inline CSS remains hidden with case/whitespace differences or `!important`. CSS variables, inherited/conditional visibility and other unresolved styles require rendered evidence; do not treat them as visible or exempt the gate. Nested overlay footers and trigger Slots belong to their own scope.
+
+The gate cannot infer business meaning or execute handlers. Review the inventory and actual interaction readbacks, inspect opened overlays at the target viewport, and exercise dismissal/retained actions in each relevant state. Passing structure alone does not prove behavior or geometry.
+
+
+
+##### references/libraries/overseas/components/app-shell.md ['generation-rules'] #####
+{"path": "/Users/yanxianliang/Library/Caches/Plasmic/skill-resources/fde603147191239d/b6625b87b5d40d1d29f578a4fb41cfefdf615776dcd8ae0414e29eff153f64f7/references/libraries/overseas/components/app-shell.md", "sha256": "49656a610c18c4cb7fc0713151a280c48bc1cb60ee10650a1064a2f5a40909de", "sections": ["generation-rules"], "outline": false, "bytes": 6843}
+# AppShell
+
+Library: [Overseas](../index.md).
+
+| Registered component | Registration key |
+| --- | --- |
+| AppShell | `plasmic-overseas-app-shell` |
+
+## Generation rules
+
+### Standalone Page boilerplate
+
+Start from the [golden boilerplate](../../../design/layout.md#standalone-appshell-golden-boilerplate): keep the Page's existing default root and insert AppShell directly, with business content in `children`. AppShell's outer DOM owns `width:100%; height:var(--viewport-height, 100vh); min-width:0; min-height:0; flex-shrink:0`; registration defaults remain `width:100%; height:100vh`. The Studio variable anchors height to the authored viewport while its iframe measures content; Preview/export use the live viewport fallback. Do not append another sizing wrapper or configure ancestor heights to fill the shell. Reuse the existing shell when the host owns navigation.
+
+For a standalone admin preview use the registered `plasmic-overseas-app-shell` component and its Page body slot; never duplicate its layout markup. The shell owns the outer 16px padding, so the slotted business container must not add another outer padding. Its geometry is: 239px white sidebar, 64px brand/header, header horizontal padding 24px, content background neutral and padding 16px. The page body fills available width and has no forced white background; SearchForm and business cards own their own surfaces. Avoid another enclosing card. Use product branding and menu evidence from the original design. Configure AppShell menuItems once as the complete nested navigation tree with href routes; put detail and creation routes under their parent with hidden=true when they must not appear in the sidebar. AppShell derives breadcrumbs and selection from Plasmic pagePath, including all menu ancestors. Never pass a separate per-page breadcrumb list or render it again in business content. Apply [admin content entry](../../../design/layout.md#admin-content-entry) for Page headings and business copy.
+
+Use [viewport/layout rules](../../../design/layout.md) for component-owned sizing, bounded scrolling and target device geometry. The shell fills viewport height independently of the Page root height. Apply the [shell height gate and Preview acceptance](../../../design/layout.md#viewport-shell-height-acceptance) before delivery and after save/reload.
+
+### App source context
+
+Recognize App 来源, App Source, app_source, appSource, appId/app_id/application_id, app_name, 应用标识/应用名称, multi-App requirements and equivalent identifiers of the current work App. Record a source-backed `appContext` decision using the [context inventory](../../../design/component-policy.md#app-context-inventory). When the requirement distinguishes Apps, keep the native header AppSource control. “No App source filter/form option” removes the business field, not the shell's working context. Only an explicit current instruction excluding the top-level/global switcher overrides this baseline; do not infer it from a SQL validation or form-field restriction. A generic application title alone does not establish multiple working Apps; resolve that semantic distinction from the source.
+
+Populate `appSources` from the requirement/authorized configuration, not demo defaults. An empty array intentionally hides the native control and cannot stand in for unrecognized context. Bind `appSource` to the same native implicit state or verified shared context used by data queries, creation, export and navigation. AppShell already exposes a writable appSource state; reuse it when appropriate instead of creating another visual selector or redundant event/state layer. If using explicit shared state, onAppSourceChange updates that state. A header-only local change is insufficient.
+
+Inventory in-scope consumers and verify app-switch plus their context-data/create/export/navigation cases. Check initial entry, option authorization, switched data, new-object source, export target, and supported direct entry/back navigation. Keep switcher context separate from business filter reset. One authorized App is not permission to fabricate another; show its real identity and report unavailable switching coverage. Cross-page persistence follows the actual host/router contract below.
+
+### Menu routes and context
+
+`menuItems` is the real registered array prop. Prefer a static complete tree when destinations and visibility are static. The shell uses `pagePath` for selection/breadcrumbs and passes each `href` to the host's Plasmic Link; it does not append the current query or transfer role/environment state itself. `appSource` and `language` controls do not establish cross-page persistence.
+
+Route matches take priority over `selectedMenuKey`: exact paths win, followed by the longest menu path at a complete path-segment boundary. A hidden `/groups/detail` menu route therefore covers `/groups/detail/<id>`, retaining its breadcrumb ancestry and highlighting the nearest visible parent. `/groups-extra` does not match `/groups`, and `/` only matches itself. Query strings, hashes and trailing slashes do not affect matching. When no route matches, the explicit selection supplies the menu path, including for menus without hrefs. Navigation expands the selected item's visible submenu ancestors. Runtime menu expansion survives page remounts within the same window for an identical navigation tree (keys, hrefs, visibility, types and nesting); users can close a branch until the next navigation reveals it again. New windows initialize from their current route. Canvas instances keep expansion local to editing and separate from runtime navigation.
+
+For required cross-page context, first read the installed host Link/router or global-context contract. Use that verified contract, or supported bindings when the destination genuinely depends on runtime state. Record which query keys must survive, destination-value precedence, and direct-entry/back-navigation behavior; do not blindly copy all current query parameters. A role query used in a prototype is not an authorization contract. Do not document implicit preservation or a global provider that the project does not actually have.
+
+Dynamic `menuItems` bindings are supported. The structure gate recognizes only static trees and the explicitly inventoried restricted `navigation.roleQuery` transform; other dynamic expressions remain statically unverified. Do not add an anonymous mapping expression to otherwise static menus merely as a convention. When dynamic menus are required, keep an independently reviewed tree for each relevant role/state and verify rendered visibility and link destinations in Preview. Do not execute arbitrary expressions in Python or treat an extracted static skeleton as proof of runtime behavior. See [structure acceptance](../../../requirement-alignment.md#structural-gate).
+
+
+
+##### references/libraries/antd_v6/components/badge.md ['generation-rules'] #####
+{"path": "/Users/yanxianliang/Library/Caches/Plasmic/skill-resources/fde603147191239d/b6625b87b5d40d1d29f578a4fb41cfefdf615776dcd8ae0414e29eff153f64f7/references/libraries/antd_v6/components/badge.md", "sha256": "0310595f1c5b692961fb9c7e46d99893a21524e89587b7894528c423ccd3ada3", "sections": ["generation-rules"], "outline": false, "bytes": 2214}
+# Badge
+
+Library: [Ant Design v6](../index.md).
+
+| Registered component | Registration key |
+| --- | --- |
+| Badge | `plasmic-antd6-badge` |
+| Badge.Ribbon | `plasmic-antd6-badge-ribbon` |
+
+## Generation rules
+
+Use Badge `status` (a supported semantic preset) plus `text` for lifecycle/processing status. Categories choose text or Tag under the [Tag/text rules](tag.md#tag-or-text); an enum alone does not require either Badge or Tag. Read the installed `status`/`text` contract and keep status meaning consistent with the business value. Do not leave demo children/counts in status rendering.
+
+### Status columns and row mapping
+
+Badge exposes only the upstream Ant Design props — `status`, `text`, `count`, `dot`, `color`, `size`, `overflowCount`, `showZero`, `children`. Never add or rely on a non-official prop such as `value`/`options`: the registered contract must stay identical to the official component.
+
+A per-row status therefore maps the row value inside the binding expressions, not in a custom prop:
+
+| Prop | Requirement |
+| --- | --- |
+| `status` | Expression that maps the row state to one of `success`, `processing`, `default`, `warning` or `error` |
+| `text` | Expression that renders the row's visible status label |
+| Column declaration | `statusMap` `{value: {status, label}}` recording the mapping the expression renders, covering every state |
+
+A literal `status`/`text` in a status Column gives every row the same presentation and fails generation. A standalone status Badge may use a literal preset `status` plus literal `text`. Every state shows complete visible text; color never carries meaning alone.
+
+### Count, dot and Badge.Ribbon
+
+Count and dot are distinct from a text status. Read overflowCount/showZero and the supported size/color contract; zero is displayed or omitted intentionally rather than through a truthy fallback. Place a count on the actual related child control/content and avoid duplicating the same count in an unrelated decorative badge.
+
+Ribbon owns its children, text/color and start/end placement. It is a surface annotation, not a substitute for an inline status or an authorization state. Keep complete readable business text and a single surface owner.
+
+
+
+
+##### references/libraries/antd_v6/components/card.md ['generation-rules', 'plan-decisions'] #####
+{"path": "/Users/yanxianliang/Library/Caches/Plasmic/skill-resources/fde603147191239d/b6625b87b5d40d1d29f578a4fb41cfefdf615776dcd8ae0414e29eff153f64f7/references/libraries/antd_v6/components/card.md", "sha256": "627db3c07eeb4b0e38dca2f73c6a5b89a66749b71adce19a0fa4da6e55ff6459", "sections": ["generation-rules", "plan-decisions"], "outline": false, "bytes": 8506}
+# Card
+
+Library: [Ant Design v6](../index.md).
+
+| Registered component | Registration key |
+| --- | --- |
+| Card | `plasmic-antd6-card` |
+| Card.Grid | `plasmic-antd6-card-grid` |
+| Card.Meta | `plasmic-antd6-card-meta` |
+
+**Hard constraints** (always delivered with any section):
+
+- Use Card only for an independently justified business surface (record `condition`); never around SearchForm, AppShell, Steps or every section, and avoid nested Cards.
+- Initial data-props: `{"size":"medium","variant":"outlined","styles":{"body":{...}}}`; never the legacy `bordered` prop or a padded native wrapper.
+- A headerless Card supplies explicit empty `title` and `extra` Slots in the initial markup.
+- A Tabs-first list Card uses body padding `0 20px`: Tabs owns the top edge, Table pagination owns the bottom edge. See [Card ownership](#card-ownership).
+
+## Plan decisions
+
+Declare these native props in each planned instance before markup. `prepare_plan.py scaffold` writes `"__DECIDE__"` (or the baseline) for each; selection preflight rejects pending or missing values. `null` means deliberately unset and is accepted only where marked.
+
+| Registration | Prop | Decision |
+| --- | --- | --- |
+| `plasmic-antd6-card` | `size` (baseline `"medium"`) | Current contract baseline. See [rule](#card-ownership). |
+| `plasmic-antd6-card` | `variant` (baseline `"outlined"`) | Current contract baseline; never the legacy bordered prop. See [rule](#card-ownership). |
+| `plasmic-antd6-card` | `styles.body.padding` | Explicit body padding assigned to one edge owner, for example 0 20px for a Tabs-first list Card. See [rule](#card-ownership). |
+
+## Generation rules
+
+### Card ownership
+
+Use the registered `plasmic-antd6-card` for a business surface with card appearance: a list containing toolbar/Tabs/Table/pagination, grouped form information, a detail information panel or a metric card. Read the installed Card contract before generation. A background, border, radius and padding on a native section/div do not fulfill this requirement. Use registered Antd6 Flex, Row/Col and Space for layout without a card surface; native main/section/div remain appropriate when semantic grouping is needed; SearchForm and AppShell keep their own surfaces, without an extra Card around them. Avoid nested cards unless the source explicitly requires separate surfaces.
+
+Card-scoped actions belong in the Card `extra` Slot, right-aligned in the header — for example `格式化` and `校验` acting on this Card's SQL editor, or a disclosure such as `查看 SQL ›`. Do not insert a separate button row above the body when the Card already has a header: the row wastes a full line and separates the actions from the content they control. Keep a body toolbar when the actions belong to a wider region (multiple Cards or Tabs), when the Card is headerless (use Tabs `extra` or an in-body toolbar aligned with the region), or when the same row also carries filters or search fields. Card `actions` is the footer contract, not the header slot.
+
+Place business nodes in Card's children Slot; keep Tables inside their existing Tab content slots. Use title and extra slots only when the design calls for a Card header; do not add a header solely because Card supports one. Appearance comes from Card's theme and supported props. With the current contract, use size=medium and variant=outlined; configure body padding through styles.body rather than a padded outer section. A plain information/form/metric card typically uses 16px vertically/20px horizontally. This is not a universal Card padding preset: Tabs and Table spacing ownership below takes precedence. Layout components inside children may provide gap or columns but must not repeat the surface or body padding. Card grows with its content; the AppShell remains the vertical scroll owner.
+
+For a headerless Tabs/list Card, clear the header Slots in the **initial** insertHtml: supply `<slot name="title"></slot>` and `<slot name="extra"></slot>`. Omitting a Slot retains its registered default; the current title default is `Card title`, even with hidePlaceholder=true. “No header” therefore requires explicit empty Slots, not just body padding. Include these empty Slots in the intended markup and verify saved readback has no header children; hiding a retained sample title with styles.header.display=none does not clear it. When a Card header is required, supply its source-derived title instead (16px/600, with counts at secondary hierarchy).
+
+When Tabs is the first content and its tab bar already supplies top spacing, set Card body and all intervening wrappers' paddingTop to 0. Do not reintroduce that space as margin, a translated/absolute offset or an empty header. When the last Panel content is a Table whose pagination already supplies bottom spacing, set Card body, Panel and intervening wrappers' paddingBottom to 0; do not add fixed-height slack or a spacer. For the current Antd6 list composition, styles.body.padding is `0 20px`: Tabs owns the top and Table's pagination margin owns the 16px bottom gap. Keep left/right Card body padding 20px. Do not modify Tabs internal label padding or Table pagination margin to compensate for an outer spacing error. For other compositions inspect the actual component spacing and assign each edge to one owner.
+
+Write this padding explicitly in the Card's initial data-props, including in ad hoc build scripts: `{"size":"medium","variant":"outlined","styles":{"body":{"padding":"0 20px"}}}`. Omitting styles.body does not mean "no padding"; the Card falls back to its default body padding and pushes Tabs down. Do not use the legacy `bordered` prop. `verify_slots.py` checks the planned markup itself: its `tabsCardPolicy` rejects a Tabs-first Card (Tabs as first component content, through native wrappers) whose planned styles.body has no zero top edge, or that lacks empty title/extra Slots. A missing plan is not accepted because the readback matches it.
+
+For Cards containing mixed Tab panels, assign bottom spacing per panel. A Table panel may rely on its pagination margin, but a Descriptions/form/text panel has no such owner: when Card body paddingBottom is 0, give that panel one 16px bottom padding. Put this padding outside conditional sections so hiding a type-specific section does not remove the gap. Do not add padding to Descriptions internals or increase the Card padding globally, which would double the spacing on Table panels. Check every panel and relevant visibility state, including a missing pagination footer, by measuring its final visible content to the Card inner bottom.
+
+After save/reopen, measure Card inner body → every wrapper → Tabs top and Table bottom → wrappers → Card inner bottom. Top offsets must be 0 when Tabs owns top spacing, and external bottom offsets must be 0 when Table owns bottom spacing. With the current bordered Card, the outer 1px border is not body padding. Check the pagination's own bottom gap separately (currently 16px). Reject an extra 16px outer gap even when total spacing looks balanced; verify both model padding and rendered geometry.
+
+Record the planned Card names and contents in the generation input and acceptance matrix. Readback must show real Card instances and the intended business nodes inside their children Slots; reject native substitutes, empty Cards with sibling content and imported sample children. When migrating an existing surface, insert Card, move existing content with moveElement to preserve UUIDs/state/interactions, then remove the obsolete native surface. Check complete-page geometry and save/reopen persistence. Use verify_slots.py with the intended Card markup to check component identity and content ownership, in addition to screenshot review.
+
+### Card.Meta, Card.Grid and action Slots
+
+Meta owns its title/description/avatar inside the Card. Grid is a real Card subregion with its children/hoverable contract; it is not Row/Col Grid or a reason to nest another surface around every item. Use either structure only for the actual content arrangement and keep complete labels/values in their supported Slots.
+
+Card actions are editable Slot children converted by this wrapper to the native actions array. Cover, extra and actions have different roles; do not repeat a page's primary action in each Slot. Verify real permission-dependent actions, long Meta text, cover sizing, loading-to-content and Grid boundaries. Hoverable presentation alone does not make the Card navigate or provide a keyboard action.
+
+
+
+##### references/libraries/antd_v6/components/descriptions.md ['generation-rules'] #####
+{"path": "/Users/yanxianliang/Library/Caches/Plasmic/skill-resources/fde603147191239d/b6625b87b5d40d1d29f578a4fb41cfefdf615776dcd8ae0414e29eff153f64f7/references/libraries/antd_v6/components/descriptions.md", "sha256": "f34091c6ed5f95103416ce956c6852a5bff46ccef4f1a794fb94a3134ad100a2", "sections": ["generation-rules"], "outline": false, "bytes": 5296}
+# Descriptions
+
+Library: [Ant Design v6](../index.md).
+
+| Registered component | Registration key |
+| --- | --- |
+| Descriptions | `plasmic-antd6-descriptions` |
+| Descriptions.Item | `plasmic-antd6-descriptions-item` |
+
+## Generation rules
+
+Choose Descriptions for source-defined labeled read-only field groups before composition, and inventory their fields independently of output. A group rendered as loose labels/values cannot justify omitting its required native structure from acceptance. Full suites require per-Page inventories (explicit empty groups where the source has none), rather than a project-wide notApplicable based on having generated no Descriptions.
+
+Read before composing a read-only label/value group. [Descriptions + Statistic + Card](../compositions/summary-metrics.md) owns region selection, metric arrangements and adjacent editable Forms.
+
+Read the installed Descriptions and Item contracts. A Card is optional; layout and Tab containers are valid. Give each region one heading owner, avoiding a Card title that repeats the Descriptions title. For an editable prototype with a known field set, use real Descriptions.Item nodes with editable label/children Slots. Its children Slot accepts real [Descriptions Item](descriptions.md#descriptionsitem) nodes. The advanced native items array or expression remains available for data-driven groups and takes precedence over children, including an empty array. Do not set items when the fields must be edited as nodes.
+
+Use the real title Slot with editable text for a group heading. Let the component theme own title typography and title-to-fields spacing; do not imitate it with a separate native heading above an untitled Descriptions. Keep spacing between groups on their containing layout. Select `column` and item spans from available width and realistic value lengths. A Key/identifier does not automatically occupy a full row: keep it in a normal cell when the complete expected value fits, and allocate additional span only when real content would otherwise crowd or truncate. Inspect row packing and avoid large unexplained gaps. Preserve the native theme's label/value hierarchy and internal spacing. The outer Card/layout owns spacing between the summary and Form. Check full long values, wrapping and empty values in Preview; do not silently truncate required identifiers or replace valid zero/false with an empty marker.
+
+### Acceptance inventory
+
+Before insertion, freeze a requirement-derived information inventory independently of the generated HTML. For each reviewed Page, use its planned `path` (or unique existing `name` / known `componentUuid`) and `groups`; each group records its instance `name`, containing region `container`, `title` (empty when intentionally untitled), `column` and either ordered `itemSlots` entries (`name`, `key`, `label`, `children`, optional `span`) or the exact native `items` array/binding expression. Item Slot label/content expectations are their text or binding strings; verify nested rich components and their props separately through the Slot checks and model read. Keep these task-specific expectations outside the product model. Use [verify_all](../../../verification.md#collect-and-verify) to resolve these planned Page selectors against fresh readbacks. The standalone command `python3 scripts/verify_descriptions.py <resolved-inventory.json> <mcp-read.json>` instead requires actual `componentUuid` values already resolved from those readbacks. Check the inserted and saved/reopened models; never fabricate a UUID before creation. Before insertion, review the independent inventory; absent target nodes cannot pass the model gate. It checks component identity, group/container ownership, title, ordered Item nodes, spans and field/binding equality. A missing Descriptions, text substitute or altered field/binding fails even when Slot checks pass. Expressions are never executed by the checker; Preview must separately prove values render correctly. This gate does not detect regions omitted from the reviewed inventory or certify geometry, business APIs or independent AI generation quality.
+
+### Native code generation
+
+When the target has the verified native Ant Design items contract, convert this wrapper's Descriptions.Item nodes to items, preserving key/span, order, bindings, conditions and repetition. Slots remain ReactNode, parent items take precedence, and editing wrappers are removed. For a different target library/API, follow the actual two-sided implementation contract in [model reading](../../../model-reading.md); do not copy this items conversion without checking it.
+
+### Descriptions.Item
+
+Use this registered child inside [Descriptions](descriptions.md). Each field has independent label and children Slots, a stable business key and the native span prop. Labels and values may contain text bindings, tags, links or other registered components; do not concatenate several fields into one Item or put React markup in JSON.
+
+Choose span against the parent column count, available width and realistic value lengths. Keep required identifiers complete and preserve legitimate zero/false. Check ordered fields, rich children, bindings and packing through the parent [acceptance inventory](descriptions.md#acceptance-inventory) and real Preview.
+
+
+
+##### references/libraries/antd_v6/components/drawer.md ['generation-rules'] #####
+{"path": "/Users/yanxianliang/Library/Caches/Plasmic/skill-resources/fde603147191239d/b6625b87b5d40d1d29f578a4fb41cfefdf615776dcd8ae0414e29eff153f64f7/references/libraries/antd_v6/components/drawer.md", "sha256": "15e74643352e7c53083cd14cd5f35e2e1db2c423b90641987eda84910078ee72", "sections": ["generation-rules"], "outline": false, "bytes": 718}
+# Drawer
+
+Library: [Ant Design v6](../index.md).
+
+| Registered component | Registration key |
+| --- | --- |
+| Drawer | `plasmic-antd6-drawer` |
+
+## Generation rules
+
+Use the native title, children, footer and closeIcon Slots. Read the installed Drawer contract before setting open or handling onOpenChange(open); temporary editing reveals must not persist an open initial state.
+
+Choose the footer from the [Modal + Drawer composition](../compositions/modal-drawer.md). Remove an unused footer through the actual Drawer Slot contract, preserving a usable exit, bounded body and reachable business actions. Verify close/reopen, cleanup, keyboard focus and return to the trigger in Preview, then save/reopen and reread.
+
+
+
+##### references/libraries/antd_v6/components/select.md ['generation-rules'] #####
+{"path": "/Users/yanxianliang/Library/Caches/Plasmic/skill-resources/fde603147191239d/b6625b87b5d40d1d29f578a4fb41cfefdf615776dcd8ae0414e29eff153f64f7/references/libraries/antd_v6/components/select.md", "sha256": "f2ab70651ea55b52ead4a935f73900d1eb0dd8b0f229a981634447e32d99257a", "sections": ["generation-rules"], "outline": false, "bytes": 2155}
+# Select
+
+Library: [Ant Design v6](../index.md).
+
+| Registered component | Registration key |
+| --- | --- |
+| Select.Option | `plasmic-antd6-option` |
+| Select.OptGroup | `plasmic-antd6-option-group` |
+| Select | `plasmic-antd6-select` |
+
+## Generation rules
+
+Select honors custom filtering, server-side filterOption=false and suffixIcon=null; labels may be React nodes or numbers. Single/multiple/tags values may be scalars, arrays or labeled objects. Registered state and event types must represent these modes; tags supports multiple initial values.
+
+Check the default down arrow on the editor canvas as well as in Preview, and verify a custom icon and explicit suffixIcon=null separately. Follow [shared Slot/default verification](../../../engineering/component-contracts.md#slots-and-editor-state) for omitted versus null values.
+
+### Options and remote search
+
+Choose native options or the registered editable children path through useChildren; do not duplicate options in both. Select.Option and Select.OptGroup remain in this document. Values are stable business identities, group labels are presentation, and the selected value is not the display label unless the real contract says so.
+
+The Antd6 Select registers `placeholder` as a Slot; supply custom content through `<slot name="placeholder">...</slot>`, not data-props. Antd6 Input registers the same name as a text prop; do not copy that binding syntax to Select. See the [typed markup examples](../../../desktop-examples.md#component-instances). An initial selected “all” option is a value, not a placeholder, and needs no placeholder override.
+
+The maintained Studio metadata does not expose onSearch/filterOption/loading as normal controls, although the runtime wrapper forwards native Select props. Verify the actual supported advanced/native binding path before using remote search; do not invent a property control. The owning query handles stale responses and preserves a selected value's label while its options load. Server filtering does not require filtering the same results again locally. Do not replace a selected value merely because a temporary search result omits it.
+
+
+
+
+##### references/libraries/antd_v6/components/statistic.md ['generation-rules'] #####
+{"path": "/Users/yanxianliang/Library/Caches/Plasmic/skill-resources/fde603147191239d/b6625b87b5d40d1d29f578a4fb41cfefdf615776dcd8ae0414e29eff153f64f7/references/libraries/antd_v6/components/statistic.md", "sha256": "1cc4bc2e4352d8ac29f57d18d08aa01ddda94fd917171ce0c3addca263f1f3f2", "sections": ["generation-rules"], "outline": false, "bytes": 1480}
+# Statistic
+
+Library: [Ant Design v6](../index.md).
+
+| Registered component | Registration key |
+| --- | --- |
+| Statistic | `plasmic-antd6-statistic` |
+| Statistic.Timer | `plasmic-antd6-statistic-timer` |
+
+## Generation rules
+
+Use the registered Statistic for emphasized numeric business values. Read its actual Props/Slots and apply typography through supported content styling; never invent a prop to force font size or replace required numeric content with decorative text.
+
+[Metric composition](../compositions/summary-metrics.md#overview-metrics-and-information-cards) owns project typography defaults, label/value/unit roles, comparison placement and longest-content acceptance. Preserve complete values and legitimate zero.
+
+### Statistic.Timer and acceptance
+
+Timer uses its own type=countdown/countup, value, format and onFinish contract. The registered value is a Unix timestamp in milliseconds, not a duration or seconds. Displayed time does not prove an external operation completed; onFinish triggers only the consuming workflow's verified action. Do not recreate Timer as a constantly changing text expression or assume Statistic has Timer's value semantics.
+
+Verify metric value/precision/prefix/suffix/loading with zero, long and missing values; verify Timer initialization, boundary/finish, reopening and the required callback policy. Keep title/unit/action ownership and complete readable values under the metric composition, then save/reopen actual bindings.
+
+
+
+##### references/libraries/antd_v6/components/table.md ['generation-rules', 'plan-decisions'] #####
+{"path": "/Users/yanxianliang/Library/Caches/Plasmic/skill-resources/fde603147191239d/b6625b87b5d40d1d29f578a4fb41cfefdf615776dcd8ae0414e29eff153f64f7/references/libraries/antd_v6/components/table.md", "sha256": "3d9ca4bdfccff8ecce865a6684c5ccc141186e4bb02ee1006105562bee85b95e", "sections": ["generation-rules", "plan-decisions"], "outline": false, "bytes": 18937}
+# Table
+
+Library: [Ant Design v6](../index.md).
+
+| Registered component | Registration key |
+| --- | --- |
+| Table | `plasmic-antd6-table` |
+| Table.Column | `plasmic-antd6-table-column` |
+| Table.ColumnGroup | `plasmic-antd6-table-column-group` |
+
+**Hard constraints** (always delivered with any section):
+
+- Decide every Column's literal pixel `width` in the plan before markup. When any Column has a width, exactly one main text Column (`role:widget`, text presentation) leaves width unset and Table `scroll` sets numeric `x` greater than the explicit widths sum. Without numeric `scroll.x` the wrapper's `max-content` default turns widths into minimums. See [content and scroll width](#content-and-scroll-width).
+- Size each width from its title as well as its values; status/time/short fields are fixed, never the main column.
+- Row operations: registered ActionGroup in the last leaf Column.render, `fixed:"right"` and a measured numeric width ([operation column sizing](#operation-column-sizing)).
+- Column `displayType` is `text` or `custom`; status Columns render a mapped Badge, categories default to text.
+- Paginated lists need a fixture larger than the initial pageSize and first/second/return page cases.
+
+## Plan decisions
+
+Declare these native props in each planned instance before markup. `prepare_plan.py scaffold` writes `"__DECIDE__"` (or the baseline) for each; selection preflight rejects pending or missing values. `null` means deliberately unset and is accepted only where marked.
+
+| Registration | Prop | Decision |
+| --- | --- | --- |
+| `plasmic-antd6-table` | `scroll` (`null` allowed) | Numeric x greater than the explicit Column widths sum whenever any Column has a width; null keeps the wrapper default for an all-text Table without widths. See [rule](#content-and-scroll-width). |
+| `plasmic-antd6-table` | `pagination` | false, or the native paging object with one declared ownership mode. See [rule](#data-identity-sorting-and-pagination). |
+| `plasmic-antd6-table-column` | `width` (`null` allowed) | Literal pixel width from the title and values; null only for the single main text Column. See [rule](#content-and-scroll-width). |
+| `plasmic-antd6-table-column` | `displayType` | text or custom, from the source presentation. See [rule](#render-templates). |
+
+## Generation rules
+
+Read the installed Table contract and the real [Column](table.md#columns) instances. Before choosing a Column's presentation, classify its source purpose using [selection](../selection.md): lifecycle/processing fields follow [Badge](badge.md), category/attribute fields choose text or Tag under [Tag/text rules](tag.md#tag-or-text), and operations follow ActionGroup. Read that rule owner; Table metadata describes capabilities, not the right semantic choice. [SearchForm + Tabs + Table composition](../../overseas/compositions/search-table.md) owns filters, scopes, vertical scrolling and business pagination; [Tab Item](tabs.md#items) owns each panel content Slot.
+
+### Complete editable table
+
+Before inserting each Table, read its live Table and Column contracts and inventory every Column's source purpose, native presentation, dataIndex/render scope and width. Keep category Columns as role:category for both text and Tag. Pin native props.displayType to text or custom from the source decision. Ordinary single-value categories default to text. When Tag is justified, place a registered Tag in Column.render ([render templates](#render-templates)), not styled spans. For custom presentation declare the actual component/Slot owners; a text template remains valid without a Tag. Row operations use registered [ActionGroup](../../react_ui/components/action-group.md) in Column.render, in the last leaf Column with fixed=right and measured width. Discover its library before choosing substitutes. Pagination totals use native showTotal(total, range). Insert real Column nodes in Table children; ColumnGroup is for grouped headers. Read back visible headers and two distinct rows before advancing. The structural gate checks required identities, props, Slots and complete Column coverage; review the draft and equivalent Tabs for presentation consistency.
+
+For a required record action, declare `rowActions` in the [source inventory](../../../requirement-alignment.md#structural-gate). Do not use link formatting for an action label such as “查看”: it consumes a URL. Use ActionGroup items in the live row scope, item href for navigation and onAction(key) for local effects. The destination or overlay must show the clicked record, carried by its own route param rather than a global; declare it per [record context](../../../design/record-context.md) and verify with two distinct records. A registered Button in Column.render remains valid for an explicitly required cell control, not a replacement for the row-operation group. For query-driven tables declare dynamic data/state dependencies; test a nonmatching keyword, zero rows **and total**, then reset and recovery. Event presence does not establish the effect.
+
+### Data contract
+
+The registered `data` is queryData; runtime rows come from `data.data`. Static data uses a JSON result object: `data-props='{"data":{"data":[{"id":"one","count":0}]}}'`; an empty result is `{"data":[]}`. An array alone is invalid. For an existing array state `rows`, use `{"data":{"data":"{{ $state.rows }}"}}` or the whole expression `{{ ({data: $state.rows}) }}`. Native result metadata is retained. Do not delete required data to bypass errors. Build JSON with a serializer; when generating HTML in another language, verify its final binding delimiters before insertion. Read Column scopes; verify visible rows, total, page and pageSize against the requirement.
+
+### Title render Slot
+
+Table's optional native `title` render Slot owns required content above the column headers and receives `currentPageData`, the current page rows. Insert editable content in this Slot rather than inventing a `header` prop; each column heading still uses `Column.title`. Leave it unset when no table-top content is required. This capability does not opt in to a standalone Page heading. When using its data scope, verify content after filtering, pagination and an empty result, then save/reopen and reread the Slot and bindings.
+
+### Content and scroll width
+
+Use real Antd6 Table columns and render Slots. Place operations last and fixed right, size the column to visible actions, and use the registered [ActionGroup](../../react_ui/components/action-group.md). Preserve complete source values and meaningful 0/false. Wide content scrolls horizontally within the Table, never widens the viewport. Read [Tooltip](tooltip.md) before configuring overflow content.
+
+Fix widths for short fields, status, time and operations; assign remaining container space only to the main text column. When any Column has a width, leave exactly one main text Column without width and set a numeric `scroll.x` equal to the explicit widths plus that column's baseline (for example `{"x":1494}`), so the browser cannot proportionally expand fixed columns. The wrapper merges `scroll` as `{x:"max-content", ...scroll}`: without a numeric `scroll.x` the native table uses auto layout, every width becomes a minimum, content such as long keys, Tags or ActionGroup widens columns, and ellipsis stops truncating. Column widths are literal pixel numbers. Size each width from its title as well as its values; a four-character Chinese title needs at least 88px in a large Table. Plan preflight and the structure gate enforce these widths; the rendering gate also measures fixed control columns. Inactive Tabs need their own layout capture. Preserve widths when the sum exceeds the viewport; verify horizontal scrolling and the fixed-column boundary. Static Pen full-column views are a source presentation convention; in the interactive App verify every column by scrolling and retain measurements and screenshots in the acceptance evidence.
+
+After save/reopen, read both column props and rendered header/cell widths. Check All/Mine use the same definitions, the operation width equals measured content plus padding, remaining space only enlarges the text column, the longest status and timestamps fit, ellipsis preserves complete values, and the horizontal track/fixed columns/pagination remain usable. Report these as individual checks with evidence, not a generic screenshot approval or model-validation result.
+
+### Selection
+
+Selection must persist without a state binding, and controlled selection must follow the bound keys. Clear selection and radio/checkbox modes must work. For wrapper changes, test omitted, explicit and controlled/uncontrolled values with the installed Ant Design version.
+
+### Columns
+
+Read the installed Column contract for fields, render Slots, widths and overflow. The owning [Table](table.md) defines selection, total scroll width and pagination.
+
+#### Columns and content
+
+For tables, record each field's purpose, longest common real value, required complete boundary value, width and overflow policy in the sidecar acceptance report. Retain the requested App viewport and verify the actual component metrics; do not copy widths from a differently sized reference composition.
+
+Use these starting widths in pixels: short IDs/counts and type/scenario 96–128; status and people 128–176; timestamps 160–192; names 200–280; keys/code 240–320; notes 280–360. Keep ID/count/time/enumeration/status values complete. Name/key/people may ellipsize under the [Tooltip overflow contract](tooltip.md); details or copy are additional ways to access the value. Set the real Table.Column ellipsis prop instead of shortening data or merely styling a span. Verify actual overflow and complete Tooltip text before claiming success; configuration alone is insufficient.
+
+Text Columns with ellipsis automatically show an onlyWhenOverflow Tooltip with the complete value. For custom Tooltip content, place a registered Tooltip (onlyWhenOverflow=true) in Column.render with children/title Slots bound to the row scope. Edit these actual nodes; do not add a parallel tooltip configuration schema or copy a row's static text across all rows. A custom title may combine current-row fields; keep display and title bindings consistent with the intended complete content. Verify at least two distinct rows, text/template content, 0/false/empty values and resized columns, then save/reopen. Apply [Tooltip acceptance](tooltip.md) to hover/focus and temporary editing reveals.
+
+#### Render templates
+
+Column `displayType` is `text` or `custom`; presets were removed. Custom render composes registered components in the `render` Slot, whose scope is the bare names `cell`, `row` and `index` (no `column` or `$ctx` prefix). Copyable starting points, values illustrative:
+
+```html
+<!-- Status: Badge maps the value; never color/dot/count -->
+<plasmic-component data-plasmic-name="Status" data-plasmic-component="plasmic-antd6-table-column" data-props='{"dataIndex":"status","width":128,"displayType":"custom"}'><slot name="render"><plasmic-component data-plasmic-name="StatusBadge" data-plasmic-component="plasmic-antd6-badge" data-props='{"status":"{{ row.status === &#39;ENABLED&#39; ? &#39;success&#39; : &#39;default&#39; }}","text":"{{ row.statusLabel }}"}'></plasmic-component></slot></plasmic-component>
+<!-- Single-value category Tag -->
+<plasmic-component data-plasmic-name="CategoryTag" data-plasmic-component="plasmic-antd6-tag" data-props='{"value":"{{ cell }}","options":[{"value":"MESSAGE","label":"消息","color":"blue"}]}'></plasmic-component>
+<!-- Multi-value Tags -->
+<plasmic-component data-plasmic-name="LabelTag" data-plasmic-component="plasmic-antd6-tag" data-repeat="{{ cell || [] }}" data-repeat-item="tagValue" data-props='{"value":"{{ tagValue }}"}'></plasmic-component>
+<!-- URL link -->
+<a href="{{ cell }}" target="_blank" rel="noopener noreferrer" data-visible-if="{{ !!cell }}">{{ cell }}</a>
+<!-- Avatar -->
+<plasmic-component data-plasmic-name="OwnerAvatar" data-plasmic-component="plasmic-antd6-avatar" data-visible-if="{{ !!cell }}" data-props='{"src":"{{ cell }}","size":32,"alt":"{{ row.name }}"}'></plasmic-component>
+```
+
+Name each instance for its role. Generate `data-props` with a JSON serializer: in a single-quoted attribute encode a literal `'` as `&#39;`; in a double-quoted attribute encode every `"` as `&quot;`. A status Column maps the row value inside the Badge `status`/`text` expressions and records `statusMap` on the Column; never add non-official props to the registered component. Verify two distinct rows, unmapped and empty values after save/reopen.
+
+#### Operation column sizing
+
+Measure the widest visible permission-filtered ActionGroup for valid rows in the current role, add actual left/right cell padding, and round up for the fixed-right operation column. Exclude hidden menu widths. An existing width is not evidence that it still fits after replacing the action component.
+
+Measure the complete rendered buttons, including More's arrow, gaps and button padding. Check the rightmost control against the cell's **content** right edge after native cell padding, rather than only the viewport or table edge. Read actual rendered cell width as well as Column.width: Table layout can redistribute space. `snapshot_layout` reports `cellContent` measurements and `table-cell-control-overflow` when controls in a sticky cell intrude into its padding or escape it. Size from `requiredWidth`, then remeasure both Tabs, all applicable action/permission combinations and horizontal scroll positions. These measurements do not set a universal column width.
+
+#### Table.ColumnGroup
+
+Use the real ColumnGroup children/title contract for a required grouped header. Keep actual Column nodes and their render scopes inside that group; a decorative row above the Table is not a grouped header. Verify group order, fixed/scrolling boundaries and the complete leaf-column content after save/reopen.
+
+### Data identity, sorting and pagination
+
+The wrapper's data input is the actual registered data-source contract, not an assumed native dataSource prop. Use a unique stable business field as rowKey, especially when selection, refresh or sorting is involved. Array indexes and display labels do not identify rows across those transitions. Read the ordered onChange arguments: pagination, filters, sorter and extra. Map their real values to the owning workflow rather than treating the first argument as a row.
+
+Declare client-side or server-side ownership for sorting, filtering and paging. Server-side total is the full matching count, not the current row count; do not slice an already paged response again. Reset or retain current page according to the changed filters/scope and requirement. Do not promise a sorting/filtering column control absent from the installed registration. Use [Pagination](pagination.md) and the matching query composition for the actual configuration.
+
+Choose one ownership mode before binding. For local data with component-owned paging, `pagination:{defaultPageSize:20,showSizeChanger:true,pageSizeOptions:[20,50]}` initializes an editable pager without freezing its size (values here are illustrative). If application state owns paging, bind `pagination.current` and `pagination.pageSize` to the existing states and update both from the registered Table `onChange` argument `pagination.current` / `pagination.pageSize`. Reset current on the source-defined filter change. A constant `pageSize:20` is a controlled value, so displaying a size changer does not make size changes work. Verify the installed contract before using this pattern, and check resulting rows as well as the pager label.
+
+For selection, bind selectedRowKeys only when intentionally controlled and use the actual onSelectedRowKeysChange/ref actions. Define whether selection covers the current page, retains keys across pages, or resets after filters/mutations; the current wrapper does not certify arbitrary cross-page retention. Verify keys still identify the intended records after refresh. [Bulk-action composition](../compositions/bulk-actions.md) owns batch effects and permission handling.
+
+### Pagination test data and acceptance
+
+Before generation, prepare a normal initial dataset for every paginated list/Tab in scope. After its initial filters, current App/market, role and record permissions are applied, the actual matching result count must exceed the initial pageSize: at least pageSize + 1. For a 20-row page this means at least 21 matching records; 25–30 usually suffice. The raw backing array's length is insufficient when the initial visible scope contains fewer records. Empty, sparse and failed-query fixtures are separate cases and cannot replace this normal paging dataset.
+
+Prototype fixtures may extend the supplied examples with explicitly simulated local records that obey the source fields, enums, relationships and permissions. Record their simulated nature in the task evidence; do not add debug labels or controls to the business UI. Give every record a complete, unique stable rowKey. Keep the real matching count, native total and retrievable records consistent; a larger total with only a few actual records does not satisfy this rule. With server paging, the backing query/API must really return the subsequent page. If authoritative source/access restrictions prevent sufficient permitted data, report pagination as unverified rather than inventing real records or claiming a pass.
+
+Use the existing native paging props and runtime cases to record the initial pageSize, matching count, active scope/filters and distinct expected record IDs before composition; do not derive these expectations from the finished screenshot or create another data schema. If a larger pageSize must also support a tested page turn, prepare enough matching records for that tested size too.
+
+In real Preview, scope assertions to the actual Table and its native pager:
+
+1. On page 1, verify the first-page record IDs, rendered record count, current page, pageSize and matching total.
+2. Go to page 2, verify different expected record IDs and the correct slice size; first-page records must not simply remain repeated. This must demonstrate real records beyond the first page, not just an active page-number change.
+3. Return to page 1 and verify its original records and the unchanged total.
+4. When a size changer is available, change pageSize and verify the resulting rows, current-page policy and total separately. Also exercise filtering/reset and scope changes under their source-defined page policy.
+
+Retain the native assertion trace for these cases under [runtime evidence](../../../design/component-policy.md#native-runtime-evidence). Static structure and declared case names do not establish the filtered dataset size or a real page transition. A pager visible beside a short sample or a changed counter alone does not pass.
+
+
+
+
+##### references/libraries/antd_v6/components/tabs.md ['generation-rules'] #####
+{"path": "/Users/yanxianliang/Library/Caches/Plasmic/skill-resources/fde603147191239d/b6625b87b5d40d1d29f578a4fb41cfefdf615776dcd8ae0414e29eff153f64f7/references/libraries/antd_v6/components/tabs.md", "sha256": "f2120483e2f06324651aa6688393cab5d16b15d57ee77c3f623716a25674030d", "sections": ["generation-rules"], "outline": false, "bytes": 2481}
+# Tabs
+
+Library: [Ant Design v6](../index.md).
+
+| Registered component | Registration key |
+| --- | --- |
+| Tabs.TabPane | `plasmic-antd6-tab-item` |
+| Tabs | `plasmic-antd6-tabs` |
+
+## Generation rules
+
+Read the installed Tabs contract. Use actual [items](#items) represented by Tab Item nodes; do not draw tab labels above sibling content. [SearchForm + Tabs + Table](../../overseas/compositions/search-table.md) owns data-scope composition; [Card spacing](card.md#card-ownership) owns outer edge padding.
+
+Choose by the source's interaction role before markup. Switching a list's content scope, such as All/Mine or different result categories, uses Tabs with real Tab Item content. Radio.Group selects one field value; its button appearance does not make it content navigation. An explicit current user control choice prevails. Declare the selected Tabs identity in the source inventory and its content/action Slot ownership in the intent before generation; two adjacent options in a reference do not establish Radio semantics.
+
+Preserve registered motion defaults: animated=true, animateTabBar=true and animateTabContent=false. Do not disable all animation merely to switch Table content immediately; ink-bar and content animation are independent controls. Override these defaults only for an explicit requirement.
+
+In live Preview, switch Tabs in both directions and verify the animated ink-bar class, correct indicator bounds and matching content. Recheck delivered props and motion after save/reopen; static screenshots alone do not prove motion.
+
+`tabBarExtraContentRight` is the registered Slot for trailing tab-bar actions. Shared versus scope-specific list action placement follows [query/list composition](../../overseas/compositions/search-table.md#query-and-list-structure).
+
+For an Overseas/Antd-v6 tabbed result list, the shared outer Card contains Tabs, while each Tab Item owns its Table. The Card owns the surface and outer horizontal inset; do not remove that shared surface or add nested Cards around individual Tabs/Tables. Read [Card ownership](card.md#card-ownership) and the full query/list structure before composing this layout.
+
+### Items
+
+Each Tab Item is a separately registered child of [Tabs](tabs.md), with its unique key, label Slot and children content Slot. Place each scope's real Table, pagination and relevant state in that content Slot rather than under a sibling wrapper. Check inactive as well as active content and save/reopen ownership.
+
+
+
+##### references/libraries/antd_v6/compositions/modal-drawer.md ['generation-rules'] #####
+{"path": "/Users/yanxianliang/Library/Caches/Plasmic/skill-resources/fde603147191239d/b6625b87b5d40d1d29f578a4fb41cfefdf615776dcd8ae0414e29eff153f64f7/references/libraries/antd_v6/compositions/modal-drawer.md", "sha256": "25eaf15dac40551d1f83f9ef1e55d15c71dcbd23f91dad4bea89859f2444fe6c", "sections": ["generation-rules"], "outline": false, "bytes": 8831}
+# Modal + Drawer composition
+
+## Generation rules
+
+Applies to [Ant Design v6](../index.md) registrations and theme behavior. Select the matching project library through the [library index](../../index.md) before using this recipe; another library or major requires its own verified composition rules.
+
+Read before creating, editing or reviewing a Modal/Drawer, including result tables and read-only details. Use the actual registered component's Props, Slots, defaults and events. Read [Modal](../components/modal.md) only when using Modal; read [Form layout](form-layout.md) only when the overlay contains a business Form. Read [Actions](action-bars.md) for present action groups and [Layout](../../../design/layout.md) for bounded scrolling. A read-only detail Drawer does not require Form or Modal rules.
+
+### Footer with only an exit button
+
+When the native top-right close icon is enabled and usable, do not retain a footer whose sole visible button only dismisses the overlay. Remove that button and the now-unused footer; use the native close icon for dismissal. This applies to Cancel, Close, Done, Return and differently named buttons with the same actual effect. Judge the handler/state transition, not the label.
+
+This rule does **not** remove Cancel/Close from a multi-button footer. Save + Cancel, Confirm + Cancel, and other required action groups may retain the exit button even with a header close icon. Keep native ownership through the [Modal footer contract](../components/modal.md#footer), with order and hierarchy from [Actions](action-bars.md). Do not hide native Cancel from a normal two-button Modal merely because X exists.
+
+- Read-only results, details and help with no required business operation normally need no footer. Apply the component's actual removal contract ([Modal](../components/modal.md#footer) or Drawer footer Slot); do not leave an empty footer Slot, spacer or separator.
+- A single button that downloads, submits, stops work or returns to a previous workflow step is a business action and can remain. “Return to SQL editing” is an exit-only action if it merely closes the current result overlay; it is a business action if it performs a required distinct transition. Record and verify that effect.
+- Pagination, table row actions and body controls do not turn an exit-only footer into a multi-button footer. Count buttons in the actual footer only. Disabled buttons still occupy that footer; check each required runtime state when buttons are conditionally hidden.
+- If no usable close icon exists, do not remove the only usable exit. Keep the supported dismissal path or enable the native icon where the requirement permits it. Do not add a custom header close icon.
+
+### Drawer sizing
+
+A Drawer sizes its panel through the official `width` prop (pixels); `size` is only the official `default`/`large` choice. Choose the width by the content that must stay readable without horizontal scrolling, and record the number in the overlay inventory:
+
+| Content | Width |
+| --- | --- |
+| Read-only key/value detail, short help, a compact confirm | 480 |
+| A Form or a Table | 640 |
+| Code or SQL text, long values | 720 |
+
+A Modal records its exact `width` in the same inventory, matching the width decision from [Form layout](form-layout.md#modal-form-layout) or the result content. Neither value may be left implicit.
+
+### Structure and close behavior
+
+Keep one native header/title and one footer owner. Form Modals leave at least 24px clearance at each viewport edge; constrain their outer width/height accordingly. Bound long body content using the shared scrolling contract, with the header and any business footer outside that scrolling region and reachable at the target viewport. No nested native scrolling, clipped last row or blank reserved footer after removal.
+
+Never declare an empty `closeIcon` Slot: an empty declaration replaces the native icon with nothing, so the overlay loses its close control. Omit the Slot to keep the native icon, or place one registered Icon plus its close handler. `verify_slots.py` rejects an intended empty `closeIcon` Slot, and the overlay inventory still records `closeIcon: true`. Bind dismissal to the actual controlled open state. Available X/Cancel/Esc/mask paths follow the same dirty-input, cleanup and processing policy; closing does not imply backend cancellation. Failure preserves recoverable input. Selection/reveal must not persist an open initial state. In Preview verify close/reopen, retained business actions, keyboard focus and return to the trigger; editing also checks dirty input and processing restrictions. Save/reopen and reread after edits. For every overlay whose inventory records `closeIcon: true`, the opened Preview must visibly show the close control; confirm the same after save/reopen and record that check in the review evidence.
+
+### Generation gate
+
+Derive an independent acceptance inventory from requirements before generation. For each affected owning component, inventory every Modal/Drawer in its full public `baseVariantTplTree`, including hidden branches. Read referenced custom components separately; private internals need their own readback. The inventory is verification evidence, not persisted design props.
+
+Declare the exact component identity, expected usable `closeIcon`, footer mode (`none`, `native`, `custom`) and ordered visible `footerActions`. For a native Modal footer use `nativeCancel` and `nativeOk`; for a custom footer use actual Button node names. Each action declares `effect: "dismiss"` or `"business"`; a business action needs a concrete `reason`. Optional action `props` checks required handler/visibility values from the public readback. Review effects against actual interactions; do not derive them solely from labels or generated output.
+
+Also inventory inline `trigger` Slot roots by their ordered node names, e.g. `trigger:["OpenDetails"]`. Omitted `trigger` means `[]`: external business controls own opening and the Slot must be empty. The gate checks hidden/closed models too and rejects leftover default openers; do not accept them just because the overlay itself starts closed. Trigger ownership and footer ownership are independent.
+
+Plan Pages by exact path (or unique name / known componentUuid) through [unified verification](../../../verification.md#reviewed-suite-configuration). Its runner resolves selectors from current readbacks. The standalone command below requires actual componentUuid values already resolved; do not fabricate UUIDs before creating Pages. Example of a resolved inventory for a read-only SQL result:
+
+```json
+{"pages":[{"componentUuid":"reviewed-owner-uuid","overlays":[{"name":"SQLPreview","component":"plasmic-antd6-modal","closeIcon":true,"footer":"none","footerActions":[]}]}]}
+```
+
+Run `python3 scripts/verify_overlays.py <inventory.json> <mcp-read.json>` using scripts from the resolved resource root, before delivery and again on saved/reopened readbacks. It rejects missing/extra overlays, mismatched footer/action inventories and a sole exit-only footer button with a usable close icon. A normal multi-button Confirm + Cancel footer must pass. Flat native Button object bindings with literal values or simple `$state`/`$ctx` property reads are inspected without execution. Quoted literal text cannot substitute for a read binding. Dynamic `disabled`/`loading` does not alter the visible action inventory; inventory action `props` can require its exact binding. Dynamic `hidden`/`style`, non-boolean hidden values, prototype keys, spreads, computed keys and unsupported expressions still fail. Conditional visibility that cannot be resolved statically fails with a request for state-specific evidence; do not execute expressions or assume dynamic configuration is hidden. For Antd6, explicit `closable: true` or an object preserves the native fallback icon even with top-level `closeIcon: false/null`; object `disabled` must be a literal boolean. Literal custom icons follow React rendering: numbers including `0` render, booleans/null/blank text do not. Nonempty custom `closeIcon` Slots cannot be classified as the native fallback; their unresolved rendered availability fails the gate. `hideFooter` must also be a literal boolean. Hidden inline CSS remains hidden with case/whitespace differences or `!important`. CSS variables, inherited/conditional visibility and other unresolved styles require rendered evidence; do not treat them as visible or exempt the gate. Nested overlay footers and trigger Slots belong to their own scope.
+
+The gate cannot infer business meaning or execute handlers. Review the inventory and actual interaction readbacks, inspect opened overlays at the target viewport, and exercise dismissal/retained actions in each relevant state. Passing structure alone does not prove behavior or geometry.
+
+
+
+##### references/libraries/overseas/components/app-shell.md ['generation-rules'] #####
+{"path": "/Users/yanxianliang/Library/Caches/Plasmic/skill-resources/fde603147191239d/b6625b87b5d40d1d29f578a4fb41cfefdf615776dcd8ae0414e29eff153f64f7/references/libraries/overseas/components/app-shell.md", "sha256": "49656a610c18c4cb7fc0713151a280c48bc1cb60ee10650a1064a2f5a40909de", "sections": ["generation-rules"], "outline": false, "bytes": 6843}
+# AppShell
+
+Library: [Overseas](../index.md).
+
+| Registered component | Registration key |
+| --- | --- |
+| AppShell | `plasmic-overseas-app-shell` |
+
+## Generation rules
+
+### Standalone Page boilerplate
+
+Start from the [golden boilerplate](../../../design/layout.md#standalone-appshell-golden-boilerplate): keep the Page's existing default root and insert AppShell directly, with business content in `children`. AppShell's outer DOM owns `width:100%; height:var(--viewport-height, 100vh); min-width:0; min-height:0; flex-shrink:0`; registration defaults remain `width:100%; height:100vh`. The Studio variable anchors height to the authored viewport while its iframe measures content; Preview/export use the live viewport fallback. Do not append another sizing wrapper or configure ancestor heights to fill the shell. Reuse the existing shell when the host owns navigation.
+
+For a standalone admin preview use the registered `plasmic-overseas-app-shell` component and its Page body slot; never duplicate its layout markup. The shell owns the outer 16px padding, so the slotted business container must not add another outer padding. Its geometry is: 239px white sidebar, 64px brand/header, header horizontal padding 24px, content background neutral and padding 16px. The page body fills available width and has no forced white background; SearchForm and business cards own their own surfaces. Avoid another enclosing card. Use product branding and menu evidence from the original design. Configure AppShell menuItems once as the complete nested navigation tree with href routes; put detail and creation routes under their parent with hidden=true when they must not appear in the sidebar. AppShell derives breadcrumbs and selection from Plasmic pagePath, including all menu ancestors. Never pass a separate per-page breadcrumb list or render it again in business content. Apply [admin content entry](../../../design/layout.md#admin-content-entry) for Page headings and business copy.
+
+Use [viewport/layout rules](../../../design/layout.md) for component-owned sizing, bounded scrolling and target device geometry. The shell fills viewport height independently of the Page root height. Apply the [shell height gate and Preview acceptance](../../../design/layout.md#viewport-shell-height-acceptance) before delivery and after save/reload.
+
+### App source context
+
+Recognize App 来源, App Source, app_source, appSource, appId/app_id/application_id, app_name, 应用标识/应用名称, multi-App requirements and equivalent identifiers of the current work App. Record a source-backed `appContext` decision using the [context inventory](../../../design/component-policy.md#app-context-inventory). When the requirement distinguishes Apps, keep the native header AppSource control. “No App source filter/form option” removes the business field, not the shell's working context. Only an explicit current instruction excluding the top-level/global switcher overrides this baseline; do not infer it from a SQL validation or form-field restriction. A generic application title alone does not establish multiple working Apps; resolve that semantic distinction from the source.
+
+Populate `appSources` from the requirement/authorized configuration, not demo defaults. An empty array intentionally hides the native control and cannot stand in for unrecognized context. Bind `appSource` to the same native implicit state or verified shared context used by data queries, creation, export and navigation. AppShell already exposes a writable appSource state; reuse it when appropriate instead of creating another visual selector or redundant event/state layer. If using explicit shared state, onAppSourceChange updates that state. A header-only local change is insufficient.
+
+Inventory in-scope consumers and verify app-switch plus their context-data/create/export/navigation cases. Check initial entry, option authorization, switched data, new-object source, export target, and supported direct entry/back navigation. Keep switcher context separate from business filter reset. One authorized App is not permission to fabricate another; show its real identity and report unavailable switching coverage. Cross-page persistence follows the actual host/router contract below.
+
+### Menu routes and context
+
+`menuItems` is the real registered array prop. Prefer a static complete tree when destinations and visibility are static. The shell uses `pagePath` for selection/breadcrumbs and passes each `href` to the host's Plasmic Link; it does not append the current query or transfer role/environment state itself. `appSource` and `language` controls do not establish cross-page persistence.
+
+Route matches take priority over `selectedMenuKey`: exact paths win, followed by the longest menu path at a complete path-segment boundary. A hidden `/groups/detail` menu route therefore covers `/groups/detail/<id>`, retaining its breadcrumb ancestry and highlighting the nearest visible parent. `/groups-extra` does not match `/groups`, and `/` only matches itself. Query strings, hashes and trailing slashes do not affect matching. When no route matches, the explicit selection supplies the menu path, including for menus without hrefs. Navigation expands the selected item's visible submenu ancestors. Runtime menu expansion survives page remounts within the same window for an identical navigation tree (keys, hrefs, visibility, types and nesting); users can close a branch until the next navigation reveals it again. New windows initialize from their current route. Canvas instances keep expansion local to editing and separate from runtime navigation.
+
+For required cross-page context, first read the installed host Link/router or global-context contract. Use that verified contract, or supported bindings when the destination genuinely depends on runtime state. Record which query keys must survive, destination-value precedence, and direct-entry/back-navigation behavior; do not blindly copy all current query parameters. A role query used in a prototype is not an authorization contract. Do not document implicit preservation or a global provider that the project does not actually have.
+
+Dynamic `menuItems` bindings are supported. The structure gate recognizes only static trees and the explicitly inventoried restricted `navigation.roleQuery` transform; other dynamic expressions remain statically unverified. Do not add an anonymous mapping expression to otherwise static menus merely as a convention. When dynamic menus are required, keep an independently reviewed tree for each relevant role/state and verify rendered visibility and link destinations in Preview. Do not execute arbitrary expressions in Python or treat an extracted static skeleton as proof of runtime behavior. See [structure acceptance](../../../requirement-alignment.md#structural-gate).
+
+
+
+##### references/libraries/overseas/components/search-form.md ['generation-rules', 'plan-decisions'] #####
+{"path": "/Users/yanxianliang/Library/Caches/Plasmic/skill-resources/fde603147191239d/b6625b87b5d40d1d29f578a4fb41cfefdf615776dcd8ae0414e29eff153f64f7/references/libraries/overseas/components/search-form.md", "sha256": "da349bec36bb4d68917ebabd1a8d9aca246494a173c37bba91f1b8a430ef6aa8", "sections": ["generation-rules", "plan-decisions"], "outline": false, "bytes": 11983}
+# SearchForm
+
+Library: [Overseas](../index.md).
+
+| Registered component | Registration key |
+| --- | --- |
+| SearchForm | `plasmic-overseas-search-form` |
+| SearchForm.Item | `plasmic-overseas-search-form-item` |
+
+**硬约束**（读取任何小节时都会附带）：
+
+- 常规只用四列 `colSpan=6` 或三列 `colSpan=8`；三列仅在视觉稿多行三列对齐时选择，其他值需要需求文档原文的[来源例外](../../../design/component-policy.md#protected-configuration)。
+- `minRows=1`、运行态初始 `collapsed=true`；Item 不覆盖 span。
+- 每个筛选字段都是真实 SearchForm.Item，逐项记入 `components` 并归属 SearchForm `children` Slot；不得为凑满一行删减或合并字段。
+- 查询与提交表单分离：业务提交字段使用 Form；SearchForm 自带卡片表面，外面不再包 Card。
+
+## Plan decisions
+
+Declare these native props in each planned instance before markup. `prepare_plan.py scaffold` writes `"__DECIDE__"` (or the baseline) for each; selection preflight rejects pending or missing values. `null` means deliberately unset and is accepted only where marked.
+
+| Registration | Prop | Decision |
+| --- | --- | --- |
+| `plasmic-overseas-search-form` | `colSpan` | 6 (four columns) by default; 8 only for a multi-row three-column draft; other values need a source override. See [rule](#布局与状态). |
+
+## Generation rules
+
+设计来源为 fintechgrowthui 的 SearchForm；该来源不是任务必需的本地文件。Overseas 实现保留查询卡片、24 栅格、末行右侧操作、展开/收起、字段初始值及业务清除值语义，使用 Ant Design 6。输入控件由画布节点提供。
+
+### 可编辑结构
+
+Read [SearchForm.Item](search-form.md#searchformitem) for field Props, control value/event mapping and label/help Slots.
+
+`plasmic-overseas-search-form` 的 Fields (`children`) Slot 放置 `plasmic-overseas-search-form-item` 实例。一个实例代表一个字段，字段顺序就是画布节点顺序。插入、复制、删除、移动和修改通过 Studio/MCP 的现有节点操作完成，无独立的字段数组或另一套简化模式。
+
+SearchForm 提供 Extra actions (`extraActions`) Slot，用于查询辅助操作，位于查询/重置之后。新建、导入等业务动作按[列表组合](../compositions/search-table.md#query-and-list-structure)放置，不因存在此 Slot 就放入查询操作列。内置按钮文本通过属性编辑，其行为固定为提交和重置。
+
+### 布局与状态
+
+先按[业务内容与视觉适配](../../../requirement-alignment.md#content-before-presentation)确定完整筛选字段，并在现有 `components` 清单中逐项记录 Item 的业务键、标签、来源和 SearchForm Slot 归属，再选择列数。列数只规定排版密度，不限制字段总数；不能通过漏项、删项、合并不同字段或移到无关的全局控件来凑满一行。超过一行的字段保留真实 Item，由原生换行与折叠承接；需求明确移除字段时才更新字段清单。
+
+常规生成只有四列和三列两种模式。`colSpan` 是每个字段占用的 24 栅格份数，不是列数：四列写 `colSpan=6`，三列写 `colSpan=8`；不能把“四列”写成 `colSpan=4`。
+
+生成前按以下顺序选择，后续调整使用同一依据：
+
+1. 需求文档明确规定列数或栅格时按文档执行；四列、三列以外的配置也必须有该文档的明确要求，并按[来源例外](../../../design/component-policy.md#protected-configuration)记录原文、哈希和属性覆盖。
+2. 文档未指定时，只有视觉稿的筛选字段明确排成多行、每行按三列对齐，才选择三列 `colSpan=8`。读取原图，在现有 reference-region `decision` 中记录画板、视口和多行三列的观察。只数筛选字段，不把查询/重置操作当成字段；末行不满时仍按三列对齐。
+3. 其他情况固定选择四列 `colSpan=6`：包括没有视觉稿、布局不清楚、单行三个字段，以及视觉稿显示其他列数。其他列数只是无效的视觉输入，忽略该排列并按四列重排，不照搬为新的模式，也不为了把所有字段塞在一行而压窄列宽。
+
+在生成前的 `components` 中记录选定的真实 `props.colSpan` 和来源；三列是受支持的常规模式，不需要伪造需求文档来申请例外。静态脚本核对模式与保存值，不能证明原图确实满足“多行三列”，该判断保留原图证据并独立审查。原生 API 的其他栅格值保留给需求文档明确要求的例外，不作为模型自行选型的候选。
+
+两种常规模式均采用 `minRows=1` 和运行态初始 `collapsed=true`，Item 不覆盖 span，继承选定列宽。选择三列不代表初始展开或常驻多行；这些初始状态只有明确需求才允许覆盖。动作使用末行剩余栅格；末行占满时换行。超出 minRows 时提供折叠；折叠至少保留第一个字段。小屏保持原组件 xs=24、sm=12、md=指定 span 的响应式栅格。
+
+`Item.span` 优先于 `Form.colSpan`，因此检查每个字段的有效 span，不能混合三列与四列模式。跨列例外须有需求文档明确要求，在生成前按 Item 声明 `props.span` 和有真实文件、原文、哈希的 `overrides.span`。日期区间、长 placeholder、字段数量或可用空白都不自动授权跨列；不能先扩大字段再改期望清单放行。栅格 span 不是固定像素上限，实际宽度仍取决于容器、gutter 与 labelWidth；后者按最长真实标签测量，不冻结为示例数值。
+
+`labelWidth` 是可选的共享标签栏宽度，单位为 px，没有固定默认值；选中 SearchForm 后在属性面板的 Label width 中修改，导入库的契约必须包含它。
+
+未配置 `labelWidth` 时，各标签按内容宽度显示；配置后所有 Item 使用共享宽度。生成前检查全部标签，包括初始折叠字段、自定义标签、必填和帮助标记、组件生成的冒号及其原生间距；按实际字体和最长标签选择足够的单行宽度，并确认目标视口仍有可用的控件空间。标签变化后重新评估整个表单，不把页面选择的宽度写入组件默认值。标签使用纯文本，不手动追加冒号、空格或 CSS 偏移来补偿窄标签栏。
+
+编辑器强制展开时必须显示“收起”、向上指示和 `aria-expanded=true`；Preview 使用实际 collapsed 状态。检查短/长标签的控件起点、完整单行文字、冒号到控件的原生间距，以及双向展开/收起；清除 labelWidth 后恢复内容宽度，不裁切或省略标签。
+
+卡片使用主题背景和边框，内边距 16px/20px、圆角 8px，默认下间距 16px；父级已有 gap 时设置 marginBottom=0。`embedded` 移除卡片和外间距。className 接收画布样式。
+
+编辑画布展示全部字段，便于选取和修改；交互预览/运行态遵循 collapsed。折叠仅隐藏列，字段不卸载，初始值、校验和提交均包含折叠字段。若折叠区字段校验失败，表单请求展开，以显示可修改的错误字段。
+
+初始值优先级为 Item.initialValue > Form.initialValues > Item.clearValue，保留 0、false 和空字符串。运行中的初始值用于初始化及重置，不覆盖用户当前草稿；编辑器修改默认值会更新字段预览。重置先恢复初始值，再用明确设置的 clearValue 覆盖；输入清除至 null/undefined 也恢复 clearValue。
+
+`onSearch(values)` 在校验通过后返回全部已注册字段；`onReset(values)` 返回重置后的值；`onValuesChange(values)` 提供当前草稿（包含折叠字段），对应 readonly `values` 状态。查询不会自动改变应用的数据；页面交互将提交值赋给 appliedFilters 并将 page 设为 1。重置事件做同样的应用状态更新。`collapsed` 为可写状态；ref actions 为 `submit()`、`reset()`、`setFieldsValue(values)`。
+
+### 页面生成
+
+每个查询字段默认提供可见的 `label` 或真实 `labelContent`，包括关键词输入；placeholder 仅作为输入提示，不能替代标签，也不能为了给输入框更多空间而把 label 清空。标签文本从业务字段含义确定，并重新测量整个表单的 labelWidth。明确要求无标签的特殊搜索入口需在 source-reviewed Item 的 `props.label:""` 和来源中单独声明；参考图中只有 placeholder 不自动构成这一例外。
+
+标准列表保留 `minRows=1`。只有需求明确要求初始展开并保留收起按钮时，才通过来源例外设置 `collapsed=false`，不要通过增加 minRows 实现初始展开。五个 span=6 的字段跨两行：minRows=1 显示展开/收起，minRows=2 会使两行全部成为常驻区域而不显示按钮；只有明确批准常驻两行时才在计划中声明后者。编辑器强制展示全部字段与运行态的折叠设置分别验收。
+
+后台四列组合（colSpan=6、minRows=1）只有三个普通字段时，查询/重置位于同一行第四格，不显示多余的展开控件。检查 Item 的实际 span；日期范围等较宽控件也保持继承，只有明确的来源例外允许跨列，可用空白不构成修改理由。
+
+列表查询区统一使用 Overseas SearchForm，按需求插入真实 Item 和 Antd6 控件，默认四列 colSpan=6。不得生成另一套原生查询网格、重复查询按钮，或不可编辑的 fields/element JSON。生成前读取目标已安装 Overseas 和 Antd6 契约；依赖准备遵循[库选择](../../index.md)，缺少能力时明确报告，不把组件升级或发布作为默认修复。字段增删排序使用节点操作，查询/重置事件接页面状态。
+
+```html
+<plasmic-component
+  data-plasmic-component="plasmic-overseas-search-form"
+  data-props='{"colSpan":6,"labelWidth":72,"marginBottom":0}'
+>
+  <slot name="children">
+    <plasmic-component
+      data-plasmic-component="plasmic-overseas-search-form-item"
+      data-props='{"name":"keyword","label":"关键词"}'
+    >
+      <slot name="children">
+        <plasmic-component
+          data-plasmic-component="plasmic-antd6-input"
+          data-props='{"placeholder":"请输入关键词","allowClear":true}'
+        ></plasmic-component>
+      </slot>
+    </plasmic-component>
+  </slot>
+</plasmic-component>
+```
+
+实际 MCP 插入时，每个组件还需指定 `data-plasmic-project`，其值来自当前项目的 imported project ID，Overseas 和 Antd6 分别指定。
+
+### SearchForm.Item
+
+Read the actual registered child contract before editing a query field. The owning [SearchForm](search-form.md) controls grid, shared labels, collapse and query/reset state.
+
+每个 Item 的 `name` 是唯一的字段键；`label`、`span`、`initialValue`、`clearValue`、`required`、`requiredMessage`、`rules`、`valuePropName` 和 `trigger` 可编辑、可绑定表达式。`name` 为单个字符串键，不解释点分路径。`rules` 为 Ant Design Form.Item 的规则数组。
+
+Item 的 Control (`children`) Slot 放一个值控件，例如 Antd6 Input、Select、DatePicker、Checkbox 或自定义组件。控件自身的 placeholder、options、模式、格式、禁用状态等在该控件上编辑；初始值在 Item/Form 上配置，避免同时给控件绑定独立受控值。默认以 `value` / `onChange` 绑定；支持注册控件的 `__plasmicFormFieldMeta.valueProp`（Checkbox/Switch 的 `checked`），以及 Item 手动指定属性和事件名。控件事件仍会调用原本的事件处理器。
+
+Custom label (labelContent) and help are real editable Slots. Custom label overrides the text label; help supplies supporting text or validation feedback.
+
+Check the real Item/control Slot ownership, unique field key and span override in editor, Preview and saved/reopened readback. Use the parent [acceptance](search-form.md) to verify initial/reset/clear values, validation and collapsed fields.
+
+

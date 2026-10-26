@@ -8,6 +8,13 @@ Library: [Ant Design v6](../index.md).
 
 ## Generation rules
 
+### Design defaults
+
+- Use for a freely entered quantity; finite numeric choices use Select or Radio, identifiers and phone numbers use Input.
+- Set `width:100%` in a Form column (it does not fill by default). `min`, `max` and precision come from the requirement; the unit goes in the label or the control suffix.
+
+### Usage and behavior
+
 Numeric input state is numeric. Registered state and event types must match the actual runtime value; verify controlled/uncontrolled values and explicit zero against the installed contract.
 
 ### Range, precision and empty values

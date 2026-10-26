@@ -1,6 +1,5 @@
 'use strict';
 
-var host = require('@plasmicapp/host');
 var Ant = require('antd');
 var React = require('react');
 var utils = require('./utils-DMWa5SeG.cjs.js');
@@ -13,19 +12,15 @@ var React__default = /*#__PURE__*/_interopDefault(React);
 
 function AntdAvatar({
   letters,
-  href,
-  target,
   ...props
 }) {
-  const avatar = /* @__PURE__ */ React__default.default.createElement(
+  return /* @__PURE__ */ React__default.default.createElement(
     Ant.Avatar,
     {
       ...props,
       children: props.children === void 0 ? letters : props.children
     }
   );
-  const PlasmicLink = host.usePlasmicLink();
-  return href ? /* @__PURE__ */ React__default.default.createElement(PlasmicLink, { href, target: target ? "_blank" : void 0 }, avatar) : avatar;
 }
 function AntdAvatarGroup(props) {
   return /* @__PURE__ */ React__default.default.createElement(Ant.Avatar.Group, { ...props });
@@ -36,16 +31,6 @@ function registerAvatar(loader) {
     displayName: "Avatar",
     props: {
       icon: { type: "slot", hidePlaceholder: true },
-      href: {
-        type: "href",
-        displayName: "Link to",
-        description: "Destination to link to"
-      },
-      target: {
-        type: "boolean",
-        displayName: "Open in new tab",
-        hidden: (ps) => !ps.href
-      },
       letters: {
         type: "string",
         description: "Letters to show",
@@ -75,6 +60,11 @@ function registerAvatar(loader) {
         options: ["circle", "square"],
         description: "Set the avatar shape",
         defaultValueHint: "circle"
+      },
+      onClick: {
+        type: "eventHandler",
+        argTypes: [],
+        description: "Native Avatar onClick. For a link, place the Avatar inside a link element instead."
       }
     },
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerAvatar",

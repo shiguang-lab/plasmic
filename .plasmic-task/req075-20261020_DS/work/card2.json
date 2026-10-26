@@ -1,0 +1,125 @@
+{
+  "page": "/groups/selector",
+  "stage": "compose",
+  "reads": [
+    {
+      "rule": "references/libraries/antd_v6/components/alert.md",
+      "sections": [
+        "generation-rules"
+      ],
+      "bytes": 1225,
+      "command": "python3 /Users/yanxianliang/Library/Caches/Plasmic/skill-resources/fde603147191239d/b6625b87b5d40d1d29f578a4fb41cfefdf615776dcd8ae0414e29eff153f64f7/scripts/read_reference.py /Users/yanxianliang/Library/Caches/Plasmic/skill-resources/fde603147191239d/b6625b87b5d40d1d29f578a4fb41cfefdf615776dcd8ae0414e29eff153f64f7/references/libraries/antd_v6/components/alert.md --section generation-rules --log /Users/yanxianliang/shiguang/plasmic/.plasmic-task/req075-20261020_DS/work/reference-reads.jsonl"
+    },
+    {
+      "rule": "references/libraries/antd_v6/components/badge.md",
+      "sections": [
+        "generation-rules"
+      ],
+      "bytes": 2214,
+      "command": "python3 /Users/yanxianliang/Library/Caches/Plasmic/skill-resources/fde603147191239d/b6625b87b5d40d1d29f578a4fb41cfefdf615776dcd8ae0414e29eff153f64f7/scripts/read_reference.py /Users/yanxianliang/Library/Caches/Plasmic/skill-resources/fde603147191239d/b6625b87b5d40d1d29f578a4fb41cfefdf615776dcd8ae0414e29eff153f64f7/references/libraries/antd_v6/components/badge.md --section generation-rules --log /Users/yanxianliang/shiguang/plasmic/.plasmic-task/req075-20261020_DS/work/reference-reads.jsonl"
+    },
+    {
+      "rule": "references/libraries/antd_v6/components/button.md",
+      "sections": [
+        "generation-rules"
+      ],
+      "bytes": 3013,
+      "command": "python3 /Users/yanxianliang/Library/Caches/Plasmic/skill-resources/fde603147191239d/b6625b87b5d40d1d29f578a4fb41cfefdf615776dcd8ae0414e29eff153f64f7/scripts/read_reference.py /Users/yanxianliang/Library/Caches/Plasmic/skill-resources/fde603147191239d/b6625b87b5d40d1d29f578a4fb41cfefdf615776dcd8ae0414e29eff153f64f7/references/libraries/antd_v6/components/button.md --section generation-rules --log /Users/yanxianliang/shiguang/plasmic/.plasmic-task/req075-20261020_DS/work/reference-reads.jsonl"
+    },
+    {
+      "rule": "references/libraries/antd_v6/components/card.md",
+      "sections": [
+        "generation-rules",
+        "plan-decisions"
+      ],
+      "bytes": 8506,
+      "command": "python3 /Users/yanxianliang/Library/Caches/Plasmic/skill-resources/fde603147191239d/b6625b87b5d40d1d29f578a4fb41cfefdf615776dcd8ae0414e29eff153f64f7/scripts/read_reference.py /Users/yanxianliang/Library/Caches/Plasmic/skill-resources/fde603147191239d/b6625b87b5d40d1d29f578a4fb41cfefdf615776dcd8ae0414e29eff153f64f7/references/libraries/antd_v6/components/card.md --section generation-rules --section plan-decisions --log /Users/yanxianliang/shiguang/plasmic/.plasmic-task/req075-20261020_DS/work/reference-reads.jsonl"
+    },
+    {
+      "rule": "references/libraries/antd_v6/components/descriptions.md",
+      "sections": [
+        "generation-rules"
+      ],
+      "bytes": 5296,
+      "command": "python3 /Users/yanxianliang/Library/Caches/Plasmic/skill-resources/fde603147191239d/b6625b87b5d40d1d29f578a4fb41cfefdf615776dcd8ae0414e29eff153f64f7/scripts/read_reference.py /Users/yanxianliang/Library/Caches/Plasmic/skill-resources/fde603147191239d/b6625b87b5d40d1d29f578a4fb41cfefdf615776dcd8ae0414e29eff153f64f7/references/libraries/antd_v6/components/descriptions.md --section generation-rules --log /Users/yanxianliang/shiguang/plasmic/.plasmic-task/req075-20261020_DS/work/reference-reads.jsonl"
+    },
+    {
+      "rule": "references/libraries/antd_v6/components/form.md",
+      "sections": [
+        "generation-rules"
+      ],
+      "bytes": 19534,
+      "command": "python3 /Users/yanxianliang/Library/Caches/Plasmic/skill-resources/fde603147191239d/b6625b87b5d40d1d29f578a4fb41cfefdf615776dcd8ae0414e29eff153f64f7/scripts/read_reference.py /Users/yanxianliang/Library/Caches/Plasmic/skill-resources/fde603147191239d/b6625b87b5d40d1d29f578a4fb41cfefdf615776dcd8ae0414e29eff153f64f7/references/libraries/antd_v6/components/form.md --section generation-rules --log /Users/yanxianliang/shiguang/plasmic/.plasmic-task/req075-20261020_DS/work/reference-reads.jsonl"
+    },
+    {
+      "rule": "references/libraries/antd_v6/components/input.md",
+      "sections": [
+        "generation-rules"
+      ],
+      "bytes": 2537,
+      "command": "python3 /Users/yanxianliang/Library/Caches/Plasmic/skill-resources/fde603147191239d/b6625b87b5d40d1d29f578a4fb41cfefdf615776dcd8ae0414e29eff153f64f7/scripts/read_reference.py /Users/yanxianliang/Library/Caches/Plasmic/skill-resources/fde603147191239d/b6625b87b5d40d1d29f578a4fb41cfefdf615776dcd8ae0414e29eff153f64f7/references/libraries/antd_v6/components/input.md --section generation-rules --log /Users/yanxianliang/shiguang/plasmic/.plasmic-task/req075-20261020_DS/work/reference-reads.jsonl"
+    },
+    {
+      "rule": "references/libraries/antd_v6/components/modal.md",
+      "sections": [
+        "generation-rules"
+      ],
+      "bytes": 4200,
+      "command": "python3 /Users/yanxianliang/Library/Caches/Plasmic/skill-resources/fde603147191239d/b6625b87b5d40d1d29f578a4fb41cfefdf615776dcd8ae0414e29eff153f64f7/scripts/read_reference.py /Users/yanxianliang/Library/Caches/Plasmic/skill-resources/fde603147191239d/b6625b87b5d40d1d29f578a4fb41cfefdf615776dcd8ae0414e29eff153f64f7/references/libraries/antd_v6/components/modal.md --section generation-rules --log /Users/yanxianliang/shiguang/plasmic/.plasmic-task/req075-20261020_DS/work/reference-reads.jsonl"
+    },
+    {
+      "rule": "references/libraries/antd_v6/components/select.md",
+      "sections": [
+        "generation-rules"
+      ],
+      "bytes": 2155,
+      "command": "python3 /Users/yanxianliang/Library/Caches/Plasmic/skill-resources/fde603147191239d/b6625b87b5d40d1d29f578a4fb41cfefdf615776dcd8ae0414e29eff153f64f7/scripts/read_reference.py /Users/yanxianliang/Library/Caches/Plasmic/skill-resources/fde603147191239d/b6625b87b5d40d1d29f578a4fb41cfefdf615776dcd8ae0414e29eff153f64f7/references/libraries/antd_v6/components/select.md --section generation-rules --log /Users/yanxianliang/shiguang/plasmic/.plasmic-task/req075-20261020_DS/work/reference-reads.jsonl"
+    },
+    {
+      "rule": "references/libraries/antd_v6/components/table.md",
+      "sections": [
+        "generation-rules",
+        "plan-decisions"
+      ],
+      "bytes": 18937,
+      "command": "python3 /Users/yanxianliang/Library/Caches/Plasmic/skill-resources/fde603147191239d/b6625b87b5d40d1d29f578a4fb41cfefdf615776dcd8ae0414e29eff153f64f7/scripts/read_reference.py /Users/yanxianliang/Library/Caches/Plasmic/skill-resources/fde603147191239d/b6625b87b5d40d1d29f578a4fb41cfefdf615776dcd8ae0414e29eff153f64f7/references/libraries/antd_v6/components/table.md --section generation-rules --section plan-decisions --log /Users/yanxianliang/shiguang/plasmic/.plasmic-task/req075-20261020_DS/work/reference-reads.jsonl"
+    },
+    {
+      "rule": "references/libraries/antd_v6/components/time-picker.md",
+      "sections": [
+        "generation-rules"
+      ],
+      "bytes": 1999,
+      "command": "python3 /Users/yanxianliang/Library/Caches/Plasmic/skill-resources/fde603147191239d/b6625b87b5d40d1d29f578a4fb41cfefdf615776dcd8ae0414e29eff153f64f7/scripts/read_reference.py /Users/yanxianliang/Library/Caches/Plasmic/skill-resources/fde603147191239d/b6625b87b5d40d1d29f578a4fb41cfefdf615776dcd8ae0414e29eff153f64f7/references/libraries/antd_v6/components/time-picker.md --section generation-rules --log /Users/yanxianliang/shiguang/plasmic/.plasmic-task/req075-20261020_DS/work/reference-reads.jsonl"
+    },
+    {
+      "rule": "references/libraries/antd_v6/compositions/form-layout.md",
+      "sections": [
+        "generation-rules",
+        "layout-ownership",
+        "plan-decisions"
+      ],
+      "bytes": 15721,
+      "command": "python3 /Users/yanxianliang/Library/Caches/Plasmic/skill-resources/fde603147191239d/b6625b87b5d40d1d29f578a4fb41cfefdf615776dcd8ae0414e29eff153f64f7/scripts/read_reference.py /Users/yanxianliang/Library/Caches/Plasmic/skill-resources/fde603147191239d/b6625b87b5d40d1d29f578a4fb41cfefdf615776dcd8ae0414e29eff153f64f7/references/libraries/antd_v6/compositions/form-layout.md --section generation-rules --section layout-ownership --section plan-decisions --log /Users/yanxianliang/shiguang/plasmic/.plasmic-task/req075-20261020_DS/work/reference-reads.jsonl"
+    },
+    {
+      "rule": "references/libraries/antd_v6/compositions/modal-drawer.md",
+      "sections": [
+        "generation-rules"
+      ],
+      "bytes": 8831,
+      "command": "python3 /Users/yanxianliang/Library/Caches/Plasmic/skill-resources/fde603147191239d/b6625b87b5d40d1d29f578a4fb41cfefdf615776dcd8ae0414e29eff153f64f7/scripts/read_reference.py /Users/yanxianliang/Library/Caches/Plasmic/skill-resources/fde603147191239d/b6625b87b5d40d1d29f578a4fb41cfefdf615776dcd8ae0414e29eff153f64f7/references/libraries/antd_v6/compositions/modal-drawer.md --section generation-rules --log /Users/yanxianliang/shiguang/plasmic/.plasmic-task/req075-20261020_DS/work/reference-reads.jsonl"
+    },
+    {
+      "rule": "references/libraries/overseas/components/app-shell.md",
+      "sections": [
+        "generation-rules"
+      ],
+      "bytes": 6843,
+      "command": "python3 /Users/yanxianliang/Library/Caches/Plasmic/skill-resources/fde603147191239d/b6625b87b5d40d1d29f578a4fb41cfefdf615776dcd8ae0414e29eff153f64f7/scripts/read_reference.py /Users/yanxianliang/Library/Caches/Plasmic/skill-resources/fde603147191239d/b6625b87b5d40d1d29f578a4fb41cfefdf615776dcd8ae0414e29eff153f64f7/references/libraries/overseas/components/app-shell.md --section generation-rules --log /Users/yanxianliang/shiguang/plasmic/.plasmic-task/req075-20261020_DS/work/reference-reads.jsonl"
+    }
+  ],
+  "totalBytes": 101011,
+  "handoffRecommended": true,
+  "next": "Run every command, apply each document's hard constraints and decision rows, then verify_selection.py PLAN --page /groups/selector --reads /Users/yanxianliang/shiguang/plasmic/.plasmic-task/req075-20261020_DS/work/reference-reads.jsonl"
+}

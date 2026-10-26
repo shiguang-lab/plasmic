@@ -21,6 +21,20 @@ def norm(value):
     return re.sub(r'[^a-z0-9]', '', value.lower())
 
 
+ADMIN_LIBRARIES = {'antd_v6', 'overseas', 'react_ui'}
+
+
+def rule_matches_library(component, rule):
+    library = rules_manifest.library_for(component)
+    path = rule.split('#', 1)[0]
+    if library and path in {SCALE, PAGE_TYPE_RULE.split('#', 1)[0]}:
+        return library in ADMIN_LIBRARIES
+    parts = path.split('/')
+    if not library or len(parts) < 4 or parts[:2] != ['references', 'libraries']:
+        return True
+    return parts[2] == library or {library, parts[2]} <= ADMIN_LIBRARIES
+
+
 # Scope: the existing Overseas / Antd6 full-project suite.
 ROLE_COMPONENTS = {
     'shell': {'plasmic-overseas-app-shell'},
@@ -63,9 +77,11 @@ FEEDBACK_CONTEXT = 'plasmic-antd6-config-provider'
 PROVIDER_CALL = re.compile(r'''//[^\r\n]*|/\*[\s\S]*?\*/|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|`(?:\\.|[^`\\])*`|(?<![\w$.])\$globalActions\s*\[\s*(?P<quote>["'])(?P<action>plasmic-antd6-config-provider\.(?:showMessage|showNotification))(?P=quote)\s*\]\s*\(''')
 
 
-# Table Column presets were removed; Tag/Badge/link/avatar are registered
-# components composed in Column.render.
-COLUMN_DISPLAY_TYPES = ('text', 'custom')
+# Column presentation is a plan field, not a native prop: text leaves the native
+# render Slot empty (Ant Design shows the value); custom composes registered
+# components such as Tag/Badge/link/avatar in Column.render.
+COLUMN_PRESENTATIONS = ('text', 'custom')
+RETIRED_COLUMN_PROPS = ('displayType',)
 BADGE_STATUSES = ('success', 'processing', 'default', 'error', 'warning')
 STATE_LIKE = 'State-like Column must use role:status with a Badge render, or record nonStatusReason'
 
@@ -107,12 +123,12 @@ def status_badge_errors(values, in_column, planned=False):
         if not isinstance(text, str) or '{{' not in text:
             errors.append('Status Badge in a Table Column must bind text to the row label expression')
     elif not planned:
-        if not isinstance(status, str) or '{{' in status:
-            errors.append('Standalone status Badge takes a literal preset status; map dynamic states on the Column expression')
-        elif status not in BADGE_STATUSES:
+        if not isinstance(status, str) or not status.strip():
+            errors.append('Status Badge requires a preset status or a business-state binding')
+        elif '{{' not in status and status not in BADGE_STATUSES:
             errors.append(f'Status Badge status must be one of {", ".join(BADGE_STATUSES)}')
-        if text is None or not str(text).strip() or '{{' in str(text):
-            errors.append('Standalone status Badge requires visible literal text')
+        if text is None or not str(text).strip():
+            errors.append('Status Badge requires visible text or a business-label binding')
     return errors
 
 
@@ -163,26 +179,27 @@ def authored(root):
         yield from authored(child)
 
 
-def category_errors(spec, node, declarations):
-    """Compare the source-selected native presentation, independently of role.
+def column_presentation_errors(spec, node, declarations):
+    """Compare the planned presentation with the actual native render Slot.
 
     Custom templates use the existing component/Slot owners to distinguish Tag
     from text. Their CSS and the justification for either choice need review.
     """
-    if spec.get('role') != 'category' or identity(node) != 'plasmicantd6tablecolumn':
+    if identity(node) != 'plasmicantd6tablecolumn':
         return []
-    expected = spec.get('props', {}).get('displayType')
-    if expected not in COLUMN_DISPLAY_TYPES:
+    expected = spec.get('presentation')
+    if expected not in COLUMN_PRESENTATIONS:
         return []  # Report the missing source decision in plan_errors().
     values, render = props(node), slot(node, 'render')
-    actual = values.get('displayType')
-    if actual is None:
-        actual = 'custom' if render and render.get('children') else 'text'
-    context = {'check': 'categoryPresentation', 'node': spec.get('nodeName')}
+    actual = 'custom' if render and render.get('children') else 'text'
+    category = spec.get('role') == 'category'
+    context = {'check': 'categoryPresentation' if category else 'columnPresentation', 'node': spec.get('nodeName')}
+    errors = [{**context, 'message': f'{key} is not a native Table Column prop; the render Slot alone decides presentation'}
+              for key in RETIRED_COLUMN_PROPS if key in values]
     if actual != expected:
-        return [{**context, 'message': f'Category Column must retain reviewed displayType:{expected}; actual presentation is {actual}'}]
-    if actual != 'custom':
-        return []
+        return errors + [{**context, 'message': f'Column must retain reviewed presentation:{expected}; actual render Slot is {actual}'}]
+    if actual != 'custom' or not category:
+        return errors
     # Follow the planned render owner chain, including a Tooltip/layout wrapper.
     owners = {spec['nodeName']}
     rendered = set()
@@ -200,8 +217,8 @@ def category_errors(spec, node, declarations):
                       for entry in declarations)
     actual_tag = any(identity(n) == 'plasmicantd6tag' for n in authored(render or {}))
     if planned_tag != actual_tag or not actual_tag and not content(render):
-        return [{**context, 'message': 'Custom category template must retain the reviewed text or registered Tag render owners; an empty Slot is insufficient'}]
-    return []
+        errors.append({**context, 'message': 'Custom category template must retain the reviewed text or registered Tag render owners; an empty Slot is insufficient'})
+    return errors
 
 
 MISSING = object()
@@ -236,8 +253,10 @@ def decision_errors(plan):
         rule = page_rules.get(parts[1]) if len(parts) > 1 else None
         if len(parts) > 3 and parts[1] == 'components' and parts[2].isdigit() and int(parts[2]) < len(declarations) and isinstance(declarations[int(parts[2])], dict):
             spec = declarations[int(parts[2])]
-            prop = '.'.join(p.replace('~1', '/').replace('~0', '~') for p in parts[4:]) if parts[3] == 'props' else None
-            item = next((d for d in rules_manifest.decisions_for(spec.get('component', '')) if d['prop'] == prop), None)
+            prop = '.'.join(p.replace('~1', '/').replace('~0', '~') for p in parts[4:]) if parts[3] == 'props' else parts[3]
+            target = 'props' if parts[3] == 'props' else 'spec'
+            item = next((d for d in rules_manifest.decisions_for(spec.get('component', '')) if d['prop'] == prop
+                         and d.get('target', 'props') == target), None)
             rule = rules_manifest.decision_rule(spec['component'], item) if item else rules_manifest.document_for(spec.get('component', ''))
         errors.append({'check': 'decisionPending', 'pointer': pointer,
                        'rule': rule or rules_manifest.manifest()['checks']['decisionPending'],
@@ -247,14 +266,141 @@ def decision_errors(plan):
             continue
         values = spec.get('props') if isinstance(spec.get('props'), dict) else {}
         for item in rules_manifest.decisions_for(spec.get('component', '')):
-            value = prop_value(values, item['prop'])
+            in_spec = item.get('target') == 'spec'
+            value = spec.get(item['prop'], MISSING) if in_spec else prop_value(values, item['prop'])
             if value is MISSING or value is None and not item.get('nullable'):
-                errors.append({'check': 'planDecision', 'pointer': f'/components/{i}/props/' + item['prop'].replace('.', '/'),
+                errors.append({'check': 'planDecision', 'pointer': f'/components/{i}/' + ('' if in_spec else 'props/') + item['prop'].replace('.', '/'),
                                'node': spec.get('nodeName'), 'prop': item['prop'], 'nullable': bool(item.get('nullable')),
                                **({'baseline': item['baseline']} if 'baseline' in item else {}),
                                'rule': rules_manifest.decision_rule(spec['component'], item),
-                               'message': 'Declare this native prop before markup' + ('; null means deliberately unset' if item.get('nullable') else '')})
+                               'message': ('Declare this plan decision before markup' if in_spec else 'Declare this native prop before markup')
+                                          + ('; null means deliberately unset' if item.get('nullable') else '')})
+        if norm(spec.get('component', '')) == 'plasmicantd6card' and spec.get('header', rules_manifest.PENDING) != rules_manifest.PENDING:
+            errors.extend(card_header_plan_errors(spec, i))
     return errors
+
+
+# Bracketed fields/actions ("名称[____]", "[校验]") and dropdowns ("类型▾") in a text wireframe.
+WIREFRAME_TOKEN = re.compile(r'[^\s│┃|:：\[\]]*\[[^\]\n]+\]|[^\s│┃|:：\[\]（(]+▾')
+
+
+def wireframe_errors(plan):
+    """Every text-wireframe element maps to a planned node or a reasoned exclusion.
+
+    Proves the inventory is verbatim and covers every bracketed/dropdown token;
+    it cannot prove that named regions or prose lines were all transcribed.
+    """
+    value = plan.get('wireframe')
+    if value == rules_manifest.PENDING:
+        return []  # Reported once as decisionPending.
+    rule = rules_manifest.manifest()['checks']['wireframe']
+    def error(pointer, message, **details):
+        return {'check': 'wireframe', 'pointer': pointer, 'rule': rule, 'message': message, **details}
+    if not isinstance(value, dict):
+        return [error('/wireframe', 'Declare the Page wireframe inventory {source, items}, or {notApplicable: reason} when the source has no text wireframe')]
+    if 'notApplicable' in value:
+        if not isinstance(value['notApplicable'], str) or not value['notApplicable'].strip() or value.keys() - {'notApplicable'}:
+            return [error('/wireframe/notApplicable', 'A Page without a text wireframe declares only a nonempty notApplicable reason')]
+        return []
+    try:
+        verify_component_policy.source_text(value.get('source'))
+    except (ValueError, OSError, UnicodeError) as problem:
+        return [error('/wireframe/source', f'Wireframe source evidence is unusable: {problem}; create it with prepare_plan.py evidence')]
+    squash = lambda text: re.sub(r'\s+', '', text)
+    quote = squash(value['source']['quote'])
+    items = value.get('items')
+    if not isinstance(items, list) or not items:
+        return [error('/wireframe/items', 'List every wireframe element as {text, node} or {text, excluded}')]
+    names = {c.get('nodeName') for c in plan.get('components', []) if isinstance(c, dict)}
+    errors, texts = [], []
+    for i, item in enumerate(items):
+        pointer = f'/wireframe/items/{i}'
+        text = item.get('text') if isinstance(item, dict) else None
+        if not isinstance(text, str) or not text.strip():
+            errors.append(error(pointer, 'Wireframe items need the verbatim element text'))
+            continue
+        texts.append(squash(text))
+        if squash(text) not in quote:
+            errors.append(error(pointer + '/text', 'Wireframe item text is not a verbatim part of the quoted wireframe', text=text))
+        node, excluded = item.get('node'), item.get('excluded')
+        if (node is None) == (excluded is None):
+            errors.append(error(pointer, 'Map the element to node (one name or a list) or give an excluded reason, not both', text=text))
+        elif excluded is not None:
+            if not isinstance(excluded, str) or not excluded.strip():
+                errors.append(error(pointer + '/excluded', 'An excluded wireframe element needs its scope reason', text=text))
+        else:
+            targets = [node] if isinstance(node, str) else node
+            if not isinstance(targets, list) or not targets or any(t not in names for t in targets):
+                errors.append(error(pointer + '/node', 'Wireframe element must map to declared component nodeNames', text=text,
+                                    node=node))
+    for token in dict.fromkeys(WIREFRAME_TOKEN.findall(value['source']['quote'])):
+        if not any(squash(token) in text for text in texts):
+            errors.append(error('/wireframe/items', 'Wireframe element is missing from the inventory; map it or exclude it with a reason', token=token))
+    return errors
+
+
+PAGE_TYPES = tuple(rules_manifest.manifest()['pageRules']['pageType'])
+PAGE_TYPE_RULE = 'references/design/page-types.md#choosing-the-type'
+SCALE = 'references/design/scale.md'
+APP_SHELL = 'plasmic-overseas-app-shell'
+OVERLAYS = {'plasmicantd6modal', 'plasmicantd6drawer'}
+
+
+def page_type_errors(plan):
+    value = plan.get('pageType')
+    if value == rules_manifest.PENDING or value in PAGE_TYPES:
+        return []
+    return [{'check': 'pageType', 'pointer': '/pageType', 'rule': PAGE_TYPE_RULE, 'allowedValues': list(PAGE_TYPES),
+             'message': 'Choose the Page type from the user task on this Page before declaring regions and components'}]
+
+
+def page_body_errors(plan):
+    """The business root inside AppShell owns the 16px region gap (scale.md#spacing)."""
+    declarations = [c for c in plan.get('components', []) if isinstance(c, dict)]
+    shells = {c.get('nodeName') for c in declarations if norm(c.get('component', '')) == norm(APP_SHELL)}
+    rule = rules_manifest.manifest()['checks']['pageBody']
+    errors = []
+    for i, spec in enumerate(declarations):
+        owner = spec.get('owner') if isinstance(spec.get('owner'), dict) else {}
+        if owner.get('nodeName') not in shells or owner.get('slot', 'children') != 'children':
+            continue
+        values = spec.get('props') if isinstance(spec.get('props'), dict) else {}
+        key = norm(spec.get('component', ''))
+        expected = ({'vertical': True, 'gap': 16} if key == 'plasmicantd6flex' else
+                    {'gutter': 16} if key == 'plasmicantd6row' else {})
+        for prop, value in expected.items():
+            actual = verify_component_policy.at(values, prop)
+            if actual != value and not verify_component_policy.approved_override(spec, prop):
+                errors.append({'check': 'pageBody', 'pointer': f'/components/{i}/props/{prop}', 'node': spec.get('nodeName'),
+                               'rule': rule, 'expected': value, 'actual': actual,
+                               'message': 'The business root in AppShell children separates top-level regions with the scale gap (Flex vertical gap 16, Row gutter 16); another value needs a source override'})
+    return errors
+
+
+CARD_HEADERS = ('none', 'title', 'title+extra')
+CARD_HEADER_REASONS = ('actions', 'collapse', 'count', 'distinguish')
+
+
+def card_header_plan_errors(spec, index):
+    """A Card header is decided before markup; a header always carries its title."""
+    rule = rules_manifest.document_for('plasmic-antd6-card') + '#card-headers'
+    header, reason = spec.get('header'), spec.get('headerReason')
+    pointer = f'/components/{index}'
+    if header not in CARD_HEADERS:
+        return [{'check': 'planDecision', 'pointer': pointer + '/header', 'node': spec.get('nodeName'), 'rule': rule,
+                 'allowedValues': list(CARD_HEADERS),
+                 'message': 'Card header must be none, title or title+extra; an extra-only header is not valid'}]
+    if header == 'none' and reason is not None:
+        return [{'check': 'planDecision', 'pointer': pointer + '/headerReason', 'node': spec.get('nodeName'), 'rule': rule,
+                 'message': 'A headerless Card has no headerReason; remove it or decide a header'}]
+    if header != 'none' and reason not in CARD_HEADER_REASONS:
+        return [{'check': 'planDecision', 'pointer': pointer + '/headerReason', 'node': spec.get('nodeName'), 'rule': rule,
+                 'allowedValues': list(CARD_HEADER_REASONS),
+                 'message': 'A Card header needs its reason: card-scoped actions, collapse, a header count or distinguishing comparable Cards'}]
+    if header == 'title+extra' and reason != 'actions' and reason != 'collapse':
+        return [{'check': 'planDecision', 'pointer': pointer + '/headerReason', 'node': spec.get('nodeName'), 'rule': rule,
+                 'message': 'title+extra puts actions or a toggle in the header; use title when the header has no extra content'}]
+    return []
 
 
 def table_plan_errors(declarations):
@@ -295,7 +441,7 @@ def table_plan_errors(declarations):
             errors.append({**context, 'message': 'Decide Column widths in the plan: status, category and operation Columns use explicit widths, one main text Column absorbs the remainder, and Table scroll.x is numeric'})
             continue
         entries = [(c.get('nodeName'), values(c), values(c).get('title') if isinstance(values(c).get('title'), str) else '') for _, c in leaves]
-        errors.extend({**e, 'check': 'tableWidthPlan', 'pointer': f'/components/{t_index}/props'} for e in column_width_errors(values(table), entries, context))
+        errors.extend({**e, 'check': 'tableWidthPlan', 'pointer': f'/components/{t_index}/props'} for e in column_width_errors(values(table), entries, context, table))
         unset = [(i, c) for i, c in leaves if values(c).get('width') is None]
         if any(values(c).get('width') is not None for _, c in leaves) and len(unset) == 1:
             i, main = unset[0]
@@ -333,23 +479,32 @@ def plan_errors(plan):
             target = (resource_root / rule).resolve()
             if not rule.startswith('references/') or not target.is_relative_to((resource_root / 'references').resolve()) or not target.is_file():
                 issue(pointer + '/rule', 'rule must point to an existing resolved reference', node=name)
+            elif not rule_matches_library(spec.get('component', ''), spec['rule']):
+                issue(pointer + '/rule', 'Rule library does not match the actual registration; select its own API family',
+                      node=name, component=spec.get('component'), library=rules_manifest.library_for(spec.get('component', '')))
         if role not in {*ROLES, 'widget'}:
             issue(pointer + '/role', 'Unknown semantic role', node=name, actual=role, allowedRoles=sorted([*ROLES, 'widget']))
         elif role == 'widget' and component in CONSTRAINED:
             issue(pointer + '/role', 'Use a specific purpose role, not widget', node=name,
                   allowedRoles=sorted(r for r, keys in ROLES.items() if component in keys))
-        elif role in ROLES and component not in ROLES[role]:
+        elif (role in ROLES and rules_manifest.library_for(spec.get('component', '')) in ADMIN_LIBRARIES
+              and component not in ROLES[role]):
             issue(pointer + '/component', 'Component is incompatible with its semantic role', node=name, role=role,
                   component=spec.get('component'), allowedComponents=sorted(ROLE_COMPONENTS[role]),
                   allowedRoles=sorted(r for r, keys in ROLES.items() if component in keys))
         values = spec.get('props') if isinstance(spec.get('props'), dict) else {}
         if component == 'plasmicantd6tablecolumn':
-            if 'displayType' in values and values['displayType'] not in COLUMN_DISPLAY_TYPES:
-                issue(pointer + '/props/displayType', 'Table Column displayType must be text or custom; presets were removed - compose registered components in Custom render',
-                      node=name, actual=values['displayType'], allowedValues=list(COLUMN_DISPLAY_TYPES))
-            elif role == 'category' and values.get('displayType') not in COLUMN_DISPLAY_TYPES:
-                issue(pointer + '/props/displayType', 'Declare native displayType from the source presentation; category alone does not require Tag',
-                      node=name, allowedValues=list(COLUMN_DISPLAY_TYPES))
+            for key in RETIRED_COLUMN_PROPS:
+                if key in values:
+                    issue(pointer + f'/props/{key}', f'{key} is not a native Table Column prop; record presentation:text|custom on the declaration and compose custom content in the render Slot',
+                          node=name, actual=values[key])
+            presentation = spec.get('presentation', MISSING)
+            if presentation is not MISSING and presentation != rules_manifest.PENDING and presentation not in COLUMN_PRESENTATIONS:
+                issue(pointer + '/presentation', 'Column presentation must be text (empty render Slot) or custom (registered components in render); category alone does not require Tag',
+                      node=name, actual=presentation, allowedValues=list(COLUMN_PRESENTATIONS))
+            elif role == 'status' and presentation == 'text':
+                issue(pointer + '/presentation', 'Status Columns render a registered Badge: presentation must be custom',
+                      node=name, actual=presentation)
             reason = spec.get('nonStatusReason')
             if role != 'status' and state_like(values.get('dataIndex'), values.get('title')) and not (isinstance(reason, str) and reason.strip()):
                 issue(pointer + '/role', STATE_LIKE, check='statusRole', node=name, field=values.get('dataIndex') or values.get('title'))
@@ -360,6 +515,11 @@ def plan_errors(plan):
             issue(pointer + '/condition', 'Declare the continuing condition or independently justified surface', node=name)
     errors.extend(table_plan_errors(declarations))
     errors.extend(decision_errors(plan))
+    if 'wireframe' in plan:  # Full Page presence is required by check(); snippets can omit it.
+        errors.extend(wireframe_errors(plan))
+    if 'pageType' in plan:
+        errors.extend(page_type_errors(plan))
+    errors.extend(page_body_errors(plan))
     feedback = plan.get('feedback')
     if not isinstance(feedback, list):
         issue('/feedback', 'Declare source-derived feedback:[] even when no operation feedback is required')
@@ -410,7 +570,7 @@ def check_page(plan, page):
             if key == 'plasmicantd6tablecolumn':
                 render = slot(node, 'render')
                 badges = [n for n in authored(render or {}) if identity(n) == 'plasmicantd6badge']
-                if not badges or values.get('displayType') not in (None, 'custom'):
+                if not badges:
                     errors.append({'check': 'statusPresentation', 'node': name, 'message': 'Status Column requires its native Badge render template; Tag/text presets are not status presentation'})
                 if badges:
                     errors.extend({'check': 'statusPresentation', 'node': name, 'message': message}
@@ -427,7 +587,7 @@ def check_page(plan, page):
             title = content(slot(node, 'title')) or values.get('title')
             if state_like(values.get('dataIndex'), title) and not (isinstance(reason, str) and reason.strip()):
                 errors.append({'check': 'statusRole', 'node': name, 'message': STATE_LIKE})
-        errors.extend(category_errors(spec, node, plan.get('components', [])))
+        errors.extend(column_presentation_errors(spec, node, plan.get('components', [])))
     for spec in plan.get('feedback', []):
         if not isinstance(spec, dict):
             continue
@@ -456,13 +616,106 @@ def check_page(plan, page):
 RESOURCE_ROOT = rules_manifest.RESOURCE_ROOT
 
 
-def required_reads(plan, stage='compose'):
+def component_declarations(plan):
+    values = plan.get('components')
+    return [spec for spec in values if isinstance(spec, dict)] if isinstance(values, list) else []
+
+
+def page_libraries(plan):
+    return {library for spec in component_declarations(plan)
+            if (library := rules_manifest.library_for(spec.get('component', '')))}
+
+
+def admin_page(plan):
+    """Page-wide v6 recipes cannot establish another library's layout/API contract."""
+    if any(not rules_manifest.library_for(spec.get('component', ''))
+           for spec in component_declarations(plan)):
+        return False
+    libraries = page_libraries(plan) - {'antd_icons'}
+    return bool(libraries) and libraries <= ADMIN_LIBRARIES
+
+
+def project_reads(stage='compose', root=None):
+    """Shared design rules read once per task in full and reviewed once per project.
+
+    Task-wide rules that only some tasks need (record context, permissions) join
+    when any planned Page needs them (gate-rules.json projectRulesWhen).
+    """
+    data = rules_manifest.manifest()
+    paths = list(data['projectRules'])
+    pages = [p for p in (root or {}).get('pages', []) if isinstance(p, dict)] if isinstance(root, dict) else []
+    libraries = set().union(*(page_libraries(page) for page in pages))
+    paths += [f'references/libraries/{library}/index.md' for library in sorted(libraries)]
+    if libraries & ADMIN_LIBRARIES:
+        paths.append('references/libraries/antd_v6/selection.md')
+    conditions = {'recordPage': any(p.get('recordPage') is True for p in pages),
+                  'actionContracts': any(isinstance(p.get('actionContracts'), list) and p['actionContracts'] for p in pages)}
+    for condition, applies in conditions.items():
+        if applies:
+            paths += data['projectRulesWhen'].get(condition, [])
+    return {path: None for path in paths}
+
+
+def page_conditions(plan, root=None):
+    """Which conditional Page rules (gate-rules.json pageRules.when) apply to this Page plan."""
+    declarations = component_declarations(plan)
+    feedback = [f for f in plan.get('feedback', []) if isinstance(f, dict) and not str(f.get('notApplicable', '')).strip()] \
+        if isinstance(plan.get('feedback'), list) else []
+    keys = {norm(c.get('component', '')) for c in declarations}
+    tables = [c for c in declarations if norm(c.get('component', '')) == 'plasmicantd6table']
+    def selectable(table):
+        values = table.get('props') if isinstance(table.get('props'), dict) else {}
+        dynamic = table.get('dynamicProps') if isinstance(table.get('dynamicProps'), list) else []
+        return (values.get('selectionMode') not in (None, 'none') or 'selectedRowKeys' in values
+                or bool({'selectedRowKeys', 'selectionMode'} & set(dynamic)))
+    feedback_owners = {c.get('nodeName') for c in declarations
+                       if rules_manifest.library_for(c.get('component', '')) in ADMIN_LIBRARIES}
+    native_feedback = [f for f in feedback if f.get('nodeName') in feedback_owners]
+    state_components = {'plasmicantd6' + name for name in ('alert', 'empty', 'spin', 'skeleton', 'result', 'table', 'list')}
+    wireframe = plan.get('wireframe')
+    return {
+        'overlay': bool(keys & OVERLAYS),
+        'feedback': bool(native_feedback),
+        'asynchronousFeedback': any(f.get('kind') == 'asynchronous' for f in native_feedback),
+        'contentStates': bool(keys & state_components),
+        'tableSelection': any(selectable(table) for table in tables),
+        'stepForm': {'plasmicantd6steps', 'plasmicantd6form'} <= keys,
+        'summaryMetrics': bool(keys & {'plasmicantd6descriptions', 'plasmicantd6statistic', 'plasmicantd6statistictimer'}),
+        'searchTable': 'plasmicantd6table' in keys,
+        'categoryColumn': any(norm(c.get('component', '')) == 'plasmicantd6tablecolumn'
+                              and c.get('role') == 'category' for c in declarations),
+        'pageHeader': admin_page(plan) and plan.get('pageType') in ('basic-detail', 'tabbed-detail')
+                      and isinstance(plan.get('pageHeader'), dict)
+                      and all(isinstance(plan['pageHeader'].get(key), str) and plan['pageHeader'][key].strip()
+                              for key in ('nodeName', 'source')),
+        'wireframe': isinstance(wireframe, dict) and 'notApplicable' not in wireframe
+                     and isinstance(wireframe.get('source'), dict) and isinstance(wireframe.get('items'), list),
+    }
+
+
+def dynamic_navigation(plan, root=None):
+    """Role-query or dynamic menus: the root navigation transform or a bound AppShell menuItems."""
+    navigation = (root or {}).get('navigation') if isinstance(root, dict) else None
+    if isinstance(navigation, dict) and 'roleQuery' in navigation:
+        return True
+    for spec in plan.get('components', []) if isinstance(plan.get('components'), list) else []:
+        if isinstance(spec, dict) and norm(spec.get('component', '')) == norm(APP_SHELL):
+            dynamic = spec.get('dynamicProps') if isinstance(spec.get('dynamicProps'), list) else []
+            menu = (spec.get('props') or {}).get('menuItems') if isinstance(spec.get('props'), dict) else None
+            if 'menuItems' in dynamic or isinstance(menu, str) and '{{' in menu:
+                return True
+    return False
+
+
+def required_reads(plan, stage='compose', root=None):
     """{resource-relative path: set of anchors, or None for the full document}.
 
     Each declaration needs its own `rule` and its registration's owner document
     (rules.json). Stage-template documents deliver their preamble plus Plan
     decisions and Generation rules when composing, and the complete document
     for acceptance. Other documents and explicit anchors are read as declared.
+    The decided page type and applicable Page conditions add their composition
+    documents (gate-rules.json pageRules); `root` is the whole expectation.
     """
     needed = {}
     def add(path, anchors):
@@ -474,12 +727,23 @@ def required_reads(plan, stage='compose'):
         stages = rules_manifest.stage_sections(path)
         if stage == 'accept' or 'generation-rules' not in stages:
             return None
-        return {anchor for anchor in stages if anchor != 'acceptance-checks'}
+        # Conditional rules arrive by explicit subsection (below), never as a whole stage.
+        return {anchor for anchor in stages if anchor not in ('acceptance-checks', 'conditional-rules')}
+    page_rules = rules_manifest.manifest()['pageRules']
+    if 'components' in plan:
+        documents = list(page_rules.get('pageType', {}).get(plan.get('pageType'), [])) if admin_page(plan) else []
+        for condition, applies in page_conditions(plan, root).items():
+            if applies:
+                documents += page_rules.get('when', {}).get(condition, [])
+        for path in documents:
+            add(path, stage_anchors(path))
     for spec in plan.get('components', []) if isinstance(plan.get('components'), list) else []:
         if not isinstance(spec, dict):
             continue
         rule = spec.get('rule')
-        if isinstance(rule, str) and rule.startswith('references/') and (RESOURCE_ROOT / rule.split('#', 1)[0]).is_file():
+        if (isinstance(rule, str) and rule.startswith('references/')
+                and rule_matches_library(spec.get('component', ''), rule)
+                and (RESOURCE_ROOT / rule.split('#', 1)[0]).is_file()):
             path, _, anchor = rule.partition('#')
             add(path, stage_anchors(path))
             if anchor and needed[path] is not None:
@@ -500,40 +764,73 @@ def required_reads(plan, stage='compose'):
             add(decision_path, stage_anchors(decision_path))
             if decision_anchor and needed.get(decision_path) is not None:
                 needed[decision_path].add(decision_anchor)
+    # Conditional sections outside the stage template reach only the Pages that need them.
+    shell = (rules_manifest.document_for(APP_SHELL) or '').split('#', 1)[0]
+    if shell in needed and needed[shell] is not None:
+        context = plan.get('appContext')
+        if isinstance(context, dict) and context.get('required') is True:
+            needed[shell].add('app-context')
+        if dynamic_navigation(plan, root):
+            needed[shell].add('cross-page-context-and-dynamic-menus')
+    # Page-wide baselines belong to the supported suite only. Mixed/unknown
+    # libraries retain their component-owned rules without borrowing a v6 page contract.
+    if 'components' in plan and admin_page(plan):
+        add(SCALE, None)
+        page_types = PAGE_TYPE_RULE.split('#', 1)[0]
+        kind = plan.get('pageType')
+        add(page_types, None if stage == 'accept' else
+            ({kind, 'regions-inside-any-type'} if kind in PAGE_TYPES else {'choosing-the-type'}))
     return needed
 
 
-def read_coverage_errors(plan, ledger, stage='compose'):
+def read_coverage_errors(plan, ledger, stage='compose', root=None):
     """Compare the read_reference.py ledger with the Page's required reads.
 
     Proves only that the current bytes of each section were emitted to the
     agent, not that they were understood or followed.
     """
-    from read_reference import sections
+    return coverage_errors(required_reads(plan, stage, root), ledger)
+
+
+def project_coverage_errors(ledger, stage='compose', root=None):
+    """The project card's shared design rules, read in full at their current hash."""
+    return [{**error, 'message': 'Read the project rules card (prepare_plan.py rules PLAN --project) with --log before composing'}
+            for error in coverage_errors(project_reads(stage, root), ledger)]
+
+
+def coverage_errors(needed, ledger):
+    from read_reference import sections, selected_lines
     errors = []
-    for path, anchors in sorted(required_reads(plan, stage).items()):
+    for path, anchors in sorted(needed.items()):
         file = RESOURCE_ROOT / path
         text = file.read_text(encoding='utf-8')
         digest = hashlib.sha256(text.encode()).hexdigest()
-        _, headings = sections(text)
-        covered, full = set(), False
+        lines, headings = sections(text)
+        covered = set()
         for record in ledger:
+            if not isinstance(record, dict):
+                continue
             if not str(record.get('path', '')).endswith('/' + path) or record.get('sha256') != digest or record.get('outline'):
                 continue
-            if not record.get('sections'):
-                full = True
+            chosen = record.get('sections')
+            if not isinstance(chosen, list) or not all(isinstance(anchor, str) for anchor in chosen):
                 continue
-            for heading in headings:
-                for chosen in record['sections']:
-                    parent = next((h for h in headings if h['anchor'] == chosen), None)
-                    if parent and parent['start'] <= heading['start'] < parent['end']:
-                        covered.add(heading['anchor'])
-        if full:
+            try:
+                covered.update(selected_lines(text, chosen))
+            except ValueError:
+                continue
+        missing_lines = selected_lines(text, anchors) - covered
+        if not missing_lines:
             continue
-        missing = sorted(set(h['anchor'] for h in headings) - covered) if anchors is None else sorted(anchors - covered)
-        if missing:
-            errors.append({'check': 'referenceReads', 'rule': path, 'missingSections': missing,
-                           'message': 'Read these current sections with read_reference.py --log before composing; see prepare_plan.py rules'})
+        if anchors is not None:
+            missing = sorted(anchor for anchor in anchors if selected_lines(text, [anchor]) - covered)
+        else:
+            # Attribute unread lines to the heading that owns them, rather than
+            # treating an emitted ancestor introduction as an unread whole subtree.
+            missing = [heading['anchor'] for i, heading in enumerate(headings)
+                       if missing_lines & set(range(heading['start'], headings[i + 1]['start'] if i + 1 < len(headings) else len(lines)))]
+        errors.append({'check': 'referenceReads', 'rule': path, 'missingSections': missing or ['full-document'],
+                       'message': 'Read these current sections with read_reference.py --log before composing; see prepare_plan.py rules'})
     return errors
 
 
@@ -555,6 +852,8 @@ def check(expected, readback=None, page_path=None, reads=None):
     plans = [(i, p) for i, p in enumerate(expected.get('pages', [])) if page_path is None or p.get('path') == page_path]
     if not plans:
         errors.append({'check': 'selectionPlan', 'message': 'Nonempty page inventory required'})
+    if reads is not None:
+        errors.extend(project_coverage_errors(reads, root=expected))
     for page_index, plan in plans:
         path = plan.get('path')
         template_report = ({'passed': False, 'errors': []} if plan.get('templates') == rules_manifest.PENDING
@@ -564,7 +863,14 @@ def check(expected, readback=None, page_path=None, reads=None):
         if not isinstance(path, str) or not path.startswith('/'):
             errors.append({'check': 'selectionPlan', 'message': 'Every planned Page requires its exact absolute route before composition'})
         if reads is not None:
-            errors.extend({'path': path, **e} for e in read_coverage_errors(plan, reads))
+            errors.extend({'path': path, **e} for e in read_coverage_errors(plan, reads, root=expected))
+        # plan_errors also serves component documentation snippets. A complete
+        # Page cannot omit the decisions that drive routing and source coverage.
+        missing_decisions = []
+        if 'pageType' not in plan:
+            missing_decisions.extend(page_type_errors(plan))
+        if 'wireframe' not in plan:
+            missing_decisions.extend(wireframe_errors(plan))
         if readback is None:
             issues = plan_errors(plan) + verify_content.plan_errors(plan)
         else:
@@ -574,6 +880,7 @@ def check(expected, readback=None, page_path=None, reads=None):
                 reviewed = verify_content.check_page(plan, pages[0])
                 content_reports.append({'path': path, **reviewed})
                 issues += reviewed['errors']
+        issues += missing_decisions
         rules_manifest.annotate({'errors': issues}, 'selection', plan.get('components'))
         # While a decision is pending, report it once: drop derivative findings
         # about the same placeholder (its pointer, or the placeholder value).
@@ -588,8 +895,13 @@ def check(expected, readback=None, page_path=None, reads=None):
                     error['relatedPointers'] = [f'/pages/{page_index}' + p for p in error['relatedPointers']]
             errors.append(error)
     rules_manifest.annotate({'errors': errors}, 'selection')
+    unsupported = sorted({rules_manifest.library_for(spec.get('component', '')) or str(spec.get('component') or 'unknown')
+                          for _, plan in plans for spec in component_declarations(plan)
+                          if rules_manifest.library_for(spec.get('component', '')) not in ADMIN_LIBRARIES | {'antd_icons'}})
     return {'passed': not errors, 'errors': errors, 'templates': templates, 'content': content_reports,
-            'notChecked': ['source meaning and completeness', 'actual template insertion/detachment', 'JS execution', 'visual and runtime acceptance']}
+            'notChecked': ([] if reads is not None else ['reference reading coverage (no read ledger supplied)']) +
+                          ([f'library-specific semantic/model coverage outside the supported admin suite: {", ".join(unsupported)}'] if unsupported else []) +
+                          ['source meaning and completeness', 'actual template insertion/detachment', 'JS execution', 'visual and runtime acceptance']}
 
 
 def summary(report, report_path):
@@ -613,9 +925,13 @@ def main():
     parser.add_argument('readback', nargs='?')
     parser.add_argument('--page')
     parser.add_argument('--report')
-    parser.add_argument('--reads', help='read_reference.py --log ledger; require current reads of each Page rule section')
+    mode = parser.add_mutually_exclusive_group(required=True)
+    mode.add_argument('--reads', help='read_reference.py --log ledger; required for composition preflight and saved-model checks')
+    mode.add_argument('--plan-only', action='store_true', help='Check declarations only; does not check reference reading or authorize composition')
     parser.add_argument('--full', action='store_true', help='Print the complete report even when --report saves it')
     args = parser.parse_args()
+    if args.plan_only and args.readback:
+        parser.error('--plan-only checks declarations only; a saved-model check requires --reads')
     inputs = {}
     try:
         for filename in (args.expectation, args.readback):

@@ -16,7 +16,7 @@ export const AntdButton: React.ForwardRefExoticComponent<
     React.RefAttributes<React.ComponentRef<typeof Button>>
 > = React.forwardRef<React.ComponentRef<typeof Button>, AntdButtonProps>(
   function AntdButton(props, ref) {
-    const { submitsForm = false, children, ...rest } = props;
+    const { submitsForm = false, ...rest } = props;
     const target =
       props.target === true
         ? "_blank"
@@ -27,17 +27,6 @@ export const AntdButton: React.ForwardRefExoticComponent<
       <Button
         {...rest}
         ref={ref}
-        children={
-          children != null && children !== "" ? (
-            <div
-              style={{
-                display: "inline-block",
-              }}
-            >
-              {children}
-            </div>
-          ) : undefined
-        }
         htmlType={props.htmlType ?? (submitsForm ? "submit" : "button")}
         target={target}
       />

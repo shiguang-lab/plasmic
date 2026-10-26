@@ -12,6 +12,12 @@ Library: [Ant Design v6](../index.md).
 
 ## Generation rules
 
+### Design defaults
+
+- Use Input for free text and textual identifiers; TextArea for multi-line text (`autoSize`, at least 3 rows; code or query text uses a monospace TextArea of at least 8 rows); Input.Search only for one keyword search outside a SearchForm.
+- The control fills its Form or SearchForm column.
+- Placeholder states a format or example, otherwise `请输入` + the field noun; `allowClear` in query fields and optional form fields; `maxLength` from the requirement.
+
 ### Value and field ownership
 
 Apply [field semantics](../selection.md#field-semantics) before choosing Input. A time/date/quantity serialized as a string is not automatically a text field; use its semantic control and verified value conversion. Textual identifiers and explicit source-required text interactions retain Input.
@@ -24,7 +30,7 @@ Read actual size, variant, disabled, readOnly, allowClear and maxLength controls
 
 ### Search and OTP
 
-Input.Search forwards a string through onChange and onSearch. One search action owns Enter/button submission; do not issue duplicate requests from both callbacks. Its loading state follows the actual query. Input.OTP exposes string onChange for intermediate input and onComplete for complete input; a partially filled code must not run completion work. Password visibility remains the native interaction and must not change the stored value. These variants are maintained here rather than in separate files.
+Input.Search forwards a string through onChange and onSearch. One search action owns Enter/button submission; do not issue duplicate requests from both callbacks. Its loading state follows the actual query. Input.OTP is native: onChange fires with the complete string once every cell is filled, and onInput receives the array of cell values on each edit; a partially filled code must not run completion work. Password visibility remains the native interaction and must not change the stored value. These variants are maintained here rather than in separate files.
 
 ## Acceptance checks
 

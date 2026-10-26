@@ -70,15 +70,23 @@ test("supports children when items are absent and keeps disabled/danger item pro
   assert(html.includes("disabled") && html.includes("dangerous"));
 });
 
-test("uses Plasmic links for item navigation and keeps disabled links inert", () => {
-  const enabled = renderToStaticMarkup(
-    <ActionGroup items={[{ ...detail, href: "/groups/1001" }]} />,
+test("registers only native @react/ui item fields and keeps its More defaults", () => {
+  const fields = Object.keys(
+    (actionGroupMeta.props.items as any).itemType.fields,
   );
-  assert(enabled.includes('href="/groups/1001"'));
-  const disabled = renderToStaticMarkup(
-    <ActionGroup
-      items={[{ ...detail, href: "/groups/1001", disabled: true }]}
-    />,
-  );
-  assert(!disabled.includes('href="/groups/1001"'));
+  assert.deepEqual(fields, ["key", "label", "disabled", "danger", "tooltip"]);
+  const source = ActionGroup.toString();
+  assert(!source.includes("trigger"));
+  assert(!source.includes("Popconfirm"));
+});
+
+test("onAction receives the item key for visible and folded items", () => {
+  const keys: string[] = [];
+  const element = ActionGroup({
+    items: [detail, edit, sql, copy],
+    max: 3,
+    onAction: (key) => keys.push(key),
+  }) as React.ReactElement<{ items: { onClick: () => void }[] }>;
+  element.props.items.forEach((item) => item.onClick());
+  assert.deepEqual(keys, ["detail", "edit", "sql", "copy"]);
 });

@@ -1,0 +1,65 @@
+{
+ "pages": [
+  {
+   "path": "/groups",
+   "overlays": []
+  },
+  {
+   "path": "/groups/selector",
+   "overlays": [
+    {
+     "name": "PreflightModal",
+     "component": "plasmic-antd6-modal",
+     "closeIcon": true,
+     "footer": "native",
+     "footerActions": [
+      {
+       "name": "nativeCancel",
+       "effect": "dismiss"
+      },
+      {
+       "name": "nativeOk",
+       "effect": "dismiss"
+      }
+     ],
+     "trigger": []
+    }
+   ]
+  },
+  {
+   "path": "/groups/onetime-create",
+   "overlays": [
+    {
+     "name": "OnetimePreflightModal",
+     "component": "plasmic-antd6-modal",
+     "closeIcon": true,
+     "footer": "native",
+     "footerActions": [
+      {
+       "name": "nativeCancel",
+       "effect": "dismiss"
+      },
+      {
+       "name": "nativeOk",
+       "effect": "dismiss"
+      }
+     ],
+     "trigger": []
+    }
+   ]
+  },
+  {
+   "path": "/groups/detail",
+   "overlays": [
+    {
+     "name": "ApplyDetailDrawer",
+     "component": "plasmic-antd6-drawer",
+     "closeIcon": true,
+     "footer": "none",
+     "footerActions": [],
+     "trigger": []
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,262 @@
+{
+  "sourceProjectId": "145nN6S5QQBwgjtNUwuiQZ",
+  "sourceVersion": null,
+  "collectedAt": "2026-10-25T03:30:10.616997+00:00",
+  "buildId": "d453975ef07f80eec421ff20cf8d493401da9713ff0059bd6306f743afb7b907",
+  "before": {
+    "projectId": "145nN6S5QQBwgjtNUwuiQZ",
+    "branchId": null,
+    "sessionId": "say3sQf0gcLM",
+    "revision": 90,
+    "changeCounter": 0
+  },
+  "after": {
+    "projectId": "145nN6S5QQBwgjtNUwuiQZ",
+    "branchId": null,
+    "sessionId": "say3sQf0gcLM",
+    "revision": 90,
+    "changeCounter": 0
+  },
+  "source": {
+    "__type": "OutputResult",
+    "results": [
+      {
+        "__type": "Project",
+        "id": "145nN6S5QQBwgjtNUwuiQZ",
+        "importedProjects": [
+          {
+            "__type": "ImportedProject",
+            "id": "eYLujTHmWfX9qEoQaFDSi4",
+            "name": "antd6",
+            "version": "2.0.0"
+          },
+          {
+            "__type": "ImportedProject",
+            "id": "f3f4ju424PVNTAQPkwovrE",
+            "name": "overseas",
+            "version": "1.8.0"
+          },
+          {
+            "__type": "ImportedProject",
+            "id": "vuoraLeVbtw7rQTKJ6UKar",
+            "name": "antd-icons",
+            "version": "0.1.0"
+          },
+          {
+            "__type": "ImportedProject",
+            "id": "vJfWZAFzStvt61gEWotC7k",
+            "name": "react-ui",
+            "version": "0.1.0"
+          }
+        ]
+      }
+    ],
+    "read": {
+      "fields": [
+        "__type",
+        "id",
+        "importedProjects"
+      ],
+      "depth": 0
+    }
+  },
+  "consumer": {
+    "__type": "OutputResult",
+    "results": [
+      {
+        "__type": "Project",
+        "id": "145nN6S5QQBwgjtNUwuiQZ",
+        "importedProjects": [
+          {
+            "__type": "ImportedProject",
+            "id": "eYLujTHmWfX9qEoQaFDSi4",
+            "name": "antd6",
+            "version": "2.0.0"
+          },
+          {
+            "__type": "ImportedProject",
+            "id": "f3f4ju424PVNTAQPkwovrE",
+            "name": "overseas",
+            "version": "1.8.0"
+          },
+          {
+            "__type": "ImportedProject",
+            "id": "vuoraLeVbtw7rQTKJ6UKar",
+            "name": "antd-icons",
+            "version": "0.1.0"
+          },
+          {
+            "__type": "ImportedProject",
+            "id": "vJfWZAFzStvt61gEWotC7k",
+            "name": "react-ui",
+            "version": "0.1.0"
+          }
+        ]
+      }
+    ],
+    "read": {
+      "fields": [
+        "__type",
+        "id",
+        "importedProjects"
+      ],
+      "depth": 0
+    }
+  },
+  "fullReads": {
+    "TabsTableSection": {
+      "__type": "OutputResult",
+      "results": [
+        {
+          "__type": "Project",
+          "id": "145nN6S5QQBwgjtNUwuiQZ",
+          "components": [
+            {
+              "__type": "Component",
+              "uuid": "Lrdw4Jts1Zzd",
+              "name": "TabsTableSection",
+              "type": "plain",
+              "rootElementUuid": "qHABF2XBUi2V",
+              "props": [
+                {
+                  "__type": "Prop",
+                  "name": "tableColumns",
+                  "uuid": "dGxbjKIOBXuT",
+                  "type": "slot"
+                },
+                {
+                  "__type": "Prop",
+                  "name": "primaryActions",
+                  "uuid": "MFozIzpd5FUN",
+                  "type": "slot"
+                }
+              ],
+              "variants": [],
+              "variantGroups": [],
+              "states": [
+                {
+                  "__type": "State",
+                  "name": "tabs.activeKey",
+                  "uuid": "dp1sBm5NvSeS",
+                  "variableType": "text",
+                  "accessType": "private",
+                  "elementUuid": "zwhGNjMzGLY6"
+                },
+                {
+                  "__type": "State",
+                  "name": "allRecordsTable.selectedRowKeys",
+                  "uuid": "uKTa3nRg96vp",
+                  "variableType": "array",
+                  "accessType": "private",
+                  "elementUuid": "IinipYD0YTqE"
+                },
+                {
+                  "__type": "State",
+                  "name": "myRecordsTable.selectedRowKeys",
+                  "uuid": "YpzREF84Bls2",
+                  "variableType": "array",
+                  "accessType": "private",
+                  "elementUuid": "KKTRaMgv6esb"
+                }
+              ],
+              "dataQueries": [],
+              "legacyDataQueries": [],
+              "baseVariantTplTree": "<plasmic-component id=\"qHABF2XBUi2V\" data-plasmic-component=\"plasmicAntd6Card\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"TabsTableSection\" data-props='{\"size\":\"medium\",\"variant\":\"outlined\",\"styles\":{\"body\":{\"padding\":\"0 20px\"}}}' style=\"max-width: 100%; object-fit: cover; width: 100%; min-width: 0px\">\n  <slot name=\"title\"></slot>\n  <slot name=\"extra\"></slot>\n  <slot name=\"cover\"></slot>\n  <slot name=\"actions\"></slot>\n  <slot name=\"children\">\n    <plasmic-component id=\"zwhGNjMzGLY6\" data-plasmic-component=\"plasmicAntd6Tabs\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"Tabs\" data-props='{\"defaultActiveKey\":\"{{ \\\"all\\\" }}\",\"size\":\"medium\",\"type\":\"line\"}' style=\"width: 100%; overflow: scroll; max-width: 100%; object-fit: cover; min-width: 0px\">\n      <slot name=\"items\">\n        <plasmic-component id=\"XXn7JdEN4wnU\" data-plasmic-component=\"plasmicAntd6TabItem\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"AllRecordsTab\" data-props='{\"key\":\"all\"}' style=\"max-width: 100%; object-fit: cover\">\n          <slot name=\"label\">\n            <span id=\"Oo3WA7wr-33G\">全部</span>\n          </slot>\n          <slot name=\"children\">\n            <plasmic-component id=\"IinipYD0YTqE\" data-plasmic-component=\"plasmicAntd6Table\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"AllRecordsTable\" data-props='{\"data\":\"{{ {\\\"data\\\":[{\\\"id\\\":\\\"1001\\\",\\\"name\\\":\\\"用户通知配置\\\",\\\"category\\\":\\\"消息\\\",\\\"status\\\":\\\"停用\\\",\\\"owner\\\":\\\"王晓\\\",\\\"updatedAt\\\":\\\"2026-10-09 09:30:00\\\"},{\\\"id\\\":\\\"1002\\\",\\\"name\\\":\\\"支付结果通知\\\",\\\"category\\\":\\\"账户\\\",\\\"status\\\":\\\"启用\\\",\\\"owner\\\":\\\"李明\\\",\\\"updatedAt\\\":\\\"2026-10-09 09:30:00\\\"},{\\\"id\\\":\\\"1003\\\",\\\"name\\\":\\\"账户安全提醒\\\",\\\"category\\\":\\\"消息\\\",\\\"status\\\":\\\"启用\\\",\\\"owner\\\":\\\"王晓\\\",\\\"updatedAt\\\":\\\"2026-10-09 09:30:00\\\"},{\\\"id\\\":\\\"1004\\\",\\\"name\\\":\\\"用户通知配置 2\\\",\\\"category\\\":\\\"账户\\\",\\\"status\\\":\\\"停用\\\",\\\"owner\\\":\\\"李明\\\",\\\"updatedAt\\\":\\\"2026-10-09 09:30:00\\\"},{\\\"id\\\":\\\"1005\\\",\\\"name\\\":\\\"支付结果通知 2\\\",\\\"category\\\":\\\"消息\\\",\\\"status\\\":\\\"启用\\\",\\\"owner\\\":\\\"王晓\\\",\\\"updatedAt\\\":\\\"2026-10-09 09:30:00\\\"},{\\\"id\\\":\\\"1006\\\",\\\"name\\\":\\\"账户安全提醒 2\\\",\\\"category\\\":\\\"账户\\\",\\\"status\\\":\\\"启用\\\",\\\"owner\\\":\\\"李明\\\",\\\"updatedAt\\\":\\\"2026-10-09 09:30:00\\\"},{\\\"id\\\":\\\"1007\\\",\\\"name\\\":\\\"用户通知配置 3\\\",\\\"category\\\":\\\"消息\\\",\\\"status\\\":\\\"停用\\\",\\\"owner\\\":\\\"王晓\\\",\\\"updatedAt\\\":\\\"2026-10-09 09:30:00\\\"},{\\\"id\\\":\\\"1008\\\",\\\"name\\\":\\\"支付结果通知 3\\\",\\\"category\\\":\\\"账户\\\",\\\"status\\\":\\\"启用\\\",\\\"owner\\\":\\\"李明\\\",\\\"updatedAt\\\":\\\"2026-10-09 09:30:00\\\"},{\\\"id\\\":\\\"1009\\\",\\\"name\\\":\\\"账户安全提醒 3\\\",\\\"category\\\":\\\"消息\\\",\\\"status\\\":\\\"启用\\\",\\\"owner\\\":\\\"王晓\\\",\\\"updatedAt\\\":\\\"2026-10-09 09:30:00\\\"},{\\\"id\\\":\\\"1010\\\",\\\"name\\\":\\\"用户通知配置 4\\\",\\\"category\\\":\\\"账户\\\",\\\"status\\\":\\\"停用\\\",\\\"owner\\\":\\\"李明\\\",\\\"updatedAt\\\":\\\"2026-10-09 09:30:00\\\"},{\\\"id\\\":\\\"1011\\\",\\\"name\\\":\\\"支付结果通知 4\\\",\\\"category\\\":\\\"消息\\\",\\\"status\\\":\\\"启用\\\",\\\"owner\\\":\\\"王晓\\\",\\\"updatedAt\\\":\\\"2026-10-09 09:30:00\\\"},{\\\"id\\\":\\\"1012\\\",\\\"name\\\":\\\"账户安全提醒 4\\\",\\\"category\\\":\\\"账户\\\",\\\"status\\\":\\\"启用\\\",\\\"owner\\\":\\\"李明\\\",\\\"updatedAt\\\":\\\"2026-10-09 09:30:00\\\"},{\\\"id\\\":\\\"1013\\\",\\\"name\\\":\\\"用户通知配置 5\\\",\\\"category\\\":\\\"消息\\\",\\\"status\\\":\\\"停用\\\",\\\"owner\\\":\\\"王晓\\\",\\\"updatedAt\\\":\\\"2026-10-09 09:30:00\\\"},{\\\"id\\\":\\\"1014\\\",\\\"name\\\":\\\"支付结果通知 5\\\",\\\"category\\\":\\\"账户\\\",\\\"status\\\":\\\"启用\\\",\\\"owner\\\":\\\"李明\\\",\\\"updatedAt\\\":\\\"2026-10-09 09:30:00\\\"},{\\\"id\\\":\\\"1015\\\",\\\"name\\\":\\\"账户安全提醒 5\\\",\\\"category\\\":\\\"消息\\\",\\\"status\\\":\\\"启用\\\",\\\"owner\\\":\\\"王晓\\\",\\\"updatedAt\\\":\\\"2026-10-09 09:30:00\\\"},{\\\"id\\\":\\\"1016\\\",\\\"name\\\":\\\"用户通知配置 6\\\",\\\"category\\\":\\\"账户\\\",\\\"status\\\":\\\"停用\\\",\\\"owner\\\":\\\"李明\\\",\\\"updatedAt\\\":\\\"2026-10-09 09:30:00\\\"},{\\\"id\\\":\\\"1017\\\",\\\"name\\\":\\\"支付结果通知 6\\\",\\\"category\\\":\\\"消息\\\",\\\"status\\\":\\\"启用\\\",\\\"owner\\\":\\\"王晓\\\",\\\"updatedAt\\\":\\\"2026-10-09 09:30:00\\\"},{\\\"id\\\":\\\"1018\\\",\\\"name\\\":\\\"账户安全提醒 6\\\",\\\"category\\\":\\\"账户\\\",\\\"status\\\":\\\"启用\\\",\\\"owner\\\":\\\"李明\\\",\\\"updatedAt\\\":\\\"2026-10-09 09:30:00\\\"},{\\\"id\\\":\\\"1019\\\",\\\"name\\\":\\\"用户通知配置 7\\\",\\\"category\\\":\\\"消息\\\",\\\"status\\\":\\\"停用\\\",\\\"owner\\\":\\\"王晓\\\",\\\"updatedAt\\\":\\\"2026-10-09 09:30:00\\\"},{\\\"id\\\":\\\"1020\\\",\\\"name\\\":\\\"支付结果通知 7\\\",\\\"category\\\":\\\"账户\\\",\\\"status\\\":\\\"启用\\\",\\\"owner\\\":\\\"李明\\\",\\\"updatedAt\\\":\\\"2026-10-09 09:30:00\\\"},{\\\"id\\\":\\\"1021\\\",\\\"name\\\":\\\"账户安全提醒 7\\\",\\\"category\\\":\\\"消息\\\",\\\"status\\\":\\\"启用\\\",\\\"owner\\\":\\\"王晓\\\",\\\"updatedAt\\\":\\\"2026-10-09 09:30:00\\\"},{\\\"id\\\":\\\"1022\\\",\\\"name\\\":\\\"用户通知配置 8\\\",\\\"category\\\":\\\"账户\\\",\\\"status\\\":\\\"停用\\\",\\\"owner\\\":\\\"李明\\\",\\\"updatedAt\\\":\\\"2026-10-09 09:30:00\\\"},{\\\"id\\\":\\\"1023\\\",\\\"name\\\":\\\"支付结果通知 8\\\",\\\"category\\\":\\\"消息\\\",\\\"status\\\":\\\"启用\\\",\\\"owner\\\":\\\"王晓\\\",\\\"updatedAt\\\":\\\"2026-10-09 09:30:00\\\"},{\\\"id\\\":\\\"1024\\\",\\\"name\\\":\\\"账户安全提醒 8\\\",\\\"category\\\":\\\"账户\\\",\\\"status\\\":\\\"启用\\\",\\\"owner\\\":\\\"李明\\\",\\\"updatedAt\\\":\\\"2026-10-09 09:30:00\\\"},{\\\"id\\\":\\\"1025\\\",\\\"name\\\":\\\"用户通知配置 9\\\",\\\"category\\\":\\\"消息\\\",\\\"status\\\":\\\"停用\\\",\\\"owner\\\":\\\"王晓\\\",\\\"updatedAt\\\":\\\"2026-10-09 09:30:00\\\"},{\\\"id\\\":\\\"1026\\\",\\\"name\\\":\\\"支付结果通知 9\\\",\\\"category\\\":\\\"账户\\\",\\\"status\\\":\\\"启用\\\",\\\"owner\\\":\\\"李明\\\",\\\"updatedAt\\\":\\\"2026-10-09 09:30:00\\\"},{\\\"id\\\":\\\"1027\\\",\\\"name\\\":\\\"账户安全提醒 9\\\",\\\"category\\\":\\\"消息\\\",\\\"status\\\":\\\"启用\\\",\\\"owner\\\":\\\"王晓\\\",\\\"updatedAt\\\":\\\"2026-10-09 09:30:00\\\"},{\\\"id\\\":\\\"1028\\\",\\\"name\\\":\\\"用户通知配置 10\\\",\\\"category\\\":\\\"账户\\\",\\\"status\\\":\\\"停用\\\",\\\"owner\\\":\\\"李明\\\",\\\"updatedAt\\\":\\\"2026-10-09 09:30:00\\\"},{\\\"id\\\":\\\"1029\\\",\\\"name\\\":\\\"支付结果通知 10\\\",\\\"category\\\":\\\"消息\\\",\\\"status\\\":\\\"启用\\\",\\\"owner\\\":\\\"王晓\\\",\\\"updatedAt\\\":\\\"2026-10-09 09:30:00\\\"},{\\\"id\\\":\\\"1030\\\",\\\"name\\\":\\\"账户安全提醒 10\\\",\\\"category\\\":\\\"账户\\\",\\\"status\\\":\\\"启用\\\",\\\"owner\\\":\\\"李明\\\",\\\"updatedAt\\\":\\\"2026-10-09 09:30:00\\\"},{\\\"id\\\":\\\"1031\\\",\\\"name\\\":\\\"用户通知配置 11\\\",\\\"category\\\":\\\"消息\\\",\\\"status\\\":\\\"停用\\\",\\\"owner\\\":\\\"王晓\\\",\\\"updatedAt\\\":\\\"2026-10-09 09:30:00\\\"},{\\\"id\\\":\\\"1032\\\",\\\"name\\\":\\\"支付结果通知 11\\\",\\\"category\\\":\\\"账户\\\",\\\"status\\\":\\\"启用\\\",\\\"owner\\\":\\\"李明\\\",\\\"updatedAt\\\":\\\"2026-10-09 09:30:00\\\"},{\\\"id\\\":\\\"1033\\\",\\\"name\\\":\\\"账户安全提醒 11\\\",\\\"category\\\":\\\"消息\\\",\\\"status\\\":\\\"启用\\\",\\\"owner\\\":\\\"王晓\\\",\\\"updatedAt\\\":\\\"2026-10-09 09:30:00\\\"},{\\\"id\\\":\\\"1034\\\",\\\"name\\\":\\\"用户通知配置 12\\\",\\\"category\\\":\\\"账户\\\",\\\"status\\\":\\\"停用\\\",\\\"owner\\\":\\\"李明\\\",\\\"updatedAt\\\":\\\"2026-10-09 09:30:00\\\"},{\\\"id\\\":\\\"1035\\\",\\\"name\\\":\\\"支付结果通知 12\\\",\\\"category\\\":\\\"消息\\\",\\\"status\\\":\\\"启用\\\",\\\"owner\\\":\\\"王晓\\\",\\\"updatedAt\\\":\\\"2026-10-09 09:30:00\\\"},{\\\"id\\\":\\\"1036\\\",\\\"name\\\":\\\"账户安全提醒 12\\\",\\\"category\\\":\\\"账户\\\",\\\"status\\\":\\\"启用\\\",\\\"owner\\\":\\\"李明\\\",\\\"updatedAt\\\":\\\"2026-10-09 09:30:00\\\"},{\\\"id\\\":\\\"1037\\\",\\\"name\\\":\\\"用户通知配置 13\\\",\\\"category\\\":\\\"消息\\\",\\\"status\\\":\\\"停用\\\",\\\"owner\\\":\\\"王晓\\\",\\\"updatedAt\\\":\\\"2026-10-09 09:30:00\\\"},{\\\"id\\\":\\\"1038\\\",\\\"name\\\":\\\"支付结果通知 13\\\",\\\"category\\\":\\\"账户\\\",\\\"status\\\":\\\"启用\\\",\\\"owner\\\":\\\"李明\\\",\\\"updatedAt\\\":\\\"2026-10-09 09:30:00\\\"},{\\\"id\\\":\\\"1039\\\",\\\"name\\\":\\\"账户安全提醒 13\\\",\\\"category\\\":\\\"消息\\\",\\\"status\\\":\\\"启用\\\",\\\"owner\\\":\\\"王晓\\\",\\\"updatedAt\\\":\\\"2026-10-09 09:30:00\\\"},{\\\"id\\\":\\\"1040\\\",\\\"name\\\":\\\"用户通知配置 14\\\",\\\"category\\\":\\\"账户\\\",\\\"status\\\":\\\"停用\\\",\\\"owner\\\":\\\"李明\\\",\\\"updatedAt\\\":\\\"2026-10-09 09:30:00\\\"},{\\\"id\\\":\\\"1041\\\",\\\"name\\\":\\\"支付结果通知 14\\\",\\\"category\\\":\\\"消息\\\",\\\"status\\\":\\\"启用\\\",\\\"owner\\\":\\\"王晓\\\",\\\"updatedAt\\\":\\\"2026-10-09 09:30:00\\\"},{\\\"id\\\":\\\"1042\\\",\\\"name\\\":\\\"账户安全提醒 14\\\",\\\"category\\\":\\\"账户\\\",\\\"status\\\":\\\"启用\\\",\\\"owner\\\":\\\"李明\\\",\\\"updatedAt\\\":\\\"2026-10-09 09:30:00\\\"},{\\\"id\\\":\\\"1043\\\",\\\"name\\\":\\\"用户通知配置 15\\\",\\\"category\\\":\\\"消息\\\",\\\"status\\\":\\\"停用\\\",\\\"owner\\\":\\\"王晓\\\",\\\"updatedAt\\\":\\\"2026-10-09 09:30:00\\\"},{\\\"id\\\":\\\"1044\\\",\\\"name\\\":\\\"支付结果通知 15\\\",\\\"category\\\":\\\"账户\\\",\\\"status\\\":\\\"启用\\\",\\\"owner\\\":\\\"李明\\\",\\\"updatedAt\\\":\\\"2026-10-09 09:30:00\\\"},{\\\"id\\\":\\\"1045\\\",\\\"name\\\":\\\"账户安全提醒 15\\\",\\\"category\\\":\\\"消息\\\",\\\"status\\\":\\\"启用\\\",\\\"owner\\\":\\\"王晓\\\",\\\"updatedAt\\\":\\\"2026-10-09 09:30:00\\\"}]} }}\",\"rowKey\":\"{{ \\\"id\\\" }}\",\"size\":\"large\",\"pagination\":{\"defaultPageSize\":10,\"pageSizeOptions\":[10,20,50],\"showSizeChanger\":true},\"scroll\":{\"x\":1080}}' style=\"max-width: 100%; object-fit: cover; width: 100%; min-width: 0px\">\n              <slot name=\"children\">\n                <slot-target name=\"tableColumns\" id=\"8mpoPHdxwHmN\">\n                  <plasmic-component id=\"hPOdzYVmYdNc\" data-plasmic-component=\"plasmicAntd6TableColumn\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"AllIDColumn\" data-props='{\"dataIndex\":\"id\",\"width\":96}' style=\"max-width: 100%; object-fit: cover\">\n                    <slot name=\"title\">\n                      <span id=\"yptxKlt3vy7d\">编号</span>\n                    </slot>\n                    <slot name=\"render\"></slot>\n                  </plasmic-component>\n                  <plasmic-component id=\"fQyGw_szHn8A\" data-plasmic-component=\"plasmicAntd6TableColumn\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"AllNameColumn\" data-props='{\"dataIndex\":\"name\",\"ellipsis\":true}' style=\"max-width: 100%; object-fit: cover\">\n                    <slot name=\"title\">\n                      <span id=\"P3w46cwXbuRa\">名称</span>\n                    </slot>\n                    <slot name=\"render\"></slot>\n                  </plasmic-component>\n                  <plasmic-component id=\"F8KurcuJqP11\" data-plasmic-component=\"plasmicAntd6TableColumn\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"AllCategoryColumn\" data-props='{\"dataIndex\":\"category\",\"width\":112,\"displayType\":\"tag\"}' style=\"max-width: 100%; object-fit: cover\">\n                    <slot name=\"title\">\n                      <span id=\"8icPOymOy3pG\">分类</span>\n                    </slot>\n                    <slot name=\"render\"></slot>\n                  </plasmic-component>\n                  <plasmic-component id=\"-Q3lvckLcW8r\" data-plasmic-component=\"plasmicAntd6TableColumn\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"AllStatusColumn\" data-props='{\"dataIndex\":\"status\",\"width\":104,\"displayType\":\"custom\"}' style=\"max-width: 100%; object-fit: cover\">\n                    <slot name=\"title\">\n                      <span id=\"iQoB5C4W7CTZ\">状态</span>\n                    </slot>\n                    <slot name=\"render\">\n                      <plasmic-component id=\"pRGWr-hLDy85\" data-plasmic-component=\"plasmicAntd6Badge\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"AllStatusBadge\" data-props='{\"status\":\"{{ row.status === \\\"启用\\\" ? \\\"success\\\" : \\\"default\\\" }}\",\"text\":\"{{ row.status }}\"}' style=\"max-width: 100%; object-fit: cover\">\n                        <slot name=\"children\"></slot>\n                      </plasmic-component>\n                    </slot>\n                  </plasmic-component>\n                  <plasmic-component id=\"bRnFOcqUEES4\" data-plasmic-component=\"plasmicAntd6TableColumn\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"AllOwnerColumn\" data-props='{\"dataIndex\":\"owner\",\"width\":112}' style=\"max-width: 100%; object-fit: cover\">\n                    <slot name=\"title\">\n                      <span id=\"RHMRa7tit7mU\">负责人</span>\n                    </slot>\n                    <slot name=\"render\"></slot>\n                  </plasmic-component>\n                  <plasmic-component id=\"bYIwSvFBVK5y\" data-plasmic-component=\"plasmicAntd6TableColumn\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"AllUpdatedAtColumn\" data-props='{\"dataIndex\":\"updatedAt\",\"width\":200,\"ellipsis\":true}' style=\"max-width: 100%; object-fit: cover\">\n                    <slot name=\"title\">\n                      <span id=\"ZWYKlxjsiyWf\">更新时间</span>\n                    </slot>\n                    <slot name=\"render\"></slot>\n                  </plasmic-component>\n                  <plasmic-component id=\"S-EGkQ-f8nSI\" data-plasmic-component=\"plasmicAntd6TableColumn\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"AllActionsColumn\" data-props='{\"fixed\":\"right\",\"width\":168,\"displayType\":\"custom\"}' style=\"max-width: 100%; object-fit: cover\">\n                    <slot name=\"title\">\n                      <span id=\"GatSzfL679Xp\">操作</span>\n                    </slot>\n                    <slot name=\"render\">\n                      <plasmic-component id=\"w4e0_Vv_e9gg\" data-plasmic-component=\"plasmicReactUiActionGroup\" data-plasmic-project=\"vJfWZAFzStvt61gEWotC7k\" data-plasmic-name=\"AllRecordActions\" data-props='{\"max\":3,\"items\":[{\"key\":\"detail\",\"label\":\"详情\"},{\"key\":\"edit\",\"label\":\"编辑\"},{\"key\":\"copy\",\"label\":\"复制\"},{\"key\":\"disable\",\"label\":\"停用\",\"confirm\":{\"title\":\"确认停用该记录？\",\"okText\":\"停用\",\"cancelText\":\"取消\"}}],\"dropdownProps\":{\"trigger\":[\"hover\"]}}' style=\"max-width: 100%; object-fit: cover\">\n                        <slot name=\"children\"></slot>\n                        <slot name=\"moreIcon\"></slot>\n                      </plasmic-component>\n                    </slot>\n                  </plasmic-component>\n                </slot-target>\n              </slot>\n              <slot name=\"title\"></slot>\n            </plasmic-component>\n          </slot>\n          <slot name=\"icon\"></slot>\n          <slot name=\"closeIcon\"></slot>\n        </plasmic-component>\n        <plasmic-component id=\"tLkamLcpSqTJ\" data-plasmic-component=\"plasmicAntd6TabItem\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"MyRecordsTab\" data-props='{\"key\":\"mine\"}' style=\"max-width: 100%; object-fit: cover\">\n          <slot name=\"label\">\n            <span id=\"aAlXgJ3Ucg1t\">我负责的</span>\n          </slot>\n          <slot name=\"children\">\n            <plasmic-component id=\"KKTRaMgv6esb\" data-plasmic-component=\"plasmicAntd6Table\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"MyRecordsTable\" data-props='{\"data\":\"{{ {\\\"data\\\":[{\\\"id\\\":\\\"1001\\\",\\\"name\\\":\\\"用户通知配置\\\",\\\"category\\\":\\\"消息\\\",\\\"status\\\":\\\"停用\\\",\\\"owner\\\":\\\"王晓\\\",\\\"updatedAt\\\":\\\"2026-10-09 09:30:00\\\"},{\\\"id\\\":\\\"1003\\\",\\\"name\\\":\\\"账户安全提醒\\\",\\\"category\\\":\\\"消息\\\",\\\"status\\\":\\\"启用\\\",\\\"owner\\\":\\\"王晓\\\",\\\"updatedAt\\\":\\\"2026-10-09 09:30:00\\\"},{\\\"id\\\":\\\"1005\\\",\\\"name\\\":\\\"支付结果通知 2\\\",\\\"category\\\":\\\"消息\\\",\\\"status\\\":\\\"启用\\\",\\\"owner\\\":\\\"王晓\\\",\\\"updatedAt\\\":\\\"2026-10-09 09:30:00\\\"},{\\\"id\\\":\\\"1007\\\",\\\"name\\\":\\\"用户通知配置 3\\\",\\\"category\\\":\\\"消息\\\",\\\"status\\\":\\\"停用\\\",\\\"owner\\\":\\\"王晓\\\",\\\"updatedAt\\\":\\\"2026-10-09 09:30:00\\\"},{\\\"id\\\":\\\"1009\\\",\\\"name\\\":\\\"账户安全提醒 3\\\",\\\"category\\\":\\\"消息\\\",\\\"status\\\":\\\"启用\\\",\\\"owner\\\":\\\"王晓\\\",\\\"updatedAt\\\":\\\"2026-10-09 09:30:00\\\"},{\\\"id\\\":\\\"1011\\\",\\\"name\\\":\\\"支付结果通知 4\\\",\\\"category\\\":\\\"消息\\\",\\\"status\\\":\\\"启用\\\",\\\"owner\\\":\\\"王晓\\\",\\\"updatedAt\\\":\\\"2026-10-09 09:30:00\\\"},{\\\"id\\\":\\\"1013\\\",\\\"name\\\":\\\"用户通知配置 5\\\",\\\"category\\\":\\\"消息\\\",\\\"status\\\":\\\"停用\\\",\\\"owner\\\":\\\"王晓\\\",\\\"updatedAt\\\":\\\"2026-10-09 09:30:00\\\"},{\\\"id\\\":\\\"1015\\\",\\\"name\\\":\\\"账户安全提醒 5\\\",\\\"category\\\":\\\"消息\\\",\\\"status\\\":\\\"启用\\\",\\\"owner\\\":\\\"王晓\\\",\\\"updatedAt\\\":\\\"2026-10-09 09:30:00\\\"},{\\\"id\\\":\\\"1017\\\",\\\"name\\\":\\\"支付结果通知 6\\\",\\\"category\\\":\\\"消息\\\",\\\"status\\\":\\\"启用\\\",\\\"owner\\\":\\\"王晓\\\",\\\"updatedAt\\\":\\\"2026-10-09 09:30:00\\\"},{\\\"id\\\":\\\"1019\\\",\\\"name\\\":\\\"用户通知配置 7\\\",\\\"category\\\":\\\"消息\\\",\\\"status\\\":\\\"停用\\\",\\\"owner\\\":\\\"王晓\\\",\\\"updatedAt\\\":\\\"2026-10-09 09:30:00\\\"},{\\\"id\\\":\\\"1021\\\",\\\"name\\\":\\\"账户安全提醒 7\\\",\\\"category\\\":\\\"消息\\\",\\\"status\\\":\\\"启用\\\",\\\"owner\\\":\\\"王晓\\\",\\\"updatedAt\\\":\\\"2026-10-09 09:30:00\\\"},{\\\"id\\\":\\\"1023\\\",\\\"name\\\":\\\"支付结果通知 8\\\",\\\"category\\\":\\\"消息\\\",\\\"status\\\":\\\"启用\\\",\\\"owner\\\":\\\"王晓\\\",\\\"updatedAt\\\":\\\"2026-10-09 09:30:00\\\"},{\\\"id\\\":\\\"1025\\\",\\\"name\\\":\\\"用户通知配置 9\\\",\\\"category\\\":\\\"消息\\\",\\\"status\\\":\\\"停用\\\",\\\"owner\\\":\\\"王晓\\\",\\\"updatedAt\\\":\\\"2026-10-09 09:30:00\\\"},{\\\"id\\\":\\\"1027\\\",\\\"name\\\":\\\"账户安全提醒 9\\\",\\\"category\\\":\\\"消息\\\",\\\"status\\\":\\\"启用\\\",\\\"owner\\\":\\\"王晓\\\",\\\"updatedAt\\\":\\\"2026-10-09 09:30:00\\\"},{\\\"id\\\":\\\"1029\\\",\\\"name\\\":\\\"支付结果通知 10\\\",\\\"category\\\":\\\"消息\\\",\\\"status\\\":\\\"启用\\\",\\\"owner\\\":\\\"王晓\\\",\\\"updatedAt\\\":\\\"2026-10-09 09:30:00\\\"},{\\\"id\\\":\\\"1031\\\",\\\"name\\\":\\\"用户通知配置 11\\\",\\\"category\\\":\\\"消息\\\",\\\"status\\\":\\\"停用\\\",\\\"owner\\\":\\\"王晓\\\",\\\"updatedAt\\\":\\\"2026-10-09 09:30:00\\\"},{\\\"id\\\":\\\"1033\\\",\\\"name\\\":\\\"账户安全提醒 11\\\",\\\"category\\\":\\\"消息\\\",\\\"status\\\":\\\"启用\\\",\\\"owner\\\":\\\"王晓\\\",\\\"updatedAt\\\":\\\"2026-10-09 09:30:00\\\"},{\\\"id\\\":\\\"1035\\\",\\\"name\\\":\\\"支付结果通知 12\\\",\\\"category\\\":\\\"消息\\\",\\\"status\\\":\\\"启用\\\",\\\"owner\\\":\\\"王晓\\\",\\\"updatedAt\\\":\\\"2026-10-09 09:30:00\\\"},{\\\"id\\\":\\\"1037\\\",\\\"name\\\":\\\"用户通知配置 13\\\",\\\"category\\\":\\\"消息\\\",\\\"status\\\":\\\"停用\\\",\\\"owner\\\":\\\"王晓\\\",\\\"updatedAt\\\":\\\"2026-10-09 09:30:00\\\"},{\\\"id\\\":\\\"1039\\\",\\\"name\\\":\\\"账户安全提醒 13\\\",\\\"category\\\":\\\"消息\\\",\\\"status\\\":\\\"启用\\\",\\\"owner\\\":\\\"王晓\\\",\\\"updatedAt\\\":\\\"2026-10-09 09:30:00\\\"},{\\\"id\\\":\\\"1041\\\",\\\"name\\\":\\\"支付结果通知 14\\\",\\\"category\\\":\\\"消息\\\",\\\"status\\\":\\\"启用\\\",\\\"owner\\\":\\\"王晓\\\",\\\"updatedAt\\\":\\\"2026-10-09 09:30:00\\\"},{\\\"id\\\":\\\"1043\\\",\\\"name\\\":\\\"用户通知配置 15\\\",\\\"category\\\":\\\"消息\\\",\\\"status\\\":\\\"停用\\\",\\\"owner\\\":\\\"王晓\\\",\\\"updatedAt\\\":\\\"2026-10-09 09:30:00\\\"},{\\\"id\\\":\\\"1045\\\",\\\"name\\\":\\\"账户安全提醒 15\\\",\\\"category\\\":\\\"消息\\\",\\\"status\\\":\\\"启用\\\",\\\"owner\\\":\\\"王晓\\\",\\\"updatedAt\\\":\\\"2026-10-09 09:30:00\\\"}]} }}\",\"rowKey\":\"{{ \\\"id\\\" }}\",\"size\":\"large\",\"pagination\":{\"defaultPageSize\":20,\"pageSizeOptions\":[20,50,100],\"showSizeChanger\":true},\"scroll\":{\"x\":1080}}' style=\"max-width: 100%; object-fit: cover; width: 100%; min-width: 0px\">\n              <slot name=\"children\">\n                <plasmic-component id=\"AOkvGtbLEtH_\" data-plasmic-component=\"plasmicAntd6TableColumn\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"MyIDColumn\" data-props='{\"dataIndex\":\"id\",\"width\":96}' style=\"max-width: 100%; object-fit: cover\">\n                  <slot name=\"title\">\n                    <span id=\"fC6xtpeRuLiF\">编号</span>\n                  </slot>\n                  <slot name=\"render\"></slot>\n                </plasmic-component>\n                <plasmic-component id=\"i2EFv8Jk44Dd\" data-plasmic-component=\"plasmicAntd6TableColumn\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"MyNameColumn\" data-props='{\"dataIndex\":\"name\",\"ellipsis\":true}' style=\"max-width: 100%; object-fit: cover\">\n                  <slot name=\"title\">\n                    <span id=\"ipnznAs5tlat\">名称</span>\n                  </slot>\n                  <slot name=\"render\"></slot>\n                </plasmic-component>\n                <plasmic-component id=\"TrbRZtT43Cd4\" data-plasmic-component=\"plasmicAntd6TableColumn\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"MyCategoryColumn\" data-props='{\"dataIndex\":\"category\",\"width\":112,\"displayType\":\"tag\"}' style=\"max-width: 100%; object-fit: cover\">\n                  <slot name=\"title\">\n                    <span id=\"WMc-pxnomV9W\">分类</span>\n                  </slot>\n                  <slot name=\"render\"></slot>\n                </plasmic-component>\n                <plasmic-component id=\"fchDye_Qthh-\" data-plasmic-component=\"plasmicAntd6TableColumn\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"MyStatusColumn\" data-props='{\"dataIndex\":\"status\",\"width\":104,\"displayType\":\"custom\"}' style=\"max-width: 100%; object-fit: cover\">\n                  <slot name=\"title\">\n                    <span id=\"EbXP8XED6z7I\">状态</span>\n                  </slot>\n                  <slot name=\"render\">\n                    <plasmic-component id=\"CRoO2DZwICBC\" data-plasmic-component=\"plasmicAntd6Badge\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"MyStatusBadge\" data-props='{\"status\":\"{{ row.status === \\\"启用\\\" ? \\\"success\\\" : \\\"default\\\" }}\",\"text\":\"{{ row.status }}\"}' style=\"max-width: 100%; object-fit: cover\">\n                      <slot name=\"children\"></slot>\n                    </plasmic-component>\n                  </slot>\n                </plasmic-component>\n                <plasmic-component id=\"c6rRAKrEC74q\" data-plasmic-component=\"plasmicAntd6TableColumn\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"MyOwnerColumn\" data-props='{\"dataIndex\":\"owner\",\"width\":112}' style=\"max-width: 100%; object-fit: cover\">\n                  <slot name=\"title\">\n                    <span id=\"uGMk2Z0Evnwp\">负责人</span>\n                  </slot>\n                  <slot name=\"render\"></slot>\n                </plasmic-component>\n                <plasmic-component id=\"eS4MjdGxyu5P\" data-plasmic-component=\"plasmicAntd6TableColumn\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"MyUpdatedAtColumn\" data-props='{\"dataIndex\":\"updatedAt\",\"width\":200,\"ellipsis\":true}' style=\"max-width: 100%; object-fit: cover\">\n                  <slot name=\"title\">\n                    <span id=\"eMGVecUH6y5R\">更新时间</span>\n                  </slot>\n                  <slot name=\"render\"></slot>\n                </plasmic-component>\n                <plasmic-component id=\"Ijs_9mlE7exN\" data-plasmic-component=\"plasmicAntd6TableColumn\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"MyActionsColumn\" data-props='{\"fixed\":\"right\",\"width\":168,\"displayType\":\"custom\"}' style=\"max-width: 100%; object-fit: cover\">\n                  <slot name=\"title\">\n                    <span id=\"DOO94GFUNDQ2\">操作</span>\n                  </slot>\n                  <slot name=\"render\">\n                    <plasmic-component id=\"u2GN2yeUwUj5\" data-plasmic-component=\"plasmicReactUiActionGroup\" data-plasmic-project=\"vJfWZAFzStvt61gEWotC7k\" data-plasmic-name=\"MyRecordActions\" data-props='{\"max\":3,\"items\":[{\"key\":\"detail\",\"label\":\"详情\"},{\"key\":\"edit\",\"label\":\"编辑\"},{\"key\":\"copy\",\"label\":\"复制\"},{\"key\":\"disable\",\"label\":\"停用\",\"confirm\":{\"title\":\"确认停用该记录？\",\"okText\":\"停用\",\"cancelText\":\"取消\"}}],\"dropdownProps\":{\"trigger\":[\"hover\"]}}' style=\"max-width: 100%; object-fit: cover\">\n                      <slot name=\"children\"></slot>\n                      <slot name=\"moreIcon\"></slot>\n                    </plasmic-component>\n                  </slot>\n                </plasmic-component>\n              </slot>\n              <slot name=\"title\"></slot>\n            </plasmic-component>\n          </slot>\n          <slot name=\"icon\"></slot>\n          <slot name=\"closeIcon\"></slot>\n        </plasmic-component>\n      </slot>\n      <slot name=\"tabBarExtraContentRight\">\n        <slot-target name=\"primaryActions\" id=\"leBN2u96g4Za\">\n          <plasmic-component id=\"3CGK0taBwt1_\" data-plasmic-component=\"plasmicAntd6Button\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"CreateRecord\" data-props='{\"size\":\"medium\",\"type\":\"primary\"}' style=\"max-width: 100%; object-fit: cover\">\n            <slot name=\"children\">\n              <span id=\"FYc3dg5FmRYZ\">新建</span>\n            </slot>\n            <slot name=\"icon\">\n              <plasmic-component id=\"9XQ8Ul1d99eX\" data-plasmic-component=\"plasmicAntdIconPlusOutlined\" data-plasmic-project=\"vuoraLeVbtw7rQTKJ6UKar\" data-plasmic-name=\"PlusOutlined\" style=\"font-size: 16px; max-width: 100%; object-fit: cover; color: currentcolor\"></plasmic-component>\n            </slot>\n          </plasmic-component>\n        </slot-target>\n      </slot>\n      <slot name=\"tabBarExtraContentLeft\"></slot>\n      <slot name=\"addIcon\"></slot>\n      <slot name=\"removeIcon\"></slot>\n    </plasmic-component>\n  </slot>\n</plasmic-component>",
+              "variantSettings": [],
+              "interactions": []
+            }
+          ]
+        }
+      ],
+      "read": {
+        "fields": [
+          "components"
+        ],
+        "depth": 0,
+        "itemFields": [
+          "__type",
+          "uuid",
+          "name",
+          "type",
+          "componentUuid",
+          "rootElementUuid",
+          "tag",
+          "registeredComponentUuid",
+          "description",
+          "pageMeta",
+          "fromProject",
+          "isContext",
+          "codeComponent",
+          "refActions",
+          "globalActions",
+          "props",
+          "variants",
+          "variantGroups",
+          "states",
+          "dataQueries",
+          "legacyDataQueries",
+          "baseVariantTplTree",
+          "variantSettings",
+          "interactions",
+          "id",
+          "components",
+          "canvases",
+          "pageFrames",
+          "devicePresets",
+          "screenBreakpoints",
+          "tokens",
+          "dataTokens",
+          "globalVariantGroups",
+          "globalContexts",
+          "importedProjects",
+          "dataQueryFunctions"
+        ],
+        "itemDepth": "all"
+      },
+      "total": 1
+    }
+  },
+  "contracts": [
+    {
+      "__type": "OutputResult",
+      "results": [
+        {
+          "__type": "Component",
+          "uuid": "Lrdw4Jts1Zzd",
+          "name": "TabsTableSection",
+          "type": "plain",
+          "props": [
+            {
+              "name": "tableColumns",
+              "type": "slot"
+            },
+            {
+              "name": "primaryActions",
+              "type": "slot"
+            }
+          ],
+          "variants": [],
+          "variantGroups": []
+        }
+      ],
+      "read": {
+        "fields": [
+          "__type",
+          "uuid",
+          "name",
+          "type",
+          "isContext",
+          "componentUuid",
+          "description",
+          "fromProject",
+          "props",
+          "refActions",
+          "globalActions",
+          "variants",
+          "variantGroups"
+        ],
+        "depth": 0
+      }
+    }
+  ]
+}

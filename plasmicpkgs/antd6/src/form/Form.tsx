@@ -255,12 +255,6 @@ const Internal = React.forwardRef(
               isSubmitting && autoDisableWhileSubmitting ? true : disabled
             }
           >
-            {/*Remove built-in spacing on form fields*/}
-            <style>{`
-          .ant-form-item-explain + div, .ant-form-item-margin-offset {
-            display: none;
-          }
-          `}</style>
             {childrenNode}
           </Form>
         </FormLayoutContext.Provider>
@@ -279,6 +273,7 @@ export interface FormRefActions extends Pick<
 
 export const FormWrapper = React.forwardRef(
   (props: FormWrapperProps, ref: React.Ref<FormRefActions>) => {
+    const layout = props.layout ?? "horizontal";
     const [remountKey, setRemountKey] = React.useState(0);
     const forceRemount = React.useCallback(
       () => setRemountKey((k) => k + 1),
@@ -304,10 +299,10 @@ export const FormWrapper = React.forwardRef(
 
     const formLayout = React.useMemo(
       () => ({
-        layout: props.layout,
+        layout,
         labelSpan: props.labelCol?.span as number | undefined,
       }),
-      [props.layout, props.labelCol?.span],
+      [layout, props.labelCol?.span],
     );
 
     return (
@@ -319,6 +314,7 @@ export const FormWrapper = React.forwardRef(
         setInternalFieldCtx={setInternalFieldCtx}
         ref={ref}
         {...props}
+        layout={layout}
       />
     );
   },

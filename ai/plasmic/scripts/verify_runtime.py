@@ -43,26 +43,29 @@ def record_case_errors(plan):
     for page in plan.get('pages', []):
         if not page.get('recordPage'):
             continue
-        cases = [c for c in (page.get('cases') or [])
+        # Record cases live in the Page's native case collections (runtimeCases and owner cases).
+        cases = [c for c in runtime_cases(page)
                  if isinstance(c, dict) and isinstance(c.get('given'), dict)
                  and isinstance(c['given'].get('routeParams'), dict) and c['given']['routeParams']]
         if len(cases) < 2:
             errors.append({'message': 'Record Page needs at least two record cases (distinct identities)',
                            'path': page.get('path')})
             continue
-        params = [json.dumps(c['given'].get('routeParams'), sort_keys=True) for c in cases]
-        expects = [json.dumps([a.get('text') for a in (c.get('checks') or []) if isinstance(a, dict)], sort_keys=True)
-                   for c in cases]
-        if len(set(params)) < 2:
-            errors.append({'message': 'Record cases must use distinct route params', 'path': page.get('path')})
-        if len(set(expects)) < 2:
-            errors.append({'message': 'Record cases must assert different destination content', 'path': page.get('path')})
+        resolved = []
         for case in cases:
-            texts = [a.get('text') for a in (case.get('checks') or [])
-                     if isinstance(a, dict) and a.get('kind') == 'text']
-            if not texts:
-                errors.append({'message': 'Record case needs a text check to prove the destination resolved it',
-                               'path': page.get('path'), 'id': case.get('id')})
+            texts = frozenset(a['text'] for a in (case.get('checks') or [])
+                              if isinstance(a, dict) and a.get('kind') == 'text' and a.get('present') is True
+                              and isinstance(a.get('text'), str) and a['text'].strip())
+            if texts:
+                resolved.append((json.dumps(case['given']['routeParams'], sort_keys=True), texts))
+        if len(resolved) < 2:
+            errors.append({'message': 'Record Page needs at least two cases with positive destination-content text checks; absence alone cannot prove record resolution',
+                           'path': page.get('path')})
+        if len({params for params, _ in resolved}) < 2:
+            errors.append({'message': 'Record cases must use distinct route params', 'path': page.get('path')})
+        if not any(first_params != second_params and first_texts != second_texts
+                   for first_params, first_texts in resolved for second_params, second_texts in resolved):
+            errors.append({'message': 'Record cases must assert different destination content', 'path': page.get('path')})
     return errors
 
 

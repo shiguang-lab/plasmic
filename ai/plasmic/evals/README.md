@@ -16,6 +16,8 @@ The recorded bounded evaluation and live acceptance are in [results](results.md)
 The batch/reading/evidence optimization and its four-page regression limits are in [context results](context-results.md).
 The latest dynamic-check, evidence-reuse and counterexample audit is in [REQ075 review](req075-regression/review5-results.md).
 
+[Page-type regressions](page-types/README.md) give one neutral requirement per page type and grade the design-time decisions of the resulting plan, so specification changes are not tuned to a single real requirement.
+
 `evals.json` covers read-only template interpretation, a focused prototype edit, incremental React coding, an explicit official CLI request, a cross-project read with a saving side effect, and failed validation after a session change. Run each prompt in a fresh agent context with the designated skill and isolated inputs; use the original published skill as the baseline. Repeat the new skill cases to expose inconsistent decisions.
 
 Generate isolated models and public operation schemas from the actual Studio tools:

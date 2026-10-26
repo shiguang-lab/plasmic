@@ -8,6 +8,11 @@ Library: [Ant Design v6](../index.md).
 
 ## Generation rules
 
+### Design defaults
+
+- Use inside the empty region (Table and List render their own); the description says what is missing in business terms.
+- Offer an action only when the user is allowed to create or change the filter.
+
 ### No content
 
 Use Empty for an actual no-data or no-results region after loading has completed. Distinguish those conditions from request failure, missing prerequisites and denied access. Bind description and any children action to the actual condition; clear default demo content. A reset-filter or create action is shown only when meaningful and authorized.

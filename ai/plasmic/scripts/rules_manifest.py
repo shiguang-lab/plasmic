@@ -5,13 +5,32 @@ One source of truth for: registration -> owning document, required plan
 decisions, and the reference anchor that every gate diagnostic points back to.
 """
 import json
+import posixpath
 import re
 from functools import lru_cache
 from pathlib import Path
 
 RESOURCE_ROOT = Path(__file__).resolve().parent.parent
 PENDING = '__DECIDE__'
-STAGE_SECTIONS = {'plan': 'plan-decisions', 'generation': 'generation-rules', 'acceptance': 'acceptance-checks'}
+STAGE_SECTIONS = {'plan': 'plan-decisions', 'generation': 'generation-rules',
+                  'conditional': 'conditional-rules', 'acceptance': 'acceptance-checks'}
+# The only machine-read constraint marker; the reference validator rejects variants.
+HARD_CONSTRAINTS = '**Hard constraints**'
+
+
+def hard_constraints(text):
+    """Bullets of a document's **Hard constraints** block (before the first level-2 heading), in order."""
+    lines = text.split('\n## ', 1)[0].split('\n')
+    start = next((i for i, line in enumerate(lines) if line.startswith(HARD_CONSTRAINTS)), None)
+    if start is None:
+        return []
+    items = []
+    for line in lines[start + 1:]:
+        if line.startswith('- '):
+            items.append(line[2:].strip())
+        elif line.strip() and items:
+            break
+    return items
 
 
 def norm(value):
@@ -36,7 +55,9 @@ def manifest():
         for check, target in data.get('checks', {}).items():
             checks[check] = f'{base}/{target}'
     return {'registrations': registrations, 'prefixes': prefixes, 'libraryChecks': checks, 'checks': shared['checks'],
-            'gates': shared['gates'], 'pageDecisions': shared['pageDecisions']}
+            'gates': shared['gates'], 'pageDecisions': shared['pageDecisions'],
+            'pageRules': shared.get('pageRules', {}), 'projectRules': shared.get('projectRules', []),
+            'projectRulesWhen': shared.get('projectRulesWhen', {})}
 
 
 def registration(key):
@@ -51,6 +72,15 @@ def document_for(key):
     return next((document for prefix, document in manifest()['prefixes'] if normalized.startswith(prefix)), None)
 
 
+def library_for(key):
+    """Known registration scope only; display names and unknown prefixes prove nothing."""
+    entry = registration(key)
+    if entry:
+        return entry['library']
+    document = document_for(key)
+    return document.split('/')[2] if document else None
+
+
 def decisions_for(key):
     entry = registration(key)
     return entry['decisions'] if entry else []
@@ -59,7 +89,8 @@ def decisions_for(key):
 def decision_rule(key, item):
     if item.get('document'):
         entry = registration(key) or {}
-        return f"{entry.get('base', '')}/{item['document']}#{item['rule']}"
+        # Library-relative, possibly reaching a shared design owner (../../design/scale.md).
+        return f"{posixpath.normpath(entry.get('base', '') + '/' + item['document'])}#{item['rule']}"
     return f"{document_for(key)}#{item['rule']}"
 
 

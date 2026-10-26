@@ -12,7 +12,7 @@ import {
 import { asArray } from "../src/utils";
 import type { Registerable } from "../src/utils";
 
-const tagRender = (cell: unknown) => <AntdTag value={String(cell)} />;
+const tagRender = (cell: unknown) => <AntdTag>{String(cell)}</AntdTag>;
 
 const data = {
   data: [
@@ -22,7 +22,7 @@ const data = {
   ],
 };
 
-test("wide tables own horizontal scrolling and respect an explicit scroll override", () => {
+test("tables keep native scrolling: none unless scroll is set explicitly", () => {
   const { container, rerender } = render(
     <AntdTable data={data} rowKey="id" pagination={false}>
       <AntdColumn title="Name" dataIndex="name" width={400} />
@@ -31,9 +31,9 @@ test("wide tables own horizontal scrolling and respect an explicit scroll overri
   );
   expect(
     container.querySelector<HTMLElement>(".ant-table-content")?.style.overflowX,
-  ).toBe("auto");
+  ).toBe("");
   expect(container.querySelector<HTMLElement>("table")?.style.minWidth).toBe(
-    "100%",
+    "",
   );
   rerender(
     <AntdTable data={data} rowKey="id" pagination={false} scroll={{ x: 640 }}>
@@ -83,7 +83,6 @@ test("headers, cell contents and empty cell space resolve to the original column
   const status = React.createElement(AntdColumn, {
     title: "Status",
     dataIndex: "status",
-    displayType: "custom",
     render: tagRender,
     "data-plasmic-valkey": "table.status",
   } as React.ComponentProps<typeof AntdColumn>);
@@ -165,7 +164,6 @@ test("grouped columns and nested field paths keep cell selection and formatting"
             <AntdColumn
               title="Status"
               dataIndex={["user", "status"]}
-              displayType="custom"
               render={tagRender}
             />
             <AntdColumn title="Name" dataIndex={["user", "name"]} />
@@ -199,7 +197,6 @@ test("custom cell nodes remain selectable and retain row bindings and actions", 
   const column = React.createElement(AntdColumn, {
     title: "Action",
     dataIndex: "status",
-    displayType: "custom",
     render: renderer,
     "data-plasmic-valkey": "table.status",
   } as React.ComponentProps<typeof AntdColumn>);
@@ -264,7 +261,6 @@ test("column slots inside a canvas observer evaluate within their data context",
           <AntdColumn
             title="Status"
             dataIndex="status"
-            displayType="custom"
             render={() => value}
           />
         </>
@@ -297,11 +293,8 @@ test("column controls expose formatting and show only the relevant settings", ()
   const meta = metas.get("plasmic-antd6-table-column");
   const props = meta.props;
   expect(meta.isRenderless).not.toBe(true);
-  expect(props.displayType.options.map((option: any) => option.value)).toEqual([
-    "text",
-    "custom",
-  ]);
   for (const removed of [
+    "displayType",
     "tagOptions",
     "tagColor",
     "templateType",
@@ -312,16 +305,14 @@ test("column controls expose formatting and show only the relevant settings", ()
     expect(props[removed]).toBeUndefined();
   }
   expect(meta.actions).toBeUndefined();
-  for (const control of [props.render, props.onCellClick]) {
-    expect(control.hidden({ displayType: "text" })).toBe(true);
-    expect(control.hidden({ displayType: "custom" })).toBe(false);
-    expect(control.hidden({ render: () => null })).toBe(false);
-  }
+  expect(props.render.hidden).toBeUndefined();
+  expect(props.onCellClick.hidden({})).toBe(true);
+  expect(props.onCellClick.hidden({ render: () => null })).toBe(false);
   expect(props.render.renderPropParams).toEqual(["cell", "row", "index"]);
   expect(meta.styleSections).toBe(false);
 });
 
-test("legacy preset values fall back to text", () => {
+test("retired column presets render native field text", () => {
   const { container } = render(
     <AntdTable data={data} rowKey="id" pagination={false}>
       <AntdColumn
@@ -346,7 +337,6 @@ test("custom render receives exactly cell, row and index", () => {
       <AntdColumn
         title="Status"
         dataIndex="status"
-        displayType="custom"
         render={renderer}
       />
     </AntdTable>,
@@ -355,7 +345,21 @@ test("custom render receives exactly cell, row and index", () => {
   expect(renderer.mock.calls[0]).toEqual(["pending", data.data[0], 0]);
 });
 
-test("onCellClick applies when render is set without displayType", () => {
+test("columns without a render slot show native field values", () => {
+  render(
+    <AntdTable
+      data={{ data: [{ id: "1", count: 0 }, { id: "2", count: 12 }, { id: "3", count: null }] }}
+      rowKey="id"
+      pagination={false}
+    >
+      <AntdColumn title="Count" dataIndex="count" />
+    </AntdTable>,
+  );
+  const cells = screen.getAllByRole("cell");
+  expect(cells.map((cell) => cell.textContent)).toEqual(["0", "12", ""]);
+});
+
+test("onCellClick applies to a column with a render slot", () => {
   const onCellClick = vi.fn();
   render(
     <AntdTable data={data} rowKey="id" pagination={false}>
@@ -371,29 +375,22 @@ test("onCellClick applies when render is set without displayType", () => {
   expect(onCellClick).toHaveBeenCalledExactlyOnceWith("Bob", data.data[1], 1);
 });
 
-test("onCellClick is ignored for text columns", () => {
+test("onCellClick is ignored for columns without a render slot", () => {
   const onCellClick = vi.fn();
   render(
     <AntdTable data={data} rowKey="id" pagination={false}>
-      <AntdColumn
-        title="Name"
-        dataIndex="name"
-        displayType="text"
-        onCellClick={onCellClick}
-        render={(cell) => <button>{cell}</button>}
-      />
+      <AntdColumn title="Name" dataIndex="name" onCellClick={onCellClick} />
     </AntdTable>,
   );
-  expect(screen.queryByRole("button")).toBeNull();
   fireEvent.click(screen.getByRole("cell", { name: "Bob" }));
   expect(onCellClick).not.toHaveBeenCalled();
 });
 
-test("custom Tag render maps single and array values", () => {
-  const options = [
-    { value: "pending", label: "待处理", color: "orange" },
-    { value: "done", label: "已完成", color: "green" },
-  ];
+test("render slots compose native Tags for single and array values", () => {
+  const options: Record<string, { label: string; color: string }> = {
+    pending: { label: "待处理", color: "orange" },
+    done: { label: "已完成", color: "green" },
+  };
   const { container } = render(
     <AntdTable
       data={{
@@ -409,12 +406,13 @@ test("custom Tag render maps single and array values", () => {
       <AntdColumn
         title="Tags"
         dataIndex="tags"
-        displayType="custom"
         render={(cell) =>
           asArray(cell)
             .filter((value) => value != null)
             .map((value, index) => (
-              <AntdTag key={index} value={String(value)} options={options} />
+              <AntdTag key={index} color={options[String(value)].color}>
+                {options[String(value)].label}
+              </AntdTag>
             ))
         }
       />
@@ -438,7 +436,6 @@ test.each([false, true])(
           <AntdColumn
             title="Actions"
             dataIndex="name"
-            displayType="custom"
             render={() => <button>Edit</button>}
             onCellClick={onCellClick}
           />
@@ -465,7 +462,6 @@ test("custom content buttons trigger the column action with the cell, row and in
       <AntdColumn
         title="Actions"
         dataIndex="name"
-        displayType="custom"
         onCellClick={onCellClick}
         render={(cell) => <button>{cell}</button>}
       />
@@ -484,7 +480,6 @@ test("custom column actions keep empty cell space inert and respect disabled but
       <AntdColumn
         title="Actions"
         dataIndex="name"
-        displayType="custom"
         onCellClick={action}
         onCell={onCell}
         render={(cell) => (
@@ -524,7 +519,6 @@ test("custom column actions work when canvas nodes belong to another iframe docu
         <AntdColumn
           title="Action"
           dataIndex="name"
-          displayType="custom"
           onCellClick={action}
           render={(cell) => (
             <button>
@@ -563,23 +557,4 @@ test("authoring immediately previews changes to the uncontrolled default page si
   expect(container.querySelectorAll("tr[data-row-key]")).toHaveLength(3);
   rerender(table(2));
   expect(container.querySelectorAll("tr[data-row-key]")).toHaveLength(2);
-});
-
-test("invalid tag mappings from persisted or dynamic props do not crash the table", () => {
-  const table = (options: unknown) => (
-    <AntdTable data={{ data: [{ id: "1001", type: "常规" }] }} rowKey="id" pagination={false}>
-      <AntdColumn
-        dataIndex="type"
-        displayType="custom"
-        render={(cell) => <AntdTag value={String(cell)} options={options as any} />}
-      />
-    </AntdTable>
-  );
-  const { container, rerender } = render(
-    table({ 常规: { label: "常规", color: "geekblue" } }),
-  );
-  expect(screen.getByText("常规")).toBeTruthy();
-  rerender(table([{ value: "常规", label: "映射正常", color: "geekblue" }]));
-  expect(screen.getByText("映射正常")).toBeTruthy();
-  expect(container.querySelector(".ant-tag-geekblue")).toBeTruthy();
 });

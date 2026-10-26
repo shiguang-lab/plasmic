@@ -4,11 +4,11 @@ Applies to the supported Overseas/Antd6 admin prototype workflow. Registered def
 
 ## Protected configuration
 
-Before composition, use the owning references: [SearchForm](../libraries/overseas/components/search-form.md#页面生成), [ActionGroup](../libraries/react_ui/components/action-group.md), [Dropdown](../libraries/antd_v6/components/dropdown.md), and [AppShell context](../libraries/overseas/components/app-shell.md#app-source-context).
+Before composition, use the owning references: [SearchForm](../libraries/overseas/components/search-form.md#page-generation), [ActionGroup](../libraries/react_ui/components/action-group.md), [Dropdown](../libraries/antd_v6/components/dropdown.md), and [AppShell context](../libraries/overseas/components/app-shell.md#app-context).
 
 Keep their protected layout/interaction defaults unless the owning reference defines another supported mode or the current user/authoritative source explicitly requires an exception. Interpret visual evidence through [visual sources and component rules](../requirement-alignment.md#visual-sources-and-component-rules); a draft's appearance alone is not an explicit override. Do not optimize them to fit available space, a long placeholder, the number of actions, a screenshot inspection or the current generated output. Data, labels, enum options, permissions, routes and measured labelWidth still follow the requirement; they are not frozen to example defaults. Existing scene rules such as headerless Tabs/Card composition also remain mandatory even when a component has default demo Slot content.
 
-SearchForm's [column decision](../libraries/overseas/components/search-form.md#布局与状态) uses four columns (`colSpan=6`) by default. A visual draft with multiple three-column field rows selects its supported three-column mode (`colSpan=8`); a single row of three fields does not. Other visual column counts are ignored and use four columns. Only explicit requirement-document evidence permits another grid value or Item span exception. Record the selected 6/8 mode in the existing component props/source and reference-region decision, without an override for a regular mode. The checker validates those native values and field inheritance; it does not infer the draft's row/column structure from a declaration.
+SearchForm's [column decision](../libraries/overseas/components/search-form.md#layout-and-state) uses four columns (`colSpan=6`) by default. A visual draft with multiple three-column field rows selects its supported three-column mode (`colSpan=8`); a single row of three fields does not. Other visual column counts are ignored and use four columns. Only explicit requirement-document evidence permits another grid value. An Item span exception needs that evidence or a measured layout capture under [SearchForm layout and state](../libraries/overseas/components/search-form.md#layout-and-state). Record the selected 6/8 mode in the existing component props/source and reference-region decision, without an override for a regular mode. The checker validates those native values and field inheritance; it does not infer the draft's row/column structure from a declaration.
 
 Use the same task-local `components` inventory, real prop names and native ownership. A necessary exception adds `overrides` under that component, keyed by the exact native property path:
 
@@ -103,7 +103,7 @@ These are fields of the **existing structure inventory**, not an additional chec
 | `templates` | Existing template selections/capture evidence; see [template sources](../admin-templates.md#source-evidence-before-composition). No-fit uses `templates:[]` plus a source-reviewed `templatesNotApplicable`, never an omitted read. |
 | `feedback` | Array, including `[]` if no operation feedback. Entries need `nodeName`, native `event`, `kind:transient/asynchronous`, `source`, `success`, `failure`. |
 | `appContext` | `required` is boolean and `evidence` is mandatory for a shell. When required: native `shell`, shared `binding`, consumer array `{nodeName,property,kind}` and `cases`. |
-| `actionContracts[*]` | Native action-owner `nodeName`, action `key`, `evidence`, **boolean** `confirm`, **array** `transitions`, nonempty `cases`. No-confirm/no-transition decisions are `false` and `[]`, not omitted values. |
+| `actionContracts[*]` | Native owner `nodeName`, action `key`, `evidence`, boolean `confirm`, array `transitions`, nonempty `cases`. No confirmation/transition uses `false`/`[]`. Optional `permissionDeniedNotApplicable` reason follows [permission scope](permissions.md#source-decisions-before-implementation). |
 | `transitions[*]` | Exact source state `from`, target state `to`, displayed `text`; each needs a matching case `transition` object and target-text assertion. |
 | A runtime case | Nonempty Page-unique string `id`, string `kind`, native owner `nodeName`, nonempty `given` preconditions, nonempty `checks` array; source `evidence` unless inherited from context/action owner. |
 | Case `assertPath` | Optional exact local Preview destination path for a cross-page result. Defaults to the owning Page path. Plan it from the required navigation before execution; it is not a manifest override. |
@@ -114,15 +114,35 @@ Case `kind` describes the scenario; `checks[*].kind` describes an assertion. The
 
 | Owner/behavior | Required `case.kind` values |
 | --- | --- |
-| Each action contract | `permission-allowed`, `permission-denied` |
+| Each action contract | `permission-allowed`; `permission-denied` unless `permissionDeniedNotApplicable` is supported by the reviewed source/scope |
 | Confirmed action | Additionally `confirm-cancel`, `confirm-accept` |
 | Declared state transition | `state-transition`, with one matching `transition:{from,to,text}` and text check per declared transition |
 | Query owner | `query`, `reset` |
-| Every pagination owner | `page-change`; separate cases can cover first/second/return. **`pagination` is a component role, not this case kind.** |
-| Adjustable page size | Additionally `page-size` |
+| Prototype-owned pagination (bound `pagination.current`/`pageSize`, a server query or a source page policy) | `page-change`; separate cases can cover first/second/return. **`pagination` is a component role, not this case kind.** Native component-owned paging over local data needs none. |
+| Prototype-owned and adjustable page size | Additionally `page-size` |
 | Required global context | `app-switch` on the shell; `context-data`, `context-create`, `context-export`, `context-navigation` for the corresponding consumer kinds |
 
-These spellings are required coverage, not a closed enum for every business scenario. Add source-required failure, recovery, feedback appearance/dismissal and other cases without replacing the mandatory kinds. IDs distinguish separate fixtures/branches of the same kind. Do not invent aliases or extra parallel case collections. The helper can assign IDs and copy reviewed shared actions; it cannot determine `given`, expected effects, permissions, source meaning or whether an assertion observes the right row.
+Add source-required failure, recovery and feedback cases alongside these required kinds. IDs distinguish fixtures/branches of the same kind; do not add aliases or parallel collections. The helper assigns IDs and copies reviewed actions; it cannot decide preconditions, effects, permissions or whether assertions observe the right row.
+
+### Case planning order
+
+Declaring one case turns on the per-owner contract: every owner present on the Page must supply its required kinds, and a partial list fails the structural gate (`runtimePlan`). Plan by owner first, then write all cases in one pass:
+
+1. List every owner on the Page that carries a runtime requirement: shell context, query owners, prototype-owned pagination, row actions and their destinations, overlays and record resolution.
+2. Write each owner's required kinds from the table above. Cases cover what the prototype implements: bindings, handlers, state and source rules. Ant Design's own behavior inside one component (native paging over local data, Tabs switching without bound state, Select opening) is observed in the Preview round, not planned as a case.
+3. Record Pages: two distinct identities render distinct content; a Page that declares modes also covers each mode and its restricted field state. Record cases put the identity in `given.routeParams` and the concrete Preview URL in `assertPath`:
+
+```json
+{"id":"detail-record-a","kind":"record-detail","nodeName":"IdentityInfo",
+ "given":{"routeParams":{"id":"<record-id-a>"}},
+ "checks":[{"kind":"text","text":"<record-id-a>","present":true}],
+ "assertPath":"/<collection>/detail/<record-id-a>",
+ "evidence":{"path":"...","sha256":"...","quote":"verbatim source text"}}
+```
+
+4. Write all cases, execute them, then keep the executed assertion lines.
+
+Adding only the record cases to a Page that also owns an AppShell or Table leaves those owners' kinds missing and the Page fails.
 
 Cases live in `runtimeCases`, `appContext.cases` or `actionContracts[*].cases`, with unique IDs per Page. Context/action cases inherit their owner's evidence. Each case declares `id`, `kind`, `nodeName`, `given` preconditions and native Preview `checks`; standalone cases also declare source `evidence`.
 
@@ -137,8 +157,8 @@ Cases live in `runtimeCases`, `appContext.cases` or `actionContracts[*].cases`, 
 }
 ```
 
-The states above illustrate a requirement-derived transition, not a universal lifecycle. Add separate failure-retry, permission and cancellation cases for the current requirement. Query owners require query/reset cases; exercise collapse/expand when applicable. Every pagination owner requires page-change cases, even with a fixed pageSize; a visible size changer or multiple/dynamically defined page-size options additionally requires page-size cases. Follow [Table paging data and acceptance](../libraries/antd_v6/components/table.md#pagination-test-data-and-acceptance) for fixture readiness and first/second/return record assertions; declared cases alone do not prove enough visible records. Required context needs app-switch plus context-data/create/export/navigation cases for its listed consumers. Feedback must be observed appearing, then dismissed, including error paths; absence alone is not a successful feedback case.
+The states above illustrate a requirement-derived transition, not a universal lifecycle. Add separate failure-retry, permission and cancellation cases for the current requirement. Query owners require query/reset cases; exercise collapse/expand when applicable. Prototype-owned pagination requires page-change cases, plus page-size cases when sizes are adjustable; native paging over local data is Ant Design behavior, observed in the Preview round without a case. Follow [Table paging data and acceptance](../libraries/antd_v6/components/table.md#pagination-data-and-acceptance) for fixture readiness and first/second/return record assertions; declared cases alone do not prove enough visible records. Required context needs app-switch plus context-data/create/export/navigation cases for its listed consumers. Feedback must be observed appearing, then dismissed, including error paths; absence alone is not a successful feedback case.
 
-Run actual Preview cases only after all in-scope content and saved-model gates pass. Collect a round's issues before repairs, close Preview before edits, and retain the shared maximum of10 opens/review rounds. Crash/vanished UI can end a round early; a single failed assertion cannot. Capability probes and temporary TestHarness Pages do not belong in business prototype work.
+Run actual Preview cases only after all in-scope content and saved-model gates pass. Collect a round's issues before repairs, close Preview before edits, and retain the shared maximum of 10 opens/review rounds. Crash/vanished UI can end a round early; a single failed assertion cannot. Capability probes and temporary TestHarness Pages do not belong in business prototype work.
 
 Use [runtime evidence preparation and verification](../behavior-acceptance.md#record-and-verify-execution) for the existing manifest, exact-model trace matching, cross-page outcomes and per-case results. This executes no Preview actions and does not establish source completeness or fixture authenticity.

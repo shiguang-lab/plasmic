@@ -225,23 +225,17 @@ def check(inventory, readback):
                     if json.dumps(values.get(key), sort_keys=True) != json.dumps(value, sort_keys=True):
                         errors.append({**location, "action": expected["name"], "error": "Action prop mismatch", "prop": key})
             width = spec.get("width")
-            if width is not None and identity(node) == "plasmicantd6drawer":
-                native_width = props(node).get("width")
-                if not isinstance(width, (int, float)) or width < 360:
-                    raise ValueError("Drawer width must be a pixel number of at least 360")
-                if native_width != width:
-                    errors.append({**location, "error": "Drawer width mismatch", "actual": native_width})
             size = spec.get("size")
             if size is not None:
                 if identity(node) != "plasmicantd6drawer":
                     raise ValueError("Only a Drawer records size")
-                if size not in {"default", "large"}:
-                    raise ValueError("Drawer size must be default or large")
-                native_size = props(node).get("size") or "default"
-                if native_size != size:
+                if not (type(size) in (int, float) and size > 0 or isinstance(size, str) and size.strip() and size != '__DECIDE__'):
+                    raise ValueError("Drawer size must be a preset, positive pixel number or CSS length")
+                native_size = props(node).get("size", "default")
+                if json.dumps(native_size) != json.dumps(size):
                     errors.append({**location, "error": "Drawer size mismatch", "actual": native_size})
-            if width is not None and identity(node) not in {"plasmicantd6modal", "plasmicantd6drawer"}:
-                raise ValueError("width applies to a Modal or Drawer only")
+            if width is not None and identity(node) != "plasmicantd6modal":
+                raise ValueError("width applies to a Modal; use the native size prop for a Drawer")
             if width is not None and identity(node) == "plasmicantd6modal":
                 native_width = str(props(node).get("width"))
                 if native_width != str(width):

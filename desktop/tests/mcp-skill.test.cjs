@@ -19,6 +19,11 @@ test("MCP bootstrap works without an open editor or a bundled workflow file", as
   });
   t.after(() => client.close());
   await client.connect(transport);
+  assert.match(client.getInstructions(), /read_skill/);
+  assert.match(client.getInstructions(), /mustRead/);
+  assert.match(client.getInstructions(), /current task and mode/);
+  const { tools } = await client.listTools();
+  assert.match(tools.find((tool) => tool.name === "read_skill").description, /Before design inspection, creation, revision or codegen/);
   const result = await client.callTool({ name: "read_skill", arguments: {} });
   assert.ok(!result.isError);
   const bootstrap = JSON.parse(result.content.find((item) => item.type === "text").text);
@@ -62,4 +67,31 @@ test("MCP honors an explicit local source and never falls back when that source 
   await assert.rejects(readSkillBootstrap(agentsHome), /absolute resolver/);
   await writeFile(config, "invalid JSON");
   await assert.rejects(readSkillBootstrap(agentsHome), SyntaxError);
+});
+
+test("MCP uses the current client's non-shared skill path without falling back", async (t) => {
+  const root = await mkdtemp(path.join(tmpdir(), "plasmic-client-skill-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const skill = path.join(root, ".claude/skills/plasmic");
+  const skillPath = path.join(skill, "SKILL.md");
+  const resolver = path.join(root, "resolver.mjs");
+  await mkdir(skill, { recursive: true });
+  await writeFile(skillPath, "Current client's local skill");
+  await writeFile(resolver, "throw new Error('Bootstrap must not execute the resolver');");
+  await writeFile(path.join(skill, "local-source.json"), JSON.stringify({ source: "local", resolver }));
+  const client = new Client({ name: "non-shared-skill-test", version: "1.0.0" });
+  t.after(() => client.close());
+  await client.connect(new StdioClientTransport({ command: process.execPath,
+    args: ["-e", `require(${JSON.stringify(require.resolve("../src/mcp.cjs"))}).serveMcp("unused")`],
+    env: { ...process.env, DSH_AGENTS_HOME: path.join(root, ".agents") }, stderr: "pipe" }));
+  const read = async (args) => client.callTool({ name: "read_skill", arguments: args });
+  const payload = (result) => JSON.parse(result.content.find((item) => item.type === "text").text);
+  assert.equal(payload(await read({})).source, "published");
+  const result = await read({ skillPath });
+  assert.ok(!result.isError);
+  assert.deepEqual([payload(result).source, payload(result).skillPath, payload(result).resolver], ["local", skillPath, resolver]);
+  assert.equal((await read({ skillPath: "relative/SKILL.md" })).isError, true);
+  assert.equal((await read({ skillPath: path.join(root, "missing/SKILL.md") })).isError, true);
+  await rm(resolver);
+  assert.equal((await read({ skillPath })).isError, true);
 });

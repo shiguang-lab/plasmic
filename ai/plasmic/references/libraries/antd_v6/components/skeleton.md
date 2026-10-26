@@ -13,6 +13,10 @@ Library: [Ant Design v6](../index.md).
 
 ## Generation rules
 
+### Design defaults
+
+- Use for the first load of a region whose structure is known, matching that structure; remove it when data arrives.
+
 ### Initial loading structure
 
 Use Skeleton when the actual initial content structure is known and placeholders help retain its layout. Match the expected region without inserting sample business values. Its registered loading default is true; bind real loading state so the delivered page does not remain a placeholder after data arrives. Use [Spin](spin.md) when an indeterminate operation over existing content is more appropriate.

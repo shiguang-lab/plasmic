@@ -14,7 +14,9 @@ Record **all authored UI literals and bindings**, not only suspicious words or s
 
 - `nodeName`: the actual named text node or component owning the value.
 - `at`: `/text` for that node's direct text, `/slots/<nativeSlot>/text` for text directly inside a component Slot, or `/props/<nativePropertyPath>` using JSON-pointer escaping.
-- `text`: exact literal or binding source; `kind`: `label`, `placeholder`, `value`, `help`, `warning`, `feedback` or `action` (button/menu labels, length-checked).
+- `text`: exact literal or binding source; `kind` (required): `label`, `placeholder`, `value`, `help`, `warning`, `feedback` or `action` (button/menu labels).
+- `role` (optional): refines the kind's budget below. Omitted, it follows the kind (`action` → `button`, `label` → `fieldLabel`, `placeholder` → `placeholder`, `help`/`warning`/`feedback` → `help`, `value` → `value`); set `columnTitle`, `title` or `hint` where that is the real owner. `role:"other"` skips the budget and needs a `roleReason`.
+- `copyTriage` (optional): `perceive-now`, `perceive-on-demand` or `not-user-facing`; omitted, tooltip locations are on demand and all others perceive-now. `not-user-facing` text must move to `copy.excluded`. Form fields record their own triage under [Form label help](../libraries/antd_v6/components/form.md#label-help).
 - `source`: the requirement section/excerpt or explicit user decision; `purpose`: the specific user decision/action this copy supports at this location. A source citation alone does not justify showing its prose.
 
 The collector inspects authored text and native text-bearing props, including nested option/menu labels, validation messages and hidden branches. Text-valued native `value`/`defaultValue` props are candidates; option keys are separate from displayed labels. Discover additional visible prop names from the actual component contract and declare their paths in that node's `copyProps`, relative to its native props (e.g. `['/caption']`). Do not put event handlers or whole data sources there. Whole data sources remain business data review; dynamic copy is reviewed as a binding plus its resolved values in Preview. Read inherited defaults from the live template/contract and inspect their rendered result; do not invent task-authored declarations for read-only library internals.
@@ -23,17 +25,17 @@ The collector inspects authored text and native text-bearing props, including ne
 
 Every literal is budgeted. Write the shortest text that still supports the user's next decision; the requirement document is not the copy deck.
 
-Declare a `role` on every entry; the gate applies that role's budget and a repetition check. Roles: `button`, `fieldLabel`, `columnTitle`, `placeholder`, `title`, `help`, `hint`, `value`, `other`. Length is counted in characters after trimming.
+The structural gate applies each entry's role budget and a repetition check. Length is counted in display units after trimming: a CJK or fullwidth character is 1 unit, any other character 0.5, so `新建供应商` is 5 and `Save draft` is 5. Bindings are reviewed in Preview.
 
 | Owner (`role`) | Budget | Rule |
 | --- | --- | --- |
-| Action label (`button`) | verb, or verb + object, ≤ 6 Chinese characters | Use the wireframe/requirement's own UI wording (`[校验]` stays `校验`); never a rule, algorithm or API name (`校验语句合法性` is wrong) |
-| Field label | noun, ≤ 10 characters | No parenthetical notes, no trailing colon in code (the control renders it), required state comes from the rule not the label |
-| Column title | noun, ≤ 8 characters | Do not repeat the Table's own scope in every column |
-| Placeholder | one short example or format, ≤ 16 characters | Instructions belong to field help, never the placeholder |
-| Section/card title | noun phrase | Do not restate the page directory name or the first field's label |
-| Help/tooltip | one sentence | Long prose goes to the tooltip or `copy.excluded`; a multi-column Form caps `description` (see form-layout) |
-| Footer hint | current prerequisite only | Never a process narrative (`提交后自动预跑，预跑成功后可保存 SQL / 上线`) |
+| Action label (`button`) | verb, or verb + object, ≤ 6 units | Use the wireframe/requirement's own UI wording (`[校验]` stays `校验`); never a rule, algorithm or API name (`校验语句合法性` is wrong) |
+| Field label (`fieldLabel`) | noun, ≤ 10 units | No parenthetical notes, no trailing colon in code (the control renders it), required state comes from the rule not the label |
+| Column title (`columnTitle`) | noun, ≤ 8 units | Do not repeat the Table's own scope in every column |
+| Placeholder (`placeholder`) | one short example or format, ≤ 16 units | Instructions belong to field help, never the placeholder |
+| Section/card title (`title`) | noun phrase, ≤ 12 units | Do not restate the page directory name or the first field's label |
+| Help/tooltip/feedback (`help`) | one sentence, ≤ 80 units | Long prose goes to the tooltip or `copy.excluded`; a multi-column Form caps `description` (see form-layout) |
+| Footer hint (`hint`) | current prerequisite only, ≤ 20 units | Never a process narrative (`提交后自动预跑，预跑成功后可保存 SQL / 上线`) |
 
 State each fact once, at the single owner where the user acts on it: a constraint shown in a banner must not repeat in the field help, the card description and the footer hint. A read-only summary surface such as a detail Card lists only the facts the requirement assigns to it; do not append a behaviour explanation (refresh cadence, retention policy, refresh semantics) that a KPI or sibling Card already owns — the fact keeps its single owner and the summary keeps its real content. `button`, `help`, `hint` and `title` entries are compared for repeats and fail when the same text appears at two owners; data values and column titles may legitimately repeat. Prefer the field-level owner for input constraints and the banner only for page-wide scope. Use operator vocabulary from the requirement glossary; internal identifiers, algorithm names, table names and permission matrices stay out of the UI.
 

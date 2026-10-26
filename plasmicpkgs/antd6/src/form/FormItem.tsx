@@ -138,7 +138,7 @@ export function FormItemWrapper(props: InternalFormItemProps) {
     noLabel,
     name,
     hideValidationMessage,
-    validateFirst = true,
+    validateFirst,
     customizeProps: _customizeProps,
     setControlContextData: _setControlContextData,
     alignLabellessWithControls = true,
@@ -228,19 +228,20 @@ export function FormItemWrapper(props: InternalFormItemProps) {
       validateFirst={validateFirst}
       extra={description}
       help={hideValidationMessage ? "" : props.help}
-      colon={noLabel ? false : undefined}
+      colon={noLabel ? false : props.colon}
       valuePropName={deriveValuePropName(props)}
       trigger={deriveOnChangePropName(props)}
       // If in horizontal mode and no label, then we align the content
       // with the rest of the controls in the grid
       // if alignLabellessWithControls is true
       wrapperCol={
-        layoutContext?.layout === "horizontal" &&
+        props.wrapperCol ??
+        (layoutContext?.layout === "horizontal" &&
         noLabel &&
         alignLabellessWithControls &&
         layoutContext.labelSpan
           ? { offset: layoutContext.labelSpan }
-          : undefined
+          : undefined)
       }
     >
       <FormItemForwarder formItemProps={props} />

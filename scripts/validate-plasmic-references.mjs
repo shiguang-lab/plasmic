@@ -67,7 +67,13 @@ export function validateReferences(files, entrypoints) {
     ...Object.values(data.gates),
     ...Object.values(data.checks),
     ...Object.values(data.pageDecisions),
+    ...(data.projectRules || []),
+    ...Object.values(data.pageRules?.pageType || {}).flat(),
+    ...Object.values(data.pageRules?.when || {}).flat(),
+    ...Object.values(data.projectRulesWhen || {}).flat(),
   ]);
+  validatePageTypes(resources);
+  validateConstraintMarkers(resources);
   const reachable = new Set();
   const pending = [entrypoints.guide];
   while (pending.length) {
@@ -84,6 +90,18 @@ export function validateReferences(files, entrypoints) {
     }
   }
   const readingBytes = {};
+  // Directed reading: mustRead plus every document the workflow links directly.
+  // mustRead alone understates the load a workflow asks for; keep both bounded.
+  const directed = {};
+  for (const mode of Object.keys(MODE_REFERENCES)) {
+    const linked = new Set([entrypoints.guide, "references/desktop-mcp.md", entrypoints[mode], ...MODE_REFERENCES[mode]]);
+    for (const target of edges.get(entrypoints[mode]) || []) linked.add(target);
+    directed[mode] = [...linked].reduce((total, filename) => total + Buffer.byteLength(resources.get(filename) || ""), 0);
+    if (directed[mode] > DIRECTED_READING_LIMIT) {
+      throw new Error(`${mode} workflow directs ${directed[mode]} bytes of reading (limit ${DIRECTED_READING_LIMIT}); split or deduplicate rather than raising the limit`);
+    }
+  }
+  Object.defineProperty(readingBytes, "directed", { value: directed, enumerable: false });
   for (const [mode, references] of Object.entries(MODE_REFERENCES)) {
     const required = [
       entrypoints.guide,
@@ -106,7 +124,43 @@ export function validateReferences(files, entrypoints) {
   return readingBytes;
 }
 
-const STAGES = ["Plan decisions", "Generation rules", "Acceptance checks"];
+const STAGES = ["Plan decisions", "Generation rules", "Conditional rules", "Acceptance checks"];
+// Upper bound for mustRead plus the documents a workflow links directly (UTF-8 bytes).
+export const DIRECTED_READING_LIMIT = 212992; // 208 KiB; prototype currently directs about 201 KiB
+const CONSTRAINT_MARKER = "**Hard constraints**";
+
+// Rules cards extract hard constraints by one exact preamble marker; any other
+// spelling would silently drop a document's constraints from the card digest.
+function validateConstraintMarkers(resources) {
+  for (const [filename, content] of resources) {
+    if (!filename.endsWith(".md")) continue;
+    const preamble = content.split("\n## ")[0];
+    const lines = content.split("\n");
+    lines.forEach((line, index) => {
+      if (!/^\*\*[^*]*(硬约束|hard constraints?|必守约束)[^*]*\*\*/i.test(line)) return;
+      if (!line.startsWith(CONSTRAINT_MARKER)) {
+        throw new Error(`Use the exact ${CONSTRAINT_MARKER} marker in ${filename}: ${line}`);
+      }
+      if (!preamble.includes(line)) {
+        throw new Error(`${CONSTRAINT_MARKER} must precede the first level-2 heading: ${filename}`);
+      }
+      const next = lines.slice(index + 1).find((value) => value.trim());
+      if (!next || !next.startsWith("- ")) {
+        throw new Error(`${CONSTRAINT_MARKER} needs a bullet list: ${filename}`);
+      }
+    });
+  }
+}
+
+// Every selectable page type has composition guidance and a matching heading.
+function validatePageTypes(resources) {
+  const rules = JSON.parse(resources.get("references/gate-rules.json"));
+  const pageTypes = Object.keys(rules.pageRules?.pageType || {}).sort();
+  const headings = headingIds(resources.get("references/design/page-types.md") || "");
+  for (const kind of pageTypes) {
+    if (!headings.has(kind)) throw new Error(`Page type ${kind} has no section in references/design/page-types.md`);
+  }
+}
 
 // Library documents share one stage template so rules cards can select
 // sections by stage instead of per-component section lists.

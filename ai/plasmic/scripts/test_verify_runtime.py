@@ -1,4 +1,5 @@
 import copy
+import json
 import hashlib
 from pathlib import Path
 import tempfile
@@ -153,6 +154,63 @@ class RuntimeTests(unittest.TestCase):
         self.manifest['cases'] = [self.manifest['cases'][0]] * 2
         self.assertEqual(self.result()['counts']['invalid_evidence'], 1)
         self.assertEqual(self.result()['counts']['unexecuted'], 1)
+
+    def test_two_blank_record_pages_cannot_prove_record_resolution(self):
+        page = self.plan['pages'][0]
+        page['recordPage'] = True
+        original = page['runtimeCases'][0]
+        page['runtimeCases'] = []
+        self.manifest['cases'] = []
+        self.trace = []
+        for index, record in enumerate(('REC-001', 'REC-002')):
+            checks = [{'kind': 'text', 'text': record, 'present': False}]
+            page['runtimeCases'].append({**original, 'id': record, 'kind': 'record-detail',
+                                         'given': {'routeParams': {'id': record}}, 'checks': checks})
+            self.manifest['cases'].append({'path': page['path'], 'id': record, 'assertLine': index + 1})
+            self.trace.append({'input': {'action': 'assert', 'checks': checks}, 'result': {
+                'passed': True, 'checks': [{'check': c, 'passed': True, 'actual': False} for c in checks],
+                'context': {**self.capture['after'], 'mode': 'preview', 'previewContext': {'path': page['path']}}}})
+        result = self.result()
+        self.assertFalse(result['passed'])
+        self.assertTrue(any('positive destination-content' in error['message'] for error in result['errors']))
+        with self.assertRaisesRegex(ValueError, 'positive destination-content'):
+            make_manifest(self.plan, self.capture, 'a' * 64, 'b' * 64)
+
+
+class RecordCaseTests(unittest.TestCase):
+    def case(self, record):
+        return {'id': record, 'kind': 'record-detail', 'nodeName': 'IdentityInfo', 'given': {'routeParams': {'id': record}},
+                'checks': [{'kind': 'text', 'text': record, 'present': True}], 'assertPath': f'/groups/detail/{record}'}
+
+    def test_record_cases_come_from_runtime_cases(self):
+        from verify_runtime import record_case_errors
+        page = {'path': '/groups/detail/[id]', 'recordPage': True,
+                'runtimeCases': [self.case('GRP-001'), self.case('GRP-002')]}
+        self.assertEqual(record_case_errors({'pages': [page]}), [])
+        page['runtimeCases'] = page['runtimeCases'][:1]
+        self.assertIn('at least two record cases', json.dumps(record_case_errors({'pages': [page]})))
+
+    def test_positive_business_content_proves_records_without_showing_their_ids(self):
+        from verify_runtime import record_case_errors
+        first, second = self.case('GRP-001'), self.case('GRP-002')
+        first['checks'] = [{'kind': 'text', 'text': 'First customer', 'present': True}]
+        second['checks'] = [{'kind': 'text', 'text': 'Second customer', 'present': True}]
+        denied = {**self.case('GRP-003'), 'kind': 'record-denied',
+                  'checks': [{'kind': 'text', 'text': 'Restricted customer', 'present': False}]}
+        page = {'path': '/groups/detail/[id]', 'recordPage': True, 'runtimeCases': [first, second, denied]}
+        self.assertEqual(record_case_errors({'pages': [page]}), [])
+
+    def test_negative_checks_or_text_order_do_not_prove_distinct_record_content(self):
+        from verify_runtime import record_case_errors
+        first, second = self.case('GRP-001'), self.case('GRP-002')
+        for case in (first, second):
+            case['checks'] = [{'kind': 'text', 'text': 'Details', 'present': True},
+                              {'kind': 'text', 'text': 'Active', 'present': True},
+                              {'kind': 'text', 'text': case['id'], 'present': False}]
+        second['checks'].reverse()
+        page = {'path': '/groups/detail/[id]', 'recordPage': True, 'runtimeCases': [first, second]}
+        self.assertTrue(any('different destination content' in error['message']
+                            for error in record_case_errors({'pages': [page]})))
 
 
 if __name__ == '__main__':

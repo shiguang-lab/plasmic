@@ -300,7 +300,7 @@ function registerTree(loader) {
     name: "plasmic-antd6-tree",
     displayName: "Tree",
     importName: "AntdTree",
-    checkableDefaultValue: true,
+    checkableDefaultValue: false,
     expandActionDefaultValue: false
   });
 }

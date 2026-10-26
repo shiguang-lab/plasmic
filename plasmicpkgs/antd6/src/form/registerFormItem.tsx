@@ -20,10 +20,6 @@ export function registerFormItem(loader?: Registerable) {
     name: formItemComponentName,
     displayName: "Form Field",
     parentComponentName: formComponentName,
-    defaultStyles: {
-      marginBottom: "24px",
-      width: "stretch",
-    },
     props: {
       label: {
         type: "slot",

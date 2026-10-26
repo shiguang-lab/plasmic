@@ -55,6 +55,13 @@ class ReferenceTests(unittest.TestCase):
         self.file.write_bytes(b"replacement")
         self.assertFalse(check(self.expected, self.model, self.evidence)["passed"])
 
+    def test_source_and_image_paths_must_identify_absolute_original_files(self):
+        self.expected["pages"][0]["references"][0]["filePath"] = "original.pen"
+        self.assertFalse(check(self.expected, self.model, self.evidence)["passed"])
+        self.expected["pages"][0]["references"][0]["filePath"] = str(self.reference_file)
+        self.evidence["references"][self.key]["image"]["file"] = "reference.webp"
+        self.assertFalse(check(self.expected, self.model, self.evidence)["passed"])
+
 
 if __name__ == "__main__":
     unittest.main()

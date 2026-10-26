@@ -28,3 +28,7 @@ class UsageTests(unittest.TestCase):
         self.assertEqual(result['outputTokens'], 35)
         self.assertEqual(result['summaryRequests'], 1)
         self.assertEqual(result['recordedCompactions'], 1)
+
+
+if __name__ == "__main__":
+    unittest.main()

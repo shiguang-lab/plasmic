@@ -7,13 +7,26 @@ import hashlib
 import json
 import re
 from pathlib import Path
-from verify_forms import TextTree, walk, identity, node_name, props
+from verify_forms import TextTree, walk, identity, node_name, props, slot
 
 
 BASELINES = {
     'plasmicoverseassearchform': {'colSpan': 6, 'minRows': 1, 'collapsed': True},
-    'plasmicreactuiactiongroup': {'max': 3, 'dropdownProps.trigger': ['hover']},
+    'plasmicreactuiactiongroup': {'max': 3},
     'plasmicantd6dropdown': {'trigger': 'hover'},
+    # Density defaults from design/scale.md#density; a stated requirement value needs its override.
+    'plasmicantd6table': {'pagination.defaultPageSize': 20, 'pagination.pageSizeOptions': [20, 50, 100]},
+}
+
+
+def page_numbers(value):
+    """Ant Design accepts page sizes as numbers or numeric strings."""
+    if isinstance(value, list):
+        return [int(v) if isinstance(v, str) and v.isdigit() else v for v in value]
+    return int(value) if isinstance(value, str) and value.isdigit() else value
+# Native defaults that differ from a generation baseline: the baseline must be explicit.
+NATIVE_DEFAULTS = {
+    'plasmicantd6table': {'pagination.defaultPageSize': 10, 'pagination.pageSizeOptions': [10, 20, 50, 100]},
 }
 APP_SOURCE = re.compile(r'app[\s_-]*source|app(?:lication)?[\s_-]*(?:id|name)|(?:app|应用)[\s_-]*(?:来源|标识|名称)|应用[\s_-]*id|多[\s_-]*(?:app|应用)', re.I)
 
@@ -49,6 +62,23 @@ def uses_binding(value, binding):
     if isinstance(value, list):
         return any(uses_binding(v, binding) for v in value)
     return isinstance(value, str) and bool(re.search(r'(?<![\w$])' + re.escape(binding) + r'(?![\w$])', value))
+
+
+def prototype_owned_paging(spec):
+    """True when the prototype, not Ant Design, owns the paging state.
+
+    Controlled current/pageSize (constant or bound) and dynamic pagination
+    props are prototype-owned and need page-change cases. Native
+    component-owned paging (defaultPageSize/defaultCurrent over local data) is
+    the library's own behavior and is observed in Preview without a case.
+    """
+    prefix = 'pagination.' if 'table' in str(spec.get('component', '')).lower() else ''
+    values = spec.get('props', {}) if isinstance(spec.get('props'), dict) else {}
+    if any(at(values, prefix + key) is not None for key in ('current', 'pageSize')):
+        return True
+    dynamic = spec.get('dynamicProps', [])
+    owned = {prefix + 'current', prefix + 'pageSize'} | ({'pagination'} if prefix else set())
+    return isinstance(dynamic, list) and bool(owned & {key for key in dynamic if isinstance(key, str)})
 
 
 def case_groups(plan):
@@ -114,14 +144,45 @@ def approved_override(spec, key):
         'minRows': {2: r'(?:常驻|固定|始终显示)\s*(?:两|2)\s*行'},
         'collapsed': {False: r'初始展开|默认展开|initially.expanded'},
         'trigger': {'click': r'点击(?:打开|触发)|click.operated|触屏|touch', 'contextMenu': r'右键|right.click'},
-        'dropdownProps.trigger': {},
     }
-    natural_key = 'trigger' if key == 'dropdownProps.trigger' else key
-    natural_value = value[0] if key == 'dropdownProps.trigger' and isinstance(value, list) and len(value) == 1 else value
-    if isinstance(natural_value, (str, int, float, bool)):
-        pattern = natural.get(natural_key, {}).get(natural_value)
+    if key in ('gap', 'gutter') and type(value) in (int, float):
+        return direct or bool(re.search(rf'(?:间距|间隔|gap|gutter)\s*(?:为|是|[:=])?\s*{re.escape(str(value))}\s*(?:px|像素)(?!\w)', quote, re.I))
+    if key == 'vertical' and type(value) is bool:
+        pattern = r'纵向|竖向|垂直排列|vertical' if value else r'横向|水平排列|horizontal'
+        return direct or bool(re.search(pattern, quote, re.I))
+    if key in ('pagination.defaultPageSize', 'pagination.pageSize') and isinstance(page_numbers(value), int):
+        size = page_numbers(value)
+        return direct or bool(re.search(rf'每页\s*{size}\s*条|{size}\s*(?:条|rows?|items?)\s*(?:/|每|per)\s*(?:页|page)|page\s*size\s*(?:of\s*)?{size}(?!\d)', quote, re.I))
+    if key == 'pagination.pageSizeOptions' and isinstance(page_numbers(value), list):
+        sizes = page_numbers(value)
+        return direct or (bool(re.search(r'每页|条|page', quote, re.I))
+                          and all(re.search(rf'(?<!\d){size}(?!\d)', quote) for size in sizes))
+    if isinstance(value, (str, int, float, bool)):
+        pattern = natural.get(key, {}).get(value)
         return direct or bool(pattern and re.search(pattern, quote, re.I))
     return direct
+
+
+def measured_span(spec, inherited):
+    """A SearchForm.Item may take exactly two inherited columns when a layout capture shows
+    its control cannot work in one (search-form.md#layout-and-state)."""
+    overrides = spec.get('overrides', {})
+    override = overrides.get('span') if isinstance(overrides, dict) else None
+    if not isinstance(override, dict) or not isinstance(override.get('reason'), str) or not override['reason'].strip():
+        return False
+    measurement = override.get('measurement')
+    if not isinstance(measurement, dict):
+        return False
+    need, have = measurement.get('controlMinWidth'), measurement.get('columnControlWidth')
+    if not all(isinstance(v, (int, float)) and not isinstance(v, bool) and v > 0 for v in (need, have)) or need <= have:
+        return False
+    layout = measurement.get('layout')
+    if not isinstance(layout, dict) or not isinstance(layout.get('path'), str) or not isinstance(layout.get('sha256'), str):
+        return False
+    path = Path(layout['path'])
+    if not path.is_absolute() or not path.is_file() or hashlib.sha256(path.read_bytes()).hexdigest() != layout['sha256']:
+        return False
+    return isinstance(inherited, int) and same(at(spec.get('props', {}), 'span'), 2 * inherited)
 
 
 def search_form_span(spec):
@@ -137,7 +198,12 @@ def search_form_span(spec):
 def policy_errors(spec, values, inherited_span=6):
     key = re.sub(r'[^a-z0-9]', '', spec.get('component', '').lower())
     errors = []
+    pagination = at(values, 'pagination')
+    if key == 'plasmicantd6table' and (pagination is False or isinstance(pagination, str) and '{{' in pagination):
+        return errors  # Disabled or dynamically owned pagination has no static density to compare.
     for prop, default in BASELINES.get(key, {}).items():
+        if key == 'plasmicantd6table' and prop == 'pagination.defaultPageSize' and at(values, 'pagination.pageSize') is not None:
+            prop = 'pagination.pageSize'  # Controlled pageSize takes precedence over defaultPageSize.
         if key == 'plasmicoverseassearchform' and prop == 'colSpan':
             expected = search_form_span(spec)
             if not same(at(values, prop, 6), expected):
@@ -145,15 +211,22 @@ def policy_errors(spec, values, inherited_span=6):
                                'expectedColSpan': expected,
                                'message': 'SearchForm uses reviewed four-column (colSpan=6) or three-column (colSpan=8) mode; other spans require an explicit requirement-document override'})
             continue
-        actual = at(values, prop, default)
-        if not same(actual, default) and not (same(actual, at(spec.get('props', {}), prop)) and approved_override(spec, prop)):
+        # An unset prop takes the component's native default, which may differ from the baseline.
+        actual = at(values, prop, NATIVE_DEFAULTS.get(key, {}).get(prop, default))
+        if key == 'plasmicantd6table':
+            if isinstance(actual, str) and '{{' in actual:
+                continue  # Bound paging is prototype-owned; its page-size cases cover the values.
+            actual = page_numbers(actual)
+        if not same(actual, default) and not (same(actual, page_numbers(at(spec.get('props', {}), prop)) if key == 'plasmicantd6table'
+                                                   else at(spec.get('props', {}), prop)) and approved_override(spec, prop)):
             errors.append({'check': 'componentPolicy', 'node': spec.get('nodeName'), 'property': prop,
                            'requiredDefault': default,
                            'message': 'Nondefault composition requires an explicit, source-backed requirement override; matching generated expectations is insufficient'})
     if key == 'plasmicoverseassearchformitem' and at(values, 'span') is not None:
-        if not same(at(values, 'span'), inherited_span) and not (same(at(values, 'span'), at(spec.get('props', {}), 'span')) and approved_override(spec, 'span')):
+        if not same(at(values, 'span'), inherited_span) and not (same(at(values, 'span'), at(spec.get('props', {}), 'span'))
+                                                                 and (approved_override(spec, 'span') or measured_span(spec, inherited_span))):
             errors.append({'check': 'componentPolicy', 'node': spec.get('nodeName'), 'property': 'span',
-                           'message': 'SearchForm.Item inherits the standard grid; a field requirement or long placeholder does not authorize widening'})
+                           'message': 'SearchForm.Item inherits the standard grid; widening needs a requirement quote or a measured layout capture showing the control cannot work in one column (exactly two columns)'})
     return errors
 
 
@@ -213,6 +286,19 @@ def plan_errors(plan):
         cases = contract['cases']
         kinds = {c['kind'] for c in cases if isinstance(c, dict) and isinstance(c.get('kind'), str)} if isinstance(cases, list) else set()
         required = {'permission-allowed', 'permission-denied'}
+        if 'permissionDeniedNotApplicable' in contract:
+            reason = contract['permissionDeniedNotApplicable']
+            if not isinstance(reason, str) or not reason.strip():
+                errors.append({'check': 'actionContract', **location, 'pointer': location['pointer'] + '/permissionDeniedNotApplicable',
+                               'message': 'A permission-denied exemption needs a nonempty reason supported by this action\'s source evidence'})
+            elif 'permission-denied' in kinds:
+                errors.append({'check': 'actionContract', **location, 'pointer': location['pointer'] + '/permissionDeniedNotApplicable',
+                               'message': 'A real permission-denied case and a no-denial exemption are contradictory; retain the source-supported decision'})
+            else:
+                # The same mandatory action evidence supports this decision.
+                # Its meaning is reviewed; an exemption never removes allowed,
+                # confirmation or state-transition coverage.
+                required.remove('permission-denied')
         if contract.get('confirm') is True:
             required.update({'confirm-cancel', 'confirm-accept'})
         if contract.get('transitions'):
@@ -297,7 +383,7 @@ def plan_errors(plan):
         for spec in plan.get('components', []):
             if spec.get('role') == 'query':
                 require(spec.get('nodeName'), {'query', 'reset'})
-            if spec.get('role') == 'pagination':
+            if spec.get('role') == 'pagination' and prototype_owned_paging(spec):
                 prefix = 'pagination.' if 'table' in spec.get('component', '').lower() else ''
                 values = spec.get('props', {})
                 options = at(values, prefix + 'pageSizeOptions')
@@ -370,14 +456,27 @@ def check_page(plan, page):
                              and uses_binding(value, query['reference']) and '{{' in str(value))
             if not (uses_binding(value, binding) and '{{' in str(value) or uses_binding(interactions, binding) or via_query):
                 errors.append({'check': 'appContext', 'node': consumer.get('nodeName'), 'message': 'Required data/action consumer must use the same shared App context'})
+    def wired(node, event):
+        return bool(props(node).get(event)) or any(
+            i.get('elementUuid') == node['attrs'].get('id') and i.get('eventName') == event
+            and i.get('conditionalMode') != 'never' for i in page.get('interactions', []))
     for contract in plan.get('actionContracts', []):
         owner = by_name.get(contract.get('nodeName'))
+        context = {'check': 'actionConfirmation', 'node': contract.get('nodeName'), 'key': contract.get('key')}
+        if owner and contract.get('confirm') is True:
+            # Native composition: a registered Popconfirm wraps the ActionGroup;
+            # onAction opens it through bound state and only onConfirm mutates.
+            confirm = next((p for p in nodes if identity(p) == 'plasmicantd6popconfirm'
+                            and any(n is owner for n in walk(slot(p, 'children') or {'children': []}))), None)
+            if not confirm or '{{' not in json.dumps(props(confirm).get('open')) or not wired(confirm, 'onConfirm') \
+                    or not wired(owner, 'onAction'):
+                errors.append({**context, 'message': 'Required confirmation needs a registered Popconfirm around the ActionGroup: '
+                               'open bound to the pending action, onAction requesting it and onConfirm performing the mutation; '
+                               'a Message after mutation is not confirmation'})
         items = at(props(owner), 'items') if owner else None
         if not isinstance(items, list):
             # Dynamic row expressions require real per-row runtime cases.
             continue
-        item = next((v for v in items if isinstance(v, dict) and v.get('key') == contract.get('key')), None)
-        if not item or contract.get('confirm') is True and not item.get('confirm'):
-            errors.append({'check': 'actionConfirmation', 'node': contract.get('nodeName'), 'key': contract.get('key'),
-                           'message': 'Required native action/confirmation is missing; Message after mutation is not confirmation'})
+        if not any(isinstance(v, dict) and v.get('key') == contract.get('key') for v in items):
+            errors.append({**context, 'message': 'Required native action is missing from the ActionGroup items'})
     return errors

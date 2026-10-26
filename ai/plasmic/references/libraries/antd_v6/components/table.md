@@ -10,11 +10,11 @@ Library: [Ant Design v6](../index.md).
 
 **Hard constraints** (always delivered with any section):
 
-- Decide every Column's literal pixel `width` in the plan before markup. When any Column has a width, exactly one main text Column (`role:widget`, text presentation) leaves width unset and Table `scroll` sets numeric `x` greater than the explicit widths sum. Without numeric `scroll.x` the wrapper's `max-content` default turns widths into minimums. See [content and scroll width](#content-and-scroll-width).
+- Decide every Column's `width` in the plan before markup. The project default uses literal pixel widths, exactly one main text Column (`role:widget`, text presentation) without width, and numeric Table `scroll.x` greater than the explicit widths sum. Native `max-content` is available through a source-backed `scroll.x` override; this is a project layout policy, not an Ant Design limitation. See [content and scroll width](#content-and-scroll-width).
 - Size each width from its title as well as its values; status/time/short fields are fixed, never the main column.
 - Row operations: registered ActionGroup in the last leaf Column.render, `fixed:"right"` and a measured numeric width ([operation column sizing](#operation-column-sizing)).
-- Column `displayType` is `text` or `custom`; status Columns render a mapped Badge, categories default to text.
-- Paginated lists need a fixture larger than the initial pageSize and first/second/return page cases.
+- Column presentation is a plan field: `text` leaves the native render Slot empty, `custom` composes registered components in it; status Columns render a mapped Badge, categories default to text.
+- Every paginated list needs a fixture larger than the initial pageSize. Prototype-owned paging (bound `current`/`pageSize`, a server query or a source page policy) also needs first/second/return `page-change` cases, plus `page-size` when adjustable; native component-owned paging over local data needs no case. See [paging acceptance](#pagination-data-and-acceptance).
 
 ## Plan decisions
 
@@ -22,20 +22,29 @@ Declare these native props in each planned instance before markup. `prepare_plan
 
 | Registration | Prop | Decision |
 | --- | --- | --- |
-| `plasmic-antd6-table` | `scroll` (`null` allowed) | Numeric x greater than the explicit Column widths sum whenever any Column has a width; null keeps the wrapper default for an all-text Table without widths. See [rule](#content-and-scroll-width). |
+| `plasmic-antd6-table` | `scroll` (`null` allowed) | Numeric x greater than the explicit Column widths sum by default when any Column has a width; source-approved `{"x":"max-content"}` uses native content sizing. Null leaves native sizing for an all-text Table without widths. See [rule](#content-and-scroll-width). |
 | `plasmic-antd6-table` | `pagination` | false, or the native paging object with one declared ownership mode. See [rule](#data-identity-sorting-and-pagination). |
 | `plasmic-antd6-table-column` | `width` (`null` allowed) | Literal pixel width from the title and values; null only for the single main text Column. See [rule](#content-and-scroll-width). |
-| `plasmic-antd6-table-column` | `displayType` | text or custom, from the source presentation. See [rule](#render-templates). |
+| `plasmic-antd6-table-column` | `presentation` | Plan field, not a native prop: text (empty render Slot, native value) or custom (registered components in render), from the source presentation. See [rule](#render-templates). |
 
 ## Generation rules
+
+### Design defaults
+
+- Use for repeated records with comparable attributes; a few items without columns use List.
+- Pagination 20 per page, options 20/50/100, size changer and total shown ([scale](../../../design/scale.md)).
+- Row actions use ActionGroup in a fixed right column; status columns render Badge; widths follow [content and scroll width](#content-and-scroll-width).
+- The Table sits in its list Card or Tab panel without its own title row.
+
+### Usage and behavior
 
 Read the installed Table contract and the real [Column](table.md#columns) instances. Before choosing a Column's presentation, classify its source purpose using [selection](../selection.md): lifecycle/processing fields follow [Badge](badge.md), category/attribute fields choose text or Tag under [Tag/text rules](tag.md#tag-or-text), and operations follow ActionGroup. Read that rule owner; Table metadata describes capabilities, not the right semantic choice. [SearchForm + Tabs + Table composition](../../overseas/compositions/search-table.md) owns filters, scopes, vertical scrolling and business pagination; [Tab Item](tabs.md#items) owns each panel content Slot.
 
 ### Complete editable table
 
-Before inserting each Table, read its live Table and Column contracts and inventory every Column's source purpose, native presentation, dataIndex/render scope and width. Keep category Columns as role:category for both text and Tag. Pin native props.displayType to text or custom from the source decision. Ordinary single-value categories default to text. When Tag is justified, place a registered Tag in Column.render ([render templates](#render-templates)), not styled spans. For custom presentation declare the actual component/Slot owners; a text template remains valid without a Tag. Row operations use registered [ActionGroup](../../react_ui/components/action-group.md) in Column.render, in the last leaf Column with fixed=right and measured width. Discover its library before choosing substitutes. Pagination totals use native showTotal(total, range). Insert real Column nodes in Table children; ColumnGroup is for grouped headers. Read back visible headers and two distinct rows before advancing. The structural gate checks required identities, props, Slots and complete Column coverage; review the draft and equivalent Tabs for presentation consistency.
+Before inserting each Table, read its live Table and Column contracts and inventory every Column's source purpose, native presentation, dataIndex/render scope and width. Keep category Columns as role:category for both text and Tag. Record `presentation` text or custom from the source decision; the render Slot's content alone carries it. Ordinary single-value categories default to text. When Tag is justified, place a registered Tag in Column.render ([render templates](#render-templates)), not styled spans. For custom presentation declare the actual component/Slot owners; a text template remains valid without a Tag. Row operations use registered [ActionGroup](../../react_ui/components/action-group.md) in Column.render, in the last leaf Column with fixed=right and measured width. Discover its library before choosing substitutes. Pagination totals use native showTotal(total, range). Insert real Column nodes in Table children; ColumnGroup is for grouped headers. Read back visible headers and two distinct rows before advancing. The structural gate checks required identities, props, Slots and complete Column coverage; review the draft and equivalent Tabs for presentation consistency.
 
-For a required record action, declare `rowActions` in the [source inventory](../../../requirement-alignment.md#structural-gate). Do not use link formatting for an action label such as “查看”: it consumes a URL. Use ActionGroup items in the live row scope, item href for navigation and onAction(key) for local effects. The destination or overlay must show the clicked record, carried by its own route param rather than a global; declare it per [record context](../../../design/record-context.md) and verify with two distinct records. A registered Button in Column.render remains valid for an explicitly required cell control, not a replacement for the row-operation group. For query-driven tables declare dynamic data/state dependencies; test a nonmatching keyword, zero rows **and total**, then reset and recovery. Event presence does not establish the effect.
+For a required record action, declare `rowActions` in the [source inventory](../../../requirement-alignment.md#structural-gate). Do not use link formatting for an action label such as “查看”: it consumes a URL. Use ActionGroup items in the live row scope; onAction(key) owns navigation (a page-navigation interaction conditioned on the key) and local effects. The destination or overlay must show the clicked record, carried by its own route param rather than a global; declare it per [record context](../../../design/record-context.md) and verify with two distinct records. A registered Button in Column.render remains valid for an explicitly required cell control, not a replacement for the row-operation group. For query-driven tables declare dynamic data/state dependencies; test a nonmatching keyword, zero rows **and total**, then reset and recovery. Event presence does not establish the effect.
 
 ### Data contract
 
@@ -49,13 +58,11 @@ Table's optional native `title` render Slot owns required content above the colu
 
 Use real Antd6 Table columns and render Slots. Place operations last and fixed right, size the column to visible actions, and use the registered [ActionGroup](../../react_ui/components/action-group.md). Preserve complete source values and meaningful 0/false. Wide content scrolls horizontally within the Table, never widens the viewport. Read [Tooltip](tooltip.md) before configuring overflow content.
 
-Fix widths for short fields, status, time and operations; assign remaining container space only to the main text column. When any Column has a width, leave exactly one main text Column without width and set a numeric `scroll.x` equal to the explicit widths plus that column's baseline (for example `{"x":1494}`), so the browser cannot proportionally expand fixed columns. The wrapper merges `scroll` as `{x:"max-content", ...scroll}`: without a numeric `scroll.x` the native table uses auto layout, every width becomes a minimum, content such as long keys, Tags or ActionGroup widens columns, and ellipsis stops truncating. Column widths are literal pixel numbers. Size each width from its title as well as its values; a four-character Chinese title needs at least 88px in a large Table. Plan preflight and the structure gate enforce these widths; the rendering gate also measures fixed control columns. Inactive Tabs need their own layout capture. Preserve widths when the sum exceeds the viewport; verify horizontal scrolling and the fixed-column boundary. Static Pen full-column views are a source presentation convention; in the interactive App verify every column by scrolling and retain measurements and screenshots in the acceptance evidence.
+The project default fixes planned widths for short fields, status, time and operations and leaves one main text Column without width to absorb remaining space. When any Column has a width, use numeric `scroll.x` equal to the explicit widths plus that column's baseline (for example `{"x":1494}`). This supplies a planned scroll width; actual distribution still depends on native table layout, content and container size. The wrapper does not supply a default `scroll.x`.
 
-After save/reopen, read both column props and rendered header/cell widths. Check All/Mine use the same definitions, the operation width equals measured content plus padding, remaining space only enlarges the text column, the longest status and timestamps fit, ellipsis preserves complete values, and the horizontal track/fixed columns/pagination remain usable. Report these as individual checks with evidence, not a generic screenshot approval or model-validation result.
+Native `scroll.x:"max-content"` sizes from content. When the source requires it, set `props.scroll:{"x":"max-content"}` and the existing `overrides` entry: `"scroll.x":{"reason":"Source requires content sizing","evidence":{"path":"/abs/requirement.md","sha256":"…","quote":"scroll.x = max-content"}}`. Cite the actual instruction. Plan and saved-model gates require matching values and intact source evidence. Other column-width, title and main-text-column checks still apply; measure actual widths after rendering.
 
-### Selection
-
-Selection must persist without a state binding, and controlled selection must follow the bound keys. Clear selection and radio/checkbox modes must work. For wrapper changes, test omitted, explicit and controlled/uncontrolled values with the installed Ant Design version.
+The project's literal pixel width policy makes columns statically checkable; it does not describe every native width capability. Size each width from its title as well as its values; the gate's conservative estimate for a four-character Chinese title in a large Table is 92px, followed by rendered measurement. Plan preflight and the structure gate enforce the project policy; the rendering gate also measures fixed control columns. Inactive Tabs need their own layout capture. Preserve widths when the sum exceeds the viewport; verify horizontal scrolling and the fixed-column boundary. Static Pen full-column views are a source presentation convention; in the interactive App verify every column by scrolling and retain measurements and screenshots in the acceptance evidence.
 
 ### Columns
 
@@ -65,34 +72,32 @@ Read the installed Column contract for fields, render Slots, widths and overflow
 
 For tables, record each field's purpose, longest common real value, required complete boundary value, width and overflow policy in the sidecar acceptance report. Retain the requested App viewport and verify the actual component metrics; do not copy widths from a differently sized reference composition.
 
-Use these starting widths in pixels: short IDs/counts and type/scenario 96–128; status and people 128–176; timestamps 160–192; names 200–280; keys/code 240–320; notes 280–360. Keep ID/count/time/enumeration/status values complete. Name/key/people may ellipsize under the [Tooltip overflow contract](tooltip.md); details or copy are additional ways to access the value. Set the real Table.Column ellipsis prop instead of shortening data or merely styling a span. Verify actual overflow and complete Tooltip text before claiming success; configuration alone is insufficient.
+Use these starting widths in pixels: short IDs/counts and type/scenario 96–128; status and people 128–176; timestamps 160–192; names 200–280; keys/code 240–320; notes 280–360. Keep ID/count/time/enumeration/status values complete. Name/key/people may ellipsize; details or copy are additional ways to access the value. Set the real Table.Column ellipsis prop instead of shortening data or merely styling a span. Verify actual truncation and the complete value before claiming success; configuration alone is insufficient.
 
-Text Columns with ellipsis automatically show an onlyWhenOverflow Tooltip with the complete value. For custom Tooltip content, place a registered Tooltip (onlyWhenOverflow=true) in Column.render with children/title Slots bound to the row scope. Edit these actual nodes; do not add a parallel tooltip configuration schema or copy a row's static text across all rows. A custom title may combine current-row fields; keep display and title bindings consistent with the intended complete content. Verify at least two distinct rows, text/template content, 0/false/empty values and resized columns, then save/reopen. Apply [Tooltip acceptance](tooltip.md) to hover/focus and temporary editing reveals.
+Column `ellipsis` is native Ant Design truncation: a text cell keeps the native `title` attribute with its complete value. A styled popup is a registered Tooltip composed in Column.render, with children/title Slots bound to the row scope; as a native Tooltip it opens on hover/focus whether or not the text overflows. Edit these actual nodes; do not add a parallel tooltip configuration schema or copy a row's static text across all rows. A custom title may combine current-row fields; keep display and title bindings consistent with the intended complete content. Verify at least two distinct rows, text/template content, 0/false/empty values and resized columns, then save/reopen. Apply [Tooltip acceptance](tooltip.md) to hover/focus and temporary editing reveals.
 
 #### Render templates
 
-Column `displayType` is `text` or `custom`; presets were removed. Custom render composes registered components in the `render` Slot, whose scope is the bare names `cell`, `row` and `index` (no `column` or `$ctx` prefix). Copyable starting points, values illustrative:
+A Column without render content shows its field value natively; `custom` presentation composes registered components in the native `render` Slot, whose scope is the bare names `cell`, `row` and `index` (no `column` or `$ctx` prefix). Copyable starting points, values illustrative:
 
 ```html
 <!-- Status: Badge maps the value; never color/dot/count -->
-<plasmic-component data-plasmic-name="Status" data-plasmic-component="plasmic-antd6-table-column" data-props='{"dataIndex":"status","width":128,"displayType":"custom"}'><slot name="render"><plasmic-component data-plasmic-name="StatusBadge" data-plasmic-component="plasmic-antd6-badge" data-props='{"status":"{{ row.status === &#39;ENABLED&#39; ? &#39;success&#39; : &#39;default&#39; }}","text":"{{ row.statusLabel }}"}'></plasmic-component></slot></plasmic-component>
-<!-- Single-value category Tag -->
-<plasmic-component data-plasmic-name="CategoryTag" data-plasmic-component="plasmic-antd6-tag" data-props='{"value":"{{ cell }}","options":[{"value":"MESSAGE","label":"消息","color":"blue"}]}'></plasmic-component>
+<plasmic-component data-plasmic-name="Status" data-plasmic-component="plasmic-antd6-table-column" data-props='{"dataIndex":"status","width":128}'><slot name="render"><plasmic-component data-plasmic-name="StatusBadge" data-plasmic-component="plasmic-antd6-badge" data-props='{"status":"{{ row.status === &#39;ENABLED&#39; ? &#39;success&#39; : &#39;default&#39; }}","text":"{{ row.statusLabel }}"}'></plasmic-component></slot></plasmic-component>
+<!-- Single-value category Tag: the expression maps value to native color and label -->
+<plasmic-component data-plasmic-name="CategoryTag" data-plasmic-component="plasmic-antd6-tag" data-props='{"color":"{{ ({MESSAGE: &#39;blue&#39;})[cell] }}"}'><slot name="children"><span>{{ ({MESSAGE: "消息"})[cell] ?? cell }}</span></slot></plasmic-component>
 <!-- Multi-value Tags -->
-<plasmic-component data-plasmic-name="LabelTag" data-plasmic-component="plasmic-antd6-tag" data-repeat="{{ cell || [] }}" data-repeat-item="tagValue" data-props='{"value":"{{ tagValue }}"}'></plasmic-component>
+<plasmic-component data-plasmic-name="LabelTag" data-plasmic-component="plasmic-antd6-tag" data-repeat="{{ cell || [] }}" data-repeat-item="tagValue"><slot name="children"><span>{{ tagValue }}</span></slot></plasmic-component>
 <!-- URL link -->
 <a href="{{ cell }}" target="_blank" rel="noopener noreferrer" data-visible-if="{{ !!cell }}">{{ cell }}</a>
 <!-- Avatar -->
 <plasmic-component data-plasmic-name="OwnerAvatar" data-plasmic-component="plasmic-antd6-avatar" data-visible-if="{{ !!cell }}" data-props='{"src":"{{ cell }}","size":32,"alt":"{{ row.name }}"}'></plasmic-component>
 ```
 
-Name each instance for its role. Generate `data-props` with a JSON serializer: in a single-quoted attribute encode a literal `'` as `&#39;`; in a double-quoted attribute encode every `"` as `&quot;`. A status Column maps the row value inside the Badge `status`/`text` expressions and records `statusMap` on the Column; never add non-official props to the registered component. Verify two distinct rows, unmapped and empty values after save/reopen.
+Name each instance for its role. Generate `data-props` with a JSON serializer: in a single-quoted attribute encode a literal `'` as `&#39;`; in a double-quoted attribute encode every `"` as `&quot;`. A status Column maps the row value inside the Badge `status`/`text` expressions and records `statusMap` on the Column; a Tag maps it inside its native `color` and children. Never add non-official props to the registered component. Verify two distinct rows, unmapped and empty values after save/reopen.
 
 #### Operation column sizing
 
 Measure the widest visible permission-filtered ActionGroup for valid rows in the current role, add actual left/right cell padding, and round up for the fixed-right operation column. Exclude hidden menu widths. An existing width is not evidence that it still fits after replacing the action component.
-
-Measure the complete rendered buttons, including More's arrow, gaps and button padding. Check the rightmost control against the cell's **content** right edge after native cell padding, rather than only the viewport or table edge. Read actual rendered cell width as well as Column.width: Table layout can redistribute space. `snapshot_layout` reports `cellContent` measurements and `table-cell-control-overflow` when controls in a sticky cell intrude into its padding or escape it. Size from `requiredWidth`, then remeasure both Tabs, all applicable action/permission combinations and horizontal scroll positions. These measurements do not set a universal column width.
 
 #### Table.ColumnGroup
 
@@ -104,28 +109,34 @@ The wrapper's data input is the actual registered data-source contract, not an a
 
 Declare client-side or server-side ownership for sorting, filtering and paging. Server-side total is the full matching count, not the current row count; do not slice an already paged response again. Reset or retain current page according to the changed filters/scope and requirement. Do not promise a sorting/filtering column control absent from the installed registration. Use [Pagination](pagination.md) and the matching query composition for the actual configuration.
 
-Choose one ownership mode before binding. For local data with component-owned paging, `pagination:{defaultPageSize:20,showSizeChanger:true,pageSizeOptions:[20,50]}` initializes an editable pager without freezing its size (values here are illustrative). If application state owns paging, bind `pagination.current` and `pagination.pageSize` to the existing states and update both from the registered Table `onChange` argument `pagination.current` / `pagination.pageSize`. Reset current on the source-defined filter change. A constant `pageSize:20` is a controlled value, so displaying a size changer does not make size changes work. Verify the installed contract before using this pattern, and check resulting rows as well as the pager label.
+Choose one ownership mode before binding. For local data with component-owned paging, `pagination:{defaultPageSize:20,showSizeChanger:true,pageSizeOptions:[20,50,100]}` initializes an editable pager without freezing its size. If application state owns paging, bind `pagination.current` and `pagination.pageSize` to the existing states and update both from the registered Table `onChange` argument `pagination.current` / `pagination.pageSize`. Reset current on the source-defined filter change. A constant `pageSize:20` is a controlled value, so displaying a size changer does not make size changes work. Verify the installed contract before using this pattern, and check resulting rows as well as the pager label.
 
 For selection, bind selectedRowKeys only when intentionally controlled and use the actual onSelectedRowKeysChange/ref actions. Define whether selection covers the current page, retains keys across pages, or resets after filters/mutations; the current wrapper does not certify arbitrary cross-page retention. Verify keys still identify the intended records after refresh. [Bulk-action composition](../compositions/bulk-actions.md) owns batch effects and permission handling.
 
-### Pagination test data and acceptance
-
-Before generation, prepare a normal initial dataset for every paginated list/Tab in scope. After its initial filters, current App/market, role and record permissions are applied, the actual matching result count must exceed the initial pageSize: at least pageSize + 1. For a 20-row page this means at least 21 matching records; 25–30 usually suffice. The raw backing array's length is insufficient when the initial visible scope contains fewer records. Empty, sparse and failed-query fixtures are separate cases and cannot replace this normal paging dataset.
-
-Prototype fixtures may extend the supplied examples with explicitly simulated local records that obey the source fields, enums, relationships and permissions. Record their simulated nature in the task evidence; do not add debug labels or controls to the business UI. Give every record a complete, unique stable rowKey. Keep the real matching count, native total and retrievable records consistent; a larger total with only a few actual records does not satisfy this rule. With server paging, the backing query/API must really return the subsequent page. If authoritative source/access restrictions prevent sufficient permitted data, report pagination as unverified rather than inventing real records or claiming a pass.
-
-Use the existing native paging props and runtime cases to record the initial pageSize, matching count, active scope/filters and distinct expected record IDs before composition; do not derive these expectations from the finished screenshot or create another data schema. If a larger pageSize must also support a tested page turn, prepare enough matching records for that tested size too.
-
-In real Preview, scope assertions to the actual Table and its native pager:
-
-1. On page 1, verify the first-page record IDs, rendered record count, current page, pageSize and matching total.
-2. Go to page 2, verify different expected record IDs and the correct slice size; first-page records must not simply remain repeated. This must demonstrate real records beyond the first page, not just an active page-number change.
-3. Return to page 1 and verify its original records and the unchanged total.
-4. When a size changer is available, change pageSize and verify the resulting rows, current-page policy and total separately. Also exercise filtering/reset and scope changes under their source-defined page policy.
-
-Retain the native assertion trace for these cases under [runtime evidence](../../../design/component-policy.md#native-runtime-evidence). Static structure and declared case names do not establish the filtered dataset size or a real page transition. A pager visible beside a short sample or a changed counter alone does not pass.
-
 ## Acceptance checks
+
+### Column and operation width acceptance
+
+After save/reopen, read both column props and rendered header/cell widths. Check All/Mine use the same definitions, the operation width equals measured content plus padding, remaining space only enlarges the text column, the longest status and timestamps fit, ellipsis preserves complete values, and the horizontal track/fixed columns/pagination remain usable. Report these as individual checks with evidence, not a generic screenshot approval or model-validation result.
+
+Measure the complete rendered buttons, including More's arrow, gaps and button padding. Check the rightmost control against the cell's **content** right edge after native cell padding, rather than only the viewport or table edge. Read actual rendered cell width as well as Column.width: Table layout can redistribute space. `snapshot_layout` reports `cellContent` measurements and `table-cell-control-overflow` when controls in a sticky cell intrude into its padding or escape it. Size from `requiredWidth`, then remeasure both Tabs, all applicable action/permission combinations and horizontal scroll positions. These measurements do not set a universal column width.
+
+### Selection
+
+Selection must persist without a state binding, and controlled selection must follow the bound keys. Clear selection and radio/checkbox modes must work. For wrapper changes, test omitted, explicit and controlled/uncontrolled values with the installed Ant Design version.
+
+### Pagination data and acceptance
+
+Prepare a normal initial dataset for every paginated list or Tab: after its initial filters, App/market, role and record permissions apply, the matching count exceeds the initial pageSize (at least pageSize + 1; 25–30 records for a 20-row page). Simulated local records obey the source fields, enums, relationships and permissions, each with a unique stable rowKey; keep the matching count, native total and retrievable records consistent. Record their simulated nature in task evidence, not in the UI. With server paging the backing query must really return the next page; if source/access restrictions prevent enough permitted data, report pagination unverified instead of inventing records.
+
+Native component-owned paging over local data is Ant Design's own behavior: its readiness is the dataset size above, observed once in the Preview round (page 2 shows different records). It needs no runtime case. Paging owned by the prototype (bound `pagination.current`/`pageSize`, a server query, or source-defined page policy on filter/scope change) needs `page-change` cases, plus `page-size` when sizes are adjustable, under [runtime evidence](../../../design/component-policy.md#native-runtime-evidence):
+
+1. Page 1: the first-page record IDs, rendered count, current page, pageSize and matching total.
+2. Page 2: different expected record IDs and the correct slice size.
+3. Back to page 1: the original records and unchanged total.
+4. With a size changer: the resulting rows, current-page policy and total; filtering/reset and scope changes under their source-defined page policy.
+
+Scope assertions to the actual Table and its pager. A visible pager beside a short sample, or a changed counter alone, does not pass.
 
 ### Loading, empty and failure acceptance
 

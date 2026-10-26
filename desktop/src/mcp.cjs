@@ -424,8 +424,8 @@ tools.push(
   {
     name: "read_skill",
     description:
-      "Read Plasmic workflow bootstrap instructions, honoring an explicitly configured local Skill source or otherwise resolving the published resources.",
-    inputSchema: object({}),
+      "Before design inspection, creation, revision or codegen, read these workflow bootstrap instructions unless resources and required references are already resolved and read for the current task and mode. Pass the current client's Plasmic skillPath when known, including non-shared installations; otherwise checks the shared agents skill directory. Honors that skill's local source, or resolves published resources if none is configured. Follow the returned resolver and mustRead files before design work; tool availability alone does not load the design rules.",
+    inputSchema: object({ skillPath: { type: "string", minLength: 1, description: "Absolute path of the current client's installed Plasmic SKILL.md; use the loaded skill path, do not guess another client's directory." } }),
   },
   {
     name: "execute_batch",
@@ -555,7 +555,7 @@ async function serveMcp(profile) {
   const results = new McpResults();
   const server = new Server(
     { name: "plasmic-desktop", version: require("../package.json").version },
-    { capabilities: { tools: {} }, instructions: "Call top-level tools such as list_orgs, list_projects, create_project, open_design and preview directly. Only native editor operations such as read and save belong in execute {name,input}; discover them with get_app_state view:tools. Management and open_design work without an existing editor. Failed tool calls return isError:true and JSON {msg,detail}. Show msg to the user; inspect detail for the original message, stack, error code, execution status, context and recovery steps. If detail is a ResultReference, use read_result before recovery or retry. Do not replay mutations unless detail.operationExecuted is false or readback confirms the outcome." },
+    { capabilities: { tools: {} }, instructions: "Before design inspection, creation, revision or codegen, call read_skill with the current Plasmic skillPath when known and follow its resolver and mustRead files unless already resolved and read for the current task and mode. This applies even when the client has no installed Plasmic skill. Call top-level tools such as list_orgs, list_projects, create_project, open_design and preview directly. Only native editor operations such as read and save belong in execute {name,input}; discover them with get_app_state view:tools. Management and open_design work without an existing editor. Failed tool calls return isError:true and JSON {msg,detail}. Show msg to the user; inspect detail for the original message, stack, error code, execution status, context and recovery steps. If detail is a ResultReference, use read_result before recovery or retry. Do not replay mutations unless detail.operationExecuted is false or readback confirms the outcome." },
   );
   server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools }));
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
@@ -589,7 +589,7 @@ async function serveMcp(profile) {
               request.params.arguments?.id,
             )
           : request.params.name === "read_skill"
-            ? await require("./skill-bootstrap.cjs").readSkillBootstrap()
+            ? await require("./skill-bootstrap.cjs").readSkillBootstrap(undefined, request.params.arguments?.skillPath)
             : await requestRpc(
                 profile,
                 request.params.name,

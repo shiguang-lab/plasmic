@@ -19,6 +19,31 @@ UI_KEYS = {'title', 'label', 'text', 'description', 'help', 'tooltip', 'placehol
 UI_COLLECTIONS = {'items', 'options', 'menuItems', 'menuItemsJson', 'rules'}
 COPY_KINDS = {'label', 'placeholder', 'value', 'help', 'warning', 'feedback', 'action'}
 COPY_ROLES = {'button', 'fieldLabel', 'columnTitle', 'placeholder', 'title', 'help', 'hint', 'value', 'other'}
+# `kind` is the required classification; `role` only refines its budget (content-review.md#copy-economy).
+KIND_ROLES = {'action': 'button', 'label': 'fieldLabel', 'placeholder': 'placeholder', 'help': 'help',
+              'warning': 'help', 'feedback': 'help', 'value': 'value'}
+TRIAGE = ('perceive-now', 'perceive-on-demand', 'not-user-facing')
+
+
+def copy_role(entry):
+    """Explicit refining role, otherwise the budget role implied by the copy kind."""
+    role = entry.get('role') if isinstance(entry, dict) else None
+    return role if role in COPY_ROLES else KIND_ROLES.get(entry.get('kind')) if isinstance(entry, dict) else None
+
+
+def copy_triage(entry):
+    """Explicit triage, otherwise derived from the location: tooltip copy is on demand."""
+    triage = entry.get('copyTriage')
+    if triage is not None:
+        return triage
+    location = str(entry.get('at', ''))
+    return 'perceive-on-demand' if location.endswith('/tooltip') or '/slots/tooltip/' in location or entry.get('kind') == 'help' and 'tooltip' in location else 'perceive-now'
+
+
+def copy_units(value):
+    """Display length: a wide (CJK/fullwidth) character is 1 unit, any other character half a unit."""
+    import unicodedata
+    return sum(1 if unicodedata.east_asian_width(c) in ('W', 'F') else 0.5 for c in str(value).strip())
 
 
 def text(value):
@@ -164,11 +189,15 @@ def plan_errors(plan):
     keys = []
     for i, spec in enumerate(copy['entries']):
         pointer = f'/copy/entries/{i}'
-        if not isinstance(spec, dict) or not all(text(spec.get(k)) for k in ('nodeName', 'at', 'text', 'source', 'purpose', 'role')):
-            issue(pointer, 'Every UI literal/binding needs a named location, exact text, role, source and user purpose')
+        if not isinstance(spec, dict) or not all(text(spec.get(k)) for k in ('nodeName', 'at', 'text', 'source', 'purpose', 'kind')):
+            issue(pointer, 'Every UI literal/binding needs a named location, exact text, kind, source and user purpose')
             continue
-        if spec.get('role') not in COPY_ROLES:
-            issue(pointer + '/role', 'Declare the copy role so length and repetition budgets apply', allowedValues=sorted(COPY_ROLES))
+        if 'role' in spec and spec.get('role') not in COPY_ROLES:
+            issue(pointer + '/role', 'An explicit copy role refines the kind budget; omit it to use the kind default', allowedValues=sorted(COPY_ROLES))
+        elif spec.get('role') == 'other' and not text(spec.get('roleReason')):
+            issue(pointer + '/roleReason', 'role:other skips the length budget; record why no budgeted role fits this copy')
+        if spec.get('copyTriage') is not None and spec['copyTriage'] not in TRIAGE:
+            issue(pointer + '/copyTriage', 'copyTriage is perceive-now, perceive-on-demand or not-user-facing', allowedValues=list(TRIAGE))
         if spec['nodeName'] not in names:
             issue(pointer + '/nodeName', 'Copy owner must occur in components or nodes')
         if spec.get('kind') not in COPY_KINDS:

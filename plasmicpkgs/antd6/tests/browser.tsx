@@ -117,9 +117,6 @@ function App() {
           animated={false}
           animateTabBar={false}
           animateTabContent={false}
-          sticky={false}
-          stickyOffset={0}
-          tabBarBackground=""
           tabBarExtraContentLeft={null}
           tabBarExtraContentRight={null}
         />

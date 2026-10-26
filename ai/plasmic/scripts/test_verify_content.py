@@ -33,9 +33,20 @@ class ContentTests(unittest.TestCase):
                 self.entry('QueryLabel', '/text', 'SQL 查询', 'label', 'fieldLabel'),
                 self.entry('QueryHelp', '/text', self.help, 'help')]}}
 
-    def entry(self, name, at, value, kind, role='other'):
-        return {'nodeName': name, 'at': at, 'text': value, 'kind': kind, 'role': role,
-                'purpose': 'Support entering and submitting the SQL query', 'source': 'REQ §SQL input'}
+    def entry(self, name, at, value, kind, role=None):
+        entry = {'nodeName': name, 'at': at, 'text': value, 'kind': kind,
+                 'purpose': 'Support entering and submitting the SQL query', 'source': 'REQ §SQL input'}
+        return {**entry, 'role': role} if role else entry
+    def test_role_refines_kind_and_other_needs_a_reason(self):
+        from verify_content import copy_role
+        self.assertEqual(copy_role({'kind': 'action'}), 'button')
+        self.assertEqual(copy_role({'kind': 'label', 'role': 'columnTitle'}), 'columnTitle')
+        self.plan['copy']['entries'][2]['role'] = 'other'
+        self.assertIn('roleReason', json.dumps(plan_errors(self.plan)))
+        self.plan['copy']['entries'][2]['roleReason'] = 'Generated SQL sample, not prose'
+        self.assertEqual(plan_errors(self.plan), [])
+        self.plan['copy']['entries'][2]['role'] = 'banner'
+        self.assertIn('/role', json.dumps(plan_errors(self.plan)))
 
     def result(self, markup=None, plan=None):
         return check_page(plan or self.plan, {'baseVariantTplTree': self.markup if markup is None else markup})

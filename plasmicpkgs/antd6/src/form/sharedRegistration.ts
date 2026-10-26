@@ -239,8 +239,8 @@ export function commonFormItemProps(
     validateFirst: {
       type: "boolean" as const,
       displayName: "Stop at first validation error",
-      description: "Validate rules in order and show only the first failing rule. Put required rules before format, range and business rules.",
-      defaultValue: true,
+      description: "Native validateFirst: validate rules in order and show only the first failing rule. Ant Design collects every failing rule when unset. Put required rules before format, range and business rules.",
+      defaultValueHint: false,
     },
     description: {
       type: usage === "advanced-form-item" ? "slot" : "string",

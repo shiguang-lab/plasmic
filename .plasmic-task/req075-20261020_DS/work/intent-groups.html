@@ -1,0 +1,223 @@
+<!-- Reviewed Slot intent for /groups: components and direct Slots supplied. -->
+<div>
+  <plasmic-component data-plasmic-name="AppShell" data-plasmic-component="plasmic-overseas-app-shell">
+    <slot name="children">
+      <div>
+        <plasmic-component data-plasmic-name="GroupFilters" data-plasmic-component="plasmic-overseas-search-form">
+          <slot name="children">
+            <plasmic-component data-plasmic-name="FilterMarket" data-plasmic-component="plasmic-overseas-search-form-item">
+              <slot name="children">
+                <plasmic-component data-plasmic-name="MarketSelect" data-plasmic-component="plasmic-antd6-select">
+                </plasmic-component>
+              </slot>
+            </plasmic-component>
+            <plasmic-component data-plasmic-name="FilterScenario" data-plasmic-component="plasmic-overseas-search-form-item">
+              <slot name="children">
+                <plasmic-component data-plasmic-name="ScenarioSelect" data-plasmic-component="plasmic-antd6-select">
+                </plasmic-component>
+              </slot>
+            </plasmic-component>
+            <plasmic-component data-plasmic-name="FilterType" data-plasmic-component="plasmic-overseas-search-form-item">
+              <slot name="children">
+                <plasmic-component data-plasmic-name="TypeSelect" data-plasmic-component="plasmic-antd6-select">
+                </plasmic-component>
+              </slot>
+            </plasmic-component>
+            <plasmic-component data-plasmic-name="FilterStatus" data-plasmic-component="plasmic-overseas-search-form-item">
+              <slot name="children">
+                <plasmic-component data-plasmic-name="StatusSelect" data-plasmic-component="plasmic-antd6-select">
+                </plasmic-component>
+              </slot>
+            </plasmic-component>
+            <plasmic-component data-plasmic-name="FilterKeyword" data-plasmic-component="plasmic-overseas-search-form-item">
+              <slot name="children">
+                <plasmic-component data-plasmic-name="KeywordInput" data-plasmic-component="plasmic-antd6-input">
+                </plasmic-component>
+              </slot>
+            </plasmic-component>
+          </slot>
+        </plasmic-component>
+        <plasmic-component data-plasmic-name="GroupListCard" data-plasmic-component="plasmic-antd6-card" data-props='{"size":"medium","variant":"outlined","styles":{"body":{"padding":"0 20px"}}}'>
+          <slot name="title"></slot>
+          <slot name="extra"></slot>
+          <slot name="children">
+            <plasmic-component data-plasmic-name="ScopeTabs" data-plasmic-component="plasmic-antd6-tabs">
+              <slot name="items">
+                <plasmic-component data-plasmic-name="AllTab" data-plasmic-component="plasmic-antd6-tab-item">
+                  <slot name="label">
+                    <div>
+                    </div>
+                  </slot>
+                  <slot name="children">
+                    <plasmic-component data-plasmic-name="AllGroupTable" data-plasmic-component="plasmic-antd6-table">
+                      <slot name="children">
+                        <plasmic-component data-plasmic-name="AllGroupIDColumn" data-plasmic-component="plasmic-antd6-table-column">
+                          <slot name="title">
+                            <div>
+                            </div>
+                          </slot>
+                        </plasmic-component>
+                        <plasmic-component data-plasmic-name="AllGroupKeyColumn" data-plasmic-component="plasmic-antd6-table-column">
+                          <slot name="title">
+                            <div>
+                            </div>
+                          </slot>
+                        </plasmic-component>
+                        <plasmic-component data-plasmic-name="AllNameColumn" data-plasmic-component="plasmic-antd6-table-column">
+                          <slot name="title">
+                            <div>
+                            </div>
+                          </slot>
+                        </plasmic-component>
+                        <plasmic-component data-plasmic-name="AllTypeColumn" data-plasmic-component="plasmic-antd6-table-column">
+                          <slot name="title">
+                            <div>
+                            </div>
+                          </slot>
+                        </plasmic-component>
+                        <plasmic-component data-plasmic-name="AllScenarioColumn" data-plasmic-component="plasmic-antd6-table-column">
+                          <slot name="title">
+                            <div>
+                            </div>
+                          </slot>
+                        </plasmic-component>
+                        <plasmic-component data-plasmic-name="AllStatusColumn" data-plasmic-component="plasmic-antd6-table-column">
+                          <slot name="title">
+                            <div>
+                            </div>
+                          </slot>
+                          <slot name="render">
+                            <plasmic-component data-plasmic-name="AllStatusBadge" data-plasmic-component="plasmic-antd6-badge">
+                            </plasmic-component>
+                          </slot>
+                        </plasmic-component>
+                        <plasmic-component data-plasmic-name="AllUpdatedColumn" data-plasmic-component="plasmic-antd6-table-column">
+                          <slot name="title">
+                            <div>
+                            </div>
+                          </slot>
+                        </plasmic-component>
+                        <plasmic-component data-plasmic-name="AllOwnerColumn" data-plasmic-component="plasmic-antd6-table-column">
+                          <slot name="title">
+                            <div>
+                            </div>
+                          </slot>
+                        </plasmic-component>
+                        <plasmic-component data-plasmic-name="AllActionsColumn" data-plasmic-component="plasmic-antd6-table-column">
+                          <slot name="title">
+                            <div>
+                            </div>
+                          </slot>
+                          <slot name="render">
+                            <plasmic-component data-plasmic-name="AllRowActions" data-plasmic-component="plasmic-react-ui-action-group">
+                            </plasmic-component>
+                          </slot>
+                        </plasmic-component>
+                      </slot>
+                    </plasmic-component>
+                  </slot>
+                </plasmic-component>
+                <plasmic-component data-plasmic-name="MineTab" data-plasmic-component="plasmic-antd6-tab-item">
+                  <slot name="label">
+                    <div>
+                    </div>
+                  </slot>
+                  <slot name="children">
+                    <plasmic-component data-plasmic-name="MineGroupTable" data-plasmic-component="plasmic-antd6-table">
+                      <slot name="children">
+                        <plasmic-component data-plasmic-name="MineGroupIDColumn" data-plasmic-component="plasmic-antd6-table-column">
+                          <slot name="title">
+                            <div>
+                            </div>
+                          </slot>
+                        </plasmic-component>
+                        <plasmic-component data-plasmic-name="MineGroupKeyColumn" data-plasmic-component="plasmic-antd6-table-column">
+                          <slot name="title">
+                            <div>
+                            </div>
+                          </slot>
+                        </plasmic-component>
+                        <plasmic-component data-plasmic-name="MineNameColumn" data-plasmic-component="plasmic-antd6-table-column">
+                          <slot name="title">
+                            <div>
+                            </div>
+                          </slot>
+                        </plasmic-component>
+                        <plasmic-component data-plasmic-name="MineTypeColumn" data-plasmic-component="plasmic-antd6-table-column">
+                          <slot name="title">
+                            <div>
+                            </div>
+                          </slot>
+                        </plasmic-component>
+                        <plasmic-component data-plasmic-name="MineScenarioColumn" data-plasmic-component="plasmic-antd6-table-column">
+                          <slot name="title">
+                            <div>
+                            </div>
+                          </slot>
+                        </plasmic-component>
+                        <plasmic-component data-plasmic-name="MineStatusColumn" data-plasmic-component="plasmic-antd6-table-column">
+                          <slot name="title">
+                            <div>
+                            </div>
+                          </slot>
+                          <slot name="render">
+                            <plasmic-component data-plasmic-name="MineStatusBadge" data-plasmic-component="plasmic-antd6-badge">
+                            </plasmic-component>
+                          </slot>
+                        </plasmic-component>
+                        <plasmic-component data-plasmic-name="MineUpdatedColumn" data-plasmic-component="plasmic-antd6-table-column">
+                          <slot name="title">
+                            <div>
+                            </div>
+                          </slot>
+                        </plasmic-component>
+                        <plasmic-component data-plasmic-name="MineOwnerColumn" data-plasmic-component="plasmic-antd6-table-column">
+                          <slot name="title">
+                            <div>
+                            </div>
+                          </slot>
+                        </plasmic-component>
+                        <plasmic-component data-plasmic-name="MineActionsColumn" data-plasmic-component="plasmic-antd6-table-column">
+                          <slot name="title">
+                            <div>
+                            </div>
+                          </slot>
+                          <slot name="render">
+                            <plasmic-component data-plasmic-name="MineRowActions" data-plasmic-component="plasmic-react-ui-action-group">
+                            </plasmic-component>
+                          </slot>
+                        </plasmic-component>
+                      </slot>
+                    </plasmic-component>
+                  </slot>
+                </plasmic-component>
+              </slot>
+              <slot name="tabBarExtraContentRight">
+                <plasmic-component data-plasmic-name="CreateMenu" data-plasmic-component="plasmic-antd6-dropdown">
+                  <slot name="children">
+                    <plasmic-component data-plasmic-name="CreateGroupButton" data-plasmic-component="plasmic-antd6-button">
+                      <slot name="icon">
+                        <plasmic-component data-plasmic-name="CreateMenuIcon" data-plasmic-component="plasmic-antd-icon-PlusOutlined">
+                        </plasmic-component>
+                      </slot>
+                      <slot name="children">
+                        <plasmic-component data-plasmic-name="CreateGroupContent" data-plasmic-component="plasmic-antd6-space">
+                          <slot name="children">
+                            <div>
+                            </div>
+                            <plasmic-component data-plasmic-name="CreateMenuIndicator" data-plasmic-component="plasmic-antd-icon-DownOutlined">
+                            </plasmic-component>
+                          </slot>
+                        </plasmic-component>
+                      </slot>
+                    </plasmic-component>
+                  </slot>
+                </plasmic-component>
+              </slot>
+            </plasmic-component>
+          </slot>
+        </plasmic-component>
+      </div>
+    </slot>
+  </plasmic-component>
+</div>

@@ -1,0 +1,346 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Design-time decisions a Page plan must contain before markup, one case per page type. Rules: references/design/page-types.md, references/design/scale.md and the component Design defaults.",
+  "cases": [
+    {
+      "id": "list",
+      "requirement": "requirements/list.md",
+      "route": "/suppliers",
+      "pageType": "list",
+      "components": [
+        {
+          "component": "plasmic-overseas-app-shell",
+          "count": 1
+        },
+        {
+          "component": "plasmic-overseas-search-form",
+          "count": 1,
+          "props": {
+            "colSpan": 6
+          }
+        },
+        {
+          "component": "plasmic-antd6-card",
+          "count": 1,
+          "fields": {
+            "header": "title+extra",
+            "headerReason": "actions"
+          }
+        },
+        {
+          "component": "plasmic-antd6-table",
+          "count": 1,
+          "props": {
+            "size": "large"
+          }
+        },
+        {
+          "component": "plasmic-react-ui-action-group",
+          "count": 1
+        },
+        {
+          "component": "plasmic-antd6-badge",
+          "min": 1
+        }
+      ],
+      "absent": [
+        "plasmic-antd6-descriptions",
+        "plasmic-antd6-tabs"
+      ]
+    },
+    {
+      "id": "tabbed-list",
+      "requirement": "requirements/tabbed-list.md",
+      "route": "/tickets",
+      "pageType": "tabbed-list",
+      "components": [
+        {
+          "component": "plasmic-overseas-search-form",
+          "count": 1,
+          "props": {
+            "colSpan": 6
+          }
+        },
+        {
+          "component": "plasmic-antd6-card",
+          "count": 1,
+          "fields": {
+            "header": "none"
+          },
+          "propPaths": {
+            "styles.body.padding": "0 20px"
+          }
+        },
+        {
+          "component": "plasmic-antd6-tabs",
+          "count": 1,
+          "props": {
+            "size": "medium"
+          }
+        },
+        {
+          "component": "plasmic-antd6-table",
+          "count": 2,
+          "props": {
+            "size": "large"
+          }
+        },
+        {
+          "component": "plasmic-react-ui-action-group",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "id": "catalog-workspace",
+      "requirement": "requirements/catalog-workspace.md",
+      "route": "/products",
+      "pageType": "catalog-workspace",
+      "components": [
+        {
+          "component": "plasmic-antd6-row",
+          "min": 1
+        },
+        {
+          "component": "plasmic-antd6-table",
+          "count": 1,
+          "props": {
+            "size": "large"
+          }
+        },
+        {
+          "component": "plasmic-overseas-search-form",
+          "count": 1
+        }
+      ],
+      "anyOf": [
+        [
+          "plasmic-antd6-tree",
+          "plasmic-antd6-directory-tree",
+          "plasmic-antd6-menu"
+        ]
+      ]
+    },
+    {
+      "id": "basic-form",
+      "requirement": "requirements/basic-form.md",
+      "route": "/coupons/new",
+      "pageType": "basic-form",
+      "wireframeTokens": [
+        "券名称[____]",
+        "券类型▾",
+        "面额[____]",
+        "使用门槛[____]",
+        "发放总量[____]",
+        "使用说明[",
+        "[取消]",
+        "[提交]"
+      ],
+      "components": [
+        {
+          "component": "plasmic-antd6-card",
+          "count": 1,
+          "fields": {
+            "header": "none"
+          }
+        },
+        {
+          "component": "plasmic-antd6-form",
+          "count": 1,
+          "props": {
+            "layout": "horizontal",
+            "labelAlign": "right"
+          }
+        },
+        {
+          "component": "plasmic-antd6-date-range-picker",
+          "count": 1
+        }
+      ],
+      "absent": [
+        "plasmic-antd6-modal",
+        "plasmic-antd6-descriptions"
+      ],
+      "forms": [
+        {
+          "layout": {
+            "columns": 3
+          },
+          "formLayout": "horizontal",
+          "fullRowFields": 1,
+          "labelWidth": true
+        }
+      ]
+    },
+    {
+      "id": "grouped-form",
+      "requirement": "requirements/grouped-form.md",
+      "route": "/employees/edit",
+      "pageType": "grouped-form",
+      "components": [
+        {
+          "component": "plasmic-antd6-card",
+          "count": 3,
+          "fields": {
+            "header": "title",
+            "headerReason": "distinguish"
+          }
+        },
+        {
+          "component": "plasmic-antd6-form",
+          "count": 1,
+          "props": {
+            "layout": "horizontal"
+          }
+        },
+        {
+          "component": "plasmic-antd6-tree-select",
+          "count": 1
+        },
+        {
+          "component": "plasmic-antd6-switch",
+          "count": 1
+        }
+      ],
+      "forms": [
+        {
+          "layout": {
+            "columns": 3,
+            "containerCount": 3
+          },
+          "formLayout": "horizontal",
+          "labelWidth": true
+        }
+      ]
+    },
+    {
+      "id": "step-form",
+      "requirement": "requirements/step-form.md",
+      "route": "/contracts/new",
+      "pageType": "step-form",
+      "components": [
+        {
+          "component": "plasmic-antd6-steps",
+          "count": 1
+        },
+        {
+          "component": "plasmic-antd6-descriptions",
+          "min": 1
+        }
+      ],
+      "notOwnedBy": [
+        {
+          "component": "plasmic-antd6-steps",
+          "owner": "plasmic-antd6-card"
+        }
+      ],
+      "anyOf": [
+        [
+          "plasmic-antd6-upload",
+          "plasmic-antd6-upload-dragger"
+        ]
+      ]
+    },
+    {
+      "id": "basic-detail",
+      "requirement": "requirements/basic-detail.md",
+      "route": "/suppliers/detail/[id]",
+      "pageType": "basic-detail",
+      "components": [
+        {
+          "component": "plasmic-antd6-descriptions",
+          "count": 3,
+          "props": {
+            "column": 3
+          }
+        },
+        {
+          "component": "plasmic-antd6-table",
+          "count": 1,
+          "props": {
+            "size": "large"
+          }
+        },
+        {
+          "component": "plasmic-antd6-card",
+          "min": 2
+        }
+      ],
+      "absent": [
+        "plasmic-antd6-form",
+        "plasmic-overseas-search-form"
+      ]
+    },
+    {
+      "id": "tabbed-detail",
+      "requirement": "requirements/tabbed-detail.md",
+      "route": "/tickets/detail/[id]",
+      "pageType": "tabbed-detail",
+      "components": [
+        {
+          "component": "plasmic-antd6-descriptions",
+          "min": 1,
+          "props": {
+            "column": 3
+          }
+        },
+        {
+          "component": "plasmic-antd6-tabs",
+          "count": 1
+        },
+        {
+          "component": "plasmic-antd6-table",
+          "count": 3,
+          "props": {
+            "size": "large"
+          }
+        }
+      ]
+    },
+    {
+      "id": "overview",
+      "requirement": "requirements/overview.md",
+      "route": "/overview",
+      "pageType": "overview",
+      "components": [
+        {
+          "component": "plasmic-antd6-statistic",
+          "count": 4
+        },
+        {
+          "component": "plasmic-antd6-table",
+          "count": 2,
+          "props": {
+            "size": "large"
+          }
+        }
+      ],
+      "absent": [
+        "plasmic-antd6-descriptions"
+      ]
+    },
+    {
+      "id": "result",
+      "requirement": "requirements/result.md",
+      "route": "/products/import-result",
+      "pageType": "result",
+      "components": [
+        {
+          "component": "plasmic-antd6-result",
+          "count": 1
+        },
+        {
+          "component": "plasmic-antd6-card",
+          "count": 1,
+          "fields": {
+            "header": "none"
+          }
+        }
+      ],
+      "absent": [
+        "plasmic-antd6-table",
+        "plasmic-antd6-form"
+      ]
+    }
+  ]
+}

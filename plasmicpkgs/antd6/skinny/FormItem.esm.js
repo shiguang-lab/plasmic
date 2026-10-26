@@ -74,7 +74,7 @@ function FormItemWrapper(props) {
     noLabel,
     name,
     hideValidationMessage,
-    validateFirst = true,
+    validateFirst,
     customizeProps: _customizeProps,
     setControlContextData: _setControlContextData,
     alignLabellessWithControls = true,
@@ -154,10 +154,10 @@ function FormItemWrapper(props) {
       validateFirst,
       extra: description,
       help: hideValidationMessage ? "" : props.help,
-      colon: noLabel ? false : void 0,
+      colon: noLabel ? false : props.colon,
       valuePropName: deriveValuePropName(props),
       trigger: deriveOnChangePropName(props),
-      wrapperCol: layoutContext?.layout === "horizontal" && noLabel && alignLabellessWithControls && layoutContext.labelSpan ? { offset: layoutContext.labelSpan } : void 0
+      wrapperCol: props.wrapperCol ?? (layoutContext?.layout === "horizontal" && noLabel && alignLabellessWithControls && layoutContext.labelSpan ? { offset: layoutContext.labelSpan } : void 0)
     },
     /* @__PURE__ */ React.createElement(FormItemForwarder, { formItemProps: props })
   );

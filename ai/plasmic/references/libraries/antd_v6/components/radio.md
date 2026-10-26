@@ -10,6 +10,11 @@ Library: [Ant Design v6](../index.md).
 
 ## Generation rules
 
+### Design defaults
+
+- Use a Radio group for two to five mutually exclusive short options in a Form, laid out horizontally; more options use Select.
+- The group stays content-sized inside its Form column.
+
 ### Choice and values
 
 Use Radio.Group for one choice from a visible set; each Radio or Radio.Button keeps its stable business value and label. Do not use separate booleans to simulate a mutually exclusive group. Group options and editable children are alternatives selected through the installed useChildren contract. Keep disabled choices visible when their meaning matters, and distinguish a disabled group from a disabled item.

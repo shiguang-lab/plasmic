@@ -223,20 +223,19 @@ test("Select respects filterOption=false for server results", async () => {
   ).toBe("Apple");
 });
 
-test("Select search hints follow single and multiple mode defaults", () => {
-  const hint = metadata(registerSelect).get("plasmic-antd6-select").props
-    .showSearch.defaultValueHint;
-  expect(hint({})).toBe(false);
-  expect(hint({ mode: "multiple" })).toBe(true);
-  expect(hint({ mode: "tags" })).toBe(true);
+test("Select registers its native boolean/object search configuration without an alias", () => {
+  const props = metadata(registerSelect).get("plasmic-antd6-select").props;
+  expect(props.showSearch.type).toBe("object");
+  expect(props.showSearch.fields).toBeUndefined();
+  expect(props.showSearch.defaultValue).toBeUndefined();
+  expect(props.searchOptionFilterProp).toBeUndefined();
 });
 
-test("Select respects explicit optionFilterProp and null suffixIcon", async () => {
+test("Select search follows the native value filter and null suffixIcon", async () => {
   render(
     <AntdSelect
       open
       showSearch
-      optionFilterProp="value"
       suffixIcon={null}
       options={[{ value: "id-123", label: "Visible name" }]}
     />,
@@ -251,26 +250,41 @@ test("Select respects explicit optionFilterProp and null suffixIcon", async () =
   expect(document.querySelector(".ant-select-arrow")).toBeNull();
 });
 
-test("Select label filtering accepts React nodes and numeric labels", async () => {
+test("Select search by label uses native showSearch.optionFilterProp", async () => {
+  const options = [
+    { value: "id-1", label: "Visible name" },
+    { value: "id-2", label: "Other" },
+  ];
+  render(
+    <AntdSelect open showSearch={{ optionFilterProp: "label" }} options={options} />,
+  );
+  fireEvent.change(screen.getByRole("combobox"), { target: { value: "visible" } });
+  await vi.waitFor(() =>
+    expect(
+      [...document.querySelectorAll(".ant-select-item-option-content")].map((o) => o.textContent),
+    ).toEqual(["Visible name"]),
+  );
+  fireEvent.change(screen.getByRole("combobox"), { target: { value: "id-1" } });
+  await vi.waitFor(() =>
+    expect(document.querySelectorAll(".ant-select-item-option-content")).toHaveLength(0),
+  );
+});
+
+test("Select preserves remote search callbacks and filtering in native search configuration", async () => {
+  const onSearch = vi.fn();
+  const options = [{ value: "id-1", label: "Visible name" }];
   render(
     <AntdSelect
       open
-      showSearch
-      options={[
-        { value: "one", label: <b>Rich label</b> },
-        { value: "two", label: 2026 },
-      ]}
+      showSearch={{ optionFilterProp: "label", filterOption: false, onSearch }}
+      options={options}
     />,
   );
-  fireEvent.change(screen.getByRole("combobox"), { target: { value: "2026" } });
-  await vi.waitFor(() =>
-    expect(
-      document.querySelectorAll(".ant-select-item-option-content"),
-    ).toHaveLength(1),
-  );
-  expect(
-    document.querySelector(".ant-select-item-option-content")?.textContent,
-  ).toBe("2026");
+  fireEvent.change(screen.getByRole("combobox"), { target: { value: "remote query" } });
+  await vi.waitFor(() => {
+    expect(onSearch).toHaveBeenCalledExactlyOnceWith("remote query");
+    expect(document.querySelector(".ant-select-item-option-content")?.textContent).toBe("Visible name");
+  });
 });
 
 test("Popover insertion preserves native hover delay, preventing fly-by opening", async () => {

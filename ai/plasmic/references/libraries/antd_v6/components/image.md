@@ -11,7 +11,7 @@ Library: [Ant Design v6](../index.md).
 
 ### Asset and geometry
 
-Bind the actual asset src, supported alt, dimensions, objectFit and fallback. Keep intended aspect ratio, preserve important image content and remove sample placeholder URLs. The Image wrapper disables native preview during non-interactive canvas editing; that editing behavior is not the runtime preview policy.
+Bind the actual asset src, supported alt, dimensions and fallback; the registration has no objectFit prop. Keep intended aspect ratio, preserve important image content and remove sample placeholder URLs. The Image wrapper disables native preview during non-interactive canvas editing; that editing behavior is not the runtime preview policy.
 
 ### Image.PreviewGroup
 

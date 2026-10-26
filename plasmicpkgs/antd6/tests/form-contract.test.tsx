@@ -5,6 +5,7 @@ import { expect, test, vi } from "vitest";
 import { FormRefActions, FormWrapper } from "../src/form/Form";
 
 import { FormItemWrapper, formRuleTypes } from "../src/form/FormItem";
+import { registerForm } from "../src/form/registerForm";
 import { commonFormItemProps } from "../src/form/sharedRegistration";
 import { FormWrapper as SchemaForm } from "../src/form/SchemaForm";
 
@@ -23,6 +24,7 @@ test("FormItem reports one ordered error, keeps its description and clears error
       <FormItemWrapper
         name="expiry"
         label="Expiry"
+        validateFirst
         description={<span>Default 14 days; maximum 365 days.</span>}
         rules={[
           { ruleType: "required", message: "Enter expiry" },
@@ -56,11 +58,11 @@ test("FormItem reports one ordered error, keeps its description and clears error
   expect(view.container.querySelector(".ant-form-item-extra")?.textContent).toBe("Default 14 days; maximum 365 days.");
 });
 
-test("FormItem honors explicit validateFirst=false", async () => {
+test("FormItem follows the native default and collects every failing rule", async () => {
   const ref = React.createRef<FormRefActions>();
   render(
     <FormWrapper ref={ref}>
-      <FormItemWrapper name="expiry" validateFirst={false} rules={[
+      <FormItemWrapper name="expiry" rules={[
         { ruleType: "required", message: "Enter expiry" },
         { ruleType: "advanced", custom: () => false, message: "Invalid expiry" },
       ]}>
@@ -79,7 +81,7 @@ test("inline instructions keep native field binding, semantic styles and ordered
   const ref = React.createRef<FormRefActions>();
   const view = render(
     <FormWrapper ref={ref} initialValues={{ expiry: 14 }} styles={{ content: { display: "flex", alignItems: "center", gap: 12 } }}>
-      <FormItemWrapper name="expiry" label="Expiry" rules={[
+      <FormItemWrapper name="expiry" label="Expiry" validateFirst rules={[
         { ruleType: "required", message: "Enter expiry" },
         { ruleType: "advanced", custom: (_rule, value) => Number.isInteger(value) && value >= 1 && value <= 365, message: "Use an integer from 1 to 365" },
       ]}>
@@ -432,4 +434,75 @@ test("external footer submits through the Form ref and native validation", async
   fireEvent.change(screen.getByRole("textbox"), { target: { value: "Audience A" } });
   act(() => ref.current!.submit());
   await vi.waitFor(() => expect(onFinish).toHaveBeenCalledExactlyOnceWith({ name: "Audience A" }));
+});
+
+test("FormItem passes its own colon to Antd and keeps the Form default otherwise", () => {
+  const view = render(
+    <FormWrapper layout="horizontal" labelCol={{ flex: "72px" }} wrapperCol={{ flex: 1 }}>
+      <FormItemWrapper name="name" label="Name">
+        <Input />
+      </FormItemWrapper>
+      <FormItemWrapper label=" " colon={false}>
+        <Button>Submit</Button>
+      </FormItemWrapper>
+      <FormItemWrapper noLabel colon>
+        <Button>Hidden label</Button>
+      </FormItemWrapper>
+    </FormWrapper>,
+  );
+  const labels = [...view.container.querySelectorAll(".ant-form-item-label > label")];
+  // Named field keeps the Form's colon; the blank actions label omits it, as in Antd's demos.
+  expect(labels[0].classList.contains("ant-form-item-no-colon")).toBe(false);
+  expect(labels[1].classList.contains("ant-form-item-no-colon")).toBe(true);
+  // noLabel renders no label column at all.
+  expect(labels).toHaveLength(2);
+  // The blank label still occupies the shared label column, so the action aligns with controls.
+  const actionLabelCol = view.container.querySelectorAll(".ant-form-item-label")[1] as HTMLElement;
+  expect(actionLabelCol.style.flex).toContain("72px");
+});
+
+test("Form uses the native horizontal default for field alignment and editing controls", () => {
+  const setControlContextData = vi.fn();
+  const form = (layout?: "horizontal" | "vertical") => (
+    <FormWrapper
+      layout={layout}
+      labelCol={{ span: 8, horizontalOnly: true } as any}
+      wrapperCol={{ span: 16, horizontalOnly: true } as any}
+      setControlContextData={setControlContextData}
+    >
+      <FormItemWrapper label="Name"><Input /></FormItemWrapper>
+      <FormItemWrapper noLabel><Button>Submit</Button></FormItemWrapper>
+    </FormWrapper>
+  );
+  const view = render(form());
+  expect(view.container.querySelector(".ant-form-horizontal")).toBeTruthy();
+  expect(view.container.querySelector(".ant-form-item-label.ant-col-8")).toBeTruthy();
+  expect(view.container.querySelector(".ant-form-item-control.ant-col-16")).toBeTruthy();
+  expect(view.container.querySelector(".ant-col-offset-8")).toBeTruthy();
+  const context = setControlContextData.mock.calls.at(-1)![0];
+  expect(context.layout.layout).toBe("horizontal");
+  const fields = commonFormItemProps("advanced-form-item");
+  expect(fields.alignLabellessWithControls.hidden({ noLabel: true }, context, {} as any)).toBe(false);
+  expect(fields.labelAlign.hidden({}, context, {} as any)).toBe(false);
+  const metas: any[] = [];
+  registerForm({ registerComponent: (_component, meta) => metas.push(meta) } as any);
+  expect(metas[0].props.labelAlign.hidden({})).toBe(false);
+  view.rerender(form("vertical"));
+  expect(view.container.querySelector(".ant-form-vertical")).toBeTruthy();
+  expect(view.container.querySelector(".ant-col-8, .ant-col-16, .ant-col-offset-8")).toBeNull();
+});
+
+test("FormItem preserves an explicit wrapperCol before inherited layout and automatic offsets", () => {
+  const view = render(
+    <FormWrapper labelCol={{ span: 8 }} wrapperCol={{ span: 16 }}>
+      <FormItemWrapper label="Name" wrapperCol={{ span: 12 }}><Input /></FormItemWrapper>
+      <FormItemWrapper noLabel wrapperCol={{ span: 18, offset: 2 }}><Button>Submit</Button></FormItemWrapper>
+      <FormItemWrapper noLabel wrapperCol={{}}><Button>Cancel</Button></FormItemWrapper>
+    </FormWrapper>,
+  );
+  const controls = view.container.querySelectorAll(".ant-form-item-control");
+  expect(controls[0].classList.contains("ant-col-12")).toBe(true);
+  expect(controls[1].classList.contains("ant-col-18")).toBe(true);
+  expect(controls[1].classList.contains("ant-col-offset-2")).toBe(true);
+  expect(view.container.querySelector(".ant-col-offset-8")).toBeNull();
 });

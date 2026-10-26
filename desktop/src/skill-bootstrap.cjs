@@ -2,8 +2,12 @@ const { readFile, access } = require("node:fs/promises");
 const { homedir } = require("node:os");
 const path = require("node:path");
 
-async function readSkillBootstrap(agentsHome = process.env.DSH_AGENTS_HOME || path.join(homedir(), ".agents")) {
-  const skillPath = path.resolve(agentsHome, "skills/plasmic/SKILL.md");
+async function readSkillBootstrap(agentsHome = process.env.DSH_AGENTS_HOME || path.join(homedir(), ".agents"), selectedSkillPath) {
+  if (selectedSkillPath !== undefined && (typeof selectedSkillPath !== "string" || !path.isAbsolute(selectedSkillPath))) {
+    throw new Error("skillPath must be the absolute path of the current client's Plasmic SKILL.md");
+  }
+  const skillPath = selectedSkillPath || path.resolve(agentsHome, "skills/plasmic/SKILL.md");
+  if (selectedSkillPath !== undefined) await access(skillPath);
   const configPath = path.join(path.dirname(skillPath), "local-source.json");
   let source;
   try { source = await readFile(configPath, "utf8"); }

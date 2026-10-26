@@ -4,7 +4,7 @@ Scope: @shiguang-lab/plasmic-antd6 registrations (plasmic-antd6-*), using native
 
 Organize documents by the [Ant Design component catalog](https://ant.design/components/overview/): one file per main component. Items, groups, columns and picker variants are sections in their owner; separate Studio registrations do not require separate files. Titles use the public Antd component name, while the registration table preserves the actual Studio names and keys.
 
-Use this library's theme tokens for color, typography, borders and radius. Read size options per component: most registered controls use medium, List uses default and Table defaults to large. Do not import another component/major's size spelling or defaults. Project composition spacing defaults are blocks 16px, inline actions 8px and Drawer footer actions 12px; explicit approved designs take precedence.
+Use this library's theme tokens for color, typography, borders and radius. Read size options per component: most registered controls use medium, List uses default and Table defaults to large. Do not import another component/major's size spelling or defaults. Spacing, width, size and typography defaults are in the [admin design scale](../../design/scale.md); explicit approved designs take precedence.
 
 Before registration selection, read the applicable [purpose-first decision routes](selection.md). Look up used registration keys in the [component catalog](catalog.md); read only their matching component documents. The catalog is a lookup table, not an additional mandatory full read. [rules.json](rules.json) is the machine-readable owner map (registration → document, plan decisions, gate check anchors) used by the planning scripts; do not read it in full.
 

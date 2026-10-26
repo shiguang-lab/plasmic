@@ -10,6 +10,8 @@ Read [Typography Text](../components/typography.md#text) for supporting-text hie
 
 Choose components from each region's information role before generating markup. A group of read-only label/value fields uses the installed Descriptions component, including summaries inside create/edit pages, Drawers and confirmations. Mixed regions compose Descriptions alongside Form/Form.Item for editable values; being on an edit page does not make the read-only summary ordinary text. Keep necessary user-facing help as text, entity names in the information group, and emphasized metrics in Statistic. A standalone entity header requires the explicit user request described in the [header recipe](detail-header.md). Requirement rationale and implementation commentary stay outside the UI.
 
+Arrange short parallel facts in a multi-column Descriptions under its [column defaults](../components/descriptions.md#column-and-span). A Statistic that summarizes a result (hit count, total) sits beside that group in a registered Flex/Row, or directly above the data it counts; do not stack it below a one-column list of facts.
+
 Descriptions owns each read-only group’s title and fields. The outer Card/layout owns spacing between that group and an adjacent [Form](../components/form.md); inspect each region’s independent inventory and binding values. Keep narrative/help, entity headings and metrics in their intended roles rather than concatenating all information into one text block.
 
 ### Overview metrics and information cards
@@ -22,12 +24,12 @@ Choose a Card only when the source calls for a separate surface; a summary or re
 | --- | --- | --- |
 | Metric label | 14px / 22px | Regular, secondary color |
 | State value | 20px / 32px | Regular, semantic indicator |
-| Date/time value | 18px / 32px | Complete required precision |
+| Date/time value | 20px / 32px | Complete required precision; long timestamps may wrap rather than shrink |
 | Emphasized number | 24px / 32px | Real Statistic content styling |
 | Comparison/context | 12px / 20px | Secondary, readable full meaning |
 | Information section heading | 16px / 24px | Weight 600, normal tracking |
 
-Honor explicit design/theme choices instead. Check actual inherited styles and the installed prop/Slot contracts; never invent a prop to force this typography. Native editable text must not acquire incidental editor padding that shifts label/value starts. Keep intended inner spacing in one owner. Use the [plain Card body padding](../components/card.md#card-ownership), with label-to-value gap 8px and sibling gap 16px unless the source requires another density.
+Value sizes stay on the Ant Design type scale (20 and 24px): numbers use one size across a row, state and date/time values share the other, so one metric row has at most two value sizes and one value baseline. Honor explicit design/theme choices instead. Check actual inherited styles and the installed prop/Slot contracts; never invent a prop to force this typography. Native editable text must not acquire incidental editor padding that shifts label/value starts. Keep intended inner spacing in one owner. Use the [plain Card body padding](../components/card.md#card-ownership), with label-to-value gap 8px and sibling gap 16px unless the source requires another density.
 
 Build a label and a natural value region. A single-line composition with the defaults above derives its height from 22px label + 8px gap + 32px value + vertical body padding and actual borders; do not emit that sum as height/min-height. Equal height alone is not a quality target. Do not use arbitrary body min-height, empty spacers or unrelated card stacks to stretch sparse metrics. Align comparable labels and value regions, while retaining intentional differences between numeric, date and state typography.
 

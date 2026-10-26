@@ -9,6 +9,11 @@ Library: [Ant Design v6](../index.md).
 
 ## Generation rules
 
+### Design defaults
+
+- Use for categories only when the source shows them as chips, or for several labels on one record; a single ordinary value stays text; states use Badge.
+- One fixed colour per category value, recorded with the reviewed mapping; never colour as the only meaning.
+
 ### Tag or text
 
 Category is a business meaning, not a requirement to use Tag. Ordinary single-value attributes default to text, including type, market, source and department. A short enum or a field named “type” is insufficient reason to add a Tag. Lifecycle/processing states follow [Badge](badge.md).
@@ -26,9 +31,9 @@ Honor the current user's explicit presentation choice and applicable mandatory f
 
 ### Mapped values and color
 
-This wrapper can map a bound value through options to its label/color. Use a fixed reviewed mapping across equivalent views. With no color requirement, use a neutral Tag; do not assign success/warning/error meaning to an ordinary category. Explicit children override mapped content, including a stale demo label: remove them when value mapping should own the text. Preserve zero/false and unknown values according to the requirement.
+Tag is the native Ant Design Tag: its children are the label and `color` is its only color input; it has no value/options mapping. Map a bound value inside the bindings: children show the reviewed label (falling back to the raw value), `color` reads the same fixed mapping. Use one reviewed mapping across equivalent views. With no color requirement leave `color` unset for the neutral default; do not assign success/warning/error meaning to an ordinary category. Preserve zero/false and unknown values according to the requirement.
 
-Read the live color precedence: explicit color > option color > defaultColor > automaticColor. In Table Columns, place this Tag in Column.render (see [render templates](table.md#render-templates)) and give explicit option colors or a neutral defaultColor. Using Tag does not itself authorize a multicolor scheme.
+In Table Columns place this Tag in Column.render (see [render templates](table.md#render-templates)). Using Tag does not itself authorize a multicolor scheme.
 
 ### Tag.CheckableTag
 
@@ -38,6 +43,6 @@ CheckableTag exposes checked and onChange(checked); the owning selection workflo
 
 ### Acceptance
 
-Before generation record the field's meaning, chosen text/Tag presentation and source in the existing inventory. For Table Columns declare native props.displayType as text or custom; a Tag presentation is a registered Tag node in Column.render with its actual render owner. After generation compare both meaning and presentation with that same source decision. Native identity checks cannot prove that a Tag was justified or that a custom styled text node visually matches plain text.
+Before generation record the field's meaning, chosen text/Tag presentation and source in the existing inventory. For Table Columns record `presentation` text or custom; a Tag presentation is a registered Tag node in Column.render with its actual render owner. After generation compare both meaning and presentation with that same source decision. Native identity checks cannot prove that a Tag was justified or that a custom styled text node visually matches plain text.
 
-Test known/unmapped/empty values, mapping precedence, long labels, optional close/cancel and checked transitions. Keep label meaning readable independently of color, avoid layout jumps when tags wrap and save/reopen real value/options bindings. Review equivalent Tabs and the designated draft for unintended text/Tag or color changes.
+Test known/unmapped/empty values, long labels, optional close/cancel and checked transitions. Keep label meaning readable independently of color, avoid layout jumps when tags wrap and save/reopen the real children/color bindings. Review equivalent Tabs and the designated draft for unintended text/Tag or color changes.

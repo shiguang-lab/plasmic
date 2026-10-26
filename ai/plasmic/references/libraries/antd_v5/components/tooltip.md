@@ -10,7 +10,7 @@ Library: [Ant Design v5](../index.md).
 
 ### Explanation and title ownership
 
-Use the actual title Slot or titleText fallback and children/placement contract. A Tooltip explains its trigger; it does not carry the only visible required instruction or validate a field. This registration does not expose the v6 onlyWhenOverflow capability; do not claim overflow-only behavior without a supported implementation.
+Use the actual title Slot or titleText fallback and children/placement contract. A Tooltip explains its trigger; it does not carry the only visible required instruction or validate a field. Verify any conditional display behavior against this library's live contract.
 
 ## Acceptance checks
 

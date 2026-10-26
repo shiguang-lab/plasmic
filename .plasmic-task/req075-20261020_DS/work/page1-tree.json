@@ -1,0 +1,1233 @@
+{
+ "__type": "OutputResult",
+ "results": [
+  {
+   "__type": "Component",
+   "uuid": "eYMR4owU-V6_",
+   "name": "客群列表",
+   "type": "page",
+   "rootElementUuid": "K0WPsp3gmB0B",
+   "tree": {
+    "uuid": "K0WPsp3gmB0B",
+    "tag": "div",
+    "children": [
+     {
+      "uuid": "mlTMiDc9uak5",
+      "name": "AppShell",
+      "registeredComponentUuid": "hxdBLfU8bs94",
+      "slots": [
+       {
+        "name": "children",
+        "children": [
+         {
+          "uuid": "_Gi592N22bGs",
+          "name": "ListBody",
+          "tag": "div",
+          "children": [
+           {
+            "uuid": "G1SOYUJwDuPf",
+            "name": "GroupFilters",
+            "registeredComponentUuid": "wO_qbDxYRsqS",
+            "slots": [
+             {
+              "name": "children",
+              "children": [
+               {
+                "uuid": "ilU24uwGR22M",
+                "name": "FilterMarket",
+                "registeredComponentUuid": "bnQOn6MiuwOG",
+                "slots": [
+                 {
+                  "name": "children",
+                  "children": [
+                   {
+                    "uuid": "qwvatQSzJwgZ",
+                    "name": "MarketSelect",
+                    "registeredComponentUuid": "gO2nmQLHYgKv",
+                    "slots": [
+                     {
+                      "name": "placeholder",
+                      "children": [
+                       {
+                        "uuid": "xOifeIjQBimY",
+                        "tag": "div",
+                        "children": []
+                       }
+                      ]
+                     },
+                     {
+                      "name": "children",
+                      "children": []
+                     },
+                     {
+                      "name": "suffixIcon",
+                      "children": []
+                     }
+                    ]
+                   }
+                  ]
+                 },
+                 {
+                  "name": "labelContent",
+                  "children": []
+                 },
+                 {
+                  "name": "help",
+                  "children": []
+                 }
+                ]
+               },
+               {
+                "uuid": "4ZJH1FOmhKVf",
+                "name": "FilterScenario",
+                "registeredComponentUuid": "bnQOn6MiuwOG",
+                "slots": [
+                 {
+                  "name": "children",
+                  "children": [
+                   {
+                    "uuid": "2apn3HqfAADC",
+                    "name": "ScenarioSelect",
+                    "registeredComponentUuid": "gO2nmQLHYgKv",
+                    "slots": [
+                     {
+                      "name": "placeholder",
+                      "children": [
+                       {
+                        "uuid": "15EfTzwBwQwV",
+                        "tag": "div",
+                        "children": []
+                       }
+                      ]
+                     },
+                     {
+                      "name": "children",
+                      "children": []
+                     },
+                     {
+                      "name": "suffixIcon",
+                      "children": []
+                     }
+                    ]
+                   }
+                  ]
+                 },
+                 {
+                  "name": "labelContent",
+                  "children": []
+                 },
+                 {
+                  "name": "help",
+                  "children": []
+                 }
+                ]
+               },
+               {
+                "uuid": "y9Utm48SHd5Z",
+                "name": "FilterType",
+                "registeredComponentUuid": "bnQOn6MiuwOG",
+                "slots": [
+                 {
+                  "name": "children",
+                  "children": [
+                   {
+                    "uuid": "ciO5wdJaBhx5",
+                    "name": "TypeSelect",
+                    "registeredComponentUuid": "gO2nmQLHYgKv",
+                    "slots": [
+                     {
+                      "name": "placeholder",
+                      "children": [
+                       {
+                        "uuid": "U-ZWpLa1-EI6",
+                        "tag": "div",
+                        "children": []
+                       }
+                      ]
+                     },
+                     {
+                      "name": "children",
+                      "children": []
+                     },
+                     {
+                      "name": "suffixIcon",
+                      "children": []
+                     }
+                    ]
+                   }
+                  ]
+                 },
+                 {
+                  "name": "labelContent",
+                  "children": []
+                 },
+                 {
+                  "name": "help",
+                  "children": []
+                 }
+                ]
+               },
+               {
+                "uuid": "dN3vc0FUTrJB",
+                "name": "FilterStatus",
+                "registeredComponentUuid": "bnQOn6MiuwOG",
+                "slots": [
+                 {
+                  "name": "children",
+                  "children": [
+                   {
+                    "uuid": "SbACxWLDqjIL",
+                    "name": "StatusSelect",
+                    "registeredComponentUuid": "gO2nmQLHYgKv",
+                    "slots": [
+                     {
+                      "name": "placeholder",
+                      "children": [
+                       {
+                        "uuid": "gS5ArbkM62HX",
+                        "tag": "div",
+                        "children": []
+                       }
+                      ]
+                     },
+                     {
+                      "name": "children",
+                      "children": []
+                     },
+                     {
+                      "name": "suffixIcon",
+                      "children": []
+                     }
+                    ]
+                   }
+                  ]
+                 },
+                 {
+                  "name": "labelContent",
+                  "children": []
+                 },
+                 {
+                  "name": "help",
+                  "children": []
+                 }
+                ]
+               },
+               {
+                "uuid": "yb6lJ99PdJFj",
+                "name": "FilterKeyword",
+                "registeredComponentUuid": "bnQOn6MiuwOG",
+                "slots": [
+                 {
+                  "name": "children",
+                  "children": [
+                   {
+                    "uuid": "4JjXTVCp8c_e",
+                    "name": "KeywordInput",
+                    "registeredComponentUuid": "cnV1MU_EdIw2",
+                    "slots": [
+                     {
+                      "name": "prefix",
+                      "children": []
+                     },
+                     {
+                      "name": "suffix",
+                      "children": []
+                     }
+                    ]
+                   }
+                  ]
+                 },
+                 {
+                  "name": "labelContent",
+                  "children": []
+                 },
+                 {
+                  "name": "help",
+                  "children": []
+                 }
+                ]
+               }
+              ]
+             },
+             {
+              "name": "extraActions",
+              "children": []
+             }
+            ]
+           },
+           {
+            "uuid": "SYhB3Zpd4yZx",
+            "name": "GroupListCard",
+            "registeredComponentUuid": "1YlFeIH092lt",
+            "slots": [
+             {
+              "name": "title",
+              "children": []
+             },
+             {
+              "name": "extra",
+              "children": []
+             },
+             {
+              "name": "cover",
+              "children": []
+             },
+             {
+              "name": "actions",
+              "children": []
+             },
+             {
+              "name": "children",
+              "children": [
+               {
+                "uuid": "yRgYMniBVtV6",
+                "name": "ScopeTabs",
+                "registeredComponentUuid": "trMVmyeltvdB",
+                "slots": [
+                 {
+                  "name": "items",
+                  "children": [
+                   {
+                    "uuid": "wAnvWUf3hB3V",
+                    "name": "AllTab",
+                    "registeredComponentUuid": "v2uzQxI9c2j2",
+                    "slots": [
+                     {
+                      "name": "label",
+                      "children": [
+                       {
+                        "uuid": "Sw67JNj_gusx",
+                        "tag": "span",
+                        "children": []
+                       }
+                      ]
+                     },
+                     {
+                      "name": "children",
+                      "children": [
+                       {
+                        "uuid": "p1nHo6PSaRU8",
+                        "name": "AllGroupTable",
+                        "registeredComponentUuid": "xj4-Ar6ia8Vy",
+                        "slots": [
+                         {
+                          "name": "children",
+                          "children": [
+                           {
+                            "uuid": "oCtBPibGlLbi",
+                            "name": "AllGroupIDColumn",
+                            "registeredComponentUuid": "V_d99hWqXgAk",
+                            "slots": [
+                             {
+                              "name": "title",
+                              "children": [
+                               {
+                                "uuid": "wgPjQsQN6zeG",
+                                "tag": "span",
+                                "children": []
+                               }
+                              ]
+                             },
+                             {
+                              "name": "render",
+                              "children": []
+                             }
+                            ]
+                           },
+                           {
+                            "uuid": "9S-mjddNX_sT",
+                            "name": "AllGroupKeyColumn",
+                            "registeredComponentUuid": "V_d99hWqXgAk",
+                            "slots": [
+                             {
+                              "name": "title",
+                              "children": [
+                               {
+                                "uuid": "bNjzDy72dOE1",
+                                "tag": "span",
+                                "children": []
+                               }
+                              ]
+                             },
+                             {
+                              "name": "render",
+                              "children": []
+                             }
+                            ]
+                           },
+                           {
+                            "uuid": "zGkbWAL7r9lF",
+                            "name": "AllNameColumn",
+                            "registeredComponentUuid": "V_d99hWqXgAk",
+                            "slots": [
+                             {
+                              "name": "title",
+                              "children": [
+                               {
+                                "uuid": "CJnqCVLmIcRl",
+                                "tag": "span",
+                                "children": []
+                               }
+                              ]
+                             },
+                             {
+                              "name": "render",
+                              "children": []
+                             }
+                            ]
+                           },
+                           {
+                            "uuid": "v8kXG2O02EFP",
+                            "name": "AllTypeColumn",
+                            "registeredComponentUuid": "V_d99hWqXgAk",
+                            "slots": [
+                             {
+                              "name": "title",
+                              "children": [
+                               {
+                                "uuid": "hTYoiz6-7MYW",
+                                "tag": "span",
+                                "children": []
+                               }
+                              ]
+                             },
+                             {
+                              "name": "render",
+                              "children": []
+                             }
+                            ]
+                           },
+                           {
+                            "uuid": "GiSRsQ_SE5Ys",
+                            "name": "AllScenarioColumn",
+                            "registeredComponentUuid": "V_d99hWqXgAk",
+                            "slots": [
+                             {
+                              "name": "title",
+                              "children": [
+                               {
+                                "uuid": "yQSRBwRZP44T",
+                                "tag": "span",
+                                "children": []
+                               }
+                              ]
+                             },
+                             {
+                              "name": "render",
+                              "children": []
+                             }
+                            ]
+                           },
+                           {
+                            "uuid": "RtZApHvpoYe0",
+                            "name": "AllStatusColumn",
+                            "registeredComponentUuid": "V_d99hWqXgAk",
+                            "slots": [
+                             {
+                              "name": "title",
+                              "children": [
+                               {
+                                "uuid": "FqRCIxLlXU5n",
+                                "tag": "span",
+                                "children": []
+                               }
+                              ]
+                             },
+                             {
+                              "name": "render",
+                              "children": [
+                               {
+                                "uuid": "a_szVrWWABn1",
+                                "name": "AllStatusBadge",
+                                "registeredComponentUuid": "TufV5p93GeWw",
+                                "slots": [
+                                 {
+                                  "name": "children",
+                                  "children": []
+                                 }
+                                ]
+                               }
+                              ]
+                             }
+                            ]
+                           },
+                           {
+                            "uuid": "RwdjFyzm57i4",
+                            "name": "AllUpdatedColumn",
+                            "registeredComponentUuid": "V_d99hWqXgAk",
+                            "slots": [
+                             {
+                              "name": "title",
+                              "children": [
+                               {
+                                "uuid": "DLrsJSeLa52z",
+                                "tag": "span",
+                                "children": []
+                               }
+                              ]
+                             },
+                             {
+                              "name": "render",
+                              "children": []
+                             }
+                            ]
+                           },
+                           {
+                            "uuid": "Y0cNMWsPwLk_",
+                            "name": "AllOwnerColumn",
+                            "registeredComponentUuid": "V_d99hWqXgAk",
+                            "slots": [
+                             {
+                              "name": "title",
+                              "children": [
+                               {
+                                "uuid": "Ubr7JXAlRU08",
+                                "tag": "span",
+                                "children": []
+                               }
+                              ]
+                             },
+                             {
+                              "name": "render",
+                              "children": []
+                             }
+                            ]
+                           },
+                           {
+                            "uuid": "7lnw8JBEOwKJ",
+                            "name": "AllActionsColumn",
+                            "registeredComponentUuid": "V_d99hWqXgAk",
+                            "slots": [
+                             {
+                              "name": "title",
+                              "children": [
+                               {
+                                "uuid": "n_pGwRtqBpWb",
+                                "tag": "span",
+                                "children": []
+                               }
+                              ]
+                             },
+                             {
+                              "name": "render",
+                              "children": [
+                               {
+                                "uuid": "-AhuLMR5s72B",
+                                "name": "AllRowActions",
+                                "registeredComponentUuid": "Qi36y7XgPAt2",
+                                "slots": [
+                                 {
+                                  "name": "children",
+                                  "children": []
+                                 },
+                                 {
+                                  "name": "moreIcon",
+                                  "children": []
+                                 }
+                                ]
+                               }
+                              ]
+                             }
+                            ]
+                           }
+                          ]
+                         },
+                         {
+                          "name": "title",
+                          "children": []
+                         }
+                        ]
+                       }
+                      ]
+                     },
+                     {
+                      "name": "icon",
+                      "children": []
+                     },
+                     {
+                      "name": "closeIcon",
+                      "children": []
+                     }
+                    ]
+                   },
+                   {
+                    "uuid": "RdcqkKntdg8V",
+                    "name": "MineTab",
+                    "registeredComponentUuid": "v2uzQxI9c2j2",
+                    "slots": [
+                     {
+                      "name": "label",
+                      "children": [
+                       {
+                        "uuid": "kDod-bwNdbCa",
+                        "tag": "span",
+                        "children": []
+                       }
+                      ]
+                     },
+                     {
+                      "name": "children",
+                      "children": [
+                       {
+                        "uuid": "qohJ6UBL6YYu",
+                        "name": "MineGroupTable",
+                        "registeredComponentUuid": "xj4-Ar6ia8Vy",
+                        "slots": [
+                         {
+                          "name": "children",
+                          "children": [
+                           {
+                            "uuid": "z4RMdoQBLl7l",
+                            "name": "MineGroupIDColumn",
+                            "registeredComponentUuid": "V_d99hWqXgAk",
+                            "slots": [
+                             {
+                              "name": "title",
+                              "children": [
+                               {
+                                "uuid": "1e-Bsn_-EW7D",
+                                "tag": "span",
+                                "children": []
+                               }
+                              ]
+                             },
+                             {
+                              "name": "render",
+                              "children": []
+                             }
+                            ]
+                           },
+                           {
+                            "uuid": "I8RFfNjKF3Xs",
+                            "name": "MineGroupKeyColumn",
+                            "registeredComponentUuid": "V_d99hWqXgAk",
+                            "slots": [
+                             {
+                              "name": "title",
+                              "children": [
+                               {
+                                "uuid": "wL_AMCMk_eDl",
+                                "tag": "span",
+                                "children": []
+                               }
+                              ]
+                             },
+                             {
+                              "name": "render",
+                              "children": []
+                             }
+                            ]
+                           },
+                           {
+                            "uuid": "RZJ8GuTtpfnn",
+                            "name": "MineNameColumn",
+                            "registeredComponentUuid": "V_d99hWqXgAk",
+                            "slots": [
+                             {
+                              "name": "title",
+                              "children": [
+                               {
+                                "uuid": "jGnwER1GH3b-",
+                                "tag": "span",
+                                "children": []
+                               }
+                              ]
+                             },
+                             {
+                              "name": "render",
+                              "children": []
+                             }
+                            ]
+                           },
+                           {
+                            "uuid": "xUgybCbfO1s4",
+                            "name": "MineTypeColumn",
+                            "registeredComponentUuid": "V_d99hWqXgAk",
+                            "slots": [
+                             {
+                              "name": "title",
+                              "children": [
+                               {
+                                "uuid": "dKyFTevcgfQj",
+                                "tag": "span",
+                                "children": []
+                               }
+                              ]
+                             },
+                             {
+                              "name": "render",
+                              "children": []
+                             }
+                            ]
+                           },
+                           {
+                            "uuid": "UGx7m7ddZs5r",
+                            "name": "MineScenarioColumn",
+                            "registeredComponentUuid": "V_d99hWqXgAk",
+                            "slots": [
+                             {
+                              "name": "title",
+                              "children": [
+                               {
+                                "uuid": "9qBwzTClpYKl",
+                                "tag": "span",
+                                "children": []
+                               }
+                              ]
+                             },
+                             {
+                              "name": "render",
+                              "children": []
+                             }
+                            ]
+                           },
+                           {
+                            "uuid": "XOzTISre559A",
+                            "name": "MineStatusColumn",
+                            "registeredComponentUuid": "V_d99hWqXgAk",
+                            "slots": [
+                             {
+                              "name": "title",
+                              "children": [
+                               {
+                                "uuid": "L9gWjbdMFU0t",
+                                "tag": "span",
+                                "children": []
+                               }
+                              ]
+                             },
+                             {
+                              "name": "render",
+                              "children": [
+                               {
+                                "uuid": "OoQdZvkZ2Opg",
+                                "name": "MineStatusBadge",
+                                "registeredComponentUuid": "TufV5p93GeWw",
+                                "slots": [
+                                 {
+                                  "name": "children",
+                                  "children": []
+                                 }
+                                ]
+                               }
+                              ]
+                             }
+                            ]
+                           },
+                           {
+                            "uuid": "t8Tjwhz0F-M_",
+                            "name": "MineUpdatedColumn",
+                            "registeredComponentUuid": "V_d99hWqXgAk",
+                            "slots": [
+                             {
+                              "name": "title",
+                              "children": [
+                               {
+                                "uuid": "lzlYid9z_Cse",
+                                "tag": "span",
+                                "children": []
+                               }
+                              ]
+                             },
+                             {
+                              "name": "render",
+                              "children": []
+                             }
+                            ]
+                           },
+                           {
+                            "uuid": "ND1-CEghXhIw",
+                            "name": "MineOwnerColumn",
+                            "registeredComponentUuid": "V_d99hWqXgAk",
+                            "slots": [
+                             {
+                              "name": "title",
+                              "children": [
+                               {
+                                "uuid": "KdclgzqUcJCZ",
+                                "tag": "span",
+                                "children": []
+                               }
+                              ]
+                             },
+                             {
+                              "name": "render",
+                              "children": []
+                             }
+                            ]
+                           },
+                           {
+                            "uuid": "Z0UPObdcgc9E",
+                            "name": "MineActionsColumn",
+                            "registeredComponentUuid": "V_d99hWqXgAk",
+                            "slots": [
+                             {
+                              "name": "title",
+                              "children": [
+                               {
+                                "uuid": "iehnWKBQ2jtD",
+                                "tag": "span",
+                                "children": []
+                               }
+                              ]
+                             },
+                             {
+                              "name": "render",
+                              "children": [
+                               {
+                                "uuid": "e3VyPgUutO58",
+                                "name": "MineRowActions",
+                                "registeredComponentUuid": "Qi36y7XgPAt2",
+                                "slots": [
+                                 {
+                                  "name": "children",
+                                  "children": []
+                                 },
+                                 {
+                                  "name": "moreIcon",
+                                  "children": []
+                                 }
+                                ]
+                               }
+                              ]
+                             }
+                            ]
+                           }
+                          ]
+                         },
+                         {
+                          "name": "title",
+                          "children": []
+                         }
+                        ]
+                       }
+                      ]
+                     },
+                     {
+                      "name": "icon",
+                      "children": []
+                     },
+                     {
+                      "name": "closeIcon",
+                      "children": []
+                     }
+                    ]
+                   }
+                  ]
+                 },
+                 {
+                  "name": "tabBarExtraContentRight",
+                  "children": [
+                   {
+                    "uuid": "MlcvBWT43KOy",
+                    "name": "CreateMenu",
+                    "registeredComponentUuid": "Vz4V-Ue81tFf",
+                    "slots": [
+                     {
+                      "name": "menuItems",
+                      "children": []
+                     },
+                     {
+                      "name": "children",
+                      "children": [
+                       {
+                        "uuid": "bUSyY5juQHsq",
+                        "name": "CreateGroupButton",
+                        "registeredComponentUuid": "KzKRFt8BF-TN",
+                        "slots": [
+                         {
+                          "name": "icon",
+                          "children": [
+                           {
+                            "uuid": "O-ZhOJtayDdi",
+                            "name": "CreateMenuIcon",
+                            "registeredComponentUuid": "ss4wG7bVTt40",
+                            "slots": []
+                           }
+                          ]
+                         },
+                         {
+                          "name": "children",
+                          "children": [
+                           {
+                            "uuid": "Z0MYnyIQ1CHA",
+                            "name": "CreateGroupContent",
+                            "registeredComponentUuid": "qskNJavoelzz",
+                            "slots": [
+                             {
+                              "name": "children",
+                              "children": [
+                               {
+                                "uuid": "m_KB6BP4FiQY",
+                                "name": "CreateGroupLabel",
+                                "tag": "span",
+                                "children": []
+                               },
+                               {
+                                "uuid": "iZwsI6N8_T2A",
+                                "name": "CreateMenuIndicator",
+                                "registeredComponentUuid": "lTYbhxapzgpl",
+                                "slots": []
+                               }
+                              ]
+                             },
+                             {
+                              "name": "separator",
+                              "children": []
+                             }
+                            ]
+                           }
+                          ]
+                         }
+                        ]
+                       }
+                      ]
+                     }
+                    ]
+                   }
+                  ]
+                 },
+                 {
+                  "name": "tabBarExtraContentLeft",
+                  "children": []
+                 },
+                 {
+                  "name": "addIcon",
+                  "children": []
+                 },
+                 {
+                  "name": "removeIcon",
+                  "children": []
+                 }
+                ]
+               }
+              ]
+             }
+            ]
+           },
+           {
+            "uuid": "zqqOdpIIBOH1",
+            "name": "CreateOnetimeModal",
+            "registeredComponentUuid": "-BX89tP88aFx",
+            "slots": [
+             {
+              "name": "trigger",
+              "children": []
+             },
+             {
+              "name": "title",
+              "children": [
+               {
+                "uuid": "5_dj6PFvpdja",
+                "name": "CreateModalTitle",
+                "tag": "span",
+                "children": []
+               }
+              ]
+             },
+             {
+              "name": "children",
+              "children": [
+               {
+                "uuid": "cEvozKmsFEtK",
+                "name": "CreateOnetimeForm",
+                "registeredComponentUuid": "fLAsU5Pszg24",
+                "slots": [
+                 {
+                  "name": "children",
+                  "children": [
+                   {
+                    "uuid": "AEzBA6SxllEB",
+                    "name": "NameItem",
+                    "registeredComponentUuid": "2hI6SyiFZFQR",
+                    "slots": [
+                     {
+                      "name": "label",
+                      "children": [
+                       {
+                        "uuid": "8xpy0wXSoAAr",
+                        "tag": "span",
+                        "children": []
+                       }
+                      ]
+                     },
+                     {
+                      "name": "children",
+                      "children": [
+                       {
+                        "uuid": "vVnbyMg5pwMZ",
+                        "name": "NameInput",
+                        "registeredComponentUuid": "cnV1MU_EdIw2",
+                        "slots": [
+                         {
+                          "name": "prefix",
+                          "children": []
+                         },
+                         {
+                          "name": "suffix",
+                          "children": []
+                         }
+                        ]
+                       }
+                      ]
+                     },
+                     {
+                      "name": "tooltip",
+                      "children": []
+                     },
+                     {
+                      "name": "description",
+                      "children": []
+                     }
+                    ]
+                   },
+                   {
+                    "uuid": "RQn3usj0F_xh",
+                    "name": "KeyItem",
+                    "registeredComponentUuid": "2hI6SyiFZFQR",
+                    "slots": [
+                     {
+                      "name": "label",
+                      "children": [
+                       {
+                        "uuid": "Ecs2YxjD7zuy",
+                        "tag": "span",
+                        "children": []
+                       }
+                      ]
+                     },
+                     {
+                      "name": "children",
+                      "children": [
+                       {
+                        "uuid": "UVmuJz3-b4-j",
+                        "name": "KeyInput",
+                        "registeredComponentUuid": "cnV1MU_EdIw2",
+                        "slots": [
+                         {
+                          "name": "prefix",
+                          "children": []
+                         },
+                         {
+                          "name": "suffix",
+                          "children": []
+                         }
+                        ]
+                       }
+                      ]
+                     },
+                     {
+                      "name": "tooltip",
+                      "children": []
+                     },
+                     {
+                      "name": "description",
+                      "children": []
+                     }
+                    ]
+                   },
+                   {
+                    "uuid": "zYMoBMXn2D9J",
+                    "name": "TypeItem",
+                    "registeredComponentUuid": "2hI6SyiFZFQR",
+                    "slots": [
+                     {
+                      "name": "label",
+                      "children": [
+                       {
+                        "uuid": "__HyaAPpJt4e",
+                        "tag": "span",
+                        "children": []
+                       }
+                      ]
+                     },
+                     {
+                      "name": "children",
+                      "children": [
+                       {
+                        "uuid": "wvbWAuTP2nEk",
+                        "name": "TypeInput",
+                        "registeredComponentUuid": "cnV1MU_EdIw2",
+                        "slots": [
+                         {
+                          "name": "prefix",
+                          "children": []
+                         },
+                         {
+                          "name": "suffix",
+                          "children": []
+                         }
+                        ]
+                       }
+                      ]
+                     },
+                     {
+                      "name": "tooltip",
+                      "children": []
+                     },
+                     {
+                      "name": "description",
+                      "children": []
+                     }
+                    ]
+                   },
+                   {
+                    "uuid": "2zouePmWPDu9",
+                    "name": "ScenarioItem",
+                    "registeredComponentUuid": "2hI6SyiFZFQR",
+                    "slots": [
+                     {
+                      "name": "label",
+                      "children": [
+                       {
+                        "uuid": "dRthRkSt8P_c",
+                        "tag": "span",
+                        "children": []
+                       }
+                      ]
+                     },
+                     {
+                      "name": "children",
+                      "children": [
+                       {
+                        "uuid": "7TonPp-wNvAZ",
+                        "name": "ScenarioSelect2",
+                        "registeredComponentUuid": "gO2nmQLHYgKv",
+                        "slots": [
+                         {
+                          "name": "placeholder",
+                          "children": [
+                           {
+                            "uuid": "idy6qaxJy9lA",
+                            "tag": "span",
+                            "children": []
+                           }
+                          ]
+                         },
+                         {
+                          "name": "children",
+                          "children": []
+                         },
+                         {
+                          "name": "suffixIcon",
+                          "children": []
+                         }
+                        ]
+                       }
+                      ]
+                     },
+                     {
+                      "name": "tooltip",
+                      "children": []
+                     },
+                     {
+                      "name": "description",
+                      "children": []
+                     }
+                    ]
+                   },
+                   {
+                    "uuid": "L6CNZDvKENSz",
+                    "name": "OwnerItem",
+                    "registeredComponentUuid": "2hI6SyiFZFQR",
+                    "slots": [
+                     {
+                      "name": "label",
+                      "children": [
+                       {
+                        "uuid": "TWKmjQqDfxtp",
+                        "tag": "span",
+                        "children": []
+                       }
+                      ]
+                     },
+                     {
+                      "name": "children",
+                      "children": [
+                       {
+                        "uuid": "Nn65o2HSlp1s",
+                        "name": "OwnerSelect",
+                        "registeredComponentUuid": "gO2nmQLHYgKv",
+                        "slots": [
+                         {
+                          "name": "placeholder",
+                          "children": [
+                           {
+                            "uuid": "3a39LSurCqGV",
+                            "tag": "span",
+                            "children": []
+                           }
+                          ]
+                         },
+                         {
+                          "name": "children",
+                          "children": []
+                         },
+                         {
+                          "name": "suffixIcon",
+                          "children": []
+                         }
+                        ]
+                       }
+                      ]
+                     },
+                     {
+                      "name": "tooltip",
+                      "children": []
+                     },
+                     {
+                      "name": "description",
+                      "children": []
+                     }
+                    ]
+                   }
+                  ]
+                 },
+                 {
+                  "name": "submitSlot",
+                  "children": []
+                 }
+                ]
+               }
+              ]
+             },
+             {
+              "name": "footer",
+              "children": []
+             },
+             {
+              "name": "closeIcon",
+              "children": []
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   }
+  }
+ ],
+ "read": {
+  "fields": [
+   "__type",
+   "uuid",
+   "name",
+   "type",
+   "isContext",
+   "componentUuid",
+   "rootElementUuid",
+   "tag",
+   "registeredComponentUuid",
+   "tree",
+   "children",
+   "slots",
+   "editable",
+   "source"
+  ],
+  "depth": "all"
+ }
+}

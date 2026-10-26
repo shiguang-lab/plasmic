@@ -56,11 +56,8 @@ type TabsProps = Omit<
   animated?: boolean;
   animateTabBar?: boolean;
   animateTabContent?: boolean;
-  tabBarExtraContentLeft: React.ReactNode;
-  tabBarExtraContentRight: React.ReactNode;
-  sticky: boolean;
-  stickyOffset: number;
-  tabBarBackground: string;
+  tabBarExtraContentLeft?: React.ReactNode;
+  tabBarExtraContentRight?: React.ReactNode;
   tabsScopeClassName?: string;
   tabsDropdownScopeClassName?: string;
 };
@@ -96,9 +93,6 @@ function TabsWithItems(props: TabsProps) {
     animateTabContent = false,
     tabBarExtraContentLeft,
     tabBarExtraContentRight,
-    sticky,
-    stickyOffset,
-    tabBarBackground,
     className,
     classNames,
     tabPlacement,
@@ -173,36 +167,12 @@ function TabsWithItems(props: TabsProps) {
           },
         };
       }}
-      tabBarExtraContent={{
-        left: <>{tabBarExtraContentLeft}</>,
-        right: <>{tabBarExtraContentRight}</>,
-      }}
-      tabPlacement={tabPlacement}
-      /**
-       * CAUTION: sticky tab-bars are only supported for tabPlacement top.
-       * In component metadata, I have specified that sticky prop is hidden when tabPlacement !== "top".
-       * however, and that's where the caution is, that does not mean that any previously set value of sticky is destroyed. It stays there, but just the prop is hidden from the Settings side menu in Plasmic Studio.
-       *
-       * Which is why I have to also check the tabPlacement here. And that's redundant.
-       */
-      renderTabBar={
-        sticky && tabPlacement === "top"
-          ? (tabBarProps, DefaultTabBar) => (
-              <div
-                style={{
-                  zIndex: 1,
-                  position: "sticky",
-                  top: stickyOffset || 0,
-                }}
-              >
-                <DefaultTabBar
-                  {...tabBarProps}
-                  style={{ backgroundColor: tabBarBackground }}
-                />
-              </div>
-            )
+      tabBarExtraContent={
+        tabBarExtraContentLeft != null || tabBarExtraContentRight != null
+          ? { left: tabBarExtraContentLeft, right: tabBarExtraContentRight }
           : undefined
       }
+      tabPlacement={tabPlacement}
       animated={animationProp}
       items={items}
       {...rest}
@@ -238,7 +208,6 @@ export function registerTabs(loader?: Registerable) {
     displayName: "Tabs",
     defaultStyles: {
       width: "stretch",
-      overflow: "scroll",
     },
     props: {
       addIcon: { type: "slot", hidePlaceholder: true },
@@ -351,26 +320,6 @@ export function registerTabs(loader?: Registerable) {
         type: "boolean",
         description: `Destroy/Unmount inactive tab pane when changing tab`,
         advanced: true,
-      },
-      sticky: {
-        type: "boolean",
-        advanced: true,
-        description: "Stick tab bar to the top of the page when scrolling.",
-        defaultValue: false,
-        hidden: (ps: any) => ps.tabPlacement !== "top",
-      },
-      stickyOffset: {
-        type: "number",
-        advanced: true,
-        description:
-          "Distance (in pixels) between the sticky tab bar and the top of the page as you scroll.",
-        hidden: (ps: any) => ps.tabPlacement !== "top" || !ps.sticky,
-      },
-      tabBarBackground: {
-        type: "color",
-        advanced: true,
-        defaultValue: "#FFF",
-        hidden: (ps: any) => ps.tabPlacement !== "top" || !ps.sticky,
       },
       tabsScopeClassName: {
         type: "styleScopeClass",

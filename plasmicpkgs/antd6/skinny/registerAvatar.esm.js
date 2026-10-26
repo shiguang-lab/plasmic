@@ -1,4 +1,3 @@
-import { usePlasmicLink } from '@plasmicapp/host';
 import { Avatar } from 'antd';
 import React from 'react';
 import { r as registerComponentHelper } from './utils-Cmdig6Yl.esm.js';
@@ -7,19 +6,15 @@ import '@plasmicapp/host/registerGlobalContext';
 
 function AntdAvatar({
   letters,
-  href,
-  target,
   ...props
 }) {
-  const avatar = /* @__PURE__ */ React.createElement(
+  return /* @__PURE__ */ React.createElement(
     Avatar,
     {
       ...props,
       children: props.children === void 0 ? letters : props.children
     }
   );
-  const PlasmicLink = usePlasmicLink();
-  return href ? /* @__PURE__ */ React.createElement(PlasmicLink, { href, target: target ? "_blank" : void 0 }, avatar) : avatar;
 }
 function AntdAvatarGroup(props) {
   return /* @__PURE__ */ React.createElement(Avatar.Group, { ...props });
@@ -30,16 +25,6 @@ function registerAvatar(loader) {
     displayName: "Avatar",
     props: {
       icon: { type: "slot", hidePlaceholder: true },
-      href: {
-        type: "href",
-        displayName: "Link to",
-        description: "Destination to link to"
-      },
-      target: {
-        type: "boolean",
-        displayName: "Open in new tab",
-        hidden: (ps) => !ps.href
-      },
       letters: {
         type: "string",
         description: "Letters to show",
@@ -69,6 +54,11 @@ function registerAvatar(loader) {
         options: ["circle", "square"],
         description: "Set the avatar shape",
         defaultValueHint: "circle"
+      },
+      onClick: {
+        type: "eventHandler",
+        argTypes: [],
+        description: "Native Avatar onClick. For a link, place the Avatar inside a link element instead."
       }
     },
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerAvatar",

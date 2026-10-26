@@ -9,12 +9,10 @@ import type {
   TableRowSelection,
 } from "antd/es/table/interface";
 import React from "react";
-import { AntdTooltip } from "./registerTooltip";
 import { TablePaginationControl, TableScrollControl } from "./table-controls";
 import { Registerable, asArray, registerComponentHelper } from "./utils";
 
 export type AntdColumnProps = ColumnType<any> & {
-  displayType?: "text" | "custom";
   onCellClick?: (cell: unknown, row: any, index: number) => void;
   children?: React.ReactNode;
   className?: string;
@@ -24,14 +22,6 @@ export type AntdColumnProps = ColumnType<any> & {
     props: React.HTMLAttributes<HTMLElement>;
   };
 };
-
-/** Custom render applies when selected explicitly, or when only a render slot is set. */
-function isCustomColumn(props: Pick<AntdColumnProps, "displayType" | "render">) {
-  return (
-    props.displayType === "custom" ||
-    (props.displayType === undefined && !!props.render)
-  );
-}
 
 /** Rendering the original column elements gives Studio a selectable Fiber for every cell. */
 export function AntdColumn(props: AntdColumnProps) {
@@ -56,13 +46,8 @@ export function AntdColumn(props: AntdColumnProps) {
       "data-plasmic-canvas-part": isEditing ? "column" : undefined,
       "data-plasmic-table-column-selected": isSelected || undefined,
       style: cell.props.style,
-      title: props.ellipsis ? undefined : cell.props.title,
     },
-    props.ellipsis ? (
-      <AntdTooltip onlyWhenOverflow>{props.children}</AntdTooltip>
-    ) : (
-      props.children
-    ),
+    props.children,
   );
 }
 
@@ -113,14 +98,8 @@ function getColumns(
     if (child.type === React.Fragment) {
       return getColumns(child.props.children, bodyCell, headerCell, isEditing);
     }
-    const {
-      displayType: _displayType,
-      onCellClick: _click,
-      children: nested,
-      render,
-      ...column
-    } = child.props;
-    const custom = isCustomColumn(child.props);
+    const { onCellClick: _click, children: nested, render, ...column } =
+      child.props;
     const onHeaderCell: NonNullable<ColumnType<any>["onHeaderCell"]> = (
       col,
     ) => ({
@@ -149,7 +128,7 @@ function getColumns(
           const cellProps = column.onCell?.(row, index);
           return {
             ...cellProps,
-            ...(custom && !isEditing && child.props.onCellClick
+            ...(render && !isEditing && child.props.onCellClick
               ? {
                   onClick: (event: React.MouseEvent<HTMLElement>) => {
                     cellProps?.onClick?.(event);
@@ -175,12 +154,8 @@ function getColumns(
             __plasmic_column__: { element: child, type: bodyCell },
           };
         },
-        render: (value: any, row: any, index: number) =>
-          custom
-            ? render?.(value, row, index)
-            : value == null
-              ? ""
-              : String(value),
+        // Without a render slot, Ant Design renders the field value natively.
+        ...(render ? { render } : {}),
       },
     ];
   });
@@ -377,7 +352,6 @@ export const AntdTable = React.forwardRef(function AntdTable(
       rowSelection={selection}
       rowKey={rowKey}
       {...rest}
-      scroll={{ x: "max-content", ...rest.scroll }}
     />
   );
 });
@@ -434,7 +408,7 @@ export function registerTable(loader?: Registerable) {
         displayName: "Scroll",
         control: TableScrollControl,
         description:
-          "Horizontal width accepts pixels, percentages, or max-content. Leave it unset to fit content (defaults to max-content). When columns set widths, use a pixel width so those widths stay fixed; with max-content, column widths act as minimums. The table body grows with content when height is unset.",
+          "Native Ant Design scroll. Horizontal width accepts pixels, percentages, or max-content; unset keeps the table within its container without horizontal scrolling. The table body grows with content when height is unset.",
       },
       onChange: {
         type: "eventHandler",
@@ -553,17 +527,13 @@ export function registerTable(loader?: Registerable) {
         displayName: "Data index",
         description: "The data field used by this column. Changes apply to every row.",
       },
-      displayType: {
-        type: "choice",
-        displayName: "Display type",
-        options: [
-          { value: "text", label: "Text" },
-          { value: "custom", label: "Custom render" },
-        ],
-        defaultValueHint: (ps: AntdColumnProps) =>
-          ps.render ? "custom" : "text",
+      render: {
+        type: "slot",
+        renderPropParams: ["cell", "row", "index"],
+        hidePlaceholder: true,
+        displayName: "Custom render",
         description:
-          "Applies to all rows. Text shows the field value. Custom render shows the Custom render slot for every row; place registered components such as Badge, Tag, Avatar or a link there.",
+          "Native Column.render for every row, receiving cell, row and index. Leave it empty to show the field value.",
       },
       onCellClick: {
         type: "eventHandler",
@@ -575,14 +545,7 @@ export function registerTable(loader?: Registerable) {
           { name: "row", type: "object" },
           { name: "index", type: "number" },
         ],
-        hidden: (ps: AntdColumnProps) => !isCustomColumn(ps),
-      },
-      render: {
-        type: "slot",
-        renderPropParams: ["cell", "row", "index"],
-        hidePlaceholder: true,
-        displayName: "Custom render",
-        hidden: (ps: AntdColumnProps) => !isCustomColumn(ps),
+        hidden: (ps: AntdColumnProps) => !ps.render,
       },
       align: {
         type: "choice",
@@ -612,13 +575,13 @@ export function registerTable(loader?: Registerable) {
         type: "number",
         displayName: "Width",
         description:
-          "Column width in pixels. Applies to the header and all rows. Stays fixed only when the Table's horizontal scroll width is a pixel value; otherwise it acts as a minimum width.",
+          "Native column width in pixels, applied to the header and all rows.",
       },
       ellipsis: {
         type: "boolean",
         displayName: "Ellipsis",
         description:
-          "Show ellipsis and a Tooltip only when content overflows. For custom Tooltip content, place a Tooltip in Custom render.",
+          "Native single-line ellipsis; the cell keeps the browser title for the full text. Place a Tooltip in Custom render for a styled popup.",
       },
     },
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerTable",

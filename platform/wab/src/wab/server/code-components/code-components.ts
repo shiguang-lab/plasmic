@@ -239,19 +239,21 @@ export async function createSiteForHostlessProject(
   return site;
 }
 
-export type HostlessParamRemovals = Readonly<Record<string, readonly string[]>>;
+/** Component name -> non-slot params that the new registrations no longer declare. */
+export type HostlessParamRemovals = Record<string, string[]>;
 
 /**
- * Updates a hostless package. Published components, slots and props are preserved,
- * except non-slot props explicitly named in a breaking publication migration.
+ * Updates a hostless package from its current registrations. Published components
+ * and slots are preserved. Non-slot params that are no longer registered are removed
+ * and returned, so the publisher versions the release as breaking; consuming
+ * projects drop their arguments when they upgrade.
  */
-
 export async function updateHostlessPackage(
   site: Site,
   projectName: string,
   plumeSite: Site,
-  removedParams: HostlessParamRemovals = {},
-) {
+): Promise<HostlessParamRemovals> {
+  const removedParams: HostlessParamRemovals = {};
   await withFreshRegistries(async () => {
     const existingComponents = site.components
       .filter((c) => !isBuiltinCodeComponent(c))
@@ -366,21 +368,17 @@ export async function updateHostlessPackage(
           () => `Deleted slot ${slot} of component ${component.name}`,
         );
       });
-      nonSlots.forEach((param) => {
-        assert(
-          component.params.some((p) => !isSlot(p) && p.variable.name === param) ||
-            removedParams[component.name]?.includes(param),
-          () => `Deleted param ${param} of component ${component.name}`,
+      const removed = nonSlots.filter(
+        (param) =>
+          !component.params.some((p) => !isSlot(p) && p.variable.name === param),
+      );
+      if (removed.length > 0) {
+        removedParams[component.name] = removed;
+        logger().info(
+          `Removed params of ${component.name}: ${removed.join(", ")}`,
         );
-      });
-    });
-
-    for (const [name, params] of Object.entries(removedParams)) {
-      const component = ensure(site.components.find(c => c.name === name), `Missing migration component ${name}`);
-      for (const param of params) {
-        assert(!component.params.some(p => p.variable.name === param), `Removal migration still registers ${name}.${param}`);
       }
-    }
+    });
 
     // Assert all custom functions and code libraries have been preserved
     const newLibraries = new Set(site.codeLibraries.map((c) => c.name));
@@ -400,6 +398,7 @@ export async function updateHostlessPackage(
       );*/
     });
   });
+  return removedParams;
 }
 
 async function withFreshRegistries(func: () => Promise<void>) {

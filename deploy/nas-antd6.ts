@@ -39,17 +39,7 @@ async function main() {
             )
           : undefined;
         if (codeName !== "antd5" && existingPkg) {
-          await publishHostlessProject(db, existingPkg.projectId, {
-            removedParams: {
-              [`plasmic-${codeName}-app-shell`]: ["breadcrumbItems"],
-              ...(codeName === "antd6"
-                ? { "plasmic-antd6-table-column": [
-                    "displayLabel", "contentSize", "openInNewTab",
-                    "tagOptions", "tagColor", "templateType",
-                  ] }
-                : {}),
-            },
-          });
+          await publishHostlessProject(db, existingPkg.projectId);
         }
         const dependency = existingPkg
           ? await unbundlePkgVersion(

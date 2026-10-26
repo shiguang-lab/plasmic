@@ -82,6 +82,7 @@ function validateRulesManifest(resources, directory, indexed) {
   for (const target of Object.values(manifest.prefixes || {})) resolve(target);
   for (const target of Object.values(manifest.checks || {})) resolve(target);
   const listed = new Map();
+  const declared = new Set();
   for (const [file, entry] of Object.entries(manifest.documents || {})) {
     const document = resolve(file);
     const content = resources.get(document);
@@ -96,7 +97,18 @@ function validateRulesManifest(resources, directory, indexed) {
         assert(decisionContent.includes("\n## Plan decisions\n"), `Missing Plan decisions section: ${decisionDocument}`);
         assert(headingIds(decisionContent).has(item.rule), `Missing decision anchor: ${decisionDocument}#${item.rule}`);
         assert(decisionContent.includes(`| \`${key}\` | \`${item.prop}\``), `Plan decisions table omits ${key} ${item.prop}: ${decisionDocument}`);
+        declared.add(`${decisionDocument}|${key}|${item.prop}`);
       }
+    }
+  }
+  // Reverse direction: a documented decision that rules.json does not declare is
+  // never scaffolded or enforced, so the document would promise a check that does not exist.
+  for (const [document, content] of resources) {
+    if (!document.startsWith(`${directory}/`) || !document.endsWith(".md")) continue;
+    const section = content.split("\n## Plan decisions\n")[1]?.split("\n## ")[0];
+    if (section === undefined) continue;
+    for (const [, key, prop] of section.matchAll(/^\| `(plasmic-[^`]+)` \| `([^`]+)`/gm)) {
+      assert(declared.has(`${document}|${key}|${prop}`), `Plan decisions row is not declared in rules.json: ${document} ${key} ${prop}`);
     }
   }
   for (const [key, entry] of indexed) assert.equal(listed.get(key), entry.document, `rules.json ownership mismatch: ${key}`);
@@ -146,5 +158,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     }
   }
   await visit("references/libraries");
+  // Shared design owners (for example design/scale.md component sizes) can own library decisions.
+  await visit("references/design");
   console.log(JSON.stringify({ ...validateComponentReferences(files, registrations), icons: iconCount }));
 }

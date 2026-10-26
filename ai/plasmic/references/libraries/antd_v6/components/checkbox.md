@@ -9,6 +9,13 @@ Library: [Ant Design v6](../index.md).
 
 ## Generation rules
 
+### Design defaults
+
+- Use a Checkbox group for up to six short options with multiple choice in a Form, and a single Checkbox for an agreement or flag that applies on submit; an immediately effective on/off setting uses Switch.
+- Content-sized inside its Form column; options laid out horizontally.
+
+### Usage and behavior
+
 In a business Form or SearchForm, use the registered checked value-prop contract rather than a competing control binding. Read [Form](form.md) or [SearchForm.Item](../../overseas/components/search-form.md#searchformitem). Group array state follows [Checkbox.Group](#checkboxgroup).
 
 ### Checkbox.Group

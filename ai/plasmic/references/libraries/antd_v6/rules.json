@@ -54,7 +54,19 @@
     "components/button.md": {
       "registrations": [
         "plasmic-antd6-button"
-      ]
+      ],
+      "decisions": {
+        "plasmic-antd6-button": [
+          {
+            "prop": "size",
+            "baseline": "medium",
+            "nullable": false,
+            "rule": "component-sizes",
+            "document": "../../design/scale.md",
+            "note": "Set explicitly in data-props; registration defaults and templates may differ (scale.md#component-sizes)."
+          }
+        ]
+      }
     },
     "components/calendar.md": {
       "registrations": [
@@ -87,7 +99,14 @@
             "prop": "styles.body.padding",
             "nullable": false,
             "rule": "card-ownership",
-            "note": "Explicit body padding assigned to one edge owner, for example 0 20px for a Tabs-first list Card."
+            "note": "Explicit body padding from the content's edge owners: 16px 20px, 16px 20px 0 (paginated Table last), 0 20px (Tabs first) or 24px 20px 0 (Form)."
+          },
+          {
+            "prop": "header",
+            "target": "spec",
+            "nullable": false,
+            "rule": "card-headers",
+            "note": "Plan field, not a native prop: none, title or title+extra, with headerReason (actions, collapse, count or distinguish) when not none. A header always has its title."
           }
         ]
       }
@@ -129,13 +148,35 @@
       "registrations": [
         "plasmic-antd6-date-picker",
         "plasmic-antd6-date-range-picker"
-      ]
+      ],
+      "decisions": {
+        "plasmic-antd6-date-range-picker": [
+          {
+            "prop": "size",
+            "baseline": "medium",
+            "nullable": false,
+            "rule": "component-sizes",
+            "document": "../../design/scale.md",
+            "note": "Set explicitly in data-props; registration defaults and templates may differ (scale.md#component-sizes)."
+          }
+        ]
+      }
     },
     "components/descriptions.md": {
       "registrations": [
         "plasmic-antd6-descriptions",
         "plasmic-antd6-descriptions-item"
-      ]
+      ],
+      "decisions": {
+        "plasmic-antd6-descriptions": [
+          {
+            "prop": "column",
+            "nullable": false,
+            "rule": "column-and-span",
+            "note": "3 in a full-width page region, 2 in a half-width Card or 640px Drawer, 1 only below about 560px."
+          }
+        ]
+      }
     },
     "components/divider.md": {
       "registrations": [
@@ -145,7 +186,18 @@
     "components/drawer.md": {
       "registrations": [
         "plasmic-antd6-drawer"
-      ]
+      ],
+      "decisions": {
+        "plasmic-antd6-drawer": [
+          {
+            "prop": "size",
+            "nullable": false,
+            "rule": "overlay-width",
+            "document": "compositions/modal-drawer.md",
+            "note": "Native Drawer size: default, large, a pixel number or CSS length. Choose from content; see overlay-width."
+          }
+        ]
+      }
     },
     "components/dropdown.md": {
       "registrations": [
@@ -184,6 +236,20 @@
             "rule": "layout-ownership",
             "note": "Decide label direction before markup. Page Form: horizontal with right-aligned labels and three short fields per row; use two only with measured crowding. Modal/Drawer Form: vertical. A non-default direction needs structured layoutReason evidence, not prose.",
             "document": "compositions/form-layout.md"
+          },
+          {
+            "prop": "labelAlign",
+            "nullable": true,
+            "rule": "columns-and-label-width",
+            "document": "compositions/form-layout.md",
+            "note": "right for horizontal labels; null for a vertical Form. Left alignment needs a source quote."
+          },
+          {
+            "prop": "labelCol",
+            "nullable": true,
+            "rule": "columns-and-label-width",
+            "document": "compositions/form-layout.md",
+            "note": "{flex: '<px>px'} for a horizontal Page Form: the prepare_plan.py label-width estimate before markup, replaced by the rendered measurement; {flex: 'none'} for one field; null for a vertical Form."
           }
         ]
       }
@@ -212,7 +278,19 @@
         "plasmic-antd6-input-password",
         "plasmic-antd6-input-search",
         "plasmic-antd6-textarea"
-      ]
+      ],
+      "decisions": {
+        "plasmic-antd6-input": [
+          {
+            "prop": "size",
+            "baseline": "medium",
+            "nullable": false,
+            "rule": "component-sizes",
+            "document": "../../design/scale.md",
+            "note": "Set explicitly in data-props; registration defaults and templates may differ (scale.md#component-sizes)."
+          }
+        ]
+      }
     },
     "components/layout.md": {
       "registrations": [
@@ -257,7 +335,18 @@
     "components/modal.md": {
       "registrations": [
         "plasmic-antd6-modal"
-      ]
+      ],
+      "decisions": {
+        "plasmic-antd6-modal": [
+          {
+            "prop": "width",
+            "nullable": false,
+            "rule": "overlay-width",
+            "document": "compositions/modal-drawer.md",
+            "note": "Exact pixel width from the content: 520 one-column form, 720 two columns, 640-720 long content, 800 crowded two columns."
+          }
+        ]
+      }
     },
     "components/pagination.md": {
       "registrations": [
@@ -304,14 +393,38 @@
     "components/segmented.md": {
       "registrations": [
         "plasmic-antd6-segmented"
-      ]
+      ],
+      "decisions": {
+        "plasmic-antd6-segmented": [
+          {
+            "prop": "size",
+            "baseline": "medium",
+            "nullable": false,
+            "rule": "component-sizes",
+            "document": "../../design/scale.md",
+            "note": "Set explicitly in data-props; registration defaults and templates may differ (scale.md#component-sizes)."
+          }
+        ]
+      }
     },
     "components/select.md": {
       "registrations": [
         "plasmic-antd6-option",
         "plasmic-antd6-option-group",
         "plasmic-antd6-select"
-      ]
+      ],
+      "decisions": {
+        "plasmic-antd6-select": [
+          {
+            "prop": "size",
+            "baseline": "medium",
+            "nullable": false,
+            "rule": "component-sizes",
+            "document": "../../design/scale.md",
+            "note": "Set explicitly in data-props; registration defaults and templates may differ (scale.md#component-sizes)."
+          }
+        ]
+      }
     },
     "components/skeleton.md": {
       "registrations": [
@@ -370,10 +483,18 @@
       "decisions": {
         "plasmic-antd6-table": [
           {
+            "prop": "size",
+            "baseline": "large",
+            "nullable": false,
+            "rule": "component-sizes",
+            "document": "../../design/scale.md",
+            "note": "Set explicitly in data-props; registration defaults and templates may differ (scale.md#component-sizes)."
+          },
+          {
             "prop": "scroll",
             "nullable": true,
             "rule": "content-and-scroll-width",
-            "note": "Numeric x greater than the explicit Column widths sum whenever any Column has a width; null keeps the wrapper default for an all-text Table without widths."
+            "note": "Numeric x greater than the explicit Column widths sum whenever any Column has a width; null keeps the native fit-to-container layout for an all-text Table without widths."
           },
           {
             "prop": "pagination",
@@ -390,10 +511,11 @@
             "note": "Literal pixel width from the title and values; null only for the single main text Column."
           },
           {
-            "prop": "displayType",
+            "prop": "presentation",
+            "target": "spec",
             "nullable": false,
             "rule": "render-templates",
-            "note": "text or custom, from the source presentation."
+            "note": "Plan field, not a native prop: text (empty render Slot, native value) or custom (registered components in render), from the source presentation."
           }
         ]
       }
@@ -402,7 +524,19 @@
       "registrations": [
         "plasmic-antd6-tab-item",
         "plasmic-antd6-tabs"
-      ]
+      ],
+      "decisions": {
+        "plasmic-antd6-tabs": [
+          {
+            "prop": "size",
+            "baseline": "medium",
+            "nullable": false,
+            "rule": "component-sizes",
+            "document": "../../design/scale.md",
+            "note": "Set explicitly in data-props; registration defaults and templates may differ (scale.md#component-sizes)."
+          }
+        ]
+      }
     },
     "components/tag.md": {
       "registrations": [

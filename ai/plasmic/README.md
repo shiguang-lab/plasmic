@@ -15,7 +15,7 @@ ai/plasmic/references/codegen/             项目工程、交互与验收规范
 ai/plasmic/references/design/              通用布局、键盘焦点、命名和图标选择规则
 ai/plasmic/references/libraries/index.md   按项目真实组件库和 API 版本选择规范
 ai/plasmic/references/libraries/*/rules.json  注册 → 规范文档、plan 决策项、门禁检查锚点的唯一机器可读映射
-ai/plasmic/references/gate-rules.json      门禁、通用诊断与页面级 plan 决策的规则归属
+ai/plasmic/references/gate-rules.json      门禁、通用诊断、页面级 plan 决策、规则卡的项目/页面组合文档与页面类型骨架
 ai/plasmic/references/planning.md          Page plan 脚手架、决策、规则卡、读取台账与修复循环
 ai/plasmic/references/libraries/antd_v6/   Ant Design 6 的组件与组合规范
 ai/plasmic/references/libraries/antd_v5/   Ant Design 5 已注册组件的独立规范
@@ -35,11 +35,11 @@ scripts/build-plasmic-resources.mjs        构建资源与独立版本的 CLI �
 
 设计前通过 MCP 核对 imported project、注册 key、importPath 和可确认的实现版本；Studio 发布版本、wrapper npm 版本和底层 UI 版本分别记录。组合规范声明参与库，静态检查脚本只用于其已支持的库契约。没有匹配规范时依据真实实现、注册和通用设计规则完成可确认部分，明确缺少的规范覆盖；不回退套用 Antd 6，也不为适配模板切换目标组件库。组件库使用 `antd_v6`、`antd_v5`、`overseas`、`react_ui`、`antd_icons` 这样的单层目录名。目录标识注册组件库，底层依赖版本记入库索引的依赖说明，不追加到目录名。新增组件库时增加独立目录和索引、验证对应组件及依赖后接入总索引；不创建空版本占位或版本间重定向。
 
-组件与组合文档统一使用阶段模板：开头为标题、库、注册表和可选的 **Hard constraints**；随后依次是 `## Plan decisions`（仅当 rules.json 声明决策项）、`## Generation rules`、`## Acceptance checks`，原主题小节降为 `###`。规则卡按阶段取节：编排读 Plan decisions + Generation rules，验收读全文；不再为单个组件维护必读章节清单。新增组件时写入模板文档并在 rules.json 增加一条，构建会校验模板、目录、决策表和锚点一致。
+组件与组合文档统一使用阶段模板：开头为标题、库、注册表和可选的 **Hard constraints**（只认这一英文标记，构建拒绝其他写法，以免约束摘要漏读）；随后依次是 `## Plan decisions`（仅当 rules.json 声明本文档的决策项）、`## Generation rules`（必需）、可选的 `## Conditional rules` 和 `## Acceptance checks`，原主题小节降为 `###`。规则卡按阶段取节：编排读 Plan decisions + Generation rules，验收读全文；不再为单个组件维护必读章节清单。新增组件时写入模板文档并在 rules.json 增加一条，构建会校验模板、目录、决策表和锚点一致。决策项可由共享文档拥有（如 `design/scale.md` 的尺寸基线），此时该文档维护 Plan decisions 表。
 
-Page plan 流程：`prepare_plan.py scaffold` 按 rules.json 写入规则归属、基线值和 `"__DECIDE__"` 空位；预检拒绝未决或缺失的决策（`null` 表示刻意不设置）；`rules --stage compose|accept` 生成规则卡并报告字节量；`verify_selection.py --reads` 校验读取台账；所有门禁诊断带 `rule` 锚点。规则卡过大时按 Page 交给新上下文编排，而不是跳读。
+Page plan 的步骤、命令和读取台账见 [规划](references/planning.md)，逐页编排与恢复见 [原型工作流](references/workflows/prototype.md)，最终验收见 [统一验证](references/verification.md) 和 [规则评审](references/review-mode.md#rule-review)。`rules.json` 维护注册与组件决策的映射，`gate-rules.json` 维护项目/页面规则路由；脚手架、规则卡和门禁从这两处读取，README 不另维护执行流程。
 
-通用布局维护尺寸与伸缩、对齐、间距归属、内容溢出、响应式范围、吸附和滚动原则；各库的 Flex/Grid/Space/Layout 等文档维护真实 Props/Slots。组合文件维护实际区域关系和跨组件交互，不重复父组件或通用布局规则。
+没有设计稿时，间距、宽度、组件大小、字号和密度统一取 `design/scale.md` 的默认值（按钮、输入、选择、Tabs、Segmented、日期区间和 Table 的尺寸及 Table 分页 20/50/100 由门禁检查）；每个页面先按 `design/page-types.md` 定页面类型和区域骨架，预检按 `gate-rules.json` 的 `pageRules.pageType` 提供相应布局规则，实际内容按需求清单验收，不按页面类型强制组件数量；常用组件文档的第一节 Design defaults 写明何时用、放在哪、默认配置和相邻关系。按页面类型的回归用例在 `evals/page-types/`。通用布局维护尺寸与伸缩、对齐、间距归属、内容溢出、响应式范围、吸附和滚动原则；各库的 Flex/Grid/Space/Layout 等文档维护真实 Props/Slots。组合文件维护实际区域关系和跨组件交互，不重复父组件或通用布局规则。
 
 在已准备依赖的仓库根目录运行 `node scripts/validate-plasmic-component-coverage.mjs`，通过各库真实 `registerAll` 核对主组件归属、全部注册 key、最终显示名及图标目录。资源构建会额外检查组件文档与库索引的一致性，再校验链接、标题锚点、可达性和阅读预算。源码覆盖检查不替代组件运行或设计交付验收。
 
@@ -65,7 +65,7 @@ Page plan 流程：`prepare_plan.py scaffold` 按 rules.json 写入规则归属�
 
 ## 安装和使用
 
-需要 Node.js 22.12 或更高版本。npm 发布完成后：
+需要 Node.js 22.12 或更高版本，以及当前客户端 PATH 中可调用的 Python 3.9+（`python3`）。本地和发布版 context resolver 都先检查 Python；失败时报告环境缺口，不会把资源就绪当成流程可执行。npm 发布完成后：
 
 ```sh
 npx -y @plasmickit/cli@latest skill install
@@ -101,6 +101,8 @@ npx -y @plasmickit/cli@latest skill install --dry-run
 `agy`、`codex`、`claude`、`dsh` 等 CLI 可单独通过 PATH 检测，无需安装桌面 App 或先生成配置。`dsh` 是官方 `@deepseek-ai/dsh` 包提供的命令；DeepSeek Harness 与 Codex 默认共用 `~/.agents/skills`，安装器只写一次。
 
 `CODEX_HOME` 用于发现 Codex 配置，Codex 用户 Skill 使用官方的 `~/.agents/skills`。`DSH_HOME` 用于发现 Harness 配置，`DSH_AGENTS_HOME` 决定其共享 Skill 目录。`CLAUDE_CONFIG_DIR`、`XDG_CONFIG_HOME` 等现有客户端环境变量按其规则解析。桌面应用和对应 CLI 共用同一份用户 Skill，不重复安装。不支持本地目录发现的网页/云端会话不计入安装成功；Claude Cowork 与云端会话需要其账号/插件安装机制，不读取本地 `~/.claude/skills`。
+
+这里的“支持”指安装与资源入口，不能据此声称所有模型都已验证或一定遵守规范。只有 MCP、没有安装 Skill 的客户端，通过服务连接说明和 `read_skill` 进入同一资源工作流；当前任务/模式已 resolve 并读完必需文件时复用，不重复加载。执行原型设计还需客户端能读取本轮资源、运行 Node/Python 校验并保留证据，且具备登录后的 Desktop、截图和 Preview 访问。缺少能力时按工作流报告未完成项；子代理和主动压缩属于可选能力，替代路径见 [review-mode](references/review-mode.md) 和 [Page 工作集](references/workflows/prototype.md#complete-one-page-at-a-time)。客户端配置测试、规则门禁测试与真实模型设计评测分别记录，具体模型是否遵守以 [evals](evals/README.md) 中的实际结果为准。
 
 DeepSeek Harness 的 CLI 和目录契约依据：[CLI 包定义](https://github.com/deepseek-ai/deepseek-harness/blob/master/apps/cli/package.json)、[Skill 文件系统发现规则](https://github.com/deepseek-ai/deepseek-harness/blob/master/packages/skill/skill-filesystem/README.md)。
 
@@ -251,6 +253,6 @@ python3 ai/plasmic/scripts/test_verify_structure.py
 
 ## 渐进式资源检查
 
-构建器直接检查维护中的 references：本地链接、标题锚点、从 guide 的可达性以及注册组件目录覆盖；不生成或注入文档副本。guide 和 Desktop 核心契约各不超过 4 KiB，工作流各不超过 6 KiB，单份场景 reference 不超过 20 KiB，每个模式的 mustRead 总量不超过 24 KiB。mustRead 只覆盖入口；实际负载以规则卡的 `totalBytes` 衡量，`handoffRecommended` 为真时按 Page 隔离上下文。超限应按真实场景拆分或去重，不能仅提高预算绕过检查。预算衡量 UTF-8 文本量，不代表模型 token 数或行为正确率。
+构建器直接检查维护中的 references：本地链接、标题锚点、从 guide 的可达性以及注册组件目录覆盖；不生成或注入文档副本。guide 和 Desktop 核心契约各不超过 4 KiB，工作流各不超过 6 KiB，单份场景 reference 不超过 20 KiB，每个模式的 mustRead 总量不超过 24 KiB。mustRead 只覆盖入口；构建另外统计每个工作流的点名阅读量（mustRead 加工作流直接链接的文档，上限 208 KiB），实际每页负载以规则卡的 `totalBytes` 衡量，`readingBudgetExceeded` 为真表示阅读预算压力，按[逐页上下文处理](references/workflows/prototype.md#complete-one-page-at-a-time)选择实际可用的分工、压缩或分节读取路径，不能跳读规则。约束标记只认 `**Hard constraints**`，`gate-rules.json` 的项目/页面规则路径、`pageRules.pageType` 与页面类型章节由构建校验一致。超限应按真实场景拆分或去重，不能仅提高预算绕过检查。预算衡量 UTF-8 文本量，不代表模型 token 数或行为正确率。
 
 官方 `@plasmicapp/cli` 与资源 CLI 分工见 [工具选择](references/guide.md#tool-choice) 和 [官方 CLI](references/official-cli.md)。MCP 完整组件读取包含配置的现代/旧查询定义及注册 import 身份；集成设置和源码不随模型读取下载，未知参数或未核对的迁移条件必须明确。

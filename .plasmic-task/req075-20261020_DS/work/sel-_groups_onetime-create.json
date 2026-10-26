@@ -1,0 +1,24 @@
+{
+  "passed": true,
+  "errors": [],
+  "templates": [
+    {
+      "path": "/groups/onetime-create",
+      "passed": true,
+      "errors": [],
+      "sources": [],
+      "status": "not_applicable",
+      "reason": "The staged SQL creation flow (Steps + basic information + SQL/校验) matches no catalog composition; the nearest BasicFormPage has no Steps or SQL editor, so the page composes registered Steps/Form/Card components instead.",
+      "notChecked": [
+        "correctness of the no-template-fit decision"
+      ]
+    }
+  ],
+  "content": [],
+  "notChecked": [
+    "source meaning and completeness",
+    "actual template insertion/detachment",
+    "JS execution",
+    "visual and runtime acceptance"
+  ]
+}

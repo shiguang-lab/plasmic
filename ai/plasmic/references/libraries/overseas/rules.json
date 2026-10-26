@@ -18,16 +18,23 @@
           {
             "prop": "colSpan",
             "nullable": false,
-            "rule": "布局与状态",
+            "rule": "layout-and-state",
             "note": "6 (four columns) by default; 8 only for a multi-row three-column draft; other values need a source override."
+          },
+          {
+            "prop": "marginBottom",
+            "nullable": false,
+            "baseline": 0,
+            "rule": "layout-and-state",
+            "note": "The parent content Flex owns the 16px region gap."
           }
         ]
       }
     }
   },
   "checks": {
-    "searchFormLayout": "components/search-form.md#布局与状态",
-    "searchFieldSpan": "components/search-form.md#布局与状态",
+    "searchFormLayout": "components/search-form.md#layout-and-state",
+    "searchFieldSpan": "components/search-form.md#layout-and-state",
     "searchFieldLabel": "components/search-form.md#searchformitem"
   }
 }

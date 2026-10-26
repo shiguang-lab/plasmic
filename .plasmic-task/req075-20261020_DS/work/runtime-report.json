@@ -1,0 +1,1427 @@
+{
+  "passed": false,
+  "scope": "planned native Preview assertions only",
+  "caseCount": 96,
+  "executedCaseCount": 6,
+  "counts": {
+    "passed": 6,
+    "failed": 0,
+    "unexecuted": 90,
+    "invalid_evidence": 0
+  },
+  "cases": [
+    {
+      "path": "/groups",
+      "id": "filters-query-1",
+      "kind": "query",
+      "nodeName": "GroupFilters",
+      "assertPath": "/groups",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups",
+      "id": "filters-reset-1",
+      "kind": "reset",
+      "nodeName": "GroupFilters",
+      "assertPath": "/groups",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups",
+      "id": "all-page-change-1",
+      "kind": "page-change",
+      "nodeName": "AllGroupTable",
+      "assertPath": "/groups",
+      "status": "passed",
+      "assertLine": 3
+    },
+    {
+      "path": "/groups",
+      "id": "all-page-change-2",
+      "kind": "page-change",
+      "nodeName": "AllGroupTable",
+      "assertPath": "/groups",
+      "status": "passed",
+      "assertLine": 4
+    },
+    {
+      "path": "/groups",
+      "id": "all-page-size-1",
+      "kind": "page-size",
+      "nodeName": "AllGroupTable",
+      "assertPath": "/groups",
+      "status": "passed",
+      "assertLine": 6
+    },
+    {
+      "path": "/groups",
+      "id": "mine-page-change-1",
+      "kind": "page-change",
+      "nodeName": "MineGroupTable",
+      "assertPath": "/groups",
+      "status": "passed",
+      "assertLine": 5
+    },
+    {
+      "path": "/groups",
+      "id": "mine-page-size-1",
+      "kind": "page-size",
+      "nodeName": "MineGroupTable",
+      "assertPath": "/groups",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups",
+      "id": "app-switch-1",
+      "kind": "app-switch",
+      "nodeName": "AppShell",
+      "assertPath": "/groups",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups",
+      "id": "context-data-1",
+      "kind": "context-data",
+      "nodeName": "AllGroupTable",
+      "assertPath": "/groups",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups",
+      "id": "context-data-2",
+      "kind": "context-data",
+      "nodeName": "MineGroupTable",
+      "assertPath": "/groups",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups",
+      "id": "AllRowActions-detail-allowed",
+      "kind": "permission-allowed",
+      "nodeName": "AllRowActions",
+      "assertPath": "/groups",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups",
+      "id": "AllRowActions-detail-denied",
+      "kind": "permission-denied",
+      "nodeName": "AllRowActions",
+      "assertPath": "/groups",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups",
+      "id": "AllRowActions-edit-allowed",
+      "kind": "permission-allowed",
+      "nodeName": "AllRowActions",
+      "assertPath": "/groups",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups",
+      "id": "AllRowActions-edit-denied",
+      "kind": "permission-denied",
+      "nodeName": "AllRowActions",
+      "assertPath": "/groups",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups",
+      "id": "AllRowActions-online-allowed",
+      "kind": "permission-allowed",
+      "nodeName": "AllRowActions",
+      "assertPath": "/groups",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups",
+      "id": "AllRowActions-online-denied",
+      "kind": "permission-denied",
+      "nodeName": "AllRowActions",
+      "assertPath": "/groups",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups",
+      "id": "AllRowActions-online-cancel",
+      "kind": "confirm-cancel",
+      "nodeName": "AllRowActions",
+      "assertPath": "/groups",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups",
+      "id": "AllRowActions-online-accept",
+      "kind": "confirm-accept",
+      "nodeName": "AllRowActions",
+      "assertPath": "/groups",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups",
+      "id": "AllRowActions-online-transition-圈选中",
+      "kind": "state-transition",
+      "nodeName": "AllRowActions",
+      "assertPath": "/groups",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups",
+      "id": "AllRowActions-reselect-allowed",
+      "kind": "permission-allowed",
+      "nodeName": "AllRowActions",
+      "assertPath": "/groups",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups",
+      "id": "AllRowActions-reselect-denied",
+      "kind": "permission-denied",
+      "nodeName": "AllRowActions",
+      "assertPath": "/groups",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups",
+      "id": "AllRowActions-reselect-transition-圈选中",
+      "kind": "state-transition",
+      "nodeName": "AllRowActions",
+      "assertPath": "/groups",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups",
+      "id": "AllRowActions-enable-allowed",
+      "kind": "permission-allowed",
+      "nodeName": "AllRowActions",
+      "assertPath": "/groups",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups",
+      "id": "AllRowActions-enable-denied",
+      "kind": "permission-denied",
+      "nodeName": "AllRowActions",
+      "assertPath": "/groups",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups",
+      "id": "AllRowActions-enable-cancel",
+      "kind": "confirm-cancel",
+      "nodeName": "AllRowActions",
+      "assertPath": "/groups",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups",
+      "id": "AllRowActions-enable-accept",
+      "kind": "confirm-accept",
+      "nodeName": "AllRowActions",
+      "assertPath": "/groups",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups",
+      "id": "AllRowActions-enable-transition-重新启用圈选中",
+      "kind": "state-transition",
+      "nodeName": "AllRowActions",
+      "assertPath": "/groups",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups",
+      "id": "AllRowActions-disable-allowed",
+      "kind": "permission-allowed",
+      "nodeName": "AllRowActions",
+      "assertPath": "/groups",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups",
+      "id": "AllRowActions-disable-denied",
+      "kind": "permission-denied",
+      "nodeName": "AllRowActions",
+      "assertPath": "/groups",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups",
+      "id": "AllRowActions-disable-cancel",
+      "kind": "confirm-cancel",
+      "nodeName": "AllRowActions",
+      "assertPath": "/groups",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups",
+      "id": "AllRowActions-disable-accept",
+      "kind": "confirm-accept",
+      "nodeName": "AllRowActions",
+      "assertPath": "/groups",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups",
+      "id": "AllRowActions-disable-transition-停用",
+      "kind": "state-transition",
+      "nodeName": "AllRowActions",
+      "assertPath": "/groups",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups",
+      "id": "AllRowActions-copy-allowed",
+      "kind": "permission-allowed",
+      "nodeName": "AllRowActions",
+      "assertPath": "/groups",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups",
+      "id": "AllRowActions-copy-denied",
+      "kind": "permission-denied",
+      "nodeName": "AllRowActions",
+      "assertPath": "/groups",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups",
+      "id": "AllRowActions-delete-allowed",
+      "kind": "permission-allowed",
+      "nodeName": "AllRowActions",
+      "assertPath": "/groups",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups",
+      "id": "AllRowActions-delete-denied",
+      "kind": "permission-denied",
+      "nodeName": "AllRowActions",
+      "assertPath": "/groups",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups",
+      "id": "AllRowActions-delete-cancel",
+      "kind": "confirm-cancel",
+      "nodeName": "AllRowActions",
+      "assertPath": "/groups",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups",
+      "id": "AllRowActions-delete-accept",
+      "kind": "confirm-accept",
+      "nodeName": "AllRowActions",
+      "assertPath": "/groups",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups",
+      "id": "AllRowActions-delete-transition-已删除",
+      "kind": "state-transition",
+      "nodeName": "AllRowActions",
+      "assertPath": "/groups",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups",
+      "id": "AllRowActions-export-allowed",
+      "kind": "permission-allowed",
+      "nodeName": "AllRowActions",
+      "assertPath": "/groups",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups",
+      "id": "AllRowActions-export-denied",
+      "kind": "permission-denied",
+      "nodeName": "AllRowActions",
+      "assertPath": "/groups",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups",
+      "id": "MineRowActions-detail-allowed",
+      "kind": "permission-allowed",
+      "nodeName": "MineRowActions",
+      "assertPath": "/groups",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups",
+      "id": "MineRowActions-detail-denied",
+      "kind": "permission-denied",
+      "nodeName": "MineRowActions",
+      "assertPath": "/groups",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups",
+      "id": "MineRowActions-edit-allowed",
+      "kind": "permission-allowed",
+      "nodeName": "MineRowActions",
+      "assertPath": "/groups",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups",
+      "id": "MineRowActions-edit-denied",
+      "kind": "permission-denied",
+      "nodeName": "MineRowActions",
+      "assertPath": "/groups",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups",
+      "id": "MineRowActions-online-allowed",
+      "kind": "permission-allowed",
+      "nodeName": "MineRowActions",
+      "assertPath": "/groups",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups",
+      "id": "MineRowActions-online-denied",
+      "kind": "permission-denied",
+      "nodeName": "MineRowActions",
+      "assertPath": "/groups",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups",
+      "id": "MineRowActions-online-cancel",
+      "kind": "confirm-cancel",
+      "nodeName": "MineRowActions",
+      "assertPath": "/groups",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups",
+      "id": "MineRowActions-online-accept",
+      "kind": "confirm-accept",
+      "nodeName": "MineRowActions",
+      "assertPath": "/groups",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups",
+      "id": "MineRowActions-online-transition-圈选中",
+      "kind": "state-transition",
+      "nodeName": "MineRowActions",
+      "assertPath": "/groups",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups",
+      "id": "MineRowActions-reselect-allowed",
+      "kind": "permission-allowed",
+      "nodeName": "MineRowActions",
+      "assertPath": "/groups",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups",
+      "id": "MineRowActions-reselect-denied",
+      "kind": "permission-denied",
+      "nodeName": "MineRowActions",
+      "assertPath": "/groups",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups",
+      "id": "MineRowActions-reselect-transition-圈选中",
+      "kind": "state-transition",
+      "nodeName": "MineRowActions",
+      "assertPath": "/groups",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups",
+      "id": "MineRowActions-enable-allowed",
+      "kind": "permission-allowed",
+      "nodeName": "MineRowActions",
+      "assertPath": "/groups",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups",
+      "id": "MineRowActions-enable-denied",
+      "kind": "permission-denied",
+      "nodeName": "MineRowActions",
+      "assertPath": "/groups",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups",
+      "id": "MineRowActions-enable-cancel",
+      "kind": "confirm-cancel",
+      "nodeName": "MineRowActions",
+      "assertPath": "/groups",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups",
+      "id": "MineRowActions-enable-accept",
+      "kind": "confirm-accept",
+      "nodeName": "MineRowActions",
+      "assertPath": "/groups",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups",
+      "id": "MineRowActions-enable-transition-重新启用圈选中",
+      "kind": "state-transition",
+      "nodeName": "MineRowActions",
+      "assertPath": "/groups",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups",
+      "id": "MineRowActions-disable-allowed",
+      "kind": "permission-allowed",
+      "nodeName": "MineRowActions",
+      "assertPath": "/groups",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups",
+      "id": "MineRowActions-disable-denied",
+      "kind": "permission-denied",
+      "nodeName": "MineRowActions",
+      "assertPath": "/groups",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups",
+      "id": "MineRowActions-disable-cancel",
+      "kind": "confirm-cancel",
+      "nodeName": "MineRowActions",
+      "assertPath": "/groups",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups",
+      "id": "MineRowActions-disable-accept",
+      "kind": "confirm-accept",
+      "nodeName": "MineRowActions",
+      "assertPath": "/groups",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups",
+      "id": "MineRowActions-disable-transition-停用",
+      "kind": "state-transition",
+      "nodeName": "MineRowActions",
+      "assertPath": "/groups",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups",
+      "id": "MineRowActions-copy-allowed",
+      "kind": "permission-allowed",
+      "nodeName": "MineRowActions",
+      "assertPath": "/groups",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups",
+      "id": "MineRowActions-copy-denied",
+      "kind": "permission-denied",
+      "nodeName": "MineRowActions",
+      "assertPath": "/groups",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups",
+      "id": "MineRowActions-delete-allowed",
+      "kind": "permission-allowed",
+      "nodeName": "MineRowActions",
+      "assertPath": "/groups",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups",
+      "id": "MineRowActions-delete-denied",
+      "kind": "permission-denied",
+      "nodeName": "MineRowActions",
+      "assertPath": "/groups",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups",
+      "id": "MineRowActions-delete-cancel",
+      "kind": "confirm-cancel",
+      "nodeName": "MineRowActions",
+      "assertPath": "/groups",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups",
+      "id": "MineRowActions-delete-accept",
+      "kind": "confirm-accept",
+      "nodeName": "MineRowActions",
+      "assertPath": "/groups",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups",
+      "id": "MineRowActions-delete-transition-已删除",
+      "kind": "state-transition",
+      "nodeName": "MineRowActions",
+      "assertPath": "/groups",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups",
+      "id": "MineRowActions-export-allowed",
+      "kind": "permission-allowed",
+      "nodeName": "MineRowActions",
+      "assertPath": "/groups",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups",
+      "id": "MineRowActions-export-denied",
+      "kind": "permission-denied",
+      "nodeName": "MineRowActions",
+      "assertPath": "/groups",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups/detail",
+      "id": "members-page-change-1",
+      "kind": "page-change",
+      "nodeName": "MembersTable",
+      "assertPath": "/groups/detail",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups/detail",
+      "id": "members-page-size-1",
+      "kind": "page-size",
+      "nodeName": "MembersTable",
+      "assertPath": "/groups/detail",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups/detail",
+      "id": "selectlog-query-1",
+      "kind": "query",
+      "nodeName": "SelectLogFilters",
+      "assertPath": "/groups/detail",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups/detail",
+      "id": "selectlog-reset-1",
+      "kind": "reset",
+      "nodeName": "SelectLogFilters",
+      "assertPath": "/groups/detail",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups/detail",
+      "id": "selectlog-page-change-1",
+      "kind": "page-change",
+      "nodeName": "SelectLogTable",
+      "assertPath": "/groups/detail",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups/detail",
+      "id": "selectlog-page-size-1",
+      "kind": "page-size",
+      "nodeName": "SelectLogTable",
+      "assertPath": "/groups/detail",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups/detail",
+      "id": "refreshlog-page-change-1",
+      "kind": "page-change",
+      "nodeName": "RefreshLogTable",
+      "assertPath": "/groups/detail",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups/detail",
+      "id": "refreshlog-page-size-1",
+      "kind": "page-size",
+      "nodeName": "RefreshLogTable",
+      "assertPath": "/groups/detail",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups/detail",
+      "id": "applylog-query-1",
+      "kind": "query",
+      "nodeName": "ApplyLogFilters",
+      "assertPath": "/groups/detail",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups/detail",
+      "id": "applylog-reset-1",
+      "kind": "reset",
+      "nodeName": "ApplyLogFilters",
+      "assertPath": "/groups/detail",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups/detail",
+      "id": "applylog-page-change-1",
+      "kind": "page-change",
+      "nodeName": "ApplyLogTable",
+      "assertPath": "/groups/detail",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups/detail",
+      "id": "applylog-page-size-1",
+      "kind": "page-size",
+      "nodeName": "ApplyLogTable",
+      "assertPath": "/groups/detail",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups/detail",
+      "id": "app-switch-detail",
+      "kind": "app-switch",
+      "nodeName": "AppShell",
+      "assertPath": "/groups/detail",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups/detail",
+      "id": "context-data-detail",
+      "kind": "context-data",
+      "nodeName": "MembersTable",
+      "assertPath": "/groups/detail",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups/detail",
+      "id": "applyrows-detail-allowed",
+      "kind": "permission-allowed",
+      "nodeName": "ApplyRowActions",
+      "assertPath": "/groups/detail",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups/detail",
+      "id": "applyrows-detail-denied",
+      "kind": "permission-denied",
+      "nodeName": "ApplyRowActions",
+      "assertPath": "/groups/detail",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups/onetime-create",
+      "id": "onetime-page-change-1",
+      "kind": "page-change",
+      "nodeName": "OnetimePreviewTable",
+      "assertPath": "/groups/onetime-create",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups/onetime-create",
+      "id": "onetime-page-size-1",
+      "kind": "page-size",
+      "nodeName": "OnetimePreviewTable",
+      "assertPath": "/groups/onetime-create",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups/onetime-create",
+      "id": "app-switch-onetime",
+      "kind": "app-switch",
+      "nodeName": "AppShell",
+      "assertPath": "/groups/onetime-create",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups/onetime-create",
+      "id": "context-data-onetime",
+      "kind": "context-data",
+      "nodeName": "OnetimePreviewTable",
+      "assertPath": "/groups/onetime-create",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups/selector",
+      "id": "preview-page-change-1",
+      "kind": "page-change",
+      "nodeName": "PreviewTable",
+      "assertPath": "/groups/selector",
+      "status": "passed",
+      "assertLine": 2
+    },
+    {
+      "path": "/groups/selector",
+      "id": "preview-page-size-1",
+      "kind": "page-size",
+      "nodeName": "PreviewTable",
+      "assertPath": "/groups/selector",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups/selector",
+      "id": "app-switch-selector",
+      "kind": "app-switch",
+      "nodeName": "AppShell",
+      "assertPath": "/groups/selector",
+      "status": "unexecuted"
+    },
+    {
+      "path": "/groups/selector",
+      "id": "context-data-selector",
+      "kind": "context-data",
+      "nodeName": "PreviewTable",
+      "assertPath": "/groups/selector",
+      "status": "passed",
+      "assertLine": 1
+    }
+  ],
+  "errors": [
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups",
+        "filters-query-1"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups",
+        "filters-reset-1"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups",
+        "mine-page-size-1"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups",
+        "app-switch-1"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups",
+        "context-data-1"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups",
+        "context-data-2"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups",
+        "AllRowActions-detail-allowed"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups",
+        "AllRowActions-detail-denied"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups",
+        "AllRowActions-edit-allowed"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups",
+        "AllRowActions-edit-denied"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups",
+        "AllRowActions-online-allowed"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups",
+        "AllRowActions-online-denied"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups",
+        "AllRowActions-online-cancel"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups",
+        "AllRowActions-online-accept"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups",
+        "AllRowActions-online-transition-圈选中"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups",
+        "AllRowActions-reselect-allowed"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups",
+        "AllRowActions-reselect-denied"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups",
+        "AllRowActions-reselect-transition-圈选中"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups",
+        "AllRowActions-enable-allowed"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups",
+        "AllRowActions-enable-denied"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups",
+        "AllRowActions-enable-cancel"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups",
+        "AllRowActions-enable-accept"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups",
+        "AllRowActions-enable-transition-重新启用圈选中"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups",
+        "AllRowActions-disable-allowed"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups",
+        "AllRowActions-disable-denied"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups",
+        "AllRowActions-disable-cancel"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups",
+        "AllRowActions-disable-accept"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups",
+        "AllRowActions-disable-transition-停用"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups",
+        "AllRowActions-copy-allowed"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups",
+        "AllRowActions-copy-denied"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups",
+        "AllRowActions-delete-allowed"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups",
+        "AllRowActions-delete-denied"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups",
+        "AllRowActions-delete-cancel"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups",
+        "AllRowActions-delete-accept"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups",
+        "AllRowActions-delete-transition-已删除"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups",
+        "AllRowActions-export-allowed"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups",
+        "AllRowActions-export-denied"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups",
+        "MineRowActions-detail-allowed"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups",
+        "MineRowActions-detail-denied"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups",
+        "MineRowActions-edit-allowed"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups",
+        "MineRowActions-edit-denied"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups",
+        "MineRowActions-online-allowed"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups",
+        "MineRowActions-online-denied"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups",
+        "MineRowActions-online-cancel"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups",
+        "MineRowActions-online-accept"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups",
+        "MineRowActions-online-transition-圈选中"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups",
+        "MineRowActions-reselect-allowed"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups",
+        "MineRowActions-reselect-denied"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups",
+        "MineRowActions-reselect-transition-圈选中"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups",
+        "MineRowActions-enable-allowed"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups",
+        "MineRowActions-enable-denied"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups",
+        "MineRowActions-enable-cancel"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups",
+        "MineRowActions-enable-accept"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups",
+        "MineRowActions-enable-transition-重新启用圈选中"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups",
+        "MineRowActions-disable-allowed"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups",
+        "MineRowActions-disable-denied"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups",
+        "MineRowActions-disable-cancel"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups",
+        "MineRowActions-disable-accept"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups",
+        "MineRowActions-disable-transition-停用"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups",
+        "MineRowActions-copy-allowed"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups",
+        "MineRowActions-copy-denied"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups",
+        "MineRowActions-delete-allowed"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups",
+        "MineRowActions-delete-denied"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups",
+        "MineRowActions-delete-cancel"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups",
+        "MineRowActions-delete-accept"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups",
+        "MineRowActions-delete-transition-已删除"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups",
+        "MineRowActions-export-allowed"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups",
+        "MineRowActions-export-denied"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups/detail",
+        "members-page-change-1"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups/detail",
+        "members-page-size-1"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups/detail",
+        "selectlog-query-1"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups/detail",
+        "selectlog-reset-1"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups/detail",
+        "selectlog-page-change-1"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups/detail",
+        "selectlog-page-size-1"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups/detail",
+        "refreshlog-page-change-1"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups/detail",
+        "refreshlog-page-size-1"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups/detail",
+        "applylog-query-1"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups/detail",
+        "applylog-reset-1"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups/detail",
+        "applylog-page-change-1"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups/detail",
+        "applylog-page-size-1"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups/detail",
+        "app-switch-detail"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups/detail",
+        "context-data-detail"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups/detail",
+        "applyrows-detail-allowed"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups/detail",
+        "applyrows-detail-denied"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups/onetime-create",
+        "onetime-page-change-1"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups/onetime-create",
+        "onetime-page-size-1"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups/onetime-create",
+        "app-switch-onetime"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups/onetime-create",
+        "context-data-onetime"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups/selector",
+        "preview-page-size-1"
+      ]
+    },
+    {
+      "message": "Runtime case was not executed",
+      "case": [
+        "/groups/selector",
+        "app-switch-selector"
+      ]
+    }
+  ],
+  "notChecked": [
+    "source meaning and completeness",
+    "fixture/precondition authenticity",
+    "visual fidelity",
+    "unasserted business effects",
+    "save/reopen persistence"
+  ]
+}

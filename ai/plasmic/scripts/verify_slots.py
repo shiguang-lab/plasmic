@@ -135,6 +135,24 @@ def card_action_placement(intent_tree):
     return errors
 
 
+def card_header_policy(tree, source):
+    """A Card header always carries its title: native Card renders a header for
+    a nonempty extra alone, leaving an empty title area above the body."""
+    def filled(node):
+        return bool(node) and (bool(node.get("text", "").strip())
+                               or any(n["tag"] != "text" or n.get("text", "").strip() for n in node["children"]))
+    errors = []
+    for card in walk(tree):
+        if card["tag"] != "plasmic-component" or component_identity(card) != "plasmicantd6card":
+            continue
+        slots = {n["attrs"].get("name"): n for n in card["children"] if n["tag"] == "slot"}
+        if filled(slots.get("extra")) and not filled(slots.get("title")):
+            errors.append({"source": source, "card": card["attrs"].get("data-plasmic-name"),
+                           "rule": "references/libraries/antd_v6/components/card.md#card-headers",
+                           "issue": "extra-only Card header: add the source region title, or move the actions to a body toolbar and clear extra"})
+    return errors
+
+
 def overlay_close_slot(intent_tree):
     """Never declare an empty closeIcon Slot: it replaces the native close icon with nothing."""
     errors = []
@@ -185,6 +203,7 @@ def check(intent, actual):
     tabs_card_errors = tabs_card_policy(intent_tree)
     card_action_errors = card_action_placement(intent_tree)
     close_slot_errors = overlay_close_slot(intent_tree)
+    header_errors = card_header_policy(intent_tree, "intent") + card_header_policy(actual_tree, "actual")
     if not duplicates:
         intended_owners, actual_owners = slot_owners(intent_tree), slot_owners(actual_tree)
         for name in sorted(expected.keys() & found.keys()):
@@ -220,7 +239,7 @@ def check(intent, actual):
             actual_names = {node_name(n) for n in walk(actual_content) if node_name(n)} if actual_content else set()
             for child_name in sorted(intended_names - actual_names):
                 misplaced_card_content.append({"card": name, "component": child_name})
-    return {"intentErrors": intent_errors, "duplicateComponents": duplicates, "duplicateSlots": duplicate_slots, "missingComponents": missing, "wrongComponents": wrong_components, "wrongSlotOwners": wrong_slot_owners, "emptyCards": empty_cards, "cardContentOutsideSlot": misplaced_card_content, "wrongCardPadding": wrong_card_padding, "tabsCardPolicy": tabs_card_errors, "cardActionPlacement": card_action_errors, "overlayCloseSlot": close_slot_errors, "unprovidedSlotChildren": defaults, "passed": not any([intent_errors, duplicates, duplicate_slots, missing, wrong_components, wrong_slot_owners, empty_cards, misplaced_card_content, wrong_card_padding, tabs_card_errors, card_action_errors, close_slot_errors, defaults])}
+    return {"intentErrors": intent_errors, "duplicateComponents": duplicates, "duplicateSlots": duplicate_slots, "missingComponents": missing, "wrongComponents": wrong_components, "wrongSlotOwners": wrong_slot_owners, "emptyCards": empty_cards, "cardContentOutsideSlot": misplaced_card_content, "wrongCardPadding": wrong_card_padding, "tabsCardPolicy": tabs_card_errors, "cardActionPlacement": card_action_errors, "cardHeaderPolicy": header_errors, "overlayCloseSlot": close_slot_errors, "unprovidedSlotChildren": defaults, "passed": not any([intent_errors, duplicates, duplicate_slots, missing, wrong_components, wrong_slot_owners, empty_cards, misplaced_card_content, wrong_card_padding, tabs_card_errors, card_action_errors, header_errors, close_slot_errors, defaults])}
 
 
 def main():
@@ -236,7 +255,7 @@ def main():
         parser.error("Select exactly one public MCP component readback")
     result = check(args.intent_html.read_text(encoding="utf-8"), models[0]["baseVariantTplTree"])
     print(json.dumps(result, ensure_ascii=False, indent=2))
-    structural_errors = any(result[key] for key in ["intentErrors", "duplicateComponents", "duplicateSlots", "missingComponents", "wrongComponents", "wrongSlotOwners", "emptyCards", "cardContentOutsideSlot", "wrongCardPadding", "tabsCardPolicy", "cardActionPlacement", "overlayCloseSlot"])
+    structural_errors = any(result[key] for key in ["intentErrors", "duplicateComponents", "duplicateSlots", "missingComponents", "wrongComponents", "wrongSlotOwners", "emptyCards", "cardContentOutsideSlot", "wrongCardPadding", "tabsCardPolicy", "cardActionPlacement", "cardHeaderPolicy", "overlayCloseSlot"])
     raise SystemExit(0 if result["passed"] or (args.allow_defaults and not structural_errors) else 1)
 
 

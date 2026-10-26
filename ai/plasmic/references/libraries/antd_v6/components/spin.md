@@ -8,6 +8,10 @@ Library: [Ant Design v6](../index.md).
 
 ## Generation rules
 
+### Design defaults
+
+- Use over a region whose content is being refreshed; first loading of a known structure uses Skeleton.
+
 ### Busy region
 
 Use Spin for the actual busy region, keeping useful content visible during a background refresh when the flow permits it. spinning is business state; delay only controls presentation and must not become a submit lock. The native description, indicator, size and fullscreen controls follow this v6 registration.

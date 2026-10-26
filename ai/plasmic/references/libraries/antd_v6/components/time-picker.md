@@ -9,6 +9,11 @@ Library: [Ant Design v6](../index.md).
 
 ## Generation rules
 
+### Design defaults
+
+- Use for a daily wall-clock time; a duration is a quantity (InputNumber with a unit).
+- Set `width:100%` in a Form column. Format `HH:mm:ss` or `HH:mm` per the required precision.
+
 ### Time values
 
 Use this control for time-of-day fields, including daily cutoffs; use its RangePicker for a clock-time range. Follow [field semantics](../selection.md#field-semantics) for dates, dated instants and durations. A draft showing only a time in a bordered box does not justify replacing the picker with Input.

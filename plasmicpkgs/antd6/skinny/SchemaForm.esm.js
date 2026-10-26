@@ -13,11 +13,11 @@ import 'classnames';
 import 'dayjs';
 import './canvas-overlay-Dan70Oxr.esm.js';
 import '@plasmicapp/host';
-import './react-utils-BpvCcwyE.esm.js';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
 import 'fast-deep-equal';
 import './contexts-DtHxvgts.esm.js';
+import './react-utils-BpvCcwyE.esm.js';
 
 function deriveFormFieldConfigs(dataFormItems, schema, data) {
   return deriveFieldConfigs(
@@ -95,15 +95,13 @@ const SchemaForm = React.forwardRef(
         {
           ...omit(formItem, "key"),
           noLabel: formItem.inputType === InputType.Checkbox || formItem.noLabel,
-          valuePropName: formItem.valuePropName ?? (formItem.inputType === InputType.Checkbox ? "checked" : void 0),
-          style: { width: "100%" }
+          valuePropName: formItem.valuePropName ?? (formItem.inputType === InputType.Checkbox ? "checked" : void 0)
         },
         formItem.inputType === InputType.Text ? /* @__PURE__ */ React.createElement(Input, null) : formItem.inputType === InputType.Password ? /* @__PURE__ */ React.createElement(Input.Password, null) : formItem.inputType === InputType.TextArea ? /* @__PURE__ */ React.createElement(Input.TextArea, null) : formItem.inputType === InputType.Number ? /* @__PURE__ */ React.createElement(InputNumber, null) : formItem.inputType === InputType.Checkbox ? /* @__PURE__ */ React.createElement(AntdCheckbox, null, formItem.label) : formItem.inputType === InputType.Select ? /* @__PURE__ */ React.createElement(AntdSelect, { options: formItem.options }) : formItem.inputType === InputType.DatePicker ? /* @__PURE__ */ React.createElement(AntdDatePicker, { showTime: formItem.showTime }) : formItem.inputType === InputType.RadioGroup ? /* @__PURE__ */ React.createElement(
           AntdRadioGroup,
           {
             options: formItem.options,
-            optionType: formItem.optionType,
-            style: { padding: "8px" }
+            optionType: formItem.optionType
           }
         ) : null
       )
@@ -128,10 +126,11 @@ const SchemaForm = React.forwardRef(
           formItems: rawData && rawData.isLoading ? previousFormItems.current : actualFormItems,
           ref,
           style: isSchemaForm && isLoadingData ? {
+            ...props.style,
             opacity: 0.5,
             transitionDelay: "250ms",
             transition: "1s"
-          } : {}
+          } : props.style
         }
       ),
       isSchemaForm && isLoadingData && /* @__PURE__ */ React.createElement(

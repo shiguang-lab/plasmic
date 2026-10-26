@@ -39,15 +39,16 @@ class OverlayFooterTests(unittest.TestCase):
         expected["pages"][0]["overlays"][0]["width"] = "520px"
         self.assertIn("Modal width mismatch", str(check(expected, actual)["errors"]))
         drawer_expected = inventory(actions=[], footer="none", kind="plasmic-antd6-drawer")
-        drawer_expected["pages"][0]["overlays"][0]["width"] = 720
-        drawer_actual = model(body="<span>SQL</span>", kind="plasmic-antd6-drawer", values={"open": "{{ $state.open }}", "width": 720})
-        self.assertTrue(check(drawer_expected, drawer_actual)["passed"])
-        drawer_expected["pages"][0]["overlays"][0]["width"] = 480
-        self.assertIn("Drawer width mismatch", str(check(drawer_expected, drawer_actual)["errors"]))
-        drawer_expected["pages"][0]["overlays"][0].pop("width")
-        drawer_expected["pages"][0]["overlays"][0]["size"] = "large"
-        drawer_actual = model(body="<span>SQL</span>", kind="plasmic-antd6-drawer", values={"open": "{{ $state.open }}", "size": "large"})
-        self.assertTrue(check(drawer_expected, drawer_actual)["passed"])
+        for size in (640, "large", "default", "80vw"):
+            with self.subTest(size=size):
+                drawer_expected["pages"][0]["overlays"][0]["size"] = size
+                drawer_actual = model(body="<span>SQL</span>", kind="plasmic-antd6-drawer", values={"open": "{{ $state.open }}", "size": size})
+                self.assertTrue(check(drawer_expected, drawer_actual)["passed"])
+                drawer_expected["pages"][0]["overlays"][0]["size"] = 480
+                self.assertIn("Drawer size mismatch", str(check(drawer_expected, drawer_actual)["errors"]))
+        drawer_expected["pages"][0]["overlays"][0] = {**drawer_expected["pages"][0]["overlays"][0], "width": 640}
+        with self.assertRaisesRegex(ValueError, "width applies to a Modal"):
+            check(drawer_expected, drawer_actual)
 
 
     def test_external_controlled_modal_rejects_leftover_default_trigger(self):

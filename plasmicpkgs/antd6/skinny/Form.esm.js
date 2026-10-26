@@ -156,11 +156,6 @@ const Internal = React.forwardRef(
           wrapperCol: props.wrapperCol?.horizontalOnly && props.layout !== "horizontal" ? void 0 : props.wrapperCol,
           disabled: isSubmitting && autoDisableWhileSubmitting ? true : disabled
         },
-        /* @__PURE__ */ React.createElement("style", null, `
-          .ant-form-item-explain + div, .ant-form-item-margin-offset {
-            display: none;
-          }
-          `),
         childrenNode
       ))
     );
@@ -168,6 +163,7 @@ const Internal = React.forwardRef(
 );
 const FormWrapper = React.forwardRef(
   (props, ref) => {
+    const layout = props.layout ?? "horizontal";
     const [remountKey, setRemountKey] = React.useState(0);
     const forceRemount = React.useCallback(
       () => setRemountKey((k) => k + 1),
@@ -185,10 +181,10 @@ const FormWrapper = React.forwardRef(
     });
     const formLayout = React.useMemo(
       () => ({
-        layout: props.layout,
+        layout,
         labelSpan: props.labelCol?.span
       }),
-      [props.layout, props.labelCol?.span]
+      [layout, props.labelCol?.span]
     );
     return /* @__PURE__ */ React.createElement(
       Internal,
@@ -199,7 +195,8 @@ const FormWrapper = React.forwardRef(
         internalFieldCtx,
         setInternalFieldCtx,
         ref,
-        ...props
+        ...props,
+        layout
       }
     );
   }

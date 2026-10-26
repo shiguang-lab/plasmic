@@ -42,10 +42,12 @@ test("Form.Item label tooltip is editable and simplified fields expose tooltip t
   assert.equal(form.meta.props.formItems.itemType.fields.tooltip.type, "string");
   assert.equal(form.meta.props.dataFormItems.itemType.fields.tooltip.type, "string");
   assert.equal(item.meta.props.description.type, "slot");
-  assert.equal(item.meta.props.validateFirst.defaultValue, true);
+  // Native Ant Design default: collect every failing rule unless validateFirst is set.
+  assert.equal(item.meta.props.validateFirst.defaultValue, undefined);
+  assert.equal(item.meta.props.validateFirst.defaultValueHint, false);
   for (const prop of ["formItems", "dataFormItems"]) {
     assert.equal(form.meta.props[prop].itemType.fields.description.type, "string");
-    assert.equal(form.meta.props[prop].itemType.fields.validateFirst.defaultValue, true);
+    assert.equal(form.meta.props[prop].itemType.fields.validateFirst.defaultValue, undefined);
   }
   assert.deepEqual(form.meta.refActions.submit.argTypes, []);
   assert.equal(form.meta.props.styles.type, "object");

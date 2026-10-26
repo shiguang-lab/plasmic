@@ -27,9 +27,10 @@ import verify_templates
 import verify_page_layout
 import verify_references
 import verify_rendering
+import verify_review
 
 
-GATES = ("model", "rendering", "structure", "page_layout", "forms", "descriptions", "overlays", "slots", "shell_height", "references")
+GATES = ("model", "rendering", "structure", "page_layout", "forms", "descriptions", "overlays", "slots", "shell_height", "references", "review")
 NOT_CHECKED = ["source-interpretation", "actual template insertion/detachment", "visual fidelity and hierarchy", "Preview interactions and scrolling", "keyboard/focus accessibility", "save/reopen persistence"]
 
 
@@ -274,6 +275,10 @@ def checked_inputs(config, base):
             files.add(base / spec["inventory"])
         if name == "references" and isinstance(spec.get("evidence"), str):
             files.add(base / spec["evidence"])
+        if name == "structure" and isinstance(spec.get("reads"), str):
+            files.add(base / spec["reads"])
+        if name == "review":
+            files.update(base / spec[key] for key in ("ledger", "results") if isinstance(spec.get(key), str))
         if name == "slots" and isinstance(spec.get("pages"), list):
             files.update(base / page["intent"] for page in spec["pages"]
                          if isinstance(page, dict) and isinstance(page.get("intent"), str))
@@ -376,7 +381,9 @@ def run_suite(config, base, evidence, project_id, page_path=None):
             if not isinstance(spec, dict) or set(spec) - {"presets", "overviewName"}:
                 raise ValueError("page_layout accepts only presets and overviewName; defaults to Desktop and 页面总览")
             return verify_page_layout.check(overview, spec.get("presets"), spec.get("overviewName", "页面总览"))
-        allowed = {"pages"} if name == "slots" else set() if name == "shell_height" else {"inventory", "evidence"} if name == "references" else {"inventory"}
+        if name == "review":
+            return review_check(spec)
+        allowed = {"inventory", "reads"} if name == "structure" else {"pages"} if name == "slots" else set() if name == "shell_height" else {"inventory", "evidence"} if name == "references" else {"inventory"}
         if not isinstance(spec, dict) or set(spec) != allowed:
             raise ValueError(f"{name} requires exactly these configuration keys: {sorted(allowed)}")
         if name in ("structure", "forms", "descriptions", "overlays", "references"):
@@ -397,21 +404,31 @@ def run_suite(config, base, evidence, project_id, page_path=None):
                 # Bad inventory metadata must not hide independent selection/coverage findings.
                 report = {"passed": False, "errors": plan_errors} if plan_errors else verify_structure.check(expected, overview, readback, page_path)
                 report["errors"].extend(verify_structure.check_complete_names(readback))
-                selection = verify_selection.check(expected, readback, page_path)
+                ledger = [json.loads(line) for line in read_input(base / spec["reads"]).decode("utf-8").splitlines() if line.strip()]
+                if any(not isinstance(record, dict) for record in ledger):
+                    raise ValueError("structure.reads requires a read_reference.py JSONL ledger")
+                selection = verify_selection.check(expected, readback, page_path, reads=ledger)
                 report["selection"] = selection
                 report["errors"].extend(selection["errors"])
                 report["passed"] = not report["errors"]
                 return report
             expected = {**expected, "pages": selected_specs(expected["pages"])}
             if name == "forms":
-                return verify_forms.check(expected, scoped_overview, readback)
+                reference_spec = config.get("references")
+                references = None
+                if isinstance(reference_spec, dict) and all(isinstance(reference_spec.get(k), str) for k in ("inventory", "evidence")):
+                    references = {k: json.loads(read_input(base / reference_spec[k])) for k in ("inventory", "evidence")}
+                    references["inventory"] = {**references["inventory"], "pages": selected_specs(references["inventory"]["pages"])}
+                return verify_forms.check(expected, scoped_overview, readback, references=references)
             expected = {**expected, "pages": verify_forms.resolve_pages(expected["pages"], inventory)}
             if Counter(p["componentUuid"] for p in expected["pages"]) != Counter(p["uuid"] for p in inventory):
                 raise ValueError("Full-project inventories must cover every Page, including explicit empty lists")
             if name == "references":
                 reference_evidence = json.loads(read_input(base / spec["evidence"]))
                 return verify_references.check(expected, readback, reference_evidence)
-            return {"descriptions": verify_descriptions, "overlays": verify_overlays}[name].check(expected, readback)
+            if name == "descriptions":
+                return verify_descriptions.check(expected, readback, layouts)
+            return verify_overlays.check(expected, readback)
         reports = []
         specs = selected_specs(spec.get("pages", [])) if name == "slots" else [{"componentUuid": page["uuid"]} for page in inventory]
         if not specs:
@@ -428,8 +445,30 @@ def run_suite(config, base, evidence, project_id, page_path=None):
             reports.append({"componentUuid": model["uuid"], "path": model.get("pageMeta", {}).get("path"), **report})
         return {"passed": all(report["passed"] for report in reports), "pages": reports}
 
+    def review_check(spec):
+        if set(spec) != {"ledger", "results"} or not all(isinstance(spec[k], str) for k in spec):
+            raise ValueError('review needs {"ledger": accept-card read ledger, "results": rule review file}')
+        structure = config.get("structure")
+        if not (isinstance(structure, dict) and isinstance(structure.get("inventory"), str)):
+            raise ValueError("Rule review derives each accept card from the structure inventory")
+        plan = json.loads(read_input(base / structure["inventory"]))
+        ledger = [json.loads(line) for line in read_input(base / spec["ledger"]).decode("utf-8").splitlines() if line.strip()]
+        pages = [p for p in plan.get("pages", []) if page_path is None or p.get("path") == page_path]
+        # Bind the review to the complete editor/model identity, including unsaved edits.
+        return verify_review.check(pages, ledger, json.loads(read_input(base / spec["results"])),
+                                   capture_state=capture.get("after"), project=page_path is None, root=plan)
+
     for name in GATES:
         spec = config.get(name, {} if name in ("model", "rendering", "page_layout") else None)
+        # Per-Page runs gate composition; the rule review gates final (full-project) acceptance.
+        if name == "review" and page_path is not None:
+            results.append({"gate": name, "status": "not_applicable", "report": {"reason": "Per-Page run; final acceptance requires the rule review"}})
+            continue
+        if name == "review" and spec is None:
+            results.append({"gate": name, "status": "failed", "rule": rules_manifest.manifest()["gates"].get(name),
+                            "report": {"error": "Final acceptance needs the accept-card read ledger and one verdict per rule",
+                                       "configure": {"review": {"ledger": "accept-reads.jsonl", "results": "rule-review.json"}}}})
+            continue
         if name == "references" and spec is None:
             results.append({"gate": name, "status": "not_applicable", "report": {"reason": "No reference gate configured; source coverage requires independent review"}})
             continue
@@ -444,7 +483,7 @@ def run_suite(config, base, evidence, project_id, page_path=None):
             # Applicability comes from reviewed source scope, not from an
             # implementation having omitted every required Form/region/overlay.
             # Empty Page inventories are explicit and still checked for extras.
-            if name in ("model", "rendering", "structure", "page_layout", "forms", "descriptions", "overlays", "references") or (name == "slots" and "<plasmic-component" in markup) or identities.intersection(applicable.get(name, set())):
+            if name in ("model", "rendering", "structure", "page_layout", "forms", "descriptions", "overlays", "references", "review") or (name == "slots" and "<plasmic-component" in markup) or identities.intersection(applicable.get(name, set())):
                 results.append({"gate": name, "status": "failed", "report": {"error": "Gate applies to the captured Pages and cannot be exempted", "reason": spec["notApplicable"]}})
             else:
                 results.append({"gate": name, "status": "not_applicable", "report": {"reason": spec["notApplicable"]}})
@@ -464,9 +503,15 @@ def run_suite(config, base, evidence, project_id, page_path=None):
         results[0]["report"].setdefault("errors", []).append("Captured model/layout evidence changed during checks")
         results[0]["report"]["passed"] = False
     passed = all(item["status"] in ("passed", "not_applicable") for item in results)
+    review = next((item["report"] for item in results if item["gate"] == "review" and isinstance(item.get("report"), dict)), {})
+    acceptance = {"status": "unverified" if passed else "failed", "missing": NOT_CHECKED}
+    if review.get("passed") is True and review.get("reviewMode"):
+        # A fallback review is the generating conversation grading its own output; say so.
+        acceptance["ruleReview"] = {"mode": review["reviewMode"], "reviewer": review.get("reviewer"),
+                                    "independent": review["reviewMode"] == "independent"}
     return {"passed": passed,
             "scope": "automated gates only", "pagePath": page_path, "projectId": project_id, "capture": capture,
-            "acceptance": {"status": "unverified" if passed else "failed", "missing": NOT_CHECKED},
+            "acceptance": acceptance,
             "checkedInputs": inputs,
             "checks": results, "notChecked": NOT_CHECKED}
 

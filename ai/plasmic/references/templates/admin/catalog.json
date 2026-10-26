@@ -183,7 +183,6 @@
       "useWhen": "独立页面的新建或编辑，字段较少、无需分步。",
       "avoidWhen": "保留列表上下文的小型编辑，使用 DrawerFormSection。",
       "slotNames": [
-        "formTitle",
         "formFields",
         "formActions"
       ],
@@ -223,7 +222,7 @@
         "DrawerDetailSection",
         "DrawerFormSection"
       ],
-      "rule": "替换现有内容区，不再插入页面外壳；每个标签使用自己的 Table。"
+      "rule": "替换现有内容区，不再插入页面外壳；独立标签内容各自使用 Table，明确要求筛选同一 Table 时按 search-table 组合规则调整归属并在切换时重置分页。"
     },
     {
       "name": "目录配置工作区",

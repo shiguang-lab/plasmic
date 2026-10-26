@@ -15,72 +15,18 @@ var cls__default = /*#__PURE__*/_interopDefault(cls);
 var React__default = /*#__PURE__*/_interopDefault(React);
 
 const canvasOverlay = { triggerSlot: "children" };
-function useOverflowContent(enabled, children) {
-  const ref = React__default.default.useRef(null);
-  const [content, setContent] = React__default.default.useState({
-    overflowing: false,
-    text: ""
-  });
-  React__default.default.useEffect(() => {
-    const element = ref.current;
-    if (!enabled || !element) {
-      return;
-    }
-    const measure = () => {
-      const overflowing = !element.querySelector("[data-plasmic-overflow-tooltip]") && [
-        element,
-        ...Array.from(element.querySelectorAll("*"))
-      ].some(
-        (node) => node.clientWidth > 0 && (node.scrollWidth > node.clientWidth + 1 || node.scrollHeight > node.clientHeight + 1)
-      );
-      const text = element.textContent ?? "";
-      setContent(
-        (previous) => previous.overflowing === overflowing && previous.text === text ? previous : { overflowing, text }
-      );
-    };
-    measure();
-    const view = element.ownerDocument.defaultView;
-    const resize = view?.ResizeObserver && new view.ResizeObserver(measure);
-    resize?.observe(element);
-    const mutations = view?.MutationObserver && new view.MutationObserver(measure);
-    mutations?.observe(element, {
-      subtree: true,
-      childList: true,
-      characterData: true,
-      attributes: true
-    });
-    element.ownerDocument.fonts?.addEventListener("loadingdone", measure);
-    return () => {
-      resize?.disconnect();
-      mutations?.disconnect();
-      element.ownerDocument.fonts?.removeEventListener("loadingdone", measure);
-    };
-  }, [enabled, children]);
-  return { ref, ...content };
-}
 function AntdTooltip(props) {
   const {
     props: canvasProps,
     open,
     isEditing
   } = canvasOverlay$1.useCanvasOverlay(props, canvasOverlay.triggerSlot);
-  const {
-    popupRootClassName,
-    titleText,
-    classNames,
-    onlyWhenOverflow,
-    children,
-    ...rest
-  } = canvasProps;
-  const overflow = useOverflowContent(!!onlyWhenOverflow, children);
-  const title = props.title === void 0 ? titleText ?? overflow.text : props.title;
-  const showContent = !onlyWhenOverflow || overflow.overflowing || isEditing && open;
+  const { popupRootClassName, titleText, classNames, ...rest } = canvasProps;
   return /* @__PURE__ */ React__default.default.createElement(
     Ant.Tooltip,
     {
       ...rest,
-      trigger: props.trigger ?? (onlyWhenOverflow ? ["hover", "focus"] : void 0),
-      open: showContent ? open : false,
+      open,
       destroyOnHidden: isEditing ? true : props.destroyOnHidden,
       onOpenChange: isEditing ? void 0 : props.onOpenChange,
       afterOpenChange: isEditing ? void 0 : props.afterOpenChange,
@@ -88,25 +34,8 @@ function AntdTooltip(props) {
         const names = typeof classNames === "function" ? classNames(info) : classNames;
         return { ...names, root: cls__default.default(names?.root, popupRootClassName) };
       },
-      title: showContent ? title : null
-    },
-    onlyWhenOverflow ? /* @__PURE__ */ React__default.default.createElement(
-      "span",
-      {
-        ref: overflow.ref,
-        "data-plasmic-overflow-tooltip": true,
-        tabIndex: overflow.overflowing ? 0 : void 0,
-        style: {
-          display: "block",
-          maxWidth: "100%",
-          minWidth: 0,
-          overflow: "hidden",
-          textOverflow: "ellipsis",
-          whiteSpace: "nowrap"
-        }
-      },
-      children
-    ) : children
+      title: props.title === void 0 ? titleText : props.title
+    }
   );
 }
 function registerTooltip(loader) {
@@ -117,12 +46,6 @@ function registerTooltip(loader) {
     isAttachment: true,
     props: {
       previewOpen: canvasOverlay$1.previewOpenProp,
-      onlyWhenOverflow: {
-        type: "boolean",
-        displayName: "Only when overflowing",
-        description: "Truncate content to one line and show a Tooltip only when it overflows. Selecting Tooltip content still reveals it for editing.",
-        defaultValueHint: false
-      },
       children: {
         type: "slot",
         defaultValue: {

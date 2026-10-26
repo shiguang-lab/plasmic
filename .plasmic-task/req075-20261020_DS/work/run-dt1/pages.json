@@ -1,0 +1,945 @@
+{
+  "results": [
+    {
+      "__type": "Component",
+      "uuid": "NisuOsxUy7dG",
+      "name": "客群详情",
+      "type": "page",
+      "rootElementUuid": "8Q_mlk_QekU7",
+      "pageMeta": {
+        "__type": "PageMeta",
+        "path": "/groups/detail"
+      },
+      "props": [],
+      "variants": [],
+      "variantGroups": [],
+      "states": [
+        {
+          "__type": "State",
+          "name": "memberRows",
+          "uuid": "_KtFjxMT8Dh4",
+          "variableType": "array",
+          "accessType": "private",
+          "initialValue": [
+            {
+              "id": "uid_03001",
+              "phone": "138****10",
+              "registerDate": "2026-07-01",
+              "appSource": "TACO",
+              "creditStatus": "已授信",
+              "loanStatus": "结清"
+            },
+            {
+              "id": "uid_03002",
+              "phone": "138****11",
+              "registerDate": "2026-07-02",
+              "appSource": "PESO",
+              "creditStatus": "已拒绝",
+              "loanStatus": "在贷"
+            },
+            {
+              "id": "uid_03003",
+              "phone": "138****12",
+              "registerDate": "2026-07-03",
+              "appSource": "TACO",
+              "creditStatus": "审批中",
+              "loanStatus": "逾期"
+            },
+            {
+              "id": "uid_03004",
+              "phone": "138****13",
+              "registerDate": "2026-07-04",
+              "appSource": "PESO",
+              "creditStatus": "已授信",
+              "loanStatus": "结清"
+            },
+            {
+              "id": "uid_03005",
+              "phone": "138****14",
+              "registerDate": "2026-07-05",
+              "appSource": "TACO",
+              "creditStatus": "已拒绝",
+              "loanStatus": "在贷"
+            },
+            {
+              "id": "uid_03006",
+              "phone": "138****15",
+              "registerDate": "2026-07-06",
+              "appSource": "PESO",
+              "creditStatus": "审批中",
+              "loanStatus": "逾期"
+            },
+            {
+              "id": "uid_03007",
+              "phone": "138****16",
+              "registerDate": "2026-07-07",
+              "appSource": "TACO",
+              "creditStatus": "已授信",
+              "loanStatus": "结清"
+            },
+            {
+              "id": "uid_03008",
+              "phone": "138****17",
+              "registerDate": "2026-07-08",
+              "appSource": "PESO",
+              "creditStatus": "已拒绝",
+              "loanStatus": "在贷"
+            },
+            {
+              "id": "uid_03009",
+              "phone": "138****18",
+              "registerDate": "2026-07-09",
+              "appSource": "TACO",
+              "creditStatus": "审批中",
+              "loanStatus": "逾期"
+            },
+            {
+              "id": "uid_03010",
+              "phone": "138****19",
+              "registerDate": "2026-07-10",
+              "appSource": "PESO",
+              "creditStatus": "已授信",
+              "loanStatus": "结清"
+            },
+            {
+              "id": "uid_03011",
+              "phone": "138****20",
+              "registerDate": "2026-07-11",
+              "appSource": "TACO",
+              "creditStatus": "已拒绝",
+              "loanStatus": "在贷"
+            },
+            {
+              "id": "uid_03012",
+              "phone": "138****21",
+              "registerDate": "2026-07-12",
+              "appSource": "PESO",
+              "creditStatus": "审批中",
+              "loanStatus": "逾期"
+            },
+            {
+              "id": "uid_03013",
+              "phone": "138****22",
+              "registerDate": "2026-07-13",
+              "appSource": "TACO",
+              "creditStatus": "已授信",
+              "loanStatus": "结清"
+            },
+            {
+              "id": "uid_03014",
+              "phone": "138****23",
+              "registerDate": "2026-07-14",
+              "appSource": "PESO",
+              "creditStatus": "已拒绝",
+              "loanStatus": "在贷"
+            },
+            {
+              "id": "uid_03015",
+              "phone": "138****24",
+              "registerDate": "2026-07-15",
+              "appSource": "TACO",
+              "creditStatus": "审批中",
+              "loanStatus": "逾期"
+            },
+            {
+              "id": "uid_03016",
+              "phone": "138****25",
+              "registerDate": "2026-07-16",
+              "appSource": "PESO",
+              "creditStatus": "已授信",
+              "loanStatus": "结清"
+            },
+            {
+              "id": "uid_03017",
+              "phone": "138****26",
+              "registerDate": "2026-07-17",
+              "appSource": "TACO",
+              "creditStatus": "已拒绝",
+              "loanStatus": "在贷"
+            },
+            {
+              "id": "uid_03018",
+              "phone": "138****27",
+              "registerDate": "2026-07-18",
+              "appSource": "PESO",
+              "creditStatus": "审批中",
+              "loanStatus": "逾期"
+            },
+            {
+              "id": "uid_03019",
+              "phone": "138****28",
+              "registerDate": "2026-07-19",
+              "appSource": "TACO",
+              "creditStatus": "已授信",
+              "loanStatus": "结清"
+            },
+            {
+              "id": "uid_03020",
+              "phone": "138****29",
+              "registerDate": "2026-07-20",
+              "appSource": "PESO",
+              "creditStatus": "已拒绝",
+              "loanStatus": "在贷"
+            },
+            {
+              "id": "uid_03021",
+              "phone": "138****30",
+              "registerDate": "2026-07-21",
+              "appSource": "TACO",
+              "creditStatus": "审批中",
+              "loanStatus": "逾期"
+            },
+            {
+              "id": "uid_03022",
+              "phone": "138****31",
+              "registerDate": "2026-07-22",
+              "appSource": "PESO",
+              "creditStatus": "已授信",
+              "loanStatus": "结清"
+            }
+          ]
+        },
+        {
+          "__type": "State",
+          "name": "selectRows",
+          "uuid": "skl0kSkjUaZY",
+          "variableType": "array",
+          "accessType": "private",
+          "initialValue": [
+            {
+              "id": "sel_001",
+              "selectAt": "2026-08-01 06:00:00",
+              "trigger": "上线",
+              "status": "成功",
+              "memberCount": "12,300",
+              "reason": "—"
+            },
+            {
+              "id": "sel_002",
+              "selectAt": "2026-08-02 07:01:00",
+              "trigger": "重新圈选",
+              "status": "失败",
+              "memberCount": "—",
+              "reason": "底表分区缺失"
+            },
+            {
+              "id": "sel_003",
+              "selectAt": "2026-08-03 08:02:00",
+              "trigger": "手动圈选",
+              "status": "圈选中",
+              "memberCount": "—",
+              "reason": "—"
+            },
+            {
+              "id": "sel_004",
+              "selectAt": "2026-08-04 09:03:00",
+              "trigger": "上线",
+              "status": "成功",
+              "memberCount": "12,303",
+              "reason": "—"
+            },
+            {
+              "id": "sel_005",
+              "selectAt": "2026-08-05 10:04:00",
+              "trigger": "重新圈选",
+              "status": "失败",
+              "memberCount": "—",
+              "reason": "底表分区缺失"
+            },
+            {
+              "id": "sel_006",
+              "selectAt": "2026-08-06 11:05:00",
+              "trigger": "手动圈选",
+              "status": "圈选中",
+              "memberCount": "—",
+              "reason": "—"
+            },
+            {
+              "id": "sel_007",
+              "selectAt": "2026-08-07 12:06:00",
+              "trigger": "上线",
+              "status": "成功",
+              "memberCount": "12,306",
+              "reason": "—"
+            },
+            {
+              "id": "sel_008",
+              "selectAt": "2026-08-08 13:07:00",
+              "trigger": "重新圈选",
+              "status": "失败",
+              "memberCount": "—",
+              "reason": "底表分区缺失"
+            },
+            {
+              "id": "sel_009",
+              "selectAt": "2026-08-09 14:08:00",
+              "trigger": "手动圈选",
+              "status": "圈选中",
+              "memberCount": "—",
+              "reason": "—"
+            },
+            {
+              "id": "sel_010",
+              "selectAt": "2026-08-10 15:09:00",
+              "trigger": "上线",
+              "status": "成功",
+              "memberCount": "12,309",
+              "reason": "—"
+            },
+            {
+              "id": "sel_011",
+              "selectAt": "2026-08-11 16:10:00",
+              "trigger": "重新圈选",
+              "status": "失败",
+              "memberCount": "—",
+              "reason": "底表分区缺失"
+            },
+            {
+              "id": "sel_012",
+              "selectAt": "2026-08-12 17:11:00",
+              "trigger": "手动圈选",
+              "status": "圈选中",
+              "memberCount": "—",
+              "reason": "—"
+            },
+            {
+              "id": "sel_013",
+              "selectAt": "2026-08-13 06:12:00",
+              "trigger": "上线",
+              "status": "成功",
+              "memberCount": "12,312",
+              "reason": "—"
+            },
+            {
+              "id": "sel_014",
+              "selectAt": "2026-08-14 07:13:00",
+              "trigger": "重新圈选",
+              "status": "失败",
+              "memberCount": "—",
+              "reason": "底表分区缺失"
+            },
+            {
+              "id": "sel_015",
+              "selectAt": "2026-08-15 08:14:00",
+              "trigger": "手动圈选",
+              "status": "圈选中",
+              "memberCount": "—",
+              "reason": "—"
+            },
+            {
+              "id": "sel_016",
+              "selectAt": "2026-08-16 09:15:00",
+              "trigger": "上线",
+              "status": "成功",
+              "memberCount": "12,315",
+              "reason": "—"
+            },
+            {
+              "id": "sel_017",
+              "selectAt": "2026-08-17 10:16:00",
+              "trigger": "重新圈选",
+              "status": "失败",
+              "memberCount": "—",
+              "reason": "底表分区缺失"
+            },
+            {
+              "id": "sel_018",
+              "selectAt": "2026-08-18 11:17:00",
+              "trigger": "手动圈选",
+              "status": "圈选中",
+              "memberCount": "—",
+              "reason": "—"
+            },
+            {
+              "id": "sel_019",
+              "selectAt": "2026-08-19 12:18:00",
+              "trigger": "上线",
+              "status": "成功",
+              "memberCount": "12,318",
+              "reason": "—"
+            },
+            {
+              "id": "sel_020",
+              "selectAt": "2026-08-20 13:19:00",
+              "trigger": "重新圈选",
+              "status": "失败",
+              "memberCount": "—",
+              "reason": "底表分区缺失"
+            },
+            {
+              "id": "sel_021",
+              "selectAt": "2026-08-21 14:20:00",
+              "trigger": "手动圈选",
+              "status": "圈选中",
+              "memberCount": "—",
+              "reason": "—"
+            },
+            {
+              "id": "sel_022",
+              "selectAt": "2026-08-22 15:21:00",
+              "trigger": "上线",
+              "status": "成功",
+              "memberCount": "12,321",
+              "reason": "—"
+            }
+          ]
+        },
+        {
+          "__type": "State",
+          "name": "refreshRows",
+          "uuid": "M-NJvCN4x67z",
+          "variableType": "array",
+          "accessType": "private",
+          "initialValue": [
+            {
+              "id": "ref_001",
+              "refreshAt": "2026-08-01 06:00:00",
+              "type": "定时",
+              "memberCount": "12,300",
+              "status": "成功",
+              "reason": "—"
+            },
+            {
+              "id": "ref_002",
+              "refreshAt": "2026-08-02 06:01:00",
+              "type": "手动",
+              "memberCount": "—",
+              "status": "失败",
+              "reason": "上游依赖缺失"
+            },
+            {
+              "id": "ref_003",
+              "refreshAt": "2026-08-03 06:02:00",
+              "type": "定时",
+              "memberCount": "12,302",
+              "status": "成功",
+              "reason": "—"
+            },
+            {
+              "id": "ref_004",
+              "refreshAt": "2026-08-04 06:03:00",
+              "type": "手动",
+              "memberCount": "—",
+              "status": "失败",
+              "reason": "上游依赖缺失"
+            },
+            {
+              "id": "ref_005",
+              "refreshAt": "2026-08-05 06:04:00",
+              "type": "定时",
+              "memberCount": "12,304",
+              "status": "成功",
+              "reason": "—"
+            },
+            {
+              "id": "ref_006",
+              "refreshAt": "2026-08-06 06:05:00",
+              "type": "手动",
+              "memberCount": "—",
+              "status": "失败",
+              "reason": "上游依赖缺失"
+            },
+            {
+              "id": "ref_007",
+              "refreshAt": "2026-08-07 06:06:00",
+              "type": "定时",
+              "memberCount": "12,306",
+              "status": "成功",
+              "reason": "—"
+            },
+            {
+              "id": "ref_008",
+              "refreshAt": "2026-08-08 06:07:00",
+              "type": "手动",
+              "memberCount": "—",
+              "status": "失败",
+              "reason": "上游依赖缺失"
+            },
+            {
+              "id": "ref_009",
+              "refreshAt": "2026-08-09 06:08:00",
+              "type": "定时",
+              "memberCount": "12,308",
+              "status": "成功",
+              "reason": "—"
+            },
+            {
+              "id": "ref_010",
+              "refreshAt": "2026-08-10 06:09:00",
+              "type": "手动",
+              "memberCount": "—",
+              "status": "失败",
+              "reason": "上游依赖缺失"
+            },
+            {
+              "id": "ref_011",
+              "refreshAt": "2026-08-11 06:10:00",
+              "type": "定时",
+              "memberCount": "12,310",
+              "status": "成功",
+              "reason": "—"
+            },
+            {
+              "id": "ref_012",
+              "refreshAt": "2026-08-12 06:11:00",
+              "type": "手动",
+              "memberCount": "—",
+              "status": "失败",
+              "reason": "上游依赖缺失"
+            },
+            {
+              "id": "ref_013",
+              "refreshAt": "2026-08-13 06:12:00",
+              "type": "定时",
+              "memberCount": "12,312",
+              "status": "成功",
+              "reason": "—"
+            },
+            {
+              "id": "ref_014",
+              "refreshAt": "2026-08-14 06:13:00",
+              "type": "手动",
+              "memberCount": "—",
+              "status": "失败",
+              "reason": "上游依赖缺失"
+            },
+            {
+              "id": "ref_015",
+              "refreshAt": "2026-08-15 06:14:00",
+              "type": "定时",
+              "memberCount": "12,314",
+              "status": "成功",
+              "reason": "—"
+            },
+            {
+              "id": "ref_016",
+              "refreshAt": "2026-08-16 06:15:00",
+              "type": "手动",
+              "memberCount": "—",
+              "status": "失败",
+              "reason": "上游依赖缺失"
+            },
+            {
+              "id": "ref_017",
+              "refreshAt": "2026-08-17 06:16:00",
+              "type": "定时",
+              "memberCount": "12,316",
+              "status": "成功",
+              "reason": "—"
+            },
+            {
+              "id": "ref_018",
+              "refreshAt": "2026-08-18 06:17:00",
+              "type": "手动",
+              "memberCount": "—",
+              "status": "失败",
+              "reason": "上游依赖缺失"
+            },
+            {
+              "id": "ref_019",
+              "refreshAt": "2026-08-19 06:18:00",
+              "type": "定时",
+              "memberCount": "12,318",
+              "status": "成功",
+              "reason": "—"
+            },
+            {
+              "id": "ref_020",
+              "refreshAt": "2026-08-20 06:19:00",
+              "type": "手动",
+              "memberCount": "—",
+              "status": "失败",
+              "reason": "上游依赖缺失"
+            },
+            {
+              "id": "ref_021",
+              "refreshAt": "2026-08-21 06:20:00",
+              "type": "定时",
+              "memberCount": "12,320",
+              "status": "成功",
+              "reason": "—"
+            },
+            {
+              "id": "ref_022",
+              "refreshAt": "2026-08-22 06:21:00",
+              "type": "手动",
+              "memberCount": "—",
+              "status": "失败",
+              "reason": "上游依赖缺失"
+            }
+          ]
+        },
+        {
+          "__type": "State",
+          "name": "applyRows",
+          "uuid": "O-BQhvdOqCxV",
+          "variableType": "array",
+          "accessType": "private",
+          "initialValue": [
+            {
+              "id": "app_001",
+              "applyType": "营销活动",
+              "target": "发券_FLOW_v2",
+              "status": "成功",
+              "operator": "张三",
+              "appliedAt": "2026-08-01 09:00:00"
+            },
+            {
+              "id": "app_002",
+              "applyType": "通知触达",
+              "target": "首借提醒",
+              "status": "失败",
+              "operator": "李四",
+              "appliedAt": "2026-08-02 10:01:00"
+            },
+            {
+              "id": "app_003",
+              "applyType": "营销活动",
+              "target": "召回活动_A",
+              "status": "圈选中",
+              "operator": "傅玮颖",
+              "appliedAt": "2026-08-03 11:02:00"
+            },
+            {
+              "id": "app_004",
+              "applyType": "通知触达",
+              "target": "发券_FLOW_v2",
+              "status": "成功",
+              "operator": "张三",
+              "appliedAt": "2026-08-04 12:03:00"
+            },
+            {
+              "id": "app_005",
+              "applyType": "营销活动",
+              "target": "首借提醒",
+              "status": "失败",
+              "operator": "李四",
+              "appliedAt": "2026-08-05 13:04:00"
+            },
+            {
+              "id": "app_006",
+              "applyType": "通知触达",
+              "target": "召回活动_A",
+              "status": "圈选中",
+              "operator": "傅玮颖",
+              "appliedAt": "2026-08-06 14:05:00"
+            },
+            {
+              "id": "app_007",
+              "applyType": "营销活动",
+              "target": "发券_FLOW_v2",
+              "status": "成功",
+              "operator": "张三",
+              "appliedAt": "2026-08-07 15:06:00"
+            },
+            {
+              "id": "app_008",
+              "applyType": "通知触达",
+              "target": "首借提醒",
+              "status": "失败",
+              "operator": "李四",
+              "appliedAt": "2026-08-08 16:07:00"
+            },
+            {
+              "id": "app_009",
+              "applyType": "营销活动",
+              "target": "召回活动_A",
+              "status": "圈选中",
+              "operator": "傅玮颖",
+              "appliedAt": "2026-08-09 17:08:00"
+            },
+            {
+              "id": "app_010",
+              "applyType": "通知触达",
+              "target": "发券_FLOW_v2",
+              "status": "成功",
+              "operator": "张三",
+              "appliedAt": "2026-08-10 18:09:00"
+            },
+            {
+              "id": "app_011",
+              "applyType": "营销活动",
+              "target": "首借提醒",
+              "status": "失败",
+              "operator": "李四",
+              "appliedAt": "2026-08-11 09:10:00"
+            },
+            {
+              "id": "app_012",
+              "applyType": "通知触达",
+              "target": "召回活动_A",
+              "status": "圈选中",
+              "operator": "傅玮颖",
+              "appliedAt": "2026-08-12 10:11:00"
+            },
+            {
+              "id": "app_013",
+              "applyType": "营销活动",
+              "target": "发券_FLOW_v2",
+              "status": "成功",
+              "operator": "张三",
+              "appliedAt": "2026-08-13 11:12:00"
+            },
+            {
+              "id": "app_014",
+              "applyType": "通知触达",
+              "target": "首借提醒",
+              "status": "失败",
+              "operator": "李四",
+              "appliedAt": "2026-08-14 12:13:00"
+            },
+            {
+              "id": "app_015",
+              "applyType": "营销活动",
+              "target": "召回活动_A",
+              "status": "圈选中",
+              "operator": "傅玮颖",
+              "appliedAt": "2026-08-15 13:14:00"
+            },
+            {
+              "id": "app_016",
+              "applyType": "通知触达",
+              "target": "发券_FLOW_v2",
+              "status": "成功",
+              "operator": "张三",
+              "appliedAt": "2026-08-16 14:15:00"
+            },
+            {
+              "id": "app_017",
+              "applyType": "营销活动",
+              "target": "首借提醒",
+              "status": "失败",
+              "operator": "李四",
+              "appliedAt": "2026-08-17 15:16:00"
+            },
+            {
+              "id": "app_018",
+              "applyType": "通知触达",
+              "target": "召回活动_A",
+              "status": "圈选中",
+              "operator": "傅玮颖",
+              "appliedAt": "2026-08-18 16:17:00"
+            },
+            {
+              "id": "app_019",
+              "applyType": "营销活动",
+              "target": "发券_FLOW_v2",
+              "status": "成功",
+              "operator": "张三",
+              "appliedAt": "2026-08-19 17:18:00"
+            },
+            {
+              "id": "app_020",
+              "applyType": "通知触达",
+              "target": "首借提醒",
+              "status": "失败",
+              "operator": "李四",
+              "appliedAt": "2026-08-20 18:19:00"
+            },
+            {
+              "id": "app_021",
+              "applyType": "营销活动",
+              "target": "召回活动_A",
+              "status": "圈选中",
+              "operator": "傅玮颖",
+              "appliedAt": "2026-08-21 09:20:00"
+            },
+            {
+              "id": "app_022",
+              "applyType": "通知触达",
+              "target": "发券_FLOW_v2",
+              "status": "成功",
+              "operator": "张三",
+              "appliedAt": "2026-08-22 10:21:00"
+            }
+          ]
+        },
+        {
+          "__type": "State",
+          "name": "applyDrawerOpen",
+          "uuid": "dfSuTj51AZfP",
+          "variableType": "boolean",
+          "accessType": "private",
+          "initialValue": false
+        },
+        {
+          "__type": "State",
+          "name": "appShell.direction",
+          "uuid": "eSZTj-Da2pUd",
+          "variableType": "text",
+          "accessType": "private",
+          "elementUuid": "W2TUCMOTQhNR"
+        },
+        {
+          "__type": "State",
+          "name": "appShell.language",
+          "uuid": "k1Pa9pFnbRKX",
+          "variableType": "text",
+          "accessType": "private",
+          "elementUuid": "W2TUCMOTQhNR"
+        },
+        {
+          "__type": "State",
+          "name": "appShell.appSource",
+          "uuid": "4HzJsAE3i7O5",
+          "variableType": "text",
+          "accessType": "private",
+          "elementUuid": "W2TUCMOTQhNR"
+        },
+        {
+          "__type": "State",
+          "name": "appShell.selectedMenuKey",
+          "uuid": "NoH3sm9JdlDr",
+          "variableType": "text",
+          "accessType": "private",
+          "elementUuid": "W2TUCMOTQhNR"
+        },
+        {
+          "__type": "State",
+          "name": "appShell.collapsed",
+          "uuid": "w07Z5kjEMawb",
+          "variableType": "boolean",
+          "accessType": "private",
+          "elementUuid": "W2TUCMOTQhNR"
+        },
+        {
+          "__type": "State",
+          "name": "detailTabs.activeKey",
+          "uuid": "xiycEnjankul",
+          "variableType": "text",
+          "accessType": "private",
+          "elementUuid": "iYKKnOztXYj2"
+        },
+        {
+          "__type": "State",
+          "name": "membersTable.selectedRowKeys",
+          "uuid": "5wO1N4hU5ePG",
+          "variableType": "array",
+          "accessType": "private",
+          "elementUuid": "yt6ockFq-WrX"
+        },
+        {
+          "__type": "State",
+          "name": "selectLogFilters.values",
+          "uuid": "BIryAj1kLHNX",
+          "variableType": "object",
+          "accessType": "private",
+          "elementUuid": "RF2Oup4ywcHd"
+        },
+        {
+          "__type": "State",
+          "name": "selectLogFilters.collapsed",
+          "uuid": "8GH7OgDb15Ez",
+          "variableType": "boolean",
+          "accessType": "private",
+          "elementUuid": "RF2Oup4ywcHd"
+        },
+        {
+          "__type": "State",
+          "name": "selectLogFiltersControl.value",
+          "uuid": "GwNs9mc7StbG",
+          "variableType": "object",
+          "accessType": "private",
+          "elementUuid": "K12pj3dmBWRy"
+        },
+        {
+          "__type": "State",
+          "name": "selectLogTable.selectedRowKeys",
+          "uuid": "bLBUYdxWFkWa",
+          "variableType": "array",
+          "accessType": "private",
+          "elementUuid": "x0YD_7MgXh6N"
+        },
+        {
+          "__type": "State",
+          "name": "refreshLogTable.selectedRowKeys",
+          "uuid": "thth2u6wCrZi",
+          "variableType": "array",
+          "accessType": "private",
+          "elementUuid": "lDOncTpzvG42"
+        },
+        {
+          "__type": "State",
+          "name": "applyLogFilters.values",
+          "uuid": "91yiB67-6dML",
+          "variableType": "object",
+          "accessType": "private",
+          "elementUuid": "2fW8ig-PodGO"
+        },
+        {
+          "__type": "State",
+          "name": "applyLogFilters.collapsed",
+          "uuid": "P-rlyzkHAaQt",
+          "variableType": "boolean",
+          "accessType": "private",
+          "elementUuid": "2fW8ig-PodGO"
+        },
+        {
+          "__type": "State",
+          "name": "applyLogFiltersControl.value",
+          "uuid": "lK0eVbWQWceC",
+          "variableType": "object",
+          "accessType": "private",
+          "elementUuid": "v_MjLb9gWI6I"
+        },
+        {
+          "__type": "State",
+          "name": "applyLogTable.selectedRowKeys",
+          "uuid": "9DE3aRyOlmtV",
+          "variableType": "array",
+          "accessType": "private",
+          "elementUuid": "LWziD0RS6wER"
+        },
+        {
+          "__type": "State",
+          "name": "applyDetailDrawer.open",
+          "uuid": "Vu3_LUBwxG5m",
+          "variableType": "boolean",
+          "accessType": "private",
+          "elementUuid": "I0Uq9oN9AwtD"
+        },
+        {
+          "__type": "State",
+          "name": "appSource",
+          "uuid": "lsnZgH4zFYpv",
+          "variableType": "text",
+          "accessType": "private",
+          "initialValue": "TACO"
+        }
+      ],
+      "dataQueries": [],
+      "legacyDataQueries": [],
+      "baseVariantTplTree": "<div id=\"8Q_mlk_QekU7\" label=\"DetailPage\" style=\"display: flex; flex-direction: column; position: relative; width: stretch; height: stretch\">\n  <plasmic-component id=\"W2TUCMOTQhNR\" data-plasmic-component=\"plasmicOverseasAppShell\" data-plasmic-project=\"f3f4ju424PVNTAQPkwovrE\" data-plasmic-name=\"AppShell\" data-props='{\"productName\":\"海外客群管理平台\",\"menuItems\":[{\"key\":\"audience\",\"label\":\"客群管理\",\"children\":[{\"key\":\"groups\",\"label\":\"客群列表\",\"href\":\"/groups\",\"children\":[{\"key\":\"detail\",\"label\":\"客群详情\",\"href\":\"/groups/detail\",\"hidden\":true},{\"key\":\"onetime-create\",\"label\":\"新建一次性客群\",\"href\":\"/groups/onetime-create\",\"hidden\":true}]},{\"key\":\"selector\",\"label\":\"客群圈选器\",\"href\":\"/groups/selector\"}]}],\"appSource\":\"{{ $state.appSource }}\",\"appSources\":[{\"value\":\"TACO\",\"label\":\"TACO\"},{\"value\":\"PESO\",\"label\":\"PESO\"}]}' style=\"width: 100%; height: 100vh; max-width: 100%; object-fit: cover\">\n    <slot name=\"children\">\n      <div id=\"q5T-aMFQZatB\" label=\"DetailBody\" style=\"display: flex; flex-direction: column; width: 100%; min-width: 0px; row-gap: 16px\">\n        <plasmic-component id=\"oXVWXzXZuImD\" data-plasmic-component=\"plasmicAntd6Card\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"ArchiveCard\" data-props='{\"size\":\"medium\",\"variant\":\"outlined\",\"styles\":{\"body\":{\"padding\":\"16px 20px\"}}}' style=\"max-width: 100%; object-fit: cover\">\n          <slot name=\"title\"></slot>\n          <slot name=\"extra\"></slot>\n          <slot name=\"cover\"></slot>\n          <slot name=\"actions\"></slot>\n          <slot name=\"children\">\n            <div id=\"nP-fUKulhVtr\" label=\"ArchiveGroups\" style=\"display: flex; flex-direction: column; width: 100%; min-width: 0px; row-gap: 16px\">\n              <plasmic-component id=\"hi2Mx4vhxyOL\" data-plasmic-component=\"plasmicAntd6Descriptions\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"BasicDescriptions\" data-props='{\"column\":2,\"layout\":\"horizontal\",\"size\":\"medium\"}' style=\"max-width: 100%; object-fit: cover\">\n                <slot name=\"title\">\n                  <span id=\"gdIFda8UsgX8\" label=\"BasicDescriptionsTitle\">基础信息</span>\n                </slot>\n                <slot name=\"children\">\n                  <plasmic-component id=\"coP7aIvT1k0Z\" data-plasmic-component=\"plasmicAntd6DescriptionsItem\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"IdItem\" data-props='{\"key\":\"IdItem\"}' style=\"max-width: 100%; object-fit: cover\">\n                    <slot name=\"label\">\n                      <span id=\"Nw6ZUzJX-ZH3\" label=\"IdItemLabel\">客群ID</span>\n                    </slot>\n                    <slot name=\"children\">\n                      <span id=\"eZFMY9PuyqeG\" label=\"IdItemText\">1002</span>\n                    </slot>\n                  </plasmic-component>\n                  <plasmic-component id=\"NvZNsAlEfTMN\" data-plasmic-component=\"plasmicAntd6DescriptionsItem\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"KeyItem\" data-props='{\"key\":\"KeyItem\"}' style=\"max-width: 100%; object-fit: cover\">\n                    <slot name=\"label\">\n                      <span id=\"mxtn0EqhMSA6\" label=\"KeyItemLabel\">客群Key</span>\n                    </slot>\n                    <slot name=\"children\">\n                      <span id=\"boFns1oVcLd6\" label=\"KeyItemText\">GRP_ONETIME_RECALL_20260820</span>\n                    </slot>\n                  </plasmic-component>\n                  <plasmic-component id=\"leuq9fzw5fVr\" data-plasmic-component=\"plasmicAntd6DescriptionsItem\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"NameItem\" data-props='{\"key\":\"NameItem\"}' style=\"max-width: 100%; object-fit: cover\">\n                    <slot name=\"label\">\n                      <span id=\"D-_nikZb5I5h\" label=\"NameItemLabel\">客群名称</span>\n                    </slot>\n                    <slot name=\"children\">\n                      <span id=\"xNYQvNR3DaH0\" label=\"NameItemText\">存量促活-7月客群</span>\n                    </slot>\n                  </plasmic-component>\n                  <plasmic-component id=\"80T8wojSDCaz\" data-plasmic-component=\"plasmicAntd6DescriptionsItem\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"CreatorItem\" data-props='{\"key\":\"CreatorItem\"}' style=\"max-width: 100%; object-fit: cover\">\n                    <slot name=\"label\">\n                      <span id=\"kjgblVMvAI3Y\" label=\"CreatorItemLabel\">创建人</span>\n                    </slot>\n                    <slot name=\"children\">\n                      <span id=\"I7RuwvDMRTJw\" label=\"CreatorItemText\">傅玮颖</span>\n                    </slot>\n                  </plasmic-component>\n                  <plasmic-component id=\"a55WvBU0f32h\" data-plasmic-component=\"plasmicAntd6DescriptionsItem\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"CreatedAtItem\" data-props='{\"key\":\"CreatedAtItem\"}' style=\"max-width: 100%; object-fit: cover\">\n                    <slot name=\"label\">\n                      <span id=\"qZcQbfFGQw-A\" label=\"CreatedAtItemLabel\">创建时间</span>\n                    </slot>\n                    <slot name=\"children\">\n                      <span id=\"GdBlgsy6gE1v\" label=\"CreatedAtItemText\">2026-08-20</span>\n                    </slot>\n                  </plasmic-component>\n                </slot>\n              </plasmic-component>\n              <plasmic-component id=\"HLF6utu0B5ot\" data-plasmic-component=\"plasmicAntd6Descriptions\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"SelectionDescriptions\" data-props='{\"column\":2,\"layout\":\"horizontal\",\"size\":\"medium\"}' style=\"max-width: 100%; object-fit: cover\">\n                <slot name=\"title\">\n                  <span id=\"lGz0AzysRN7u\" label=\"SelectionDescriptionsTitle\">圈选信息</span>\n                </slot>\n                <slot name=\"children\">\n                  <plasmic-component id=\"7SA3m4K357CN\" data-plasmic-component=\"plasmicAntd6DescriptionsItem\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"GroupTypeItem\" data-props='{\"key\":\"GroupTypeItem\"}' style=\"max-width: 100%; object-fit: cover\">\n                    <slot name=\"label\">\n                      <span id=\"J8WvVvLrS9zJ\" label=\"GroupTypeItemLabel\">客群类型</span>\n                    </slot>\n                    <slot name=\"children\">\n                      <span id=\"b1CPQTHLCobd\" label=\"GroupTypeItemText\">一次性</span>\n                    </slot>\n                  </plasmic-component>\n                  <plasmic-component id=\"Yg-ET4Mkirfl\" data-plasmic-component=\"plasmicAntd6DescriptionsItem\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"OriginItem\" data-props='{\"key\":\"OriginItem\"}' style=\"max-width: 100%; object-fit: cover\">\n                    <slot name=\"label\">\n                      <span id=\"w7-icv3_tt2Z\" label=\"OriginItemLabel\">客群来源</span>\n                    </slot>\n                    <slot name=\"children\">\n                      <span id=\"vvBlbpGkKPOY\" label=\"OriginItemText\">写SQL</span>\n                    </slot>\n                  </plasmic-component>\n                  <plasmic-component id=\"db3rVAcoYw3L\" data-plasmic-component=\"plasmicAntd6DescriptionsItem\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"StateItem\" data-props='{\"key\":\"StateItem\"}' style=\"max-width: 100%; object-fit: cover\">\n                    <slot name=\"label\">\n                      <span id=\"hTGK6Es0FIpW\" label=\"StateItemLabel\">状态</span>\n                    </slot>\n                    <slot name=\"children\">\n                      <span id=\"_a2_mfcuHl1v\" label=\"StateItemText\">启用</span>\n                    </slot>\n                  </plasmic-component>\n                  <plasmic-component id=\"WXUJ5FP813PS\" data-plasmic-component=\"plasmicAntd6DescriptionsItem\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"ExpireRangeItem\" data-props='{\"key\":\"ExpireRangeItem\"}' style=\"max-width: 100%; object-fit: cover\">\n                    <slot name=\"label\">\n                      <span id=\"ntNTzJiBCnvP\" label=\"ExpireRangeItemLabel\">有效期</span>\n                    </slot>\n                    <slot name=\"children\">\n                      <span id=\"cvHViUDqEzid\" label=\"ExpireRangeItemText\">2026-08-20 ~ 2026-09-03</span>\n                    </slot>\n                  </plasmic-component>\n                  <plasmic-component id=\"uuQ2lu58xIoi\" data-plasmic-component=\"plasmicAntd6DescriptionsItem\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"OwnerItem\" data-props='{\"key\":\"OwnerItem\"}' style=\"max-width: 100%; object-fit: cover\">\n                    <slot name=\"label\">\n                      <span id=\"3K0xYuqxmkMl\" label=\"OwnerItemLabel\">负责人</span>\n                    </slot>\n                    <slot name=\"children\">\n                      <span id=\"1I9aD92bNukh\" label=\"OwnerItemText\">傅玮颖</span>\n                    </slot>\n                  </plasmic-component>\n                </slot>\n              </plasmic-component>\n              <plasmic-component id=\"rsQmyiSt7AkK\" data-plasmic-component=\"plasmicAntd6Descriptions\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"StorageDescriptions\" data-props='{\"column\":2,\"layout\":\"horizontal\",\"size\":\"medium\"}' style=\"max-width: 100%; object-fit: cover\">\n                <slot name=\"title\">\n                  <span id=\"sRWRIhTmv9ma\" label=\"StorageDescriptionsTitle\">数据存储</span>\n                </slot>\n                <slot name=\"children\">\n                  <plasmic-component id=\"eWFP_EWHCCqb\" data-plasmic-component=\"plasmicAntd6DescriptionsItem\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"TableItem\" data-props='{\"key\":\"TableItem\"}' style=\"max-width: 100%; object-fit: cover\">\n                    <slot name=\"label\">\n                      <span id=\"xIfujbhxR8_t\" label=\"TableItemLabel\">存储表</span>\n                    </slot>\n                    <slot name=\"children\">\n                      <span id=\"HFFSzq7t6Jfb\" label=\"TableItemText\">cg_mx_cg_88001</span>\n                    </slot>\n                  </plasmic-component>\n                  <plasmic-component id=\"euYH5CHb_8WK\" data-plasmic-component=\"plasmicAntd6DescriptionsItem\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"RetentionItem\" data-props='{\"key\":\"RetentionItem\"}' style=\"max-width: 100%; object-fit: cover\">\n                    <slot name=\"label\">\n                      <span id=\"jJuOs0yHS6ro\" label=\"RetentionItemLabel\">保存天数</span>\n                    </slot>\n                    <slot name=\"children\">\n                      <span id=\"F3LL4cz3Bo6i\" label=\"RetentionItemText\">3 天</span>\n                    </slot>\n                  </plasmic-component>\n                  <plasmic-component id=\"h40-yxiAIibp\" data-plasmic-component=\"plasmicAntd6DescriptionsItem\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"PartitionItem\" data-props='{\"key\":\"PartitionItem\"}' style=\"max-width: 100%; object-fit: cover\">\n                    <slot name=\"label\">\n                      <span id=\"SqdLk4iEWLZ9\" label=\"PartitionItemLabel\">保留分区</span>\n                    </slot>\n                    <slot name=\"children\">\n                      <span id=\"vMtNWs24HZb4\" label=\"PartitionItemText\">2026-08-29 ~ 2026-08-31</span>\n                    </slot>\n                  </plasmic-component>\n                  <plasmic-component id=\"QRenvd6kz10m\" data-plasmic-component=\"plasmicAntd6DescriptionsItem\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"DeadlineItem\" data-props='{\"key\":\"DeadlineItem\"}' style=\"max-width: 100%; object-fit: cover\">\n                    <slot name=\"label\">\n                      <span id=\"bVtes-xDH_p2\" label=\"DeadlineItemLabel\">产出截止时间</span>\n                    </slot>\n                    <slot name=\"children\">\n                      <span id=\"tolDjsy3WYBa\" label=\"DeadlineItemText\">每日 18:00:00</span>\n                    </slot>\n                  </plasmic-component>\n                </slot>\n              </plasmic-component>\n            </div>\n          </slot>\n        </plasmic-component>\n        <plasmic-component id=\"I2Gs8oOIrMZ8\" data-plasmic-component=\"plasmicAntd6Card\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"DetailCard\" data-props='{\"size\":\"medium\",\"variant\":\"outlined\",\"styles\":{\"body\":{\"padding\":\"0 20px\"}}}' style=\"max-width: 100%; object-fit: cover\">\n          <slot name=\"title\"></slot>\n          <slot name=\"extra\"></slot>\n          <slot name=\"cover\"></slot>\n          <slot name=\"actions\"></slot>\n          <slot name=\"children\">\n            <plasmic-component id=\"iYKKnOztXYj2\" data-plasmic-component=\"plasmicAntd6Tabs\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"DetailTabs\" data-props='{\"defaultActiveKey\":\"overview\",\"type\":\"line\",\"size\":\"medium\"}' style=\"width: 100%; overflow: scroll; max-width: 100%; object-fit: cover; min-width: 0px\">\n              <slot name=\"items\">\n                <plasmic-component id=\"Gw3DG114EuFd\" data-plasmic-component=\"plasmicAntd6TabItem\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"OverviewTab\" data-props='{\"key\":\"overview\"}' style=\"max-width: 100%; object-fit: cover\">\n                  <slot name=\"label\">\n                    <span id=\"Yi1bebpXIHGK\" label=\"OverviewTabLabel\">概览</span>\n                  </slot>\n                  <slot name=\"children\">\n                    <div id=\"6xk3SBxFktcs\" label=\"OverviewBody\" style=\"display: flex; flex-direction: column; width: 100%; min-width: 0px; padding-bottom: 16px; row-gap: 16px\">\n                      <div id=\"FmU38XfN-xH-\" label=\"OverviewKpi\" style=\"display: flex; flex-direction: row; width: 100%; min-width: 0px; align-items: flex-end; column-gap: 24px\">\n                        <plasmic-component id=\"akgnOGQEaP3U\" data-plasmic-component=\"plasmicAntd6Descriptions\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"KpiDescriptions\" data-props='{\"column\":3,\"layout\":\"horizontal\",\"size\":\"medium\"}' style=\"max-width: 100%; object-fit: cover\">\n                          <slot name=\"title\"></slot>\n                          <slot name=\"children\">\n                            <plasmic-component id=\"MV8R_5foa0d5\" data-plasmic-component=\"plasmicAntd6DescriptionsItem\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"KpiStateItem\" data-props='{\"key\":\"KpiStateItem\"}' style=\"max-width: 100%; object-fit: cover\">\n                              <slot name=\"label\">\n                                <span id=\"WYU5uLpyP-FR\" label=\"KpiStateItemLabel\">状态</span>\n                              </slot>\n                              <slot name=\"children\">\n                                <span id=\"9Ny7H8WBAE3J\" label=\"KpiStateItemText\">启用</span>\n                              </slot>\n                            </plasmic-component>\n                            <plasmic-component id=\"IX1RZmgNSXDC\" data-plasmic-component=\"plasmicAntd6DescriptionsItem\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"KpiLastSelectItem\" data-props='{\"key\":\"KpiLastSelectItem\"}' style=\"max-width: 100%; object-fit: cover\">\n                              <slot name=\"label\">\n                                <span id=\"0dHjpaw-tcxg\" label=\"KpiLastSelectItemLabel\">上次圈选</span>\n                              </slot>\n                              <slot name=\"children\">\n                                <span id=\"n_7IpoGYk5lh\" label=\"KpiLastSelectItemText\">2026-08-20 10:25</span>\n                              </slot>\n                            </plasmic-component>\n                            <plasmic-component id=\"U4rb12etuI6q\" data-plasmic-component=\"plasmicAntd6DescriptionsItem\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"KpiLastRefreshItem\" data-props='{\"key\":\"KpiLastRefreshItem\"}' style=\"max-width: 100%; object-fit: cover\">\n                              <slot name=\"label\">\n                                <span id=\"bSi_x811dfbd\" label=\"KpiLastRefreshItemLabel\">上次刷新</span>\n                              </slot>\n                              <slot name=\"children\">\n                                <span id=\"0yyGVd_CYN5N\" label=\"KpiLastRefreshItemText\">2026-08-19 06:30</span>\n                              </slot>\n                            </plasmic-component>\n                          </slot>\n                        </plasmic-component>\n                        <plasmic-component id=\"EoJDWVP18Wkr\" data-plasmic-component=\"plasmicAntd6Statistic\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"MemberStatistic\" data-props='{\"value\":12340}' style=\"max-width: 100%; object-fit: cover\">\n                          <slot name=\"title\">\n                            <span id=\"MeBfh0IJ4f6D\" label=\"MemberStatisticTitle\">成员数</span>\n                          </slot>\n                          <slot name=\"prefix\"></slot>\n                          <slot name=\"suffix\"></slot>\n                        </plasmic-component>\n                      </div>\n                      <plasmic-component id=\"daWpxUweYbjq\" data-plasmic-component=\"plasmicAntd6Descriptions\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"OverviewDescriptions\" data-props='{\"column\":1,\"layout\":\"horizontal\",\"size\":\"medium\"}' style=\"max-width: 100%; object-fit: cover\">\n                        <slot name=\"title\"></slot>\n                        <slot name=\"children\">\n                          <plasmic-component id=\"0AwtJyrbdGW0\" data-plasmic-component=\"plasmicAntd6DescriptionsItem\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"ConditionItem\" data-props='{\"key\":\"ConditionItem\"}' style=\"max-width: 100%; object-fit: cover\">\n                            <slot name=\"label\">\n                              <span id=\"PpYFVNN9bZWX\" label=\"ConditionItemLabel\">圈选条件</span>\n                            </slot>\n                            <slot name=\"children\">\n                              <span id=\"M2PfwYGhjcuw\" label=\"ConditionItemText\">写SQL · 一次性执行</span>\n                            </slot>\n                          </plasmic-component>\n                          <plasmic-component id=\"U6OgiMrpQh4P\" data-plasmic-component=\"plasmicAntd6DescriptionsItem\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"ScaleItem\" data-props='{\"key\":\"ScaleItem\"}' style=\"max-width: 100%; object-fit: cover\">\n                            <slot name=\"label\">\n                              <span id=\"4RQT7wmWYAap\" label=\"ScaleItemLabel\">当前规模</span>\n                            </slot>\n                            <slot name=\"children\">\n                              <span id=\"n-R_jrxZRpvl\" label=\"ScaleItemText\">12,340</span>\n                            </slot>\n                          </plasmic-component>\n                          <plasmic-component id=\"5dsCvTrhOmvB\" data-plasmic-component=\"plasmicAntd6DescriptionsItem\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"LastLogItem\" data-props='{\"key\":\"LastLogItem\"}' style=\"max-width: 100%; object-fit: cover\">\n                            <slot name=\"label\">\n                              <span id=\"RsbDCYwTVJ5P\" label=\"LastLogItemLabel\">最近圈选记录</span>\n                            </slot>\n                            <slot name=\"children\">\n                              <span id=\"FokCpEEDYSsu\" label=\"LastLogItemText\">成功 · 2026-08-20 10:25</span>\n                            </slot>\n                          </plasmic-component>\n                        </slot>\n                      </plasmic-component>\n                    </div>\n                  </slot>\n                  <slot name=\"icon\"></slot>\n                  <slot name=\"closeIcon\"></slot>\n                </plasmic-component>\n                <plasmic-component id=\"SBEvNGg9zb3g\" data-plasmic-component=\"plasmicAntd6TabItem\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"MembersTab\" data-props='{\"key\":\"members\"}' style=\"max-width: 100%; object-fit: cover\">\n                  <slot name=\"label\">\n                    <span id=\"rXk6Ov9isoTR\" label=\"MembersTabLabel\">成员</span>\n                  </slot>\n                  <slot name=\"children\">\n                    <plasmic-component id=\"yt6ockFq-WrX\" data-plasmic-component=\"plasmicAntd6Table\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"MembersTable\" data-props='{\"data\":\"{{ ({data: $state.memberRows.filter(r => r.appSource===$state.appSource)}) }}\",\"rowKey\":\"id\",\"size\":\"large\",\"pagination\":{\"defaultPageSize\":20,\"pageSizeOptions\":[20,50,100],\"showSizeChanger\":true},\"scroll\":{\"x\":1120}}' style=\"max-width: 100%; object-fit: cover; width: 100%; min-width: 0px\">\n                      <slot name=\"children\">\n                        <plasmic-component id=\"XwBeBQVow8U_\" data-plasmic-component=\"plasmicAntd6TableColumn\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"MemberUidColumn\" data-props='{\"displayType\":\"text\",\"dataIndex\":\"id\",\"ellipsis\":true}' style=\"max-width: 100%; object-fit: cover\">\n                          <slot name=\"title\">\n                            <span id=\"9tVRp7_So1al\" label=\"MemberUidColumnTitle\">UID</span>\n                          </slot>\n                          <slot name=\"render\"></slot>\n                        </plasmic-component>\n                        <plasmic-component id=\"N5jEXMxqaNEp\" data-plasmic-component=\"plasmicAntd6TableColumn\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"MemberPhoneColumn\" data-props='{\"displayType\":\"text\",\"dataIndex\":\"phone\",\"width\":152}' style=\"max-width: 100%; object-fit: cover\">\n                          <slot name=\"title\">\n                            <span id=\"y-wcYWvgMB4q\" label=\"MemberPhoneColumnTitle\">手机号</span>\n                          </slot>\n                          <slot name=\"render\"></slot>\n                        </plasmic-component>\n                        <plasmic-component id=\"Z-wLrt7Qvro8\" data-plasmic-component=\"plasmicAntd6TableColumn\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"MemberRegColumn\" data-props='{\"displayType\":\"text\",\"dataIndex\":\"registerDate\",\"width\":168}' style=\"max-width: 100%; object-fit: cover\">\n                          <slot name=\"title\">\n                            <span id=\"myQj_litFcok\" label=\"MemberRegColumnTitle\">注册时间</span>\n                          </slot>\n                          <slot name=\"render\"></slot>\n                        </plasmic-component>\n                        <plasmic-component id=\"zcV234k_l_qY\" data-plasmic-component=\"plasmicAntd6TableColumn\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"MemberSourceColumn\" data-props='{\"displayType\":\"text\",\"dataIndex\":\"appSource\",\"width\":112}' style=\"max-width: 100%; object-fit: cover\">\n                          <slot name=\"title\">\n                            <span id=\"-SXCd7Y_HTO8\" label=\"MemberSourceColumnTitle\">App来源</span>\n                          </slot>\n                          <slot name=\"render\"></slot>\n                        </plasmic-component>\n                        <plasmic-component id=\"HrovI1YFNyXQ\" data-plasmic-component=\"plasmicAntd6TableColumn\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"MemberCreditColumn\" data-props='{\"displayType\":\"custom\",\"dataIndex\":\"creditStatus\",\"width\":120}' style=\"max-width: 100%; object-fit: cover\">\n                          <slot name=\"title\">\n                            <span id=\"7eWpQcFM8LGl\" label=\"MemberCreditColumnTitle\">授信状态</span>\n                          </slot>\n                          <slot name=\"render\">\n                            <plasmic-component id=\"K8b3IM96pxqM\" data-plasmic-component=\"plasmicAntd6Badge\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"MemberCreditBadge\" data-props='{\"status\":\"{{ [`success`,`error`,`processing`,`default`][[`成功`,`失败`,`圈选中`,`已授信`,`已拒绝`,`审批中`,`在贷`,`逾期`,`结清`].indexOf(row.creditStatus)] }}\",\"text\":\"{{ row.creditStatus }}\"}' style=\"max-width: 100%; object-fit: cover\">\n                              <slot name=\"children\"></slot>\n                            </plasmic-component>\n                          </slot>\n                        </plasmic-component>\n                        <plasmic-component id=\"2Dsox-ziCNDI\" data-plasmic-component=\"plasmicAntd6TableColumn\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"MemberLoanColumn\" data-props='{\"displayType\":\"custom\",\"dataIndex\":\"loanStatus\",\"width\":120}' style=\"max-width: 100%; object-fit: cover\">\n                          <slot name=\"title\">\n                            <span id=\"tlgWHPyUoNLb\" label=\"MemberLoanColumnTitle\">借据状态</span>\n                          </slot>\n                          <slot name=\"render\">\n                            <plasmic-component id=\"1vdocUVMxxzo\" data-plasmic-component=\"plasmicAntd6Badge\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"MemberLoanBadge\" data-props='{\"status\":\"{{ [`success`,`error`,`processing`,`default`][[`成功`,`失败`,`圈选中`,`已授信`,`已拒绝`,`审批中`,`在贷`,`逾期`,`结清`].indexOf(row.loanStatus)] }}\",\"text\":\"{{ row.loanStatus }}\"}' style=\"max-width: 100%; object-fit: cover\">\n                              <slot name=\"children\"></slot>\n                            </plasmic-component>\n                          </slot>\n                        </plasmic-component>\n                      </slot>\n                      <slot name=\"title\"></slot>\n                    </plasmic-component>\n                  </slot>\n                  <slot name=\"icon\"></slot>\n                  <slot name=\"closeIcon\"></slot>\n                </plasmic-component>\n                <plasmic-component id=\"PV-52JN_sR4q\" data-plasmic-component=\"plasmicAntd6TabItem\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"SelectLogTab\" data-props='{\"key\":\"selectlog\"}' style=\"max-width: 100%; object-fit: cover\">\n                  <slot name=\"label\">\n                    <span id=\"D7RxfS2eeUAw\" label=\"SelectLogTabLabel\">圈选记录</span>\n                  </slot>\n                  <slot name=\"children\">\n                    <div id=\"UTX8sPtK829l\" label=\"SelectLogBody\" style=\"display: flex; flex-direction: column; width: 100%; min-width: 0px; padding-bottom: 16px; row-gap: 16px\">\n                      <plasmic-component id=\"RF2Oup4ywcHd\" data-plasmic-component=\"plasmicOverseasSearchForm\" data-plasmic-project=\"f3f4ju424PVNTAQPkwovrE\" data-plasmic-name=\"SelectLogFilters\" data-props='{\"colSpan\":6}' style=\"width: stretch; max-width: 100%; object-fit: cover\">\n                        <slot name=\"children\">\n                          <plasmic-component id=\"PjnWDP89A3r1\" data-plasmic-component=\"plasmicOverseasSearchFormItem\" data-plasmic-project=\"f3f4ju424PVNTAQPkwovrE\" data-plasmic-name=\"SelectLogFiltersItem\" data-props='{\"name\":\"触发\",\"label\":\"触发\"}' style=\"max-width: 100%; object-fit: cover\">\n                            <slot name=\"children\">\n                              <plasmic-component id=\"K12pj3dmBWRy\" data-plasmic-component=\"plasmicAntd6Select\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"SelectLogFiltersControl\" data-props='{\"options\":[{\"value\":\"ALL\",\"label\":\"全部\"},{\"value\":\"ONLINE\",\"label\":\"上线\"},{\"value\":\"RESELECT\",\"label\":\"重新圈选\"},{\"value\":\"MANUAL\",\"label\":\"手动圈选\"}],\"defaultValue\":\"ALL\"}' style=\"max-width: 100%; object-fit: cover\">\n                                <slot name=\"placeholder\"></slot>\n                                <slot name=\"children\"></slot>\n                                <slot name=\"suffixIcon\"></slot>\n                              </plasmic-component>\n                            </slot>\n                            <slot name=\"labelContent\"></slot>\n                            <slot name=\"help\"></slot>\n                          </plasmic-component>\n                        </slot>\n                        <slot name=\"extraActions\"></slot>\n                      </plasmic-component>\n                      <plasmic-component id=\"x0YD_7MgXh6N\" data-plasmic-component=\"plasmicAntd6Table\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"SelectLogTable\" data-props='{\"data\":\"{{ ({data: $state.selectRows}) }}\",\"rowKey\":\"id\",\"size\":\"large\",\"pagination\":{\"defaultPageSize\":20,\"pageSizeOptions\":[20,50,100],\"showSizeChanger\":true},\"scroll\":{\"x\":1120}}' style=\"max-width: 100%; object-fit: cover; width: 100%; min-width: 0px\">\n                        <slot name=\"children\">\n                          <plasmic-component id=\"Jg_v6k07vQyd\" data-plasmic-component=\"plasmicAntd6TableColumn\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"SelectTimeColumn\" data-props='{\"displayType\":\"text\",\"dataIndex\":\"selectAt\",\"width\":176}' style=\"max-width: 100%; object-fit: cover\">\n                            <slot name=\"title\">\n                              <span id=\"LV4k_I9oHS4n\" label=\"SelectTimeColumnTitle\">圈选时间</span>\n                            </slot>\n                            <slot name=\"render\"></slot>\n                          </plasmic-component>\n                          <plasmic-component id=\"Gw0EiArdMh32\" data-plasmic-component=\"plasmicAntd6TableColumn\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"SelectTriggerColumn\" data-props='{\"displayType\":\"text\",\"dataIndex\":\"trigger\",\"width\":112}' style=\"max-width: 100%; object-fit: cover\">\n                            <slot name=\"title\">\n                              <span id=\"9AXpuQhSS_VA\" label=\"SelectTriggerColumnTitle\">触发</span>\n                            </slot>\n                            <slot name=\"render\"></slot>\n                          </plasmic-component>\n                          <plasmic-component id=\"84schth4hMqS\" data-plasmic-component=\"plasmicAntd6TableColumn\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"SelectStateColumn\" data-props='{\"displayType\":\"custom\",\"dataIndex\":\"status\",\"width\":120}' style=\"max-width: 100%; object-fit: cover\">\n                            <slot name=\"title\">\n                              <span id=\"eYE2GR3lkIgQ\" label=\"SelectStateColumnTitle\">状态</span>\n                            </slot>\n                            <slot name=\"render\">\n                              <plasmic-component id=\"NqBFhE39BixF\" data-plasmic-component=\"plasmicAntd6Badge\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"SelectStateBadge\" data-props='{\"status\":\"{{ [`success`,`error`,`processing`,`default`][[`成功`,`失败`,`圈选中`,`已授信`,`已拒绝`,`审批中`,`在贷`,`逾期`,`结清`].indexOf(row.status)] }}\",\"text\":\"{{ row.status }}\"}' style=\"max-width: 100%; object-fit: cover\">\n                                <slot name=\"children\"></slot>\n                              </plasmic-component>\n                            </slot>\n                          </plasmic-component>\n                          <plasmic-component id=\"_v7Aum1YkIi4\" data-plasmic-component=\"plasmicAntd6TableColumn\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"SelectCountColumn\" data-props='{\"displayType\":\"text\",\"dataIndex\":\"memberCount\",\"width\":120}' style=\"max-width: 100%; object-fit: cover\">\n                            <slot name=\"title\">\n                              <span id=\"tKHb5IeqZCBm\" label=\"SelectCountColumnTitle\">命中成员数</span>\n                            </slot>\n                            <slot name=\"render\"></slot>\n                          </plasmic-component>\n                          <plasmic-component id=\"r0Fu_-A0N_r_\" data-plasmic-component=\"plasmicAntd6TableColumn\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"SelectReasonColumn\" data-props='{\"displayType\":\"text\",\"dataIndex\":\"reason\",\"ellipsis\":true}' style=\"max-width: 100%; object-fit: cover\">\n                            <slot name=\"title\">\n                              <span id=\"u3Tdy8N55yNK\" label=\"SelectReasonColumnTitle\">失败原因</span>\n                            </slot>\n                            <slot name=\"render\"></slot>\n                          </plasmic-component>\n                        </slot>\n                        <slot name=\"title\"></slot>\n                      </plasmic-component>\n                    </div>\n                  </slot>\n                  <slot name=\"icon\"></slot>\n                  <slot name=\"closeIcon\"></slot>\n                </plasmic-component>\n                <plasmic-component id=\"uIf-LqPNjCjr\" data-plasmic-component=\"plasmicAntd6TabItem\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"RefreshLogTab\" data-props='{\"key\":\"refreshlog\"}' style=\"max-width: 100%; object-fit: cover\">\n                  <slot name=\"label\">\n                    <span id=\"3xfQyBCz5rmr\" label=\"RefreshLogTabLabel\">刷新记录</span>\n                  </slot>\n                  <slot name=\"children\">\n                    <div id=\"FLK7ptSoLlN_\" label=\"RefreshLogBody\" style=\"display: flex; flex-direction: column; width: 100%; min-width: 0px; padding-bottom: 16px\">\n                      <plasmic-component id=\"lDOncTpzvG42\" data-plasmic-component=\"plasmicAntd6Table\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"RefreshLogTable\" data-props='{\"data\":\"{{ ({data: $state.refreshRows}) }}\",\"rowKey\":\"id\",\"size\":\"large\",\"pagination\":{\"defaultPageSize\":20,\"pageSizeOptions\":[20,50,100],\"showSizeChanger\":true},\"scroll\":{\"x\":1120}}' style=\"max-width: 100%; object-fit: cover; width: 100%; min-width: 0px\">\n                        <slot name=\"children\">\n                          <plasmic-component id=\"n8t-o1JRla_O\" data-plasmic-component=\"plasmicAntd6TableColumn\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"RefreshTimeColumn\" data-props='{\"displayType\":\"text\",\"dataIndex\":\"refreshAt\",\"width\":176}' style=\"max-width: 100%; object-fit: cover\">\n                            <slot name=\"title\">\n                              <span id=\"KkNnV63Ab8yK\" label=\"RefreshTimeColumnTitle\">刷新时间</span>\n                            </slot>\n                            <slot name=\"render\"></slot>\n                          </plasmic-component>\n                          <plasmic-component id=\"h41ejrMUBOyH\" data-plasmic-component=\"plasmicAntd6TableColumn\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"RefreshTypeColumn\" data-props='{\"displayType\":\"text\",\"dataIndex\":\"type\",\"width\":96}' style=\"max-width: 100%; object-fit: cover\">\n                            <slot name=\"title\">\n                              <span id=\"Dw8tOy5GfzuS\" label=\"RefreshTypeColumnTitle\">类型</span>\n                            </slot>\n                            <slot name=\"render\"></slot>\n                          </plasmic-component>\n                          <plasmic-component id=\"cdPn3W3zdSTd\" data-plasmic-component=\"plasmicAntd6TableColumn\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"RefreshCountColumn\" data-props='{\"displayType\":\"text\",\"dataIndex\":\"memberCount\",\"width\":112}' style=\"max-width: 100%; object-fit: cover\">\n                            <slot name=\"title\">\n                              <span id=\"xFWtgKsgaEW5\" label=\"RefreshCountColumnTitle\">成员数</span>\n                            </slot>\n                            <slot name=\"render\"></slot>\n                          </plasmic-component>\n                          <plasmic-component id=\"DiIKteCtnMN4\" data-plasmic-component=\"plasmicAntd6TableColumn\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"RefreshStateColumn\" data-props='{\"displayType\":\"custom\",\"dataIndex\":\"status\",\"width\":120}' style=\"max-width: 100%; object-fit: cover\">\n                            <slot name=\"title\">\n                              <span id=\"cdq9zaijzgI9\" label=\"RefreshStateColumnTitle\">状态</span>\n                            </slot>\n                            <slot name=\"render\">\n                              <plasmic-component id=\"Md3a6cZknV5a\" data-plasmic-component=\"plasmicAntd6Badge\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"RefreshStateBadge\" data-props='{\"status\":\"{{ [`success`,`error`,`processing`,`default`][[`成功`,`失败`,`圈选中`,`已授信`,`已拒绝`,`审批中`,`在贷`,`逾期`,`结清`].indexOf(row.status)] }}\",\"text\":\"{{ row.status }}\"}' style=\"max-width: 100%; object-fit: cover\">\n                                <slot name=\"children\"></slot>\n                              </plasmic-component>\n                            </slot>\n                          </plasmic-component>\n                          <plasmic-component id=\"IJhA2F4LSRm0\" data-plasmic-component=\"plasmicAntd6TableColumn\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"RefreshReasonColumn\" data-props='{\"displayType\":\"text\",\"dataIndex\":\"reason\",\"ellipsis\":true}' style=\"max-width: 100%; object-fit: cover\">\n                            <slot name=\"title\">\n                              <span id=\"ruiBWcYZ7CO1\" label=\"RefreshReasonColumnTitle\">原因</span>\n                            </slot>\n                            <slot name=\"render\"></slot>\n                          </plasmic-component>\n                        </slot>\n                        <slot name=\"title\"></slot>\n                      </plasmic-component>\n                    </div>\n                  </slot>\n                  <slot name=\"icon\"></slot>\n                  <slot name=\"closeIcon\"></slot>\n                </plasmic-component>\n                <plasmic-component id=\"TP7VZ9LAtywm\" data-plasmic-component=\"plasmicAntd6TabItem\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"ApplyLogTab\" data-props='{\"key\":\"applylog\"}' style=\"max-width: 100%; object-fit: cover\">\n                  <slot name=\"label\">\n                    <span id=\"4DYM4h9TQ4TP\" label=\"ApplyLogTabLabel\">应用记录</span>\n                  </slot>\n                  <slot name=\"children\">\n                    <div id=\"_4Pz4ylLrEQl\" label=\"ApplyLogBody\" style=\"display: flex; flex-direction: column; width: 100%; min-width: 0px; padding-bottom: 16px; row-gap: 16px\">\n                      <plasmic-component id=\"2fW8ig-PodGO\" data-plasmic-component=\"plasmicOverseasSearchForm\" data-plasmic-project=\"f3f4ju424PVNTAQPkwovrE\" data-plasmic-name=\"ApplyLogFilters\" data-props='{\"colSpan\":6}' style=\"width: stretch; max-width: 100%; object-fit: cover\">\n                        <slot name=\"children\">\n                          <plasmic-component id=\"0I7IEex6J9vo\" data-plasmic-component=\"plasmicOverseasSearchFormItem\" data-plasmic-project=\"f3f4ju424PVNTAQPkwovrE\" data-plasmic-name=\"ApplyLogFiltersItem\" data-props='{\"name\":\"应用类型\",\"label\":\"应用类型\"}' style=\"max-width: 100%; object-fit: cover\">\n                            <slot name=\"children\">\n                              <plasmic-component id=\"v_MjLb9gWI6I\" data-plasmic-component=\"plasmicAntd6Select\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"ApplyLogFiltersControl\" data-props='{\"options\":[{\"value\":\"ALL\",\"label\":\"全部\"},{\"value\":\"MARKETING\",\"label\":\"营销活动\"},{\"value\":\"NOTICE\",\"label\":\"通知触达\"}],\"defaultValue\":\"ALL\"}' style=\"max-width: 100%; object-fit: cover\">\n                                <slot name=\"placeholder\"></slot>\n                                <slot name=\"children\"></slot>\n                                <slot name=\"suffixIcon\"></slot>\n                              </plasmic-component>\n                            </slot>\n                            <slot name=\"labelContent\"></slot>\n                            <slot name=\"help\"></slot>\n                          </plasmic-component>\n                        </slot>\n                        <slot name=\"extraActions\"></slot>\n                      </plasmic-component>\n                      <plasmic-component id=\"LWziD0RS6wER\" data-plasmic-component=\"plasmicAntd6Table\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"ApplyLogTable\" data-props='{\"data\":\"{{ ({data: $state.applyRows}) }}\",\"rowKey\":\"id\",\"size\":\"large\",\"pagination\":{\"defaultPageSize\":20,\"pageSizeOptions\":[20,50,100],\"showSizeChanger\":true},\"scroll\":{\"x\":1200}}' style=\"max-width: 100%; object-fit: cover; width: 100%; min-width: 0px\">\n                        <slot name=\"children\">\n                          <plasmic-component id=\"IGKrbKRTaxJM\" data-plasmic-component=\"plasmicAntd6TableColumn\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"ApplyTypeColumn\" data-props='{\"displayType\":\"text\",\"dataIndex\":\"applyType\",\"width\":120}' style=\"max-width: 100%; object-fit: cover\">\n                            <slot name=\"title\">\n                              <span id=\"s-XLQdjLU9-Y\" label=\"ApplyTypeColumnTitle\">应用类型</span>\n                            </slot>\n                            <slot name=\"render\"></slot>\n                          </plasmic-component>\n                          <plasmic-component id=\"8EWVcQPbIbKE\" data-plasmic-component=\"plasmicAntd6TableColumn\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"ApplyTargetColumn\" data-props='{\"displayType\":\"text\",\"dataIndex\":\"target\",\"ellipsis\":true}' style=\"max-width: 100%; object-fit: cover\">\n                            <slot name=\"title\">\n                              <span id=\"i2P7OVlPzOEO\" label=\"ApplyTargetColumnTitle\">目标活动</span>\n                            </slot>\n                            <slot name=\"render\"></slot>\n                          </plasmic-component>\n                          <plasmic-component id=\"usNouzlF-SA_\" data-plasmic-component=\"plasmicAntd6TableColumn\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"ApplyStateColumn\" data-props='{\"displayType\":\"custom\",\"dataIndex\":\"status\",\"width\":120}' style=\"max-width: 100%; object-fit: cover\">\n                            <slot name=\"title\">\n                              <span id=\"ZNyN19Y4GDRr\" label=\"ApplyStateColumnTitle\">状态</span>\n                            </slot>\n                            <slot name=\"render\">\n                              <plasmic-component id=\"5PPzvs0rFLVs\" data-plasmic-component=\"plasmicAntd6Badge\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"ApplyStateBadge\" data-props='{\"status\":\"{{ [`success`,`error`,`processing`,`default`][[`成功`,`失败`,`圈选中`,`已授信`,`已拒绝`,`审批中`,`在贷`,`逾期`,`结清`].indexOf(row.status)] }}\",\"text\":\"{{ row.status }}\"}' style=\"max-width: 100%; object-fit: cover\">\n                                <slot name=\"children\"></slot>\n                              </plasmic-component>\n                            </slot>\n                          </plasmic-component>\n                          <plasmic-component id=\"rdLhE-EIKI3j\" data-plasmic-component=\"plasmicAntd6TableColumn\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"ApplyOperatorColumn\" data-props='{\"displayType\":\"text\",\"dataIndex\":\"operator\",\"width\":112}' style=\"max-width: 100%; object-fit: cover\">\n                            <slot name=\"title\">\n                              <span id=\"0C4d07xPvHZB\" label=\"ApplyOperatorColumnTitle\">操作人</span>\n                            </slot>\n                            <slot name=\"render\"></slot>\n                          </plasmic-component>\n                          <plasmic-component id=\"qAR8r5pnZNxh\" data-plasmic-component=\"plasmicAntd6TableColumn\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"ApplyTimeColumn\" data-props='{\"displayType\":\"text\",\"dataIndex\":\"appliedAt\",\"width\":176}' style=\"max-width: 100%; object-fit: cover\">\n                            <slot name=\"title\">\n                              <span id=\"oHWh8WIlCUTM\" label=\"ApplyTimeColumnTitle\">时间</span>\n                            </slot>\n                            <slot name=\"render\"></slot>\n                          </plasmic-component>\n                          <plasmic-component id=\"QGtnkpC0iZhS\" data-plasmic-component=\"plasmicAntd6TableColumn\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"ApplyActionsColumn\" data-props='{\"displayType\":\"custom\",\"width\":96,\"fixed\":\"right\"}' style=\"max-width: 100%; object-fit: cover\">\n                            <slot name=\"title\">\n                              <span id=\"3yv9v5M10fYU\" label=\"ApplyActionsColumnTitle\">操作</span>\n                            </slot>\n                            <slot name=\"render\">\n                              <plasmic-component id=\"I6dFryCkIjN3\" data-plasmic-component=\"plasmicReactUiActionGroup\" data-plasmic-project=\"vJfWZAFzStvt61gEWotC7k\" data-plasmic-name=\"ApplyRowActions\" data-props='{\"max\":3,\"items\":[{\"key\":\"detail\",\"label\":\"详情\"}]}' style=\"max-width: 100%; object-fit: cover\">\n                                <slot name=\"children\"></slot>\n                                <slot name=\"moreIcon\"></slot>\n                              </plasmic-component>\n                            </slot>\n                          </plasmic-component>\n                        </slot>\n                        <slot name=\"title\"></slot>\n                      </plasmic-component>\n                    </div>\n                  </slot>\n                  <slot name=\"icon\"></slot>\n                  <slot name=\"closeIcon\"></slot>\n                </plasmic-component>\n              </slot>\n              <slot name=\"tabBarExtraContentRight\"></slot>\n              <slot name=\"tabBarExtraContentLeft\"></slot>\n              <slot name=\"addIcon\"></slot>\n              <slot name=\"removeIcon\"></slot>\n            </plasmic-component>\n          </slot>\n        </plasmic-component>\n        <plasmic-component id=\"I0Uq9oN9AwtD\" data-plasmic-component=\"plasmicAntd6Drawer\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"ApplyDetailDrawer\" data-props='{\"open\":\"{{ $state.applyDrawerOpen }}\",\"width\":480,\"placement\":\"right\"}' style=\"max-width: 100%; object-fit: cover\">\n          <slot name=\"title\">\n            <span id=\"F5jK9w7vDQrO\" label=\"ApplyDrawerTitle\">应用详情</span>\n          </slot>\n          <slot name=\"children\">\n            <div id=\"_Amg647Rd8kn\" label=\"ApplyDrawerBody\" style=\"display: flex; flex-direction: column; width: 100%; min-width: 0px\">\n              <plasmic-component id=\"vo76Dvf_XVL-\" data-plasmic-component=\"plasmicAntd6Descriptions\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"ApplyDetailDescriptions\" data-props='{\"column\":1,\"layout\":\"horizontal\",\"size\":\"medium\"}' style=\"max-width: 100%; object-fit: cover\">\n                <slot name=\"title\"></slot>\n                <slot name=\"children\">\n                  <plasmic-component id=\"CKqlixorv-i1\" data-plasmic-component=\"plasmicAntd6DescriptionsItem\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"ApplyParamItem\" data-props='{\"key\":\"ApplyParamItem\"}' style=\"max-width: 100%; object-fit: cover\">\n                    <slot name=\"label\">\n                      <span id=\"QDICI_Wpb3Xc\" label=\"ApplyParamItemLabel\">应用参数</span>\n                    </slot>\n                    <slot name=\"children\">\n                      <span id=\"Uv2-cfdfUZIW\" label=\"ApplyParamItemText\">flow_id=FLOW_v2 · campaign=发券</span>\n                    </slot>\n                  </plasmic-component>\n                  <plasmic-component id=\"uT3PJtPzoczI\" data-plasmic-component=\"plasmicAntd6DescriptionsItem\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"ApplyResultItem\" data-props='{\"key\":\"ApplyResultItem\"}' style=\"max-width: 100%; object-fit: cover\">\n                    <slot name=\"label\">\n                      <span id=\"smvrkDiHA94P\" label=\"ApplyResultItemLabel\">返回信息</span>\n                    </slot>\n                    <slot name=\"children\">\n                      <span id=\"KzncD4njF-rO\" label=\"ApplyResultItemText\">request_no=20260822000031</span>\n                    </slot>\n                  </plasmic-component>\n                  <plasmic-component id=\"gSTDTmWi8ykU\" data-plasmic-component=\"plasmicAntd6DescriptionsItem\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"ApplyFailItem\" data-props='{\"key\":\"ApplyFailItem\"}' style=\"max-width: 100%; object-fit: cover\">\n                    <slot name=\"label\">\n                      <span id=\"WlbpMXhGAosF\" label=\"ApplyFailItemLabel\">失败原因</span>\n                    </slot>\n                    <slot name=\"children\">\n                      <span id=\"dPsD6H7WV2up\" label=\"ApplyFailItemText\">—</span>\n                    </slot>\n                  </plasmic-component>\n                </slot>\n              </plasmic-component>\n            </div>\n          </slot>\n          <slot name=\"footer\"></slot>\n          <slot name=\"closeIcon\"></slot>\n        </plasmic-component>\n      </div>\n    </slot>\n  </plasmic-component>\n</div>",
+      "variantSettings": [],
+      "interactions": [
+        {
+          "__type": "Interaction",
+          "uuid": "burcrBSQHKH2",
+          "name": "syncAppSource",
+          "elementUuid": "W2TUCMOTQhNR",
+          "eventName": "onAppSourceChange",
+          "actionName": "customFunction",
+          "code": "$state.appSource = value;"
+        },
+        {
+          "__type": "Interaction",
+          "uuid": "VHncFs57XRe7",
+          "name": "openApplyDetail",
+          "elementUuid": "I6dFryCkIjN3",
+          "eventName": "onAction",
+          "actionName": "customFunction",
+          "code": "$state.applyDrawerOpen = true;$globalActions[\"plasmic-antd6-config-provider.showMessage\"](\"success\", \"已打开应用详情\", 3);"
+        },
+        {
+          "__type": "Interaction",
+          "uuid": "KY3qIV9MTXni",
+          "name": "closeApplyDetail",
+          "elementUuid": "I0Uq9oN9AwtD",
+          "eventName": "onOpenChange",
+          "actionName": "customFunction",
+          "code": "$state.applyDrawerOpen = open;"
+        }
+      ]
+    }
+  ]
+}

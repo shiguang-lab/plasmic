@@ -50,3 +50,7 @@ class PageLayoutTests(unittest.TestCase):
         self.project["devicePresets"][0]["name"] = "RequestedDevice"
         self.assertTrue(check({"results": [self.project]}, ["RequestedDevice"])["passed"])
         self.assertFalse(self.result()["passed"])
+
+
+if __name__ == "__main__":
+    unittest.main()

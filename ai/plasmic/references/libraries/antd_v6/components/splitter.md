@@ -15,4 +15,4 @@ Use Splitter for a real user-resizable layout, with direct Splitter.Panel childr
 
 ### Ownership and acceptance
 
-Splitter needs a meaningful bounded region; remove its sample 240px height when that is not the actual requirement. Each panel's content retains its own supported scroll contract without adding a parallel outer scrollbar. Verify drag and keyboard resize when supported, minimum/maximum size, collapse/restore, long content and action reachability. Persist panel size only when the workflow requires it; canvas selection must not alter saved business state.
+Splitter needs a meaningful bounded region from its container; the registration adds no default height. Each panel's content retains its own supported scroll contract without adding a parallel outer scrollbar. Verify drag and keyboard resize when supported, minimum/maximum size, collapse/restore, long content and action reachability. Persist panel size only when the workflow requires it; canvas selection must not alter saved business state.

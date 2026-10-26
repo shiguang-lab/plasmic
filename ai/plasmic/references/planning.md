@@ -6,49 +6,55 @@ Applies to every prototype Page plan (`structure-expectation.json`). The plan re
 
 | Stage | What the agent does | Script support |
 | --- | --- | --- |
-| Scaffold | List each planned functional instance: `nodeName`, registration `component`, semantic `role`, source `purpose`/`source`, `owner`. | `scaffold` adds rule owners, baselines and `"__DECIDE__"` slots |
-| Decide | Replace every `"__DECIDE__"` from the source, the rule owner and contracts. | Preflight rejects pending/missing decisions with the owning rule anchor |
-| Compose card | Read the compose card for the current Page right before markup. | `rules --stage compose` lists reader commands; `--reads` verifies them |
-| Accept card | Read the acceptance card before saved-output review. | `rules --stage accept` |
+| Project card | Once per task, read the shared design rules (layout, naming, content review, accessibility, plus record context and permissions when Pages need them). | `rules PLAN --project --stage compose`; every `--reads` check requires them |
+| Scaffold | Decide the Page's `pageType`, then list each planned functional instance: `nodeName`, registration `component`, semantic `role`, source `purpose`/`source`, `owner`. | `scaffold` adds rule owners, baselines and `"__DECIDE__"` slots |
+| Compose card | Run the compose card on the scaffold and read every listed section before deciding. | `rules --page ROUTE --stage compose` lists reader commands; `--reads` verifies them |
+| Decide | Replace every `"__DECIDE__"` from the source, the delivered Plan decisions rows and contracts. | `label-width` gives Form labelCol estimates; preflight rejects pending/missing decisions with the owning rule anchor |
+| Accept card | Read the project and Page acceptance cards before the rule review. | `rules --stage accept`; `review-skeleton` |
 | Repair | Reread the `rule` of each failing diagnostic, then repair the whole batch. | Gate and preflight errors carry `rule` |
 
 ## Plan decisions
 
-Component documents list required native props under **Plan decisions**; `rules.json` holds the same entries. Page-level inventories (templates, feedback, copy, bindings, app context, action contracts, runtime cases) are decisions too. Start a Page from the minimal declaration list:
+Component documents list required native props under **Plan decisions**; `rules.json` holds the same entries, and every documented row must be declared there. A decision with `"target": "spec"` (such as Card `header`) is a plan field beside `props`, never a native prop. Page-level inventories (page type, wireframe, templates, feedback, copy, bindings, app context, action contracts, runtime cases) are decisions too; decide `pageType` first from [page types](design/page-types.md) and put it in the minimal list, since it selects template candidates and composition guidance. The source inventory determines required content; page types do not enforce component counts. Start a Page from the minimal declaration list:
 
 ```sh
 python3 RESOURCE_ROOT/scripts/prepare_plan.py scaffold /task/minimal-plan.json --output /task/structure-expectation.json
 ```
 
-The input is `{"pages":[{"path":"/route","name":"页面","recordPage":false,"routePattern":"/route","params":[],"modes":[],"components":[...]}]}` with the fields above. `scaffold` keeps the declarations, adds the registration's rule document when `rule` is absent, writes baselines (for example ActionGroup `max:3`) and writes `"__DECIDE__"` for every other required prop and Page inventory. It never infers business values. Replace a value with `null` only where the decision table allows it: `null` means deliberately unset, and the saved-model gate then requires the prop to be absent. Selection preflight reports each pending value or omitted decision with its JSON pointer and `rule`.
+The input is `{"pages":[{"path":"/route","name":"页面","pageType":"list","recordPage":false,"components":[...]}]}` with the fields above; a record Page adds `routePattern`, `params` and `recordSource` under [record context](design/record-context.md). `scaffold` keeps the declarations, adds the registration's rule document when `rule` is absent, writes baselines (for example ActionGroup `max:3`) and writes `"__DECIDE__"` for every other required prop and Page inventory. It never infers business values. Replace a value with `null` only where the decision table allows it: `null` means deliberately unset, and the saved-model gate then requires the prop to be absent. Selection preflight reports each pending value or omitted decision with its JSON pointer and `rule`.
 
 A baseline is the owning reference's required default, not a suggestion; change it only through a verified [source override](design/component-policy.md#protected-configuration).
 
 ## Rules card and read ledger
 
-Compose each Page from a fresh rules card, not from earlier reading:
+Read the project card once per task, then compose each Page from a fresh rules card, not from earlier reading:
 
 ```sh
+python3 RESOURCE_ROOT/scripts/prepare_plan.py rules /task/structure-expectation.json --project --stage compose --ledger /task/reference-reads.jsonl
 python3 RESOURCE_ROOT/scripts/prepare_plan.py rules /task/structure-expectation.json --page /route --stage compose --ledger /task/reference-reads.jsonl
 python3 RESOURCE_ROOT/scripts/verify_selection.py /task/structure-expectation.json --page /route --reads /task/reference-reads.jsonl --report /task/page-selection.json
 ```
 
-The card collects every declaration's `rule` and its registration's owner document. For stage-template documents the compose card reads the preamble (hard constraints), **Plan decisions** and **Generation rules**; the accept card reads the complete document. Documents without the template, and explicit `rule` anchors, are read as declared. Run every listed command; `--reads` fails when a required section was not emitted at its current hash. The ledger proves delivery, not understanding: apply the hard constraints and decision rows to the plan.
+The card collects every declaration's `rule`, its registration's owner document and the composition documents that the decided page type and the Page's overlays, feedback, record context and action contracts require ([gate rule map](gate-rules.json) `pageRules`). For stage-template documents the compose card reads the preamble (hard constraints), **Plan decisions** and **Generation rules**; the accept card reads the complete document. Documents without the template, and explicit `rule` anchors, are read as declared. Run every listed command; `--reads` fails when a required section was not emitted at its current hash. The ledger proves delivery, not understanding.
 
-The card reports its byte total. When it is large, finish the Page through the per-Page handoff in the [prototype workflow](workflows/prototype.md#complete-one-page-at-a-time) rather than skipping sections.
+Every compose card also delivers the [admin design scale](design/scale.md) and the chosen page type's section. Run it on the scaffold, before deciding: the digest shows `__DECIDE__` until each value is decided from its rows. The card leads with a digest: `hardConstraints` of every listed document and `decisions` with the Page's current plan values (`MISSING` when absent). Check each constraint against those values before reading the long sections; a constraint the plan cannot satisfy is a plan defect to fix before markup. `readingBudgetExceeded` (over 96 KiB of sections) signals context pressure; it does not establish host capabilities or the model's token capacity. Follow [per-Page context handling](workflows/prototype.md#complete-one-page-at-a-time), using verified delegation or client-supported compaction when available and sequential section reads with disk checkpoints otherwise. Never skip sections to fit or claim a fresh context without one.
+
+Keep the actual compose ledger as `structure.reads` in `suite.json`; the final structure gate rechecks its current rule coverage. `verify_selection.py --plan-only` is only a declaration check and does not complete the prepare-inputs stage.
+
+For acceptance, run the project and Page accept cards with their own ledger, start the review file with `prepare_plan.py review-skeleton`, and record one verdict per listed document and hard constraint under [rule review](review-mode.md#rule-review); the full-project `verify_all.py` run requires both.
 
 ## Format example and mechanical helpers
 
 Use [prepare_plan.py](../scripts/prepare_plan.py) instead of assembling another plan schema or patching a task-specific builder. It reads/writes the existing structure inventory; it never generates a prototype, infers permissions or executes Preview. The [native field/key reference](design/component-policy.md#plan-fields-and-case-kinds) defines the input shape. Derive coverage from the current source; do not pad a plan to match an example.
 
-When the native plan format is unfamiliar, generate the complete **input-format fixture**, then run the same full-Page preflight used for a real plan:
+When the native plan format is unfamiliar, generate the complete **input-format fixture**, then check its declarations with `--plan-only`; this does not complete a real Page's required rule reading or prepare-inputs stage:
 
 ```sh
 python3 RESOURCE_ROOT/scripts/prepare_plan.py example /task/plan-format-example
-python3 RESOURCE_ROOT/scripts/verify_selection.py /task/plan-format-example/structure-expectation.json --report /task/plan-format-example/preflight.json
+python3 RESOURCE_ROOT/scripts/verify_selection.py /task/plan-format-example/structure-expectation.json --plan-only --report /task/plan-format-example/preflight.json
 ```
 
-The directory contains an illustrative source and compact JSON with real paths/hashes/excerpts, native owners, decided Table widths, feedback, query/reset, first/second/return paging, page-size and action cases. Its [permission example](design/permissions.md) distinguishes viewing allowed to all three roles, administrator-only mutation and a separate unauthorized-market boundary. Preflight validates format, not source meaning or execution, and the command creates no saved model or runtime evidence. Its template non-applicability is **only for this local fixture**; business tasks still [select/read live templates](admin-templates.md#source-evidence-before-composition).
+The directory contains an illustrative source and compact JSON with real paths/hashes/excerpts: a `list` Page (PageBody Flex, SearchForm, a headerless list Card with `16px 20px 0`, the Table), native owners, decided Table widths, feedback, query/reset and action cases. Its native Table paging needs no paging case. Its [permission example](design/permissions.md) distinguishes viewing allowed to all three roles, administrator-only mutation and a separate unauthorized-market boundary. Preflight validates format, not source meaning or execution, and the command creates no saved model or runtime evidence. Its template non-applicability is **only for this local fixture**; business tasks still [select/read live templates](admin-templates.md#source-evidence-before-composition).
 
 ```sh
 python3 RESOURCE_ROOT/scripts/prepare_plan.py evidence /absolute/requirements.md --quote 'Exact text from the actual source'
@@ -56,6 +62,10 @@ python3 RESOURCE_ROOT/scripts/prepare_plan.py ids /task/structure-expectation.js
 python3 RESOURCE_ROOT/scripts/prepare_plan.py clone-actions /task/plan-with-ids.json --page /groups --from-owner AllRowActions --to-owner MyRowActions --output /task/plan-with-shared-actions.json
 python3 RESOURCE_ROOT/scripts/prepare_plan.py show /task/page-selection.json --pointer /errors/0
 ```
+
+`prepare_plan.py inventories /task/structure-expectation.json --reads /task/compose-reads.jsonl --output-dir /task/inventories` derives the Form, Descriptions and overlay inventories, one Slot intent per Page and `suite.json` from the decided plan, including each horizontal Page Form's planning `labelWidth.estimatedPx`. It preserves Form `layoutReason`, `columnsReason`, `labelAlignReason`, `labelWidth`, `sourceCopyUnits`, `copyTriage` and `excludedCopy`, plus Item `controlWidthReason`; record these beside native `props` on the owning declaration. Field `tooltip`/`description` copy entries retain their evidence when deriving copy triage. Overlay Form layout records Modal `modalWidth` from `width`, or Drawer `drawerSize` from `size`. Missing source evidence, required rendered measurements, standalone-control reasons and footer effects stay `"__DECIDE__"` until supplied. Correct the plan and regenerate derived files; measured geometry remains acceptance evidence.
+
+For each Page Form, `prepare_plan.py form-skeleton /task/structure-expectation.json --inventory /task/forms.json --page ROUTE --form FORM --output /task/form.html` writes insertHtml markup in the [Page Form structure](libraries/antd_v6/compositions/form-layout.md#page-form-structure) from the decided plan and field inventory; it refuses undecided props, a missing `layout` or a `labelCol` that disagrees with `labelWidth` (the measurement when recorded, otherwise the estimate). `prepare_plan.py label-width PLAN --page ROUTE` prints that estimate for the plan's `labelCol` decision. Insert it, then add bindings, events and help. Change the plan or inventory, not the markup, when the structure must change.
 
 `evidence` emits only a native path/hash/quote and rejects non-verbatim text; reread and review a decision after its requirement changes. `ids` fills missing/duplicate case IDs, preserving unique IDs, the first duplicate and all business fields. `clone-actions` copies reviewed contracts between two declared row-action owners with new IDs; it rejects duplicate keys, conflicting contracts and invalid owners, and different permission/state behavior still needs its own cases. Plan-edit commands refuse existing outputs and leave inputs untouched. After saved-output capture, `runtime-manifest` prepares the [runtime evidence index](design/component-policy.md#native-runtime-evidence) with every case unexecuted.
 

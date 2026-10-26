@@ -1,0 +1,291 @@
+{
+ "pages": [
+  {
+   "path": "/groups",
+   "groups": []
+  },
+  {
+   "path": "/groups/selector",
+   "groups": [
+    {
+     "name": "CheckDescriptions",
+     "container": "SqlCard",
+     "title": "",
+     "column": 1,
+     "itemSlots": [
+      {
+       "name": "CheckSyntaxItem",
+       "key": "CheckSyntaxItem",
+       "label": "语句合法性",
+       "children": "仅 SELECT"
+      },
+      {
+       "name": "CheckSourceItem",
+       "key": "CheckSourceItem",
+       "label": "底表",
+       "children": "dwt/cdm"
+      },
+      {
+       "name": "CheckRoleItem",
+       "key": "CheckRoleItem",
+       "label": "权限",
+       "children": "运营及以上"
+      },
+      {
+       "name": "CheckColumnItem",
+       "key": "CheckColumnItem",
+       "label": "结果字段",
+       "children": "uid+app_source"
+      },
+      {
+       "name": "CheckFilterItem",
+       "key": "CheckFilterItem",
+       "label": "结尾过滤",
+       "children": "app_source"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "path": "/groups/onetime-create",
+   "groups": [
+    {
+     "name": "BasicDescriptions",
+     "container": "BasicInfoCard",
+     "title": "",
+     "column": 3,
+     "itemSlots": [
+      {
+       "name": "BasicNameItem",
+       "key": "BasicNameItem",
+       "label": "客群名称",
+       "children": "存量促活-7月客群"
+      },
+      {
+       "name": "BasicKeyItem",
+       "key": "BasicKeyItem",
+       "label": "客群Key",
+       "children": "GRP_ONETIME_CUNLIANG7YUE_20260820"
+      },
+      {
+       "name": "BasicTypeItem",
+       "key": "BasicTypeItem",
+       "label": "客群类型",
+       "children": "一次性"
+      },
+      {
+       "name": "BasicScenarioItem",
+       "key": "BasicScenarioItem",
+       "label": "业务场景",
+       "children": "客经"
+      },
+      {
+       "name": "BasicOwnerItem",
+       "key": "BasicOwnerItem",
+       "label": "负责人",
+       "children": "傅玮颖"
+      },
+      {
+       "name": "BasicSourceItem",
+       "key": "BasicSourceItem",
+       "label": "App来源",
+       "children": "TACO（入口带入）"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "path": "/groups/detail",
+   "groups": [
+    {
+     "name": "BasicDescriptions",
+     "container": "ArchiveCard",
+     "title": "基础信息",
+     "column": 2,
+     "itemSlots": [
+      {
+       "name": "IdItem",
+       "key": "IdItem",
+       "label": "客群ID",
+       "children": "1002"
+      },
+      {
+       "name": "KeyItem",
+       "key": "KeyItem",
+       "label": "客群Key",
+       "children": "GRP_ONETIME_RECALL_20260820"
+      },
+      {
+       "name": "NameItem",
+       "key": "NameItem",
+       "label": "客群名称",
+       "children": "存量促活-7月客群"
+      },
+      {
+       "name": "CreatorItem",
+       "key": "CreatorItem",
+       "label": "创建人",
+       "children": "傅玮颖"
+      },
+      {
+       "name": "CreatedAtItem",
+       "key": "CreatedAtItem",
+       "label": "创建时间",
+       "children": "2026-08-20"
+      }
+     ]
+    },
+    {
+     "name": "SelectionDescriptions",
+     "container": "ArchiveCard",
+     "title": "圈选信息",
+     "column": 2,
+     "itemSlots": [
+      {
+       "name": "GroupTypeItem",
+       "key": "GroupTypeItem",
+       "label": "客群类型",
+       "children": "一次性"
+      },
+      {
+       "name": "OriginItem",
+       "key": "OriginItem",
+       "label": "客群来源",
+       "children": "写SQL"
+      },
+      {
+       "name": "StateItem",
+       "key": "StateItem",
+       "label": "状态",
+       "children": "启用"
+      },
+      {
+       "name": "ExpireRangeItem",
+       "key": "ExpireRangeItem",
+       "label": "有效期",
+       "children": "2026-08-20 ~ 2026-09-03"
+      },
+      {
+       "name": "OwnerItem",
+       "key": "OwnerItem",
+       "label": "负责人",
+       "children": "傅玮颖"
+      }
+     ]
+    },
+    {
+     "name": "StorageDescriptions",
+     "container": "ArchiveCard",
+     "title": "数据存储",
+     "column": 2,
+     "itemSlots": [
+      {
+       "name": "TableItem",
+       "key": "TableItem",
+       "label": "存储表",
+       "children": "cg_mx_cg_88001"
+      },
+      {
+       "name": "RetentionItem",
+       "key": "RetentionItem",
+       "label": "保存天数",
+       "children": "3 天"
+      },
+      {
+       "name": "PartitionItem",
+       "key": "PartitionItem",
+       "label": "保留分区",
+       "children": "2026-08-29 ~ 2026-08-31"
+      },
+      {
+       "name": "DeadlineItem",
+       "key": "DeadlineItem",
+       "label": "产出截止时间",
+       "children": "每日 18:00:00"
+      }
+     ]
+    },
+    {
+     "name": "KpiDescriptions",
+     "container": "OverviewTab",
+     "title": "",
+     "column": 3,
+     "itemSlots": [
+      {
+       "name": "KpiStateItem",
+       "key": "KpiStateItem",
+       "label": "状态",
+       "children": "启用"
+      },
+      {
+       "name": "KpiLastSelectItem",
+       "key": "KpiLastSelectItem",
+       "label": "上次圈选",
+       "children": "2026-08-20 10:25"
+      },
+      {
+       "name": "KpiLastRefreshItem",
+       "key": "KpiLastRefreshItem",
+       "label": "上次刷新",
+       "children": "2026-08-19 06:30"
+      }
+     ]
+    },
+    {
+     "name": "OverviewDescriptions",
+     "container": "OverviewTab",
+     "title": "",
+     "column": 1,
+     "itemSlots": [
+      {
+       "name": "ConditionItem",
+       "key": "ConditionItem",
+       "label": "圈选条件",
+       "children": "写SQL · 一次性执行"
+      },
+      {
+       "name": "ScaleItem",
+       "key": "ScaleItem",
+       "label": "当前规模",
+       "children": "12,340"
+      },
+      {
+       "name": "LastLogItem",
+       "key": "LastLogItem",
+       "label": "最近圈选记录",
+       "children": "成功 · 2026-08-20 10:25"
+      }
+     ]
+    },
+    {
+     "name": "ApplyDetailDescriptions",
+     "container": "ApplyDetailDrawer",
+     "title": "",
+     "column": 1,
+     "itemSlots": [
+      {
+       "name": "ApplyParamItem",
+       "key": "ApplyParamItem",
+       "label": "应用参数",
+       "children": "flow_id=FLOW_v2 · campaign=发券"
+      },
+      {
+       "name": "ApplyResultItem",
+       "key": "ApplyResultItem",
+       "label": "返回信息",
+       "children": "request_no=20260822000031"
+      },
+      {
+       "name": "ApplyFailItem",
+       "key": "ApplyFailItem",
+       "label": "失败原因",
+       "children": "—"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

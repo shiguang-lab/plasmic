@@ -1,4 +1,3 @@
-import { usePlasmicLink } from "@plasmicapp/host";
 import registerComponent, {
   CodeComponentMeta,
 } from "@plasmicapp/host/registerComponent";
@@ -7,103 +6,35 @@ import {
   ActionGroup as ReactUIActionGroup,
   ActionGroupProps as ReactUIActionGroupProps,
 } from "@react/ui";
-import { Popconfirm } from "antd";
-import React, { useEffect, useState } from "react";
+import React from "react";
 export type Registerable = { registerComponent: typeof registerComponent };
-
-export interface ActionGroupItem extends ActionItem {
-  href?: string;
-  confirm?: {
-    title: string;
-    description?: string;
-    okText: string;
-    cancelText?: string;
-  };
-}
 
 export interface ActionGroupProps extends Omit<
   ReactUIActionGroupProps,
   "items"
 > {
-  items?: (ActionGroupItem | null | false | undefined)[];
+  items?: (ActionItem | null | false | undefined)[];
   onAction?: (key: string) => void;
 }
 
-// The registration event makes item actions editable without putting functions
-// in JSON. Rendering, permission filtering and overflow stay in @react/ui.
-export function ActionGroup({
-  items,
-  onAction,
-  dropdownProps,
-  ...props
-}: ActionGroupProps) {
-  const PlasmicLink = usePlasmicLink();
-  const [pendingKey, setPendingKey] = useState<string>();
-  const pending = items?.find(
-    (item, index) => item && (item.key ?? `action-${index}`) === pendingKey,
-  );
-  useEffect(() => {
-    if (!pending || pending.disabled || !pending.confirm) {
-      setPendingKey(undefined);
-    }
-  }, [pending]);
-  const invoke = (item: ActionGroupItem, key: string) => {
-    item.onClick?.();
-    onAction?.(key);
-  };
-  const actions = (
+// Studio cannot store item onClick functions in JSON, so one registration event
+// receives the clicked key. Rendering, permission filtering, folding and the
+// More dropdown defaults stay in @react/ui.
+export function ActionGroup({ items, onAction, ...props }: ActionGroupProps) {
+  return (
     <ReactUIActionGroup
       {...props}
-      dropdownProps={{ trigger: ["hover"], ...dropdownProps }}
       items={items?.map(
         (item, index) =>
           item && {
             ...item,
-            label:
-              item.href && !item.disabled ? (
-                <PlasmicLink href={item.href}>{item.label}</PlasmicLink>
-              ) : (
-                item.label
-              ),
             onClick: () => {
-              const key = item.key ?? `action-${index}`;
-              if (item.confirm) {
-                setPendingKey(key);
-              } else {
-                invoke(item, key);
-              }
+              item.onClick?.();
+              onAction?.(item.key ?? `action-${index}`);
             },
           },
       )}
     />
-  );
-  if (!items?.some((item) => item && item.confirm)) {
-    return actions;
-  }
-  return (
-    <Popconfirm
-      open={!!pending && !pending.disabled && !!pending.confirm}
-      placement="topRight"
-      title={pending ? pending.confirm?.title : undefined}
-      description={pending ? pending.confirm?.description : undefined}
-      okText={pending ? pending.confirm?.okText : undefined}
-      cancelText={pending ? (pending.confirm?.cancelText ?? "取消") : "取消"}
-      okButtonProps={{ danger: !!pending && pending.danger }}
-      onOpenChange={(open) => {
-        if (!open) {
-          setPendingKey(undefined);
-        }
-      }}
-      onCancel={() => setPendingKey(undefined)}
-      onConfirm={() => {
-        setPendingKey(undefined);
-        if (pending && !pending.disabled && pendingKey) {
-          invoke(pending, pendingKey);
-        }
-      }}
-    >
-      <div style={{ display: "inline-flex" }}>{actions}</div>
-    </Popconfirm>
   );
 }
 
@@ -123,19 +54,9 @@ export const actionGroupMeta: CodeComponentMeta<ActionGroupProps> = {
         fields: {
           key: "string",
           label: "string",
-          href: "href",
           disabled: "boolean",
           danger: "boolean",
           tooltip: "string",
-          confirm: {
-            type: "object",
-            fields: {
-              title: "string",
-              description: "string",
-              okText: "string",
-              cancelText: "string",
-            },
-          },
         },
       },
       defaultValue: [
@@ -160,10 +81,16 @@ export const actionGroupMeta: CodeComponentMeta<ActionGroupProps> = {
       options: ["small", "medium", "large"],
       defaultValue: "small",
     },
-    dropdownProps: "object",
+    dropdownProps: {
+      type: "object",
+      description:
+        "Native Ant Design Dropdown props for More, except menu. @react/ui defaults to trigger ['click'] and placement bottomRight.",
+    },
     onAction: {
       type: "eventHandler",
       argTypes: [{ name: "key", type: "string" }],
+      description:
+        "Fires with the clicked item key, for visible and folded items alike.",
     },
   },
 };

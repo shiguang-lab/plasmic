@@ -9,6 +9,13 @@ Library: [Ant Design v6](../index.md).
 
 ## Generation rules
 
+### Design defaults
+
+- Use inside a Form.Item for file fields. A Page whose main task is providing a file uses the drag area; other fields use a Button trigger with a text file list.
+- Accepted types and size limit are stated as a field instruction next to the control.
+
+### Usage and behavior
+
 Upload reads files locally as base64: done means local reading completed, not server upload success. Multiple selection preserves order; maxCount retains the newest files. Verify these semantics against actual file selections and do not report local completion as backend success.
 
 ### Local Upload wrapper

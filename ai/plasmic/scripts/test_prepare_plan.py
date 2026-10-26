@@ -28,7 +28,7 @@ class PlanPreparationTests(unittest.TestCase):
 
     def test_complete_example_uses_the_public_full_page_preflight(self):
         report_path = self.root / 'report.json'
-        process = self.cli('verify_selection.py', self.path, '--report', report_path)
+        process = self.cli('verify_selection.py', self.path, '--plan-only', '--report', report_path)
         self.assertEqual(process.returncode, 0, process.stderr + process.stdout)
         self.assertTrue(json.loads(process.stdout)['passed'])
         report = json.loads(report_path.read_text(encoding="utf-8"))
@@ -71,7 +71,7 @@ class PlanPreparationTests(unittest.TestCase):
 
     def test_evidence_keeps_exact_quotes_and_checks_the_real_file(self):
         source = self.path.parent / 'source.md'
-        quote = '默认每页20条，可切换50条。'
+        quote = '默认每页20条，可切换50、100条。'
         value = evidence(source, quote)
         self.assertEqual(value['quote'], quote)
         self.assertEqual(value['sha256'], hashlib.sha256(source.read_bytes()).hexdigest())

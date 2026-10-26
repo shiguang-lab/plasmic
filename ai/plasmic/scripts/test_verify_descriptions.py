@@ -19,6 +19,25 @@ def model(items=ITEMS, component="plasmicAntd6Descriptions", title="Information"
 
 
 class InformationSelectionTests(unittest.TestCase):
+    def test_wide_one_column_group_needs_evidence(self):
+        items = [{"key": k, "label": k, "children": "short"} for k in ("syntax", "source", "role")]
+        expected = copy.deepcopy(INVENTORY)
+        group = expected["pages"][0]["groups"][0]
+        group.update(column=1, items=items)
+        actual = model(items=items)
+        tree = actual["results"][0]["baseVariantTplTree"].replace('data-plasmic-name="Summary"', 'id="desc1" data-plasmic-name="Summary"')
+        actual["results"][0]["baseVariantTplTree"] = tree.replace('&quot;column&quot;: 2', '&quot;column&quot;: 1')
+        layouts = lambda width: {"page": {"snapshot": {"frames": [{"elements": [{"elementUuid": "desc1", "width": width}]}]}}}
+        self.assertTrue(check(expected, actual)["passed"], "no layout evidence: geometry not checked here")
+        self.assertTrue(check(expected, actual, layouts(480))["passed"])
+        result = check(expected, actual, layouts(1127))
+        self.assertFalse(result["passed"])
+        self.assertIn("column-and-span", str(result["errors"]))
+        group["columnReason"] = {"kind": "measurement", "longestValuePx": 300}
+        self.assertFalse(check(expected, actual, layouts(1127))["passed"], "values that fit two per row do not justify one column")
+        group["columnReason"] = {"kind": "measurement", "longestValuePx": 700}
+        self.assertTrue(check(expected, actual, layouts(1127))["passed"])
+
     def test_editable_item_slots_and_bindings(self):
         expected = copy.deepcopy(INVENTORY)
         group = expected["pages"][0]["groups"][0]

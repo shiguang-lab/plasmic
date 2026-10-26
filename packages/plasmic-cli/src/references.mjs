@@ -10,6 +10,7 @@ import {
 import { homedir } from "node:os";
 import path from "node:path";
 import { withProgress } from "./progress.mjs";
+import { verifyRuntime } from "./runtime.mjs";
 import {
   CLI_VERSION,
   MAX_BYTES,
@@ -341,6 +342,7 @@ export async function resolveContext(mode, options = {}) {
   if (!Object.hasOwn(MODE_REFERENCES, mode)) {
     throw new Error("--mode must be inspect, prototype or codegen");
   }
+  const runtime = await withProgress(options, "runtime", verifyRuntime);
   const { manifest, ...resources } = await updateReferences(options);
   return withProgress(options, "workflow", (progress) => {
     const references = [
@@ -353,6 +355,6 @@ export async function resolveContext(mode, options = {}) {
       path.join(resources.resourceRoot, reference),
     );
     progress({ mode, mustRead });
-    return { ...resources, mode, mustRead };
+    return { ...resources, mode, mustRead, runtime };
   });
 }

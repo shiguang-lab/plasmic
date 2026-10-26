@@ -1,0 +1,400 @@
+{
+  "results": [
+    {
+      "__type": "Component",
+      "uuid": "YW4MQIakrQnt",
+      "name": "客群圈选器",
+      "type": "page",
+      "rootElementUuid": "FcnEDvDKoMDi",
+      "pageMeta": {
+        "__type": "PageMeta",
+        "path": "/groups/selector"
+      },
+      "props": [],
+      "variants": [],
+      "variantGroups": [],
+      "states": [
+        {
+          "__type": "State",
+          "name": "sqlText",
+          "uuid": "ppBznWK7pA5C",
+          "variableType": "text",
+          "accessType": "private",
+          "initialValue": "SELECT uid, app_source, register_date\nFROM cdm_mx_dim_customer_user_df\nWHERE register_date >= '2026-07-01'\n  AND app_source = 'TACO'\nLIMIT 1000"
+        },
+        {
+          "__type": "State",
+          "name": "sampleRows",
+          "uuid": "WybPGsOMpxXE",
+          "variableType": "array",
+          "accessType": "private",
+          "initialValue": [
+            {
+              "id": "uid_01001",
+              "registerDate": "2026-07-01",
+              "appSource": "TACO",
+              "creditStatus": "已授信",
+              "loanStatus": "结清"
+            },
+            {
+              "id": "uid_01002",
+              "registerDate": "2026-07-02",
+              "appSource": "PESO",
+              "creditStatus": "已拒绝",
+              "loanStatus": "在贷"
+            },
+            {
+              "id": "uid_01003",
+              "registerDate": "2026-07-03",
+              "appSource": "TACO",
+              "creditStatus": "审批中",
+              "loanStatus": "逾期"
+            },
+            {
+              "id": "uid_01004",
+              "registerDate": "2026-07-04",
+              "appSource": "PESO",
+              "creditStatus": "已授信",
+              "loanStatus": "结清"
+            },
+            {
+              "id": "uid_01005",
+              "registerDate": "2026-07-05",
+              "appSource": "TACO",
+              "creditStatus": "已拒绝",
+              "loanStatus": "在贷"
+            },
+            {
+              "id": "uid_01006",
+              "registerDate": "2026-07-06",
+              "appSource": "PESO",
+              "creditStatus": "审批中",
+              "loanStatus": "逾期"
+            },
+            {
+              "id": "uid_01007",
+              "registerDate": "2026-07-07",
+              "appSource": "TACO",
+              "creditStatus": "已授信",
+              "loanStatus": "结清"
+            },
+            {
+              "id": "uid_01008",
+              "registerDate": "2026-07-08",
+              "appSource": "PESO",
+              "creditStatus": "已拒绝",
+              "loanStatus": "在贷"
+            },
+            {
+              "id": "uid_01009",
+              "registerDate": "2026-07-09",
+              "appSource": "TACO",
+              "creditStatus": "审批中",
+              "loanStatus": "逾期"
+            },
+            {
+              "id": "uid_01010",
+              "registerDate": "2026-07-10",
+              "appSource": "PESO",
+              "creditStatus": "已授信",
+              "loanStatus": "结清"
+            },
+            {
+              "id": "uid_01011",
+              "registerDate": "2026-07-11",
+              "appSource": "TACO",
+              "creditStatus": "已拒绝",
+              "loanStatus": "在贷"
+            },
+            {
+              "id": "uid_01012",
+              "registerDate": "2026-07-12",
+              "appSource": "PESO",
+              "creditStatus": "审批中",
+              "loanStatus": "逾期"
+            }
+          ]
+        },
+        {
+          "__type": "State",
+          "name": "hitCount",
+          "uuid": "e5YOLjCn-fcE",
+          "variableType": "number",
+          "accessType": "private",
+          "initialValue": 12340
+        },
+        {
+          "__type": "State",
+          "name": "preflightOpen",
+          "uuid": "omJUYHlYr3Lc",
+          "variableType": "boolean",
+          "accessType": "private",
+          "initialValue": false
+        },
+        {
+          "__type": "State",
+          "name": "preflightState",
+          "uuid": "-vojpbJ8uq0N",
+          "variableType": "text",
+          "accessType": "private",
+          "initialValue": "running"
+        },
+        {
+          "__type": "State",
+          "name": "validated",
+          "uuid": "GGcjGuge2R2V",
+          "variableType": "boolean",
+          "accessType": "private",
+          "initialValue": false
+        },
+        {
+          "__type": "State",
+          "name": "checkPassed",
+          "uuid": "8pPPfh9VWHcE",
+          "variableType": "boolean",
+          "accessType": "private",
+          "initialValue": false
+        },
+        {
+          "__type": "State",
+          "name": "appShell.direction",
+          "uuid": "zo5sm86wZM9x",
+          "variableType": "text",
+          "accessType": "private",
+          "elementUuid": "NJATYyRzkI_k"
+        },
+        {
+          "__type": "State",
+          "name": "appShell.language",
+          "uuid": "f5Nt6Lz7gnpo",
+          "variableType": "text",
+          "accessType": "private",
+          "elementUuid": "NJATYyRzkI_k"
+        },
+        {
+          "__type": "State",
+          "name": "appShell.appSource",
+          "uuid": "NikhEVWuIKmA",
+          "variableType": "text",
+          "accessType": "private",
+          "elementUuid": "NJATYyRzkI_k"
+        },
+        {
+          "__type": "State",
+          "name": "appShell.selectedMenuKey",
+          "uuid": "SpJxLC6z5C_v",
+          "variableType": "text",
+          "accessType": "private",
+          "elementUuid": "NJATYyRzkI_k"
+        },
+        {
+          "__type": "State",
+          "name": "appShell.collapsed",
+          "uuid": "-T6_aiNC_tFy",
+          "variableType": "boolean",
+          "accessType": "private",
+          "elementUuid": "NJATYyRzkI_k"
+        },
+        {
+          "__type": "State",
+          "name": "basicForm.value",
+          "uuid": "J798k_2HKzP1",
+          "variableType": "object",
+          "accessType": "private",
+          "elementUuid": "7m2TWSJVSEUB"
+        },
+        {
+          "__type": "State",
+          "name": "basicForm.isSubmitting",
+          "uuid": "HrJFrD24YJ2J",
+          "variableType": "boolean",
+          "accessType": "private",
+          "elementUuid": "7m2TWSJVSEUB"
+        },
+        {
+          "__type": "State",
+          "name": "nameInput.value",
+          "uuid": "IfQASFNDEEOU",
+          "variableType": "text",
+          "accessType": "private",
+          "elementUuid": "Jd-m9__XzPoP"
+        },
+        {
+          "__type": "State",
+          "name": "retentionSelect.value",
+          "uuid": "0lRdki_SX_fd",
+          "variableType": "object",
+          "accessType": "private",
+          "elementUuid": "Rs1k5JmzFoiq"
+        },
+        {
+          "__type": "State",
+          "name": "deadlineTime.value",
+          "uuid": "N0vAPyhpWLi2",
+          "variableType": "text",
+          "accessType": "private",
+          "elementUuid": "u-aWi0twfwmd"
+        },
+        {
+          "__type": "State",
+          "name": "refreshSelect.value",
+          "uuid": "notilUgPAz3t",
+          "variableType": "object",
+          "accessType": "private",
+          "elementUuid": "C2Q7yzhDO2k1"
+        },
+        {
+          "__type": "State",
+          "name": "typeInput.value",
+          "uuid": "WTiijWJPlO0w",
+          "variableType": "text",
+          "accessType": "private",
+          "elementUuid": "FJOr-UdrpDTD"
+        },
+        {
+          "__type": "State",
+          "name": "sqlEditor.value",
+          "uuid": "Be7b_kL-95ZI",
+          "variableType": "text",
+          "accessType": "private",
+          "elementUuid": "3QIs63yFUZF1"
+        },
+        {
+          "__type": "State",
+          "name": "previewTable.selectedRowKeys",
+          "uuid": "oOh-1svdU6K9",
+          "variableType": "array",
+          "accessType": "private",
+          "elementUuid": "q29c_hsvpDi7"
+        },
+        {
+          "__type": "State",
+          "name": "preflightModal.open",
+          "uuid": "i7UyqPa-JXpc",
+          "variableType": "boolean",
+          "accessType": "private",
+          "elementUuid": "E9zSliOX2PE6"
+        },
+        {
+          "__type": "State",
+          "name": "appSource",
+          "uuid": "HM0mDdHxoZQE",
+          "variableType": "text",
+          "accessType": "private",
+          "initialValue": "TACO"
+        }
+      ],
+      "dataQueries": [],
+      "legacyDataQueries": [],
+      "baseVariantTplTree": "<div id=\"FcnEDvDKoMDi\" label=\"SelectorPage\" style=\"display: flex; flex-direction: column; position: relative; width: stretch; height: stretch\">\n  <plasmic-component id=\"NJATYyRzkI_k\" data-plasmic-component=\"plasmicOverseasAppShell\" data-plasmic-project=\"f3f4ju424PVNTAQPkwovrE\" data-plasmic-name=\"AppShell\" data-props='{\"productName\":\"海外客群管理平台\",\"menuItems\":[{\"key\":\"audience\",\"label\":\"客群管理\",\"children\":[{\"key\":\"groups\",\"label\":\"客群列表\",\"href\":\"/groups\",\"children\":[{\"key\":\"detail\",\"label\":\"客群详情\",\"href\":\"/groups/detail\",\"hidden\":true},{\"key\":\"onetime-create\",\"label\":\"新建一次性客群\",\"href\":\"/groups/onetime-create\",\"hidden\":true}]},{\"key\":\"selector\",\"label\":\"客群圈选器\",\"href\":\"/groups/selector\"}]}],\"appSource\":\"{{ $state.appSource }}\",\"appSources\":[{\"value\":\"TACO\",\"label\":\"TACO\"},{\"value\":\"PESO\",\"label\":\"PESO\"}]}' style=\"width: 100%; height: 100vh; max-width: 100%; object-fit: cover\">\n    <slot name=\"children\">\n      <div id=\"FTnN0yWhXfhy\" label=\"SelectorBody\" style=\"display: flex; flex-direction: column; width: 100%; min-width: 0px; row-gap: 16px\">\n        <plasmic-component id=\"_OAAMRoUlV-L\" data-plasmic-component=\"plasmicAntd6Card\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"BasicInfoCard\" data-props='{\"size\":\"medium\",\"variant\":\"outlined\",\"styles\":{\"body\":{\"padding\":\"16px 20px\"}}}' style=\"max-width: 100%; object-fit: cover\">\n          <slot name=\"title\"></slot>\n          <slot name=\"extra\"></slot>\n          <slot name=\"cover\"></slot>\n          <slot name=\"actions\"></slot>\n          <slot name=\"children\">\n            <plasmic-component id=\"7m2TWSJVSEUB\" data-plasmic-component=\"plasmicAntd6Form\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"BasicForm\" data-props='{\"mode\":\"advanced\",\"layout\":\"horizontal\",\"labelCol\":{\"flex\":\"120px\"},\"formItems\":[],\"initialValues\":{\"name\":\"\",\"retentionDays\":\"3\",\"produceDeadline\":\"2026-08-19T18:00:00\",\"refreshMode\":\"DYNAMIC\",\"groupType\":\"常规\"}}' style=\"display: flex; flex-direction: column; position: relative; width: stretch; height: wrap; max-width: 100%; padding-left: 8px; padding-right: 8px; padding-bottom: 8px; padding-top: 8px; justify-content: flex-start; align-items: flex-start; object-fit: cover\">\n              <slot name=\"children\">\n                <div id=\"0X9sQLmgk0Ye\" label=\"BasicRowMain\" style=\"display: flex; flex-direction: row; width: 100%; min-width: 0px; column-gap: 16px\">\n                  <plasmic-component id=\"IxJtZ1rPOPIK\" data-plasmic-component=\"plasmicAntd6FormItem\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"NameItem\" data-props='{\"name\":\"name\",\"rules\":[{\"ruleType\":\"required\",\"message\":\"请输入客群名称\"}]}' style=\"width: stretch; margin-bottom: 24px; max-width: 100%; object-fit: cover; flex-grow: 1; flex-shrink: 1; flex-basis: 0px; min-width: 0px\">\n                    <slot name=\"label\">\n                      <span id=\"3itu8PJANOCy\" label=\"NameItemLabel\">客群名称</span>\n                    </slot>\n                    <slot name=\"children\">\n                      <plasmic-component id=\"Jd-m9__XzPoP\" data-plasmic-component=\"plasmicAntd6Input\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"NameInput\" data-props='{\"placeholder\":\"请输入客群名称\"}' style=\"max-width: 100%; object-fit: cover\">\n                        <slot name=\"prefix\"></slot>\n                        <slot name=\"suffix\"></slot>\n                      </plasmic-component>\n                    </slot>\n                    <slot name=\"tooltip\"></slot>\n                    <slot name=\"description\"></slot>\n                  </plasmic-component>\n                  <plasmic-component id=\"sZNEYv7q-vDa\" data-plasmic-component=\"plasmicAntd6FormItem\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"RetentionItem\" data-props='{\"name\":\"retentionDays\"}' style=\"width: stretch; margin-bottom: 24px; max-width: 100%; object-fit: cover; flex-grow: 1; flex-shrink: 1; flex-basis: 0px; min-width: 0px\">\n                    <slot name=\"label\">\n                      <span id=\"uF_Cl0qoTLL6\" label=\"RetentionItemLabel\">数据保存天数</span>\n                    </slot>\n                    <slot name=\"children\">\n                      <plasmic-component id=\"Rs1k5JmzFoiq\" data-plasmic-component=\"plasmicAntd6Select\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"RetentionSelect\" data-props='{\"options\":[{\"value\":\"3\",\"label\":\"3 天\"},{\"value\":\"7\",\"label\":\"7 天\"},{\"value\":\"30\",\"label\":\"30 天\"},{\"value\":\"60\",\"label\":\"60 天\"},{\"value\":\"180\",\"label\":\"180 天\"},{\"value\":\"0\",\"label\":\"长期\"}]}' style=\"max-width: 100%; object-fit: cover\">\n                        <slot name=\"placeholder\"></slot>\n                        <slot name=\"children\"></slot>\n                        <slot name=\"suffixIcon\"></slot>\n                      </plasmic-component>\n                    </slot>\n                    <slot name=\"tooltip\"></slot>\n                    <slot name=\"description\"></slot>\n                  </plasmic-component>\n                  <plasmic-component id=\"LXnAng1rFMKV\" data-plasmic-component=\"plasmicAntd6FormItem\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"DeadlineItem\" data-props='{\"name\":\"produceDeadline\",\"rules\":[{\"ruleType\":\"required\",\"message\":\"请选择产出截止时间\"}]}' style=\"width: stretch; margin-bottom: 24px; max-width: 100%; object-fit: cover; flex-grow: 1; flex-shrink: 1; flex-basis: 0px; min-width: 0px\">\n                    <slot name=\"label\">\n                      <span id=\"UzO3_GFWtCVL\" label=\"DeadlineItemLabel\">产出截止时间</span>\n                    </slot>\n                    <slot name=\"children\">\n                      <plasmic-component id=\"u-aWi0twfwmd\" data-plasmic-component=\"plasmicAntd6TimePicker\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"DeadlineTime\" data-props='{\"format\":\"HH:mm:ss\"}' style=\"max-width: 100%; object-fit: cover\"></plasmic-component>\n                    </slot>\n                    <slot name=\"tooltip\"></slot>\n                    <slot name=\"description\"></slot>\n                  </plasmic-component>\n                </div>\n                <div id=\"1VjyfvsxEbMO\" label=\"BasicRowMode\" style=\"display: flex; flex-direction: row; width: 100%; min-width: 0px; margin-top: 16px; column-gap: 16px\">\n                  <plasmic-component id=\"GTfu_6QNtNn-\" data-plasmic-component=\"plasmicAntd6FormItem\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"RefreshItem\" data-props='{\"name\":\"refreshMode\"}' style=\"width: stretch; margin-bottom: 24px; max-width: 100%; object-fit: cover; flex-grow: 1; flex-shrink: 1; flex-basis: 0px; min-width: 0px\">\n                    <slot name=\"label\">\n                      <span id=\"aMWcxnLNn5lE\" label=\"RefreshItemLabel\">刷新模式</span>\n                    </slot>\n                    <slot name=\"children\">\n                      <plasmic-component id=\"C2Q7yzhDO2k1\" data-plasmic-component=\"plasmicAntd6Select\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"RefreshSelect\" data-props='{\"options\":[{\"value\":\"DYNAMIC\",\"label\":\"T+1 动态\"}]}' style=\"max-width: 100%; object-fit: cover\">\n                        <slot name=\"placeholder\"></slot>\n                        <slot name=\"children\"></slot>\n                        <slot name=\"suffixIcon\"></slot>\n                      </plasmic-component>\n                    </slot>\n                    <slot name=\"tooltip\"></slot>\n                    <slot name=\"description\"></slot>\n                  </plasmic-component>\n                  <plasmic-component id=\"Vyq-oWdZ9KAg\" data-plasmic-component=\"plasmicAntd6FormItem\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"TypeItem\" data-props='{\"name\":\"groupType\"}' style=\"width: stretch; margin-bottom: 24px; max-width: 100%; object-fit: cover; flex-grow: 1; flex-shrink: 1; flex-basis: 0px; min-width: 0px\">\n                    <slot name=\"label\">\n                      <span id=\"tshMkPvg50iQ\" label=\"TypeItemLabel\">客群类型</span>\n                    </slot>\n                    <slot name=\"children\">\n                      <plasmic-component id=\"FJOr-UdrpDTD\" data-plasmic-component=\"plasmicAntd6Input\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"TypeInput\" data-props='{\"readOnly\":true,\"disabled\":true}' style=\"max-width: 100%; object-fit: cover\">\n                        <slot name=\"prefix\"></slot>\n                        <slot name=\"suffix\"></slot>\n                      </plasmic-component>\n                    </slot>\n                    <slot name=\"tooltip\"></slot>\n                    <slot name=\"description\"></slot>\n                  </plasmic-component>\n                </div>\n              </slot>\n              <slot name=\"submitSlot\"></slot>\n            </plasmic-component>\n          </slot>\n        </plasmic-component>\n        <plasmic-component id=\"JHicDolnEeXG\" data-plasmic-component=\"plasmicAntd6Card\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"SqlCard\" data-props='{\"size\":\"medium\",\"variant\":\"outlined\",\"styles\":{\"body\":{\"padding\":\"16px 20px\"}}}' style=\"max-width: 100%; object-fit: cover\">\n          <slot name=\"title\"></slot>\n          <slot name=\"extra\">\n            <div id=\"X8dwfIWE9Qxo\" label=\"SqlCardActions\" style=\"display: flex; flex-direction: row; align-items: center; column-gap: 8px\">\n              <plasmic-component id=\"jv8opusj7uSl\" data-plasmic-component=\"plasmicAntd6Button\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"FormatButton\" data-props='{\"type\":\"default\",\"iconPlacement\":\"start\"}' style=\"max-width: 100%; object-fit: cover\">\n                <slot name=\"icon\"></slot>\n                <slot name=\"children\">\n                  <span id=\"WX72gZHLvvsA\" label=\"FormatButtonText\">格式化</span>\n                </slot>\n              </plasmic-component>\n              <plasmic-component id=\"LyqdIbpQGV0W\" data-plasmic-component=\"plasmicAntd6Button\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"ValidateButton\" data-props='{\"type\":\"default\",\"iconPlacement\":\"start\"}' style=\"max-width: 100%; object-fit: cover\">\n                <slot name=\"icon\"></slot>\n                <slot name=\"children\">\n                  <span id=\"wy9DL0CidmoT\" label=\"ValidateButtonText\">校验</span>\n                </slot>\n              </plasmic-component>\n            </div>\n          </slot>\n          <slot name=\"cover\"></slot>\n          <slot name=\"actions\"></slot>\n          <slot name=\"children\">\n            <div id=\"h8POLpKAzjIP\" label=\"SqlCardBody\" style=\"display: flex; flex-direction: column; width: 100%; min-width: 0px; row-gap: 12px\">\n              <plasmic-component id=\"3QIs63yFUZF1\" data-plasmic-component=\"plasmicAntd6Textarea\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"SqlEditor\" data-props='{\"value\":\"{{ $state.sqlText }}\",\"placeholder\":\"请输入只读 SELECT 语句\"}' style=\"max-width: 100%; object-fit: cover; width: 100%; min-height: 220px; font-family: Menlo; font-size: 13px\"></plasmic-component>\n              <plasmic-component id=\"dDsfBjhpXyTp\" data-plasmic-component=\"plasmicAntd6Alert\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"CheckAlert\" data-props='{\"type\":\"success\",\"showIcon\":true}' style=\"max-width: 100%; object-fit: cover\">\n                <slot name=\"title\">\n                  <span id=\"t7ECUqIkAYMY\" label=\"CheckAlertTitle\">校验通过</span>\n                </slot>\n                <slot name=\"description\"></slot>\n                <slot name=\"action\"></slot>\n                <slot name=\"icon\"></slot>\n              </plasmic-component>\n              <plasmic-component id=\"P2DAK2461ubQ\" data-plasmic-component=\"plasmicAntd6Descriptions\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"CheckDescriptions\" data-props='{\"column\":1,\"layout\":\"horizontal\",\"size\":\"medium\",\"bordered\":false}' style=\"max-width: 100%; object-fit: cover\">\n                <slot name=\"title\"></slot>\n                <slot name=\"children\">\n                  <plasmic-component id=\"nB53GhzXo4-t\" data-plasmic-component=\"plasmicAntd6DescriptionsItem\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"CheckSyntaxItem\" data-props='{\"key\":\"CheckSyntaxItem\"}' style=\"max-width: 100%; object-fit: cover\">\n                    <slot name=\"label\">\n                      <span id=\"yLeYczPtA3ZL\" label=\"CheckSyntaxItemLabel\">语句合法性</span>\n                    </slot>\n                    <slot name=\"children\">\n                      <span id=\"mzy4pg64nb46\" label=\"CheckSyntaxItemText\">仅 SELECT</span>\n                    </slot>\n                  </plasmic-component>\n                  <plasmic-component id=\"O9COtS8XUGlQ\" data-plasmic-component=\"plasmicAntd6DescriptionsItem\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"CheckSourceItem\" data-props='{\"key\":\"CheckSourceItem\"}' style=\"max-width: 100%; object-fit: cover\">\n                    <slot name=\"label\">\n                      <span id=\"sIBSXOSdvOB4\" label=\"CheckSourceItemLabel\">底表</span>\n                    </slot>\n                    <slot name=\"children\">\n                      <span id=\"pqt09Jm0DqGc\" label=\"CheckSourceItemText\">dwt/cdm</span>\n                    </slot>\n                  </plasmic-component>\n                  <plasmic-component id=\"3800h7n9InnM\" data-plasmic-component=\"plasmicAntd6DescriptionsItem\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"CheckRoleItem\" data-props='{\"key\":\"CheckRoleItem\"}' style=\"max-width: 100%; object-fit: cover\">\n                    <slot name=\"label\">\n                      <span id=\"a2bFFs9D32Iz\" label=\"CheckRoleItemLabel\">权限</span>\n                    </slot>\n                    <slot name=\"children\">\n                      <span id=\"U2bzXr2xY2RY\" label=\"CheckRoleItemText\">运营及以上</span>\n                    </slot>\n                  </plasmic-component>\n                  <plasmic-component id=\"eCXM5XIcIHFB\" data-plasmic-component=\"plasmicAntd6DescriptionsItem\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"CheckColumnItem\" data-props='{\"key\":\"CheckColumnItem\"}' style=\"max-width: 100%; object-fit: cover\">\n                    <slot name=\"label\">\n                      <span id=\"KszgwKSYPoey\" label=\"CheckColumnItemLabel\">结果字段</span>\n                    </slot>\n                    <slot name=\"children\">\n                      <span id=\"xWskazsWW0Mr\" label=\"CheckColumnItemText\">uid+app_source</span>\n                    </slot>\n                  </plasmic-component>\n                  <plasmic-component id=\"WI9cxtGISwA4\" data-plasmic-component=\"plasmicAntd6DescriptionsItem\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"CheckFilterItem\" data-props='{\"key\":\"CheckFilterItem\"}' style=\"max-width: 100%; object-fit: cover\">\n                    <slot name=\"label\">\n                      <span id=\"Npmkwq4k-FFd\" label=\"CheckFilterItemLabel\">结尾过滤</span>\n                    </slot>\n                    <slot name=\"children\">\n                      <span id=\"GI2MYt5E4gJX\" label=\"CheckFilterItemText\">app_source</span>\n                    </slot>\n                  </plasmic-component>\n                </slot>\n              </plasmic-component>\n              <plasmic-component id=\"1JV16FcmNH8E\" data-plasmic-component=\"plasmicAntd6Statistic\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"HitCountStatistic\" data-props='{\"value\":\"{{ $state.hitCount }}\"}' style=\"max-width: 100%; object-fit: cover\">\n                <slot name=\"title\">\n                  <span id=\"jdpFjvcZlXdi\" label=\"HitCountStatisticTitle\">命中规模</span>\n                </slot>\n                <slot name=\"prefix\"></slot>\n                <slot name=\"suffix\">\n                  <span id=\"hodB03LZ1iBD\" label=\"HitCountStatisticSuffix\">人</span>\n                </slot>\n              </plasmic-component>\n              <plasmic-component id=\"q29c_hsvpDi7\" data-plasmic-component=\"plasmicAntd6Table\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"PreviewTable\" data-props='{\"data\":\"{{ ({data: $state.sampleRows.filter(r => r.appSource===$state.appSource)}) }}\",\"rowKey\":\"id\",\"size\":\"large\",\"pagination\":{\"defaultPageSize\":10,\"pageSizeOptions\":[10,20,50],\"showSizeChanger\":true,\"showTotal\":\"{{ (total, range) => `共 ${total} 条` }}\"},\"scroll\":{\"x\":900}}' style=\"max-width: 100%; object-fit: cover; width: 100%; min-width: 0px\">\n                <slot name=\"children\">\n                  <plasmic-component id=\"fDZt8dQn8H3A\" data-plasmic-component=\"plasmicAntd6TableColumn\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"SampleUidColumn\" data-props='{\"displayType\":\"text\",\"dataIndex\":\"id\",\"ellipsis\":true}' style=\"max-width: 100%; object-fit: cover\">\n                    <slot name=\"title\">\n                      <span id=\"XSIj38mtJQTH\" label=\"SampleUidColumnTitle\">UID</span>\n                    </slot>\n                    <slot name=\"render\"></slot>\n                  </plasmic-component>\n                  <plasmic-component id=\"0nHJ6fGeMnzX\" data-plasmic-component=\"plasmicAntd6TableColumn\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"SampleRegColumn\" data-props='{\"displayType\":\"text\",\"dataIndex\":\"registerDate\",\"width\":168}' style=\"max-width: 100%; object-fit: cover\">\n                    <slot name=\"title\">\n                      <span id=\"Agg9q6yAwpSm\" label=\"SampleRegColumnTitle\">注册时间</span>\n                    </slot>\n                    <slot name=\"render\"></slot>\n                  </plasmic-component>\n                  <plasmic-component id=\"glFLHuDWWXBj\" data-plasmic-component=\"plasmicAntd6TableColumn\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"SampleSourceColumn\" data-props='{\"displayType\":\"text\",\"dataIndex\":\"appSource\",\"width\":112}' style=\"max-width: 100%; object-fit: cover\">\n                    <slot name=\"title\">\n                      <span id=\"PdVxjozVMeR1\" label=\"SampleSourceColumnTitle\">App来源</span>\n                    </slot>\n                    <slot name=\"render\"></slot>\n                  </plasmic-component>\n                  <plasmic-component id=\"4ivIhXyg2YCv\" data-plasmic-component=\"plasmicAntd6TableColumn\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"SampleCreditColumn\" data-props='{\"displayType\":\"custom\",\"dataIndex\":\"creditStatus\",\"width\":120}' style=\"max-width: 100%; object-fit: cover\">\n                    <slot name=\"title\">\n                      <span id=\"BfrW_cj83mt4\" label=\"SampleCreditColumnTitle\">授信状态</span>\n                    </slot>\n                    <slot name=\"render\">\n                      <plasmic-component id=\"kivwgCBiDjhG\" data-plasmic-component=\"plasmicAntd6Badge\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"SampleCreditBadge\" data-props='{\"status\":\"{{ [`success`,`error`,`processing`][[`已授信`,`已拒绝`,`审批中`].indexOf(row.creditStatus)] }}\",\"text\":\"{{ row.creditStatus }}\"}' style=\"max-width: 100%; object-fit: cover\">\n                        <slot name=\"children\"></slot>\n                      </plasmic-component>\n                    </slot>\n                  </plasmic-component>\n                  <plasmic-component id=\"b7ycfCEHKBeK\" data-plasmic-component=\"plasmicAntd6TableColumn\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"SampleLoanColumn\" data-props='{\"displayType\":\"custom\",\"dataIndex\":\"loanStatus\",\"width\":120}' style=\"max-width: 100%; object-fit: cover\">\n                    <slot name=\"title\">\n                      <span id=\"HM9RECTudVvR\" label=\"SampleLoanColumnTitle\">借据状态</span>\n                    </slot>\n                    <slot name=\"render\">\n                      <plasmic-component id=\"mlx_sdxynldu\" data-plasmic-component=\"plasmicAntd6Badge\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"SampleLoanBadge\" data-props='{\"status\":\"{{ [`default`,`processing`,`error`][[`结清`,`在贷`,`逾期`].indexOf(row.loanStatus)] }}\",\"text\":\"{{ row.loanStatus }}\"}' style=\"max-width: 100%; object-fit: cover\">\n                        <slot name=\"children\"></slot>\n                      </plasmic-component>\n                    </slot>\n                  </plasmic-component>\n                </slot>\n                <slot name=\"title\"></slot>\n              </plasmic-component>\n            </div>\n          </slot>\n        </plasmic-component>\n        <div id=\"3tquHIisD1hf\" label=\"SelectorFooter\" style=\"display: flex; flex-direction: row; justify-content: flex-end; width: 100%; column-gap: 12px\">\n          <plasmic-component id=\"8FRpl3RRMUhG\" data-plasmic-component=\"plasmicAntd6Button\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"SubmitButton\" data-props='{\"type\":\"primary\",\"iconPlacement\":\"start\"}' style=\"max-width: 100%; object-fit: cover\">\n            <slot name=\"icon\"></slot>\n            <slot name=\"children\">\n              <span id=\"cez-6kMjqEhY\" label=\"SubmitButtonText\">提交</span>\n            </slot>\n          </plasmic-component>\n          <plasmic-component id=\"cAsaD1xVKdmG\" data-plasmic-component=\"plasmicAntd6Button\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"SaveSqlButton\" data-props='{\"type\":\"default\",\"iconPlacement\":\"start\"}' style=\"max-width: 100%; object-fit: cover\">\n            <slot name=\"icon\"></slot>\n            <slot name=\"children\">\n              <span id=\"cAuTRRfoLlm5\" label=\"SaveSqlButtonText\">保存 SQL</span>\n            </slot>\n          </plasmic-component>\n          <plasmic-component id=\"PvdYVg_5b-d7\" data-plasmic-component=\"plasmicAntd6Button\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"OnlineButton\" data-props='{\"type\":\"default\",\"iconPlacement\":\"start\"}' style=\"max-width: 100%; object-fit: cover\">\n            <slot name=\"icon\"></slot>\n            <slot name=\"children\">\n              <span id=\"qxeznVB5nnZJ\" label=\"OnlineButtonText\">上线</span>\n            </slot>\n          </plasmic-component>\n          <plasmic-component id=\"ke9jsR1O_AL5\" data-plasmic-component=\"plasmicAntd6Button\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"CancelButton\" data-props='{\"type\":\"default\",\"iconPlacement\":\"start\"}' style=\"max-width: 100%; object-fit: cover\">\n            <slot name=\"icon\"></slot>\n            <slot name=\"children\">\n              <span id=\"im27CR5-Z7xx\" label=\"CancelButtonText\">取消</span>\n            </slot>\n          </plasmic-component>\n        </div>\n        <plasmic-component id=\"E9zSliOX2PE6\" data-plasmic-component=\"plasmicAntd6Modal\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"PreflightModal\" data-props='{\"open\":\"{{ $state.preflightOpen }}\",\"width\":\"640\"}' style=\"max-width: 100%; object-fit: cover\">\n          <slot name=\"trigger\"></slot>\n          <slot name=\"title\">\n            <span id=\"oHOxRgtuyrkG\" label=\"PreflightTitle\">预跑结果</span>\n          </slot>\n          <slot name=\"children\">\n            <plasmic-component id=\"V9fPs8DnBcZA\" data-plasmic-component=\"plasmicAntd6Alert\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"PreflightRunning\" data-props='{\"type\":\"info\",\"showIcon\":true}' style=\"max-width: 100%; object-fit: cover\" data-visible-if=\"{{ $state.preflightState === `running` }}\">\n              <slot name=\"title\">\n                <span id=\"YLYBrWHg52_i\" label=\"PreflightRunningTitle\">预跑进行中，请稍候</span>\n              </slot>\n              <slot name=\"description\"></slot>\n              <slot name=\"action\"></slot>\n              <slot name=\"icon\"></slot>\n            </plasmic-component>\n            <plasmic-component id=\"G1ghD5h-wjz8\" data-plasmic-component=\"plasmicAntd6Alert\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"PreflightSuccessAlert\" data-props='{\"type\":\"success\",\"showIcon\":true}' style=\"max-width: 100%; object-fit: cover\" data-visible-if=\"{{ $state.preflightState === `success` }}\">\n              <slot name=\"title\">\n                <span id=\"krIT2Eq0-iH5\" label=\"PreflightSuccessAlertTitle\">预跑成功 · 命中规模 12,340 人</span>\n              </slot>\n              <slot name=\"description\"></slot>\n              <slot name=\"action\"></slot>\n              <slot name=\"icon\"></slot>\n            </plasmic-component>\n            <plasmic-component id=\"jf_YA7p2Qb2E\" data-plasmic-component=\"plasmicAntd6Alert\" data-plasmic-project=\"eYLujTHmWfX9qEoQaFDSi4\" data-plasmic-name=\"PreflightFailedAlert\" data-props='{\"type\":\"error\",\"showIcon\":true}' style=\"max-width: 100%; object-fit: cover\" data-visible-if=\"{{ $state.preflightState === `failed` }}\">\n              <slot name=\"title\">\n                <span id=\"wgDM6lnc-bcV\" label=\"PreflightFailedAlertTitle\">预跑失败：底表分区缺失</span>\n              </slot>\n              <slot name=\"description\"></slot>\n              <slot name=\"action\"></slot>\n              <slot name=\"icon\"></slot>\n            </plasmic-component>\n          </slot>\n          <slot name=\"closeIcon\"></slot>\n          <slot name=\"footer\"></slot>\n        </plasmic-component>\n      </div>\n    </slot>\n  </plasmic-component>\n</div>",
+      "variantSettings": [],
+      "interactions": [
+        {
+          "__type": "Interaction",
+          "uuid": "gnmsCKqk_GtA",
+          "name": "syncAppSource",
+          "elementUuid": "NJATYyRzkI_k",
+          "eventName": "onAppSourceChange",
+          "actionName": "customFunction",
+          "code": "$state.appSource = value;"
+        },
+        {
+          "__type": "Interaction",
+          "uuid": "jZF0up8PTlGb",
+          "name": "saveBasicInfo",
+          "elementUuid": "7m2TWSJVSEUB",
+          "eventName": "onFinish",
+          "actionName": "customFunction",
+          "code": "$globalActions[\"plasmic-antd6-config-provider.showMessage\"](\"success\", \"基本信息已保存\", 3);"
+        },
+        {
+          "__type": "Interaction",
+          "uuid": "1cbh5aoFYP6k",
+          "name": "formatButtonAction",
+          "elementUuid": "jv8opusj7uSl",
+          "eventName": "onClick",
+          "actionName": "customFunction",
+          "code": "$state.sqlText = $state.sqlText.trim();"
+        },
+        {
+          "__type": "Interaction",
+          "uuid": "iI_qyMyqySIz",
+          "name": "validateButtonAction",
+          "elementUuid": "LyqdIbpQGV0W",
+          "eventName": "onClick",
+          "actionName": "customFunction",
+          "code": "const ok = $state.sqlText.indexOf(`SELECT`) === 0;$state.validated = ok; $state.checkPassed = ok;$globalActions[\"plasmic-antd6-config-provider.showMessage\"](ok ? \"success\" : \"error\", ok ? \"校验通过\" : \"校验失败\", 3);"
+        },
+        {
+          "__type": "Interaction",
+          "uuid": "W4Z06zSmhaQ9",
+          "name": "trackSqlText",
+          "elementUuid": "3QIs63yFUZF1",
+          "eventName": "onChange",
+          "actionName": "customFunction",
+          "code": "$state.sqlText = event && event.target ? event.target.value : event;"
+        },
+        {
+          "__type": "Interaction",
+          "uuid": "902OSIrHMn27",
+          "name": "submitButtonAction",
+          "elementUuid": "8FRpl3RRMUhG",
+          "eventName": "onClick",
+          "actionName": "customFunction",
+          "code": "$state.preflightOpen = true; $state.preflightState = `running`;$globalActions[\"plasmic-antd6-config-provider.showMessage\"](\"success\", \"已提交预跑\", 3);"
+        },
+        {
+          "__type": "Interaction",
+          "uuid": "kicu4z42bn6X",
+          "name": "saveSqlButtonAction",
+          "elementUuid": "cAsaD1xVKdmG",
+          "eventName": "onClick",
+          "actionName": "navigation",
+          "args": {
+            "destination": "/groups"
+          }
+        },
+        {
+          "__type": "Interaction",
+          "uuid": "w8-4j4MQqBQc",
+          "name": "onlineButtonAction",
+          "elementUuid": "PvdYVg_5b-d7",
+          "eventName": "onClick",
+          "actionName": "navigation",
+          "args": {
+            "destination": "/groups"
+          }
+        },
+        {
+          "__type": "Interaction",
+          "uuid": "T5dB0PQTUXSS",
+          "name": "cancelButtonAction",
+          "elementUuid": "ke9jsR1O_AL5",
+          "eventName": "onClick",
+          "actionName": "navigation",
+          "args": {
+            "destination": "/groups"
+          }
+        },
+        {
+          "__type": "Interaction",
+          "uuid": "jBPGTucEb6OM",
+          "name": "preflightModalAction",
+          "elementUuid": "E9zSliOX2PE6",
+          "eventName": "onCancel",
+          "actionName": "customFunction",
+          "code": "$state.preflightOpen = false;"
+        },
+        {
+          "__type": "Interaction",
+          "uuid": "P1Ge13JCCU79",
+          "name": "confirmPreflight",
+          "elementUuid": "E9zSliOX2PE6",
+          "eventName": "onOk",
+          "actionName": "customFunction",
+          "code": "$state.preflightOpen = false;"
+        }
+      ]
+    }
+  ]
+}

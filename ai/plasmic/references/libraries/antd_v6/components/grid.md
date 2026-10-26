@@ -9,6 +9,11 @@ Library: [Ant Design v6](../index.md).
 
 ## Generation rules
 
+### Design defaults
+
+- Use Row/Col for field grids and repeated equal cells; gutter 16.
+- Spans on the 24 grid: 8 for three per row (Page Forms), 6 for four per row (metric Cards), 12 for two per row, 24 for a full row.
+
 ### Row and Col
 
 Grid is maintained as one component-family document for the registered Row and Col. Row owns gutter, alignment, justification and wrapping; Col owns span, offset, order, flex and breakpoint configurations. Antd spans use a 24-column row. Plan normal and full-row allocations from actual available width, labels and content; account for offsets before deciding whether a row fits.

@@ -129,7 +129,30 @@ class CardOwnershipTests(unittest.TestCase):
             for child in ['Card title', '<span id="sample">Card title</span>']:
                 with self.subTest(slot=slot_name, child=child):
                     actual = expected.replace(f'<slot name="{slot_name}"></slot>', f'<slot name="{slot_name}">{child}</slot>')
-                    self.assert_only(check(expected, actual), 'unprovidedSlotChildren')
+                    result = check(expected, actual)
+                    if slot_name == 'extra':
+                        # A retained extra default also opens an extra-only header.
+                        self.assertTrue(result['cardHeaderPolicy'])
+                        result = {**result, 'cardHeaderPolicy': []}
+                    self.assert_only(result, 'unprovidedSlotChildren')
+
+    def test_extra_only_header_is_rejected_in_intent_and_readback(self):
+        title_and_extra = ('<plasmic-component data-plasmic-name="SqlCard" data-plasmic-component="plasmic-antd6-card">'
+                           '<slot name="title">{title}</slot><slot name="extra">'
+                           '<plasmic-component data-plasmic-name="FormatButton" data-plasmic-component="plasmic-antd6-button"></plasmic-component>'
+                           '</slot><slot name="children"><plasmic-component data-plasmic-name="SqlEditor" '
+                           'data-plasmic-component="plasmic-antd6-textarea"></plasmic-component></slot></plasmic-component>')
+        extra_only = title_and_extra.format(title='')
+        result = check(extra_only, extra_only)
+        self.assertEqual([e['source'] for e in result['cardHeaderPolicy']], ['intent', 'actual'])
+        self.assertFalse(result['passed'])
+        titled = title_and_extra.format(title='<span>SQL 编辑</span>')
+        self.assertEqual(check(titled, titled)['cardHeaderPolicy'], [])
+        headerless = ('<plasmic-component data-plasmic-name="SqlCard" data-plasmic-component="plasmic-antd6-card">'
+                      '<slot name="title"></slot><slot name="extra"></slot><slot name="children">'
+                      '<plasmic-component data-plasmic-name="SqlEditor" data-plasmic-component="plasmic-antd6-textarea"></plasmic-component>'
+                      '</slot></plasmic-component>')
+        self.assertEqual(check(headerless, headerless)['cardHeaderPolicy'], [])
 
     def test_hidden_default_does_not_fulfill_empty_header_intent(self):
         expected = CARD

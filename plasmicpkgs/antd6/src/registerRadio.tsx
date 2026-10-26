@@ -221,9 +221,6 @@ export function registerRadio(loader?: Registerable) {
     },
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerRadio",
     importName: "AntdRadioGroup",
-    defaultStyles: {
-      layout: "hbox",
-    },
     ...({
       trapsSelection: true,
     } as any),

@@ -32,10 +32,44 @@ def complete_layout(evidence, node_id):
         return False
 
 
+def reference_problems(ref, evidence):
+    """Validate the existing retained Pen evidence for one source region."""
+    if (not isinstance(ref, dict) or not all(isinstance(ref.get(key), str) and ref[key].strip() for key in ("filePath", "nodeId"))
+            or not Path(ref["filePath"]).is_absolute()):
+        return ["Reference requires an absolute original filePath and actual nodeId"]
+    if not isinstance(evidence, dict):
+        return ["Retained reference evidence must be an object"]
+    errors = []
+    # Pen/Node resolves paths lexically; do not follow /tmp symlinks here.
+    file = os.path.abspath(ref["filePath"])
+    key = json.dumps([file, ref["nodeId"]], ensure_ascii=False, separators=(",", ":"))
+    recorded = evidence.get("references", {}).get(key, {})
+    if not isinstance(recorded, dict):
+        return ["Complete paginated native Pen layout and original image evidence required"]
+    try:
+        source_valid = hashlib.sha256(Path(file).read_bytes()).hexdigest() == evidence.get("referenceHashes", {}).get(file)
+    except OSError:
+        source_valid = False
+    if not source_valid:
+        errors.append("Original Pen source hash is missing or changed")
+    if file not in evidence.get("referenceFiles", []) or not complete_layout(recorded, ref["nodeId"]):
+        errors.append("Complete paginated native Pen layout read required; text-only summaries are insufficient")
+    image = recorded.get("image", {})
+    try:
+        valid = (isinstance(image, dict) and image.get("kind") == "reference" and image.get("source", {}).get("provider") == "pen-mcp"
+                 and image["source"]["filePath"] == file and image["source"]["nodeId"] == ref["nodeId"]
+                 and Path(image["file"]).is_absolute()
+                 and hashlib.sha256(Path(image["file"]).read_bytes()).hexdigest() == image.get("sha256"))
+    except (OSError, KeyError, TypeError):
+        valid = False
+    if not valid:
+        errors.append("Intact screenshot from the original supplied Pen MCP frame required")
+    return errors
+
+
 def check(expected, readback, evidence):
     errors = []
     models = {model["uuid"]: model for model in readback["results"]}
-    files = set(evidence.get("referenceFiles", []))
     for page in expected["pages"]:
         model = models.get(page["componentUuid"])
         refs, regions = page.get("references", []), page.get("regions", [])
@@ -53,26 +87,6 @@ def check(expected, readback, evidence):
         if mapped != set(by_id):
             errors.append({"page": page.get("path"), "error": "Every reference state requires a semantic region mapping"})
         for ref in refs:
-            # Pen MCP/Node identifies a document with path.resolve(), which is
-            # lexical. Do not follow /tmp -> /private/tmp symlinks only here.
-            file = os.path.abspath(ref["filePath"])
-            key = json.dumps([file, ref["nodeId"]], ensure_ascii=False, separators=(",", ":"))
-            recorded = evidence.get("references", {}).get(key, {})
-            try:
-                source_valid = hashlib.sha256(Path(file).read_bytes()).hexdigest() == evidence.get("referenceHashes", {}).get(file)
-            except OSError:
-                source_valid = False
-            if not source_valid:
-                errors.append({"page": page.get("path"), "referenceId": ref["id"], "error": "Original Pen source hash is missing or changed"})
-            if file not in files or not complete_layout(recorded, ref["nodeId"]):
-                errors.append({"page": page.get("path"), "referenceId": ref["id"], "error": "Complete paginated native Pen layout read required; text-only summaries are insufficient"})
-            image = recorded.get("image", {})
-            try:
-                valid = (image.get("kind") == "reference" and image.get("source", {}).get("provider") == "pen-mcp"
-                         and image["source"]["filePath"] == file and image["source"]["nodeId"] == ref["nodeId"]
-                         and hashlib.sha256(Path(image["file"]).read_bytes()).hexdigest() == image.get("sha256"))
-            except (OSError, KeyError, TypeError):
-                valid = False
-            if not valid:
-                errors.append({"page": page.get("path"), "referenceId": ref["id"], "error": "Intact screenshot from the original supplied Pen MCP frame required"})
+            errors.extend({"page": page.get("path"), "referenceId": ref["id"], "error": problem}
+                          for problem in reference_problems(ref, evidence))
     return {"passed": not errors, "errors": errors, "notChecked": ["correctness of source interpretation", "visual fidelity and adaptation decisions"]}

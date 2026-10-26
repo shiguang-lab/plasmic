@@ -9,6 +9,13 @@ Library: [Ant Design v6](../index.md).
 
 ## Generation rules
 
+### Design defaults
+
+- Use status Badge for lifecycle or processing states in Table columns and Descriptions: dot plus the complete state text.
+- Map states to the five presets by meaning: active/success `success`, running `processing`, inactive/draft `default`, failed `error`, attention `warning`.
+
+### Usage and behavior
+
 Use Badge `status` (a supported semantic preset) plus `text` for lifecycle/processing status. Categories choose text or Tag under the [Tag/text rules](tag.md#tag-or-text); an enum alone does not require either Badge or Tag. Read the installed `status`/`text` contract and keep status meaning consistent with the business value. Do not leave demo children/counts in status rendering.
 
 ### Status columns and row mapping
@@ -23,7 +30,7 @@ A per-row status therefore maps the row value inside the binding expressions, no
 | `text` | Expression that renders the row's visible status label |
 | Column declaration | `statusMap` `{value: {status, label}}` recording the mapping the expression renders, covering every state |
 
-A literal `status`/`text` in a status Column gives every row the same presentation and fails generation. A standalone status Badge may use a literal preset `status` plus literal `text`. Every state shows complete visible text; color never carries meaning alone.
+A literal `status`/`text` in a status Column gives every row the same presentation and fails generation. A standalone status Badge may use a literal preset `status` plus literal `text`, or bind both to the current record/business state. Dynamic status values still resolve to the five presets and text to the complete visible label. Verify changed records and state transitions in Preview; being outside a Table does not make a status static. Color never carries meaning alone.
 
 ### Count, dot and Badge.Ribbon
 

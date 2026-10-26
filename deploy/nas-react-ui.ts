@@ -35,7 +35,9 @@ async function main() {
           )
         : undefined;
       if (pkg) {
-        await publishHostlessProject(db, pkg.projectId);
+        await publishHostlessProject(db, pkg.projectId, {
+          breaking: process.argv.includes("--breaking"),
+        });
       }
       const dependency = pkg
         ? await unbundlePkgVersion(db, bundler, await db.getPkgVersion(pkg.id))

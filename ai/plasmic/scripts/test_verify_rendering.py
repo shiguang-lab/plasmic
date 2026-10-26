@@ -51,3 +51,7 @@ class RenderingTests(unittest.TestCase):
         self.assertTrue(check(self.layout, ["page"])["passed"])
         frame["elements"] = [cell(155, 162)]
         self.assertTrue(check(self.layout, ["page"])["passed"], "Rounding up stays within slack")
+
+
+if __name__ == "__main__":
+    unittest.main()

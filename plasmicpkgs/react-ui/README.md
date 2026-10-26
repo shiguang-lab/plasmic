@@ -4,11 +4,16 @@
 
 | Component | Registration | Behavior |
 | --- | --- | --- |
-| ActionGroup | `plasmic-react-ui-action-group` | Editable actions, links, confirmations and `onAction(key)` |
+| ActionGroup | `plasmic-react-ui-action-group` | Native action items and folding, with `onAction(key)` for Studio interactions |
 | ResourceAuthorization | `plasmic-react-ui-resource-authorization` | Create personalized authorization for a user or department |
 | ResourceAuthorization.Record | `plasmic-react-ui-resource-authorization-record` | View permissions and delete personalized policies after confirmation |
 
 Install **React UI** through **Component Store → Business components**, beside Overseas. Installation adds React UI to Installed; the default host and Overseas do not register it. The local dependency and source scope are documented in [vendor/react-ui](../../vendor/react-ui/README.md).
+
+ActionGroup keeps the native item fields and More-menu defaults. Bind navigation
+through `onAction`; compose confirmation with a registered Popconfirm and a native
+`span` named `RowActionAnchor` around ActionGroup so the popup has a DOM positioning
+anchor. See the [row-confirmation composition](../../ai/plasmic/references/libraries/antd_v6/components/popconfirm.md#row-confirmation-composition).
 
 The drawers expose their real `open`, `resourceTypeCode`, `resourceId`, `title`,
 `width`, `apiSources`, `onClose()` and `onSuccess()` contract. ResourceAuthorization
@@ -35,3 +40,14 @@ from the native component. See the [generation contract](../../ai/plasmic/refere
 Build Antd6 before React UI, then build Canvas packages. Updating an installed
 library also requires publishing the hostless React UI project and upgrading the
 consuming project's dependency; see [deployment](../../deploy/README.md#react-ui-business-components).
+
+For this contract cleanup, publish with the explicit breaking flag:
+
+```bash
+docker compose run --rm server src/wab/server/nas-react-ui.ts --breaking
+```
+
+Removing nested item fields such as `confirm` and `href` changes behavior without
+removing a top-level parameter, so it is not covered by automatic parameter-removal
+detection. `--breaking` selects a major version for a changed library; omit it for
+later compatible updates. It does not publish an unchanged library again.

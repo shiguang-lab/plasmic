@@ -12,7 +12,7 @@ function registerSlider(loader) {
   registerComponentHelper(loader, AntdSlider, {
     name: sliderComponentName,
     displayName: "Slider",
-    defaultStyles: { width: "300px" },
+    defaultStyles: { width: "stretch" },
     props: {
       range: { type: "object", description: "Boolean or Antd range configuration, such as { draggableTrack: true }." },
       value: { type: "object", editOnly: true, uncontrolledProp: "defaultValue", description: "Number for a single handle, array of numbers for range mode." },

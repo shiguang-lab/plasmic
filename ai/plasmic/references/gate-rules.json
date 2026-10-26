@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "purpose": "Rule owners for gates, shared diagnostics and Page-level plan decisions. Paths are relative to the resource root. Library-specific owners live in references/libraries/*/rules.json.",
+  "purpose": "Rule owners for gates, shared diagnostics and Page-level plan decisions; project and Page composition documents selected by page type. Paths are relative to the resource root. Library-specific owners live in references/libraries/*/rules.json.",
   "gates": {
     "evidence": "references/verification.md#collect-and-verify",
     "configuration": "references/verification.md#reviewed-suite-configuration",
@@ -15,7 +15,8 @@
     "slots": "references/verification.md#slot-intent-granularity",
     "shell_height": "references/design/layout.md#viewport-shell-height-acceptance",
     "references": "references/design-references.md",
-    "selection": "references/libraries/antd_v6/selection.md#decision-routes"
+    "selection": "references/libraries/antd_v6/selection.md#decision-routes",
+    "review": "references/review-mode.md#rule-review"
   },
   "checks": {
     "actionConfirmation": "references/design/component-policy.md#business-actions-and-transitions",
@@ -24,6 +25,8 @@
     "binding": "references/requirement-alignment.md#structural-gate",
     "componentPolicy": "references/design/component-policy.md#protected-configuration",
     "componentUse": "references/requirement-alignment.md#structural-gate",
+    "cardHeader": "references/libraries/antd_v6/components/card.md#card-headers",
+    "wireframe": "references/design/text-wireframes.md#inventory",
     "contentPlan": "references/design/content-review.md#before-generation",
     "control": "references/requirement-alignment.md#behavior-and-field-matrix",
     "copyCoverage": "references/design/content-review.md#saved-model-acceptance",
@@ -42,7 +45,8 @@
     "readback": "references/verification.md#collect-and-verify",
     "referenceReads": "references/planning.md#rules-card-and-read-ledger",
     "requirement": "references/requirement-alignment.md#source-and-scope",
-    "runtimePlan": "references/design/runtime-cases.md#planning-order",
+    "runtimePlan": "references/design/component-policy.md#case-planning-order",
+    "pageBody": "references/design/scale.md#spacing",
     "selectionCoverage": "references/libraries/antd_v6/selection.md#existing-inventory-independent-expectations",
     "selectionIdentity": "references/libraries/antd_v6/selection.md#decision-routes",
     "selectionPlan": "references/libraries/antd_v6/selection.md#existing-inventory-independent-expectations",
@@ -58,6 +62,8 @@
     "name": "references/design/naming.md#project-directory-names",
     "pageHeader": "references/design/layout.md#admin-content-entry",
     "templates": "references/admin-templates.md#source-evidence-before-composition",
+    "wireframe": "references/design/text-wireframes.md#inventory",
+    "pageType": "references/design/page-types.md#choosing-the-type",
     "nodes": "references/design/content-review.md#before-generation",
     "copy": "references/design/content-review.md#before-generation",
     "bindings": "references/requirement-alignment.md#structural-gate",
@@ -66,5 +72,99 @@
     "appContext": "references/design/component-policy.md#app-context-inventory",
     "rowActions": "references/requirement-alignment.md#structural-gate",
     "actionContracts": "references/design/component-policy.md#business-actions-and-transitions"
+  },
+  "projectRules": [
+    "references/libraries/index.md",
+    "references/design/layout.md",
+    "references/design/naming.md",
+    "references/design/content-review.md",
+    "references/design/accessibility.md"
+  ],
+  "projectRulesWhen": {
+    "recordPage": [
+      "references/design/record-context.md"
+    ],
+    "actionContracts": [
+      "references/design/permissions.md"
+    ]
+  },
+  "pageRules": {
+    "pageType": {
+      "list": [
+        "references/libraries/overseas/compositions/search-table.md",
+        "references/libraries/antd_v6/compositions/action-bars.md"
+      ],
+      "tabbed-list": [
+        "references/libraries/overseas/compositions/search-table.md",
+        "references/libraries/antd_v6/compositions/action-bars.md"
+      ],
+      "catalog-workspace": [
+        "references/libraries/antd_v6/compositions/master-detail.md",
+        "references/libraries/overseas/compositions/search-table.md"
+      ],
+      "basic-form": [
+        "references/libraries/antd_v6/compositions/form-layout.md",
+        "references/libraries/antd_v6/compositions/action-bars.md"
+      ],
+      "grouped-form": [
+        "references/libraries/antd_v6/compositions/form-layout.md",
+        "references/libraries/antd_v6/compositions/action-bars.md"
+      ],
+      "step-form": [
+        "references/libraries/antd_v6/compositions/step-form.md",
+        "references/libraries/antd_v6/compositions/form-layout.md",
+        "references/libraries/antd_v6/compositions/action-bars.md"
+      ],
+      "basic-detail": [
+        "references/libraries/antd_v6/compositions/summary-metrics.md"
+      ],
+      "tabbed-detail": [
+        "references/libraries/antd_v6/compositions/summary-metrics.md"
+      ],
+      "overview": [
+        "references/libraries/antd_v6/compositions/summary-metrics.md"
+      ],
+      "result": [
+        "references/libraries/antd_v6/compositions/content-states.md"
+      ]
+    },
+    "when": {
+      "overlay": [
+        "references/libraries/antd_v6/compositions/modal-drawer.md"
+      ],
+      "feedback": [
+        "references/libraries/antd_v6/compositions/action-bars.md",
+        "references/libraries/antd_v6/components/config-provider.md"
+      ],
+      "asynchronousFeedback": [
+        "references/libraries/antd_v6/compositions/content-states.md"
+      ],
+      "contentStates": [
+        "references/libraries/antd_v6/compositions/content-states.md"
+      ],
+      "tableSelection": [
+        "references/libraries/antd_v6/compositions/bulk-actions.md"
+      ],
+      "stepForm": [
+        "references/libraries/antd_v6/compositions/step-form.md",
+        "references/libraries/antd_v6/compositions/form-layout.md",
+        "references/libraries/antd_v6/compositions/action-bars.md"
+      ],
+      "summaryMetrics": [
+        "references/libraries/antd_v6/compositions/summary-metrics.md"
+      ],
+      "searchTable": [
+        "references/libraries/overseas/compositions/search-table.md"
+      ],
+      "categoryColumn": [
+        "references/libraries/antd_v6/components/tag.md"
+      ],
+      "pageHeader": [
+        "references/libraries/antd_v6/compositions/detail-header.md"
+      ],
+      "wireframe": [
+        "references/design/text-wireframes.md"
+      ]
+    }
   }
 }

@@ -8,9 +8,16 @@ Library: [Ant Design v6](../index.md).
 
 ## Generation rules
 
-For PC pointer interaction, ordinary Dropdown menus **must use the hover generation baseline**, including creation, language and account menus. Keep Ant Design enter/leave delays so moving from the trigger into the menu does not close it; item selection executes the action and closes the menu. Use click only for an explicit click/touch requirement and record its [source-backed override](../../../design/component-policy.md#protected-configuration); contextMenu requires an actual right-click requirement. Availability of the trigger Prop is not permission to choose click for convenience. ActionGroup's equivalent protected property is dropdownProps.trigger=["hover"].
+### Design defaults
 
-Read the live contract: Dropdown exposes trigger="hover". [ActionGroup](../../react_ui/components/action-group.md) has its own dropdownProps mapping. Select, Cascader and date pickers remain click-operated form controls; Popconfirm remains an explicit click confirmation.
+- Use for three or more related actions behind one trigger, or a creation menu; two actions stay as Buttons.
+- The trigger is a Button with the action label and a down icon; menu items use the source wording and order; destructive items last.
+
+### Usage and behavior
+
+For PC pointer interaction, ordinary Dropdown menus **must use the hover generation baseline**, including creation, language and account menus. Keep Ant Design enter/leave delays so moving from the trigger into the menu does not close it; item selection executes the action and closes the menu. Use click only for an explicit click/touch requirement and record its [source-backed override](../../../design/component-policy.md#protected-configuration); contextMenu requires an actual right-click requirement. Availability of the trigger Prop is not permission to choose click for convenience.
+
+Read the live contract: ordinary Dropdown exposes trigger="hover". [ActionGroup](../../react_ui/components/action-group.md) owns its separate More-menu contract and keeps @react/ui's native click default; an explicitly requested hover interaction can use its native dropdownProps. The ordinary Dropdown baseline does not override that default. Select, Cascader and date pickers remain click-operated form controls; Popconfirm remains an explicit click confirmation.
 
 Preserve a source-defined grouped create menu as one Dropdown trigger with its ordered menu choices. Discover `children`, `menuItems`/`menuItemsJson`, `useMenuItemsSlot` and `onAction` from the installed contract; a list of possible destinations is not permission to replace the menu with sibling Buttons. Shared tabbed-list actions follow [the Tabs extra ownership rule](../../overseas/compositions/search-table.md#query-and-list-structure).
 

@@ -5,7 +5,6 @@ var cls = require('classnames');
 var React = require('react');
 var canvasOverlay$1 = require('./canvas-overlay-BCQmyJjQ.cjs.js');
 var names = require('./names-DbJduus8.cjs.js');
-var reactUtils = require('./react-utils-CP3JYj1p.cjs.js');
 var utils = require('./utils-DMWa5SeG.cjs.js');
 require('@plasmicapp/host');
 require('@plasmicapp/host/registerComponent');
@@ -59,10 +58,6 @@ function AntdSelect(props) {
           }
         };
       },
-      optionFilterProp: curated.optionFilterProp ?? (curated.options ? "label" : void 0),
-      filterOption: curated.filterOption ?? (curated.optionFilterProp ? void 0 : (input, option) => reactUtils.reactNodeToString(
-        useChildren ? option?.children : option?.label ?? option?.value ?? ""
-      ).toLowerCase().includes(input.toLowerCase())),
       suffixIcon
     }
   );
@@ -194,8 +189,8 @@ function registerSelect(loader) {
         defaultValueHint: false
       },
       showSearch: {
-        type: "boolean",
-        defaultValueHint: (ps) => ps.mode === "multiple" || ps.mode === "tags",
+        type: "object",
+        description: 'Native boolean or search configuration, such as {"optionFilterProp":"label"}. Unset disables search in single mode and enables it in multiple/tags mode. Ant Design filters by value by default.',
         advanced: true
       },
       status: {

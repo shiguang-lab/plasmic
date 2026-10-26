@@ -8,6 +8,11 @@ Library: [Ant Design v6](../index.md).
 
 ## Generation rules
 
+### Design defaults
+
+- Use for a boolean field or a setting that takes effect immediately. A record state change in a Table uses row actions, unless the source draws an inline Switch.
+- Content-sized; the label states the enabled meaning.
+
 ### Boolean field or immediate action
 
 A Switch expresses a boolean on/off state. Read the registered checked/defaultChecked and onChange(checked) contract; do not bind value instead of checked. Inside a business Form, keep it as the real Item control and let Form own the field. An immediate server mutation is a separate workflow: permission, pending state, rejection recovery and confirmation come from the requirement rather than from the Switch itself.

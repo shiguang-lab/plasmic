@@ -50,20 +50,6 @@ Navigation after successful validation uses the native navigation interaction on
 
 Use the [submission example](../../../desktop-examples.md#form-submission-and-record-context) for destination checks. Reopening another record requires verified reset/set-fields behavior; changed initialValues alone do not prove Form state resets.
 
-### Project inventory and acceptance
-
-Derive expected Forms and fields from the submitted business workflow before generation. The absence of Form nodes in output cannot justify a notApplicable gate or moving submitted fields into standalone-control exemptions. Those exemptions cover independently owned controls such as query inputs/SQL editing, not a missing business Form. Full suites use explicit per-Page inventories, including empty lists only where the reviewed source has no submitted field group.
-
-Prefer `{"path":"/records","forms":[...]}` for each Page in reusable inventories. The gate resolves the exact `pageMeta.path` from overview to the current UUID. A unique `name` or explicit `componentUuid` also works; if multiple selectors are supplied they must agree. Missing, ambiguous, empty or duplicate resolutions fail; a miss does not silently fall back to an old UUID. Omit UUIDs from inventories shared across projects. Semantic keys such as `list` require an explicit path/name mapping. See [unified verification](../../../verification.md) for collecting evidence and running all applicable gates.
-
-For full-project generation or a form inventory audit, inventory every project Page, business Form and field across inactive Tabs and Modals before editing. Pages without business Forms still declare `forms: []`. Record field keys, labels, required/whitespace/business rules and tooltip content independently of the generated output. Run `python3 scripts/verify_forms.py <expectations.json> <mcp-read.json> --overview <mcp-overview.json>` against full public MCP readbacks and again after save/reopen. The overview must cover the entire project. This mandatory gate rejects missing/extra Pages, Forms or fields, unowned editable controls, competing values, label stars, separate field-help Tooltip/buttons/icons, manually bound field-error blocks and advanced validators stored as literal strings. Declare genuinely standalone controls, such as a separately validated SQL editor, in each Page's `standaloneControls: [{nodeName: "SQLEditor", reason: "Separate SQL validation workflow"}]`; entries must be named, unique, used and outside business Forms. SearchForm Items retain their own control ownership. The static scan checks model patterns and contracts; runtime validation still requires preview acceptance.
-
-Run the component-specific Form/Item and Modal checks as applicable. Review the combined region in editor and real Preview: label/control/instruction alignment, native errors, validation expansion and reachable footer at the requested viewport. Save/reopen and reread model ownership and bindings. Record model, geometry and runtime outcomes separately.
-
-### Focused form edits
-
-For a local field/validation/layout change, inspect the entire affected owning Form and relevant hidden branches against the current requirement, preserving unrelated Pages. Check control ownership, values/rules, submit/ref actions and actual error/save/reopen behavior. Run the full-project verifier only with a complete reviewed inventory and overview; do not trim the overview or claim a full-project pass from a partial check. Full regeneration continues to require the complete inventory gate above.
-
 ### Form.Item
 
 Installed Form Field/Form.Item contracts own field names, rules, labels and controls.
@@ -103,11 +89,11 @@ Record `description`, `descriptionPlacement` (`below` by default or `afterContro
 
 #### Validation order
 
-Show one actionable validation error per field at a time. Use native `validateFirst=true`, with required/blank checks first, format/type/range checks next and business/remote checks last. The Antd6 Form Field wrapper defaults to this ordered short-circuit behavior and exposes the actual prop; Ant Design itself defaults to collecting errors. Do not hide the second error with CSS or slice displayed messages after all rules run. Inventory the expected `validateFirst`, instruction text and placement, verify saved props/Slots, then test an empty value, a nonempty invalid value and a corrected value: exactly one native field error in each invalid state, persistent instructions remain visible, and correction removes the error.
+Show one actionable validation error per field at a time. Set native `validateFirst:true` explicitly on every Form.Item with more than one rule, with required/blank checks first, format/type/range checks next and business/remote checks last; Ant Design, and therefore the wrapper, defaults to collecting every failing rule. Do not hide the second error with CSS or slice displayed messages after all rules run. Inventory the expected `validateFirst`, instruction text and placement, verify saved props/Slots, then test an empty value, a nonempty invalid value and a corrected value: exactly one native field error in each invalid state, persistent instructions remain visible, and correction removes the error.
 
 #### Label and control layout
 
-Follow [layout ownership](../compositions/form-layout.md#layout-ownership): wide page forms default to horizontal labels, narrow Modal/Drawer forms to vertical. Record mandatory `formLayout` and a concrete `layoutReason` for exceptions before generation. `verify_forms.py` checks explicit native layout and width ownership even without Grid expectations. Align native descriptions/errors with controls; verify actual geometry instead of inheriting template label spans.
+Follow [layout ownership](../compositions/form-layout.md#layout-ownership): wide page forms default to horizontal labels, narrow Modal/Drawer forms to vertical. Record mandatory `formLayout` and a concrete `layoutReason` for exceptions before generation. Page Forms use the [Row/Col structure](../compositions/form-layout.md#page-form-structure) and its required `layout` inventory. Align native descriptions/errors with controls; verify actual geometry instead of inheriting template label spans.
 
 For one horizontal field, use native content-sized label columns (`labelCol.flex="none"`, `wrapperCol.flex="1"`) when supported. Do not reserve width for an absent Tooltip or longer template fields. Stacked fields can share width measured from actual labels, required indicators, punctuation and configured Tooltips. Verify colon-to-control spacing, especially with left-aligned fixed labels. Preserve native punctuation/spacing; no empty nodes, negative margins or internal CSS overrides. Measure normal, required, configured/empty Tooltip and validation-error states after save/reopen.
 
@@ -130,6 +116,20 @@ Use the registered dependencies/shouldUpdate, hidden, preserve and noStyle contr
 For dependent choices, preserve still-valid values and remove invalid ones under the requirement's policy. Test both directions of each condition, dependencies changing after edits, hidden validation errors, reopening another record and nested list paths. Use [step-form composition](../compositions/step-form.md) only when the workflow actually has stages.
 
 ## Acceptance checks
+
+### Project inventory and acceptance
+
+Derive expected Forms and fields from the submitted business workflow before generation. The absence of Form nodes in output cannot justify a notApplicable gate or moving submitted fields into standalone-control exemptions. Those exemptions cover independently owned controls such as query inputs/SQL editing, not a missing business Form. Full suites use explicit per-Page inventories, including empty lists only where the reviewed source has no submitted field group.
+
+Each Page entry is selected by its exact `path` (derived inventories use it) under the shared [Page selector rules](../../../verification.md#reviewed-suite-configuration).
+
+For full-project generation or a form inventory audit, inventory every project Page, business Form and field across inactive Tabs and Modals before editing. Pages without business Forms still declare `forms: []`. Derive field keys, labels, rules, tooltip content and layout from the reviewed plan with `prepare_plan.py inventories` ([suite configuration](../../../verification.md#reviewed-suite-configuration)), never from the generated output; decide only the measured `labelWidth` and standalone-control reasons it leaves pending. Run `python3 scripts/verify_forms.py <expectations.json> <mcp-read.json> --overview <mcp-overview.json>` against full public MCP readbacks and again after save/reopen. The overview must cover the entire project. This mandatory gate rejects missing/extra Pages, Forms or fields, unowned editable controls, competing values, label stars, separate field-help Tooltip/buttons/icons, manually bound field-error blocks and advanced validators stored as literal strings. Declare genuinely standalone controls, such as a separately validated SQL editor, in each Page's `standaloneControls: [{nodeName: "SQLEditor", reason: "Separate SQL validation workflow"}]`; entries must be named, unique, used and outside business Forms. SearchForm Items retain their own control ownership. The static scan checks model patterns and contracts; runtime validation still requires preview acceptance.
+
+Run the component-specific Form/Item and Modal checks as applicable. Review the combined region in editor and real Preview: label/control/instruction alignment, native errors, validation expansion and reachable footer at the requested viewport. Save/reopen and reread model ownership and bindings. Record model, geometry and runtime outcomes separately.
+
+### Focused form edits
+
+For a local field/validation/layout change, inspect the entire affected owning Form and relevant hidden branches against the current requirement, preserving unrelated Pages. Check control ownership, values/rules, submit/ref actions and actual error/save/reopen behavior. Run the full-project verifier only with a complete reviewed inventory and overview; do not trim the overview or claim a full-project pass from a partial check. Full regeneration continues to require the complete inventory gate above.
 
 ### Acceptance
 

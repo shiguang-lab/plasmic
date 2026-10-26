@@ -4,71 +4,79 @@ Use [verify_all.py](../scripts/verify_all.py) from resolved `resourceRoot` for f
 
 ## Single-Page execution
 
-For one Page, inventories cover that Page and its overlays. Select the [review mode](review-mode.md); the main agent generates and repairs. Finish selection preflight before markup, then use `--page /exact-route` below. Component rules, hidden Tabs/overlays and negative cases remain required. Do not generate unrelated destinations for tests; report excluded cross-page transitions as unexecuted. Fix collected issues together, rerun affected saved-model checks, then exercise fixes in Preview.
+For one Page, inventories cover that Page and its overlays. Select the [review mode](review-mode.md); the main agent generates and repairs. Finish selection preflight before markup, then use `--page /exact-route` below. Component rules, hidden Tabs/overlays and negative cases remain required. Report excluded cross-page transitions as unexecuted; do not generate destinations for tests. Fix collected issues together, rerun affected saved-model checks, then exercise fixes in Preview.
 
-Review [copy economy](design/content-review.md#copy-economy): actions use short source-derived verb/object labels. Check field labels, titles, placeholders, help and footer hints; flag facts repeated across banners/help/footers. Only `kind:"action"` lengths are mechanically checked; other copy requires reviewer judgement.
+Review [copy economy](design/content-review.md#copy-economy). The structural gate checks every copy entry's role budget and repeated prose; wording, meaning and placement still need reviewer judgement.
 
-Deviation fields (`layoutReason`, `controlWidthReason`, `nonStatusReason`, `bindingsNotApplicable`, override `reason`) are generation claims. Reviewers must verify a hashed source quote explicitly supports the deviation or measured geometry supports it, and each reason object belongs to one instance. Prose-only deviations fail even if gates pass.
+Deviation fields (`layoutReason`, `controlWidthReason`, `nonStatusReason`, `bindingsNotApplicable`, override `reason`) are generation claims. Reviewers verify that a hashed source quote or measured geometry supports each deviation, one reason object per instance. Prose-only deviations fail even if gates pass.
 
 ## Reviewed suite configuration
 
-Create local `suite.json` from independently reviewed requirements; paths resolve relative to it. Inventory fields are in region references and [requirement alignment](requirement-alignment.md). Prepare source inventories before generation and each Page's Slot intent before its check; final full runs require all intents. The agent owns execution; verifiers only read evidence and write reports, without changing Desktop task state or restricting navigation.
+Derive the suite and every region inventory from the reviewed Page plan instead of writing them again:
+
+```sh
+python3 RESOURCE_ROOT/scripts/prepare_plan.py inventories /task/structure-expectation.json --reads /task/compose-reads.jsonl --output-dir /task/inventories
+```
+
+It writes `forms-inventory.json`, `description-inventory.json`, `overlay-inventory.json`, one Slot intent per Page under `intents/`, and `suite.json`, all from the plan's components, owner Slots, nodes and copy. Values the plan cannot decide stay `"__DECIDE__"`: each horizontal Page Form's rendered `labelWidth.measuredPx` with its `measuredFrom` layout capture (the planning `estimatedPx` is derived), a reason for each control outside a Form/SearchForm, and each footer action's `effect`. Decide them from the source and measurements; for any other difference, correct the plan and derive into a new directory. Paths in `suite.json` resolve relative to it. Verifiers only read evidence and write reports; they never change Desktop state or navigation.
 
 ```json
 {
-  "structure": {"inventory":"structure-expectation.json"},
+  "structure": {"inventory":"../structure-expectation.json","reads":"compose-reads.jsonl"},
   "page_layout": {},
-  "forms": {"inventory":"form-inventory.json"},
+  "forms": {"inventory":"forms-inventory.json"},
   "descriptions": {"inventory":"description-inventory.json"},
   "overlays": {"inventory":"overlay-inventory.json"},
-  "slots": {"pages":[{"path":"/records","intent":"records-intent.html"}]},
+  "slots": {"pages":[{"path":"/records","intent":"intents/records.html"}]},
   "shell_height": {},
-  "references": {"inventory":"reference-inventory.json","evidence":"reference-evidence.json"}
+  "references": {"inventory":"reference-inventory.json","evidence":"reference-evidence.json"},
+  "review": {"ledger":"accept-reads.jsonl","results":"rule-review.json"}
 }
 ```
 
+Add `references` only for supplied Pen sources (see [Pen evidence](design-references.md)).
+
 | Gate | Required scope and what it checks |
 | --- | --- |
-| `structure` | Exact routes, reviewed directory names, navigation, bindings, required native identities, source roles/props/Slots and declared UI-copy decisions. Requires each Page's `name`, `pageHeader`, `components`, `nodes`, `copy` and `bindings` (or empty bindings plus a reviewed `bindingsNotApplicable`). See [source inventory](requirement-alignment.md#structural-gate). |
-| `page_layout` | Always runs: native device columns, one named overview referencing every Page exactly once, correct sizes and no overlap. Defaults to Desktop and overviewName 页面总览; set the reviewed name and explicitly requested `presets` in the suite. |
-| `forms` | Every Page's native Form/field ownership and rules, including explicit `forms:[]` when the source has none. See [Form inventory](libraries/antd_v6/components/form.md#project-inventory-and-acceptance). |
+| `structure` | Current compose-stage reference coverage from `reads` (the ledger used by selection preflight), plus exact routes, reviewed directory names, navigation, bindings, required native identities, source roles/props/Slots and declared UI-copy decisions. Requires each Page's `name`, `pageType`, `pageHeader`, `wireframe`, `components`, `nodes`, `copy` and `bindings` (or empty bindings plus a reviewed `bindingsNotApplicable`). See [source inventory](requirement-alignment.md#structural-gate). |
+| `page_layout` | Always runs: native device columns, one named overview referencing every Page exactly once, correct sizes and no overlap. Defaults to Desktop and overviewName 页面总览; set the reviewed name and requested `presets` in the suite. |
+| `forms` | Every Page's native Form/field ownership, rules and Row/Col layout, including explicit `forms:[]` when there are none. See [Form inventory](libraries/antd_v6/components/form.md#project-inventory-and-acceptance). |
 | `descriptions` / `overlays` | Every Page's required information groups and overlays, including explicit empty lists; identities, content/ownership and supported footer rules. See [Descriptions](libraries/antd_v6/components/descriptions.md) and [overlays](libraries/antd_v6/compositions/modal-drawer.md). |
-| `slots` | Named pre-generation component intent and every supplied direct Slot; see [granularity](#slot-intent-granularity). May be inapplicable only when there are no component instances. |
+| `slots` | Named component intent and every supplied direct Slot; see [granularity](#slot-intent-granularity). Inapplicable only without component instances. |
 | `model` | Automatic: fresh native validate must return literal valid:true, no errors and exact scoped Page IDs. Retain warnings for review. |
-| `rendering` | Automatic: each Page has a ready, complete full snapshot with positive viewport dimensions, explicit image/problem lists and the current required checks. Overflow, sticky-cell control overflow/excess width and unloaded images fail; supported horizontal Table scrolling itself is valid. See [rendered inspection](desktop-inspection.md#geometry-and-static-screenshots). |
-| `references` | Required for supplied Pen references: actual MCP layout/image evidence and native-node mappings under [Pen evidence](design-references.md). Omit only when none were supplied. |
-| `shell_height` | Every routed supported shell Page's structure, shell/Layout viewport width and shell/Layout/sidebar viewport height. AppShell owns sizing; ancestor/instance dimension overrides are not required. See [geometry acceptance](design/layout.md#viewport-shell-height-acceptance). |
+| `rendering` | Automatic: each Page has a ready, complete full snapshot. Overflow, sticky-cell control overflow/excess width and unloaded images fail; supported horizontal Table scrolling itself is valid. See [rendered inspection](desktop-inspection.md#geometry-and-static-screenshots). |
+| `references` | Required for supplied Pen references: actual MCP layout/image evidence and native-node mappings under [Pen evidence](design-references.md). |
+| `review` | Final full run only: project and Page accept-card reads, one verdict per rule and per hard constraint, the actual `reviewMode`, current plan/rule digests, and `checkedState` equal to this run's captured projectId/branchId/sessionId/revision/changeCounter; a `fail` or missing verdict fails. The report's `acceptance.ruleReview` states whether the review was independent. See [rule review](review-mode.md#rule-review). |
+| `shell_height` | Every routed supported shell Page's shell/Layout viewport width and shell/Layout/sidebar viewport height. AppShell owns sizing. See [geometry acceptance](design/layout.md#viewport-shell-height-acceptance). |
 
-Full suites require every route in Form, Descriptions and overlay inventories, including reviewed empty lists; project-wide `notApplicable` cannot replace them. Model, rendering, structure and page_layout cannot be exempted. `shell_height` permits `{"notApplicable":"Reviewed reason and scope"}` only without supported shells. Omitted gates mean incomplete work. Unsupported libraries/layouts use focused checks and report coverage limits.
+Full suites cover every route in the Form, Descriptions and overlay inventories, including empty lists; project-wide `notApplicable` cannot replace them. Model, rendering, structure, page_layout and review cannot be exempted. `shell_height` permits `{"notApplicable":"Reviewed reason and scope"}` only without supported shells. Unsupported libraries/layouts use focused checks and report coverage limits. Page selectors are an exact `path`, unique `name` or `componentUuid`; supplied selectors must agree, with no fuzzy matching or silent fallback.
 
-Forms, Descriptions, overlays and Slots resolve Page selectors by exact `path`, unique `name` or `componentUuid`; supplied selectors must agree. No fuzzy matching, route normalization or silent UUID fallback. Prefer paths for reusable plans before Page creation.
+Structure also runs [purpose-first selection](libraries/antd_v6/selection.md) on the same plan: every functional instance needs a reviewed role/rule and compatible native identity. It rejects Tables without native Columns or a data value/binding, Columns without dataIndex/render, Cards wrapping only SearchForm/Steps and undeclared raw interactive widgets, and checks [authored names/copy](design/content-review.md) in both directions. Required prop/event presence and `$state` references do not prove business effects; an explicit empty dataset is valid but its empty state needs Preview.
 
-Structure also runs [purpose-first selection](libraries/antd_v6/selection.md) using the same inventory: all functional instances need reviewed roles/rules, with feedback event expectations and compatible native identities. Missing coverage and wrong presentation fail; source meaning and runtime remain independent reviews. Structure rejects Tables without native Columns or an explicit data value/binding, Columns without dataIndex/render, Cards wrapping only SearchForm/Steps and undeclared raw interactive widgets. An explicit empty dataset is valid; verify its empty-state behavior in Preview. Exact reviewed `elementFallbacks` do not override required native identities. It checks [authored names/copy](design/content-review.md) in both directions against the source plan, including owners, hidden text and native UI props. Missing or changed nodes/copy fail; semantic meaning still needs source review. Required prop/event presence and `$state` references do not prove business effects.
+Retain two content reviews under [content before presentation](requirement-alignment.md#content-before-presentation): source versus the plan, then the plan versus the saved model. Declare each query field's native name/label and owner so missing targets and changed keys fail; a correct colSpan, item count or collapsed screenshot does not prove field completeness. Without the source review, coverage stays unverified and functional Preview does not start.
 
-Retain two distinct content reviews under [content before presentation](requirement-alignment.md#content-before-presentation): source versus the pre-generation expectation, then that same expectation versus the saved model. For query fields declare each Item's native name/label and owner in components so structure checks can detect missing targets, changed keys and wrong Slots. A correct colSpan, equal item count or screenshot of a collapsed region does not establish field completeness. Missing source review or expectation leaves coverage unverified; do not proceed to functional Preview on that basis.
+The same checks verify per-Page [template-source evidence](admin-templates.md#source-evidence-before-composition) (selected names/project, reference/import mode, adaptation, capture path/hash; no-fit reasons need source review) and [protected component defaults and source exceptions](design/component-policy.md): SearchForm four-column (6) or three-column (8), row/collapse defaults, Item spans, ActionGroup limits, Dropdown triggers, App context (`appSources:[]` cannot hide required context) and a native size changer for multiple page sizes. Hash every cited source file as a checked input.
 
-The same preflight and structure gate verify per-Page [template-source evidence](admin-templates.md#source-evidence-before-composition): selected names/project, planned reference/import mode, adaptation and capture path/hash. Complete models/contracts, including catalog-owned nested templates, must match the selection and stable source identity. Captures and catalog are fingerprinted as checked inputs. Missing selections/captures or directory-only summaries fail. No-fit reasons need source review. Source-read PASS leaves interpretation, actual insertion/detachment and adaptation unverified; retain their separate operation/model evidence.
+Review [business outcomes](design/component-policy.md#business-outcome-cases) and [permissions](design/permissions.md) separately: case shape cannot prove a role matrix, identity setup or submission guards, and a Message alone cannot prove a data effect. Plan [runtime cases](design/component-policy.md#case-planning-order) for what the prototype implements, prepare the [runtime manifest](design/component-policy.md#native-runtime-evidence) with `prepare_plan.py runtime-manifest`, fill actual assertion trace lines after Preview, then run `verify_runtime.py`; it separates passes, failures, unexecuted cases and invalid evidence.
 
-The same structure/selection checks now apply [protected component defaults and real source exceptions](design/component-policy.md). SearchForm supports reviewed four-column (6) and three-column (8) modes; inspect the original visual evidence for the owning reference's multi-row three-column condition. Other grid values require explicit requirement-document evidence. The checks independently reject mismatched modes, unauthorized row/initial-collapse changes, Item widening, ActionGroup limits/triggers and ordinary Dropdown trigger changes even when task props match the generated output. Required App context cannot be hidden with appSources:[]; native implicit state, explicit state actions and data-query arguments retain their real contracts. Multiple explicit page sizes require the native size changer. Hash source files cited by exceptions, App context and cases as checked inputs.
+The structure gate requires the actual compose reading ledger even when an accept ledger exists. Missing, empty or stale required reads fail, and the ledger bytes are pinned in `checkedInputs`. A ledger records emitted reference content; it does not prove understanding or establish when editing began. Follow the pre-write execution stage before mutations.
 
-Review [business outcomes](design/component-policy.md#business-outcome-cases) and [permissions](design/permissions.md): case shape cannot prove a correct role matrix, real identity setup or submission guards; Message-only checks cannot prove data effects. Plan complete [runtime cases](design/runtime-cases.md), then prepare the existing [runtime manifest](design/component-policy.md#native-runtime-evidence) with `prepare_plan.py runtime-manifest`, fill actual assertion trace lines after Preview, then run `verify_runtime.py`. Its per-case statuses distinguish passes, actual failures, unexecuted cases and invalid evidence. Permission, cancellation, transitions/text, App consumers and paging need cases. Missing/duplicate cases, changed hashes/model/session or failed/mismatched checks fail. Source/fixture authenticity, handler-only execution and pixels remain separate reviews.
+Static passes report `acceptance.status:"unverified"`; failures report `"failed"`. Do not wait for a static "passed" status. Retain separate source, Preview and save/reopen outcomes.
 
-Static passes report `acceptance.status:"unverified"`; failures report `"failed"`. Do not wait for a static "passed" status. Retain separate source, Preview and save/reopen outcomes; they do not change this field.
-
-Exercise dynamic role/state navigation separately. For the supported recursive role-query transform, declare `navigation.roleQuery` with the reviewed `state`, `query` and `default` names/value alongside the independent literal `items`. The structure gate proves the entire recognized transform against that inventory without executing JavaScript; changed targets, labels, hidden/disabled flags, item type, icon, order, recursion, encoding or fallback precedence fail. Static menus retain the same registered fields; unsupported properties and unresolved bindings fail instead of being projected away. This transform requires literal hrefs without an existing query or fragment. Operator boundaries and line-terminator semantics remain significant; normalization must not turn invalid or changed JavaScript into the reviewed program. Unknown transforms remain statically unverified: report the unsupported expression and retain separate runtime evidence.
+For role/state navigation, declare `navigation.roleQuery` (reviewed `state`, `query` and `default`) beside the literal `items`; the structure gate proves only that recognized transform against the inventory, with literal hrefs that have no query or fragment. Other dynamic menus stay statically unverified: report the expression and verify rendered menus and links in Preview.
 
 ## Evidence integrity
 
 These rules apply to every gate, preflight and review.
 
-- Expectations come from source evidence or an explicit user decision. Never edit, regenerate, weaken or relabel expectations, roles, source quotes or overrides to match output or clear a failing check.
+- Expectations come from source evidence or an explicit user decision. Never edit, regenerate, weaken or relabel expectations, roles, source quotes or overrides to match output or clear a failing check. Derived inventories follow the plan; change the plan and derive again.
 - Only the bundled preparation and verification scripts produce gate results. Task-local scripts may prepare inputs; they never replace a gate, grade their own output or report a pass. Extending a checker is authorized platform work.
 - A failed, missing, unconfigured or unexecuted check stays failed/unverified; never omit it to save context or time.
 - Static passes, screenshots, tool receipts, read ledgers and declared cases prove neither behavior, visual quality nor persistence. Report source, static, visual, runtime and persistence results separately.
 
 ## Slot intent granularity
 
-Intent records the components and **direct Slots you supply**, plus relevant ownership. It need not repeat CSS, IDs, complete data, expressions or every native text element. Declare every supplied nonempty Slot, including Button.children and Column.render; an omitted nonempty actual Slot is reported as an unprovided default. Explicit empty Slots declare cleared defaults and must remain empty in readback, including when their content is hidden by CSS. For example, this fragment describes the native row-action owner; its data, items and bindings are reviewed separately, not cloned into Slot intent:
+Intent records the components and **direct Slots you supply**, plus ownership; the derived intent lists every planned component, native node and text in its owner Slot, and the explicit empty `title`/`extra` of a headerless Card. It need not repeat CSS, IDs, data, expressions or every native text element. A nonempty actual Slot missing from the intent is an unprovided default (for example a sample Column title); add the node to the plan. Explicit empty Slots must stay empty in readback, including when their content is hidden by CSS. For example, the row-action owner is described like this; data, items and bindings are reviewed separately:
 
 ```html
 <plasmic-component data-plasmic-name="RecordsTable" data-plasmic-component="plasmic-antd6-table">
@@ -83,11 +91,11 @@ Intent records the components and **direct Slots you supply**, plus relevant own
 </plasmic-component>
 ```
 
-For a full Page, place this within the planned AppShell.children and include its other participating components/Slots. A name-only AppShell/Card/Table outline omits supplied Slot content and cannot establish acceptance. Native Form, Descriptions and overlay inventories independently verify fields and content; passing Slot ownership does not replace them.
+A name-only AppShell/Card/Table outline omits supplied Slot content and cannot establish acceptance. Native Form, Descriptions and overlay inventories independently verify fields and content; passing Slot ownership does not replace them.
 
 ## Collect and verify
 
-Open the intended project in the signed-in Desktop. For prototype work, prepare the actual suite/inventories/intent before composition and save in edit mode before collection. `--profile` is its **user-data directory** containing `mcp-connection.json`. Live collection uses authenticated local RPC on macOS/Linux; its token is not copied into evidence.
+Open the intended project in the signed-in Desktop, save in edit mode, then collect. `--profile` is the Desktop **user-data directory** containing `mcp-connection.json`; live collection uses authenticated local RPC on macOS/Linux and never copies its token into evidence.
 
 ```sh
 python3 RESOURCE_ROOT/scripts/verify_all.py \
@@ -97,38 +105,18 @@ python3 RESOURCE_ROOT/scripts/verify_all.py \
   --output /absolute/path/to/new-verification-run
 ```
 
-With `--page /exact-route`, the same suite/inventories may include planned sibling Pages: collection reads only this Page and its layout, region/Slot checks select this Page, while global routes/device/overview checks still run. Evidence records pagePath; a scoped capture cannot pass final full-project acceptance or be reused across scopes. Run `--help` for invocation; do not read checker implementation to discover ordinary usage.
+With `--page /exact-route`, collection reads only that Page and its layout and region/Slot checks select it, while global routes/device/overview checks still run. A scoped capture cannot pass final full-project acceptance or be reused across scopes. Run `--help` for invocation; do not read checker implementation to discover ordinary usage. Do not edit during collection; an unchanged revision alone does not prove saving.
 
-Before Preview, read the actual `report.json`: `passed:true`, all applicable `checks[*].status` passed, reviewed reasons for not_applicable, correct `projectId`/`pagePath`, current `capture.after` model identity and unchanged `checkedInputs`. Any edit/input change requires rechecking.
+Before Preview, read the actual `report.json`: `passed:true`, every applicable `checks[*].status` passed, reviewed reasons for not_applicable, correct `projectId`/`pagePath`, current `capture.after` model identity and unchanged `checkedInputs`. Any edit or input change requires rechecking. The output directory holds `overview.json`, `pages.json`, `layouts.json`, `capture.json`, `report.json` and `report.md`; existing directories are refused.
 
-After each Page gate, open get_screenshot pixels; record headers/rows, hierarchy, duplicate titles/surfaces and clipping. Repair findings and recheck before advancing. Preview follows the [execution stages](workflows/prototype.md#execution-plan-and-completion-evidence) and [review rounds](workflows/prototype.md#final-preview-review) after all in-scope Pages/destinations are complete.
+After each Page gate, open get_screenshot pixels; record headers/rows, hierarchy, duplicate titles/surfaces and clipping. Repair findings and recheck before advancing. Preview follows the [execution stages](workflows/prototype.md#execution-plan-and-completion-evidence) and [review rounds](workflows/prototype.md#final-preview-review) after all in-scope Pages are complete. After save/reopen, collect fresh evidence and run the full report. Then compare the last Preview round's capture with the reopened one: `python3 RESOURCE_ROOT/scripts/compare_models.py PRE/pages.json POST/pages.json --report /task/persistence.json`. Equal models carry the runtime report forward as the persistence result; any difference means the reopened model was not the one exercised, so repair or re-execute the affected cases against a fresh capture. Do not synthesize a runtime trace or infer execution order from a final model.
 
-Keep actual reference/model/layout/image/runtime calls, observations and pending cases in the local working directory. A passing scoped report checks the captured Page only. After save/reopen, collect fresh evidence, run the full report and independently review source coverage, pixels and Preview outcomes. Do not synthesize a successful runtime trace or infer execution order from a final model.
-
-The runner matches get_app_state.buildId with get_build_info before/after collection, retaining full build provenance in evidence. It identifies the session, reads only Project identity/components/canvases/pageFrames/devicePresets, then complete Pages with view:full,depth:all (at most 30 per call) and full layout per Page without navigating. Project/branch/session/revision/changeCounter and fingerprints must remain stable. Structural/property reads cannot replace full Page evidence. Do not edit during collection. A revision alone does not prove saving; explicit save/reopen acceptance stays separate.
-
-The new output directory contains `overview.json`, `pages.json`, `layouts.json`, `capture.json`, `report.json` and `report.md`. Pen layout/image evidence is a separate local input under `references.evidence`. Native validate input/result are retained in capture.json. Page snapshot errors remain visible in `layouts.json` and fail rendering/height checks. A collection error produces a failed report, retaining any evidence already collected. Existing output directories are refused to preserve prior runs. Reports record exact checker, inventory and intent hashes in `checkedInputs`. Inventories and intents are parsed from those same loaded bytes; changes to checked files during the run fail evidence integrity. Raw evidence remains reusable across rule changes only by rerunning every gate.
+Each gate result names its owning `rule`, and every diagnostic carries the most specific `rule` from the library `rules.json` or [gate rule map](gate-rules.json). Repair through the [diagnostic loop](planning.md#diagnostics-and-repair). Keep full evidence and reports on disk; inspect failed gates and the relevant Page subtree instead of printing whole `pages.json`/`layouts.json` into the conversation.
 
 ## Reuse within the same live design state
 
-When another gate or a corrected expectation needs the same complete capture, pass `--reuse-evidence /absolute/path/to/previous-run` together with `--profile`. The runner checks live project, branch, editor session, revision, changeCounter, Desktop version/build fingerprints, complete models/layouts and file hashes. Renderer and Desktop SHA-256 fingerprints are required; a source fingerprint, when present, must also be valid. Missing build identity, a mismatch or damaged/incomplete capture causes fresh collection. Copies are pinned to the validated manifest hashes. A change during reuse, or a Desktop version/build/project change during either fresh or reused collection, fails the run. Only overview and complete Page models are reused; layout snapshots are always refreshed because runtime rendering can change without a model revision. Every configured gate runs again; previous pass/fail results are never cached.
-
-Do not reuse the pre-save capture for post-reopen acceptance: run `--profile` without `--reuse-evidence` after save/reopen. Preview interactions, pixels and scroll checks remain mandatory and separate. Capture again after edits; use an idle editor during collection. An unchanged revision alone is insufficient because there may be unsaved edits.
-
-Keep full evidence and reports on disk. The command prints gate statuses, report path and excluded checks; inspect each failed gate's full report and the relevant Page/subtree when fixing it. Do not print entire `pages.json` or `layouts.json` into the conversation for each gate. Reuse these exact files across the applicable checks, including the checks linked from component documents.
-
-Each gate result names its owning `rule`, and every structured diagnostic carries the most specific `rule` from the library `rules.json` or [gate rule map](gate-rules.json); stdout lists the rule of each failed gate. Repair through the [diagnostic loop](planning.md#diagnostics-and-repair).
+When another gate or a corrected expectation needs the same capture, pass `--reuse-evidence /absolute/path/to/previous-run` with `--profile`. The runner reuses only overview and complete Page models when the live project, branch, session, revision, changeCounter, Desktop build and file hashes match; otherwise it collects again. Layout snapshots are always refreshed and every configured gate runs again. Never reuse the pre-save capture for post-reopen acceptance.
 
 ## Replay and interpretation
 
-Replay the same captured evidence without Desktop, including on Windows:
-
-```sh
-python3 RESOURCE_ROOT/scripts/verify_all.py \
-  --project-id PROJECT_ID \
-  --evidence /absolute/path/to/previous-verification-run \
-  --expectations /absolute/path/to/suite.json \
-  --output /absolute/path/to/new-replay-report
-```
-
-Exit 0 means all configured automated gates passed or have explicit applicability reasons. Exit 1 means failure or incomplete configuration/evidence. Reports distinguish `passed`, `failed`, `not_applicable` and `unverified`, preserve individual gate details and always list excluded acceptance dimensions. Both replay and live reuse require complete version/build/session metadata, a parseable collection timestamp with timezone and hashes for all three evidence files. The overview Project id must match the requested project. The manifest is pinned before reading; model checks use the exact loaded bytes, and their hashes must still match the manifest and disk files. Full Page readbacks include markup, props, states, variants, variant groups and interactions; missing fields or unresolved `<plasmic-node-ref>` children fail even when the remaining files have valid hashes. Live collection also checks the returned depth and selected-field coverage; shallow reads cannot be used as complete evidence. A replay proves only the captured state. Review source interpretation, actual Preview interactions/scrolling and saved/reopened models before claiming full acceptance.
+Replay captured evidence without Desktop, including on Windows, with `--evidence /absolute/path/to/previous-run` instead of `--profile`. Exit 0 means every configured automated gate passed or has a reviewed applicability reason; exit 1 means failure or incomplete configuration/evidence. Reports distinguish `passed`, `failed`, `not_applicable` and `unverified` and list excluded acceptance dimensions. A replay proves only the captured state; review source interpretation, Preview interactions/scrolling and saved/reopened models before claiming full acceptance.

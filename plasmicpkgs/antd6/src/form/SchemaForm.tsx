@@ -148,7 +148,6 @@ export const SchemaForm = React.forwardRef(
                     ? "checked"
                     : undefined)
                 }
-                style={{ width: "100%" }}
               >
                 {formItem.inputType === InputType.Text ? (
                   <Input />
@@ -168,7 +167,6 @@ export const SchemaForm = React.forwardRef(
                   <AntdRadioGroup
                     options={formItem.options}
                     optionType={formItem.optionType}
-                    style={{ padding: "8px" }}
                   />
                 ) : null}
               </FormItemWrapper>
@@ -202,11 +200,12 @@ export const SchemaForm = React.forwardRef(
           style={
             isSchemaForm && isLoadingData
               ? {
+                  ...props.style,
                   opacity: 0.5,
                   transitionDelay: "250ms",
                   transition: "1s",
                 }
-              : {}
+              : props.style
           }
         />
         {isSchemaForm && isLoadingData && (

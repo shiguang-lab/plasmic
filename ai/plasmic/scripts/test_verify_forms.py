@@ -9,6 +9,23 @@ from pathlib import Path
 from verify_forms import check
 
 
+
+_LAYOUT = None
+
+
+def measured_from():
+    """A retained snapshot_layout capture for measured label widths."""
+    global _LAYOUT
+    import hashlib, tempfile
+    if _LAYOUT is None:
+        import atexit
+        handle = tempfile.NamedTemporaryFile('w', suffix='-layout.json', delete=False)
+        handle.write('{"frames": []}')
+        handle.close()
+        _LAYOUT = Path(handle.name)
+        atexit.register(_LAYOUT.unlink, missing_ok=True)
+    return {"path": str(_LAYOUT), "sha256": hashlib.sha256(_LAYOUT.read_bytes()).hexdigest()}
+
 class FormCheckTests(unittest.TestCase):
     def setUp(self):
         self.expected = {"pages": [{"componentUuid": "page", "forms": [{"name": "Form", "fields": [{"nodeName": "NameField", "name": "name", "label": "Name", "control": "Name", "rules": [{"ruleType": "required"}], "tooltip": "Help"}]}]}]}
@@ -141,6 +158,109 @@ class FormCheckTests(unittest.TestCase):
         self.assertTrue(self.result(html)["passed"])
         form["layoutReason"] = {"kind": "measurement", "labelWidth": 64, "controlMinWidth": 160, "regionWidth": 420}
         self.assertFalse(self.result(html)["passed"])
+
+    def visual_reference(self):
+        from verify_references import REQUIRED_FIELDS
+        directory = tempfile.TemporaryDirectory()
+        self.addCleanup(directory.cleanup)
+        source = Path(directory.name) / "original.pen"
+        source.write_bytes(b"Original source fixture")
+        image = Path(directory.name) / "original.webp"
+        image.write_bytes(b"Original image fixture; perception is outside this static gate")
+        ref = {"id": "form", "filePath": str(source), "nodeId": "form-frame"}
+        key = json.dumps([str(source), ref["nodeId"]], separators=(",", ":"))
+        evidence = {"referenceFiles": [str(source)], "referenceHashes": {str(source): hashlib.sha256(source.read_bytes()).hexdigest()},
+                    "references": {key: {"complete": True, "read": {"depth": 1, "fields": list(REQUIRED_FIELDS), "total": 1},
+                        "pages": {"0": [{"id": ref["nodeId"], "type": "frame", "layout": "vertical", "width": 700, "height": 400}]},
+                        "image": {"kind": "reference", "source": {"provider": "pen-mcp", "filePath": str(source), "nodeId": ref["nodeId"]},
+                                  "file": str(image), "sha256": hashlib.sha256(image.read_bytes()).hexdigest()}}}}
+        inventory = {"pages": [{"componentUuid": "page", "references": [ref], "regions": [
+            {"referenceId": "form", "nodeNames": ["Form"], "decision": "Reviewed labels above controls; preserve vertical labels using native Form layout"}]}]}
+        reason = {**self.source_reason("界面以 original.pen 为准"), "kind": "reference", "referenceId": "form"}
+        return reason, {"inventory": inventory, "evidence": evidence}
+
+    def test_selected_reference_can_preserve_form_label_direction(self):
+        reason, references = self.visual_reference()
+        form = self.expected["pages"][0]["forms"][0]
+        form.update(formLayout="vertical", layoutReason=reason)
+        html = self.html.replace('"layout":"horizontal"', '"layout":"vertical"')
+        result = check(self.expected, self.overview(), self.readback(html), references)
+        self.assertTrue(result["passed"], result["errors"])
+        self.assertIn("correctness of visual source interpretation", result["notChecked"])
+        self.assertFalse(check(self.expected, self.overview(), self.readback(self.html), references)["passed"])
+        # Outer source frame direction is not proof of the labels' orientation.
+        next(iter(references["evidence"]["references"].values()))["pages"]["0"][0]["layout"] = "horizontal"
+        self.assertTrue(check(self.expected, self.overview(), self.readback(html), references)["passed"])
+        self.assertIn("reference inventory and evidence", str(self.result(html)["errors"]))
+        form["layoutReason"] = {**self.source_reason("界面以 .pen 为准"), "kind": "reference", "referenceId": "form"}
+        self.assertTrue(check(self.expected, self.overview(), self.readback(html), references)["passed"])
+        references["inventory"]["pages"][0]["references"].append({"id": "other", "filePath": "/other.pen", "nodeId": "other"})
+        self.assertFalse(check(self.expected, self.overview(), self.readback(html), references)["passed"], "Generic selection cannot disambiguate multiple source files")
+
+    def test_reference_reason_rejects_mentions_wrong_form_and_incomplete_evidence(self):
+        reason, references = self.visual_reference()
+        form = self.expected["pages"][0]["forms"][0]
+        form.update(formLayout="vertical", layoutReason=reason)
+        html = self.html.replace('"layout":"horizontal"', '"layout":"vertical"')
+        def result(refs=references):
+            return check(self.expected, self.overview(), self.readback(html), refs)
+        for quote in ("附件 original.pen 可供了解项目背景", "界面以 other.pen 为准", "不要以 original.pen 为准",
+                      "按需求生成页面；original.pen 仅是历史附件", "按需求生成页面，original.pen 仅是历史附件"):
+            form["layoutReason"] = {**self.source_reason(quote), "kind": "reference", "referenceId": "form"}
+            self.assertFalse(result()["passed"], quote)
+        form["layoutReason"] = reason
+        for change in (
+            lambda r: r["inventory"]["pages"][0].update(componentUuid="other-page"),
+            lambda r: r["inventory"]["pages"][0]["regions"][0].update(nodeNames=["OtherForm"]),
+            lambda r: r["inventory"]["pages"][0]["regions"][0].update(decision="Use horizontal labels"),
+            lambda r: r["evidence"].update(referenceHashes={}),
+            lambda r: next(iter(r["evidence"]["references"].values())).update(complete=False),
+            lambda r: next(iter(r["evidence"]["references"].values()))["read"].update(fields=["id", "type"]),
+            lambda r: next(iter(r["evidence"]["references"].values()))["image"].update(sha256="changed"),
+            lambda r: next(iter(r["evidence"]["references"].values()))["image"]["source"].update(nodeId="other-frame"),
+        ):
+            invalid = copy.deepcopy(references)
+            change(invalid)
+            self.assertFalse(result(invalid)["passed"])
+        form["layoutReason"] = {**reason, "referenceId": "invented"}
+        self.assertFalse(result()["passed"])
+
+    def test_reference_selection_negation_is_scoped_to_the_selection_verb(self):
+        _, references = self.visual_reference()
+        form = self.expected["pages"][0]["forms"][0]
+        form["formLayout"] = "vertical"
+        html = self.html.replace('"layout":"horizontal"', '"layout":"vertical"')
+        cases = [
+            ("按 original.pen 生成，不要额外标题", True),
+            ("Use original.pen for labels, do not change content", True),
+            ("不要额外标题，按 original.pen 生成", True),
+            ("Do not change content; use original.pen for labels", True),
+            ("不要以 original.pen 为准", False),
+            ("不要按 original.pen 生成", False),
+            ("Do not use original.pen for labels", False),
+            ("Don't follow original.pen for labels", False),
+            ("Never reproduce original.pen", False),
+        ]
+        for quote, passed in cases:
+            with self.subTest(quote=quote):
+                form["layoutReason"] = {**self.source_reason(quote), "kind": "reference", "referenceId": "form"}
+                result = check(self.expected, self.overview(), self.readback(html), references)
+                self.assertEqual(result["passed"], passed, result["errors"])
+
+    def test_reference_reason_standalone_cli_requires_both_evidence_inputs(self):
+        reason, references = self.visual_reference()
+        self.expected["pages"][0]["forms"][0].update(formLayout="vertical", layoutReason=reason)
+        html = self.html.replace('"layout":"horizontal"', '"layout":"vertical"')
+        with tempfile.TemporaryDirectory() as directory:
+            files = {}
+            for name, value in (("expected", self.expected), ("overview", self.overview()), ("readback", self.readback(html)), *references.items()):
+                files[name] = str(Path(directory) / (name + ".json"))
+                Path(files[name]).write_text(json.dumps(value), encoding="utf-8")
+            cmd = [sys.executable, str(Path(__file__).with_name("verify_forms.py")), files["expected"], files["readback"], "--overview", files["overview"]]
+            self.assertEqual(subprocess.run(cmd, capture_output=True).returncode, 1)
+            self.assertEqual(subprocess.run(cmd + ["--references-inventory", files["inventory"]], capture_output=True).returncode, 2)
+            result = subprocess.run(cmd + ["--references-inventory", files["inventory"], "--references-evidence", files["evidence"]], capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
     def test_duplicated_layout_reason_across_forms_is_rejected(self):
         page = self.expected["pages"][0]
@@ -286,7 +406,7 @@ class FormCheckTests(unittest.TestCase):
         form = self.expected["pages"][0]["forms"][0]
         form["formLayout"] = "vertical"
         form["layout"] = {"container": "Fields", "modalWidth": 720, "columns": 2, "columnGap": 16, "rows": [{"container": "ShortRow", "fields": ["TypeField", "ScenarioField"]}]}
-        form["labelWidth"] = {"longestLabel": "Name", "labelTextPx": 78, "requiredMarkPx": 10, "helpIconPx": 14, "paddingPx": 8, "measuredPx": 110}
+        form["labelWidth"] = {"longestLabel": "Name", "labelTextPx": 78, "requiredMarkPx": 10, "helpIconPx": 14, "paddingPx": 8, "measuredPx": 110, "measuredFrom": measured_from()}
         help_source = Path(tempfile.mkdtemp()) / "req.md"
         help_source.write_text("字段说明 Help", encoding="utf-8")
         help_evidence = {"path": str(help_source), "sha256": hashlib.sha256(help_source.read_bytes()).hexdigest(), "quote": "字段说明 Help"}
@@ -305,6 +425,121 @@ class FormCheckTests(unittest.TestCase):
         row = '<div label="ShortRow" style="display:grid;width:100%;grid-template-columns:repeat(2,minmax(0, 1fr));column-gap:16px">' + ''.join(short) + '</div>'
         html = self.html[:start].replace('"layout":"horizontal"', '"layout":"vertical","labelCol":{"flex":"110px"}') + '<div label="Fields" style="display:flex;flex-direction:column;width:100%">' + item + row + '</div>' + self.html[end:]
         return '<plasmic-component data-plasmic-component="plasmic-antd6-modal" data-props=\'{"width":"720"}\'>' + html + '</plasmic-component>'
+
+    def row_col_fixture(self, names=("Name", "Desc", "Type", "Mode", "Retention"), full_row=()):
+        """Page Form: one Row of span-8 Cols, horizontal right-aligned labels, no tooltips."""
+        form = self.expected["pages"][0]["forms"][0]
+        base = form["fields"][0]
+        base.pop("tooltip")
+        base.pop("copyTriage")
+        start = self.html.index('<plasmic-component data-plasmic-component="plasmic-antd6-form-item"')
+        end = self.html.rindex('</slot></plasmic-component>')
+        item_html = self.html[start:end].replace('<slot name="tooltip"><span>Help</span></slot>', '')
+        fields, cols = [], []
+        for name in names:
+            field = copy.deepcopy(base)
+            field.update(nodeName=name + "Field", name=name.lower(), control=name, label=name, span=3 if name in full_row else 1)
+            fields.append(field)
+            item = (item_html.replace('NameField', name + 'Field').replace('"name":"name"', '"name":"' + name.lower() + '"')
+                    .replace('data-plasmic-name="Name"', 'data-plasmic-name="' + name + '"').replace('<span>Name</span>', '<span>' + name + '</span>'))
+            span = 24 if name in full_row else 8
+            cols.append(f'<plasmic-component data-plasmic-component="plasmic-antd6-col" data-plasmic-name="{name}Col" data-props=\'{{"span":{span}}}\'>'
+                        f'<slot name="children">{item}</slot></plasmic-component>')
+        form["fields"] = fields
+        form["layout"] = {"container": "Fields", "columns": 3, "gutter": 16}
+        form["labelWidth"] = {"longestLabel": "Retention", "labelTextPx": 70, "requiredMarkPx": 10, "helpIconPx": 0, "paddingPx": 8, "measuredPx": 88, "measuredFrom": measured_from()}
+        row = ('<plasmic-component data-plasmic-component="plasmic-antd6-row" data-plasmic-name="Fields" data-props=\'{"gutter":16,"wrap":true}\' '
+               'style="align-self:stretch;max-width:none;min-width:0"><slot name="children">' + ''.join(cols) + '</slot></plasmic-component>')
+        head = self.html[:start].replace('"layout":"horizontal"', '"layout":"horizontal","labelAlign":"right","labelCol":{"flex":"88px"}')
+        return head + row + self.html[end:]
+
+    def test_page_form_requires_one_row_of_cols(self):
+        html = self.row_col_fixture()
+        self.assertTrue(self.result(html)["passed"], self.result(html))
+        form = self.expected["pages"][0]["forms"][0]
+        layout = form.pop("layout")
+        result = self.result(html)
+        self.assertFalse(result["passed"])
+        self.assertIn("page-form-structure", str(result["errors"]))
+        form["layout"] = layout
+        for old, new in [('"span":8}\'><slot name="children"><plasmic-component data-plasmic-component="plasmic-antd6-form-item" data-plasmic-name="ModeField"',
+                          '"span":12}\'><slot name="children"><plasmic-component data-plasmic-component="plasmic-antd6-form-item" data-plasmic-name="ModeField"'),
+                         ('max-width:none;', ''), ('"wrap":true', '"wrap":false'), ('"gutter":16', '"gutter":24')]:
+            with self.subTest(old=old[:40]):
+                self.assertFalse(self.result(html.replace(old, new, 1))["passed"])
+        form["fields"][0], form["fields"][1] = form["fields"][1], form["fields"][0]
+        self.assertFalse(self.result(html)["passed"], "fields must stay in reading order")
+
+    def test_single_row_container_list_matches_the_same_native_row(self):
+        html = self.row_col_fixture()
+        self.expected['pages'][0]['forms'][0]['layout']['container'] = ['Fields']
+        self.assertTrue(self.result(html)['passed'], self.result(html))
+
+    def test_pending_inventory_metadata_is_never_a_valid_decision(self):
+        for key in ('layoutReason', 'sourceCopyUnits', 'labelWidth'):
+            with self.subTest(key=key):
+                form = self.expected['pages'][0]['forms'][0]
+                form[key] = '__DECIDE__'
+                result = self.result(self.html)
+                self.assertFalse(result['passed'])
+                self.assertIn('__DECIDE__', str(result['errors']))
+                del form[key]
+
+    def test_overlay_dimensions_are_native_values_not_design_presets(self):
+        from verify_forms import valid_dimension
+        for value in (880, 800.5, '880px', '.5px', '80vw', '40rem', 'calc(100% - 24px)'):
+            self.assertTrue(valid_dimension(value), value)
+        for value in ('default', 'large'):
+            self.assertTrue(valid_dimension(value, drawer=True), value)
+            self.assertFalse(valid_dimension(value), value)
+        for value in (None, True, False, 0, -10, float('nan'), '', '__DECIDE__', 'wide', '-20px', '0rem'):
+            self.assertFalse(valid_dimension(value, drawer=True), value)
+
+    def test_grouped_form_uses_one_row_per_group_card(self):
+        html = self.row_col_fixture()
+        start = html.index('<plasmic-component data-plasmic-component="plasmic-antd6-row"')
+        end = html.rindex('</slot></plasmic-component>')
+        cols = html[start:end].split('<slot name="children">', 1)[1].rsplit('</slot></plasmic-component>', 1)[0]
+        parts = cols.split('<plasmic-component data-plasmic-component="plasmic-antd6-col"')[1:]
+        parts = ['<plasmic-component data-plasmic-component="plasmic-antd6-col"' + part for part in parts]
+        def group(name, chunk):
+            row = (f'<plasmic-component data-plasmic-component="plasmic-antd6-row" data-plasmic-name="{name}" data-props=\'{{"gutter":16,"wrap":true}}\' '
+                   'style="align-self:stretch;max-width:none;min-width:0"><slot name="children">' + ''.join(chunk) + '</slot></plasmic-component>')
+            return (f'<plasmic-component data-plasmic-component="plasmic-antd6-card" data-plasmic-name="{name}Card" style="width:100%">'
+                    '<slot name="title"><span>' + name + '</span></slot><slot name="children">' + row + '</slot></plasmic-component>')
+        grouped = html[:start] + group('BasicGroup', parts[:3]) + group('RuleGroup', parts[3:]) + html[end:]
+        form = self.expected["pages"][0]["forms"][0]
+        form["layout"]["container"] = ["BasicGroup", "RuleGroup"]
+        self.assertTrue(self.result(grouped)["passed"], self.result(grouped))
+        form["layout"]["container"] = ["RuleGroup", "BasicGroup"]
+        self.assertFalse(self.result(grouped)["passed"], "groups keep reading order")
+        form["layout"]["container"] = ["BasicGroup", "RuleGroup"]
+        form.pop("labelWidth")
+        self.assertFalse(self.result(grouped)["passed"], "grouped Forms still need the measured label width")
+
+    def test_full_row_field_uses_span_24_and_trailing_row_keeps_span_8(self):
+        html = self.row_col_fixture(full_row=("Desc",))
+        self.assertTrue(self.result(html)["passed"], self.result(html))
+        self.assertFalse(self.result(html.replace('"span":24', '"span":8'))["passed"])
+
+    def test_per_line_flex_rows_fail_even_when_declared(self):
+        html = self.row_col_fixture()
+        start = html.index('<plasmic-component data-plasmic-component="plasmic-antd6-row"')
+        items = [chunk.split('<slot name="children">', 1)[1].rsplit('</slot></plasmic-component>', 1)[0]
+                 for chunk in html[start:].split('<plasmic-component data-plasmic-component="plasmic-antd6-col"')[1:]]
+        flex = lambda group: '<div style="display:flex;flex-direction:row;width:100%;column-gap:16px">' + ''.join(
+            i.replace('style="width:100%"', 'style="width:100%;flex:1 1 0;min-width:0"', 1) for i in group) + '</div>'
+        rows = '<div label="Fields" style="display:flex;flex-direction:column;width:100%">' + flex(items[:3]) + flex(items[3:]) + '</div>'
+        end = html.rindex('</slot></plasmic-component>')
+        result = self.result(html[:start] + rows + html[end:])
+        self.assertFalse(result["passed"])
+        self.assertIn("needs rows", str(result["errors"]))
+
+    def test_default_fill_controls_need_no_width_reason(self):
+        html = self.row_col_fixture().replace('data-plasmic-name="Desc" style="width:100%"', 'data-plasmic-name="Desc"')
+        self.assertTrue(self.result(html)["passed"], self.result(html))
+        narrow = html.replace('data-plasmic-name="Desc"', 'data-plasmic-name="Desc" style="width:240px"')
+        self.assertIn("controlWidthReason", str(self.result(narrow)["errors"]))
 
     def test_full_width_rows_and_short_field_pair_pass(self):
         html = self.grid_fixture()
@@ -345,7 +580,7 @@ class FormCheckTests(unittest.TestCase):
         # Missing measured width, wrong native labelCol and left alignment without source all fail.
         form.pop("labelWidth")
         self.assertFalse(self.result(page_html)["passed"])
-        form["labelWidth"] = {"longestLabel": "Name", "labelTextPx": 78, "requiredMarkPx": 10, "helpIconPx": 14, "paddingPx": 8, "measuredPx": 110}
+        form["labelWidth"] = {"longestLabel": "Name", "labelTextPx": 78, "requiredMarkPx": 10, "helpIconPx": 14, "paddingPx": 8, "measuredPx": 110, "measuredFrom": measured_from()}
         help_source = Path(tempfile.mkdtemp()) / "req.md"
         help_source.write_text("字段说明 Help", encoding="utf-8")
         help_evidence = {"path": str(help_source), "sha256": hashlib.sha256(help_source.read_bytes()).hexdigest(), "quote": "字段说明 Help"}
@@ -365,6 +600,18 @@ class FormCheckTests(unittest.TestCase):
         self.assertFalse(self.result(page_html)["passed"])
         form["columnsReason"] = {"kind": "measurement", "controlWidth": 480, "columnWidth": 640}
         self.assertTrue(self.result(page_html)["passed"])
+
+    def test_measured_label_width_alone_is_sufficient(self):
+        from verify_forms import label_width_problem
+        self.assertIn("measuredFrom", label_width_problem({"longestLabel": "名称", "measuredPx": 72}, False))
+        stale = {**measured_from(), "sha256": "0" * 64}
+        self.assertIn("changed after measurement", label_width_problem({"longestLabel": "名称", "measuredPx": 72, "measuredFrom": stale}, False))
+        self.assertIsNone(label_width_problem({"longestLabel": "数据保存天数", "measuredPx": 120, "measuredFrom": measured_from()}, True))
+        self.assertIn("positive measuredPx", label_width_problem({"longestLabel": "名称", "measuredPx": "__DECIDE__"}, False))
+        self.assertIn("positive measuredPx", label_width_problem({"longestLabel": "名称"}, False))
+        # A supplied decomposition must still add up.
+        self.assertIn("must equal", label_width_problem(
+            {"longestLabel": "名称", "labelTextPx": 28, "requiredMarkPx": 10, "helpIconPx": 0, "paddingPx": 8, "measuredPx": 90, "measuredFrom": measured_from()}, False))
 
     def test_long_description_in_multi_column_form_needs_tooltip(self):
         from verify_forms import description_budget_problem
@@ -400,6 +647,7 @@ class FormCheckTests(unittest.TestCase):
         html = self.grid_fixture()
         form = self.expected["pages"][0]["forms"][0]
         form["fields"] = form["fields"][:1]
+        form["sourceCopyUnits"] = [unit for unit in form["sourceCopyUnits"] if unit["field"] == form["fields"][0]["nodeName"]]
         form["fields"][0]["span"] = 1
         form["layout"].update(modalWidth=520, columns=1, rows=[])
         html = html[:html.index('<div label="ShortRow"')] + '</div></slot></plasmic-component></plasmic-component>'

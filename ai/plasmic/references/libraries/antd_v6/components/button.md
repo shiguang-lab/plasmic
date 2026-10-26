@@ -8,6 +8,13 @@ Library: [Ant Design v6](../index.md).
 
 ## Generation rules
 
+### Design defaults
+
+- Use for an action the user triggers. Navigation inside running text uses Typography Link.
+- Type: one `primary` per region for its main or completion action; `default` for the others; `link` for actions inside Table cells and Descriptions; `danger` only for destructive actions, always behind a confirmation.
+- Labels are a verb or verb + object from the source wording; an icon-only Button needs a Tooltip and accessible name.
+- Placement: Card or Tabs extra, a region toolbar, the Page completion bar or an overlay footer, ordered by [action bars](../compositions/action-bars.md#placement-and-ordering); groups use Space 8px.
+
 ### Types and labels
 
 Each action group has at most one primary action, derived from the user's main task in that region. Coordinate with the existing one-primary-page-action convention: do not independently promote every Card, row or auxiliary operation. A group with no dominant action may use only default buttons. Loading/disabled are states of the intended type, not new hierarchy roles; a disabled screenshot alone cannot prove the enabled hierarchy.

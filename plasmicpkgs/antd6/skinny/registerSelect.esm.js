@@ -3,7 +3,6 @@ import cls from 'classnames';
 import React from 'react';
 import { u as useCanvasOverlay, p as previewOpenProp } from './canvas-overlay-Dan70Oxr.esm.js';
 import { o as optionComponentName, h as optionGroupComponentName, s as selectComponentName } from './names-DKofLcnC.esm.js';
-import { r as reactNodeToString } from './react-utils-BpvCcwyE.esm.js';
 import { r as registerComponentHelper, t as traverseReactEltTree } from './utils-Cmdig6Yl.esm.js';
 import '@plasmicapp/host';
 import '@plasmicapp/host/registerComponent';
@@ -52,10 +51,6 @@ function AntdSelect(props) {
           }
         };
       },
-      optionFilterProp: curated.optionFilterProp ?? (curated.options ? "label" : void 0),
-      filterOption: curated.filterOption ?? (curated.optionFilterProp ? void 0 : (input, option) => reactNodeToString(
-        useChildren ? option?.children : option?.label ?? option?.value ?? ""
-      ).toLowerCase().includes(input.toLowerCase())),
       suffixIcon
     }
   );
@@ -187,8 +182,8 @@ function registerSelect(loader) {
         defaultValueHint: false
       },
       showSearch: {
-        type: "boolean",
-        defaultValueHint: (ps) => ps.mode === "multiple" || ps.mode === "tags",
+        type: "object",
+        description: 'Native boolean or search configuration, such as {"optionFilterProp":"label"}. Unset disables search in single mode and enables it in multiple/tags mode. Ant Design filters by value by default.',
         advanced: true
       },
       status: {

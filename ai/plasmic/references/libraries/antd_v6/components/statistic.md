@@ -9,6 +9,14 @@ Library: [Ant Design v6](../index.md).
 
 ## Generation rules
 
+### Design defaults
+
+- Use for an emphasized number: a total, count or rate that the user reads first.
+- The label goes in the title Slot (14px secondary), the unit in the suffix; value styling per [metrics](../compositions/summary-metrics.md#overview-metrics-and-information-cards).
+- Placement: four metric Cards per row in an overview, or beside or directly above the data it counts.
+
+### Usage and behavior
+
 Use the registered Statistic for emphasized numeric business values. Read its actual Props/Slots and apply typography through supported content styling; never invent a prop to force font size or replace required numeric content with decorative text.
 
 [Metric composition](../compositions/summary-metrics.md#overview-metrics-and-information-cards) owns project typography defaults, label/value/unit roles, comparison placement and longest-content acceptance. Preserve complete values and legitimate zero.

@@ -1,6 +1,6 @@
 # Agent transports and tool routing
 
-Prefer the native MCP stdio server (`/Applications/Plasmic.app/Contents/MacOS/Plasmic --mcp`) configured in the **current Agent client/session**. A registration in another client does not make tools available here. Start a new session after configuring it; inspect the actual tool inventory and use MCP `tools/list` schemas.
+Prefer the native MCP stdio server configured in the **current Agent client/session**, using the verified installed executable with `--mcp`. A registration in another client does not make tools available here. Reload/reconnect when supported; otherwise start a new session after configuring it. Inspect the actual tool inventory and use MCP `tools/list` schemas.
 
 ## Automatic setup when session tools are absent
 
@@ -28,6 +28,18 @@ Append this insert patch only when the same instance/server namespace is absent,
 ```
 
 Preserve all other patches and literal `!!js` expressions without evaluating them. DSH hot-reloads profile patches; verify the session's tool inventory after reload. If tools are not refreshed, open a new session. TOML/JSON clients require their own documented structure. Installed skill files do not execute setup on their own: the Agent follows these steps when invoked and Desktop access is needed.
+
+## Prototype preflight
+
+Through native MCP, call `get_app_state({toolNames:["read","queryElements","preview","validate"]})`. Save the complete returned state object as `/task/mcp-state.json` (not the MCP envelope), then run:
+
+```sh
+python3 RESOURCE_ROOT/scripts/verify_mcp_contract.py --state /task/mcp-state.json --report /task/mcp-contract.json
+```
+
+This checks the supplied advertised contracts; refresh the state after a build or editor-session change. A replay of old state does not prove a current connection. On macOS/Linux, `--profile "/absolute/Desktop user-data"` instead of `--state` can collect the same state via authenticated local RPC.
+
+Check collection capability before composition: the [full suite's live collector](verification.md#collect-and-verify) requires local macOS/Linux Desktop RPC. Native MCP access and successful contract preflight alone do not make that collector available on Windows or a remote-only client. Such clients can run gates against an existing complete capture using `--evidence`; record any unavailable current capture, runtime or persistence checks as unverified. Do not claim full acceptance from replay or invent another transport.
 
 ## Calls after connection
 

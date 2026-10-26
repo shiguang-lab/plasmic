@@ -5,10 +5,28 @@ from pathlib import Path
 import subprocess
 import sys
 import tempfile
-from read_reference import sections, select
+from read_reference import sections, select, selected_lines
 
 
 class ReferenceTests(unittest.TestCase):
+    def test_broken_output_does_not_record_a_successful_read(self):
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / 'rules.md'
+            ledger = Path(directory) / 'reads.jsonl'
+            source.write_text('# Rules\nRequired contract.\n', encoding='utf-8')
+            ledger.write_text('', encoding='utf-8')
+            receiver, sender = os.pipe()
+            os.close(receiver)
+            try:
+                result = subprocess.run(
+                    [sys.executable, str(Path(__file__).with_name('read_reference.py')),
+                     str(source), '--log', str(ledger)], stdout=sender, stderr=subprocess.PIPE)
+            finally:
+                os.close(sender)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn(b'BrokenPipeError', result.stderr)
+            self.assertEqual(ledger.read_text(encoding='utf-8'), '')
+
     def test_command_emits_utf8_and_canonical_paths_with_non_utf8_defaults(self):
         with tempfile.TemporaryDirectory() as directory:
             source = Path(directory) / "中文.md"
@@ -45,6 +63,15 @@ class ReferenceTests(unittest.TestCase):
         source = "# Form\n## Rule\nFirst\n## Rule\nSecond\n"
         self.assertEqual(select(source, ["rule-1"]), "# Form\n## Rule\nSecond\n")
         self.assertEqual(select(source, ["rule-1", "rule", "rule"]), source)
+
+    def test_line_coverage_matches_emitted_preamble_and_parent_introductions(self):
+        source = "# Form\nMetadata\n## Field\nContract\n### Help\nTooltip\n### Layout\nGrid\n## Other\nSkip\n"
+        emitted = selected_lines(source, ['layout'])
+        self.assertEqual(emitted, {0, 1, 2, 3, 6, 7})
+        self.assertEqual(''.join(line for i, line in enumerate(source.splitlines(keepends=True)) if i in emitted),
+                         select(source, ['layout']))
+        self.assertEqual(selected_lines(source, ['help']) | emitted | selected_lines(source, ['other']),
+                         selected_lines(source))
 
 
 if __name__ == "__main__":

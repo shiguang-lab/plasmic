@@ -13,22 +13,13 @@ var React__default = /*#__PURE__*/_interopDefault(React);
 
 const AntdButton = React__default.default.forwardRef(
   function AntdButton2(props, ref) {
-    const { submitsForm = false, children, ...rest } = props;
+    const { submitsForm = false, ...rest } = props;
     const target = props.target === true ? "_blank" : props.target === false ? void 0 : props.target;
     return /* @__PURE__ */ React__default.default.createElement(
       Ant.Button,
       {
         ...rest,
         ref,
-        children: children != null && children !== "" ? /* @__PURE__ */ React__default.default.createElement(
-          "div",
-          {
-            style: {
-              display: "inline-block"
-            }
-          },
-          children
-        ) : void 0,
         htmlType: props.htmlType ?? (submitsForm ? "submit" : "button"),
         target
       }

@@ -28,9 +28,18 @@ class PolicyTests(unittest.TestCase):
     def test_native_defaults_and_explicit_equal_values_pass(self):
         for key, values in BASELINES.items():
             spec = {'nodeName': 'Widget', 'component': key}
-            self.assertEqual(policy_errors(spec, {}), [])
+            unset = policy_errors(spec, {})
+            if key == 'plasmicantd6table':
+                # Native density differs from the chosen product convention.
+                self.assertEqual([e['property'] for e in unset], ['pagination.defaultPageSize', 'pagination.pageSizeOptions'])
+            else:
+                self.assertEqual(unset, [])
             # Nested dropdown props use their native nesting.
             actual = {k: v for k, v in values.items() if '.' not in k}
+            for path, value in values.items():
+                if '.' in path:
+                    outer, inner = path.split('.', 1)
+                    actual.setdefault(outer, {})[inner] = value
             self.assertEqual(policy_errors(spec, actual), [])
 
     def test_self_consistent_generated_expectations_do_not_authorize_overrides(self):
@@ -47,10 +56,11 @@ class PolicyTests(unittest.TestCase):
         evidence = self.evidence('本页行操作明确使用 max=5。')
         spec = {'nodeName': 'Actions', 'component': 'plasmic-react-ui-action-group', 'props': {'max': 5},
                 'overrides': {'max': {'reason': 'User specifies the action limit', 'evidence': evidence}}}
-        self.assertEqual(policy_errors(spec, {'max': 5}), [])
-        self.assertTrue(policy_errors(spec, {'max': 6}))
+        hover = {'dropdownProps': {'trigger': ['hover']}}
+        self.assertEqual(policy_errors(spec, {'max': 5, **hover}), [])
+        self.assertTrue(policy_errors(spec, {'max': 6, **hover}))
         self.path.write_text('Requirement changed after planning', encoding="utf-8")
-        self.assertTrue(policy_errors(spec, {'max': 5}))
+        self.assertTrue(policy_errors(spec, {'max': 5, **hover}))
 
     def test_reviewed_three_column_mode_does_not_need_a_requirement_override(self):
         spec = {'nodeName': 'Filters', 'component': 'plasmic-overseas-search-form',
@@ -104,12 +114,25 @@ class PolicyTests(unittest.TestCase):
                 'overrides': {'collapsed': {'reason': 'Explicit initial state', 'evidence': evidence}}}
         self.assertEqual([e['property'] for e in policy_errors(spec, spec['props'])], ['minRows'])
 
-    def test_explicit_click_requirement_uses_the_native_action_group_array(self):
-        evidence = self.evidence('触屏设备上点击打开更多操作。')
-        spec = {'component': 'plasmic-react-ui-action-group', 'props': {'dropdownProps': {'trigger': ['click']}},
-                'overrides': {'dropdownProps.trigger': {'reason': 'Explicit touch interaction', 'evidence': evidence}}}
-        self.assertEqual(policy_errors(spec, spec['props']), [])
-        self.assertTrue(policy_errors(spec, {'dropdownProps': {'trigger': ['contextMenu']}}))
+    def test_action_group_preserves_native_trigger_choices(self):
+        spec = {'component': 'plasmic-react-ui-action-group'}
+        for values in ({}, {'dropdownProps': {'trigger': ['click']}}, {'dropdownProps': {'trigger': ['hover']}}):
+            self.assertEqual(policy_errors(spec, values), [])
+
+    def test_table_density_uses_effective_native_and_controlled_values(self):
+        spec = {'component': 'plasmic-antd6-table'}
+        for values in ({}, {'pagination': {}}, {'pagination': True}):
+            self.assertEqual(len(policy_errors(spec, values)), 2)
+        self.assertEqual(policy_errors(spec, {'pagination': False}), [])
+        values = {'pagination': {'pageSize': 10, 'defaultPageSize': 20, 'pageSizeOptions': [20, 50, 100]}}
+        self.assertEqual([e['property'] for e in policy_errors(spec, values)], ['pagination.pageSize'])
+        values['pagination']['pageSize'] = 20
+        values['pagination']['defaultPageSize'] = 10
+        self.assertEqual(policy_errors(spec, values), [])
+        values['pagination']['pageSize'] = 50
+        spec.update(props=values, overrides={'pagination.pageSize': {
+            'reason': 'Source requests 50 rows', 'evidence': self.evidence('每页50条。')}})
+        self.assertEqual(policy_errors(spec, values), [])
 
     def test_invalid_plans_report_errors_without_diagnostic_crashes(self):
         evidence = self.evidence('app_source 用于列表上下文；启用需要二次确认。')
@@ -134,7 +157,7 @@ class PolicyTests(unittest.TestCase):
     def context_markup(self):
         return node('Shell', 'plasmic-overseas-app-shell', {'appSources': [{'value': 'A', 'label': 'App A'}, {'value': 'B', 'label': 'App B'}],
             'appSource': '{{ $state.appSource }}', 'onAppSourceChange': '{{ value => $state.appSource = value }}'}) + node(
-            'Results', 'plasmic-antd6-table', {'data': '{{ {data:$state.rows.filter(row => row.app_source === $state.appSource)} }}'})
+            'Results', 'plasmic-antd6-table', {'pagination': False, 'data': '{{ {data:$state.rows.filter(row => row.app_source === $state.appSource)} }}'})
 
     def test_app_source_aliases_require_semantic_context_review(self):
         for name in ['App 来源', 'App Source', 'app_source', 'appSource', 'APP-SOURCE', '应用来源',
@@ -168,19 +191,33 @@ class PolicyTests(unittest.TestCase):
         self.assertTrue(check_page(plan, self.page(empty)))
 
     def test_multiple_page_sizes_require_a_real_visible_size_changer(self):
-        values = {'pagination': {'pageSizeOptions': [20, 50, 100]}}
+        values = {'pagination': {'defaultPageSize': 20, 'pageSizeOptions': [20, 50, 100]}}
         self.assertTrue(check_page({}, self.page(node('Table', 'plasmic-antd6-table', values))))
         values['pagination']['showSizeChanger'] = True
         self.assertEqual(check_page({}, self.page(node('Table', 'plasmic-antd6-table', values))), [])
 
-    def test_fixed_size_pagers_still_require_page_change_cases(self):
-        evidence = self.evidence('列表每页20条，必须能够翻页查看不同记录。')
-        for component, values in [('plasmic-antd6-table', {'pagination': {'defaultPageSize': 20}}),
-                                  ('plasmic-antd6-pagination', {'defaultPageSize': 20}),
-                                  ('plasmic-antd6-pagination', {'pageSizeOptions': [20]})]:
+    def test_native_component_owned_paging_needs_no_runtime_case(self):
+        for component, values in [('plasmic-antd6-table', {'pagination': {'defaultPageSize': 20, 'pageSizeOptions': [20, 50, 100], 'showSizeChanger': False}}),
+                                  ('plasmic-antd6-table', {'pagination': {'defaultPageSize': 20, 'showSizeChanger': True,
+                                                                          'pageSizeOptions': [20, 50, 100]}}),
+                                  ('plasmic-antd6-pagination', {'defaultPageSize': 20})]:
             with self.subTest(component=component, values=values):
                 plan = {'path': '/groups', 'components': [{'nodeName': 'Results', 'component': component,
                          'role': 'pagination', 'props': values}], 'runtimeCases': []}
+                self.assertEqual(plan_errors(plan), [])
+
+    def test_prototype_owned_fixed_size_paging_requires_page_change_cases(self):
+        evidence = self.evidence('列表每页20条，必须能够翻页查看不同记录。pagination.pageSizeOptions=[20]。')
+        for component, values, dynamic in [
+                ('plasmic-antd6-table', {'pagination': {'current': '{{ $state.page }}', 'pageSize': 20, 'pageSizeOptions': [20], 'showSizeChanger': False}}, []),
+                ('plasmic-antd6-table', {'pagination': {'defaultPageSize': 20, 'pageSizeOptions': [20], 'showSizeChanger': False}}, ['pagination.current']),
+                ('plasmic-antd6-pagination', {'current': '{{ $state.page }}'}, []),
+                ('plasmic-antd6-pagination', {'pageSizeOptions': [20]}, ['current'])]:
+            with self.subTest(component=component, values=values, dynamic=dynamic):
+                plan = {'path': '/groups', 'components': [{'nodeName': 'Results', 'component': component,
+                         'role': 'pagination', 'props': values, 'dynamicProps': dynamic}], 'runtimeCases': []}
+                plan['components'][0]['overrides'] = {'pagination.pageSizeOptions': {
+                    'reason': 'Source requires fixed-size paging', 'evidence': evidence}}
                 self.assertTrue(plan_errors(plan))
                 plan['runtimeCases'] = [{'id': 'second-page', 'kind': 'page-change', 'nodeName': 'Results',
                     'evidence': evidence, 'given': {'current': 2, 'pageSize': 20},
@@ -189,14 +226,14 @@ class PolicyTests(unittest.TestCase):
                 plan['runtimeCases'][0]['nodeName'] = 'OtherPager'
                 self.assertTrue(plan_errors(plan))
 
-    def test_adjustable_pagers_require_page_size_and_page_change_separately(self):
+    def test_prototype_owned_adjustable_paging_requires_page_size_and_page_change(self):
         evidence = self.evidence('列表支持翻页及每页条数切换。')
-        for component, values in [('plasmic-antd6-table', {'pagination': {'pageSizeOptions': [20, 50, 100]}}),
-                                  ('plasmic-antd6-table', {'pagination': {'showSizeChanger': True}}),
-                                  ('plasmic-antd6-table', {'pagination': {'pageSizeOptions': '{{ $state.pageSizes }}'}}),
-                                  ('plasmic-antd6-pagination', {'pageSizeOptions': [20, 50, 100]}),
-                                  ('plasmic-antd6-pagination', {'showSizeChanger': True}),
-                                  ('plasmic-antd6-pagination', {'pageSizeOptions': '{{ $state.pageSizes }}'})]:
+        for component, values in [
+                ('plasmic-antd6-table', {'pagination': {'current': '{{ $state.page }}', 'defaultPageSize': 20, 'pageSizeOptions': [20, 50, 100]}}),
+                ('plasmic-antd6-table', {'pagination': {'pageSize': '{{ $state.size }}', 'pageSizeOptions': [20, 50, 100], 'showSizeChanger': True}}),
+                ('plasmic-antd6-table', {'pagination': {'current': '{{ $state.page }}', 'defaultPageSize': 20, 'pageSizeOptions': '{{ $state.pageSizes }}'}}),
+                ('plasmic-antd6-pagination', {'current': '{{ $state.page }}', 'defaultPageSize': 20, 'pageSizeOptions': [20, 50, 100]}),
+                ('plasmic-antd6-pagination', {'pageSize': '{{ $state.size }}', 'pageSizeOptions': [20, 50, 100], 'showSizeChanger': True})]:
             with self.subTest(component=component, values=values):
                 cases = [{'id': kind, 'kind': kind, 'nodeName': 'Results', 'evidence': evidence,
                           'given': {'current': 1, 'pageSize': 20},
@@ -213,7 +250,7 @@ class PolicyTests(unittest.TestCase):
         plan = self.context_plan(self.evidence('app_source 是当前工作 App。'))
         plan['appContext']['binding'] = '$state.shell.appSource'
         page = self.page(node('Shell', 'plasmic-overseas-app-shell', {'appSources': [{'value': 'A'}]}) + node(
-            'Results', 'plasmic-antd6-table', {'data': '{{ {data:$state.rows.filter(r => r.app_source === $state.shell.appSource)} }}'}))
+            'Results', 'plasmic-antd6-table', {'pagination': False, 'data': '{{ {data:$state.rows.filter(r => r.app_source === $state.shell.appSource)} }}'}))
         page['states'] = [{'name': 'shell.appSource', 'elementUuid': 'Shell', 'variableType': 'text'}]
         self.assertEqual(check_page(plan, page), [])
 
@@ -221,7 +258,7 @@ class PolicyTests(unittest.TestCase):
         plan = self.context_plan(self.evidence('app_source 是当前工作 App。'))
         plan['appContext']['consumers'][0]['queryName'] = 'GroupList'
         page = self.page(node('Shell', 'plasmic-overseas-app-shell', {'appSources': [{'value': 'A'}], 'appSource': '{{ $state.appSource }}'})
-                         + node('Results', 'plasmic-antd6-table', {'data': '{{ $q.groupList }}'}))
+                         + node('Results', 'plasmic-antd6-table', {'pagination': False, 'data': '{{ $q.groupList }}'}))
         page['interactions'] = [{'elementUuid': 'Shell', 'eventName': 'onAppSourceChange', 'actionName': 'updateVariable',
                                  'args': {'variable': {'__type': 'ObjectPath', 'path': ['$state', 'appSource']}, 'value': '{{ value }}'}}]
         page['dataQueries'] = [{'name': 'GroupList', 'reference': '$q.groupList', 'code': 'fetchGroups({app_source:$state.appSource})'}]
@@ -238,10 +275,77 @@ class PolicyTests(unittest.TestCase):
         self.assertTrue(plan_errors(plan))
         contract['cases'] += [{'kind': 'confirm-cancel'}, {'kind': 'confirm-accept'}, {'kind': 'state-transition'}]
         self.assertEqual(plan_errors(plan), [])
-        markup = node('Actions', 'plasmic-react-ui-action-group', {'items': [{'key': 'enable', 'label': '启用'}]})
-        self.assertTrue(check_page(plan, self.page(markup)))
-        markup = node('Actions', 'plasmic-react-ui-action-group', {'items': [{'key': 'enable', 'label': '启用', 'confirm': {'title': '确认启用？'}}]})
-        self.assertEqual(check_page(plan, self.page(markup)), [])
+        group = node('Actions', 'plasmic-react-ui-action-group', {'items': [{'key': 'enable', 'label': '启用'}], 'dropdownProps': {'trigger': ['hover']}})
+        self.assertTrue(check_page(plan, self.page(group)))
+        # A retired wrapper-only confirm field is not confirmation.
+        legacy = node('Actions', 'plasmic-react-ui-action-group', {'items': [{'key': 'enable', 'label': '启用', 'confirm': {'title': '确认启用？'}}], 'dropdownProps': {'trigger': ['hover']}})
+        self.assertTrue(check_page(plan, self.page(legacy)))
+
+        def confirmed(values, inner=group):
+            return ('<plasmic-component id="Confirm" data-plasmic-name="Confirm" data-plasmic-component="plasmic-antd6-popconfirm" data-props="'
+                    + html.escape(json.dumps(values), quote=True) + '"><slot name="children">' + inner + '</slot></plasmic-component>')
+        wired = [{'elementUuid': 'Actions', 'eventName': 'onAction'}, {'elementUuid': 'Confirm', 'eventName': 'onConfirm'}]
+        bound = {'title': '确认启用？', 'open': '{{ $state.pending?.rowId === row.id }}'}
+        page = self.page(confirmed(bound))
+        page['interactions'] = wired
+        self.assertEqual(check_page(plan, page), [])
+        for values, interactions in [({**bound, 'open': True}, wired), (bound, wired[:1]), (bound, wired[1:])]:
+            with self.subTest(values=values, interactions=interactions):
+                page = self.page(confirmed(values))
+                page['interactions'] = interactions
+                self.assertTrue(check_page(plan, page))
+        page = self.page(group + confirmed(bound, ''))
+        page['interactions'] = wired
+        self.assertTrue(check_page(plan, page))
+
+
+    def test_public_action_can_exclude_only_a_source_unsupported_denial(self):
+        evidence = self.evidence('公开资料向所有访客开放查看，无角色、记录、市场或登录访问限制。')
+        contract = {'nodeName': 'Actions', 'key': 'view', 'evidence': evidence,
+                    'confirm': False, 'transitions': [],
+                    'cases': [self.case('view-public', 'permission-allowed', 'Actions')]}
+        plan = {'path': '/public', 'components': [], 'actionContracts': [contract]}
+        self.assertTrue(any(e.get('requiredKinds') == ['permission-denied'] for e in plan_errors(plan)))
+        contract['permissionDeniedNotApplicable'] = 'The cited public-access requirement defines no denied role or data scope.'
+        self.assertEqual(plan_errors(plan), [])
+        contract['cases'] = [self.case('load-failure', 'failure', 'Actions')]
+        self.assertTrue(any('permission-allowed' in e.get('requiredKinds', []) for e in plan_errors(plan)))
+        contract['cases'] = [self.case('view-public', 'permission-allowed', 'Actions')]
+        contract['confirm'] = True
+        contract['transitions'] = [{'from': 'OPEN', 'to': 'CLOSED', 'text': '已关闭'}]
+        errors = plan_errors(plan)
+        self.assertTrue(any(set(e.get('requiredKinds', [])) == {'confirm-cancel', 'confirm-accept', 'state-transition'} for e in errors))
+
+    def test_action_without_in_scope_permissions_keeps_positive_coverage(self):
+        contract = {'nodeName': 'Actions', 'key': 'view',
+                    'evidence': self.evidence('本轮原型：订单列表每行点击查看进入订单详情。'),
+                    'confirm': False, 'transitions': [],
+                    'permissionDeniedNotApplicable': 'Reviewed prototype scope only specifies navigation; no permission distinction is defined. Service authorization remains unverified.',
+                    'cases': [self.case('view-order', 'permission-allowed', 'Actions')]}
+        plan = {'path': '/orders', 'components': [], 'actionContracts': [contract]}
+        self.assertEqual(plan_errors(plan), [])
+        contract['cases'] = []
+        self.assertTrue(plan_errors(plan))
+
+    def test_public_action_exemption_requires_reason_and_source_without_contradictory_cases(self):
+        evidence = self.evidence('公开资料向所有访客开放查看，无访问限制。')
+        reason = 'The source explicitly opens these documents to every visitor.'
+        contract = {'nodeName': 'Actions', 'key': 'view', 'evidence': evidence, 'confirm': False, 'transitions': [],
+                    'permissionDeniedNotApplicable': reason,
+                    'cases': [self.case('view-public', 'permission-allowed', 'Actions')]}
+        plan = {'path': '/public', 'components': [], 'actionContracts': [contract]}
+        for invalid in ('', ' ', None, False, {}, []):
+            with self.subTest(reason=invalid):
+                contract['permissionDeniedNotApplicable'] = invalid
+                self.assertTrue(any(e.get('pointer', '').endswith('/permissionDeniedNotApplicable') for e in plan_errors(plan)))
+        contract['permissionDeniedNotApplicable'] = reason
+        for invalid in (None, {}, {**evidence, 'quote': 'Invented public-access policy'}, {**evidence, 'sha256': '0' * 64}):
+            with self.subTest(evidence=invalid):
+                contract['evidence'] = invalid
+                self.assertTrue(plan_errors(plan))
+        contract['evidence'] = evidence
+        contract['cases'].append(self.case('view-denied', 'permission-denied', 'Actions'))
+        self.assertTrue(any('contradictory' in e['message'] for e in plan_errors(plan)))
 
 
 if __name__ == '__main__':

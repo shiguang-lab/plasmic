@@ -26,6 +26,12 @@ class SuiteTests(unittest.TestCase):
         self.model = shell.readback["results"][0]
         self.model["baseVariantTplTree"] = self.model["baseVariantTplTree"].replace('<div style=', '<div data-plasmic-name="Root" style=', 1)
         form.html = form.html.replace('<span>Name</span>', '<span data-plasmic-name="NameLabel">Name</span>').replace('<span>Help</span>', '<span data-plasmic-name="NameHelp">Help</span>')
+        assert 'data-plasmic-name="Name" style="width:100%" data-props=\'{}\'' in form.html
+        form.html = form.html.replace('data-plasmic-name="Name" style="width:100%" data-props=\'{}\'', 'data-plasmic-name="Name" style="width:100%" data-props=\'{"size":"medium"}\'')
+        # basic-form: the Form sits in one headerless Card (page-types.md#basic-form).
+        card_props = json.dumps({"size": "medium", "variant": "outlined", "styles": {"body": {"padding": "24px 20px 0"}}})
+        form.html = ('<plasmic-component data-plasmic-component="plasmic-antd6-card" data-plasmic-name="FormCard" data-props=\'' + card_props
+                     + '\'><slot name="title"></slot><slot name="extra"></slot><slot name="children">' + form.html + '</slot></plasmic-component>')
         self.model.update(uuid="page", name="记录列表", pageMeta={"path": "/records"},
                           props=[], states=[], interactions=[], variants=[], variantGroups=[])
         menu = [{"key": "records", "label": "Records", "href": "/records"}]
@@ -39,7 +45,7 @@ class SuiteTests(unittest.TestCase):
         self.snapshot["frames"][0].update(width=1440, read={"view": "full"}, images=[], problems=[])
         self.context = {"projectId": "project", "branchId": None, "sessionId": "editor-session", "revision": 1, "changeCounter": 0}
         self.config = {
-            "structure": {"inventory": "structure.json"}, "forms": {"inventory": "forms.json"},
+            "structure": {"inventory": "structure.json", "reads": "compose-reads.jsonl"}, "forms": {"inventory": "forms.json"},
             "descriptions": {"inventory": "descriptions.json"}, "overlays": {"inventory": "overlays.json"},
             "slots": {"pages": [{"path": "/records", "intent": "intent.html"}]}, "shell_height": {},
         }
@@ -50,19 +56,24 @@ class SuiteTests(unittest.TestCase):
         source = self.root / 'requirement.md'
         source.write_text('Single record administration; no application dimension.')
         write_json(self.root / "structure.json", {"pages": [{"path": "/records", "name": "记录列表", "source": "requirement §Records", "pageHeader": None,
+                    "pageType": "basic-form",
+                    "wireframe": {"notApplicable": "Prose-only fixture requirement without a text wireframe"},
                     "templates": [], "templatesNotApplicable": "Focused native Form fixture without a template-driven layout",
                     "appContext": {"required": False, "evidence": {"path": str(source), "sha256": hashlib.sha256(source.read_bytes()).hexdigest(), "quote": source.read_text()}}, "components": [
                        {"nodeName": "AppShell", "component": "plasmic-overseas-app-shell", "role": "shell", "purpose": "Standalone page navigation", "source": "requirement §Navigation", "rule": "references/libraries/overseas/components/app-shell.md"},
-                       {"nodeName": "Form", "component": "plasmic-antd6-form", "role": "submitted-form", "purpose": "Submitted name", "source": "requirement §Fields", "rule": "references/libraries/antd_v6/components/form.md", "props": {"layout": "horizontal"}},
-                       {"nodeName": "Name", "component": "plasmic-antd6-input", "role": "widget", "purpose": "Editable name", "source": "requirement §Fields", "rule": "references/libraries/antd_v6/components/input.md"}],
+                       {"nodeName": "FormCard", "component": "plasmic-antd6-card", "role": "surface", "purpose": "Record form surface", "source": "requirement §Fields", "rule": "references/libraries/antd_v6/components/card.md",
+                        "condition": "The Form is the Page's own business surface", "header": "none", "owner": {"nodeName": "AppShell", "slot": "children"},
+                        "props": {"size": "medium", "variant": "outlined", "styles": {"body": {"padding": "24px 20px 0"}}}},
+                       {"nodeName": "Form", "component": "plasmic-antd6-form", "role": "submitted-form", "purpose": "Submitted name", "source": "requirement §Fields", "rule": "references/libraries/antd_v6/components/form.md", "props": {"layout": "horizontal", "labelAlign": None, "labelCol": None}},
+                       {"nodeName": "Name", "component": "plasmic-antd6-input", "role": "widget", "purpose": "Editable name", "source": "requirement §Fields", "rule": "references/libraries/antd_v6/components/input.md", "props": {"size": "medium"}}],
                     "nodes": [
                        {"nodeName": "Root", "tag": "div", "owner": None, "purpose": "Bound page layout", "source": "requirement §Records"},
                        {"nodeName": "NameField", "component": "plasmic-antd6-form-item", "owner": {"nodeName": "Form", "slot": "children"}, "purpose": "Submitted name field", "source": "requirement §Fields"},
                        {"nodeName": "NameLabel", "tag": "span", "owner": {"nodeName": "NameField", "slot": "label"}, "purpose": "Name field label", "source": "requirement §Fields"},
                        {"nodeName": "NameHelp", "tag": "span", "owner": {"nodeName": "NameField", "slot": "tooltip"}, "purpose": "Name field guidance", "source": "requirement §Fields"}],
                     "feedback": [], "copy": {"source": "requirement §Copy review", "excluded": [], "entries": [
-                       {"nodeName": "AppShell", "role": "other", "at": "/props/menuItems/0/label", "text": "Records", "kind": "label", "copyTriage": "perceive-now", "purpose": "Record navigation", "source": "requirement §Navigation"},
-                       {"nodeName": "NameField", "role": "other", "at": "/props/rules/0/message", "text": "Required", "kind": "feedback", "copyTriage": "perceive-now", "purpose": "Required-field validation", "source": "requirement §Fields"},
+                       {"nodeName": "AppShell", "at": "/props/menuItems/0/label", "text": "Records", "kind": "label", "copyTriage": "perceive-now", "purpose": "Record navigation", "source": "requirement §Navigation"},
+                       {"nodeName": "NameField", "at": "/props/rules/0/message", "text": "Required", "kind": "feedback", "copyTriage": "perceive-now", "purpose": "Required-field validation", "source": "requirement §Fields"},
                        {"nodeName": "NameLabel", "role": "fieldLabel", "at": "/text", "text": "Name", "kind": "label", "copyTriage": "perceive-now", "purpose": "Identify the name input", "source": "requirement §Fields"},
                        {"nodeName": "NameHelp", "role": "help", "at": "/text", "text": "Help", "kind": "help", "copyTriage": "perceive-now", "purpose": "Name-entry guidance", "source": "requirement §Fields"}]},
                     "bindings": [], "bindingsNotApplicable": "Static fixture for native Form validation; no external business handlers"}],
@@ -73,6 +84,33 @@ class SuiteTests(unittest.TestCase):
         for gate, key in [("descriptions", "groups"), ("overlays", "overlays")]:
             write_json(self.root / (gate + ".json"), {"pages": [{"path": "/records", key: []}]})
         (self.root / "intent.html").write_text(self.model["baseVariantTplTree"])
+        self.write_compose_reads()
+        self.write_review()
+
+    def write_compose_reads(self):
+        from prepare_plan import project_rules, rules
+        plan = json.loads((self.root / "structure.json").read_text())
+        ledger = self.root / "compose-reads.jsonl"
+        ledger.unlink(missing_ok=True)
+        for read in rules(plan, "/records", ledger)["reads"] + project_rules(ledger, plan=plan)["reads"]:
+            subprocess.run(read["args"], check=True, capture_output=True)
+
+    def write_review(self):
+        """Project and Page accept-card reads plus one pass verdict per rule and hard constraint."""
+        from prepare_plan import project_rules, review_skeleton, rules
+        plan = json.loads((self.root / "structure.json").read_text())
+        ledger = self.root / "accept-reads.jsonl"
+        ledger.unlink(missing_ok=True)
+        for read in rules(plan, "/records", ledger, "accept")["reads"] + project_rules(ledger, "accept", plan=plan)["reads"]:
+            subprocess.run(read["args"], check=True, capture_output=True)
+        review = review_skeleton(plan, self.capture, "independent")
+        review["reviewer"] = "review-child"
+        for entry in review["project"]["rules"] + review["pages"][0]["rules"]:
+            entry.update(verdict="pass", evidence=["Reviewed against the saved fixture model"])
+            for constraint in entry.get("constraints", []):
+                constraint.update(verdict="pass", evidence="Observed in the saved fixture model")
+        write_json(self.root / "rule-review.json", review)
+        self.config["review"] = {"ledger": "accept-reads.jsonl", "results": "rule-review.json"}
 
     def write_capture(self):
         self.capture = {"projectId": "project", "desktopVersion": "test", "build": {"rendererHash": "a" * 64, "desktopHash": "b" * 64},
@@ -84,10 +122,57 @@ class SuiteTests(unittest.TestCase):
     def run_suite(self):
         return run_suite(self.config, self.root, self.root, "project")
 
+    def test_saved_output_requires_current_compose_reads(self):
+        original = dict(self.config["structure"])
+        self.config["structure"].pop("reads")
+        self.assertFalse(self.run_suite()["passed"])
+        self.config["structure"] = original
+        ledger = self.root / original["reads"]
+        data = ledger.read_bytes()
+        ledger.unlink()
+        self.assertFalse(self.run_suite()["passed"])
+        ledger.write_text("")
+        report = self.run_suite()
+        self.assertFalse(report["passed"])
+        check = next(c for c in report["checks"] if c["gate"] == "structure")
+        self.assertTrue(any(e.get("check") == "referenceReads" for e in check["report"]["errors"]))
+        ledger.write_bytes(data)
+        self.assertTrue(self.run_suite()["passed"])
+        self.assertIn(str(ledger.resolve()), [f["path"] for f in self.run_suite()["checkedInputs"]["files"]])
+
+    def test_final_acceptance_requires_the_rule_review(self):
+        del self.config["review"]
+        report = self.run_suite()
+        self.assertFalse(report["passed"])
+        self.assertEqual([c["status"] for c in report["checks"] if c["gate"] == "review"], ["failed"])
+        self.config["review"] = {"notApplicable": "Reviewed in chat"}
+        self.assertFalse(self.run_suite()["passed"])
+        self.write_review()
+        review = json.loads((self.root / "rule-review.json").read_text())
+        review["pages"][0]["rules"][0].update(verdict="fail", finding="Wrong label alignment")
+        write_json(self.root / "rule-review.json", review)
+        report = self.run_suite()
+        self.assertFalse(report["passed"])
+        self.assertIn("ruleFinding", json.dumps(report["checks"][-1]))
+
     def test_all_automatic_gates_pass(self):
         report = self.run_suite()
         self.assertTrue(report["passed"], report)
         self.assertEqual(report["acceptance"]["status"], "unverified")
+
+    def test_same_revision_does_not_reuse_review_after_edits_or_reopen(self):
+        original = dict(self.context)
+        for field, value in (("changeCounter", 1), ("sessionId", "another-editor-session")):
+            with self.subTest(changed=field):
+                self.context = {**original, field: value}
+                self.write_capture()
+                report = self.run_suite()
+                self.assertFalse(report["passed"])
+                review = next(item for item in report["checks"] if item["gate"] == "review")
+                self.assertEqual(review["status"], "failed")
+                self.assertTrue(any(error["check"] == "checkedState" for error in review["report"]["errors"]))
+        self.write_review()
+        self.assertTrue(self.run_suite()["passed"])
 
     def test_gate_results_and_diagnostics_name_their_rule_owner(self):
         passing = {c["gate"]: c for c in self.run_suite()["checks"]}
@@ -326,6 +411,25 @@ class SuiteTests(unittest.TestCase):
         result = run_suite(self.config, self.root, self.root, "project", "/records")
         self.assertTrue(result["passed"], result)
         self.assertEqual(result["pagePath"], "/records")
+        # The generated suite already names final review files before those files exist.
+        (self.root / "accept-reads.jsonl").unlink()
+        (self.root / "rule-review.json").unlink()
+        configured = run_suite(self.config, self.root, self.root, "project", "/records")
+        self.assertTrue(configured["passed"], configured)
+        self.assertEqual(next(c["status"] for c in configured["checks"] if c["gate"] == "review"), "not_applicable")
+        self.assertNotIn("ruleReview", configured["acceptance"])
+        # Reference inventories remain project-wide while the Form gate sees the current Page.
+        self.reference_inputs()
+        reference_plan = read_json(self.root / "references.json")
+        reference_plan["pages"].append({"path": "/next", "regions": []})
+        write_json(self.root / "references.json", reference_plan)
+        with_references = run_suite(self.config, self.root, self.root, "project", "/records")
+        self.assertTrue(with_references["passed"], with_references)
+        # Per-Page runs leave the rule review to final acceptance; the full run requires it.
+        unreviewed = {key: value for key, value in self.config.items() if key != "review"}
+        page_run = run_suite(unreviewed, self.root, self.root, "project", "/records")
+        self.assertEqual([c["status"] for c in page_run["checks"] if c["gate"] == "review"], ["not_applicable"])
+        self.assertTrue(page_run["passed"])
         self.assertFalse(self.run_suite()["passed"])
         self.assertIsNone(reusable_evidence(self.root, {"version": "test", "build": self.capture["build"]}, self.context))
 
@@ -346,6 +450,11 @@ class SuiteTests(unittest.TestCase):
         page.pop("bindingsNotApplicable")
         page["bindings"] = [{"nodeName": "AppShell", "source": "requirement §Navigation", "props": ["menuItems"]}]
         write_json(self.root / "structure.json", expected)
+        stale = self.run_suite()
+        self.assertFalse(stale["passed"])
+        review = next(c for c in stale["checks"] if c["gate"] == "review")
+        self.assertTrue(any(e["check"] == "checkedPlan" for e in review["report"]["errors"]))
+        self.write_review()
         self.assertTrue(self.run_suite()["passed"])
         page["bindings"][0]["events"] = ["onMenuSelect"]
         write_json(self.root / "structure.json", expected)

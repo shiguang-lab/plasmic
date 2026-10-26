@@ -1,0 +1,7 @@
+{
+  "passed": false,
+  "errors": [
+    "{'message': 'preview are top-level Desktop tools. Their schemas come from MCP tools/list; get_app_state.toolNames accepts only native editor operations from availableEditorTools.', 'name': 'Error', 'stack': 'Error: preview are top-level Desktop tools. Their schemas come from MCP tools/list; get_app_state.toolNames accepts only native editor operations from availableEditorTools.\\n    at assertToolRouting (/Applications/Plasmic.app/Contents/Resources/app.asar/src/mcp.cjs:543:36)\\n    at DesktopController.dispatch (/Applications/Plasmic.app/Contents/Resources/app.asar/src/controller.cjs:235:11)\\n    at /Applications/Plasmic.app/Contents/Resources/app.asar/src/main.cjs:462:18\\n    at Socket.<anonymous> (/Applications/Plasmic.app/Contents/Resources/app.asar/src/local-rpc.cjs:53:30)\\n    at Socket.emit (node:events:514:28)\\n    at addChunk (node:internal/streams/readable:568:12)\\n    at readableAddChunkPushByteMode (node:internal/streams/readable:519:3)\\n    at Readable.push (node:internal/streams/readable:399:5)\\n    at Pipe.onStreamRead (node:internal/stream_base_commons:189:23)', 'code': 'INVALID_TOOL_ROUTE', 'operationExecuted': False, 'recovery': [{'tool': 'preview', 'requiresInput': ['action']}]}"
+  ],
+  "nextAction": "Use a Desktop build implementing this resource's contracts before generation; do not guess older parameters or retry writes"
+}

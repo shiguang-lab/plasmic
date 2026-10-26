@@ -1,0 +1,38 @@
+{
+ "structure": {
+  "inventory": "structure-expectation.json"
+ },
+ "page_layout": {
+  "overviewName": "页面总览"
+ },
+ "forms": {
+  "inventory": "forms-inventory.json"
+ },
+ "descriptions": {
+  "inventory": "description-inventory.json"
+ },
+ "overlays": {
+  "inventory": "overlay-inventory.json"
+ },
+ "slots": {
+  "pages": [
+   {
+    "path": "/groups",
+    "intent": "intent-groups.html"
+   },
+   {
+    "path": "/groups/selector",
+    "intent": "intent-groups-selector.html"
+   },
+   {
+    "path": "/groups/onetime-create",
+    "intent": "intent-groups-onetime-create.html"
+   },
+   {
+    "path": "/groups/detail",
+    "intent": "intent-groups-detail.html"
+   }
+  ]
+ },
+ "shell_height": {}
+}

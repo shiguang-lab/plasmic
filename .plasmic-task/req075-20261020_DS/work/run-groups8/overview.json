@@ -1,0 +1,250 @@
+{
+  "__type": "OutputResult",
+  "results": [
+    {
+      "__type": "Project",
+      "id": "uSwwgCkC1ujK3EVVPvmHdW",
+      "components": [
+        {
+          "__type": "Component",
+          "name": "hostless-plasmic-head",
+          "uuid": "nDZeS13n5W2K",
+          "type": "code"
+        },
+        {
+          "__type": "Component",
+          "name": "plasmic-data-source-fetcher",
+          "uuid": "i6HwfBnEER9t",
+          "type": "code"
+        },
+        {
+          "__type": "Component",
+          "name": "客群列表",
+          "uuid": "eYMR4owU-V6_",
+          "type": "page",
+          "pageMeta": {
+            "__type": "PageMeta",
+            "path": "/groups"
+          }
+        },
+        {
+          "__type": "Component",
+          "name": "客群圈选器",
+          "uuid": "YW4MQIakrQnt",
+          "type": "page",
+          "pageMeta": {
+            "__type": "PageMeta",
+            "path": "/groups/selector"
+          }
+        },
+        {
+          "__type": "Component",
+          "name": "新建一次性客群",
+          "uuid": "cVcKW-ucQxXU",
+          "type": "page",
+          "pageMeta": {
+            "__type": "PageMeta",
+            "path": "/groups/onetime-create"
+          }
+        },
+        {
+          "__type": "Component",
+          "name": "客群详情",
+          "uuid": "NisuOsxUy7dG",
+          "type": "page",
+          "pageMeta": {
+            "__type": "PageMeta",
+            "path": "/groups/detail"
+          }
+        }
+      ],
+      "canvases": [
+        {
+          "name": "页面总览",
+          "frames": [
+            {
+              "uuid": "YM8nQZR9qtx4",
+              "componentUuid": "eYMR4owU-V6_",
+              "x": 0,
+              "y": 0,
+              "width": 1440,
+              "height": 1024,
+              "viewMode": "stretch"
+            },
+            {
+              "uuid": "Udt1lrJAKU6t",
+              "componentUuid": "YW4MQIakrQnt",
+              "x": 1520,
+              "y": 0,
+              "width": 1440,
+              "height": 1024,
+              "viewMode": "stretch"
+            },
+            {
+              "uuid": "EkZRUyoxOsf-",
+              "componentUuid": "cVcKW-ucQxXU",
+              "x": 3040,
+              "y": 0,
+              "width": 1440,
+              "height": 1024,
+              "viewMode": "stretch"
+            },
+            {
+              "uuid": "iEgb_79mxPZh",
+              "componentUuid": "NisuOsxUy7dG",
+              "x": 4560,
+              "y": 0,
+              "width": 1440,
+              "height": 1024,
+              "viewMode": "stretch"
+            }
+          ]
+        }
+      ],
+      "pageFrames": [
+        {
+          "componentUuid": "eYMR4owU-V6_",
+          "frameUuid": "OM6LSJ_Kp_tB",
+          "width": 1440,
+          "height": 1024
+        },
+        {
+          "componentUuid": "YW4MQIakrQnt",
+          "frameUuid": "MuwziZnrTbQ5",
+          "width": 1440,
+          "height": 1024
+        },
+        {
+          "componentUuid": "cVcKW-ucQxXU",
+          "frameUuid": "P5E6HSqaGVgZ",
+          "width": 1440,
+          "height": 1024
+        },
+        {
+          "componentUuid": "NisuOsxUy7dG",
+          "frameUuid": "_8VuAQedtSwI",
+          "width": 1440,
+          "height": 1024
+        }
+      ],
+      "devicePresets": [
+        {
+          "name": "iPhone 14 & 15 Pro Max",
+          "width": 430,
+          "height": 932
+        },
+        {
+          "name": "iPhone 14 & 15 Pro",
+          "width": 393,
+          "height": 852
+        },
+        {
+          "name": "iPhone 13 & 14",
+          "width": 390,
+          "height": 844
+        },
+        {
+          "name": "iPhone 14 Plus",
+          "width": 428,
+          "height": 926
+        },
+        {
+          "name": "iPhone SE",
+          "width": 320,
+          "height": 568
+        },
+        {
+          "name": "iPhone 8 Plus",
+          "width": 414,
+          "height": 736
+        },
+        {
+          "name": "iPhone 8",
+          "width": 375,
+          "height": 667
+        },
+        {
+          "name": "Google Pixel 8",
+          "width": 412,
+          "height": 732
+        },
+        {
+          "name": "Android Small",
+          "width": 360,
+          "height": 640
+        },
+        {
+          "name": "Android Large",
+          "width": 360,
+          "height": 800
+        },
+        {
+          "name": "Surface Pro 8",
+          "width": 1440,
+          "height": 960
+        },
+        {
+          "name": "iPad mini 8.3",
+          "width": 744,
+          "height": 1133
+        },
+        {
+          "name": "iPad Pro 11\"",
+          "width": 834,
+          "height": 1194
+        },
+        {
+          "name": "iPad Pro 12.9\"",
+          "width": 1024,
+          "height": 1366
+        },
+        {
+          "name": "Desktop",
+          "width": 1440,
+          "height": 1024
+        },
+        {
+          "name": "MacBook Air",
+          "width": 1280,
+          "height": 832
+        },
+        {
+          "name": "MacBook Pro",
+          "width": 1512,
+          "height": 982
+        },
+        {
+          "name": "Surface Book",
+          "width": 1500,
+          "height": 1000
+        },
+        {
+          "name": "iMac",
+          "width": 1280,
+          "height": 720
+        },
+        {
+          "name": "Standard 4K UDH",
+          "width": 3840,
+          "height": 2160
+        },
+        {
+          "name": "Cinema",
+          "width": 4096,
+          "height": 2160
+        }
+      ]
+    }
+  ],
+  "read": {
+    "fields": [
+      "__type",
+      "id",
+      "components",
+      "canvases",
+      "pageFrames",
+      "devicePresets"
+    ],
+    "depth": 0
+  }
+}

@@ -9,6 +9,11 @@ Library: [Ant Design v6](../index.md).
 
 ## Generation rules
 
+### Design defaults
+
+- Use for optional or advanced groups that most users skip, and for regions the source marks as collapsible.
+- Collapsed by default unless the source says otherwise; one panel per group, titled with the group name.
+
 ### Related expandable sections
 
 Use Collapse for sections that may be individually expanded or follow an explicit accordion rule. Read actual activeKey/defaultActiveKey, accordion, items/children and onChange contract. Keys are stable business identifiers, not array positions that change when sections are inserted. Collapse.Panel uses the installed child registration and lives in this document.

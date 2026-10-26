@@ -1,0 +1,486 @@
+{
+ "planSha256": "eb26d3060a9386d253ba9e0d48ce54c78ea6a83d8f42ab0cc53a07c12ceb7cd4",
+ "pagesSha256": "ed99e0dcdf8f86ee1c8d146d74cea928e671348ccde8c9cf48dc61f4bedada4f",
+ "cases": [
+  {
+   "path": "/groups",
+   "id": "filters-query-1",
+   "assertLine": null
+  },
+  {
+   "path": "/groups",
+   "id": "filters-reset-1",
+   "assertLine": null
+  },
+  {
+   "path": "/groups",
+   "id": "all-page-change-1",
+   "assertLine": 3
+  },
+  {
+   "path": "/groups",
+   "id": "all-page-change-2",
+   "assertLine": 4
+  },
+  {
+   "path": "/groups",
+   "id": "all-page-size-1",
+   "assertLine": 6
+  },
+  {
+   "path": "/groups",
+   "id": "mine-page-change-1",
+   "assertLine": 5
+  },
+  {
+   "path": "/groups",
+   "id": "mine-page-size-1",
+   "assertLine": null
+  },
+  {
+   "path": "/groups",
+   "id": "app-switch-1",
+   "assertLine": null
+  },
+  {
+   "path": "/groups",
+   "id": "context-data-1",
+   "assertLine": null
+  },
+  {
+   "path": "/groups",
+   "id": "context-data-2",
+   "assertLine": null
+  },
+  {
+   "path": "/groups",
+   "id": "AllRowActions-detail-allowed",
+   "assertLine": null
+  },
+  {
+   "path": "/groups",
+   "id": "AllRowActions-detail-denied",
+   "assertLine": null
+  },
+  {
+   "path": "/groups",
+   "id": "AllRowActions-edit-allowed",
+   "assertLine": null
+  },
+  {
+   "path": "/groups",
+   "id": "AllRowActions-edit-denied",
+   "assertLine": null
+  },
+  {
+   "path": "/groups",
+   "id": "AllRowActions-online-allowed",
+   "assertLine": null
+  },
+  {
+   "path": "/groups",
+   "id": "AllRowActions-online-denied",
+   "assertLine": null
+  },
+  {
+   "path": "/groups",
+   "id": "AllRowActions-online-cancel",
+   "assertLine": null
+  },
+  {
+   "path": "/groups",
+   "id": "AllRowActions-online-accept",
+   "assertLine": null
+  },
+  {
+   "path": "/groups",
+   "id": "AllRowActions-online-transition-圈选中",
+   "assertLine": null
+  },
+  {
+   "path": "/groups",
+   "id": "AllRowActions-reselect-allowed",
+   "assertLine": null
+  },
+  {
+   "path": "/groups",
+   "id": "AllRowActions-reselect-denied",
+   "assertLine": null
+  },
+  {
+   "path": "/groups",
+   "id": "AllRowActions-reselect-transition-圈选中",
+   "assertLine": null
+  },
+  {
+   "path": "/groups",
+   "id": "AllRowActions-enable-allowed",
+   "assertLine": null
+  },
+  {
+   "path": "/groups",
+   "id": "AllRowActions-enable-denied",
+   "assertLine": null
+  },
+  {
+   "path": "/groups",
+   "id": "AllRowActions-enable-cancel",
+   "assertLine": null
+  },
+  {
+   "path": "/groups",
+   "id": "AllRowActions-enable-accept",
+   "assertLine": null
+  },
+  {
+   "path": "/groups",
+   "id": "AllRowActions-enable-transition-重新启用圈选中",
+   "assertLine": null
+  },
+  {
+   "path": "/groups",
+   "id": "AllRowActions-disable-allowed",
+   "assertLine": null
+  },
+  {
+   "path": "/groups",
+   "id": "AllRowActions-disable-denied",
+   "assertLine": null
+  },
+  {
+   "path": "/groups",
+   "id": "AllRowActions-disable-cancel",
+   "assertLine": null
+  },
+  {
+   "path": "/groups",
+   "id": "AllRowActions-disable-accept",
+   "assertLine": null
+  },
+  {
+   "path": "/groups",
+   "id": "AllRowActions-disable-transition-停用",
+   "assertLine": null
+  },
+  {
+   "path": "/groups",
+   "id": "AllRowActions-copy-allowed",
+   "assertLine": null
+  },
+  {
+   "path": "/groups",
+   "id": "AllRowActions-copy-denied",
+   "assertLine": null
+  },
+  {
+   "path": "/groups",
+   "id": "AllRowActions-delete-allowed",
+   "assertLine": null
+  },
+  {
+   "path": "/groups",
+   "id": "AllRowActions-delete-denied",
+   "assertLine": null
+  },
+  {
+   "path": "/groups",
+   "id": "AllRowActions-delete-cancel",
+   "assertLine": null
+  },
+  {
+   "path": "/groups",
+   "id": "AllRowActions-delete-accept",
+   "assertLine": null
+  },
+  {
+   "path": "/groups",
+   "id": "AllRowActions-delete-transition-已删除",
+   "assertLine": null
+  },
+  {
+   "path": "/groups",
+   "id": "AllRowActions-export-allowed",
+   "assertLine": null
+  },
+  {
+   "path": "/groups",
+   "id": "AllRowActions-export-denied",
+   "assertLine": null
+  },
+  {
+   "path": "/groups",
+   "id": "MineRowActions-detail-allowed",
+   "assertLine": null
+  },
+  {
+   "path": "/groups",
+   "id": "MineRowActions-detail-denied",
+   "assertLine": null
+  },
+  {
+   "path": "/groups",
+   "id": "MineRowActions-edit-allowed",
+   "assertLine": null
+  },
+  {
+   "path": "/groups",
+   "id": "MineRowActions-edit-denied",
+   "assertLine": null
+  },
+  {
+   "path": "/groups",
+   "id": "MineRowActions-online-allowed",
+   "assertLine": null
+  },
+  {
+   "path": "/groups",
+   "id": "MineRowActions-online-denied",
+   "assertLine": null
+  },
+  {
+   "path": "/groups",
+   "id": "MineRowActions-online-cancel",
+   "assertLine": null
+  },
+  {
+   "path": "/groups",
+   "id": "MineRowActions-online-accept",
+   "assertLine": null
+  },
+  {
+   "path": "/groups",
+   "id": "MineRowActions-online-transition-圈选中",
+   "assertLine": null
+  },
+  {
+   "path": "/groups",
+   "id": "MineRowActions-reselect-allowed",
+   "assertLine": null
+  },
+  {
+   "path": "/groups",
+   "id": "MineRowActions-reselect-denied",
+   "assertLine": null
+  },
+  {
+   "path": "/groups",
+   "id": "MineRowActions-reselect-transition-圈选中",
+   "assertLine": null
+  },
+  {
+   "path": "/groups",
+   "id": "MineRowActions-enable-allowed",
+   "assertLine": null
+  },
+  {
+   "path": "/groups",
+   "id": "MineRowActions-enable-denied",
+   "assertLine": null
+  },
+  {
+   "path": "/groups",
+   "id": "MineRowActions-enable-cancel",
+   "assertLine": null
+  },
+  {
+   "path": "/groups",
+   "id": "MineRowActions-enable-accept",
+   "assertLine": null
+  },
+  {
+   "path": "/groups",
+   "id": "MineRowActions-enable-transition-重新启用圈选中",
+   "assertLine": null
+  },
+  {
+   "path": "/groups",
+   "id": "MineRowActions-disable-allowed",
+   "assertLine": null
+  },
+  {
+   "path": "/groups",
+   "id": "MineRowActions-disable-denied",
+   "assertLine": null
+  },
+  {
+   "path": "/groups",
+   "id": "MineRowActions-disable-cancel",
+   "assertLine": null
+  },
+  {
+   "path": "/groups",
+   "id": "MineRowActions-disable-accept",
+   "assertLine": null
+  },
+  {
+   "path": "/groups",
+   "id": "MineRowActions-disable-transition-停用",
+   "assertLine": null
+  },
+  {
+   "path": "/groups",
+   "id": "MineRowActions-copy-allowed",
+   "assertLine": null
+  },
+  {
+   "path": "/groups",
+   "id": "MineRowActions-copy-denied",
+   "assertLine": null
+  },
+  {
+   "path": "/groups",
+   "id": "MineRowActions-delete-allowed",
+   "assertLine": null
+  },
+  {
+   "path": "/groups",
+   "id": "MineRowActions-delete-denied",
+   "assertLine": null
+  },
+  {
+   "path": "/groups",
+   "id": "MineRowActions-delete-cancel",
+   "assertLine": null
+  },
+  {
+   "path": "/groups",
+   "id": "MineRowActions-delete-accept",
+   "assertLine": null
+  },
+  {
+   "path": "/groups",
+   "id": "MineRowActions-delete-transition-已删除",
+   "assertLine": null
+  },
+  {
+   "path": "/groups",
+   "id": "MineRowActions-export-allowed",
+   "assertLine": null
+  },
+  {
+   "path": "/groups",
+   "id": "MineRowActions-export-denied",
+   "assertLine": null
+  },
+  {
+   "path": "/groups/detail",
+   "id": "members-page-change-1",
+   "assertLine": null
+  },
+  {
+   "path": "/groups/detail",
+   "id": "members-page-size-1",
+   "assertLine": null
+  },
+  {
+   "path": "/groups/detail",
+   "id": "selectlog-query-1",
+   "assertLine": null
+  },
+  {
+   "path": "/groups/detail",
+   "id": "selectlog-reset-1",
+   "assertLine": null
+  },
+  {
+   "path": "/groups/detail",
+   "id": "selectlog-page-change-1",
+   "assertLine": null
+  },
+  {
+   "path": "/groups/detail",
+   "id": "selectlog-page-size-1",
+   "assertLine": null
+  },
+  {
+   "path": "/groups/detail",
+   "id": "refreshlog-page-change-1",
+   "assertLine": null
+  },
+  {
+   "path": "/groups/detail",
+   "id": "refreshlog-page-size-1",
+   "assertLine": null
+  },
+  {
+   "path": "/groups/detail",
+   "id": "applylog-query-1",
+   "assertLine": null
+  },
+  {
+   "path": "/groups/detail",
+   "id": "applylog-reset-1",
+   "assertLine": null
+  },
+  {
+   "path": "/groups/detail",
+   "id": "applylog-page-change-1",
+   "assertLine": null
+  },
+  {
+   "path": "/groups/detail",
+   "id": "applylog-page-size-1",
+   "assertLine": null
+  },
+  {
+   "path": "/groups/detail",
+   "id": "app-switch-detail",
+   "assertLine": null
+  },
+  {
+   "path": "/groups/detail",
+   "id": "context-data-detail",
+   "assertLine": null
+  },
+  {
+   "path": "/groups/detail",
+   "id": "applyrows-detail-allowed",
+   "assertLine": null
+  },
+  {
+   "path": "/groups/detail",
+   "id": "applyrows-detail-denied",
+   "assertLine": null
+  },
+  {
+   "path": "/groups/onetime-create",
+   "id": "onetime-page-change-1",
+   "assertLine": null
+  },
+  {
+   "path": "/groups/onetime-create",
+   "id": "onetime-page-size-1",
+   "assertLine": null
+  },
+  {
+   "path": "/groups/onetime-create",
+   "id": "app-switch-onetime",
+   "assertLine": null
+  },
+  {
+   "path": "/groups/onetime-create",
+   "id": "context-data-onetime",
+   "assertLine": null
+  },
+  {
+   "path": "/groups/selector",
+   "id": "preview-page-change-1",
+   "assertLine": 2
+  },
+  {
+   "path": "/groups/selector",
+   "id": "preview-page-size-1",
+   "assertLine": null
+  },
+  {
+   "path": "/groups/selector",
+   "id": "app-switch-selector",
+   "assertLine": null
+  },
+  {
+   "path": "/groups/selector",
+   "id": "context-data-selector",
+   "assertLine": 1
+  }
+ ]
+}

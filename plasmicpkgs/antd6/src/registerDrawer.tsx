@@ -73,8 +73,11 @@ export function registerDrawer(loader?: Registerable) {
       open: {
         type: "boolean",
       },
-      size: { type: "choice", options: ["default", "large"], defaultValueHint: "default" },
-      width: { type: "number" },
+      size: {
+        type: "object",
+        description:
+          'Native size: "default", "large", a pixel number, or a CSS length such as "50vw". Sets width for left/right placement and height for top/bottom. Unset uses "default".',
+      },
       mask: { type: "object" },
       destroyOnHidden: { type: "boolean" },
       placement: {

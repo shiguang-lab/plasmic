@@ -28,7 +28,40 @@ def item_nodes(node):
             yield from item_nodes(child)
 
 
-def check(inventory, readback):
+WIDE_GROUP_PX = 640
+COLUMN_RULE = "references/libraries/antd_v6/components/descriptions.md#column-and-span"
+
+
+def rendered_width(layouts, page_id, node):
+    frames = (layouts or {}).get(page_id, {}).get("snapshot", {}).get("frames", [])
+    element_id = node["attrs"].get("id")
+    if len(frames) != 1 or not element_id:
+        return None
+    widths = [e.get("width") for e in frames[0].get("elements", []) if e.get("elementUuid") == element_id]
+    return widths[0] if len(widths) == 1 and isinstance(widths[0], (int, float)) else None
+
+
+def column_reason_problem(reason, width):
+    """One column in a wide region needs a cited source or values measured too long to share a row."""
+    if isinstance(reason, dict) and reason.get("kind") == "source":
+        from verify_component_policy import source_text
+        try:
+            source_text(reason.get("evidence"))
+            return None
+        except (ValueError, OSError, UnicodeError) as error:
+            return f"columnReason source evidence is unusable: {error}"
+    if isinstance(reason, dict) and reason.get("kind") == "measurement":
+        value = reason.get("longestValuePx")
+        if not isinstance(value, (int, float)) or value <= 0:
+            return "columnReason measurement needs a positive longestValuePx"
+        if value * 2 <= width:
+            return "Measured values fit two per row; use the column default instead of one column"
+        return None
+    return ("A one-column group wider than 640px needs columnReason {kind:source, evidence} or "
+            "{kind:measurement, longestValuePx}; otherwise use the column default (3 for a full-width region)")
+
+
+def check(inventory, readback, layouts=None):
     errors = []
     models = readback["results"]
     page_ids = [p["componentUuid"] for p in inventory["pages"]]
@@ -69,6 +102,12 @@ def check(inventory, readback):
                                    "expected": group[key], "actual": actual.get(key)})
             if content(slot(node, "title")) != group["title"]:
                 errors.append({**context, "error": "Wrong title Slot content"})
+            width = rendered_width(layouts, page_id, node) if layouts is not None else None
+            count = len(group["itemSlots"]) if "itemSlots" in group else len(group["items"]) if isinstance(group.get("items"), list) else 0
+            if width is not None and width > WIDE_GROUP_PX and actual.get("column", 3) == 1 and count >= 3:
+                problem = column_reason_problem(group.get("columnReason"), width)
+                if problem:
+                    errors.append({**context, "error": problem, "renderedWidth": width, "rule": COLUMN_RULE})
             if "itemSlots" in group:
                 if actual.get("items") is not None:
                     errors.append({**context, "error": "Native items override editable Item Slots"})

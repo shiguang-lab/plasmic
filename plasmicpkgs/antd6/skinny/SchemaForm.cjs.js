@@ -15,11 +15,11 @@ require('classnames');
 require('dayjs');
 require('./canvas-overlay-BCQmyJjQ.cjs.js');
 require('@plasmicapp/host');
-require('./react-utils-CP3JYj1p.cjs.js');
 require('@plasmicapp/host/registerComponent');
 require('@plasmicapp/host/registerGlobalContext');
 require('fast-deep-equal');
 require('./contexts-DbLDJr3k.cjs.js');
+require('./react-utils-CP3JYj1p.cjs.js');
 
 function _interopDefault (e) { return e && e.__esModule ? e : { default: e }; }
 
@@ -101,15 +101,13 @@ const SchemaForm = React__default.default.forwardRef(
         {
           ...utils.omit(formItem, "key"),
           noLabel: formItem.inputType === Form.InputType.Checkbox || formItem.noLabel,
-          valuePropName: formItem.valuePropName ?? (formItem.inputType === Form.InputType.Checkbox ? "checked" : void 0),
-          style: { width: "100%" }
+          valuePropName: formItem.valuePropName ?? (formItem.inputType === Form.InputType.Checkbox ? "checked" : void 0)
         },
         formItem.inputType === Form.InputType.Text ? /* @__PURE__ */ React__default.default.createElement(Ant.Input, null) : formItem.inputType === Form.InputType.Password ? /* @__PURE__ */ React__default.default.createElement(Ant.Input.Password, null) : formItem.inputType === Form.InputType.TextArea ? /* @__PURE__ */ React__default.default.createElement(Ant.Input.TextArea, null) : formItem.inputType === Form.InputType.Number ? /* @__PURE__ */ React__default.default.createElement(Ant.InputNumber, null) : formItem.inputType === Form.InputType.Checkbox ? /* @__PURE__ */ React__default.default.createElement(registerCheckbox.AntdCheckbox, null, formItem.label) : formItem.inputType === Form.InputType.Select ? /* @__PURE__ */ React__default.default.createElement(registerSelect.AntdSelect, { options: formItem.options }) : formItem.inputType === Form.InputType.DatePicker ? /* @__PURE__ */ React__default.default.createElement(registerDatePicker.AntdDatePicker, { showTime: formItem.showTime }) : formItem.inputType === Form.InputType.RadioGroup ? /* @__PURE__ */ React__default.default.createElement(
           registerRadio.AntdRadioGroup,
           {
             options: formItem.options,
-            optionType: formItem.optionType,
-            style: { padding: "8px" }
+            optionType: formItem.optionType
           }
         ) : null
       )
@@ -134,10 +132,11 @@ const SchemaForm = React__default.default.forwardRef(
           formItems: rawData && rawData.isLoading ? previousFormItems.current : actualFormItems,
           ref,
           style: isSchemaForm && isLoadingData ? {
+            ...props.style,
             opacity: 0.5,
             transitionDelay: "250ms",
             transition: "1s"
-          } : {}
+          } : props.style
         }
       ),
       isSchemaForm && isLoadingData && /* @__PURE__ */ React__default.default.createElement(

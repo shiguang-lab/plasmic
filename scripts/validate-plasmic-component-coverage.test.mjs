@@ -65,4 +65,7 @@ test("plan decisions resolve and validate their composition document", () => {
   assert.throws(() => check([...fixture(), rules]), /Missing rules.json target/);
   assert.throws(() => check([...fixture(), { ...composition, content: composition.content.replace('### Layout ownership', '### Other') }, rules]), /Missing decision anchor/);
   assert.throws(() => check([...fixture(), { ...composition, content: composition.content.replace('`layout`', '`other`') }, rules]), /Plan decisions table omits/);
+  // A documented row without a rules.json declaration would never be scaffolded or enforced.
+  const undeclared = composition.content.replace('| Decide. |\n', '| Decide. |\n| `plasmic-antd6-form` | `labelCol` | Measure. |\n');
+  assert.throws(() => check([...fixture(), { ...composition, content: undeclared }, rules]), /not declared in rules.json/);
 });

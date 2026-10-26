@@ -15,7 +15,9 @@ python3 RESOURCE_ROOT/scripts/read_reference.py RESOURCE_ROOT/references/librari
 python3 RESOURCE_ROOT/scripts/read_reference.py RESOURCE_ROOT/references/libraries/antd_v6/components/form.md --section values-and-validation --section events-and-ref-actions --section acceptance --log /absolute/task/reference-reads.jsonl
 ```
 
-Library documents use a stage template: the preamble (registration and hard constraints, always included), **Plan decisions**, **Generation rules** and **Acceptance checks**. For a planned Page, the [rules card](planning.md#rules-card-and-read-ledger) lists the stage sections each declaration needs; `verify_selection.py --reads LEDGER` fails when one was not read at the current hash.
+Library documents use a stage template: the preamble (registration and hard constraints, always included), **Plan decisions**, **Generation rules**, optional **Conditional rules** (subsections a compose card delivers only to Pages that meet their condition) and **Acceptance checks**. For a planned Page, the [rules card](planning.md#rules-card-and-read-ledger) lists the stage sections each declaration needs; `verify_selection.py --reads LEDGER` fails when one was not read at the current hash.
+
+Run reader commands individually or in batches that fit the current client's response limit. If output is truncated, split it with `--section` and read the missing content; a written ledger alone does not prove the response reached the model. Do not discard reader output or use its receipt as a substitute for reading.
 
 Select every applicable section: the reader includes descendants, ancestor introductions and registration preamble without duplicates. Unknown selectors fail. An outline is discovery, not a completed read. Read the full document when all sections apply. Retain release/hash, read ledger, requirement decisions and pending evidence across compaction; reread rules whose understanding was lost. Refresh changed library/session contracts.
 
@@ -27,7 +29,7 @@ MCP JSON appears once in `content.text`. For `ResultReference`, use `read_result
 
 Use [MCP read/target selection](desktop-mcp.md#read-and-target) for schema discovery, inventories and targeted model views; [examples](desktop-examples.md) provide exact envelopes. Reuse contracts only within the same build/session and refresh after library changes. Canonical acceptance uses complete `view:"full",depth:"all"` Pages, retained on disk; projections are for locating and understanding affected nodes.
 
-At each Page boundary retain route/IDs, decisions, resource/build identity, evidence paths and pending cases. Use client-supported compaction when needed, preserving this checkpoint. Tool response limits do not bound accumulated model context; do not prepare every Page's detailed markup in advance.
+At each Page boundary retain route/IDs, decisions, resource/build identity, evidence paths and pending cases. Use client-supported compaction when needed and available, preserving this checkpoint; a checkpoint alone does not compact the conversation. When delegation and compaction are unavailable, follow [per-Page context handling](workflows/prototype.md#complete-one-page-at-a-time). Tool response limits do not bound accumulated model context; do not prepare every Page's detailed markup in advance.
 
 ## Acceptance evidence
 

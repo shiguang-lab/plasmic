@@ -1,31 +1,17 @@
-import { usePlasmicLink } from "@plasmicapp/host";
 import { Avatar } from "antd";
 import React from "react";
 import { Registerable, registerComponentHelper } from "./utils";
 
+// letters is the editable text children; navigation composes a link around the Avatar.
 export function AntdAvatar({
   letters,
-  href,
-  target,
   ...props
-}: React.ComponentProps<typeof Avatar> & {
-  letters?: string;
-  href?: string;
-  target?: boolean;
-}) {
-  const avatar = (
+}: React.ComponentProps<typeof Avatar> & { letters?: string }) {
+  return (
     <Avatar
       {...props}
       children={props.children === undefined ? letters : props.children}
     />
-  );
-  const PlasmicLink = usePlasmicLink();
-  return href ? (
-    <PlasmicLink href={href} target={target ? "_blank" : undefined}>
-      {avatar}
-    </PlasmicLink>
-  ) : (
-    avatar
   );
 }
 
@@ -41,16 +27,6 @@ export function registerAvatar(loader?: Registerable) {
     displayName: "Avatar",
     props: {
       icon: { type: "slot", hidePlaceholder: true },
-      href: {
-        type: "href",
-        displayName: "Link to",
-        description: "Destination to link to",
-      },
-      target: {
-        type: "boolean",
-        displayName: "Open in new tab",
-        hidden: (ps: any) => !ps.href,
-      },
       letters: {
         type: "string",
         description: "Letters to show",
@@ -80,6 +56,12 @@ export function registerAvatar(loader?: Registerable) {
         options: ["circle", "square"],
         description: "Set the avatar shape",
         defaultValueHint: "circle",
+      },
+      onClick: {
+        type: "eventHandler",
+        argTypes: [],
+        description:
+          "Native Avatar onClick. For a link, place the Avatar inside a link element instead.",
       },
     },
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerAvatar",

@@ -1,5 +1,22 @@
 # Modal + Drawer composition
 
+**Hard constraints** (always delivered with any section):
+
+- Every Modal declares its native `width` and every Drawer its native `size` from the content under [overlay width](#overlay-width); never leave the sizing decision implicit.
+- One native title names the operation or record; one footer owner; no subtitle or filling instructions before the fields.
+- Keep the native close icon (never an empty `closeIcon` Slot); a footer whose only button just dismisses is removed.
+- Overlays live at Page scope with a closed business initial state; an externally opened overlay has an empty `trigger` Slot.
+- A Form inside an overlay uses `layout="vertical"` under [Modal form layout](form-layout.md#modal-form-layout).
+
+## Plan decisions
+
+Declare these native props in each planned instance before markup. `prepare_plan.py scaffold` writes `"__DECIDE__"` for each; selection preflight rejects pending values.
+
+| Registration | Prop | Decision |
+| --- | --- | --- |
+| `plasmic-antd6-modal` | `width` | Exact pixels from the content: 520 one-column form, 720 two columns, 640–720 long content, 800 crowded two columns. See [rule](#overlay-width). |
+| `plasmic-antd6-drawer` | `size` | Native `default`/`large`, a pixel number or CSS length. Content-based pixel choices: 480 short help or compact confirm, 640 record detail, Form or Table, 720 code or long values. See [rule](#overlay-width). |
+
 ## Generation rules
 
 Applies to [Ant Design v6](../index.md) registrations and theme behavior. Select the matching project library through the [library index](../../index.md) before using this recipe; another library or major requires its own verified composition rules.
@@ -17,17 +34,17 @@ This rule does **not** remove Cancel/Close from a multi-button footer. Save + Ca
 - Pagination, table row actions and body controls do not turn an exit-only footer into a multi-button footer. Count buttons in the actual footer only. Disabled buttons still occupy that footer; check each required runtime state when buttons are conditionally hidden.
 - If no usable close icon exists, do not remove the only usable exit. Keep the supported dismissal path or enable the native icon where the requirement permits it. Do not add a custom header close icon.
 
-### Drawer sizing
+### Overlay width
 
-A Drawer sizes its panel through the official `width` prop (pixels); `size` is only the official `default`/`large` choice. Choose the width by the content that must stay readable without horizontal scrolling, and record the number in the overlay inventory:
+A Drawer sizes its panel through native `size`, which accepts `"default"`, `"large"`, a pixel number or a CSS length string. The dimension is width for left/right placement and height for top/bottom placement. Choose a value that keeps the content readable, declare it as the plan's `size` decision and record it as `size` in the overlay inventory. The following pixel choices guide side Drawers; they do not narrow the native API:
 
 | Content | Width |
 | --- | --- |
-| Read-only key/value detail, short help, a compact confirm | 480 |
-| A Form or a Table | 640 |
+| Short help or a compact confirm | 480 |
+| Read-only record detail (two-column Descriptions), a Form or a Table | 640 |
 | Code or SQL text, long values | 720 |
 
-A Modal records its exact `width` in the same inventory, matching the width decision from [Form layout](form-layout.md#modal-form-layout) or the result content. Neither value may be left implicit.
+A Modal records its `width` in the same inventory, matching the width decision from [Form layout](form-layout.md#modal-form-layout) or the result content. For a Form's separate layout inventory, use `modalWidth` for Modal.width and `drawerSize` for Drawer.size, preserving the chosen native value. Presets and CSS lengths still need rendered checks at the target viewport; an explicit size alone does not prove that fields fit.
 
 ### Structure and close behavior
 
@@ -37,7 +54,7 @@ Never declare an empty `closeIcon` Slot: an empty declaration replaces the nativ
 
 ### Generation gate
 
-Derive an independent acceptance inventory from requirements before generation. For each affected owning component, inventory every Modal/Drawer in its full public `baseVariantTplTree`, including hidden branches. Read referenced custom components separately; private internals need their own readback. The inventory is verification evidence, not persisted design props.
+Derive the acceptance inventory from the reviewed plan before generation with `prepare_plan.py inventories`, and decide each footer action's `effect` from the source. For each affected owning component, inventory every Modal/Drawer in its full public `baseVariantTplTree`, including hidden branches. Read referenced custom components separately; private internals need their own readback. The inventory is verification evidence, not persisted design props.
 
 Declare the exact component identity, expected usable `closeIcon`, footer mode (`none`, `native`, `custom`) and ordered visible `footerActions`. For a native Modal footer use `nativeCancel` and `nativeOk`; for a custom footer use actual Button node names. Each action declares `effect: "dismiss"` or `"business"`; a business action needs a concrete `reason`. Optional action `props` checks required handler/visibility values from the public readback. Review effects against actual interactions; do not derive them solely from labels or generated output.
 

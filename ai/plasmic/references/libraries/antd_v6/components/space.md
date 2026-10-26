@@ -9,6 +9,11 @@ Library: [Ant Design v6](../index.md).
 
 ## Generation rules
 
+### Design defaults
+
+- Use for an inline group of Buttons, Tags or short items: horizontal, size 8.
+- Page and surface stacking uses Flex vertical with gap 16, not Space.
+
 ### Spaced siblings
 
 Use Space for content-sized controls or inline groups; use [Flex](flex.md) when children need to fill the remaining region. The v6 registration uses orientation, numeric size, wrap, align and separator. Set the intended gap once and inspect native child margins before adding it. A separator is part of the group, not an extra surface or heading.

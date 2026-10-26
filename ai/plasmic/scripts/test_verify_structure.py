@@ -376,7 +376,10 @@ class StructureTests(unittest.TestCase):
         from verify_structure import copy_budget_errors
         self.assertEqual(copy_budget_errors([{"nodeName": "Save", "role": "button", "text": "保存 SQL"}]), [])
         over = copy_budget_errors([{"nodeName": "Save", "role": "button", "text": "保存 SQL 并立即上线"}])
-        self.assertIn("exceeds the 6-character budget", str(over))
+        self.assertIn("exceeds its 6-unit budget", str(over))
+        # Display units keep the same budget usable for English UI: "Save draft" is 5 units.
+        self.assertEqual(copy_budget_errors([{"nodeName": "Save", "kind": "action", "text": "Save draft"}]), [])
+        self.assertIn("exceeds its 6-unit budget", str(copy_budget_errors([{"nodeName": "Save", "kind": "action", "text": "Save and publish now"}])))
         dup = copy_budget_errors([{"nodeName": "Banner", "role": "hint", "text": "预跑成功后可保存 SQL"},
                                   {"nodeName": "Footer", "role": "hint", "text": "预跑成功后可保存 SQL"}])
         self.assertIn("state each fact once", str(dup))
@@ -391,21 +394,20 @@ class StructureTests(unittest.TestCase):
         plan["copy"] = {"source": "Reviewed requirement/UI copy", "excluded": [], "entries": [
             {"nodeName": "Check", "at": "/text", "text": "校验语句合法性", "kind": "action",
              "copyTriage": "perceive-now", "purpose": "Run the SQL check", "source": "requirement §SQL", "role": "button"}]}
-        self.assertIn("Action label exceeds the copy budget", str(self.result()["errors"]))
+        self.assertIn("button copy exceeds its 6-unit budget", str(self.result()["errors"]))
         plan["copy"]["entries"][0]["text"] = "校验"
         page["baseVariantTplTree"] = page["baseVariantTplTree"].replace("校验语句合法性", "校验")
-        self.assertNotIn("Action label exceeds the copy budget", str(self.result()["errors"]))
+        self.assertNotIn("copy exceeds", str(self.result()["errors"]))
         plan["copy"]["entries"] = []
 
-    def test_every_copy_entry_needs_a_triage_decision(self):
+    def test_copy_triage_defaults_from_location_and_rejects_hidden_prose(self):
         page = self.pages["results"][0]
         plan = self.expected["pages"][0]
         plan["copy"] = {"source": "Reviewed requirement/UI copy", "excluded": [], "entries": [
-            {"nodeName": "Title", "at": "/text", "text": "Results", "kind": "label", "purpose": "Section label", "source": "requirement §List", "role": "other"}]}
+            {"nodeName": "Title", "at": "/text", "text": "Results", "kind": "label", "purpose": "Section label", "source": "requirement §List", "role": "title"}]}
         page["baseVariantTplTree"] = page["baseVariantTplTree"] + '<span data-plasmic-name="Title">Results</span>'
-        self.assertIn("Declare copyTriage", str(self.result()["errors"]))
-        plan["copy"]["entries"][0]["copyTriage"] = "perceive-now"
-        self.assertNotIn("Declare copyTriage", str(self.result()["errors"]))
+        # Rendered copy outside a tooltip is perceive-now unless the entry says otherwise.
+        self.assertNotIn("uiCopy", str(self.result()["errors"]))
         # Behaviour prose declared as not-user-facing must move to copy.excluded.
         plan["copy"]["entries"][0].update(text="Syntax check: SELECT only", copyTriage="not-user-facing")
         page["baseVariantTplTree"] = self.pages["results"][0]["baseVariantTplTree"].replace("Results", "Syntax check: SELECT only")
@@ -509,13 +511,11 @@ class StructureTests(unittest.TestCase):
         self.expected["pages"][0]["rowActions"] = [{"column": "Actions", "control": "ViewRecord", "event": "onAction", "source": "requirement §Record details"}]
         page = self.pages["results"][0]
         original = page["baseVariantTplTree"]
-        column = '<plasmic-component data-plasmic-name="Actions" data-plasmic-component="plasmic-antd6-table-column" data-props=\'{"displayType":"custom"}\'><slot name="render"><plasmic-component id="view" data-plasmic-name="ViewRecord" data-plasmic-component="plasmic-react-ui-action-group"></plasmic-component></slot></plasmic-component>'
+        column = '<plasmic-component data-plasmic-name="Actions" data-plasmic-component="plasmic-antd6-table-column" data-props=\'{}\'><slot name="render"><plasmic-component id="view" data-plasmic-name="ViewRecord" data-plasmic-component="plasmic-react-ui-action-group" data-props=\'{"dropdownProps":{"trigger":["hover"]}}\'></plasmic-component></slot></plasmic-component>'
         page["baseVariantTplTree"] = original + column
         self.assertFalse(self.result()["passed"])
         page["interactions"] = [{"elementUuid": "view", "eventName": "onAction"}]
         self.assertTrue(self.result()["passed"])
-        page["baseVariantTplTree"] = original + column.replace('"custom"', '"link"')
-        self.assertFalse(self.result()["passed"])
         page["baseVariantTplTree"] = original + column.replace('name="render"', 'name="children"')
         self.assertFalse(self.result()["passed"])
 
@@ -524,18 +524,19 @@ class StructureTests(unittest.TestCase):
         original = page["baseVariantTplTree"]
         declaration = {"nodeName": "Type", "component": "plasmic-antd6-table-column", "role": "category",
                        "purpose": "Single-value type shown as text in the visual draft", "source": "draft §Type cells",
-                       "props": {"dataIndex": "type", "displayType": "text"}}
+                       "presentation": "text", "props": {"dataIndex": "type"}}
         self.expected["pages"][0]["components"] = [declaration]
         tag = {"nodeName": "TypeTag", "component": "plasmic-antd6-tag", "role": "category",
                "purpose": "Single-value type shown as a Tag in the visual draft", "source": "draft §Type cells",
                "owner": {"nodeName": "Type", "slot": "render"}}
         render = '<slot name="render"><plasmic-component data-plasmic-name="TypeTag" data-plasmic-component="plasmic-antd6-tag" data-props="{}"></plasmic-component></slot>'
         for expected in ("text", "custom"):
-            declaration["props"]["displayType"] = expected
+            declaration["presentation"] = expected
             self.expected["pages"][0]["components"] = [declaration] + ([tag] if expected == "custom" else [])
             for actual in ("text", "custom", "tag"):
                 with self.subTest(expected=expected, actual=actual):
-                    encoded = html.escape(json.dumps({"dataIndex": "type", "displayType": actual}), quote=True)
+                    retired = {"displayType": actual} if actual == "tag" else {}
+                    encoded = html.escape(json.dumps({"dataIndex": "type", **retired}), quote=True)
                     body = render if actual == "custom" else ""
                     column = '<plasmic-component data-plasmic-name="Type" data-plasmic-component="plasmic-antd6-table-column" data-props="' + encoded + '">' + body + '</plasmic-component>'
                     page["baseVariantTplTree"] = original + column
@@ -546,7 +547,7 @@ class StructureTests(unittest.TestCase):
                     if actual == "tag":
                         # Inside a Table the structure gate rejects the removed preset itself.
                         page["baseVariantTplTree"] = original + '<plasmic-component data-plasmic-name="Results" data-plasmic-component="plasmic-antd6-table" data-props="{&quot;data&quot;: {&quot;data&quot;: []}, &quot;pagination&quot;: false}"><slot name="children">' + column + '</slot></plasmic-component>'
-                        self.assertTrue(any("presets were removed" in e.get("message", "") for e in self.result()["errors"]))
+                        self.assertTrue(any("not a native Table Column prop" in e.get("message", "") for e in self.result()["errors"]))
 
     def test_table_rejects_removed_column_presets(self):
         page = self.pages["results"][0]
@@ -555,7 +556,7 @@ class StructureTests(unittest.TestCase):
         result = self.result()
         self.assertFalse(result["passed"])
         self.assertIn({"check": "component", "path": "/records", "node": "Results", "registration": "plasmicantd6table", "column": "Owner",
-                       "message": "Table Column displayType must be text or custom; presets were removed"}, result["errors"])
+                       "message": "displayType is not a native Table Column prop; the render Slot alone decides presentation"}, result["errors"])
 
     def test_reviewed_component_roles_cover_categories_actions_and_native_totals(self):
         page = self.pages["results"][0]
@@ -567,17 +568,17 @@ class StructureTests(unittest.TestCase):
         def use(name, key, role="widget", **extra):
             return {"nodeName": name, "component": key, "role": role, "purpose": "Reviewed native presentation/interaction", "source": "requirement §Result fields and actions", **extra}
         uses = [
-            use("Results", "plasmic-antd6-table", "pagination", props={"pagination": {"defaultPageSize": 20}}, dynamicProps=["pagination.showTotal"]),
-            use("Category", "plasmic-antd6-table-column", "category", props={"dataIndex": "category", "displayType": "custom"}, owner={"nodeName": "Results", "slot": "children"}),
+            use("Results", "plasmic-antd6-table", "pagination", props={"pagination": {"defaultPageSize": 20, "pageSizeOptions": [20, 50, 100], "showSizeChanger": True}}, dynamicProps=["pagination.showTotal"]),
+            use("Category", "plasmic-antd6-table-column", "category", presentation="custom", props={"dataIndex": "category"}, owner={"nodeName": "Results", "slot": "children"}),
             use("CategoryTag", "plasmic-antd6-tag", "category", owner={"nodeName": "Category", "slot": "render"}),
             use("Operations", "plasmic-antd6-table-column", props={"fixed": "right", "width": 200}),
-            use("Actions", "plasmic-react-ui-action-group", "row-actions", props={"max": 3}, dynamicProps=["items"], owner={"nodeName": "Operations", "slot": "render"}),
+            use("Actions", "plasmic-react-ui-action-group", "row-actions", props={"max": 3, "dropdownProps": {"trigger": ["hover"]}}, dynamicProps=["items"], owner={"nodeName": "Operations", "slot": "render"}),
         ]
-        category_tag = component("CategoryTag", "plasmic-antd6-tag", {"value": "{{ cell }}"})
-        category = component("Category", "plasmic-antd6-table-column", {"dataIndex": "category", "displayType": "custom"}, '<slot name="render">' + category_tag + '</slot>')
-        group = component("Actions", "plasmic-react-ui-action-group", {"max": 3, "items": [{"key": "detail", "label": "详情", "href": "{{ row.url }}"}]})
+        category_tag = component("CategoryTag", "plasmic-antd6-tag", children='<slot name="children"><span>{{ cell }}</span></slot>')
+        category = component("Category", "plasmic-antd6-table-column", {"dataIndex": "category"}, '<slot name="render">' + category_tag + '</slot>')
+        group = component("Actions", "plasmic-react-ui-action-group", {"max": 3, "dropdownProps": {"trigger": ["hover"]}, "items": [{"key": "detail", "label": "详情", "disabled": "{{ !row.canView }}"}]})
         operations = component("Operations", "plasmic-antd6-table-column", {"fixed": "right", "width": 200}, '<slot name="render"><div>' + group + '</div></slot>')
-        valid = component("Results", "plasmic-antd6-table", {"data": {"data": []}, "scroll": {"x": 440}, "pagination": {"defaultPageSize": 20, "showTotal": "{{ (total, range) => `共 ${total} 条` }}"}}, '<slot name="children">' + category + operations + '</slot>')
+        valid = component("Results", "plasmic-antd6-table", {"data": {"data": []}, "scroll": {"x": 440}, "pagination": {"defaultPageSize": 20, "pageSizeOptions": [20, 50, 100], "showSizeChanger": True, "showTotal": "{{ (total, range) => `共 ${total} 条` }}"}}, '<slot name="children">' + category + operations + '</slot>')
         self.expected["pages"][0]["components"] = uses
         self.expected["pages"][0]["actionContracts"] = [{'nodeName': 'Actions', 'key': 'detail', 'confirm': False, 'transitions': [], 'evidence': self.evidence('Detail is visible to authorized readers. The list supports viewing different records on the next page.'),
             'cases': [{'id': 'detail-allowed', 'kind': 'permission-allowed', 'nodeName': 'Actions', 'given': {'role': 'reader'}, 'checks': [{'kind': 'text', 'text': '详情', 'present': True}]},
@@ -651,7 +652,7 @@ class StructureTests(unittest.TestCase):
         self.assertTrue(self.result()["passed"])
 
     def test_table_requires_native_columns_and_field_or_render_content(self):
-        table = '<plasmic-component data-plasmic-name="Records" data-plasmic-component="plasmic-antd6-table" data-props=\'{"data":{"data":[{"id":0}]}}\'>{}</plasmic-component>'
+        table = '<plasmic-component data-plasmic-name="Records" data-plasmic-component="plasmic-antd6-table" data-props=\'{"data":{"data":[{"id":0}]},"pagination":false}\'>{}</plasmic-component>'
         original = self.pages["results"][0]["baseVariantTplTree"]
         for columns, passed in [
             ("", False),
@@ -677,7 +678,7 @@ class StructureTests(unittest.TestCase):
         self.assertEqual(errors([name, scene, actions], {"scroll": {"x": "{{ 522 }}"}}), [], "JSON literal bindings are static")
         self.assertEqual(errors([name, scene, actions], {"scroll": "{{ {x:522} }}"}), [], "Object-literal scroll bindings are static")
         self.assertTrue(any("scrollX" in e for e in errors([name, scene, actions], {"scroll": "{{ {x:$state.width} }}"})))
-        # Regression: missing scroll.x lets max-content auto layout treat widths as minimums.
+        # Missing scroll.x leaves native sizing; it does not meet the project width policy.
         self.assertTrue(any("scrollX" in e for e in errors([name, scene, actions], {})))
         self.assertTrue(any("scrollX" in e for e in errors([name, scene, actions], {"scroll": {"x": 258}})))
         self.assertTrue(any("scrollX" in e for e in errors([name, scene, actions], {"scroll": {"x": "max-content"}})))
@@ -691,6 +692,38 @@ class StructureTests(unittest.TestCase):
         self.assertTrue(any(e.get("title") == "业务场景" for e in errors([name, wide_title, actions], {"scroll": {"x": 600}})))
         wide_title = column("SceneColumn", {"dataIndex": "scene", "width": 96}, "业务场景")
         self.assertEqual(errors([name, wide_title, actions], {"scroll": {"x": 600}}), [])
+
+    def test_native_max_content_requires_same_source_approved_choice_in_plan_and_model(self):
+        from verify_selection import table_plan_errors
+        self.source.write_text('The required content sizing is scroll.x = max-content.', encoding="utf-8")
+        table = {"nodeName": "Records", "component": "plasmic-antd6-table", "props": {"scroll": {"x": "max-content"}},
+                 "overrides": {"scroll.x": {"reason": "Explicit source sizing", "evidence": self.evidence("scroll.x = max-content")}}}
+        columns = [
+            {"nodeName": "NameColumn", "component": "plasmic-antd6-table-column", "role": "widget", "presentation": "text", "owner": {"nodeName": "Records", "slot": "children"}, "props": {"dataIndex": "name"}},
+            {"nodeName": "StatusColumn", "component": "plasmic-antd6-table-column", "role": "status", "presentation": "custom", "owner": {"nodeName": "Records", "slot": "children"}, "props": {"dataIndex": "status", "width": 128}},
+        ]
+        def model_errors(spec, actual="max-content", width=128):
+            cols = copy.deepcopy(columns)
+            cols[1]["props"]["width"] = width
+            markup = '<plasmic-component data-plasmic-component="plasmic-antd6-table" data-plasmic-name="Records" data-props=\'' + json.dumps({"scroll": {"x": actual}, "data": {"data": []}, "pagination": False}) + '\'><slot name="children">'
+            for col in cols:
+                markup += '<plasmic-component data-plasmic-component="plasmic-antd6-table-column" data-plasmic-name="' + col["nodeName"] + '" data-props=\'' + json.dumps(col["props"]) + '\'></plasmic-component>'
+            markup += '</slot></plasmic-component>'
+            return check_components(list(walk(TextTree(markup).root)), "/records", {"components": [spec, *cols]})
+        self.assertEqual(table_plan_errors([table, *columns]), [])
+        self.assertEqual(model_errors(table), [])
+        for change in (lambda t: t.pop("overrides"),
+                       lambda t: t["overrides"]["scroll.x"]["evidence"].update(sha256="changed"),
+                       lambda t: t["props"]["scroll"].update(x=600)):
+            invalid = copy.deepcopy(table)
+            change(invalid)
+            self.assertTrue(any(e.get("check") == "tableWidth" for e in model_errors(invalid)))
+        unrelated = copy.deepcopy(table)
+        unrelated["overrides"]["scroll.x"]["evidence"] = self.evidence("The required content sizing")
+        self.assertTrue(table_plan_errors([unrelated, *columns]))
+        self.assertTrue(model_errors(unrelated))
+        self.assertTrue(any("scrollX" in e for e in model_errors(table, actual="100%")))
+        self.assertTrue(any("actual" in e for e in model_errors(table, width="128")), "An override does not bypass column policy")
 
     def test_search_form_has_no_redundant_card_but_other_surfaces_remain_valid(self):
         original = self.pages["results"][0]["baseVariantTplTree"]
@@ -795,7 +828,7 @@ class StructureTests(unittest.TestCase):
 
 class RecordContextTests(unittest.TestCase):
     def page(self, **overrides):
-        page = {"path": "/records/1", "recordPage": True, "routePattern": "/records/[id]",
+        page = {"path": "/records/[id]", "recordPage": True, "routePattern": "/records/[id]",
                 "params": ["id"], "recordSource": "groups table"}
         page.update(overrides)
         return page
@@ -813,25 +846,35 @@ class RecordContextTests(unittest.TestCase):
     def test_action_must_carry_declared_param(self):
         from verify_structure import record_context_errors
         plan = {"pages": [self.page()],
-                "rowActions": [{"column": "Actions", "kind": "detail", "carries": "groupKey", "destination": "/records/1"}]}
+                "rowActions": [{"column": "Actions", "kind": "detail", "carries": "groupKey", "destination": "/records/[id]"}]}
         errors = record_context_errors(plan)
         self.assertIn("as a route param", json.dumps(errors, ensure_ascii=False))
 
     def test_complete_record_context_passes(self):
         from verify_structure import record_context_errors
         plan = {"pages": [self.page()],
-                "rowActions": [{"column": "Actions", "kind": "detail", "carries": "id", "destination": "/records/1"}]}
+                "rowActions": [{"column": "Actions", "kind": "detail", "carries": "id", "destination": "/records/[id]"}]}
         self.assertEqual(record_context_errors(plan), [])
 
     def test_non_record_action_is_ignored(self):
         from verify_structure import record_context_errors
         plan = {"pages": [], "rowActions": [{"column": "Actions", "kind": "toggle"}]}
         self.assertEqual(record_context_errors(plan), [])
+    def test_concrete_preview_url_is_not_the_page_path(self):
+        from verify_structure import record_context_errors
+        errors = record_context_errors({"pages": [self.page(path="/records/1")]})
+        self.assertIn("Plasmic page path", json.dumps(errors, ensure_ascii=False))
+    def test_page_level_row_actions_are_checked(self):
+        from verify_structure import record_context_errors
+        lists = {"path": "/records", "rowActions": [{"column": "Actions", "kind": "detail", "carries": "groupKey",
+                                                     "destination": "/records/[id]"}]}
+        errors = record_context_errors({"pages": [lists, self.page()]})
+        self.assertIn("as a route param", json.dumps(errors, ensure_ascii=False))
 
 
 class ModeRecordPageTests(unittest.TestCase):
     def page(self, **overrides):
-        page = {"path": "/records/1/edit", "recordPage": True,
+        page = {"path": "/records/[id]/[mode]", "recordPage": True,
                 "routePattern": "/records/[id]/[mode]", "params": ["id", "mode"],
                 "recordSource": "groups table", "modes": ["edit", "condition"],
                 "readOnlyMode": "condition",

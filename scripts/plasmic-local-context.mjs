@@ -5,12 +5,14 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import { hashFiles } from "./build-identity.mjs";
+import { verifyRuntime } from "../packages/plasmic-cli/src/runtime.mjs";
 import { MODE_REFERENCES } from "../packages/plasmic-cli/src/protocol.mjs";
 
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 export async function resolveLocalContext(mode, sourceRoot = path.join(repo, "ai/plasmic"), cacheRoot = path.join(homedir(), "Library/Caches/Plasmic/skill-resources")) {
   if (!Object.hasOwn(MODE_REFERENCES, mode)) throw new Error("--mode must be inspect, prototype or codegen");
+  const runtime = await verifyRuntime();
   sourceRoot = path.resolve(sourceRoot);
   const files = [];
   for (const directory of ["references", "scripts"]) {
@@ -51,7 +53,7 @@ export async function resolveLocalContext(mode, sourceRoot = path.join(repo, "ai
     .map((name) => path.join(resourceRoot, name));
   await Promise.all(mustRead.map((filename) => access(filename)));
   return { ok: true, source: "local", version: "local", releaseId: `local-${resourceHash}`, resourceHash,
-    resourceRoot, referencePath: mustRead[0], mode, mustRead };
+    resourceRoot, referencePath: mustRead[0], mode, mustRead, runtime };
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

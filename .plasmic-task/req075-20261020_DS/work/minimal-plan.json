@@ -1,0 +1,6 @@
+{"pages":[{"path":"/groups","name":"客群列表","recordPage":false,"routePattern":"/groups","params":[],"modes":[],"components":[
+ {"nodeName":"AppShell","component":"plasmic-overseas-app-shell","role":"shell","purpose":"客群管理后台外壳","source":"PRD §4.1","props":{"menuItems":[{"key":"g","label":"客群管理"}]}},
+ {"nodeName":"GroupFilters","component":"plasmic-overseas-search-form","role":"query","purpose":"按市场/场景/类型/状态/关键字筛选客群","source":"PRD §4.2","props":{"colSpan":6}},
+ {"nodeName":"FilterMarket","component":"plasmic-overseas-search-form-item","role":"widget","purpose":"市场筛选","source":"PRD §4.2","props":{"name":"market","label":"市场"},"owner":{"nodeName":"GroupFilters","slot":"children"}},
+ {"nodeName":"MarketSelect","component":"plasmic-antd6-select","role":"widget","purpose":"市场取值","source":"PRD §4.2","owner":{"nodeName":"FilterMarket","slot":"children"}}
+]}]}

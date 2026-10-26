@@ -45,27 +45,7 @@ const badgeStatuses = [
   "error",
   "warning"
 ];
-function AntdBadge({
-  value,
-  options,
-  status,
-  text,
-  ...props
-}) {
-  if (value == null) {
-    return /* @__PURE__ */ React__default.default.createElement(Ant__namespace.Badge, { ...props, status, text });
-  }
-  const raw = String(value);
-  const option = Array.isArray(options) ? options.find((item) => item?.value === raw) : void 0;
-  return /* @__PURE__ */ React__default.default.createElement(
-    Ant__namespace.Badge,
-    {
-      ...props,
-      status: status ?? (badgeStatuses.includes(option?.status) ? option?.status : "default"),
-      text: text ?? (option?.label || raw)
-    }
-  );
-}
+const AntdBadge = Ant__namespace.Badge;
 const AntdBadgeRibbon = Ant__namespace.Badge.Ribbon;
 const AntdBorderBeam = Ant__namespace.BorderBeam;
 function AntdCard({
@@ -112,18 +92,13 @@ const AntdFlex = Ant__namespace.Flex;
 const AntdFloatButton = Ant__namespace.FloatButton;
 const AntdFloatButtonGroup = Ant__namespace.FloatButton.Group;
 const AntdBackTop = Ant__namespace.FloatButton.BackTop;
-function AntdImage({
-  objectFit,
-  style,
-  ...props
-}) {
+function AntdImage(props) {
   const canvas = host.usePlasmicCanvasContext();
   return /* @__PURE__ */ React__default.default.createElement(
     Ant__namespace.Image,
     {
       ...props,
-      preview: canvas && !canvas.interactive ? false : props.preview,
-      style: { ...style, ...objectFit ? { objectFit } : {} }
+      preview: canvas && !canvas.interactive ? false : props.preview
     }
   );
 }
@@ -178,40 +153,7 @@ const AntdSplitter = Ant__namespace.Splitter;
 const AntdSplitterPanel = Ant__namespace.Splitter.Panel;
 const AntdStatistic = Ant__namespace.Statistic;
 const AntdStatisticTimer = Ant__namespace.Statistic.Timer;
-function AntdTag({
-  value,
-  options,
-  defaultColor,
-  automaticColor,
-  children,
-  color,
-  ...props
-}) {
-  const text = value == null ? "" : String(value);
-  const option = Array.isArray(options) ? options.find((item) => item?.value === text) : void 0;
-  const colors = [
-    "blue",
-    "green",
-    "orange",
-    "purple",
-    "cyan",
-    "magenta",
-    "red",
-    "gold"
-  ];
-  const hash = Array.from(text).reduce(
-    (current, char) => current * 31 + char.charCodeAt(0) >>> 0,
-    0
-  );
-  return /* @__PURE__ */ React__default.default.createElement(
-    Ant__namespace.Tag,
-    {
-      ...props,
-      color: color ?? (option?.color || defaultColor || (automaticColor ? colors[hash % colors.length] : void 0))
-    },
-    children ?? option?.label ?? text
-  );
-}
+const AntdTag = Ant__namespace.Tag;
 const AntdTagCheckable = Ant__namespace.Tag.CheckableTag;
 const AntdTimeline = Ant__namespace.Timeline;
 const AntdTreeSelect = Ant__namespace.TreeSelect;
@@ -221,20 +163,7 @@ const AntdTypographyText = Ant__namespace.Typography.Text;
 const AntdTypographyParagraph = Ant__namespace.Typography.Paragraph;
 const AntdTypographyLink = Ant__namespace.Typography.Link;
 const AntdWatermark = Ant__namespace.Watermark;
-function AntdInputOTP({
-  onChange,
-  onComplete,
-  ...rest
-}) {
-  return /* @__PURE__ */ React__default.default.createElement(
-    Ant__namespace.Input.OTP,
-    {
-      ...rest,
-      onInput: (values) => onChange?.(values.join("")),
-      onChange: onComplete
-    }
-  );
-}
+const AntdInputOTP = Ant__namespace.Input.OTP;
 function AntdInputSearch({
   onChange,
   ...rest
@@ -445,25 +374,7 @@ function registerAdditional(loader) {
     color: { type: "color" },
     size: choice(["small", "medium"]),
     status: choice([...badgeStatuses]),
-    text: "string",
-    value: {
-      type: "string",
-      displayName: "Value",
-      description: "Bind the field value. A matching option supplies status and text; unmatched values show the raw value with the default status. Explicit Status and Text take precedence."
-    },
-    options: {
-      type: "array",
-      displayName: "Status labels",
-      itemType: {
-        type: "object",
-        nameFunc: (item) => item.label || item.value,
-        fields: {
-          value: { type: "string", displayName: "Value" },
-          label: { type: "string", displayName: "Label" },
-          status: { ...choice([...badgeStatuses]), displayName: "Status" }
-        }
-      }
-    }
+    text: "string"
   });
   register(loader, AntdBadgeRibbon, "badge-ribbon", "AntdBadgeRibbon", {
     children: slot("Ribbon content"),
@@ -567,7 +478,7 @@ function registerAdditional(loader) {
         }
       ]
     },
-    gutter: { type: "number", defaultValue: 16 },
+    gutter: { type: "number", defaultValueHint: 0 },
     align: choice(["top", "middle", "bottom", "stretch"]),
     justify: choice([
       "start",
@@ -581,7 +492,7 @@ function registerAdditional(loader) {
   });
   register(loader, AntdCol, "col", "AntdCol", {
     children: slot("Column"),
-    span: { type: "number", defaultValue: 12 },
+    span: "number",
     offset: "number",
     order: "number",
     flex: "string",
@@ -654,7 +565,7 @@ function registerAdditional(loader) {
     children: slot("Flex content"),
     vertical: "boolean",
     wrap: choice(["nowrap", "wrap", "wrap-reverse"]),
-    gap: { type: "number", defaultValue: 16 },
+    gap: "number",
     align: choice(["stretch", "center", "start", "end", "baseline"]),
     justify: choice([
       "start",
@@ -706,8 +617,7 @@ function registerAdditional(loader) {
     width: "number",
     height: "number",
     preview: "boolean",
-    fallback: "imageUrl",
-    objectFit: choice(["fill", "contain", "cover", "none", "scale-down"])
+    fallback: "imageUrl"
   });
   register(
     loader,
@@ -791,7 +701,7 @@ function registerAdditional(loader) {
         { key: "2", content: "Second item" }
       ]
     },
-    height: { type: "number", defaultValue: 240 },
+    height: "number",
     virtual: "boolean",
     sticky: "boolean"
   });
@@ -803,8 +713,8 @@ function registerAdditional(loader) {
         { key: "2", data: { content: "Second tile" } }
       ]
     },
-    columns: { type: "number", defaultValue: 2 },
-    gutter: { type: "number", defaultValue: 16 }
+    columns: { type: "number", defaultValueHint: 3 },
+    gutter: { type: "number", defaultValueHint: 0 }
   });
   register(
     loader,
@@ -837,7 +747,13 @@ function registerAdditional(loader) {
       description: { type: "slot", hidePlaceholder: true },
       okText: "string",
       cancelText: "string",
+      okButtonProps: "object",
       disabled: "boolean",
+      open: {
+        type: "boolean",
+        description: "Native controlled open state. Leave unset for the native click trigger; bind it when another action, such as an ActionGroup item, requests confirmation."
+      },
+      onOpenChange: event("open", "boolean"),
       onConfirm: event("event", "object"),
       onCancel: event("event", "object")
     },
@@ -890,7 +806,7 @@ function registerAdditional(loader) {
   const spaceProps = {
     children: slot("Spaced content"),
     orientation: choice(["horizontal", "vertical"]),
-    size: { type: "number", defaultValue: 16 }
+    size: { type: "number", defaultValueHint: 8, description: "Gap in pixels. Unset uses the native small size." }
   };
   register(loader, AntdSpace, "space", "AntdSpace", {
     ...spaceProps,
@@ -937,8 +853,7 @@ function registerAdditional(loader) {
         ]
       },
       onResize: event("sizes", "object")
-    },
-    { defaultStyles: { height: "240px", width: "100%" } }
+    }
   );
   register(loader, AntdSplitterPanel, "splitter-panel", "AntdSplitterPanel", {
     children: slot("Panel"),
@@ -971,26 +886,6 @@ function registerAdditional(loader) {
     }
   );
   register(loader, AntdTag, "tag", "AntdTag", {
-    value: {
-      type: "string",
-      displayName: "Value",
-      description: "Read the bound value. Configure its label and color below."
-    },
-    options: {
-      type: "array",
-      displayName: "Tag labels and colors",
-      itemType: {
-        type: "object",
-        nameFunc: (item) => item.label || item.value,
-        fields: {
-          value: { type: "string", displayName: "Value" },
-          label: { type: "string", displayName: "Label" },
-          color: { type: "color", displayName: "Color" }
-        }
-      }
-    },
-    defaultColor: { type: "color", displayName: "Default color" },
-    automaticColor: { type: "boolean", displayName: "Assign colors automatically" },
     closeIcon: { type: "slot", hidePlaceholder: true },
     children: { ...slot("Tag"), hidePlaceholder: true },
     color: { type: "color" },
@@ -1103,9 +998,12 @@ function registerAdditional(loader) {
     "typography-title",
     "AntdTypographyTitle",
     {
-      ...textProps,
+      // Typography.Title has no native strong prop.
+      ...Object.fromEntries(
+        Object.entries(textProps).filter(([name]) => name !== "strong")
+      ),
       children: slot("Heading"),
-      level: { type: "choice", options: [1, 2, 3, 4, 5], defaultValueHint: 2 }
+      level: { type: "choice", options: [1, 2, 3, 4, 5], defaultValueHint: 1 }
     }
   );
   register(
@@ -1142,13 +1040,19 @@ function registerAdditional(loader) {
     "AntdInputOTP",
     {
       value: "string",
-      length: { type: "number", defaultValue: 6 },
+      length: { type: "number", defaultValueHint: 6 },
       disabled: "boolean",
       mask: "boolean",
       size: sizes,
       variant,
-      onChange: event("value", "string"),
-      onComplete: event("value", "string")
+      onChange: {
+        ...event("value", "string"),
+        description: "Native onChange: fires with the complete code once every cell is filled."
+      },
+      onInput: {
+        ...event("values", "object"),
+        description: "Native onInput: fires on each cell edit with the array of cell values."
+      }
     },
     { states: valueState("text") }
   );

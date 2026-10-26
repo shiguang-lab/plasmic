@@ -4,13 +4,40 @@ import argparse
 import hashlib
 import json
 import re
+from html import unescape
+from html.parser import HTMLParser
 from pathlib import Path
+
+
+class ElementIds(HTMLParser):
+    """Locate actual id attributes without touching text or data-* values."""
+    def __init__(self, markup):
+        super().__init__(convert_charrefs=False)
+        self.starts, self.ids = [0], []
+        for line in markup.splitlines(keepends=True):
+            self.starts.append(self.starts[-1] + len(line))
+        self.feed(markup)
+
+    def handle_starttag(self, tag, attrs):
+        raw = self.get_starttag_text()
+        line, column = self.getpos()
+        offset = self.starts[line - 1] + column
+        # Consume complete attribute values so id="..." inside another
+        # attribute's quoted value cannot become an identity match.
+        for match in re.finditer(r'''\s+([^\s=/>]+)(?:\s*=\s*("[^"]*"|'[^']*'|[^\s>]+))?''', raw):
+            if match[1].lower() != 'id' or match[2] is None:
+                continue
+            quoted = match[2][:1] in ('"', "'")
+            start, end = match.span(2)
+            start, end = start + int(quoted), end - int(quoted)
+            self.ids.append((offset + start, offset + end, unescape(raw[start:end])))
 
 
 def canonical(model):
     value = dict(model)
     html = value["baseVariantTplTree"]
-    ids = list(dict.fromkeys(re.findall(r'\bid="([^"]+)"', html)))
+    attributes = ElementIds(html).ids
+    ids = list(dict.fromkeys(value for _, _, value in attributes))
     names = {node_id: f"element:{i}" for i, node_id in enumerate(ids)}
     names[model["uuid"]] = "page:" + model["pageMeta"]["path"]
     for field in ["states", "interactions", "props", "variants", "variantGroups"]:
@@ -27,7 +54,9 @@ def canonical(model):
             if node in names:
                 return names[node]
             if node == html:
-                return re.sub(r'\bid="([^"]+)"', lambda m: 'id="' + names[m[1]] + '"', node)
+                for start, end, value in reversed(attributes):
+                    node = node[:start] + names[value] + node[end:]
+                return node
         return node
 
     return normalize(value)

@@ -8,7 +8,7 @@ Read the actual role/action matrix and data-scope rules together. For each actio
 
 Use existing action cases to record these decisions, with exact source evidence. Cover each distinct role outcome, then vary record state and scope independently; do not multiply every role by every state when they exercise the same branch. Keep valid state/scope fixed for a role-denial case, and keep an allowed role/state fixed for a scope-denial case. Otherwise a failed state check can conceal a missing permission check.
 
-An action available to every declared role must have positive cases for those roles. Its required `permission-denied` case can exercise a real source-defined unauthorized record/market boundary; it must not invent a forbidden role. If the source defines no negative boundary at all, report that limit of the current action preflight rather than fabricate a business restriction. Source text/hash validation and case-kind coverage cannot determine whether a role matrix was interpreted correctly.
+An action available to every declared role must have positive cases for those roles. Its `permission-denied` case can exercise a real source-defined unauthorized record/market boundary; it must not invent a forbidden role. When the reviewed sources define public access or no permission distinctions within this prototype's scope, record a nonempty `permissionDeniedNotApplicable` reason on that same action contract, supported by its existing `evidence` and reviewed scope. This exempts only `permission-denied`; positive cases, confirmation/cancellation, transitions and source-defined loading/failure cases remain required. Do not declare both the exemption and a denied case. An out-of-scope permission distinction does not establish public service access: preserve existing host authorization and report service authorization as unverified. If the source requires a restriction but leaves its meaning unresolved, resolve that specific gap before composing the affected branch. Source text/hash validation and case-kind coverage cannot determine whether the scope justifies the exemption or whether a role matrix was interpreted correctly.
 
 ## One executable context, display and submission
 
@@ -39,6 +39,10 @@ function commitDisable(state, id) {
 ```
 
 Use `allowed(viewer,"view",record)` for this fixture's visible data and `allowed(viewer,"disable",record)` for its native action items; confirmation invokes `commitDisable` with the record ID, not a saved authorization boolean. The runnable plan format declares those context dependencies and source-derived cases. This example grants no implicit all-market privilege and does not treat client code as a production security boundary.
+
+## Presentation without simulation controls
+
+Keep permission demonstrations out of the business UI: do not add role-view switches, administrator/operator/read-only buttons or current-role debug badges. Use one current-user context and representative records to express source-defined record access through the relevant row actions, fields and mutation guards. Where permissions differ between records, show or omit each action accordingly rather than exposing a global simulator. Exercise other roles through test setup or supported direct-entry context outside the page; preserve authorization guards when removing simulation controls.
 
 ## Acceptance with real setup and effects
 

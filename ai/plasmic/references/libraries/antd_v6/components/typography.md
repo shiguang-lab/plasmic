@@ -12,6 +12,11 @@ Library: [Ant Design v6](../index.md).
 
 ## Generation rules
 
+### Design defaults
+
+- Text for supporting and secondary copy (`type: "secondary"`); Link for navigation inside text; Title only for a section heading that has no component title Slot.
+- Sizes follow the [scale](../../../design/scale.md) type table. There is no Page title.
+
 ### Text
 
 #### Supporting text hierarchy

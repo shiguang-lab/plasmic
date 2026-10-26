@@ -132,11 +132,7 @@ for (const suffix of ["", "-v2"]) {
                           { key: "detail", label: "详情" },
                           { key: "edit", label: "编辑" },
                           { key: "copy", label: "复制" },
-                          {
-                            key: "delete",
-                            label: "删除",
-                            confirm: { title: "删除？", okText: "删除" },
-                          },
+                          { key: "delete", label: "删除", danger: true },
                         ],
                   }),
                 ),

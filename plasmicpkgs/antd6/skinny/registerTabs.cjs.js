@@ -64,9 +64,6 @@ function TabsWithItems(props) {
     animateTabContent = false,
     tabBarExtraContentLeft,
     tabBarExtraContentRight,
-    sticky,
-    stickyOffset,
-    tabBarBackground,
     className,
     classNames,
     tabPlacement,
@@ -120,28 +117,8 @@ function TabsWithItems(props) {
           }
         };
       },
-      tabBarExtraContent: {
-        left: /* @__PURE__ */ React__default.default.createElement(React__default.default.Fragment, null, tabBarExtraContentLeft),
-        right: /* @__PURE__ */ React__default.default.createElement(React__default.default.Fragment, null, tabBarExtraContentRight)
-      },
+      tabBarExtraContent: tabBarExtraContentLeft != null || tabBarExtraContentRight != null ? { left: tabBarExtraContentLeft, right: tabBarExtraContentRight } : void 0,
       tabPlacement,
-      renderTabBar: sticky && tabPlacement === "top" ? (tabBarProps, DefaultTabBar) => /* @__PURE__ */ React__default.default.createElement(
-        "div",
-        {
-          style: {
-            zIndex: 1,
-            position: "sticky",
-            top: stickyOffset || 0
-          }
-        },
-        /* @__PURE__ */ React__default.default.createElement(
-          DefaultTabBar,
-          {
-            ...tabBarProps,
-            style: { backgroundColor: tabBarBackground }
-          }
-        )
-      ) : void 0,
       animated: animationProp,
       items,
       ...rest,
@@ -162,8 +139,7 @@ function registerTabs(loader) {
     name: tabsComponentName,
     displayName: "Tabs",
     defaultStyles: {
-      width: "stretch",
-      overflow: "scroll"
+      width: "stretch"
     },
     props: {
       addIcon: { type: "slot", hidePlaceholder: true },
@@ -275,25 +251,6 @@ function registerTabs(loader) {
         type: "boolean",
         description: `Destroy/Unmount inactive tab pane when changing tab`,
         advanced: true
-      },
-      sticky: {
-        type: "boolean",
-        advanced: true,
-        description: "Stick tab bar to the top of the page when scrolling.",
-        defaultValue: false,
-        hidden: (ps) => ps.tabPlacement !== "top"
-      },
-      stickyOffset: {
-        type: "number",
-        advanced: true,
-        description: "Distance (in pixels) between the sticky tab bar and the top of the page as you scroll.",
-        hidden: (ps) => ps.tabPlacement !== "top" || !ps.sticky
-      },
-      tabBarBackground: {
-        type: "color",
-        advanced: true,
-        defaultValue: "#FFF",
-        hidden: (ps) => ps.tabPlacement !== "top" || !ps.sticky
       },
       tabsScopeClassName: {
         type: "styleScopeClass",

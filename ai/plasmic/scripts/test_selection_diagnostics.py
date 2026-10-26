@@ -23,7 +23,7 @@ class SelectionDiagnosticTests(unittest.TestCase):
         self.page = self.plan['pages'][0]
 
     def cli(self, *args):
-        return subprocess.run([sys.executable, '-B', str(SCRIPT), str(self.path), *map(str, args)],
+        return subprocess.run([sys.executable, '-B', str(SCRIPT), str(self.path), '--plan-only', *map(str, args)],
                               capture_output=True, text=True)
 
     def test_action_errors_keep_owner_key_and_missing_case_location(self):
@@ -69,9 +69,10 @@ class SelectionDiagnosticTests(unittest.TestCase):
     def test_selected_second_page_keeps_original_page_index(self):
         self.plan['pages'].insert(0, copy.deepcopy(self.page))
         self.plan['pages'][0]['path'] = '/other'
-        self.page['components'][7]['component'] = 'plasmic-antd6-tag'
+        badge = next(i for i, c in enumerate(self.page['components']) if c['nodeName'] == 'StateBadge')
+        self.page['components'][badge]['component'] = 'plasmic-antd6-tag'
         error = next(e for e in check(self.plan, page_path='/records')['errors'] if 'allowedComponents' in e)
-        self.assertEqual(error['pointer'], '/pages/1/components/7/component')
+        self.assertEqual(error['pointer'], f'/pages/1/components/{badge}/component')
         self.assertIn('plasmic-antd6-badge', error['allowedComponents'])
 
     def test_batched_errors_are_saved_in_full_with_bounded_console_output(self):
@@ -104,9 +105,10 @@ class SelectionDiagnosticTests(unittest.TestCase):
         self.assertNotIn('Traceback', process.stderr)
 
     def test_policy_property_diagnostic_survives_selection_preflight(self):
-        self.page['components'][1]['props']['colSpan'] = 4
+        filters = next(i for i, c in enumerate(self.page['components']) if c['nodeName'] == 'Filters')
+        self.page['components'][filters]['props']['colSpan'] = 4
         error = next(e for e in check(self.plan)['errors'] if e['check'] == 'componentPolicy')
-        self.assertEqual(error['pointer'], '/pages/0/components/1/props/colSpan')
+        self.assertEqual(error['pointer'], f'/pages/0/components/{filters}/props/colSpan')
         self.assertEqual((error['node'], error['property'], error['expectedColSpan']), ('Filters', 'colSpan', 6))
 
 

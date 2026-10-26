@@ -1,0 +1,38 @@
+{
+  "passed": true,
+  "errors": [],
+  "templates": [
+    {
+      "path": "/groups",
+      "passed": true,
+      "errors": [],
+      "sources": [
+        {
+          "sourceProjectId": "145nN6S5QQBwgjtNUwuiQZ",
+          "sourceVersion": null,
+          "models": [
+            {
+              "name": "TabsTableSection",
+              "uuid": "Lrdw4Jts1Zzd"
+            }
+          ],
+          "sourceRead": "passed",
+          "plannedMode": "reference",
+          "actualReuse": "unverified"
+        }
+      ],
+      "notChecked": [
+        "source interpretation",
+        "actual template insertion/detachment",
+        "adaptation quality"
+      ]
+    }
+  ],
+  "content": [],
+  "notChecked": [
+    "source meaning and completeness",
+    "actual template insertion/detachment",
+    "JS execution",
+    "visual and runtime acceptance"
+  ]
+}

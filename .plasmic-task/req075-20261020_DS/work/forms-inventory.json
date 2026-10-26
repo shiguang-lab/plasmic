@@ -1,0 +1,150 @@
+{
+ "pages": [
+  {
+   "path": "/groups",
+   "forms": [],
+   "standaloneControls": []
+  },
+  {
+   "path": "/groups/selector",
+   "forms": [
+    {
+     "name": "BasicForm",
+     "formLayout": "horizontal",
+     "labelCol": {
+      "flex": "120px"
+     },
+     "fields": [
+      {
+       "nodeName": "NameItem",
+       "name": "name",
+       "label": "客群名称",
+       "control": "NameInput",
+       "rules": [
+        {
+         "ruleType": "required"
+        }
+       ],
+       "controlWidthReason": {
+        "kind": "measurement",
+        "controlWidth": 240,
+        "columnWidth": 360
+       }
+      },
+      {
+       "nodeName": "RetentionItem",
+       "name": "retentionDays",
+       "label": "数据保存天数",
+       "control": "RetentionSelect",
+       "rules": [],
+       "controlWidthReason": {
+        "kind": "measurement",
+        "controlWidth": 240,
+        "columnWidth": 360
+       }
+      },
+      {
+       "nodeName": "DeadlineItem",
+       "name": "produceDeadline",
+       "label": "产出截止时间",
+       "control": "DeadlineTime",
+       "rules": [
+        {
+         "ruleType": "required"
+        }
+       ],
+       "controlWidthReason": {
+        "kind": "measurement",
+        "controlWidth": 240,
+        "columnWidth": 360
+       }
+      },
+      {
+       "nodeName": "RefreshItem",
+       "name": "refreshMode",
+       "label": "刷新模式",
+       "control": "RefreshSelect",
+       "rules": [],
+       "controlWidthReason": {
+        "kind": "measurement",
+        "controlWidth": 240,
+        "columnWidth": 360
+       }
+      },
+      {
+       "nodeName": "TypeItem",
+       "name": "groupType",
+       "label": "客群类型",
+       "control": "TypeInput",
+       "rules": [],
+       "controlWidthReason": {
+        "kind": "measurement",
+        "controlWidth": 240,
+        "columnWidth": 360
+       }
+      }
+     ]
+    }
+   ],
+   "standaloneControls": [
+    {
+     "nodeName": "SqlEditor",
+     "reason": "Separate SQL validation workflow"
+    }
+   ]
+  },
+  {
+   "path": "/groups/onetime-create",
+   "forms": [
+    {
+     "name": "SourceForm",
+     "formLayout": "horizontal",
+     "labelCol": {
+      "flex": "96px"
+     },
+     "fields": [
+      {
+       "nodeName": "SourceItem",
+       "name": "source",
+       "label": "客群来源",
+       "control": "SourceRadio",
+       "rules": [],
+       "controlWidthReason": {
+        "kind": "measurement",
+        "controlWidth": 200,
+        "columnWidth": 520
+       }
+      },
+      {
+       "nodeName": "ExpireItem",
+       "name": "expireDays",
+       "label": "有效期",
+       "control": "ExpireInput",
+       "rules": [
+        {
+         "ruleType": "required"
+        }
+       ],
+       "controlWidthReason": {
+        "kind": "measurement",
+        "controlWidth": 200,
+        "columnWidth": 520
+       }
+      }
+     ]
+    }
+   ],
+   "standaloneControls": [
+    {
+     "nodeName": "OnetimeSqlEditor",
+     "reason": "Separate SQL validation workflow"
+    }
+   ]
+  },
+  {
+   "path": "/groups/detail",
+   "forms": [],
+   "standaloneControls": []
+  }
+ ]
+}

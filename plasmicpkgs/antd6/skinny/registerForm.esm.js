@@ -186,8 +186,8 @@ function commonFormItemProps(usage) {
     validateFirst: {
       type: "boolean",
       displayName: "Stop at first validation error",
-      description: "Validate rules in order and show only the first failing rule. Put required rules before format, range and business rules.",
-      defaultValue: true
+      description: "Native validateFirst: validate rules in order and show only the first failing rule. Ant Design collects every failing rule when unset. Put required rules before format, range and business rules.",
+      defaultValueHint: false
     },
     description: {
       type: usage === "advanced-form-item" ? "slot" : "string",
@@ -442,10 +442,6 @@ function registerForm(loader) {
     name: formComponentName,
     displayName: "Form",
     description: "[Learn how to use forms](https://docs.plasmic.app/learn/forms/)",
-    defaultStyles: {
-      layout: "vbox",
-      alignItems: "flex-start"
-    },
     props: {
       disabled: { type: "boolean", defaultValueHint: false },
       mode: {
@@ -549,7 +545,7 @@ function registerForm(loader) {
         displayName: "Form layout",
         type: "choice",
         options: ["horizontal", "vertical", "inline"],
-        defaultValue: "vertical"
+        defaultValueHint: "horizontal"
       },
       styles: {
         displayName: "Semantic styles",
@@ -562,22 +558,16 @@ function registerForm(loader) {
         options: ["left", "right"],
         defaultValueHint: "right",
         advanced: true,
-        hidden: (ps) => ps.layout !== "horizontal"
+        hidden: (ps) => (ps.layout ?? "horizontal") !== "horizontal"
       },
       labelCol: colProp(
         "Label layout",
-        {
-          span: 8,
-          horizontalOnly: true
-        },
+        void 0,
         "Set the width and offset of the labels"
       ),
       wrapperCol: colProp(
         "Control layout",
-        {
-          span: 16,
-          horizontalOnly: true
-        },
+        void 0,
         "Set the width and offset of the form controls"
       ),
       colon: {

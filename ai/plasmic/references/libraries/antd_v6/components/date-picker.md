@@ -9,6 +9,13 @@ Library: [Ant Design v6](../index.md).
 
 ## Generation rules
 
+### Design defaults
+
+- Use DatePicker for a calendar date, with time selection only for a dated instant; RangePicker for a period, including query ranges.
+- Set `width:100%` in a Form column. Display format `YYYY-MM-DD`, or `YYYY-MM-DD HH:mm:ss` with time.
+
+### Usage and behavior
+
 Allow typing by default; read-only is explicit. Do not inject global date-picker CSS from each component instance. Range values, endpoint flags and range-specific inheritance belong to [RangePicker](#rangepicker).
 
 ### RangePicker
