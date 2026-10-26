@@ -31,13 +31,13 @@ Preserve all other patches and literal `!!js` expressions without evaluating the
 
 ## Prototype preflight
 
-Through native MCP, call `get_app_state({toolNames:["read","queryElements","preview","validate"]})`. Save the complete returned state object as `/task/mcp-state.json` (not the MCP envelope), then run:
+Through native MCP, call `get_app_state({toolNames:["read","queryElements","validate"]})`. Save the complete returned state object as `/task/mcp-state.json` (not the MCP envelope). Also save the current Desktop's MCP `tools/list` result (`{"tools":[...]}`, without the JSON-RPC envelope) as `/task/mcp-tools.json`, retaining the advertised `preview` input schema. If the list is paginated, collect all pages into that tools array. `preview` is a top-level MCP tool; its parameter schema does not belong in `get_app_state.toolNames` or `editorTools`. Then run:
 
 ```sh
-python3 RESOURCE_ROOT/scripts/verify_mcp_contract.py --state /task/mcp-state.json --report /task/mcp-contract.json
+python3 RESOURCE_ROOT/scripts/verify_mcp_contract.py --state /task/mcp-state.json --tools /task/mcp-tools.json --report /task/mcp-contract.json
 ```
 
-This checks the supplied advertised contracts; refresh the state after a build or editor-session change. A replay of old state does not prove a current connection. On macOS/Linux, `--profile "/absolute/Desktop user-data"` instead of `--state` can collect the same state via authenticated local RPC.
+This checks the supplied advertised contracts; collect both inputs from the same Desktop build and refresh them after a build or editor-session change. A replay of old state does not prove a current connection. On macOS/Linux, `--profile "/absolute/Desktop user-data"` instead of `--state` can collect the state via authenticated local RPC; `--tools` is still required because local RPC does not provide MCP schema discovery. If collection or validation fails, inspect the reported missing contract and its source before deciding whether Desktop needs an update.
 
 Check collection capability before composition: the [full suite's live collector](verification.md#collect-and-verify) requires local macOS/Linux Desktop RPC. Native MCP access and successful contract preflight alone do not make that collector available on Windows or a remote-only client. Such clients can run gates against an existing complete capture using `--evidence`; record any unavailable current capture, runtime or persistence checks as unverified. Do not claim full acceptance from replay or invent another transport.
 
