@@ -5613,5 +5613,11 @@
   "Waiting…": "待機中…",
   "Sign in to continue designing": "ログインしてデザインを続ける",
   "Access your projects and workspaces": "プロジェクトとワークスペースにアクセス",
-  "Opening canvas…": "キャンバスを開いています…"
+  "Opening canvas…": "キャンバスを開いています…",
+  "Custom canvases": "カスタムキャンバス",
+  "Image assets": "画像素材",
+  "Workspace projects": "ワークスペースのプロジェクト",
+  "Users with access": "アクセス可能ユーザー",
+  "No workspace selected": "ワークスペース未選択",
+  "Step {current}/{total}": "{current}/{total} ステップ"
 }

@@ -5613,5 +5613,11 @@
   "Waiting…": "대기 중…",
   "Sign in to continue designing": "로그인하여 디자인 계속하기",
   "Access your projects and workspaces": "프로젝트 및 워크스페이스에 액세스",
-  "Opening canvas…": "캔버스를 여는 중…"
+  "Opening canvas…": "캔버스를 여는 중…",
+  "Custom canvases": "사용자 캔버스",
+  "Image assets": "이미지 리소스",
+  "Workspace projects": "작업 공간 프로젝트",
+  "Users with access": "접근 가능한 사용자",
+  "No workspace selected": "선택한 작업 공간 없음",
+  "Step {current}/{total}": "{current}/{total} 단계"
 }

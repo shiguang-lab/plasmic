@@ -17,36 +17,32 @@
  </div>
  <section id="card" inert aria-hidden="true">
   <div class="body">
-   <section class="info" id="drag-handle">
-    <div class="identity"><span id="page"></span><span id="context"></span><span id="account-presence" role="img" hidden><i aria-hidden="true"></i><span></span></span><button id="card-update" class="update-indicator" type="button" hidden></button></div>
-    <div class="heading">
-     <span id="account-avatar" aria-hidden="true" hidden></span>
-     <div class="heading-copy"><div id="mission"></div><div id="account-detail" hidden><span id="account-email"></span></div><div id="sign-in-description" hidden></div></div>
-    </div>
-    <div id="phase" role="status" aria-live="polite"><span id="phase-icon" aria-hidden="true"></span><span id="phase-text"></span></div>
-    <div id="issue" role="alert" hidden><span id="issue-text"></span></div>
-    <div id="activity-meta" hidden><span id="stage-count"></span><span id="queued-count"></span><span id="running-count"></span><span id="unsaved"></span></div>
-    <span id="view-metric" hidden></span>
-    <div class="info-footer" hidden>
-     <span id="account-location" hidden></span>
-     <section id="account-overview" aria-label="Account overview" hidden>
-      <div id="account-stats-loading" aria-hidden="true" hidden><i class="skeleton-line"></i><i class="skeleton-line"></i><i class="skeleton-line"></i></div>
-      <div id="account-statistics" hidden>
-       <span><b id="organization-count"></b> <span id="organizations-label"></span></span>
-       <span><b id="workspace-count"></b> <span id="workspaces-label"></span></span>
-       <span><b id="project-count"></b> <span id="projects-label"></span></span>
-      </div>
-     </section>
-    </div>
-    <div class="info-actions" hidden><button id="account-sign-in" type="button" hidden></button><button id="show-main" type="button" hidden></button></div>
-    <div id="account-loading" role="status" hidden><span id="account-loading-label" class="sr-only"></span><i class="skeleton-line"></i><i class="skeleton-line"></i><i class="skeleton-line"></i></div>
-   </section>
-   <section class="visual">
-    <img id="mirror" alt="" draggable="false" hidden>
-    <div id="feedback" aria-hidden="true" hidden></div>
-    <div id="view-loading" aria-hidden="true" hidden><i class="skeleton-line"></i><i class="skeleton-line"></i><i class="skeleton-line"></i></div>
-    <span id="unavailable" hidden></span><span id="stale" hidden></span>
-   </section>
+   <header id="drag-handle" class="identity">
+    <span class="brand" aria-hidden="true">◈</span><span id="page"></span>
+    <span id="account-user"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><circle cx="8" cy="5" r="3"/><path d="M2 15v-2a6 6 0 0 1 12 0v2"/></svg><span id="user-name"></span></span>
+    <button id="card-update" class="update-indicator" type="button" hidden></button>
+   </header>
+   <div class="main">
+    <section class="info"><div id="left-statistics" class="statistics"></div></section>
+    <section class="right">
+     <div id="right-statistics" class="statistics" hidden></div>
+     <div class="visual">
+      <img id="mirror" alt="" draggable="false" hidden>
+      <div id="feedback" aria-hidden="true" hidden></div>
+      <div id="view-loading" aria-hidden="true" hidden><i class="skeleton-line"></i><i class="skeleton-line"></i><i class="skeleton-line"></i></div>
+      <span id="unavailable" hidden></span><span id="stale" hidden></span>
+     </div>
+     <div id="account-empty" hidden></div>
+     <button id="account-sign-in" type="button" hidden></button>
+    </section>
+   </div>
+   <footer class="info-footer">
+    <span class="preference"><span id="theme-icon" aria-hidden="true"></span><span id="theme-label"></span></span>
+    <span class="preference"><span aria-hidden="true">文A</span><span id="language-label"></span></span>
+    <div id="phase" role="status" aria-live="polite"><span id="phase-icon" aria-hidden="true"></span><span id="phase-text"></span><span id="stage-count" hidden></span><button id="issue-detail" type="button" hidden aria-describedby="issue-tooltip"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true"><circle cx="7" cy="7" r="5.5"/><path d="M7 3.5v4M7 9v1"/></svg></button></div>
+    <span id="app-version" hidden></span>
+   </footer>
+   <div id="issue-tooltip" role="tooltip" hidden></div>
   </div>
   <section id="update-panel" aria-labelledby="update-heading" hidden>
    <div class="update-header">

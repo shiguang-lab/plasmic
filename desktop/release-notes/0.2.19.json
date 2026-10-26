@@ -1,0 +1,7 @@
+{
+  "en": "- Use a consistent compact Dynamic Island layout across canvas, account and update states. Keep canvas previews at 16:9 without stretching.\n- Keep project and page names together, resource statistics aligned in fixed columns, and the current operation or save state in the lower-right corner.\n- Show workspace project and user counts alongside accessible resource totals. Keep error details in a tooltip and remove repeated information.",
+  "zh-CN": "- 统一画布、账户和更新状态的紧凑灵动岛布局，画布预览固定为 16:9，避免拉伸变形。\n- 合并项目与页面标题，统计数据采用固定列对齐，当前操作或保存状态统一显示在右下角。\n- 展示工作区项目数、有权限用户数及可访问资源总数；异常详情通过气泡查看，减少重复信息。",
+  "zh-TW": "- 統一畫布、帳戶和更新狀態的緊湊靈動島版面，畫布預覽固定為 16:9，避免拉伸變形。\n- 合併專案與頁面標題，統計資料採用固定欄位對齊，目前操作或儲存狀態統一顯示在右下角。\n- 顯示工作區專案數、有權限使用者數及可存取資源總數；異常詳情透過提示查看，減少重複資訊。",
+  "ja": "- キャンバス、アカウント、更新の各状態でコンパクトな Dynamic Island レイアウトを統一しました。キャンバスプレビューは引き伸ばさず 16:9 で表示します。\n- プロジェクト名とページ名をまとめ、統計を固定列で整列し、現在の操作や保存状態を右下に表示します。\n- ワークスペースのプロジェクト数とアクセス権を持つユーザー数、アクセス可能なリソース総数を表示します。エラーの詳細はツールチップにまとめ、重複情報を減らしました。",
+  "ko": "- 캔버스, 계정, 업데이트 상태에 일관된 간결한 Dynamic Island 레이아웃을 적용했습니다. 캔버스 미리보기는 늘어나지 않도록 16:9 비율을 유지합니다.\n- 프로젝트와 페이지 제목을 통합하고 통계를 고정 열에 정렬하며 현재 작업 또는 저장 상태를 오른쪽 아래에 표시합니다.\n- 워크스페이스 프로젝트 수와 접근 권한 사용자 수, 접근 가능한 리소스 총계를 표시합니다. 오류 세부 정보는 툴팁으로 제공하고 중복 정보를 줄였습니다."
+}

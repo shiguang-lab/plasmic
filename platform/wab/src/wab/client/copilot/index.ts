@@ -2404,6 +2404,10 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
           : null,
       projectName: studio.siteInfo.name,
       projectSummary: {
+        artboards: studio.currentArena ? getArenaFrames(studio.currentArena).length : 0,
+        canvases: studio.site.arenas.length,
+        images: studio.site.imageAssets.filter((asset) => asset.type === "picture").length,
+        libraries: studio.site.projectDependencies.length,
         pages: studio.site.components.filter(isPageComponent).length,
         components: studio.site.components.filter((component) => !isPageComponent(component) && !isCodeComponent(component) && !isFrameComponent(component)).length,
       },

@@ -3,7 +3,7 @@
   const $ = (id) => document.getElementById(id);
   const shell = $("shell"), card = $("card"), mirror = $("mirror");
   const t = (key, values) => window.desktopUiI18n.t(key, values);
-  let state, opened = false, expandedWidth = 440;
+  let state, opened = false, expandedWidth = 360;
   let received = false, frameSource, frameImage, loadingSource, imageVersion = 0;
   let animation, lastTime, lastHit = 0;
   let feedbackKey, feedbackId;
@@ -113,61 +113,71 @@
     idle: '<svg viewBox="0 0 12 12" fill="currentColor"><circle cx="6" cy="6" r="2"/></svg>',
   };
   const saveStates = {saved:"Saved",pending:"Unsaved",saving:"Saving",error:"Save failed",blocked:"Saving blocked",unlogged:"Sign in to save"};
+  function text(id, value) { if ($(id).textContent !== value) $(id).textContent = value; }
+  function statistics(id, values, loading = false) {
+    const element = $(id), signature = JSON.stringify([values, loading, window.desktopUiI18n.snapshot().locale]);
+    element.hidden = !values.length;
+    element.setAttribute("aria-busy", String(loading));
+    if (element.dataset.signature === signature) return;
+    element.dataset.signature = signature;
+    element.replaceChildren(...values.map(([label, value]) => {
+      const cell = document.createElement("div"), number = document.createElement("b"), caption = document.createElement("span");
+      cell.className = "statistic";
+      number.textContent = Number.isFinite(value) ? value.toLocaleString(window.desktopUiI18n.snapshot().locale) : "—";
+      caption.textContent = t(label); cell.title = `${caption.textContent}: ${number.textContent}`;
+      cell.append(number, caption); return cell;
+    }));
+  }
   function renderInfo() {
     const context = state.context, account = context.account || {status:"loading"};
     const {task:reportedTask, operation, queued = 0, running = 0} = activity();
     const task = reportedTask?.status === "completed" && operation && Date.parse(operation.startedAt) >= reportedTask.finishedAt ? null : reportedTask;
-    const taskStage = task?.status === "running" ? task.stage : null;
     const hasActivity = !!task || !!operation;
-    // A task failure must survive the completion of an individual tool call.
-    const status = task?.status === "failed" ? "failed"
-      : task?.status === "blocked" || operation?.blocked ? "blocked"
-      : operation?.phase === "failed" ? "failed"
-      : task?.status === "running" ? "running" : operation?.phase || task?.status;
+    const status = task?.status === "failed" ? "failed" : task?.status === "blocked" || operation?.blocked ? "blocked"
+      : operation?.phase === "failed" ? "failed" : task?.status === "running" ? "running" : operation?.phase || task?.status;
     const failed = status === "failed", blocked = status === "blocked";
     const saveIssue = context.allowed && !context.loading && ["error","blocked","unlogged"].includes(context.saveStatus);
     const signIn = context.allowed ? context.saveStatus === "unlogged" : account.status === "signed-out";
     const issue = failed || blocked || saveIssue || !context.allowed && account.status === "error";
     const working = !issue && status === "running";
-    const tone = failed || saveIssue && context.saveStatus === "error" ? "error" : issue ? "warning" : status === "completed" ? "success" : "neutral";
-    const info = document.querySelector(".info");
-    info.dataset.activity = String(hasActivity);
-    info.dataset.issue = String(!!issue);
-    const accountIdle = !context.allowed && !hasActivity;
-    const heroIssue = issue && !accountIdle;
-    info.dataset.tone = tone;
-    info.dataset.viewLoading = String(context.allowed && context.loading && !hasActivity);
-    document.body.dataset.busy = String(working || blocked || status === "queued");
     document.body.dataset.working = String(working);
-    document.body.dataset.error = String(issue);
-    document.body.dataset.tone = tone;
+    document.body.dataset.tone = failed || saveIssue && context.saveStatus === "error" ? "error" : issue ? "warning" : "neutral";
     const workspace = account.workspaces?.find(item => item.id === context.workspaceId);
     const team = account.teams?.find(item => item.id === (context.orgId || workspace?.teamId));
     const location = [team?.name, workspace?.name].filter(Boolean).join(" · ");
-    const mode = context.allowed ? context.mode === "preview" ? "Preview" : "Canvas" : "Account";
-    $("context").textContent = $("context").title = t(accountIdle && signIn ? "Signed out" : mode);
-    $("context").hidden = accountIdle && !!account.user;
-    $("page").textContent = context.allowed ? context.projectName || "Plasmic" : "Plasmic";
-    $("page").hidden = false;
-    document.querySelector(".identity").hidden = false;
-    $("page").title = $("page").textContent;
-    $("account-presence").hidden = !accountIdle || !account.user;
-    $("account-presence").querySelector("span").textContent = t("Signed in");
-    $("account-avatar").hidden = !accountIdle || !account.user && account.status !== "signed-out";
-    $("account-avatar").textContent = account.user?.name?.trim().slice(0,1) || "◈";
-    $("account-presence").setAttribute("aria-label", t("Signed in"));
+    const heading = context.allowed ? [...new Set([context.projectName || "Plasmic", context.viewName].filter(Boolean))].join(" · ") : location || "Plasmic";
+    text("page", heading); $("page").title = heading;
+    text("user-name", account.user?.name || t(signIn ? "Signed out" : account.status === "loading" ? "Loading…" : "Account"));
+    $("user-name").title = $("user-name").textContent;
     const languages = {en:"English", "zh-CN":"简体中文", "zh-TW":"繁體中文", ja:"日本語", ko:"한국어"};
-    const projectSummary = context.loading ? null : context.projectSummary;
-    $("drag-handle").title = [context.projectName || "Plasmic", context.viewName, location, projectSummary ? `${projectSummary.pages} ${t("Pages")} · ${projectSummary.components} ${t("Components")}` : "", `${t("Theme")}: ${t(state.appearance === "light" ? "Light" : "Dark")}`, `${t("Language")}: ${languages[window.desktopUiI18n.snapshot().locale]}`].filter(Boolean).join(" · ");
-    const operationLabel = operation?.label ? t(operation.label) : "";
-    const title = hasActivity ? task?.title || operation?.subject || (context.allowed ? context.viewName || context.pageName || context.projectName : operationLabel) || t("Current operation")
-      : context.allowed ? context.viewName || t(context.loading ? "Opening canvas…" : "No canvas open")
-      : account.user?.name || t(signIn ? "Sign in to Plasmic" : "Account overview");
-    const identityLoading = !context.allowed && account.status === "loading" && !account.user && !hasActivity;
-    $("mission").hidden = identityLoading;
-    document.querySelector(".heading").hidden = identityLoading;
-    $("account-loading").hidden = !identityLoading;
-    $("account-loading-label").textContent = t("Loading account information…");
+    text("theme-label", t(state.appearance === "light" ? "Light" : "Dark"));
+    text("language-label", languages[window.desktopUiI18n.snapshot().locale] || "English");
+    $("language-label").title = $("language-label").textContent;
+    const theme = state.appearance === "light" ? '<circle cx="6" cy="6" r="2.5"/><path d="M6 0v1m0 10v1M0 6h1m10 0h1M2 2l1 1m6 6 1 1M2 10l1-1m6-6 1-1"/>' : '<path d="M10.8 7.2A5 5 0 0 1 4.8 1.2a5 5 0 1 0 6 6Z"/>';
+    if ($("theme-icon").dataset.appearance !== state.appearance) { $("theme-icon").dataset.appearance = state.appearance; $("theme-icon").innerHTML = `<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.2">${theme}</svg>`; }
+    const summary = context.loading ? null : context.projectSummary;
+    const hasVisual = context.allowed && !!(context.loading || context.viewName || state.image);
+    let left = [], right = [], empty = "";
+    if (context.allowed) {
+      if (hasVisual) {
+        left = context.mode === "preview" ? [["Width",context.previewContext?.width],["Height",context.previewContext?.height]]
+          : [["Pages",summary?.pages],["Components",summary?.components],["Artboards",summary?.artboards]];
+      } else {
+        left = [["Custom canvases",summary?.canvases],["Image assets",summary?.images],["Libraries",summary?.libraries]];
+        right = [["Pages",summary?.pages],["Components",summary?.components]];
+      }
+    } else if (!signIn) {
+      left = [["Organizations",account.counts?.organizations],["Workspaces",account.counts?.workspaces],["Projects",account.counts?.projects]];
+      if (workspace) right = [["Workspace projects",workspace.projects],["Users with access",workspace.members]];
+      else empty = t(account.status === "loading" ? "Loading account information…" : "No workspace selected");
+    } else empty = t("Access your projects and workspaces");
+    statistics("left-statistics", left, context.allowed ? !!context.loading : account.status === "loading");
+    statistics("right-statistics", right);
+    $("account-empty").hidden = !empty; text("account-empty", empty);
+    document.querySelector(".right").dataset.statistics = String(!hasVisual);
+    $("account-sign-in").hidden = !signIn;
+    text("account-sign-in",t("Sign in"));
+    if (signIn) { $("account-empty").hidden = true; document.querySelector(".visual").hidden = true; }
     const stages = {read:"Reading",write:"Applying changes",view:"Navigating",save:"Saving",preview:"Interacting with preview"};
     const previewActions = {click:"Clicking in preview",fill:"Entering text in preview",press:"Pressing a key in preview",scroll:"Scrolling preview",open:"Opening preview",close:"Closing preview"};
     const completed = {resource:"Operation complete",read:"Read complete",write:"Changes applied",view:"View updated",save:"Saved",preview:"Interaction complete"};
@@ -177,83 +187,34 @@
     else if (hasActivity) {
       icon = status || "running";
       phase = status === "queued" ? t("Queued") : status === "completed" ? t(task?.status === "completed" ? "Task complete" : completed[operation?.kind] || "Operation complete")
-        : taskStage || (operation?.subject ? operationLabel : "") || (operation?.kind === "resource" ? operationLabel : "") || t(operation?.kind === "preview" ? previewActions[operation.operation] || stages.preview : stages[operation?.kind] || "In progress");
-      // An action used as the title does not need a second generic status sentence.
-      if (phase === title && !taskStage) phase = operation?.startedAt ? t("Elapsed {seconds}s", {seconds:Math.max(0,Math.floor((Date.now()-Date.parse(operation.startedAt))/1000))}) : t("In progress");
-    } else if (context.allowed && context.loading) { phase = t("Preparing preview image…"); icon = "running";
-    } else if (context.allowed && context.mode === "preview") { phase = ""; icon = "idle";
-    } else if (context.allowed && context.viewName) {
-      phase = t(saveStates[context.saveStatus] || "");
-      icon = context.saveStatus === "saving" ? "running" : context.saveStatus === "saved" ? "completed" : "idle";
-    } else if (!context.allowed && account.status === "error") { phase = t("Statistics unavailable"); icon = "blocked"; }
-    const displayTitle = heroIssue ? phase : accountIdle && signIn ? t("Sign in to continue designing") : title;
-    if ($("mission").textContent !== displayTitle) $("mission").textContent = displayTitle;
-    $("mission").title = title;
-    if (heroIssue) $("page").textContent = title;
-    $("phase").hidden = !phase || heroIssue;
-    $("phase").dataset.status = icon;
-    if ($("phase-text").textContent !== phase) $("phase-text").textContent = phase;
-    $("phase-text").title = phase;
+        : task?.stage || (operation?.label ? t(operation.label) : "") || t(operation?.kind === "preview" ? previewActions[operation.operation] || stages.preview : stages[operation?.kind] || "In progress");
+    } else if (context.allowed && context.loading) { phase = t("Opening canvas…"); icon = "running"; }
+    else if (context.allowed && !hasVisual) phase = t("No canvas open");
+    else if (context.allowed && context.mode !== "preview") { phase = t(saveStates[context.saveStatus] || ""); icon = context.saveStatus === "saving" ? "running" : context.saveStatus === "saved" ? "completed" : "idle"; }
+    else if (!context.allowed && account.status === "error") { phase = t("Statistics unavailable"); icon = "blocked"; }
+    else if (!context.allowed && account.status === "loading") { phase = t("Loading…"); icon = "running"; }
+    const step = !issue && task?.stageIndex && task?.stageCount ? t("Step {current}/{total}", {current:task.stageIndex,total:task.stageCount}) : "";
+    const error = task?.error || operation?.error || (saveIssue ? t("Your changes are not saved.") : issue ? t("Statistics unavailable") : "");
+    const details = [phase, task?.title || operation?.subject, error, step, queued ? t("{count} queued",{count:queued}) : "", running > 1 ? t("{count} running",{count:running}) : "", context.saveStatus === "pending" ? t("Unsaved") : ""].filter(Boolean).join(" · ");
+    $("phase").hidden = !phase; $("phase").dataset.status = icon;
+    text("phase-text",phase); $("phase-text").title = details;
+    text("stage-count",step); $("stage-count").hidden = !step;
+    $("phase-icon").hidden = !!issue;
     if ($("phase-icon").dataset.icon !== icon) { $("phase-icon").dataset.icon = icon; $("phase-icon").innerHTML = icons[icon] || icons.idle; }
-    $("account-detail").hidden = context.allowed || hasActivity || !account.user?.email;
-    $("account-email").textContent = $("account-email").title = account.user?.email || "";
-    $("account-location").hidden = !accountIdle || issue || !account.user;
-    $("account-location").textContent = $("account-location").title = (account.status === "error" ? account.user?.email : location) || (account.status === "ready" && account.counts?.projects === 0 ? t("No projects yet") : "");
-    $("account-sign-in").hidden = !signIn;
-    $("account-sign-in").textContent = t("Sign in");
-    $("show-main").hidden = signIn || !(issue || context.allowed && !context.loading && !context.viewName);
-    $("show-main").textContent = t("Show main window");
-    document.querySelector(".info-actions").hidden = $("account-sign-in").hidden && $("show-main").hidden;
-    $("sign-in-description").hidden = !accountIdle || !signIn;
-    $("sign-in-description").textContent = t("Access your projects and workspaces");
-    $("show-main").title = t("Show main window");
-    const error = task?.error || operation?.error || "";
-    $("issue").hidden = !heroIssue;
-    const issueText = signIn ? t("Sign in to continue.") : task?.error || (saveIssue ? t("Your changes are not saved.") : operation?.code === "CONTEXT_MISMATCH" ? t("The editor context has changed.") : t("The operation could not be completed."));
-    if ($("issue-text").textContent !== issueText) $("issue-text").textContent = issueText;
-    $("issue").title = error;
-    $("phase").title = error || phase;
-    const preview = context.previewContext;
-    const dimensions = context.mode === "preview" && preview?.width > 0 && preview?.height > 0;
-    $("view-metric").hidden = hasActivity || issue || !context.allowed || !dimensions;
-    $("view-metric").textContent = dimensions ? `${Math.round(preview.width)} × ${Math.round(preview.height)}` : "";
-    $("view-metric").title = t("Viewport");
-    $("activity-meta").hidden = !hasActivity || issue;
-    const metadata = [
-      ["stage-count", task?.stageIndex && task?.stageCount ? t("Step {current} of {total}", {current:task.stageIndex,total:task.stageCount}) : ""],
-      ["queued-count", queued ? t("{count} queued", {count:queued}) : ""],
-      ["running-count", running > 1 ? t("{count} running", {count:running}) : ""],
-      ["unsaved", hasActivity && context.allowed && context.saveStatus === "pending" ? t("Unsaved") : ""],
-    ];
-    const visibleMetadata = metadata.filter(([,text]) => text).slice(0,2).map(([id]) => id);
-    for (const [id,text] of metadata) { $(id).textContent = text; $(id).hidden = !visibleMetadata.includes(id); }
-    $("activity-meta").title = metadata.map(([,text]) => text).filter(Boolean).join(" · ");
-    $("activity-meta").hidden ||= !visibleMetadata.length;
-    const ready = account.status === "ready";
-    $("account-overview").hidden = !accountIdle || signIn || account.status === "error" || identityLoading;
-    document.querySelector(".body").dataset.view = context.allowed ? "canvas" : signIn ? "signed-out" : "account";
-    $("account-overview").setAttribute("aria-label", t("Accessible resources"));
-    $("account-overview").setAttribute("aria-busy", String(account.status === "loading"));
-    $("account-statistics").hidden = !ready;
-    $("account-stats-loading").hidden = !accountIdle || account.status !== "loading" || !account.user;
-    document.querySelector(".info-footer").hidden = $("account-location").hidden && $("account-overview").hidden;
-    for (const [id,key,label] of [["organization","organizations","Organizations"],["workspace","workspaces","Workspaces"],["project","projects","Projects"]]) {
-      $(`${id}-count`).textContent = ready ? account.counts[key] : "";
-      $(`${key}-label`).textContent = t(label);
-    }
-    let compactTitle = title, compactPhase = phase;
-    if (!hasActivity && !context.allowed) {
-      compactTitle = account.user?.name || t(signIn ? "Sign in" : "Account overview");
-      compactPhase = ready ? t("{count} projects", {count:account.counts.projects}) : signIn ? "" : t(account.status === "error" ? "Statistics unavailable" : "Loading…");
-    } else if (!hasActivity && context.allowed) compactPhase = context.loading ? t("Loading…") : issue ? phase : context.mode === "preview" ? t("Preview") : phase;
-    $("project").textContent = compactTitle;
-    $("pill-context").textContent = compactPhase;
-    $("queue").hidden = !queued;
-    $("queue").textContent = queued ? `+${queued}` : "";
-    $("queue").title = t("{count} queued", {count:queued});
-    $("queue").setAttribute("aria-label", $("queue").title);
-    $("capsule-handle").title = [...new Set([compactTitle,compactPhase,context.projectName,location,error,queued ? $("queue").title : "",running > 1 ? t("{count} running",{count:running}) : ""].filter(Boolean))].join(" · ");
-    $("capsule-handle").setAttribute("aria-label", $("capsule-handle").title);
+    $("issue-detail").hidden = !issue;
+    $("issue-detail").setAttribute("aria-label",details);
+    text("issue-tooltip",details);
+    if (!issue) $("issue-tooltip").hidden = true;
+    text("app-version",state.update?.currentVersion ? `v${state.update.currentVersion}` : "");
+    $("app-version").hidden = !!phase || context.allowed || !state.update?.currentVersion;
+    let compactTitle = task?.title || operation?.subject || (context.allowed ? context.viewName || context.projectName : account.user?.name) || t(signIn ? "Sign in" : "Account overview");
+    let compactPhase = phase;
+    if (!hasActivity && !context.allowed) compactPhase = account.status === "ready" ? t("{count} projects",{count:account.counts.projects}) : signIn ? "" : t(account.status === "error" ? "Statistics unavailable" : "Loading…");
+    else if (!hasActivity && context.mode === "preview" && !issue) compactPhase = t("Preview");
+    text("project",compactTitle);text("pill-context",compactPhase);
+    $("queue").hidden = !queued; text("queue",queued ? `+${queued}` : "");
+    $("queue").title = t("{count} queued",{count:queued});$("queue").setAttribute("aria-label",$("queue").title);
+    $("capsule-handle").title = [compactTitle,compactPhase,details].filter(Boolean).join(" · ");$("capsule-handle").setAttribute("aria-label",$("capsule-handle").title);
     document.querySelector(".dot").hidden = !working && !issue;
   }
   function renderImage() {
@@ -321,10 +282,6 @@
     shell.dataset.allowed = String(value.context.allowed);
     const hasVisual = value.context.allowed && !!(value.context.loading || value.context.viewName || value.image);
     $("card").querySelector(".visual").hidden = !hasVisual;
-    const accountIdle = !value.context.allowed && !value.activity?.task && !value.activity?.operation;
-    expandedWidth = value.updateOpen || hasVisual || accountIdle && value.context.account?.user ? 440
-      : accountIdle && value.context.account?.status === "signed-out" ? 400 : 320;
-    shell.style.setProperty("--card-width", `${expandedWidth - 2}px`);
     open(value.expanded === true);
     renderImage(); renderInfo(); renderFeedback(); renderUpdate(); motion();
   }
@@ -338,10 +295,17 @@
   $("update-install").onclick = () => { $("update-install").disabled = true; void send("update-install"); };
   $("update-later").onclick = $("update-dismiss").onclick = () => void send("update-close");
   $("account-sign-in").onclick = () => void send("sign-in");
-  $("show-main").onclick = () => void send("show-main");
+
   $("update-retry").onclick = () => void send("update-check");
+  const detail = $("issue-detail"), tooltip = $("issue-tooltip");
+  detail.addEventListener("mouseenter", () => { tooltip.hidden = false; });
+  detail.addEventListener("mouseleave", () => { tooltip.hidden = true; });
+  detail.addEventListener("focus", () => { tooltip.hidden = false; });
+  detail.addEventListener("blur", () => { tooltip.hidden = true; });
+  detail.onclick = () => { tooltip.hidden = !tooltip.hidden; };
   shell.addEventListener("contextmenu", (event) => { event.preventDefault(); void send("menu"); });
   shell.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") tooltip.hidden = true;
     if (event.key === "Escape" && state?.updateOpen) { event.preventDefault(); void send("update-close"); }
     if (event.key === "ContextMenu" || event.shiftKey && event.key === "F10") { event.preventDefault(); void send("menu"); }
   });

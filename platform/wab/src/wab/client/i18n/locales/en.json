@@ -5613,5 +5613,11 @@
   "Waiting…": "Waiting…",
   "Sign in to continue designing": "Sign in to continue designing",
   "Access your projects and workspaces": "Access your projects and workspaces",
-  "Opening canvas…": "Opening canvas…"
+  "Opening canvas…": "Opening canvas…",
+  "Custom canvases": "Custom canvases",
+  "Image assets": "Image assets",
+  "Workspace projects": "Workspace projects",
+  "Users with access": "Users with access",
+  "No workspace selected": "No workspace selected",
+  "Step {current}/{total}": "Step {current}/{total}"
 }

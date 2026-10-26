@@ -41,7 +41,7 @@ function createIsland({ getWindow, controller, i18n, appearance, config, signIn,
     fs.renameSync(preference + ".tmp", preference);
   }
   function snapshot() {
-    return { mode, expanded, context: { ...context, ...(!context.allowed ? { account: account.snapshot() } : {}) }, image, stale, update: updates?.state, updateOpen,
+    return { mode, expanded, context: { ...context, account: account.snapshot() }, image, stale, update: updates?.state, updateOpen,
       updateWaiting: updates?.state.phase === "installing" && controller.activity.operations.size > 0,
       appearance: appearance.snapshot(), localization: i18n.snapshot(),
       activity: controller.activity.snapshot(context.projectId, context.sessionId) };
@@ -93,10 +93,8 @@ function createIsland({ getWindow, controller, i18n, appearance, config, signIn,
       saveStatus: !loading ? editor.saveStatus : null };
     context.orgId = pathname.match(/^\/orgs\/([^/]+)/)?.[1] || null;
     context.workspaceId = pathname.match(/^\/workspaces\/([^/]+)/)?.[1] || null;
-    if (!allowed) {
-      if (!state.url || new URL(state.url).origin !== config.studioOrigin || actual.surface === "login") account.clear("signed-out");
-      else void account.refresh();
-    }
+    if (!state.url || new URL(state.url).origin !== config.studioOrigin || actual.surface === "login") account.clear("signed-out");
+    else void account.refresh(context.workspaceId);
   }
   async function capture() {
     const win = getWindow();

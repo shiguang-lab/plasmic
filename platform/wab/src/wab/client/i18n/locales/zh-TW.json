@@ -5613,5 +5613,11 @@
   "Waiting…": "等待中…",
   "Sign in to continue designing": "登入後繼續設計",
   "Access your projects and workspaces": "存取你的專案與工作區",
-  "Opening canvas…": "正在開啟畫布…"
+  "Opening canvas…": "正在開啟畫布…",
+  "Custom canvases": "自訂畫布",
+  "Image assets": "圖片資源",
+  "Workspace projects": "工作區專案",
+  "Users with access": "有權限使用者",
+  "No workspace selected": "未選擇工作區",
+  "Step {current}/{total}": "第 {current}/{total} 步"
 }

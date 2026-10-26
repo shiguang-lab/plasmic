@@ -41,7 +41,7 @@ async function until(check, label, timeout = 8000) {
 const editorScript = `
   window.fixture = { mode:'edit', name:'审批列表', counter:0, saveStatus:'saved', calls:[], page:'page', path:'/approvals' };
   const result = output => ({success:true,output:JSON.stringify(output)});
-  const context = () => ({ projectId:'p', projectName:'审批系统', projectSummary:{pages:2,components:4},saveStatus:fixture.saveStatus,canvasName:'审批组合画布', sessionId:'session', canEdit:true,
+  const context = () => ({ projectId:'p', projectName:'审批系统', projectSummary:{pages:2,components:4,artboards:2,canvases:1,images:3,libraries:0},saveStatus:fixture.saveStatus,canvasName:'审批组合画布', sessionId:'session', canEdit:true,
     mode:fixture.mode, previewKind:fixture.mode==='preview'?'in-app':null, changeCounter:fixture.counter,
     componentUuid:'page', componentName:fixture.name, frameUuid:'frame', editorView:{arenaId:'arena',scale:.65},
     previewContext:fixture.mode==='preview'?{componentUuid:fixture.page,componentName:'审批预览',path:fixture.path,width:360,height:560}:null });
@@ -101,12 +101,13 @@ app.whenReady().then(async () => {
   } });
   controller = new DesktopController(() => main, { studioOrigin: origin });
   const accountData = { user:{id:"account-a",firstName:"演示账号",lastName:"",email:"demo@example.test"},
-    teams:[{id:"team",name:"业务组织"}],workspaces:[{id:"w",teamId:"team",name:"采购工作区"}],projects:[{id:"p"},{id:"p2"}] };
+    teams:[{id:"team",name:"业务组织"}],workspaces:[{id:"w",team:{id:"team"},name:"采购工作区"}],projects:[{id:"p"},{id:"p2"}] };
   const requestStudio = controller.requestStudio.bind(controller);
   controller.requestStudio = async (url, input, signal) => {
     if (url === "/api/v1/auth/self") return {user:accountData.user};
     if (url === "/api/v1/app-ctx") return {teams:accountData.teams,workspaces:accountData.workspaces};
     if (url === '/api/v1/projects?query=%22all%22') return {projects:accountData.projects};
+    if (url === "/api/v1/workspaces/w") return {workspace:{team:{id:"team"}},perms:[{userId:accountData.user?.id,teamId:"team",accessLevel:"owner"}]};
     return requestStudio(url,input,signal);
   };
   presentation = createIsland({ getWindow: () => main, controller, config: { studioOrigin: origin }, i18n, appearance });
@@ -125,11 +126,11 @@ app.whenReady().then(async () => {
   assert.equal(initialState.operations, undefined, "metadata calls must not report themselves as business operations");
   await until(async () => await inspect("document.getElementById('shell').dataset.expanded==='true'"), "external metadata call expands card");
   await until(() => presentation.snapshot().image?.src, "external call starts mirroring");
-  await until(async () => await inspect("document.querySelector('.info').dataset.activity==='false' && document.getElementById('phase-text').textContent==='已保存'"), "idle project information");
-  assert.equal(await inspect("document.getElementById('page').textContent"), "审批系统");
-  assert.equal(await inspect("document.getElementById('mission').textContent"), "审批组合画布", "freeform views use the canvas name rather than the focused child page");
-  assert.ok(await inspect("document.getElementById('drag-handle').title.includes('2 页面 · 4 组件')"));
-  assert.equal(await inspect("document.getElementById('view-metric').textContent"), "");
+  await until(async () => await inspect("document.getElementById('phase-text').textContent==='已保存'"), "idle project information");
+  assert.equal(await inspect("document.getElementById('page').textContent"), "审批系统 · 审批组合画布");
+  assert.equal(await inspect("document.getElementById('page').textContent"), "审批系统 · 审批组合画布", "freeform views use the canvas name rather than the focused child page");
+  assert.ok(await inspect("[...document.querySelectorAll('#left-statistics b')].map(n=>n.textContent).join(',')==='2,4,2'"));
+  assert.equal(await inspect("document.getElementById('stage-count').textContent"), "");
   await delay(500);
   fs.writeFileSync(path.join(reportDir, "idle-info.png"), (await island.webContents.capturePage()).toPNG());
   await inspect("window.shapeChanges=[];new MutationObserver(records=>{for(const r of records)shapeChanges.push(document.getElementById('shell').dataset.expanded)}).observe(document.getElementById('shell'),{attributes:true,attributeFilter:['data-expanded']});true");
@@ -150,9 +151,9 @@ app.whenReady().then(async () => {
   };
   const read = call("execute", { name: "read", input: { collection: "components" } });
   await until(async () => await inspect(`document.getElementById('shell').dataset.expanded==='true' && document.getElementById('phase-text').textContent===${JSON.stringify(i18n.t("Reading"))}`), "real MCP read expands");
-  assert.equal(await inspect("document.getElementById('view-metric').hidden"), true, "actual MCP work replaces idle information");
-  assert.equal(await inspect("document.getElementById('mission').textContent"), "审批组合画布", "reads identify the actual canvas instead of repeating the action");
-  assert.equal(await inspect("document.getElementById('context').textContent"), "画布");
+  assert.equal(await inspect("!document.getElementById('left-statistics').hidden"), true, "actual MCP work replaces idle information");
+  assert.equal(await inspect("document.getElementById('page').textContent"), "审批系统 · 审批组合画布", "reads identify the actual canvas instead of repeating the action");
+  assert.equal(await inspect("document.getElementById('page').textContent"), "审批系统 · 审批组合画布");
   await until(() => presentation.snapshot().image?.src, "hidden compositor capture");
   await until(async () => await inspect("!document.getElementById('feedback').hidden && document.getElementById('feedback').dataset.kind==='read' && getComputedStyle(document.querySelector('.feedback-sweep')).animationName==='feedback-scan'"), "real read scans the mirrored view");
   await inspect("window.scanNode=document.querySelector('.feedback-sweep');window.scanTime=scanNode.getAnimations()[0].currentTime;true");
@@ -221,11 +222,11 @@ app.whenReady().then(async () => {
   await until(() => presentation.snapshot().context.loading, "bridge loading");
   assert.equal(presentation.snapshot().image, null, "loading clears old pixels");
   assert.equal(await inspect("document.getElementById('page-count')===null"), true, "loading cannot show stale project counts");
-  assert.equal(await inspect("document.getElementById('phase-text').textContent"),i18n.t("Preparing preview image…"),"loading does not claim a previous save state");
+  assert.equal(await inspect("document.getElementById('phase-text').textContent"),i18n.t("Opening canvas…"),"loading does not claim a previous save state");
   assert.equal(await inspect("document.getElementById('shell').dataset.expanded"), "true");
   assert.equal(await inspect("document.getElementById('view-loading').hidden"),false);
-  await until(async()=>await inspect("document.querySelector('.info').dataset.viewLoading==='true'"),"idle loading message occupies the remaining left content area");
-  assert.equal(await inspect("document.getElementById('view-metric').hidden && document.getElementById('mission').textContent==='正在打开画布…'"),true,"loading keeps identity in place and reserves loading feedback for the preview");
+  await until(async()=>await inspect("document.getElementById('left-statistics').getAttribute('aria-busy')==='true'"),"idle loading message occupies the remaining left content area");
+  assert.equal(await inspect("document.getElementById('phase-text').textContent==='正在打开画布…' && [...document.querySelectorAll('#left-statistics b')].every(n=>n.textContent==='—')"),true,"loading keeps identity in place and reserves loading feedback for the preview");
   fs.writeFileSync(path.join(reportDir, "loading.png"), (await island.webContents.capturePage()).toPNG());
   await delay(700);
   await main.webContents.executeJavaScript("window.PLASMIC_AI_TOOLS=fixtureTools;true");
@@ -240,15 +241,13 @@ app.whenReady().then(async () => {
 
   const task = { taskId: "approval-task", projectId: "p", sequence: 0, title: "调整审批表格", status: "running", stage: "调整操作列", stageIndex: 2, stageCount: 3 };
   await call("report_task", task);
-  await until(async () => await inspect("document.getElementById('mission').textContent==='调整审批表格' && document.getElementById('stage-count').textContent==='第 2/3 步'"), "task metadata");
+  await until(async () => await inspect("document.getElementById('phase-text').textContent==='调整操作列' && document.getElementById('stage-count').textContent==='第 2/3 步'"), "task metadata");
   for (const locale of ["en","zh-CN","zh-TW","ja","ko"]) {
     i18n.setLocale(locale);
     await until(async () => await inspect(`document.documentElement.lang===${JSON.stringify(locale)}`), `${locale} activity hierarchy`);
     assert.equal(await inspect(`(() => {
-      const info=document.querySelector('.info'),mission=document.getElementById('mission').getBoundingClientRect(),phase=document.getElementById('phase').getBoundingClientRect(),meta=document.getElementById('activity-meta').getBoundingClientRect(),visual=document.querySelector('.visual').getBoundingClientRect();
-      return info.scrollHeight<=info.clientHeight && phase.top-document.querySelector('.heading').getBoundingClientRect().bottom>=4
-        && phase.top-document.querySelector('.heading').getBoundingClientRect().bottom<=8 && meta.top>=phase.bottom && meta.bottom<=visual.bottom
-        && document.getElementById('view-metric').hidden && document.getElementById('progress')===null;
+      const phase=document.getElementById('phase').getBoundingClientRect(),visual=document.querySelector('.visual').getBoundingClientRect(),footer=document.querySelector('.info-footer').getBoundingClientRect();
+      return phase.top>=visual.bottom && phase.bottom<=footer.bottom+1 && document.getElementById('stage-count').textContent && document.getElementById('progress')===null;
     })()`), true, `${locale} task stages and queue metadata remain grouped without artificial percentage progress`);
   }
   i18n.setLocale("zh-CN");
@@ -257,7 +256,7 @@ app.whenReady().then(async () => {
   await delay(650);
   assert.equal(await inspect("document.getElementById('shell').dataset.expanded"), "true", "editor navigation retains the card");
   await call("report_task", { ...task, sequence: 1, status: "blocked", error: "组件库访问被拒绝" });
-  await until(async () => await inspect("document.getElementById('issue-text').textContent==='组件库访问被拒绝'"), "real reported blocker");
+  await until(async () => await inspect("document.getElementById('issue-tooltip').textContent.includes('组件库访问被拒绝')"), "real reported blocker");
   await delay(2400);
   assert.equal(await inspect("document.getElementById('shell').dataset.expanded"), "true");
   await call("report_task", { ...task, sequence: 2, status: "completed" });
@@ -267,20 +266,20 @@ app.whenReady().then(async () => {
   await write;
   await until(async () => await inspect("document.getElementById('phase-text').textContent==='更改已应用'"), "write completion is not saved");
   await until(() => presentation.snapshot().image?.src !== before.src, "hidden view updates after write");
-  assert.equal(await inspect("document.getElementById('view-metric').hidden"),true,"ordinary project statistics stay hidden during activity");
+  assert.equal(await inspect("!document.getElementById('left-statistics').hidden"),true,"project statistics remain visible during activity");
   const dark = await island.webContents.capturePage();
   fs.writeFileSync(path.join(reportDir, "edit.png"), dark.toPNG());
-  await until(async () => await inspect("document.querySelector('.info').dataset.activity==='false' && document.getElementById('phase-text').textContent==='未保存'"), "write completion returns to genuine unsaved status");
+  await until(async () => await inspect("document.getElementById('phase-text').textContent==='未保存'"), "write completion returns to genuine unsaved status");
   await call("execute",{name:"save",input:{}});
-  await until(async () => await inspect("document.getElementById('context').textContent==='画布' && document.getElementById('phase-text').textContent==='已保存' && document.getElementById('view-metric').hidden"), "save result appears once while the canvas context remains stable");
+  await until(async () => await inspect("document.getElementById('phase-text').textContent==='已保存' && !document.getElementById('left-statistics').hidden"), "save result appears once while the canvas context remains stable");
   await delay(300);
   fs.writeFileSync(path.join(reportDir,"save-result.png"),(await island.webContents.capturePage()).toPNG());
-  await until(async () => await inspect("document.querySelector('.info').dataset.activity==='false' && document.getElementById('phase-text').textContent==='已保存'"), "successful save updates idle information");
+  await until(async () => await inspect("document.getElementById('phase-text').textContent==='已保存'"), "successful save updates idle information");
   assert.equal(await inspect("document.getElementById('phase-text').scrollWidth <= document.getElementById('phase-text').clientWidth"), true, "Chinese saved status fits");
   await call("execute", { name: "changeElement", input: { elementUuid: "missing" } }, true);
-  await until(async () => await inspect("document.getElementById('issue').title.includes('Element missing')"), "actual editor error");
+  await until(async () => await inspect("document.getElementById('issue-tooltip').textContent.includes('Element missing')"), "actual editor error");
   assert.equal(await inspect("document.getElementById('feedback').hidden"), true, "failed calls clear visual feedback");
-  assert.equal(await inspect("document.getElementById('view-metric').hidden && document.getElementById('progress')===null"),true,"error details take priority over ordinary statistics and progress");
+  assert.equal(await inspect("!document.getElementById('left-statistics').hidden && document.getElementById('progress')===null"),true,"errors preserve statistics and do not invent percentage progress");
   passed.push("task stages, explicit plan, blocker persistence, actual write/result/error and continuously updating hidden mirror");
 
   await main.webContents.executeJavaScript("history.pushState({},'', '/projects/p/docs')");
@@ -290,14 +289,14 @@ app.whenReady().then(async () => {
   assert.equal(presentation.snapshot().image, null);
   await main.webContents.executeJavaScript("history.pushState({},'', '/workspaces/w')");
   await until(() => presentation.snapshot().context.surface === "dashboard" && presentation.snapshot().context.projectId === null, "workspace dashboard");
-  await until(async () => await inspect("document.getElementById('project-count').textContent==='2' && !document.getElementById('account-statistics').hidden"), "real account reads populate dashboard statistics");
-  assert.equal(await inspect("document.querySelector('.visual').hidden && document.getElementById('unavailable').hidden && document.getElementById('view-metric').hidden"),true,"dashboard has no canvas or project placeholder");
-  assert.equal(await inspect("document.getElementById('mission').textContent"),"演示账号");
-  assert.equal(await inspect("document.getElementById('account-location').textContent"),"业务组织 · 采购工作区");
-  assert.equal(await inspect("document.getElementById('account-email').textContent"),"demo@example.test");
+  await until(async () => await inspect("document.querySelector('#left-statistics .statistic:last-child b').textContent==='2' && !document.getElementById('left-statistics').hidden"), "real account reads populate dashboard statistics");
+  assert.equal(await inspect("document.querySelector('.visual').hidden && document.getElementById('unavailable').hidden && !document.getElementById('left-statistics').hidden"),true,"dashboard has no canvas or project placeholder");
+  assert.equal(await inspect("document.getElementById('user-name').textContent"),"演示账号");
+  assert.equal(await inspect("document.getElementById('page').textContent"),"业务组织 · 采购工作区");
+  assert.equal(await inspect("document.getElementById('account-email')"),null);
   assert.equal(await inspect(`(() => {
-    const mark=document.getElementById('account-presence'),name=document.getElementById('mission').getBoundingClientRect(),r=mark.getBoundingClientRect();
-    return !mark.hidden && mark.getAttribute('aria-label')==='已登录' && mark.parentElement.className==='identity' && r.top<name.top && !document.getElementById('account-status');
+    const name=document.getElementById('user-name'),r=name.getBoundingClientRect(),header=document.getElementById('drag-handle').getBoundingClientRect();
+    return name.textContent==='演示账号' && r.top>=header.top && r.bottom<=header.bottom && !document.getElementById('account-presence');
   })()`),true,"signed-in indicator stays in the trailing header position");
   fs.writeFileSync(path.join(reportDir,"account-idle.png"),(await island.webContents.capturePage()).toPNG());
   elapsed += 600_001;
@@ -323,36 +322,36 @@ app.whenReady().then(async () => {
   await until(async () => await inspect("!document.getElementById('queue').hidden && document.getElementById('queue').textContent==='+1'"), "queued work shows in capsule");
   assert.ok(await inspect("document.getElementById('capsule-handle').title.includes('新建审批项目')"), "capsule exposes the actual resource name");
   assert.equal(await inspect("document.getElementById('shell').dataset.expanded"), "true", "project creation expands a dashboard card too");
-  assert.equal(await inspect("document.querySelector('.visual').hidden && document.getElementById('account-overview').hidden"),true,"resource work focuses on the action without a canvas or account statistics");
-  assert.equal(await inspect("document.getElementById('queued-count').textContent"),i18n.t("{count} queued",{count:1}),"the expanded card also shows its queue");
+  assert.equal(await inspect("document.querySelector('.visual').hidden && !document.getElementById('left-statistics').hidden"),true,"resource work retains account statistics without a canvas");
+  assert.equal(await inspect("document.getElementById('queue').getAttribute('aria-label')"),i18n.t("{count} queued",{count:1}),"the expanded card also shows its queue");
   await delay(600);
   fs.writeFileSync(path.join(reportDir, "capsule-running.png"), (await island.webContents.capturePage()).toPNG());
   await delay(2400);
   releaseCreate(); await creating; await failing;
-  await until(async () => await inspect("document.getElementById('project-count').textContent==='3'"),"successful creation refreshes account totals");
-  await until(async () => await inspect("document.body.dataset.error==='true' && document.getElementById('pill-context').textContent==='操作失败'"), "capsule error");
+  await until(async () => await inspect("document.querySelector('#left-statistics .statistic:last-child b').textContent==='3'"),"successful creation refreshes account totals");
+  await until(async () => await inspect("document.body.dataset.tone==='error' && document.getElementById('pill-context').textContent==='操作失败'"), "capsule error");
   await delay(2400);
   assert.ok(await inspect("document.getElementById('capsule-handle').title.includes('创建权限被拒绝')"), "failed operations stay inspectable until the next meaningful call");
   fs.writeFileSync(path.join(reportDir, "capsule-error.png"), (await island.webContents.capturePage()).toPNG());
   const recovering = call("create_project", {name:"恢复创建"});
-  await until(async () => await inspect("document.body.dataset.error==='false' && document.body.dataset.working==='true'"), "recovery clears old failure");
+  await until(async () => await inspect("document.body.dataset.tone!=='error' && document.body.dataset.working==='true'"), "recovery clears old failure");
   releaseCreate(); await recovering;
   await until(async () => await inspect("document.getElementById('pill-context').textContent==='操作完成'"), "capsule result");
   fs.writeFileSync(path.join(reportDir, "capsule-result.png"), (await island.webContents.capturePage()).toPNG());
-  await until(async () => await inspect("document.getElementById('project').textContent==='演示账号' && document.getElementById('pill-context').textContent==='4 个项目' && document.getElementById('project-count').textContent==='4'"), "capsule result expires back to account identity and updated statistics");
+  await until(async () => await inspect("document.getElementById('project').textContent==='演示账号' && document.getElementById('pill-context').textContent==='4 个项目' && document.querySelector('#left-statistics .statistic:last-child b').textContent==='4'"), "capsule result expires back to account identity and updated statistics");
   controller.requestStudio = originalRequest;
   accountData.user = null;
   const cookie = {domain:"island.studio.test",path:"/",name:"session",httpOnly:true,value:"signed-out"};
   main.webContents.session.cookies.emit("changed",{},cookie,"explicit",false);
   assert.equal(presentation.snapshot().context.account.user,undefined,"auth changes synchronously clear the old account");
-  await until(async () => await inspect("document.getElementById('account-email').textContent==='' && document.getElementById('account-statistics').hidden"),"logout removes identity and totals");
+  await until(async () => await inspect("document.getElementById('user-name').textContent!=='演示账号' && document.getElementById('left-statistics').hidden"),"logout removes identity and totals");
   await until(async () => await inspect("!document.getElementById('account-sign-in').hidden"),"signed-out account offers sign-in");
   for (const locale of ["en","zh-CN","zh-TW","ja","ko"]) {
     i18n.setLocale(locale);
     await until(async () => await inspect(`document.getElementById('account-sign-in').textContent===${JSON.stringify(i18n.t("Sign in"))}`), `${locale} sign-in action localizes`);
     assert.equal(await inspect(`(() => {
-      const button=document.getElementById('account-sign-in'),b=button.getBoundingClientRect(),m=document.querySelector('.heading').getBoundingClientRect(),info=document.querySelector('.info').getBoundingClientRect();
-      return b.width>0 && button.scrollWidth<=button.clientWidth && b.left>=m.right+8 && b.top>=info.top && b.bottom<=info.bottom && b.right<=info.right;
+      const button=document.getElementById('account-sign-in'),b=button.getBoundingClientRect(),right=document.querySelector('.right').getBoundingClientRect();
+      return b.width>0 && button.scrollWidth<=button.clientWidth && b.left>=right.left && b.top>=right.top && b.bottom<=right.bottom && b.right<=right.right;
     })()`),true,`${locale} sign-in button fits without overlap`);
   }
   i18n.setLocale("zh-CN");
@@ -367,27 +366,25 @@ app.whenReady().then(async () => {
     return accountRequest(url,...args);
   };
   main.webContents.session.cookies.emit("changed",{},{...cookie,value:"account-b"},"explicit",false);
-  await until(async()=>await inspect("!document.getElementById('account-loading').hidden && document.getElementById('account-stats-loading').hidden && document.getElementById('mission').hidden && !document.getElementById('account-empty') && document.getElementById('account-presence').hidden"),"both account columns show skeletons without repeated loading copy or old identity");
+  await until(async()=>await inspect("document.getElementById('left-statistics').getAttribute('aria-busy')==='true' && document.getElementById('user-name').textContent!=='演示账号'"),"both account columns show skeletons without repeated loading copy or old identity");
   await delay(350);
   fs.writeFileSync(path.join(reportDir,"account-loading.png"),(await island.webContents.capturePage()).toPNG());
   releaseIdentity();
-  await until(async()=>await inspect("document.getElementById('mission').textContent==='另一账号' && !document.getElementById('account-presence').hidden && document.getElementById('account-loading').hidden && !document.getElementById('account-stats-loading').hidden"),"verified identity appears while statistics are still loading");
+  await until(async()=>await inspect("document.getElementById('user-name').textContent==='另一账号' && document.getElementById('left-statistics').getAttribute('aria-busy')==='true'"),"verified identity appears while statistics are still loading");
   releaseStatistics();
-  await until(async () => await inspect("document.getElementById('account-email').textContent==='other@example.test' && document.getElementById('project-count').textContent==='0'"),"replacement account has its own identity and totals");
+  await until(async () => await inspect("document.getElementById('user-name').textContent==='另一账号' && document.querySelector('#left-statistics .statistic:last-child b').textContent==='0'"),"replacement account has its own identity and totals");
   assert.equal(await inspect("document.getElementById('account-sign-in').hidden"),true,"verified login replaces the sign-in button with account information");
   controller.requestStudio=accountRequest;
   for (const locale of ["en","zh-CN","zh-TW","ja","ko"]) {
     i18n.setLocale(locale);
     await until(async () => await inspect(`document.documentElement.lang===${JSON.stringify(locale)}`),`${locale} account labels render`);
-    assert.equal(await inspect("document.getElementById('account-overview').scrollWidth <= document.getElementById('account-overview').clientWidth"),true,`${locale} account card fits`);
+    assert.equal(await inspect("document.getElementById('left-statistics').scrollWidth <= document.getElementById('left-statistics').clientWidth"),true,`${locale} account card fits`);
     assert.equal(await inspect(`(() => {
-      const title=document.getElementById('drag-handle').title,email=document.getElementById('account-email');
-      return title.includes(${JSON.stringify(i18n.t("Theme"))}) && title.includes(${JSON.stringify(i18n.t("Language"))})
-        && email.scrollWidth<=email.clientWidth && !document.getElementById('account-preferences');
+      return !!document.getElementById('theme-label').textContent && !!document.getElementById('language-label').textContent && !document.getElementById('account-email');
     })()`),true,`${locale} account identity fits and preferences are available in its tooltip`);
   }
   appearance.set("light");
-  await until(async()=>await inspect(`document.getElementById('drag-handle').title.includes(${JSON.stringify(i18n.t("Light"))})`),"account tooltip follows the real appearance snapshot");
+  await until(async()=>await inspect(`document.getElementById('theme-label').textContent.includes(${JSON.stringify(i18n.t("Light"))})`),"account tooltip follows the real appearance snapshot");
   appearance.set("dark");
   i18n.setLocale("zh-CN");
   passed.push("account overview uses API totals without a canvas; creation refreshes totals; logout clears old identities; verified replacement restores account data; localized labels and sign-in action fit; MCP subject, queue, persistent error and recovery remain visible");
@@ -418,7 +415,7 @@ app.whenReady().then(async () => {
   await until(() => presentation.snapshot().image?.identity === presentation.snapshot().context.identity, "preview current frame");
   assert.equal(presentation.snapshot().context.pageName, "/approvals", "preview uses runtime route, not retained editor component name");
   appearance.set("light"); i18n.setLocale("en");
-  await until(async () => await inspect("document.documentElement.dataset.uiAppearance==='light' && document.getElementById('context').textContent==='Preview'"), "live theme and language");
+  await until(async () => await inspect("document.documentElement.dataset.uiAppearance==='light' && document.documentElement.lang==='en'"), "live theme and language");
   await delay(500);
   fs.writeFileSync(path.join(reportDir, "preview.png"), (await island.webContents.capturePage()).toPNG());
   await runtime.executeJavaScript("document.body.append(Object.assign(document.createElement('div'),{textContent:'Runtime failed'}));document.body.lastElementChild.setAttribute('data-plasmic-preview-error','true')");
@@ -429,11 +426,11 @@ app.whenReady().then(async () => {
   await until(() => !presentation.snapshot().stale, "capture recovery");
   await delay(2400);
   assert.equal(await inspect("document.getElementById('shell').dataset.expanded"), "true", "idle Preview remains expanded");
-  assert.equal(await inspect("document.getElementById('view-metric').hidden"), false);
+  assert.equal(await inspect("!document.getElementById('left-statistics').hidden"), true);
   assert.equal(await inspect("document.getElementById('components-label')===null"),true,"project statistics do not occupy the Preview information group");
-  assert.equal(await inspect("document.getElementById('mission').textContent"), "审批预览", "Preview page name comes from the runtime, not retained editor selection");
-  assert.equal(await inspect("document.getElementById('view-metric').textContent"), "360 × 560");
-  assert.equal(await inspect("document.getElementById('view-metric').getBoundingClientRect().right <= document.querySelector('.info').getBoundingClientRect().right"), true);
+  assert.equal(await inspect("document.getElementById('page').textContent"), "审批系统 · 审批预览", "Preview page name comes from the runtime, not retained editor selection");
+  assert.equal(await inspect("[...document.querySelectorAll('#left-statistics b')].map(n=>n.textContent).join(' × ')"), "360 × 560");
+  assert.equal(await inspect("document.getElementById('left-statistics').getBoundingClientRect().right <= document.querySelector('.info').getBoundingClientRect().right"), true);
   fs.writeFileSync(path.join(reportDir, "idle-preview-info.png"), (await island.webContents.capturePage()).toPNG());
   assert.deepEqual(await inspect("shapeChanges"), [], "edit-to-Preview navigation and completed calls cannot flash a capsule");
   passed.push("native Preview real DOM snapshot/click, actual route, current view capture, shared theme/language, stale labeling and recovery");
