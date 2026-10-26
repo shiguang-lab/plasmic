@@ -40,6 +40,11 @@ class RuleReviewTests(unittest.TestCase):
         self.screenshot = self.root / 'selector.webp'
         self.screenshot.write_bytes(b'webp')
 
+    def test_missing_windows_absolute_evidence_is_not_observed_prose(self):
+        from verify_review import evidence_problem
+        self.assertIn('do not exist', evidence_problem(r'C:\plasmic-missing-review-evidence\capture.webp'))
+        self.assertIn('do not exist', evidence_problem('//missing-review-server/share/capture.webp'))
+
     def ledger(self):
         return [json.loads(line) for line in self.ledger_path.read_text().splitlines() if line.strip()]
 

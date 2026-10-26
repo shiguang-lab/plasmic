@@ -517,7 +517,8 @@ def write_inventories(plan, plan_path, directory, reads_path):
         with path.open('x', encoding='utf-8') as output:
             output.write(slot_intent(page) + '\n')
         intents.append({'path': page.get('path'), 'intent': f'intents/{path.name}'})
-    suite = {'structure': {'inventory': os.path.relpath(Path(plan_path).resolve(), directory), 'reads': os.path.relpath(reads_path, directory)},
+    suite = {'structure': {'inventory': Path(os.path.relpath(Path(plan_path).resolve(), directory)).as_posix(),
+                           'reads': Path(os.path.relpath(reads_path, directory)).as_posix()},
              'page_layout': {},
              'forms': {'inventory': 'forms-inventory.json'},
              'descriptions': {'inventory': 'description-inventory.json'},

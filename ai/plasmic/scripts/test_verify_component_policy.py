@@ -25,6 +25,18 @@ class PolicyTests(unittest.TestCase):
     def page(self, markup):
         return {'type': 'page', 'pageMeta': {'path': '/groups'}, 'baseVariantTplTree': markup}
 
+    def test_crlf_sources_match_text_quotes_without_weakening_byte_hashes(self):
+        from verify_component_policy import source_text
+        data = '字段\r\n[名称]\r\n'.encode('utf-8')
+        self.path.write_bytes(data)
+        evidence = {'path': str(self.path), 'sha256': hashlib.sha256(data).hexdigest(), 'quote': '字段\n[名称]\n'}
+        self.assertEqual(source_text(evidence), '字段\n[名称]\n')
+        with self.assertRaisesRegex(ValueError, 'quote is not present'):
+            source_text({**evidence, 'quote': '[不存在的字段]'})
+        self.path.write_bytes(data.replace(b'\r\n', b'\n'))
+        with self.assertRaisesRegex(ValueError, 'Source changed'):
+            source_text(evidence)
+
     def test_native_defaults_and_explicit_equal_values_pass(self):
         for key, values in BASELINES.items():
             spec = {'nodeName': 'Widget', 'component': key}

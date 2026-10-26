@@ -32,7 +32,7 @@ it cannot prove the reviewer judged correctly.
 import argparse
 import hashlib
 import json
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 
 import rules_manifest
 from verify_selection import coverage_errors, load_ledger, pending_pointers, project_reads, read_coverage_errors, required_reads
@@ -56,7 +56,7 @@ def evidence_problem(evidence):
     items = [evidence] if isinstance(evidence, str) else evidence
     if not isinstance(items, list) or not items or any(not isinstance(i, str) or not i.strip() for i in items):
         return "A pass verdict needs evidence: screenshot/layout/report paths or the observed model values"
-    missing = [i for i in items if i.startswith("/") and not Path(i).exists()]
+    missing = [i for i in items if (i.startswith("/") or PureWindowsPath(i).is_absolute()) and not Path(i).exists()]
     if missing:
         return f"Evidence files do not exist: {missing}"
     return None

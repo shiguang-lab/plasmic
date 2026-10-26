@@ -113,8 +113,11 @@ def source_text(evidence):
     data = path.read_bytes()
     if hashlib.sha256(data).hexdigest() != evidence['sha256']:
         raise ValueError('Source changed after planning; reread and review it')
-    text = data.decode('utf-8')
-    if evidence['quote'] not in text:
+    # Match the universal-newline text returned by Path.read_text(), while the
+    # digest above still binds the original bytes, including their line endings.
+    text = data.decode('utf-8').replace('\r\n', '\n').replace('\r', '\n')
+    quote = evidence['quote'].replace('\r\n', '\n').replace('\r', '\n')
+    if quote not in text:
         raise ValueError('Source quote is not present verbatim in the declared file')
     return text
 

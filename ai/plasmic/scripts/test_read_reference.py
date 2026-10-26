@@ -24,7 +24,7 @@ class ReferenceTests(unittest.TestCase):
             finally:
                 os.close(sender)
             self.assertNotEqual(result.returncode, 0)
-            self.assertIn(b'BrokenPipeError', result.stderr)
+            self.assertRegex(result.stderr, rb'BrokenPipeError|OSError: \[Errno 22\]')
             self.assertEqual(ledger.read_text(encoding='utf-8'), '')
 
     def test_command_emits_utf8_and_canonical_paths_with_non_utf8_defaults(self):
