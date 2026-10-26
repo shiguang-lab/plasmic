@@ -37,6 +37,33 @@ test("call lifetime holds cards through queues and concurrency, then expires aft
   assert.equal(activity.keepExpanded(), false);
 });
 
+test("pointer dismissal survives existing calls and results until a new call arrives", () => {
+  const activity = new IslandActivity();
+  activity.enqueue("running", "execute", { name: "read" });
+  activity.start("running");
+  activity.enqueue("queued", "execute", { name: "read" });
+  activity.dismissExpansion();
+  assert.equal(activity.keepExpanded(), false, "active and queued calls yield to pointer dismissal");
+  activity.bind("running", { projectId: "p", sessionId: "s" });
+  activity.reportTask({ taskId: "t", projectId: "p", sequence: 0, title: "Read", status: "running" }, "s");
+  activity.finish("running");
+  activity.start("queued");
+  assert.equal(activity.keepExpanded(), false, "starting an already queued call does not reopen the card");
+  activity.finish("queued", new Error("read failed"));
+  assert.equal(activity.keepExpanded(), false, "completion and failure cannot undo dismissal");
+  assert.equal(activity.snapshot("p", "s").operation.error, "read failed", "dismissal preserves operation feedback");
+  activity.enqueue("metadata", "get_app_state", {});
+  assert.equal(activity.keepExpanded(), true, "a new quiet call also reopens the card");
+  activity.dismissExpansion();
+  activity.enqueue("concurrent", "execute", { name: "read" });
+  assert.equal(activity.keepExpanded(), true, "a new concurrent call reopens the card");
+  activity.finish("metadata");
+  activity.finish("concurrent");
+  assert.equal(activity.keepExpanded(), true, "the new call retains its normal idle lease");
+  activity.dismissExpansion();
+  assert.equal(activity.keepExpanded(), false, "pointer dismissal also overrides an unexpired idle lease");
+});
+
 test("island reports real read/write/Preview activity and ignores metadata polling", () => {
   for (const name of ["identify", "getEditorContext", "endCanvasInspection"]) assert.equal(operationKind("execute", { name }), null);
   assert.equal(operationKind("get_app_state"), null);
@@ -123,4 +150,14 @@ test("resource operations remain visible outside the editor, retain failures and
   activity.finish("next");
   assert.equal(activity.snapshot(null,null).operation.phase,"completed");
   assert.equal(activity.snapshot(null,null,Date.now()+3000).operation,null);
+});
+
+test('parallel calls keep the first running subject stable and count running work separately from the queue',()=>{
+  const activity=new IslandActivity();
+  for(const id of ['first','second','queued']){activity.enqueue(id,'execute',{name:'read'});activity.bind(id,{projectId:'p',sessionId:'s'});}
+  activity.start('first');activity.start('second');
+  assert.equal(activity.snapshot('p','s').operation.id,'first');
+  assert.equal(activity.snapshot('p','s').running,2);assert.equal(activity.snapshot('p','s').queued,1);
+  assert.equal(activity.snapshot('other','s').running,0);
+  activity.finish('first');assert.equal(activity.snapshot('p','s').operation.id,'second');
 });

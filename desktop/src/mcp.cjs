@@ -9,7 +9,7 @@ const {
 const {
   AjvJsonSchemaValidator,
 } = require("@modelcontextprotocol/sdk/validation/ajv");
-const { requestRpc } = require("./local-rpc.cjs");
+const { requestRpc, connectRpcSession } = require("./local-rpc.cjs");
 const { McpResults } = require("./mcp-results.cjs");
 const { browserOutput } = require("./browser-output.cjs");
 const { prototypeTools } = require("./prototype-mcp.cjs");
@@ -552,15 +552,22 @@ const validators = new Map(
   ]),
 );
 async function serveMcp(profile) {
+  const session = await connectRpcSession(profile);
   const results = new McpResults();
   const server = new Server(
     { name: "plasmic-desktop", version: require("../package.json").version },
     { capabilities: { tools: {} }, instructions: "Before design inspection, creation, revision or codegen, call read_skill with the current Plasmic skillPath when known and follow its resolver and mustRead files unless already resolved and read for the current task and mode. This applies even when the client has no installed Plasmic skill. Call top-level tools such as list_orgs, list_projects, create_project, open_design and preview directly. Only native editor operations such as read and save belong in execute {name,input}; discover them with get_app_state view:tools. Management and open_design work without an existing editor. Failed tool calls return isError:true and JSON {msg,detail}. Show msg to the user; inspect detail for the original message, stack, error code, execution status, context and recovery steps. If detail is a ResultReference, use read_result before recovery or retry. Do not replay mutations unless detail.operationExecuted is false or readback confirms the outcome." },
   );
-  server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools }));
+  const requireDesktop = () => {
+    if (session.destroyed) throw new Error("Start Plasmic before connecting MCP");
+  };
+  server.onclose = () => session.destroy();
+  session.once("close", () => { void server.close(); });
+  server.setRequestHandler(ListToolsRequestSchema, async () => { requireDesktop(); return { tools }; });
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const started = Date.now();
     try {
+      requireDesktop();
       assertToolRouting(request.params.name, request.params.arguments || {});
       const validator = validators.get(request.params.name);
       if (!validator) {
@@ -620,7 +627,14 @@ async function serveMcp(profile) {
       return transportResult(request, results.error(msg, detail), started);
     }
   });
-  await server.connect(new StdioServerTransport());
+  try {
+    await server.connect(new StdioServerTransport());
+    requireDesktop();
+  } catch (error) {
+    session.destroy();
+    await server.close();
+    throw error;
+  }
   return server;
 }
 module.exports = { serveMcp, EDITOR_METHODS, assertToolRouting };

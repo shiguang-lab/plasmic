@@ -156,6 +156,12 @@ button:disabled { opacity: .55; cursor: default; }
         "Done",
         "close",
       ],
+      error: [
+        "Update could not be completed",
+        "Try again when your connection and design are ready.",
+        "Retry",
+        "check",
+      ],
       disabled: [
         "Updates unavailable",
         "Open the installed Plasmic app to check for updates.",
@@ -208,7 +214,7 @@ button:disabled { opacity: .55; cursor: default; }
         render(result);
       }
     } catch {
-      render({ phase: "current", currentVersion: state.currentVersion });
+      render({ phase: "error", currentVersion: state.currentVersion });
     }
   }
   byId("primary").onclick = () => run(action);

@@ -215,7 +215,7 @@ app
       version: "0.0.6",
     });
     failedUpdates.fail(new Error("NAS update check failed (HTTP 503)"));
-    assert.equal(failedUpdates.state.phase, "current");
+    assert.equal(failedUpdates.state.phase, "error");
     await evaluate(
       `window.updateStatus(${JSON.stringify(failedUpdates.state)})`,
     );
@@ -234,7 +234,7 @@ app
         `window.desktopUiI18n.setSnapshot(${JSON.stringify({ locale: language, messages })})`,
       );
       const expected =
-        messages["You're running the latest version of Plasmic."];
+        messages["Try again when your connection and design are ready."];
       assert.equal(
         await evaluate(
           'document.getElementById("plasmic-desktop-update-dialog").shadowRoot.getElementById("description").textContent',

@@ -197,7 +197,7 @@
       sendStatus(await window.desktopUpdates.command(action));
     } catch {
       sendStatus({
-        phase: "current",
+        phase: "error",
         currentVersion: latestStatus?.currentVersion,
       });
     }

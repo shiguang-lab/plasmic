@@ -695,6 +695,8 @@ export const CanvasFrame = observer(function CanvasFrame({
           </div>
         )}
         <iframe
+          data-plasmic-frame-uuid={arenaFrame.uuid}
+          data-plasmic-component-uuid={arenaFrame.container.component.uuid}
           className={cx(
             "canvas-editor__viewport",
             loadState !== "loaded" && "no-pointer-events",

@@ -141,18 +141,18 @@ test("a rejected update command clears stale release details without displaying 
   ui.open();
   ui.element("primary").click();
   await flush();
-  assert.equal(ui.element("status").textContent, "You're up to date");
+  assert.equal(ui.element("status").textContent, "Update could not be completed");
   assert.equal(
     ui.element("description").textContent,
-    "You're running the latest version of Plasmic.",
+    "Try again when your connection and design are ready.",
   );
-  assert.equal(ui.element("primary").textContent, "Done");
+  assert.equal(ui.element("primary").textContent, "Retry");
   assert.equal(ui.element("current-version").textContent, "0.0.23");
   assert.equal(ui.element("latest").hidden, true);
   assert.equal(ui.element("notes-section").hidden, true);
   assert.doesNotMatch(
     ui.dialog.textContent,
-    /ERR_CONNECTION_REFUSED|Retry|couldn't complete/,
+    /ERR_CONNECTION_REFUSED/,
   );
 });
 

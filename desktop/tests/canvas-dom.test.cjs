@@ -16,6 +16,7 @@ function documentContext(dom) {
     HTMLInputElement: dom.window.HTMLInputElement,
     HTMLTextAreaElement: dom.window.HTMLTextAreaElement,
     HTMLOptionElement: dom.window.HTMLOptionElement,
+    HTMLCanvasElement: dom.window.HTMLCanvasElement,
     requestAnimationFrame: (callback) => callback(),
     setTimeout,
     URLSearchParams,

@@ -43,7 +43,7 @@ test('island update badges never expand on background progress; an explicit pane
  ui.send({update:{phase:'installing',currentVersion:'0.2.8',version:'0.2.9'},updateWaiting:true});
  assert.equal(ui.el('update-dismiss').disabled,true);assert.equal(ui.el('update-later').disabled,true);
  assert.equal(ui.el('update-install').disabled,true);
- assert.equal(ui.el('update-description').textContent,'Waiting for MCP operations to finish…');
+ assert.equal(ui.el('update-description').textContent,'Your current operations will finish before Plasmic restarts.');
 });
 test('update indicators preserve animation nodes and localize the panel without raw release-note markup',async(t)=>{
  const ui=await fixture(t);
@@ -61,156 +61,167 @@ test('update indicators preserve animation nodes and localize the panel without 
  assert.equal(ui.el('capsule-update').hidden,true);assert.equal(ui.el('update-install').hidden,true);
 });
 
-test('non-canvas cards show account totals through MCP activity, then clear all account and canvas pixels on sign-out',async(t)=>{
+
+const canvas={allowed:true,mode:'edit',projectName:'Project',viewName:'Approval canvas',projectSummary:{pages:2,components:4},saveStatus:'saved',scale:.65};
+const account={status:'ready',user:{id:'a',name:'Li Lei',email:'li@example.test'},teams:[{id:'t',name:'Team'}],workspaces:[{id:'w',teamId:'t',name:'Work'}],counts:{organizations:1,workspaces:2,projects:7}};
+
+test('account identity, location and totals yield to work and clear on sign-out',async(t)=>{
  const ui=await fixture(t);
- const account={status:'ready',user:{id:'a',name:'Li Lei',email:'li@example.test'},teams:[{id:'t',name:'Team'}],workspaces:[{id:'w',teamId:'t',name:'Work'}],counts:{organizations:1,workspaces:2,projects:7}};
  ui.send({expanded:true,context:{allowed:false,workspaceId:'w',account}});
- assert.equal(ui.window.document.querySelector('.visual').hidden,true);
- assert.equal(ui.el('unavailable').hidden,true);assert.equal(ui.el('summary').hidden,true);
- assert.equal(ui.el('account-overview').hidden,false);assert.equal(ui.el('project-count').textContent,'7');
- assert.equal(ui.el('page').textContent,'Li Lei');assert.equal(ui.el('mission').textContent,'Team · Work');
- ui.send({activity:{operation:{id:'create',kind:'resource',phase:'running',label:'Creating project',subject:'New order'},queued:1}});
- assert.equal(ui.el('mission').textContent,'New order');assert.equal(ui.el('phase-text').textContent,'Creating project');assert.equal(ui.el('account-detail').hidden,true);
- assert.equal(ui.el('project-count').textContent,'7');assert.equal(ui.el('queue').textContent,'1');
- assert.equal(ui.el('stage-count').textContent,'Queued 1');
- ui.send({context:{allowed:false,account:{status:'signed-out'}},activity:{},image:{identity:undefined,src:'data:image/png;base64,old'}});
+ assert.equal(ui.el('mission').textContent,'Li Lei');
+ assert.equal(ui.el('account-email').textContent,'li@example.test');
+ assert.equal(ui.el('account-location').textContent,'Team · Work');
+ assert.equal(ui.el('project-count').textContent,'7');
+ assert.equal(ui.el('account-overview').hidden,false);
+ ui.send({activity:{operation:{kind:'resource',phase:'running',label:'Creating project',subject:'New orders'},queued:1}});
+ assert.equal(ui.el('mission').textContent,'New orders');
+ assert.equal(ui.el('phase-text').textContent,'Creating project');
+ assert.equal(ui.el('queued-count').textContent,'1 queued');
+ assert.equal(ui.el('account-overview').hidden,true);
+ assert.equal(ui.el('account-detail').hidden,true);
+ ui.send({context:{allowed:false,account:{status:'signed-out'}},activity:{},image:{src:'data:image/png;base64,old'}});
  assert.equal(ui.el('project-count').textContent,'');assert.equal(ui.el('account-email').textContent,'');
- assert.equal(ui.el('account-statistics').hidden,true);assert.equal(ui.el('account-empty').textContent,'Sign in to view account information');
- assert.equal(ui.el('mirror').hidden,true);assert.equal(ui.el('mirror').hasAttribute('src'),false);
- ui.send({context:{allowed:true,projectName:'Project',viewName:'Page',projectSummary:{pages:2,components:0},saveStatus:'saved'}});
- assert.equal(ui.window.document.querySelector('.visual').hidden,false);assert.equal(ui.el('account-overview').hidden,true);
- assert.equal(ui.el('page-count').textContent,'2');
+ assert.equal(ui.el('account-overview').hidden,true);assert.equal(ui.el('mirror').hasAttribute('src'),false);
 });
 
-test('signed-out cards offer a localized sign-in action that yields to account loading, MCP work and canvas views',async(t)=>{
+test('sign-in remains actionable after failure and when canvas saving requires authentication',async(t)=>{
  const ui=await fixture(t);
- const context={allowed:false,account:{status:'signed-out'}};
- ui.send({expanded:true,context});
- assert.equal(ui.el('mission').textContent,'Sign in to Plasmic');
+ ui.send({expanded:true,context:{allowed:false,account:{status:'signed-out'}}});
+ assert.equal(ui.el('mission').textContent,'Sign in to continue designing');
  assert.equal(ui.el('account-sign-in').hidden,false);
- assert.equal(ui.el('account-sign-in').textContent,'Sign in');
- ui.el('account-sign-in').click();await flush();assert.equal(ui.commands.at(-1),'sign-in');
- ui.send({localization:{locale:'zh-CN',messages:JSON.parse(fs.readFileSync(path.join(__dirname,'../../platform/wab/src/wab/client/i18n/locales/zh-CN.json'),'utf8'))}});
- assert.equal(ui.el('account-sign-in').textContent,'登录');assert.equal(ui.el('mission').textContent,'登录 Plasmic');
  ui.send({activity:{operation:{kind:'resource',phase:'failed',error:'Sign-in required'}}});
- assert.equal(ui.el('account-sign-in').hidden,true);assert.equal(ui.el('issue-text').textContent,'Sign-in required');
- ui.send({activity:{},context:{allowed:false,account:{status:'loading'}}});
- assert.equal(ui.el('account-sign-in').hidden,true);
- ui.send({context});assert.equal(ui.el('account-sign-in').hidden,false);
- ui.send({context:{allowed:false,account:{status:'ready',user:{name:'Account'},counts:{organizations:1,workspaces:2,projects:3}}}});
- assert.equal(ui.el('account-sign-in').hidden,true);
- ui.send({context});
- ui.send({context:{allowed:true,mode:'edit',projectName:'Project',viewName:'Canvas'}});
- assert.equal(ui.el('account-sign-in').hidden,true);
+ assert.equal(ui.el('account-sign-in').hidden,false);
+ assert.equal(ui.el('issue-text').textContent,'Sign in to continue.');
+ assert.equal(ui.el('issue').title,'Sign-in required');
+ ui.el('drag-handle').setPointerCapture=()=>assert.fail('sign-in must not start dragging');
+ ui.el('account-sign-in').dispatchEvent(new ui.window.MouseEvent('pointerdown',{button:0,bubbles:true}));
+ ui.el('account-sign-in').click();await flush();assert.equal(ui.commands.at(-1),'sign-in');
+ ui.send({context:{...canvas,saveStatus:'unlogged'},activity:{}});
+ assert.equal(ui.el('account-sign-in').hidden,false);
+ assert.equal(ui.el('phase-text').textContent,'Sign in to save');
+ ui.send({context:canvas});assert.equal(ui.el('account-sign-in').hidden,true);
 });
 
-test('activity separates the target from the action and gives task stages and errors priority over idle metadata',async(t)=>{
+test('stages retain their text while queue, concurrency and unsaved state use separate metadata',async(t)=>{
  const ui=await fixture(t);
- const context={allowed:true,mode:'edit',projectName:'Project',pageName:'Page',viewName:'Approval canvas',projectSummary:{pages:2,components:4},saveStatus:'pending',scale:.65};
- ui.send({expanded:true,context,activity:{operation:{kind:'read',phase:'running'}}});
- assert.equal(ui.el('mission').textContent,'Approval canvas');assert.equal(ui.el('phase-text').textContent,'Reading');
- assert.equal(ui.el('page').textContent,'Project');assert.equal(ui.el('context').textContent,'Canvas');
- assert.equal(ui.el('activity-detail'),null,'the dense metadata footer is removed');assert.equal(ui.el('summary').hidden,true);
- assert.equal(ui.el('project').textContent,'Approval canvas');assert.equal(ui.el('pill-context').textContent,'Reading');
+ const task={title:'Adjust approval rows',status:'running',stage:'Check permissions and validate all table fields',stageIndex:10,stageCount:12};
+ ui.send({context:{...canvas,saveStatus:'pending'},activity:{task,queued:12,running:2}});
+ assert.equal(ui.el('mission').textContent,task.title);assert.equal(ui.el('phase-text').textContent,task.stage);
+ assert.equal(ui.el('stage-count').textContent,'Step 10 of 12');
+ assert.equal(ui.el('queued-count').textContent,'12 queued');assert.equal(ui.el('running-count').textContent,'2 running');
+ assert.equal(ui.el('unsaved').textContent,'Unsaved');assert.equal(ui.el('view-metric').hidden,true);assert.equal(ui.el('running-count').hidden,true);assert.equal(ui.el('unsaved').hidden,true);assert.match(ui.el('activity-meta').title,/2 running.*Unsaved/);
+ assert.equal(ui.el('progress'),null,'stage positions do not imply a percentage of completed work');
  ui.send({activity:{operation:{kind:'write',phase:'completed'}}});
- assert.equal(ui.el('phase-text').textContent,'Changes applied','a completed write cannot claim persistence');
- assert.equal(ui.el('context').textContent,'Canvas','operation completion does not replace the stable mode label');
- ui.send({context:{...context,saveStatus:'saved'},activity:{operation:{kind:'save',phase:'completed'}}});
- assert.equal(ui.el('mission').textContent,'Approval canvas');assert.equal(ui.el('phase-text').textContent,'Saved');
- const task={title:'Adjust approval rows',status:'running',stage:'Check permissions',stageIndex:2,stageCount:3};
- ui.send({activity:{task,queued:2}});
- assert.equal(ui.el('mission').textContent,'Adjust approval rows');assert.equal(ui.el('phase-text').textContent,'Check permissions');
- assert.equal(ui.el('stage-count').textContent,'2/3 · Queued 2');assert.equal(ui.el('stage-count').title,'2 queued');
- assert.equal(ui.el('progress').hidden,false);assert.equal(ui.el('summary').hidden,true);
- ui.send({activity:{task:{...task,status:'blocked',error:'Access denied'}}});
- assert.equal(ui.el('issue').hidden,false);assert.equal(ui.el('issue-text').textContent,'Access denied');
- assert.equal(ui.el('phase-text').textContent,'Blocked');assert.equal(ui.el('progress').hidden,true);
- ui.send({context:{...context,mode:'preview',viewName:'Approval detail'},activity:{operation:{kind:'preview',phase:'running'}}});
- assert.equal(ui.el('mission').textContent,'Approval detail');assert.equal(ui.el('context').textContent,'Preview');
- assert.equal(ui.el('phase-text').textContent,'Interacting with preview');
- ui.send({context,activity:{}});assert.equal(ui.el('summary').hidden,false);assert.equal(ui.el('phase').hidden,true);
- assert.equal(ui.el('page-count').textContent,'2');assert.equal(ui.el('save-text').textContent,'Unsaved changes');
+ assert.equal(ui.el('phase-text').textContent,'Changes applied');assert.equal(ui.el('unsaved').textContent,'Unsaved');
+ ui.send({context:canvas,activity:{operation:{kind:'save',phase:'completed'}}});
+ assert.equal(ui.el('phase-text').textContent,'Saved');assert.equal(ui.el('unsaved').textContent,'');
 });
 
-test('account loading skeletons replace repeated copy, keep MCP work visible, and clear on navigation',async(t)=>{
+test('task failure and blockers override completed child calls and expose real recovery actions',async(t)=>{
  const ui=await fixture(t);
- ui.send({expanded:true,context:{allowed:false,account:{status:'loading'}}});
- assert.equal(ui.el('account-loading').hidden,false);assert.equal(ui.el('account-stats-loading').hidden,false);
- assert.equal(ui.el('mission').hidden,true);assert.equal(ui.el('mission').textContent,'');
- assert.equal(ui.el('account-detail').hidden,true);assert.equal(ui.el('account-empty').hidden,true);
- assert.equal(ui.el('page').textContent,'');assert.equal(ui.el('account-presence').hidden,true);
- assert.equal(ui.el('account-loading-label').textContent,'Loading account information…');
- assert.equal(ui.el('account-overview').getAttribute('aria-busy'),'true');
- const user={name:'Account',email:'account@example.test'};
- ui.send({context:{allowed:false,account:{status:'loading',user}}});
- assert.equal(ui.el('page').textContent,'Account');assert.equal(ui.el('account-presence').hidden,false);
- assert.equal(ui.el('account-presence').getAttribute('aria-label'),'Signed in');
- ui.send({activity:{operation:{kind:'resource',phase:'running',label:'Creating project'}}});
- assert.equal(ui.el('mission').hidden,false);assert.equal(ui.el('mission').textContent,'Creating project');
- assert.equal(ui.el('account-loading').hidden,true);assert.equal(ui.el('account-stats-loading').hidden,false);
- ui.send({activity:{operation:{kind:'resource',phase:'failed',error:'Access denied'}}});
- assert.equal(ui.el('issue').hidden,false);assert.equal(ui.el('account-detail').hidden,true);
- ui.send({context:{allowed:false,account:{status:'ready',user,counts:{organizations:1,workspaces:2,projects:3}}},activity:{}});
- assert.equal(ui.el('account-loading').hidden,true);assert.equal(ui.el('account-stats-loading').hidden,true);
- assert.equal(ui.el('account-status'),null,'signed-in text no longer occupies the footer');
- assert.equal(ui.el('account-email').textContent,'account@example.test');
- ui.send({context:{allowed:false,account:{status:'signed-out'}}});
- assert.equal(ui.el('account-presence').hidden,true);assert.equal(ui.el('account-stats-loading').hidden,true);
- assert.equal(ui.el('account-empty').hidden,false);
- ui.send({context:{allowed:false,account:{status:'loading'}}});
- ui.send({context:{allowed:true,mode:'edit',projectName:'Project',viewName:'Canvas'}});
- assert.equal(ui.el('mission').hidden,false);assert.equal(ui.el('account-loading').hidden,true);
- assert.equal(ui.el('account-presence').hidden,true);assert.equal(ui.el('mission').textContent,'Canvas');
+ const task={title:'Validate layout',status:'failed',error:'The filter still overflows.'};
+ ui.send({context:canvas,activity:{task,operation:{kind:'read',phase:'completed'}}});
+ assert.equal(ui.el('phase-text').textContent,'Task failed');assert.equal(ui.el('phase').dataset.status,'failed');
+ assert.equal(ui.window.document.querySelector('.info').dataset.tone,'error');
+ assert.equal(ui.el('issue-text').textContent,task.error);assert.equal(ui.el('show-main').hidden,false);
+ ui.el('show-main').click();await flush();assert.equal(ui.commands.at(-1),'show-main');
+ ui.send({activity:{task:{...task,status:'blocked'},operation:{kind:'write',phase:'completed'}}});
+ assert.equal(ui.el('phase-text').textContent,'Needs attention');assert.equal(ui.el('phase').dataset.status,'blocked');
+ assert.equal(ui.window.document.querySelector('.info').dataset.tone,'warning');
+ ui.send({activity:{operation:{kind:'read',phase:'failed',code:'CONTEXT_MISMATCH',error:'Raw technical details <script>test</script>'}}});
+ assert.equal(ui.el('issue-text').textContent,'The editor context has changed.');
+ assert.match(ui.el('issue').title,/Raw technical details/);assert.equal(ui.el('issue').querySelector('script'),null);
 });
 
-test('compact context and card operation labels follow real account, canvas, Preview and error states',async(t)=>{
+test('save problems displace statistics, pending saves remain concise and preview uses viewport dimensions',async(t)=>{
  const ui=await fixture(t);
- ui.send({context:{allowed:false,account:{status:'loading'}}});
- assert.equal(ui.el('project').textContent,'Account overview');assert.equal(ui.el('pill-context').textContent,'Loading…');
- ui.send({context:{allowed:false,account:{status:'signed-out'}}});
- assert.equal(ui.el('project').textContent,'Waiting for sign-in');assert.equal(ui.el('pill-context').textContent,'Signed out');
- ui.send({context:{allowed:false,account:{status:'ready',user:{name:'Account'},counts:{organizations:0,workspaces:1,projects:0}}}});
- assert.equal(ui.el('pill-context').textContent,'0 projects');
- assert.equal(ui.window.document.querySelector('.dot').hidden,true,'idle no longer has an unexplained status dot');
- ui.send({context:{allowed:false,account:{status:'error',user:{name:'Account'}}}});
- assert.equal(ui.el('pill-context').textContent,'Statistics unavailable');assert.equal(ui.window.document.body.dataset.error,'true');
- const context={allowed:true,projectName:'Project',viewName:'Customers',saveStatus:'saved',mode:'edit'};
- ui.send({context});
- assert.equal(ui.el('project').textContent,'Customers');assert.equal(ui.el('pill-context').textContent,'Saved');assert.equal(ui.el('context').textContent,'Canvas');
- ui.send({context:{...context,saveStatus:'pending'}});assert.equal(ui.el('pill-context').textContent,'Unsaved changes');
- ui.send({context:{...context,loading:true}});assert.equal(ui.el('pill-context').textContent,'Loading…');
- assert.equal(ui.el('summary').hidden,true,'loading summary cannot overlap the centered message');
- assert.equal(ui.window.document.querySelector('.info').dataset.viewLoading,'true');
- ui.send({context:{...context,mode:'preview',viewName:'Detail'}});
- assert.equal(ui.window.document.querySelector('.info').dataset.viewLoading,'false');
- assert.equal(ui.el('project').textContent,'Detail');assert.equal(ui.el('pill-context').textContent,'Preview');
- for(const kind of ['read','write','preview']){
-  ui.send({activity:{operation:{kind,phase:'running',label:'Actual operation',subject:'Customers'}}});
-  assert.equal(ui.el('context').textContent,'Preview');assert.equal(ui.el('mission').textContent,'Customers');
-  assert.match(ui.el('capsule-handle').getAttribute('aria-label'),/Customers/);
+ for(const [saveStatus,label]of [['error','Save failed'],['blocked','Saving blocked'],['unlogged','Sign in to save']]){
+  ui.send({context:{...canvas,saveStatus},activity:{}});
+  assert.equal(ui.el('view-metric').hidden,true);assert.equal(ui.el('phase-text').textContent,label);assert.equal(ui.el('mission').textContent,label);assert.equal(ui.el('phase').hidden,true);
+  assert.equal(ui.el(saveStatus==='unlogged'?'account-sign-in':'show-main').hidden,false);
  }
- ui.send({activity:{task:{title:'Adjust customers',status:'blocked',error:'Access denied'}}});
- assert.equal(ui.el('context').textContent,'Preview');assert.equal(ui.el('phase-text').textContent,'Blocked','task metadata must not invent a read/write operation');
- assert.match(ui.el('capsule-handle').getAttribute('aria-label'),/Access denied/);
- assert.equal(ui.el('shell').dataset.expanded,'false','content changes cannot choose the presentation shape');
+ ui.send({context:{...canvas,saveStatus:'pending'}});assert.equal(ui.el('phase-text').textContent,'Unsaved');
+ ui.send({context:{...canvas,saveStatus:'saving'}});assert.equal(ui.el('phase').dataset.status,'running');
+ ui.send({context:canvas});assert.equal(ui.el('view-metric').textContent,'');assert.match(ui.el('drag-handle').title,/2 Pages · 4 Components/);assert.equal(ui.el('page-count'),null);
+ ui.send({context:{...canvas,mode:'preview',previewContext:{width:390,height:844}}});
+ assert.equal(ui.el('view-metric').textContent,'390 × 844');assert.equal(ui.el('view-metric').hidden,false);
+ assert.equal(ui.el('context').textContent,'Preview');assert.equal(ui.el('phase').hidden,true,'idle Preview mode belongs in the trailing header only');
+ ui.send({context:{...canvas,loading:true}});assert.equal(ui.el('phase-text').textContent,'Preparing preview image…');assert.equal(ui.el('view-metric').hidden,true);
+ assert.equal(ui.el('mission').textContent,canvas.viewName,'loading does not replace known identity with repeated loading copy');
+ ui.send({context:{...canvas,viewName:''}});assert.equal(ui.el('phase').hidden,true);assert.equal(ui.el('show-main').hidden,false);assert.equal(ui.el('mission').textContent,'No canvas open');
 });
 
-test('idle account metadata follows the actual theme and language and yields to MCP and loading',async(t)=>{
+test('loading only masks unknown identity and authenticated account failures retain identity',async(t)=>{
  const ui=await fixture(t);
- const account={status:'ready',user:{name:'Account',email:'account@example.test'},counts:{organizations:1,workspaces:2,projects:3}};
+ ui.send({context:{allowed:false,account:{status:'loading'}}});
+ assert.equal(ui.el('account-loading').hidden,false);assert.equal(ui.el('mission').hidden,true);
+ assert.equal(ui.el('account-stats-loading').hidden,true);
+ ui.send({context:{allowed:false,account:{status:'loading',user:account.user}}});
+ assert.equal(ui.el('account-loading').hidden,true);assert.equal(ui.el('mission').hidden,false);
+ assert.equal(ui.el('mission').textContent,'Li Lei');assert.equal(ui.el('account-detail').hidden,false);
+ assert.equal(ui.el('account-stats-loading').hidden,false);
+ ui.send({context:{allowed:false,account:{status:'error',user:account.user}}});
+ assert.equal(ui.el('mission').textContent,'Li Lei');assert.equal(ui.el('phase-text').textContent,'Statistics unavailable');
+ assert.equal(ui.el('account-sign-in').hidden,true);assert.equal(ui.el('show-main').hidden,false);
+ ui.send({context:canvas});assert.equal(ui.el('account-stats-loading').hidden,true,'hidden account scaffolding cannot leak into canvas');
+ assert.equal(ui.el('account-overview').hidden,true);assert.equal(ui.el('account-loading').hidden,true);
+});
+
+test('compact labels avoid duplicate sign-in state, retain mode and label their queue',async(t)=>{
+ const ui=await fixture(t);
+ ui.send({context:{allowed:false,account:{status:'signed-out'}}});
+ assert.equal(ui.el('project').textContent,'Sign in');assert.equal(ui.el('pill-context').textContent,'');
+ ui.send({context:{...canvas,mode:'preview'}});assert.equal(ui.el('pill-context').textContent,'Preview');
+ ui.send({context:canvas,activity:{operation:{kind:'write',phase:'running'},queued:3}});
+ assert.equal(ui.el('context').textContent,'Canvas');assert.equal(ui.el('context').className,'');assert.equal(ui.el('context').hidden,false);assert.equal(ui.el('queue').textContent,'+3');
+ assert.equal(ui.el('queue').getAttribute('aria-label'),'3 queued');assert.equal(ui.el('shell').dataset.expanded,'false');
+});
+
+test('theme and language remain available in the identity tooltip without occupying content rows',async(t)=>{
+ const ui=await fixture(t);
  ui.send({context:{allowed:false,account}});
- assert.equal(ui.el('account-preferences').hidden,false);
- assert.equal(ui.el('account-theme-label').textContent,'Theme');assert.equal(ui.el('account-theme').textContent,'Dark');
- assert.equal(ui.el('account-language-label').textContent,'Language');assert.equal(ui.el('account-language').textContent,'English');
- assert.equal(ui.el('account-preferences').querySelector('button,input,select'),null,'configuration metadata is read-only');
+ assert.match(ui.el('drag-handle').title,/Theme: Dark/);assert.match(ui.el('drag-handle').title,/Language: English/);
+ assert.equal(ui.el('account-preferences'),null);
  ui.send({appearance:'light',localization:{locale:'zh-CN',messages:JSON.parse(fs.readFileSync(path.join(__dirname,'../../platform/wab/src/wab/client/i18n/locales/zh-CN.json'),'utf8'))}});
- assert.equal(ui.el('account-theme-label').textContent,'主题');assert.equal(ui.el('account-theme').textContent,'浅色');
- assert.equal(ui.el('account-language-label').textContent,'语言');assert.equal(ui.el('account-language').textContent,'简体中文');
- ui.send({activity:{operation:{kind:'resource',phase:'running',label:'Creating project'}}});
- assert.equal(ui.el('account-preferences').hidden,true);assert.equal(ui.el('mission').textContent,'创建项目');
- ui.send({activity:{},context:{allowed:false,account:{status:'loading',user:account.user}}});
- assert.equal(ui.el('account-preferences').hidden,true);assert.equal(ui.el('account-loading').hidden,false);
- ui.send({context:{allowed:false,account}});assert.equal(ui.el('account-preferences').hidden,false);
- ui.send({context:{allowed:true,mode:'edit',projectName:'Project',viewName:'Page'}});
- assert.equal(ui.el('account-preferences').hidden,true);
+ assert.match(ui.el('drag-handle').title,/主题: 浅色/);assert.match(ui.el('drag-handle').title,/语言: 简体中文/);
+ assert.equal(ui.el('mission').textContent,'Li Lei');
+});
+
+test('failed updates remain distinct from a successful check and retry only on explicit action',async(t)=>{
+ const ui=await fixture(t);
+ ui.send({expanded:true,updateOpen:true,update:{phase:'error',currentVersion:'0.2.17'}});
+ assert.equal(ui.el('update-title').textContent,'Update could not be completed');
+ assert.equal(ui.el('update-retry').hidden,false);assert.equal(ui.el('update-install').hidden,true);
+ assert.equal(ui.commands.includes('update-check'),false);
+ ui.el('update-retry').click();await flush();assert.equal(ui.commands.at(-1),'update-check');
+ ui.send({update:{phase:'checking'}});assert.equal(ui.el('update-retry').hidden,true);
+ ui.send({update:{phase:'current'}});assert.equal(ui.el('update-title').textContent,"You're up to date");
+});
+
+test('a completed task cannot replace the action or result of a later tool call',async(t)=>{
+ const ui=await fixture(t);
+ const task={title:'Old task',stage:'Old stage',status:'completed',finishedAt:1000};
+ ui.send({context:canvas,activity:{task,operation:{kind:'write',phase:'running',startedAt:new Date(1100).toISOString()}}});
+ assert.equal(ui.el('mission').textContent,canvas.viewName);assert.equal(ui.el('phase-text').textContent,'Applying changes');
+ ui.send({activity:{task,operation:{kind:'write',phase:'completed',startedAt:new Date(1100).toISOString()}}});
+ assert.equal(ui.el('phase-text').textContent,'Changes applied');
+});
+
+test('resource operations expose actual elapsed time and known preview actions stay specific',async(t)=>{
+ const ui=await fixture(t);t.mock.method(ui.window.Date,'now',()=>14000);
+ ui.send({context:{allowed:false,account},activity:{operation:{kind:'resource',phase:'running',label:'Generating image',startedAt:new Date(2000).toISOString()}}});
+ assert.equal(ui.el('mission').textContent,'Generating image');assert.equal(ui.el('phase-text').textContent,'Elapsed 12s');
+ ui.send({context:canvas,activity:{operation:{kind:'preview',operation:'fill',phase:'running'}}});
+ assert.equal(ui.el('phase-text').textContent,'Entering text in preview');
+});
+
+test('unchanged snapshots do not repeat live status and error announcements',async(t)=>{
+ const ui=await fixture(t);
+ const value={context:canvas,activity:{operation:{kind:'write',phase:'failed',error:'Technical detail'}}};
+ ui.send(value);
+ const changes=[];
+ const observer=new ui.window.MutationObserver(records=>changes.push(...records));
+ for(const id of ['phase-text','issue-text'])observer.observe(ui.el(id),{childList:true,subtree:true});
+ ui.send(value);await flush();observer.disconnect();
+ assert.equal(changes.length,0);
 });

@@ -77,7 +77,7 @@ test("checks download automatically but installation waits for confirmation and 
   await updates.command("install");
   assert.deepEqual(order, ["save", "install"]);
 });
-test("failed save blocks installation silently and a later check allows installation", async () => {
+test("failed save reports failure and blocks installation and a later check allows installation", async () => {
   const updater = new EventEmitter();
   let installs = 0,
     saves = 0;
@@ -90,7 +90,7 @@ test("failed save blocks installation silently and a later check allows installa
     if (++saves === 1) throw new Error("Save failed");
   });
   updater.emit("update-downloaded", manifest);
-  assert.equal((await updates.command("install")).phase, "current");
+  assert.equal((await updates.command("install")).phase, "error");
   assert.equal(installs, 0);
   await updates.command("check");
   await updates.command("install");
@@ -118,14 +118,14 @@ test("overlapping checks share one request; failed downloads wait for a later ch
   updater.emit("update-available", manifest);
   resolve();
   const results = await Promise.all([first, second]);
-  assert.equal(results[0].phase, "current");
-  assert.equal(results[1].phase, "current");
+  assert.equal(results[0].phase, "error");
+  assert.equal(results[1].phase, "error");
   assert.equal(updates.state.version, undefined);
   assert.equal(updates.state.releaseNotes, undefined);
   assert.equal(updates.state.percent, undefined);
   assert.equal(updates.state.error, undefined);
   assert.equal(downloads, 1);
-  assert.equal((await updates.command("download")).phase, "current");
+  assert.equal((await updates.command("download")).phase, "error");
   updater.checkForUpdates = async () => {
     checks++;
     updater.emit("update-available", manifest);
@@ -385,7 +385,7 @@ test(
 );
 
 for (const mode of ["rejection", "event"]) {
-  test(`failed checks from ${mode} remain silent and periodic checks recover`, async (t) => {
+  test(`failed checks from ${mode} report failure and periodic checks recover`, async (t) => {
     t.mock.timers.enable({ apis: ["setInterval"] });
     t.mock.method(console, "warn", () => {});
     const updater = new EventEmitter();
@@ -407,13 +407,12 @@ for (const mode of ["rejection", "event"]) {
     t.after(() => updates.stop());
     updates.start();
     await updates.running;
-    assert.equal(updates.state.phase, "current");
+    assert.equal(updates.state.phase, "error");
     assert.equal(checks, 1);
     assert.equal(console.warn.mock.calls.length, 1);
     assert.equal(
       statuses.some(
         (status) =>
-          status.phase === "error" ||
           status.error ||
           status.uiMessage ||
           status.retry,
@@ -451,7 +450,7 @@ test("a failed background download clears its badge and is retried at the next p
   t.after(() => updates.stop());
   updates.start();
   await updates.running;
-  assert.equal(updates.state.phase, "current");
+  assert.equal(updates.state.phase, "error");
   for (const key of [
     "version",
     "releaseNotes",

@@ -311,7 +311,7 @@ test("desktop sign-in states follow every language without exposing authorizatio
   }
 });
 
-test("an open update dialog localizes release notes and treats failures as no update", async (t) => {
+test("an open update dialog localizes release notes and offers retry after failure", async (t) => {
   const { EventEmitter } = require("node:events");
   const { UpdateManager } = require("../src/update-manager.cjs");
   const { uiError } = require("../src/ui-error.cjs");
@@ -367,13 +367,13 @@ test("an open update dialog localizes release notes and treats failures as no up
   manager.fail(
     uiError("NAS update check failed (HTTP {status})", { status: 503 }),
   );
-  assert.equal(manager.state.phase, "current");
+  assert.equal(manager.state.phase, "error");
   assert.equal(manager.state.error, undefined);
   for (const language of ["en", "zh-CN", "zh-TW", "ja", "ko"]) {
     locale.setLocale(language);
     assert.equal(
       root.getElementById("description").textContent,
-      locale.t("You're running the latest version of Plasmic."),
+      locale.t("Try again when your connection and design are ready."),
     );
     assert.equal(root.getElementById("latest").hidden, true);
     assert.equal(root.getElementById("notes-section").hidden, true);
@@ -382,7 +382,7 @@ test("an open update dialog localizes release notes and treats failures as no up
   assert.equal(manager.state.error, undefined);
   assert.equal(
     root.getElementById("description").textContent,
-    locale.t("You're running the latest version of Plasmic."),
+    locale.t("Try again when your connection and design are ready."),
   );
 });
 

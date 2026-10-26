@@ -201,6 +201,7 @@ export class ViewCtx extends WithDbCtx {
 
   private disposals: (() => void)[] = [];
   private _initialRenderReady = observable.box(false);
+  private _canvasMirrorTarget = observable.box<string | undefined>(undefined);
   get initialRenderReady() {
     return this._initialRenderReady.get();
   }
@@ -763,11 +764,19 @@ export class ViewCtx extends WithDbCtx {
     this._currentComponentCtx = null;
     this._viewState = {};
 
-    // We pause and resume the syncQueue depending on whether we are
-    // visible on the canvas
+    const mirrorRoot = document.documentElement;
+    const updateMirror = () => mobx.runInAction(() => {
+      this._canvasMirrorTarget.set(mirrorRoot.getAttribute("data-plasmic-canvas-mirror") ?? undefined);
+    });
+    const mirrorObserver = new MutationObserver(updateMirror);
+    mirrorObserver.observe(mirrorRoot, { attributes: true, attributeFilter: ["data-plasmic-canvas-mirror"] });
+    updateMirror();
+    this.disposals.push(() => mirrorObserver.disconnect());
+
+    // An overview needs every current artboard, independently of viewport clipping.
     this.disposals.push(
       mobx.reaction(
-        () => !this.studioCtx.isTransforming() && this.isVisible(),
+        () => !this.studioCtx.isTransforming() && this.isRenderActive(),
         (visible) => {
           if (visible) {
             this.syncQueue.resume();
@@ -2637,6 +2646,12 @@ export class ViewCtx extends WithDbCtx {
     return this._focusedSelectables.map((sel, i) =>
       sel instanceof SlotSelection ? sel : this._focusedTpls[i],
     );
+  }
+
+  isRenderActive() {
+    const target = this._canvasMirrorTarget.get();
+    return this.isVisible() || (target === "all" || target === this.arenaFrame().uuid) &&
+      getArenaFrames(this.studioCtx.currentArena).includes(this.arenaFrame());
   }
 
   isVisible() {

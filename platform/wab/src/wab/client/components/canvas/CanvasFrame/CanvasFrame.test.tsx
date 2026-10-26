@@ -83,6 +83,8 @@ it("shows a bounded local skeleton until first render, preserves component-regis
     );
     expect(screen.getByRole("status").getAttribute("aria-busy")).toBe("true");
     expect(container.querySelectorAll(".ant-skeleton")).toHaveLength(1);
+    expect(container.querySelector("iframe")?.getAttribute("data-plasmic-frame-uuid")).toBe(frame.uuid);
+    expect(container.querySelector("iframe")?.getAttribute("data-plasmic-component-uuid")).toBe(component.uuid);
     expect(queue).toHaveBeenCalledWith(
       expect.objectContaining({ arena, frame }),
     );

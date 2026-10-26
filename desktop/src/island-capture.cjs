@@ -1,53 +1,41 @@
+const { app, BrowserWindow } = require("electron");
+const { snapshotDocument, readyDocument, paintWindow } = require("./canvas.cjs");
 const { inspectTargets, clipRegion, feedbackOperation } = require("./island-feedback.cjs");
-/** Read only the current visible canvas/Preview. This never invokes an MCP tool. */
-function inspectViewport(mode, expectedComponent) {
-  const preview = document.querySelector(".live-root-container");
-  let rect;
+const { abortable } = require("./abortable.cjs");
+const { IslandFraming } = require("./island-framing.cjs");
+
+/** Read complete artboard bounds, independently of editor pan, zoom and chrome. */
+function inspectScene(mode, expectedComponent) {
   if (mode === "preview") {
-    if (!preview || expectedComponent && preview.getAttribute("data-plasmic-preview-component") !== expectedComponent) return null;
-    if (document.querySelector("[data-plasmic-preview-error]")) return null;
-    rect = { x: 0, y: 0, width: innerWidth, height: innerHeight };
-  } else {
-    const canvas = document.querySelector(".canvas-editor__canvas-clipper");
-    if (!canvas || !canvas.checkVisibility({ checkVisibilityCSS: true, checkOpacity: true })) return null;
-    const r = canvas.getBoundingClientRect();
-    let left = Math.max(0, r.left), top = Math.max(0, r.top);
-    let right = Math.min(innerWidth, r.right), bottom = Math.min(innerHeight, r.bottom);
-    // Studio's floating chrome overlays its full-size scrollport. Capture the
-    // unobscured canvas, including its feedback, without hiding any live UI.
-    for (const [selector, side] of [
-      [".canvas-editor__left-pane-container, .canvas-editor__left-pane", "left"],
-      [".canvas-editor__right-pane", "right"],
-      [".canvas-editor__top-bar", "top"],
-      ['[data-test-id="canvas-view-controls"]', "bottom"],
-    ]) {
-      for (const el of document.querySelectorAll(selector)) {
-        if (!el.checkVisibility({ checkVisibilityCSS: true, checkOpacity: true })) continue;
-        const box = el.getBoundingClientRect();
-        if (!box.width || !box.height || box.right <= r.left || box.left >= r.right || box.bottom <= r.top || box.top >= r.bottom) continue;
-        if (side === "left") left = Math.max(left, box.right);
-        if (side === "right") right = Math.min(right, box.left);
-        if (side === "top") top = Math.max(top, box.bottom);
-        if (side === "bottom") bottom = Math.min(bottom, box.top);
-      }
-    }
-    rect = { x: left, y: top, width: right - left, height: bottom - top };
-    // Frame the union of visible artboards, not the focused page. Keep their
-    // real backgrounds and relative positions; only trim surrounding workspace.
-    const artboards = [...canvas.querySelectorAll('iframe.canvas-editor__viewport')]
-      .filter(el => el.checkVisibility({ checkVisibilityCSS: true, checkOpacity: true }))
-      .map(el => el.getBoundingClientRect())
-      .filter(r => r.width > 0 && r.height > 0 && r.right > left && r.left < right && r.bottom > top && r.top < bottom);
-    if (artboards.length) {
-      const padding = 16;
-      const x = Math.max(left, Math.min(...artboards.map(r => r.left)) - padding);
-      const y = Math.max(top, Math.min(...artboards.map(r => r.top)) - padding);
-      const endX = Math.min(right, Math.max(...artboards.map(r => r.right)) + padding);
-      const endY = Math.min(bottom, Math.max(...artboards.map(r => r.bottom)) + padding);
-      rect = { x, y, width: endX - x, height: endY - y };
-    }
+    const preview = document.querySelector(".live-root-container");
+    if (!preview || expectedComponent && preview.getAttribute("data-plasmic-preview-component") !== expectedComponent ||
+      document.querySelector("[data-plasmic-preview-error]")) return null;
+    return { width: innerWidth, height: innerHeight };
   }
-  return rect.width > 0 && rect.height > 0 ? rect : null;
+  const canvas = document.querySelector(".canvas-editor__canvas-clipper");
+  if (!canvas?.checkVisibility({ checkVisibilityCSS: true, checkOpacity: true })) return null;
+  const boards = [...canvas.querySelectorAll("iframe.canvas-editor__viewport")]
+    .filter(el => el.checkVisibility({ checkVisibilityCSS: true, checkOpacity: true }) && el.clientWidth && el.clientHeight)
+    .map(el => {
+      const r = el.getBoundingClientRect();
+      return { index: Array.from(window.frames).indexOf(el.contentWindow), x: r.x, y: r.y,
+        frameUuid: el.getAttribute("data-plasmic-frame-uuid"), componentUuid: el.getAttribute("data-plasmic-component-uuid"),
+        width: el.clientWidth, height: el.clientHeight, scale: r.width / el.offsetWidth };
+    });
+  let background = "#202126";
+  for (let el = canvas; el; el = el.parentElement) {
+    const color = getComputedStyle(el).backgroundColor;
+    if (color && color !== "transparent" && !color.endsWith(", 0)")) { background = color; break; }
+  }
+  if (!boards.length) return { width: 640, height: 360, background, boards };
+  const scale = boards[0].scale, left = Math.min(...boards.map(b => b.x)), top = Math.min(...boards.map(b => b.y));
+  for (const board of boards) {
+    board.x = (board.x - left) / scale + 16;
+    board.y = (board.y - top) / scale + 16;
+    delete board.scale;
+  }
+  return { width: Math.max(...boards.map(b => b.x + b.width)) + 16,
+    height: Math.max(...boards.map(b => b.y + b.height)) + 16, background, boards };
 }
 
 async function presentationRect(frame, source) {
@@ -68,47 +56,117 @@ async function presentationRect(frame, source) {
   return rect;
 }
 
-async function captureIslandView(win, context, operation) {
-  const url = win.webContents.getURL();
-  const frames = win.webContents.mainFrame.framesInSubtree;
-  for (const frame of frames) {
-    if (frame.isDestroyed?.()) continue;
-    const local = await frame.executeJavaScript(`(${inspectViewport.toString()})(${JSON.stringify(context.mode)},${JSON.stringify(context.previewContext?.componentUuid)})`);
-    if (!local) continue;
-    const css = await presentationRect(frame, local), zoom = win.webContents.getZoomFactor();
-    if (!css) continue;
-    const bounds = win.getContentBounds();
-    const x = Math.max(0, Math.round(css.x * zoom)), y = Math.max(0, Math.round(css.y * zoom));
-    const rect = { x, y, width: Math.min(bounds.width - x, Math.round(css.width * zoom)), height: Math.min(bounds.height - y, Math.round(css.height * zoom)) };
-    if (rect.width <= 0 || rect.height <= 0) continue;
-    // Preserve the real compositor, including its existing read/write feedback.
-    // The normal MCP screenshot path intentionally hides that feedback.
-    const image = await win.webContents.capturePage(rect, { stayHidden: true, stayAwake: true });
-    if (win.isDestroyed() || url !== win.webContents.getURL() || image.isEmpty()) return null;
-    const size = image.getSize();
-    const scale = Math.min(1, 720 / size.width, 400 / size.height);
-    const thumbnail = scale < 1 ? image.resize({ width: Math.max(1, Math.round(size.width * scale)), height: Math.max(1, Math.round(size.height * scale)) }) : image;
-    let feedback = null;
+function sceneDocument(scene, boards) {
+  const scale = Math.min(1, 720 / scene.width, 400 / scene.height);
+  const width = Math.max(1, Math.round(scene.width * scale)), height = Math.max(1, Math.round(scene.height * scale));
+  const escape = value => String(value).replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;");
+  return { width, height, html: `<!doctype html><html><head><meta charset="utf-8"></head><body style="margin:0;overflow:hidden;background:${escape(scene.background)}">
+    ${boards.map(board => `<iframe sandbox="allow-scripts allow-same-origin" style="position:absolute;border:0;transform-origin:0 0;transform:scale(${scale});left:${board.x * scale}px;top:${board.y * scale}px;width:${board.width}px;height:${board.height}px" srcdoc="${escape(board.html)}"></iframe>`).join("")}
+    </body></html>` };
+}
+
+function loadScene(html) {
+  return new Promise(resolve => {
+    document.open();
+    window.addEventListener("load", () => resolve(), {once:true});
+    document.write(html);
+    document.close();
+  });
+}
+
+/** Static, sanitized copies keep complete live artboards without changing Studio. */
+function createIslandCapture() {
+  let surface, activeFrame, activeTarget, epoch = 0;
+  const framing = new IslandFraming();
+  function releaseFrame() {
+    if (activeFrame && !activeFrame.isDestroyed?.()) void activeFrame.executeJavaScript('document.documentElement.removeAttribute("data-plasmic-canvas-mirror")').catch(() => {});
+    activeFrame = activeTarget = undefined;
+  }
+  function closeSurface() { epoch++; surface?.destroy(); surface = undefined; releaseFrame(); }
+  function close(operation, operations) { closeSurface(); framing.reset(operation, operations); }
+  async function capture(win, context, operation, operations) {
+    if (context.mode === "preview" && activeFrame) closeSurface();
+    const version = epoch, url = win.webContents.getURL(), frames = win.webContents.mainFrame.framesInSubtree;
     const active = feedbackOperation(operation, context, url);
-    if (active) {
+    const signal = AbortSignal.timeout(10_000);
+    for (const frame of frames) {
+      if (frame.isDestroyed?.()) continue;
+      let scene = await abortable(signal, () => frame.executeJavaScript(`(${inspectScene.toString()})(${JSON.stringify(context.mode)},${JSON.stringify(context.previewContext?.componentUuid)})`));
+      if (!scene) continue;
+      if (!await presentationRect(frame, {x:0,y:0,width:scene.width,height:scene.height})) continue;
+      if (version !== epoch || win.isDestroyed() || url !== win.webContents.getURL()) return null;
       const regions = [];
-      if (active.targets.some((target) => target.viewport)) regions.push({ x:0, y:0, width:1, height:1 });
-      else for (const targetFrame of frames) {
-        if (targetFrame.isDestroyed?.()) continue;
-        const targets = await targetFrame.executeJavaScript(`(${inspectTargets.toString()})(${JSON.stringify(active.targets)},${JSON.stringify(context.mode)},${JSON.stringify(context.previewContext?.componentUuid)})`);
-        for (const target of targets) {
-          const bounds = await presentationRect(targetFrame, target);
-          if (!bounds) continue;
-          const region = clipRegion({ x:bounds.x*zoom, y:bounds.y*zoom, width:bounds.width*zoom, height:bounds.height*zoom }, rect);
-          if (region && !regions.some((r) => JSON.stringify(r) === JSON.stringify(region))) regions.push(region);
+      let image;
+      if (scene.boards) {
+        scene = framing.select(scene, context, operation, operations);
+        const target = scene.view === "page" ? scene.boards[0].frameUuid : "all";
+        if (activeFrame !== frame || activeTarget !== target) {
+          if (activeFrame !== frame) releaseFrame();
+          activeFrame = frame; activeTarget = target;
+          await abortable(signal, () => frame.executeJavaScript(`document.documentElement.setAttribute("data-plasmic-canvas-mirror", ${JSON.stringify(target)})`));
+        }
+        const sources = scene.boards.map(board => frame.frames[board.index]);
+        for (const source of sources) {
+          if (!source || source.isDestroyed?.() || !await abortable(signal, () => source.executeJavaScript('document.documentElement.hasAttribute("data-plasmic-render-ready")'))) return null;
+        }
+        const boards = [];
+        for (const board of scene.boards) {
+          const source = frame.frames[board.index];
+          if (!source || source.isDestroyed?.()) return null;
+          const html = await abortable(signal, () => source.executeJavaScript(`(${snapshotDocument.toString()})()`));
+          boards.push({ ...board, html });
+          if (active && !active.targets.some(t => t.viewport)) {
+            const targets = await abortable(signal, () => source.executeJavaScript(`(${inspectTargets.toString()})(${JSON.stringify(active.targets)},"edit")`));
+            for (const target of targets) {
+              const region = clipRegion({x:board.x+target.x,y:board.y+target.y,width:target.width,height:target.height}, {x:0,y:0,width:scene.width,height:scene.height});
+              if (region) regions.push(region);
+            }
+          }
+        }
+        if (version !== epoch || win.isDestroyed() || url !== win.webContents.getURL()) return null;
+        const document = sceneDocument(scene, boards);
+        const fresh = !surface;
+        if (!surface) {
+          surface = new BrowserWindow({show:false,width:document.width,height:document.height,useContentSize:true,
+            webPreferences:{session:win.webContents.session,nodeIntegration:false,contextIsolation:true,sandbox:true,
+              offscreen:true,backgroundThrottling:false,devTools:!app.isPackaged}});
+          surface.webContents.setWindowOpenHandler(() => ({action:"deny"}));
+          surface.webContents.on("will-navigate", event => event.preventDefault());
+        }
+        const renderer = surface;
+        try {
+          renderer.setContentSize(document.width, document.height);
+          if (fresh) await abortable(signal, () => renderer.loadURL("about:blank"));
+          await abortable(signal, () => renderer.webContents.executeJavaScript(`(${loadScene.toString()})(${JSON.stringify(document.html)})`));
+          for (const child of renderer.webContents.mainFrame.frames) await abortable(signal, () => child.executeJavaScript(`(${readyDocument.toString()})()`));
+          await abortable(signal, () => renderer.webContents.executeJavaScript(`(${readyDocument.toString()})()`));
+          image = await abortable(signal, () => paintWindow(renderer, document.width, document.height));
+        } catch (error) {
+          if (surface === renderer) closeSurface();
+          throw error;
+        }
+      } else {
+        const css = await presentationRect(frame, {x:0,y:0,width:scene.width,height:scene.height}), zoom = win.webContents.getZoomFactor();
+        if (!css) continue;
+        const rect = {x:Math.round(css.x*zoom),y:Math.round(css.y*zoom),width:Math.round(css.width*zoom),height:Math.round(css.height*zoom)};
+        image = await abortable(signal, () => win.webContents.capturePage(rect, {stayHidden:true,stayAwake:true}));
+        if (active && !active.targets.some(t => t.viewport)) {
+          const targets = await abortable(signal, () => frame.executeJavaScript(`(${inspectTargets.toString()})(${JSON.stringify(active.targets)},"preview",${JSON.stringify(context.previewContext?.componentUuid)})`));
+          for (const target of targets) {
+            const region = clipRegion(target, {x:0,y:0,width:scene.width,height:scene.height});
+            if (region) regions.push(region);
+          }
         }
       }
-      if (regions.length) feedback = { id:active.id, kind:active.kind, phase:active.phase, regions };
+      if (version !== epoch || win.isDestroyed() || url !== win.webContents.getURL() || image.isEmpty()) return null;
+      if (active?.targets.some(t => t.viewport)) regions.push({x:0,y:0,width:1,height:1});
+      const size = image.getSize(), scale = Math.min(1, 720 / size.width, 400 / size.height);
+      if (scale < 1) image = image.resize({width:Math.max(1,Math.round(size.width*scale)),height:Math.max(1,Math.round(size.height*scale))});
+      return {src:`data:image/jpeg;base64,${image.toJPEG(78).toString("base64")}`,width:scene.width,height:scene.height,capturedAt:Date.now(),framing:scene.view || "page",
+        feedback:regions.length ? {id:active.id,kind:active.kind,phase:active.phase,regions} : null};
     }
-    if (win.isDestroyed() || url !== win.webContents.getURL()) return null;
-    return { src: `data:image/jpeg;base64,${thumbnail.toJPEG(78).toString("base64")}`,
-      width: rect.width, height: rect.height, capturedAt: Date.now(), feedback };
+    return null;
   }
-  return null;
+  return { capture, close };
 }
-module.exports = { captureIslandView, inspectViewport, presentationRect };
+module.exports = { createIslandCapture, inspectScene, sceneDocument, presentationRect };

@@ -3,6 +3,7 @@ const fs = require("node:fs/promises");
 const path = require("node:path");
 const { randomBytes, randomUUID, createHash } = require("node:crypto");
 const { errorPayload } = require("./tool-context.cjs");
+const MCP_SESSION = "mcp:session";
 function socketPath(profile) {
   return process.platform === "win32"
     ? "\\\\.\\pipe\\plasmic-desktop-" +
@@ -20,7 +21,10 @@ async function startRpc(profile, dispatch) {
     });
   }
   const token = randomBytes(32).toString("hex");
+  const connections = new Set();
   const server = net.createServer((connection) => {
+    connections.add(connection);
+    connection.once("close", () => connections.delete(connection));
     connection.setEncoding("utf8");
     let buffer = "",
       accepted = false;
@@ -50,6 +54,11 @@ async function startRpc(profile, dispatch) {
           throw new Error("Unauthorized local client");
         }
         authenticated = true;
+        if (request.method === MCP_SESSION) {
+          connection.setTimeout(0);
+          connection.write(JSON.stringify({ result: { connected: true } }) + "\n");
+          return;
+        }
         const result = await dispatch(request.method, request.input || {});
         response = { result };
       } catch (error) {
@@ -93,22 +102,54 @@ async function startRpc(profile, dispatch) {
     { mode: 0o600 },
   );
   return async () => {
-    await new Promise((resolve) => server.close(resolve));
+    const closed = new Promise((resolve) => server.close(resolve));
+    for (const connection of connections) connection.destroy();
+    await closed;
     await fs.unlink(path.join(profile, "mcp-connection.json")).catch(() => {});
     if (process.platform !== "win32") {
       await fs.unlink(socket).catch(() => {});
     }
   };
 }
-async function requestRpc(profile, method, input = {}) {
-  let address;
+async function rpcAddress(profile) {
   try {
-    address = JSON.parse(
+    return JSON.parse(
       await fs.readFile(path.join(profile, "mcp-connection.json"), "utf8"),
     );
   } catch {
     throw new Error("Start Plasmic before connecting MCP");
   }
+}
+async function connectRpcSession(profile) {
+  const address = await rpcAddress(profile);
+  return new Promise((resolve, reject) => {
+    const connection = net.createConnection(address.socket);
+    let buffer = "", connected = false;
+    connection.setEncoding("utf8");
+    connection.setTimeout(5000, () => connection.destroy(new Error("Desktop connection timed out")));
+    connection.on("error", reject);
+    connection.once("close", () => reject(new Error("Plasmic closed before MCP connected")));
+    connection.on("connect", () => connection.write(JSON.stringify({ token: address.token, method: MCP_SESSION }) + "\n"));
+    connection.on("data", (chunk) => {
+      if (connected) return;
+      buffer += chunk;
+      if (buffer.length > 4096) {
+        connection.destroy(new Error("Invalid Desktop connection response"));
+        return;
+      }
+      if (!buffer.includes("\n")) return;
+      try {
+        const response = JSON.parse(buffer.slice(0, buffer.indexOf("\n")));
+        if (response.result?.connected !== true) throw new Error(response.error?.message || "Invalid Desktop connection response");
+        connected = true;
+        connection.setTimeout(0);
+        resolve(connection);
+      } catch (error) { connection.destroy(error); }
+    });
+  });
+}
+async function requestRpc(profile, method, input = {}) {
+  const address = await rpcAddress(profile);
   return new Promise((resolve, reject) => {
     const connection = net.createConnection(address.socket);
     connection.setEncoding("utf8");
@@ -145,4 +186,4 @@ async function requestRpc(profile, method, input = {}) {
     });
   });
 }
-module.exports = { startRpc, requestRpc };
+module.exports = { startRpc, requestRpc, connectRpcSession };

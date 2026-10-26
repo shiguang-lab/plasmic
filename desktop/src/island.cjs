@@ -3,7 +3,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { pathToFileURL } = require("node:url");
 const { currentContext } = require("./tool-context.cjs");
-const { captureIslandView } = require("./island-capture.cjs");
+const { createIslandCapture } = require("./island-capture.cjs");
 const { IslandAccount } = require("./island-account.cjs");
 
 const MODES = ["window", "fullscreen", "island"];
@@ -30,7 +30,9 @@ function createIsland({ getWindow, controller, i18n, appearance, config, signIn,
   let transitions = Promise.resolve();
   let fullscreenWait, navigationUrl;
   let refreshTimer, captureTimer, hitTimer;
-  let cookies, cookieChanged, lastResource;
+  let cookies, cookieChanged, lastResource, lastCanvasOperation;
+  const mirror = createIslandCapture();
+  const framingOperations = () => [...controller.activity.operations.values(), ...(lastCanvasOperation ? [lastCanvasOperation] : [])];
   const account = new IslandAccount(path => controller.requestStudio(path, undefined, AbortSignal.timeout(10_000)), publish);
   function persist() {
     const position = window && !window.isDestroyed() ? window.getPosition() : saved.position;
@@ -45,7 +47,12 @@ function createIsland({ getWindow, controller, i18n, appearance, config, signIn,
       activity: controller.activity.snapshot(context.projectId, context.sessionId) };
   }
   function publish() {
+    const wasExpanded = expanded;
     expanded = mode === "island" && (updateOpen || controller.activity.keepExpanded() || inside || performance.now() < hoverUntil);
+    if (wasExpanded && !expanded) {
+      mirror.close(controller.activity.snapshot(context.projectId, context.sessionId).operation, framingOperations());
+      image = null; stale = false;
+    }
     if (window && !window.isDestroyed()) window.webContents.send("desktop:island-state", snapshot());
   }
   async function refresh() {
@@ -83,8 +90,7 @@ function createIsland({ getWindow, controller, i18n, appearance, config, signIn,
       previewContext: editor.previewContext || null,
       viewName: !loading ? (mode === "preview" ? editor.previewContext?.componentName : editor.canvasName || editor.componentName) || "" : "",
       projectSummary: !loading ? editor.projectSummary : null,
-      saveStatus: !loading ? editor.saveStatus : null,
-      scale: !loading && mode === "edit" ? editor.editorView?.scale : null };
+      saveStatus: !loading ? editor.saveStatus : null };
     context.orgId = pathname.match(/^\/orgs\/([^/]+)/)?.[1] || null;
     context.workspaceId = pathname.match(/^\/workspaces\/([^/]+)/)?.[1] || null;
     if (!allowed) {
@@ -98,7 +104,7 @@ function createIsland({ getWindow, controller, i18n, appearance, config, signIn,
     capturing = true;
     const version = epoch;
     try {
-      const result = await captureIslandView(win, context, controller.activity.snapshot(context.projectId, context.sessionId).operation);
+      const result = await mirror.capture(win, context, controller.activity.snapshot(context.projectId, context.sessionId).operation, framingOperations());
       if (disposed || version !== epoch || mode !== "island") return;
       if (result) { image = { ...result, identity: context.identity }; stale = false; }
       else stale = true;
@@ -112,7 +118,10 @@ function createIsland({ getWindow, controller, i18n, appearance, config, signIn,
     const next = !!drag || containsPoint({ x: cursor.x - x, y: cursor.y - y }, hit);
     if (next !== inside) {
       inside = next;
-      if (!inside) hoverUntil = performance.now() + 350;
+      if (!inside) {
+        hoverUntil = performance.now() + 350;
+        controller.activity.dismissExpansion();
+      }
       window.setIgnoreMouseEvents(!inside, { forward: true });
       publish();
     }
@@ -149,7 +158,7 @@ function createIsland({ getWindow, controller, i18n, appearance, config, signIn,
   function start() {
     if (refreshTimer) return;
     refreshTimer = setInterval(() => void refresh(), 500);
-    captureTimer = setInterval(() => void capture(), 100);
+    captureTimer = setInterval(() => void capture(), 500);
     hitTimer = setInterval(updateHit, 40);
     for (const timer of [refreshTimer, captureTimer, hitTimer]) timer.unref();
     void refresh();
@@ -157,6 +166,7 @@ function createIsland({ getWindow, controller, i18n, appearance, config, signIn,
   function stop() {
     for (const timer of [refreshTimer, captureTimer, hitTimer]) clearInterval(timer);
     refreshTimer = captureTimer = hitTimer = undefined;
+    mirror.close(controller.activity.snapshot(context.projectId, context.sessionId).operation, framingOperations());
     epoch++; image = null; expanded = false; updateOpen = false; drag = undefined; inside = false; hoverUntil = 0;
   }
   function setMode(value) {
@@ -182,6 +192,7 @@ function createIsland({ getWindow, controller, i18n, appearance, config, signIn,
     if (value !== "fullscreen") await fullscreen(win, false);
     if (disposed || win.isDestroyed()) return;
     if (value === "island") {
+      if (mode !== "island") mirror.close(controller.activity.snapshot(context.projectId, context.sessionId).operation, framingOperations());
       await ensureWindow();
       if (disposed || win.isDestroyed()) return;
       mode = value;
@@ -256,8 +267,13 @@ function createIsland({ getWindow, controller, i18n, appearance, config, signIn,
     if (!fromIsland) throw new Error("Invalid presentation page");
     if (command === "menu") { menu(window); return { mode }; }
     if (command === "state") return snapshot();
+    if (command === "show-main") return showMainWindow();
     if (command === "sign-in") { await showMainWindow(); return signIn(); }
     if (command === "update-open") { openUpdates(); return; }
+    if (command === "update-check") {
+      if (!updateOpen || updates?.state.phase !== "error") throw new Error("Update retry is not available");
+      return updates.command("check");
+    }
     if (command === "update-close") {
       if (updates?.state.phase !== "installing") { updateOpen = false; hoverUntil = performance.now() + 350; publish(); }
       return;
@@ -283,6 +299,7 @@ function createIsland({ getWindow, controller, i18n, appearance, config, signIn,
   ipcMain.handle("desktop:presentation", handler);
   const unsubscribe = controller.activity.subscribe(() => {
     const latest = controller.activity.latest;
+    if (latest && ["read", "write", "view"].includes(latest.kind)) lastCanvasOperation = latest;
     if (latest?.id !== lastResource && latest?.phase === "completed" && ["create_project", "create_workspace", "create_org"].includes(latest.method)) {
       lastResource = latest.id;
       account.invalidate(false);

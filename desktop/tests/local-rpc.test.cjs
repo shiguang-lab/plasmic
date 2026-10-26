@@ -5,7 +5,41 @@ const os = require("node:os");
 const path = require("node:path");
 const net = require("node:net");
 const { setTimeout: delay } = require("node:timers/promises");
-const { startRpc, requestRpc } = require("../src/local-rpc.cjs");
+const { startRpc, requestRpc, connectRpcSession } = require("../src/local-rpc.cjs");
+
+test("Desktop shutdown disconnects every MCP session even while clients keep their sockets open", async () => {
+  const profile = await fs.mkdtemp(path.join(os.tmpdir(), "plasmic-rpc-sessions-"));
+  const calls = [];
+  const stop = await startRpc(profile, async (method) => { calls.push(method); return {}; });
+  const sessions = await Promise.all([connectRpcSession(profile), connectRpcSession(profile)]);
+  const closed = sessions.map((connection) => new Promise((resolve) => connection.once("close", resolve)));
+  try {
+    assert.deepEqual(calls, [], "Lifecycle connections never invoke editor operations");
+    await requestRpc(profile, "get_app_state");
+    assert.deepEqual(calls, ["get_app_state"]);
+    await stop();
+    await Promise.all(closed);
+    assert.ok(sessions.every((connection) => connection.destroyed));
+    await assert.rejects(connectRpcSession(profile), /Start Plasmic/);
+  } finally {
+    for (const connection of sessions) connection.destroy();
+    await fs.rm(profile, { recursive: true, force: true });
+  }
+});
+
+test("MCP sessions reject invalid credentials without reaching the editor", async () => {
+  const profile = await fs.mkdtemp(path.join(os.tmpdir(), "plasmic-rpc-sessions-"));
+  const stop = await startRpc(profile, async () => { throw new Error("Must not dispatch"); });
+  try {
+    const file = path.join(profile, "mcp-connection.json");
+    const address = JSON.parse(await fs.readFile(file, "utf8"));
+    await fs.writeFile(file, JSON.stringify({ ...address, token: "wrong" }));
+    await assert.rejects(connectRpcSession(profile), /Unauthorized/);
+  } finally {
+    await stop();
+    await fs.rm(profile, { recursive: true, force: true });
+  }
+});
 
 test("opt-in RPC audit retains complete payloads/errors/images and correlates metrics without logging authentication", async () => {
   const profile = await fs.mkdtemp(path.join(os.tmpdir(), "plasmic-rpc-audit-"));

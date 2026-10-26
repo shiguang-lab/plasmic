@@ -40,8 +40,12 @@ class IslandActivity {
   latest = null;
   task = null;
   idleUntil = null;
+  expansionDismissed = false;
   keepExpanded(now = performance.now()) {
-    return this.operations.size > 0 || this.idleUntil !== null && now < this.idleUntil;
+    return !this.expansionDismissed && (this.operations.size > 0 || this.idleUntil !== null && now < this.idleUntil);
+  }
+  dismissExpansion() {
+    this.expansionDismissed = true;
   }
   subscribe(listener) {
     this.listeners.add(listener);
@@ -55,6 +59,7 @@ class IslandActivity {
       kind: operationKind(method, input), label: operationLabels[method],
       ...(["create_project", "create_workspace", "create_org"].includes(method) && typeof input.name === "string" ? { subject: input.name.trim().slice(0, 120) } : {}), targets: operationTargets(method, input), phase: "queued" };
     this.operations.set(id, operation);
+    this.expansionDismissed = false;
     this.notify();
   }
   start(id) {
@@ -105,10 +110,11 @@ class IslandActivity {
   snapshot(projectId, sessionId, now = Date.now()) {
     const matches = (op) => (!op.projectId || op.projectId === projectId) && (!op.sessionId || op.sessionId === sessionId);
     const active = [...this.operations.values()].filter((op) => op.kind && matches(op));
-    const operation = active.findLast((op) => op.phase === "running") || active[0] ||
+    const operation = active.find((op) => op.phase === "running") || active[0] ||
       (this.latest && matches(this.latest) && (this.latest.phase === "failed" || now - this.latest.finishedAt < 2200) ? this.latest : null);
     const task = this.task?.projectId === projectId && matches(this.task) && (!this.task.finishedAt || now - this.task.finishedAt < 2200) ? this.task : null;
-    return { operation, task, queued: active.filter((op) => op.phase === "queued").length };
+    return { operation, task, queued: active.filter((op) => op.phase === "queued").length,
+      running: active.filter((op) => op.phase === "running").length };
   }
 }
 module.exports = { IslandActivity, operationKind, operationTargets };

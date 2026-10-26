@@ -4,16 +4,18 @@ const { mkdtemp, rm, mkdir, writeFile } = require("node:fs/promises");
 const { tmpdir } = require("node:os");
 const path = require("node:path");
 const { readSkillBootstrap } = require("../src/skill-bootstrap.cjs");
+const { startRpc } = require("../src/local-rpc.cjs");
 const { Client } = require("@modelcontextprotocol/sdk/client/index.js");
 const { StdioClientTransport } = require("@modelcontextprotocol/sdk/client/stdio.js");
 
 test("MCP bootstrap works without an open editor or a bundled workflow file", async (t) => {
   const agentsHome = await mkdtemp(path.join(tmpdir(), "plasmic-bootstrap-"));
   t.after(() => rm(agentsHome, { recursive: true, force: true }));
+  t.after(await startRpc(agentsHome, async () => { throw new Error("Bootstrap must not read an editor"); }));
   const client = new Client({ name: "skill-test", version: "1.0.0" });
   const transport = new StdioClientTransport({
     command: process.execPath,
-    args: ["-e", `require(${JSON.stringify(require.resolve("../src/mcp.cjs"))}).serveMcp("unused")`],
+    args: ["-e", `require(${JSON.stringify(require.resolve("../src/mcp.cjs"))}).serveMcp(${JSON.stringify(agentsHome)})`],
     stderr: "pipe",
     env: { ...process.env, DSH_AGENTS_HOME: agentsHome },
   });
@@ -40,6 +42,7 @@ test("MCP bootstrap works without an open editor or a bundled workflow file", as
 test("MCP honors an explicit local source and never falls back when that source is broken", async (t) => {
   const agentsHome = await mkdtemp(path.join(tmpdir(), "plasmic-bootstrap-"));
   t.after(() => rm(agentsHome, { recursive: true, force: true }));
+  t.after(await startRpc(agentsHome, async () => { throw new Error("Bootstrap must not read an editor"); }));
   const skill = path.join(agentsHome, "skills/plasmic");
   await mkdir(skill, { recursive: true });
   const resolver = path.join(agentsHome, "resolver.mjs");
@@ -50,7 +53,7 @@ test("MCP honors an explicit local source and never falls back when that source 
   const client = new Client({ name: "local-skill-test", version: "1.0.0" });
   t.after(() => client.close());
   await client.connect(new StdioClientTransport({ command: process.execPath,
-    args: ["-e", `require(${JSON.stringify(require.resolve("../src/mcp.cjs"))}).serveMcp("unused")`],
+    args: ["-e", `require(${JSON.stringify(require.resolve("../src/mcp.cjs"))}).serveMcp(${JSON.stringify(agentsHome)})`],
     env: { ...process.env, DSH_AGENTS_HOME: agentsHome }, stderr: "pipe" }));
   const result = await client.callTool({ name: "read_skill", arguments: {} });
   assert.ok(!result.isError);
@@ -72,6 +75,7 @@ test("MCP honors an explicit local source and never falls back when that source 
 test("MCP uses the current client's non-shared skill path without falling back", async (t) => {
   const root = await mkdtemp(path.join(tmpdir(), "plasmic-client-skill-"));
   t.after(() => rm(root, { recursive: true, force: true }));
+  t.after(await startRpc(root, async () => { throw new Error("Bootstrap must not read an editor"); }));
   const skill = path.join(root, ".claude/skills/plasmic");
   const skillPath = path.join(skill, "SKILL.md");
   const resolver = path.join(root, "resolver.mjs");
@@ -82,7 +86,7 @@ test("MCP uses the current client's non-shared skill path without falling back",
   const client = new Client({ name: "non-shared-skill-test", version: "1.0.0" });
   t.after(() => client.close());
   await client.connect(new StdioClientTransport({ command: process.execPath,
-    args: ["-e", `require(${JSON.stringify(require.resolve("../src/mcp.cjs"))}).serveMcp("unused")`],
+    args: ["-e", `require(${JSON.stringify(require.resolve("../src/mcp.cjs"))}).serveMcp(${JSON.stringify(root)})`],
     env: { ...process.env, DSH_AGENTS_HOME: path.join(root, ".agents") }, stderr: "pipe" }));
   const read = async (args) => client.callTool({ name: "read_skill", arguments: args });
   const payload = (result) => JSON.parse(result.content.find((item) => item.type === "text").text);

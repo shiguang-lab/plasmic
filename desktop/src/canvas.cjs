@@ -156,6 +156,12 @@ function snapshotDocument(input) {
       copy.textContent = el.value;
     } else if (el instanceof HTMLOptionElement) {
       copy.toggleAttribute("selected", el.selected);
+    } else if (el instanceof HTMLCanvasElement && el.width && el.height) {
+      const image = document.createElement("img");
+      for (const attr of copy.attributes) image.setAttribute(attr.name, attr.value);
+      image.src = el.toDataURL();
+      copy.replaceWith(image);
+      copies[index] = image;
     }
     if (el.scrollLeft || el.scrollTop) {
       copy.setAttribute(
@@ -184,7 +190,7 @@ function snapshotDocument(input) {
   });
   clone
     .querySelectorAll(
-      "script, iframe, object, embed, base, [data-plasmic-slot-placeholder]",
+      "script, iframe, object, embed, base, [data-plasmic-slot-placeholder], [data-plasmic-editor-only]",
     )
     .forEach((el) => el.remove());
   clone.querySelectorAll("*").forEach((el) => {
@@ -442,25 +448,7 @@ async function renderCanvas(win, input = {}) {
     } else {
       // Offscreen windows expose their rendered bitmap through paint events.
       // capturePage can fail with UnknownVizError on hidden offscreen surfaces.
-      const bitmap = await new Promise((resolve, reject) => {
-        const contents = preview.webContents;
-        const cleanup = () => {
-          clearTimeout(timer);
-          contents.removeListener("paint", painted);
-        };
-        const painted = (_event, _dirty, image) => {
-          const size = image.getSize();
-          if (size.width !== width || size.height !== height) return;
-          cleanup();
-          resolve(image);
-        };
-        const timer = setTimeout(() => {
-          cleanup();
-          reject(new Error("Offscreen canvas did not finish painting"));
-        }, 10000);
-        contents.on("paint", painted);
-        contents.invalidate();
-      });
+      const bitmap = await paintWindow(preview, width, height);
       image = rect ? bitmap.crop(rect) : bitmap;
     }
     let webp;
@@ -552,4 +540,24 @@ async function exportCanvas(win, input) {
     resized: result.resized,
   };
 }
-module.exports = { canvasFrames, renderCanvas, exportCanvas };
+function paintWindow(window, width, height) {
+  return new Promise((resolve, reject) => {
+    const contents = window.webContents;
+    const cleanup = () => {
+      clearTimeout(timer);
+      contents.removeListener("paint", painted);
+      contents.removeListener("destroyed", destroyed);
+    };
+    const painted = (_event, _dirty, image) => {
+      const size = image.getSize();
+      if (size.width !== width || size.height !== height) return;
+      cleanup(); resolve(image);
+    };
+    const destroyed = () => { cleanup(); reject(new Error("Canvas renderer was closed")); };
+    const timer = setTimeout(() => { cleanup(); reject(new Error("Offscreen canvas did not finish painting")); }, 10000);
+    contents.on("paint", painted);
+    contents.once("destroyed", destroyed);
+    contents.invalidate();
+  });
+}
+module.exports = { canvasFrames, renderCanvas, exportCanvas, snapshotDocument, readyDocument, paintWindow };

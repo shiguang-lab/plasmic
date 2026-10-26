@@ -90,10 +90,10 @@ app.whenReady().then(async () => {
     let html;
     if (url.origin === origin) html = `<header style="height:44px"><span data-desktop-update-slot="header"></span></header><iframe class="studio-frame" style="border:0;width:1100px;height:650px" src="${canvasOrigin}/editor"></iframe>
       <script>${editorScript}</script><script src="/editor-bridge.js"></script><script src="/renderer-i18n.js"></script>`;
-    else if (url.pathname === "/editor") html = `<div class="canvas-editor__canvas-clipper" style="position:absolute;left:180px;top:20px;width:820px;height:570px;background:#303238"><iframe class="canvas-editor__viewport" style="position:absolute;left:0;top:0;width:360px;height:400px;border:0;pointer-events:none" src="${canvasOrigin}/page"></iframe><iframe class="canvas-editor__viewport" style="position:absolute;left:400px;top:70px;width:340px;height:460px;border:0;pointer-events:none" src="${canvasOrigin}/page-two"></iframe></div><script>addEventListener('message',event=>{if(event.origin==='${origin}'&&event.data?.fixtureWrite)document.querySelector('.canvas-editor__canvas-clipper').style.background='#243e38';});</script>`;
+    else if (url.pathname === "/editor") html = `<div class="canvas-editor__canvas-clipper" style="position:absolute;left:180px;top:20px;width:820px;height:570px;background:#303238"><iframe class="canvas-editor__viewport" data-plasmic-frame-uuid="frame" data-plasmic-component-uuid="page" style="position:absolute;left:0;top:0;width:360px;height:400px;border:0;pointer-events:none" src="${canvasOrigin}/page"></iframe><iframe class="canvas-editor__viewport" data-plasmic-frame-uuid="frame-two" data-plasmic-component-uuid="page-two" style="position:absolute;left:400px;top:70px;width:340px;height:460px;border:0;pointer-events:none" src="${canvasOrigin}/page-two"></iframe></div><script>addEventListener('message',event=>{if(event.origin==='${origin}'&&event.data?.fixtureWrite)document.querySelector('.canvas-editor__canvas-clipper').style.background='#243e38';});</script>`;
     else if (url.pathname === "/preview") html = `<div class="live-root-container" data-plasmic-preview-component="page" style="height:100vh;background:#f5f5f5;padding:32px"><button onclick="document.getElementById('result').textContent='Submitted'">Submit</button><output id="result"></output></div>`;
     else html = `<main data-plasmic-valkey="root.table" style="margin:30px;background:white;padding:24px;border-radius:8px"><h3>审批列表</h3><p>采购申请　　审批中</p><p>费用报销　　已完成</p></main>`;
-    return new Response(`<html ${url.pathname === "/page" ? 'data-plasmic-frame-uuid="frame" data-plasmic-component-uuid="page"' : url.pathname === "/page-two" ? 'data-plasmic-frame-uuid="frame-two" data-plasmic-component-uuid="page-two"' : ''}><head><style>body{margin:0;font:14px -apple-system;background:#222;color:#ddd}iframe{display:block}main{color:#222}</style></head><body>${html}</body></html>`, { headers: { "Content-Type": "text/html; charset=utf-8" } });
+    return new Response(`<html ${url.pathname === "/page" ? 'data-plasmic-render-ready data-plasmic-frame-uuid="frame" data-plasmic-component-uuid="page"' : url.pathname === "/page-two" ? 'data-plasmic-render-ready data-plasmic-frame-uuid="frame-two" data-plasmic-component-uuid="page-two"' : ''}><head><style>body{margin:0;font:14px -apple-system;background:#222;color:#ddd}iframe{display:block}main{color:#222}</style></head><body>${html}</body></html>`, { headers: { "Content-Type": "text/html; charset=utf-8" } });
   });
   main = new BrowserWindow({ width: 1100, height: 760, show: false, webPreferences: {
     session: partition, preload: path.join(root, "src/preload.cjs"), sandbox: true,
@@ -125,20 +125,19 @@ app.whenReady().then(async () => {
   assert.equal(initialState.operations, undefined, "metadata calls must not report themselves as business operations");
   await until(async () => await inspect("document.getElementById('shell').dataset.expanded==='true'"), "external metadata call expands card");
   await until(() => presentation.snapshot().image?.src, "external call starts mirroring");
-  await until(async () => await inspect("!document.getElementById('summary').hidden && document.getElementById('save-text').textContent==='已保存'"), "idle project information");
+  await until(async () => await inspect("document.querySelector('.info').dataset.activity==='false' && document.getElementById('phase-text').textContent==='已保存'"), "idle project information");
   assert.equal(await inspect("document.getElementById('page').textContent"), "审批系统");
   assert.equal(await inspect("document.getElementById('mission').textContent"), "审批组合画布", "freeform views use the canvas name rather than the focused child page");
-  assert.equal(await inspect("document.getElementById('page-count').textContent"), "2");
-  assert.equal(await inspect("document.getElementById('component-count').textContent"), "4");
-  assert.equal(await inspect("document.getElementById('view-metric').textContent"), "65%");
+  assert.ok(await inspect("document.getElementById('drag-handle').title.includes('2 页面 · 4 组件')"));
+  assert.equal(await inspect("document.getElementById('view-metric').textContent"), "");
   await delay(500);
   fs.writeFileSync(path.join(reportDir, "idle-info.png"), (await island.webContents.capturePage()).toPNG());
   await inspect("window.shapeChanges=[];new MutationObserver(records=>{for(const r of records)shapeChanges.push(document.getElementById('shell').dataset.expanded)}).observe(document.getElementById('shell'),{attributes:true,attributeFilter:['data-expanded']});true");
   assert.equal(await main.webContents.executeJavaScript("typeof desktopPresentation"), "undefined");
   assert.equal(await main.webContents.mainFrame.frames[0].executeJavaScript("typeof desktopPresentation"), "undefined");
   await assert.rejects(inspect("desktopIsland.command('mode','window')"), /Invalid island command/);
-  assert.equal(containsPoint({ x: 0, y: 0 }, { x: 0, y: 0, width: 420, height: 136, radius: 22 }), false);
-  assert.equal(containsPoint({ x: 25, y: 25 }, { x: 0, y: 0, width: 420, height: 136, radius: 22 }), true);
+  assert.equal(containsPoint({ x: 0, y: 0 }, { x: 0, y: 0, width: 440, height: 144, radius: 23 }), false);
+  assert.equal(containsPoint({ x: 25, y: 25 }, { x: 0, y: 0, width: 440, height: 144, radius: 23 }), true);
   passed.push("native island starts compact; all dispatched calls expand and mirror without throttling; bridge restrictions and rounded hit geometry");
 
   stopRpc = await startRpc(profile, (method, input) => controller.dispatch(method, input));
@@ -151,7 +150,7 @@ app.whenReady().then(async () => {
   };
   const read = call("execute", { name: "read", input: { collection: "components" } });
   await until(async () => await inspect(`document.getElementById('shell').dataset.expanded==='true' && document.getElementById('phase-text').textContent===${JSON.stringify(i18n.t("Reading"))}`), "real MCP read expands");
-  assert.equal(await inspect("document.getElementById('summary').hidden"), true, "actual MCP work replaces idle information");
+  assert.equal(await inspect("document.getElementById('view-metric').hidden"), true, "actual MCP work replaces idle information");
   assert.equal(await inspect("document.getElementById('mission').textContent"), "审批组合画布", "reads identify the actual canvas instead of repeating the action");
   assert.equal(await inspect("document.getElementById('context').textContent"), "画布");
   await until(() => presentation.snapshot().image?.src, "hidden compositor capture");
@@ -160,13 +159,13 @@ app.whenReady().then(async () => {
   await delay(200);
   assert.equal(await inspect("document.querySelector('.feedback-sweep')===scanNode && scanNode.getAnimations()[0].currentTime>scanTime+100"), true, "capture updates must not restart the scan animation");
   const before = presentation.snapshot().image;
-  assert.equal(before.width, 756); assert.equal(before.height, 546);
+  assert.equal(before.width, 772); assert.equal(before.height, 562);
   await read;
   await until(async () => await inspect("!document.getElementById('mirror').hidden"), "mirror displays");
   assert.equal(await inspect("getComputedStyle(document.getElementById('mirror')).objectFit"), "contain");
   await delay(500);
   assert.equal(await inspect("document.querySelector('.visual').getBoundingClientRect().bottom <= document.getElementById('shell').getBoundingClientRect().bottom - 10"), true, "mirror stays inside card padding");
-  assert.equal(await inspect("document.getElementById('progress').hidden"), true);
+  assert.equal(await inspect("document.getElementById('progress')===null"), true);
   await delay(650);
   assert.deepEqual(await main.webContents.executeJavaScript("fixture.calls"), ["read"], "mirroring never invokes model reads");
   await delay(2600);
@@ -174,25 +173,59 @@ app.whenReady().then(async () => {
   assert.equal(await inspect("document.getElementById('feedback').hidden"), true, "idle must not scan");
   passed.push("stdio MCP read scans; idle and completed calls retain the current canvas without extra model reads or inferred progress");
 
+  const complete = presentation.snapshot().image;
+  const movedAt = Date.now();
+  await main.webContents.mainFrame.frames[0].executeJavaScript(`(() => {
+    const canvas=document.querySelector('.canvas-editor__canvas-clipper');
+    canvas.style.transformOrigin='0 0';canvas.style.transform='translate(-700px,-300px) scale(1.7)';
+    const tools=document.createElement('aside');tools.id='fixture-tools';tools.className='canvas-editor__left-pane';
+    tools.textContent='Structure tree and floating tools';tools.style='position:fixed;inset:0;background:#ff00ff;z-index:99999';document.body.append(tools);
+    const doc=document.querySelector('iframe').contentDocument,overlay=doc.createElement('div');
+    overlay.id='fixture-overlay';overlay.setAttribute('data-plasmic-editor-only','');overlay.style='position:fixed;inset:0;background:#ff00ff';doc.body.append(overlay);
+  })()`);
+  await until(()=>presentation.snapshot().image?.capturedAt>movedAt,"clean overview refreshes while the editor is panned and covered by tools");
+  assert.equal(presentation.snapshot().image.src,complete.src,"complete artboards and spacing stay identical across pan, zoom and editor overlays");
+  assert.equal(presentation.snapshot().image.width,complete.width);
+  await main.webContents.mainFrame.frames[0].executeJavaScript(`(() => {
+    const canvas=document.querySelector('.canvas-editor__canvas-clipper');
+    if(!canvas.style.transform || !document.getElementById('fixture-tools'))throw new Error('Capture changed the live editor');
+    canvas.style.transform='';document.getElementById('fixture-tools').remove();
+    document.querySelector('iframe').contentDocument.getElementById('fixture-overlay').remove();
+  })()`);
+  passed.push("complete artboards fit independently of editor pan/zoom; structure trees, floating tools and editor-only overlays never enter the image or change source UI");
+
   const composite = call("execute", { name:"read", input:{componentUuids:["page","page-two"]} });
   await until(async () => await inspect("document.querySelectorAll('.feedback-region').length===2"), "both artboards share the same mirror");
   const regions = presentation.snapshot().image.feedback.regions;
   assert.equal(regions.length, 2);
   assert.ok(regions[1].x > regions[0].x + regions[0].width && regions[1].y > regions[0].y, "artboard spacing and vertical offset survive the composite mirror");
   await composite;
+  const focusRead = call("execute", {name:"read",input:{collection:"components",componentUuids:["page"]}});
+  await until(()=>presentation.snapshot().image?.framing==="page" && presentation.snapshot().image.width===360 && presentation.snapshot().image.height===400,"single-page read fits its complete artboard");
+  await focusRead;
+  await call("get_app_state",{});
+  await delay(600);
+  assert.equal(presentation.snapshot().image.framing,"page","metadata and completion retain the readable page view");
+  const secondRead=call("execute",{name:"read",input:{collection:"components",componentUuids:["page-two"]}});
+  await until(()=>presentation.snapshot().image?.width===340 && presentation.snapshot().image.height===460,"the next target switches to its complete page");
+  await secondRead;
+  await call("execute",{name:"read",input:{collection:"components"}});
+  await until(()=>presentation.snapshot().image?.framing==="overview" && presentation.snapshot().image.width===772,"a whole-canvas read restores the complete overview");
+  await main.webContents.executeJavaScript("window.slowRead=PLASMIC_AI_TOOLS.read;PLASMIC_AI_TOOLS.read=async()=>({success:true,output:JSON.stringify({nodes:['Table']})});true");
+  await call("execute",{name:"read",input:{componentUuids:["page"]}});
+  await call("execute",{name:"save",input:{}});
+  await until(()=>presentation.snapshot().image?.framing==="page" && presentation.snapshot().image.width===360,"a fast read followed by save retains the page intent before the next capture");
+  await main.webContents.executeJavaScript("PLASMIC_AI_TOOLS.read=slowRead;true");
+  passed.push("overview opens complete; single-page calls fit their full viewport; completion and metadata retain focus; new page targets switch focus and whole-canvas reads restore overview");
   await main.webContents.executeJavaScript("window.fixtureTools=PLASMIC_AI_TOOLS;window.PLASMIC_AI_TOOLS=undefined");
   await until(() => presentation.snapshot().context.loading, "bridge loading");
   assert.equal(presentation.snapshot().image, null, "loading clears old pixels");
-  assert.equal(await inspect("document.querySelector('#summary .counts').hidden"), true, "loading cannot show stale project counts");
-  assert.equal(await inspect("document.getElementById('save-state').hidden"), true, "loading cannot claim a previous save state");
+  assert.equal(await inspect("document.getElementById('page-count')===null"), true, "loading cannot show stale project counts");
+  assert.equal(await inspect("document.getElementById('phase-text').textContent"),i18n.t("Preparing preview image…"),"loading does not claim a previous save state");
   assert.equal(await inspect("document.getElementById('shell').dataset.expanded"), "true");
-  assert.equal(await inspect("document.getElementById('unavailable').textContent"), i18n.t("Loading current view…"));
+  assert.equal(await inspect("document.getElementById('view-loading').hidden"),false);
   await until(async()=>await inspect("document.querySelector('.info').dataset.viewLoading==='true'"),"idle loading message occupies the remaining left content area");
-  assert.equal(await inspect(`(() => {
-    const mission=document.getElementById('mission').getBoundingClientRect(),range=document.createRange();
-    range.selectNodeContents(document.getElementById('unavailable'));const text=range.getBoundingClientRect();
-    return Math.abs(mission.y+mission.height/2-text.y-text.height/2)<=3 && document.getElementById('summary').hidden;
-  })()`),true,"left loading copy aligns vertically with the right loading copy without summary overlap");
+  assert.equal(await inspect("document.getElementById('view-metric').hidden && document.getElementById('mission').textContent==='正在打开画布…'"),true,"loading keeps identity in place and reserves loading feedback for the preview");
   fs.writeFileSync(path.join(reportDir, "loading.png"), (await island.webContents.capturePage()).toPNG());
   await delay(700);
   await main.webContents.executeJavaScript("window.PLASMIC_AI_TOOLS=fixtureTools;true");
@@ -207,16 +240,16 @@ app.whenReady().then(async () => {
 
   const task = { taskId: "approval-task", projectId: "p", sequence: 0, title: "调整审批表格", status: "running", stage: "调整操作列", stageIndex: 2, stageCount: 3 };
   await call("report_task", task);
-  await until(async () => await inspect("document.getElementById('mission').textContent==='调整审批表格' && document.getElementById('stage-count').textContent==='2/3'"), "task metadata");
+  await until(async () => await inspect("document.getElementById('mission').textContent==='调整审批表格' && document.getElementById('stage-count').textContent==='第 2/3 步'"), "task metadata");
   for (const locale of ["en","zh-CN","zh-TW","ja","ko"]) {
     i18n.setLocale(locale);
     await until(async () => await inspect(`document.documentElement.lang===${JSON.stringify(locale)}`), `${locale} activity hierarchy`);
     assert.equal(await inspect(`(() => {
-      const info=document.querySelector('.info'),mission=document.getElementById('mission').getBoundingClientRect(),phase=document.getElementById('phase').getBoundingClientRect(),progress=document.getElementById('progress').getBoundingClientRect(),visual=document.querySelector('.visual').getBoundingClientRect();
-      return info.scrollHeight<=info.clientHeight && mission.top-document.getElementById('drag-handle').getBoundingClientRect().bottom>=6
-        && phase.top-mission.bottom>=6 && progress.top>=phase.bottom && Math.abs(progress.bottom-visual.bottom)<=3
-        && document.getElementById('summary').hidden && !document.getElementById('activity-detail');
-    })()`), true, `${locale} task, status and progress have breathing room without overflow or metadata stacking`);
+      const info=document.querySelector('.info'),mission=document.getElementById('mission').getBoundingClientRect(),phase=document.getElementById('phase').getBoundingClientRect(),meta=document.getElementById('activity-meta').getBoundingClientRect(),visual=document.querySelector('.visual').getBoundingClientRect();
+      return info.scrollHeight<=info.clientHeight && phase.top-document.querySelector('.heading').getBoundingClientRect().bottom>=4
+        && phase.top-document.querySelector('.heading').getBoundingClientRect().bottom<=8 && meta.top>=phase.bottom && meta.bottom<=visual.bottom
+        && document.getElementById('view-metric').hidden && document.getElementById('progress')===null;
+    })()`), true, `${locale} task stages and queue metadata remain grouped without artificial percentage progress`);
   }
   i18n.setLocale("zh-CN");
   assert.equal(await inspect("document.getElementById('feedback').hidden"), true, "task metadata alone must not invent scans");
@@ -234,20 +267,20 @@ app.whenReady().then(async () => {
   await write;
   await until(async () => await inspect("document.getElementById('phase-text').textContent==='更改已应用'"), "write completion is not saved");
   await until(() => presentation.snapshot().image?.src !== before.src, "hidden view updates after write");
-  assert.equal(await inspect("document.getElementById('summary').hidden"),true,"ordinary project statistics stay hidden during activity");
+  assert.equal(await inspect("document.getElementById('view-metric').hidden"),true,"ordinary project statistics stay hidden during activity");
   const dark = await island.webContents.capturePage();
   fs.writeFileSync(path.join(reportDir, "edit.png"), dark.toPNG());
-  await until(async () => await inspect("!document.getElementById('summary').hidden && document.getElementById('save-state').dataset.status==='pending'"), "write completion returns to genuine unsaved status");
+  await until(async () => await inspect("document.querySelector('.info').dataset.activity==='false' && document.getElementById('phase-text').textContent==='未保存'"), "write completion returns to genuine unsaved status");
   await call("execute",{name:"save",input:{}});
-  await until(async () => await inspect("document.getElementById('context').textContent==='画布' && document.getElementById('phase-text').textContent==='已保存' && document.getElementById('summary').hidden"), "save result appears once while the canvas context remains stable");
+  await until(async () => await inspect("document.getElementById('context').textContent==='画布' && document.getElementById('phase-text').textContent==='已保存' && document.getElementById('view-metric').hidden"), "save result appears once while the canvas context remains stable");
   await delay(300);
   fs.writeFileSync(path.join(reportDir,"save-result.png"),(await island.webContents.capturePage()).toPNG());
-  await until(async () => await inspect("!document.getElementById('summary').hidden && document.getElementById('save-state').dataset.status==='saved'"), "successful save updates idle information");
-  assert.equal(await inspect("document.getElementById('save-text').scrollWidth <= document.getElementById('save-text').clientWidth"), true, "Chinese saved status fits");
+  await until(async () => await inspect("document.querySelector('.info').dataset.activity==='false' && document.getElementById('phase-text').textContent==='已保存'"), "successful save updates idle information");
+  assert.equal(await inspect("document.getElementById('phase-text').scrollWidth <= document.getElementById('phase-text').clientWidth"), true, "Chinese saved status fits");
   await call("execute", { name: "changeElement", input: { elementUuid: "missing" } }, true);
-  await until(async () => await inspect("document.getElementById('issue-text').textContent.includes('Element missing')"), "actual editor error");
+  await until(async () => await inspect("document.getElementById('issue').title.includes('Element missing')"), "actual editor error");
   assert.equal(await inspect("document.getElementById('feedback').hidden"), true, "failed calls clear visual feedback");
-  assert.equal(await inspect("document.getElementById('summary').hidden && document.getElementById('progress').hidden"),true,"error details take priority over ordinary statistics and progress");
+  assert.equal(await inspect("document.getElementById('view-metric').hidden && document.getElementById('progress')===null"),true,"error details take priority over ordinary statistics and progress");
   passed.push("task stages, explicit plan, blocker persistence, actual write/result/error and continuously updating hidden mirror");
 
   await main.webContents.executeJavaScript("history.pushState({},'', '/projects/p/docs')");
@@ -258,13 +291,14 @@ app.whenReady().then(async () => {
   await main.webContents.executeJavaScript("history.pushState({},'', '/workspaces/w')");
   await until(() => presentation.snapshot().context.surface === "dashboard" && presentation.snapshot().context.projectId === null, "workspace dashboard");
   await until(async () => await inspect("document.getElementById('project-count').textContent==='2' && !document.getElementById('account-statistics').hidden"), "real account reads populate dashboard statistics");
-  assert.equal(await inspect("document.querySelector('.visual').hidden && document.getElementById('unavailable').hidden && document.getElementById('summary').hidden"),true,"dashboard has no canvas or project placeholder");
-  assert.equal(await inspect("document.getElementById('mission').textContent"),"业务组织 · 采购工作区");
+  assert.equal(await inspect("document.querySelector('.visual').hidden && document.getElementById('unavailable').hidden && document.getElementById('view-metric').hidden"),true,"dashboard has no canvas or project placeholder");
+  assert.equal(await inspect("document.getElementById('mission').textContent"),"演示账号");
+  assert.equal(await inspect("document.getElementById('account-location').textContent"),"业务组织 · 采购工作区");
   assert.equal(await inspect("document.getElementById('account-email').textContent"),"demo@example.test");
   assert.equal(await inspect(`(() => {
-    const mark=document.getElementById('account-presence'),name=document.getElementById('page').getBoundingClientRect(),r=mark.getBoundingClientRect();
-    return !mark.hidden && mark.getAttribute('aria-label')==='已登录' && r.left>=name.right && r.left-name.right<=8 && !document.getElementById('account-status');
-  })()`),true,"signed-in indicator stays beside the account name instead of occupying the footer");
+    const mark=document.getElementById('account-presence'),name=document.getElementById('mission').getBoundingClientRect(),r=mark.getBoundingClientRect();
+    return !mark.hidden && mark.getAttribute('aria-label')==='已登录' && mark.parentElement.className==='identity' && r.top<name.top && !document.getElementById('account-status');
+  })()`),true,"signed-in indicator stays in the trailing header position");
   fs.writeFileSync(path.join(reportDir,"account-idle.png"),(await island.webContents.capturePage()).toPNG());
   elapsed += 600_001;
   await until(async () => await inspect("document.getElementById('shell').dataset.expanded==='false'"), "ten idle minutes collapse on dashboard");
@@ -286,11 +320,11 @@ app.whenReady().then(async () => {
   const creating = call("create_project", {name:"新建审批项目"});
   await until(async () => await inspect("document.getElementById('project').textContent==='新建审批项目' && document.body.dataset.working==='true'"), "project creation shows in capsule");
   const failing = call("create_project", {name:"失败项目"}, true);
-  await until(async () => await inspect("!document.getElementById('queue').hidden && document.getElementById('queue').textContent==='1'"), "queued work shows in capsule");
+  await until(async () => await inspect("!document.getElementById('queue').hidden && document.getElementById('queue').textContent==='+1'"), "queued work shows in capsule");
   assert.ok(await inspect("document.getElementById('capsule-handle').title.includes('新建审批项目')"), "capsule exposes the actual resource name");
   assert.equal(await inspect("document.getElementById('shell').dataset.expanded"), "true", "project creation expands a dashboard card too");
-  assert.equal(await inspect("document.querySelector('.visual').hidden && !document.getElementById('account-overview').hidden"),true,"resource work keeps account statistics instead of a canvas");
-  assert.equal(await inspect("document.getElementById('stage-count').textContent"),`${i18n.t("Queued")} 1`,"the expanded card also shows its queue");
+  assert.equal(await inspect("document.querySelector('.visual').hidden && document.getElementById('account-overview').hidden"),true,"resource work focuses on the action without a canvas or account statistics");
+  assert.equal(await inspect("document.getElementById('queued-count').textContent"),i18n.t("{count} queued",{count:1}),"the expanded card also shows its queue");
   await delay(600);
   fs.writeFileSync(path.join(reportDir, "capsule-running.png"), (await island.webContents.capturePage()).toPNG());
   await delay(2400);
@@ -317,8 +351,8 @@ app.whenReady().then(async () => {
     i18n.setLocale(locale);
     await until(async () => await inspect(`document.getElementById('account-sign-in').textContent===${JSON.stringify(i18n.t("Sign in"))}`), `${locale} sign-in action localizes`);
     assert.equal(await inspect(`(() => {
-      const button=document.getElementById('account-sign-in'),b=button.getBoundingClientRect(),m=document.getElementById('mission').getBoundingClientRect(),info=document.querySelector('.info').getBoundingClientRect();
-      return b.width>0 && button.scrollWidth<=button.clientWidth && b.top>=m.bottom && b.bottom<=info.bottom && b.right<=info.right;
+      const button=document.getElementById('account-sign-in'),b=button.getBoundingClientRect(),m=document.querySelector('.heading').getBoundingClientRect(),info=document.querySelector('.info').getBoundingClientRect();
+      return b.width>0 && button.scrollWidth<=button.clientWidth && b.left>=m.right+8 && b.top>=info.top && b.bottom<=info.bottom && b.right<=info.right;
     })()`),true,`${locale} sign-in button fits without overlap`);
   }
   i18n.setLocale("zh-CN");
@@ -333,11 +367,11 @@ app.whenReady().then(async () => {
     return accountRequest(url,...args);
   };
   main.webContents.session.cookies.emit("changed",{},{...cookie,value:"account-b"},"explicit",false);
-  await until(async()=>await inspect("!document.getElementById('account-loading').hidden && !document.getElementById('account-stats-loading').hidden && document.getElementById('mission').hidden && document.getElementById('account-empty').hidden && document.getElementById('account-presence').hidden"),"both account columns show skeletons without repeated loading copy or old identity");
+  await until(async()=>await inspect("!document.getElementById('account-loading').hidden && document.getElementById('account-stats-loading').hidden && document.getElementById('mission').hidden && !document.getElementById('account-empty') && document.getElementById('account-presence').hidden"),"both account columns show skeletons without repeated loading copy or old identity");
   await delay(350);
   fs.writeFileSync(path.join(reportDir,"account-loading.png"),(await island.webContents.capturePage()).toPNG());
   releaseIdentity();
-  await until(async()=>await inspect("document.getElementById('page').textContent==='另一账号' && !document.getElementById('account-presence').hidden && !document.getElementById('account-loading').hidden && !document.getElementById('account-stats-loading').hidden"),"verified identity appears while statistics are still loading");
+  await until(async()=>await inspect("document.getElementById('mission').textContent==='另一账号' && !document.getElementById('account-presence').hidden && document.getElementById('account-loading').hidden && !document.getElementById('account-stats-loading').hidden"),"verified identity appears while statistics are still loading");
   releaseStatistics();
   await until(async () => await inspect("document.getElementById('account-email').textContent==='other@example.test' && document.getElementById('project-count').textContent==='0'"),"replacement account has its own identity and totals");
   assert.equal(await inspect("document.getElementById('account-sign-in').hidden"),true,"verified login replaces the sign-in button with account information");
@@ -347,13 +381,13 @@ app.whenReady().then(async () => {
     await until(async () => await inspect(`document.documentElement.lang===${JSON.stringify(locale)}`),`${locale} account labels render`);
     assert.equal(await inspect("document.getElementById('account-overview').scrollWidth <= document.getElementById('account-overview').clientWidth"),true,`${locale} account card fits`);
     assert.equal(await inspect(`(() => {
-      const prefs=document.getElementById('account-preferences'),r=prefs.getBoundingClientRect();
-      return !prefs.hidden && prefs.scrollWidth<=prefs.clientWidth && [...prefs.querySelectorAll('dd')].every(el=>el.scrollWidth<=el.clientWidth)
-        && r.top>=document.getElementById('mission').getBoundingClientRect().bottom && r.bottom<=document.getElementById('account-email').getBoundingClientRect().top;
-    })()`),true,`${locale} theme and language fit between location and email without overlap`);
+      const title=document.getElementById('drag-handle').title,email=document.getElementById('account-email');
+      return title.includes(${JSON.stringify(i18n.t("Theme"))}) && title.includes(${JSON.stringify(i18n.t("Language"))})
+        && email.scrollWidth<=email.clientWidth && !document.getElementById('account-preferences');
+    })()`),true,`${locale} account identity fits and preferences are available in its tooltip`);
   }
   appearance.set("light");
-  await until(async()=>await inspect(`document.getElementById('account-theme').textContent===${JSON.stringify(i18n.t("Light"))}`),"account metadata follows the real appearance snapshot");
+  await until(async()=>await inspect(`document.getElementById('drag-handle').title.includes(${JSON.stringify(i18n.t("Light"))})`),"account tooltip follows the real appearance snapshot");
   appearance.set("dark");
   i18n.setLocale("zh-CN");
   passed.push("account overview uses API totals without a canvas; creation refreshes totals; logout clears old identities; verified replacement restores account data; localized labels and sign-in action fit; MCP subject, queue, persistent error and recovery remain visible");
@@ -395,8 +429,8 @@ app.whenReady().then(async () => {
   await until(() => !presentation.snapshot().stale, "capture recovery");
   await delay(2400);
   assert.equal(await inspect("document.getElementById('shell').dataset.expanded"), "true", "idle Preview remains expanded");
-  assert.equal(await inspect("document.getElementById('summary').hidden"), false);
-  assert.equal(await inspect("document.getElementById('components-label').scrollWidth <= document.getElementById('components-label').clientWidth"), true, "English component label fits without truncation");
+  assert.equal(await inspect("document.getElementById('view-metric').hidden"), false);
+  assert.equal(await inspect("document.getElementById('components-label')===null"),true,"project statistics do not occupy the Preview information group");
   assert.equal(await inspect("document.getElementById('mission').textContent"), "审批预览", "Preview page name comes from the runtime, not retained editor selection");
   assert.equal(await inspect("document.getElementById('view-metric').textContent"), "360 × 560");
   assert.equal(await inspect("document.getElementById('view-metric').getBoundingClientRect().right <= document.querySelector('.info').getBoundingClientRect().right"), true);
@@ -444,9 +478,31 @@ app.whenReady().then(async () => {
   await renewed;
   cursor = {x:-10000,y:-10000};
   await delay(450);
-  assert.deepEqual(await inspect("shapeChanges"), [], "a new call during hover survives pointer exit");
+  assert.deepEqual(await inspect("shapeChanges"), ["false"], "pointer exit overrides a call that arrived during hover");
+  await call("preview", {action:"state"});
+  await until(async () => await inspect("document.getElementById('shell').dataset.expanded==='true'"), "the next MCP call reopens a dismissed card");
+  await main.webContents.executeJavaScript("window.fixtureRead=PLASMIC_AI_TOOLS.read;PLASMIC_AI_TOOLS.read=async input=>{await new Promise(resolve=>window.releaseRead=resolve);return fixtureRead(input)};true");
+  const heldRead = call("execute", {name:"read",input:{collection:"components"}});
+  await until(async () => await main.webContents.executeJavaScript("typeof releaseRead==='function'"), "MCP read is running");
+  cursor = {x:islandX+228,y:islandY+30};
+  await delay(100);
+  cursor = {x:-10000,y:-10000};
+  await until(async () => await inspect("document.getElementById('shell').dataset.expanded==='false'"), "pointer exit collapses a running MCP call");
+  assert.ok(controller.activity.operations.size > 0, "the MCP call continues while the card is collapsed");
+  await delay(600);
+  assert.equal(await inspect("document.getElementById('shell').dataset.expanded"), "false", "refresh and captures cannot undo pointer dismissal");
+  await main.webContents.executeJavaScript("releaseRead();PLASMIC_AI_TOOLS.read=fixtureRead;true");
+  await heldRead;
+  await delay(600);
+  assert.equal(await inspect("document.getElementById('shell').dataset.expanded"), "false", "finishing the dismissed call does not reopen it");
+  cursor = {x:islandX+228,y:islandY+30};
+  await until(async () => await inspect("document.getElementById('shell').dataset.expanded==='true'"), "hover can still open a dismissed card");
+  cursor = {x:-10000,y:-10000};
+  await until(async () => await inspect("document.getElementById('shell').dataset.expanded==='false'"), "hover leave still collapses a dismissed card");
+  await call("preview", {action:"state"});
+  await until(async () => await inspect("document.getElementById('shell').dataset.expanded==='true'"), "the next call after completion restores automatic expansion");
 
-  passed.push("monotonic ten-minute expiry, native pointer hover/leave grace, expiry under hover and new calls during hover avoid shape oscillation");
+  passed.push("monotonic ten-minute expiry; native hover/leave grace overrides running calls and idle leases; completion stays collapsed and the next call reopens");
 
   assert.equal(await inspect("document.querySelector('.tools, #mode, #return') === null"), true, "no floating window or display-mode icons");
   const originalPopup = Menu.prototype.popup;
@@ -516,7 +572,7 @@ app.whenReady().then(async () => {
   updater.emit("download-progress",{percent:67.9});
   await until(async()=>await inspect("document.getElementById('update-progress').value===67"),"shared download progress");
   await delay(600);
-  assert.equal(await inspect("Math.round(document.getElementById('shell').getBoundingClientRect().height)"),136);
+  assert.equal(await inspect("Math.round(document.getElementById('shell').getBoundingClientRect().height)"),144);
   assert.equal(await inspect("document.getElementById('update-panel').scrollHeight <= document.getElementById('update-panel').clientHeight"),true,"update pane fits without a new scroll area");
   fs.writeFileSync(path.join(reportDir,"update-downloading.png"),(await island.webContents.capturePage()).toPNG());
   finishDownload();await checking;
@@ -567,7 +623,7 @@ app.whenReady().then(async () => {
   await until(()=>controller.activity.operations.size===2,"running and queued calls before restart");
   await inspect("document.getElementById('update-install').click();true");
   await until(()=>presentation.snapshot().updateWaiting,"install waits for MCP calls");
-  await until(async()=>await inspect("document.getElementById('update-description').textContent==='Waiting for MCP operations to finish…'"),"real wait status");
+  await until(async()=>await inspect("document.getElementById('update-description').textContent==='Your current operations will finish before Plasmic restarts.'"),"real wait status");
   assert.equal(installs,0);
   await inspect("desktopIsland.command('update-close')");
   assert.equal(presentation.snapshot().updateOpen,true,"install confirmation cannot disappear mid-install");
@@ -590,6 +646,11 @@ app.whenReady().then(async () => {
   await finish(0);
 }).catch(async (error) => {
   console.error(error.stack, passed);
-  fs.writeFileSync(path.join(reportDir, "failure.json"), JSON.stringify({ error: error.stack, passed }, null, 2));
+  const value=presentation?.snapshot();
+  const diagnostics=value?{context:value.context,activity:value.activity,expanded:value.expanded,stale:value.stale,image:value.image?{width:value.image.width,height:value.image.height,identity:value.image.identity,feedback:value.image.feedback}:null}:null;
+  if(island&&!island.isDestroyed()){
+    try{diagnostics.dom=await island.webContents.executeJavaScript("({shell:document.getElementById('shell').dataset.expanded,mirrorHidden:document.getElementById('mirror').hidden,feedbackHidden:document.getElementById('feedback').hidden,feedback:document.getElementById('feedback').dataset,phase:document.getElementById('phase-text').textContent})");}catch{}
+  }
+  fs.writeFileSync(path.join(reportDir, "failure.json"), JSON.stringify({ error: error.stack, passed, diagnostics }, null, 2));
   await finish(1);
 });

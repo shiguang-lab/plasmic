@@ -1,92 +1,128 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
+const Module = require("node:module");
+const { EventEmitter } = require("node:events");
 const { JSDOM } = require("jsdom");
-const { inspectViewport, presentationRect, captureIslandView } = require("../src/island-capture.cjs");
-
-test("canvas mirror excludes floating editor chrome, follows panel visibility, and never changes DOM", (t) => {
-  const dom = new JSDOM('<div class="canvas-editor__canvas-clipper"><iframe class="canvas-editor__viewport"></iframe></div><aside class="canvas-editor__left-pane-container"></aside><aside class="canvas-editor__left-pane" hidden></aside><aside class="canvas-editor__right-pane"></aside><header class="canvas-editor__top-bar"></header><footer data-test-id="canvas-view-controls"></footer>', { runScripts: "outside-only" });
-  t.after(() => dom.window.close());
-  const doc = dom.window.document;
-  doc.querySelector('iframe').checkVisibility = () => false;
-  const rects = [
-    [".canvas-editor__canvas-clipper", 0, 0, 1000, 700],
-    [".canvas-editor__left-pane-container", 8, 58, 36, 634],
-    [".canvas-editor__left-pane", 52, 58, 260, 590],
-    [".canvas-editor__right-pane", 672, 58, 320, 590],
-    [".canvas-editor__top-bar", 8, 8, 984, 42],
-    ['[data-test-id="canvas-view-controls"]', 750, 656, 242, 36],
-  ];
-  for (const [selector, x, y, width, height] of rects) {
-    const el = doc.querySelector(selector);
-    el.checkVisibility = () => !el.hidden;
-    el.getBoundingClientRect = () => ({ x, y, width, height, left: x, top: y, right: x + width, bottom: y + height });
+const surfaces = [];
+class Surface {
+  constructor(options) {
+    this.options = options; this.width = options.width; this.height = options.height;
+    this.webContents = Object.assign(new EventEmitter(), {setWindowOpenHandler(){}, executeJavaScript:async script=>{if(script.includes("loadScene"))this.document=script;}, mainFrame:{frames:[{executeJavaScript:async()=>{}}]},
+      invalidate:()=>queueMicrotask(()=>this.webContents.emit("paint", {}, {}, {isEmpty:()=>false,getSize:()=>({width:this.width,height:this.height}),toJPEG:()=>Buffer.from("pixels")}))});
+    surfaces.push(this);
   }
-  const before = doc.body.innerHTML;
-  const inspect = () => dom.window.eval(`(${inspectViewport.toString()})("edit")`);
-  assert.deepEqual(JSON.parse(JSON.stringify(inspect())), { x: 44, y: 50, width: 628, height: 606 });
-  assert.equal(doc.body.innerHTML, before);
-  doc.querySelector("iframe").remove();
-  assert.deepEqual(JSON.parse(JSON.stringify(inspect())), { x: 44, y: 50, width: 628, height: 606 }, "new projects without artboards still mirror their real empty canvas");
-  doc.querySelector(".canvas-editor__left-pane").hidden = false;
-  assert.equal(inspect().x, 312);
-  doc.querySelector(".canvas-editor__right-pane").hidden = true;
-  assert.equal(inspect().width, 688);
-});
+  setContentSize(width,height) { this.width=width; this.height=height; }
+  async loadURL(url) { assert.equal(url,"about:blank","large compositions never travel through a data URL"); }
+  destroy() { this.destroyed=true; this.webContents.emit("destroyed"); }
+}
+const originalLoad = Module._load;
+Module._load = function(name,...args) { return name === "electron" ? {app:{isPackaged:true},BrowserWindow:Surface} : originalLoad.call(this,name,...args); };
+const { inspectScene, sceneDocument, presentationRect, createIslandCapture } = require("../src/island-capture.cjs");
+const { snapshotDocument } = require("../src/canvas.cjs");
+Module._load = originalLoad;
 
-test("editor framing trims only outer workspace around every visible artboard and preserves empty/Preview views", (t) => {
-  const dom = new JSDOM('<div class="canvas-editor__canvas-clipper"><iframe class="canvas-editor__viewport"></iframe><iframe class="canvas-editor__viewport"></iframe><iframe class="canvas-editor__viewport"></iframe></div><div class="live-root-container" data-plasmic-preview-component="page"></div>', {runScripts:'outside-only'});
-  t.after(() => dom.window.close());
-  const doc = dom.window.document;
-  const boxes = [[0,0,1000,700],[150,100,200,300],[450,150,300,400],[1100,0,200,300]];
-  [doc.querySelector('.canvas-editor__canvas-clipper'),...doc.querySelectorAll('iframe')].forEach((el,index) => {
-    const [x,y,width,height]=boxes[index];
+function fixture(t) {
+  const dom = new JSDOM('<div class="canvas-editor__canvas-clipper"><iframe class="canvas-editor__viewport"></iframe><iframe class="canvas-editor__viewport"></iframe><iframe class="canvas-editor__viewport" hidden></iframe></div><aside class="canvas-editor__left-pane">Structure tree</aside><div class="floating-toolbar">Tools</div>', {runScripts:"outside-only"});
+  t.after(()=>dom.window.close());
+  const doc=dom.window.document, boards=[...doc.querySelectorAll("iframe")];
+  doc.querySelector(".canvas-editor__canvas-clipper").checkVisibility=()=>true;
+  let scale=1, pan={x:100,y:50};
+  boards.forEach((el,index)=>{
     el.checkVisibility=()=>!el.hidden;
-    el.getBoundingClientRect=()=>({x,y,width,height,left:x,top:y,right:x+width,bottom:y+height});
+    for (const [key,value] of Object.entries({clientWidth:400,clientHeight:300,offsetWidth:400,offsetHeight:300})) Object.defineProperty(el,key,{value});
+    el.getBoundingClientRect=()=>({x:pan.x+index*1200*scale,y:pan.y+index*100*scale,width:400*scale,height:300*scale});
   });
-  const inspect=(mode='edit')=>JSON.parse(JSON.stringify(dom.window.eval(`(${inspectViewport.toString()})(${JSON.stringify(mode)},"page")`)));
-  const before=doc.body.innerHTML;
-  assert.deepEqual(inspect(),{x:134,y:84,width:632,height:482});
-  assert.equal(doc.body.innerHTML,before,'framing must not pan, zoom or mutate the source');
-  doc.querySelectorAll('iframe')[1].hidden=true;
-  assert.deepEqual(inspect(),{x:134,y:84,width:232,height:332},'hidden and offscreen pages do not pull framing away');
-  doc.querySelector('iframe').hidden=true;
-  assert.deepEqual(inspect(),{x:0,y:0,width:1000,height:700},'empty workspace stays visible');
-  assert.deepEqual(inspect('preview'),{x:0,y:0,width:1024,height:768},'Preview retains its real full viewport');
+  const inspect=()=>JSON.parse(JSON.stringify(dom.window.eval(`(${inspectScene.toString()})("edit")`)));
+  return {dom,doc,boards,inspect,move:()=>{scale=2.5;pan={x:-3000,y:-1800};}};
+}
+
+test("complete artboards include offscreen boards and retain layout independently of editor zoom, pan and chrome", t=>{
+  const f=fixture(t), before=f.doc.body.innerHTML, scene=f.inspect();
+  assert.deepEqual(scene.boards,[{index:0,frameUuid:null,componentUuid:null,x:16,y:16,width:400,height:300},{index:1,frameUuid:null,componentUuid:null,x:1216,y:116,width:400,height:300}]);
+  assert.equal(scene.width,1632); assert.equal(scene.height,432);
+  f.move();
+  assert.deepEqual(f.inspect(),scene,"offscreen translation and editor zoom cannot crop or reframe artboards");
+  assert.equal(f.doc.body.innerHTML,before,"inspection never changes live DOM, panels or viewport");
+  f.boards[1].hidden=true;
+  assert.equal(f.inspect().width,432,"display:none artboards belong to other views and are excluded");
+  f.boards[0].hidden=true;
+  assert.deepEqual(f.inspect().boards,[],"empty canvases retain a clean workspace");
 });
 
-test("native capture maps nested frame borders/scales and retains source aspect ratio while hidden", async () => {
-  const calls = [];
-  const parent = { frames: [], executeJavaScript: async () => ({ x: 20, y: 30, sx: .5, sy: .5 }) };
-  const frame = { parent, executeJavaScript: async () => ({ x: 40, y: 50, width: 1200, height: 800 }) };
-  parent.frames.push(frame);
-  assert.deepEqual(await presentationRect(frame, { x: 40, y: 50, width: 1200, height: 800 }), { x: 40, y: 55, width: 600, height: 400 });
-  const image = { isEmpty: () => false, getSize: () => ({ width: 1200, height: 800 }), resize: (size) => { calls.push(size); return image; }, toJPEG: () => Buffer.from("jpeg") };
-  const win = { isDestroyed: () => false, getContentBounds: () => ({ width: 1000, height: 800 }), webContents: {
-    getURL: () => "https://studio.test/projects/p", getZoomFactor: () => 1.25,
-    mainFrame: { framesInSubtree: [frame] }, capturePage: async (...args) => { calls.push(args); return image; },
-  } };
-  const result = await captureIslandView(win, { mode: "edit" });
-  assert.deepEqual(calls[0], [{ x: 50, y: 69, width: 750, height: 500 }, { stayHidden: true, stayAwake: true }]);
-  assert.deepEqual(calls[1], { width: 600, height: 400 });
-  assert.equal(result.width / result.height, 1.5);
-  assert.equal(result.src, "data:image/jpeg;base64,anBlZw==");
+test("scene fitting preserves each source viewport and puts the full composition inside the thumbnail",()=>{
+  const scene={width:3200,height:1800,background:"rgb(30, 32, 34)"};
+  const board={x:1600,y:800,width:1440,height:900,html:'<html><body><p title="a & b">Complete page</p></body></html>'};
+  const result=sceneDocument(scene,[board]);
+  assert.equal(result.width,711); assert.equal(result.height,400);
+  assert.ok(result.html.includes('width:1440px;height:900px'));
+  assert.ok(result.html.includes('&lt;html>'));
+  assert.ok(!result.html.includes('<p title='),"source markup stays inside its isolated srcdoc");
 });
 
-test("invisible background inspections cannot invalidate feedback for a visible canvas", async () => {
-  const parent = { frames: [], executeJavaScript: async () => null };
-  const hidden = { parent };
-  parent.frames.push(hidden);
-  assert.equal(await presentationRect(hidden, { x:0,y:0,width:1440,height:1024 }), null);
-  const frame = { executeJavaScript: async () => ({x:0,y:0,width:800,height:600}) };
-  const background = { parent, executeJavaScript: async () => [{x:0,y:0,width:1440,height:1024}] };
-  const image = { isEmpty:()=>false,getSize:()=>({width:800,height:600}),resize(){return this},toJPEG:()=>Buffer.from('pixels') };
-  const context = {projectId:'p',sessionId:'s',mode:'edit',arenaId:'a'};
-  const win = {isDestroyed:()=>false,getContentBounds:()=>({width:800,height:600}),webContents:{
-    getURL:()=>'url',getZoomFactor:()=>1,mainFrame:{framesInSubtree:[frame,background]},capturePage:async()=>image,
+test("static source copies remove editor-only overlays and executable content without mutating the live artboard",t=>{
+  const dom=new JSDOM('<html><head><style>p{color:red}</style><script>window.bad=true</script></head><body><main><p>Business page</p><input><canvas width="40" height="30"></canvas><div data-plasmic-editor-only>Floating tools</div><div data-plasmic-slot-placeholder>Slot hint</div><button onclick="bad()">Save</button></main></body></html>',{runScripts:"outside-only",url:"https://canvas.test/host"});
+  t.after(()=>dom.window.close());
+  dom.window.crypto.randomUUID=require("node:crypto").randomUUID;
+  dom.window.document.querySelector("input").value="Current value";
+  dom.window.document.querySelector("canvas").toDataURL=()=>"data:image/png;base64,cGl4ZWxz";
+  const before=dom.window.document.documentElement.outerHTML;
+  const html=dom.window.eval(`(${snapshotDocument.toString()})()`);
+  assert.ok(html.includes("Business page") && html.includes("Current value"));
+  assert.ok(html.includes("data:image/png;base64,cGl4ZWxz") && !html.includes("<canvas"),"live canvas pixels survive static capture");
+  assert.ok(!html.includes("Floating tools") && !html.includes("Slot hint"));
+  assert.ok(!html.includes("window.bad") && !html.includes("onclick="));
+  assert.equal(dom.window.document.documentElement.outerHTML,before);
+});
+
+test("clean compositor is reused, never captures editor chrome, and is released on mode exit",async()=>{
+  const scene={width:1632,height:432,background:"#202126",boards:[{index:0,x:16,y:16,width:400,height:300},{index:1,x:1216,y:116,width:400,height:300}]};
+  const largeDocument="<html><body>"+"Full board ".repeat(220_000)+"</body></html>";
+  const source={executeJavaScript:async script=>script.includes("snapshotDocument")?largeDocument:script.includes("data-plasmic-render-ready")?true:[]};
+  const frame={frames:[source,source],executeJavaScript:async()=>scene};
+  const win={isDestroyed:()=>false,webContents:{getURL:()=>"url",session:{},mainFrame:{framesInSubtree:[frame]},capturePage:()=>assert.fail("Editor compositor must not be captured")}};
+  const mirror=createIslandCapture(), before=surfaces.length;
+  const context={mode:"edit",projectId:"p",sessionId:"s",arenaId:"a"};
+  const result=await mirror.capture(win,context,{...context,id:"read",url:"url",kind:"read",phase:"running",targets:[{viewport:true}]},[]);
+  assert.equal(result.width,1632); assert.equal(result.height,432);
+  assert.deepEqual(result.feedback.regions,[{x:0,y:0,width:1,height:1}]);
+  await mirror.capture(win,context,undefined,[]);
+  assert.equal(surfaces.length,before+1);
+  const renderer=surfaces.at(-1);
+  assert.equal(renderer.options.webPreferences.offscreen,true);
+  assert.equal(renderer.options.webPreferences.nodeIntegration,false);
+  assert.equal((renderer.document.match(/<iframe /g)||[]).length,2);
+  assert.equal(renderer.webContents.listenerCount("will-navigate"),1,"repeated refreshes do not accumulate handlers");
+  mirror.close(undefined,[]); assert.equal(renderer.destroyed,true);
+});
+
+test("Preview retains its current complete viewport and nested presentation mapping",async()=>{
+  const parent={frames:[],executeJavaScript:async()=>({x:20,y:30,sx:.5,sy:.5})};
+  const frame={parent,executeJavaScript:async()=>({width:1200,height:800})}; parent.frames.push(frame);
+  assert.deepEqual(await presentationRect(frame,{x:40,y:50,width:1200,height:800}),{x:40,y:55,width:600,height:400});
+  const calls=[], image={isEmpty:()=>false,getSize:()=>({width:1200,height:800}),resize:size=>{calls.push(size);return image;},toJPEG:()=>Buffer.from("jpeg")};
+  const win={isDestroyed:()=>false,webContents:{getURL:()=>"url",getZoomFactor:()=>1.25,mainFrame:{framesInSubtree:[frame]},capturePage:async(...args)=>{calls.push(args);return image;}}};
+  const mirror=createIslandCapture(), result=await mirror.capture(win,{mode:"preview"},undefined,[]);
+  assert.deepEqual(calls[0],[{x:25,y:38,width:750,height:500},{stayHidden:true,stayAwake:true}]);
+  assert.deepEqual(calls[1],{width:600,height:400});
+  assert.equal(result.width/result.height,1.5);
+});
+
+test("overview activates source rendering and waits for every artboard before publishing a complete image",async()=>{
+  let ready=false, enabled=false;
+  const source={executeJavaScript:async script=>script.includes("data-plasmic-render-ready")?ready:"<html><body>Ready</body></html>"};
+  const scene={width:432,height:332,background:"#222",boards:[{index:0,x:16,y:16,width:400,height:300}]};
+  const frame={frames:[source],executeJavaScript:async script=>{
+    if(script.includes("setAttribute")){enabled=true;return;}
+    if(script.includes("removeAttribute")){enabled=false;return;}
+    return scene;
   }};
-  // The visible document has no matching target; only the hidden inspection does.
-  let reads=0;frame.executeJavaScript=async()=> ++reads===1 ? {x:0,y:0,width:800,height:600} : [];
-  const result=await captureIslandView(win,context,{...context,id:'read',url:'url',kind:'read',phase:'running',targets:[{componentUuid:'offscreen'}]});
-  assert.ok(result.src);
-  assert.equal(result.feedback,null);
+  const win={isDestroyed:()=>false,webContents:{getURL:()=>"url",session:{},mainFrame:{framesInSubtree:[frame]}}};
+  const mirror=createIslandCapture();
+  assert.equal(await mirror.capture(win,{mode:"edit"},undefined,[]),null);
+  assert.equal(enabled,true);
+  ready=true;
+  assert.ok((await mirror.capture(win,{mode:"edit"},undefined,[])).src);
+  mirror.close(undefined,[]);
+  await Promise.resolve();
+  assert.equal(enabled,false,"closing the mirror releases background rendering");
 });

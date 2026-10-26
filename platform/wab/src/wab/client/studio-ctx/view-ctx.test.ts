@@ -20,6 +20,8 @@ import { EffectiveVariantSetting } from "@/wab/shared/effective-variant-setting"
 import { ValState } from "@/wab/shared/eval/val-state";
 import {
   Arg,
+  Arena,
+  ArenaFrame,
   CodeComponentMeta,
   CustomCode,
   StyleExpr,
@@ -35,6 +37,32 @@ import {
 } from "@/wab/shared/Variants";
 import { observable } from "mobx";
 import { vi } from "vitest";
+
+test("canvas overview renders offscreen artboards only in the current arena without changing visibility", () => {
+  const frame = { uuid: "frame" } as ArenaFrame;
+  const arena = Object.assign(Object.create(Arena.prototype), { children: [frame] });
+  const active = observable.box<string | undefined>(undefined);
+  const studioCtx = { currentArena: arena };
+  const viewCtx = Object.assign(Object.create(ViewCtx.prototype), {
+    studioCtx,
+    _arenaFrame: frame,
+    _canvasMirrorTarget: active,
+    isVisible: vi.fn(() => false),
+  }) as ViewCtx;
+  expect(viewCtx.isRenderActive()).toBe(false);
+  active.set("all");
+  expect(viewCtx.isRenderActive()).toBe(true);
+  expect(viewCtx.isVisible()).toBe(false);
+  active.set("other-frame");
+  expect(viewCtx.isRenderActive()).toBe(false);
+  active.set("frame");
+  expect(viewCtx.isRenderActive()).toBe(true);
+  studioCtx.currentArena = null;
+  expect(viewCtx.isRenderActive()).toBe(false);
+  active.set(undefined);
+  studioCtx.currentArena = arena;
+  expect(viewCtx.isRenderActive()).toBe(false);
+});
 
 function overlayViewCtx() {
   return Object.assign(Object.create(ViewCtx.prototype), {

@@ -51,7 +51,7 @@ class UpdateManager extends EventEmitter {
     if (!this.enabled) return;
     console.warn("Desktop update failed:", error.message);
     this.set({
-      phase: "current",
+      phase: "error",
       version: undefined,
       releaseNotes: undefined,
       percent: undefined,
@@ -108,7 +108,7 @@ class UpdateManager extends EventEmitter {
     void this.command("check");
     this.interval = setInterval(
       () => {
-        if (["idle", "current", "available"].includes(this.state.phase))
+        if (["idle", "current", "available", "error"].includes(this.state.phase))
           void this.command("check");
       },
       60 * 1000,
