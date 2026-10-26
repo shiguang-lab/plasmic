@@ -103,7 +103,16 @@ app
     };
     nativeTheme.themeSource = "dark";
     await window.loadURL(studioOrigin + "/delayed");
+    await focusWindow();
     await evaluate(`window.updateOpen(window.fixtureStatus)`);
+    assert.equal(
+      await evaluate(`(() => {
+        const root = document.getElementById("plasmic-desktop-update-dialog").shadowRoot;
+        return root.activeElement?.tagName;
+      })()`),
+      "DIALOG",
+      "Opening updates must leave action buttons unfocused",
+    );
     assert.deepEqual(
       await evaluate(`(() => {
     const dialog = document.getElementById("plasmic-desktop-update-dialog").shadowRoot.querySelector("dialog");

@@ -524,7 +524,7 @@ const Popover = React.forwardRef(function Popover(
   const { dialogProps } = useDialog({ "aria-label": props["aria-label"] }, ref);
 
   return (
-    <FocusScope restoreFocus autoFocus>
+    <FocusScope restoreFocus>
       <div {...mergeProps(overlayProps, dialogProps, rest)} ref={onRef}>
         {children}
         <DismissButton onDismiss={onClose} />

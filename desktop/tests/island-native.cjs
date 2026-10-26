@@ -70,7 +70,11 @@ async function finish(code) {
   app.exit(code);
 }
 app.whenReady().then(async () => {
-  app.dock?.hide();
+  if (process.platform === "darwin") {
+    app.setActivationPolicy("regular");
+    await app.dock.show();
+    assert.equal(app.dock.isVisible(), true, "start with a visible Dock icon to test the island transition");
+  }
   screen.getCursorScreenPoint = () => cursor;
   const localeSource = path.join(root, "../platform/wab/src/wab/client/i18n");
   const localeDir = path.join(profile, "ui-locales");
@@ -115,8 +119,11 @@ app.whenReady().then(async () => {
   await main.loadURL(origin + "/projects/p");
   await until(async () => (await controller.state()).ready, "editor bridge ready");
   await presentation.setMode("island");
+  if (process.platform === "darwin") assert.equal(app.dock.isVisible(), false, "entering island hides the Dock icon");
   island = BrowserWindow.getAllWindows().find((win) => win !== main);
+  assert.equal(island.isFocusable(), false, "island must not take keyboard focus from the active application");
   const inspect = (code) => island.webContents.executeJavaScript(code);
+  assert.equal(await inspect("document.getElementById('shell').tabIndex"), -1, "island shell is not a keyboard tab stop");
   await until(() => presentation.snapshot().context.allowed, "editor eligible");
   assert.equal(main.isVisible(), false);
   assert.equal(main.webContents.getBackgroundThrottling(), false);
@@ -525,13 +532,16 @@ app.whenReady().then(async () => {
   } finally { Menu.prototype.popup = originalPopup; }
   await presentation.setMode("fullscreen");
   assert.equal(main.isFullScreen(), true);
+  if (process.platform === "darwin") assert.equal(app.dock.isVisible(), true, "fullscreen restores the Dock icon");
   await presentation.setMode("island");
   assert.equal(main.isFullScreen(), false); assert.equal(main.isVisible(), false);
+  if (process.platform === "darwin") assert.equal(app.dock.isVisible(), false, "leaving fullscreen for island hides the Dock icon");
   const returnedAt = Date.now();
   await until(() => presentation.snapshot().context.allowed, "context after mode return");
   await until(() => presentation.snapshot().image?.capturedAt > returnedAt, "mirroring resumes after mode return");
   await Promise.all([presentation.setMode("fullscreen"), presentation.setMode("window"), presentation.setMode("island")]);
   assert.equal(presentation.mode, "island"); assert.equal(main.isFullScreen(), false); assert.equal(main.isVisible(), false);
+  if (process.platform === "darwin") assert.equal(app.dock.isVisible(), false, "rapid mode changes leave the Dock hidden in island mode");
   assert.equal(JSON.parse(fs.readFileSync(path.join(profile, "presentation.json"))).mode, "island");
   passed.push("right-click actions distinguish showing main from exiting island, remove floating icons, retain Preview; real fullscreen transitions and rapid mode changes serialize correctly; local preference persists");
   // Both surfaces share a real UpdateManager; only the network and final OS restart are fixtures.

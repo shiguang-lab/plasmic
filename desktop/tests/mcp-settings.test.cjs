@@ -186,9 +186,11 @@ test("configuration failures show concise summaries and retain full local diagno
   };
   dom.window.eval(fs.readFileSync(require.resolve("../src/mcp-settings-renderer.js"), "utf8"));
   await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(dom.window.document.activeElement, dom.window.document.body, "opening settings must not move focus to an internal control");
   assert.equal(dom.window.document.querySelector(".detail").textContent, "MCP configuration unavailable.");
   dom.window.document.querySelector('[role="switch"]').click();
   await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(dom.window.document.activeElement, dom.window.document.body, "updating configuration must not focus the recreated action button");
   assert.equal(dom.window.document.getElementById("notice").textContent, "Could not update MCP configuration.");
   assert.ok(!dom.window.document.body.textContent.includes("PRIVATE_DIAGNOSTIC"));
   assert.ok(logs.some((args) => args.includes(detail)));

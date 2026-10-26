@@ -115,7 +115,7 @@ export async function confirm(opts: {
       onCancel={onCancel}
       okText={<UiLabel text={confirmLabel ?? "Confirm"} />}
       cancelText={<UiLabel text={cancelLabel ?? "Cancel"} />}
-      okButtonProps={{ danger, autoFocus: true, "data-test-id": "confirm" }}
+      okButtonProps={{ danger, "data-test-id": "confirm" }}
       closable={false}
       zIndex={zIndex.quickModal}
     >
@@ -138,7 +138,6 @@ export async function alert(opts: {
       onOk={() => onSubmit(true)}
       onCancel={onCancel}
       okText={<UiText message="OK" />}
-      okButtonProps={{ autoFocus: true }}
       footer={(_, { OkBtn }) => <OkBtn />}
       closable={false}
     >

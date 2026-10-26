@@ -138,7 +138,7 @@ function createIsland({ getWindow, controller, i18n, appearance, config, signIn,
     if (window && !window.isDestroyed()) return;
     window = new BrowserWindow({ width: 456, height: 180, show: false, frame: false, transparent: true,
       backgroundColor: "#00000000", hasShadow: false, resizable: false, minimizable: false, maximizable: false,
-      fullscreenable: false, skipTaskbar: true, title: i18n.t("Dynamic Island"),
+      fullscreenable: false, focusable: false, skipTaskbar: true, title: i18n.t("Dynamic Island"),
       webPreferences: { preload: path.join(__dirname, "island-preload.cjs"), nodeIntegration: false,
         contextIsolation: true, sandbox: true, backgroundThrottling: false, devTools: !app.isPackaged } });
     window.setMenu(null);
@@ -197,6 +197,10 @@ function createIsland({ getWindow, controller, i18n, appearance, config, signIn,
       if (win.isMinimized()) win.restore();
       win.webContents.setBackgroundThrottling(false);
       win.hide();
+      if (process.platform === "darwin") {
+        app.setActivationPolicy("accessory");
+        app.dock.hide();
+      }
       window.showInactive();
       start(); publish();
     } else {

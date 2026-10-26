@@ -36,7 +36,7 @@ export function HrefQueryPopover({
       placement={"left"}
       destroyTooltipOnHide
       content={
-        <FocusScope autoFocus contain restoreFocus>
+        <FocusScope contain restoreFocus>
           <PopupFocuser targetId="href-query-select" targetRef={selectRef} />
           <Select
             id="href-query-select"

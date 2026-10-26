@@ -261,7 +261,7 @@ function BottomModalInternal(props: {
   const animatedStyles = useSpring({ to: { top } });
 
   return (
-    <FocusScope autoFocus={isFocused} contain={isFocused} restoreFocus>
+    <FocusScope contain={isFocused} restoreFocus>
       <animated.div
         className={sty.ModalRoot}
         style={{ ...animatedStyles, height, left: 100 + leftDelta }}

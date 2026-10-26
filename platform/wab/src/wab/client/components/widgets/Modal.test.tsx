@@ -1,5 +1,6 @@
 import { AntdConfigProvider, productTheme } from "@/wab/client/antd-theme";
 import { Modal } from "@/wab/client/components/widgets/Modal";
+import { ModalScope } from "@/wab/client/components/widgets/ModalScope";
 import { setAppearancePreference } from "@/wab/client/ui-theme";
 import { ensure } from "@/wab/shared/common";
 import { act, cleanup, render, screen } from "@testing-library/react";
@@ -43,4 +44,32 @@ it.each([false, true])("preserves theme corners with full-bleed content (custom 
   if (!customRender) {
     expect((surface as HTMLElement).style.padding).toBe("0px");
   }
+});
+
+it("does not automatically focus modal actions", async () => {
+  render(
+    <AntdConfigProvider productUI>
+      <Modal open title="Settings">
+        <input aria-label="Name" />
+      </Modal>
+    </AntdConfigProvider>,
+  );
+  // Include the layout fallback timer and React Aria's animation-frame focus.
+  await act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  });
+  expect(screen.getAllByRole("button").some((button) => button === document.activeElement)).toBe(false);
+});
+
+it("preserves explicit input autofocus inside a modal scope", async () => {
+  render(
+    <ModalScope>
+      <button>Close</button>
+      <input aria-label="Name" autoFocus />
+    </ModalScope>,
+  );
+  await act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  });
+  expect(document.activeElement).toBe(screen.getByRole("textbox", { name: "Name" }));
 });

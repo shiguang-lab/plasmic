@@ -5,7 +5,6 @@ let noticeKey = "";
 let noticeFailed = false;
 const clients = document.getElementById("clients");
 const notice = document.getElementById("notice");
-document.getElementById("title").focus();
 function render(items) {
   loadState = "ready";
   clients.setAttribute("aria-busy", "false");
@@ -64,11 +63,6 @@ function render(items) {
           true,
         );
         render(items);
-      }
-      for (const button of clients.querySelectorAll("button")) {
-        if (button.dataset.clientId === item.id) {
-          button.focus();
-        }
       }
     });
     row.append(text, toggle);

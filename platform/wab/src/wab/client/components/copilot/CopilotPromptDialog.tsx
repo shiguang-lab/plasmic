@@ -6,7 +6,6 @@ import {
 } from "@/wab/client/plasmic/plasmic_kit_data_binding/PlasmicCopilotPromptDialog";
 import { Tooltip } from "antd";
 import * as React from "react";
-import { FocusScope } from "react-aria";
 
 import {
   CopilotData,
@@ -16,7 +15,6 @@ import { useAutoFocus } from "@/wab/client/hooks/useAutoFocus";
 import { isSubmitKeyCombo } from "@/wab/client/shortcuts/shortcut";
 import { CopilotPrompt, CopilotType } from "@/wab/client/studio-ctx/StudioCtx";
 import cn from "classnames";
-import defer = setTimeout;
 
 export interface CopilotPromptDialogProps<
   Response,
@@ -46,9 +44,6 @@ function CopilotPromptDialog<Response>({
   });
 
   const promptInputRef = React.useRef<HTMLTextAreaElement>(null);
-  const applyBtnRef: React.Ref<HTMLDivElement> =
-    React.useRef<HTMLDivElement>(null);
-
   useAutoFocus(dialogOpen && promptInputRef);
 
   const {
@@ -63,14 +58,6 @@ function CopilotPromptDialog<Response>({
     showHistory,
     onCopilotSubmit,
   });
-
-  React.useEffect(() => {
-    defer(() => {
-      if (response && applyBtnRef.current) {
-        applyBtnRef.current.focus();
-      }
-    });
-  }, [response]);
 
   const isValidPrompt = copilotPrompt.prompt.trim() && state !== "loading";
 
@@ -111,8 +98,6 @@ function CopilotPromptDialog<Response>({
             if (isValidPrompt && isSubmitKeyCombo(e)) {
               e.preventDefault();
               await submitPrompt(copilotPrompt);
-              promptInputRef.current?.blur();
-              applyBtnRef.current?.focus();
             }
           },
         },
@@ -125,9 +110,7 @@ function CopilotPromptDialog<Response>({
       rootContainer={{
         render: ({ className: rootClassname, children }) =>
           dialogOpen ? (
-            <FocusScope autoFocus>
-              <div className={cn(rootClassname, className)}>{children}</div>
-            </FocusScope>
+            <div className={cn(rootClassname, className)}>{children}</div>
           ) : null,
       }}
       cancelBtn={{
@@ -198,7 +181,6 @@ function CopilotPromptDialog<Response>({
                                 applyResponse(response);
                               }
                             },
-                            ref: applyBtnRef,
                           },
                           copilotInteractionId: copilotInteractionId,
                           code: displayMessage,

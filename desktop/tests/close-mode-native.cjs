@@ -81,17 +81,18 @@ if (!process.versions.electron) {
       return island().webContents.executeJavaScript("desktopIsland.command('menu')").then(() => menu).finally(() => { Menu.prototype.popup=originalPopup; });
     }
     async function returnMain() {
-      if (process.platform === "darwin") {
-        app.setActivationPolicy("accessory");
-        app.dock.hide();
-        await until(() => !app.dock.isVisible(), "fixture hides the Dock identity");
-      }
       Menu.getApplicationMenu().getMenuItemById("presentation-window").click();
       await until(() => main.isVisible(), "return main");
       await pause(60);
       if (process.platform === "darwin") assert.equal(app.dock.isVisible(), true, "returning to main restores the Dock icon");
     }
-    async function waitIsland() { await until(() => !main.isVisible() && island()?.isVisible(), "island shown"); await pause(60); }
+    async function waitIsland() {
+      await until(() => !main.isVisible() && island()?.isVisible(), "island shown");
+      if (process.platform === "darwin") {
+        await until(() => !app.dock.isVisible(), "island hides the Dock icon");
+      }
+      await pause(60);
+    }
     async function choose(response, checkboxChecked) {
       const expected = prompts + 1;
       main.close();

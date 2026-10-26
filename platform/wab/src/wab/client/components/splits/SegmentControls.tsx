@@ -62,7 +62,7 @@ function SegmentControls_(
       >
         <PlasmicSegmentModal
           builder={
-            <FocusScope autoFocus contain={true}>
+            <FocusScope contain={true}>
               <SegmentQueryBuilder saveLogic={saveLogic} logic={logic} />
             </FocusScope>
           }

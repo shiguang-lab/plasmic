@@ -158,6 +158,7 @@ it("uses the native right-aligned footer and danger button for confirmations", a
     result = confirm({ message: "Delete this item?", danger: true });
   });
   const confirmButton = screen.getByRole("button", { name: "Confirm" });
+  expect(document.activeElement).not.toBe(confirmButton);
   expectNativeFooter(confirmButton);
   expectNativeFooter(screen.getByRole("button", { name: "Cancel" }));
   expect(confirmButton).toHaveClass("ant-btn-dangerous");
@@ -171,6 +172,7 @@ it("renders only the native OK action for alerts", async () => {
     result = alert({ message: "Saved" });
   });
   const ok = screen.getByRole("button", { name: "OK" });
+  expect(document.activeElement).not.toBe(ok);
   expectNativeFooter(ok);
   expect(screen.queryByRole("button", { name: "Cancel" })).toBeNull();
   fireEvent.click(ok);

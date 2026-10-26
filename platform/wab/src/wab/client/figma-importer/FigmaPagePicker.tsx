@@ -34,12 +34,11 @@ export function FigmaPagePicker({
         style={{ maxHeight: "min(320px, calc(100vh - 200px))" }}
       >
         <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-          {pages.map((page, index) => (
+          {pages.map((page) => (
             <Button
               key={page.id}
               type="text"
               block
-              autoFocus={index === 0}
               onClick={() => onSelect(page.id)}
               style={{
                 textAlign: "left",

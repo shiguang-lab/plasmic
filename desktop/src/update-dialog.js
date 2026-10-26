@@ -12,6 +12,7 @@ dialog { color-scheme: light; font: 13px/1.5 -apple-system, BlinkMacSystemFont, 
 * { box-sizing: border-box; }
 dialog { border: 1px solid var(--border); border-radius: 12px; padding: 0; width: 480px; max-width: calc(100vw - 32px); max-height: calc(100vh - 32px); overflow: hidden; box-shadow: 0 12px 40px #0002; }
 dialog[open] { display: flex; flex-direction: column; }
+dialog:focus { outline: none; }
 dialog::backdrop { background: #18233b4d; }
 [hidden] { display: none !important; }
 header { position: relative; padding: 20px 56px 12px 24px; flex: none; }
@@ -230,6 +231,8 @@ button:disabled { opacity: .55; cursor: default; }
     render(status);
     if (!dialog.open) {
       dialog.showModal();
+      // Native dialogs focus the first button; keep actions unfocused on open.
+      dialog.focus();
     }
   });
   subscribe(() => render(state));

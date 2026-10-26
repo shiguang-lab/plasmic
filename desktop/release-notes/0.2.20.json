@@ -1,0 +1,7 @@
+{
+  "en": "- Keep Studio dialogs and Desktop settings from automatically focusing action buttons while preserving explicit input autofocus.\n- Keep Dynamic Island from taking keyboard focus, hide the macOS Dock icon in island mode, and restore it when returning to the main window or fullscreen.",
+  "zh-CN": "- Studio 弹窗和桌面设置不再自动聚焦操作按钮，保留输入框显式自动聚焦。\n- 灵动岛不再抢占键盘焦点；macOS 灵动岛模式隐藏 Dock 图标，返回主窗口或全屏时恢复。",
+  "zh-TW": "- Studio 對話框與桌面設定不再自動聚焦操作按鈕，保留輸入框明確設定的自動聚焦。\n- 靈動島不再搶占鍵盤焦點；macOS 靈動島模式隱藏 Dock 圖示，返回主視窗或全螢幕時恢復。",
+  "ja": "- Studio ダイアログとデスクトップ設定で操作ボタンへの自動フォーカスを解除し、入力欄に明示された自動フォーカスを維持しました。\n- Dynamic Island がキーボードフォーカスを奪わないようにしました。macOS では Island モードで Dock アイコンを非表示にし、メインウィンドウや全画面に戻ると復元します。",
+  "ko": "- Studio 대화 상자와 데스크톱 설정에서 작업 버튼의 자동 포커스를 해제하고 입력 필드에 명시된 자동 포커스는 유지합니다.\n- Dynamic Island가 키보드 포커스를 가져가지 않습니다. macOS Island 모드에서는 Dock 아이콘을 숨기고 기본 창이나 전체 화면으로 돌아가면 복원합니다."
+}

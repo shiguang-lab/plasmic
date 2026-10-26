@@ -1,7 +1,6 @@
-import { useFocusManager } from "@/wab/client/components/aria-utils";
 import { isKeyHotkey } from "is-hotkey";
 import * as React from "react";
-import { useLayoutEffect, useMemo, useRef } from "react";
+import { useMemo } from "react";
 import { FocusScope } from "react-aria";
 
 export type ModalScopeProps = Omit<
@@ -19,7 +18,7 @@ export type ModalScopeProps = Omit<
  */
 export function ModalScope({ containFocus = true, ...props }: ModalScopeProps) {
   return (
-    <FocusScope contain={containFocus} autoFocus restoreFocus>
+    <FocusScope contain={containFocus} restoreFocus>
       <ModalScopeInternal {...props} />
     </FocusScope>
   );
@@ -30,21 +29,6 @@ function ModalScopeInternal({
   allowKeyCombos = [],
   ...props
 }: ModalScopeProps) {
-  const containerElRef = useRef<HTMLDivElement | null>(null);
-  // Sometimes FocusScope's autofocus doesn't work,
-  // so manually focus the first element on layout.
-  const focusManager = useFocusManager();
-  useLayoutEffect(() => {
-    setTimeout(() => {
-      if (
-        containerElRef.current &&
-        !containerElRef.current.contains(document.activeElement)
-      ) {
-        focusManager.focusFirst();
-      }
-    });
-  }, []);
-
   const keyboardEventHandlers = useMemo<React.ComponentProps<"div">>(() => {
     const handler = stopKeyboardEventPropagation(allowKeyCombos.flat());
     return {
@@ -56,7 +40,6 @@ function ModalScopeInternal({
 
   return (
     <div
-      ref={containerElRef}
       {...keyboardEventHandlers}
       {...props}
       onContextMenu={(e) => e.stopPropagation()}
