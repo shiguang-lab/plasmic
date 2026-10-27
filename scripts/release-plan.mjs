@@ -14,13 +14,6 @@ const patterns = Object.fromEntries(
     resources: "resources-v",
   }).map(([key, prefix]) => [key, new RegExp(`^${prefix}${version}$`)]),
 );
-export function productForTag(tag) {
-  const product = Object.keys(patterns).find((key) => patterns[key].test(tag));
-  if (!product) {
-    throw new Error(`Unsupported release tag: ${tag}`);
-  }
-  return product;
-}
 export function affectedProducts(files) {
   const result = {
     studio: false,
@@ -92,52 +85,48 @@ export function affectedProducts(files) {
   return result;
 }
 const git = (...args) => execFileSync("git", args, { encoding: "utf8" }).trim();
-export function releasePlan(tag, ref = "HEAD", rebuild = false) {
-  const product = productForTag(tag);
+export function releasePlan(tag, ref = "HEAD", { forceAll = false } = {}) {
+  if (!patterns.studio.test(tag)) throw new Error(`Unsupported release tag: ${tag}`);
   const tags = git("tag", "--merged", ref, "--sort=-version:refname")
     .split("\n")
     .filter((t) => t !== tag);
-  // 0.0.83 is the last combined release. Later Studio tags must never advance
-  // the baseline for resources that have not received their first independent tag.
-  const baseline =
-    tags.find((t) => patterns[product].test(t)) ||
-    (["cli", "resources"].includes(product)
-      ? tags.find(
-          (t) => patterns.studio.test(t) && compareVersions(t, "0.0.83") <= 0,
-        )
-      : undefined);
-  const files = (
-    baseline
-      ? git("diff", "--name-only", baseline, ref)
-      : git("ls-tree", "-r", "--name-only", ref)
-  ).split("\n");
-  const affected = affectedProducts(files);
-  const milestone = Boolean(
-    baseline &&
-    isNewReleaseSeries(
-      tag.replace(/^(desktop-v|cli-v|resources-v)/, ""),
-      baseline.replace(/^(desktop-v|cli-v|resources-v)/, ""),
-    ),
-  );
-  const publish =
-    milestone ||
-    (product === "desktop"
-      ? affectedProducts(files.filter((file) => file.startsWith("desktop/")))
-          .desktop
-      : affected[product]);
-  let desktopTag = "";
-  if (product === "studio" && publish && (affected.frontend || milestone)) {
+  const baseline = tags.find((t) => patterns.studio.test(t) && compareVersions(t, tag) < 0);
+  const unifiedBaseline = baseline && Boolean(git("ls-tree", "--name-only", baseline, "scripts/github-release.mjs"));
+  const baselines = {};
+  const changes = {};
+  for (const product of Object.keys(patterns)) {
+    // Preserve the last independently released source until a unified tag
+    // supersedes it. Historical tags are comparison points, not entrypoints.
+    const legacy = product !== "studio" && tags.find((t) => patterns[product].test(t));
+    if (product !== "studio" && !unifiedBaseline) {
+      // Old numeric tags published Studio only; they cannot advance CLI/resource baselines.
+      baselines[product] = legacy || tags.find((t) => patterns.studio.test(t) && compareVersions(t, "0.0.83") <= 0) || null;
+    } else {
+      baselines[product] = legacy && (!baseline || git("merge-base", baseline, legacy) === git("rev-parse", `${baseline}^{commit}`))
+        ? legacy : baseline || null;
+    }
+    const files = baselines[product]
+      ? git("diff", "--name-only", baselines[product], ref)
+      : git("ls-tree", "-r", "--name-only", ref);
+    changes[product] = affectedProducts(files.split("\n"));
+  }
+  const full = forceAll || !baseline || isNewReleaseSeries(tag, baseline);
+  const studio = full || changes.studio.studio;
+  const desktop = full || changes.desktop.desktop || changes.studio.frontend;
+  const cli = full || changes.cli.cli;
+  const resources = full || changes.resources.resources || cli;
+  if (desktop) {
     const pkg = JSON.parse(git("show", `${ref}:desktop/package.json`));
     const config = JSON.parse(
       git("show", `${ref}:desktop/desktop.config.json`),
     );
-    desktopTag = `desktop-v${pkg.version}`;
     if (
-      !patterns.desktop.test(desktopTag) ||
-      config.webImage !== `ghcr.io/shiguang-lab/plasmic-web:${tag}`
+      pkg.version !== tag ||
+      (studio && config.webImage !== `ghcr.io/shiguang-lab/plasmic-web:${tag}`) ||
+      (!studio && config.webImage === `ghcr.io/shiguang-lab/plasmic-web:${tag}`)
     ) {
       throw new Error(
-        "Frontend release requires a new Desktop version, release notes, and webImage pinned to this Studio tag",
+        "Desktop release requires its version to match the tag and webImage pinned to the Studio image being released (or an existing image for Desktop-only releases)",
       );
     }
     const lock = JSON.parse(git("show", `${ref}:desktop/package-lock.json`));
@@ -158,30 +147,24 @@ export function releasePlan(tag, ref = "HEAD", rebuild = false) {
         throw new Error(`Missing Desktop release notes: ${language}`);
       }
     }
-    if (
-      !rebuild && tags.includes(desktopTag) &&
-      git("rev-parse", `${desktopTag}^{commit}`) !==
-        git("rev-parse", `${ref}^{commit}`)
-    ) {
-      throw new Error(
-        `${desktopTag} already belongs to another commit; bump Desktop version`,
-      );
-    }
   }
   return {
-    product,
+    tag,
     baseline: baseline || null,
-    publish,
-    desktop: Boolean(desktopTag),
-    desktopTag,
-    affected,
+    baselines,
+    full,
+    publish: studio || desktop || cli || resources,
+    studio,
+    desktop,
+    cli,
+    resources,
   };
 }
 if (
   process.argv[1] &&
   path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)
 ) {
-  const plan = releasePlan(process.argv[2] || process.env.GITHUB_REF_NAME, "HEAD", process.env.RELEASE_REBUILD === "true");
+  const plan = releasePlan(process.argv[2] || process.env.GITHUB_REF_NAME, "HEAD", { forceAll: process.env.RELEASE_FORCE_ALL === "true" });
   console.log(JSON.stringify(plan, null, 2));
   if (process.env.GITHUB_OUTPUT) {
     for (const [key, value] of Object.entries(plan)) {
@@ -190,5 +173,6 @@ if (
         `${key}=${typeof value === "object" ? JSON.stringify(value) : value}\n`,
       );
     }
+    appendFileSync(process.env.GITHUB_OUTPUT, `plan=${JSON.stringify(plan)}\n`);
   }
 }

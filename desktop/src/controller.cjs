@@ -164,7 +164,7 @@ class DesktopController {
     const response = await this.getWindow().webContents.session.fetch(
       this.config.studioOrigin + path,
       {
-        bypassCustomProtocolHandlers: true,
+        // Native API requests share the renderer's session restoration.
         credentials: "include",
         redirect: "manual",
         ...(signal ? { signal } : {}),

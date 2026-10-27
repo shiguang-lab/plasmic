@@ -341,32 +341,30 @@ is in the Plasmic menu immediately below **About Plasmic**. Other platforms use
 the **Updates** menu. These menus also work on the login page.
 Development launches disable installation.
 
-Desktop releases use `desktop-v<version>` tags. Set a higher stable version in
-`package.json` and `package-lock.json`, pin the compatible Studio `webImage` in
-`desktop.config.json`, and add `release-notes/<version>.md` with English notes and
-`release-notes/<version>.json` with Markdown strings for `en`, `zh-CN`, `zh-TW`,
-`ja` and `ko`. Distribution validation requires all five languages. Each platform
-feed carries these strings in `localizedReleaseNotes`; the desktop selects the
-active UI language and refreshes open release notes when that language changes.
+Desktop is selected by the shared numeric release tag, such as `0.4.3`.
+Set `package.json` and `package-lock.json` to that version, pin the compatible
+Studio `webImage` in `desktop.config.json`, and add `release-notes/<version>.md`
+with English notes and `release-notes/<version>.json` with Markdown strings for
+`en`, `zh-CN`, `zh-TW`, `ja` and `ko`. Distribution validation requires all five
+languages. Each platform feed carries these strings in `localizedReleaseNotes`;
+the desktop selects the active UI language and refreshes open release notes when
+that language changes.
 
 Release notes contain the update body only. The dialog supplies the "What's new"
 heading; do not repeat it in the Markdown file. Use `##` headings for subsections.
 
-For a Studio frontend release, pin the new Studio image and bump Desktop in the
-same commit, then push only the numeric Studio tag. The Studio workflow builds the
-images before creating the Desktop tag and calling the installer workflow. Do not
-push a second Desktop tag for that linked release. A backend-only Studio release
-does not rebuild the App.
-
-For a Desktop-only change, push the commit and Desktop tag:
+A patch selects changed products. Frontend changes build Studio and Desktop; a
+backend-only patch builds Studio; a Desktop-only patch reuses an existing Studio
+image. Major/minor releases and manual `force-all` dispatches build every product.
+When Studio is selected alongside Desktop, pin the new Studio image in the same
+commit. Push one numeric tag for any of these cases:
 
 ```sh
-git tag desktop-v0.0.23
-git push origin master desktop-v0.0.23
+git tag 0.4.3
+git push origin master 0.4.3
 ```
 
-The workflow compares production inputs with the previous Desktop tag and skips
-unchanged releases. `.github/workflows/publish-desktop.yml` extracts the pinned Studio image once, then
+The release plan compares production inputs and skips unchanged patch products. `.github/workflows/publish-desktop.yml` extracts the pinned Studio image once, then
 builds macOS arm64 on Apple Silicon, macOS x64 on Intel, Windows x64 on Windows,
 and Linux x64 on Linux. macOS installers and updates use only
 `darwin/arm64/` and `darwin/x64/`; Rosetta launches select arm64.
@@ -388,10 +386,14 @@ into `desktop/public/desktop-updates/`, and generates `latest.json` for the webs
 The JSON contains the version, platform, architecture, size, SHA-512 and public HTTPS
 download URL. Installers and manifests ship together in
 `ghcr.io/shiguang-lab/plasmic-desktop-releases:desktop-v<version>`.
+The GitHub Release uses the numeric tag and also contains the selected installers,
+ZIPs and blockmaps directly. Release asset names `latest-mac-arm64.yml` and
+`latest-mac-x64.yml` distinguish the Mac feeds; `desktop-latest.json` is the website
+installer index. Existing public download URLs and NAS image tags retain their
+current formats.
 
 The two macOS jobs use ad-hoc signatures and require no certificate secrets,
-private keys, fixed certificate fingerprint, or signing keychain. This applies
-to both direct Desktop tags and the Studio workflow's reusable call. Packaging
+private keys, fixed certificate fingerprint, or signing keychain. The shared release workflow calls the reusable Desktop workflow with the verified source commit. Packaging
 still verifies the application signature, bundle identifier, CPU architecture,
 and packaged runtime dependencies. The updater retains its signature, identity,
 architecture, version, size and SHA-512 checks. The file-based sign-in lifecycle
@@ -400,7 +402,7 @@ CI packages are for internal distribution; Developer ID signing and notarization
 remain separate from this workflow. Local Apple Development signing is unchanged.
 
 The release image contains the installers and manifests built for that release.
-Existing version tags cannot be overwritten. Make this GHCR package public so NAS
+Ordinary releases cannot overwrite existing image versions; explicitly forced tag rebuilds are limited to versions not deployed on NAS. Make this GHCR package public so NAS
 deployments can pull it without GitHub credentials.
 
 After Actions succeeds, deploy the image from the repository root:
@@ -522,6 +524,12 @@ expiry still ends the session. Opening or interacting with the App restores its 
 IAM cookie when needed. Background work can restore short cookies without
 extending device authorization,
 and no keep-alive timer runs while the App is closed or idle.
+Native account and management requests, including Dynamic Island account polling,
+use the same session-restoring protocol handler as renderer API requests.
+Polling does not count as user activity or extend the device inactivity deadline.
+`npm run test:auth-session` verifies this path in an isolated Electron session,
+including repeated cookie expiry, concurrent requests, credential rotation and
+revoked device authorization.
 `npm run test:session-lifecycle` on macOS builds two isolated app versions with
 different code hashes and Cookie encryption disabled. It exercises first launch,
 PKCE login, restart with expired cookies, the real download/install/relaunch
@@ -784,7 +792,7 @@ source. Imports convert raster images to PNG and do not preserve animation.
 Install the unified [Plasmic skill and CLI](../ai/plasmic/README.md) for product
 prototyping and development code generation. Each task resolves current NAS resources;
 `read_skill` supplies this bootstrap entry point. Repository numeric tags publish the CLI to npm; deploy its matching resource bundle to NAS.
-Desktop tags publish native installers and the static release image through Actions.
+The same numeric tag selects native installers and the static release image when Desktop needs publishing.
 
 See [MCP guide](../ai/plasmic/references/desktop-mcp.md) for exact sequencing and current limitations, and
 [MCP capability status](MCP-CAPABILITIES.md) for acceptance evidence and the Pen

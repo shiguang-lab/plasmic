@@ -107,9 +107,9 @@ if (
   );
   if (
     values.tag &&
-    values.tag !== `desktop-v${metadata.version}`
+    values.tag !== metadata.version
   ) {
-    throw new Error("Desktop tag must match package.json version");
+    throw new Error("Release tag must match Desktop package.json version");
   }
   const manifest = await buildDistribution(
     values.from || path.join(desktop, "dist", metadata.version),

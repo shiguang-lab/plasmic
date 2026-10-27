@@ -620,7 +620,8 @@ test("creation uses authenticated platform requests without leaving or saving th
   for (const call of calls) {
     assert.equal(call.options.method, "POST");
     assert.equal(call.options.credentials, "include");
-    assert.equal(call.options.bypassCustomProtocolHandlers, true);
+    assert.equal(call.options.bypassCustomProtocolHandlers, undefined,
+      "native requests must pass through the session-restoring protocol handler");
     assert.equal(call.options.headers.Origin, origin);
     assert.equal(call.options.headers["Content-Type"], "application/json");
   }

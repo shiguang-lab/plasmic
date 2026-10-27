@@ -1,18 +1,21 @@
-name: Publish NAS images
+name: Publish release
 on:
   workflow_dispatch:
     inputs:
       release-tag:
-        description: Existing Studio tag to publish
+        description: Existing numeric version tag to publish
         required: true
         type: string
+      force-all:
+        description: Publish every product even for an unchanged patch
+        default: false
+        type: boolean
   push:
     tags: ['[0-9]*.[0-9]*.[0-9]*']
 permissions:
   contents: read
-  packages: write
 concurrency:
-  group: studio-release
+  group: product-release
   cancel-in-progress: false
 jobs:
   plan:
@@ -20,30 +23,37 @@ jobs:
     runs-on: ubuntu-24.04
     outputs:
       publish: ${{ steps.plan.outputs.publish }}
+      studio: ${{ steps.plan.outputs.studio }}
       desktop: ${{ steps.plan.outputs.desktop }}
-      desktopTag: ${{ steps.plan.outputs.desktopTag }}
+      cli: ${{ steps.plan.outputs.cli }}
+      resources: ${{ steps.plan.outputs.resources }}
+      full: ${{ steps.plan.outputs.full }}
+      plan: ${{ steps.plan.outputs.plan }}
       revision: ${{ steps.source.outputs.revision }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1, Node 24
         with:
-          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.release-tag || github.ref }}
+          ref: ${{ inputs.release-tag || github.ref }}
           fetch-depth: 0
       - id: source
         run: echo "revision=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0, Node 24
         with:
           node-version: 24
-      - run: node --test scripts/release-plan.test.mjs
+      - run: node --test scripts/release-plan.test.mjs scripts/github-release.test.mjs
       - id: plan
         env:
           RELEASE_TAG: ${{ inputs.release-tag || github.ref_name }}
-          RELEASE_REBUILD: ${{ github.event_name == 'push' && github.event.forced == true }}
+          RELEASE_FORCE_ALL: ${{ inputs.force-all == true }}
         run: node scripts/release-plan.mjs "$RELEASE_TAG"
-  publish:
+  studio:
     needs: plan
-    if: github.event_name == 'workflow_dispatch' || needs.plan.outputs.publish == 'true'
+    if: needs.plan.outputs.studio == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 90
+    permissions:
+      contents: read
+      packages: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1, Node 24
         with:
@@ -64,6 +74,29 @@ jobs:
           RELEASE_TAG: ${{ inputs.release-tag || github.ref_name }}
           PLASMIC_COMMIT: ${{ needs.plan.outputs.revision }}
         run: docker buildx bake --file deploy/docker-bake.hcl --push
+  cli:
+    needs: plan
+    if: needs.plan.outputs.cli == 'true'
+    permissions:
+      contents: read
+      id-token: write
+    uses: ./.github/workflows/publish-plasmic-cli.yml
+    with:
+      release-tag: ${{ inputs.release-tag || github.ref_name }}
+      source-ref: ${{ needs.plan.outputs.revision }}
+      force: ${{ needs.plan.outputs.full == 'true' }}
+    secrets:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+  resources:
+    needs: [plan, cli]
+    if: >-
+      ${{ !cancelled() && needs.plan.outputs.resources == 'true' &&
+          (needs.cli.result == 'success' || needs.cli.result == 'skipped') }}
+    uses: ./.github/workflows/publish-plasmic-resources.yml
+    with:
+      release-tag: ${{ inputs.release-tag || github.ref_name }}
+      source-ref: ${{ needs.plan.outputs.revision }}
+      cli-version: ${{ needs.cli.outputs.version }}
   desktop-tests:
     needs: plan
     if: needs.plan.outputs.desktop == 'true'
@@ -71,14 +104,48 @@ jobs:
     with:
       source-ref: ${{ needs.plan.outputs.revision }}
   desktop:
-    needs: [plan, publish, desktop-tests]
-    if: needs.plan.outputs.desktop == 'true'
+    needs: [plan, studio, desktop-tests]
+    if: >-
+      ${{ !cancelled() && needs.plan.outputs.desktop == 'true' &&
+          needs.desktop-tests.result == 'success' &&
+          (needs.studio.result == 'success' || needs.studio.result == 'skipped') }}
     permissions:
-      contents: write
+      contents: read
       packages: write
     uses: ./.github/workflows/publish-desktop.yml
     with:
-      release-tag: ${{ needs.plan.outputs.desktopTag }}
+      release-tag: ${{ inputs.release-tag || github.ref_name }}
       source-ref: ${{ needs.plan.outputs.revision }}
       tested-revision: ${{ needs.desktop-tests.outputs.revision }}
       rebuild: ${{ github.event_name == 'push' && github.event.forced == true }}
+  release:
+    needs: [plan, studio, desktop, cli, resources]
+    if: >-
+      ${{ !cancelled() && needs.plan.outputs.publish == 'true' &&
+          (needs.plan.outputs.studio != 'true' || needs.studio.result == 'success') &&
+          (needs.plan.outputs.desktop != 'true' || needs.desktop.result == 'success') &&
+          (needs.plan.outputs.cli != 'true' || needs.cli.result == 'success') &&
+          (needs.plan.outputs.resources != 'true' || needs.resources.result == 'success') }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1, Node 24
+        with:
+          ref: ${{ needs.plan.outputs.revision }}
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0, Node 24
+        with:
+          node-version: 24
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2, Node 24
+        if: needs.plan.outputs.desktop == 'true' || needs.plan.outputs.resources == 'true'
+        with:
+          pattern: '{darwin-arm64,darwin-x64,win32-x64,linux-x64,desktop-distribution,plasmic-cli,plasmic-resources-*}'
+          path: release-artifacts
+          merge-multiple: false
+      - name: Publish selected products in one GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_PLAN: ${{ needs.plan.outputs.plan }}
+          RELEASE_REBUILD: ${{ github.event_name == 'push' && github.event.forced == true }}
+        run: node scripts/github-release.mjs

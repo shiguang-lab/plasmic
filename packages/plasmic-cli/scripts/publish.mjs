@@ -1,6 +1,6 @@
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { appendFile, mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
@@ -62,18 +62,25 @@ async function inspectRegistry(registry, fetchRelease, name = "@plasmickit/cli")
   return { url, published: response.ok ? await response.json() : null };
 }
 
-export async function prepareRelease({ tag, output, registry = "https://registry.npmjs.org/", fetchRelease = fetch } = {}) {
+export async function prepareRelease({ tag, output, force = false, registry = "https://registry.npmjs.org/", fetchRelease = fetch } = {}) {
   releaseVersion(tag);
   const local = await buildCli(CLI_VERSION);
   const localPackage = await inspectCliArtifact(local);
   const { published } = await inspectRegistry(registry, fetchRelease);
   const latest = published?.["dist-tags"]?.latest;
   const previous = await publishedCli({ published, fetchRelease });
-  if (previous && tag !== CLI_VERSION && !isNewReleaseSeries(tag, previous.cliVersion) && (await inspectCliArtifact(previous.cliArtifact)).contentHash === localPackage.contentHash) {
+  const unchanged = previous && (await inspectCliArtifact(previous.cliArtifact)).contentHash === localPackage.contentHash;
+  const directory = path.resolve(output || "dist/plasmic-cli");
+  // A later job can fail after npm succeeds. Retry with npm's original bytes.
+  if (latest === tag && unchanged) {
+    await mkdir(directory, { recursive: true });
+    await writeFile(path.join(directory, "plasmic-cli.tgz"), previous.cliArtifact);
+    return { directory, version: tag, skipped: false };
+  }
+  if (!force && unchanged && tag !== CLI_VERSION && !isNewReleaseSeries(tag, previous.cliVersion)) {
     return { skipped: true, version: previous.cliVersion, reason: "Package contents are unchanged" };
   }
   if (latest && compareVersions(tag, latest) <= 0) throw new Error(`Changed CLI requires a version newer than npm latest ${latest}`);
-  const directory = path.resolve(output || "dist/plasmic-cli");
   await mkdir(directory, { recursive: true });
   await writeFile(path.join(directory, "plasmic-cli.tgz"), await buildCli(tag));
   return { directory, version: tag, skipped: false };
@@ -99,9 +106,11 @@ export async function publishedCli({ published, registry = "https://registry.npm
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  const { values } = parseArgs({ options: { tag: { type: "string" }, output: { type: "string" }, execute: { type: "boolean" } } });
-  const tag = releaseVersion((values.tag || process.env.GITHUB_REF_NAME || "").replace(/^cli-v/, ""));
-  if (process.env.GITHUB_REF_NAME && `cli-v${tag}` !== process.env.GITHUB_REF_NAME) throw new Error("Requested release does not match the GitHub tag");
-  const built = await prepareRelease({ output: values.output, tag });
-  console.log(JSON.stringify(built.skipped ? built : await publishCli({ directory: built.directory, tag, execute: Boolean(values.execute) }), null, 2));
+  const { values } = parseArgs({ options: { tag: { type: "string" }, output: { type: "string" }, execute: { type: "boolean" }, force: { type: "boolean" } } });
+  const tag = releaseVersion(values.tag || process.env.GITHUB_REF_NAME || "");
+  if (process.env.GITHUB_REF_TYPE === "tag" && tag !== process.env.GITHUB_REF_NAME) throw new Error("Requested release does not match the GitHub tag");
+  const built = await prepareRelease({ output: values.output, tag, force: values.force || process.env.RELEASE_FORCE_ALL === "true" });
+  const result = built.skipped ? built : await publishCli({ directory: built.directory, tag, execute: Boolean(values.execute) });
+  if (process.env.GITHUB_OUTPUT) await appendFile(process.env.GITHUB_OUTPUT, `publish=${!built.skipped}\nversion=${built.version}\n`);
+  console.log(JSON.stringify(result, null, 2));
 }

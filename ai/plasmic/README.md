@@ -28,7 +28,8 @@ ai/plasmic/references/admin-templates.md    管理后台模板选择、组合与
 ai/plasmic/references/templates/admin/     素材库目录和官方 UiConfig 的唯一维护源
 ai/plasmic/scripts/                        结构、Slot、模型比较检查
 scripts/build-plasmic-resources.mjs        构建资源与独立版本的 CLI 安装包
-.github/workflows/publish-plasmic-cli.yml  新 tag 打包资源，CLI 内容变化时发布 npm
+.github/workflows/publish-images.yml       统一 tag，按需发布或全发布，并汇总 GitHub Release
+.github/workflows/publish-plasmic-cli.yml  被统一发布流程调用，发布选中的 CLI 到 npm
 ```
 
 根目录不再放置 `skills/`。CLI 直接读取包内 `skill/plasmic/SKILL.md` 安装，无生成副本或复制构建步骤。通过 `references/libraries/index.md` 先匹配项目真实组件库和 API 版本，再读该库的组件索引。每个库/API 范围独立维护 `components/` 与适用的 `compositions/`；Antd 按官方主组件维度维护文档，Form.Item、RangePicker、Descriptions.Item、列、分组等子组件和变体放入父组件小节，不另建文件。标题使用库的主组件名称，文档和索引保留覆盖的 Studio 注册名称及 key。业务组件沿用这一粒度，SearchForm.Item 在 SearchForm 文档内维护。构建器直接打包 references，无组件文档生成副本；测试脚本不进入资源 bundle。
@@ -140,7 +141,7 @@ plasmickit references path
 
 ### Reference 更新发布
 
-仅修改 references 时无需修改薄 `SKILL.md`、CLI 运行代码或最低 CLI 版本。资源版本使用一个未发布的 `resources-v<版本>` tag；相同版本不能覆盖不同内容。先在仓库根目录完成本地打包检查，例如：
+仅修改 references 时无需修改薄 `SKILL.md`、CLI 运行代码或最低 CLI 版本。资源版本使用统一的未发布数字 `<版本>` tag；相同版本不能覆盖不同内容。先在仓库根目录完成本地打包检查，例如：
 
 ```sh
 node scripts/build-plasmic-resources.mjs --version 0.0.59 --output /tmp/plasmic-resources-0.0.59
@@ -148,7 +149,7 @@ node scripts/build-plasmic-resources.mjs --version 0.0.59 --output /tmp/plasmic-
 
 版本号是示例，发布前检查 npm 和 NAS 当前版本，选择更大的未发布版本。本地构建会运行验收脚本单测并验证资源 manifest、文件哈希和安装包；CLI 使用源码 package.json 的独立版本。它不会发布或切换 NAS 清单，也不替代正式发布的 npm 内容比较。检查 manifest 包含 `references/admin-templates.md`、`references/templates/admin/catalog.json` 和 `references/templates/admin/ui-config.json`。
 
-正式发布沿用下文的独立 tag 流程：提交规范，推送 `resources-v<版本>`，等待资源 workflow 成功，下载该次资源 artifact，再通过 `publish:resources --from ... --version ...` 部署。仅 references 或资源脚本变化时复用 npm 最新 CLI 的版本和原始安装包；薄 SKILL 发生变化则先发布包含它的 CLI。资源 tag 不触发 Studio/Desktop 发布。NAS 部署必须使用该次 CI 产物，不重新构建覆盖已发布版本。
+正式发布沿用下文的统一 tag 流程：提交规范，推送数字 `<版本>` tag，等待 workflow 成功。仅 references 或资源脚本变化的小版本只构建资源，复用 npm 最新 CLI 的版本和原始安装包；薄 SKILL 或 CLI 发生变化时，同一流程先发布 CLI，再构建引用该版本的资源。下载该次资源 artifact，通过 `publish:resources --from ... --version ...` 部署。NAS 部署必须使用 CI 产物，不重新构建覆盖已发布版本。
 
 NAS 部署成功后，客户端执行：
 
@@ -172,26 +173,32 @@ npx -y @plasmickit/cli@latest context resolve --mode prototype
 
 ## Tag 自动发布
 
-四种产物使用独立入口和版本：
+只推送一个数字版本 tag，例如 `0.4.3`。`.github/workflows/publish-images.yml` 统一判断范围，其他发布 workflow 仅由它调用：
 
-| 产物 | Tag | 变更判断 |
-| --- | --- | --- |
-| Studio | `0.1.0` | 主/次版本升级始终发布并联动 Desktop；补丁版本比较生产输入，前端变化联动 Desktop |
-| Desktop | `desktop-v0.1.0` | 主/次版本升级始终发布，补丁版本比较生产输入；Studio 联动时自动创建，不重复手工推送 |
-| CLI | `cli-v0.1.0` | 主/次版本升级始终发布；补丁版本比较实际 npm 包内容，忽略包版本和归档元数据 |
-| 资源 | `resources-v0.1.0` | 主/次版本升级始终发布；补丁版本比较 references、脚本、资源构建和 CLI 包输入 |
+| 版本规则或变更 | 发布范围 |
+| --- | --- |
+| 主版本或次版本升级 | Studio、Desktop、CLI、资源全部发布 |
+| 补丁版本：后端变化 | Studio 镜像 |
+| 补丁版本：前端或共享 renderer 变化 | Studio 镜像和 Desktop |
+| 补丁版本：Desktop 自身变化 | Desktop，复用已有 Studio 镜像 |
+| 补丁版本：CLI 或薄 Skill 变化 | CLI 和引用该 npm 包的资源 |
+| 补丁版本：references 或资源脚本变化 | 资源，复用 npm latest CLI |
+| 仅文档、测试或 workflow 变化 | 不发布，不创建 Release |
+| 手动 workflow dispatch 勾选 `force-all` | 所有产物，包含内容未变的补丁版本 |
 
-资源第一次使用独立 tag 时，以最后一个旧数字 tag 为基线。Studio/纯 Desktop 发布均不发布 CLI 或资源；CLI 发布也不构建资源。资源发布从 npm 下载当前 latest CLI，验证完整性并复用原始字节，不包含尚未发布的本地 CLI 修改。CLI 包变化也视为资源发布输入变化：先发布 CLI，再推送新资源 tag 并部署该次 CI 产物，更新 NAS 清单中的 `cliVersion` 和 CLI 安装包，使版本检查与 npm latest 一致。
+发布范围取变更集合；例如同时修改后端和 references，就发布 Studio 和资源。资源始终在选中的 CLI 发布成功后构建，校验 npm 版本与完整性，复用原始安装包。只有资源变化时无需发布新 CLI。全发布和实际发布的 CLI/资源版本来自统一 tag；未发布的产物保留现有版本。源码 package.json 的 CLI 版本用于开发。
 
-CLI 的源码 package.json 版本用于开发，发布版本来自 `cli-v` tag。资源清单的 `version` 来自 `resources-v` tag，`cliVersion` 来自 npm。`MIN_CLI_VERSION` 位于 `src/protocol.mjs`，不得高于资源清单的 `cliVersion`。资源目录使用内容哈希 `releaseId`，记录所有文件和安装包的 SHA-256 与大小。
+发布前运行 `node scripts/release-plan.mjs <tag>` 检查范围，设置 `RELEASE_FORCE_ALL=true` 检查强制全发布。选中 Desktop 时，其 package/lockfile 版本必须等于 tag，并有五语言发布说明；同时构建 Studio 时 `webImage` 指向该 tag，仅发布 Desktop 时指向已有镜像。校验失败则不开始构建。
 
-发布前在提交上运行 `node scripts/release-plan.mjs <tag>` 检查范围。Studio 前端发布或主/次版本升级必须在同一提交中更新 Desktop 版本、五语言发布说明及指向该 Studio tag 的 `webImage`；校验失败则不开始镜像构建。
+所有选中的任务成功后才公开同一个 GitHub Release。CLI/资源资产包含 `plasmic-cli.tgz`、`resources.json.gz`、`plasmic-latest.json` 和 `plasmic-manifest.json`；薄 Skill 已包含在 CLI 包中。资产上传后按大小和 SHA-256 验证，失败保留草稿供重跑。资源 artifact 仍包含原始 `latest.json` 和 `releases/<releaseId>/`，供现有 NAS 部署命令使用。Release 上传不会自动改 NAS、首尔代理或客户端地址。
+
+`MIN_CLI_VERSION` 位于 `src/protocol.mjs`，不得高于资源清单的 `cliVersion`。资源目录使用内容哈希 `releaseId`，记录所有文件和安装包的 SHA-256 与大小。
 
 ### CI 必要配置
 
-- npm：需要有 `@plasmickit` scope 发布权限、启用 Bypass 2FA 的 granular `NPM_TOKEN` secret，或已登记该包的 Trusted Publisher。OIDC 配置填写 GitHub owner `shiguang-lab`、repo `plasmic`、workflow `publish-plasmic-cli.yml`；workflow 已声明 `id-token: write` 并安装最新版 npm。参考 [npm Trusted Publishing](https://docs.npmjs.com/trusted-publishers/)。
+- npm：需要有 `@plasmickit` scope 发布权限、启用 Bypass 2FA 的 granular `NPM_TOKEN` secret，或已登记该包的 Trusted Publisher。OIDC 配置填写 GitHub owner `shiguang-lab`、repo `plasmic`、调用方 workflow `publish-images.yml`；workflow 已声明 `id-token: write` 并安装最新版 npm。参考 [npm Trusted Publishing](https://docs.npmjs.com/trusted-publishers/)。
 
-各自的 Actions 分别负责发布 npm、构建 Studio 镜像或打包资源。NAS 部署在本机单独执行，使用本机 SSH 配置和已下载的 Actions 产物。
+统一的 Actions 按计划调用 npm 发布、Studio 镜像、Desktop 和资源构建任务，并汇总 Release。NAS 部署在本机单独执行，使用本机 SSH 配置和已下载的 Actions 产物。
 
 ## 单独部署 NAS 资源
 
@@ -212,12 +219,12 @@ npm --prefix desktop run publish:resources -- --from /absolute/path/to/plasmic-r
 node packages/plasmic-cli/src/index.mjs skill install --dry-run
 node scripts/build-plasmic-resources.mjs --version 0.0.59
 # 默认只对 npm 做 dry-run（会查询真实 registry，不上传）：
-node packages/plasmic-cli/scripts/publish.mjs --tag cli-v0.0.83
+node packages/plasmic-cli/scripts/publish.mjs --tag 0.4.3
 # 资源仅使用已经发布并校验的 CLI：
-node scripts/release-resources.mjs --tag resources-v0.0.84
+node scripts/release-resources.mjs --tag 0.4.3
 ```
 
-CLI 主/次版本升级会发布当前包内容；补丁版本仅在实际包内容变化时调用 npm publish，且要求版本递增。上传 npm 需要显式加 `--execute`；CLI tag 的 CI 会自动传入。Desktop `publish:nas` 不覆盖资源清单。
+统一版本主/次版本升级或强制全发布会发布当前 CLI 包内容；补丁版本按需比较实际包内容，要求 npm 版本递增。上传 npm 需要显式加 `--execute`；统一 CI 会自动传入，全发布另传 `RELEASE_FORCE_ALL=true`。Desktop `publish:nas` 不覆盖资源清单。
 
 本地构建目录 `dist/plasmic-resources/` 对应 NAS：
 

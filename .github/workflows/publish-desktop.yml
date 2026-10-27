@@ -1,13 +1,5 @@
-name: Publish Desktop installers and release image
+name: Build selected Desktop installers and release image
 on:
-  push:
-    tags: ["desktop-v*"]
-  workflow_dispatch:
-    inputs:
-      release-tag:
-        description: Existing Desktop release tag to build
-        required: true
-        type: string
   workflow_call:
     inputs:
       rebuild:
@@ -19,7 +11,7 @@ on:
         required: true
         type: string
       source-ref:
-        description: Studio commit to build before the linked Desktop tag exists
+        description: Verified release commit to build
         required: true
         type: string
       tested-revision:
@@ -29,57 +21,17 @@ on:
 env:
   PYTHONUTF8: "1"
 permissions:
-  contents: write
+  contents: read
 concurrency:
   group: desktop-release
   cancel-in-progress: false
 jobs:
-  plan:
-    if: github.repository == 'shiguang-lab/plasmic'
-    runs-on: ubuntu-24.04
-    outputs:
-      publish: ${{ steps.plan.outputs.publish }}
-      revision: ${{ steps.source.outputs.revision }}
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1, Node 24
-        with:
-          ref: ${{ inputs.source-ref || inputs.release-tag || github.ref }}
-          fetch-depth: 0
-      - id: source
-        run: echo "revision=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0, Node 24
-        with:
-          node-version: 24
-      - id: plan
-        env:
-          RELEASE_TAG: ${{ inputs.release-tag || github.ref_name }}
-        run: node scripts/release-plan.mjs "$RELEASE_TAG"
-      - name: Record the linked Desktop tag
-        if: inputs.release-tag != '' && steps.plan.outputs.publish == 'true'
-        env:
-          RELEASE_TAG: ${{ inputs.release-tag }}
-          RELEASE_REBUILD: ${{ inputs.rebuild }}
-        run: |
-          if git rev-parse "$RELEASE_TAG" >/dev/null 2>&1; then
-            if test "$(git rev-parse "$RELEASE_TAG^{commit}")" != "$(git rev-parse HEAD)"; then
-              test "$RELEASE_REBUILD" = true
-              previous=$(git rev-parse "refs/tags/$RELEASE_TAG")
-              git tag -f "$RELEASE_TAG" HEAD
-              git push --force-with-lease="refs/tags/$RELEASE_TAG:$previous" origin "refs/tags/$RELEASE_TAG"
-            fi
-          else
-            git tag "$RELEASE_TAG"
-            git push origin "$RELEASE_TAG"
-          fi
   tests:
-    needs: plan
-    if: needs.plan.outputs.publish == 'true' && inputs.tested-revision != needs.plan.outputs.revision
+    if: inputs.tested-revision != inputs.source-ref
     uses: ./.github/workflows/test-desktop.yml
     with:
-      source-ref: ${{ needs.plan.outputs.revision }}
+      source-ref: ${{ inputs.source-ref }}
   renderer:
-    needs: plan
-    if: needs.plan.outputs.publish == 'true'
     env:
       ELECTRON_SKIP_BINARY_DOWNLOAD: "1"
     runs-on: ubuntu-24.04
@@ -87,7 +39,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1, Node 24
         with:
-          ref: ${{ needs.plan.outputs.revision }}
+          ref: ${{ inputs.source-ref }}
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0, Node 24
         with:
           node-version: 24
@@ -96,9 +48,9 @@ jobs:
       - run: npm ci --prefix desktop --prefer-offline --no-audit --no-fund
       - name: Validate release tag
         env:
-          RELEASE_TAG: ${{ inputs.release-tag || github.ref_name }}
+          RELEASE_TAG: ${{ inputs.release-tag }}
         run: |
-          node --input-type=module -e 'import fs from "node:fs"; const p=JSON.parse(fs.readFileSync("desktop/package.json")); if(process.env.RELEASE_TAG!==`desktop-v${p.version}` || !/^\d+\.\d+\.\d+$/.test(p.version)) throw new Error("Tag/version mismatch")'
+          node --input-type=module -e 'import fs from "node:fs"; const p=JSON.parse(fs.readFileSync("desktop/package.json")); if(process.env.RELEASE_TAG!==p.version || !/^\d+\.\d+\.\d+$/.test(p.version)) throw new Error("Tag/version mismatch")'
       - name: Extract the pinned Studio image
         run: node desktop/scripts/prepare-assets.mjs
       - run: tar -czf renderer.tar.gz -C desktop renderer
@@ -109,7 +61,7 @@ jobs:
           if-no-files-found: error
           compression-level: 0
   installers:
-    needs: [plan, renderer]
+    needs: renderer
     strategy:
       fail-fast: false
       matrix:
@@ -135,7 +87,7 @@ jobs:
       - run: git config --global core.autocrlf false
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1, Node 24
         with:
-          ref: ${{ needs.plan.outputs.revision }}
+          ref: ${{ inputs.source-ref }}
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0, Node 24
         with:
           node-version: 24
@@ -178,14 +130,14 @@ jobs:
           if-no-files-found: error
           compression-level: 0
   publish:
-    needs: [plan, tests, installers]
+    needs: [tests, installers]
     if: >-
-      ${{ !cancelled() && needs.plan.outputs.publish == 'true' &&
+      ${{ !cancelled() &&
           needs.installers.result == 'success' &&
           (needs.tests.result == 'success' ||
-           (needs.tests.result == 'skipped' && inputs.tested-revision == needs.plan.outputs.revision)) }}
+           (needs.tests.result == 'skipped' && inputs.tested-revision == inputs.source-ref)) }}
     env:
-      RELEASE_TAG: ${{ inputs.release-tag || github.ref_name }}
+      RELEASE_TAG: ${{ inputs.release-tag }}
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     permissions:
@@ -194,7 +146,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1, Node 24
         with:
-          ref: ${{ needs.plan.outputs.revision }}
+          ref: ${{ inputs.source-ref }}
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0, Node 24
         with:
           node-version: 24
@@ -215,7 +167,7 @@ jobs:
       - name: Validate unpublished release
         if: inputs.rebuild != true
         run: |
-          if docker manifest inspect "ghcr.io/shiguang-lab/plasmic-desktop-releases:$RELEASE_TAG" >/dev/null 2>&1; then
+          if docker manifest inspect "ghcr.io/shiguang-lab/plasmic-desktop-releases:desktop-v$RELEASE_TAG" >/dev/null 2>&1; then
             echo 'Release image already exists; publish a new version.' >&2
             exit 1
           fi
@@ -224,7 +176,9 @@ jobs:
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2, Node 24
         with:
           name: desktop-distribution
-          path: desktop/public/desktop-updates/latest.json
+          path: |
+            desktop/public/desktop-updates/latest.json
+            desktop/public/desktop-updates/**/*.yml
           if-no-files-found: error
       - name: Publish static release image
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0, Node 24
@@ -235,9 +189,9 @@ jobs:
           push: true
           provenance: false
           tags: |
-            ghcr.io/shiguang-lab/plasmic-desktop-releases:${{ inputs.release-tag || github.ref_name }}
+            ghcr.io/shiguang-lab/plasmic-desktop-releases:desktop-v${{ inputs.release-tag }}
             ghcr.io/shiguang-lab/plasmic-desktop-releases:latest
           labels: |
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
-            org.opencontainers.image.revision=${{ needs.plan.outputs.revision }}
-            org.opencontainers.image.version=${{ inputs.release-tag || github.ref_name }}
+            org.opencontainers.image.revision=${{ inputs.source-ref }}
+            org.opencontainers.image.version=${{ inputs.release-tag }}

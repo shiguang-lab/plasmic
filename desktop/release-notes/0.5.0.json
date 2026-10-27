@@ -1,0 +1,7 @@
+{
+  "en": "- Restore the Dynamic Island account session silently when browser cookies expire.\n- Publish selected components from one version tag, with full releases for major and minor versions.\n- Publish installers, update archives, blockmaps, CLI and workflow resources together on GitHub Releases.",
+  "zh-CN": "- 浏览器 Cookie 过期时，动态岛账号状态可静默恢复会话。\n- 使用统一版本 tag 按需发布各组件，主版本和次版本自动全量发布。\n- 将安装包、更新归档、差异更新索引、CLI 和工作流资源同步发布到 GitHub Release。",
+  "zh-TW": "- 瀏覽器 Cookie 過期時，動態島帳號狀態可靜默恢復工作階段。\n- 使用統一版本 tag 按需發布各元件，主版本和次版本自動全量發布。\n- 將安裝程式、更新封存檔、差異更新索引、CLI 和工作流程資源同步發布至 GitHub Release。",
+  "ja": "- ブラウザーの Cookie が期限切れになった際に、ダイナミックアイランドのアカウントセッションを自動復元します。\n- 単一のバージョンタグから必要なコンポーネントを公開し、メジャーおよびマイナー更新ではすべてを公開します。\n- インストーラー、更新アーカイブ、差分更新インデックス、CLI、ワークフローリソースを GitHub Releases に公開します。",
+  "ko": "- 브라우저 쿠키가 만료되면 다이내믹 아일랜드 계정 세션을 자동으로 복원합니다.\n- 하나의 버전 태그로 필요한 구성 요소를 배포하고 메이저 및 마이너 버전에서는 전체를 배포합니다.\n- 설치 파일, 업데이트 압축 파일, 차등 업데이트 인덱스, CLI 및 워크플로 리소스를 GitHub Releases에 함께 게시합니다."
+}

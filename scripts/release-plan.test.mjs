@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { affectedProducts, productForTag } from "./release-plan.mjs";
+import { affectedProducts, releasePlan } from "./release-plan.mjs";
 import { isNewReleaseSeries } from "./release-version.mjs";
 
 test("milestone releases advance the minor or major series", () => {
@@ -11,17 +11,9 @@ test("milestone releases advance the minor or major series", () => {
   assert.equal(isNewReleaseSeries("0.0.89", "0.1.0"), false);
 });
 
-test("release tags have independent namespaces", () => {
-  for (const [tag, product] of [
-    ["0.0.84", "studio"],
-    ["desktop-v0.0.59", "desktop"],
-    ["cli-v0.0.83", "cli"],
-    ["resources-v0.0.84", "resources"],
-  ]) {
-    assert.equal(productForTag(tag), product);
-  }
-  for (const tag of ["v0.0.84", "foo", "0.0.84-beta", "cli-v01.0.1"]) {
-    assert.throws(() => productForTag(tag));
+test("only one numeric release tag starts publication", () => {
+  for (const tag of ["v1.2.3", "desktop-v1.2.3", "cli-v1.2.3", "resources-v1.2.3", "1.2.3-beta", "01.2.3"]) {
+    assert.throws(() => releasePlan(tag), /Unsupported release tag/);
   }
 });
 const products = (files) =>
@@ -95,125 +87,99 @@ import { execFileSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { releasePlan } from "./release-plan.mjs";
 
-test("plans compare product baselines and enforce the Studio/Desktop link", () => {
+test("unified patches select changed products; minor, major and manual full releases select everything", () => {
   const original = process.cwd();
   const repo = mkdtempSync(path.join(tmpdir(), "release-plan-"));
-  const git = (...args) =>
-    execFileSync("git", args, { cwd: repo, stdio: "pipe" });
+  const git = (...args) => execFileSync("git", args, { cwd: repo, stdio: "pipe" });
   const put = (file, value) => {
     mkdirSync(path.dirname(path.join(repo, file)), { recursive: true });
     writeFileSync(path.join(repo, file), value);
   };
   const commit = () => {
     git("add", ".");
-    git(
-      "-c",
-      "user.name=Release test",
-      "-c",
-      "user.email=test@example.invalid",
-      "-c",
-      "core.hooksPath=/dev/null",
-      "commit",
-      "-m",
-      "test",
-    );
+    git("-c", "user.name=Release test", "-c", "user.email=test@example.invalid", "-c", "core.hooksPath=/dev/null", "commit", "-m", "test");
+  };
+  const desktop = (version, image = version) => {
+    put("desktop/package.json", JSON.stringify({ version }));
+    put("desktop/package-lock.json", JSON.stringify({ version, packages: { "": { version } } }));
+    put("desktop/desktop.config.json", JSON.stringify({ webImage: `ghcr.io/shiguang-lab/plasmic-web:${image}` }));
+    put(`desktop/release-notes/${version}.md`, "Update");
+    put(`desktop/release-notes/${version}.json`, JSON.stringify(Object.fromEntries(["en", "zh-CN", "zh-TW", "ja", "ko"].map((language) => [language, "Update"]))));
+  };
+  const selected = (tag, options) => {
+    const plan = releasePlan(tag, "HEAD", options);
+    return ["studio", "desktop", "cli", "resources"].filter((product) => plan[product]);
   };
   try {
     git("init");
-    put("desktop/package.json", JSON.stringify({ version: "0.0.58" }));
-    put(
-      "desktop/desktop.config.json",
-      JSON.stringify({ webImage: "ghcr.io/shiguang-lab/plasmic-web:0.0.82" }),
-    );
+    desktop("1.2.0");
     put("platform/wab/src/wab/client/theme.ts", "old");
     put("ai/plasmic/references/guide.md", "old");
+    put("packages/plasmic-cli/src/index.mjs", "old");
     commit();
-    git("tag", "0.0.82");
-    git("tag", "desktop-v0.0.58");
+    git("tag", "1.2.0");
+    for (const prefix of ["desktop-v", "cli-v", "resources-v"]) git("tag", prefix + "1.2.0");
     process.chdir(repo);
+    assert.equal(releasePlan("1.2.1").publish, false);
     put("platform/wab/src/wab/server/main.ts", "server");
     commit();
-    assert.equal(releasePlan("0.0.83").desktop, false);
-    assert.equal(releasePlan("resources-v0.0.83").publish, false);
-    put("platform/wab/src/wab/client/theme.ts", "new");
+    assert.deepEqual(selected("1.2.1"), ["studio"]);
+    put("packages/plasmic-cli/src/index.mjs", "unpublished CLI before old numeric tag");
     commit();
-    assert.throws(() => releasePlan("0.0.83"), /requires a new Desktop/);
-    put("desktop/package.json", JSON.stringify({ version: "0.0.59" }));
-    put(
-      "desktop/desktop.config.json",
-      JSON.stringify({ webImage: "ghcr.io/shiguang-lab/plasmic-web:0.0.83" }),
-    );
-    put(
-      "desktop/package-lock.json",
-      JSON.stringify({
-        version: "0.0.59",
-        packages: { "": { version: "0.0.59" } },
-      }),
-    );
-    put("desktop/release-notes/0.0.59.md", "Update");
-    put(
-      "desktop/release-notes/0.0.59.json",
-      JSON.stringify(
-        Object.fromEntries(
-          ["en", "zh-CN", "zh-TW", "ja", "ko"].map((key) => [key, "Update"]),
-        ),
-      ),
-    );
+    git("tag", "-f", "1.2.0");
+    assert.deepEqual(selected("1.2.1"), ["cli", "resources"]);
+    assert.equal(releasePlan("1.2.1").baselines.cli, "cli-v1.2.0");
+    put("scripts/github-release.mjs", "unified publisher");
+    put("platform/wab/src/wab/server/main.ts", "updated server");
     commit();
-    assert.equal(releasePlan("0.0.83").desktopTag, "desktop-v0.0.59");
-    assert.equal(releasePlan("desktop-v0.0.59").publish, true);
-    git("tag", "desktop-v0.0.59", "HEAD~1");
-    assert.throws(() => releasePlan("0.0.83"), /already belongs to another commit/);
-    assert.equal(releasePlan("0.0.83", "HEAD", true).desktopTag, "desktop-v0.0.59");
-    git("tag", "-d", "desktop-v0.0.59");
-    git("tag", "0.0.83");
-    assert.equal(releasePlan("0.0.84").publish, false);
-    put("ai/plasmic/references/guide.md", "new");
-    commit();
-    git("tag", "0.0.84");
-    assert.equal(releasePlan("resources-v0.0.84").baseline, "0.0.83");
-    assert.equal(releasePlan("resources-v0.0.84").publish, true);
-    git("tag", "resources-v0.0.84");
-    assert.equal(
-      releasePlan("resources-v0.0.85").baseline,
-      "resources-v0.0.84",
-    );
-    assert.equal(releasePlan("resources-v0.0.85").publish, false);
-    assert.equal(releasePlan("resources-v0.1.0").publish, true);
+    assert.deepEqual(selected("1.2.1"), ["studio", "cli", "resources"]);
+    git("tag", "1.2.1");
     put("packages/plasmic-cli/src/index.mjs", "new CLI");
     commit();
-    assert.equal(releasePlan("resources-v0.0.85").publish, true);
-    assert.equal(releasePlan("0.0.85").publish, false);
-    assert.throws(() => releasePlan("0.1.0"), /requires a new Desktop/);
-    put("desktop/package.json", JSON.stringify({ version: "0.1.0" }));
-    put(
-      "desktop/package-lock.json",
-      JSON.stringify({
-        version: "0.1.0",
-        packages: { "": { version: "0.1.0" } },
-      }),
-    );
-    put(
-      "desktop/desktop.config.json",
-      JSON.stringify({ webImage: "ghcr.io/shiguang-lab/plasmic-web:0.1.0" }),
-    );
-    put("desktop/release-notes/0.1.0.md", "Milestone");
-    put(
-      "desktop/release-notes/0.1.0.json",
-      JSON.stringify(
-        Object.fromEntries(
-          ["en", "zh-CN", "zh-TW", "ja", "ko"].map((key) => [key, "Milestone"]),
-        ),
-      ),
-    );
+    assert.deepEqual(selected("1.2.2"), ["cli", "resources"]);
+    git("tag", "1.2.2");
+    put("ai/plasmic/references/guide.md", "new resource");
     commit();
-    git("tag", "desktop-v0.0.59");
-    assert.equal(releasePlan("0.1.0").desktopTag, "desktop-v0.1.0");
-    assert.equal(releasePlan("desktop-v0.1.0").publish, true);
-    git("tag", "0.1.0");
-    assert.equal(releasePlan("0.1.1").publish, false);
+    assert.deepEqual(selected("1.2.3"), ["resources"]);
+    git("tag", "1.2.3");
+    put("desktop/src/main.cjs", "new Desktop");
+    desktop("1.2.4", "1.2.1");
+    commit();
+    assert.deepEqual(selected("1.2.4"), ["desktop"]);
+    git("tag", "1.2.4");
+    put("platform/wab/src/wab/client/theme.ts", "new frontend");
+    commit();
+    assert.throws(() => releasePlan("1.2.5"), /Desktop release requires/);
+    desktop("1.2.5");
+    commit();
+    assert.deepEqual(selected("1.2.5"), ["studio", "desktop"]);
+    git("tag", "1.2.5");
+    assert.throws(() => releasePlan("1.3.0"), /Desktop release requires/);
+    for (const tag of ["1.3.0", "2.0.0"]) {
+      desktop(tag);
+      commit();
+      assert.deepEqual(selected(tag), ["studio", "desktop", "cli", "resources"]);
+      assert.equal(releasePlan(tag).full, true);
+      git("tag", tag);
+    }
+    assert.equal(releasePlan("2.0.1").publish, false);
+    desktop("2.0.1");
+    commit();
+    assert.deepEqual(selected("2.0.1", { forceAll: true }), ["studio", "desktop", "cli", "resources"]);
+    assert.equal(releasePlan("2.0.1", "HEAD", { forceAll: true }).full, true);
+    git("tag", "2.0.1");
+    put("ai/plasmic/references/guide.md", "independently released resource");
+    commit();
+    git("tag", "resources-v2.0.2");
+    assert.deepEqual(selected("2.0.2"), []);
+    assert.equal(releasePlan("2.0.2").baselines.resources, "resources-v2.0.2");
+    put("ai/plasmic/references/guide.md", "unreleased resource");
+    commit();
+    assert.deepEqual(selected("2.0.2"), ["resources"]);
+    git("tag", "2.0.2");
+    assert.equal(releasePlan("2.0.3").baselines.resources, "2.0.2");
+    assert.equal(releasePlan("2.0.3").publish, false);
   } finally {
     process.chdir(original);
     rmSync(repo, { recursive: true, force: true });

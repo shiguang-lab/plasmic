@@ -6,12 +6,67 @@ const os = require("node:os");
 const path = require("node:path");
 const { consumeSessionTicket } = require("../src/session-ticket.cjs");
 const { forwardRemoteRequest } = require("../src/remote-fetch.cjs");
+const { createAssetHandler } = require("../src/asset-handler.cjs");
+const { DesktopController } = require("../src/controller.cjs");
+const { DesktopUnifiedLogin, AUTH_ORIGIN } = require("../src/unified-login.cjs");
+const { IslandAccount } = require("../src/island-account.cjs");
 const profile = fs.mkdtempSync(path.join(os.tmpdir(), "plasmic-session-test-"));
 app.setPath("userData", profile);
 let destinationRequests = 0;
 let origin;
-const server = createServer((req, res) => {
-  if (req.url === "/origin-check") {
+const refreshActivity = [];
+let deviceRevoked = false;
+let refreshToken = "native-device-secret";
+const server = createServer(async (req, res) => {
+  if (req.url === "/oauth/token") {
+    let body = "";
+    for await (const chunk of req) body += chunk;
+    const form = new URLSearchParams(body);
+    assert.equal(form.get("grant_type"), "refresh_token");
+    assert.equal(form.get("refresh_token"), refreshToken);
+    refreshActivity.push(form.get("user_activity"));
+    res.setHeader("Content-Type", "application/json");
+    if (deviceRevoked) {
+      res.writeHead(400);
+      res.end(JSON.stringify({ error: "invalid_grant" }));
+    } else {
+      refreshToken = "rotated-" + refreshActivity.length;
+      res.end(JSON.stringify({
+        access_token: "fixture-access",
+        token_type: "Bearer",
+        refresh_token: refreshToken,
+        expires_in: 900,
+      }));
+    }
+    return;
+  } else if (req.url === "/oauth/web-session-ticket") {
+    res.setHeader("Content-Type", "application/json");
+    res.end(JSON.stringify({ url: AUTH_ORIGIN + "/oauth/web-session?ticket=fixture" }));
+    return;
+  } else if (req.url === "/oauth/web-session?ticket=fixture") {
+    res.writeHead(302, {
+      "Set-Cookie": "fixture_session=issued-by-iam; Path=/; HttpOnly; SameSite=Lax",
+      Location: origin + "/",
+    });
+  } else if (req.url.startsWith("/api/v1/")) {
+    res.setHeader("Content-Type", "application/json");
+    if (req.headers.cookie !== "fixture_session=issued-by-iam") {
+      res.writeHead(401);
+      res.end(JSON.stringify({ error: "unauthorized" }));
+    } else if (req.method === "POST") {
+      assert.equal(req.headers.origin, origin);
+      let body = "";
+      for await (const chunk of req) body += chunk;
+      res.end(body);
+    } else {
+      res.end(JSON.stringify(req.url.endsWith("/auth/self")
+        ? { user: { id: "fixture-user", displayName: "Fixture" } }
+        : req.url.endsWith("/app-ctx")
+          ? { teams: [], workspaces: [] }
+          : { projects: [] }));
+    }
+    return;
+  } else if (req.url === "/origin-check") {
     res.writeHead(req.headers.origin === origin ? 200 : 403);
   } else if (req.url === "/page") {
     res.setHeader("Content-Type", "text/html");
@@ -123,11 +178,67 @@ app
       ),
       200,
     );
+    let now = 1_000_000;
+    credentials.write({ refreshToken });
+    const login = new DesktopUnifiedLogin({
+      studioOrigin: origin,
+      credentials,
+      now: () => now,
+      session: {
+        cookies: ses.cookies,
+        fetch: (url, init) => ses.fetch(url.replace(AUTH_ORIGIN, origin), init),
+      },
+      request: (init) => net.request({
+        ...init,
+        session: ses,
+        url: init.url.replace(AUTH_ORIGIN, origin),
+      }),
+    });
+    const controller = new DesktopController(() => win, { studioOrigin: origin });
+    const account = new IslandAccount(request => controller.requestStudio(request), () => {}, () => now);
+    ses.protocol.unhandle("http");
+    ses.protocol.handle("http", createAssetHandler({
+      root: profile,
+      studioOrigin: origin,
+      canvasOrigin: "http://canvas.example",
+      remoteFetch: async (request) => {
+        await login.restore();
+        return forwardRemoteRequest(ses, request);
+      },
+    }));
+    await ses.cookies.remove(origin, "fixture_session");
+    await account.refresh();
+    assert.equal(account.snapshot().status, "ready", "expired cookies restore silently before the island checks the account");
+    assert.equal(account.snapshot().user.id, "fixture-user");
+    assert.deepEqual(refreshActivity, ["false"], "background reads must not extend device inactivity");
+    assert.equal(credentials.read().refreshToken, refreshToken);
+    await Promise.all([controller.requestStudio("/api/v1/auth/self"), controller.requestStudio("/api/v1/app-ctx")]);
+    assert.equal(refreshActivity.length, 1, "fresh cookies reuse the restored session");
+    now += 16 * 60_000;
+    await ses.cookies.remove(origin, "fixture_session");
+    account.invalidate(false);
+    await Promise.all([account.refresh(), controller.requestStudio("/api/v1/auth/self")]);
+    assert.equal(account.snapshot().status, "ready", "a second cookie expiry stays signed in");
+    assert.deepEqual(refreshActivity, ["false", "false"]);
+    assert.equal(login.isActive(), false);
+    assert.equal(credentials.read().refreshToken, refreshToken);
+    assert.deepEqual(await controller.requestStudio("/api/v1/teams", { name: "Fixture team" }), { name: "Fixture team" }, "native writes retain their body, cookies and Origin through the shared handler");
+    deviceRevoked = true;
+    now += 16 * 60_000;
+    await ses.cookies.remove(origin, "fixture_session");
+    account.invalidate(false);
+    await account.refresh();
+    assert.equal(account.snapshot().status, "signed-out", "rejected device authorization still requires sign-in");
+    assert.equal(credentials.read(), undefined);
+    assert.equal(win.webContents.getURL(), origin + "/page", "account polling never navigates the editor");
+    assert.equal(controller.activity.keepExpanded(), false, "account polling stays outside MCP activity");
+    account.dispose();
+    controller.close();
     win.destroy();
     clearTimeout(timeout);
     server.close();
     console.log(
-      "Native file credential storage, Electron session redirect, IAM cookie retention, destination validation, cancellation and browser request Origin passed",
+      "Native credentials, session tickets, request Origin and island silent restoration across cookie expiry and device revocation passed",
     );
     app.exit(0);
   })

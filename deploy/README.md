@@ -1,35 +1,39 @@
 # NAS image deployment
 
-Release tags use version numbers starting at `0.0.1` (without a `v` prefix).
-Pushing a new Git tag runs `.github/workflows/publish-images.yml` and publishes
-`ghcr.io/shiguang-lab/plasmic-server:<tag>`,
-`ghcr.io/shiguang-lab/plasmic-web:<tag>` and
-`ghcr.io/shiguang-lab/plasmic-preview:<tag>` for Linux amd64.
-Before building, the workflow compares production inputs with the preceding Studio
-tag. Patch releases with unchanged Studio inputs skip publication. Frontend or
-shared renderer changes and major/minor milestone releases require a new Desktop
-version, five-language release notes, and
-`desktop/desktop.config.json.webImage` pinned to this Studio tag in the same commit.
-Desktop tests start alongside the image build. After both succeed, the workflow
-records `desktop-v<version>` and calls the Desktop installer workflow with the
-verified source revision, avoiding a second test run. Backend-only changes do not
-release Desktop.
-Major/minor version advances publish even when production inputs are unchanged;
-patch releases continue to compare inputs before publication.
+One numeric Git tag, such as `0.4.3`, starts `.github/workflows/publish-images.yml`.
+Major/minor advances publish Studio images, Desktop, CLI and workflow resources.
+Patch versions compare production inputs and publish only changed products:
+backend-only changes publish Studio; frontend/shared renderer changes also publish
+Desktop; CLI or thin Skill changes also refresh the resource bundle; references-only
+changes publish resources. Documentation, tests and workflow-only changes publish
+nothing. The workflow dispatch input `force-all` explicitly selects every product
+for an existing numeric tag, including an unchanged patch.
 
-CLI (`cli-v<version>`) and resources (`resources-v<version>`) have separate workflows
-and versions. Neither runs on a Studio or Desktop tag. CLI publication compares
-actual npm package contents. An explicit package.json version matching a newer CLI tag publishes that version even when the code is unchanged; resources compare their source inputs since the preceding
-resource tag and reuse the verified, already-published npm CLI artifact.
-See [release setup and version checks](../ai/plasmic/README.md#tag-自动发布).
-Run `node scripts/release-plan.mjs <tag>` on the release commit to inspect the plan.
-If an operator explicitly requests rebuilding a version before it is deployed,
-force-update only its Studio tag to the final committed snapshot using a lease.
-That forced tag event enables rebuild mode: the linked Desktop tag follows the
-same commit and its release image may be replaced. Ordinary releases retain the
-existing tag/image protection. Confirm the NAS is not serving that version first,
-then pull all final images directly on the NAS and verify their source revisions.
-The first independent CLI/resource baseline is the last combined numeric release.
+The plan compares each product's source against the preceding numeric release,
+using a more recent historical product tag as its initial comparison point when
+necessary. Preview it with `node scripts/release-plan.mjs <tag>`; set
+`RELEASE_FORCE_ALL=true` for the full plan. When Desktop is selected, its package
+and lockfile version must equal the numeric tag and five-language release notes
+must exist. Pin `desktop.config.json.webImage` to that tag when Studio is being
+built, or to an existing Studio image for a Desktop-only patch.
+
+CLI publication compares actual npm contents. Full releases publish the selected
+version even if contents are unchanged. Resources wait for CLI publication and
+reuse npm's verified original artifact; a resources-only patch reuses npm latest.
+All jobs use one verified source commit. Desktop OS tests run alongside Studio
+builds and are reused by the installer workflow only for the same commit.
+
+After all selected jobs succeed, one GitHub Release is published under the numeric
+tag. It contains only those products' downloadable assets: native installers,
+update ZIPs/blockmaps, architecture-specific update YAML, `desktop-latest.json`,
+`plasmic-cli.tgz`, `resources.json.gz`, `plasmic-latest.json` and
+`plasmic-manifest.json`, as applicable. Studio image references appear in the notes.
+Uploads are verified by size and SHA-256 before the draft becomes public. Ordinary
+reruns reuse identical assets and reject different published bytes. An explicitly
+forced tag update permits rebuilding the Desktop image and replacing Release
+assets; npm versions remain immutable. Rebuild only versions not deployed on NAS.
+Existing NAS routes and deployment commands are unchanged; Release publication
+does not switch the download proxy or deploy any service.
 
 The workflow uses `deploy/docker-bake.hcl` to build server/web/preview in one BuildKit
 invocation: the shared builder runs once, then the image targets run concurrently.
@@ -133,7 +137,7 @@ independent of the server/web `IMAGE_TAG`. Studio's Nginx proxies its public
 `/desktop-updates/` route to that service; no host port is exposed. The existing
 update volume serves only `/desktop-updates/plasmic/` CLI/Skill resources.
 
-Desktop tags build all native installers and the static image in GitHub Actions.
+A numeric release that selects Desktop builds all native installers and the static image in GitHub Actions.
 After the workflow succeeds, run `node desktop/scripts/publish.mjs desktop-v<version>`
 to pull and deploy it on NAS. This also configures the route and service on an existing
 deployment. See [desktop releases](../desktop/README.md#nas-updates-and-releases).
@@ -184,7 +188,7 @@ support ranged downloads. Missing files return 404; directory listing and writes
 are disabled. Desktop updates do not require changing the NAS backend image tag.
 
 Run `npm run setup:nas-updates` from `desktop` to configure an existing NAS deployment,
-then publish a new `desktop-v<version>` tag through GitHub Actions and deploy the
+then publish a new numeric `<version>` tag through GitHub Actions and deploy the
 resulting image with `node desktop/scripts/publish.mjs desktop-v<version>`.
 The website offers independent Apple Silicon and Intel DMGs, with matching
 architecture-specific ZIP archives for in-app updates.

@@ -1,37 +1,55 @@
-name: Publish changed Plasmic CLI
-
+name: Publish selected Plasmic CLI
 on:
-  push:
-    tags: ['cli-v*']
-
+  workflow_call:
+    inputs:
+      release-tag:
+        required: true
+        type: string
+      source-ref:
+        required: true
+        type: string
+      force:
+        default: false
+        type: boolean
+    secrets:
+      NPM_TOKEN:
+        required: false
+    outputs:
+      version:
+        description: Verified npm CLI version for the resource bundle
+        value: ${{ jobs.publish-cli.outputs.version }}
 permissions:
   contents: read
   id-token: write
-
-concurrency:
-  group: plasmic-cli-release
-  cancel-in-progress: false
-
 jobs:
   publish-cli:
-    if: github.repository == 'shiguang-lab/plasmic'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
+    outputs:
+      version: ${{ steps.publish.outputs.version }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1, Node 24
+        with:
+          ref: ${{ inputs.source-ref }}
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0, Node 24
         with:
           node-version: 24
           registry-url: https://registry.npmjs.org/
-      - name: Validate release tag and verify CLI
-        env:
-          RELEASE_TAG: ${{ github.ref_name }}
+      - name: Verify CLI
         run: |
-          node --input-type=module -e 'import {releaseVersion} from "./packages/plasmic-cli/scripts/publish.mjs"; releaseVersion(process.env.RELEASE_TAG.replace(/^cli-v/, ""))'
           npm install -g npm@latest
           npm --prefix packages/plasmic-cli test
-      - name: Publish CLI only when package contents change
+      - name: Publish selected CLI
+        id: publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          RELEASE_TAG: ${{ github.ref_name }}
+          RELEASE_TAG: ${{ inputs.release-tag }}
+          RELEASE_FORCE_ALL: ${{ inputs.force }}
         run: node packages/plasmic-cli/scripts/publish.mjs --tag "$RELEASE_TAG" --execute
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2, Node 24
+        if: steps.publish.outputs.publish == 'true'
+        with:
+          name: plasmic-cli
+          path: dist/plasmic-cli/plasmic-cli.tgz
+          if-no-files-found: error
+          compression-level: 0

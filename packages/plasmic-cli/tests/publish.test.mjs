@@ -111,6 +111,17 @@ test("unchanged CLI skips publication without producing a resource release", asy
   assert.deepEqual(published.cliArtifact, bytes);
 });
 
+test("forced patch releases publish unchanged CLI and retries preserve npm's original bytes", async (t) => {
+  const bytes = await buildCli("0.0.60");
+  const options = await registryFixture(t, bytes);
+  const forced = await prepareRelease({ ...options, tag: "0.0.61", force: true });
+  assert.equal(forced.skipped, false);
+  assert.equal((await inspectCliArtifact(await readFile(path.join(forced.directory, "plasmic-cli.tgz")))).version, "0.0.61");
+  const retry = await prepareRelease({ ...options, tag: "0.0.60" });
+  assert.equal(retry.skipped, false);
+  assert.deepEqual(await readFile(path.join(retry.directory, "plasmic-cli.tgz")), bytes);
+});
+
 test("a new minor or major series publishes unchanged CLI contents", async (t) => {
   const bytes = await buildCli("0.0.84");
   const options = await registryFixture(t, bytes, "0.0.84");
@@ -129,10 +140,11 @@ test("a new minor or major series publishes unchanged CLI contents", async (t) =
   }
 });
 
-test("an explicit source version publishes an aligned patch release with unchanged code", async (t) => {
+test("an explicit source version publishes unchanged code at a higher package version", async (t) => {
   const parts = CLI_VERSION.split(".").map(Number);
-  assert.ok(parts[2] > 0);
-  parts[2]--;
+  if (parts[2] > 0) parts[2]--;
+  else if (parts[1] > 0) { parts[1]--; parts[2] = 9; }
+  else { parts[0]--; parts[1] = 9; parts[2] = 9; }
   const previousVersion = parts.join(".");
   const bytes = await buildCli(previousVersion);
   const options = await registryFixture(t, bytes, previousVersion);
@@ -163,9 +175,10 @@ for (const filename of ["src/index.mjs", "skill/plasmic/SKILL.md"]) {
     const old = await readFile(path.join(temporary, packed));
     assert.notEqual((await inspectCliArtifact(old)).contentHash, (await inspectCliArtifact(bytes)).contentHash);
     const options = await registryFixture(t, old);
-    const resources = await prepareResources({ ...options, tag: "resources-v0.0.82" });
+    const resources = await prepareResources({ ...options, tag: "0.0.82", cliVersion: "0.0.60" });
     assert.equal(resources.manifest.cliVersion, "0.0.60");
     assert.deepEqual(await readFile(path.join(resources.directory, "plasmic-cli.tgz")), old);
+    await assert.rejects(prepareResources({ ...options, tag: "0.0.82", cliVersion: "0.0.82" }), /Expected npm CLI/);
     const built = await prepareRelease({ ...options, tag: "0.0.82" });
     assert.equal(built.version, "0.0.82");
     let calls = 0;
