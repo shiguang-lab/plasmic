@@ -7,14 +7,16 @@
 | Successfully loaded, no records | [Empty](../components/empty.md) with meaningful no-data text and only an authorized applicable action |
 | Successfully loaded, filters match nothing | Empty with no-results text and a real reset/change-filter action where appropriate |
 | Missing prerequisite selection | Explain the required selection in the dependent region; do not claim the request returned no data |
-| Recoverable regional error | [Alert](../components/alert.md) or the region's supported error treatment, with one useful retry/recovery path |
-| Page-level denied/not-found/substantial outcome | [Result](../components/result.md) with actual status and supported return/recovery actions |
+| Ordinary query, pagination, refresh or submission failure | One Message/toast from the existing feedback owner; settle loading, retain applicable data/input and restore existing controls. Do not add an error row, retry button, Alert, Result or error placeholder, or replace Table empty text with a load-failure message |
+| Requirement-defined business result, such as invalid detail parameters, missing entity or a state that prevents viewing | [Result](../components/result.md) or [Alert](../components/alert.md) only as required by the design, with verified business meaning and applicable actions; a rejected request alone does not establish this result |
 | Routine transient operation outcome | Themed Message through [ConfigProvider](../components/config-provider.md); field errors remain in Form |
 | Longer notification with relevant context | The actual ConfigProvider Notification global action and required lifetime/placement |
 
 ## Generation rules
 
 Applies to the actual [Ant Design v6](../index.md) components and global context. A state belongs to the affected page/region or operation; do not add a separate demonstration state board to the deliverable. Preserve the user's selected library and verify available Props/Slots before binding.
+
+Dedicated failure UI or recovery controls require an explicit current requirement/design; the availability of an error component or an existing retry pattern is not sufficient. Keep failed requests distinct from successful empty results internally without giving every request state its own UI. An initial request failure leaves the existing container's default no-data presentation; do not claim that the query succeeded with no records. Native code generation follows [feedback ownership](../../../codegen/interactions.md#反馈职责).
 
 ### Ownership and transitions
 
