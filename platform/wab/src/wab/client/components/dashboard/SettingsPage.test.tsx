@@ -1,4 +1,6 @@
 import { AntdConfigProvider } from "@/wab/client/antd-theme";
+import { showError } from "@/wab/client/ErrorNotifications";
+import { waitFor } from "@testing-library/react";
 import { AppCtx } from "@/wab/client/app-ctx";
 import SettingsPage from "@/wab/client/components/dashboard/SettingsPage";
 import { AppCtxContext } from "@/wab/client/contexts/AppContexts";
@@ -7,6 +9,8 @@ import { ApiUser } from "@/wab/shared/ApiSchema";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import * as React from "react";
 import { mock } from "vitest-mock-extended";
+
+vi.mock("@/wab/client/ErrorNotifications", async (original) => ({ ...(await original<typeof import("@/wab/client/ErrorNotifications")>()), showError: vi.fn() }));
 
 vi.mock("@/wab/client/components/AddTrustedHostModal", () => ({
   AddTrustedHostModal: () => <div role="dialog">Add trusted host</div>,
@@ -55,4 +59,22 @@ it("renders settings content through the page wrapper and retains account action
   expect(createPersonalApiToken).toHaveBeenCalledOnce();
   fireEvent.click(screen.getByRole("button", { name: "Add URL" }));
   expect(screen.getByRole("dialog").textContent).toBe("Add trusted host");
+});
+
+it("reports trusted-host request failures through messages and retries from settings", async () => {
+  await setLanguagePreference("en");
+  const error = new Error("Offline");
+  const hosts = vi.fn().mockRejectedValueOnce(error).mockResolvedValueOnce({ trustedHosts: [] });
+  const appCtx = mock<AppCtx>({
+    selfInfo: mock<ApiUser>({ displayName: "Test User", email: "test@example.com" }),
+    personalApiTokens: [],
+    api: mock<AppCtx["api"]>({ getTrustedHostsList: hosts }),
+  });
+  appCtx.ops = mock<NonNullable<AppCtx["ops"]>>();
+  render(<AntdConfigProvider productUI><AppCtxContext.Provider value={appCtx}><SettingsPage appCtx={appCtx} /></AppCtxContext.Provider></AntdConfigProvider>);
+  await waitFor(() => expect(showError).toHaveBeenCalledWith(error, { title: "Unable to load trusted hosts." }));
+  expect(screen.queryByRole("alert")).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "Retry" }));
+  expect(await screen.findByText("No trusted hosts yet.")).toBeTruthy();
+  expect(hosts).toHaveBeenCalledTimes(2);
 });

@@ -13,7 +13,7 @@ export function unbundleSite(
   bundler: FastBundler,
   projectId: string,
   bundle: Bundle,
-  depPkgInfos: PkgVersionInfo[],
+  depPkgInfos: Pick<PkgVersionInfo, "id" | "model">[],
 ) {
   const depPkgs = depPkgInfos.map(
     (info) => taggedUnbundle(bundler, info.model, info.id) as ProjectDependency,

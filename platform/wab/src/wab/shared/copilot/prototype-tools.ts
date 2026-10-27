@@ -12,8 +12,6 @@ import {
   interactionConditionSchema,
 } from "@/wab/shared/core/states";
 import {
-  outputResultSchema,
-  readResultSchema,
 } from "@/wab/shared/web-exporter/schema";
 import { z } from "zod";
 
@@ -28,7 +26,6 @@ const jsonValue: z.ZodType<JsonValue> = z.lazy(() =>
   ]),
 );
 const uuid = z.string().min(1);
-const resources = outputResultSchema(readResultSchema());
 const element = { componentUuid: uuid, elementUuid: uuid };
 
 /** Wire contracts shared by the browser bridge and host-frame implementations. */
@@ -590,8 +587,21 @@ const EDIT_TOOL_META = {
     inputSchema: z.object({}).strict(),
     outputSchema: z.object({
       projectName: z.string(),
-      projectSummary: z.object({ pages: z.number().int().nonnegative(), components: z.number().int().nonnegative() }),
+      projectSummary: z.object({
+        artboards: z.number().int().nonnegative(),
+        canvases: z.number().int().nonnegative(),
+        images: z.number().int().nonnegative(),
+        libraries: z.number().int().nonnegative(),
+        pages: z.number().int().nonnegative(),
+        components: z.number().int().nonnegative(),
+      }),
       saveStatus: z.enum(["saved", "pending", "saving", "error", "blocked", "unlogged"]),
+      desktopDraftStatus: z.object({
+        state: z.enum(["pending", "saving", "local", "synced", "error", "conflict"]),
+        savedAt: z.number().optional(),
+        error: z.string().optional(),
+        pendingDrafts: z.number(),
+      }).nullable().optional(),
       canvasName: z.string().nullable(),
       projectId: uuid,
       branchId: uuid.nullable(),

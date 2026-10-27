@@ -74,6 +74,8 @@ export type HostFrameApi = {
   setPreferredAiOutputFormat(format: AiOutputFormat): Promise<void>;
   /** Resolves once the studio and its active canvas are ready. */
   waitForStudioReady(): Promise<void>;
+  flushDesktopDraft(): Promise<boolean>;
+  showDesktopDrafts(): Promise<void>;
   /**
    * Makes the studio read-only
    */

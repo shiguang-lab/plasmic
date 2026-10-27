@@ -1,10 +1,12 @@
+import { showError } from "@/wab/client/ErrorNotifications";
+vi.mock("@/wab/client/ErrorNotifications", () => ({ showError: vi.fn() }));
 import ChartView from "@/wab/client/components/analytics/ChartView";
 import {
   ChartFilters,
   useChartData,
 } from "@/wab/client/components/analytics/useChartData";
 import "@testing-library/jest-dom/vitest";
-import { cleanup, render } from "@testing-library/react";
+import { cleanup, render, screen, fireEvent } from "@testing-library/react";
 import dayjs from "dayjs";
 import * as React from "react";
 
@@ -39,12 +41,13 @@ vi.mock("recharts", () => ({
 }));
 afterEach(() => {
   cleanup();
+  vi.clearAllMocks();
   mocks.times = [];
   mocks.series = [];
 });
-it("keeps dates from both experiment slices and renders missing observations as gaps", () => {
+it.each([undefined, new Error("Offline")])("keeps cached experiment dates and missing observations as gaps with refresh error %s", (error) => {
   const chartData: ReturnType<typeof useChartData> = {
-    error: undefined,
+    error,
     retry: vi.fn(),
     isLoading: false,
     isEmpty: false,
@@ -85,6 +88,12 @@ it("keeps dates from both experiment slices and renders missing observations as 
   };
   render(<ChartView {...filters} chartData={chartData} />);
   expect(mocks.times).toEqual(["2026-10-01", "2026-10-02"]);
+  expect(document.querySelector(".ant-alert")).toBeNull();
+  if (error) {
+    expect(showError).toHaveBeenCalledWith(error, { title: "Failed to load analytics" });
+    fireEvent.click(screen.getByRole("button", { name: "Retry" }));
+    expect(chartData.retry).toHaveBeenCalledOnce();
+  }
   expect(mocks.series).toEqual([
     [4, null],
     [null, 8],

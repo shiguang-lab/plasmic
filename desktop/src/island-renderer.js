@@ -3,7 +3,8 @@
   const $ = (id) => document.getElementById(id);
   const shell = $("shell"), card = $("card"), mirror = $("mirror");
   const t = (key, values) => window.desktopUiI18n.t(key, values);
-  let state, opened = false, expandedWidth = 360;
+  let state, opened = false;
+  const expandedWidth = 360;
   let received = false, frameSource, frameImage, loadingSource, imageVersion = 0;
   let animation, lastTime, lastHit = 0;
   let feedbackKey, feedbackId;
@@ -26,18 +27,18 @@
       spring[key] += spring[velocity] * dt;
       if (reduced || Math.abs(spring[key] - target[key]) < .08 && Math.abs(spring[velocity]) < .1) {
         spring[key] = target[key]; spring[velocity] = 0;
-      } else settled = false;
+      } else {settled = false;}
     }
     shell.style.width = `${spring.width}px`;
     shell.style.height = `${spring.height}px`;
     shell.style.borderRadius = `${spring.radius}px`;
     if (now - lastHit >= 40 || settled) { lastHit = now; reportHit(); }
     animation = settled ? undefined : requestAnimationFrame(animate);
-    if (settled) lastTime = undefined;
+    if (settled) {lastTime = undefined;}
   }
-  function motion() { if (!animation) animation = requestAnimationFrame(animate); }
+  function motion() { if (!animation) {animation = requestAnimationFrame(animate);} }
   function open(value) {
-    if (opened === value) return;
+    if (opened === value) {return;}
     opened = value;
     shell.dataset.expanded = String(value);
     card.inert = !value;
@@ -84,7 +85,6 @@
       disabled:["Updates unavailable", "Open the installed Plasmic app to check for updates."],
     };
     const [title, detail] = labels[phase] || labels.idle;
-    const text = (id, value) => { if ($(id).textContent !== value) $(id).textContent = value; };
     text("update-heading", t("Software Update"));
     text("update-title", t(phase === "installing" && state.updateWaiting ? "Waiting for current operations" : title));
     text("update-versions", version ? `${currentVersion || "—"} → ${version}` : currentVersion || "—");
@@ -98,7 +98,7 @@
     $("update-progress").hidden = phase !== "downloading";
     $("update-progress").value = percent;
     $("update-progress").setAttribute("aria-label", description);
-    if (phase === "downloading") text("update-title", `${t(title)} ${percent}%`);
+    if (phase === "downloading") {text("update-title", `${t(title)} ${percent}%`);}
     $("update-install").hidden = !["downloaded", "installing"].includes(phase);
     $("update-install").disabled = phase !== "downloaded";
     $("update-later").disabled = $("update-dismiss").disabled = phase === "installing";
@@ -113,12 +113,12 @@
     idle: '<svg viewBox="0 0 12 12" fill="currentColor"><circle cx="6" cy="6" r="2"/></svg>',
   };
   const saveStates = {saved:"Saved",pending:"Unsaved",saving:"Saving",error:"Save failed",blocked:"Saving blocked",unlogged:"Sign in to save"};
-  function text(id, value) { if ($(id).textContent !== value) $(id).textContent = value; }
+  function text(id, value) { if ($(id).textContent !== value) {$(id).textContent = value;} }
   function statistics(id, values, loading = false) {
     const element = $(id), signature = JSON.stringify([values, loading, window.desktopUiI18n.snapshot().locale]);
     element.hidden = !values.length;
     element.setAttribute("aria-busy", String(loading));
-    if (element.dataset.signature === signature) return;
+    if (element.dataset.signature === signature) {return;}
     element.dataset.signature = signature;
     element.replaceChildren(...values.map(([label, value]) => {
       const cell = document.createElement("div"), number = document.createElement("b"), caption = document.createElement("span");
@@ -136,6 +136,26 @@
     const status = task?.status === "failed" ? "failed" : task?.status === "blocked" || operation?.blocked ? "blocked"
       : operation?.phase === "failed" ? "failed" : task?.status === "running" ? "running" : operation?.phase || task?.status;
     const failed = status === "failed", blocked = status === "blocked";
+    const draft = context.allowed && !context.loading && context.mode !== "preview" ? context.desktopDraftStatus : null;
+    const locallySaved = draft?.state === "local";
+    const draftConflict = draft?.state === "conflict";
+    const draftFailure = draft?.state === "error" && context.saveStatus !== "saved";
+    const draftLabel = draftConflict ? t("Drafts need attention") : draftFailure ? t("Edits are not saved") :
+      locallySaved ? context.saveStatus === "saving" ? t("Syncing…") : t("Saved on this device") :
+      context.saveStatus === "saved" ? t("Synced") : t("Backing up…");
+    const draftDescription = draftConflict ? t("Local drafts are preserved on this device. Click to review them without replacing the remote project.") :
+      draftFailure ? t("Local backup failed and your latest edits have not synced. Keep the editor open and retry.") :
+      locallySaved ? t("Your edits are backed up on this device but have not synced to the server. They can be recovered on this device.") :
+      context.saveStatus === "saved" ? t("All edits have been saved to the server.") : t("Your latest edits are being backed up on this device.");
+    const draftDetails = [draftDescription, draft?.savedAt ? t("Last local backup: {time}", {time:new Date(draft.savedAt).toLocaleString(window.desktopUiI18n.snapshot().locale)}) : "", draft?.error || ""].filter(Boolean).join("\n");
+    for (const id of ["capsule-draft", "draft-status"]) {
+      const badge = $(id);
+      badge.hidden = !draft;
+      badge.dataset.tone = draftFailure ? "error" : draftConflict || locallySaved ? "warning" : context.saveStatus === "saved" ? "good" : "active";
+      badge.title = draftDetails;
+      badge.setAttribute("aria-label", draftLabel);
+      text(id, id === "capsule-draft" ? "●" : draftLabel);
+    }
     const saveIssue = context.allowed && !context.loading && ["error","blocked","unlogged"].includes(context.saveStatus);
     const signIn = context.allowed ? context.saveStatus === "unlogged" : account.status === "signed-out";
     const signedOut = !context.allowed && signIn;
@@ -143,7 +163,7 @@
     const issue = failed || blocked || saveIssue || !context.allowed && account.status === "error";
     const working = !issue && status === "running";
     document.body.dataset.working = String(working);
-    document.body.dataset.tone = failed || saveIssue && context.saveStatus === "error" ? "error" : issue ? "warning" : "neutral";
+    document.body.dataset.tone = failed || draftFailure || saveIssue && context.saveStatus === "error" && !locallySaved ? "error" : issue || draftConflict || locallySaved ? "warning" : "neutral";
     const workspace = account.workspaces?.find(item => item.id === context.workspaceId);
     const team = account.teams?.find(item => item.id === (context.orgId || workspace?.teamId));
     const location = [team?.name, workspace?.name].filter(Boolean).join(" · ");
@@ -170,8 +190,8 @@
       }
     } else if (!signIn) {
       left = [["Organizations",account.counts?.organizations],["Workspaces",account.counts?.workspaces],["Projects",account.counts?.projects]];
-      if (workspace) right = [["Workspace projects",workspace.projects],["Users with access",workspace.members]];
-      else empty = t(account.status === "loading" ? "Loading account information…" : "No workspace selected");
+      if (workspace) {right = [["Workspace projects",workspace.projects],["Users with access",workspace.members]];}
+      else {empty = t(account.status === "loading" ? "Loading account information…" : "No workspace selected");}
     }
     statistics("left-statistics", left, context.allowed ? !!context.loading : account.status === "loading");
     statistics("right-statistics", right);
@@ -185,34 +205,35 @@
     const completed = {resource:"Operation complete",read:"Read complete",write:"Changes applied",view:"View updated",save:"Saved",preview:"Interaction complete"};
     let phase = "", icon = "idle";
     if (failed || blocked) { phase = t(failed ? task?.status === "failed" ? "Task failed" : "Operation failed" : "Needs attention"); icon = failed ? "failed" : "blocked"; }
-    else if (saveIssue) { phase = t(saveStates[context.saveStatus]); icon = context.saveStatus === "error" ? "failed" : "blocked"; }
+    else if (saveIssue) { phase = draft ? draftLabel : t(saveStates[context.saveStatus]); icon = context.saveStatus === "error" && !locallySaved ? "failed" : "blocked"; }
     else if (hasActivity) {
       icon = status || "running";
       phase = status === "queued" ? t("Queued") : status === "completed" ? t(task?.status === "completed" ? "Task complete" : completed[operation?.kind] || "Operation complete")
         : task?.stage || (operation?.label ? t(operation.label) : "") || t(operation?.kind === "preview" ? previewActions[operation.operation] || stages.preview : stages[operation?.kind] || "In progress");
     } else if (context.allowed && context.loading) { phase = t("Opening canvas…"); icon = "running"; }
-    else if (context.allowed && !hasVisual) phase = t("No canvas open");
-    else if (context.allowed && context.mode !== "preview") { phase = t(saveStates[context.saveStatus] || ""); icon = context.saveStatus === "saving" ? "running" : context.saveStatus === "saved" ? "completed" : "idle"; }
+    else if (context.allowed && !hasVisual) {phase = t("No canvas open");}
+    else if (context.allowed && context.mode !== "preview") { phase = draft ? draftLabel : t(saveStates[context.saveStatus] || ""); icon = context.saveStatus === "saving" ? "running" : context.saveStatus === "saved" ? "completed" : "idle"; }
     else if (!context.allowed && account.status === "error") { phase = t("Statistics unavailable"); icon = "blocked"; }
     else if (!context.allowed && account.status === "loading") { phase = t("Loading…"); icon = "running"; }
     const step = !issue && task?.stageIndex && task?.stageCount ? t("Step {current}/{total}", {current:task.stageIndex,total:task.stageCount}) : "";
-    const error = task?.error || operation?.error || (saveIssue ? t("Your changes are not saved.") : issue ? t("Statistics unavailable") : "");
+    const error = task?.error || operation?.error || (saveIssue ? draft ? draftDetails : t("Your changes are not saved.") : issue ? t("Statistics unavailable") : "");
     const details = [phase, task?.title || operation?.subject, error, step, queued ? t("{count} queued",{count:queued}) : "", running > 1 ? t("{count} running",{count:running}) : "", context.saveStatus === "pending" ? t("Unsaved") : ""].filter(Boolean).join(" · ");
     $("phase").hidden = !phase; $("phase").dataset.status = icon;
     text("phase-text",phase); $("phase-text").title = details;
+    $("draft-status").hidden = !draft || !hasActivity;
     text("stage-count",step); $("stage-count").hidden = !step;
     $("phase-icon").hidden = !!issue;
     if ($("phase-icon").dataset.icon !== icon) { $("phase-icon").dataset.icon = icon; $("phase-icon").innerHTML = icons[icon] || icons.idle; }
     $("issue-detail").hidden = !issue;
     $("issue-detail").setAttribute("aria-label",details);
     text("issue-tooltip",details);
-    if (!issue) $("issue-tooltip").hidden = true;
+    if (!issue) {$("issue-tooltip").hidden = true;}
     text("app-version",state.update?.currentVersion ? `v${state.update.currentVersion}` : "");
     $("app-version").hidden = !!phase || context.allowed || !state.update?.currentVersion;
     let compactTitle = task?.title || operation?.subject || (context.allowed ? context.viewName || context.projectName : account.user?.name) || t(signIn ? "Sign in" : "Account overview");
     let compactPhase = phase;
-    if (!hasActivity && !context.allowed) compactPhase = account.status === "ready" ? t("{count} projects",{count:account.counts.projects}) : signIn ? "" : t(account.status === "error" ? "Statistics unavailable" : "Loading…");
-    else if (!hasActivity && context.mode === "preview" && !issue) compactPhase = t("Preview");
+    if (!hasActivity && !context.allowed) {compactPhase = account.status === "ready" ? t("{count} projects",{count:account.counts.projects}) : signIn ? "" : t(account.status === "error" ? "Statistics unavailable" : "Loading…");}
+    else if (!hasActivity && context.mode === "preview" && !issue) {compactPhase = t("Preview");}
     if (signedOut) { compactTitle = "Plasmic"; compactPhase = ""; }
     text("project",compactTitle);text("pill-context",compactPhase);
     $("queue").hidden = signedOut || !queued; text("queue",queued ? `+${queued}` : "");
@@ -230,7 +251,7 @@
       const version = ++imageVersion, loader = new Image();
       loadingSource = image.src;
       loader.onload = () => {
-        if (version !== imageVersion) return;
+        if (version !== imageVersion) {return;}
         frameSource = image.src; loadingSource = undefined;
         frameImage = image;
         mirror.src = image.src; mirror.hidden = false;
@@ -238,10 +259,10 @@
         $("stale").hidden = !state.stale;
         renderFeedback();
       };
-      loader.onerror = () => { if (version === imageVersion) loadingSource = undefined; };
+      loader.onerror = () => { if (version === imageVersion) {loadingSource = undefined;} };
       loader.src = image.src;
     }
-    if (valid && image.src === frameSource) frameImage = image;
+    if (valid && image.src === frameSource) {frameImage = image;}
     $("view-loading").hidden = !state.context.allowed || !state.context.loading;
     $("unavailable").hidden = !state.context.allowed || state.context.loading || !!frameSource;
     $("unavailable").textContent = t(!state.context.allowed ? "No canvas open" : state.context.loading ? "Loading current view…" : "Preparing preview image…");
@@ -262,11 +283,11 @@
     layer.dataset.kind = feedback.kind;
     layer.dataset.phase = operation.phase;
     const key = JSON.stringify([feedback.id, operation.phase, feedback.regions]);
-    if (key === feedbackKey) return;
+    if (key === feedbackKey) {return;}
     // Keep animation nodes across captures of the same geometry.
     // A completed call gets one finite acknowledgement, never an idle loop.
     if (feedbackId !== feedback.id) { layer.replaceChildren(); feedbackId = feedback.id; }
-    while (layer.children.length > feedback.regions.length) layer.lastElementChild.remove();
+    while (layer.children.length > feedback.regions.length) {layer.lastElementChild.remove();}
     feedback.regions.forEach((region, index) => {
       let node = layer.children[index];
       if (!node) {
@@ -280,7 +301,7 @@
   }
   function render(value) {
     state = value;
-    if (value.localization) window.desktopUiI18n.setSnapshot(value.localization);
+    if (value.localization) {window.desktopUiI18n.setSnapshot(value.localization);}
     document.documentElement.dataset.uiAppearance = value.appearance;
     shell.dataset.allowed = String(value.context.allowed);
     const hasVisual = value.context.allowed && !!(value.context.loading || value.context.viewName || value.image);
@@ -289,8 +310,8 @@
     renderImage(); renderInfo(); renderFeedback(); renderUpdate(); motion();
   }
   api.onState((value) => { received = true; render(value); });
-  void api.command("state").then((value) => { if (!received) render(value); }).catch(console.error);
-  $("capsule-handle").onclick = () => { if (!dragged) void send("menu"); };
+  void api.command("state").then((value) => { if (!received) {render(value);} }).catch(console.error);
+  $("capsule-handle").onclick = () => { if (!dragged) {void send("menu");} };
   for (const button of [$("capsule-update"), $("card-update")]) {
     button.addEventListener("pointerdown", event => event.stopPropagation());
     button.onclick = () => void send("update-open");
@@ -303,6 +324,7 @@
 
   $("update-retry").onclick = () => void send("update-check");
   const detail = $("issue-detail"), tooltip = $("issue-tooltip");
+  for (const id of ["capsule-draft", "draft-status"]) {$(id).onclick = () => { void send("show-drafts"); };}
   detail.addEventListener("mouseenter", () => { tooltip.hidden = false; });
   detail.addEventListener("mouseleave", () => { tooltip.hidden = true; });
   detail.addEventListener("focus", () => { tooltip.hidden = false; });
@@ -310,26 +332,26 @@
   detail.onclick = () => { tooltip.hidden = !tooltip.hidden; };
   shell.addEventListener("contextmenu", (event) => { event.preventDefault(); void send("menu"); });
   shell.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") tooltip.hidden = true;
+    if (event.key === "Escape") {tooltip.hidden = true;}
     if (event.key === "Escape" && state?.updateOpen) { event.preventDefault(); void send("update-close"); }
     if (event.key === "ContextMenu" || event.shiftKey && event.key === "F10") { event.preventDefault(); void send("menu"); }
   });
   let dragging = false, dragged = false, start;
   for (const handle of [$("capsule-handle"), $("drag-handle"), $("update-heading")]) {
     handle.addEventListener("pointerdown", (event) => {
-      if (event.button !== 0 || event.target.closest("button") && event.target.closest("button") !== handle) return;
+      if (event.button !== 0 || event.target.closest("button") && event.target.closest("button") !== handle) {return;}
       dragging = false; dragged = false; start = { x: event.screenX, y: event.screenY };
       handle.setPointerCapture(event.pointerId);
     });
     handle.addEventListener("pointermove", (event) => {
-      if (!handle.hasPointerCapture(event.pointerId) || !start) return;
+      if (!handle.hasPointerCapture(event.pointerId) || !start) {return;}
       if (!dragging && Math.hypot(event.screenX - start.x, event.screenY - start.y) > 4) {
         dragging = true; dragged = true; void send("drag-start");
       }
-      if (dragging) void send("drag-move");
+      if (dragging) {void send("drag-move");}
     });
     const end = () => {
-      if (dragging) void send("drag-end");
+      if (dragging) {void send("drag-end");}
       dragging = false; start = undefined;
     };
     handle.addEventListener("pointerup", end);

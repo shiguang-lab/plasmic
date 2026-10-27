@@ -1,3 +1,8 @@
+import { showError } from "@/wab/client/ErrorNotifications";
+vi.mock("@/wab/client/ErrorNotifications", async (original) => ({
+  ...(await original<typeof import("@/wab/client/ErrorNotifications")>()),
+  showError: vi.fn(),
+}));
 import PublishFlowDialog from "@/wab/client/components/TopFrame/TopBar/PublishFlowDialog";
 import {
   cleanup,
@@ -119,7 +124,7 @@ it("recovers version calculation instead of leaving publishing stuck in loading"
     .mockRejectedValueOnce(new Error("Offline"))
     .mockResolvedValueOnce({ version: "0.0.1", changeLog: [] });
   openDialog();
-  await screen.findByText("Failed to load publishing settings");
+  await waitFor(() => expect(showError).toHaveBeenCalledWith(expect.any(Error), { title: "Failed to load publishing settings" }));
   expect(
     screen
       .getByRole("button", {

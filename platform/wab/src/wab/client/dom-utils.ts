@@ -30,7 +30,7 @@ import {
   gatherSvgColors,
   isSVG,
 } from "@/wab/shared/svg-utils";
-import { message, notification } from "antd";
+import { message } from "antd";
 import * as downscale from "downscale";
 import $ from "jquery";
 import { isString } from "lodash";
@@ -516,8 +516,8 @@ export function deriveImageAssetTypeAndUri(
   let dataUri = image.url;
   const parsed = parseDataUrl(dataUri);
   if (!parsed) {
-    notification.error({
-      message: translate(getUiLocale(), "Error loading image"),
+    void message.error({
+      content: translate(getUiLocale(), "Error loading image"),
     });
     return undefined;
   }
@@ -571,8 +571,8 @@ export function deriveImageAssetTypeAndUri(
         // If no previos type, then we just derive this as a Picture
         return { dataUri, type: ImageAssetType.Picture };
       } else {
-        notification.error({
-          message: translate(
+        void message.error({
+          content: translate(
             getUiLocale(),
             "Can only use svg images with one color as icons",
           ),
@@ -586,8 +586,8 @@ export function deriveImageAssetTypeAndUri(
       return { dataUri, type: ImageAssetType.Picture };
     } else {
       // Cannot upload non-svg for icons
-      notification.error({
-        message: translate(getUiLocale(), "Can only use svg images as icons"),
+      void message.error({
+        content: translate(getUiLocale(), "Can only use svg images as icons"),
       });
       return undefined;
     }

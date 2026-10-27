@@ -1,4 +1,5 @@
 import { AppCtx } from "@/wab/client/app-ctx";
+import { desktopDraftBridge } from "@/wab/client/desktop-drafts";
 import { isPlasmicPath } from "@/wab/client/cli-routes";
 import { HostConfig } from "@/wab/client/components/HostConfig";
 import { DataSourcePicker } from "@/wab/client/components/TopFrame/DataSourcePicker";
@@ -40,7 +41,8 @@ import {
   TopFrameApiReturnType,
 } from "@/wab/client/frame-ctx/top-frame-api";
 import { useTopFrameCtx } from "@/wab/client/frame-ctx/top-frame-ctx";
-import { useI18n } from "@/wab/client/i18n";
+import { getUiLocale, useI18n } from "@/wab/client/i18n";
+import { translate } from "@/wab/client/i18n/locales";
 import { UiText } from "@/wab/client/i18n/UiText";
 import CloseIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Close";
 import { useHistory, useLocation } from "@/wab/client/route/HistoryProvider";
@@ -61,7 +63,7 @@ import {
   MergeSrcDst,
   ProjectId,
 } from "@/wab/shared/ApiSchema";
-import { assert, asyncWrapper, mkUuid, spawn } from "@/wab/shared/common";
+import { assert, asyncWrapper, ensure, mkUuid, spawn } from "@/wab/shared/common";
 import type { LocalAiContext } from "@/wab/shared/copilot/local-edit";
 import { isAdminTeamEmail } from "@/wab/shared/devflag-utils";
 import { LocalizationConfig } from "@/wab/shared/localization";
@@ -154,6 +156,17 @@ export function TopFrameChrome({
     return () => session.disconnect();
   }, [project.id, appCtx.appConfig.enableLocalAiEditing, appCtx.selfInfo?.id]);
   const { hostFrameApi, hostFrameApiReady } = useTopFrameCtx();
+  React.useEffect(() => {
+    if (!desktopDraftBridge()) {return;}
+    const target = window as Window & { desktopDraftAction?: (action: "flush" | "show") => Promise<boolean> };
+    target.desktopDraftAction = async action => {
+      if (!hostFrameApiReady) {return true;}
+      if (action === "flush") {return hostFrameApi.flushDesktopDraft();}
+      await hostFrameApi.showDesktopDrafts();
+      return true;
+    };
+    return () => { delete target.desktopDraftAction; };
+  }, [hostFrameApi, hostFrameApiReady]);
   const location = useLocation();
   const preview =
     !!APP_ROUTES.projectPreview.parse(location.pathname, false) ||
@@ -257,7 +270,7 @@ export function TopFrameChrome({
         return () => notification.destroy(key);
       }
     }
-    return () => {};
+    return undefined;
   }, [fullPreview, appCtx, perms]);
 
   return (
@@ -633,6 +646,21 @@ export function useTopFrameState({
       },
 
       setStudioReady: asyncWrapper(() => setStudioReady(true)),
+      openDesktopDrafts: async (userId, projectId, branchId) => {
+        assert(projectId === project?.id && userId === appCtx.selfInfo?.id, "Invalid draft scope");
+        return desktopDraftBridge()?.open(userId, projectId, branchId) ?? null;
+      },
+      readDesktopDraft: async (handle, id) => ensure(desktopDraftBridge(), "Desktop drafts unavailable").read(handle, id),
+      writeDesktopDraft: async (handle, draft) => ensure(desktopDraftBridge(), "Desktop drafts unavailable").write(handle, draft),
+      removeDesktopDraft: async (handle, id, sequence) => ensure(desktopDraftBridge(), "Desktop drafts unavailable").remove(handle, id, sequence),
+      copyDesktopDraft: async (handle, id) => {
+        const draft = ensure(await ensure(desktopDraftBridge(), "Desktop drafts unavailable").read(handle, id), "Local draft not found");
+        const { projectId } = await appCtx.api.importProject(JSON.stringify({
+          format: "plasmic/project", version: 1, name: translate(getUiLocale(), "{name} (Local draft)", { name: draft.projectName }),
+          bundles: [...draft.dependencies.map(dep => [dep.id, dep.model]), [draft.projectId, draft.bundle]],
+        }), { workspaceId: project?.workspaceId ?? undefined });
+        return projectId;
+      },
       getSavedEditorView: async (projectId: string) => {
         const desktop = (
           window as Window & {

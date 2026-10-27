@@ -21,7 +21,7 @@ import { accessLevelRank, GrantableAccessLevel } from "@/wab/shared/EntUtil";
 import { ORGANIZATION_LOWER } from "@/wab/shared/Labels";
 import { getAccessLevelToResource } from "@/wab/shared/perms";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
-import { Alert, Button, message } from "antd";
+import { Button, message } from "antd";
 import * as React from "react";
 
 interface TeamSettingsProps extends DefaultTeamSettingsProps {
@@ -75,12 +75,7 @@ function TeamSettings_(props: TeamSettingsProps, ref: HTMLElementRefOf<"div">) {
     return (
       <>
         {loadError ? (
-          <Alert
-            type="error"
-            showIcon
-            title={t("Failed to load team settings")}
-            action={<Button onClick={refetchData}>{t("Retry")}</Button>}
-          />
+          <Button onClick={refetchData}>{t("Retry")}</Button>
         ) : (
           <div role="status" aria-label={t("Loading team settings…")}>
             <TeamSettingsLoading

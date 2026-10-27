@@ -1,10 +1,11 @@
+import { showError } from "@/wab/client/ErrorNotifications";
 import {
   promptBilling,
   PromptBillingArgs,
-  showUpsellConfirm,
+  showBillingSuccess,
 } from "@/wab/client/components/modals/PricingModal";
 import { spawn } from "@/wab/shared/common";
-import { APP_ROUTES } from "@/wab/shared/route/app-routes";
+
 import React from "react";
 
 export const UpsellModal = (
@@ -16,9 +17,9 @@ export const UpsellModal = (
     const response = await promptBilling(props);
 
     if (response?.type === "success") {
-      await showUpsellConfirm(
-        APP_ROUTES.orgSettings.fill({ teamId: response.team.id }),
-      );
+      showBillingSuccess();
+    } else if (response?.type === "fail") {
+      showError(response.errorMsg, { title: "Failed to update billing" });
     }
 
     props.setShowUpsellForm(undefined);

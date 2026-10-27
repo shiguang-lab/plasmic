@@ -1,7 +1,4 @@
-import {
-  ErrorDescription,
-  getErrorType,
-} from "@/wab/client/api-error-presentation";
+import { useErrorMessage } from "@/wab/client/hooks/useErrorMessage";
 import { useAiAttachments } from "@/wab/client/components/copilot/AiAttachments";
 import { AiComposer } from "@/wab/client/components/copilot/AiComposer";
 import { AiNodeReference } from "@/wab/client/components/copilot/AiNodeReference";
@@ -150,6 +147,8 @@ export function CopilotChatDialog({
     enabled,
     fetchStatus,
   );
+  useErrorMessage(error);
+  useErrorMessage(session.error);
   const consumed = React.useRef<CopilotChatOpenOpts>();
   React.useEffect(() => {
     if (status) {
@@ -275,18 +274,6 @@ export function CopilotChatDialog({
               message={t(
                 "Configure the AI service on the server to start editing.",
               )}
-            />
-          )}
-          {error && (
-            <Alert
-              type={getErrorType(error)}
-              message={<ErrorDescription error={error} />}
-            />
-          )}
-          {session.error && (
-            <Alert
-              type={getErrorType(session.error)}
-              message={<ErrorDescription error={session.error} />}
             />
           )}
           {session.before && (

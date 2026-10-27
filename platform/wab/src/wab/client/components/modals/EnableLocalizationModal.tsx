@@ -2,7 +2,7 @@ import { showError } from "@/wab/client/ErrorNotifications";
 import { AppCtx } from "@/wab/client/app-ctx";
 import {
   promptBilling,
-  showUpsellConfirm,
+  showBillingSuccess,
 } from "@/wab/client/components/modals/PricingModal";
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import Select from "@/wab/client/components/widgets/Select";
@@ -16,8 +16,8 @@ import { ApiProject } from "@/wab/shared/ApiSchema";
 import { ORGANIZATION_LOWER } from "@/wab/shared/Labels";
 import { SELF_HOSTED } from "@/wab/shared/deployment";
 import { LocalizationConfig } from "@/wab/shared/localization";
-import { APP_ROUTES } from "@/wab/shared/route/app-routes";
-import { Form, notification } from "antd";
+
+import { Form, message } from "antd";
 import { observer } from "mobx-react";
 import React from "react";
 
@@ -139,8 +139,8 @@ async function canEnableLocalization(appCtx: AppCtx, project: ApiProject) {
   }
   const projectTeam = appCtx.teams.find((team) => team.id === project.teamId);
   if (!projectTeam) {
-    notification.error({
-      message: translate(getUiLocale(), "This action requires an {part1}", {
+    void message.error({
+      content: translate(getUiLocale(), "This action requires an {part1}", {
         part1: translateUiLabel(getUiLocale(), ORGANIZATION_LOWER),
       }),
     });
@@ -169,12 +169,10 @@ async function canEnableLocalization(appCtx: AppCtx, project: ApiProject) {
     showError(promptResult.errorMsg, { title: translate(
         getUiLocale(),
         "Issue with payment, please try again.",
-      ), type: "warning" });
+      ) });
     return false;
   }
 
-  await showUpsellConfirm(
-    APP_ROUTES.orgSettings.fill({ teamId: projectTeam.id }),
-  );
+  showBillingSuccess();
   return true;
 }

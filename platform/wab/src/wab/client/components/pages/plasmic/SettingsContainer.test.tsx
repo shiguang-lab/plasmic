@@ -12,7 +12,7 @@ function setup(overrides: Partial<React.ComponentProps<typeof SettingsContainer>
     tokensState: { loading: false, value: [], retry: vitest.fn() },
     hostsState: [], copiedToken: "",
     onNewToken: vitest.fn(), onDeleteToken: vitest.fn(), onCopyToken: vitest.fn(),
-    onDeleteTrustedHost: vitest.fn(), onNewTrustedHost: vitest.fn(),
+    onDeleteTrustedHost: vitest.fn(), onNewTrustedHost: vitest.fn(), onRetryTrustedHosts: vitest.fn(),
     ...overrides,
   };
   render(<AntdConfigProvider><SettingsContainer {...props} /></AntdConfigProvider>);
@@ -58,10 +58,12 @@ it("preserves account, token, copy and trusted-host actions", () => {
   expect(props.onDeleteTrustedHost).toHaveBeenCalledWith(host);
 });
 it("renders loading and failure states", () => {
-  setup({ tokensState: { loading: true, retry: vitest.fn() }, hostsState: "error" });
+  const props = setup({ tokensState: { loading: true, retry: vitest.fn() }, hostsState: "error" });
   expect(screen.getByRole("status", { name: "Personal access tokens" }).querySelector(".ant-skeleton")).toBeTruthy();
   expect(screen.getByRole("heading", { name: "Preferences" })).toBeTruthy();
-  expect(screen.getByRole("alert").textContent).toBe("Unable to load trusted hosts.");
+  expect(screen.queryByRole("alert")).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "Retry" }));
+  expect(props.onRetryTrustedHosts).toHaveBeenCalledOnce();
 });
 it("shows a persistence error if the device cannot store the preference", () => {
   setup();

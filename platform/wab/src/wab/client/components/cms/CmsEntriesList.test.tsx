@@ -1,3 +1,4 @@
+import { showError } from "@/wab/client/ErrorNotifications";
 import CmsEntriesList from "@/wab/client/components/cms/CmsEntriesList";
 import { ApiCmseRow } from "@/wab/shared/ApiSchema";
 import "@testing-library/jest-dom/vitest";
@@ -36,7 +37,7 @@ vi.mock("@/wab/client/components/cms/CmsEntryItem", () => ({
 vi.mock("@/wab/client/i18n", () => ({
   useI18n: () => ({ t: (message: string) => message }),
 }));
-vi.mock("@/wab/client/ErrorNotifications", () => ({ reportError: vi.fn() }));
+vi.mock("@/wab/client/ErrorNotifications", () => ({ reportError: vi.fn(), showError: vi.fn() }));
 
 const rows = [
   {
@@ -101,7 +102,7 @@ it("shows creation failure without discarding the list and retries the real crea
   mocks.mutate.mockResolvedValue(undefined);
   render(<CmsEntriesList rows={rows} />);
   fireEvent.click(screen.getByRole("button", { name: "Add new entry" }));
-  await screen.findByText("Failed to create content entry");
+  await waitFor(() => expect(showError).toHaveBeenCalledWith(expect.any(Error), { title: "Failed to create content entry" }));
   expect(screen.getByText("Alpha")).toBeTruthy();
   expect(mocks.navigate).not.toHaveBeenCalled();
   fireEvent.click(screen.getByRole("button", { name: "Add new entry" }));

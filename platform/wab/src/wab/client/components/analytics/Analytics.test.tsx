@@ -1,3 +1,10 @@
+import { message } from "antd";
+import { mock } from "vitest-mock-extended";
+import { showError } from "@/wab/client/ErrorNotifications";
+vi.mock("@/wab/client/ErrorNotifications", async (original) => ({
+  ...(await original<typeof import("@/wab/client/ErrorNotifications")>()),
+  showError: vi.fn(),
+}));
 import ChartView from "@/wab/client/components/analytics/ChartView";
 import DataFilters from "@/wab/client/components/analytics/DataFilters";
 import SharePageModal from "@/wab/client/components/analytics/SharePageModal";
@@ -81,9 +88,8 @@ it("retries a real failed analytics resource and disables export while it is una
     .mockResolvedValueOnce({ type: "impressions", data: [] });
   render(<Chart />, { wrapper });
   expect(screen.getByRole("status")).toBeInTheDocument();
-  expect(
-    await screen.findByText("Failed to load analytics"),
-  ).toBeInTheDocument();
+  await waitFor(() => expect(showError).toHaveBeenCalledWith(expect.any(Error), { title: "Failed to load analytics" }));
+  expect(document.querySelector(".ant-alert")).toBeNull();
   expect(screen.queryByRole("status")).toBeNull();
   expect(screen.getByRole("button", { name: "Export CSV" })).toBeDisabled();
   fireEvent.click(screen.getByRole("button", { name: "Retry" }));
@@ -100,9 +106,8 @@ it("does not mistake metadata failures for an empty split result", async () => {
   });
   mocks.metadata.mockRejectedValue(new Error("No access"));
   render(<Chart projectId="project1" splitId="split1" />, { wrapper });
-  expect(
-    await screen.findByText("Failed to load analytics"),
-  ).toBeInTheDocument();
+  await waitFor(() => expect(showError).toHaveBeenCalledWith(expect.any(Error), { title: "Failed to load analytics" }));
+  expect(document.querySelector(".ant-alert")).toBeNull();
   expect(screen.queryByText("No analytics data for these filters")).toBeNull();
 });
 
@@ -130,7 +135,8 @@ it("shows filter failures with retry and forwards the selected real project id",
     />,
     { wrapper },
   );
-  await screen.findByText("Failed to load analytics filters");
+  await waitFor(() => expect(showError).toHaveBeenCalledWith(expect.any(Error), { title: "Failed to load analytics filters" }));
+  expect(document.querySelector(".ant-alert")).toBeNull();
   fireEvent.click(screen.getByRole("button", { name: "Retry" }));
   await waitFor(() =>
     expect(screen.queryByText("Failed to load analytics filters")).toBeNull(),
@@ -171,9 +177,11 @@ it("reports clipboard failure and allows copying the current filtered URL again"
     configurable: true,
     value: { writeText },
   });
+  vi.spyOn(message, "error").mockReturnValue(mock());
   render(<SharePageModal />);
   fireEvent.click(screen.getByRole("button", { name: "Copy link" }));
-  await screen.findByText("Failed to copy link");
+  await waitFor(() => expect(message.error).toHaveBeenCalledWith({ content: "Failed to copy link" }));
+  expect(document.querySelector(".ant-alert")).toBeNull();
   fireEvent.click(screen.getByRole("button", { name: "Copy link" }));
   expect(await screen.findByRole("button", { name: "Copied" })).toBeDisabled();
   expect(writeText).toHaveBeenLastCalledWith(window.location.href);

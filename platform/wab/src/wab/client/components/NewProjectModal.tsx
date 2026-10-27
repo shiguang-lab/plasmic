@@ -1,3 +1,5 @@
+import { useErrorMessage } from "@/wab/client/hooks/useErrorMessage";
+import { showError } from "@/wab/client/ErrorNotifications";
 import { ModalScope } from "@/wab/client/components/widgets/ModalScope";
 import { useTrackOpenModal } from "@/wab/client/components/widgets/open-modals";
 import {
@@ -17,7 +19,6 @@ import { getAccessLevelToResource } from "@/wab/shared/perms";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import {
-  Alert,
   Button,
   Card,
   Col,
@@ -73,13 +74,13 @@ const NewProjectModal = observer(function NewProjectModal({
     error: loadError,
     mutate: reloadProjects,
   } = useAllProjectsData();
+  useErrorMessage(loadError, "Failed to load projects");
   const { styles, cx } = useStyles();
   const [form] = Form.useForm<{ name: string; workspaceId?: WorkspaceId }>();
   const [startingPoint, setStartingPoint] = React.useState("blank");
   const [selectedTemplate, setSelectedTemplate] =
     React.useState<StarterProjectConfig>();
   const [creating, setCreating] = React.useState(false);
-  const [error, setError] = React.useState<string>();
   const showInternal = isAdminTeamEmail(
     appCtx.selfInfo?.email,
     appCtx.appConfig,
@@ -135,7 +136,6 @@ const NewProjectModal = observer(function NewProjectModal({
       return;
     }
     setCreating(true);
-    setError(undefined);
     try {
       let projectId: ProjectId;
       if (startingPoint === "template" && selectedTemplate) {
@@ -170,9 +170,7 @@ const NewProjectModal = observer(function NewProjectModal({
         history.push(APP_ROUTES.project.fill({ projectId }));
       }
     } catch (cause) {
-      setError(
-        cause instanceof Error ? cause.message : t("Failed to create project"),
-      );
+      showError(cause, { title: "Failed to create project" });
       setCreating(false);
     }
   };
@@ -280,30 +278,14 @@ const NewProjectModal = observer(function NewProjectModal({
           </Row>
         </Form>
         {loadError && (
-          <Alert
-            type="error"
-            showIcon
-            title={t("Failed to load projects")}
-            action={
-              <Button
-                size="small"
-                onClick={() => {
-                  void reloadProjects();
-                }}
-              >
-                {t("Retry")}
-              </Button>
-            }
-            style={{ marginBottom: 16 }}
-          />
-        )}
-        {error && (
-          <Alert
-            type="error"
-            showIcon
-            title={error}
-            style={{ marginBottom: 16 }}
-          />
+          <Button
+            size="small"
+            onClick={() => {
+              void reloadProjects();
+            }}
+          >
+            {t("Retry")}
+          </Button>
         )}
         <Tabs
           activeKey={startingPoint}

@@ -1,3 +1,8 @@
+import { showError } from "@/wab/client/ErrorNotifications";
+vi.mock("@/wab/client/ErrorNotifications", async (original) => ({
+  ...(await original<typeof import("@/wab/client/ErrorNotifications")>()),
+  showError: vi.fn(),
+}));
 import { AntdConfigProvider } from "@/wab/client/antd-theme";
 import { AppCtx } from "@/wab/client/app-ctx";
 import { CanvasAiComposer } from "@/wab/client/components/copilot/CanvasAiComposer";
@@ -6,6 +11,7 @@ import {
   LocalEditSession,
   localAiFetch,
 } from "@/wab/client/copilot/local-edit-session";
+import { ensure } from "@/wab/shared/common";
 import { toOpaque } from "@/wab/commons/types";
 import { ApiProject, CopilotChatOpenOpts } from "@/wab/shared/ApiSchema";
 import type { LocalAiStatus } from "@/wab/shared/copilot/local-edit";
@@ -262,9 +268,11 @@ it("uses the chosen model and remembers it when reopening the panel", async () =
 it("keeps the panel mounted when the running server omits the model list", async () => {
   state.missingModels = true;
   mount();
-  await screen.findByText(
-    "The AI service returned an invalid status. Update the server and reload the assistant.",
-  );
+  await waitFor(() => expect(showError).toHaveBeenCalledWith(
+    new Error("The AI service returned an invalid status. Update the server and reload the assistant."),
+    { title: undefined },
+  ));
+  expect(document.querySelector(".ant-alert-error")).toBeNull();
   expect(
     screen.getByRole("region", { name: "AI assistant" }),
   ).toBeInTheDocument();
@@ -391,10 +399,10 @@ it("switches top-frame modes without losing attachments, scope, model or multili
   ).toHaveAttribute("data-expanded", "true");
   const file = new File(["A table"], "requirements.md");
   const readAsText = FileReader.prototype.readAsText;
-  let finishRead = () => {};
+  let finishRead: (() => void) | undefined;
   const finishedRead = new Promise<void>((resolve) => { finishRead = resolve; });
   const read = vi.spyOn(FileReader.prototype, "readAsText").mockImplementation(function (this: FileReader, blob, encoding) {
-    this.addEventListener("loadend", finishRead, { once: true });
+    this.addEventListener("loadend", ensure(finishRead, "File read completion callback must be initialized"), { once: true });
     return readAsText.call(this, blob, encoding);
   });
   await act(async () => {

@@ -25,6 +25,7 @@ const { openBrowser } = require("./open-browser.cjs");
 const { UnifiedAuthWindow, AUTH_PATH } = require("./unified-auth-window.cjs");
 const { createSessionRecovery } = require("./session-recovery.cjs");
 const { createDeviceCredentials } = require("./device-credentials.cjs");
+const { DesktopDraftStore, createDraftHandler } = require("./drafts.cjs");
 const { DesktopController } = require("./controller.cjs");
 const { startRpc } = require("./local-rpc.cjs");
 const { McpIntegrations } = require("./mcp-integrations.cjs");
@@ -68,7 +69,7 @@ function trustedAuthSender(event) {
   );
 }
 function openDesktopPreview(event, url) {
-  if (!trustedAuthSender(event)) throw new Error("Invalid Studio page");
+  if (!trustedAuthSender(event)) {throw new Error("Invalid Studio page");}
   const parsed = new URL(url);
   if (
     parsed.origin !== config.studioOrigin ||
@@ -431,6 +432,17 @@ async function startDesktop() {
       () => startingDesktop,
       () => desktopLogin.noteActivity(),
     );
+    const drafts = createDraftHandler({
+      store: new DesktopDraftStore(path.join(app.getPath("userData"), "drafts")),
+      origin: config.studioOrigin,
+      trustedSender: trustedAuthSender,
+      projectId: (url) => workspace.projectId(url),
+      currentUser: async () => (await controller.requestStudio("/api/v1/auth/self", undefined, AbortSignal.timeout(10_000))).user?.id,
+    });
+    ipcMain.handle("desktop:drafts", (event, command, input) => drafts.command(event, command, input));
+    mainWindow.webContents.on("did-start-navigation", (_event, _url, inPlace, isMainFrame) => {
+      if (isMainFrame && !inPlace) {drafts.reset();}
+    });
     presentation = createIsland({ getWindow: () => mainWindow, controller,
       i18n: desktopI18n, appearance: desktopAppearance, config,
       signIn: () => unifiedAuth.begin(),
@@ -438,8 +450,8 @@ async function startDesktop() {
         const menu = Menu.getApplicationMenu();
         const activeMode = menu?.getMenuItemById(`presentation-${mode}`);
         const activeCloseAction = menu?.getMenuItemById(`close-action-${presentation.closeAction}`);
-        if (activeMode) activeMode.checked = true;
-        if (activeCloseAction) activeCloseAction.checked = true;
+        if (activeMode) {activeMode.checked = true;}
+        if (activeCloseAction) {activeCloseAction.checked = true;}
       },
     });
     controller.browser = new ReferenceBrowser({
@@ -455,7 +467,7 @@ async function startDesktop() {
     });
     ipcMain.handle("desktop:open-preview", openDesktopPreview);
     ipcMain.handle("desktop:open-reference-browser", (event) => {
-      if (!trustedAuthSender(event)) throw new Error("Invalid Studio page");
+      if (!trustedAuthSender(event)) {throw new Error("Invalid Studio page");}
       return controller.dispatch("browser", { action: "open" });
     });
     stopRpc = await startRpc(app.getPath("userData"), (method, input, caller) =>
@@ -519,18 +531,31 @@ async function startDesktop() {
     });
   }, 5000);
   let closeRequest;
+  const protectDraftBeforeQuit = async () => {
+    if (win.isDestroyed() || win.webContents.isCrashed() || !workspace.projectId(win.webContents.getURL())) {return true;}
+    try {
+      if ((await controller.invoke("flushDraft", {}, 10000)).protected) {return true;}
+    } catch (error) { console.warn("Cannot flush local draft:", error.message); }
+    const result = await dialog.showMessageBox(win, {
+      type: "warning", message: t("Edits are not saved"),
+      detail: t("Your latest edits could not be backed up on this device. Quitting may discard them."),
+      buttons: [t("Cancel"), t("Quit Plasmic")], defaultId: 0, cancelId: 0, noLink: true,
+    });
+    return result.response === 1;
+  };
   win.on("close", (event) => {
     if (quitting || win.webContents.isCrashed()) {
       return;
     }
     event.preventDefault();
-    if (closeRequest) return;
+    if (closeRequest) {return;}
     closeRequest = (async () => {
       const action = presentation.mode === "island" ? "island" : await presentation.closingAction();
-      if (!action || quitting || win.isDestroyed()) return;
+      if (!action || quitting || win.isDestroyed()) {return;}
       await capture();
-      if (quitting || win.isDestroyed()) return;
-      if (action === "island") await presentation.setMode("island");
+      if (action === "quit" && !(await protectDraftBeforeQuit())) {return;}
+      if (quitting || win.isDestroyed()) {return;}
+      if (action === "island") {await presentation.setMode("island");}
       else { quitting = true; app.quit(); }
     })().catch((error) => {
       console.error("Cannot close main window:", error);
@@ -542,17 +567,21 @@ async function startDesktop() {
       return;
     }
     event.preventDefault();
-    void capture().finally(() => {
+    if (closeRequest) {return;}
+    closeRequest = (async () => {
+      await capture();
+      if (!(await protectDraftBeforeQuit())) {return;}
       quitting = true;
       app.quit();
-    });
+    })().catch(error => { console.error("Cannot protect draft before quitting:", error); })
+      .finally(() => { closeRequest = undefined; });
   };
   app.on("before-quit", beforeQuit);
   win.once("closed", () => {
     clearInterval(workspaceTimer);
     app.removeListener("before-quit", beforeQuit);
   });
-  mainWindow.once("ready-to-show", () => { if (presentation.mode !== "island") win.show(); });
+  mainWindow.once("ready-to-show", () => { if (presentation.mode !== "island") {win.show();} });
   mainWindow.on("closed", () => {
     mainWindow = undefined;
   });
@@ -564,13 +593,13 @@ async function startDesktop() {
       showUpdateDialog: () => openUpdates(),
       beforeInstall: () => controller.prepareUpdate(),
     });
-    updates.on("status", (status) => { if (status.phase !== "installing") controller.updating = false; });
+    updates.on("status", (status) => { if (status.phase !== "installing") {controller.updating = false;} });
   }
   presentation.attachUpdates(updates);
   const openWindowUpdates = createUpdateDialog(updates, win);
   openUpdates = () => {
-    if (presentation.mode === "island" && !win.isVisible()) presentation.openUpdates();
-    else openWindowUpdates();
+    if (presentation.mode === "island" && !win.isVisible()) {presentation.openUpdates();}
+    else {openWindowUpdates();}
   };
   function buildMenu() {
     const checkForUpdatesItem = {

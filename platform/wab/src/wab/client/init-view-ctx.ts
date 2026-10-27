@@ -63,10 +63,12 @@ export async function initStudioCtx(
   const { dbCtx, depPkgVersions } = await loadSiteDbCtx(appCtx, onRefreshUi, siteId, loadTimings);
   const { siteInfo } = dbCtx;
 
-  return createStudioCtx({
+  const studioCtx = createStudioCtx({
     dbCtx,
     depPkgVersions,
     siteInfo,
     loadTimings,
   });
+  await studioCtx.initializeDesktopDrafts();
+  return studioCtx;
 }

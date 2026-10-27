@@ -1,3 +1,10 @@
+import { message } from "antd";
+import { mock } from "vitest-mock-extended";
+import { showError } from "@/wab/client/ErrorNotifications";
+vi.mock("@/wab/client/ErrorNotifications", async (original) => ({
+  ...(await original<typeof import("@/wab/client/ErrorNotifications")>()),
+  showError: vi.fn(),
+}));
 import { AppCtx } from "@/wab/client/app-ctx";
 import TeamBilling from "@/wab/client/components/dashboard/TeamBilling";
 import PriceTierPicker from "@/wab/client/components/pricing/PriceTierPicker";
@@ -5,6 +12,7 @@ import { setLanguagePreference } from "@/wab/client/i18n";
 import { languageOptions, translate } from "@/wab/client/i18n/locales";
 import { HttpError } from "@/wab/shared/ApiErrors/ApiError";
 import { ApiFeatureTier, ApiTeam, Subscription } from "@/wab/shared/ApiSchema";
+import { ensure } from "@/wab/shared/common";
 import { DEVFLAGS } from "@/wab/shared/devflags";
 import "@testing-library/jest-dom/vitest";
 import {
@@ -31,7 +39,7 @@ const mocks = vi.hoisted(() => ({
 }));
 vi.mock("@/wab/client/components/modals/PricingModal", () => ({
   promptBilling: mocks.billing,
-  showUpsellConfirm: mocks.success,
+  showBillingSuccess: mocks.success,
 }));
 vi.mock("@/wab/client/components/modals/UpdateCreditCardModal", () => ({
   promptUpdateCc: mocks.payment,
@@ -117,10 +125,12 @@ function show(extra: Partial<React.ComponentProps<typeof TeamBilling>> = {}) {
 }
 beforeEach(async () => {
   await setLanguagePreference("en");
+  vi.spyOn(message, "success").mockReturnValue(mock());
 });
 afterEach(() => {
   cleanup();
   vi.resetAllMocks();
+  vi.restoreAllMocks();
 });
 
 it("validates billing email, preserves failed input, and saves through the actual team callback", async () => {
@@ -135,10 +145,11 @@ it("validates billing email, preserves failed input, and saves through the actua
   expect(mocks.update).not.toHaveBeenCalled();
   fireEvent.change(email, { target: { value: "new@example.com" } });
   fireEvent.click(screen.getByRole("button", { name: "Save" }));
-  await screen.findByText("Failed to update billing");
+  await waitFor(() => expect(showError).toHaveBeenCalledWith(expect.any(Error), { title: "Failed to update billing" }));
   expect(email).toHaveValue("new@example.com");
   fireEvent.click(screen.getByRole("button", { name: "Save" }));
-  await screen.findByText("Billing email saved");
+  await waitFor(() => expect(message.success).toHaveBeenCalledExactlyOnceWith({ content: "Billing email saved" }));
+  expect(document.querySelector(".ant-alert-success")).toBeNull();
   expect(mocks.update).toHaveBeenLastCalledWith("team1", {
     billingEmail: "new@example.com",
   });
@@ -188,7 +199,7 @@ it("requires the cancellation reason and hard confirmation before calling the ca
 });
 
 it("shows payment failures and prevents edits while the payment dialog is running", async () => {
-  let finish: (result: { type: "fail"; errorMsg: string }) => void = () => {};
+  let finish: ((result: { type: "fail"; errorMsg: string }) => void) | undefined;
   mocks.payment.mockReturnValue(
     new Promise((resolve) => {
       finish = resolve;
@@ -200,8 +211,9 @@ it("shows payment failures and prevents edits while the payment dialog is runnin
   );
   expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
   expect(screen.getByRole("status")).toHaveTextContent("Updating billing…");
-  finish({ type: "fail", errorMsg: "Card declined" });
-  await screen.findByText("Card declined");
+  ensure(finish, "Payment dialog must provide its response callback")({ type: "fail", errorMsg: "Card declined" });
+  await waitFor(() => expect(showError).toHaveBeenCalledWith(expect.any(Error), { title: "Failed to update billing" }));
+  expect(vi.mocked(showError).mock.calls.at(-1)?.[0]).toEqual(new Error("Card declined"));
   expect(screen.getByRole("button", { name: "Save" })).toBeEnabled();
   expect(mocks.reload).toHaveBeenCalledTimes(1);
 });
@@ -220,15 +232,16 @@ it("disables all modifying controls for read-only members", () => {
   expect(screen.getByLabelText("Billing email")).toBeDisabled();
 });
 
-it.each(languageOptions)("shows the localized billing failure in $label and keeps the submitted email", async ({ value }) => {
+it.each(languageOptions)("reports billing failures through shared messages in $label and keeps the submitted email", async ({ value }) => {
   await setLanguagePreference(value);
   mocks.update.mockRejectedValueOnce(new HttpError(503, "Provider diagnostic"));
   show();
   fireEvent.click(screen.getByRole("button", {
     name: (name) => name.replace(/([\u4e00-\u9fff]) (?=[\u4e00-\u9fff])/g, "$1") === translate(value, "Save"),
   }));
-  await screen.findByText(translate(value, "Failed to update billing"));
-  expect(screen.getByText(translate(value, "The service is temporarily unavailable. Please try again later."))).toBeTruthy();
+  await waitFor(() => expect(showError).toHaveBeenCalledWith(expect.any(HttpError), { title: "Failed to update billing" }));
+  expect(vi.mocked(showError).mock.calls.at(-1)?.[0]).toEqual(new HttpError(503, "Provider diagnostic"));
+  expect(document.querySelector(".ant-alert")).toBeNull();
   expect(screen.queryByText("Provider diagnostic")).toBeNull();
   expect(screen.getByLabelText(translate(value, "Billing email"))).toHaveValue("billing@example.com");
   expect(mocks.update).toHaveBeenCalledWith("team1", { billingEmail: "billing@example.com" });

@@ -1,3 +1,8 @@
+import { showError } from "@/wab/client/ErrorNotifications";
+vi.mock("@/wab/client/ErrorNotifications", async (original) => ({
+  ...(await original<typeof import("@/wab/client/ErrorNotifications")>()),
+  showError: vi.fn(),
+}));
 import CmsRoot from "@/wab/client/components/cms/CmsRoot";
 import { CmsDatabaseId } from "@/wab/shared/ApiSchema";
 import {
@@ -75,7 +80,7 @@ it("recovers the content library from a failed request through the same SWR reso
     </SWRConfig>,
   );
   expect(screen.getByRole("status")).toBeTruthy();
-  await screen.findByText("Failed to load content library");
+  await waitFor(() => expect(showError).toHaveBeenCalledWith(expect.any(Error), { title: "Failed to load content library" }));
   expect(screen.queryByRole("status")).toBeNull();
   fireEvent.click(screen.getByRole("button", { name: "Retry" }));
   await screen.findByText("Content library ready");

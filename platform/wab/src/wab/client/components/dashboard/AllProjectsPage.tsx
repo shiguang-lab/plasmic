@@ -1,3 +1,4 @@
+import { useErrorMessage } from "@/wab/client/hooks/useErrorMessage";
 import NewProjectModal from "@/wab/client/components/NewProjectModal";
 import ProjectListItem from "@/wab/client/components/ProjectListItem";
 import { PublicLink } from "@/wab/client/components/PublicLink";
@@ -20,7 +21,7 @@ import {
   BarsOutlined,
   FolderOutlined,
 } from "@ant-design/icons";
-import { Alert, Button, Empty, Flex, Segmented, Select } from "antd";
+import { Button, Empty, Flex, Segmented, Select } from "antd";
 import { groupBy } from "lodash";
 import * as React from "react";
 
@@ -38,6 +39,7 @@ const AllProjectsPage = React.forwardRef<HTMLDivElement>(
       isValidating,
       mutate: updateProjectsData,
     } = useAllProjectsData();
+    useErrorMessage(loadError, "Failed to load projects");
     const {
       projects,
       matcher,
@@ -87,6 +89,12 @@ const AllProjectsPage = React.forwardRef<HTMLDivElement>(
             />
           </Flex>
           <Flex align="center" wrap gap={12}>
+            {loadError && (
+              <Button size="small" disabled={isValidating} aria-busy={isValidating}
+                onClick={() => { void updateProjectsData((current) => current, { revalidate: true, throwOnError: false }); }}>
+                {t(isValidating ? "Loading…" : "Retry")}
+              </Button>
+            )}
             <NewProjectButton onClick={() => setShowNewProjectModal(true)} />
             <ImportPlasmicButton workspaceId={selectedWorkspaceId} />
             <Segmented
@@ -109,32 +117,6 @@ const AllProjectsPage = React.forwardRef<HTMLDivElement>(
           </Flex>
         </Flex>
         <div className={styles.workspaceContent}>
-          {loadError && (projectsData || !isValidating) && (
-            <Alert
-              type={projectsData ? "warning" : "error"}
-              showIcon
-              title={t(
-                projectsData
-                  ? "Couldn't refresh projects. Showing the last loaded projects."
-                  : "Failed to load projects",
-              )}
-              action={
-                <Button
-                  size="small"
-                  disabled={isValidating}
-                  aria-busy={isValidating}
-                  onClick={() => {
-                    void updateProjectsData((current) => current, {
-                      revalidate: true,
-                      throwOnError: false,
-                    });
-                  }}
-                >
-                  {t(isValidating ? "Loading…" : "Retry")}
-                </Button>
-              }
-            />
-          )}
           {!projectsData && (!loadError || isValidating) ? (
             <ProjectGroupsSkeleton view={view} />
           ) : !projectsData ? null : projects.length === 0 ? (

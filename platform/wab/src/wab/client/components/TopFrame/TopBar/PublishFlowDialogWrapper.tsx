@@ -1,5 +1,6 @@
 import { PublishModal } from "@/wab/client/components/TopFrame/TopBar/PublishModal";
 import { ensureWebsiteVersionSaved } from "@/wab/client/components/TopFrame/TopBar/publish-website";
+import { useErrorMessage } from "@/wab/client/hooks/useErrorMessage";
 import { useI18n } from "@/wab/client/i18n";
 
 /** @format */
@@ -45,7 +46,7 @@ import {
   GitWorkflowJobStep,
 } from "@/wab/shared/ApiSchema";
 import { spawn, waitUntil } from "@/wab/shared/common";
-import { notification } from "antd";
+import { message } from "antd";
 import L from "lodash";
 import { observer } from "mobx-react";
 import * as React from "react";
@@ -200,6 +201,10 @@ export const PublishFlowDialogWrapper = observer(
         : null,
       () => hostFrameApi.getPublishPages(),
     );
+    useErrorMessage(
+      previewError || previewLoadError || pagesError,
+      previewAvailable ? "Website publishing failed" : "The latest publish failed",
+    );
     const publishWebsite = async () => {
       setPreviewBusy(true);
       try {
@@ -229,6 +234,7 @@ export const PublishFlowDialogWrapper = observer(
         await appCtx.api.unpublishPreviewPublication(projectId);
         await refreshPreview();
         refreshProjectAndPerms();
+        void message.success({ content: studioUiT("Website unpublished") });
       } catch (error) {
         setPreviewError(error);
       } finally {
@@ -649,9 +655,6 @@ export const PublishFlowDialogWrapper = observer(
               }
             }
           } catch (error) {
-            if (!previewAvailable) {
-              throw error;
-            }
             setPreviewError(error);
           } finally {
             publishingRef.current = false;
@@ -691,22 +694,16 @@ export const PublishFlowDialogWrapper = observer(
     ]);
 
     React.useEffect(() => {
-      if (publishState === "failure") {
-        if (statusSaveVersion?.result === "PaywallError") {
-          notification.error({
-            message: personalProjectPaywallMessage,
-            duration: 0,
-          });
-        } else {
-          notification.warning({
-            message: studioUiT("The latest publish failed"),
-            description: studioUiT(
-              "An error occurred when publishing. Please try again!",
-            ),
-          });
-        }
+      if (publishState === "success") {
+        void message.success({ content: studioUiT("Published successfully") });
+      } else if (publishState === "failure" && !previewError) {
+        void message.error({
+          content: statusSaveVersion?.result === "PaywallError"
+            ? personalProjectPaywallMessage
+            : studioUiT("The latest publish failed"),
+        });
       }
-    }, [publishState]);
+    }, [publishState, previewError]);
 
     return (
       <>

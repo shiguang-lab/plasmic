@@ -820,19 +820,6 @@
           "componentType": "component"
         },
         {
-          "id": "C9PGGs5iUd",
-          "name": "UpsellConfirm",
-          "type": "managed",
-          "projectId": "ooL7EhXDmFQWnW9sxtchhE",
-          "renderModuleFilePath": "wab/client/plasmic/plasmic_kit_dashboard/PlasmicUpsellConfirm.tsx",
-          "importSpec": {
-            "modulePath": "wab/client/components/modals/UpsellConfirm.tsx"
-          },
-          "cssFilePath": "wab/client/plasmic/plasmic_kit_dashboard/PlasmicUpsellConfirm.module.css",
-          "scheme": "blackbox",
-          "componentType": "component"
-        },
-        {
           "id": "MtL6MGlBxoy",
           "name": "TeamBilling",
           "type": "managed",

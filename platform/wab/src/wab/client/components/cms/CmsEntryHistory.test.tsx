@@ -1,3 +1,8 @@
+import { showError } from "@/wab/client/ErrorNotifications";
+vi.mock("@/wab/client/ErrorNotifications", async (original) => ({
+  ...(await original<typeof import("@/wab/client/ErrorNotifications")>()),
+  showError: vi.fn(),
+}));
 import {
   CmsEntryHistory,
   EntryRevisionView,
@@ -143,7 +148,7 @@ it("retains read-only revision fields and retries failed writes using the curren
   render(<EntryRevisionView />);
   expect(screen.getByLabelText("Revision title")).toBeDisabled();
   fireEvent.click(screen.getByRole("button", { name: "Restore" }));
-  await screen.findByText("Failed to restore revision");
+  await waitFor(() => expect(showError).toHaveBeenCalledWith(expect.any(Error), { title: "Failed to restore revision" }));
   expect(screen.getByRole("button", { name: "Restore" })).toBeEnabled();
   expect(mocks.navigate).not.toHaveBeenCalled();
   fireEvent.click(screen.getByRole("button", { name: "Restore" }));
@@ -196,7 +201,7 @@ it("retries only refresh after a successful write", async () => {
   mocks.mutate.mockRejectedValueOnce(new Error("offline"));
   render(<EntryRevisionView />);
   fireEvent.click(screen.getByRole("button", { name: "Restore" }));
-  await screen.findByText("Revision restored, but refreshing failed");
+  await waitFor(() => expect(showError).toHaveBeenCalledWith(expect.any(Error), { title: "Revision restored, but refreshing failed" }));
   expect(screen.getByRole("button", { name: "Restore" })).toBeDisabled();
   fireEvent.click(screen.getByRole("button", { name: "Retry" }));
   await waitFor(() => expect(mocks.navigate).toHaveBeenCalledOnce());

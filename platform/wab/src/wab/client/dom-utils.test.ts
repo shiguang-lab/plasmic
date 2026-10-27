@@ -1,3 +1,5 @@
+import { message, notification } from "antd";
+import { mock } from "vitest-mock-extended";
 import {
   deriveImageAssetTypeAndUri,
   isDescendant,
@@ -17,6 +19,7 @@ function decodeDataUri(dataUri: string): string {
 }
 
 describe("deriveImageAssetTypeAndUri", () => {
+  afterEach(() => vi.restoreAllMocks());
   describe("SVG handling", () => {
     it("converts SVG with no colors to icon with currentColor", () => {
       const svgXml =
@@ -215,6 +218,8 @@ describe("deriveImageAssetTypeAndUri", () => {
     });
 
     it("returns undefined when PNG is explicitly requested as icon", () => {
+      const error = vi.spyOn(message, "error").mockReturnValue(mock());
+      const notice = vi.spyOn(notification, "error");
       const dataUri =
         "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==";
       const image = new ResizableImage(dataUri, 5, 5, undefined);
@@ -225,6 +230,8 @@ describe("deriveImageAssetTypeAndUri", () => {
 
       // Should return undefined because non-SVG images cannot be icons
       expect(result).toBeUndefined();
+      expect(error).toHaveBeenCalledExactlyOnceWith({ content: "Can only use svg images as icons" });
+      expect(notice).not.toHaveBeenCalled();
     });
 
     it("converts PNG to picture when explicitly requested", () => {

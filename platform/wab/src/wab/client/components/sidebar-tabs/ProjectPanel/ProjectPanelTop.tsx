@@ -1,3 +1,4 @@
+import { useErrorMessage } from "@/wab/client/hooks/useErrorMessage";
 import { apiKey } from "@/wab/client/api";
 import { menuSection } from "@/wab/client/components/menu-builder";
 import {
@@ -29,17 +30,7 @@ import {
   SearchOutlined,
 } from "@ant-design/icons";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
-import {
-  Alert,
-  Button,
-  Dropdown,
-  Empty,
-  Input,
-  Menu,
-  Spin,
-  Tooltip,
-  notification,
-} from "antd";
+import { Button, Dropdown, Empty, Input, Menu, Spin, Tooltip, notification } from "antd";
 import { createStyles } from "antd-style";
 import { trimStart } from "lodash";
 import { observer } from "mobx-react";
@@ -104,27 +95,21 @@ function BranchPanelTop_(
   );
 
   const [queryMatcher, setQueryMatcher] = useState(mkMatcher());
+  useErrorMessage(branchesError, "Unable to load branches");
   const [query, setQuery] = useState("");
   const [fetchingData, setFetchingData] = useState(false);
 
   useDebounce(() => setQueryMatcher(mkMatcher(query)), 200, [query]);
 
-  if (branchesError) {
+  if (branchesError && !branchesResponse) {
     return (
-      <Alert
-        type="error"
-        showIcon
-        message={t("Unable to load branches")}
-        action={
-          <Button
-            onClick={() => {
-              void reloadBranches();
-            }}
-          >
-            {t("Retry")}
-          </Button>
-        }
-      />
+      <Button
+        onClick={() => {
+          void reloadBranches();
+        }}
+      >
+        {t("Retry")}
+      </Button>
     );
   }
   if (!branchesResponse || fetchingData) {
@@ -385,6 +370,7 @@ function BranchPanelTop_(
     <div className={styles.root} ref={outerRef} {...testIds.projectPanel}>
       <div className={styles.header}>
         <strong>{t("Branches")}</strong>
+        {branchesError && (<Button size="small" onClick={() => void reloadBranches()}>{t("Retry")}</Button>)}
         {canManage && (
           <Button
             type="text"

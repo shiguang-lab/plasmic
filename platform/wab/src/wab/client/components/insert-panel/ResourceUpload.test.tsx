@@ -1,3 +1,10 @@
+import { message } from "antd";
+import { mock } from "vitest-mock-extended";
+import { showError } from "@/wab/client/ErrorNotifications";
+vi.mock("@/wab/client/ErrorNotifications", async (original) => ({
+  ...(await original<typeof import("@/wab/client/ErrorNotifications")>()),
+  showError: vi.fn(),
+}));
 import { AppCtx } from "@/wab/client/app-ctx";
 import { SiteOps } from "@/wab/client/components/canvas/site-ops";
 import { ResourceUpload } from "@/wab/client/components/insert-panel/ResourceUpload";
@@ -62,6 +69,8 @@ function chooseFile(container: HTMLElement) {
 }
 beforeEach(() => {
   vi.clearAllMocks();
+  vi.spyOn(message, "success").mockReturnValue(mock());
+  vi.spyOn(message, "error").mockReturnValue(mock());
   state.editable = true;
   state.permission = "writable";
   mocks.read.mockResolvedValue({ image: "sanitized" });
@@ -70,7 +79,7 @@ beforeEach(() => {
     opts: { name: "Hero.png", type: ImageAssetType.Picture },
   });
 });
-afterEach(cleanup);
+afterEach(() => { cleanup(); vi.restoreAllMocks(); });
 it("shows progress on the selected icon upload and locks the image action until it finishes", async () => {
   let finish: (() => void) | undefined;
   mocks.read.mockImplementationOnce(
@@ -101,7 +110,8 @@ it("shows progress on the selected icon upload and locks the image action until 
   );
   expect(screen.getByRole("button", { name: "Upload image" })).toBeDisabled();
   await act(async () => finish?.());
-  await screen.findByText("Asset uploaded");
+  await waitFor(() => expect(message.success).toHaveBeenCalledExactlyOnceWith({ content: "Asset uploaded" }));
+  expect(container.querySelector(".ant-alert")).toBeNull();
   expect(mocks.upload).toHaveBeenCalledWith(
     studioCtx.appCtx,
     { image: "sanitized" },
@@ -115,7 +125,8 @@ it("creates the asset through the saved model only after a successful upload", a
     <ResourceUpload studioCtx={studioCtx} onUploaded={mocks.uploaded} />,
   );
   chooseFile(container);
-  await screen.findByText("Asset uploaded");
+  await waitFor(() => expect(message.success).toHaveBeenCalledExactlyOnceWith({ content: "Asset uploaded" }));
+  expect(container.querySelector(".ant-alert")).toBeNull();
   expect(mocks.read).toHaveBeenCalledWith(studioCtx.appCtx, file);
   expect(mocks.upload).toHaveBeenCalledWith(
     studioCtx.appCtx,
@@ -136,10 +147,11 @@ it("retains upload controls after failure and retries without creating an empty 
     <ResourceUpload studioCtx={studioCtx} onUploaded={mocks.uploaded} />,
   );
   chooseFile(container);
-  await screen.findByText("Failed to upload asset");
+  await waitFor(() => expect(showError).toHaveBeenCalledWith(expect.any(Error), { title: "Failed to upload asset" }));
   expect(mocks.create).not.toHaveBeenCalled();
   chooseFile(container);
-  await screen.findByText("Asset uploaded");
+  await waitFor(() => expect(message.success).toHaveBeenCalledExactlyOnceWith({ content: "Asset uploaded" }));
+  expect(container.querySelector(".ant-alert")).toBeNull();
   expect(mocks.create).toHaveBeenCalledOnce();
 });
 it("rejects invalid image data before upload and hides actions from read-only users", async () => {
@@ -148,7 +160,8 @@ it("rejects invalid image data before upload and hides actions from read-only us
     <ResourceUpload studioCtx={studioCtx} onUploaded={mocks.uploaded} />,
   );
   chooseFile(container);
-  await screen.findByText("Invalid image");
+  await waitFor(() => expect(message.error).toHaveBeenCalledExactlyOnceWith({ content: "Invalid image" }));
+  expect(container.querySelector(".ant-alert")).toBeNull();
   expect(mocks.upload).not.toHaveBeenCalled();
   act(() => {
     state.editable = false;
@@ -157,6 +170,18 @@ it("rejects invalid image data before upload and hides actions from read-only us
     <ResourceUpload studioCtx={studioCtx} onUploaded={mocks.uploaded} />,
   );
   expect(screen.queryByRole("button", { name: "Upload image" })).toBeNull();
+});
+it("does not duplicate an image validation error reported by the upload helper", async () => {
+  mocks.upload.mockImplementationOnce(() => {
+    void message.error({ content: "Can only use svg images as icons" });
+    return {};
+  });
+  const { container } = render(<ResourceUpload studioCtx={studioCtx} onUploaded={mocks.uploaded} />);
+  chooseFile(container);
+  await waitFor(() => expect(message.error).toHaveBeenCalledExactlyOnceWith({ content: "Can only use svg images as icons" }));
+  expect(message.success).not.toHaveBeenCalled();
+  expect(mocks.create).not.toHaveBeenCalled();
+  expect(container.querySelector(".ant-alert")).toBeNull();
 });
 it("locks upload controls and does not modify the model if edit permission is revoked during upload", async () => {
   let finish:

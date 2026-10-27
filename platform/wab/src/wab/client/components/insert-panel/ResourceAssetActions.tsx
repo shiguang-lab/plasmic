@@ -1,7 +1,4 @@
-import {
-  ErrorDescription,
-  getErrorType,
-} from "@/wab/client/api-error-presentation";
+import { showError } from "@/wab/client/ErrorNotifications";
 import { FindReferencesModal } from "@/wab/client/components/sidebar/FindReferencesModal";
 import { SidebarModalProvider } from "@/wab/client/components/sidebar/SidebarModal";
 import { Modal } from "@/wab/client/components/widgets/Modal";
@@ -13,7 +10,7 @@ import { extractImageAssetUsages } from "@/wab/shared/core/image-assets";
 import { ImageAsset } from "@/wab/shared/model/classes";
 import { canWrite } from "@/wab/shared/ui-config-utils";
 import { MoreOutlined } from "@ant-design/icons";
-import { Alert, Button, Dropdown, Input, Typography } from "antd";
+import { Button, Dropdown, Input, Typography } from "antd";
 import { observer } from "mobx-react";
 import React from "react";
 
@@ -28,7 +25,6 @@ export const ResourceAssetActions = observer(function ResourceAssetActions({
   const [view, setView] = React.useState<"preview" | "rename" | "references">();
   const [name, setName] = React.useState(asset.name);
   const [busy, setBusy] = React.useState(false);
-  const [error, setError] = React.useState<unknown>();
   const pending = React.useRef(false);
   const canEdit = () =>
     studioCtx.site.imageAssets.includes(asset) &&
@@ -51,7 +47,6 @@ export const ResourceAssetActions = observer(function ResourceAssetActions({
     }
     pending.current = true;
     setBusy(true);
-    setError(undefined);
     try {
       if (action === "rename") {
         await studioCtx.changeUnsafe(() => {
@@ -65,10 +60,7 @@ export const ResourceAssetActions = observer(function ResourceAssetActions({
         await studioCtx.siteOps().tryDeleteImageAssets([asset]);
       }
     } catch (cause) {
-      setError(cause);
-      if (action === "delete") {
-        setView("preview");
-      }
+      showError(cause, { title: "Failed to update asset" });
     } finally {
       pending.current = false;
       setBusy(false);
@@ -109,7 +101,6 @@ export const ResourceAssetActions = observer(function ResourceAssetActions({
           ],
           onClick: ({ key, domEvent }) => {
             domEvent.stopPropagation();
-            setError(undefined);
             if (key === "download") {
               downloadImageAsset(asset);
             } else if (key === "delete") {
@@ -157,14 +148,6 @@ export const ResourceAssetActions = observer(function ResourceAssetActions({
           ) : null
         }
       >
-        {!!error && (
-          <Alert
-            type={getErrorType(error)}
-            title={t("Failed to update asset")}
-            description={<ErrorDescription error={error} />}
-            style={{ marginBottom: 12 }}
-          />
-        )}
         {view === "rename" ? (
           <>
             <Input

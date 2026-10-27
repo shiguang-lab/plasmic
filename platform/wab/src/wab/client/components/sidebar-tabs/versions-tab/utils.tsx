@@ -1,3 +1,4 @@
+import { useErrorMessage } from "@/wab/client/hooks/useErrorMessage";
 import { SiteDiffs } from "@/wab/client/components/modals/SiteDiffs";
 import { showTemporaryPrompt } from "@/wab/client/components/quick-modals";
 import { NoItemMessage } from "@/wab/client/components/sidebar-tabs/versions-tab/NoItemMessage";
@@ -130,6 +131,7 @@ const RevertConfirmModal = ({
   onCancel: () => void;
 }) => {
   const { t: uiT } = useI18n();
+  useErrorMessage(error, "Failed to load changes");
   return (
     <ConfirmModal
       title={title}
@@ -146,15 +148,7 @@ const RevertConfirmModal = ({
         />
       </div>
       {error ? (
-        <Alert
-          type="error"
-          showIcon
-          className="mv-m"
-          message={uiT("Failed to load changes")}
-          description={uiT(
-            "Could not fetch the differences. You can still proceed with the revert.",
-          )}
-        />
+        <p>{uiT("Could not fetch the differences. You can still proceed with the revert.")}</p>
       ) : isLoadingDiffs ? (
         <div className="p-m text-center">
           <Spin />

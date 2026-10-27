@@ -3,7 +3,7 @@ import {
   canUpgradeTeam,
   PaywallError,
   promptBilling,
-  showUpsellConfirm,
+  showBillingSuccess,
 } from "@/wab/client/components/modals/PricingModal";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
 import { SELF_HOSTED } from "@/wab/client/env";
@@ -67,7 +67,7 @@ export function useUpsellQueryParam(team: ApiTeam) {
       return;
     }
     if (!canUpgradeTeam(appCtx, team)) {
-      void message.warning({
+      void message.error({
         content: studioUiT(
           "You don't have permission to upgrade this {part1}.",
           { part1: String(ORGANIZATION_LOWER) },
@@ -90,7 +90,7 @@ export function useUpsellQueryParam(team: ApiTeam) {
     } else if (billing.type === "fail") {
       throw new PaywallError("billing", billing.errorMsg);
     }
-    await showUpsellConfirm(APP_ROUTES.orgSettings.fill({ teamId: team.id }));
+    showBillingSuccess();
     // Drop the query param so re-renders don't prompt again.
     history.replace(APP_ROUTES.orgSettings.fill({ teamId: team.id }));
   }, [search, team.id]);

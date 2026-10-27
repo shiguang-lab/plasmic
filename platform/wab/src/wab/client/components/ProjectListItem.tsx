@@ -3,6 +3,7 @@ import { HostConfig } from "@/wab/client/components/HostConfig";
 import { promptMoveToWorkspace } from "@/wab/client/components/dashboard/dashboard-actions";
 import styles from "@/wab/client/components/dashboard/dashboard.module.scss";
 import { ProjectPreview } from "@/wab/client/components/dashboard/preview/ProjectPreview";
+import { DesktopDraftBadge } from "@/wab/client/components/dashboard/DesktopDraftBadge";
 import { maybeShowPaywall } from "@/wab/client/components/modals/PricingModal";
 import { reactConfirm } from "@/wab/client/components/quick-modals";
 import { Matcher } from "@/wab/client/components/view-common";
@@ -249,6 +250,7 @@ function ProjectListItem(props: ProjectListItemProps) {
                     <EditOutlined />
                   </button>
                 )}
+              {!editing && <DesktopDraftBadge projectId={project.id} />}
             </div>
             <div onClick={(e) => e.stopPropagation()}>
               <Dropdown

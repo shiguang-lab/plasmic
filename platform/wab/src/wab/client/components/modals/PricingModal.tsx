@@ -2,7 +2,6 @@ import * as React from "react";
 import { MakeADT } from "ts-adt/MakeADT";
 import { AppCtx } from "@/wab/client/app-ctx";
 import {
-  showTemporaryInfo,
   showTemporaryPrompt,
 } from "@/wab/client/components/quick-modals";
 import { getUiLocale } from "@/wab/client/i18n";
@@ -17,7 +16,8 @@ import {
   getNewPriceTierType,
   isUpgradableTier,
 } from "@/wab/shared/pricing/pricing-utils";
-import { APP_ROUTES } from "@/wab/shared/route/app-routes";
+import { UiText } from "@/wab/client/i18n/UiText";
+import { message } from "antd";
 
 
 export const canIEditTeam = (appCtx: AppCtx, t: ApiTeam) =>
@@ -110,14 +110,8 @@ export async function promptTeamUpgrade(
   return billing?.type === "success";
 }
 
-export async function showUpsellConfirm(
-  teamSettingsUrl: string,
-): Promise<void> {
-  const { default: UpsellConfirm } = await import("./UpsellConfirm");
-  return showTemporaryInfo({
-    title: translate(getUiLocale(), "Payment confirmation"),
-    content: <UpsellConfirm teamSettingsUrl={teamSettingsUrl} />,
-  });
+export function showBillingSuccess() {
+  void message.success({ content: <UiText message="Billing updated" /> });
 }
 
 
@@ -221,9 +215,7 @@ export async function maybeShowPaywall<T>(
         "Unable to upgrade plan. Please try again or contact team@plasmic.app.",
     );
   }
-  await showUpsellConfirm(
-    APP_ROUTES.orgSettings.fill({ teamId: billing.team.id }),
-  );
+  showBillingSuccess();
 
   return maybeShowPaywall(appCtx, action, args);
 }

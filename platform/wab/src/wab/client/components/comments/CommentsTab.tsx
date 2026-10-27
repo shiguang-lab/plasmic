@@ -1,3 +1,4 @@
+import { showError } from "@/wab/client/ErrorNotifications";
 import RootComment from "@/wab/client/components/comments/RootComment";
 import { CommentFilters } from "@/wab/client/components/comments/utils";
 import { useI18n } from "@/wab/client/i18n";
@@ -10,17 +11,7 @@ import {
   MessageOutlined,
 } from "@ant-design/icons";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
-import {
-  Alert,
-  Button,
-  Checkbox,
-  Dropdown,
-  Flex,
-  Segmented,
-  Skeleton,
-  Tooltip,
-  Typography,
-} from "antd";
+import { Button, Checkbox, Dropdown, Flex, Segmented, Skeleton, Tooltip, Typography } from "antd";
 import { createStyles } from "antd-style";
 import { observer } from "mobx-react";
 import * as React from "react";
@@ -62,7 +53,6 @@ const useCommentsStyles = createStyles(({ token }) => ({
     },
   },
   content: { padding: "16px" },
-  errors: { marginBottom: 16 },
   statusButton: { padding: 0, fontSize: 12 },
   related: { fontSize: 12, marginInlineStart: "auto" },
   threads: { display: "flex", flexDirection: "column", gap: 8 },
@@ -130,7 +120,6 @@ export const CommentsTab = observer(function CommentsTab(
   const studioCtx = useStudioCtx();
   const { styles } = useCommentsStyles();
   const [savingNotification, setSavingNotification] = React.useState(false);
-  const [notificationError, setNotificationError] = React.useState(false);
 
   const commentsCtx = studioCtx.commentsCtx;
   const filters = commentsCtx.commentsFilter();
@@ -147,7 +136,6 @@ export const CommentsTab = observer(function CommentsTab(
     notifyAbout: keyof typeof notifyAboutKeyToLabel,
   ) => {
     setSavingNotification(true);
-    setNotificationError(false);
     try {
       await studioCtx.appCtx.api.updateNotificationSettings(
         projectId,
@@ -158,8 +146,8 @@ export const CommentsTab = observer(function CommentsTab(
         },
       );
       await commentsCtx.fetchComments();
-    } catch {
-      setNotificationError(true);
+    } catch (error) {
+      showError(error, { title: "Failed to update comment notifications" });
     } finally {
       setSavingNotification(false);
     }
@@ -297,34 +285,11 @@ export const CommentsTab = observer(function CommentsTab(
       </header>
       <Scrollbar scrollX={false} style={{ flex: 1, minHeight: 0 }}>
         <div className={styles.content}>
-          {(notificationError || commentsCtx.loadFailed) && (
-            <Flex vertical gap={8} className={styles.errors}>
-              {notificationError && (
-                <Alert
-                  type="error"
-                  showIcon
-                  title={uiT("Failed to update comment notifications")}
-                />
-              )}
-              {commentsCtx.loadFailed && (
-                <Alert
-                  type="error"
-                  showIcon
-                  title={uiT("Failed to load comments")}
-                  action={
-                    <Button
-                      size="small"
-                      loading={commentsCtx.isLoading}
-                      onClick={() => {
-                        void commentsCtx.fetchComments();
-                      }}
-                    >
-                      {uiT("Retry")}
-                    </Button>
-                  }
-                />
-              )}
-            </Flex>
+          {commentsCtx.loadFailed && (
+            <Button size="small" loading={commentsCtx.isLoading}
+              onClick={() => { void commentsCtx.fetchComments(); }}>
+              {uiT("Retry")}
+            </Button>
           )}
           {!commentsCtx.hasLoaded && !commentsCtx.loadFailed ? (
             <Skeleton active paragraph={{ rows: 4 }} />

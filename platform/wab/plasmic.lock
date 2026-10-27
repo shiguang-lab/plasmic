@@ -2426,16 +2426,6 @@
         },
         {
           "type": "renderModule",
-          "assetId": "C9PGGs5iUd",
-          "checksum": "07cf36a7d66e27c53b39c158306d7d0a"
-        },
-        {
-          "type": "cssRules",
-          "assetId": "C9PGGs5iUd",
-          "checksum": "07cf36a7d66e27c53b39c158306d7d0a"
-        },
-        {
-          "type": "renderModule",
           "assetId": "MtL6MGlBxoy",
           "checksum": "df0dbf1d11a85e83fbd59cfaa57296f0"
         },

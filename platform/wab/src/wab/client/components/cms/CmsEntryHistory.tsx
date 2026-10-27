@@ -1,3 +1,5 @@
+import { useErrorMessage } from "@/wab/client/hooks/useErrorMessage";
+import { showError } from "@/wab/client/ErrorNotifications";
 import { useUsersMap } from "@/wab/client/api-hooks";
 import { renderContentEntryFormFields } from "@/wab/client/components/cms/CmsEntryDetails";
 import {
@@ -23,16 +25,7 @@ import { CmsDatabaseId, CmsRowId, CmsTableId } from "@/wab/shared/ApiSchema";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import { formatDateMediumTimeShort } from "@/wab/shared/utils/date-utils";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
-import {
-  Alert,
-  Button,
-  Empty,
-  Flex,
-  Form,
-  Tag,
-  Typography,
-  message,
-} from "antd";
+import { Button, Empty, Flex, Form, Tag, Typography, message } from "antd";
 import { createStyles } from "antd-style";
 import React from "react";
 
@@ -74,6 +67,7 @@ export function CmsEntryHistory(props: {
 }) {
   const { databaseId, tableId, rowId } = props;
   const { revisions, error, mutate } = useCmsRowHistory(rowId);
+  useErrorMessage(error, "Failed to load revision history");
   const { data: userById } = useUsersMap(
     (revisions ?? []).map((rev) => rev.createdById),
   );
@@ -83,20 +77,13 @@ export function CmsEntryHistory(props: {
     return (
       <div className={styles.state}>
         {error ? (
-          <Alert
-            type="error"
-            showIcon
-            title={t("Failed to load revision history")}
-            action={
-              <Button
-                onClick={() => {
-                  void mutate();
-                }}
-              >
-                {t("Retry")}
-              </Button>
-            }
-          />
+          <Button
+            onClick={() => {
+              void mutate();
+            }}
+          >
+            {t("Retry")}
+          </Button>
         ) : (
           <div role="status" aria-label={t("Loading revision history…")}>
             <RowsSkeleton rows={5} />
@@ -218,9 +205,9 @@ export function EntryRevisionView() {
   const { t } = useI18n();
   const { styles } = useStyles();
   const [restoring, setRestoring] = React.useState(false);
-  const [restoreError, setRestoreError] = React.useState(false);
   const [refreshError, setRefreshError] = React.useState(false);
   const restorePending = React.useRef(false);
+  useErrorMessage(databaseError || rowError || revisionError, "Failed to load revision");
 
   const finishRestore = async () => {
     await mutateRow(tableId, rowId);
@@ -230,24 +217,17 @@ export function EntryRevisionView() {
     return (
       <div className={styles.state}>
         {databaseError || rowError || revisionError ? (
-          <Alert
-            type="error"
-            showIcon
-            title={t("Failed to load revision")}
-            action={
-              <Button
-                onClick={() => {
-                  void Promise.allSettled([
-                    retryDatabase(),
-                    retryRow(),
-                    retryRevision(),
-                  ]);
-                }}
-              >
-                {t("Retry")}
-              </Button>
-            }
-          />
+          <Button
+            onClick={() => {
+              void Promise.allSettled([
+                retryDatabase(),
+                retryRow(),
+                retryRevision(),
+              ]);
+            }}
+          >
+            {t("Retry")}
+          </Button>
         ) : (
           <div role="status" aria-label={t("Loading revision…")}>
             <FormSkeleton />
@@ -259,36 +239,23 @@ export function EntryRevisionView() {
   return (
     <Scrollbar scrollX={false} className={styles.content}>
       <Flex vertical gap={16}>
-        {restoreError && (
-          <Alert
-            type="error"
-            showIcon
-            title={t("Failed to restore revision")}
-          />
-        )}
         {refreshError && (
-          <Alert
-            type="warning"
-            showIcon
-            title={t("Revision restored, but refreshing failed")}
-            action={
-              <Button
-                loading={restoring}
-                onClick={async () => {
-                  setRestoring(true);
-                  try {
-                    await finishRestore();
-                  } catch {
-                    setRefreshError(true);
-                  } finally {
-                    setRestoring(false);
-                  }
-                }}
-              >
-                {t("Retry")}
-              </Button>
-            }
-          />
+          <Button
+            loading={restoring}
+            onClick={async () => {
+              setRestoring(true);
+              try {
+                await finishRestore();
+              } catch (error) {
+                showError(error, { title: "Revision restored, but refreshing failed" });
+                setRefreshError(true);
+              } finally {
+                setRestoring(false);
+              }
+            }}
+          >
+            {t("Retry")}
+          </Button>
         )}
         <Form layout="vertical" initialValues={revision.data}>
           <Flex
@@ -322,21 +289,21 @@ export function EntryRevisionView() {
                     return;
                   }
                   setRestoring(true);
-                  setRestoreError(false);
                   try {
                     await api.updateCmsRow(rowId, {
                       draftData: revision.data,
                       revision: currentRow.revision,
                       noMerge: true,
                     });
-                  } catch {
-                    setRestoreError(true);
+                  } catch (error) {
+                    showError(error, { title: "Failed to restore revision" });
                     return;
                   }
                   void message.success(t("Revision restored!"));
                   try {
                     await finishRestore();
-                  } catch {
+                  } catch (error) {
+                    showError(error, { title: "Revision restored, but refreshing failed" });
                     setRefreshError(true);
                   }
                 } finally {

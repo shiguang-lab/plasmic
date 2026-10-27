@@ -1,3 +1,8 @@
+import { showError } from "@/wab/client/ErrorNotifications";
+vi.mock("@/wab/client/ErrorNotifications", async (original) => ({
+  ...(await original<typeof import("@/wab/client/ErrorNotifications")>()),
+  showError: vi.fn(),
+}));
 import AllProjectsPage from "@/wab/client/components/dashboard/AllProjectsPage";
 import { setLanguagePreference } from "@/wab/client/i18n";
 import { HistoryProvider } from "@/wab/client/route/HistoryProvider";
@@ -149,7 +154,8 @@ it("keeps workspace filtering and search when changing the project display", asy
 it("shows a retry action rather than an endless loading state after a request failure", () => {
   mocks.failed = true;
   renderProjects();
-  expect(screen.getByText("Failed to load projects")).toBeInTheDocument();
+  expect(showError).toHaveBeenCalledWith(expect.any(Error), { title: "Failed to load projects" });
+  expect(document.querySelector(".ant-alert")).toBeNull();
   expect(
     screen.queryByRole("status", { name: "Loading projects…" }),
   ).toBeNull();
@@ -157,17 +163,14 @@ it("shows a retry action rather than an endless loading state after a request fa
   expect(mocks.retry).toHaveBeenCalledTimes(1);
 });
 
-it("keeps cached projects visible alongside a refresh error", () => {
+it("keeps cached projects visible and reports refresh failures with a message", () => {
   mocks.failed = true;
   mocks.cached = true;
   renderProjects();
   expect(screen.queryByText("Failed to load projects")).toBeNull();
-  expect(screen.getByRole("alert")).toHaveClass("ant-alert-warning");
-  expect(
-    screen.getByText(
-      "Couldn't refresh projects. Showing the last loaded projects.",
-    ),
-  ).toBeInTheDocument();
+  expect(document.querySelector(".ant-alert")).toBeNull();
+  expect(showError).toHaveBeenCalledWith(expect.any(Error), { title: "Failed to load projects" });
+  expect(screen.queryByText("Couldn't refresh projects. Showing the last loaded projects.")).toBeNull();
   expect(screen.getByRole("button", { name: "Alpha" })).toBeInTheDocument();
   fireEvent.click(screen.getByRole("button", { name: "Retry" }));
   expect(mocks.retry).toHaveBeenCalledWith(expect.any(Function), {
@@ -200,12 +203,12 @@ it("keeps loaded content during background refresh without a floating spinner", 
   expect(document.querySelector(".ant-spin")).toBeNull();
 });
 
-it("keeps the cached refresh warning and disables retry without a spinner", () => {
+it("keeps cached projects without a banner and disables retry while revalidating", () => {
   mocks.failed = true;
   mocks.cached = true;
   mocks.validating = true;
   renderProjects();
-  expect(screen.getByRole("alert")).toHaveClass("ant-alert-warning");
+  expect(document.querySelector(".ant-alert")).toBeNull();
   expect(screen.getByRole("button", { name: "Alpha" })).toBeInTheDocument();
   expect(screen.getByRole("button", { name: "Loading…" })).toBeDisabled();
   expect(screen.getByRole("button", { name: "Loading…" })).toHaveAttribute(

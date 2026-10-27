@@ -13,6 +13,7 @@
 <div id="shell" data-expanded="false" aria-haspopup="menu">
  <div id="capsule">
   <button id="capsule-handle" type="button" aria-haspopup="menu"><span aria-hidden="true" class="brand">◈</span><span id="project">Plasmic</span><span id="pill-context"></span><span id="queue" hidden></span><span class="dot" aria-hidden="true"></span></button>
+  <button id="capsule-draft" class="draft-indicator" type="button" hidden></button>
   <button id="capsule-sign-in" type="button" hidden></button>
   <button id="capsule-update" class="update-indicator" type="button" hidden></button>
  </div>
@@ -40,7 +41,7 @@
    <footer class="info-footer">
     <span class="preference"><span id="theme-icon" aria-hidden="true"></span><span id="theme-label"></span></span>
     <span class="preference"><svg viewBox="3.5 3.5 17 17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.75 19.25l3.25-6.5 3.25 6.5m-5.25-2h4M4.75 6.75h8.5M9 6.5V4.75m2.25 2s0 2.5-2 4.5-4.5 2-4.5 2"/><path d="M12.25 13.25s-2.5 0-4.5-2c-.404-.405-1-1.5-1-1.5"/></svg><span id="language-label"></span></span>
-    <div id="phase" role="status" aria-live="polite"><span id="phase-icon" aria-hidden="true"></span><span id="phase-text"></span><span id="stage-count" hidden></span><button id="issue-detail" type="button" hidden aria-describedby="issue-tooltip"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true"><circle cx="7" cy="7" r="5.5"/><path d="M7 3.5v4M7 9v1"/></svg></button></div>
+    <div id="phase" role="status" aria-live="polite"><span id="phase-icon" aria-hidden="true"></span><span id="phase-text"></span><span id="stage-count" hidden></span><button id="draft-status" class="draft-indicator" type="button" hidden></button><button id="issue-detail" type="button" hidden aria-describedby="issue-tooltip"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true"><circle cx="7" cy="7" r="5.5"/><path d="M7 3.5v4M7 9v1"/></svg></button></div>
     <span id="app-version" hidden></span>
    </footer>
    <div id="issue-tooltip" role="tooltip" hidden></div>

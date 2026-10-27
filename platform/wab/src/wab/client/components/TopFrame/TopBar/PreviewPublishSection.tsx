@@ -1,14 +1,10 @@
-import {
-  ErrorDescription,
-  getErrorType,
-} from "@/wab/client/api-error-presentation";
 import styles from "@/wab/client/components/TopFrame/TopBar/PreviewPublishSection.module.scss";
 import { reactConfirm } from "@/wab/client/components/quick-modals";
 import { useI18n } from "@/wab/client/i18n";
 import { GlobalOutlined } from "@ant-design/icons";
 import type { PreviewPage, PreviewPublication } from "@plasmic-shared/preview";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
-import { Alert, Button, Checkbox, Flex, Select, Steps, Typography, message } from "antd";
+import { Button, Checkbox, Flex, Select, Steps, Typography, message } from "antd";
 import { createStyles } from "antd-style";
 import copy from "copy-to-clipboard";
 import React from "react";
@@ -247,31 +243,10 @@ export default function PreviewPublishSection(
                   )}
                 </>
               )}
-              {!busy && success && enabled && (
-                <Alert
-                  type="success"
-                  showIcon
-                  title={t("Published successfully")}
-                />
-              )}
-              {!!error && (
-                <Alert
-                  type={getErrorType(error)}
-                  showIcon
-                  title={t(
-                    enabled
-                      ? "Website publishing failed"
-                      : "The latest publish failed",
-                  )}
-                  description={
-                    <>
-                      <ErrorDescription error={error} />
-                      {live && (
-                        <p>{t("The previous website remains available.")}</p>
-                      )}
-                    </>
-                  }
-                />
+              {!!error && live && (
+                <Typography.Text type="secondary">
+                  {t("The previous website remains available.")}
+                </Typography.Text>
               )}
             </div>
           </section>

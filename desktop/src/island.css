@@ -32,3 +32,4 @@
 
 #update-panel[data-phase=error] #update-title{color:var(--error)}#update-retry{color:var(--text);font-weight:500}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{transition:none!important;animation:none!important;filter:none!important}}
+.draft-indicator{flex:none;color:var(--active);font-size:10px;padding:0 4px;white-space:nowrap}.draft-indicator[data-tone=warning]{color:var(--warning)}.draft-indicator[data-tone=error]{color:var(--error)}.draft-indicator[data-tone=good]{color:var(--good)}#capsule-draft{margin-right:8px}#draft-status{margin-left:auto;max-width:145px;overflow:hidden;text-overflow:ellipsis}

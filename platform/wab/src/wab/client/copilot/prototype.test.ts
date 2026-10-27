@@ -84,7 +84,7 @@ describe("AI prototype editor tools", () => {
     const site = createSite();
     site.projectDependencies.push(new ProjectDependency({ name: "Library", pkgId: "pkg", projectId: "library", version: "1.2.0", uuid: "dep", site: library }));
     const { studioCtx, call } = fixture(site);
-    for (const component of library.components) studioCtx.tplMgr().ensureBaseVariantSetting(component.tplTree);
+    for (const component of library.components) {studioCtx.tplMgr().ensureBaseVariantSetting(component.tplTree);}
     const imports = (await call("read", { collection: "importedProjects" })).results[0].importedProjects;
     expect(imports[0]).toMatchObject({ id: "library", version: "1.2.0" });
     expect(imports[0]).not.toHaveProperty("components");
@@ -351,7 +351,7 @@ describe("AI prototype editor tools", () => {
     const { call, createPage } = fixture();
     const page = await createPage("LargeTree");
     await call("insertHtml", { componentUuid: page.uuid, html: Array.from({ length: 40 }, (_, i) =>
-      `<div data-plasmic-name="Section${i}">${Array.from({ length: 8 }, (_, j) => `<p>${i}-${j} ${"Detailed business content ".repeat(18)}</p>`).join("")}</div>`).join("") });
+      `<div data-plasmic-name="Section${i}">${Array.from({ length: 8 }, (_item, j) => `<p>${i}-${j} ${"Detailed business content ".repeat(18)}</p>`).join("")}</div>`).join("") });
     const full = await call("read", { componentUuids: [page.uuid], view: "full" });
     const shallow = await call("read", { componentUuids: [page.uuid] });
     expect(JSON.stringify(full).length).toBeGreaterThan(100000);
@@ -412,7 +412,7 @@ describe("AI prototype editor tools", () => {
     expect(selected.results[0].properties).toEqual({ label: "Current label", count: 0, disabled: false });
     expect(selected.read.propNames).toEqual(["label", "count", "disabled"]);
     expect(JSON.stringify(selected)).not.toContain("Large business value");
-    for (const field of ["styles", "attributes", "text"]) expect(selected.results[0]).not.toHaveProperty(field);
+    for (const field of ["styles", "attributes", "text"]) {expect(selected.results[0]).not.toHaveProperty(field);}
     const styles = await call("read", { elements: [target], view: "properties", fields: ["uuid", "styles"] });
     expect(Object.keys(styles.results[0]).sort()).toEqual(["styles", "uuid"]);
     await expect(call("read", { elements: [target], propNames: ["data"] })).rejects.toThrow("requires");
@@ -420,7 +420,7 @@ describe("AI prototype editor tools", () => {
     expect(studioCtx._changeCounter).toBe(counter);
     const contract = (await call("read", { componentUuids: [definition.uuid], view: "contract" })).results[0];
     const complete = (await call("read", { componentUuids: [definition.uuid], view: "full" })).results[0];
-    expect(contract.props).toEqual(complete.props.map(({ uuid, __type, ...prop }: Record<string, unknown>) => prop));
+    expect(contract.props).toEqual(complete.props.map(({ uuid: _uuid, __type, ...prop }: Record<string, unknown>) => prop));
     expect(contract.props.every((prop: { uuid?: string }) => !prop.uuid)).toBe(true);
     expect(complete.props.every((prop: { uuid?: string }) => !!prop.uuid)).toBe(true);
     const validation = await call("validate");
@@ -849,8 +849,8 @@ describe("AI prototype editor tools", () => {
       componentUuid: page.uuid,
       elementUuids: [],
     };
-    let entered = () => {};
-    let release = () => {};
+    let entered: (() => void) | undefined;
+    let release: (() => void) | undefined;
     const started = new Promise<void>((resolve) => {
       entered = resolve;
     });
@@ -862,7 +862,7 @@ describe("AI prototype editor tools", () => {
       .spyOn(htmlImporter, "htmlToTpl")
       .mockImplementationOnce(async (...args) => {
         const result = await original(...args);
-        entered();
+        ensure(entered, "Expected the delayed operation to start")();
         await paused;
         return result;
       });
@@ -877,7 +877,7 @@ describe("AI prototype editor tools", () => {
       elementUuid: title.uuid,
       text: "Human edit",
     });
-    release();
+    ensure(release, "Expected the delayed operation to be releasable")();
     await expect(pending).rejects.toThrow("design changed");
     const result = JSON.stringify(
       await call("read", { view: "full", componentUuids: [page.uuid] }),
@@ -1294,22 +1294,27 @@ describe("AI prototype editor tools", () => {
       selectedElementUuids: [],
       path: [],
       mode: "edit",
+      projectSummary: { artboards: 0, canvases: 1, images: 0, libraries: 0, pages: 0, components: 0 },
     });
     studioCtx.copilotActivity.dispose();
   });
   it("reports native project counts, current canvas name and save state without changing the model", async () => {
     const { studioCtx, call, createPage } = fixture();
-    await createPage("Overview");
+    const page = await createPage("Overview");
     await createPage("Detail");
     await call("createComponent", {name:"SharedPanel",type:"component"});
     await call("createCanvas", {name:"BusinessFlow"});
     await call("navigateCanvas", {canvasName:"BusinessFlow"});
     const before = await call("read", {view:"full"});
     const context = await call("getEditorContext");
-    expect(context.projectSummary).toEqual({pages:2,components:1});
+    expect(context.projectSummary).toEqual({artboards:0,canvases:2,images:0,libraries:0,pages:2,components:1});
     expect(context.canvasName).toBe("BusinessFlow");
     expect(context.saveStatus).toBe(studioCtx.saveStatus);
     expect(await call("read", {view:"full"})).toEqual(before);
+    await call("createArtboard", {canvasName:"BusinessFlow",componentUuid:page.uuid,width:1440,height:1024});
+    const populated = await call("read", {view:"full"});
+    expect((await call("getEditorContext")).projectSummary).toEqual({...context.projectSummary,artboards:1});
+    expect(await call("read", {view:"full"})).toEqual(populated);
     studioCtx.copilotActivity.dispose();
   });
   it("reports a blocked editor as non-editable", async () => {
@@ -1405,8 +1410,8 @@ describe("AI prototype editor tools", () => {
       component: page, previewPath: "list", width: 1440, height: 1024,
       toggleLiveMode: vi.fn(async () => { preview.isLive = !preview.isLive; }),
       stopLiveMode: vi.fn(() => { preview.isLive = false; }),
-      parseRoute: vi.fn(async () => {}),
-      pushComponent: vi.fn(async () => {}),
+      parseRoute: vi.fn(async () => undefined),
+      pushComponent: vi.fn(async () => undefined),
       pushViewport: vi.fn(async (value: { width: number; height: number }) => { preview.width = value.width; preview.height = value.height; }),
     };
     Object.assign(studioCtx, { previewCtx: preview });

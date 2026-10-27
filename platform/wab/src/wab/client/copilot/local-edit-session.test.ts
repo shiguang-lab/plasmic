@@ -171,7 +171,7 @@ it("locates a structured node on its referenced page without editing the design"
   tools._getLocalContext.mockResolvedValue({
     success: true,
     output: JSON.stringify({
-      projectName: "Project", projectSummary: { pages: 1, components: 0 }, saveStatus: "saved", canvasName: "Page",
+      projectName: "Project", projectSummary: { artboards: 1, canvases: 1, images: 0, libraries: 0, pages: 1, components: 0 }, saveStatus: "saved", canvasName: "Page",
       projectId: "project",
       branchId: null,
       sessionId: "session",
@@ -221,7 +221,7 @@ it("reports a deleted node and does not try to scroll it into view", async () =>
   tools._getLocalContext.mockResolvedValue({
     success: true,
     output: JSON.stringify({
-      projectName: "Project", projectSummary: { pages: 1, components: 0 }, saveStatus: "saved", canvasName: "Page",
+      projectName: "Project", projectSummary: { artboards: 1, canvases: 1, images: 0, libraries: 0, pages: 1, components: 0 }, saveStatus: "saved", canvasName: "Page",
       projectId: "project",
       branchId: null,
       sessionId: "session",
@@ -262,7 +262,7 @@ it.each(["send", "retry"] as const)(
     tools._getLocalContext.mockResolvedValue({
       success: true,
       output: JSON.stringify({
-        projectName: "Project", projectSummary: { pages: 1, components: 0 }, saveStatus: "saved", canvasName: "Page",
+        projectName: "Project", projectSummary: { artboards: 1, canvases: 1, images: 0, libraries: 0, pages: 1, components: 0 }, saveStatus: "saved", canvasName: "Page",
         projectId: "project",
         branchId: null,
         sessionId: "session",
@@ -333,7 +333,7 @@ it.each(["run", "retry", "locate"] as const)(
     tools._getLocalContext.mockResolvedValue({
       success: true,
       output: JSON.stringify({
-        projectName: "Project", projectSummary: { pages: 1, components: 0 }, saveStatus: "saved", canvasName: "Page", projectId: "project", branchId: null,
+        projectName: "Project", projectSummary: { artboards: 1, canvases: 1, images: 0, libraries: 0, pages: 1, components: 0 }, saveStatus: "saved", canvasName: "Page", projectId: "project", branchId: null,
         sessionId: "session", changeCounter: 0, componentUuid: "page",
         frameUuid: null, selectedElementUuids: [], instanceIndex: null,
         mode: "edit", canEdit: true, editorView: null,

@@ -467,26 +467,26 @@ function readNativeModel(studio: StudioCtx, component: Component, tpl: TplNode |
     if (fields.includes("fromProject") && !studio.site.components.includes(component) && !resource.fromProject) {
       resource.fromProject = walkDependencyTree(studio.site, "all").find((dep) => dep.site.components.includes(component))?.projectId;
     }
-    if (fields.includes("tree")) resource.tree = buildElementTree(component.tplTree, depth);
-    if (fields.some((field) => ["properties", "styles", "attributes", "text"].includes(field))) Object.assign(resource, buildElementProperties(component.tplTree, studio.site, options.propNames));
+    if (fields.includes("tree")) {resource.tree = buildElementTree(component.tplTree, depth);}
+    if (fields.some((field) => ["properties", "styles", "attributes", "text"].includes(field))) {Object.assign(resource, buildElementProperties(component.tplTree, studio.site, options.propNames));}
     for (const field of ["states", "interactions", "dataQueries", "legacyDataQueries", "variantSettings"]) {
       if (fields.includes(field) && resource[field] === undefined) { resource[field] = []; }
     }
     const contextRegistration = isContextCodeComponent(component) && fields.some((field) => ["props", "globalActions", "description"].includes(field))
-      ? studio.getContextsRegistration().find(({ meta }) => meta.name === component.name)?.meta : undefined;
+      ? studio.getContextsRegistration().find(({ meta: registrationMeta }) => registrationMeta.name === component.name)?.meta : undefined;
     const registration = fields.some((field) => ["props", "refActions", "globalActions"].includes(field))
       ? contextRegistration ?? studio.getCodeComponentMeta(component) : undefined;
     if (options.view === "contract" && isCodeComponent(component) && fields.some((field) => ["props", "refActions", "globalActions"].includes(field))) {
       assert(registration, `Live registration is unavailable for "${component.name}" (${component.uuid}). The stored model does not contain complete argument or validation contracts. Check the installed component library's registration artifact before retrying; do not infer missing signatures from method names.`);
     }
     if (fields.includes("props") && registration && Array.isArray(resource.props)) { resource.props = withRegisteredContracts(resource.props, registration.props); }
-    if (contextRegistration?.description) resource.description = contextRegistration.description;
+    if (contextRegistration?.description) {resource.description = contextRegistration.description;}
     if (fields.includes("globalActions") && contextRegistration) {
       resource.globalActions = Object.entries(contextRegistration.globalActions ?? {}).map(([name, action]) => ({
         name: `${component.name}.${name}`,
         ...(action.displayName ? { displayName: action.displayName } : {}),
         ...(action.description ? { description: action.description } : {}),
-        parameters: action.parameters.map(({ name, type }) => ({ name, ...registrationContract(type) })),
+        parameters: action.parameters.map(({ name: parameterName, type }) => ({ name: parameterName, ...registrationContract(type) })),
       }));
     }
     const actions = fields.includes("refActions") && studio.getCodeComponentMeta(component)?.refActions;
@@ -581,7 +581,7 @@ async function runNativeBatch(
         const created = added.filter((identity) => identity.kind !== "Element" || (
           !added.some((other) => other.kind === "Component" && other.uuid === identity.componentUuid) &&
           !added.some((other) => other.kind === "Element" && other.uuid === identity.parentUuid)
-        )).map(({ parentUuid, ...identity }) => identity);
+        )).map(({ parentUuid: _parentUuid, ...identity }) => identity);
         const primaryKinds: Partial<Record<PrototypeMutation["name"], string>> = {
           insertHtml: "Element", copyElement: "Element", createComponent: "Component",
           createState: "State", createInteraction: "Interaction", createStyleToken: "StyleToken",
@@ -687,10 +687,10 @@ function planMutation(studio: StudioCtx, operation: PrototypeMutation, assets: M
           studio.site.arenas.includes(arena) && arena.children.includes(frame),
           "Artboard removed during batch",
         );
-        if (input.width !== undefined) frame.width = input.width;
-        if (input.height !== undefined) frame.height = input.height;
-        if (input.x !== undefined) frame.left = input.x;
-        if (input.y !== undefined) frame.top = input.y;
+        if (input.width !== undefined) {frame.width = input.width;}
+        if (input.height !== undefined) {frame.height = input.height;}
+        if (input.x !== undefined) {frame.left = input.x;}
+        if (input.y !== undefined) {frame.top = input.y;}
         if (input.viewMode !== undefined) {
           frame.viewMode = input.viewMode as FrameViewMode;
           if (input.viewMode === "stretch") {
@@ -2418,6 +2418,7 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
         components: studio.site.components.filter((component) => !isPageComponent(component) && !isCodeComponent(component) && !isFrameComponent(component)).length,
       },
       saveStatus: studio.saveStatus,
+      desktopDraftStatus: studio.desktopDraft?.status ?? null,
       canvasName: studio.currentArena ? getArenaName(studio.currentArena) : null,
       projectId: studio.siteInfo.id,
       branchId: studio.dbCtx().branchInfo?.id ?? null,

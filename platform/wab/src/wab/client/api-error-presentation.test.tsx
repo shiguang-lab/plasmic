@@ -1,3 +1,4 @@
+import { assert } from "@/wab/shared/common";
 import { reportError, showError } from "@/wab/client/ErrorNotifications";
 import {
   ErrorDescription,
@@ -79,22 +80,23 @@ it.each(businessTypes)(
   },
 );
 
-it("renders the organization restriction as a localized warning, including locale changes while open", async () => {
-  const open = vi.spyOn(message, "open").mockReturnValue(mock());
+it("renders API failures as localized error messages, including locale changes while open", async () => {
+  const open = vi.spyOn(message, "error").mockReturnValue(mock());
   const error = new ForbiddenError(
     "You can only have one unpaid organization. Upgrade or delete your existing organization before creating another.",
   );
   showError(error);
   const args = open.mock.calls[0][0];
-  expect(args.type).toBe("warning");
-  expect(args).not.toHaveProperty("duration");
+  assert(args !== null && typeof args === "object" && "content" in args, "Expected a message configuration");
+  expect(args.type).toBe("error");
+  expect(args.duration).toBe(4);
   render(<div>{args.content}</div>);
   for (const { value } of languageOptions) {
     await act(async () => await setLanguagePreference(value));
     expect(
       screen.getByText(translate(value, "Action not allowed")),
     ).toBeTruthy();
-    expect(screen.getByText(getErrorMessage(error))).toBeTruthy();
+    expect(screen.queryByText(getErrorMessage(error))).toBeNull();
     expect(screen.queryByText(/ForbiddenError:/)).toBeNull();
   }
   expect(error.message).toContain("You can only have one unpaid organization");

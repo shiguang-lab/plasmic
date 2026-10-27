@@ -61,6 +61,29 @@ test('update indicators preserve animation nodes and localize the panel without 
  assert.equal(ui.el('capsule-update').hidden,true);assert.equal(ui.el('update-install').hidden,true);
 });
 const canvas={allowed:true,mode:'edit',projectName:'Project',viewName:'Approval canvas',projectSummary:{pages:2,components:4,artboards:3,canvases:1,images:12,libraries:2},saveStatus:'saved'};
+test('local draft badges explain protection on hover and remain visible during AI activity',async(t)=>{
+ const ui=await fixture(t);
+ ui.send({expanded:true,context:{...canvas,saveStatus:'error',desktopDraftStatus:{state:'local',savedAt:100,pendingDrafts:0}}});
+ assert.equal(ui.window.document.body.dataset.tone,'warning');
+ assert.equal(ui.el('phase-text').textContent,'Saved on this device');
+ assert.match(ui.el('capsule-draft').title,/backed up on this device/);
+ assert.match(ui.el('capsule-draft').title,/Last local backup/);
+ assert.equal(ui.el('draft-status').hidden,true);
+ ui.send({activity:{task:{id:'task',title:'Generate page',status:'running',stage:'Generating'}}});
+ assert.equal(ui.el('draft-status').hidden,false);
+ assert.equal(ui.el('draft-status').textContent,'Saved on this device');
+ ui.el('draft-status').click();await flush();assert.equal(ui.commands.at(-1),'show-drafts');
+ ui.send({context:{...canvas,saveStatus:'error',desktopDraftStatus:{state:'error',error:'disk full',pendingDrafts:0}}});
+ assert.equal(ui.window.document.body.dataset.tone,'error');
+ assert.match(ui.el('draft-status').title,/Keep the editor open/);
+ assert.match(ui.el('draft-status').title,/disk full/);
+ ui.send({context:{...canvas,desktopDraftStatus:{state:'conflict',pendingDrafts:1}}});
+ assert.equal(ui.el('draft-status').textContent,'Drafts need attention');
+ assert.equal(ui.el('draft-status').dataset.tone,'warning');
+ ui.send({context:{...canvas,mode:'preview',desktopDraftStatus:{state:'conflict',pendingDrafts:1}}});
+ assert.equal(ui.el('draft-status').hidden,true);
+ assert.equal(ui.el('capsule-draft').hidden,true);
+});
 const account={status:'ready',user:{id:'a',name:'Li Lei',email:'li@example.test'},teams:[{id:'t',name:'Team'}],workspaces:[{id:'w',teamId:'t',name:'Work',projects:6,members:8}],counts:{organizations:1,workspaces:2,projects:7}};
 const numbers=(ui,id)=>[...ui.el(id).querySelectorAll('b')].map(n=>n.textContent);
 test('header, identity and statistics remain stable across task, save and error states',async(t)=>{
@@ -127,6 +150,6 @@ test('failed updates retry only on explicit action',async(t)=>{
 });
 test('unchanged snapshots do not repeat live announcements',async(t)=>{
  const ui=await fixture(t);const value={context:canvas,activity:{operation:{kind:'write',phase:'failed',error:'Technical detail'}}};ui.send(value);
- const changes=[],observer=new ui.window.MutationObserver(records=>changes.push(...records));for(const id of ['phase-text','issue-tooltip'])observer.observe(ui.el(id),{childList:true,subtree:true});
+ const changes=[],observer=new ui.window.MutationObserver(records=>changes.push(...records));for(const id of ['phase-text','issue-tooltip']){observer.observe(ui.el(id),{childList:true,subtree:true});}
  ui.send(value);await flush();observer.disconnect();assert.equal(changes.length,0);
 });

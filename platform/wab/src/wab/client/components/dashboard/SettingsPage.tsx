@@ -1,3 +1,4 @@
+import { showError } from "@/wab/client/ErrorNotifications";
 import { AppCtx } from "@/wab/client/app-ctx";
 import { AddTrustedHostModal } from "@/wab/client/components/AddTrustedHostModal";
 import dashboard from "@/wab/client/components/dashboard/dashboard.module.scss";
@@ -38,7 +39,10 @@ function SettingsPage_(props: SettingsPageProps, ref: HTMLElementRefOf<"div">) {
     appCtx.api
       .getTrustedHostsList()
       .then((data) => setHostsState(data.trustedHosts))
-      .catch(() => setHostsState("error"));
+      .catch((error) => {
+        setHostsState("error");
+        showError(error, { title: "Unable to load trusted hosts." });
+      });
   }, [appCtx, setHostsState]);
 
   React.useEffect(() => {
@@ -68,6 +72,7 @@ function SettingsPage_(props: SettingsPageProps, ref: HTMLElementRefOf<"div">) {
                 email={user.email}
                 tokensState={tokensState}
                 hostsState={hostsState}
+                onRetryTrustedHosts={updateHostList}
                 onNewToken={() => ops.createPersonalApiToken()}
                 onDeleteToken={(token: string) =>
                   ops.revokePersonalApiToken(token)

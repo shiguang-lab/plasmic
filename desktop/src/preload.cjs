@@ -1,9 +1,16 @@
 const { ipcRenderer, contextBridge } = require("electron");
 if (window.top === window) {
+  contextBridge.exposeInMainWorld("desktopDrafts", {
+    open: (userId, projectId, branchId) => ipcRenderer.invoke("desktop:drafts", "open", { userId, projectId, branchId }),
+    list: (userId) => ipcRenderer.invoke("desktop:drafts", "list", { userId }),
+    read: (handle, id) => ipcRenderer.invoke("desktop:drafts", "read", { handle, id }),
+    write: (handle, draft) => ipcRenderer.invoke("desktop:drafts", "write", { handle, draft }),
+    remove: (handle, id, sequence) => ipcRenderer.invoke("desktop:drafts", "remove", { handle, id, sequence }),
+  });
   let browserExpanded = false;
   let editorVisibility, editorInert;
   ipcRenderer.on("desktop:reference-browser-mode", (_event, { expanded }) => {
-    if (browserExpanded === expanded) return;
+    if (browserExpanded === expanded) {return;}
     browserExpanded = expanded;
     const root = document.documentElement;
     if (expanded) {

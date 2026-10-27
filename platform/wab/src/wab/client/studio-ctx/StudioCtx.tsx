@@ -26,11 +26,7 @@ import {
 } from "@/wab/client/clipboard/local";
 import { paste } from "@/wab/client/clipboard/paste";
 import { syncCodeComponentsAndHandleErrors } from "@/wab/client/code-components/code-components";
-import {
-  showForbiddenError,
-  showReloadError,
-  showSaveErrorRecoveredNotice,
-} from "@/wab/client/components/Messages";
+import { showReloadError, showSaveErrorRecoveredNotice } from "@/wab/client/components/Messages";
 import { CanvasCtx } from "@/wab/client/components/canvas/canvas-ctx";
 import { handleCanvasContentWheel } from "@/wab/client/components/canvas/canvas-scroll";
 import { SiteOps } from "@/wab/client/components/canvas/site-ops";
@@ -109,6 +105,8 @@ import {
 import { ComponentCtx } from "@/wab/client/studio-ctx/component-ctx";
 import { MultiplayerCtx } from "@/wab/client/studio-ctx/multiplayer-ctx";
 import { StudioLoadTimings } from "@/wab/client/studio-ctx/studio-load-timings";
+import { DesktopDraftController } from "@/wab/client/studio-ctx/desktop-drafts";
+import type { DesktopDraft } from "@/wab/shared/desktop-drafts";
 import { UiActionBus } from "@/wab/client/studio-ctx/ui/UiActionBus";
 import { UiId, parseUiId } from "@/wab/client/studio-ctx/ui/studio-ui-ids";
 import {
@@ -724,6 +722,7 @@ export class StudioCtx extends WithDbCtx {
       _isUnlogged: observable,
       saveErrorState: observable,
       isSaving: observable,
+      desktopDraft: observable.ref,
     });
 
     this.loadTimings = args.loadTimings ?? new StudioLoadTimings();
@@ -1040,7 +1039,7 @@ export class StudioCtx extends WithDbCtx {
     // ever consume it, so keep a failure from surfacing as an unhandled
     // rejection; the consumer still sees it.
     let prefetched: Promise<string> | undefined = fetchHostPageHtml();
-    prefetched.catch(() => {});
+    prefetched.catch(() => undefined);
     this.fetchHostPageHtml = () => {
       const html = prefetched ?? fetchHostPageHtml();
       prefetched = undefined;
@@ -1669,6 +1668,7 @@ export class StudioCtx extends WithDbCtx {
       // If there were actual model changes, mark as dirty
       this._changeRecords.push(changes);
       this._changeCounter += 1;
+      this.desktopDraft?.changed();
     }
   }
 
@@ -1930,6 +1930,7 @@ export class StudioCtx extends WithDbCtx {
     this.viewCtxs.clear();
     this.commentsCtx.dispose();
     window.clearInterval(this.asyncSaverTimer);
+    this.desktopDraft?.dispose();
     spawn(this.stopListeningForSocketEvents());
   }
 
@@ -6229,6 +6230,65 @@ export class StudioCtx extends WithDbCtx {
    */
   private saveErrorState: "normal" | "error" = "normal";
   private isSaving = false;
+  desktopDraft: DesktopDraftController | undefined = undefined;
+  private desktopSaveConflict = false;
+
+  async useRemoteVersion() {
+    if (!this.desktopSaveConflict) {return;}
+    await this.loadVersion(undefined, true, this.branchInfo());
+    runInAction(() => {
+      this.desktopSaveConflict = false;
+      this.blockChanges = false;
+      this.isAtTip = true;
+      this.alertBannerState.set(null);
+    });
+    clearDarkMask();
+  }
+
+  async initializeDesktopDrafts() {
+    this.desktopDraft?.dispose();
+    runInAction(() => { this.desktopDraft = undefined; });
+    if (!this.appCtx.selfInfo?.id || !this.canSave() || !this.appCtx.topFrameApi) {return;}
+    const location = parseProjectLocation(this.appCtx.history.location);
+    if (location?.isPreview || location?.branchRevision || location?.branchVersion && location.branchVersion !== latestTag) {return;}
+    const drafts = new DesktopDraftController(
+      this.appCtx.topFrameApi,
+      () => {
+        const bundler = this.bundler();
+        const version = this.appCtx.lastBundleVersion;
+        const dependencies = walkDependencyTree(this.site, "all").map(dep => {
+          const id = ensure(bundler.addrOf(dep), "Missing dependency bundle").uuid;
+          return { id, model: bundler.bundle(dep, id, version) };
+        });
+        // Library bundles must be unbundled after their own dependencies.
+        const ordered: typeof dependencies = [];
+        const visited = new Set<string>();
+        const visit = (dep: (typeof dependencies)[number]) => {
+          if (visited.has(dep.id)) {return;}
+          visited.add(dep.id);
+          for (const id of dep.model.deps) {visit(ensure(dependencies.find(item => item.id === id), "Missing draft dependency"));}
+          ordered.push(dep);
+        };
+        dependencies.forEach(visit);
+        return {
+          projectId: this.siteInfo.id, projectName: this.siteInfo.name,
+          branchId: this.branchInfo()?.id ?? null,
+          baseRevision: this.dbCtx().revisionNum, sequence: this._changeCounter,
+          modelVersion: this.dbCtx().modelVersion, hostlessDataVersion: this.dbCtx().hostlessDataVersion,
+          bundle: bundler.bundle(this.site, this.siteInfo.id, version), dependencies: ordered,
+        };
+      },
+      () => this.hasUnsavedChanges(),
+      () => this._changeCounter,
+      () => this.dbCtx().revisionNum,
+      async draft => {
+        await this.loadVersion(undefined, true, this.branchInfo(), draft);
+        notification.info({ message: translate(getUiLocale(), "Recovered local edits"), description: translate(getUiLocale(), "Your local draft has been restored and will sync when the server is available.") });
+      },
+    );
+    runInAction(() => { this.desktopDraft = drafts; });
+    await drafts.initialize(this.appCtx.selfInfo.id, this.siteInfo.id, this.branchInfo()?.id ?? null);
+  }
 
   get saveStatus() {
     if (this.isUnlogged()) {
@@ -6259,6 +6319,9 @@ export class StudioCtx extends WithDbCtx {
   }
 
   private async trySave(preferIncremental = true): Promise<SaveResult> {
+    if (this.desktopSaveConflict) {return SaveResult.SkipIsChanging;}
+    if (this.desktopDraft?.initializing) {return SaveResult.SkipUpToDate;}
+    if (this.hasUnsavedChanges()) {await this.desktopDraft?.flush();}
     if (this.aiSaveReceipt && !this.aiSaveReceipt.result) {
       return SaveResult.SkipUpToDate;
     }
@@ -6279,10 +6342,7 @@ export class StudioCtx extends WithDbCtx {
     }
 
     if (!this.isAtTip) {
-      if (
-        this.alertBannerState.get() !== AlertSpec.SaveFailed &&
-        this.alertBannerState.get() !== AlertSpec.Watch
-      ) {
+      if (this.alertBannerState.get() !== AlertSpec.Watch) {
         this.alertBannerState.set(AlertSpec.ConcurrentEdit);
       }
       return SaveResult.StopSaving;
@@ -6300,6 +6360,7 @@ export class StudioCtx extends WithDbCtx {
     });
     try {
       const changeCounterBeingSaved = this._changeCounter;
+      const draftToken = this.desktopDraft?.saveToken();
 
       const changes: RecordedChanges = mergeRecordedChanges(
         ...this._changeRecords,
@@ -6358,11 +6419,9 @@ export class StudioCtx extends WithDbCtx {
         allIids.forEach((iid) => this._savedIids.add(iid));
         this.needsFullSave = false;
         this._savedChangeCounter = changeCounterBeingSaved;
+        if (draftToken) {void this.desktopDraft?.acknowledged(draftToken);}
         if (this.saveErrorState === "error") {
           showSaveErrorRecoveredNotice();
-          if (this.alertBannerState.get() === AlertSpec.SaveFailed) {
-            this.alertBannerState.set(null);
-          }
         }
         runInAction(() => {
           this.saveErrorState = "normal";
@@ -6371,6 +6430,18 @@ export class StudioCtx extends WithDbCtx {
         return SaveResult.Success;
       } catch (e) {
         if (e.name === "ProjectRevisionError") {
+          if (this.desktopDraft?.enabled) {
+            // A lost save response may already have committed these edits.
+            // Keep the current model and draft instead of replaying them twice.
+            await this.desktopDraft.markConflict();
+            runInAction(() => {
+              this.desktopSaveConflict = true;
+              this.blockChanges = true;
+              this.isAtTip = false;
+              this.alertBannerState.set(AlertSpec.ConcurrentEdit);
+            });
+            return SaveResult.SkipIsChanging;
+          }
           return await withTimeout(
             this.fetchUpdates(),
             "Sync with latest updates timed out",
@@ -6379,15 +6450,17 @@ export class StudioCtx extends WithDbCtx {
             return this.trySave(preferIncremental);
           });
         } else if (e.name === "ForbiddenError") {
-          showForbiddenError();
+          showError(e);
           this.alertBannerState.set(AlertSpec.PermError);
           this.isAtTip = false;
           return SaveResult.StopSaving;
         } else if (e.name === "AuthError") {
+          showError(e);
           this.alertBannerState.set(AlertSpec.AuthError);
           this.isAtTip = false;
           return SaveResult.StopSaving;
         } else if (e.name === "SchemaMismatchError") {
+          showError(e);
           this.alertBannerState.set(AlertSpec.OutOfDate);
           this.isAtTip = false;
           return SaveResult.StopSaving;
@@ -6397,7 +6470,7 @@ export class StudioCtx extends WithDbCtx {
         ) {
           reportError(e, "Gateway save error");
           if (this.saveErrorState === "normal") {
-            this.alertBannerState.set(AlertSpec.SaveFailed);
+            showError(e, { title: translate(getUiLocale(), "Unexpected error when saving") });
           }
           runInAction(() => {
             this.saveErrorState = "error";
@@ -6418,29 +6491,14 @@ export class StudioCtx extends WithDbCtx {
           //
           // Even if no save has been committed yet, the request could be
           // fulfilled afterwards, so we will just discard the local changes.
-          const notificationKey = mkShortId();
-          notification.warning({
-            message: translate(getUiLocale(), "Failed to sync project"),
-            description: translate(getUiLocale(), "Loading latest changes..."),
-            duration: 0,
-            key: notificationKey,
-            closeIcon: null,
-          });
-          await this.loadVersion(undefined, true).finally(() =>
-            notification.destroy(notificationKey),
-          );
+          showError(e, { title: translate(getUiLocale(), "Failed to sync project") });
+          await this.loadVersion(undefined, true, this.branchInfo());
           return SaveResult.TimedOut;
         } else {
           reportError(e, "Unknown save error");
           if (this.saveErrorState === "normal") {
-            this.alertBannerState.set(AlertSpec.SaveFailed);
             showError(e, {
               title: translate(getUiLocale(), "Unexpected error when saving"),
-              description: translate(
-                getUiLocale(),
-                "You are now in read-only mode. We will keep trying to save.",
-              ),
-              type: "warning",
             });
           }
           runInAction(() => {
@@ -6453,14 +6511,8 @@ export class StudioCtx extends WithDbCtx {
     } catch (e) {
       reportError(e, "Unexpected error when saving");
       if (this.saveErrorState === "normal") {
-        this.alertBannerState.set(AlertSpec.SaveFailed);
         showError(e, {
           title: translate(getUiLocale(), "Unexpected error when saving"),
-          description: translate(
-            getUiLocale(),
-            "You are now in read-only mode. We will keep trying to save.",
-          ),
-          type: "warning",
         });
       }
       runInAction(() => {
@@ -6786,9 +6838,13 @@ export class StudioCtx extends WithDbCtx {
     versionOrRevision?: PkgVersionInfoMeta | ProjectRevision,
     editMode?: boolean,
     branch?: ApiBranch,
+    draft?: DesktopDraft,
+    preserveCheckpoint = false,
   ) {
+    if (!draft) {await this.desktopDraft?.protect(preserveCheckpoint);}
     const hideLoadingMsg = message.loading("Loading...", 0);
     const branchChanged = branch?.id !== this.branchInfo()?.id;
+    const previousEditMode = this.editMode;
 
     try {
       this._isRestoring = true;
@@ -6804,6 +6860,9 @@ export class StudioCtx extends WithDbCtx {
         depPkgs,
         revisionNum,
       } = await (async () => {
+        if (draft) {
+          return { bundle: draft.bundle, depPkgs: draft.dependencies, revisionNum: this.dbCtx().revisionNum };
+        }
         if (versionOrRevision && isPkgVersionInfoMeta(versionOrRevision)) {
           const { pkg, depPkgs: _depPkgs } =
             await this.appCtx.api.getPkgVersion(
@@ -6845,6 +6904,7 @@ export class StudioCtx extends WithDbCtx {
           };
         }
       })();
+      if (!draft) {await this.desktopDraft?.reconcileRemote(bundle);}
       runInAction(() => {
         const newBundler = new FastBundler();
         const { site, depPkgs: depPkgVersions } = unbundleSite(
@@ -6876,11 +6936,17 @@ export class StudioCtx extends WithDbCtx {
         // Clear undo log
         this.clearUndoLog();
 
+        if (!versionOrRevision && !draft && editMode) {
+          this.saveErrorState = "normal";
+          this._saveFailedCounter = 0;
+          this.needsFullSave = false;
+        }
+
         // Only re-enable saves after we're done loading
         if (editMode) {
           this.editMode = true;
 
-          if (versionOrRevision) {
+          if (versionOrRevision || draft) {
             // Mark for saving
             this._changeCounter += 1;
             this._changeRecords.push(emptyRecordedChanges());
@@ -6904,13 +6970,18 @@ export class StudioCtx extends WithDbCtx {
       if (branchChanged) {
         await this.refreshRevisions();
         this.releases.replace(await this.getProjectReleases());
+        await this.initializeDesktopDrafts();
       }
+    } catch (error) {
+      if (draft) {runInAction(() => { this.editMode = previousEditMode; });}
+      throw error;
     } finally {
       this._isRestoring = false;
       hideLoadingMsg();
     }
 
     if (editMode) {
+      if (this.hasUnsavedChanges()) {this.desktopDraft?.changed();}
       // No matter which revision we loaded, either via switching
       // branch or reverting to a previous published version,
       // we need to sync with the currently-registered code components
@@ -7425,11 +7496,15 @@ export class StudioCtx extends WithDbCtx {
    * in a spawn() to avoid deadlocks and/or breaking this.modelChangeQueue.
    */
   private async fetchUpdatesInternal() {
+    if (this.desktopSaveConflict) {return;}
     assert(
       !this._isChanging && !this._isUndoing,
       "should not be changing nor undoing",
     );
     const projectId = this.siteInfo.id;
+    if (this.hasUnsavedChanges() && this.desktopDraft?.enabled && !(await this.desktopDraft.flush())) {
+      throw new Error("Cannot back up local edits before syncing remote updates");
+    }
     const updatedModel = await this.appCtx.api.getModelUpdates(
       projectId,
       this.dbCtx().revisionNum,
@@ -7652,6 +7727,7 @@ export class StudioCtx extends WithDbCtx {
         );
 
         this.dbCtx().revisionNum = updatedModel.revision;
+        if (this.hasUnsavedChanges()) {this.desktopDraft?.changed();}
         this._isRefreshing = false;
       } catch (e) {
         this._isRefreshing = false;
@@ -7674,7 +7750,7 @@ export class StudioCtx extends WithDbCtx {
             duration: 5,
           });
         }
-        return this.loadVersion(undefined, true);
+        return this.loadVersion(undefined, true, this.branchInfo(), undefined, true);
       }
     }
   }

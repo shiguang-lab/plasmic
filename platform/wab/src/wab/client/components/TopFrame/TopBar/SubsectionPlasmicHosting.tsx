@@ -26,7 +26,7 @@ import {
   pickFailedOperation,
 } from "@/wab/shared/hosting";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
-import { notification } from "antd";
+import { message } from "antd";
 import * as React from "react";
 
 export type SetupPlasmicHosting = {
@@ -168,9 +168,8 @@ function SubsectionPlasmicHosting_(
               // the hosting controls until we know it's gone.
               const failure = await removeCustomDomain(appCtx, project.id);
               if (failure) {
-                notification.error({
-                  message: uiT("Plasmic hosting was not removed"),
-                  description: renderDomainErrorMessage(
+                void message.error({
+                  content: <>{uiT("Plasmic hosting was not removed")}: {renderDomainErrorMessage(
                     failure.domain ||
                       domainValidator.extractCustomDomain(setup?.domains) ||
                       "The custom domain",
@@ -179,12 +178,13 @@ function SubsectionPlasmicHosting_(
                       vercelErrorCode: failure.vercelErrorCode,
                       operation: pickFailedOperation(failure),
                     },
-                  ),
+                  )}</>,
                 });
                 return;
               }
               await appCtx.api.setSubdomainForProject(undefined, project.id);
               setVisibleEnableBlock(false, false, block);
+              void message.success({ content: uiT("Plasmic-hosted publishing removed") });
             },
           },
         }}

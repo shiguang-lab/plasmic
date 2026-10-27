@@ -16,7 +16,9 @@
     let result;
     try {
       const tools = window.PLASMIC_AI_TOOLS;
-      if (method === "metadata") {
+      if (method === "flushDraft" || method === "showDrafts") {
+        result = { protected: window.desktopDraftAction ? await window.desktopDraftAction(method === "flushDraft" ? "flush" : "show") : true };
+      } else if (method === "metadata") {
         let editorContext = null;
         if (tools) {
           const context = await tools.getEditorContext({});

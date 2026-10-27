@@ -55,7 +55,7 @@ import {
   PlusOutlined,
 } from "@ant-design/icons";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
-import { Alert, Button, Dropdown, Flex, Segmented } from "antd";
+import { Button, Dropdown, Flex, Segmented } from "antd";
 import * as _ from "lodash";
 import * as React from "react";
 
@@ -256,16 +256,9 @@ function WorkspaceSection_(
       }}
     />
   ) : asyncData.error ? (
-    <Alert
-      type="error"
-      showIcon
-      title={t("Failed to load data sources")}
-      action={
-        <Button size="small" onClick={() => void fetchAsyncData()}>
-          {t("Retry")}
-        </Button>
-      }
-    />
+    <Button size="small" onClick={() => void fetchAsyncData()}>
+      {t("Retry")}
+    </Button>
   ) : (
     <WorkspaceDataSourcesSkeleton />
   );

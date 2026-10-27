@@ -231,6 +231,13 @@ export const TopFrameObserver = observer(function _TopFrameObserver({
       async waitForStudioReady(): Promise<void> {
         await studioCtx.awaitStudioReady();
       },
+      async flushDesktopDraft() {
+        if (!studioCtx.hasUnsavedChanges()) {return true;}
+        return await studioCtx.desktopDraft?.flush() ?? false;
+      },
+      async showDesktopDrafts() {
+        if (studioCtx.desktopDraft?.drafts.length) {studioCtx.desktopDraft.dialogOpen = true;}
+      },
       async blockChanges(): Promise<void> {
         studioCtx.blockChanges = true;
       },

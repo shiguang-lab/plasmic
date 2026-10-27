@@ -11,11 +11,12 @@ import { HostFrameApi } from "@/wab/client/frame-ctx/host-frame-api";
 import type { UiLocale } from "@/wab/client/i18n";
 import { TopFrameTourState } from "@/wab/client/tours/tutorials/TutorialTours";
 import type { UiAppearance } from "@/wab/client/ui-theme";
-import { ApiBranch, ApiTeam } from "@/wab/shared/ApiSchema";
+import { ApiBranch, ApiTeam, ProjectId } from "@/wab/shared/ApiSchema";
 import type { LocalAiStatus } from "@/wab/shared/copilot/local-edit";
 import { DataSourceType } from "@/wab/shared/data-sources-meta/data-source-registry";
 import { LocalizationConfig } from "@/wab/shared/localization";
 import { Listener } from "history";
+import type { DesktopDraft, DesktopDraftSession } from "@/wab/shared/desktop-drafts";
 
 /**
  * API the TopFrame exposes to HostFrame.
@@ -47,6 +48,11 @@ export interface TopFrameApi {
   openDesktopBrowser(): Promise<void>;
   openDesktopPreview(url: string): Promise<void>;
   getSavedEditorView(projectId: string): Promise<SavedEditorView | null>;
+  openDesktopDrafts(userId: string, projectId: string, branchId: string | null): Promise<DesktopDraftSession | null>;
+  readDesktopDraft(handle: string, id: string): Promise<DesktopDraft | null>;
+  writeDesktopDraft(handle: string, draft: DesktopDraft): Promise<void>;
+  removeDesktopDraft(handle: string, id: string, sequence: number): Promise<boolean>;
+  copyDesktopDraft(handle: string, id: string): Promise<ProjectId>;
   setStudioReady(): Promise<void>;
   pushLocation(path?: string, query?: string, hash?: string): void;
   replaceLocation(path?: string, query?: string, hash?: string): void;

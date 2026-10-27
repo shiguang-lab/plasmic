@@ -45,11 +45,11 @@ export function showError(
   console.error("Studio operation failed", { error, title, description });
   const deriveErrorInfo = () => {
     if (normalized.message?.includes("XHRStatus0Error")) {
-      return { title: "Temporarily disconnected", type: type ?? ("warning" as const) };
+      return { title: "Temporarily disconnected", type: type ?? ("error" as const) };
     }
     if (businessError) {
       const presentation = getApiErrorPresentation(businessError);
-      return { title: opts?.title ?? presentation.title, type: type ?? presentation.type };
+      return { title: opts?.title ?? presentation.title, type: type ?? ("error" as const) };
     }
     return {
       title: opts?.title ?? (error instanceof UserError ? "Operation failed" : title),
@@ -70,7 +70,8 @@ export function showError(
     </>
   );
   const onClose = () => errorMessageCounters.delete(info.title);
-  void antdMessage.open({
+  const showMessage = info.type === "error" ? antdMessage.error : antdMessage.open;
+  void showMessage({
     type: info.type,
     key: info.title,
     content: heading,

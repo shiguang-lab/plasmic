@@ -9,7 +9,7 @@ const { IslandAccount } = require("./island-account.cjs");
 const MODES = ["window", "fullscreen", "island"];
 const CLOSE_ACTIONS = ["ask", "island", "quit"];
 function containsPoint(point, rect) {
-  if (!rect || point.x < rect.x || point.y < rect.y || point.x > rect.x + rect.width || point.y > rect.y + rect.height) return false;
+  if (!rect || point.x < rect.x || point.y < rect.y || point.x > rect.x + rect.width || point.y > rect.y + rect.height) {return false;}
   const radius = Math.min(rect.radius || 0, rect.width / 2, rect.height / 2);
   const x = Math.max(rect.x + radius, Math.min(point.x, rect.x + rect.width - radius));
   const y = Math.max(rect.y + radius, Math.min(point.y, rect.y + rect.height - radius));
@@ -33,7 +33,7 @@ function createIsland({ getWindow, controller, i18n, appearance, config, signIn,
   let cookies, cookieChanged, lastResource, lastCanvasOperation;
   const mirror = createIslandCapture();
   const framingOperations = () => [...controller.activity.operations.values(), ...(lastCanvasOperation ? [lastCanvasOperation] : [])];
-  const account = new IslandAccount(path => controller.requestStudio(path, undefined, AbortSignal.timeout(10_000)), publish);
+  const account = new IslandAccount(requestPath => controller.requestStudio(requestPath, undefined, AbortSignal.timeout(10_000)), publish);
   function persist() {
     const position = window && !window.isDestroyed() ? window.getPosition() : saved.position;
     saved = { mode, position, closeAction };
@@ -54,16 +54,16 @@ function createIsland({ getWindow, controller, i18n, appearance, config, signIn,
       mirror.close(controller.activity.snapshot(context.projectId, context.sessionId).operation, framingOperations());
       image = null; stale = false;
     }
-    if (window && !window.isDestroyed()) window.webContents.send("desktop:island-state", snapshot());
+    if (window && !window.isDestroyed()) {window.webContents.send("desktop:island-state", snapshot());}
   }
   async function refresh() {
-    if (reading || disposed || mode !== "island") return;
+    if (reading || disposed || mode !== "island") {return;}
     if (navigationUrl) { updateContext({url:navigationUrl,ready:false}); publish(); return; }
     reading = true;
     const version = epoch;
     try {
       const state = await controller.state();
-      if (disposed || mode !== "island" || version !== epoch) return;
+      if (disposed || mode !== "island" || version !== epoch) {return;}
       updateContext(state);
       publish();
     } catch {
@@ -81,38 +81,39 @@ function createIsland({ getWindow, controller, i18n, appearance, config, signIn,
     const loading = !actual.ready || !actual.mode || !!actual.sessionProjectId || !!actual.routeProjectId;
     const allowed = actual.surface === "editor" && (loading || actual.mode !== "preview" || actual.previewKind === "in-app");
     const sameProject = actual.projectId === context.projectId;
-    const mode = actual.mode || (allowed ? "edit" : null);
-    const identity = JSON.stringify([state.url, actual.projectId, actual.sessionId, mode, editor.previewContext?.componentUuid,
+    const editorMode = actual.mode || (allowed ? "edit" : null);
+    const identity = JSON.stringify([state.url, actual.projectId, actual.sessionId, editorMode, editor.previewContext?.componentUuid,
       editor.previewContext?.path, editor.editorView?.arenaId, actual.frameUuid]);
     if (identity !== context.identity || !allowed || loading) { epoch++; image = null; stale = false; }
-    context = { ...actual, mode, allowed, loading, identity,
+    context = { ...actual, mode: editorMode, allowed, loading, identity,
       projectName: !actual.sessionProjectId && editor.projectName || (sameProject ? context.projectName : null) || "Plasmic",
-      pageName: mode === "preview" ? editor.previewContext?.path || "" : editor.componentName || "",
+      pageName: editorMode === "preview" ? editor.previewContext?.path || "" : editor.componentName || "",
       previewContext: editor.previewContext || null,
-      viewName: !loading ? (mode === "preview" ? editor.previewContext?.componentName : editor.canvasName || editor.componentName) || "" : "",
+      viewName: !loading ? (editorMode === "preview" ? editor.previewContext?.componentName : editor.canvasName || editor.componentName) || "" : "",
       projectSummary: !loading ? editor.projectSummary : null,
-      saveStatus: !loading ? editor.saveStatus : null };
+      saveStatus: !loading ? editor.saveStatus : null,
+      desktopDraftStatus: !loading ? editor.desktopDraftStatus : null };
     context.orgId = pathname.match(/^\/orgs\/([^/]+)/)?.[1] || null;
     context.workspaceId = pathname.match(/^\/workspaces\/([^/]+)/)?.[1] || null;
-    if (!state.url || new URL(state.url).origin !== config.studioOrigin || actual.surface === "login") account.clear("signed-out");
-    else void account.refresh(context.workspaceId);
+    if (!state.url || new URL(state.url).origin !== config.studioOrigin || actual.surface === "login") {account.clear("signed-out");}
+    else {void account.refresh(context.workspaceId);}
   }
   async function capture() {
     const win = getWindow();
-    if (capturing || disposed || mode !== "island" || !expanded || updateOpen || !context.allowed || context.loading || !win || win.isDestroyed()) return;
+    if (capturing || disposed || mode !== "island" || !expanded || updateOpen || !context.allowed || context.loading || !win || win.isDestroyed()) {return;}
     capturing = true;
     const version = epoch;
     try {
       const result = await mirror.capture(win, context, controller.activity.snapshot(context.projectId, context.sessionId).operation, framingOperations());
-      if (disposed || version !== epoch || mode !== "island") return;
+      if (disposed || version !== epoch || mode !== "island") {return;}
       if (result) { image = { ...result, identity: context.identity }; stale = false; }
-      else stale = true;
+      else {stale = true;}
       publish();
     } catch { if (version === epoch) { stale = true; publish(); } }
     finally { capturing = false; }
   }
   function updateHit() {
-    if (!window || window.isDestroyed() || mode !== "island") return;
+    if (!window || window.isDestroyed() || mode !== "island") {return;}
     const cursor = screen.getCursorScreenPoint(), [x, y] = window.getPosition();
     const next = !!drag || containsPoint({ x: cursor.x - x, y: cursor.y - y }, hit);
     if (next !== inside) {
@@ -124,7 +125,7 @@ function createIsland({ getWindow, controller, i18n, appearance, config, signIn,
       window.setIgnoreMouseEvents(!inside, { forward: true });
       publish();
     }
-    if (expanded && !updateOpen && !inside && performance.now() >= hoverUntil && !controller.activity.keepExpanded()) publish();
+    if (expanded && !updateOpen && !inside && performance.now() >= hoverUntil && !controller.activity.keepExpanded()) {publish();}
   }
   function placeWindow() {
     const validPosition = Array.isArray(saved.position) && saved.position.length === 2 && saved.position.every(Number.isFinite);
@@ -136,7 +137,7 @@ function createIsland({ getWindow, controller, i18n, appearance, config, signIn,
       Math.round(Math.max(area.y, Math.min(area.y + area.height - 180, position[1]))));
   }
   async function ensureWindow() {
-    if (window && !window.isDestroyed()) return;
+    if (window && !window.isDestroyed()) {return;}
     window = new BrowserWindow({ width: 456, height: 180, show: false, frame: false, transparent: true,
       backgroundColor: "#00000000", hasShadow: false, resizable: false, minimizable: false, maximizable: false,
       fullscreenable: false, focusable: false, skipTaskbar: true, title: i18n.t("Dynamic Island"),
@@ -149,33 +150,33 @@ function createIsland({ getWindow, controller, i18n, appearance, config, signIn,
     window.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
     window.webContents.on("will-navigate", (event) => event.preventDefault());
     window.webContents.on("will-attach-webview", (event) => event.preventDefault());
-    window.on("closed", () => { window = undefined; if (!disposed && mode === "island") void setMode("window"); });
+    window.on("closed", () => { window = undefined; if (!disposed && mode === "island") {void setMode("window");} });
     placeWindow();
     await window.loadURL(page);
     publish();
   }
   function start() {
-    if (refreshTimer) return;
+    if (refreshTimer) {return;}
     refreshTimer = setInterval(() => void refresh(), 500);
     captureTimer = setInterval(() => void capture(), 500);
     hitTimer = setInterval(updateHit, 40);
-    for (const timer of [refreshTimer, captureTimer, hitTimer]) timer.unref();
+    for (const timer of [refreshTimer, captureTimer, hitTimer]) {timer.unref();}
     void refresh();
   }
   function stop() {
-    for (const timer of [refreshTimer, captureTimer, hitTimer]) clearInterval(timer);
+    for (const timer of [refreshTimer, captureTimer, hitTimer]) {clearInterval(timer);}
     refreshTimer = captureTimer = hitTimer = undefined;
     mirror.close(controller.activity.snapshot(context.projectId, context.sessionId).operation, framingOperations());
     epoch++; image = null; expanded = false; updateOpen = false; drag = undefined; inside = false; hoverUntil = 0;
   }
   function setMode(value) {
-    if (!MODES.includes(value)) throw new Error("Invalid display mode");
+    if (!MODES.includes(value)) {throw new Error("Invalid display mode");}
     const next = transitions.then(() => changeMode(value));
     transitions = next.catch(() => {});
     return next;
   }
   async function fullscreen(win, value) {
-    if (win.isFullScreen() === value) return;
+    if (win.isFullScreen() === value) {return;}
     await new Promise((resolve) => {
       const event = value ? "enter-full-screen" : "leave-full-screen";
       const finish = () => { win.removeListener(event, finish); fullscreenWait = undefined; resolve(); };
@@ -186,16 +187,16 @@ function createIsland({ getWindow, controller, i18n, appearance, config, signIn,
   }
   async function changeMode(value) {
     const win = getWindow();
-    if (disposed || !win || win.isDestroyed()) return;
+    if (disposed || !win || win.isDestroyed()) {return;}
     // macOS leaves native fullscreen asynchronously, before a window may hide.
-    if (value !== "fullscreen") await fullscreen(win, false);
-    if (disposed || win.isDestroyed()) return;
+    if (value !== "fullscreen") {await fullscreen(win, false);}
+    if (disposed || win.isDestroyed()) {return;}
     if (value === "island") {
-      if (mode !== "island") mirror.close(controller.activity.snapshot(context.projectId, context.sessionId).operation, framingOperations());
+      if (mode !== "island") {mirror.close(controller.activity.snapshot(context.projectId, context.sessionId).operation, framingOperations());}
       await ensureWindow();
-      if (disposed || win.isDestroyed()) return;
+      if (disposed || win.isDestroyed()) {return;}
       mode = value;
-      if (win.isMinimized()) win.restore();
+      if (win.isMinimized()) {win.restore();}
       win.webContents.setBackgroundThrottling(false);
       win.hide();
       if (process.platform === "darwin") {
@@ -212,11 +213,11 @@ function createIsland({ getWindow, controller, i18n, appearance, config, signIn,
         app.setActivationPolicy("regular");
         await app.dock.show();
       }
-      if (win.isMinimized()) win.restore();
+      if (win.isMinimized()) {win.restore();}
       win.show(); win.focus();
       await fullscreen(win, value === "fullscreen");
     }
-    if (disposed || win.isDestroyed()) return;
+    if (disposed || win.isDestroyed()) {return;}
     persist(); changed(mode);
     return { mode };
   }
@@ -225,14 +226,14 @@ function createIsland({ getWindow, controller, i18n, appearance, config, signIn,
   }
   async function exitIsland() {
     await setMode("window");
-    if (closeAction === "island") setCloseAction("ask");
+    if (closeAction === "island") {setCloseAction("ask");}
   }
   function openUpdates() {
-    if (!updates || mode !== "island") return;
+    if (!updates || mode !== "island") {return;}
     updateOpen = true;
     publish();
     window?.showInactive();
-    if (["idle", "current"].includes(updates.state.phase)) void updates.command("check");
+    if (["idle", "current"].includes(updates.state.phase)) {void updates.command("check");}
   }
   function menu(parent) {
     Menu.buildFromTemplate([
@@ -244,14 +245,14 @@ function createIsland({ getWindow, controller, i18n, appearance, config, signIn,
     ]).popup({ window: parent });
   }
   function setCloseAction(value) {
-    if (!CLOSE_ACTIONS.includes(value)) throw new Error("Invalid closing mode");
+    if (!CLOSE_ACTIONS.includes(value)) {throw new Error("Invalid closing mode");}
     closeAction = value;
     persist(); changed(mode);
   }
   async function closingAction() {
-    if (closeAction !== "ask") return closeAction;
+    if (closeAction !== "ask") {return closeAction;}
     const win = getWindow();
-    if (!win || win.isDestroyed()) return null;
+    if (!win || win.isDestroyed()) {return null;}
     const result = await dialog.showMessageBox(win, {
       type: "question", title: i18n.t("Close main window"),
       message: i18n.t("How should Plasmic run after closing the main window?"),
@@ -260,21 +261,25 @@ function createIsland({ getWindow, controller, i18n, appearance, config, signIn,
       defaultId: 0, cancelId: 2, noLink: true,
       checkboxLabel: i18n.t("Remember this choice"), checkboxChecked: true,
     });
-    if (win.isDestroyed() || ![0, 1].includes(result.response)) return null;
+    if (win.isDestroyed() || ![0, 1].includes(result.response)) {return null;}
     const action = result.response === 0 ? "island" : "quit";
     setCloseAction(result.checkboxChecked ? action : "ask");
     return action;
   }
   const handler = async (event, command, input) => {
     const fromIsland = window && event.sender === window.webContents && event.senderFrame === event.sender.mainFrame && event.senderFrame.url === page;
-    if (!fromIsland) throw new Error("Invalid presentation page");
+    if (!fromIsland) {throw new Error("Invalid presentation page");}
     if (command === "menu") { menu(window); return { mode }; }
-    if (command === "state") return snapshot();
-    if (command === "show-main") return showMainWindow();
-    if (command === "sign-in") return signIn();
+    if (command === "state") {return snapshot();}
+    if (command === "show-main") {return showMainWindow();}
+    if (command === "show-drafts") {
+      await showMainWindow();
+      return controller.invoke("showDrafts", {}, 5000);
+    }
+    if (command === "sign-in") {return signIn();}
     if (command === "update-open") { openUpdates(); return; }
     if (command === "update-check") {
-      if (!updateOpen || updates?.state.phase !== "error") throw new Error("Update retry is not available");
+      if (!updateOpen || updates?.state.phase !== "error") {throw new Error("Update retry is not available");}
       return updates.command("check");
     }
     if (command === "update-close") {
@@ -282,12 +287,12 @@ function createIsland({ getWindow, controller, i18n, appearance, config, signIn,
       return;
     }
     if (command === "update-install") {
-      if (!updateOpen || updates?.state.phase !== "downloaded") throw new Error("Update confirmation is not open");
+      if (!updateOpen || updates?.state.phase !== "downloaded") {throw new Error("Update confirmation is not open");}
       return updates.command("install");
     }
     if (command === "hit") {
       if (!input || !["x", "y", "width", "height", "radius"].every((key) => Number.isFinite(input[key])) ||
-        input.x < 0 || input.y < 0 || input.width < 0 || input.height < 0 || input.x + input.width > 456 || input.y + input.height > 180 || input.radius < 0) throw new Error("Invalid island region");
+        input.x < 0 || input.y < 0 || input.width < 0 || input.height < 0 || input.x + input.width > 456 || input.y + input.height > 180 || input.radius < 0) {throw new Error("Invalid island region");}
       hit = input; updateHit(); return;
     }
     if (command === "drag-start") { drag = { point: screen.getCursorScreenPoint(), position: window.getPosition() }; return; }
@@ -302,7 +307,7 @@ function createIsland({ getWindow, controller, i18n, appearance, config, signIn,
   ipcMain.handle("desktop:presentation", handler);
   const unsubscribe = controller.activity.subscribe(() => {
     const latest = controller.activity.latest;
-    if (latest && ["read", "write", "view"].includes(latest.kind)) lastCanvasOperation = latest;
+    if (latest && ["read", "write", "view"].includes(latest.kind)) {lastCanvasOperation = latest;}
     if (latest?.id !== lastResource && latest?.phase === "completed" && ["create_project", "create_workspace", "create_org"].includes(latest.method)) {
       lastResource = latest.id;
       account.invalidate(false);
@@ -322,13 +327,13 @@ function createIsland({ getWindow, controller, i18n, appearance, config, signIn,
       const values = new Map();
       const key = cookie => `${cookie.domain}:${cookie.path}:${cookie.name}`;
       void cookies.get({ url: config.studioOrigin }).then(items => {
-        for (const cookie of items) if (cookie.httpOnly && !values.has(key(cookie))) values.set(key(cookie), cookie.value);
+        for (const cookie of items) {if (cookie.httpOnly && !values.has(key(cookie))) {values.set(key(cookie), cookie.value);}}
       }).catch(() => {});
       cookieChanged = (_event, cookie, cause, removed) => {
         const host = new URL(config.studioOrigin).hostname, domain = cookie.domain.replace(/^\./, "");
-        if (!cookie.httpOnly || !(host === domain || host.endsWith(`.${domain}`)) || removed && cause === "overwrite") return;
+        if (!cookie.httpOnly || !(host === domain || host.endsWith(`.${domain}`)) || removed && cause === "overwrite") {return;}
         const id = key(cookie), next = removed ? null : cookie.value;
-        if (values.get(id) === next) return;
+        if (values.get(id) === next) {return;}
         values.set(id, next);
         account.invalidate();
         publish(); void refresh();
@@ -340,18 +345,18 @@ function createIsland({ getWindow, controller, i18n, appearance, config, signIn,
         publish(); void refresh();
       };
       win.webContents.on("did-start-navigation", (_event, url, inPlace, main) => {
-        if (main) { if (!inPlace) navigationUrl = url; invalidate(url); }
+        if (main) { if (!inPlace) {navigationUrl = url;} invalidate(url); }
       });
       win.webContents.on("did-stop-loading", () => { navigationUrl = undefined; void refresh(); });
-      win.webContents.on("did-navigate-in-page", (_event, _url, main) => { if (main) invalidate(_url); });
+      win.webContents.on("did-navigate-in-page", (_event, _url, main) => { if (main) {invalidate(_url);} });
       win.webContents.on("render-process-gone", () => { navigationUrl = undefined; invalidate(); });
       const nativeMode = (value) => {
-        if (mode === "island") return;
+        if (mode === "island") {return;}
         mode = value; persist(); changed(mode);
       };
       win.on("enter-full-screen", () => nativeMode("fullscreen"));
       win.on("leave-full-screen", () => nativeMode("window"));
-      win.once("closed", () => { if (fullscreenWait?.win === win) fullscreenWait.finish(); stop(); window?.hide(); });
+      win.once("closed", () => { if (fullscreenWait?.win === win) {fullscreenWait.finish();} stop(); window?.hide(); });
     },
     dispose() { disposed = true; account.dispose(); cookies?.removeListener("changed", cookieChanged); fullscreenWait?.finish(); stop(); unsubscribe(); stopLocale(); stopAppearance(); updates?.removeListener("status", publish); ipcMain.removeHandler("desktop:presentation"); window?.destroy(); },
   };

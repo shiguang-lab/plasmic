@@ -1,0 +1,7 @@
+{
+  "en": "- Preserve unsynced Desktop edits in local drafts, restore compatible drafts, and review conflicts through copies or exports.\n- Show local draft and save status consistently in the project list, editor, and Dynamic Island.\n- Unify request results with success and error messages across projects, CMS, analytics, publishing, uploads, and billing, while retaining cached content and retry actions.\n- Correct MCP project resource counts and improve editing feedback.",
+  "zh-CN": "- 在桌面端保留未同步的本地草稿，恢复兼容草稿，支持通过副本或导出处理冲突。\n- 在项目列表、编辑器和灵动岛中统一显示本地草稿与保存状态。\n- 统一项目、CMS、统计、发布、上传和账单操作的成功与失败消息，保留已加载内容和重试入口。\n- 修正 MCP 项目资源统计，优化编辑反馈。",
+  "zh-TW": "- 在桌面端保留未同步的本機草稿，還原相容草稿，支援透過副本或匯出處理衝突。\n- 在專案清單、編輯器和動態島中一致顯示本機草稿與儲存狀態。\n- 統一專案、CMS、統計、發佈、上傳和帳單操作的成功與失敗訊息，保留已載入內容和重試入口。\n- 修正 MCP 專案資源統計，改善編輯回饋。",
+  "ja": "- デスクトップの未同期編集をローカル下書きとして保持し、互換性のある下書きを復元できます。競合する下書きはコピーやエクスポートで確認できます。\n- プロジェクト一覧、エディター、Dynamic Island で下書きと保存状態を統一して表示します。\n- プロジェクト、CMS、分析、公開、アップロード、請求操作の成功・失敗メッセージを統一し、読み込み済みの内容と再試行操作を保持します。\n- MCP のプロジェクトリソース件数を修正し、編集時のフィードバックを改善しました。",
+  "ko": "- 동기화되지 않은 데스크톱 편집 내용을 로컬 초안으로 보관하고 호환되는 초안을 복원합니다. 충돌하는 초안은 사본이나 내보내기로 확인할 수 있습니다.\n- 프로젝트 목록, 편집기, Dynamic Island에서 초안과 저장 상태를 일관되게 표시합니다.\n- 프로젝트, CMS, 분석, 게시, 업로드 및 결제 작업의 성공·실패 메시지를 통일하고 불러온 내용과 재시도 기능을 유지합니다.\n- MCP 프로젝트 리소스 집계를 수정하고 편집 피드백을 개선했습니다."
+}

@@ -1,13 +1,13 @@
 import { useI18n } from "@/wab/client/i18n";
 import { DefaultSharePageModalProps } from "@/wab/client/plasmic/plasmic_kit_analytics/PlasmicSharePageModal";
-import { Alert, Button, Flex, Input, Typography } from "antd";
+import { Button, Flex, Input, Typography, message } from "antd";
 import * as React from "react";
 
 export type SharePageModalProps = DefaultSharePageModalProps;
 const SharePageModal = React.forwardRef<HTMLDivElement, SharePageModalProps>(
   function SharePageModal(props, ref) {
     const { t } = useI18n();
-    const [state, setState] = React.useState<"ready" | "copied" | "failed">(
+    const [state, setState] = React.useState<"ready" | "copied">(
       "ready",
     );
     React.useEffect(() => {
@@ -22,7 +22,7 @@ const SharePageModal = React.forwardRef<HTMLDivElement, SharePageModalProps>(
         await navigator.clipboard.writeText(window.location.href);
         setState("copied");
       } catch {
-        setState("failed");
+        void message.error({ content: t("Failed to copy link") });
       }
     };
     return (
@@ -44,9 +44,6 @@ const SharePageModal = React.forwardRef<HTMLDivElement, SharePageModalProps>(
         >
           {t(state === "copied" ? "Copied" : "Copy link")}
         </Button>
-        {state === "failed" && (
-          <Alert type="error" showIcon title={t("Failed to copy link")} />
-        )}
       </Flex>
     );
   },

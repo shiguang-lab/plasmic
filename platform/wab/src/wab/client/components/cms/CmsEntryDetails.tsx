@@ -1,3 +1,4 @@
+import { useErrorMessage } from "@/wab/client/hooks/useErrorMessage";
 import { Api } from "@/wab/client/api";
 import {
   CmsDetailsLayout,
@@ -52,16 +53,7 @@ import { DEVFLAGS } from "@/wab/shared/devflags";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import { substituteUrlParams } from "@/wab/shared/utils/url-utils";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
-import {
-  Alert,
-  Button,
-  Drawer,
-  Form,
-  Menu,
-  Tooltip,
-  message,
-  notification,
-} from "antd";
+import { Button, Drawer, Form, Menu, Tooltip, message, notification } from "antd";
 import { useForm } from "antd/lib/form/Form";
 import { isEqual, isNil, mapValues, pickBy } from "lodash";
 import * as React from "react";
@@ -151,25 +143,19 @@ function CmsEntryDetails_(
   const { row, error, mutate } = useCmsRow(tableId, rowId);
   const { t } = useI18n();
   const table = useCmsTable(databaseId, tableId);
+  useErrorMessage(error, "Failed to load content entry");
 
   if (!row || !table || !database) {
     return (
       <CmsDetailsLayout ref={ref} className={props.className}>
         {error ? (
-          <Alert
-            type="error"
-            showIcon
-            title={t("Failed to load content entry")}
-            action={
-              <Button
-                onClick={() => {
-                  void mutate();
-                }}
-              >
-                {t("Retry")}
-              </Button>
-            }
-          />
+          <Button
+            onClick={() => {
+              void mutate();
+            }}
+          >
+            {t("Retry")}
+          </Button>
         ) : (
           <div role="status" aria-label={t("Loading content entry…")}>
             <FormSkeleton

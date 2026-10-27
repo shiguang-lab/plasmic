@@ -1,3 +1,4 @@
+import { showError } from "@/wab/client/ErrorNotifications";
 import { Matcher } from "@/wab/client/components/view-common";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
 import { useI18n } from "@/wab/client/i18n";
@@ -7,16 +8,7 @@ import { fullName, getUserEmail } from "@/wab/shared/ApiSchemaUtil";
 import { GrantableAccessLevel, accessLevelRank } from "@/wab/shared/EntUtil";
 import { ensure } from "@/wab/shared/common";
 import { MoreOutlined } from "@ant-design/icons";
-import {
-  Alert,
-  Avatar,
-  Button,
-  Dropdown,
-  Flex,
-  Select,
-  Tooltip,
-  Typography,
-} from "antd";
+import { Avatar, Button, Dropdown, Flex, Select, Tooltip, Typography } from "antd";
 import { useMemberStyles } from "@/wab/client/components/dashboard/TeamMemberList.styles";
 import moment from "moment";
 import * as React from "react";
@@ -54,7 +46,6 @@ const TeamMemberListItem = React.forwardRef<
   const { t } = useI18n();
   const { styles, cx } = useMemberStyles();
   const [busy, setBusy] = React.useState(false);
-  const [failed, setFailed] = React.useState(false);
   const selfPerm = perms.find(
     (p) =>
       p.userId === selfInfo.id || (p.user?.email ?? p.email) === selfInfo.email,
@@ -74,11 +65,10 @@ const TeamMemberListItem = React.forwardRef<
   const name = user.type === "user" ? fullName(user) : user.email;
   const perform = async (action: () => Promise<void>) => {
     setBusy(true);
-    setFailed(false);
     try {
       await action();
-    } catch {
-      setFailed(true);
+    } catch (error) {
+      showError(error, { title: "Failed to update team member" });
     } finally {
       setBusy(false);
     }
@@ -170,13 +160,6 @@ const TeamMemberListItem = React.forwardRef<
           </Dropdown>
         )}
       </Flex>
-      {failed && (
-        <Alert
-          type="error"
-          showIcon
-          title={t("Failed to update team member")}
-        />
-      )}
     </div>
   );
 });

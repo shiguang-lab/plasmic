@@ -1,4 +1,5 @@
 
+import { showError } from "@/wab/client/ErrorNotifications";
 import { isHostFrame } from "@/wab/client/cli-routes";
 import UpsellCheckout from "@/wab/client/components/modals/UpsellCheckout";
 
@@ -222,7 +223,7 @@ export default function UpsellForm(
       );
 
       if (hasActiveSubscription) {
-        return changeExistingSubscription(team, ensureTier);
+        return await changeExistingSubscription(team, ensureTier);
       }
 
       const createResp = await appCtx.api.createSubscription({
@@ -234,7 +235,7 @@ export default function UpsellForm(
 
       // Subscription already exists. Let's try to change it
       if (createResp.type === "alreadyExists") {
-        return changeExistingSubscription(team, ensureTier);
+        return await changeExistingSubscription(team, ensureTier);
       }
 
       // This is a new subscription. Let's try to confirm it with the credit card.
@@ -258,12 +259,8 @@ export default function UpsellForm(
               payment_method: { card },
             });
       if (result.error) {
-        return setErrorMsg({
-          type: "nonfatal",
-          errorMsg:
-            result.error.message ??
-            "Error processing payment. Please contact help@plasmic.app.",
-        });
+        showError(result.error, { title: "Failed to update billing" });
+        return;
       }
       const intent = ensure(
         createResp.type === "success"
@@ -290,6 +287,8 @@ export default function UpsellForm(
         team,
         tier: ensureTier,
       });
+    } catch (error) {
+      showError(error, { title: "Failed to update billing" });
     } finally {
       setWaiting(false);
     }
@@ -335,7 +334,7 @@ export default function UpsellForm(
             }
             onManageSeats={
               hasActiveSubscription && team.featureTier
-                ? async () => setTier(ensure(team.featureTier))
+                ? async () => setTier(ensure(team.featureTier, "Team must have a current tier to manage seats"))
                 : undefined
             }
             canStartFreeTrial={allowFreeTrial && !!teamMeta?.canStartFreeTrial}

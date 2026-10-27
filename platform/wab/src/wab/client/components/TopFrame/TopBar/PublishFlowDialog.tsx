@@ -1,3 +1,5 @@
+import { useErrorMessage } from "@/wab/client/hooks/useErrorMessage";
+import { showError } from "@/wab/client/ErrorNotifications";
 import { useGetDomainsForProject } from "@/wab/client/api-hooks";
 import { AppCtx } from "@/wab/client/app-ctx";
 import PreviewPublishSection, {
@@ -47,7 +49,7 @@ import type {
 } from "@/wab/shared/site-diffs";
 import { filterUsefulDiffs } from "@/wab/shared/site-diffs/filter-useful-diffs";
 import { PlusOutlined } from "@ant-design/icons";
-import { Alert, Button, Skeleton } from "antd";
+import { Button, Skeleton } from "antd";
 import { createStyles } from "antd-style";
 import * as React from "react";
 
@@ -192,7 +194,8 @@ function PublishFlowDialog(props: PublishFlowDialogProps) {
                 );
               }
             }
-          } catch {
+          } catch (error) {
+            showError(error, { title: "Failed to load publishing settings" });
             setVersionError(true);
           } finally {
             setLoadingVersion(false);
@@ -242,6 +245,8 @@ function PublishFlowDialog(props: PublishFlowDialogProps) {
     mutate: retryDomains,
   } = useGetDomainsForProject(projectId);
 
+  useErrorMessage(!website && domainsError, "Failed to load publishing settings");
+
   if (!website && loadingDomains) {
     return renderDialog(
       <div role="status" aria-label={t("Loading publishing settings…")}>
@@ -253,20 +258,13 @@ function PublishFlowDialog(props: PublishFlowDialogProps) {
 
   if (!website && domainsError) {
     return renderDialog(
-      <Alert
-        type="error"
-        showIcon
-        title={t("Failed to load publishing settings")}
-        action={
-          <Button
-            onClick={() => {
-              void retryDomains();
-            }}
-          >
-            {t("Retry")}
-          </Button>
-        }
-      />,
+      <Button
+        onClick={() => {
+          void retryDomains();
+        }}
+      >
+        {t("Retry")}
+      </Button>,
       null,
     );
   }
@@ -292,20 +290,14 @@ function PublishFlowDialog(props: PublishFlowDialogProps) {
           renderDialog(
             <>
               {(versionError || (!!website.error && website.loading)) && (
-                <Alert
-                  type="error"
-                  title={t("Failed to load publishing settings")}
-                  action={
-                    <Button
-                      onClick={() => {
-                        setLoadingVersion(true);
-                        website.retry();
-                      }}
-                    >
-                      {t("Retry")}
-                    </Button>
-                  }
-                />
+                <Button
+                  onClick={() => {
+                    setLoadingVersion(true);
+                    website.retry();
+                  }}
+                >
+                  {t("Retry")}
+                </Button>
               )}
               {body}
             </>,
@@ -470,16 +462,9 @@ function PublishFlowDialog(props: PublishFlowDialogProps) {
   return renderDialog(
     <>
       {versionError && (
-        <Alert
-          type="error"
-          showIcon
-          title={t("Failed to load publishing settings")}
-          action={
-            <Button onClick={() => setLoadingVersion(true)}>
-              {t("Retry")}
-            </Button>
-          }
-        />
+        <Button onClick={() => setLoadingVersion(true)}>
+          {t("Retry")}
+        </Button>
       )}
       <PlasmicPublishFlowDialog
         {...rest}

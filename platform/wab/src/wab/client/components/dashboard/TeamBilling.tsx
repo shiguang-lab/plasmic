@@ -1,9 +1,10 @@
-import { getErrorMessage } from "@/wab/client/api-error-presentation";
+import { showError } from "@/wab/client/ErrorNotifications";
+
 import { AppCtx } from "@/wab/client/app-ctx";
 import FreeTrial from "@/wab/client/components/FreeTrial";
 import {
   promptBilling,
-  showUpsellConfirm,
+  showBillingSuccess,
 } from "@/wab/client/components/modals/PricingModal";
 import { promptUpdateCc } from "@/wab/client/components/modals/UpdateCreditCardModal";
 import PriceTierPicker from "@/wab/client/components/pricing/PriceTierPicker";
@@ -43,6 +44,7 @@ import {
   Input,
   Segmented,
   Typography,
+  message,
 } from "antd";
 import { createStyles } from "antd-style";
 import * as React from "react";
@@ -93,19 +95,15 @@ function TeamBilling_(props: TeamBillingProps, ref: HTMLElementRefOf<"div">) {
   const { styles, cx } = useBillingStyles();
   const [form] = Form.useForm<{ billingEmail: string }>();
   const [operation, setOperation] = React.useState<string | null>(null);
-  const [actionError, setActionError] = React.useState<string | null>(null);
-  const [savedEmail, setSavedEmail] = React.useState(false);
   React.useEffect(() => {
     form.setFieldsValue({ billingEmail: team.billingEmail ?? "" });
-    setSavedEmail(false);
   }, [form, team.id, team.billingEmail]);
   const run = async (name: string, action: () => Promise<void>) => {
     setOperation(name);
-    setActionError(null);
     try {
       await action();
     } catch (error) {
-      setActionError(getErrorMessage(error));
+      showError(error, { title: "Failed to update billing" });
     } finally {
       setOperation(null);
     }
@@ -164,7 +162,7 @@ function TeamBilling_(props: TeamBillingProps, ref: HTMLElementRefOf<"div">) {
       await onChange();
       throw new Error(promptResult.errorMsg);
     } else if (promptResult.type === "success") {
-      await showUpsellConfirm(APP_ROUTES.orgSettings.fill({ teamId: team.id }));
+      showBillingSuccess();
     }
 
     // Refresh the latest team data
@@ -188,7 +186,7 @@ function TeamBilling_(props: TeamBillingProps, ref: HTMLElementRefOf<"div">) {
       throw new Error(promptResult.errorMsg);
     } else if (promptResult.type === "success") {
       // TODO: custom confirm, currently using same as for upsell
-      await showUpsellConfirm(APP_ROUTES.orgSettings.fill({ teamId: team.id }));
+      showBillingSuccess();
     }
 
     // Refresh the latest team data
@@ -261,14 +259,6 @@ function TeamBilling_(props: TeamBillingProps, ref: HTMLElementRefOf<"div">) {
             showIcon
             title={t("Payment requires attention")}
             description={billingError}
-          />
-        )}
-        {actionError && (
-          <Alert
-            type="error"
-            showIcon
-            title={t("Failed to update billing")}
-            description={actionError}
           />
         )}
         {operation && (
@@ -364,14 +354,13 @@ function TeamBilling_(props: TeamBillingProps, ref: HTMLElementRefOf<"div">) {
               className={styles.preferences}
               layout="vertical"
               disabled={blocked}
-              onValuesChange={() => setSavedEmail(false)}
               onFinish={(values) => {
                 void run("email", async () => {
                   await appCtx.api.updateTeam(team.id, {
                     billingEmail: values.billingEmail,
                   });
-                  setSavedEmail(true);
                   await onChange();
+                  void message.success({ content: t("Billing email saved") });
                 });
               }}
             >
@@ -397,13 +386,6 @@ function TeamBilling_(props: TeamBillingProps, ref: HTMLElementRefOf<"div">) {
                   {t("Save")}
                 </Button>
               </Form.Item>
-              {savedEmail && (
-                <Alert
-                  type="success"
-                  showIcon
-                  title={t("Billing email saved")}
-                />
-              )}
             </Form>
             <Flex gap={12} wrap>
               {!isEnterprise && (

@@ -135,7 +135,7 @@ class StudioInitializer_ extends React.Component<
     this.setState({ studioCtx, previewCtx });
 
     const listener = (e: BeforeUnloadEvent) => {
-      if (studioCtx.needsSaving()) {
+      if (studioCtx.needsSaving() && !studioCtx.desktopDraft?.hasCurrentBackup) {
         e.preventDefault();
         e.returnValue = "Changes you made may not be saved.";
       }
@@ -252,7 +252,7 @@ class StudioInitializer_ extends React.Component<
                     route: [APP_ROUTES.project, APP_ROUTES.projectSlug],
                     render: () => {
                       return (
-                        // @ts-expect-error
+                        // @ts-expect-error Helmet typings reject React 18 JSX components.
                         <Helmet>
                           <body className="no-text-select" />
                         </Helmet>

@@ -1,3 +1,4 @@
+import { useErrorMessage } from "@/wab/client/hooks/useErrorMessage";
 import { useCmsLayoutStyles } from "@/wab/client/components/cms/CmsLayout.styles";
 import { CmsLoadingShell } from "@/wab/client/components/cms/CmsLoading";
 import { useCmsDatabase } from "@/wab/client/components/cms/cms-contexts";
@@ -12,7 +13,7 @@ import { Switch, switchCase, switchDefault } from "@/wab/client/route/Switch";
 import { CmsDatabaseId } from "@/wab/shared/ApiSchema";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
-import { Alert, Button } from "antd";
+import { Button } from "antd";
 import * as React from "react";
 
 export interface CmsRootProps extends DefaultCmsRootProps {
@@ -24,25 +25,19 @@ function CmsRoot_(props: CmsRootProps, ref: HTMLElementRefOf<"div">) {
   const { t } = useI18n();
   const { styles } = useCmsLayoutStyles();
   const { database, error, mutate } = useCmsDatabase(databaseId);
+  useErrorMessage(error, "Failed to load content library");
   if (!database) {
     return (
       <CmsLoadingShell
         content={
           error ? (
-            <Alert
-              type="error"
-              showIcon
-              title={t("Failed to load content library")}
-              action={
-                <Button
-                  onClick={() => {
-                    void mutate();
-                  }}
-                >
-                  {t("Retry")}
-                </Button>
-              }
-            />
+            <Button
+              onClick={() => {
+                void mutate();
+              }}
+            >
+              {t("Retry")}
+            </Button>
           ) : undefined
         }
       />

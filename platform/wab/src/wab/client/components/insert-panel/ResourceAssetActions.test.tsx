@@ -1,3 +1,8 @@
+import { showError } from "@/wab/client/ErrorNotifications";
+vi.mock("@/wab/client/ErrorNotifications", async (original) => ({
+  ...(await original<typeof import("@/wab/client/ErrorNotifications")>()),
+  showError: vi.fn(),
+}));
 import { SiteOps } from "@/wab/client/components/canvas/site-ops";
 import { ResourceAssetActions } from "@/wab/client/components/insert-panel/ResourceAssetActions";
 import { useMaybeSidebarModalContext } from "@/wab/client/components/sidebar/SidebarModal";
@@ -119,7 +124,7 @@ it("renames through the existing model, preserves failed input and retries", asy
   fireEvent.keyDown(input, { key: "A" });
   expect(f.parentKey).not.toHaveBeenCalled();
   fireEvent.click(screen.getByRole("button", { name: "Save" }));
-  await screen.findByText("Failed to update asset");
+  await waitFor(() => expect(showError).toHaveBeenCalledWith(expect.any(Error), { title: "Failed to update asset" }));
   expect(input).toHaveValue("  NewHero  ");
   expect(f.asset.name).toBe("Hero");
   fireEvent.click(screen.getByRole("button", { name: "Save" }));
@@ -168,7 +173,7 @@ it("delegates deletion to the existing usage-aware confirmation operation and re
   f.remove.mockRejectedValueOnce(new Error("offline"));
   await openMenu();
   fireEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
-  await screen.findByText("Failed to update asset");
+  await waitFor(() => expect(showError).toHaveBeenCalledWith(expect.any(Error), { title: "Failed to update asset" }));
   expect(f.remove).toHaveBeenCalledWith([f.asset]);
   expect(f.site.imageAssets).toContain(f.asset);
   expect(screen.getByRole("button", { name: "Asset actions" })).toBeEnabled();

@@ -5,6 +5,26 @@ fonts, CSS and Monaco workers. The NAS serves APIs, project data, user-uploaded
 assets and WebSocket updates. Static files are never downloaded at runtime; a
 missing bundled file returns 404.
 
+## Local drafts
+
+Desktop backs up unsynced project models in the application user-data directory's
+`drafts/` folder. Files are isolated by Studio origin, account, project, branch,
+and editor session. Each draft retains its current and previous checkpoint;
+storage is limited to 256 MiB per origin/account. Unsynced drafts are never
+automatically evicted. A failed write is shown as unprotected editing, while
+remote saving remains available.
+
+Opening a project restores a single compatible draft only when its base revision
+matches the server. Matching remote content clears an already committed draft;
+divergent or incompatible drafts remain available for export, opening as a new
+project, or explicit deletion. Opening still requires the normal server bootstrap.
+If a live save encounters a newer server revision, Desktop keeps the current
+edits and pauses saving until the user resolves the draft; it does not replay
+potentially committed edits. Choosing the remote version keeps the local draft
+available for export or opening as a copy.
+The project list, editor save indicator, and Dynamic Island show local draft
+status with hover explanations. Web retains its existing remote-save behavior.
+
 ## Build and run
 
 Requires Node >=22.12, npm, curl, and Docker for extracting the released web build.

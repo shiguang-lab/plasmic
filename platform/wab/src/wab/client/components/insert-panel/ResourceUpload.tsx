@@ -1,3 +1,4 @@
+import { showError } from "@/wab/client/ErrorNotifications";
 import {
   maybeUploadImage,
   readAndSanitizeFileAsImage,
@@ -7,7 +8,7 @@ import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ImageAssetType } from "@/wab/shared/core/image-asset-type";
 import { canWrite } from "@/wab/shared/ui-config-utils";
 import { UploadOutlined } from "@ant-design/icons";
-import { Alert, Button, Flex, Upload } from "antd";
+import { Button, Flex, Upload, message } from "antd";
 import { observer } from "mobx-react";
 import { ok } from "neverthrow";
 import React from "react";
@@ -22,9 +23,6 @@ export const ResourceUpload = observer(function ResourceUpload({
   const { t } = useI18n();
   const [uploadingType, setUploadingType] = React.useState<ImageAssetType>();
   const uploading = uploadingType !== undefined;
-  const [feedback, setFeedback] = React.useState<
-    "success" | "error" | "invalid" | undefined
-  >();
   const pending = React.useRef(false);
   const editable = studioCtx.canSave();
   const permission = studioCtx.getLeftTabPermission("images");
@@ -53,11 +51,10 @@ export const ResourceUpload = observer(function ResourceUpload({
     }
     pending.current = true;
     setUploadingType(type);
-    setFeedback(undefined);
     try {
       const image = await readAndSanitizeFileAsImage(studioCtx.appCtx, file);
       if (!image) {
-        setFeedback("invalid");
+        void message.error({ content: t("Invalid image") });
         return false;
       }
       const { imageResult, opts } = await maybeUploadImage(
@@ -67,7 +64,7 @@ export const ResourceUpload = observer(function ResourceUpload({
         file,
       );
       if (!imageResult || !opts) {
-        setFeedback("invalid");
+        // Image type validation has already reported its specific error.
         return false;
       }
       // Permissions and the editable version can change while the upload is in flight.
@@ -86,10 +83,10 @@ export const ResourceUpload = observer(function ResourceUpload({
         studioCtx.siteOps().createImageAsset(imageResult, opts);
         return ok();
       });
-      setFeedback("success");
+      void message.success({ content: t("Asset uploaded") });
       onUploaded(type);
-    } catch {
-      setFeedback("error");
+    } catch (error) {
+      showError(error, { title: "Failed to upload asset" });
     } finally {
       setUploadingType(undefined);
       pending.current = false;
@@ -136,19 +133,6 @@ export const ResourceUpload = observer(function ResourceUpload({
           </Upload>
         )}
       </Flex>
-      {feedback && (
-        <Alert
-          showIcon
-          type={feedback === "success" ? "success" : "error"}
-          title={t(
-            feedback === "success"
-              ? "Asset uploaded"
-              : feedback === "invalid"
-                ? "Invalid image"
-                : "Failed to upload asset",
-          )}
-        />
-      )}
     </Flex>
   );
 });

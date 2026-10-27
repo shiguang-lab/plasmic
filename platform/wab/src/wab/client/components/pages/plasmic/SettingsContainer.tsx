@@ -18,6 +18,7 @@ interface SettingsContainerProps {
   hostsState: "loading" | "error" | ApiTrustedHost[] | undefined;
   onDeleteTrustedHost: (host: ApiTrustedHost) => void;
   onNewTrustedHost: () => void;
+  onRetryTrustedHosts: () => void;
 }
 
 function SettingsListSkeleton({ tokens = false }: { tokens?: boolean }) {
@@ -111,7 +112,7 @@ export default function SettingsContainer(props: Partial<SettingsContainerProps>
           <div><h2 id="tokens-heading">{t("Personal access tokens")}</h2><p>{t("Use tokens to connect tools and integrations to your account.")}</p></div>
           <Button disabled={!props.onNewToken} onClick={props.onNewToken}>{t("New token")}</Button>
         </div>
-        {!props.tokensState || (props.tokensState.loading && !props.tokensState.value) ? <div role="status" aria-label={t("Personal access tokens")}><SettingsListSkeleton tokens /></div> : props.tokensState.error ? <p role="alert" className={styles.error}>{t("Unable to load access tokens.")}</p> : !props.tokensState.value?.length ? <div className={styles.empty}>{t("No access tokens yet.")}</div> : (
+        {!props.tokensState || (props.tokensState.loading && !props.tokensState.value) ? <div role="status" aria-label={t("Personal access tokens")}><SettingsListSkeleton tokens /></div> : props.tokensState.error && !props.tokensState.value ? <Button onClick={props.tokensState.retry}>{t("Retry")}</Button> : !props.tokensState.value?.length ? <div className={styles.empty}>{t("No access tokens yet.")}</div> : (
           <ul className={styles.list}>
             {props.tokensState.value.map((token) => (
               <li key={token.token}>
@@ -131,7 +132,7 @@ export default function SettingsContainer(props: Partial<SettingsContainerProps>
           <div><h2 id="hosts-heading">{t("Trusted host apps")}</h2><p>{t("Allow custom app hosts from domains you trust.")}</p></div>
           <Button disabled={!props.onNewTrustedHost} onClick={props.onNewTrustedHost}>{t("Add URL")}</Button>
         </div>
-        {!props.hostsState || props.hostsState === "loading" ? <div role="status" aria-label={t("Trusted host apps")}><SettingsListSkeleton /></div> : props.hostsState === "error" ? <p role="alert" className={styles.error}>{t("Unable to load trusted hosts.")}</p> : !props.hostsState.length ? <div className={styles.empty}>{t("No trusted hosts yet.")}</div> : (
+        {!props.hostsState || props.hostsState === "loading" ? <div role="status" aria-label={t("Trusted host apps")}><SettingsListSkeleton /></div> : props.hostsState === "error" ? <Button onClick={props.onRetryTrustedHosts}>{t("Retry")}</Button> : !props.hostsState.length ? <div className={styles.empty}>{t("No trusted hosts yet.")}</div> : (
           <ul className={styles.list}>
             {props.hostsState.map((host) => (
               <li key={host.id}>

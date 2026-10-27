@@ -1,3 +1,8 @@
+import { showError } from "@/wab/client/ErrorNotifications";
+vi.mock("@/wab/client/ErrorNotifications", async (original) => ({
+  ...(await original<typeof import("@/wab/client/ErrorNotifications")>()),
+  showError: vi.fn(),
+}));
 import TeamMemberList from "@/wab/client/components/dashboard/TeamMemberList";
 import { ApiPermission, ApiTeam, TeamMember } from "@/wab/shared/ApiSchema";
 import "@testing-library/jest-dom/vitest";
@@ -102,9 +107,8 @@ it("surfaces role update failures and lets the user retry through the real callb
       selector: ".ant-select-item-option-content",
     }),
   );
-  expect(
-    await screen.findByText("Failed to update team member"),
-  ).toBeInTheDocument();
+  await waitFor(() => expect(showError).toHaveBeenCalledWith(expect.any(Error), { title: "Failed to update team member" }));
+  expect(document.querySelector(".ant-alert")).toBeNull();
   expect(mocks.change).toHaveBeenCalledWith("invite@example.com", "viewer");
   fireEvent.mouseDown(role);
   fireEvent.click(
