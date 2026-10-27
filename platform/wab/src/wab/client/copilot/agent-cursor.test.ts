@@ -84,10 +84,13 @@ it("tracks preview elements, clears replaced targets and navigation, and does no
   el.getBoundingClientRect = () => ({ left, top: 40, width: 100, height: 30 } as DOMRect);
   const dispose = installPreviewAgentCursor(window, { label: "AI assistant", color: "#1677ff", scale: () => 1 });
   const send = (detail: object) => window.dispatchEvent(new CustomEvent("plasmic-agent-cursor", { detail }));
-  send({ action: "move", element: el, point: { x: 20, y: 10 } });
+  send({ action: "move", element: el, point: { x: 20, y: 10 }, caller: { id: "codex", name: "Codex" } });
   c.step(300);
   const root = ensure(document.querySelector<HTMLElement>("[data-plasmic-agent-cursor] [data-plasmic-agent-cursor]"), "Preview cursor was not mounted");
   expect(root.style.transform).toContain("translate3d(120px,50px");
+  expect(root.shadowRoot?.querySelector("span")?.textContent).toBe("Codex");
+  send({ action: "move", element: el, point: { x: 20, y: 10 }, caller: { id: "chatgpt", name: "ChatGPT" } });
+  expect(root.shadowRoot?.querySelector("span")?.textContent).toBe("ChatGPT");
   left = 200;
   c.step(320); c.step(400);
   expect(Number(root.style.transform.match(/translate3d\(([^p]+)/)?.[1])).toBeGreaterThan(120);
@@ -95,6 +98,7 @@ it("tracks preview elements, clears replaced targets and navigation, and does no
   expect(root.style.display).toBe("none");
   expect(c.callbacks.size).toBe(0);
   send({ action: "move", element: el });
+  expect(root.shadowRoot?.querySelector("span")?.textContent).toBe("AI assistant");
   c.step(6900);
   el.remove();
   c.step(7000);

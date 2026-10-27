@@ -1472,7 +1472,8 @@ describe("AI prototype editor tools", () => {
     const { studioCtx, call, createPage } = fixture();
     const page = await createPage("Scan");
     studioCtx.copilotActivity.dispose();
-    await call("executeBatch", {
+    const caller = { id: "codex", name: "Codex" };
+    await COPILOT_TOOLS.executeBatch.execute(studioCtx, {
       operations: [
         {
           name: "changeElement",
@@ -1483,8 +1484,9 @@ describe("AI prototype editor tools", () => {
           },
         },
       ],
-    });
+    }, { caller });
     expect(studioCtx.copilotActivity.requests[0]).toMatchObject({
+      caller,
       status: "success",
       targets: [{ componentUuid: page.uuid, elementUuid: page.tplTree.uuid }],
     });

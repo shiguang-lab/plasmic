@@ -1,6 +1,6 @@
 import { CopilotToolCallResult } from "@/wab/client/frame-ctx/host-frame-api";
 import { useTopFrameCtx } from "@/wab/client/frame-ctx/top-frame-ctx";
-import { mapCopilotToolsToJsonSchema } from "@/wab/shared/copilot/copilot-tool-types";
+import { mapCopilotToolsToJsonSchema, type CopilotCaller } from "@/wab/shared/copilot/copilot-tool-types";
 import { PROTOTYPE_TOOL_META } from "@/wab/shared/copilot/prototype-tools";
 import { formatErrorMessage } from "@/wab/shared/error-handling";
 import { useEffect } from "react";
@@ -15,6 +15,7 @@ export type PlasmicAiTools = {
 } & {
   [K in keyof typeof PROTOTYPE_TOOL_META]: (
     input: Record<string, unknown>,
+    caller?: CopilotCaller,
   ) => Promise<CopilotToolCallResult>;
 };
 
@@ -39,6 +40,7 @@ export function TopFrameCopilotToolsBridge() {
       input: Record<string, unknown>,
       signal?: AbortSignal,
       outputFormat?: "json",
+      caller?: CopilotCaller,
     ) => {
       const call = (
         name === "getEditorContext" ? Promise.resolve() : pending
@@ -56,13 +58,7 @@ export function TopFrameCopilotToolsBridge() {
               "This project session has closed; reconnect to the open project.",
             );
           }
-          return outputFormat
-            ? await hostFrameApi.executeCopilotToolCall(
-                name,
-                input,
-                outputFormat,
-              )
-            : await hostFrameApi.executeCopilotToolCall(name, input);
+          return await hostFrameApi.executeCopilotToolCall(name, input, outputFormat, caller);
         } catch (error) {
           return {
             success: false,
@@ -84,7 +80,7 @@ export function TopFrameCopilotToolsBridge() {
     const tools = Object.fromEntries(
       Object.keys(PROTOTYPE_TOOL_META).map((name) => [
         name,
-        (input: Record<string, unknown>) => enqueue(name, input),
+        (input: Record<string, unknown>, caller?: CopilotCaller) => enqueue(name, input, undefined, undefined, caller),
       ]),
     );
     const api = {

@@ -12,7 +12,7 @@
     ) {
       return;
     }
-    const { id, method, input } = event.data;
+    const { id, method, input, caller } = event.data;
     let result;
     try {
       const tools = window.PLASMIC_AI_TOOLS;
@@ -49,7 +49,7 @@
         if (!tools || !Object.hasOwn(tools._meta, method)) {
           throw new Error("Open a design before calling editor tools");
         }
-        result = await tools[method](input);
+        result = await tools[method](input, caller);
       }
     } catch (error) {
       result = { success: false, error: { message: error.message } };

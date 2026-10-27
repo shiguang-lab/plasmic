@@ -54,9 +54,9 @@ class IslandActivity {
   notify() {
     for (const listener of this.listeners) listener();
   }
-  enqueue(id, method, input) {
+  enqueue(id, method, input, caller) {
     const operation = { id, method, operation: method === "execute" ? input.name : input.action || method,
-      kind: operationKind(method, input), label: operationLabels[method],
+      kind: operationKind(method, input), label: operationLabels[method], ...(caller ? { caller } : {}),
       ...(["create_project", "create_workspace", "create_org"].includes(method) && typeof input.name === "string" ? { subject: input.name.trim().slice(0, 120) } : {}), targets: operationTargets(method, input), phase: "queued" };
     this.operations.set(id, operation);
     this.expansionDismissed = false;

@@ -67,11 +67,11 @@ function nestedActivity() {
   return { studioCtx, frame, parent, child, descendant, sibling, target };
 }
 
-it("shows one cursor for edits, preserves it for the next target, and clears failed work", () => {
+it("reuses the cursor while switching operation owners and clears failed work", () => {
   const { studioCtx, frame, child, sibling, target } = nestedActivity();
   let callbacks: FrameRequestCallback[] = [];
   vi.mocked(window.requestAnimationFrame).mockImplementation((callback) => { callbacks.push(callback); return callbacks.length; });
-  const finish = studioCtx.copilotActivity.begin([target(child.uuid)]);
+  const finish = studioCtx.copilotActivity.begin([target(child.uuid)], "edit", { id: "codex", name: "Codex" });
   const { container, unmount } = render(<CopilotActivityOverlay studioCtx={studioCtx} frame={frame} />);
   const step = () => act(() => {
     const batch = callbacks;
@@ -81,13 +81,21 @@ it("shows one cursor for edits, preserves it for the next target, and clears fai
   step(); step();
   const root = ensure(container.querySelector<HTMLElement>("[data-plasmic-agent-cursor]"), "Edit cursor was not mounted");
   expect(root.style.display).toBe("block");
+  expect(root.shadowRoot?.querySelector("span")?.textContent).toBe("Codex");
   let finishNext = finish;
   act(() => {
-    finishNext = studioCtx.copilotActivity.begin([target(sibling.uuid)]);
+    finishNext = studioCtx.copilotActivity.begin([target(sibling.uuid)], "edit", { id: "chatgpt", name: "ChatGPT" });
   });
   step();
   expect(container.querySelectorAll("[data-plasmic-agent-cursor]")).toHaveLength(1);
   expect(container.querySelector("[data-plasmic-agent-cursor]")).toBe(root);
+  expect(root.shadowRoot?.querySelector("span")?.textContent).toBe("ChatGPT");
+  act(() => finishNext("error"));
+  step();
+  expect(root.shadowRoot?.querySelector("span")?.textContent).toBe("Codex");
+  act(() => { finishNext = studioCtx.copilotActivity.begin([target(sibling.uuid)]); });
+  step();
+  expect(root.shadowRoot?.querySelector("span")?.textContent).toBe("AI assistant");
   act(() => { finish("error"); finishNext("error"); });
   expect(root.style.display).toBe("none");
   unmount();

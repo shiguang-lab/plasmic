@@ -31,7 +31,7 @@ import {
   spawn,
   withoutNils,
 } from "@/wab/shared/common";
-import type { AiOutputFormat } from "@/wab/shared/copilot/copilot-tool-types";
+import type { AiOutputFormat, CopilotCaller } from "@/wab/shared/copilot/copilot-tool-types";
 import { isPageComponent } from "@/wab/shared/core/components";
 import { formatErrorMessage } from "@/wab/shared/error-handling";
 import { notification, message } from "antd";
@@ -238,6 +238,7 @@ export const TopFrameObserver = observer(function _TopFrameObserver({
         toolName: string,
         toolArgs: Record<string, unknown>,
         outputFormat?: AiOutputFormat,
+        caller?: CopilotCaller,
       ): Promise<CopilotToolCallResult> {
         const copilotTool = COPILOT_TOOLS[toolName];
 
@@ -254,6 +255,7 @@ export const TopFrameObserver = observer(function _TopFrameObserver({
         try {
           const output = await copilotTool.execute(studioCtx, toolArgs, {
             outputFormat,
+            caller,
           });
           return { success: true, output };
         } catch (err) {

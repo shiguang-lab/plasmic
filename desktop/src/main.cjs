@@ -458,8 +458,8 @@ async function startDesktop() {
       if (!trustedAuthSender(event)) throw new Error("Invalid Studio page");
       return controller.dispatch("browser", { action: "open" });
     });
-    stopRpc = await startRpc(app.getPath("userData"), (method, input) =>
-      controller.dispatch(method, input),
+    stopRpc = await startRpc(app.getPath("userData"), (method, input, caller) =>
+      controller.dispatch(method, input, caller),
     );
     app.once("will-quit", () => {
       presentation.dispose();

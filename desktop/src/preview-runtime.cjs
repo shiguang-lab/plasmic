@@ -39,7 +39,7 @@ function previewError(error, input, diagnostics = {}) {
 }
 
 // Executed only in the existing live Preview iframe. Inputs are data, never code.
-async function runtimeCommand(input, documentId) {
+async function runtimeCommand(input, documentId, caller) {
   const key = "__plasmicRuntimeInspection";
   if (!globalThis[key] || globalThis[key].page !== input.pageIdentity) {
     dispatchEvent(new CustomEvent("plasmic-agent-cursor", { detail: { action: "clear" } }));
@@ -105,7 +105,7 @@ async function runtimeCommand(input, documentId) {
     if (right <= left || bottom <= top) return;
     const point = hitPoint || { x: (left + right) / 2, y: (top + bottom) / 2 };
     dispatchEvent(new CustomEvent("plasmic-agent-cursor", { detail: {
-      action: "move", element, point: { x: point.x - r.left, y: point.y - r.top },
+      action: "move", element, point: { x: point.x - r.left, y: point.y - r.top }, caller,
     } }));
   };
   if (input.action === "snapshot") {
@@ -234,7 +234,7 @@ async function viewportRect(frame, viewport, signal) {
   return Object.fromEntries(Object.entries(rect).map(([key, value]) => [key, Math.round(value)]));
 }
 
-async function runPreview(win, input, context, signal = AbortSignal.timeout(30000)) {
+async function runPreview(win, input, context, signal = AbortSignal.timeout(30000), caller) {
   let feedbackFrame;
   const notifyCursor = async (action) => {
     if (!feedbackFrame) return;
@@ -283,7 +283,7 @@ async function runPreview(win, input, context, signal = AbortSignal.timeout(3000
   if (["fill", "select", "scroll", "press"].includes(input.action)) diagnostics.operationExecuted = null;
   // Catch inside the renderer so Electron cannot flatten the exception into a
   // string before its code, stack and execution state reach the main process.
-  const response = await abortable(signal, () => frame.executeJavaScript(`(${runtimeCommand.toString()})(${JSON.stringify({ ...input, pageIdentity: [context.sessionId, context.previewContext?.componentUuid, context.previewContext?.path].join(":") })},${JSON.stringify(randomUUID())}).then(result => ({result}), error => ({error: {
+  const response = await abortable(signal, () => frame.executeJavaScript(`(${runtimeCommand.toString()})(${JSON.stringify({ ...input, pageIdentity: [context.sessionId, context.previewContext?.componentUuid, context.previewContext?.path].join(":") })},${JSON.stringify(randomUUID())},${JSON.stringify(caller)}).then(result => ({result}), error => ({error: {
     message: typeof error?.message === "string" ? error.message : String(error),
     name: error?.name, stack: error?.stack, ...(error?.context || {})
   }}))`, true));

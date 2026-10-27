@@ -11,7 +11,7 @@ function fixture(t) {
   w.requestAnimationFrame = (callback) => callback();
   for (const el of w.document.querySelectorAll("*")) el.getBoundingClientRect = () => ({ x: 0, y: 0, left: 0, top: 0, width: 100, height: 30, right: 100, bottom: 30 });
   Object.defineProperty(w.document.body, "innerText", { get: () => w.document.body.textContent });
-  const run = (input) => w.eval(`(${runtimeCommand.toString()})(${JSON.stringify({ pageIdentity: "session:page:/records", ...input })},"document-id")`);
+  const run = (input, caller) => w.eval(`(${runtimeCommand.toString()})(${JSON.stringify({ pageIdentity: "session:page:/records", ...input })},"document-id",${JSON.stringify(caller)})`);
   return { run, w };
 }
 
@@ -76,10 +76,12 @@ test("Preview feedback follows real targets, keeps reads silent, and clears fail
   const query = snapshot.elements.find((e) => e.name === "查询");
   w.document.elementFromPoint = () => w.document.querySelector("button");
   w.document.querySelector("button").scrollIntoView = () => {};
-  const result = await run({ action: "hover", ref: query.ref });
+  const result = await run({ action: "hover", ref: query.ref }, { id: "codex", name: "Codex" });
+  assert.equal(feedback.at(-1).caller.name, "Codex");
   assert.equal(feedback.at(-1).element, w.document.querySelector("button"));
   assert.deepEqual({ ...feedback.at(-1).point }, { x: result.point.x, y: result.point.y });
-  await run({ action: "fill", ref: snapshot.elements.find((e) => e.name === "SQL").ref, value: "new" });
+  await run({ action: "fill", ref: snapshot.elements.find((e) => e.name === "SQL").ref, value: "new" }, { id: "chatgpt", name: "ChatGPT" });
+  assert.equal(feedback.at(-1).caller.name, "ChatGPT");
   assert.equal(feedback.at(-1).element, w.document.querySelector("textarea"));
   await assert.rejects(run({ action: "click", ref: snapshot.elements.find((e) => e.name === "保存").ref }), /disabled/);
   assert.equal(feedback.at(-1).action, "clear");

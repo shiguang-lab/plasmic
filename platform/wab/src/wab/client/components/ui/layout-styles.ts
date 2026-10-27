@@ -56,6 +56,8 @@ export const editorCanvasControlsLayout = {
   panelGap: 8,
 } as const;
 
+const editorRightPanelMinWidth = 320;
+
 export const editorPanelHeaderStyle = (token: GlobalToken) =>
   ({
     display: "flex",
@@ -358,7 +360,10 @@ export const useEditorLayoutStyles = createStyles(({ token }) => ({
       paddingInline: 12,
       borderRadius: applicationHeaderLayout.height / 2,
     },
-    [`& .canvas-editor__top-bar .${topBar.right}`]: { flexShrink: 0 },
+    [`& .canvas-editor__top-bar .${topBar.right}`]: {
+      flexShrink: 0,
+      minWidth: editorRightPanelMinWidth,
+    },
     [`& .canvas-editor__top-bar .${topBar.freeBox___7MgoJ}`]: {
       paddingLeft: 0,
       paddingRight: 0,
@@ -997,7 +1002,7 @@ export const useEditorLayoutStyles = createStyles(({ token }) => ({
         editorCanvasControlsLayout.edgeInset +
         editorCanvasControlsLayout.height +
         editorCanvasControlsLayout.panelGap,
-      width: 320,
+      width: `var(--editor-right-panel-width, ${editorRightPanelMinWidth}px)`,
       maxWidth: "calc(100% - 16px)",
       zIndex: 20,
     },

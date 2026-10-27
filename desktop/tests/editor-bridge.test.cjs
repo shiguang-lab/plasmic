@@ -24,7 +24,7 @@ function fixture(t) {
     get: () => { reads.push(name); return schemas[name]; },
   }])));
   const window = {
-    PLASMIC_AI_TOOLS: { _meta: metadata, getEditorContext: async () => contextFailure
+    PLASMIC_AI_TOOLS: { _meta: metadata, read: async (input, caller) => ({ success: true, output: JSON.stringify({ input, caller }) }), getEditorContext: async () => contextFailure
       ? { success: false, error: { message: "Context read failed" } }
       : { success: true, output: JSON.stringify({ sessionId: "session", changeCounter: 2 }) } },
     addEventListener: (_name, handler) => { onMessage = handler; },
@@ -65,7 +65,7 @@ function fixture(t) {
   controller.invoke = async (method, input) => {
     requests.push({ method, input });
     await onMessage({ source: window, origin, data: {
-      channel: "plasmic-desktop-request", id: "request", method, input,
+      channel: "plasmic-desktop-request", id: "request", method, input, caller: controller.callerContext.getStore(),
     } });
     if (response.result.success === false) {
       throw new Error(response.result.error.message);
@@ -75,6 +75,14 @@ function fixture(t) {
   const state = async (input) => JSON.parse(JSON.stringify(await controller.dispatch("get_app_state", input)));
   return { controller, state, schemas, reads, requests, failContext: () => { contextFailure = true; } };
 }
+
+test("editor bridge forwards invocation ownership outside the tool input", async (t) => {
+  const { controller } = fixture(t);
+  controller.checkContext = async () => {};
+  const input = { componentUuids: ["page"] }, caller = { id: "codex", name: "Codex" };
+  const result = await controller.dispatch("execute", { name: "read", input }, caller);
+  assert.deepEqual(JSON.parse(JSON.stringify(result)), { input, caller });
+});
 
 test("schema scope reaches the editor bridge without reading unrequested contracts", async (t) => {
   const { controller, state, schemas, reads } = fixture(t);

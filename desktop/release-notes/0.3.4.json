@@ -1,0 +1,7 @@
+{
+  "en": "- Show the calling MCP client name, such as Codex or ChatGPT, on AI cursors in the editor and Preview, keeping each connection’s operations separate.\n- Align the property inspector width with the top-right toolbar.",
+  "zh-CN": "- 编辑器和预览中的 AI 光标显示实际 MCP 调用方名称（如 Codex、ChatGPT），分别保留各连接的操作身份。\n- 属性面板宽度随右上方工具栏对齐。",
+  "zh-TW": "- 編輯器與預覽中的 AI 游標顯示實際 MCP 呼叫端名稱（如 Codex、ChatGPT），分別保留各連線的操作身分。\n- 屬性面板寬度隨右上方工具列對齊。",
+  "ja": "- エディターとプレビューの AI カーソルに Codex や ChatGPT など実際の MCP クライアント名を表示し、接続ごとの操作主体を保持します。\n- プロパティパネルの幅を右上のツールバーに揃えました。",
+  "ko": "- 편집기와 미리보기의 AI 커서에 Codex, ChatGPT 등 실제 MCP 클라이언트 이름을 표시하고 연결별 작업 주체를 유지합니다.\n- 속성 패널의 너비를 오른쪽 위 도구 모음에 맞췄습니다."
+}

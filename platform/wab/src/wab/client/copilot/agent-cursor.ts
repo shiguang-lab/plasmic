@@ -86,11 +86,12 @@ export function createAgentCursor(
     root.style.display = hidden ? "none" : "block";
     frame = win.requestAnimationFrame(tick);
   };
-  const update = (id: unknown, point: AgentCursorPoint, running: boolean) => {
+  const update = (id: unknown, point: AgentCursorPoint, running: boolean, name = options.label) => {
     if (disposed || !Number.isFinite(point.x) || !Number.isFinite(point.y)) {
       return;
     }
     const now = win.performance.now();
+    label.textContent = name;
     if (!current) {
       current = { ...point };
       appeared = previous = now;
@@ -132,6 +133,7 @@ export function installPreviewAgentCursor(
   const cursor = createAgentCursor(host, options);
   let target: Element | undefined;
   let point: AgentCursorPoint | undefined;
+  let name = options.label;
   let id = 0;
   let frame = 0;
   let expires = 0;
@@ -148,7 +150,7 @@ export function installPreviewAgentCursor(
       return;
     }
     // Keep the real hit point's offset as its element moves or scrolls.
-    cursor.update(id, { x: rect.left + (point?.x ?? rect.width / 2), y: rect.top + (point?.y ?? rect.height / 2) }, false);
+    cursor.update(id, { x: rect.left + (point?.x ?? rect.width / 2), y: rect.top + (point?.y ?? rect.height / 2) }, false, name);
     frame = win.requestAnimationFrame(track);
   };
   const clear = () => {
@@ -167,6 +169,7 @@ export function installPreviewAgentCursor(
       win.cancelAnimationFrame(frame);
       target = detail.element;
       point = detail.point;
+      name = detail.caller?.name ?? options.label;
       id++;
       expires = win.performance.now() + 6500;
       track();

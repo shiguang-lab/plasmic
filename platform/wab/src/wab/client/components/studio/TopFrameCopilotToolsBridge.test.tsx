@@ -83,8 +83,9 @@ describe("prototype browser bridge", () => {
     if (!tools) {
       throw new Error("Bridge missing");
     }
-    const first = tools.createComponent({ name: "First" });
-    const second = tools.read({});
+    const codex = { id: "codex", name: "Codex" }, chatgpt = { id: "chatgpt", name: "ChatGPT" };
+    const first = tools.createComponent({ name: "First" }, codex);
+    const second = tools.read({}, chatgpt);
     await waitFor(() =>
       expect(frame.hostFrameApi.executeCopilotToolCall).toHaveBeenCalledTimes(
         1,
@@ -95,6 +96,8 @@ describe("prototype browser bridge", () => {
     expect(
       frame.hostFrameApi.executeCopilotToolCall.mock.calls.map((c) => c[0]),
     ).toEqual(["createComponent", "read"]);
+    expect(frame.hostFrameApi.executeCopilotToolCall).toHaveBeenNthCalledWith(1, "createComponent", { name: "First" }, undefined, codex);
+    expect(frame.hostFrameApi.executeCopilotToolCall).toHaveBeenNthCalledWith(2, "read", {}, undefined, chatgpt);
     rendered.unmount();
   });
 

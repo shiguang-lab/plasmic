@@ -4,6 +4,16 @@ const path = require("node:path");
 const { randomBytes, randomUUID, createHash } = require("node:crypto");
 const { errorPayload } = require("./tool-context.cjs");
 const MCP_SESSION = "mcp:session";
+const MCP_REGISTER_CALLER = "mcp:register-caller";
+
+function callerName(clientInfo) {
+  const name = clientInfo?.name;
+  if (typeof name !== "string" || !name.trim()) throw new Error("MCP client name is required");
+  const title = typeof clientInfo.title === "string" ? clientInfo.title.trim() : "";
+  if (/(?:^|[\s/_-])codex(?:$|[\s/_-])/i.test(name)) return "Codex";
+  if (/(?:^|[\s/_-])chat[ -]?gpt(?:$|[\s/_-])/i.test(name)) return "ChatGPT";
+  return (title || name).replace(/[\u0000-\u001f\u007f]/g, "").trim().slice(0, 120) || name.trim().slice(0, 120);
+}
 function socketPath(profile) {
   return process.platform === "win32"
     ? "\\\\.\\pipe\\plasmic-desktop-" +
@@ -22,9 +32,15 @@ async function startRpc(profile, dispatch) {
   }
   const token = randomBytes(32).toString("hex");
   const connections = new Set();
+  // Command sockets are short-lived; their caller belongs to a lifecycle socket.
+  const callers = new Map();
   const server = net.createServer((connection) => {
     connections.add(connection);
-    connection.once("close", () => connections.delete(connection));
+    let callerId;
+    connection.once("close", () => {
+      connections.delete(connection);
+      if (callerId) callers.delete(callerId);
+    });
     connection.setEncoding("utf8");
     let buffer = "",
       accepted = false;
@@ -55,11 +71,25 @@ async function startRpc(profile, dispatch) {
         }
         authenticated = true;
         if (request.method === MCP_SESSION) {
+          callerId = randomUUID();
+          callers.set(callerId, undefined);
           connection.setTimeout(0);
-          connection.write(JSON.stringify({ result: { connected: true } }) + "\n");
+          connection.write(JSON.stringify({ result: { connected: true, callerId } }) + "\n");
           return;
         }
-        const result = await dispatch(request.method, request.input || {});
+        if (request.callerId !== undefined && !callers.has(request.callerId)) {
+          throw new Error("MCP caller session has closed; reconnect");
+        }
+        if (request.method === MCP_REGISTER_CALLER) {
+          if (!request.callerId || callers.get(request.callerId)) throw new Error("MCP caller must register once per connection");
+          const caller = Object.freeze({ id: request.callerId, name: callerName(request.input?.clientInfo) });
+          callers.set(request.callerId, caller);
+          connection.end(JSON.stringify({ result: { registered: true } }) + "\n");
+          return;
+        }
+        const caller = callers.get(request.callerId);
+        if (request.callerId !== undefined && !caller) throw new Error("MCP caller is not registered");
+        const result = await dispatch(request.method, request.input || {}, caller);
         response = { result };
       } catch (error) {
         response = { error: errorPayload(error) };
@@ -140,15 +170,16 @@ async function connectRpcSession(profile) {
       if (!buffer.includes("\n")) return;
       try {
         const response = JSON.parse(buffer.slice(0, buffer.indexOf("\n")));
-        if (response.result?.connected !== true) throw new Error(response.error?.message || "Invalid Desktop connection response");
+        if (response.result?.connected !== true || typeof response.result.callerId !== "string") throw new Error(response.error?.message || "Invalid Desktop connection response");
         connected = true;
+        connection.callerId = response.result.callerId;
         connection.setTimeout(0);
         resolve(connection);
       } catch (error) { connection.destroy(error); }
     });
   });
 }
-async function requestRpc(profile, method, input = {}) {
+async function requestRpc(profile, method, input = {}, callerId) {
   const address = await rpcAddress(profile);
   return new Promise((resolve, reject) => {
     const connection = net.createConnection(address.socket);
@@ -160,7 +191,7 @@ async function requestRpc(profile, method, input = {}) {
     connection.on("error", reject);
     connection.on("connect", () =>
       connection.write(
-        JSON.stringify({ token: address.token, method, input }) + "\n",
+        JSON.stringify({ token: address.token, method, input, ...(callerId ? { callerId } : {}) }) + "\n",
       ),
     );
     connection.on("data", (chunk) => {
@@ -186,4 +217,4 @@ async function requestRpc(profile, method, input = {}) {
     });
   });
 }
-module.exports = { startRpc, requestRpc, connectRpcSession };
+module.exports = { startRpc, requestRpc, connectRpcSession, MCP_REGISTER_CALLER };

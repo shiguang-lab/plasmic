@@ -9,7 +9,7 @@ const {
 const {
   AjvJsonSchemaValidator,
 } = require("@modelcontextprotocol/sdk/validation/ajv");
-const { requestRpc, connectRpcSession } = require("./local-rpc.cjs");
+const { requestRpc, connectRpcSession, MCP_REGISTER_CALLER } = require("./local-rpc.cjs");
 const { McpResults } = require("./mcp-results.cjs");
 const { browserOutput } = require("./browser-output.cjs");
 const { prototypeTools } = require("./prototype-mcp.cjs");
@@ -561,13 +561,19 @@ async function serveMcp(profile) {
   const requireDesktop = () => {
     if (session.destroyed) throw new Error("Start Plasmic before connecting MCP");
   };
+  let callerReady;
+  const registerCaller = () => callerReady ??= requestRpc(
+    profile, MCP_REGISTER_CALLER, { clientInfo: server.getClientVersion() }, session.callerId,
+  );
+  server.oninitialized = () => { void registerCaller().catch(() => server.close()); };
   server.onclose = () => session.destroy();
   session.once("close", () => { void server.close(); });
-  server.setRequestHandler(ListToolsRequestSchema, async () => { requireDesktop(); return { tools }; });
+  server.setRequestHandler(ListToolsRequestSchema, async () => { requireDesktop(); await registerCaller(); return { tools }; });
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const started = Date.now();
     try {
       requireDesktop();
+      await registerCaller();
       assertToolRouting(request.params.name, request.params.arguments || {});
       const validator = validators.get(request.params.name);
       if (!validator) {
@@ -601,6 +607,7 @@ async function serveMcp(profile) {
                 profile,
                 request.params.name,
                 request.params.arguments || {},
+                session.callerId,
               );
       if (request.params.name === "reference_browser") result = browserOutput(request.params.arguments?.action, result);
       if (request.params.name === "export_code" && Array.isArray(result.files)) result = { ...result, fileCount: result.files.length, files: results.retain(result.files) };

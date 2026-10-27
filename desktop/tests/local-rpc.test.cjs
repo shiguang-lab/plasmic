@@ -5,7 +5,41 @@ const os = require("node:os");
 const path = require("node:path");
 const net = require("node:net");
 const { setTimeout: delay } = require("node:timers/promises");
-const { startRpc, requestRpc, connectRpcSession } = require("../src/local-rpc.cjs");
+const { startRpc, requestRpc, connectRpcSession, MCP_REGISTER_CALLER } = require("../src/local-rpc.cjs");
+
+test("caller identity is registered once, scoped to its lifecycle connection, and retained by accepted work", async () => {
+  const profile = await fs.mkdtemp(path.join(os.tmpdir(), "plasmic-rpc-callers-"));
+  let release, entered;
+  const started = new Promise((resolve) => { entered = resolve; });
+  const paused = new Promise((resolve) => { release = resolve; });
+  const stop = await startRpc(profile, async (method, input, caller) => {
+    if (method === "paused") { entered(); await paused; }
+    return { input, caller };
+  });
+  const first = await connectRpcSession(profile), second = await connectRpcSession(profile);
+  try {
+    await assert.rejects(requestRpc(profile, "read", {}, first.callerId), /not registered/);
+    await requestRpc(profile, MCP_REGISTER_CALLER, { clientInfo: { name: "codex_cli_rs", version: "1" } }, first.callerId);
+    await requestRpc(profile, MCP_REGISTER_CALLER, { clientInfo: { name: "chatgpt", version: "1" } }, second.callerId);
+    await assert.rejects(requestRpc(profile, MCP_REGISTER_CALLER, { clientInfo: { name: "changed" } }, first.callerId), /once per connection/);
+    assert.deepEqual(await requestRpc(profile, "read", { value: "same" }, first.callerId), {
+      input: { value: "same" }, caller: { id: first.callerId, name: "Codex" },
+    });
+    const pending = requestRpc(profile, "paused", {}, first.callerId);
+    await started;
+    const closed = new Promise((resolve) => first.once("close", resolve));
+    first.end();
+    await closed;
+    await assert.rejects(requestRpc(profile, "read", {}, first.callerId), /session has closed/);
+    release();
+    assert.equal((await pending).caller.name, "Codex");
+    assert.equal((await requestRpc(profile, "read", {}, second.callerId)).caller.name, "ChatGPT");
+    assert.deepEqual(await requestRpc(profile, "read"), { input: {} }, "unowned script calls do not inherit the last agent");
+  } finally {
+    release(); first.destroy(); second.destroy();
+    await stop(); await fs.rm(profile, { recursive: true, force: true });
+  }
+});
 
 test("Desktop shutdown disconnects every MCP session even while clients keep their sockets open", async () => {
   const profile = await fs.mkdtemp(path.join(os.tmpdir(), "plasmic-rpc-sessions-"));

@@ -1,4 +1,5 @@
 import { ensure } from "@/wab/shared/common";
+import type { CopilotCaller } from "@/wab/shared/copilot/copilot-tool-types";
 import { findLast } from "lodash";
 import { observable, runInAction } from "mobx";
 
@@ -17,6 +18,7 @@ export interface CanvasActivity {
   status: "running" | "success";
   scanning: boolean;
   kind: "edit" | "inspection";
+  caller?: CopilotCaller;
 }
 
 const MIN_SCAN_MS = 1600;
@@ -83,13 +85,14 @@ export class CopilotActivity {
     }));
   }
 
-  begin(targets: ActivityTarget[], kind: CanvasActivity["kind"] = "edit") {
+  begin(targets: ActivityTarget[], kind: CanvasActivity["kind"] = "edit", caller?: CopilotCaller) {
     const request: CanvasActivity = {
       id: ++this.nextId,
       targets,
       status: "running",
       scanning: true,
       kind,
+      caller,
     };
     const started = Date.now();
     let finished = false;

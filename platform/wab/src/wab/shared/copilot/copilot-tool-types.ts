@@ -6,6 +6,12 @@ import { z } from "zod";
 /** Serialization format an AI agent prefers for copilot tool output. */
 export type AiOutputFormat = "json" | "xml";
 
+/** Transient identity of the connection that owns a tool invocation. */
+export interface CopilotCaller {
+  readonly id: string;
+  readonly name: string;
+}
+
 export type CopilotToolMeta<
   TInput extends JSONSchema7 | z.ZodObject<z.ZodRawShape> =
     z.ZodObject<z.ZodRawShape>,
@@ -35,7 +41,7 @@ export type CopilotTool<
   execute: (
     studioCtx: StudioCtx,
     input: z.input<TInput>,
-    opts?: { prettify?: boolean; outputFormat?: AiOutputFormat },
+    opts?: { prettify?: boolean; outputFormat?: AiOutputFormat; caller?: CopilotCaller },
   ) => Promise<string>;
 };
 
@@ -54,6 +60,7 @@ export function defineCopilotTool<
   execute: (
     studioCtx: StudioCtx,
     input: z.infer<TInput>,
+    caller?: CopilotCaller,
   ) => Promise<z.infer<TOutput>>,
 ): CopilotTool<TInput, TOutput> {
   return {
@@ -66,7 +73,7 @@ export function defineCopilotTool<
       }
       const parsedInput = checked.data;
       const output = meta.outputSchema.parse(
-        await execute(studioCtx, parsedInput),
+        await execute(studioCtx, parsedInput, opts?.caller),
       );
       return meta.toolName !== "executeLocalEdit" && (opts?.outputFormat ?? studioCtx.preferredAiOutputFormat()) === "xml"
         ? jsonToXml(output, prettify)

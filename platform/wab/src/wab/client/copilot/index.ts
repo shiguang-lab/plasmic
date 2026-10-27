@@ -196,9 +196,9 @@ async function restoreEditorView(studio: StudioCtx, input: ReturnType<typeof met
 
 // Keep input/output validation and serialization in the shared tool wrapper.
 const defineCopilotTool: typeof defineTool = (toolMeta, execute) =>
-  defineTool(toolMeta, async (studio, input) => {
+  defineTool(toolMeta, async (studio, input, caller) => {
     if (!editTools.has(toolMeta.toolName)) {
-      return execute(studio, input);
+      return execute(studio, input, caller);
     }
     const targets = activityTargets(toolMeta.toolName, input).map((target) => {
       const component =
@@ -223,9 +223,9 @@ const defineCopilotTool: typeof defineTool = (toolMeta, execute) =>
           : (target.canvasName ?? "Project"),
       };
     });
-    const finish = studio.copilotActivity.begin(targets);
+    const finish = studio.copilotActivity.begin(targets, "edit", caller);
     try {
-      const output = await execute(studio, input);
+      const output = await execute(studio, input, caller);
       finish("success");
       return output;
     } catch (error) {

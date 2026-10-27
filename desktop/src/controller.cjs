@@ -10,6 +10,7 @@ const { runPreview, previewFrame, previewError } = require("./preview-runtime.cj
 const { prototypeTools } = require("./prototype-mcp.cjs");
 const { requiredContext, currentContext, assertContext, contextError } = require("./tool-context.cjs");
 const { IslandActivity } = require("./island-activity.cjs");
+const { AsyncLocalStorage } = require("node:async_hooks");
 const { uiError } = require("./ui-error.cjs");
 const buildIdentity = (build) => createHash("sha256").update(JSON.stringify(build)).digest("hex");
 function validateResourceId(value, label) {
@@ -35,6 +36,7 @@ class DesktopController {
     this.waitForStartup = waitForStartup;
     this.prepareSession = prepareSession;
     this.activity = new IslandActivity();
+    this.callerContext = new AsyncLocalStorage();
     this.operations = this.activity.operations;
     this.pending = new Map();
     this.queue = Promise.resolve();
@@ -80,7 +82,7 @@ class DesktopController {
         );
       }, timeout);
       this.pending.set(id, { window, timer, resolve, reject });
-      window.webContents.send("desktop:invoke", { id, method, input });
+      window.webContents.send("desktop:invoke", { id, method, input, caller: this.callerContext.getStore() });
     });
   }
   async editor(name, input = {}) {
@@ -229,13 +231,13 @@ class DesktopController {
     const url = state.url || this.getWindow()?.webContents?.getURL?.();
     return assertContext(required, { ...state, ...(url ? { url } : {}) }, this.config.studioOrigin);
   }
-  dispatch(method, input) {
+  dispatch(method, input, caller) {
     if (this.updating) return Promise.reject(uiError("Plasmic is restarting to install an update. Retry after it reopens."));
     if (!input || typeof input !== "object" || Array.isArray(input)) return Promise.reject(new Error("Arguments must be an object"));
     try { assertToolRouting(method, input); } catch (error) { return Promise.reject(error); }
     const id = randomUUID();
-    this.activity.enqueue(id, method, input);
-    const run = async () => {
+    this.activity.enqueue(id, method, input, caller);
+    const run = () => this.callerContext.run(caller, async () => {
       this.activity.start(id);
       let failure;
       try {
@@ -260,7 +262,7 @@ class DesktopController {
       } finally {
         this.activity.finish(id, failure);
       }
-    };
+    });
     if (
       [
         "report_task",
@@ -387,7 +389,7 @@ class DesktopController {
         }
       } else {
         if (input.action === "state" && (before.mode !== "preview" || !before.previewContext?.componentUuid)) result = { ready: false };
-        else result = await runPreview(win, input, before);
+        else result = await runPreview(win, input, before, undefined, this.callerContext.getStore());
       }
       diagnostics.phase = "context-read";
       if (input.action !== "state") diagnostics.operationExecuted = true;

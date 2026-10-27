@@ -213,8 +213,8 @@ export const CopilotActivityOverlay = observer(function CopilotActivityOverlay({
     cursor.current?.update(cursorRequest.id, {
       x: bounds.left + bounds.width / 2,
       y: bounds.top + bounds.height / 2,
-    }, cursorRequest.status === "running");
-  }, [cursorRequest]);
+    }, cursorRequest.status === "running", cursorRequest.caller?.name ?? t("AI assistant"));
+  }, [cursorRequest, t]);
   if (!viewCtx) {
     return null;
   }

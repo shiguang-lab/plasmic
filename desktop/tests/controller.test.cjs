@@ -17,6 +17,30 @@ const deferred = () => {
   });
   return { promise, resolve };
 };
+test("queued and parallel calls retain their caller through async work and IPC", async (t) => {
+  const sent = [], first = deferred(), entered = deferred();
+  const webContents = { mainFrame: {}, send: (_channel, request) => {
+    sent.push(request);
+    controller.receive({ sender: webContents, senderFrame: webContents.mainFrame }, request.id, { success: true, output: "{}" });
+  } };
+  const controller = new DesktopController(() => ({ isDestroyed: () => false, webContents }), {});
+  t.after(() => controller.close());
+  controller.checkContext = async () => {};
+  controller.execute = async (_method, input) => {
+    if (input.pause) { entered.resolve(); await first.promise; }
+    await Promise.resolve();
+    return controller.invoke("read", input);
+  };
+  const codex = { id: "codex-session", name: "Codex" }, chatgpt = { id: "chatgpt-session", name: "ChatGPT" };
+  const a = controller.dispatch("execute", { pause: true }, codex);
+  await entered.promise;
+  const b = controller.dispatch("execute_batch", {}, chatgpt);
+  await controller.dispatch("get_app_state", {}, chatgpt);
+  assert.deepEqual([...controller.operations.values()].map((op) => op.caller), [codex, chatgpt]);
+  first.resolve(); await Promise.all([a, b]);
+  await controller.invoke("metadata");
+  assert.deepEqual(sent.map((request) => request.caller), [chatgpt, codex, chatgpt, undefined]);
+});
 test("update preparation drains parallel and queued MCP calls, rejects new calls, then saves", async (t) => {
   const win = {isDestroyed:()=>false,webContents:{getURL:()=>"https://studio.example/projects/p"}};
   const controller = new DesktopController(()=>win,{studioOrigin:"https://studio.example"});

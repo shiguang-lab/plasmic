@@ -14,7 +14,7 @@ import {
   CopilotChatOpenOpts,
 } from "@/wab/shared/ApiSchema";
 import { PkgVersionInfoMeta } from "@/wab/shared/SharedApi";
-import type { AiOutputFormat } from "@/wab/shared/copilot/copilot-tool-types";
+import type { AiOutputFormat, CopilotCaller } from "@/wab/shared/copilot/copilot-tool-types";
 import { ChangeLogEntry, SemVerReleaseType } from "@/wab/shared/site-diffs";
 import { LeftTabKey } from "@/wab/shared/ui-config-utils";
 import type { PreviewPage } from "@plasmic-shared/preview";
@@ -68,6 +68,7 @@ export type HostFrameApi = {
     toolName: string,
     toolArgs: Record<string, unknown>,
     outputFormat?: AiOutputFormat,
+    caller?: CopilotCaller,
   ): Promise<CopilotToolCallResult>;
   /** Store the AI agent's preferred copilot tool output format on StudioCtx. */
   setPreferredAiOutputFormat(format: AiOutputFormat): Promise<void>;
