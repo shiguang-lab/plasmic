@@ -18,6 +18,8 @@ import {
 import { typeFactory } from "@/wab/shared/model/model-util";
 import { DEVFLAGS } from "@/wab/shared/devflags";
 import { err } from "neverthrow";
+import { runInNewContext } from "node:vm";
+import { initBuiltinActions } from "@/wab/shared/core/states";
 
 describe("createInteraction", () => {
   function setup() {
@@ -32,6 +34,39 @@ describe("createInteraction", () => {
     assert(isKnownEventHandler(expr), "expected an EventHandler");
     return expr;
   }
+
+  it("runs only the matching conditional step and skips its arguments otherwise", async () => {
+    const { page, root } = setup();
+    initBuiltinActions({ projectId: "conditional-test", platform: "react", projectFlags: DEVFLAGS, inStudio: false });
+    for (const [name, condition, action] of [
+      ["View", '{{ event.key === "view" }}', { actionName: "navigation", destination: "{{ destination() }}" }],
+      ["Copy", '{{ event.key === "copy" }}', { actionName: "customFunction", code: 'record("copy")' }],
+      ["Disabled", false, { actionName: "customFunction", code: 'record("disabled")' }],
+    ] as const) {
+      const result = createInteraction({ component: page, tpl: root, eventName: "onClick", name, condition, action });
+      assert(result.isOk(), "expected conditional interaction");
+    }
+    const destination = vi.fn(() => "/details");
+    const assign = vi.fn();
+    const record = vi.fn();
+    const handlerCode = asCode(getHandler(root, "onClick"), { component: page, inStudio: false, projectFlags: DEVFLAGS }).code;
+    const run = runInNewContext(`(${handlerCode})`, { location: {assign}, destination, record });
+    await run({key:"copy"});
+    expect(record).toHaveBeenCalledExactlyOnceWith("copy");
+    expect(destination).not.toHaveBeenCalled();
+    expect(assign).not.toHaveBeenCalled();
+    await run({key:"view"});
+    expect(destination).toHaveBeenCalledOnce();
+    expect(assign).toHaveBeenCalledExactlyOnceWith("/details");
+    expect(record).toHaveBeenCalledOnce();
+  });
+
+  it.each(["plain text", "{{ event. }}"])("rejects invalid condition %s without creating a handler", (condition) => {
+    const { page, root } = setup();
+    const result = createInteraction({ component: page, tpl: root, eventName:"onClick", name:"Invalid", condition, action:{actionName:"customFunction",code:"1"} });
+    expect(result.isErr()).toBe(true);
+    expect(ensureBaseVariantSetting(root).attrs.onClick).toBeUndefined();
+  });
 
   it("stores validated-event navigation as a native navigation action", () => {
     const { page, root } = setup();

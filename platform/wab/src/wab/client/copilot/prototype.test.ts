@@ -175,6 +175,71 @@ describe("AI prototype editor tools", () => {
     studioCtx.copilotActivity.dispose();
   });
 
+  it("reads ordered ref parameters and nested validation contracts after registration loads", async () => {
+    const meta = {
+      name: "ContractForm", importPath: "./form", props: {
+        rules: { type:"formValidationRules", itemType:{type:"object",fields:{
+          ruleType:{type:"choice",options:["required","advanced"]},
+          custom:{type:"function",argNames:["rule","value"],description:"Return true or false synchronously"},
+        }} },
+      },
+      refActions: {
+        submit: {argTypes:[]},
+        setFieldValue: {description:"Set a field",argTypes:[
+          {name:"namePath",type:"string"},
+          {name:"value",type:{type:"object",fields:{enabled:"boolean"}}},
+        ]},
+      },
+    };
+    const definition = mkCodeComponent(meta.name, meta as any, {});
+    definition.params.push(mkParam({name:"rules",paramType:"prop",type:typeFactory.any()}));
+    const site = createSite();
+    site.components.push(definition);
+    const {studioCtx,call} = fixture(site);
+    const frame = (studioCtx as any).hostLessPkgsFrame.contentWindow;
+    (studioCtx as any).hostLessPkgsLock = Promise.resolve().then(() => {
+      frame.__PlasmicComponentRegistry = [{component:()=>null,meta}];
+      (studioCtx as any).hostLessRegistry.clear();
+    });
+    const contract = (await call("read",{componentUuids:[definition.uuid],view:"contract"})).results[0];
+    expect(contract.refActions).toEqual([
+      {name:"submit",args:[]},
+      {name:"setFieldValue",description:"Set a field",args:[
+        {name:"namePath",type:"string"},
+        {name:"value",type:"object",fields:{enabled:{type:"boolean"}}},
+      ]},
+    ]);
+    expect(contract.props[0].registration.itemType.fields.custom).toEqual({type:"function",args:[{name:"rule",type:"any"},{name:"value",type:"any"}],description:"Return true or false synchronously"});
+    expect(studioCtx.site.components).toEqual([definition]);
+  });
+
+  it("reports unavailable registrations instead of returning incomplete component contracts", async () => {
+    const site = createSite();
+    const definition = mkCodeComponent("MissingContract", {name:"MissingContract",importPath:"./missing",props:{},refActions:{submit:{argTypes:[]}}}, {});
+    site.components.push(definition);
+    const {call} = fixture(site);
+    await expect(call("read", {componentUuids:[definition.uuid],view:"contract"})).rejects.toThrow('Live registration is unavailable for "MissingContract"');
+    expect((await call("read", {componentUuids:[definition.uuid],view:"tree"})).results[0].name).toBe("MissingContract");
+  });
+
+  it("writes, reads and undoes native interaction conditions through MCP", async () => {
+    const {call,createPage} = fixture();
+    const page = await createPage("ConditionalNavigation");
+    const target = {componentUuid:page.uuid,elementUuid:page.tplTree.uuid};
+    await call("createInteraction", {...target,eventName:"onClick",name:"View",condition:'{{ event.key === "view" }}',action:{actionName:"navigation",destination:"/details"}});
+    const readStep = async () => (await call("read",{componentUuids:[page.uuid],view:"context"})).results[0].interactions[0];
+    const step = await readStep();
+    expect(step).toMatchObject({actionName:"navigation",conditionalMode:"expression"});
+    expect(step.condition).toBeDefined();
+    await call("updateInteraction",{...target,interactionUuid:step.uuid,condition:false});
+    expect(await readStep()).toMatchObject({uuid:step.uuid,conditionalMode:"never"});
+    await call("undo");
+    expect(await readStep()).toEqual(step);
+    await call("updateInteraction",{...target,interactionUuid:step.uuid,condition:true});
+    expect(await readStep()).not.toHaveProperty("conditionalMode");
+    expect(await readStep()).not.toHaveProperty("condition");
+  });
+
   it("reads complete indirect dependencies without expanding inventories or granting mutation access", async () => {
     const leaf = createSite();
     const component = mkComponent({ name: "NestedControl", type: ComponentType.Plain, tplTree: mkTplTagX("div", { name: "NestedRoot" }) });

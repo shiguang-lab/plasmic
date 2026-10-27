@@ -136,6 +136,11 @@ export async function buildLibraryRegistration(entry: string, moduleRoot: string
           return { path: args.path, external: true };
         }
         const hostMethod = args.path.match(/^@plasmicapp\/host\/(register\w+)$/)?.[1];
+        // Registration functions capture globalThis. Bundle the SDK entrypoints
+        // in the destination window instead of calling the host window's copies.
+        if (target === "browser" && hostMethod) {
+          return undefined;
+        }
         if (hostMethod || globals[args.path]) {
           return { path: args.path, namespace: "shared-library-runtime" };
         }
@@ -155,6 +160,15 @@ export async function buildLibraryRegistration(entry: string, moduleRoot: string
       });
       build.onLoad({ filter: /.*/, namespace: "shared-antd-runtime" }, (args) => ({ contents: `module.exports = ${args.pluginData.value};`, loader: "js" }));
       build.onLoad({ filter: /.*/, namespace: "shared-library-runtime" }, (args) => {
+        if (target === "browser" && args.path === "@plasmicapp/host") {
+          const methods = ["registerComponent", "registerGlobalContext", "registerFunction", "registerToken", "registerTrait"];
+          return {
+            contents: methods.map((method) => `import ${method} from "@plasmicapp/host/${method}";`).join("\n") +
+              `\nmodule.exports = { ...__Sub, ${methods.join(", ")} };`,
+            resolveDir: moduleRoot,
+            loader: "js",
+          };
+        }
         const hostMethod = args.path.match(/^@plasmicapp\/host\/(register\w+)$/)?.[1];
         const value = target === "browser" ? (hostMethod ? `__Sub.${hostMethod}` : globals[args.path])
           : (hostMethod ? `require("@plasmicapp/host").${hostMethod}` : `require(${JSON.stringify(args.path)})`);

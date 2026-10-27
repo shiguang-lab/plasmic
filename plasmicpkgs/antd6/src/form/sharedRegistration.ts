@@ -232,7 +232,11 @@ export function commonFormItemProps(
           ruleType: { type: "choice", options: [...formRuleTypes], required: true },
           length: "number", pattern: "string", message: "string",
           options: { type: "array", itemType: { type: "object", fields: { value: "any" } } },
-          custom: { type: "function", argNames: ["rule", "value"] },
+          custom: {
+            type: "function",
+            argNames: ["rule", "value"],
+            description: "Synchronous validation predicate: return true for a valid value and false for an invalid value. Do not return a Promise. Used with ruleType: advanced; message supplies the validation error.",
+          },
         },
       },
     } as any,

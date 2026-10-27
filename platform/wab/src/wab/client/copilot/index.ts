@@ -474,8 +474,12 @@ function readNativeModel(studio: StudioCtx, component: Component, tpl: TplNode |
     }
     const contextRegistration = isContextCodeComponent(component) && fields.some((field) => ["props", "globalActions", "description"].includes(field))
       ? studio.getContextsRegistration().find(({ meta }) => meta.name === component.name)?.meta : undefined;
-    const registration = fields.includes("props") && (contextRegistration ?? studio.getCodeComponentMeta(component));
-    if (registration && Array.isArray(resource.props)) { resource.props = withRegisteredContracts(resource.props, registration.props); }
+    const registration = fields.some((field) => ["props", "refActions", "globalActions"].includes(field))
+      ? contextRegistration ?? studio.getCodeComponentMeta(component) : undefined;
+    if (options.view === "contract" && isCodeComponent(component) && fields.some((field) => ["props", "refActions", "globalActions"].includes(field))) {
+      assert(registration, `Live registration is unavailable for "${component.name}" (${component.uuid}). The stored model does not contain complete argument or validation contracts. Check the installed component library's registration artifact before retrying; do not infer missing signatures from method names.`);
+    }
+    if (fields.includes("props") && registration && Array.isArray(resource.props)) { resource.props = withRegisteredContracts(resource.props, registration.props); }
     if (contextRegistration?.description) resource.description = contextRegistration.description;
     if (fields.includes("globalActions") && contextRegistration) {
       resource.globalActions = Object.entries(contextRegistration.globalActions ?? {}).map(([name, action]) => ({
@@ -489,7 +493,8 @@ function readNativeModel(studio: StudioCtx, component: Component, tpl: TplNode |
     if (actions) {
       resource.refActions = Object.entries(actions).map(([name, action]) => ({
         name, ...(action.displayName ? { displayName: action.displayName } : {}),
-        args: (action.argTypes ?? []).map((arg) => ({ name: arg.name, ...(arg.displayName ? { displayName: arg.displayName } : {}) })),
+        ...(action.description ? { description: action.description } : {}),
+        args: (action.argTypes ?? []).map((arg) => ({ name: arg.name, ...registrationContract(arg.type), ...(arg.displayName ? { displayName: arg.displayName } : {}) })),
       }));
     }
   }
@@ -1385,6 +1390,7 @@ function planMutation(studio: StudioCtx, operation: PrototypeMutation, assets: M
             eventName: input.eventName,
             action: input.action,
             name: input.name,
+            condition: input.condition,
           }),
         );
       };

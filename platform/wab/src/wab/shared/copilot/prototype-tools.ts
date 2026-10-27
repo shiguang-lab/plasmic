@@ -9,6 +9,7 @@ import type { JsonValue } from "@/wab/shared/core/lang";
 import {
   NORMAL_STATE_VARIABLE_TYPES,
   interactionActionSchema,
+  interactionConditionSchema,
 } from "@/wab/shared/core/states";
 import {
   outputResultSchema,
@@ -375,13 +376,14 @@ const EDIT_TOOL_META = {
     toolName: "createInteraction",
     title: "Add a prototype interaction",
     description:
-      "Append an action to a DOM/component event using validated event names and state references. Supports updateVariable, updateVariant, customFunction and navigation. Prefer href for direct links; use navigation on a Form's validated onFinish event when submission must pass validation first. Read the element and component contract first.",
+      "Append an action to a DOM/component event using validated event names and state references. Supports updateVariable, updateVariant, customFunction and navigation. condition gates any action, including navigation, with event arguments or page state. Prefer href for direct links; use navigation on a Form's validated onFinish event when submission must pass validation first. Read the element and component contract first.",
     inputSchema: z
       .object({
         ...element,
         eventName: uuid,
         name: uuid,
         action: interactionActionSchema(),
+        condition: interactionConditionSchema.optional(),
       })
       .strict(),
     outputSchema: mutationReceiptSchema,
@@ -390,13 +392,14 @@ const EDIT_TOOL_META = {
     toolName: "updateInteraction",
     title: "Update a prototype interaction",
     description:
-      "Update an existing event step by its interaction UUID from read. Preserves the step identity, event signature and sibling steps. Renaming rewrites $steps references; action replaces the existing action instead of appending a duplicate. Unsupported action replacements are rejected.",
+      "Update an existing event step by its interaction UUID from read. Preserves the step identity, event signature and sibling steps. Renaming rewrites $steps references; action replaces the existing action instead of appending a duplicate. condition changes the run condition; omitted preserves it, true removes it, false disables the step. Unsupported action replacements are rejected.",
     inputSchema: z
       .object({
         ...element,
         interactionUuid: uuid,
         name: uuid.optional(),
         action: interactionActionSchema().optional(),
+        condition: interactionConditionSchema.optional(),
       })
       .strict(),
     outputSchema: mutationReceiptSchema,

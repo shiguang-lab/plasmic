@@ -18,6 +18,7 @@ import {
 } from "@/wab/shared/common";
 import {
   interpolatedStringFormatDescription,
+  interpolatedStringToCodeExpr,
   interpolatedStringToExpr,
 } from "@/wab/shared/copilot/dynamic-value-input";
 import {
@@ -1380,6 +1381,29 @@ export function interactionActionSchema() {
       destination: z.string().min(1).describe(interpolatedStringFormatDescription),
     }),
   ]);
+}
+
+export const interactionConditionSchema = z.union([z.boolean(), z.string().min(1)]).describe(
+  'Run this step only when the {{ JavaScript expression }} is truthy. true runs always; false disables the step. Omit on creation to run always; omit on update to preserve the condition.',
+);
+
+export function buildInteractionCondition(
+  condition: z.infer<typeof interactionConditionSchema>,
+): Result<Pick<Interaction, "conditionalMode" | "condExpr">, string> {
+  if (typeof condition === "boolean") {
+    return ok({
+      conditionalMode: condition ? InteractionConditionalMode.Always : InteractionConditionalMode.Never,
+      condExpr: null,
+    });
+  }
+  try {
+    return ok({
+      conditionalMode: InteractionConditionalMode.Expression,
+      condExpr: interpolatedStringToCodeExpr(condition),
+    });
+  } catch (error) {
+    return err(error instanceof Error ? error.message : String(error));
+  }
 }
 
 function runCodeActionSchema() {

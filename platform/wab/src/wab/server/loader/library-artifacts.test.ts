@@ -1,4 +1,4 @@
-import { buildLibraryArtifact, materializeLibraryArtifacts } from "@/wab/server/loader/library-artifacts";
+import { buildLibraryArtifact, buildLibraryRegistration, materializeLibraryArtifacts } from "@/wab/server/loader/library-artifacts";
 import { bundleModules } from "@/wab/server/loader/module-bundler";
 import { writeCodeBundlesToDisk } from "@/wab/server/loader/module-writer";
 import type { CachedCodegenOutputBundle } from "@/wab/server/workers/codegen";
@@ -6,8 +6,34 @@ import type { Site } from "@/wab/shared/model/classes";
 import { promises as fs } from "fs";
 import os from "os";
 import path from "path";
+import { createRequire } from "module";
 import { runInNewContext } from "vm";
-import { expect, it } from "vitest";
+import { expect, it, vi } from "vitest";
+
+const hostPackage = path.dirname(createRequire(import.meta.url).resolve("@plasmicapp/host/package.json"));
+
+it("registers metadata in each destination window while sharing host React and contexts", async () => {
+  const source = await buildLibraryRegistration(`
+    import {registerComponent, registerGlobalContext, DataProvider} from "@plasmicapp/host";
+    import registerSubpathComponent from "@plasmicapp/host/registerComponent";
+    const Form = () => null;
+    registerComponent(Form, {name:"Form", props:{rules:{type:"formValidationRules",itemType:{type:"object",fields:{ruleType:"string"}}}},refActions:{submit:{argTypes:[]},setFieldValue:{argTypes:[{name:"namePath",type:"string"},{name:"value",type:"object"}]}}});
+    registerSubpathComponent(Form, {name:"SubpathForm",props:{}});
+    registerGlobalContext(DataProvider, {name:"Feedback",props:{},globalActions:{showMessage:{parameters:[{name:"type",type:"string"},{name:"content",type:"string"}]}}});
+  `, process.cwd(), "browser");
+  const registerOnHost = vi.fn();
+  const DataProvider = () => null;
+  const shared = { registerComponent: registerOnHost, registerGlobalContext: registerOnHost, DataProvider };
+  const frames = [0, 1].map(() => ({ window: { __Sub: shared } } as any));
+  for (const frame of frames) {
+    runInNewContext(source, frame);
+    expect(frame.__PlasmicComponentRegistry.map((entry: any) => entry.meta.name)).toEqual(["Form", "SubpathForm"]);
+    expect(frame.__PlasmicComponentRegistry[0].meta.refActions).toMatchObject({ submit: {argTypes:[]}, setFieldValue:{argTypes:[{name:"namePath"},{name:"value"}]} });
+    expect(frame.__PlasmicContextRegistry[0]).toMatchObject({ component: DataProvider, meta: {globalActions:{showMessage:{parameters:[{name:"type"},{name:"content"}]}}} });
+  }
+  expect(registerOnHost).not.toHaveBeenCalled();
+  expect(frames[0].__PlasmicComponentRegistry).not.toBe(frames[1].__PlasmicComponentRegistry);
+});
 
 it("publishes an unknown library with CSS, context and transitive code without installing it in Loader", async () => {
   const source = await fs.mkdtemp(path.join(os.tmpdir(), "new-library-source-"));
@@ -21,6 +47,8 @@ it("publishes an unknown library with CSS, context and transitive code without i
   try {
     const root = path.join(source, "node_modules", pkg);
     await fs.mkdir(root, { recursive: true });
+    await fs.mkdir(path.join(source, "node_modules/@plasmicapp"), { recursive: true });
+    await fs.symlink(hostPackage, path.join(source, "node_modules/@plasmicapp/host"), "dir");
     await fs.writeFile(path.join(root, "package.json"), JSON.stringify({ name: pkg, version: "1.0.0", main: "index.js" }));
     await fs.writeFile(path.join(root, "index.js"), `import {registerComponent} from "@plasmicapp/host"; import {Panel} from "./Panel.js"; export function registerAll(){registerComponent(Panel,{name:"NewPanel",props:{},importPath:"${pkg}/Panel",importName:"Panel"});}`);
     await fs.writeFile(path.join(root, "Panel.js"), 'import "./panel.css"; import {label} from "transitive-library"; export function Panel(){return label;}');
@@ -31,10 +59,10 @@ it("publishes an unknown library with CSS, context and transitive code without i
     await fs.writeFile(path.join(source, "node_modules/transitive-library/index.js"), 'export const label="immutable-v1";');
     const artifact = await buildLibraryArtifact(site, source);
     expect(artifact.packages).toEqual({ [pkg]: "1.0.0" });
-    const registry: unknown[] = [];
     const styles: { textContent: string }[] = [];
-    runInNewContext(artifact.canvas, { window: { __Sub: { registerComponent: (...args: unknown[]) => registry.push(args) } }, document: { createElement: () => ({}), head: { appendChild: (style: { textContent: string }) => styles.push(style) } } });
-    expect(registry).toHaveLength(1);
+    const frame = { window: { __Sub: {} }, document: { createElement: () => ({}), head: { appendChild: (style: { textContent: string }) => styles.push(style) } } } as any;
+    runInNewContext(artifact.canvas, frame);
+    expect(frame.__PlasmicComponentRegistry).toHaveLength(1);
     expect(styles.map((style) => style.textContent).join("")).toContain(".new-library-panel");
     // Neither source nor its dependencies are available to the page publisher.
     await fs.writeFile(path.join(source, "node_modules/transitive-library/index.js"), 'export const label="changed-v2";');

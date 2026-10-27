@@ -1,6 +1,7 @@
 import { mkNameArg } from "@/wab/shared/core/lang";
 import {
   buildInteractionArgs,
+  buildInteractionCondition,
   InteractionAction,
   isInteractionActionName,
 } from "@/wab/shared/core/states";
@@ -19,6 +20,7 @@ export type UpdateInteractionResult = Result<void, GenericError>;
 export interface InteractionChanges {
   name?: string;
   action?: InteractionAction;
+  condition?: boolean | string;
 }
 
 /**
@@ -41,15 +43,19 @@ export function updateInteraction(
   interaction: Interaction,
   changes: InteractionChanges,
 ): UpdateInteractionResult {
-  const { name, action } = changes;
+  const { name, action, condition } = changes;
 
-  if (name === undefined && action === undefined) {
+  if (name === undefined && action === undefined && condition === undefined) {
     return err({
       message: `No changes provided for interaction "${interaction.interactionName}".`,
     });
   }
   if (name !== undefined && !name.trim()) {
     return err({ message: "Interaction name cannot be empty." });
+  }
+  const nextCondition = condition === undefined ? undefined : buildInteractionCondition(condition);
+  if (nextCondition?.isErr()) {
+    return err({ message: nextCondition.error });
   }
   let interactionArgs: Record<string, Expr> | undefined;
   if (action !== undefined) {
@@ -84,6 +90,9 @@ export function updateInteraction(
     interaction.args = Object.entries(interactionArgs).map(([argName, expr]) =>
       mkNameArg({ name: argName, expr }),
     );
+  }
+  if (nextCondition?.isOk()) {
+    Object.assign(interaction, nextCondition.value);
   }
   return ok(undefined);
 }

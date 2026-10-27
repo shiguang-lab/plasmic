@@ -1,5 +1,6 @@
 import {
   buildInteractionArgs,
+  buildInteractionCondition,
   InteractionAction,
   mkInteraction,
 } from "@/wab/shared/core/states";
@@ -47,6 +48,7 @@ export function createInteraction(opts: {
   eventName: string;
   action: InteractionAction;
   name: string;
+  condition?: boolean | string;
 }): CreateInteractionResult {
   const { component, tpl, eventName, action } = opts;
 
@@ -72,6 +74,10 @@ export function createInteraction(opts: {
   if (interactionArgsResult.isErr()) {
     return err({ message: interactionArgsResult.error });
   }
+  const condition = buildInteractionCondition(opts.condition ?? true);
+  if (condition.isErr()) {
+    return err({ message: condition.error });
+  }
   const existing = getEventHandlerByEventKey(component, tpl, key);
   if (existing && !isKnownEventHandler(existing)) {
     return err({
@@ -86,6 +92,7 @@ export function createInteraction(opts: {
     opts.name,
     interactionArgsResult.value,
   );
+  Object.assign(interaction, condition.value);
   eventHandler.interactions.push(interaction);
   if (!existing) {
     setEventHandlerByEventKey(tpl, key, eventHandler);

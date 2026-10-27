@@ -170,3 +170,9 @@ Use `execute` with these exact envelopes:
 ```
 
 Component collections with `view:"contract"` return real contracts. `fromProject` can also scope `componentUuids` or `elements` and verifies their owner; omit it when UUIDs already identify the target. New Pages initialize Desktop and shared overview references. Verify `pageFrames`, `devicePresets` and `canvases`; shorter Preview tests do not add devices. Slot-typed content uses `<slot>`; fix failed required bindings rather than deleting them.
+
+## Interaction conditions and method contracts
+
+Contract reads require live component registrations; an unavailable registration is an error, not evidence that a method takes no arguments or a context has no actions. Ref actions expose ordered `args` with declared types; `args: []` means zero parameters. Nested validation shapes and function conventions are in each prop's `registration`.
+
+`createInteraction` and `updateInteraction` accept `condition`: `"{{ event.key === 'view' }}"` gates a native step, including navigation, using the event's actual registered arguments or page state; `true` runs always and `false` disables it. Omitting condition preserves it on update and runs always on creation. Conditions are native Studio interaction state and appear in readback as `conditionalMode` and `condition`.

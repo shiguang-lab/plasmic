@@ -85,6 +85,23 @@ describe("updateInteraction", () => {
     expect(bodyCode(first)).toMatchObject({ code: "($state.count = 0)" });
   });
 
+  it("updates only the condition, preserves it across action changes, and clears it explicitly", () => {
+    const { page, first, second } = setupWithSteps();
+    expect(updateInteraction(page, first, { condition: '{{ event.key === "copy" }}' }).isOk()).toBe(true);
+    const condition = first.condExpr;
+    expect(first.conditionalMode).toBe("expression");
+    expect(updateInteraction(page, first, { action: { actionName:"navigation",destination:"/details" } }).isOk()).toBe(true);
+    expect(first.condExpr).toBe(condition);
+    expect(second.conditionalMode).toBe("always");
+    expect(updateInteraction(page, first, { name:"Invalid", condition:"{{ event. }}" }).isErr()).toBe(true);
+    expect(first.interactionName).toBe("Save");
+    expect(first.condExpr).toBe(condition);
+    expect(updateInteraction(page, first, { condition:false }).isOk()).toBe(true);
+    expect(first).toMatchObject({conditionalMode:"never",condExpr:null});
+    expect(updateInteraction(page, first, { condition:true }).isOk()).toBe(true);
+    expect(first).toMatchObject({conditionalMode:"always",condExpr:null});
+  });
+
   it("rejects replacing the action of unsupported Studio-built steps but allows renaming them", () => {
     const { page, first, second } = setupWithSteps();
     const handler = first.parent;

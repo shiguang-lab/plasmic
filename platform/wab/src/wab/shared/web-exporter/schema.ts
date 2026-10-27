@@ -273,19 +273,20 @@ export function componentSchema() {
         z.object({
           name: z.string(),
           displayName: z.string().optional(),
+          description: z.string().optional(),
           args: z
             .array(
               z.object({
                 name: z.string(),
                 displayName: z.string().optional(),
-              }),
+              }).catchall(z.any()),
             )
             .optional(),
         }),
       )
       .optional()
       .describe(
-        "Registered ref action names and ordered argument names. Call on $refs.<instanceName>; omitted args means the signature is unavailable.",
+        "Registered ref actions with ordered parameter types and declarative contracts. Call on $refs.<instanceName>; args:[] means no parameters, omitted args means the signature is unavailable.",
       ),
     globalActions: z.array(z.object({
       name: z.string().describe('Qualified dictionary key; call $globalActions["contextName.actionName"](...parameters). No page instance is needed.'),

@@ -1,0 +1,7 @@
+{
+  "en": "- Add native conditional interaction steps, including navigation, with update and undo support.\n- Fix component registration metadata isolation and expose ordered method parameters and validation contracts through MCP.\n- Report unavailable live registrations explicitly and document synchronous custom validation predicates.",
+  "zh-CN": "- 新增原生条件交互步骤，支持条件导航、更新与撤销。\n- 修复组件注册元数据的窗口归属，通过 MCP 返回有序方法参数及校验契约。\n- 明确报告运行时注册信息不可用，并补充同步自定义校验函数约定。",
+  "zh-TW": "- 新增原生條件互動步驟，支援條件導覽、更新與復原。\n- 修正元件註冊中繼資料的視窗歸屬，透過 MCP 傳回有序方法參數及驗證契約。\n- 明確回報執行階段註冊資訊無法取得，並補充同步自訂驗證函式約定。",
+  "ja": "- 条件付きナビゲーションを含むネイティブな条件付き操作ステップを追加し、更新と取り消しに対応しました。\n- コンポーネント登録情報のウィンドウ分離を修正し、MCP で順序付きメソッド引数と検証の定義を取得できるようにしました。\n- 実行時の登録情報を取得できない場合は明示的に報告し、同期カスタム検証関数の規約を明記しました。",
+  "ko": "- 조건부 탐색을 포함한 기본 조건부 상호작용 단계를 추가하고 수정 및 실행 취소를 지원합니다.\n- 컴포넌트 등록 메타데이터의 창 격리를 수정하고 MCP에서 순서가 있는 메서드 매개변수와 검증 계약을 제공합니다.\n- 런타임 등록 정보를 사용할 수 없는 경우 명확히 알리고 동기식 사용자 정의 검증 함수 규칙을 명시했습니다."
+}
