@@ -6,6 +6,7 @@ const path = require("node:path");
 const os = require("node:os");
 const { execFileSync, spawn } = require("node:child_process");
 const { once } = require("node:events");
+const Module = require("node:module");
 const { setTimeout: delay } = require("node:timers/promises");
 const { build, Platform, Arch } = require("electron-builder");
 const { getCurrentFuseWire, FuseV1Options } = require("@electron/fuses");
@@ -14,6 +15,26 @@ const desktop = path.resolve(__dirname, "..");
 const reports = path.join(desktop, "desktop-report/session-lifecycle");
 const report = { status: "RUNNING", architecture: process.arch, phases: {} };
 let temporary;
+async function copyDependencies(project, names) {
+  const copied = new Set();
+  const modules = path.join(desktop, "node_modules");
+  async function copy(name, from) {
+    let source;
+    for (const directory of Module._nodeModulePaths(from)) {
+      const candidate = path.join(directory, name);
+      if (await fs.stat(path.join(candidate, "package.json")).then(() => true, () => false)) { source = candidate; break; }
+    }
+    assert(source, `Missing fixture dependency: ${name}`);
+    if (copied.has(source)) return;
+    copied.add(source);
+    const relative = path.relative(modules, source);
+    assert(!relative.startsWith(".."), `Fixture dependency is outside Desktop node_modules: ${name}`);
+    await fs.cp(source, path.join(project, "node_modules", relative), { recursive: true, dereference: true });
+    const pkg = JSON.parse(await fs.readFile(path.join(source, "package.json"), "utf8"));
+    for (const dependency of Object.keys(pkg.dependencies || {})) await copy(dependency, source);
+  }
+  for (const name of names) await copy(name, desktop);
+}
 async function runPhase(app, profile, phase) {
   await fs.writeFile(path.join(profile, "control.json"), JSON.stringify({ phase }));
   const child = spawn(path.join(app, "Contents/MacOS/Plasmic"), [], {
@@ -45,14 +66,15 @@ async function runPhase(app, profile, phase) {
   for (const version of ["1.0.1", "1.0.2"]) {
     const project = path.join(temporary, version);
     await fs.mkdir(path.join(project, "src"), { recursive: true });
-    for (const file of ["runtime-security.cjs", "device-credentials.cjs", "unified-login.cjs", "ui-error.cjs", "session-ticket.cjs", "mac-updater.cjs", "update-architecture.cjs", "mac-update-install.sh"]) {
+    for (const file of ["runtime-security.cjs", "device-credentials.cjs", "unified-login.cjs", "ui-error.cjs", "session-ticket.cjs", "mac-updater.cjs", "update-download.cjs", "update-architecture.cjs", "mac-update-install.sh"]) {
       await fs.copyFile(path.join(desktop, "src", file), path.join(project, "src", file));
     }
-    for (const name of ["semver", "yaml"]) await fs.cp(path.join(desktop, "node_modules", name), path.join(project, "node_modules", name), { recursive: true });
+    const dependencyNames = ["semver", "yaml", "electron-updater"];
+    await copyDependencies(project, dependencyNames);
     await fs.copyFile(path.join(__dirname, "session-lifecycle-phase.cjs"), path.join(project, "session-lifecycle-phase.cjs"));
     await fs.writeFile(path.join(project, "package.json"), JSON.stringify({ name: "plasmic-session-lifecycle", version,
       main: "session-lifecycle-phase.cjs", description: "Owned session lifecycle acceptance fixture", author: "Shiguang",
-      dependencies: { semver: metadata.dependencies.semver, yaml: metadata.dependencies.yaml } }));
+      dependencies: Object.fromEntries(dependencyNames.map((name) => [name, metadata.dependencies[name]])) }));
     await build({ projectDir: project, targets: Platform.MAC.createTarget(["dir"], Arch[process.arch]), publish: "never",
       config: { appId: "cn.publib.plasmic.desktop", productName: "Plasmic", electronVersion: metadata.devDependencies.electron,
         electronDist: path.join(desktop, "node_modules/electron/dist"), electronLanguages: ["en"],
