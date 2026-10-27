@@ -129,7 +129,7 @@ it("marks first render only after evaluation and post-eval work, and stays ready
   }
 });
 
-it("restores a saved non-first target before revealing, preserving zoom, scroll and props while other boards are pending", async () => {
+it.each(["running", "suspended"])("restores a saved non-first target with %s animation frames before revealing, preserving zoom, scroll and props while other boards are pending", async (animationState) => {
   vi.stubGlobal("navigator", { userAgent: "PlasmicDesktop/darwin" });
   const animationFrames: FrameRequestCallback[] = [];
   vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => {
@@ -182,11 +182,11 @@ it("restores a saved non-first target before revealing, preserving zoom, scroll 
     studioCtx.tryZoomToFitArena();
     expect(fit).not.toHaveBeenCalled();
     await waitFor(() => expect(animationFrames.length).toBeGreaterThan(0));
-    while (animationFrames.length) {
+    while (animationState === "running" && animationFrames.length) {
       animationFrames.shift()?.(0);
       await Promise.resolve();
     }
-    expect(viewport.scale()).toBe(0.5);
+    await waitFor(() => expect(viewport.scale()).toBe(0.5));
     expect(studioCtx.initialViewportReady).toBe(false);
     expect(studioCtx.activeCanvasReady).toBe(false);
     runInAction(() => rendered.set(true));

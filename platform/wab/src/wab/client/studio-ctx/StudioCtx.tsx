@@ -2400,10 +2400,15 @@ export class StudioCtx extends WithDbCtx {
           }
           targetWaitDone();
           // Let the inspector mount and determine the viewport padding before restoring.
+          // Hidden Desktop windows can stop animation frames after navigation even
+          // with background throttling disabled and visibilityState === "visible".
           const layoutDone = this.loadTimings.begin("initial-viewport-layout");
-          await new Promise<void>((resolve) =>
-            requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
-          );
+          await Promise.race([
+            new Promise<void>((resolve) =>
+              requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+            ),
+            asyncTimeout(100),
+          ]);
           layoutDone();
           const commitDone = this.loadTimings.begin("initial-viewport-commit");
           this.restoreStudioViewportSnapshot(
@@ -2419,9 +2424,12 @@ export class StudioCtx extends WithDbCtx {
             false,
           );
           // The viewport's MobX reaction writes the transform before revealing the canvas.
-          await new Promise<void>((resolve) =>
-            requestAnimationFrame(() => resolve()),
-          );
+          await Promise.race([
+            new Promise<void>((resolve) =>
+              requestAnimationFrame(() => resolve()),
+            ),
+            asyncTimeout(100),
+          ]);
           commitDone();
           const renderWaitDone = this.loadTimings.begin(
             "initial-target-render-wait",

@@ -1,0 +1,7 @@
+{
+  "en": "- Fix projects remaining on “Opening project” when reopened in Dynamic Island mode.\n- Restore the saved canvas zoom and position even when the hidden editor pauses animation frames.",
+  "zh-CN": "- 修复灵动岛模式下重新打开项目时持续停留在“打开项目”的问题。\n- 隐藏的编辑器暂停动画帧时，仍可恢复已保存的画布缩放与位置。",
+  "zh-TW": "- 修復靈動島模式下重新開啟專案時持續停留在「開啟專案」的問題。\n- 隱藏的編輯器暫停動畫影格時，仍可還原已儲存的畫布縮放與位置。",
+  "ja": "- Dynamic Island モードでプロジェクトを再度開いた際に「プロジェクトを開いています」のまま停止する問題を修正しました。\n- 非表示のエディターでアニメーションフレームが停止していても、保存済みのキャンバスのズームと位置を復元できます。",
+  "ko": "- Dynamic Island 모드에서 프로젝트를 다시 열 때 “프로젝트 여는 중” 상태로 멈추는 문제를 수정했습니다.\n- 숨겨진 편집기에서 애니메이션 프레임이 중지되어도 저장된 캔버스 확대 비율과 위치를 복원합니다."
+}

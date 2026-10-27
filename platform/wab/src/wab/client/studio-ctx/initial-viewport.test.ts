@@ -9,8 +9,10 @@ import { mock } from "vitest-mock-extended";
 
 afterEach(() => vi.unstubAllGlobals());
 
-it.each(["saved", "missing-frame", "invalid"])("initializes %s viewport before releasing loading", async (mode) => {
+it.each(["saved", "suspended-layout", "suspended-commit", "missing-frame", "invalid"])("initializes %s viewport before releasing loading", async (mode) => {
   vi.stubGlobal("navigator", { userAgent: "PlasmicDesktop/darwin" });
+  // Electron can stop animation frames while still reporting a visible document.
+  vi.spyOn(document, "visibilityState", "get").mockReturnValue("visible");
   const frames: FrameRequestCallback[] = [];
   vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => { frames.push(callback); return frames.length; });
   const site = createSite();
@@ -30,7 +32,7 @@ it.each(["saved", "missing-frame", "invalid"])("initializes %s viewport before r
   const zoom = vi.spyOn(viewport, "zoomToScalerBox");
   try {
     await waitFor(() => expect(studioCtx.initialRouteReady).toBe(true));
-    if (mode === "saved") {
+    if (mode !== "missing-frame" && mode !== "invalid") {
       expect(studioCtx.initialViewportReady).toBe(false);
       expect(studioCtx.hasInitialEditorView).toBe(true);
       let toolReady = false;
@@ -40,7 +42,8 @@ it.each(["saved", "missing-frame", "invalid"])("initializes %s viewport before r
       studioCtx.tryZoomToFitArena();
       expect(zoom).not.toHaveBeenCalled();
       await waitFor(() => expect(frames.length).toBeGreaterThan(0));
-      while (frames.length) {
+      let remainingFrames = mode === "suspended-layout" ? 0 : mode === "suspended-commit" ? 2 : Infinity;
+      while (frames.length && remainingFrames-- > 0) {
         frames.shift()?.(0);
         await Promise.resolve();
       }
@@ -50,6 +53,16 @@ it.each(["saved", "missing-frame", "invalid"])("initializes %s viewport before r
       expect(viewport.scale()).toBe(0.5);
       expect(dom.scrollTo).toHaveBeenLastCalledWith(new Pt(240, 360), false);
       expect(zoom).not.toHaveBeenCalled();
+      if (mode !== "saved") {
+        expect(frames.length).toBeGreaterThan(0);
+        // Showing the main window later must not apply the saved viewport again.
+        dom.scrollTo.mockClear();
+        while (frames.length) {
+          frames.shift()?.(0);
+          await Promise.resolve();
+        }
+        expect(dom.scrollTo).not.toHaveBeenCalled();
+      }
       studioCtx.tryZoomToFitArena();
       expect(zoom).toHaveBeenCalledTimes(1);
     } else {
