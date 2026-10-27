@@ -1,7 +1,7 @@
 {
-  "en": "- Download smaller updates on macOS, Windows and Linux with differential downloads, resumable transfers and verified full-package fallback.\n- Upgrade directly across skipped versions and resume downloads after restarting the app.\n- Keep the update entry beside Preview navigation and stabilize the editor inspector width.",
-  "zh-CN": "- macOS、Windows 和 Linux 支持差分更新、断点续传，并在需要时回退到完整安装包。\n- 支持跨版本直接升级，重启应用后继续未完成的下载。\n- 将预览更新入口放在导航旁，固定编辑器属性面板宽度。",
-  "zh-TW": "- macOS、Windows 和 Linux 支援差分更新、斷點續傳，並在需要時改用完整安裝包。\n- 支援跨版本直接升級，重新啟動應用程式後繼續未完成的下載。\n- 將預覽更新入口放在導覽旁，固定編輯器屬性面板寬度。",
-  "ja": "- macOS、Windows、Linux で差分更新とダウンロードの再開に対応し、必要に応じて検証済みの完全パッケージに切り替えます。\n- 中間バージョンを飛ばして直接更新でき、アプリの再起動後もダウンロードを再開できます。\n- プレビューの更新ボタンをナビゲーションの横に配置し、エディターのプロパティパネルの幅を固定しました。",
-  "ko": "- macOS, Windows, Linux에서 차등 업데이트와 이어받기를 지원하며, 필요한 경우 검증된 전체 설치 파일로 전환합니다.\n- 중간 버전을 건너뛰어 바로 업그레이드하고 앱을 다시 시작한 후에도 다운로드를 이어갈 수 있습니다.\n- 미리보기 업데이트 버튼을 탐색 영역 옆으로 옮기고 편집기 속성 패널의 너비를 고정했습니다."
+  "en": "- Download smaller updates on macOS, Windows and Linux with differential downloads, resumable transfers and verified full-package fallback.\n- Upgrade directly across skipped versions and resume downloads after restarting the app.\n- Keep the update entry beside Preview navigation and stabilize the editor inspector width.\n- Automatically reveal selected elements inside nested scroll containers.",
+  "zh-CN": "- macOS、Windows 和 Linux 支持差分更新、断点续传，并在需要时回退到完整安装包。\n- 支持跨版本直接升级，重启应用后继续未完成的下载。\n- 将预览更新入口放在导航旁，固定编辑器属性面板宽度。\n- 选择元素时自动滚动嵌套内容容器，将目标显示在可见区域。",
+  "zh-TW": "- macOS、Windows 和 Linux 支援差分更新、斷點續傳，並在需要時改用完整安裝包。\n- 支援跨版本直接升級，重新啟動應用程式後繼續未完成的下載。\n- 將預覽更新入口放在導覽旁，固定編輯器屬性面板寬度。\n- 選取元素時自動捲動巢狀內容容器，將目標顯示在可見區域。",
+  "ja": "- macOS、Windows、Linux で差分更新とダウンロードの再開に対応し、必要に応じて検証済みの完全パッケージに切り替えます。\n- 中間バージョンを飛ばして直接更新でき、アプリの再起動後もダウンロードを再開できます。\n- プレビューの更新ボタンをナビゲーションの横に配置し、エディターのプロパティパネルの幅を固定しました。\n- 要素を選択すると、入れ子のスクロール領域内でも対象が自動的に表示されます。",
+  "ko": "- macOS, Windows, Linux에서 차등 업데이트와 이어받기를 지원하며, 필요한 경우 검증된 전체 설치 파일로 전환합니다.\n- 중간 버전을 건너뛰어 바로 업그레이드하고 앱을 다시 시작한 후에도 다운로드를 이어갈 수 있습니다.\n- 미리보기 업데이트 버튼을 탐색 영역 옆으로 옮기고 편집기 속성 패널의 너비를 고정했습니다.\n- 요소를 선택하면 중첩된 스크롤 영역에서도 대상이 자동으로 표시됩니다."
 }

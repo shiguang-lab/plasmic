@@ -10,6 +10,11 @@ on:
         type: string
   workflow_call:
     inputs:
+      rebuild:
+        description: Rebuild an explicitly requested, not-yet-deployed release
+        required: false
+        default: false
+        type: boolean
       release-tag:
         required: true
         type: string
@@ -53,9 +58,15 @@ jobs:
         if: inputs.release-tag != '' && steps.plan.outputs.publish == 'true'
         env:
           RELEASE_TAG: ${{ inputs.release-tag }}
+          RELEASE_REBUILD: ${{ inputs.rebuild }}
         run: |
           if git rev-parse "$RELEASE_TAG" >/dev/null 2>&1; then
-            test "$(git rev-parse "$RELEASE_TAG^{commit}")" = "$(git rev-parse HEAD)"
+            if test "$(git rev-parse "$RELEASE_TAG^{commit}")" != "$(git rev-parse HEAD)"; then
+              test "$RELEASE_REBUILD" = true
+              previous=$(git rev-parse "refs/tags/$RELEASE_TAG")
+              git tag -f "$RELEASE_TAG" HEAD
+              git push --force-with-lease="refs/tags/$RELEASE_TAG:$previous" origin "refs/tags/$RELEASE_TAG"
+            fi
           else
             git tag "$RELEASE_TAG"
             git push origin "$RELEASE_TAG"
@@ -202,6 +213,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Validate unpublished release
+        if: inputs.rebuild != true
         run: |
           if docker manifest inspect "ghcr.io/shiguang-lab/plasmic-desktop-releases:$RELEASE_TAG" >/dev/null 2>&1; then
             echo 'Release image already exists; publish a new version.' >&2

@@ -92,7 +92,7 @@ export function affectedProducts(files) {
   return result;
 }
 const git = (...args) => execFileSync("git", args, { encoding: "utf8" }).trim();
-export function releasePlan(tag, ref = "HEAD") {
+export function releasePlan(tag, ref = "HEAD", rebuild = false) {
   const product = productForTag(tag);
   const tags = git("tag", "--merged", ref, "--sort=-version:refname")
     .split("\n")
@@ -159,7 +159,7 @@ export function releasePlan(tag, ref = "HEAD") {
       }
     }
     if (
-      tags.includes(desktopTag) &&
+      !rebuild && tags.includes(desktopTag) &&
       git("rev-parse", `${desktopTag}^{commit}`) !==
         git("rev-parse", `${ref}^{commit}`)
     ) {
@@ -181,7 +181,7 @@ if (
   process.argv[1] &&
   path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)
 ) {
-  const plan = releasePlan(process.argv[2] || process.env.GITHUB_REF_NAME);
+  const plan = releasePlan(process.argv[2] || process.env.GITHUB_REF_NAME, "HEAD", process.env.RELEASE_REBUILD === "true");
   console.log(JSON.stringify(plan, null, 2));
   if (process.env.GITHUB_OUTPUT) {
     for (const [key, value] of Object.entries(plan)) {

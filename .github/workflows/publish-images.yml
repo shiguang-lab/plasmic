@@ -37,6 +37,7 @@ jobs:
       - id: plan
         env:
           RELEASE_TAG: ${{ inputs.release-tag || github.ref_name }}
+          RELEASE_REBUILD: ${{ github.event_name == 'push' && github.event.forced == true }}
         run: node scripts/release-plan.mjs "$RELEASE_TAG"
   publish:
     needs: plan
@@ -80,3 +81,4 @@ jobs:
       release-tag: ${{ needs.plan.outputs.desktopTag }}
       source-ref: ${{ needs.plan.outputs.revision }}
       tested-revision: ${{ needs.desktop-tests.outputs.revision }}
+      rebuild: ${{ github.event_name == 'push' && github.event.forced == true }}

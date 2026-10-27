@@ -164,6 +164,10 @@ test("plans compare product baselines and enforce the Studio/Desktop link", () =
     commit();
     assert.equal(releasePlan("0.0.83").desktopTag, "desktop-v0.0.59");
     assert.equal(releasePlan("desktop-v0.0.59").publish, true);
+    git("tag", "desktop-v0.0.59", "HEAD~1");
+    assert.throws(() => releasePlan("0.0.83"), /already belongs to another commit/);
+    assert.equal(releasePlan("0.0.83", "HEAD", true).desktopTag, "desktop-v0.0.59");
+    git("tag", "-d", "desktop-v0.0.59");
     git("tag", "0.0.83");
     assert.equal(releasePlan("0.0.84").publish, false);
     put("ai/plasmic/references/guide.md", "new");

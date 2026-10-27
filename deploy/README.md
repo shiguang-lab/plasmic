@@ -23,6 +23,12 @@ actual npm package contents. An explicit package.json version matching a newer C
 resource tag and reuse the verified, already-published npm CLI artifact.
 See [release setup and version checks](../ai/plasmic/README.md#tag-自动发布).
 Run `node scripts/release-plan.mjs <tag>` on the release commit to inspect the plan.
+If an operator explicitly requests rebuilding a version before it is deployed,
+force-update only its Studio tag to the final committed snapshot using a lease.
+That forced tag event enables rebuild mode: the linked Desktop tag follows the
+same commit and its release image may be replaced. Ordinary releases retain the
+existing tag/image protection. Confirm the NAS is not serving that version first,
+then pull all final images directly on the NAS and verify their source revisions.
 The first independent CLI/resource baseline is the last combined numeric release.
 
 The workflow uses `deploy/docker-bake.hcl` to build server/web/preview in one BuildKit
