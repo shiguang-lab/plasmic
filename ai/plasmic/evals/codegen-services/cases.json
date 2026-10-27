@@ -1,0 +1,69 @@
+{
+  "scope": "Synthetic offline codegen service probes. Source excerpts are complete for each case. No running application, backend, browser or hidden documents are available. Do not access live services or edit other repositories. Follow the supplied codegen references and state evidence limits.",
+  "cases": [
+    {
+      "id": "distributed-contract-network",
+      "prompt": "完成券模板的数据接入方案，给出必要的 service/模拟实现片段与验收步骤。",
+      "artifacts": {
+        "prd": "用户可以查询模板、保存草稿、提交审核；审核人可通过或驳回。模板具有 id、name、status；name 必填。技术接口分别在下述方案与评审记录中。",
+        "technical-note": "GET /api/templates?page&size -> {code:0,data:{items:Template[],total:number}}；POST /api/templates {name} -> {code:0,data:Template}；PATCH /api/templates/:id {name} -> 同上；GET /api/templates/:id -> 同上。Template={id:string,name:string,status:'draft'|'pending'|'approved'|'rejected'}。",
+        "review-comment": "POST /api/templates/:id/submit 将 draft/rejected 变为 pending；POST /api/templates/:id/review {decision:'approve'|'reject'} 将 pending 变为 approved/rejected。响应 {code:0,data:Template}；状态冲突 {code:409,message:'状态冲突'}。权限 template.edit 控制保存和提交，template.review 控制审核。",
+        "request.ts": "request<T>({url,method,params?,data?}):Promise<T> 经现有 fetch、认证、code 检查及 data 解包；错误统一 toast 一次并 reject。",
+        "mock/README.md": "MOCK_DATA=on 启用开发服务器 handlers；handler 返回原始 code/data 响应。",
+        "dev-server.ts": "if (mode === 'development' && env.MOCK_DATA === 'on') registerHandlers('./mock');",
+        "mock/session.ts": "现有场景可切换权限；默认只有 template.edit。"
+      }
+    },
+    {
+      "id": "no-docs-local-data",
+      "prompt": "项目没有接口文档，我确认没有其他资料，也没有 mock 能力。按需求把字段和流程生成好，至少用简单数据文件让页面能验收。给出类型、service、本地数据与关键动作代码片段、数据重置方式及验收边界。",
+      "artifacts": {
+        "requirement": "申请页支持新建、编辑草稿、提交，审核人可通过/驳回；驳回后可修改再次提交。列表可筛选状态，详情展示已保存内容。字段为标题和说明；尚未给字段类型或校验规则。只要求当前浏览器会话内切换路由后数据保留。",
+        "project": "React/TypeScript/Vite；没有 mock 依赖、handlers 或开发数据机制。已有 src/service 和 src/request.ts；request<T>({url,method,data?,params?}):Promise<T> 返回解包后的数据，失败由请求层 toast 并 reject。import.meta.env.DEV 可用，VITE_LOCAL_DATA 字符串由 Vite 暴露。正式路由 /applications 及 Form/Table/反馈公共组件已存在。权限来自 usePermissions()，尚无本业务权限标识。"
+      }
+    },
+    {
+      "id": "missing-docs-unanswered",
+      "prompt": "把列表和审核操作接入 service，资料只有这些。",
+      "artifacts": {
+        "requirement": "需要列表、提交、审核通过和驳回。",
+        "repository": "已读取当前需求、设计、docs 和相邻 service；未发现本业务 API 定义，也无相关外链。项目已有可用网络 mock。用户尚未回答是否有其他文档。"
+      }
+    },
+    {
+      "id": "partial-conflicting-inaccessible",
+      "prompt": "继续完成服务接入，需求中的资料可能散落在不同地方。",
+      "artifacts": {
+        "prd": "列表和审批页。GET /api/requests 返回 {items,total}。审批规则链接到受限 Wiki。",
+        "api-note": "POST /api/requests/:id/approve {approved:boolean}；未注明版本。",
+        "technical-note": "POST /api/requests/:id/decision {result:'yes'|'no'}；未注明版本。",
+        "wiki-read-result": "403：当前用户无权读取审批规则。",
+        "target": "项目已有网络 mock 与请求封装。没有其他可读契约或用户裁定。"
+      }
+    },
+    {
+      "id": "review-network-bypass",
+      "prompt": "这是已经生成的实现，请按行为和工程方向审查并报告可确认的问题。只做审查，不改代码。",
+      "artifacts": {
+        "requirement": "保存→提交→审核通过/驳回；已有后端接口文档覆盖全部动作。",
+        "mock/README.md": "VITE_ENABLE_MOCK=true；项目已有网络 handlers。",
+        "vite.config.ts": "开发环境仅在 env.ENABLE_MOCK === 'true' 时注册 handlers。",
+        "runtime-env": "VITE_ENABLE_MOCK=true；ENABLE_MOCK 未设置。",
+        "src/service/template.ts": "import { rows } from '../fixtures/templates'; export async function list(){ return rows; } export async function save(input){ return {...input,id:'same-id'}; } export async function submit(id){ return {id,status:'pending'}; }",
+        "fixture-and-ui": "rows 始终是只读初始草稿；权限只有 edit；审核入口依赖 review 权限，且没有审核 service 或 handler。页面的列表/保存/提交均调用上述 service。",
+        "report": "fixture 单测通过，完整流程和真实接口均验收通过。没有浏览器或网络记录。"
+      }
+    },
+    {
+      "id": "review-valid-local-boundary",
+      "prompt": "审查下面的本地模拟实现是否需要重写为网络 mock，说明发现和证据限制。只做审查。",
+      "artifacts": {
+        "requirement": "用户明确无 API 文档，无网络 mock，希望用本地数据验收记录创建与编辑。已记录临时 Record={id:string,title:string}，title 为需求要求的必填。",
+        "service.ts": "公开 list/get/create/update 始终返回 Promise<Record> 或列表；开发条件与 LOCAL_DATA 开关同时满足时动态导入 local.ts；关闭模拟且契约未确认则抛出明确未配置错误，不发请求。",
+        "local.ts": "从 seed.ts 克隆 Map，模块内共享；create 分配唯一 ID；update 写入同一 Map；get/list 读取最新数据；确定性 failNext 在写入前 reject；reset 清空并恢复种子。调用方现有反馈边界负责本地错误提示。",
+        "routing": "正式 /records 页面通过 service 读写，无直接 fixture 导入。开发模式选择和 reset 由开发工具调用，无业务界面模拟按钮。",
+        "verification": "源码证明上述绑定；只有本地数据层的写入/读取/失败单测记录，没有真实入口浏览器、网络或生产构建日志。"
+      }
+    }
+  ]
+}

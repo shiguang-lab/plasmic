@@ -165,6 +165,7 @@ npx -y @plasmickit/cli@latest context resolve --mode prototype
 - [页面读取与实现依据](references/model-reading.md)：读取隐藏分支、实际组件信息、数据和资产，依据当前两端实现决定代码。
 - [项目代码规范](references/codegen/project-code.md)：目录职责、组件拆分、类型边界、主题样式、宿主与独立应用、国际化和权限。
 - [数据与交互规范](references/codegen/interactions.md)：状态所有权、查询分页、请求竞态、表单校验、弹层生命周期与防重提交。
+- [Service 与模拟数据](references/codegen/services.md)：分散接口资料发现、缺口确认与临时契约、网络 mock/本地数据流程及验收边界。
 - [代码验收规范](references/codegen/acceptance.md)：类型/构建检查、真实入口行为和视觉验证、交付证据。
 
 提炼依据是 pen-antd-kit 的设计规范（`pen-prototype-platform/standards/patterns/`、`states/feedback-permissions.md`、`quality/review-checklist.md`）与 fintechgrowthui 的 `docs/standards/code-architecture.md`、`interaction-and-validation.md`、`design.md`。pen-antd-kit 的 Pencil 组件映射契约不进入本规范；fintechgrowthui 的特定宿主、接口签名、依赖版本和组件 API 也不作为跨项目规则。Plasmic 组件到目标代码的具体转换需根据当前注册信息、真实实现和目标项目类型确认。
