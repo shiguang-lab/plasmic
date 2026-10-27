@@ -529,9 +529,7 @@ app
     await assert.rejects(fs.stat(path.join(cache, "extract-fixture")), {
       code: "ENOENT",
     });
-    await assert.rejects(fs.stat(path.join(cache, "Plasmic-0.0.4.zip")), {
-      code: "ENOENT",
-    });
+    assert.equal(await fs.readFile(path.join(cache, "Plasmic-0.0.4.zip"), "utf8"), "cached");
     assert.equal(
       await fs.readFile(path.join(cache, `${id}.ready`), "utf8"),
       "ready",

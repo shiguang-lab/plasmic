@@ -18,6 +18,8 @@ The latest dynamic-check, evidence-reuse and counterexample audit is in [REQ075 
 
 [Page-type regressions](page-types/README.md) give one neutral requirement per page type and grade the design-time decisions of the resulting plan, so specification changes are not tuned to a single real requirement.
 
+[Codegen contract probes](codegen-contracts/README.md) check preservation of source component responsibilities, valid cross-library/host adaptations, and unknown target APIs. They use synthetic offline contracts and grade actual proposed code separately from unavailable runtime and visual evidence.
+
 `evals.json` covers read-only template interpretation, a focused prototype edit, incremental React coding, an explicit official CLI request, a cross-project read with a saving side effect, and failed validation after a session change. Run each prompt in a fresh agent context with the designated skill and isolated inputs; use the original published skill as the baseline. Repeat the new skill cases to expose inconsistent decisions.
 
 Generate isolated models and public operation schemas from the actual Studio tools:

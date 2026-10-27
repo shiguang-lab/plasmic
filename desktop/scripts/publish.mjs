@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import semver from "semver";
 import { nasConfig } from "./nas-config.mjs";
 import { parseManifest } from "../src/mac-updater.cjs";
+import { parseBlockmap } from "../src/update-download.cjs";
 const config = await nasConfig();
 const metadata = JSON.parse(
   await readFile(new URL("../package.json", import.meta.url), "utf8"),
@@ -24,6 +25,17 @@ if (current.ok && !semver.gt(version, (await current.json()).version))
   throw new Error("Release must be newer than the deployed release");
 if (!current.ok && current.status !== 404)
   throw new Error(`Cannot read live release JSON: ${current.status}`);
+async function verifyDifferentialDownload(url, size, label) {
+  const blockmap = await fetch(url + ".blockmap", { redirect: "error", signal: AbortSignal.timeout(30000) });
+  if (!blockmap.ok) throw new Error(`${label} update blockmap unavailable`);
+  parseBlockmap(Buffer.from(await blockmap.arrayBuffer()), size);
+  const range = await fetch(url, { headers: { Range: "bytes=0-0", "Accept-Encoding": "identity" }, redirect: "error", signal: AbortSignal.timeout(30000) });
+  if (range.status !== 206 || range.headers.get("content-range") !== `bytes 0-0/${size}`) {
+    await range.body?.cancel();
+    throw new Error(`${label} update server does not support byte ranges`);
+  }
+  if ((await range.arrayBuffer()).byteLength !== 1) throw new Error(`${label} update range response size mismatch`);
+}
 const image = `ghcr.io/shiguang-lab/plasmic-desktop-releases:${tag}`;
 execFileSync("ssh", [...config.sshArgs, `docker pull ${image}`], {
   stdio: "inherit",
@@ -73,6 +85,7 @@ for (const installer of candidate.installers) {
     Number(response.headers.get("content-length")) !== installer.size
   )
     throw new Error("Public installer is unavailable or has wrong size");
+  if (installer.platform !== "darwin") await verifyDifferentialDownload(installer.url, installer.size, installer.id);
 }
 for (const arch of ["arm64", "x64"]) {
   const url = `${config.updateUrl}/darwin/${arch}/`;
@@ -82,5 +95,6 @@ for (const arch of ["arm64", "x64"]) {
   if (update.version !== version) throw new Error(`macOS ${arch} update version mismatch`);
   const archive = await fetch(update.file.url, { method: "HEAD", signal: AbortSignal.timeout(30000) });
   if (!archive.ok || Number(archive.headers.get("content-length")) !== update.file.size) throw new Error(`macOS ${arch} update archive unavailable or incomplete`);
+  await verifyDifferentialDownload(update.file.url, update.file.size, `macOS ${arch}`);
 }
 console.log(`Deployed ${image}; JSON and all installers verified at ${feed}`);

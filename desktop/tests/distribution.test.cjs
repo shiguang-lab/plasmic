@@ -30,10 +30,20 @@ test("release JSON and image files publish complete, verified native installers"
     await fs.mkdir(dir, { recursive: true });
     const filename = `Plasmic-${version}-${target.platform === "darwin" ? "mac" : target.platform}-${target.arch}${target.extension}`;
     await fs.writeFile(path.join(dir, filename), bytes);
+    if (target.platform !== "darwin") {
+      const { gzipSync } = require("node:zlib");
+      await fs.writeFile(path.join(dir, filename + ".blockmap"), gzipSync(JSON.stringify({
+        version: "2", files: [{ name: "file", offset: 0, sizes: [bytes.length], checksums: [sha512] }],
+      })));
+    }
     const files = [{ url: filename, size: bytes.length, sha512 }];
     if (target.platform === "darwin") {
       const archive = filename.replace(/\.dmg$/, ".zip");
       await fs.writeFile(path.join(dir, archive), bytes);
+      const { gzipSync } = require("node:zlib");
+      await fs.writeFile(path.join(dir, archive + ".blockmap"), gzipSync(JSON.stringify({
+        version: "2", files: [{ name: "file", offset: 0, sizes: [bytes.length], checksums: [sha512] }],
+      })));
       files.push({ url: archive, size: bytes.length, sha512 });
     }
     await fs.writeFile(
@@ -61,6 +71,13 @@ test("release JSON and image files publish complete, verified native installers"
     "x64",
   ]);
   for (const arch of ["arm64", "x64"]) {
+    const { parseManifest } = require("../src/mac-updater.cjs");
+    const { parseBlockmap } = require("../src/update-download.cjs");
+    const directory = path.join(output, `darwin/${arch}`);
+    const legacy = parseManifest(await fs.readFile(path.join(directory, "latest-mac.yml"), "utf8"), "1.2.2", `https://studio.example.com/desktop-updates/darwin/${arch}/`, arch);
+    assert.equal(legacy.version, version);
+    assert.equal(legacy.file.size, bytes.length);
+    parseBlockmap(await fs.readFile(path.join(directory, path.basename(legacy.file.url) + ".blockmap")), bytes.length);
     const native = YAML.parse(
       await fs.readFile(
         path.join(output, `darwin/${arch}/latest-mac.yml`),
@@ -95,6 +112,10 @@ test("release JSON and image files publish complete, verified native installers"
     assert.match(file.url, /^https:\/\/studio.example.com\/desktop-updates\//);
     assert.equal(file.version, version);
     assert.equal(file.sha512, sha512);
+    if (file.platform !== "darwin") {
+      const { parseBlockmap } = require("../src/update-download.cjs");
+      parseBlockmap(await fs.readFile(path.join(output, file.platform, file.arch, path.basename(file.url) + ".blockmap")), bytes.length);
+    }
     assert.deepEqual(
       await fs.readFile(
         path.join(
@@ -144,6 +165,20 @@ test("release JSON and image files publish complete, verified native installers"
     /architecture/,
   );
   await fs.writeFile(armManifest, armText);
+  const mapFile = path.join(input, "darwin-arm64", `Plasmic-${version}-mac-arm64.zip.blockmap`);
+  const savedMap = await fs.readFile(mapFile);
+  await fs.rm(mapFile);
+  await assert.rejects(buildDistribution(input, path.join(root, "no-map"), version, "https://studio.example.com/desktop-updates", notes), /Missing or invalid update blockmap/);
+  await fs.writeFile(mapFile, "invalid map");
+  await assert.rejects(buildDistribution(input, path.join(root, "bad-map"), version, "https://studio.example.com/desktop-updates", notes), /Missing or invalid update blockmap/);
+  await fs.writeFile(mapFile, savedMap);
+  for (const file of manifest.installers.filter((file) => file.platform !== "darwin")) {
+    const sidecar = path.join(input, `${file.platform}-${file.arch}`, path.basename(file.url) + ".blockmap");
+    const map = await fs.readFile(sidecar);
+    await fs.rm(sidecar);
+    await assert.rejects(buildDistribution(input, path.join(root, "missing-" + file.id), version, "https://studio.example.com/desktop-updates", notes), /Missing or invalid update blockmap/);
+    await fs.writeFile(sidecar, map);
+  }
   const linux = manifest.installers.find((file) => file.id === "linux");
   await fs.writeFile(
     path.join(input, "linux-x64", path.basename(linux.url)),

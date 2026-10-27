@@ -127,25 +127,26 @@ test.each(["darwin", "win32"])("registers empty preview regions and cleans up on
   );
   expect(updateSlot).toBeTruthy();
   expect(
-    updateSlot?.nextElementSibling?.contains(
-      screen.getByRole("button", { name: "Exit preview" }),
+    updateSlot?.previousElementSibling?.contains(
+      screen.getByRole("button", { name: "Select component" }),
     ),
   ).toBe(true);
-  expect(updateSlot?.nextElementSibling?.contains(updateSlot)).toBe(false);
+  expect(updateSlot?.previousElementSibling?.contains(updateSlot)).toBe(false);
   expect(
     updateSlot?.parentElement?.contains(
-      screen.getByRole("button", { name: "Select component" }),
+      screen.getByRole("button", { name: "Exit preview" }),
     ),
   ).toBe(false);
   const root = container.firstElementChild;
-  const left = screen.getByRole("button", { name: "Select component" }).parentElement;
+  const left = updateSlot?.parentElement;
   const center = screen.getByRole("button", { name: "Preview viewport" }).parentElement;
-  const right = updateSlot?.parentElement;
+  const right = screen.getByRole("button", { name: "Exit preview" }).parentElement?.parentElement;
+  let leftWidth = 400;
   const rect = (x: number, y: number, width: number, height = 42) =>
     ({ x, y, left: x, right: x + width, top: y, bottom: y + height, width, height, toJSON() {} });
   vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(function (this: HTMLElement) {
     if (this === root) { return rect(8, 8, 1584); }
-    if (this === left) { return rect(8, 8, 400); }
+    if (this === left) { return rect(8, 8, leftWidth); }
     if (this === center) { return rect(600, 8, 400); }
     if (this === right) { return rect(1500, 8, 92); }
     return rect(0, 0, 0, 0);
@@ -154,6 +155,15 @@ test.each(["darwin", "win32"])("registers empty preview regions and cleans up on
   expect(mocks.setDragRegion).toHaveBeenLastCalledWith([
     ...(platform === "darwin" ? [{ left: 8, top: 8, width: 80, height: 42 }] : []),
     { left: 408, top: 8, width: 192, height: 42 },
+    { left: 1000, top: 8, width: 500, height: 42 },
+  ]);
+
+  // Showing the 32px update control and 12px gap must also shrink the drag region.
+  leftWidth = 444;
+  updateRegions();
+  expect(mocks.setDragRegion).toHaveBeenLastCalledWith([
+    ...(platform === "darwin" ? [{ left: 8, top: 8, width: 80, height: 42 }] : []),
+    { left: 452, top: 8, width: 148, height: 42 },
     { left: 1000, top: 8, width: 500, height: 42 },
   ]);
 

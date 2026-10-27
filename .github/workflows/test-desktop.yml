@@ -1,0 +1,43 @@
+name: Test Desktop on supported operating systems
+on:
+  workflow_call:
+    inputs:
+      source-ref:
+        required: true
+        type: string
+    outputs:
+      revision:
+        description: Commit verified by every test runner
+        value: ${{ jobs.tests.outputs.revision }}
+permissions:
+  contents: read
+env:
+  PYTHONUTF8: "1"
+  ELECTRON_SKIP_BINARY_DOWNLOAD: "1"
+jobs:
+  tests:
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 20
+    outputs:
+      revision: ${{ steps.source.outputs.revision }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - run: git config --global core.autocrlf false
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ inputs.source-ref }}
+      - id: source
+        run: echo "revision=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: desktop/package-lock.json
+      - run: npm ci --prefix desktop --prefer-offline --no-audit --no-fund
+      - run: npm test --prefix desktop

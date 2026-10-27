@@ -10,8 +10,10 @@ tag. Patch releases with unchanged Studio inputs skip publication. Frontend or
 shared renderer changes and major/minor milestone releases require a new Desktop
 version, five-language release notes, and
 `desktop/desktop.config.json.webImage` pinned to this Studio tag in the same commit.
-After the images succeed, the workflow records `desktop-v<version>` and calls the
-Desktop installer workflow. Backend-only changes do not release Desktop.
+Desktop tests start alongside the image build. After both succeed, the workflow
+records `desktop-v<version>` and calls the Desktop installer workflow with the
+verified source revision, avoiding a second test run. Backend-only changes do not
+release Desktop.
 Major/minor version advances publish even when production inputs are unchanged;
 patch releases continue to compare inputs before publication.
 
@@ -23,8 +25,24 @@ See [release setup and version checks](../ai/plasmic/README.md#tag-自动发布)
 Run `node scripts/release-plan.mjs <tag>` on the release commit to inspect the plan.
 The first independent CLI/resource baseline is the last combined numeric release.
 
-The workflow publishes server/web/preview through one matrix step, with separate mode=min
-GHA caches. The server target skips frontend bundling and copies the platform runtime
+The workflow uses `deploy/docker-bake.hcl` to build server/web/preview in one BuildKit
+invocation: the shared builder runs once, then the image targets run concurrently.
+Each image stores a `mode=max` registry cache at its GHCR `:buildcache` tag, so
+intermediate layers can be reused across release tags. Keep these cache tags when
+cleaning up registry versions. Dependencies are fetched into an image layer from
+the five pnpm lockfiles before copying source; source-only edits reuse that layer.
+The first build populates the cache. The temporary GitHub runner is discarded
+without spending time deleting the BuildKit cache at job completion.
+
+Validate release configuration without publishing:
+
+```sh
+docker buildx bake --file deploy/docker-bake.hcl --print
+docker buildx bake --file deploy/docker-bake.hcl --check
+node --test scripts/release-plan.test.mjs
+```
+
+The server target skips frontend bundling and copies the platform runtime
 workspaces and built-in library sources plus the locally built SDK host package. The host
 shares the server's React dependencies through NODE_PATH. The workflow uses the
 built-in GITHUB_TOKEN with packages:write.

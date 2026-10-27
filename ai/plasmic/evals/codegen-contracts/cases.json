@@ -1,0 +1,66 @@
+{
+  "scope": "Synthetic, offline contract-to-code probes. All library names and APIs below are fixture contracts, not real packages. No live design or application access is available.",
+  "cases": [
+    {
+      "id": "source-capabilities",
+      "prompt": "依据给定设计和目标契约，审查并修正订单页实现。保留无关内容，输出必要的 JSX 修改、设计到实现的对应关系和验收结论。真实入口当前返回 403，当前环境没有可运行的应用或截图。",
+      "source": {
+        "page": "Orders",
+        "revision": 7,
+        "tree": "Flow PageBody(direction=column, space=16) → Surface OrdersSurface(title='订单', extra=Command('新建', onInvoke=createOrder), body=OrderRows, bodyPadding='16px 20px 0'); 同级 TicketPreview 是业务券面图文，由原生 article、img、p 组成。",
+        "contracts": "Flow 注册对应目标 Stack；Surface 注册对应目标 Panel；Command 注册对应目标 Action。Surface 的 title/extra/body 分别由组件管理标题区、操作区和内容区。TicketPreview 不承担 Surface 的职责。"
+      },
+      "target": {
+        "installed": "@fixture/ui 2.0.0; React 18",
+        "contracts": "Stack: direction='row'|'column', space:number, children:ReactNode。Panel: heading:ReactNode, actions?:ReactNode, children:ReactNode, contentStyle?:CSSProperties；Panel 管理表面、标题区、操作区和内容区。Action: onInvoke:()=>void, children:ReactNode。OrderRows 和 createOrder 已实现。styles.page/box/toolbar 分别手写相同布局、表面和标题操作区样式。",
+        "code": "import { Stack, Panel, Action } from '@fixture/ui';\nfunction OrdersPanel() {\n  return <section className={styles.box}><div className={styles.toolbar}><h2>订单</h2><Action onInvoke={createOrder}>新建</Action></div><OrderRows /></section>;\n}\nfunction OrdersPage() {\n  return <div className={styles.page}><OrdersPanel /><article><img src='/ticket.svg' alt='券面' /><p>使用时出示</p></article><Panel heading='帮助'><p>查看操作指南</p></Panel></div>;\n}"
+      }
+    },
+    {
+      "id": "verified-adaptation",
+      "prompt": "依据给定设计和目标契约，审查账户页实现；只修复有证据的问题，输出必要修改及验收结论。当前环境只有这些模型、契约与代码，没有可运行的应用或截图。",
+      "source": {
+        "page": "Account",
+        "revision": 4,
+        "tree": "设计使用 @fixture/design-kit 的 AppFrame 包裹账户内容；内容含 ChoiceTabs(activeKey='profile', onChange(nextKey) 更新 activeKey，panes=[profile:'资料',audit:'记录'])，Overlay(open=false, onOpenChange 更新 open，launcher=Command('详情'), body='账户详情')，以及原生 p 帮助文本。",
+        "contracts": "ChoiceTabs 使用 pane 槽位并由组件管理选择和键盘导航。Overlay 的 launcher 负责打开，关闭行为回写 open；正文处于其 body 槽位。"
+      },
+      "target": {
+        "installed": "@fixture/client-kit 3.0.0; React 18。现有应用 Host 已负责登录、导航、主题和页面外围间距，不安装设计端组件库。",
+        "contracts": "TabSet: value:string, onValueChange:(key:string)=>void, items:{key:string,label:string,content:ReactNode}[]，管理选择和键盘导航。Dialog: visible:boolean, onDismiss:()=>void, children:ReactNode；所有原生关闭入口触发 onDismiss，没有 launcher prop。Action: onInvoke:()=>void, children:ReactNode。Profile 和 Audit 已实现。",
+        "code": "import { TabSet, Dialog, Action } from '@fixture/client-kit';\nimport { useState } from 'react';\nfunction AccountTabs({ value, onChange }) {\n  return <TabSet value={value} onValueChange={onChange} items={[{key:'profile',label:'资料',content:<Profile />},{key:'audit',label:'记录',content:<Audit />}]} />;\n}\nfunction AccountPage() {\n  const [activeKey, setActiveKey] = useState('profile');\n  const [open, setOpen] = useState(false);\n  return <><AccountTabs value={activeKey} onChange={setActiveKey} /><Action onInvoke={() => setOpen(true)}>详情</Action><Dialog visible={open} onDismiss={() => setOpen(false)}>账户详情</Dialog><p>选择页签查看资料或记录</p></>;\n}"
+      }
+    },
+    {
+      "id": "unknown-target-contract",
+      "prompt": "将给定的设计接入目标工程。输出当前证据支持的实现、未解决项和验收结论。环境只能提供下列资料；当前无法取得更多目标组件文档、类型或源码，也不能安装依赖。",
+      "source": {
+        "page": "Members",
+        "revision": 2,
+        "tree": "原生 main 包含 p('选择需要通知的成员') 与 MemberPicker(initialValue=[], scope='team', multiple=true)。",
+        "contracts": "MemberPicker 管理异步搜索、分页、已选成员回显与移除，value 为成员 ID 数组，onChange(nextIds) 回写选择；search(query,page) 使用现有 searchMembers 服务。"
+      },
+      "target": {
+        "installed": "React 18; @fixture/team-ui 1.0.0。该包尚无可读取的公开契约。searchMembers 的请求契约已确认。",
+        "contracts": "searchMembers({query:string,page:number}):Promise<{items:{id:string,label:string}[],total:number}>。目标组件的导出、属性、状态及事件 API 均未知。",
+        "code": "export function MembersPage() { return <main><p>选择需要通知的成员</p></main>; }"
+      }
+    },
+    {
+      "id": "interaction-and-evidence",
+      "prompt": "账户页已实现，请按设计与目标契约完成交付前审查，报告有依据的问题和未验证项。当前没有运行环境或截图。",
+      "source": {
+        "page": "Account",
+        "revision": 4,
+        "tree": "ChoiceTabs 初始 activeKey='profile'，选择页签后显示对应的 profile 或 audit 内容。Overlay 初始关闭，点击“详情”打开，任一原生关闭入口将 open 设为 false，正文为“账户详情”。页面由现有 Host 承载。",
+        "contracts": "ChoiceTabs.onChange(nextKey) 回写选中项；Overlay.onOpenChange(nextOpen) 回写开关。两端组件职责已确认可以对应，事件必须保留实际业务效果。"
+      },
+      "target": {
+        "installed": "React 18; @fixture/client-kit 3.0.0，现有 Host 负责应用外壳。",
+        "contracts": "TabSet: value:string, onValueChange:(nextKey:string)=>void, items:{key:string,label:string,content:ReactNode}[]。Dialog: visible:boolean, onDismiss:()=>void, children:ReactNode，所有原生关闭入口调用 onDismiss。Action: onInvoke:()=>void, children:ReactNode。Profile 和 Audit 已实现。",
+        "code": "import { TabSet, Dialog, Action } from '@fixture/client-kit';\nimport { useState } from 'react';\nfunction AccountTabs({ value, onChange }) {\n  return <TabSet value={value} onValueChange={() => onChange(value)} items={[{key:'profile',label:'资料',content:<Profile />},{key:'audit',label:'记录',content:<Audit />}]} />;\n}\nfunction AccountPage() {\n  const [activeKey, setActiveKey] = useState('profile');\n  const [open, setOpen] = useState(false);\n  return <><AccountTabs value={activeKey} onChange={setActiveKey} /><Action onInvoke={() => setOpen(true)}>详情</Action><Dialog visible={open} onDismiss={() => setOpen(true)}>账户详情</Dialog></>;\n}",
+        "implementationReport": "实现者报告类型检查、构建通过，因此组件映射与交互均已通过；未提供命令日志、测试记录或截图。"
+      }
+    }
+  ]
+}

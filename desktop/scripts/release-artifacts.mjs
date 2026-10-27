@@ -4,6 +4,7 @@ import { readFile, readdir, stat } from "node:fs/promises";
 import path from "node:path";
 import YAML from "yaml";
 import semver from "semver";
+import { parseBlockmap } from "../src/update-download.cjs";
 
 export const manifestNames = { darwin: "latest-mac.yml", win32: "latest.yml", linux: "latest-linux.yml" };
 export async function digest(file) {
@@ -22,6 +23,15 @@ export async function validateRelease(directory, platform, version, arch) {
     if (platform === "darwin" && arch && !file.url.startsWith(`Plasmic-${version}-mac-${arch}.`)) throw new Error("Artifact architecture does not match release directory");
     const local = path.join(directory, file.url);
     if ((await stat(local)).size !== file.size || await digest(local) !== file.sha512) throw new Error(`Artifact checksum or size mismatch: ${file.url}`);
+    if ((platform === "darwin" && file.url.endsWith(".zip")) ||
+        (platform === "win32" && file.url.endsWith(".exe")) ||
+        (platform === "linux" && file.url.endsWith(".AppImage"))) {
+      try {
+        parseBlockmap(await readFile(local + ".blockmap"), file.size);
+      } catch (error) {
+        throw new Error(`Missing or invalid update blockmap: ${file.url}`, { cause: error });
+      }
+    }
     files.push(file.url);
   }
   const entries = await readdir(directory);

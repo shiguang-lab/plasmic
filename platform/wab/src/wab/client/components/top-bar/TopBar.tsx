@@ -146,25 +146,6 @@ function _TopBar({ preview }: TopBarProps) {
   const rightRef = React.useRef<HTMLDivElement>(null);
 
   React.useLayoutEffect(() => {
-    if (preview) {
-      return;
-    }
-    const right = ensure(rightRef.current, "Top bar right section is mounted");
-    const editor = ensure(right.closest<HTMLElement>(".canvas-editor"), "Editor is mounted");
-    // The inspector shares the toolbar's outer width, including its border.
-    const update = () => editor.style.setProperty(
-      "--editor-right-panel-width", `${right.getBoundingClientRect().width}px`,
-    );
-    const resizeObserver = new ResizeObserver(update);
-    resizeObserver.observe(right, { box: "border-box" });
-    update();
-    return () => {
-      resizeObserver.disconnect();
-      editor.style.removeProperty("--editor-right-panel-width");
-    };
-  }, [preview]);
-
-  React.useLayoutEffect(() => {
     if (!hasWindowOverlay) {
       return;
     }

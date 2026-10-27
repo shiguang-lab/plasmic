@@ -6,15 +6,13 @@ const physicalFs = process.versions.electron
   ? require("original-fs").promises
   : fs;
 const path = require("node:path");
-const { createHash, randomUUID } = require("node:crypto");
+const { randomUUID } = require("node:crypto");
 const { execFile, spawn } = require("node:child_process");
 const { promisify } = require("node:util");
-const { pipeline } = require("node:stream/promises");
-const { Readable, Transform } = require("node:stream");
-const { createWriteStream } = require("node:fs");
 const semver = require("semver");
 const YAML = require("yaml");
 const { macUpdateArch } = require("./update-architecture.cjs");
+const { downloadArchive, seedArchive } = require("./update-download.cjs");
 const run = promisify(execFile);
 
 function parseManifest(text, currentVersion, feedUrl, arch) {
@@ -60,12 +58,26 @@ class MacUpdater extends EventEmitter {
       throw uiError("NAS update check failed (HTTP {status})", {
         status: response.status,
       });
+    const text = await response.text();
     this.info = parseManifest(
-      await response.text(),
+      text,
       this.app.getVersion(),
       this.feedUrl,
       this.arch,
     );
+    if (!this.info && YAML.parse(text)?.version === this.app.getVersion()) {
+      // Cache seeding is optional maintenance, never a reason to reject an
+      // otherwise valid "already current" response from an existing feed.
+      try {
+        const archive = path.join(this.cache, `Plasmic-${this.app.getVersion()}.zip`);
+        if (await fs.stat(archive).then((entry) => entry.isFile(), () => false)) {
+          const installed = parseManifest(text, "0.0.0", this.feedUrl, this.arch);
+          if (installed) await seedArchive({ fetch: this.fetch, info: installed, arch: this.arch, archive });
+        }
+      } catch (error) {
+        console.info("Cannot seed differential update cache:", error.message);
+      }
+    }
     this.emit(
       this.info ? "update-available" : "update-not-available",
       this.info || {},
@@ -75,50 +87,16 @@ class MacUpdater extends EventEmitter {
     if (!this.info) throw uiError("Check for an update first");
     await fs.mkdir(this.cache, { recursive: true, mode: 0o700 });
     this.archive = path.join(this.cache, `Plasmic-${this.info.version}.zip`);
-    const partial = this.archive + ".partial";
-    try {
-      const response = await this.fetch(this.info.file.url, {
-        signal: AbortSignal.timeout(30 * 60 * 1000),
-        redirect: "error",
-      });
-      if (!response.ok || !response.body)
-        throw uiError("Update download failed (HTTP {status})", {
-          status: response.status,
-        });
-      let received = 0,
-        lastPercent = -1;
-      const hash = createHash("sha512");
-      const progress = new Transform({
-        transform: (chunk, _encoding, callback) => {
-          received += chunk.length;
-          hash.update(chunk);
-          if (received > this.info.file.size)
-            return callback(uiError("Update size exceeds manifest"));
-          const percent = Math.floor((received / this.info.file.size) * 100);
-          if (percent !== lastPercent) {
-            lastPercent = percent;
-            this.emit("download-progress", { percent });
-          }
-          callback(null, chunk);
-        },
-      });
-      await pipeline(
-        Readable.fromWeb(response.body),
-        progress,
-        createWriteStream(partial, { mode: 0o600 }),
-      );
-      if (
-        received !== this.info.file.size ||
-        hash.digest("base64") !== this.info.file.sha512
-      )
-        throw uiError("Update checksum verification failed");
-      await fs.rename(partial, this.archive);
-      this.emit("update-downloaded", this.info);
-      return [this.archive];
-    } catch (error) {
-      await fs.rm(partial, { force: true });
-      throw error;
-    }
+    await downloadArchive({
+      fetch: this.fetch,
+      info: this.info,
+      archive: this.archive,
+      currentVersion: this.app.getVersion(),
+      arch: this.arch,
+      onProgress: (progress) => this.emit("download-progress", progress),
+    });
+    this.emit("update-downloaded", this.info);
+    return [this.archive];
   }
   async quitAndInstall() {
     if (!this.archive || !this.info) throw uiError("Download an update first");
@@ -219,10 +197,12 @@ async function acknowledgeMacUpdate(app, ready = true) {
       transaction.target === path.resolve(app.getAppPath(), "../../..")
     ) {
       if (ready) {
-        await fs.rm(path.join(cache, `Plasmic-${transaction.version}.zip`), {
-          force: true,
-        });
         for (const entry of await fs.readdir(cache, { withFileTypes: true })) {
+          // Retain only the installed version as the next differential base.
+          if (entry.isFile() && /^Plasmic-\d+\.\d+\.\d+\.zip(?:\.(?:json|blockmap|partial(?:\.json)?))?$/.test(entry.name) &&
+              !["", ".json", ".blockmap"].some((suffix) => entry.name === `Plasmic-${transaction.version}.zip${suffix}`)) {
+            await fs.rm(path.join(cache, entry.name), { force: true });
+          }
           if (entry.isDirectory() && entry.name.startsWith("extract-"))
             await physicalFs.rm(path.join(cache, entry.name), {
               recursive: true,

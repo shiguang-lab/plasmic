@@ -1,6 +1,6 @@
 {
   "name": "@shiguang-lab/plasmic-desktop",
-  "version": "0.3.6",
+  "version": "0.4.0",
   "private": true,
   "description": "Locally bundled Plasmic Studio with the NAS backend",
   "main": "src/entry.cjs",
@@ -20,7 +20,7 @@
     "test:macos-activation": "node tests/macos-activation.cjs",
     "test:mcp-lifecycle": "node tests/mcp-lifecycle.cjs",
     "test:runtime-security": "node tests/runtime-security-native.cjs",
-    "test:updates-native": "electron tests/updates-native.cjs",
+    "test:updates-native": "electron tests/update-download-native.cjs && electron tests/updates-native.cjs",
     "package": "node scripts/package.mjs",
     "package:local": "node scripts/package-local.mjs",
     "package:mac": "node scripts/package.mjs darwin",
@@ -48,6 +48,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.32.0",
+    "builder-util-runtime": "9.7.0",
     "electron-updater": "6.8.9",
     "imagetracerjs": "1.2.6",
     "jsonc-parser": "^3.3.1",

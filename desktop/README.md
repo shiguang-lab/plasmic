@@ -370,7 +370,19 @@ unchanged releases. `.github/workflows/publish-desktop.yml` extracts the pinned 
 builds macOS arm64 on Apple Silicon, macOS x64 on Intel, Windows x64 on Windows,
 and Linux x64 on Linux. macOS installers and updates use only
 `darwin/arm64/` and `darwin/x64/`; Rosetta launches select arm64.
-Each native runner tests the desktop and packages its installer. The final job verifies
+The Node test suite runs once per OS (Linux, macOS arm64, Windows) alongside the
+Studio image build for linked releases, or alongside renderer preparation and
+installer packaging for standalone Desktop releases. A linked release reuses
+successful tests only when their commit matches the packaged source revision.
+Both macOS installer runners retain
+the native startup and session-lifecycle checks, signature checks, and architecture
+validation. The final publication waits for all test and installer jobs to succeed.
+Node-only jobs skip the Electron binary download; the publication job installs only
+runtime dependencies. npm download caches support reuse within the release and
+reruns; cross-tag image caching is handled separately by the Studio registry cache.
+Compressed renderer and installer artifacts are uploaded without recompression,
+and the final job downloads all four installer artifacts together into separate
+platform directories. The final job verifies
 all installer sizes and SHA-512 hashes, copies installers and Electron update YAML
 into `desktop/public/desktop-updates/`, and generates `latest.json` for the website.
 The JSON contains the version, platform, architecture, size, SHA-512 and public HTTPS
@@ -424,6 +436,32 @@ The old bundle is retained until the new app loads successfully. If startup fail
 the helper restores and reopens the old bundle. Install from the DMG into a writable
 Applications directory before updating; running from the mounted DMG cannot update.
 Windows and Linux use `electron-updater` with NSIS/AppImage installation.
+
+macOS ZIP, Windows NSIS EXE and Linux AppImage downloads share the same `.blockmap`
+and HTTP Range downloader. It reuses unchanged bytes from a verified cached
+artifact to reconstruct and SHA-512-check the complete installer, including for
+skipped versions. NSIS publisher checks and native installation, AppImage
+executable permissions and installation, and macOS bundle verification and
+rollback remain in their platform updaters. First downloads, unavailable bases
+or blockmaps, and unsupported Range responses use a full download. Invalid
+differential results are discarded before retrying the full artifact.
+
+Network interruptions preserve a target-bound partial file and resume on the
+next automatic check, including after restarting the app. Native pending-directory
+cleanup cannot remove this resume cache. A server ignoring Range restarts the
+full download. Cache cleanup keeps the running version and current target;
+macOS also removes older versions after successful installation. When the feed
+still describes the installed version, existing verified ZIPs, NSIS cached
+installers and installed AppImages can seed the differential base without
+downloading the installer again. Missing bases require one complete download.
+
+Complete installers and existing feed fields remain available to existing
+clients. Linux retains its embedded blockmap for existing AppImage updaters and
+adds a sidecar for the shared downloader. Release validation requires sidecars
+for both macOS ZIPs, the Windows EXE and Linux AppImage; deployment checks each
+public byte-range response. Run `npm run test:updates-native` for actual Electron
+transport through all three download handlers, update UI and physical ASAR cleanup
+acceptance. It exercises download handlers without launching platform installers.
 
 The first update-capable release must be installed manually on clients that
 predate this updater. Subsequent versions use the in-app flow. Login cookies,

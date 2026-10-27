@@ -1,20 +1,35 @@
-FROM node:24.16.0-bookworm-slim AS builder
+FROM node:24.16.0-bookworm-slim AS dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends bash git curl wget python3 python3-pip postgresql-client build-essential ca-certificates libssl3 && rm -rf /var/lib/apt/lists/*
 RUN corepack enable
 ENV CI=1 PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 PUPPETEER_SKIP_DOWNLOAD=1 CYPRESS_INSTALL_BINARY=0
 WORKDIR /plasmic
+# Keep fetched packages in a regular layer: cache mounts are not exported to
+# the registry cache, and source edits must not force another dependency download.
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY platform/package.json platform/pnpm-lock.yaml platform/pnpm-workspace.yaml ./platform/
+COPY platform/patches ./platform/patches
+COPY platform/sub/package.json platform/sub/pnpm-lock.yaml platform/sub/pnpm-workspace.yaml ./platform/sub/
+COPY platform/sub/patches ./platform/sub/patches
+COPY platform/react-web-bundle/package.json platform/react-web-bundle/pnpm-lock.yaml platform/react-web-bundle/pnpm-workspace.yaml ./platform/react-web-bundle/
+COPY platform/live-frame/package.json platform/live-frame/pnpm-lock.yaml platform/live-frame/pnpm-workspace.yaml ./platform/live-frame/
+RUN --mount=type=secret,id=npmrc,target=/root/.npmrc \
+    --mount=type=secret,id=build-ca \
+    if [ -f /run/secrets/build-ca ]; then export NODE_EXTRA_CA_CERTS=/run/secrets/build-ca; fi; \
+    pnpm fetch \
+    && pnpm --dir platform fetch \
+    && pnpm --dir platform/sub fetch \
+    && pnpm --dir platform/react-web-bundle fetch \
+    && pnpm --dir platform/live-frame fetch
+
+FROM dependencies AS builder
 COPY . .
 RUN mkdir -p /tmp/.plasmic && cp platform/wab/tools/docker-dev/secrets.json /tmp/.plasmic/secrets.json
 # Optional build CA is a local trust input only; never copy it into release images.
-RUN --mount=type=cache,id=plasmic-debian-store,target=/root/.local/share/pnpm/store,sharing=locked \
-    --mount=type=cache,id=plasmic-debian-metadata,target=/root/.cache/pnpm,sharing=locked \
-    --mount=type=secret,id=npmrc,target=/root/.npmrc \
+RUN --mount=type=secret,id=npmrc,target=/root/.npmrc \
     --mount=type=secret,id=build-ca \
     if [ -f /run/secrets/build-ca ]; then export NODE_EXTRA_CA_CERTS=/run/secrets/build-ca; fi; \
     pnpm run setup
-RUN --mount=type=cache,id=plasmic-debian-store,target=/root/.local/share/pnpm/store,sharing=locked \
-    --mount=type=cache,id=plasmic-debian-metadata,target=/root/.cache/pnpm,sharing=locked \
-    --mount=type=secret,id=build-ca \
+RUN --mount=type=secret,id=build-ca \
     if [ -f /run/secrets/build-ca ]; then export NODE_EXTRA_CA_CERTS=/run/secrets/build-ca; fi; \
     node scripts/deploy-loader-sdk.mjs /opt/plasmic-loader-react \
     && pnpm install --frozen-lockfile --ignore-scripts --prefer-offline --prod=false

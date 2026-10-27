@@ -214,7 +214,7 @@ test("macOS downloads verify complete bytes and SHA-512 before reporting ready; 
   const updater = new MacUpdater({
     app: { getPath: () => root, getVersion: () => "0.0.1" },
     feedUrl: feed,
-    fetch: async (url) =>
+    fetch: async (url) => url.endsWith(".blockmap") ? new Response(null, { status: 404 }) :
       url.endsWith(".yml")
         ? new Response(YAML.stringify(manifest))
         : new Response(corrupt ? Buffer.from("bad") : bytes),
@@ -224,9 +224,13 @@ test("macOS downloads verify complete bytes and SHA-512 before reporting ready; 
   const [file] = await updater.downloadUpdate();
   assert.deepEqual(await fs.readFile(file), bytes);
   assert.equal(downloaded, 1);
+  // A valid complete cache is reused; corrupt bytes must never be reused.
+  await updater.downloadUpdate();
+  assert.equal(downloaded, 2);
+  await fs.writeFile(file, "corrupt cached archive");
   corrupt = true;
   await assert.rejects(updater.downloadUpdate(), /checksum/);
-  assert.equal(downloaded, 1);
+  assert.equal(downloaded, 2);
   await assert.rejects(fs.stat(file + ".partial"), { code: "ENOENT" });
   const malicious = new MacUpdater({
     app: { getPath: () => root, getVersion: () => "0.0.1" },
@@ -259,6 +263,7 @@ test("only the expected installed version and bundle acknowledge an update", asy
   });
   app.getVersion = () => "0.0.2";
   await fs.writeFile(path.join(root, "updates/Plasmic-0.0.2.zip"), "cached");
+  await fs.writeFile(path.join(root, "updates/Plasmic-0.0.1.zip"), "old base");
   await fs.mkdir(path.join(root, "updates/extract-fixture"));
   await fs.writeFile(
     path.join(root, "updates/extract-fixture/data"),
@@ -269,7 +274,8 @@ test("only the expected installed version and bundle acknowledge an update", asy
     await fs.readFile(path.join(root, `updates/${id}.ready`), "utf8"),
     "ready",
   );
-  await assert.rejects(fs.stat(path.join(root, "updates/Plasmic-0.0.2.zip")), {
+  assert.equal(await fs.readFile(path.join(root, "updates/Plasmic-0.0.2.zip"), "utf8"), "cached");
+  await assert.rejects(fs.stat(path.join(root, "updates/Plasmic-0.0.1.zip")), {
     code: "ENOENT",
   });
   await assert.rejects(fs.stat(path.join(root, "updates/extract-fixture")), {
@@ -330,9 +336,13 @@ test("release validation refuses incomplete or modified artifacts before NAS upl
     YAML.stringify(manifest),
   );
   await fs.writeFile(path.join(root, manifest.files[0].url), bytes);
+  const { gzipSync } = require("node:zlib");
+  await fs.writeFile(path.join(root, manifest.files[0].url + ".blockmap"), gzipSync(JSON.stringify({
+    version: "2", files: [{ name: "file", offset: 0, sizes: [bytes.length], checksums: [manifest.files[0].sha512] }],
+  })));
   assert.equal(
     (await validateRelease(root, "darwin", "0.0.2")).files.length,
-    1,
+    2,
   );
   await fs.writeFile(path.join(root, manifest.files[0].url), "wrong bytes");
   await assert.rejects(

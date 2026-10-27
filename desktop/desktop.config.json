@@ -1,7 +1,7 @@
 {
   "studioOrigin": "https://plasmic-studio.shiguanglab.com",
   "canvasOrigin": "https://plasmic-canvas.shiguanglab.com",
-  "webImage": "ghcr.io/shiguang-lab/plasmic-web:0.3.6",
+  "webImage": "ghcr.io/shiguang-lab/plasmic-web:0.4.0",
   "updateUrl": "https://plasmic-studio.shiguanglab.com/desktop-updates",
   "nasHost": "ugreen-nas",
   "nasDeployDir": "/volume1/docker/plasmic/images"

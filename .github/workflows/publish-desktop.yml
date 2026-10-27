@@ -13,6 +13,14 @@ on:
       release-tag:
         required: true
         type: string
+      source-ref:
+        description: Studio commit to build before the linked Desktop tag exists
+        required: true
+        type: string
+      tested-revision:
+        description: Commit that already passed the caller's Desktop tests
+        required: true
+        type: string
 env:
   PYTHONUTF8: "1"
 permissions:
@@ -26,11 +34,14 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       publish: ${{ steps.plan.outputs.publish }}
+      revision: ${{ steps.source.outputs.revision }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
-          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.release-tag || github.ref }}
+          ref: ${{ inputs.source-ref || inputs.release-tag || github.ref }}
           fetch-depth: 0
+      - id: source
+        run: echo "revision=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
       - uses: actions/setup-node@v4
         with:
           node-version: 24
@@ -49,19 +60,29 @@ jobs:
             git tag "$RELEASE_TAG"
             git push origin "$RELEASE_TAG"
           fi
+  tests:
+    needs: plan
+    if: needs.plan.outputs.publish == 'true' && inputs.tested-revision != needs.plan.outputs.revision
+    uses: ./.github/workflows/test-desktop.yml
+    with:
+      source-ref: ${{ needs.plan.outputs.revision }}
   renderer:
     needs: plan
     if: needs.plan.outputs.publish == 'true'
+    env:
+      ELECTRON_SKIP_BINARY_DOWNLOAD: "1"
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
-          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.release-tag || github.ref }}
+          ref: ${{ needs.plan.outputs.revision }}
       - uses: actions/setup-node@v4
         with:
           node-version: 24
-      - run: npm ci --prefix desktop
+          cache: npm
+          cache-dependency-path: desktop/package-lock.json
+      - run: npm ci --prefix desktop --prefer-offline --no-audit --no-fund
       - name: Validate release tag
         env:
           RELEASE_TAG: ${{ inputs.release-tag || github.ref_name }}
@@ -75,8 +96,9 @@ jobs:
           name: desktop-renderer
           path: renderer.tar.gz
           if-no-files-found: error
+          compression-level: 0
   installers:
-    needs: renderer
+    needs: [plan, renderer]
     strategy:
       fail-fast: false
       matrix:
@@ -102,16 +124,17 @@ jobs:
       - run: git config --global core.autocrlf false
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
-          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.release-tag || github.ref }}
+          ref: ${{ needs.plan.outputs.revision }}
       - uses: actions/setup-node@v4
         with:
           node-version: 24
-      - run: npm ci --prefix desktop
+          cache: npm
+          cache-dependency-path: desktop/package-lock.json
+      - run: npm ci --prefix desktop --prefer-offline --no-audit --no-fund
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2, Node 24
         with:
           name: desktop-renderer
       - run: tar -xzf renderer.tar.gz -C desktop
-      - run: npm test --prefix desktop
       - name: Verify expired-session startup
         if: matrix.platform == 'darwin'
         run: npm run test:auth-startup --prefix desktop
@@ -142,8 +165,14 @@ jobs:
             desktop/dist/${{ env.DESKTOP_VERSION }}/${{ matrix.platform }}-${{ matrix.arch }}/Plasmic-*
             desktop/dist/${{ env.DESKTOP_VERSION }}/${{ matrix.platform }}-${{ matrix.arch }}/latest*.yml
           if-no-files-found: error
+          compression-level: 0
   publish:
-    needs: installers
+    needs: [plan, tests, installers]
+    if: >-
+      ${{ !cancelled() && needs.plan.outputs.publish == 'true' &&
+          needs.installers.result == 'success' &&
+          (needs.tests.result == 'success' ||
+           (needs.tests.result == 'skipped' && inputs.tested-revision == needs.plan.outputs.revision)) }}
     env:
       RELEASE_TAG: ${{ inputs.release-tag || github.ref_name }}
     runs-on: ubuntu-latest
@@ -154,27 +183,18 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
-          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.release-tag || github.ref }}
+          ref: ${{ needs.plan.outputs.revision }}
       - uses: actions/setup-node@v4
         with:
           node-version: 24
-      - run: npm ci --prefix desktop
+          cache: npm
+          cache-dependency-path: desktop/package-lock.json
+      - run: npm ci --prefix desktop --omit=dev --ignore-scripts --prefer-offline --no-audit --no-fund
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2, Node 24
         with:
-          name: darwin-arm64
-          path: installers/darwin-arm64
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2, Node 24
-        with:
-          name: darwin-x64
-          path: installers/darwin-x64
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2, Node 24
-        with:
-          name: win32-x64
-          path: installers/win32-x64
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2, Node 24
-        with:
-          name: linux-x64
-          path: installers/linux-x64
+          pattern: '{darwin-arm64,darwin-x64,win32-x64,linux-x64}'
+          path: installers
+          merge-multiple: false
       - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f
       - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9
         with:
@@ -207,5 +227,5 @@ jobs:
             ghcr.io/shiguang-lab/plasmic-desktop-releases:latest
           labels: |
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
-            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.revision=${{ needs.plan.outputs.revision }}
             org.opencontainers.image.version=${{ inputs.release-tag || github.ref_name }}

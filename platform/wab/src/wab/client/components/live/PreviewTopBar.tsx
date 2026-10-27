@@ -102,6 +102,14 @@ const useStyles = createStyles(({ token }) => ({
     borderRadius: token.borderRadiusLG,
     boxShadow: token.boxShadowSecondary,
   },
+  leftGroup: {
+    display: "flex",
+    alignItems: "center",
+    justifySelf: "start",
+    minWidth: 0,
+    maxWidth: "100%",
+    gap: 12,
+  },
   rightGroup: {
     display: "flex",
     alignItems: "center",
@@ -268,7 +276,7 @@ export const PreviewTopBar = observer(function PreviewTopBar({
   const hasWindowOverlay =
     isMacDesktop || navigator.userAgent.includes("PlasmicDesktop/win32");
   const topBarRef = React.useRef<HTMLDivElement>(null);
-  const leftSectionRef = React.useRef<HTMLDivElement>(null);
+  const leftGroupRef = React.useRef<HTMLDivElement>(null);
   const centerSectionRef = React.useRef<HTMLDivElement>(null);
   const rightGroupRef = React.useRef<HTMLDivElement>(null);
   React.useLayoutEffect(() => {
@@ -277,7 +285,7 @@ export const PreviewTopBar = observer(function PreviewTopBar({
     }
     const root = ensure(topBarRef.current, "Preview top bar is mounted");
     const sections = [
-      ensure(leftSectionRef.current, "Preview navigation is mounted"),
+      ensure(leftGroupRef.current, "Preview navigation is mounted"),
       ensure(centerSectionRef.current, "Preview viewport controls are mounted"),
       ensure(rightGroupRef.current, "Preview actions are mounted"),
     ];
@@ -475,81 +483,85 @@ export const PreviewTopBar = observer(function PreviewTopBar({
         }
       }}
     >
-      <div
-        ref={leftSectionRef}
-        className={cx(
-          styles.section,
-          styles.leftSection,
-          isMacDesktop && styles.desktopLeftSection,
-        )}
-      >
-        <BrandLink
-          brand={
-            studioCtx.getCurrentUiConfig().brand ??
-            studioCtx.appCtx.appConfig.brands?.[
-              studioCtx.siteInfo.teamId ?? ""
-            ] ??
-            studioCtx.appCtx.appConfig.brands?.[""]
-          }
-        />
-        {studioCtx.showBranching() && (
-          <BranchSwitcher className={styles.navigationTrigger} />
-        )}
-        <Dropdown
-          trigger={["click"]}
-          placement="bottomLeft"
-          open={pageMenuOpen}
-          onOpenChange={setPageMenuOpen}
-          autoFocus
-          menu={{
-            items: pageMenuItems,
-            selectable: true,
-            selectedKeys: previewCtx.component
-              ? [previewCtx.component.uuid]
-              : [],
-            onClick: ({ key }) => {
-              setPageMenuOpen(false);
-              const component = previewCtx.studioCtx.site.components.find(
-                (c) => c.uuid === key,
-              );
-              if (component) {
-                void previewCtx.pushComponent(component);
-              }
-            },
-          }}
-          popupRender={(menu) => (
-            <Scrollbar
-              scrollX={false}
-              defer={false}
-              className={styles.pageMenu}
-              onKeyDownCapture={(event) => {
-                if (event.key === "Escape") {
-                  event.stopPropagation();
-                  setPageMenuOpen(false);
-                }
-              }}
-            >
-              {menu}
-            </Scrollbar>
+      <div ref={leftGroupRef} className={styles.leftGroup}>
+        <div
+          className={cx(
+            styles.section,
+            styles.leftSection,
+            isMacDesktop && styles.desktopLeftSection,
           )}
         >
-          <Button
-            type="text"
-            className={styles.navigationTrigger}
-            aria-label={t("Select component")}
-            aria-haspopup="menu"
-            aria-expanded={pageMenuOpen}
+          <BrandLink
+            brand={
+              studioCtx.getCurrentUiConfig().brand ??
+              studioCtx.appCtx.appConfig.brands?.[
+                studioCtx.siteInfo.teamId ?? ""
+              ] ??
+              studioCtx.appCtx.appConfig.brands?.[""]
+            }
+          />
+          {studioCtx.showBranching() && (
+            <BranchSwitcher className={styles.navigationTrigger} />
+          )}
+          <Dropdown
+            trigger={["click"]}
+            placement="bottomLeft"
+            open={pageMenuOpen}
+            onOpenChange={setPageMenuOpen}
+            autoFocus
+            menu={{
+              items: pageMenuItems,
+              selectable: true,
+              selectedKeys: previewCtx.component
+                ? [previewCtx.component.uuid]
+                : [],
+              onClick: ({ key }) => {
+                setPageMenuOpen(false);
+                const component = previewCtx.studioCtx.site.components.find(
+                  (c) => c.uuid === key,
+                );
+                if (component) {
+                  void previewCtx.pushComponent(component);
+                }
+              },
+            }}
+            popupRender={(menu) => (
+              <Scrollbar
+                scrollX={false}
+                defer={false}
+                className={styles.pageMenu}
+                onKeyDownCapture={(event) => {
+                  if (event.key === "Escape") {
+                    event.stopPropagation();
+                    setPageMenuOpen(false);
+                  }
+                }}
+              >
+                {menu}
+              </Scrollbar>
+            )}
           >
-            {previewCtx.component &&
-              renderPageLabel(
-                previewCtx.component.name || t("Artboards"),
-                isPageComponent(previewCtx.component)
-                  ? PageIcon
-                  : ComponentIcon,
-              )}
-            <DownOutlined style={{ fontSize: 10 }} />
-          </Button>
-        </Dropdown>
+            <Button
+              type="text"
+              className={styles.navigationTrigger}
+              aria-label={t("Select component")}
+              aria-haspopup="menu"
+              aria-expanded={pageMenuOpen}
+            >
+              {previewCtx.component &&
+                renderPageLabel(
+                  previewCtx.component.name || t("Artboards"),
+                  isPageComponent(previewCtx.component)
+                    ? PageIcon
+                    : ComponentIcon,
+                )}
+              <DownOutlined style={{ fontSize: 10 }} />
+            </Button>
+          </Dropdown>
+        </div>
+        {navigator.userAgent.includes("PlasmicDesktop/") && (
+          <span data-desktop-update-slot="header" />
+        )}
       </div>
 
       <div ref={centerSectionRef} className={cx(styles.section, styles.centerSection)}>
@@ -710,11 +722,6 @@ export const PreviewTopBar = observer(function PreviewTopBar({
       </div>
 
       <div ref={rightGroupRef} className={styles.rightGroup}>
-        {navigator.userAgent.includes("PlasmicDesktop/") && (
-          <span
-            data-desktop-update-slot="header"
-          />
-        )}
         <div className={cx(styles.section, styles.rightSection)}>
           <Tooltip title={t("Back")}>
             <Button type="text" aria-label={t("Back")} icon={<ArrowLeftOutlined />}

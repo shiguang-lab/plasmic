@@ -10,8 +10,7 @@ async function createUpdates({ config, getWindow, session, beforeInstall, showUp
   if (new URL(feedUrl).protocol !== "https:") throw new Error("Updates require HTTPS");
   const updater = process.platform === "darwin"
     ? new MacUpdater({ app, feedUrl, fetch: (url, options) => session.fetch(url, { ...options, bypassCustomProtocolHandlers: true }) })
-    : require("electron-updater").autoUpdater;
-  if (process.platform !== "darwin") updater.setFeedURL({ provider: "generic", url: feedUrl, useMultipleRangeRequest: false });
+    : require("./native-updater.cjs").createNativeUpdater({ platform: process.platform, feedUrl });
   const proxy = process.env.HTTPS_PROXY || process.env.HTTP_PROXY;
   if (proxy && updater.netSession) await updater.netSession.setProxy({ proxyRules: proxy, proxyBypassRules: process.env.NO_PROXY || "" });
   const manager = new UpdateManager({ updater, version: app.getVersion(), enabled: app.isPackaged && (process.platform !== "linux" || !!process.env.APPIMAGE), beforeInstall });

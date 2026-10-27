@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 import { desktopSources, hashFiles, sourceIdentity } from "../../scripts/build-identity.mjs";
 import { macSigningCertificate, verifyMacSignature } from "./local-signing.mjs";
 import runtimeSecurity from "../src/runtime-security.cjs";
+import { buildBlockMap } from "app-builder-lib/out/targets/blockmap/blockmap.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const metadata = JSON.parse(
@@ -93,4 +94,9 @@ const outputs = await build({
     linux: { target: ["AppImage"], executableName: "plasmic", icon: "assets/icon.png", category: "Development" },
   },
 });
+// Keep AppImage's embedded blockmap for existing clients and also publish a
+// sidecar covering the complete file for the shared resumable downloader.
+for (const output of outputs.filter((file) => file.endsWith(".AppImage"))) {
+  await buildBlockMap(output, "gzip", output + ".blockmap");
+}
 console.log(outputs.join("\n"));
