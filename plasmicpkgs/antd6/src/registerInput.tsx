@@ -242,6 +242,10 @@ export function registerNumberInput(loader?: Registerable) {
       placeholder: {
         type: "string",
       },
+      size: {
+        type: "choice",
+        options: ["large", "medium", "small"],
+      },
       disabled: {
         type: "boolean",
       },

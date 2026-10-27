@@ -9,7 +9,7 @@ Rows marked with an owner link are maintained in that document; the value is rep
 - Without a stated value, use the values in this document. Gaps, gutters and margins between siblings are 8, 12, 16 or 24px; surface insets (padding) are 16, 20 or 24px per the Surfaces table; never an in-between value such as 10px, 14px or 18px.
 - Spacing comes from the parent's gap/gutter and the surface's padding, never from margins added to children, blank nodes or fixed heights.
 - Top-level regions in the content area are 16px apart; buttons in one group are 8px apart; form fields share a 16px column gutter; every surface keeps the same 20px horizontal inset so content and action edges align.
-- Every control in one region uses the same size; set it explicitly in data-props (`medium`, Table `large`).
+- Controls in one region use consistent effective sizes from the Component sizes table unless the requirement or approved design specifies otherwise. Native defaults and supported context inheritance are valid; set an instance's `size` only when an override is needed, and verify the rendered result.
 - Text uses the theme scale in the Typography table: 14px body and secondary text, 12px captions, 16px/600 region titles, and only the listed metric-value and requested-header sizes; no other font sizes without a source.
 
 ## Spacing
@@ -57,7 +57,7 @@ Component-internal spacing stays native. A component's own theme spacing (Form.I
 
 ## Component sizes
 
-This table owns component sizes; component documents do not repeat them. Set the size in each instance's data-props; registration defaults and templates may differ.
+This table owns default design sizes, not required instance props. Read each registered component's actual size contract. Native defaults or supported Form/ConfigProvider inheritance may supply the intended size; do not write a redundant instance value that blocks inheritance. Templates and explicit props may override those defaults, so inspect the effective result.
 
 | Registration | Default size |
 | --- | --- |
@@ -67,21 +67,9 @@ This table owns component sizes; component documents do not repeat them. Set the
 | Descriptions | `medium` |
 | Avatar in a Table cell | 32 |
 
-Use another size only from the requirement or an approved design, and apply it to the whole region. The registrations below are scaffolded with their baseline and gated; for the others, set the size and check it in the rule review.
+Use another size from the requirement or an approved design, keeping the region consistent. Only pass `size` when the registered contract exposes it; a missing registration for a native capability is a contract defect to fix, not a reason to invent a prop or redraw the component.
 
-## Plan decisions
-
-`prepare_plan.py scaffold` writes these baselines into each planned instance; the saved-model gate requires the declared value. Change one only with the requirement's value, applied to the whole region.
-
-| Registration | Prop | Decision |
-| --- | --- | --- |
-| `plasmic-antd6-button` | `size` (baseline `"medium"`) | See [rule](#component-sizes). |
-| `plasmic-antd6-input` | `size` (baseline `"medium"`) | See [rule](#component-sizes). |
-| `plasmic-antd6-select` | `size` (baseline `"medium"`) | See [rule](#component-sizes). |
-| `plasmic-antd6-date-range-picker` | `size` (baseline `"medium"`) | See [rule](#component-sizes). |
-| `plasmic-antd6-segmented` | `size` (baseline `"medium"`) | See [rule](#component-sizes). |
-| `plasmic-antd6-tabs` | `size` (baseline `"medium"`) | See [rule](#component-sizes). |
-| `plasmic-antd6-table` | `size` (baseline `"large"`) | See [rule](#component-sizes). |
+During review, check effective sizes in Preview against the requirement or these defaults, including template overrides and context inheritance. An omitted `size` alone is not a failure, and a saved `size` alone is not proof of the rendered size. Static plan checks verify explicitly planned props; rendered review verifies effective size and consistency.
 
 ## Typography
 

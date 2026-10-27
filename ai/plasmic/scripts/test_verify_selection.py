@@ -14,11 +14,6 @@ def spec(name, component, role, **extra):
         # Width is a separate plan decision covered by test_reference_plan; null keeps it unset.
         value['props'] = {'width': None, **value.get('props', {})}
         value.setdefault('presentation', 'text')
-    # Scaffolded scale baselines (design/scale.md#plan-decisions), as prepare_plan.py scaffold writes them.
-    from rules_manifest import decisions_for
-    for item in decisions_for(component):
-        if item['prop'] == 'size' and 'baseline' in item:
-            value['props'] = {'size': item['baseline'], **value.get('props', {})}
     return value
 
 
@@ -27,6 +22,16 @@ def node(name, component, values=None, body=''):
 
 
 class SelectionTests(unittest.TestCase):
+    def test_controls_without_instance_size_pass_plan_and_saved_model_checks(self):
+        for suffix, role in (('button', 'widget'), ('input', 'widget'), ('input-number', 'widget'),
+                             ('select', 'field-choice'), ('date-range-picker', 'widget'),
+                             ('segmented', 'field-choice'), ('tabs', 'content-scope')):
+            with self.subTest(component=suffix):
+                key = 'plasmic-antd6-' + suffix
+                declaration = spec('Target', key, role)
+                self.assertEqual(plan_errors({'components': [declaration], 'feedback': []}), [])
+                self.assertTrue(self.result([declaration], node('Target', key))['passed'])
+
     def test_documented_selection_examples_pass_preflight(self):
         root = Path(__file__).resolve().parent.parent
         checked = 0

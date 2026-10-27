@@ -284,6 +284,32 @@ test("registrations expose v6 APIs instead of deprecated v5 controls", () => {
   assert(!props("modal").maskClosable);
 });
 
+test("InputNumber exposes native sizes without overriding size inheritance", () => {
+  const input = components.get("plasmic-antd6-input-number");
+  assert(input);
+  assert.deepEqual(new Set(input.meta.props.size.options), new Set(["small", "medium", "large"]));
+  assert.equal(input.meta.props.size.defaultValue, undefined);
+
+  const render = (size?: "small" | "medium" | "large", formSize?: "large") =>
+    renderToStaticMarkup(
+      <antd.ConfigProvider componentSize="small">
+        {formSize ? (
+          <antd.Form size={formSize}>
+            <input.component size={size} />
+          </antd.Form>
+        ) : (
+          <input.component size={size} />
+        )}
+      </antd.ConfigProvider>
+    );
+  assert.match(render(), /ant-input-number-sm\b/);
+  assert.match(render(undefined, "large"), /ant-input-number-lg\b/);
+  assert.match(render("small", "large"), /ant-input-number-sm\b/);
+  assert.match(render("large"), /ant-input-number-lg\b/);
+  assert.doesNotMatch(render("medium", "large"), /ant-input-number-(sm|lg)\b/);
+  assert.doesNotMatch(renderToStaticMarkup(<input.component />), /ant-input-number-(sm|lg)\b/);
+});
+
 test("input and date states remain connected to registered events", () => {
   for (const suffix of [
     "input",

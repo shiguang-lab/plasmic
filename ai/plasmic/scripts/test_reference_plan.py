@@ -181,12 +181,12 @@ class ManifestAndScaffoldTests(unittest.TestCase):
         page = plan['pages'][0]
         components = {c['nodeName']: c for c in page['components']}
         self.assertEqual(components['Results']['rule'], TABLE)
-        # Size comes from the shared scale baseline; the other Table decisions stay pending.
-        self.assertEqual(components['Results']['props'], {'size': 'large', 'scroll': '__DECIDE__', 'pagination': '__DECIDE__'})
+        # Native size defaults remain unset; other Table decisions stay pending.
+        self.assertEqual(components['Results']['props'], {'scroll': '__DECIDE__', 'pagination': '__DECIDE__'})
         self.assertEqual(components['ActionColumn']['props'], {'fixed': 'right', 'width': '__DECIDE__'})
         self.assertEqual(components['ActionColumn']['presentation'], '__DECIDE__')
         self.assertEqual(components['RowActions']['props'], {'max': 3})
-        self.assertEqual(components['ListCard']['props'], {'size': 'medium', 'variant': 'outlined', 'styles': {'body': {'padding': '__DECIDE__'}}})
+        self.assertEqual(components['ListCard']['props'], {'variant': 'outlined', 'styles': {'body': {'padding': '__DECIDE__'}}})
         self.assertEqual(components['ListCard']['condition'], '__DECIDE__')
         self.assertEqual(page['actionContracts'], '__DECIDE__')
         self.assertNotIn('appContext', page)
@@ -203,6 +203,23 @@ class ManifestAndScaffoldTests(unittest.TestCase):
         width = next(e for e in pending_errors if e['pointer'] == '/pages/0/components/1/props/width')
         self.assertEqual(width['rule'], TABLE + '#content-and-scroll-width')
         self.assertFalse(any('__DECIDE__' in json.dumps(e, ensure_ascii=False) for e in report['errors'] if e['check'] != 'decisionPending'))
+
+    def test_scaffold_preserves_size_inheritance_and_explicit_overrides(self):
+        from prepare_plan import scaffold
+        from verify_selection import decision_errors
+        for suffix in ('button', 'input', 'input-number', 'select', 'date-range-picker',
+                       'segmented', 'tabs', 'table', 'card'):
+            for props in ({}, {'size': 'small'}):
+                with self.subTest(component=suffix, props=props):
+                    plan, _ = scaffold({'pages': [{'path': '/records', 'components': [
+                        spec('Target', 'plasmic-antd6-' + suffix, 'widget', props=props.copy())]}]})
+                    page = plan['pages'][0]
+                    actual = page['components'][0].get('props', {})
+                    if 'size' in props:
+                        self.assertEqual(actual['size'], props['size'])
+                    else:
+                        self.assertNotIn('size', actual)
+                    self.assertFalse([e for e in decision_errors(page) if e.get('prop') == 'size'])
 
     def test_null_decision_means_absent_in_saved_model(self):
         from verify_structure import matches_props

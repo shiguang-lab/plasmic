@@ -54,19 +54,7 @@
     "components/button.md": {
       "registrations": [
         "plasmic-antd6-button"
-      ],
-      "decisions": {
-        "plasmic-antd6-button": [
-          {
-            "prop": "size",
-            "baseline": "medium",
-            "nullable": false,
-            "rule": "component-sizes",
-            "document": "../../design/scale.md",
-            "note": "Set explicitly in data-props; registration defaults and templates may differ (scale.md#component-sizes)."
-          }
-        ]
-      }
+      ]
     },
     "components/calendar.md": {
       "registrations": [
@@ -81,13 +69,6 @@
       ],
       "decisions": {
         "plasmic-antd6-card": [
-          {
-            "prop": "size",
-            "baseline": "medium",
-            "nullable": false,
-            "rule": "card-ownership",
-            "note": "Current contract baseline."
-          },
           {
             "prop": "variant",
             "baseline": "outlined",
@@ -148,19 +129,7 @@
       "registrations": [
         "plasmic-antd6-date-picker",
         "plasmic-antd6-date-range-picker"
-      ],
-      "decisions": {
-        "plasmic-antd6-date-range-picker": [
-          {
-            "prop": "size",
-            "baseline": "medium",
-            "nullable": false,
-            "rule": "component-sizes",
-            "document": "../../design/scale.md",
-            "note": "Set explicitly in data-props; registration defaults and templates may differ (scale.md#component-sizes)."
-          }
-        ]
-      }
+      ]
     },
     "components/descriptions.md": {
       "registrations": [
@@ -278,19 +247,7 @@
         "plasmic-antd6-input-password",
         "plasmic-antd6-input-search",
         "plasmic-antd6-textarea"
-      ],
-      "decisions": {
-        "plasmic-antd6-input": [
-          {
-            "prop": "size",
-            "baseline": "medium",
-            "nullable": false,
-            "rule": "component-sizes",
-            "document": "../../design/scale.md",
-            "note": "Set explicitly in data-props; registration defaults and templates may differ (scale.md#component-sizes)."
-          }
-        ]
-      }
+      ]
     },
     "components/layout.md": {
       "registrations": [
@@ -393,38 +350,14 @@
     "components/segmented.md": {
       "registrations": [
         "plasmic-antd6-segmented"
-      ],
-      "decisions": {
-        "plasmic-antd6-segmented": [
-          {
-            "prop": "size",
-            "baseline": "medium",
-            "nullable": false,
-            "rule": "component-sizes",
-            "document": "../../design/scale.md",
-            "note": "Set explicitly in data-props; registration defaults and templates may differ (scale.md#component-sizes)."
-          }
-        ]
-      }
+      ]
     },
     "components/select.md": {
       "registrations": [
         "plasmic-antd6-option",
         "plasmic-antd6-option-group",
         "plasmic-antd6-select"
-      ],
-      "decisions": {
-        "plasmic-antd6-select": [
-          {
-            "prop": "size",
-            "baseline": "medium",
-            "nullable": false,
-            "rule": "component-sizes",
-            "document": "../../design/scale.md",
-            "note": "Set explicitly in data-props; registration defaults and templates may differ (scale.md#component-sizes)."
-          }
-        ]
-      }
+      ]
     },
     "components/skeleton.md": {
       "registrations": [
@@ -483,14 +416,6 @@
       "decisions": {
         "plasmic-antd6-table": [
           {
-            "prop": "size",
-            "baseline": "large",
-            "nullable": false,
-            "rule": "component-sizes",
-            "document": "../../design/scale.md",
-            "note": "Set explicitly in data-props; registration defaults and templates may differ (scale.md#component-sizes)."
-          },
-          {
             "prop": "scroll",
             "nullable": true,
             "rule": "content-and-scroll-width",
@@ -524,19 +449,7 @@
       "registrations": [
         "plasmic-antd6-tab-item",
         "plasmic-antd6-tabs"
-      ],
-      "decisions": {
-        "plasmic-antd6-tabs": [
-          {
-            "prop": "size",
-            "baseline": "medium",
-            "nullable": false,
-            "rule": "component-sizes",
-            "document": "../../design/scale.md",
-            "note": "Set explicitly in data-props; registration defaults and templates may differ (scale.md#component-sizes)."
-          }
-        ]
-      }
+      ]
     },
     "components/tag.md": {
       "registrations": [
