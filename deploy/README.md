@@ -135,18 +135,46 @@ and version history are available without plan limits. Capabilities are resolved
 when serving API data; no paid subscription or feature tier is written to the
 database. Resource authentication and role permissions still apply.
 
-## Desktop download image
+## Release download routing
 
-`desktop-releases` serves installers, Electron update YAML and `latest.json` from
-an immutable GHCR release image. `DESKTOP_RELEASE_TAG=desktop-v<version>` is
-independent of the server/web `IMAGE_TAG`. Studio's Nginx proxies its public
-`/desktop-updates/` route to that service; no host port is exposed. The existing
-update volume serves only `/desktop-updates/plasmic/` CLI/Skill resources.
+Public Desktop and CLI/Skill downloads use Seoul Caddy to fetch GitHub Release
+assets. Clients retain the existing Studio domain and `/desktop-updates/` paths.
+Caddy handles GitHub's redirect to `release-assets.githubusercontent.com` internally;
+clients receive the file without a redirect. Both upstream connections verify TLS.
+Cookies, authorization and identity headers are removed before either upstream.
+Only the explicitly registered public download paths accept GET, HEAD and OPTIONS.
+Application, API, canvas and preview traffic continues through the NAS gateway.
 
-A numeric release that selects Desktop builds all native installers and the static image in GitHub Actions.
-After the workflow succeeds, run `node desktop/scripts/publish.mjs desktop-v<version>`
-to pull and deploy it on NAS. This also configures the route and service on an existing
-deployment. See [desktop releases](../desktop/README.md#nas-updates-and-releases).
+After publishing a Release, update the route state and a copy of the current relay
+Caddyfile, for example:
+
+```sh
+node scripts/release-downloads.mjs 0.5.0 /absolute/path/to/Caddyfile
+```
+
+`deploy/release-downloads.json` records the active Desktop/resource versions and
+immutable historical paths. The command verifies the published Release and resource
+artifact digests, advances only feeds present in that Release, and rejects
+downgrades or replacement of immutable routes. Studio-only releases do not change
+downloads. A resource-only patch keeps the Desktop feed unchanged and vice versa.
+Commit this state with the relay's corresponding Plasmic block.
+
+The relay source lives at `shiguang/deploy/umami/Caddyfile`; the running copy is
+`/home/ubuntu/umami-relay/Caddyfile` on SSH host `seoul`. Start from the running copy
+when applying a change, preserve unrelated sites, back it up, validate the candidate
+with the running Caddy image, and then reload Caddy. Write its bind-mounted file
+in place. Check the public feeds, all file sizes, hashes, byte ranges and CORS after
+the switch. A rollback restores the saved Caddyfile and reloads it.
+
+Feeds use `no-store`; versioned files use immutable caching. The proxy preserves
+HEAD, Range, Content-Length and Content-Range. Caddy 2.10 requires an explicit `?`
+on the internal signed-URL rewrite so the query remains intact. GitHub requests
+include a per-request identifier to avoid reusing an expired cached redirect.
+
+New releases require no installer image pull or resource upload to NAS. The NAS
+`desktop-releases` service and resource volume retain previously published files
+for historical paths that have no GitHub route. Their existing image-based
+deployment scripts remain applicable only to that NAS-hosted distribution.
 
 ## Product branding
 
@@ -186,20 +214,12 @@ Nginx preserves the forwarded HTTPS protocol.
 
 ## Desktop update hosting
 
-The web container mounts the NAS Docker volume `plasmic-desktop-updates` read-only
-at `/srv/desktop-updates`. This avoids shared-folder ACL restrictions on Nginx workers.
-`/desktop-updates/<platform>/<arch>/latest*.yml` serves uncached update manifests;
-versioned ZIP, DMG, NSIS, AppImage and blockmap files use immutable caching and
-support ranged downloads. Missing files return 404; directory listing and writes
-are disabled. Desktop updates do not require changing the NAS backend image tag.
-
-Run `npm run setup:nas-updates` from `desktop` to configure an existing NAS deployment,
-then publish a new numeric `<version>` tag through GitHub Actions and deploy the
-resulting image with `node desktop/scripts/publish.mjs desktop-v<version>`.
-The website offers independent Apple Silicon and Intel DMGs, with matching
-architecture-specific ZIP archives for in-app updates.
-See [desktop release instructions](../desktop/README.md#nas-updates-and-releases)
-for versioning, other platforms and installation behavior.
+The public feeds and files are routed through the [Release download proxy](#release-download-routing).
+The website offers independent Apple Silicon and Intel DMGs, with matching ZIPs
+for in-app updates. Desktop deployment advances its download routes independently
+of the NAS backend `IMAGE_TAG`; historical NAS files remain available via its
+read-only update volume and `desktop-releases` service. Missing files return 404;
+directory listing and writes are disabled.
 
 For an existing deployment, set `STUDIO_ORIGIN=https://plasmic-studio.shiguanglab.com`
 and `CANVAS_ORIGIN=https://plasmic-canvas.shiguanglab.com` in the NAS `.env`.

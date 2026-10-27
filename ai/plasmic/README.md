@@ -200,9 +200,19 @@ npx -y @plasmickit/cli@latest context resolve --mode prototype
 
 统一的 Actions 按计划调用 npm 发布、Studio 镜像、Desktop 和资源构建任务，并汇总 Release。NAS 部署在本机单独执行，使用本机 SSH 配置和已下载的 Actions 产物。
 
-## 单独部署 NAS 资源
+## 部署公开资源下载
 
-从成功的资源 workflow 下载 `plasmic-resources-<tag>` artifact，解压到一个目录。该目录包含 `latest.json` 和 `releases/<releaseId>/`。部署必须通过 `--from` 直接使用这份产物，使 NAS CLI 安装包与 npm 发布包保持相同字节；部署脚本不会本地重新构建。
+公开 CLI/Skill 资源与 Desktop 下载由首尔 Caddy 从 GitHub Release 获取，客户端继续使用原有 `/desktop-updates/plasmic/` 地址。Release 成功后执行：
+
+```sh
+node scripts/release-downloads.mjs 0.5.0 /absolute/path/to/current/Caddyfile
+```
+
+命令校验已发布 Release 的资源哈希和大小，更新 `deploy/release-downloads.json` 与 Caddy 的 Plasmic 路由块。只推进本次 Release 含有的产品清单；资源单独发布不改变 Desktop，历史不可变资源地址保留。校验、备份并重载首尔 Caddy 后，检查公开资源清单、包哈希与 CLI resolve。GitHub 的签名跳转在服务端处理，客户端不接触 GitHub 地址，不需要将新资源上传 NAS。部署位置、回滚和验证要求见 [下载路由](../../deploy/README.md#release-download-routing)。
+
+### NAS 历史资源
+
+NAS 卷保留旧版资源，供尚未注册 GitHub 路由的历史地址读取。下面的命令只用于 NAS 托管的分发，不会推进首尔公开下载清单。从成功的资源 workflow 下载 `plasmic-resources-<tag>` artifact，解压后通过 `--from` 直接使用原始产物，保持 CLI 安装包与 npm 包字节一致。
 
 ```sh
 # 首次配置 nginx 和只读更新卷：

@@ -323,7 +323,9 @@ for actual Chromium selection, navigation, isolation and import integration.
 
 Updates use `desktop.config.json`'s HTTPS `updateUrl`. Feeds are partitioned by
 platform and architecture. macOS selects `darwin/arm64/` or `darwin/x64/`; an Intel
-process running under Rosetta selects the native arm64 feed. GitHub is not contacted when checking, downloading or installing.
+process running under Rosetta selects the native arm64 feed. Clients contact only
+the configured Studio origin; Seoul Caddy fetches GitHub Release assets and follows
+their signed redirects on the server.
 The application checks immediately at startup and every minute, then downloads
 new versions automatically in the background. Update controls mount only in explicit
 page slots: beside the brand on the dashboard and CMS, after the editor's top-left brand capsule,
@@ -405,26 +407,28 @@ The release image contains the installers and manifests built for that release.
 Ordinary releases cannot overwrite existing image versions; explicitly forced tag rebuilds are limited to versions not deployed on NAS. Make this GHCR package public so NAS
 deployments can pull it without GitHub credentials.
 
-After Actions succeeds, deploy the image from the repository root:
+After Actions succeeds, advance the public download routes from the repository root:
 
 ```sh
-node desktop/scripts/publish.mjs desktop-v0.0.23
+node scripts/release-downloads.mjs 0.5.0 /absolute/path/to/current/Caddyfile
 ```
 
-This pulls the image on the NAS and recreates only `desktop-releases`. The initial
-setup adds that service to the deployed Compose configuration and reloads Studio's
-Nginx route. The existing web service proxies `/desktop-updates/` to this static
-service; no separate public port or binary-upload directory is needed. Downloads and
-`latest.json` use `https://plasmic-studio.shiguanglab.com/desktop-updates/`. JSON and
-YAML have `no-store` caching; versioned files are immutable and support HTTP ranges.
-CORS allows the Shiguang website to fetch public metadata and HEAD installer sizes
-without account credentials. Website builds do not embed release versions.
+Validate and reload the resulting Seoul Caddy configuration as described in
+[Release download routing](../deploy/README.md#release-download-routing). This uses
+the published installers directly and requires no large installer image pull on NAS.
+Desktop and resource feeds advance independently for partial releases; immutable
+paths remain registered. Historical NAS files remain the fallback for earlier
+versions. Downloads and `latest.json` retain
+`https://plasmic-studio.shiguanglab.com/desktop-updates/`. JSON and YAML have
+`no-store` caching; versioned files are immutable and support HTTP ranges. CORS
+allows the website to fetch metadata and HEAD installer sizes without credentials.
+Website builds do not embed release versions. Clients receive no GitHub redirect.
 
-NAS deployment verifies the live JSON and all four installers and the two macOS ZIP update feeds. `DESKTOP_RELEASE_TAG`
-selects the desktop image independently of the Studio/server `IMAGE_TAG`. The existing
-`plasmic-desktop-updates` volume retains only the separate CLI/Skill resource route.
-App releases do not rebuild or redeploy the Shiguang website or Studio backend.
-Local packaging remains available for development; production installers come from Actions.
+Verify the live JSON, all four installers, both Mac ZIP feeds, blockmaps and byte
+ranges after switching. The pre-existing NAS image deployment commands apply only
+to its separate NAS-hosted distribution and are not needed for the public proxy.
+App releases do not rebuild the website or Studio backend. Local packaging remains
+available for development; production installers come from Actions.
 `npm run package:mac` builds for the current Mac architecture; `package:mac:arm64`
 and `package:mac:x64` select an explicit architecture. Both independent builds
 include a DMG for installation and a ZIP for automatic updates. Website release
