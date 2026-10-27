@@ -6,7 +6,10 @@ import {
 import { mkVariantsRecord } from "@/wab/client/components/live/PreviewCtx";
 import { buildPreviewModules } from "@/wab/client/components/live/preview-codegen";
 import { syncPreview } from "@/wab/client/components/live/preview-sync";
-import { waitForLiveHost } from "@/wab/client/components/live/live-syncer";
+import {
+  initPreviewInteractionGlobals,
+  waitForLiveHost,
+} from "@/wab/client/components/live/live-syncer";
 import type { SourceModule } from "@/wab/client/components/live/preview-types";
 import {
   getCanvasPkgs,
@@ -98,6 +101,13 @@ export async function prepare(request: PreviewRequest) {
   const pages = artboards.map((f, index) => ({
     uuid: f.uuid,
     componentId: f.container.component.uuid,
+    page: f.container.component.pageMeta
+      ? {
+          route: f.container.component.pageMeta.path,
+          params: f.container.component.pageMeta.params,
+          query: f.container.component.pageMeta.query,
+        }
+      : undefined,
     variants: mkVariantsRecord(
       [...getActivatedVariantsForFrame(site, f)].filter(
         (v) => !isGlobalVariant(v),
@@ -169,6 +179,7 @@ export async function prepare(request: PreviewRequest) {
     lang: "tsx",
     source: `
  import React from 'react';
+ const PageParamsProvider = window.__Sub.PageParamsProvider;
  ${[...new Set(components)].map((c, i) => `import Page${i} from './${ensure(outputs.get(c.uuid), "Root module").skeletonModuleFileName}';`).join("\n")}
  ${project.globalContextBundle ? "import GlobalProviders from './PlasmicGlobalProviders';" : ""}
  const components = {${[...new Set(components)].map((c, i) => `${JSON.stringify(c.uuid)}:Page${i}`).join(",")}};
@@ -176,7 +187,15 @@ export async function prepare(request: PreviewRequest) {
  ${makeGlobalGroupImports(groups, { idFileNames: true })}
  ${deps.map((d) => `import './${d.cssFileName}';`).join("\n")}
  ${styleProvider ? `import {StyleTokensProvider} from './${styleProvider.fileName}';` : ""}
- export function __run(){window.__renderCover=async(id)=>{const board=boards[id];const Component=components[board.componentId];let failure;const dispose=window.__Sub.hostUtils.registerRenderErrorListener(error=>{failure=error;});try{await window.__plasmicLive.renderRoot(${root});if(failure)throw failure;}finally{dispose();}};}
+ export function __run(){window.__renderCover=async(id)=>{
+   const board=boards[id];
+   const Component=components[board.componentId];
+   let content=${root};
+   if(board.page){content=<PageParamsProvider {...board.page}>{content}</PageParamsProvider>;}
+   let failure;
+   const dispose=window.__Sub.hostUtils.registerRenderErrorListener(error=>{failure=error;});
+   try{await window.__plasmicLive.renderRoot(content);if(failure)throw failure;}finally{dispose();}
+ };}
  `,
   });
   return { pages, modules, site };
@@ -199,6 +218,7 @@ export async function load(request: PreviewRequest) {
   win.__PlasmicBuiltinRegistry = Object.values(
     getBuiltinComponentRegistrations(builtinRuntime),
   );
+  initPreviewInteractionGlobals(win);
   inject(doc, await getLiveFrameClientJs());
   win.__Sub.hostUtils.registerRenderErrorListener((error: Error) => {
     window.parent.postMessage(

@@ -1,0 +1,7 @@
+{
+  "en": "- Fix dashboard project thumbnails for detail pages that use saved route parameters and query values.\n- Initialize preview event handlers consistently so forms render correctly in project thumbnails.\n- Allow InputNumber and other controls to inherit their default size.",
+  "zh-CN": "- 修复使用已保存路由参数和查询参数的详情页无法生成项目缩略图的问题。\n- 统一预览事件初始化，确保表单能够在项目缩略图中正常渲染。\n- 支持 InputNumber 等控件继承默认尺寸。",
+  "zh-TW": "- 修復使用已儲存路由參數和查詢參數的詳情頁無法產生專案縮圖的問題。\n- 統一預覽事件初始化，確保表單能在專案縮圖中正常呈現。\n- 支援 InputNumber 等控制項繼承預設尺寸。",
+  "ja": "- 保存済みのルートパラメーターとクエリを使用する詳細ページで、プロジェクトのサムネイルが生成されない問題を修正しました。\n- プレビューのイベント初期化を統一し、サムネイル内でフォームを正しく描画できるようにしました。\n- InputNumber などのコントロールが既定のサイズを継承できるようになりました。",
+  "ko": "- 저장된 경로 매개변수와 쿼리를 사용하는 상세 페이지에서 프로젝트 썸네일이 생성되지 않는 문제를 수정했습니다.\n- 미리보기 이벤트 초기화를 통일하여 프로젝트 썸네일에서 폼이 정상적으로 렌더링되도록 했습니다.\n- InputNumber 등의 컨트롤이 기본 크기를 상속할 수 있도록 개선했습니다."
+}

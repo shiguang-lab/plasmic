@@ -2,8 +2,11 @@ import { prepare } from "@/wab/client/components/dashboard/preview/renderer";
 import { getArenaFrames } from "@/wab/shared/Arenas";
 import type { Bundle } from "@/wab/shared/bundler";
 import { DEVFLAGS } from "@/wab/shared/devflags";
+import { PageParamsProvider, useDataEnv } from "@plasmicapp/host";
 import fs from "fs";
 import path from "path";
+import React from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 
 afterEach(() => vi.unstubAllGlobals());
 
@@ -57,6 +60,49 @@ it.each(["counters-test", "global-variant-test", "style-token-overrides", "impor
   for (const module of output.modules.filter((m) => m.lang !== "css")) {
     expect(() => transform(module.source, { transforms: ["typescript", "jsx", "imports"], jsxPragma: module.jsxPragma })).not.toThrow();
   }
+});
+
+it.each([
+  { path: "/batches/detail/[id]", params: { id: "BATCH-2026-001" }, query: { tab: "receipts" } },
+  { path: "/coupons", params: {}, query: {} },
+])("renders saved page context for $path", async (pageMeta) => {
+  const bundles = JSON.parse(fs.readFileSync(path.resolve(__dirname, "../../../../shared/codegen/__testonly__/bundles/counters-test.json"), "utf8")) as [string, Bundle][];
+  const [id, bundle] = bundles[bundles.length - 1];
+  const savedPageMeta = Object.values(bundle.map).find((value) => value.__type === "PageMeta");
+  if (!savedPageMeta) { throw new Error("Expected page fixture"); }
+  Object.assign(savedPageMeta, pageMeta);
+  const saved = JSON.stringify(bundle);
+  vi.stubGlobal("fetch", vi.fn(async () => ({ ok: true, json: async () => ({
+    project: { id, name: "Page context fixture" },
+    rev: { revision: 42, data: saved },
+    depPkgs: bundles.slice(0, -1).map(([depId, model]) => ({ id: depId, model })),
+  }) })));
+  const output = await prepare({ projectId: id, revision: 42, flags: DEVFLAGS, staticBaseUrl: "http://localhost/" });
+  const cover = output.modules.find((module) => module.name === "./cover-root.tsx");
+  if (!cover) { throw new Error("Expected cover module"); }
+  const { transform } = await import("sucrase");
+  const generated = transform(cover.source, { transforms: ["typescript", "jsx", "imports"] }).code;
+  const observed: unknown[] = [];
+  const Root = ({ children }: { children?: React.ReactNode }) => {
+    const context = useDataEnv();
+    if (children) { return children; }
+    observed.push(context);
+    // This is the detail-page access that failed in the isolated renderer.
+    return React.createElement("span", null, context?.params.id ?? "No record");
+  };
+  const host = {
+    __Sub: { PageParamsProvider, hostUtils: { registerRenderErrorListener: () => () => {} } },
+    __plasmicLive: { renderRoot: async (node: React.ReactElement) => { renderToStaticMarkup(node); } },
+  } as any;
+  const moduleExports: any = {};
+  new Function("require", "exports", "window", generated)((name: string) => name === "react" ? React : { __esModule: true, default: Root }, moduleExports, host);
+  moduleExports.__run();
+  for (const page of output.pages) { await host.__renderCover(page.uuid); }
+  expect(observed.length).toBeGreaterThan(0);
+  for (const context of observed) {
+    expect(context).toMatchObject({ pageRoute: pageMeta.path, params: pageMeta.params, query: pageMeta.query });
+  }
+  expect(JSON.stringify(bundle)).toBe(saved);
 });
 
 it("rejects stale revisions before unbundling or producing a cover", async () => {

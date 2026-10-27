@@ -86,6 +86,12 @@ export function pushPreviewModules(
   };
 }
 
+export function initPreviewInteractionGlobals(frameWindow: Window) {
+  // Preview events execute normally without retaining Studio's interaction caches.
+  (frameWindow as any).__PLASMIC_CACHE_$STEP_VALUE = () => {};
+  (frameWindow as any).__PLASMIC_CACHE_EVENT_ARGS = () => {};
+}
+
 export async function onLoadInjectLiveRuntime(
   studioCtx: StudioCtx,
   frameWindow: Window,
@@ -114,11 +120,7 @@ export async function onLoadInjectLiveRuntime(
     studioCtx.refreshFetchedDataFromPlasmicQuery;
   (frameWindow as any).__PLASMIC_GET_ALL_CACHE_KEYS =
     studioCtx.getAllDataOpCacheKeys;
-  // We don't cache interaction data in live preview since
-  // it can be very confusing to have values cached in $steps and event args
-  // that differ from what is currently rendered in the artboard.
-  (frameWindow as any).__PLASMIC_CACHE_$STEP_VALUE = () => {};
-  (frameWindow as any).__PLASMIC_CACHE_EVENT_ARGS = () => {};
+  initPreviewInteractionGlobals(frameWindow);
   (frameWindow as any).__PLASMIC_STUDIO_PATH = () => {
     return studioCtx.previewCtx?.component?.pageMeta?.path;
   };
