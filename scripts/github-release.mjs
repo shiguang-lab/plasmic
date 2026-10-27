@@ -75,13 +75,16 @@ const gh = (args) => execFileSync("gh", args, { encoding: "utf8", stdio: ["ignor
 export async function publishGitHubRelease({ plan, repository, root = ".", rebuild = false }, runGh = gh) {
   if (!plan.publish) return { skipped: true };
   const { assets, notes } = await collectRelease(plan, root);
-  const endpoint = `repos/${repository}/releases/tags/${plan.tag}`;
-  const inspect = async () => JSON.parse(await runGh(["api", endpoint]));
+  const inspect = async () => {
+    // The tag REST endpoint only returns published releases. Resolve drafts too.
+    const endpoint = (await runGh(["release", "view", plan.tag, "--repo", repository, "--json", "apiUrl", "--jq", ".apiUrl"])).trim();
+    return JSON.parse(await runGh(["api", endpoint]));
+  };
   let release;
   try {
     release = await inspect();
   } catch (error) {
-    if (!String(error.stderr).includes("HTTP 404")) throw error;
+    if (!/release not found|HTTP 404/i.test(String(error.stderr))) throw error;
   }
   const temporary = await mkdtemp(path.join(tmpdir(), "plasmic-github-release-"));
   try {
@@ -125,6 +128,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   console.log(JSON.stringify(await publishGitHubRelease({
     plan: JSON.parse(process.env.RELEASE_PLAN),
     repository: process.env.GITHUB_REPOSITORY,
+    root: process.env.RELEASE_ROOT || ".",
     rebuild: process.env.RELEASE_REBUILD === "true",
   }), null, 2));
 }

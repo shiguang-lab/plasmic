@@ -57,8 +57,12 @@ function github({ failOnce = false, wrongDigest = false, existing } = {}) {
   let release = existing;
   const run = async (args) => {
     calls.push(args);
+    if (args[0] === "release" && args[1] === "view") {
+      if (!release) throw Object.assign(new Error("Not found"), { stderr: "release not found" });
+      return "https://api.github.com/repos/example/plasmic/releases/42\n";
+    }
     if (args[0] === "api") {
-      if (!release) throw Object.assign(new Error("Not found"), { stderr: "HTTP 404" });
+      if (!release || (args[1].includes("/tags/") && release.draft)) throw Object.assign(new Error("Not found"), { stderr: "HTTP 404" });
       return JSON.stringify(release);
     }
     if (args[1] === "create") release = { draft: true, assets: [], html_url: "https://github.com/example/plasmic/releases/tag/1.2.3" };
@@ -117,7 +121,7 @@ test("published assets are immutable unless explicitly rebuilding; corrupt uploa
   await publishGitHubRelease(options, remote.run);
   const before = remote.calls.length;
   await publishGitHubRelease(options, remote.run);
-  assert.equal(remote.calls.slice(before).some((args) => args[0] === "release"), false);
+  assert.equal(remote.calls.slice(before).some((args) => ["create", "upload", "edit"].includes(args[1])), false);
   remote.release().assets[0].digest = "sha256:different";
   await assert.rejects(publishGitHubRelease(options, remote.run), /Published asset differs/);
   await publishGitHubRelease({ ...options, rebuild: true }, remote.run);
@@ -133,4 +137,16 @@ test("unchanged patches create no release; Studio-only releases need no download
   const result = await publishGitHubRelease(options, remote.run);
   assert.deepEqual(result.assets, []);
   assert.equal(remote.release().draft, false);
+});
+
+test("an existing draft is inspected by release ID even though the tag REST endpoint returns 404", async (t) => {
+  const options = await fixture(t, { resources: true });
+  const remote = github({ existing: { draft: true, assets: [], html_url: "https://github.com/example/plasmic/releases/tag/1.2.3" } });
+  await assert.rejects(remote.run(["api", "repos/example/plasmic/releases/tags/1.2.3"]), /Not found/);
+  remote.calls.length = 0;
+  const result = await publishGitHubRelease(options, remote.run);
+  assert.equal(result.assets.length, 4);
+  assert.equal(remote.release().draft, false);
+  assert.equal(remote.calls.some((args) => args[1] === "create"), false);
+  for (const call of remote.calls.filter((args) => args[0] === "api")) assert.equal(call[1], "https://api.github.com/repos/example/plasmic/releases/42");
 });

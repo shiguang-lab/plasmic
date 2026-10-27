@@ -35,6 +35,12 @@ assets; npm versions remain immutable. Rebuild only versions not deployed on NAS
 Existing NAS routes and deployment commands are unchanged; Release publication
 does not switch the download proxy or deploy any service.
 
+If the final Release step fails after every build succeeds, manually run
+`Publish existing release artifacts` with the numeric tag and the original
+`Publish release` run ID. It verifies the tag's source revision and successful
+build/test results, then publishes those artifacts with the current publisher.
+This recovery workflow does not rebuild images or installers or deploy services.
+
 The workflow uses `deploy/docker-bake.hcl` to build server/web/preview in one BuildKit
 invocation: the shared builder runs once, then the image targets run concurrently.
 Each image stores a `mode=max` registry cache at its GHCR `:buildcache` tag, so
