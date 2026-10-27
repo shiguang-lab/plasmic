@@ -166,10 +166,11 @@ with the running Caddy image, and then reload Caddy. Write its bind-mounted file
 in place. Check the public feeds, all file sizes, hashes, byte ranges and CORS after
 the switch. A rollback restores the saved Caddyfile and reloads it.
 
-Feeds use `no-store`; versioned files use immutable caching. The proxy preserves
+Feeds use `no-store`; only successful versioned responses receive immutable caching. The proxy preserves
 HEAD, Range, Content-Length and Content-Range. Caddy 2.10 requires an explicit `?`
 on the internal signed-URL rewrite so the query remains intact. GitHub requests
 include a per-request identifier to avoid reusing an expired cached redirect.
+Both GitHub upstreams retry connection failures for at most ten seconds.
 
 New releases require no installer image pull or resource upload to NAS. The NAS
 `desktop-releases` service and resource volume retain previously published files

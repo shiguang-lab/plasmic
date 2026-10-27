@@ -79,7 +79,14 @@ ${rows.join("\n")}
 \t\troute {
 \t\t\tvars plasmic_response_cache {plasmic_cache}
 \t\t\theader {
-\t\t\t\t>Cache-Control {http.vars.plasmic_response_cache}
+\t\t\t\tCache-Control {http.vars.plasmic_response_cache}
+\t\t\t\tmatch {
+\t\t\t\t\tstatus 200 206 304
+\t\t\t\t}
+\t\t\t\tdefer
+\t\t\t}
+\t\t\theader {
+\t\t\t\t>Cache-Control no-store
 \t\t\t\t>Access-Control-Allow-Origin "*"
 \t\t\t\t>Access-Control-Allow-Methods "GET, HEAD, OPTIONS"
 \t\t\t\t>Access-Control-Allow-Headers "Range, If-Range"
@@ -93,6 +100,7 @@ ${rows.join("\n")}
 \t\t\trespond @plasmic_options 204
 \t\t\trewrite /${repository}/releases/download/{plasmic_tag}/{plasmic_asset}?plasmic_proxy={http.request.uuid}
 \t\t\treverse_proxy https://github.com {
+\t\t\t\tlb_try_duration 10s
 \t\t\t\theader_up Host github.com
 \t\t\t\theader_up -Cookie
 \t\t\t\theader_up -Authorization
@@ -111,6 +119,7 @@ ${rows.join("\n")}
 \t\t\t\t\t# Explicit ? preserves the expanded signed query on Caddy 2.10.
 \t\t\t\t\trewrite {plasmic_asset_uri}?
 \t\t\t\t\treverse_proxy https://release-assets.githubusercontent.com {
+\t\t\t\t\t\tlb_try_duration 10s
 \t\t\t\t\t\theader_up Host release-assets.githubusercontent.com
 \t\t\t\t\t\theader_up -Cookie
 \t\t\t\t\t\theader_up -Authorization
