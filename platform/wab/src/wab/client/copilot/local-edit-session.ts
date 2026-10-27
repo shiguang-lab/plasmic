@@ -590,14 +590,12 @@ export class LocalEditSession {
       if (!navigation.success) {
         throw new Error(navigation.error.message);
       }
-      for (const name of ["selectElement", "scrollElementIntoView"] as const) {
-        const result = await tools[name]({
-          componentUuid,
-          elementUuid: node.uuid,
-        });
-        if (!result.success) {
-          throw new Error(result.error.message);
-        }
+      const result = await tools.selectElement({
+        componentUuid,
+        elementUuid: node.uuid,
+      });
+      if (!result.success) {
+        throw new Error(result.error.message);
       }
     } catch (error) {
       this.error = normalizeError(error);

@@ -40,7 +40,7 @@ External reference tools require a ready, editable Studio project open in edit m
 
 Desktop's **Open preview in browser** saves the design before opening the external preview. Read-only tasks use the in-app Preview or an already open authorized preview; do not trigger that browser action to inspect unsaved work. If only the saving entry point is available, retain model/static evidence and report the missing runtime check. Prototype tasks may use it after the authorized save.
 
-For offscreen rendered content use `execute` → `scrollElementIntoView` with component/element UUIDs from `read`; frame and repeated instance targeting follow the live schema. Navigate first and wait for rendering. Inspect returned visible/bounds plus a workspace screenshot; static snapshot rendering is separate. Hidden/unrendered targets fail; ancestor clipping can still make visible=false. Restore temporary editor mode/view changes after inspection.
+For offscreen rendered content use `execute` → `scrollElementIntoView` with component/element UUIDs from `read`; frame and repeated instance targeting follow the live schema. Navigate first and wait for rendering. Inspect returned visible/bounds plus a workspace screenshot; static snapshot rendering is separate. Hidden/unrendered targets fail; ancestor clipping can still make visible=false. `selectElement` also automatically scrolls nested content containers after selection and rendering, so a separate scroll call is unnecessary when selecting a target. Selection can succeed without a visible layout box; inspect the workspace screenshot to confirm visibility. Model reads and edits do not automatically scroll. Restore temporary editor mode/view changes after inspection.
 
 ## Evidence interpretation
 

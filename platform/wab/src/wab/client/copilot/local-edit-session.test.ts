@@ -189,11 +189,7 @@ it("locates a structured node on its referenced page without editing the design"
       path: [],
     }),
   });
-  for (const tool of [
-    tools.navigate,
-    tools.selectElement,
-    tools.scrollElementIntoView,
-  ]) {
+  for (const tool of [tools.navigate, tools.selectElement]) {
     tool.mockResolvedValue({ success: true, output: "{}" });
   }
   const session = new LocalEditSession("project", () => tools);
@@ -209,10 +205,7 @@ it("locates a structured node on its referenced page without editing the design"
     componentUuid: "other-page",
     elementUuid: "node",
   });
-  expect(tools.scrollElementIntoView).toHaveBeenCalledWith({
-    componentUuid: "other-page",
-    elementUuid: "node",
-  });
+  expect(tools.scrollElementIntoView).not.toHaveBeenCalled();
   expect(tools._executeLocal).not.toHaveBeenCalled();
 });
 

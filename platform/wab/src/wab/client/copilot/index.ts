@@ -2626,7 +2626,17 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
       const key = vc.renderState.tpl2fullKeys(tpl)[input.instanceIndex];
       const val = key ? vc.renderState.fullKey2val(key) : undefined;
       assert(val, "Rendered instance not found; check instanceIndex");
-      await vc.change(() => vc.setStudioFocusBySelectable(val));
+      ensureOk(await studio.change(() => ok(vc.setStudioFocusBySelectable(val))));
+      await vc.awaitSync();
+      const selectedVal = vc.renderState.fullKey2val(key);
+      const node = selectedVal
+        ? vc.renderState
+            .val2dom(selectedVal, vc.canvasCtx)
+            ?.find((dom) => dom.isConnected && dom.getClientRects().length > 0)
+        : undefined;
+      if (node) {
+        revealCanvasElement(node);
+      }
       return {
         componentUuid: component.uuid,
         elementUuid: tpl.uuid,

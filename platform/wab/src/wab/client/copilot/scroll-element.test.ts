@@ -20,7 +20,7 @@ async function fixture() {
     path: "/scroll",
   });
   const page = ensure(
-    studioCtx.site.components.find((c) => c.uuid === created.results[0].uuid),
+    studioCtx.site.components.find((c) => c.uuid === created.created[0].uuid),
     "Page missing",
   );
   await call("navigate", { componentUuid: page.uuid });
@@ -192,12 +192,9 @@ it("requires an artboard when the target has multiple unfocused renderings", asy
   ).toBe(frames[0].uuid);
 });
 
-it("selects an explicit rendered instance without mutating the design", async () => {
+it("selects and reveals an explicit rendered instance without mutating the design", async () => {
   const f = await fixture();
-  f.vc.change.mockImplementation(async (fn) => {
-    fn();
-    return undefined as any;
-  });
+  vi.spyOn(f.studioCtx, "change").mockImplementation(async (fn) => fn());
   f.vc.setStudioFocusBySelectable.mockClear();
   const result = await f.call("selectElement", {
     ...f.input,
@@ -212,8 +209,55 @@ it("selects an explicit rendered instance without mutating the design", async ()
   expect(f.vc.setStudioFocusBySelectable).toHaveBeenCalledWith(
     f.vc.renderState.fullKey2val.mock.results[0].value,
   );
+  expect(f.vc.renderState.fullKey2val).toHaveBeenLastCalledWith("second");
+  expect(f.parent.scrollTop).toBe(420);
+  expect(f.target.getBoundingClientRect().bottom).toBe(100);
+  await f.call("selectElement", {
+    ...f.input,
+    frameUuid: f.frame.uuid,
+    instanceIndex: 1,
+  });
+  expect(f.parent.scrollTo).toHaveBeenCalledTimes(1);
   expect(f.change).not.toHaveBeenCalled();
   await expect(
     f.call("selectElement", { ...f.input, frameUuid: "missing" }),
   ).rejects.toThrow("not rendered");
+});
+
+it.each(["clipped", "no-layout"])(
+  "keeps selection when the target cannot be revealed: %s",
+  async (reason) => {
+    const f = await fixture();
+    vi.spyOn(f.studioCtx, "change").mockImplementation(async (fn) => fn());
+    if (reason === "clipped") {
+      f.parent.style.overflowY = "hidden";
+    } else {
+      vi.mocked(f.target.getClientRects).mockReturnValue([] as unknown as DOMRectList);
+    }
+    await expect(f.call("selectElement", f.input)).resolves.toMatchObject(f.input);
+    expect(f.vc.setStudioFocusBySelectable).toHaveBeenCalled();
+    expect(f.parent.scrollTo).not.toHaveBeenCalled();
+    expect(f.change).not.toHaveBeenCalled();
+  },
+);
+
+it("waits for selection and resolves the refreshed rendered instance before scrolling", async () => {
+  const f = await fixture();
+  const selectedVal = {} as any;
+  f.vc.renderState.val2dom.mockReturnValue([]);
+  vi.spyOn(f.studioCtx, "change").mockImplementation(async (fn) => {
+    await Promise.resolve();
+    return fn();
+  });
+  f.vc.awaitSync.mockImplementation(async () => {
+    if (f.vc.setStudioFocusBySelectable.mock.calls.length) {
+      await Promise.resolve();
+      f.vc.renderState.fullKey2val.mockReturnValue(selectedVal);
+      f.vc.renderState.val2dom.mockImplementation((val) =>
+        val === selectedVal ? [f.target] : [],
+      );
+    }
+  });
+  await f.call("selectElement", f.input);
+  expect(f.parent.scrollTop).toBe(420);
 });

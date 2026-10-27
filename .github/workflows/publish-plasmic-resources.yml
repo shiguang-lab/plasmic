@@ -10,14 +10,14 @@ concurrency:
 jobs:
   plan:
     if: github.repository == 'shiguang-lab/plasmic'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       publish: ${{ steps.plan.outputs.publish }}
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1, Node 24
         with:
           fetch-depth: 0
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0, Node 24
         with:
           node-version: 24
       - id: plan
@@ -25,18 +25,18 @@ jobs:
   resources:
     needs: plan
     if: needs.plan.outputs.publish == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1, Node 24
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0, Node 24
         with:
           node-version: 24
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0, Node 24
         with:
           python-version: '3.12'
       - run: node --test desktop/tests/plasmic-resources.test.cjs
       - run: node scripts/release-resources.mjs
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2, Node 24
         with:
           name: plasmic-resources-${{ github.ref_name }}
           path: dist/plasmic-resources/

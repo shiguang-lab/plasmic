@@ -31,18 +31,18 @@ concurrency:
 jobs:
   plan:
     if: github.repository == 'shiguang-lab/plasmic'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       publish: ${{ steps.plan.outputs.publish }}
       revision: ${{ steps.source.outputs.revision }}
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1, Node 24
         with:
           ref: ${{ inputs.source-ref || inputs.release-tag || github.ref }}
           fetch-depth: 0
       - id: source
         run: echo "revision=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0, Node 24
         with:
           node-version: 24
       - id: plan
@@ -71,13 +71,13 @@ jobs:
     if: needs.plan.outputs.publish == 'true'
     env:
       ELECTRON_SKIP_BINARY_DOWNLOAD: "1"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1, Node 24
         with:
           ref: ${{ needs.plan.outputs.revision }}
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0, Node 24
         with:
           node-version: 24
           cache: npm
@@ -91,7 +91,7 @@ jobs:
       - name: Extract the pinned Studio image
         run: node desktop/scripts/prepare-assets.mjs
       - run: tar -czf renderer.tar.gz -C desktop renderer
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2, Node 24
         with:
           name: desktop-renderer
           path: renderer.tar.gz
@@ -103,16 +103,16 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - runner: macos-latest
+          - runner: macos-26
             platform: darwin
             arch: arm64
           - runner: macos-15-intel
             platform: darwin
             arch: x64
-          - runner: windows-latest
+          - runner: windows-2025
             platform: win32
             arch: x64
-          - runner: ubuntu-latest
+          - runner: ubuntu-24.04
             platform: linux
             arch: x64
     runs-on: ${{ matrix.runner }}
@@ -122,10 +122,10 @@ jobs:
         shell: bash
     steps:
       - run: git config --global core.autocrlf false
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1, Node 24
         with:
           ref: ${{ needs.plan.outputs.revision }}
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0, Node 24
         with:
           node-version: 24
           cache: npm
@@ -144,7 +144,7 @@ jobs:
       - name: Verify file-based sign-in across a packaged upgrade
         if: matrix.platform == 'darwin'
         run: npm run test:session-lifecycle --prefix desktop
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2, Node 24
         if: always() && matrix.platform == 'darwin'
         with:
           name: session-lifecycle-${{ matrix.arch }}
@@ -158,7 +158,7 @@ jobs:
           echo "DESKTOP_VERSION=$version" >> "$GITHUB_ENV"
           node desktop/scripts/package.mjs '${{ matrix.platform }}' '${{ matrix.arch }}' --notes "desktop/release-notes/$version.md"
           node --input-type=module -e 'import { validateRelease } from "./desktop/scripts/release-artifacts.mjs"; const [platform, arch, version] = process.argv.slice(1); await validateRelease(`desktop/dist/${version}/${platform}-${arch}`, platform, version, arch);' '${{ matrix.platform }}' '${{ matrix.arch }}' "$version"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2, Node 24
         with:
           name: ${{ matrix.platform }}-${{ matrix.arch }}
           path: |
@@ -175,16 +175,16 @@ jobs:
            (needs.tests.result == 'skipped' && inputs.tested-revision == needs.plan.outputs.revision)) }}
     env:
       RELEASE_TAG: ${{ inputs.release-tag || github.ref_name }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     permissions:
       contents: read
       packages: write
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1, Node 24
         with:
           ref: ${{ needs.plan.outputs.revision }}
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0, Node 24
         with:
           node-version: 24
           cache: npm
@@ -195,8 +195,8 @@ jobs:
           pattern: '{darwin-arm64,darwin-x64,win32-x64,linux-x64}'
           path: installers
           merge-multiple: false
-      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f
-      - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1, Node 24
+      - uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0, Node 24
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -209,13 +209,13 @@ jobs:
           fi
       - name: Validate installers and generate public JSON
         run: node desktop/scripts/build-distribution.mjs --from installers --tag "$RELEASE_TAG"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2, Node 24
         with:
           name: desktop-distribution
           path: desktop/public/desktop-updates/latest.json
           if-no-files-found: error
       - name: Publish static release image
-        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0, Node 24
         with:
           context: .
           file: desktop/Dockerfile

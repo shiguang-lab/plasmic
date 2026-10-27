@@ -676,7 +676,7 @@ const EDIT_TOOL_META = {
     toolName: "selectElement",
     title: "Select a rendered element",
     description:
-      "Select an element in the current canvas without changing the design. componentUuid must be the component defining elementUuid (nested elements belong to their defining component, not the host page). frameUuid disambiguates artboards and instanceIndex selects a repeated instance. Navigate to the page first. Requires edit mode.",
+      "Select an element in the current canvas and automatically reveal it by minimally scrolling nested content containers after rendering, without changing the design or Studio pan/zoom. Selection still succeeds if the target has no layout box or clipping prevents visibility. componentUuid must be the component defining elementUuid (nested elements belong to their defining component, not the host page). frameUuid disambiguates artboards and instanceIndex selects a repeated instance. Navigate to the page first. Requires edit mode.",
     inputSchema: z
       .object({
         ...element,
