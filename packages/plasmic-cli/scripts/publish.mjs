@@ -37,7 +37,8 @@ export async function publishCli({ directory, tag, execute = false, registry = "
   const output = npm(args);
   if (execute) {
     let verified = false;
-    for (let attempt = 0; attempt < 36; attempt++) {
+    const verificationAttempts = 120;
+    for (let attempt = 0; attempt < verificationAttempts; attempt++) {
       const live = await fetchRelease(url, { cache: "no-store", signal: AbortSignal.timeout(30000) });
       if (!live.ok && live.status !== 404 && live.status < 500) throw new Error(`Cannot verify published npm release: HTTP ${live.status}`);
       if (live.ok) {
@@ -47,7 +48,7 @@ export async function publishCli({ directory, tag, execute = false, registry = "
         if (actual === integrity && release["dist-tags"]?.latest === version) { verified = true; break; }
         if (release["dist-tags"]?.latest && compareVersions(release["dist-tags"].latest, version) > 0) throw new Error("Published npm latest version mismatch");
       }
-      if (attempt < 35) await waitForPropagation();
+      if (attempt < verificationAttempts - 1) await waitForPropagation();
     }
     if (!verified) throw new Error("Published npm integrity or latest version mismatch after waiting for registry propagation; inspect npm before retrying");
   }

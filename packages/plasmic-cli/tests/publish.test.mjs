@@ -99,6 +99,24 @@ async function registryFixture(t, bytes, version = "0.0.60") {
   return { output, metadata, fetchRelease };
 }
 
+test("npm scan processing can exceed three minutes before the verified version becomes public", async (t) => {
+  const bytes = await buildCli("0.0.60");
+  const options = await registryFixture(t, bytes);
+  await writeFile(path.join(options.output, "plasmic-cli.tgz"), bytes);
+  let accepted = false, checks = 0, waits = 0;
+  const result = await publishCli({
+    directory: options.output, tag: "0.0.60", execute: true,
+    runNpm: () => { accepted = true; return "Package is being processed"; },
+    fetchRelease: async () => !accepted || ++checks < 45
+      ? { ok: false, status: 404 }
+      : { ok: true, status: 200, json: async () => options.metadata },
+    waitForPropagation: async () => { waits++; },
+  });
+  assert.equal(result.mode, "execute");
+  assert.equal(checks, 45);
+  assert.equal(waits, 44);
+});
+
 test("unchanged CLI skips publication without producing a resource release", async (t) => {
   const bytes = await buildCli("0.0.60");
   const options = await registryFixture(t, bytes);
