@@ -92,7 +92,7 @@ test("isolation preserves DOM ownership and live inline edits, and cleans every 
   expect(element.parentElement).toBe(parent);
   expect(element.hasAttribute("data-plasmic-content-target")).toBe(true);
   expect(
-    document.head.querySelector("[data-plasmic-editor-style]")?.textContent,
+    document.head.querySelector("[data-plasmic-editor-style][data-plasmic-content-editor-style]")?.textContent,
   ).toContain("min-width: 320px");
   element.style.color = "blue";
   undo();

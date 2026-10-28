@@ -183,7 +183,6 @@ app.whenReady().then(async () => {
   passed.push("stdio MCP read scans; idle and completed calls retain the current canvas without extra model reads or inferred progress");
 
   const complete = presentation.snapshot().image;
-  const movedAt = Date.now();
   await main.webContents.mainFrame.frames[0].executeJavaScript(`(() => {
     const canvas=document.querySelector('.canvas-editor__canvas-clipper');
     canvas.style.transformOrigin='0 0';canvas.style.transform='translate(-700px,-300px) scale(1.7)';
@@ -192,7 +191,8 @@ app.whenReady().then(async () => {
     const doc=document.querySelector('iframe').contentDocument,overlay=doc.createElement('div');
     overlay.id='fixture-overlay';overlay.setAttribute('data-plasmic-editor-only','');overlay.style='position:fixed;inset:0;background:#ff00ff';doc.body.append(overlay);
   })()`);
-  await until(()=>presentation.snapshot().image?.capturedAt>movedAt,"clean overview refreshes while the editor is panned and covered by tools");
+  await delay(1100);
+  assert.equal(presentation.snapshot().image.capturedAt,complete.capturedAt,"pan, zoom and editor overlays do not regenerate clean pixels");
   assert.equal(presentation.snapshot().image.src,complete.src,"complete artboards and spacing stay identical across pan, zoom and editor overlays");
   assert.equal(presentation.snapshot().image.width,complete.width);
   await main.webContents.mainFrame.frames[0].executeJavaScript(`(() => {
@@ -246,6 +246,69 @@ app.whenReady().then(async () => {
   await until(() => !presentation.snapshot().context.loading && presentation.snapshot().image?.src, "loaded editor mirrors again");
   assert.deepEqual(await inspect("shapeChanges"), [], "no capsule transition during idle, MCP completion, bridge gaps or full editor reload");
   passed.push("multi-artboard layout/spacing is preserved; editor loading clears stale pixels and never collapses the card");
+
+  await call("execute",{name:"read",input:{componentUuids:["page-two"]}});
+  await until(()=>presentation.snapshot().image?.framing==="page" && presentation.snapshot().image.width===340,"focus the second page before collapse");
+  const editorBeforeCollapse=await controller.state(), imageBeforeCollapse=presentation.snapshot().image;
+  const [scopeX,scopeY]=island.getPosition();
+  cursor={x:scopeX+228,y:scopeY+30};
+  await delay(100);
+  cursor={x:-10000,y:-10000};
+  await until(()=>!presentation.snapshot().expanded,"collapse the focused page");
+  assert.equal(presentation.snapshot().image.capturedAt,imageBeforeCollapse.capturedAt,"collapse keeps the cached image");
+  await until(()=>BrowserWindow.getAllWindows().every(win=>win===main || win===island),"collapse releases the hidden rendering surface");
+  cursor={x:scopeX+228,y:scopeY+30};
+  await until(()=>presentation.snapshot().expanded && presentation.snapshot().image?.width===340,"hover restores the same page after collapse");
+  assert.equal(presentation.snapshot().image.framing,"page");
+  assert.equal(presentation.snapshot().image.height,imageBeforeCollapse.height);
+  assert.equal(presentation.snapshot().image.src,imageBeforeCollapse.src,"collapse/reopen does not change the displayed page");
+  await delay(1100);
+  assert.equal(presentation.snapshot().image.capturedAt,imageBeforeCollapse.capturedAt,"reopening unchanged content does not regenerate the image");
+  assert.ok(BrowserWindow.getAllWindows().every(win=>win===main || win===island),"a cache hit leaves the hidden renderer released");
+  const editorAfterCollapse=await controller.state();
+  assert.equal(editorAfterCollapse.url,editorBeforeCollapse.url);
+  assert.deepEqual(editorAfterCollapse.editorContext,editorBeforeCollapse.editorContext,"collapse/reopen leaves the actual editing context unchanged");
+  cursor={x:-10000,y:-10000};
+  await until(()=>!presentation.snapshot().expanded,"leave the reopened card");
+  await call("get_app_state",{});
+  await until(()=>presentation.snapshot().expanded && presentation.snapshot().image?.width===340,"metadata reopens the same page");
+  const asyncImage=presentation.snapshot().image;
+  await main.webContents.mainFrame.frames[0].frames[1].executeJavaScript("document.querySelector('p').textContent='异步更新后的审批状态'");
+  await until(()=>presentation.snapshot().image?.capturedAt>asyncImage.capturedAt,"async content changes refresh the cached image without a model edit");
+  assert.notEqual(presentation.snapshot().image.src,asyncImage.src);
+  const savedImage=presentation.snapshot().image;
+  await call("execute",{name:"save",input:{}});
+  await delay(1100);
+  assert.equal(presentation.snapshot().image.capturedAt,savedImage.capturedAt,"saving unchanged content does not regenerate pixels");
+  passed.push("collapse/reopen reuses cached pixels and preserves scope/context without a renderer; async content refreshes and save metadata does not");
+
+  const contentCanvas=main.webContents.mainFrame.frames[0], contentSource=contentCanvas.frames[1];
+  const contentContext=(await controller.state()).editorContext;
+  await contentSource.executeJavaScript(`(() => {
+    const target=document.querySelector('main'), style=document.createElement('style');
+    style.setAttribute('data-plasmic-editor-style','');style.setAttribute('data-plasmic-content-editor-style','');
+    style.textContent='html[data-plasmic-content-editor] body *{visibility:hidden!important} html[data-plasmic-content-editor],html[data-plasmic-content-editor] body{overflow:hidden!important;background:transparent!important} [data-plasmic-content-ancestor]{overflow:visible!important;position:static!important} html[data-plasmic-content-editor] body [data-plasmic-content-target]{visibility:visible!important;position:absolute!important;left:32px!important;top:48px!important;margin:0!important;width:max-content!important;min-width:340px!important;height:auto!important;overflow:visible!important} html[data-plasmic-content-editor] body [data-plasmic-content-target] *{visibility:visible!important}';
+    document.head.append(style);document.documentElement.setAttribute('data-plasmic-content-editor','');document.body.setAttribute('data-plasmic-content-ancestor','');target.setAttribute('data-plasmic-content-target','');
+    const outside=document.createElement('aside');outside.id='content-outside';outside.textContent='Other business content';document.body.append(outside);
+    const toolbar=document.createElement('button');toolbar.setAttribute('data-plasmic-editor-only','');toolbar.textContent='Exit content editing';document.body.append(toolbar);
+    const filler=document.createElement('div');filler.style.height='1100px';filler.textContent='Expanded scroll content';target.append(filler);
+    window.contentSourceBefore=document.documentElement.outerHTML;
+    window.exitContentFixture=()=>{style.remove();outside.remove();toolbar.remove();filler.remove();target.removeAttribute('data-plasmic-content-target');document.body.removeAttribute('data-plasmic-content-ancestor');document.documentElement.removeAttribute('data-plasmic-content-editor');};
+  })()`);
+  await contentCanvas.executeJavaScript(`window.contentFrameStyles=[...document.querySelectorAll('iframe')].map(el=>el.style.cssText);document.querySelectorAll('iframe')[0].style.visibility='hidden';Object.assign(document.querySelectorAll('iframe')[1].style,{width:'452px',height:'1400px'});true`);
+  await until(()=>presentation.snapshot().image?.width===452 && presentation.snapshot().image.height===1400,"mirror follows the expanded scroll-content viewport");
+  const contentSurface=BrowserWindow.getAllWindows().find(win=>win!==main && win!==island);
+  assert.ok(contentSurface);
+  assert.equal(await contentSurface.webContents.mainFrame.frames[0].executeJavaScript(`(() => {
+    const target=document.querySelector('[data-plasmic-content-target]'), style=getComputedStyle(target), bounds=target.getBoundingClientRect();
+    return style.visibility==='visible' && style.position==='absolute' && bounds.x===32 && bounds.y===48 && getComputedStyle(document.getElementById('content-outside')).visibility==='hidden' && !document.querySelector('[data-plasmic-editor-only]');
+  })()`),true,"mirror retains content isolation without editor toolbar/chrome");
+  assert.equal(await contentSource.executeJavaScript("document.documentElement.outerHTML===contentSourceBefore"),true,"mirroring does not exit or alter live content editing");
+  assert.deepEqual((await controller.state()).editorContext,contentContext,"temporary editing does not rewrite saved model or selection");
+  await contentSource.executeJavaScript("exitContentFixture();true");
+  await contentCanvas.executeJavaScript("document.querySelectorAll('iframe').forEach((el,index)=>el.style.cssText=contentFrameStyles[index]);true");
+  await until(()=>presentation.snapshot().image?.width===340 && presentation.snapshot().image.height===460,"exiting content editing restores the normal page image");
+  passed.push("scroll-content editing keeps isolated expanded content without tools, preserves live DOM/model/context and refreshes on exit");
 
   const task = { taskId: "approval-task", projectId: "p", sequence: 0, title: "调整审批表格", status: "running", stage: "调整操作列", stageIndex: 2, stageCount: 3 };
   await call("report_task", task);

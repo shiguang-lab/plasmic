@@ -36,8 +36,6 @@ test('a fast page read followed immediately by save or metadata retains its comp
  const metadata=op('metadata',[],{kind:'resource',phase:'completed'});
  assert.equal(page(f,metadata,[read]).boards[0].frameUuid,'b');
  assert.equal(page(f,op('save',[],{kind:'save',phase:'completed'}),[read]).view,'page');
- f.reset(metadata,[read]);
- assert.equal(page(f,metadata,[read]).view,'overview','reopening must still ignore the old completed intent');
 });
 
 test('concurrent page operations show overview and focus the remaining active page when the group narrows',()=>{
@@ -53,15 +51,6 @@ test('explicit frame identity wins; responsive duplicates use the matching activ
  assert.equal(page(f,op('component',[{componentUuid:'page-a'}]),undefined,context,view).boards[0].frameUuid,'a');
  assert.equal(page(f,op('ambiguous',[{componentUuid:'page-a'}]),undefined,{...context,frameUuid:'missing'},view).view,'overview');
  assert.equal(page(f,op('mismatch',[{componentUuid:'page-b',frameUuid:'a'}])).view,'overview');
-});
-
-test('collapse/reopen starts in overview and only a new operation can restore automatic page focus',()=>{
- const f=new IslandFraming(), old=op('old',[{frameUuid:'a'}]);
- assert.equal(page(f,old).view,'page');
- f.reset(old,[old]);
- assert.equal(page(f,old).view,'overview');
- assert.equal(page(f,{...old,phase:'completed'},[]).view,'overview');
- assert.equal(page(f,op('new',[{frameUuid:'b'}])).boards[0].frameUuid,'b');
 });
 
 test('navigation carries explicit intent across arenas, while manual context changes clear previous page focus',()=>{

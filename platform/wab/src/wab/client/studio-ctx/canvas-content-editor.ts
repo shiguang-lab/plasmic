@@ -94,6 +94,7 @@ export function isolateContentElement(element: HTMLElement, minWidth: number) {
   doc.documentElement.setAttribute("data-plasmic-content-editor", "");
   const style = doc.createElement("style");
   style.setAttribute("data-plasmic-editor-style", "");
+  style.setAttribute("data-plasmic-content-editor-style", "");
   style.textContent = `
     html[data-plasmic-content-editor] body * { visibility: hidden !important; }
     html[data-plasmic-content-editor], html[data-plasmic-content-editor] body { overflow: hidden !important; background: transparent !important; }

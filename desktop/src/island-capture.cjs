@@ -3,6 +3,7 @@ const { snapshotDocument, readyDocument, paintWindow } = require("./canvas.cjs")
 const { inspectTargets, clipRegion, feedbackOperation } = require("./island-feedback.cjs");
 const { abortable } = require("./abortable.cjs");
 const { IslandFraming } = require("./island-framing.cjs");
+const { inspectVisualState } = require("./island-visual-state.cjs");
 
 /** Read complete artboard bounds, independently of editor pan, zoom and chrome. */
 function inspectScene(mode, expectedComponent) {
@@ -76,36 +77,48 @@ function loadScene(html) {
 
 /** Static, sanitized copies keep complete live artboards without changing Studio. */
 function createIslandCapture() {
-  let surface, activeFrame, activeTarget, epoch = 0;
+  let surface, activeFrame, activeTarget, cached, epoch = 0;
+  let captureAbort = new AbortController();
   const framing = new IslandFraming();
   function releaseFrame() {
     if (activeFrame && !activeFrame.isDestroyed?.()) void activeFrame.executeJavaScript('document.documentElement.removeAttribute("data-plasmic-canvas-mirror")').catch(() => {});
     activeFrame = activeTarget = undefined;
   }
-  function closeSurface() { epoch++; surface?.destroy(); surface = undefined; releaseFrame(); }
-  function close(operation, operations) { closeSurface(); framing.reset(operation, operations); }
+  function closeSurface() {
+    epoch++; captureAbort.abort(); captureAbort = new AbortController();
+    surface?.destroy(); surface = undefined; releaseFrame();
+  }
   async function capture(win, context, operation, operations) {
     if (context.mode === "preview" && activeFrame) closeSurface();
     const version = epoch, url = win.webContents.getURL(), frames = win.webContents.mainFrame.framesInSubtree;
     const active = feedbackOperation(operation, context, url);
-    const signal = AbortSignal.timeout(10_000);
+    const signal = AbortSignal.any([captureAbort.signal, AbortSignal.timeout(10_000)]);
     for (const frame of frames) {
       if (frame.isDestroyed?.()) continue;
       let scene = await abortable(signal, () => frame.executeJavaScript(`(${inspectScene.toString()})(${JSON.stringify(context.mode)},${JSON.stringify(context.previewContext?.componentUuid)})`));
       if (!scene) continue;
       if (!await presentationRect(frame, {x:0,y:0,width:scene.width,height:scene.height})) continue;
       if (version !== epoch || win.isDestroyed() || url !== win.webContents.getURL()) return null;
-      const regions = [];
+      if (scene.boards) scene = framing.select(scene, context, operation, operations);
+      const sources = scene.boards ? scene.boards.map(board => frame.frames[board.index]) : [frame];
+      const stamps = [];
+      for (const source of sources) {
+        if (!source || source.isDestroyed?.()) return null;
+        stamps.push(await abortable(signal, () => source.executeJavaScript(`(${inspectVisualState.toString()})()`)));
+      }
+      const scope = JSON.stringify([url, context.projectId, context.branchId, context.sessionId, context.arenaId, context.mode, scene]);
+      const key = JSON.stringify([scope, context.changeCounter, stamps.map(stamp => [stamp.id, stamp.revision])]);
+      const dynamic = stamps.some(stamp => stamp.dynamic);
+      const deferred = cached?.scope === scope && !dynamic && stamps.some(stamp => Date.now() - stamp.changedAt < 150);
+      let pixels = cached?.scope === scope && (deferred || cached.key === key && !dynamic) ? cached.image : null;
       let image;
-      if (scene.boards) {
-        scene = framing.select(scene, context, operation, operations);
+      if (!pixels && scene.boards) {
         const target = scene.view === "page" ? scene.boards[0].frameUuid : "all";
         if (activeFrame !== frame || activeTarget !== target) {
           if (activeFrame !== frame) releaseFrame();
           activeFrame = frame; activeTarget = target;
           await abortable(signal, () => frame.executeJavaScript(`document.documentElement.setAttribute("data-plasmic-canvas-mirror", ${JSON.stringify(target)})`));
         }
-        const sources = scene.boards.map(board => frame.frames[board.index]);
         for (const source of sources) {
           if (!source || source.isDestroyed?.() || !await abortable(signal, () => source.executeJavaScript('document.documentElement.hasAttribute("data-plasmic-render-ready")'))) return null;
         }
@@ -113,15 +126,8 @@ function createIslandCapture() {
         for (const board of scene.boards) {
           const source = frame.frames[board.index];
           if (!source || source.isDestroyed?.()) return null;
-          const html = await abortable(signal, () => source.executeJavaScript(`(${snapshotDocument.toString()})()`));
+          const html = await abortable(signal, () => source.executeJavaScript(`(${snapshotDocument.toString()})({preserveContentEditor:true})`));
           boards.push({ ...board, html });
-          if (active && !active.targets.some(t => t.viewport)) {
-            const targets = await abortable(signal, () => source.executeJavaScript(`(${inspectTargets.toString()})(${JSON.stringify(active.targets)},"edit")`));
-            for (const target of targets) {
-              const region = clipRegion({x:board.x+target.x,y:board.y+target.y,width:target.width,height:target.height}, {x:0,y:0,width:scene.width,height:scene.height});
-              if (region) regions.push(region);
-            }
-          }
         }
         if (version !== epoch || win.isDestroyed() || url !== win.webContents.getURL()) return null;
         const document = sceneDocument(scene, boards);
@@ -145,12 +151,32 @@ function createIslandCapture() {
           if (surface === renderer) closeSurface();
           throw error;
         }
-      } else {
+      } else if (!pixels) {
         const css = await presentationRect(frame, {x:0,y:0,width:scene.width,height:scene.height}), zoom = win.webContents.getZoomFactor();
         if (!css) continue;
         const rect = {x:Math.round(css.x*zoom),y:Math.round(css.y*zoom),width:Math.round(css.width*zoom),height:Math.round(css.height*zoom)};
         image = await abortable(signal, () => win.webContents.capturePage(rect, {stayHidden:true,stayAwake:true}));
-        if (active && !active.targets.some(t => t.viewport)) {
+      }
+      if (version !== epoch || win.isDestroyed() || url !== win.webContents.getURL()) return null;
+      if (!pixels) {
+        if (image.isEmpty()) return null;
+        const size = image.getSize(), scale = Math.min(1, 720 / size.width, 400 / size.height);
+        if (scale < 1) image = image.resize({width:Math.max(1,Math.round(size.width*scale)),height:Math.max(1,Math.round(size.height*scale))});
+        pixels = {src:`data:image/jpeg;base64,${image.toJPEG(78).toString("base64")}`,width:scene.width,height:scene.height,capturedAt:Date.now(),framing:scene.view || "page"};
+        cached = {scope,key,image:pixels};
+      }
+      const regions = [];
+      if (active && !deferred) {
+        if (active.targets.some(t => t.viewport)) regions.push({x:0,y:0,width:1,height:1});
+        else if (scene.boards) {
+          for (const board of scene.boards) {
+            const targets = await abortable(signal, () => frame.frames[board.index].executeJavaScript(`(${inspectTargets.toString()})(${JSON.stringify(active.targets)},"edit")`));
+            for (const target of targets) {
+              const region = clipRegion({x:board.x+target.x,y:board.y+target.y,width:target.width,height:target.height}, {x:0,y:0,width:scene.width,height:scene.height});
+              if (region) regions.push(region);
+            }
+          }
+        } else {
           const targets = await abortable(signal, () => frame.executeJavaScript(`(${inspectTargets.toString()})(${JSON.stringify(active.targets)},"preview",${JSON.stringify(context.previewContext?.componentUuid)})`));
           for (const target of targets) {
             const region = clipRegion(target, {x:0,y:0,width:scene.width,height:scene.height});
@@ -158,15 +184,12 @@ function createIslandCapture() {
           }
         }
       }
-      if (version !== epoch || win.isDestroyed() || url !== win.webContents.getURL() || image.isEmpty()) return null;
-      if (active?.targets.some(t => t.viewport)) regions.push({x:0,y:0,width:1,height:1});
-      const size = image.getSize(), scale = Math.min(1, 720 / size.width, 400 / size.height);
-      if (scale < 1) image = image.resize({width:Math.max(1,Math.round(size.width*scale)),height:Math.max(1,Math.round(size.height*scale))});
-      return {src:`data:image/jpeg;base64,${image.toJPEG(78).toString("base64")}`,width:scene.width,height:scene.height,capturedAt:Date.now(),framing:scene.view || "page",
+      if (version !== epoch || win.isDestroyed() || url !== win.webContents.getURL()) return null;
+      return {...pixels,
         feedback:regions.length ? {id:active.id,kind:active.kind,phase:active.phase,regions} : null};
     }
     return null;
   }
-  return { capture, close };
+  return { capture, close: closeSurface };
 }
 module.exports = { createIslandCapture, inspectScene, sceneDocument, presentationRect };

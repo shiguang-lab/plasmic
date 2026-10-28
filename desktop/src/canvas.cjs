@@ -207,7 +207,10 @@ function snapshotDocument(input) {
   const css = [...document.styleSheets]
     .map((sheet) => {
       try {
-        if (sheet.ownerNode?.hasAttribute("data-plasmic-editor-style"))
+        if (sheet.ownerNode?.hasAttribute("data-plasmic-editor-style") &&
+          !(input?.preserveContentEditor &&
+            document.documentElement.hasAttribute("data-plasmic-content-editor") &&
+            sheet.ownerNode.hasAttribute("data-plasmic-content-editor-style")))
           return "";
         return [...sheet.cssRules].map((rule) => rule.cssText).join("\n");
       } catch {

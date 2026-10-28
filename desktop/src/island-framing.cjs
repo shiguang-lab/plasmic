@@ -5,11 +5,6 @@ class IslandFraming {
   context = null;
   group = "";
   targets = null;
-  ignored = new Set();
-  reset(operation, operations) {
-    this.context = null; this.group = ""; this.targets = null;
-    this.ignored = new Set([...operations.map(op => op.id), operation?.id].filter(Boolean));
-  }
   select(scene, context, operation, operations) {
     const key = JSON.stringify([context.projectId, context.sessionId, context.arenaId, context.mode]);
     const changed = key !== this.context;
@@ -21,8 +16,8 @@ class IslandFraming {
       (operation?.phase === "completed" && matches(operation) ? operation : null);
     const candidates = running.length ? running : completed ? [completed] : [];
     const group = candidates.map(op => op.id).sort().join("/");
-    if (group && (group !== this.group || changed && candidates.some(op => op.kind === "view")) && candidates.some(op => !this.ignored.has(op.id))) {
-      this.group = group; this.ignored.clear();
+    if (group && (group !== this.group || changed && candidates.some(op => op.kind === "view"))) {
+      this.group = group;
       this.targets = candidates.flatMap(op => op.targets);
     }
     if (!this.targets?.length || this.targets.some(target => target.viewport)) return { ...scene, view: "overview" };

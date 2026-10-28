@@ -1,0 +1,7 @@
+{
+  "en": "- Reuse Dynamic Island preview images when reopening unchanged content.\n- Preserve the displayed page across collapse and cancel interrupted captures promptly.\n- Correctly mirror isolated scroll-container content editing and refresh after visual changes.",
+  "zh-CN": "- 灵动岛收起再展开时复用未变化的预览图片。\n- 保留当前显示页面，及时取消中断的截图任务。\n- 正确显示滚动容器内容编辑模式，并按画面变化更新预览。",
+  "zh-TW": "- 靈動島收起再展開時重用未變更的預覽圖片。\n- 保留目前顯示頁面，及時取消中斷的擷取任務。\n- 正確顯示捲動容器內容編輯模式，並依畫面變化更新預覽。",
+  "ja": "- 内容が変わっていない場合、Dynamic Island の再展開時にプレビュー画像を再利用します。\n- 折りたたみ後も表示ページを保持し、中断したキャプチャを速やかにキャンセルします。\n- スクロールコンテナーのコンテンツ編集を正しく表示し、画面の変化に応じて更新します。",
+  "ko": "- 내용이 바뀌지 않으면 Dynamic Island를 다시 펼칠 때 미리보기 이미지를 재사용합니다.\n- 접은 뒤에도 표시 페이지를 유지하고 중단된 캡처를 즉시 취소합니다.\n- 스크롤 컨테이너 콘텐츠 편집 화면을 올바르게 표시하고 화면 변경 시 업데이트합니다."
+}

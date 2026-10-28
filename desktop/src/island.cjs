@@ -51,8 +51,7 @@ function createIsland({ getWindow, controller, i18n, appearance, config, signIn,
     const signedOut = !context.allowed && account.snapshot().status === "signed-out";
     expanded = mode === "island" && (updateOpen || !signedOut && (controller.activity.keepExpanded() || inside || performance.now() < hoverUntil));
     if (wasExpanded && !expanded) {
-      mirror.close(controller.activity.snapshot(context.projectId, context.sessionId).operation, framingOperations());
-      image = null; stale = false;
+      mirror.close();
     }
     if (window && !window.isDestroyed()) {window.webContents.send("desktop:island-state", snapshot());}
   }
@@ -83,9 +82,10 @@ function createIsland({ getWindow, controller, i18n, appearance, config, signIn,
     const sameProject = actual.projectId === context.projectId;
     const editorMode = actual.mode || (allowed ? "edit" : null);
     const identity = JSON.stringify([state.url, actual.projectId, actual.sessionId, editorMode, editor.previewContext?.componentUuid,
-      editor.previewContext?.path, editor.editorView?.arenaId, actual.frameUuid]);
+      editor.previewContext?.path, editor.editorView?.arenaId, actual.branchId]);
     if (identity !== context.identity || !allowed || loading) { epoch++; image = null; stale = false; }
     context = { ...actual, mode: editorMode, allowed, loading, identity,
+      changeCounter: editor.changeCounter,
       projectName: !actual.sessionProjectId && editor.projectName || (sameProject ? context.projectName : null) || "Plasmic",
       pageName: editorMode === "preview" ? editor.previewContext?.path || "" : editor.componentName || "",
       previewContext: editor.previewContext || null,
@@ -105,11 +105,11 @@ function createIsland({ getWindow, controller, i18n, appearance, config, signIn,
     const version = epoch;
     try {
       const result = await mirror.capture(win, context, controller.activity.snapshot(context.projectId, context.sessionId).operation, framingOperations());
-      if (disposed || version !== epoch || mode !== "island") {return;}
+      if (disposed || version !== epoch || mode !== "island" || !expanded) {return;}
       if (result) { image = { ...result, identity: context.identity }; stale = false; }
       else {stale = true;}
       publish();
-    } catch { if (version === epoch) { stale = true; publish(); } }
+    } catch (error) { if (error?.name !== "AbortError" && expanded && version === epoch) { stale = true; publish(); } }
     finally { capturing = false; }
   }
   function updateHit() {
@@ -166,7 +166,7 @@ function createIsland({ getWindow, controller, i18n, appearance, config, signIn,
   function stop() {
     for (const timer of [refreshTimer, captureTimer, hitTimer]) {clearInterval(timer);}
     refreshTimer = captureTimer = hitTimer = undefined;
-    mirror.close(controller.activity.snapshot(context.projectId, context.sessionId).operation, framingOperations());
+    mirror.close();
     epoch++; image = null; expanded = false; updateOpen = false; drag = undefined; inside = false; hoverUntil = 0;
   }
   function setMode(value) {
@@ -192,7 +192,7 @@ function createIsland({ getWindow, controller, i18n, appearance, config, signIn,
     if (value !== "fullscreen") {await fullscreen(win, false);}
     if (disposed || win.isDestroyed()) {return;}
     if (value === "island") {
-      if (mode !== "island") {mirror.close(controller.activity.snapshot(context.projectId, context.sessionId).operation, framingOperations());}
+      if (mode !== "island") {mirror.close();}
       await ensureWindow();
       if (disposed || win.isDestroyed()) {return;}
       mode = value;
