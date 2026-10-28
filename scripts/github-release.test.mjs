@@ -129,6 +129,10 @@ test("first full release publishes all feeds and immutable resource files before
   assert.ok(edits[0].includes("--latest=false"));
   assert.equal(edits.at(-1)[2], "1.2.3");
   assert.ok(edits.at(-1).includes("--latest"));
+  const poolCreate = remote.calls.find(
+    (call) => call[1] === "create" && call[2] === RESOURCE_RELEASE,
+  );
+  assert.equal(poolCreate[poolCreate.indexOf("--target") + 1], "1".repeat(40));
 });
 
 test("interrupted uploads stay draft and retries reuse verified files", async (t) => {
@@ -257,7 +261,10 @@ test("existing drafts are inspected by release ID rather than the published-tag 
     false,
   );
   for (const call of remote.calls.filter(
-    (call) => call[0] === "api" && !call.includes("--paginate"),
+    (call) =>
+      call[0] === "api" &&
+      !call.includes("--paginate") &&
+      !call.includes("--jq"),
   ))
     assert.match(call[1], /\/releases\/\d+$/);
 });

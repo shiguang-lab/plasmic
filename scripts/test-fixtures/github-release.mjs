@@ -147,6 +147,7 @@ export async function githubFixture(
   const run = async (args) => {
     calls.push(args);
     if (args[0] === "api") {
+      if (args[1].includes("/commits/")) return "1".repeat(40) + "\n";
       if (args.includes("--paginate"))
         return JSON.stringify([[...releases.values()]]);
       const record = args[1].includes("/tags/")
@@ -166,7 +167,14 @@ export async function githubFixture(
         });
       return `https://api.github.com/repos/example/plasmic/releases/${releases.get(tag).id}\n`;
     }
-    if (args[1] === "create") add(tag, [], true);
+    if (args[1] === "create") {
+      if (
+        args.includes("--target") &&
+        !/^[a-f0-9]{40}$/.test(args[args.indexOf("--target") + 1])
+      )
+        throw new Error("Release.target_commitish is invalid");
+      add(tag, [], true);
+    }
     if (args[1] === "download") {
       const name = args[args.indexOf("--pattern") + 1];
       await writeFile(

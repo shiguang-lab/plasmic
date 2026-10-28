@@ -347,6 +347,16 @@ export async function publishGitHubRelease(
 
     let pool = await findRelease(RESOURCE_RELEASE);
     if (!pool) {
+      const revision = (
+        await runGh([
+          "api",
+          `repos/${repository}/commits/${plan.tag}`,
+          "--jq",
+          ".sha",
+        ])
+      ).trim();
+      if (!/^[a-f0-9]{40}$/.test(revision))
+        throw new Error("Cannot resolve the release tag to a full commit SHA");
       const poolNotes = path.join(temporary, "resources.md");
       await writeFile(
         poolNotes,
@@ -359,7 +369,7 @@ export async function publishGitHubRelease(
         "--repo",
         repository,
         "--target",
-        plan.tag,
+        revision,
         "--draft",
         "--latest=false",
         "--title",
