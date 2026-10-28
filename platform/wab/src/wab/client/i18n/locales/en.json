@@ -5547,7 +5547,7 @@
   "View updated": "View updated",
   "Close main window": "Close main window",
   "How should Plasmic run after closing the main window?": "How should Plasmic run after closing the main window?",
-  "Dynamic Island keeps your canvas and MCP running. If remembered, Plasmic will also start in Dynamic Island next time.": "Dynamic Island keeps your canvas and MCP running. If remembered, Plasmic will also start in Dynamic Island next time.",
+  "Dynamic Island keeps your canvas and MCP running. Plasmic reopens in the last display mode.": "Dynamic Island keeps your canvas and MCP running. Plasmic reopens in the last display mode.",
   "Switch to Dynamic Island": "Switch to Dynamic Island",
   "Remember this choice": "Remember this choice",
   "When closing the main window": "When closing the main window",

@@ -443,7 +443,7 @@ async function startDesktop() {
     mainWindow.webContents.on("did-start-navigation", (_event, _url, inPlace, isMainFrame) => {
       if (isMainFrame && !inPlace) {drafts.reset();}
     });
-    presentation = createIsland({ getWindow: () => mainWindow, controller,
+    presentation = createIsland({ getWindow: () => mainWindow, controller, isQuitting: () => quitting,
       i18n: desktopI18n, appearance: desktopAppearance, config,
       signIn: () => unifiedAuth.begin(),
       changed: (mode) => {

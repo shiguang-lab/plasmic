@@ -5547,7 +5547,7 @@
   "View updated": "보기 업데이트됨",
   "Close main window": "기본 창 닫기",
   "How should Plasmic run after closing the main window?": "기본 창을 닫은 후 Plasmic을 어떻게 실행할까요?",
-  "Dynamic Island keeps your canvas and MCP running. If remembered, Plasmic will also start in Dynamic Island next time.": "다이내믹 아일랜드에서는 캔버스와 MCP가 계속 실행됩니다. 선택을 기억하면 다음에도 이 모드로 시작합니다.",
+  "Dynamic Island keeps your canvas and MCP running. Plasmic reopens in the last display mode.": "다이내믹 아일랜드에서는 캔버스와 MCP가 계속 실행됩니다. 다음 실행 시 마지막 표시 모드로 복원됩니다.",
   "Switch to Dynamic Island": "다이내믹 아일랜드로 전환",
   "Remember this choice": "이 선택 기억하기",
   "When closing the main window": "기본 창을 닫을 때",

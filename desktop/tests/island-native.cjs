@@ -115,7 +115,7 @@ app.whenReady().then(async () => {
     return requestStudio(url,input,signal);
   };
   let signInCalls = 0;
-  presentation = createIsland({ signIn: () => { signInCalls++; }, getWindow: () => main, controller, config: { studioOrigin: origin }, i18n, appearance });
+  presentation = createIsland({ signIn: () => { signInCalls++; }, isQuitting: () => false, getWindow: () => main, controller, config: { studioOrigin: origin }, i18n, appearance });
   presentation.attach(main);
   await main.loadURL(origin + "/projects/p");
   await until(async () => (await controller.state()).ready, "editor bridge ready");

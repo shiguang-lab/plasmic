@@ -5547,7 +5547,7 @@
   "View updated": "檢視已更新",
   "Close main window": "關閉主視窗",
   "How should Plasmic run after closing the main window?": "關閉主視窗後，如何執行 Plasmic？",
-  "Dynamic Island keeps your canvas and MCP running. If remembered, Plasmic will also start in Dynamic Island next time.": "動態島會保持畫布和 MCP 繼續執行。記住此選擇後，下次開啟也會直接進入動態島。",
+  "Dynamic Island keeps your canvas and MCP running. Plasmic reopens in the last display mode.": "動態島會保持畫布和 MCP 繼續執行。下次啟動將恢復上次的顯示模式。",
   "Switch to Dynamic Island": "進入動態島",
   "Remember this choice": "記住此選擇",
   "When closing the main window": "關閉主視窗時",

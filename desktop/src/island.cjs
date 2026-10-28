@@ -16,13 +16,13 @@ function containsPoint(point, rect) {
   return (point.x - x) ** 2 + (point.y - y) ** 2 <= radius ** 2;
 }
 
-function createIsland({ getWindow, controller, i18n, appearance, config, signIn, changed = () => {} }) {
+function createIsland({ getWindow, controller, i18n, appearance, config, signIn, isQuitting, changed = () => {} }) {
   const page = pathToFileURL(path.join(__dirname, "island.html")).href;
   const preference = path.join(app.getPath("userData"), "presentation.json");
   let saved = {};
   try { saved = JSON.parse(fs.readFileSync(preference, "utf8")); } catch { /* First launch has no presentation preference. */ }
   let closeAction = CLOSE_ACTIONS.includes(saved.closeAction) ? saved.closeAction : "ask";
-  let mode = closeAction === "island" ? "island" : MODES.includes(saved.mode) ? saved.mode : "window";
+  let mode = MODES.includes(saved.mode) ? saved.mode : "window";
   let window, context = { allowed: false }, image = null, stale = false, epoch = 0;
   let disposed = false, expanded = false, reading = false, capturing = false, drag, hit, inside = false;
   let hoverUntil = 0;
@@ -150,7 +150,7 @@ function createIsland({ getWindow, controller, i18n, appearance, config, signIn,
     window.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
     window.webContents.on("will-navigate", (event) => event.preventDefault());
     window.webContents.on("will-attach-webview", (event) => event.preventDefault());
-    window.on("closed", () => { window = undefined; if (!disposed && mode === "island") {void setMode("window");} });
+    window.on("closed", () => { window = undefined; if (!disposed && !isQuitting() && mode === "island") {void setMode("window");} });
     placeWindow();
     await window.loadURL(page);
     publish();
@@ -256,7 +256,7 @@ function createIsland({ getWindow, controller, i18n, appearance, config, signIn,
     const result = await dialog.showMessageBox(win, {
       type: "question", title: i18n.t("Close main window"),
       message: i18n.t("How should Plasmic run after closing the main window?"),
-      detail: i18n.t("Dynamic Island keeps your canvas and MCP running. If remembered, Plasmic will also start in Dynamic Island next time."),
+      detail: i18n.t("Dynamic Island keeps your canvas and MCP running. Plasmic reopens in the last display mode."),
       buttons: ["Switch to Dynamic Island", "Quit Plasmic", "Cancel"].map((key) => i18n.t(key)),
       defaultId: 0, cancelId: 2, noLink: true,
       checkboxLabel: i18n.t("Remember this choice"), checkboxChecked: true,

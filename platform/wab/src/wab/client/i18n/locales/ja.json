@@ -5547,7 +5547,7 @@
   "View updated": "ビューを更新しました",
   "Close main window": "メインウィンドウを閉じる",
   "How should Plasmic run after closing the main window?": "メインウィンドウを閉じた後の動作を選択してください",
-  "Dynamic Island keeps your canvas and MCP running. If remembered, Plasmic will also start in Dynamic Island next time.": "ダイナミックアイランドではキャンバスと MCP の実行を継続します。選択を記憶すると、次回もこのモードで起動します。",
+  "Dynamic Island keeps your canvas and MCP running. Plasmic reopens in the last display mode.": "ダイナミックアイランドではキャンバスと MCP の実行を継続します。次回の起動時は最後の表示モードに戻ります。",
   "Switch to Dynamic Island": "ダイナミックアイランドに切り替える",
   "Remember this choice": "この選択を記憶する",
   "When closing the main window": "メインウィンドウを閉じるとき",

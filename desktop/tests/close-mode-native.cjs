@@ -8,7 +8,7 @@ if (!process.versions.electron) {
   const { spawnSync } = require("node:child_process");
   const profile = fs.mkdtempSync(path.join(os.tmpdir(), "plasmic-close-mode-"));
   try {
-    for (const stage of ["choose", "reopen", "exit", "quit"]) {
+    for (const stage of ["choose", "window-reopen", "reopen", "exit", "quit"]) {
       const result = spawnSync(require("electron"), [__filename, stage], {
         env: { ...process.env, PLASMIC_DESKTOP_PROFILE: profile }, encoding: "utf8", timeout: 45000,
       });
@@ -16,8 +16,10 @@ if (!process.versions.electron) {
       process.stderr.write(result.stderr || "");
       assert.equal(result.status, 0, result.error?.message || `Close-mode ${stage} failed`);
       assert.equal(JSON.parse(fs.readFileSync(path.join(profile, `passed-${stage}.json`))).passed, true);
+      assert.equal(JSON.parse(fs.readFileSync(path.join(profile, "presentation.json"))).mode,
+        ["window-reopen", "reopen"].includes(stage) ? "island" : "window", "Quitting preserves the last display mode");
     }
-    console.log("Close-mode native acceptance passed: cancel, remember/unremember, repeat close, cold start, temporary show, Dock/relaunch, browser login and callbacks with main hidden, explicit exit, preference changes and context-menu Quit.");
+    console.log("Close-mode native acceptance passed: cancel, remember/unremember, repeat close, window and island cold starts, show main, Dock/relaunch, browser login and callbacks with main hidden, explicit exit, preference changes and context-menu Quit.");
   } finally { fs.rmSync(profile, { recursive: true, force: true }); }
 } else {
   const { app, BrowserWindow, dialog, Menu, session } = require("electron");
@@ -151,7 +153,16 @@ if (!process.versions.electron) {
       assert.equal(prompts, 3, "remembered island closes without prompting");
       await returnMain();
       assert.equal(preference().mode, "window");
-      assert.equal(preference().closeAction, "island", "temporary editing does not change the startup preference");
+      assert.equal(preference().closeAction, "island", "showing main preserves the remembered closing behavior");
+      pass(); app.quit();
+    } else if (stage === "window-reopen") {
+      await until(() => main.isVisible(), "restart restores the last main-window display mode");
+      assert.equal(preference().mode, "window");
+      assert.equal(preference().closeAction, "island", "restarting preserves the separate closing preference");
+      assert.equal(island()?.isVisible() ?? false, false, "restarting in main-window mode keeps the island hidden");
+      main.close(); await waitIsland();
+      assert.equal(prompts, 0, "closing the restored main window still follows the remembered island action");
+      assert.equal(preference().mode, "island");
       pass(); app.quit();
     } else if (stage === "reopen") {
       await waitIsland();
@@ -182,7 +193,7 @@ if (!process.versions.electron) {
       app.emit("second-instance",{},["Plasmic"]);await pause(150);
       assert.equal(main.isVisible(),true,"reopening keeps an explicitly opened main window visible");
       assert.equal(island().isVisible(),false,"relaunch cannot reopen island beside main");
-      main.close();await waitIsland();assert.equal(prompts,0,"temporary main closes back to island without a dialog");
+      main.close();await waitIsland();assert.equal(prompts,0,"main closes back to island without a dialog");
       await until(async()=>await island().webContents.executeJavaScript("!document.getElementById('capsule-sign-in').hidden"),"signed-out island offers sign-in");
       const shownBeforeLogin = shown;
       const loginMainUrl = main.webContents.getURL();
