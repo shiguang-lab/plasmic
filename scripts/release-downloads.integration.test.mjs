@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { createServer } from "node:http";
 import { tmpdir } from "node:os";
@@ -232,6 +232,18 @@ test(
       }
     };
     try {
+      const readyDeadline = Date.now() + 15_000;
+      for (;;) {
+        try {
+          const response = await fetch(address + "/", {
+            signal: AbortSignal.timeout(1000),
+          });
+          await response.arrayBuffer();
+          if (response.status === 404) break;
+        } catch {}
+        assert.ok(Date.now() < readyDeadline, "Caddy did not become ready");
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
       await publish({ studio: true }, "1.2.3");
       await verifyFeeds("1.2.2", "1.2.2");
       await verifyResources("1.2.2");
@@ -325,7 +337,10 @@ test(
       );
     } catch (error) {
       t.diagnostic(JSON.stringify(requests.slice(-5)));
-      t.diagnostic(docker(["logs", container]));
+      const logs = spawnSync("docker", ["logs", container], {
+        encoding: "utf8",
+      });
+      t.diagnostic(logs.stdout + logs.stderr);
       throw error;
     }
   },
