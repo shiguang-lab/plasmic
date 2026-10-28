@@ -52,10 +52,7 @@ export function affectedProducts(files) {
     ) {
       continue;
     }
-    if (
-      /^desktop\//.test(file) &&
-      !/^desktop\/scripts\/(publish|setup-nas|nas-|.*resources)/.test(file)
-    ) {
+    if (/^desktop\//.test(file)) {
       result.desktop = true;
     }
     const shared =

@@ -1,6 +1,6 @@
 # Plasmic skill、CLI 与资源发布
 
-统一的 `plasmic` skill 支持产品原型设计和开发代码生成。薄 skill 随 CLI 安装包发布；工作流、组件规范、MCP 契约和验收脚本由 CLI 在任务开始时从 NAS 检查和下载。
+统一的 `plasmic` skill 支持产品原型设计和开发代码生成。薄 skill 随 CLI 安装包发布；工作流、组件规范、MCP 契约和验收脚本由 CLI 在任务开始时从公开资源服务检查和下载。
 
 ## 目录与事实源
 
@@ -123,13 +123,13 @@ plasmickit context resolve --mode codegen
 plasmickit references path
 ```
 
-`version check` 查询 NAS 当前发布清单；清单的 `version` 是资源版本，`cliVersion` 是所附 npm 包版本。CLI 升级判断只比较 `cliVersion`。命令返回正在运行的 `cliVersion`、NAS 发布的 `latestCliVersion`、资源最低要求 `minCliVersion`、`cliUpdateAvailable`、`cliCompatible` 和可直接安装的 `cliUrl`。`references check` 同时返回资源差异与 CLI 版本结果。CLI 低于最低版本时，`update` / `context resolve` 返回升级信息并停止；兼容的旧 CLI 可以加载新 references，同时报告有可用升级。薄 skill 的 `npx …@latest` 入口自动选择 npm 最新 CLI。
+`version check` 查询公开资源服务的当前发布清单；清单的 `version` 是资源版本，`cliVersion` 是所附 npm 包版本。CLI 升级判断只比较 `cliVersion`。命令返回正在运行的 `cliVersion`、公开清单中的 `latestCliVersion`、资源最低要求 `minCliVersion`、`cliUpdateAvailable`、`cliCompatible` 和可直接安装的 `cliUrl`。`references check` 同时返回资源差异与 CLI 版本结果。CLI 低于最低版本时，`update` / `context resolve` 返回升级信息并停止；兼容的旧 CLI 可以加载新 references，同时报告有可用升级。薄 skill 的 `npx …@latest` 入口自动选择 npm 最新 CLI。
 
-`context resolve` 每次读取 NAS 的 `latest.json`，更新并验证全部缓存文件，返回 `releaseId`、`version`、`resourceRoot`、`referencePath` 和该模式的 `mustRead` 绝对路径。inspect 模式返回只读解读流程和共用模型读取契约；prototype 模式返回原型工作流，通过后台索引按受影响区域选读；codegen 模式返回模型读取、工程与验收规范，数据/交互规范在涉及对应行为时读取。解释模板和设计审查不要求编辑权限，不安装库或保存设计。
+`context resolve` 每次读取公开资源服务的 `latest.json`，更新并验证全部缓存文件，返回 `releaseId`、`version`、`resourceRoot`、`referencePath` 和该模式的 `mustRead` 绝对路径。inspect 模式返回只读解读流程和共用模型读取契约；prototype 模式返回原型工作流，通过后台索引按受影响区域选读；codegen 模式返回模型读取、工程与验收规范，数据/交互规范在涉及对应行为时读取。解释模板和设计审查不要求编辑权限，不安装库或保存设计。
 
 资源命令在 stderr 实时输出友好的阶段提示，版本检查显示当前版本和最新版本，资源无需更新且缓存完整时直接提示当前已是最新版本；需要加载时显示下载与哈希校验进度。正常加载不展示缓存保存、更新协调和工作流入口等内部步骤。下载显示已接收字节与实际进度，阶段持续超过两秒时定期显示等待时长；失败提示标明当前阶段。stdout 仅输出最终 JSON，阶段内失败时，错误 JSON 包含失败阶段 `stage`。AI 应使用运行工具的增量输出能力转述阶段变化；工具若只在退出后返回日志，CLI 无法保证中途显示，AI 应说明仍在等待，不能编造进度。工作流入口就绪只代表文件可供阅读，Agent 仍需读取返回的 `mustRead`。
 
-缓存默认位于 `~/.cache/plasmic/`：`releases/<releaseId>/` 保存版本，`current.json` 原子切换当前版本。`PLASMIC_RESOURCE_HOME` / `--home` 设置缓存目录；`PLASMIC_RESOURCE_URL` / `--feed` 设置资源源（HTTPS；loopback 测试允许 HTTP）。`path` 仅供显式离线检查，不能证明缓存最新。NAS 不可达或校验失败时停止依赖任务。更新以目录锁防止交叉写入；异常退出留下 `.update-lock` 时，确认没有更新进程后删除锁再执行。
+缓存默认位于 `~/.cache/plasmic/`：`releases/<releaseId>/` 保存版本，`current.json` 原子切换当前版本。`PLASMIC_RESOURCE_HOME` / `--home` 设置缓存目录；`PLASMIC_RESOURCE_URL` / `--feed` 设置资源源（HTTPS；loopback 测试允许 HTTP）。`path` 仅供显式离线检查，不能证明缓存最新。公开资源服务不可达或校验失败时停止依赖任务。更新以目录锁防止交叉写入；异常退出留下 `.update-lock` 时，确认没有更新进程后删除锁再执行。
 
 ## 管理后台模板规范
 
@@ -147,11 +147,11 @@ plasmickit references path
 node scripts/build-plasmic-resources.mjs --version 0.0.59 --output /tmp/plasmic-resources-0.0.59
 ```
 
-版本号是示例，发布前检查 npm 和 NAS 当前版本，选择更大的未发布版本。本地构建会运行验收脚本单测并验证资源 manifest、文件哈希和安装包；CLI 使用源码 package.json 的独立版本。它不会发布或切换 NAS 清单，也不替代正式发布的 npm 内容比较。检查 manifest 包含 `references/admin-templates.md`、`references/templates/admin/catalog.json` 和 `references/templates/admin/ui-config.json`。
+版本号是示例，发布前检查 npm 和 GitHub Release 当前版本，选择更大的未发布版本。本地构建会运行验收脚本单测并验证资源 manifest、文件哈希和安装包；CLI 使用源码 package.json 的独立版本。它不会发布或切换公开清单，也不替代正式发布的 npm 内容比较。检查 manifest 包含 `references/admin-templates.md`、`references/templates/admin/catalog.json` 和 `references/templates/admin/ui-config.json`。
 
-正式发布沿用下文的统一 tag 流程：提交规范，推送数字 `<版本>` tag，等待 workflow 成功。仅 references 或资源脚本变化的小版本只构建资源，复用 npm 最新 CLI 的版本和原始安装包；薄 SKILL 或 CLI 发生变化时，同一流程先发布 CLI，再构建引用该版本的资源。下载该次资源 artifact，通过 `publish:resources --from ... --version ...` 部署。NAS 部署必须使用 CI 产物，不重新构建覆盖已发布版本。
+正式发布沿用下文的统一 tag 流程：提交规范，推送数字 `<版本>` tag，等待 workflow 成功。仅 references 或资源脚本变化的小版本只构建资源，复用 npm 最新 CLI 的版本和原始安装包；薄 SKILL 或 CLI 发生变化时，同一流程先发布 CLI，再构建引用该版本的资源。统一发布器将校验后的资源上传 GitHub Release。
 
-NAS 部署成功后，客户端执行：
+GitHub Release 发布成功后，客户端执行：
 
 ```sh
 npx -y @plasmickit/cli@latest context resolve --mode prototype
@@ -190,7 +190,7 @@ npx -y @plasmickit/cli@latest context resolve --mode prototype
 
 发布前运行 `node scripts/release-plan.mjs <tag>` 检查范围，设置 `RELEASE_FORCE_ALL=true` 检查强制全发布。选中 Desktop 时，其 package/lockfile 版本必须等于 tag，并有五语言发布说明；同时构建 Studio 时 `webImage` 指向该 tag，仅发布 Desktop 时指向已有镜像。校验失败则不开始构建。
 
-所有选中的任务成功后才公开同一个 GitHub Release。CLI/资源资产包含 `plasmic-cli.tgz`、`resources.json.gz`、`plasmic-latest.json` 和 `plasmic-manifest.json`；薄 Skill 已包含在 CLI 包中。每个实际发布的数字版本都包含六份公开 latest 清单，未更新产品沿用此前清单的原始字节、版本和下载地址。资产上传后按大小和 SHA-256 验证，失败保留草稿供重跑；全部就绪后才推进 GitHub latest。资源 artifact 仍包含原始 `latest.json` 和 `releases/<releaseId>/`，供 NAS 部署命令使用。固定首尔代理会自动跟随 latest，发布不修改代理配置或部署 NAS 服务。
+所有选中的任务成功后才公开同一个 GitHub Release。CLI/资源资产包含 `plasmic-cli.tgz`、`resources.json.gz`、`plasmic-latest.json` 和 `plasmic-manifest.json`；薄 Skill 已包含在 CLI 包中。每个实际发布的数字版本都包含六份公开 latest 清单，未更新产品沿用此前清单的原始字节、版本和下载地址。资产上传后按大小和 SHA-256 验证，失败保留草稿供重跑；全部就绪后才推进 GitHub latest。资源 artifact 仍包含原始 `latest.json` 和 `releases/<releaseId>/`，供发布校验使用。固定首尔代理会自动跟随 latest，发布不修改代理配置或部署 NAS 服务。
 
 `MIN_CLI_VERSION` 位于 `src/protocol.mjs`，不得高于资源清单的 `cliVersion`。资源目录使用内容哈希 `releaseId`，记录所有文件和安装包的 SHA-256 与大小。
 
@@ -198,7 +198,7 @@ npx -y @plasmickit/cli@latest context resolve --mode prototype
 
 - npm：需要有 `@plasmickit` scope 发布权限、启用 Bypass 2FA 的 granular `NPM_TOKEN` secret，或已登记该包的 Trusted Publisher。OIDC 配置填写 GitHub owner `shiguang-lab`、repo `plasmic`、调用方 workflow `publish-images.yml`；workflow 已声明 `id-token: write` 并安装最新版 npm。参考 [npm Trusted Publishing](https://docs.npmjs.com/trusted-publishers/)。
 
-统一的 Actions 按计划调用 npm 发布、Studio 镜像、Desktop 和资源构建任务，并汇总 Release。NAS 部署在本机单独执行，使用本机 SSH 配置和已下载的 Actions 产物。
+统一的 Actions 按计划调用 npm 发布、Studio 镜像、Desktop 和资源构建任务，并汇总 Release。Studio 服务的 NAS 部署在本机单独执行；客户端下载和资源由 GitHub Release 托管。
 
 ## 部署公开资源下载
 
@@ -209,19 +209,6 @@ node scripts/release-downloads.mjs /absolute/path/to/current/Caddyfile
 ```
 
 latest 固定转发至 GitHub latest。资源按内容哈希存入固定的 `plasmic-resources` Release，文件名为 `<releaseId>-manifest.json`、`<releaseId>-plasmic-cli.tgz` 和 `<releaseId>-resources.json.gz`，已有哈希只读，新版本只追加；该 Release 永不设为 latest。发布器会补齐历史数字版本的资源。首次启用固定规则前，用当前发布器补齐最新数字 Release 的六份清单及资源；之后发布无需修改或重载 Caddy。GitHub 的两次跳转都在服务端处理。校验、部署位置、回滚和验证要求见 [下载路由](../../deploy/README.md#release-download-routing)。
-
-### NAS 历史资源
-
-NAS 卷保留旧版资源，供 GitHub 缺失文件时按原地址回退读取。下面的命令只用于 NAS 托管的分发，不会推进首尔公开下载清单。从成功的资源 workflow 下载 `plasmic-resources-<tag>` artifact，解压后通过 `--from` 直接使用原始产物，保持 CLI 安装包与 npm 包字节一致。
-
-```sh
-# 首次配置 nginx 和只读更新卷：
-npm --prefix desktop run setup:nas-updates
-# 发布下载并解压的资源版本对应产物：
-npm --prefix desktop run publish:resources -- --from /absolute/path/to/plasmic-resources --version 0.0.38
-```
-
-`desktop.config.json` 的 `nasHost` 和 `nasDeployDir` 使用本机现有 SSH 别名与部署目录；也可通过 `PLASMIC_NAS_HOST`、`PLASMIC_NAS_DEPLOY_DIR`、`PLASMIC_NAS_SSH_PORT` 指定。部署账号需要现有 Docker/Compose 权限。脚本验证产物版本、哈希、公开 HTTPS 访问与清单 `no-store`，先上传不可变目录，最后原子切换清单；拒绝回退和同版本不同内容。发布失败时保留当前清单，重新执行同一产物部署即可。
 
 ## 本地构建与发布检查
 
@@ -234,9 +221,9 @@ node packages/plasmic-cli/scripts/publish.mjs --tag 0.4.3
 node scripts/release-resources.mjs --tag 0.4.3
 ```
 
-统一版本主/次版本升级或强制全发布会发布当前 CLI 包内容；补丁版本按需比较实际包内容，要求 npm 版本递增。上传 npm 需要显式加 `--execute`；统一 CI 会自动传入，全发布另传 `RELEASE_FORCE_ALL=true`。Desktop `publish:nas` 不覆盖资源清单。
+统一版本主/次版本升级或强制全发布会发布当前 CLI 包内容；补丁版本按需比较实际包内容，要求 npm 版本递增。上传 npm 需要显式加 `--execute`；统一 CI 会自动传入，全发布另传 `RELEASE_FORCE_ALL=true`。
 
-本地构建目录 `dist/plasmic-resources/` 对应 NAS：
+资源使用以下公开下载路径，由首尔从 GitHub Release 获取：
 
 ```text
 /desktop-updates/plasmic/latest.json              no-store 当前清单
@@ -246,15 +233,15 @@ node scripts/release-resources.mjs --tag 0.4.3
   plasmic-cli.tgz                               CLI + 薄 skill
 ```
 
-使用现有 `plasmic-desktop-updates` Docker volume 与 nginx。NAS 发布后检查公开 HTTPS 的清单缓存策略和两个安装文件的哈希。npm 不可用时，可从 NAS 清单给出的 `cliUrl` 安装同一 CLI；更新工具会返回该 URL。
+发布后检查公开清单的缓存策略和安装文件的哈希。
 
 ## 本地开发资源
 
-本机测试使用当前 checkout 时，运行 `node scripts/install-local-plasmic-skill.mjs` 安装 DS（默认 `~/.agents`），用 `--target ~/.codex/skills/plasmic` 同步 Codex。入口链接到同一份 SKILL；`local-source.json` 指定本地 resolver，下一次 resolve 即读取当前内容和哈希，不访问 NAS，也不需要发布。
+本机测试使用当前 checkout 时，运行 `node scripts/install-local-plasmic-skill.mjs` 安装 DS（默认 `~/.agents`），用 `--target ~/.codex/skills/plasmic` 同步 Codex。入口链接到同一份 SKILL；`local-source.json` 指定本地 resolver，下一次 resolve 即读取当前内容和哈希，不访问公开资源服务，也不需要发布。
 
 resolver 在用户缓存目录提供仅含正式 references/scripts 的内容寻址快照，排除 eval、历史答案和测试文件。文件为普通文件，递归搜索不会因软链接而漏读；下一次 resolve 获取当前源码的新增、删除和修改，无需发布。本轮快照保持不变，便于版本复现。资源范围不等于文件系统权限隔离，生成任务仍只读取本轮来源和运行资源。`node --test scripts/plasmic-local-context.test.mjs` 检查快照稳定、最新内容解析、递归搜索、资源范围及幂等安装。
 
-App/MCP 使用同一个本地构建：`pnpm --dir desktop run package:local -- --install`。它重建 SDK、组件、Canvas 和 Studio，再签名安装；只更新 Skill 无法替换已运行 App 内的组件代码。安装后通过 `get_build_info` 核对实际本地 renderer/desktop 哈希。此流程不发布 npm 或 NAS。
+App/MCP 使用同一个本地构建：`pnpm --dir desktop run package:local -- --install`。它重建 SDK、组件、Canvas 和 Studio，再签名安装；只更新 Skill 无法替换已运行 App 内的组件代码。安装后通过 `get_build_info` 核对实际本地 renderer/desktop 哈希。此流程不发布 npm 或 GitHub Release。
 
 ## 验证
 

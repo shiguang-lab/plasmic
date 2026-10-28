@@ -62,7 +62,7 @@ docker compose exec -T db pg_dump -U wab -d wab -Fc > wab-before-domain-migratio
 ```
 
 Keep the dump private. Install `.env.plasmic-domain-next` as `.env`, retaining a
-private backup of the original, and set `IMAGE_TAG` / `DESKTOP_RELEASE_TAG` to the
+private backup of the original, and set `IMAGE_TAG` to the
 releases published above. Apply the auth environment in the same way. Pull the
 new images and run normal schema migrations before the domain data migration:
 

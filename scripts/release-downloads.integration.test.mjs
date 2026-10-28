@@ -15,7 +15,7 @@ import {
 import { renderDownloadProxy } from "./release-downloads.mjs";
 import { fixture, githubFixture } from "./test-fixtures/github-release.mjs";
 
-// Exercise the production publisher and real Caddy; only GitHub/NAS HTTP is local.
+// Exercise the production publisher and real Caddy; only GitHub HTTP is local.
 test(
   "one fixed Caddy configuration serves successive partial releases and immutable history",
   { timeout: 120_000 },
@@ -95,15 +95,6 @@ test(
           return;
         }
       }
-      if (
-        url.pathname ===
-          "/desktop-updates/darwin/arm64/Plasmic-0.4.1-mac-arm64.zip" &&
-        url.search === "?legacy=yes"
-      ) {
-        res.writeHead(200, { "Content-Length": 6 });
-        res.end("legacy");
-        return;
-      }
       res.writeHead(404, {
         "Set-Cookie": "private=value",
         "Cache-Control": "public, max-age=999",
@@ -127,8 +118,7 @@ test(
       .replaceAll(
         "https://release-assets[.]githubusercontent[.]com",
         `http://host[.]docker[.]internal:${port}`,
-      )
-      .replaceAll("http://100.87.115.78:3600", upstream);
+      );
     const file = path.join(directory, "Caddyfile");
     await writeFile(
       file,
@@ -284,12 +274,9 @@ test(
       successful(await get(installer, { method: "OPTIONS" }), "no-store", 204);
       successful(await get(installer, { method: "POST" }), "no-store", 405);
       assert.equal(requests.length, before);
-      successful(
-        await get(
-          "/desktop-updates/darwin/arm64/Plasmic-0.4.1-mac-arm64.zip?legacy=yes",
-        ),
-        "public, max-age=31536000, immutable",
-      );
+      const missingStart = requests.length;
+      successful(await get("/desktop-updates/darwin/arm64/Plasmic-0.4.1-mac-arm64.zip?legacy=yes"), "no-store", 404);
+      assert.ok(requests.slice(missingStart).every(request => request.path.startsWith("/shiguang-lab/")), "missing assets must never reach the NAS gateway");
       for (const route of [
         "/desktop-updates/darwin/arm64/Plasmic-9.9.9-mac-arm64.zip",
         `/desktop-updates/plasmic/releases/${"f".repeat(64)}/manifest.json`,

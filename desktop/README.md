@@ -319,7 +319,7 @@ usage must be read from the actual model client, not inferred from byte counts.
 Run `npm test` for Desktop checks and `npx electron tests/reference-browser-native.cjs`
 for actual Chromium selection, navigation, isolation and import integration.
 
-## NAS updates and releases
+## Desktop updates and releases
 
 Updates use `desktop.config.json`'s HTTPS `updateUrl`. Feeds are partitioned by
 platform and architecture. macOS selects `darwin/arm64/` or `darwin/x64/`; an Intel
@@ -386,13 +386,11 @@ platform directories. The final job verifies
 all installer sizes and SHA-512 hashes, copies installers and Electron update YAML
 into `desktop/public/desktop-updates/`, and generates `latest.json` for the website.
 The JSON contains the version, platform, architecture, size, SHA-512 and public HTTPS
-download URL. Installers and manifests ship together in
-`ghcr.io/shiguang-lab/plasmic-desktop-releases:desktop-v<version>`.
+download URL. Installers and manifests are published as GitHub Release assets.
 The GitHub Release uses the numeric tag and also contains the selected installers,
 ZIPs and blockmaps directly. Release asset names `latest-mac-arm64.yml` and
 `latest-mac-x64.yml` distinguish the Mac feeds; `desktop-latest.json` is the website
-installer index. Existing public download URLs and NAS image tags retain their
-current formats.
+installer index. Public download URLs retain their current formats.
 
 The two macOS jobs use ad-hoc signatures and require no certificate secrets,
 private keys, fixed certificate fingerprint, or signing keychain. The shared release workflow calls the reusable Desktop workflow with the verified source commit. Packaging
@@ -403,9 +401,7 @@ acceptance runs on both macOS architectures before installers are packaged.
 CI packages are for internal distribution; Developer ID signing and notarization
 remain separate from this workflow. Local Apple Development signing is unchanged.
 
-The release image contains the installers and manifests built for that release.
-Ordinary releases cannot overwrite existing image versions; explicitly forced tag rebuilds are limited to versions not deployed on NAS. Make this GHCR package public so NAS
-deployments can pull it without GitHub credentials.
+Published versioned assets cannot be overwritten; publish a new version for changes.
 
 After Actions succeeds, the fixed Seoul Caddy rules follow GitHub latest
 automatically. Install the rules once as described in
@@ -414,7 +410,7 @@ Each numeric Release includes all six feeds, reusing unchanged products' files
 byte-for-byte. Installer filenames determine their numeric Release tag; content
 hashes determine immutable CLI/Skill asset names in `plasmic-resources`.
 Releases need no proxy edits, reloads or large installer image pull on NAS.
-Historical NAS files remain the fallback for missing GitHub assets.
+Missing GitHub assets return 404; downloads do not fall back to NAS.
 Downloads and `latest.json` retain
 `https://plasmic-studio.shiguanglab.com/desktop-updates/`. JSON and YAML have
 `no-store` caching; versioned files are immutable and support HTTP ranges. CORS
@@ -422,9 +418,7 @@ allows the website to fetch metadata and HEAD installer sizes without credential
 Website builds do not embed release versions. Clients receive no GitHub redirect.
 
 Verify the live JSON, all four installers, both Mac ZIP feeds, blockmaps and byte
-ranges after switching. The pre-existing NAS image deployment commands apply only
-to its separate NAS-hosted distribution and are not needed for the public proxy.
-App releases do not rebuild the website or Studio backend. Local packaging remains
+ranges after switching. App releases do not rebuild the website or Studio backend. Local packaging remains
 available for development; production installers come from Actions.
 `npm run package:mac` builds for the current Mac architecture; `package:mac:arm64`
 and `package:mac:x64` select an explicit architecture. Both independent builds
@@ -809,7 +803,7 @@ source. Imports convert raster images to PNG and do not preserve animation.
 
 Install the unified [Plasmic skill and CLI](../ai/plasmic/README.md) for product
 prototyping and development code generation. Each task resolves current NAS resources;
-`read_skill` supplies this bootstrap entry point. Repository numeric tags publish the CLI to npm; deploy its matching resource bundle to NAS.
+`read_skill` supplies this bootstrap entry point. Repository numeric tags publish the CLI to npm; publish its matching resource bundle to GitHub Release.
 The same numeric tag selects native installers and the static release image when Desktop needs publishing.
 
 See [MCP guide](../ai/plasmic/references/desktop-mcp.md) for exact sequencing and current limitations, and

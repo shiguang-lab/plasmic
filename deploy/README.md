@@ -189,16 +189,14 @@ on the internal signed-URL rewrite so the query remains intact. GitHub requests
 include a per-request identifier to avoid reusing an expired cached redirect.
 Both GitHub upstreams retry connection failures for at most ten seconds.
 
-The NAS `desktop-releases` service and resource volume retain previously published
-files. A missing GitHub asset falls back to the original NAS path and query;
-failed responses are never cached as immutable. Their existing image-based
-deployment scripts remain applicable only to that NAS-hosted distribution.
+Download assets are hosted exclusively on GitHub Release. Missing assets return
+404, and upstream failures are not redirected to NAS.
 
 The integration test runs the actual publisher against a GitHub HTTP fixture and
 the production Caddy version in Docker. It verifies successive Studio-only,
 resources-only and Desktop-only releases with the same running configuration,
 all six feeds, historical hashes, signed queries, HEAD, ranges, CORS, header
-stripping, rejected redirects and NAS fallback. No GitHub credentials are needed.
+stripping, rejected redirects and missing-asset 404 responses. No GitHub credentials are needed.
 
 ## Product branding
 
@@ -241,9 +239,8 @@ Nginx preserves the forwarded HTTPS protocol.
 The public feeds and files are routed through the [Release download proxy](#release-download-routing).
 The website offers independent Apple Silicon and Intel DMGs, with matching ZIPs
 for in-app updates. Desktop deployment advances its download routes independently
-of the NAS backend `IMAGE_TAG`; historical NAS files remain available via its
-read-only update volume and `desktop-releases` service. Missing files return 404;
-directory listing and writes are disabled.
+of the NAS backend `IMAGE_TAG`. Missing GitHub files return 404. NAS does not host
+Desktop or CLI/Skill downloads.
 
 For an existing deployment, set `STUDIO_ORIGIN=https://plasmic-studio.shiguanglab.com`
 and `CANVAS_ORIGIN=https://plasmic-canvas.shiguanglab.com` in the NAS `.env`.

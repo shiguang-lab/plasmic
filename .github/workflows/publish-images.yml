@@ -111,13 +111,11 @@ jobs:
           (needs.studio.result == 'success' || needs.studio.result == 'skipped') }}
     permissions:
       contents: read
-      packages: write
     uses: ./.github/workflows/publish-desktop.yml
     with:
       release-tag: ${{ inputs.release-tag || github.ref_name }}
       source-ref: ${{ needs.plan.outputs.revision }}
       tested-revision: ${{ needs.desktop-tests.outputs.revision }}
-      rebuild: ${{ github.event_name == 'push' && github.event.forced == true }}
   release:
     needs: [plan, studio, desktop, cli, resources]
     if: >-

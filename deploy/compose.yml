@@ -174,14 +174,6 @@ services:
       timeout: 5s
       start_period: 30s
       retries: 10
-  desktop-releases:
-    image: ghcr.io/shiguang-lab/plasmic-desktop-releases:${DESKTOP_RELEASE_TAG:?set DESKTOP_RELEASE_TAG}
-    restart: unless-stopped
-    healthcheck:
-      test: [CMD, wget, -q, -O, /dev/null, http://127.0.0.1:8080/healthcheck]
-      interval: 5s
-      timeout: 3s
-      retries: 10
   web:
     image: ghcr.io/shiguang-lab/plasmic-web:${IMAGE_TAG:?set IMAGE_TAG}
     restart: unless-stopped
@@ -189,7 +181,6 @@ services:
       STUDIO_ORIGIN: ${STUDIO_ORIGIN}
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
-      - desktop-updates:/srv/desktop-updates:ro
     ports:
       [
         "${BIND_IP:-127.0.0.1}:3900:8080",
@@ -211,7 +202,5 @@ networks:
     name: shiguang-auth-edge
 
 volumes:
-  desktop-updates:
-    name: plasmic-desktop-updates
   postgres-data:
   storage-data:

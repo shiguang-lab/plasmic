@@ -1,12 +1,7 @@
-name: Build selected Desktop installers and release image
+name: Build selected Desktop installers
 on:
   workflow_call:
     inputs:
-      rebuild:
-        description: Rebuild an explicitly requested, not-yet-deployed release
-        required: false
-        default: false
-        type: boolean
       release-tag:
         required: true
         type: string
@@ -140,9 +135,6 @@ jobs:
       RELEASE_TAG: ${{ inputs.release-tag }}
     runs-on: ubuntu-24.04
     timeout-minutes: 30
-    permissions:
-      contents: read
-      packages: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1, Node 24
         with:
@@ -158,19 +150,6 @@ jobs:
           pattern: '{darwin-arm64,darwin-x64,win32-x64,linux-x64}'
           path: installers
           merge-multiple: false
-      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1, Node 24
-      - uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0, Node 24
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Validate unpublished release
-        if: inputs.rebuild != true
-        run: |
-          if docker manifest inspect "ghcr.io/shiguang-lab/plasmic-desktop-releases:desktop-v$RELEASE_TAG" >/dev/null 2>&1; then
-            echo 'Release image already exists; publish a new version.' >&2
-            exit 1
-          fi
       - name: Validate installers and generate public JSON
         run: node desktop/scripts/build-distribution.mjs --from installers --tag "$RELEASE_TAG"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2, Node 24
@@ -180,18 +159,3 @@ jobs:
             desktop/public/desktop-updates/latest.json
             desktop/public/desktop-updates/**/*.yml
           if-no-files-found: error
-      - name: Publish static release image
-        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0, Node 24
-        with:
-          context: .
-          file: desktop/Dockerfile
-          platforms: linux/amd64
-          push: true
-          provenance: false
-          tags: |
-            ghcr.io/shiguang-lab/plasmic-desktop-releases:desktop-v${{ inputs.release-tag }}
-            ghcr.io/shiguang-lab/plasmic-desktop-releases:latest
-          labels: |
-            org.opencontainers.image.source=https://github.com/${{ github.repository }}
-            org.opencontainers.image.revision=${{ inputs.source-ref }}
-            org.opencontainers.image.version=${{ inputs.release-tag }}

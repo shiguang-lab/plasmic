@@ -327,7 +327,7 @@ test("installed clients check immediately at startup and every minute until stop
   t.mock.timers.tick(60 * 1000);
   assert.equal(checks, 3);
 });
-test("release validation refuses incomplete or modified artifacts before NAS upload", async (t) => {
+test("release validation refuses incomplete or modified artifacts before publication", async (t) => {
   const { validateRelease } = await import("../scripts/release-artifacts.mjs");
   const root = await fs.mkdtemp(path.join(os.tmpdir(), "plasmic-release-"));
   t.after(() => fs.rm(root, { recursive: true, force: true }));

@@ -13,7 +13,6 @@ on:
       - '.github/workflows/publish-*.yml'
       - 'packages/plasmic-cli/**'
       - 'desktop/tests/plasmic-resources.test.cjs'
-      - 'desktop/scripts/publish-plasmic-resources.mjs'
       - '.github/workflows/*plasmic*.yml'
   push:
     branches: [master, main]
@@ -28,7 +27,6 @@ on:
       - '.github/workflows/publish-*.yml'
       - 'packages/plasmic-cli/**'
       - 'desktop/tests/plasmic-resources.test.cjs'
-      - 'desktop/scripts/publish-plasmic-resources.mjs'
       - '.github/workflows/*plasmic*.yml'
 
 permissions:

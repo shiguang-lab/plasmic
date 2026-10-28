@@ -107,17 +107,6 @@ ${indent(indent(upstreamHeaders("release-assets.githubusercontent.com")))}
 @plasmic_redirect_${name} status 3xx
 handle_response @plasmic_redirect_${name} {
 \trespond 502
-}
-@plasmic_missing_${name} status 404
-handle_response @plasmic_missing_${name} {
-\trewrite {http.vars.plasmic_original_uri}?
-\treverse_proxy http://100.87.115.78:3600 {
-\t\theader_up -Cookie
-\t\theader_up -Authorization
-\t\theader_up -X-SG-*
-\t\theader_up -X-Forwarded-*
-\t\theader_up -Forwarded
-\t}
 }`)}
 }`;
 }
@@ -136,7 +125,6 @@ ${rows}
 \t@plasmic_release expression \`{plasmic_target} != ""\`
 \thandle @plasmic_release {
 \t\troute {
-\t\t\tvars plasmic_original_uri {uri}
 \t\t\tvars plasmic_response_cache {plasmic_cache}
 \t\t\theader {
 \t\t\t\tCache-Control {http.vars.plasmic_response_cache}
