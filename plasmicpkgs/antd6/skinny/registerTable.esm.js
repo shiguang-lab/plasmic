@@ -1,5 +1,5 @@
 import { usePlasmicCanvasContext, usePlasmicCanvasComponentInfo } from '@plasmicapp/host';
-import { Table } from 'antd';
+import { Input, Checkbox, Table } from 'antd';
 import React from 'react';
 import { b as asArray, r as registerComponentHelper } from './utils-Cmdig6Yl.esm.js';
 import '@plasmicapp/host/registerComponent';
@@ -12,23 +12,13 @@ const rowStyle = {
   gap: 8
 };
 const inputStyle = {
-  appearance: "auto",
   width: 120,
   minWidth: 0,
-  height: 26,
-  border: "1px solid #ddd",
-  borderRadius: 4,
-  padding: "2px 6px",
-  boxSizing: "border-box",
-  background: "white",
-  color: "#333",
-  font: "inherit"
+  flexShrink: 0
 };
 const checkboxStyle = {
-  appearance: "auto",
-  width: 16,
-  height: 16,
-  accentColor: "#1677ff"
+  ...rowStyle,
+  flexDirection: "row-reverse"
 };
 function TablePaginationControl({
   value,
@@ -42,19 +32,19 @@ function TablePaginationControl({
     else result[key] = next;
     updateValue(result);
   };
-  return /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } }, /* @__PURE__ */ React.createElement("label", { style: rowStyle }, "Show pagination", " ", /* @__PURE__ */ React.createElement(
-    "input",
+  return /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } }, /* @__PURE__ */ React.createElement(
+    Checkbox,
     {
-      type: "checkbox",
       style: checkboxStyle,
-      "aria-label": "Show pagination",
       checked: value !== false,
       onChange: (e) => updateValue(e.target.checked ? { ...options } : false)
-    }
-  )), value !== false && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("label", { style: rowStyle }, "Page size", " ", /* @__PURE__ */ React.createElement(
-    "input",
+    },
+    "Show pagination"
+  ), value !== false && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("label", { style: rowStyle }, "Page size", " ", /* @__PURE__ */ React.createElement(
+    Input,
     {
       type: "number",
+      size: "small",
       style: inputStyle,
       "aria-label": "Page size",
       min: 1,
@@ -69,25 +59,23 @@ function TablePaginationControl({
         );
       }
     }
-  )), /* @__PURE__ */ React.createElement("label", { style: rowStyle }, "Show size changer", " ", /* @__PURE__ */ React.createElement(
-    "input",
+  )), /* @__PURE__ */ React.createElement(
+    Checkbox,
     {
-      type: "checkbox",
       style: checkboxStyle,
-      "aria-label": "Show size changer",
       checked: options.showSizeChanger ?? (options.total ?? componentProps?.data?.data?.length ?? 0) > 50,
       onChange: (e) => update("showSizeChanger", e.target.checked)
-    }
-  )), /* @__PURE__ */ React.createElement("label", { style: rowStyle }, "Show quick jumper", " ", /* @__PURE__ */ React.createElement(
-    "input",
+    },
+    "Show size changer"
+  ), /* @__PURE__ */ React.createElement(
+    Checkbox,
     {
-      type: "checkbox",
       style: checkboxStyle,
-      "aria-label": "Show quick jumper",
       checked: options.showQuickJumper ?? false,
       onChange: (e) => update("showQuickJumper", e.target.checked)
-    }
-  ))));
+    },
+    "Show quick jumper"
+  )));
 }
 function TableScrollControl({
   value,
@@ -101,9 +89,10 @@ function TableScrollControl({
     updateValue(result);
   };
   return /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } }, /* @__PURE__ */ React.createElement("label", { style: rowStyle }, "Horizontal scroll width", " ", /* @__PURE__ */ React.createElement(
-    "input",
+    Input,
     {
       type: "text",
+      size: "small",
       style: inputStyle,
       "aria-label": "Horizontal scroll width",
       value: options.x ?? "",
@@ -117,9 +106,10 @@ function TableScrollControl({
       }
     }
   )), /* @__PURE__ */ React.createElement("label", { style: rowStyle }, "Table body height", " ", /* @__PURE__ */ React.createElement(
-    "input",
+    Input,
     {
       type: "number",
+      size: "small",
       style: inputStyle,
       "aria-label": "Table body height",
       min: 1,
@@ -181,7 +171,12 @@ function getColumns(children, bodyCell, headerCell, isEditing) {
     if (child.type === React.Fragment) {
       return getColumns(child.props.children, bodyCell, headerCell, isEditing);
     }
-    const { onCellClick: _click, children: nested, render, ...column } = child.props;
+    const {
+      onCellClick: _click,
+      children: nested,
+      render,
+      ...column
+    } = child.props;
     const onHeaderCell = (col) => ({
       ...column.onHeaderCell?.(col),
       __plasmic_column__: { element: child, type: headerCell }
@@ -235,6 +230,7 @@ function TableWithColumns({
   children,
   columns,
   components,
+  contentEditing,
   ...props
 }) {
   const canvas = usePlasmicCanvasContext();
@@ -243,21 +239,41 @@ function TableWithColumns({
   ) && typeof children.props.children === "function") {
     const renderChildren = children.props.children;
     return React.cloneElement(children, {
-      children: (...args) => /* @__PURE__ */ React.createElement(TableWithColumns, { ...props, components }, renderChildren(...args))
+      children: (...args) => /* @__PURE__ */ React.createElement(
+        TableWithColumns,
+        {
+          ...props,
+          components,
+          contentEditing
+        },
+        renderChildren(...args)
+      )
     });
   }
   const pagination = props.pagination !== false && canvas && !canvas.interactive ? {
     ...props.pagination,
     pageSize: props.pagination?.pageSize ?? props.pagination?.defaultPageSize
   } : props.pagination;
+  const editingProps = contentEditing ? {
+    scroll: void 0,
+    virtual: false,
+    sticky: false,
+    style: { ...props.style, width: "max-content" }
+  } : {};
+  const expandColumns = (items) => items.map((column) => ({
+    ...column,
+    fixed: void 0,
+    ..."children" in column ? { children: expandColumns(column.children) } : {}
+  }));
   if (columns !== void 0) {
     return /* @__PURE__ */ React.createElement(
       Table,
       {
         ...props,
         pagination,
-        columns,
-        components
+        columns: contentEditing ? expandColumns(columns) : columns,
+        components,
+        ...editingProps
       }
     );
   }
@@ -268,12 +284,16 @@ function TableWithColumns({
       ...props,
       pagination,
       "data-plasmic-canvas-part-scope": canvas && !canvas.interactive ? "true" : void 0,
-      columns: getColumns(
-        children,
-        body?.cell ?? "td",
-        components?.header?.cell ?? "th",
-        !!canvas && !canvas.interactive
-      ),
+      columns: (() => {
+        const resolved = getColumns(
+          children,
+          body?.cell ?? "td",
+          components?.header?.cell ?? "th",
+          !!canvas && !canvas.interactive
+        );
+        return contentEditing ? expandColumns(resolved) : resolved;
+      })(),
+      ...editingProps,
       components: {
         ...components,
         header: { ...components?.header, cell: TableHeaderCell },
@@ -294,6 +314,8 @@ const AntdTable = React.forwardRef(function AntdTable2(props, ref) {
     defaultSelectedRowKeys,
     ...rest
   } = props;
+  const canvas = usePlasmicCanvasContext();
+  const info = usePlasmicCanvasComponentInfo(props);
   setControlContextData?.(data);
   const isControlled = !!selectedRowKeys;
   const [uncontrolledSelectedRowKeys, setUncontrolledSelectedRowKeys] = React.useState(defaultSelectedRowKeys ?? []);
@@ -365,7 +387,8 @@ const AntdTable = React.forwardRef(function AntdTable2(props, ref) {
       dataSource: data?.data,
       rowSelection: selection,
       rowKey,
-      ...rest
+      ...rest,
+      contentEditing: !!canvas && !canvas.interactive && info?.isEditingContents
     }
   );
 });
@@ -373,6 +396,7 @@ function registerTable(loader) {
   registerComponentHelper(loader, AntdTable, {
     name: "plasmic-antd6-table",
     displayName: "Table",
+    canvasContentEditor: true,
     props: {
       data: {
         type: "dataSourceOpData",

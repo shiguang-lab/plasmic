@@ -46,6 +46,7 @@ vi.mock("@/wab/server/copilot/local-edit", () => ({
 it("persists reasoning, channels, steps and completion without merging model turns", async () => {
   state.task = {
     id: "run",
+    threadId: "thread",
     authorId: "owner",
     createdAt: "2026-10-14",
     prompt: "Read page",

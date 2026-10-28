@@ -24,6 +24,7 @@ afterEach(cleanup);
 it("locates the current artboard repeatedly without toggling modes or selection", async () => {
   const state = observable({ focused: false, empty: false });
   const ctx = mock<StudioCtx>();
+  Object.defineProperty(ctx, "viewCtxs", { value: [] });
   const frame = mock<ArenaFrame>();
   const arena = new Arena({ name: "Pages", children: [frame] });
   Object.defineProperties(ctx, {
@@ -81,6 +82,7 @@ it("locates the current artboard repeatedly without toggling modes or selection"
 
 it("locates a standalone page without changing its focus mode", () => {
   const ctx = mock<StudioCtx>();
+  Object.defineProperty(ctx, "viewCtxs", { value: [] });
   const site = createSite();
   const page = new TplMgr({ site }).addComponent({
     name: "Customers",
@@ -111,6 +113,7 @@ it("locates a standalone page without changing its focus mode", () => {
 
 it("locates the active canvas instead of the first canvas in the arena", () => {
   const ctx = mock<StudioCtx>();
+  Object.defineProperty(ctx, "viewCtxs", { value: [] });
   const first = mock<ArenaFrame>();
   const active = mock<ArenaFrame>();
   Object.defineProperties(ctx, {
@@ -129,4 +132,22 @@ it("locates the active canvas instead of the first canvas in the arena", () => {
     screen.getByRole("button", { name: "Locate current canvas" }),
   );
   expect(ctx.tryZoomToFitFrame).toHaveBeenCalledWith(active, 1);
+});
+
+it("uses content navigation without leaving the active editing scope", () => {
+  const ctx = mock<StudioCtx>();
+  const frame = mock<ArenaFrame>();
+  const locate = vi.fn();
+  Object.defineProperties(ctx, {
+    viewCtxs: { value: [{ contentEditor: { target: {}, locate } }] },
+    currentArena: { value: new Arena({ name: "Pages", children: [frame] }) },
+    currentArenaEmpty: { value: false },
+  });
+  render(<AntdConfigProvider productUI><CanvasViewControls studioCtx={ctx} /></AntdConfigProvider>);
+  fireEvent.click(screen.getByRole("button", { name: "Locate current canvas" }));
+  expect(locate).toHaveBeenCalledWith();
+  fireEvent.click(screen.getByRole("button", { name: "Zoom to fit all" }));
+  expect(locate).toHaveBeenLastCalledWith(true);
+  expect(ctx.returnToCanvasOverview).not.toHaveBeenCalled();
+  expect(ctx.tryZoomToFitArena).not.toHaveBeenCalled();
 });

@@ -102,10 +102,19 @@ it("renders a working Web composer and submits once through the session", async 
     });
   mount();
   const input = screen.getByRole("textbox");
-  fireEvent.change(
-    screen.getByLabelText("Choose requirement documents and reference images"),
-    { target: { files: [new File(["A table"], "requirements.md")] } },
-  );
+  const readAsText = FileReader.prototype.readAsText;
+  const finishedRead = Promise.withResolvers<void>();
+  vi.spyOn(FileReader.prototype, "readAsText").mockImplementation(function(this: FileReader, file, encoding) {
+    this.addEventListener("loadend", () => finishedRead.resolve(), {once: true});
+    return readAsText.call(this, file, encoding);
+  });
+  await act(async () => {
+    fireEvent.change(
+      screen.getByLabelText("Choose requirement documents and reference images"),
+      { target: { files: [new File(["A table"], "requirements.md")] } },
+    );
+    await finishedRead.promise;
+  });
   await screen.findByRole("button", {
     name: "Remove attachment requirements.md",
   });
@@ -150,6 +159,7 @@ it("keeps a rejected tool's actual error in execution progress", () => {
   state.session.tasks = [
     {
       id: "rejected",
+      threadId: state.session.activeThreadId,
       authorId: "author",
       createdAt: "2026-10-13T00:00:00Z",
       files: [],
@@ -219,6 +229,7 @@ it("submits natural language with automatic targeting and no mode or identity fi
     isComposing: true,
   });
   expect(run).not.toHaveBeenCalled();
+  await waitFor(() => expect(screen.getByRole("button", {name: "Send AI request"})).not.toBeDisabled());
   fireEvent.keyDown(screen.getByRole("textbox"), { key: "Enter" });
   expect(run).toHaveBeenCalledWith(
     "Create a new records page at /records",
@@ -309,7 +320,7 @@ it("shares the canvas draft and attachments across panel close and reopen", () =
   expect(screen.getByText("requirements.md")).toBeTruthy();
 });
 
-it("accepts a request from the canvas, starts it once and clears the shared draft", async () => {
+it("starts an explicit prompt once using the shared attachments and clears its draft", async () => {
   const session = state.session as LocalEditSession;
   const attachments = [
     { type: "text" as const, name: "requirements.md", text: "A table" },
@@ -320,7 +331,7 @@ it("accepts a request from the canvas, starts it once and clears the shared draf
       state.session.draft = { prompt: "", attachments: [] };
     }
   });
-  mount({ prompt: "Canvas request", mode: undefined, attachments });
+  mount({ prompt: "Canvas request", mode: undefined });
   await waitFor(() => expect(run).toHaveBeenCalledTimes(1));
   expect(run).toHaveBeenCalledWith(
     "Canvas request",
@@ -346,7 +357,6 @@ const selection: LocalAiContext = {
 };
 function AiModes({ context = selection }: { context?: LocalAiContext }) {
   const [panel, setPanel] = React.useState(false);
-  const [opts, setOpts] = React.useState<CopilotChatOpenOpts>();
   const appCtx = mock<AppCtx>();
   Object.defineProperty(appCtx, "appConfig", { value: config });
   const project = mock<ApiProject>({
@@ -365,10 +375,8 @@ function AiModes({ context = selection }: { context?: LocalAiContext }) {
             session={state.session as LocalEditSession}
             fetchStatus={() => localAiFetch<LocalAiStatus>("project", "status")}
             hiddenByModal={false}
-            chatOpenOpts={opts}
             onClose={() => {
               setPanel(false);
-              setOpts(undefined);
             }}
           />
         ) : (
@@ -377,10 +385,7 @@ function AiModes({ context = selection }: { context?: LocalAiContext }) {
             projectId="project"
             context={context}
             hiddenByModal={false}
-            onSubmit={async (request) => {
-              setOpts(request);
-              setPanel(true);
-            }}
+            onOpen={async () => { setPanel(true); }}
           />
         )}
       </AntdConfigProvider>
@@ -459,6 +464,7 @@ it("submits from the top-frame entry into panel mode once with the selected node
     }
   });
   render(<AiModes />);
+  await screen.findByText("fixture-model");
   fireEvent.input(screen.getByRole("textbox"), {
     target: { innerText: "Change padding" },
   });
@@ -479,6 +485,7 @@ it("submits from the top-frame entry into panel mode once with the selected node
     undefined,
     [],
     "fixture-model",
+    session.activeThreadId,
   );
   expect(screen.queryByRole("group", { name: "AI canvas editing" })).toBeNull();
   expect(screen.getByRole("region", { name: "AI assistant" })).toBeTruthy();

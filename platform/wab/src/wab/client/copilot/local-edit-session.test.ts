@@ -8,6 +8,7 @@ import type { AiEvent, AiTask } from "@/wab/shared/copilot/ai-chat";
 import { mock } from "vitest-mock-extended";
 const task: AiTask = {
   id: "run",
+  threadId: "thread",
   authorId: "user",
   createdAt: "2026-10-13T00:00:00Z",
   prompt: "hello",
@@ -51,6 +52,22 @@ it("does not advance across gaps and applies duplicate and out-of-order events e
   ]);
   expect(cursor.gap).toBe(false);
 });
+
+it("loads the conversation directory after the project event snapshot is established", async () => {
+  const session = new LocalEditSession("project");
+  session.userId = "bootstrap-owner";
+  const initialized = Promise.withResolvers<void>();
+  Reflect.set(session, "initializing", initialized.promise);
+  const request = vi.fn(async () => ({ok: true, json: async () => ({threads: []})}));
+  vi.stubGlobal("fetch", request);
+  try {
+    const loading = session.setBranch(null);
+    expect(request).not.toHaveBeenCalled();
+    initialized.resolve();
+    await loading;
+    expect(request).toHaveBeenCalledExactlyOnceWith(expect.stringContaining("/threads?"), expect.anything());
+  } finally {vi.unstubAllGlobals();}
+});
 it("reconciles live events buffered during the history snapshot", () => {
   const cursor = new AiEventCursor();
   const apply = vi.fn();
@@ -78,6 +95,106 @@ it("keeps drafts and model preferences local and notifies subscribers", () => {
   unsubscribe();
   session.draft = { prompt: "", attachments: [] };
   expect(notify).toHaveBeenCalledTimes(2);
+});
+
+it("switches topics without moving the editor, losing drafts or stopping another conversation", async () => {
+  const tools = mock<PlasmicAiTools>();
+  const session = new LocalEditSession("project", () => tools);
+  session.userId = "user";
+  session.newThread("topic-a");
+  const first = session.activeThreadId;
+  session.draft = {prompt: "A draft", attachments: [{type: "text", name: "a.md", text: "Requirements A"}]};
+  session.scrollTop = 120;
+  session.tasks = [{...task, threadId: first}];
+  session.newThread("topic-b");
+  session.draft = {prompt: "B draft", attachments: []};
+  expect(session.running).toBe(true);
+  expect(session.visibleTasks).toEqual([]);
+  session.stop();
+  expect(tools._executeLocal).not.toHaveBeenCalled();
+  await session.selectThread(first);
+  expect(session.draft.prompt).toBe("A draft");
+  expect(session.draft.attachments[0].name).toBe("a.md");
+  expect(session.scrollTop).toBe(120);
+  expect(session.visibleTasks.map(value => value.id)).toEqual(["run"]);
+  expect(tools.navigate).not.toHaveBeenCalled();
+  await session.selectThread("topic-b");
+  expect(session.draft.prompt).toBe("B draft");
+});
+
+it("routes late attachment results to their originating topic while preserving newer text", async () => {
+  const session = new LocalEditSession("project");
+  session.newThread("topic-a");
+  session.draft = {prompt: "Updated while reading", attachments: []};
+  session.newThread("topic-b");
+  session.draft = {prompt: "Unrelated draft", attachments: []};
+  session.setThreadAttachments("topic-a", [{type: "text", name: "a.md", text: "A requirements"}]);
+  expect(session.draft).toEqual({prompt: "Unrelated draft", attachments: []});
+  await session.selectThread("topic-a");
+  expect(session.draft).toEqual({prompt: "Updated while reading", attachments: [{type: "text", name: "a.md", text: "A requirements"}]});
+});
+
+it("keeps an unconfirmed stopped task discoverable and blocks sends from other topics", () => {
+  const session = new LocalEditSession("project");
+  session.newThread("topic-b");
+  session.tasks = [{...task, threadId: "topic-a", status: "stopped", needsReconciliation: true}];
+  expect(session.visibleTasks).toEqual([]);
+  expect(session.activeRun).toBeUndefined();
+  expect(session.blockingTask?.threadId).toBe("topic-a");
+  expect(session.running).toBe(true);
+});
+
+it("pins an in-flight send to its original topic and clears only that topic's submitted draft", async () => {
+  const tools = mock<PlasmicAiTools>();
+  tools._getLocalContext.mockResolvedValue({success: true, output: JSON.stringify({
+    ...task.binding, projectName: "Project", projectSummary: {artboards: 1, canvases: 1, images: 0, libraries: 0, pages: 1, components: 0},
+    saveStatus: "saved", canvasName: "Page", browserImportCanvasName: "Browser Import", frameUuid: null,
+    selectedElementUuids: [], instanceIndex: null, mode: "edit", canEdit: true, editorView: null, selectedSlot: null, previewKind: null, previewContext: null, path: [],
+  })});
+  const session = new LocalEditSession("project", () => tools);
+  session.userId = "user";
+  session.newThread("topic-a");
+  session.draft = {prompt: "Send A", attachments: []};
+  const response = Promise.withResolvers<unknown>();
+  const request = vi.fn().mockReturnValue(response.promise);
+  vi.stubGlobal("fetch", request);
+  try {
+    const sending = session.run("Send A", task.binding);
+    await vi.waitFor(() => expect(request).toHaveBeenCalledTimes(1));
+    session.newThread("topic-b");
+    session.draft = {prompt: "Keep B", attachments: []};
+    response.resolve({ok: true, json: async () => ({...task, prompt: "Send A", threadId: "topic-a"})});
+    await sending;
+    expect(JSON.parse(request.mock.calls[0][1].body).threadId).toBe("topic-a");
+    expect(session.activeThreadId).toBe("topic-b");
+    expect(session.draft.prompt).toBe("Keep B");
+    expect(session.visibleTasks).toEqual([]);
+    expect(session.activeRun?.threadId).toBe("topic-a");
+    await session.selectThread("topic-a");
+    expect(session.draft.prompt).toBe("");
+    expect(session.visibleTasks).toHaveLength(1);
+  } finally {vi.unstubAllGlobals();}
+});
+
+it("applies a late history page to its own topic without replacing the visible conversation", async () => {
+  const session = new LocalEditSession("project");
+  session.newThread("topic-a");
+  session.draft = {prompt: "Keep A", attachments: []};
+  session.before = "cursor-a";
+  const pending = Promise.withResolvers<unknown>();
+  vi.stubGlobal("fetch", vi.fn().mockReturnValue(pending.promise));
+  try {
+    const loading = session.loadEarlier();
+    session.newThread("topic-b");
+    pending.resolve({ok: true, json: async () => ({tasks: [{...task, threadId: "topic-a"}], before: "earlier-a"})});
+    await loading;
+    expect(session.activeThreadId).toBe("topic-b");
+    expect(session.visibleTasks).toEqual([]);
+    expect(session.before).toBeUndefined();
+    await session.selectThread("topic-a");
+    expect(session.before).toBe("earlier-a");
+    expect(session.visibleTasks).toHaveLength(1);
+  } finally {vi.unstubAllGlobals();}
 });
 it("does not expose native undo for historical operations", () => {
   const session = new LocalEditSession("project");
@@ -300,6 +417,7 @@ it.each(["send", "retry"] as const)(
         undefined,
         [],
         undefined,
+        task.threadId,
       );
     } else {
       const request = vi

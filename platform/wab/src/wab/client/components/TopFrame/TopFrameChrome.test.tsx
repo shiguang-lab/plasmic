@@ -29,6 +29,7 @@ it("relays one authenticated AI session to the host panel without changing histo
   expect(snapshots).toHaveLength(1);
   await api.updateAiSession(project.id, {
     type: "draft",
+    threadId: getLocalEditSession(project.id).activeThreadId,
     value: { prompt: "Keep this draft", attachments: [] },
   });
   expect(snapshots.at(-1)?.draft.prompt).toBe("Keep this draft");

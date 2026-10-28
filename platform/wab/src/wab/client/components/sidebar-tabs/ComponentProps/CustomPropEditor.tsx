@@ -9,6 +9,7 @@ import type {
   CustomControl,
   StudioOps,
 } from "@plasmicapp/host/dist/prop-types";
+import { ConfigProvider } from "antd";
 import domAlign from "dom-align";
 import $ from "jquery";
 import React from "react";
@@ -154,6 +155,7 @@ function useCustomPropEditor(
   propName: string,
 ) {
   const root = React.useRef<Root | null>(null);
+  const { theme } = React.useContext(ConfigProvider.ConfigContext);
   const studioCtx = useStudioCtx();
   const projectData = studioCtx.getProjectData();
   const ValueEcho = React.useMemo(() => makeValueEcho(sub), [sub]);
@@ -201,7 +203,7 @@ function useCustomPropEditor(
     }
     const renderElement = sub.React.createElement(
       sub.StudioControlsProvider,
-      { studioDocument: containerRef.current.ownerDocument },
+      { studioDocument: containerRef.current.ownerDocument, theme },
       sub.React.createElement(sub.GenericErrorBoundary,
       {
         className: "error-boundary",
@@ -233,5 +235,6 @@ function useCustomPropEditor(
     ccContextData,
     onChange,
     sub,
+    theme,
   ]);
 }

@@ -2,6 +2,7 @@ import {
   hasSimplifiedMode,
   isTplCodeComponentStyleable,
 } from "@/wab/client/code-components/code-components";
+import { getRealClassNames } from "@/wab/client/components/canvas/styles-name";
 import { ComponentPropsSection } from "@/wab/client/components/sidebar-tabs/ComponentPropsSection";
 import { CustomBehaviorsSection } from "@/wab/client/components/sidebar-tabs/CustomBehaviorsSection";
 import { EffectsPanelSection } from "@/wab/client/components/sidebar-tabs/EffectsSection";
@@ -71,9 +72,8 @@ import {
   getAncestorTplSlot,
   isTypographyNode,
 } from "@/wab/shared/SlotUtils";
-import { asOne, assert, ensure, ensureArray } from "@/wab/shared/common";
+import { assert, ensure, ensureArray } from "@/wab/shared/common";
 import {
-  getComponentDisplayName,
   isCodeComponent,
   isCodeComponentTpl,
   isPageComponent,
@@ -107,7 +107,6 @@ import {
   isTplTag,
   isTplTextBlock,
   isTplVariantable,
-  resolveTplRoot,
   resolvesToCodeComponent,
 } from "@/wab/shared/core/tpls";
 import { ValComponent } from "@/wab/shared/core/val-nodes";
@@ -121,9 +120,6 @@ import {
   isKnownClassNamePropType,
 } from "@/wab/shared/model/classes";
 import { canEditStyleSection } from "@/wab/shared/ui-config-utils";
-import { Alert } from "antd";
-import $ from "jquery";
-import { observer } from "mobx-react";
 import * as React from "react";
 
 export enum Section {
@@ -360,7 +356,7 @@ function getRenderBySection(
   }
 
   const missingPositionClass = resolvesToCodeComponentTpl
-    ? shouldAlertMissingPositionClass(viewCtx)
+    ? isFocusedCodeComponentMissingPositionClass(viewCtx)
     : false;
   const showStyleSections = shouldShowStyleSections(
     tpl,
@@ -481,10 +477,7 @@ function getRenderBySection(
         missingPositionClass &&
         isComponent &&
         showSection(Section.MissingPositionClass) && (
-          <MissingPositionClassSection
-            key={`${tpl.uuid}-missing-class`}
-            tpl={tpl}
-          />
+          <MissingPositionClassSection key={`${tpl.uuid}-missing-class`} />
         ),
     ],
     [
@@ -1128,7 +1121,7 @@ function isImageCodeComponent(vc: ViewCtx) {
   return false;
 }
 
-function shouldAlertMissingPositionClass(vc: ViewCtx) {
+function isFocusedCodeComponentMissingPositionClass(vc: ViewCtx) {
   const selectable = vc.focusedSelectable();
   if (selectable instanceof ValComponent) {
     // Subscribe to changes to the DOM elt
@@ -1180,68 +1173,30 @@ export function isCodeComponentMissingPositionClass(
   vc: ViewCtx,
   val: ValComponent,
 ) {
-  const $doms = $(asOne(vc.renderState.sel2dom(val, vc.canvasCtx)) ?? []);
-  if ($doms?.length && resolvesToCodeComponent(val.tpl)) {
-    const positionClassesSelector = val.className
-      ?.split(" ")
-      .map((className) => `.${className}`)
-      .join("");
-    if (positionClassesSelector && !$doms.is(positionClassesSelector)) {
+  const doms = vc.renderState.sel2dom(val, vc.canvasCtx) ?? [];
+  if (doms.length && resolvesToCodeComponent(val.tpl)) {
+    const classNames = getRealClassNames(val.className ?? "").filter(Boolean);
+    if (
+      classNames.length &&
+      !doms.some((element) =>
+        classNames.every((className) => element.classList.contains(className)),
+      )
+    ) {
       return true;
     }
   }
   return false;
 }
 
-const MissingPositionClassSection = observer(
-  function MissingPositionClassSection(props: { tpl: TplComponent }) {
-    const tplCodeComponent = resolveTplRoot(props.tpl);
-    if (!isCodeComponentTpl(tplCodeComponent)) {
-      return null;
-    }
-    const isNestedStructure = tplCodeComponent.uuid !== props.tpl.uuid;
-    const currentComponentName = getComponentDisplayName(props.tpl.component);
-    const codeComponentName = isNestedStructure
-      ? getComponentDisplayName(tplCodeComponent.component)
-      : currentComponentName;
-    return (
-      <SidebarSection>
-        <div className="panel-row mt-lg">
-          <Alert
-            type="warning"
-            message={<UiText message="Not able to style code component" />}
-            description={
-              <p>
-                <UiText
-                  message={
-                    isNestedStructure
-                      ? '{part1}{part2}The root code component {part4} does not use a "className" prop, so you cannot set its styles.'
-                      : '{part1}{part2}The code component {part4} does not use a "className" prop, so you cannot set its styles.'
-                  }
-                  values={{
-                    part1: (
-                      <strong>
-                        <UiText
-                          message={"{part1} {part2} does not support styling"}
-                          values={{
-                            part1: <UiText message={"Component"} />,
-                            part2: currentComponentName,
-                          }}
-                        />
-                      </strong>
-                    ),
-                    part2: <br />,
-                    part4: codeComponentName,
-                  }}
-                />
-              </p>
-            }
-          />
-        </div>
-      </SidebarSection>
-    );
-  },
-);
+function MissingPositionClassSection() {
+  return (
+    <SidebarSection noBorder>
+      <div className="panel-row dimfg">
+        <UiText message="This component does not support style editing." />
+      </div>
+    </SidebarSection>
+  );
+}
 
 export function canEditSection(studioCtx: StudioCtx, section: Section) {
   const uiConfig = studioCtx.getCurrentUiConfig();
@@ -1265,7 +1220,7 @@ export function canRenderMixins(
   viewCtx: ViewCtx,
 ): tpl is TplNode {
   const missingPositionClass = isCodeComponentTpl(tpl)
-    ? shouldAlertMissingPositionClass(viewCtx)
+    ? isFocusedCodeComponentMissingPositionClass(viewCtx)
     : false;
   const showStyleSections = shouldShowStyleSections(
     tpl,

@@ -1,7 +1,7 @@
 import { createRequire } from "node:module";
 import path from "node:path";
 import { fireEvent, render, waitFor } from "@testing-library/react";
-import { Input, Select } from "antd";
+import { Checkbox, Input, Select, theme, type ThemeConfig } from "antd";
 import React from "react";
 import { expect, test, vi } from "vitest";
 import { StudioControlsProvider } from "../../../platform/sub/src/studio-controls-provider";
@@ -13,7 +13,7 @@ test("host controls inject styles and portals into the target document and emit 
   const container = target.createElement("div");
   target.body.appendChild(container);
   const change = vi.fn();
-  const view = render(<StudioControlsProvider studioDocument={target}>
+  const view = render(<StudioControlsProvider studioDocument={target} theme={undefined}>
     <Input aria-label="Caption" onChange={(event) => change(event.target.value)} />
     <Select open options={[{ value: "green", label: "Green" }]} onChange={change} />
   </StudioControlsProvider>, { container });
@@ -26,6 +26,51 @@ test("host controls inject styles and portals into the target document and emit 
   expect(change).toHaveBeenCalledWith("green", expect.objectContaining({ value: "green" }));
   view.unmount();
   frame.remove();
+});
+
+test("isolated controls and their open popups follow the supplied Studio theme", async () => {
+  const frame = document.createElement("iframe");
+  document.body.appendChild(frame);
+  const target = frame.contentDocument!;
+  const container = target.createElement("div");
+  target.body.appendChild(container);
+  function Palette() {
+    const { token } = theme.useToken();
+    return <output data-surface={token.colorBgContainer} data-primary={token.colorPrimary} />;
+  }
+  function Controls({ config }: { config: ThemeConfig }) {
+    return <StudioControlsProvider studioDocument={target} theme={config}>
+      <Palette />
+      <Input aria-label="Page size" placeholder="10" />
+      <Checkbox checked>Show pagination</Checkbox>
+      <Select open options={[{ value: "green", label: "Green" }]} />
+    </StudioControlsProvider>;
+  }
+  const view = render(<Controls config={{}} />, { container });
+  try {
+    for (const dark of [true, false, true]) {
+      const surface = dark ? "#202128" : "#ffffff";
+      const primary = dark ? "#9474ff" : "#7955d9";
+      const config: ThemeConfig = {
+        algorithm: dark ? theme.darkAlgorithm : theme.defaultAlgorithm,
+        token: { colorBgContainer: surface, colorPrimary: primary },
+      };
+      const expected = theme.getDesignToken(config);
+      view.rerender(<Controls config={config} />);
+      await waitFor(() => {
+        expect(target.querySelector("output")?.dataset.surface).toBe(surface);
+        expect(target.querySelector("output")?.dataset.primary).toBe(expected.colorPrimary);
+        const css = target.head.textContent;
+        expect(css).toContain(`--ant-color-bg-container:${surface}`);
+        expect(css).toContain(`--ant-color-primary:${expected.colorPrimary}`);
+      });
+      expect(target.querySelector(".ant-select-dropdown")?.className).toContain("studio-prop-controls");
+      expect(document.body.querySelector(".ant-select-dropdown")).toBeNull();
+    }
+  } finally {
+    view.unmount();
+    frame.remove();
+  }
 });
 
 

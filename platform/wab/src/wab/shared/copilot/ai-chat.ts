@@ -47,6 +47,8 @@ export type EditRecord = {
 };
 export type AiTask = {
   id: string;
+  threadId: string;
+  intent?: "discuss" | "edit" | "page";
   seq?: number;
   authorId: string;
   authorName?: string;
@@ -95,6 +97,7 @@ export type AiEventUpdate = {
       | "savedRevision"
       | "scopeLabel"
       | "needsReconciliation"
+      | "intent"
     >
   >;
   appendParts: AiMessagePart[];
@@ -104,11 +107,29 @@ export type AiEventUpdate = {
   replaceRecords: EditRecord[];
   operations: AiTask["operations"];
 };
+export type AiThread = {
+  id: string;
+  projectId: string;
+  branchId: string | null;
+  title: string;
+  createdBy: string;
+  createdAt: string;
+  lastMessageAt: string;
+  archivedAt: string | null;
+  seq: number;
+  lastTask?: Pick<AiTask, "id" | "prompt" | "status" | "createdAt" | "seq" | "needsReconciliation">;
+};
+export type AiThreadPage = { threads: AiThread[]; before?: string };
+export const aiThreadPatchSchema = z.object({
+  title: z.string().trim().min(1).max(100).optional(),
+  archived: z.boolean().optional(),
+}).strict().refine((patch) => patch.title !== undefined || patch.archived !== undefined);
 export type AiEventPayload = {
   runId: string;
   task?: AiTask;
   update?: AiEventUpdate;
-};
+  thread?: never;
+} | { thread: AiThread; runId?: never; task?: never; update?: never };
 export type AiEvent = { projectId: string; seq: number } & AiEventPayload;
 
 /** The event and its read model are one transaction; applying a delta requires its base. */
@@ -116,6 +137,7 @@ export function applyAiEvent(
   task: AiTask | undefined,
   event: AiEvent,
 ): AiTask | undefined {
+  if (event.thread) { return task; }
   if (task && (task.seq ?? 0) >= event.seq) {
     return task;
   }
@@ -193,6 +215,7 @@ export const aiContextMetadataSchema = z
 export const aiSendSchema = z
   .object({
     clientRequestId: z.string().uuid(),
+    threadId: z.string().uuid(),
     prompt: z.string().trim().min(1).max(10000),
     binding: localEditBindingSchema,
     model: z.string().min(1).max(200).optional(),

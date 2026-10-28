@@ -15,6 +15,8 @@ import {
 } from "@/wab/server/copilot/ai-store";
 import { AiChat1791849600000 } from "@/wab/server/migrations/1791849600000-AiChat";
 import { AiEventParts1791849600001 } from "@/wab/server/migrations/1791849600001-AiEventParts";
+import { AiThreads1793145600000 } from "@/wab/server/migrations/1793145600000-AiThreads";
+import { getThread, listThreads, patchThread } from "@/wab/server/copilot/ai-threads";
 import { ensure } from "@/wab/shared/common";
 import type { AiSend } from "@/wab/shared/copilot/ai-chat";
 import { applyAiEvent } from "@/wab/shared/copilot/ai-chat";
@@ -29,6 +31,7 @@ describe.skipIf(!process.env.AI_CHAT_INTEGRATION_DB)(
     let connection: Connection;
     const request = (): AiSend => ({
       clientRequestId: randomUUID(),
+      threadId: randomUUID(),
       prompt: "Local integration test",
       binding: {
         projectId: "ai-test",
@@ -64,6 +67,7 @@ describe.skipIf(!process.env.AI_CHAT_INTEGRATION_DB)(
       const runner = connection.createQueryRunner();
       await new AiChat1791849600000().up(runner);
       await new AiEventParts1791849600001().up(runner);
+      await new AiThreads1793145600000().up(runner);
       await runner.release();
       const s3 = chatStorage();
       try {
@@ -101,7 +105,7 @@ describe.skipIf(!process.env.AI_CHAT_INTEGRATION_DB)(
       expect(
         await getConnection().query(`SELECT * FROM ai_message`),
       ).toHaveLength(2);
-      expect((await events("ai-test", 0)).map((e) => e.seq)).toEqual([1]);
+      expect((await events("ai-test", 0)).map((e) => e.seq)).toEqual([1, 2]);
       await expect(createRun("ai-test", "owner", request())).rejects.toThrow(
         "Another AI run",
       );
@@ -132,9 +136,9 @@ describe.skipIf(!process.env.AI_CHAT_INTEGRATION_DB)(
         ),
       );
       const before = await history("ai-test");
-      expect(before.seq).toBe(11);
+      expect(before.seq).toBe(12);
       expect((await events("ai-test", 0)).map((e) => e.seq)).toEqual(
-        Array.from({ length: 11 }, (_, i) => i + 1),
+        Array.from({ length: 12 }, (_, i) => i + 1),
       );
       await connection.close();
       connection = await createConnection({
@@ -145,7 +149,7 @@ describe.skipIf(!process.env.AI_CHAT_INTEGRATION_DB)(
       expect((await history("ai-test")).tasks).toEqual(before.tasks);
       await patchTask(run.id, { status: "completed", phase: "Completed" });
       expect((await getRun(run.id)).status).toBe("completed");
-      expect((await events("ai-test", 11))[0].update?.fields.status).toBe(
+      expect((await events("ai-test", 12))[0].update?.fields.status).toBe(
         "completed",
       );
     });
@@ -286,7 +290,7 @@ describe.skipIf(!process.env.AI_CHAT_INTEGRATION_DB)(
       const unpublished = await getConnection().query(
         `SELECT seq FROM ai_event WHERE NOT published ORDER BY seq`,
       );
-      expect(unpublished.map((r) => r.seq)).toEqual([1, 2, 3]);
+      expect(unpublished.map((r) => r.seq)).toEqual([1, 2, 3, 4]);
     });
     it("pages the latest history without dropping rows with identical timestamps", async () => {
       for (let i = 0; i < 35; i++) {
@@ -303,6 +307,87 @@ describe.skipIf(!process.env.AI_CHAT_INTEGRATION_DB)(
       expect(
         new Set([...first.tasks, ...second.tasks].map((task) => task.id)).size,
       ).toBe(35);
+      await getConnection().query(`UPDATE ai_thread SET "lastMessageAt"='2026-10-13T00:00:00Z'`);
+      const threads = await listThreads("ai-test", null);
+      const older = await listThreads("ai-test", null, false, "", threads.before);
+      expect(threads.threads).toHaveLength(30);
+      expect(older.threads).toHaveLength(5);
+      expect(new Set([...threads.threads, ...older.threads].map(thread => thread.id)).size).toBe(35);
+      await getConnection().query(`UPDATE ai_thread SET "lastMessageAt"=now() WHERE id=$1`, [threads.threads.at(-1)?.id]);
+      const afterReorder = await listThreads("ai-test", null, false, "", threads.before);
+      expect(afterReorder.threads.map(thread => thread.id)).toEqual(older.threads.map(thread => thread.id));
+    });
+    it("isolates histories by topic and branch and preserves archived messages", async () => {
+      const first = await createRun("ai-test", "owner", {...request(), prompt: "客户管理布局"});
+      await patchTask(first.id, {status: "completed", phase: "Completed"});
+      const second = await createRun("ai-test", "owner", {...request(), prompt: "客户表单校验"});
+      await patchTask(second.id, {status: "completed", phase: "Completed"});
+      expect((await history("ai-test", undefined, first.threadId)).tasks.map(task => task.id)).toEqual([first.id]);
+      expect((await history("ai-test", undefined, second.threadId)).tasks.map(task => task.id)).toEqual([second.id]);
+      await patchThread("ai-test", first.threadId, {title: "客户列表布局"});
+      expect((await listThreads("ai-test", null, false, "列表")).threads.map(thread => thread.id)).toEqual([first.threadId]);
+      await patchThread("ai-test", first.threadId, {archived: true});
+      expect((await listThreads("ai-test", null)).threads.map(thread => thread.id)).toEqual([second.threadId]);
+      expect((await listThreads("ai-test", null, true)).threads.map(thread => thread.id)).toEqual([first.threadId]);
+      await expect(createRun("ai-test", "owner", {...request(), threadId: first.threadId})).rejects.toThrow("Restore");
+      await patchThread("ai-test", first.threadId, {archived: false});
+      const branchRequest = request();
+      const branch = await createRun("ai-test", "owner", {...branchRequest, binding: {...branchRequest.binding, branchId: "feature"}});
+      await patchTask(branch.id, {status: "completed", phase: "Completed"});
+      expect((await listThreads("ai-test", "feature")).threads.map(thread => thread.id)).toEqual([branch.threadId]);
+      await expect(createRun("ai-test", "owner", {...request(), threadId: branch.threadId})).rejects.toThrow("branch");
+      expect((await history("ai-test", undefined, first.threadId)).tasks).toHaveLength(1);
+      await expect(getThread("other-project", first.threadId)).rejects.toThrow("not accessible");
+    });
+    it("backfills existing project history by branch without losing messages or attachments", async () => {
+      const first = await createRun("ai-test", "owner", {...request(), attachments: [{type: "text", name: "requirements.md", text: "Preserved requirements"}]});
+      await patchTask(first.id, {status: "completed", phase: "Completed"});
+      const second = await createRun("ai-test", "owner", request());
+      await patchTask(second.id, {status: "completed", phase: "Completed"});
+      const send = request();
+      const branch = await createRun("ai-test", "owner", {...send, binding: {...send.binding, branchId: "feature"}});
+      await patchTask(branch.id, {status: "completed", phase: "Completed"});
+      const runner = connection.createQueryRunner();
+      await new AiThreads1793145600000().down(runner);
+      await new AiThreads1793145600000().up(runner);
+      await runner.release();
+      const main = await listThreads("ai-test", null);
+      const feature = await listThreads("ai-test", "feature");
+      expect(main.threads).toHaveLength(1);
+      expect(feature.threads).toHaveLength(1);
+      expect((await history("ai-test", undefined, main.threads[0].id)).tasks.map(task => task.id)).toEqual([first.id, second.id]);
+      expect((await history("ai-test", undefined, feature.threads[0].id)).tasks.map(task => task.id)).toEqual([branch.id]);
+      expect((await attachmentContent("ai-test", first.files[0].id)).content.toString()).toBe("Preserved requirements");
+      expect((await getRun(first.id)).request.threadId).toBe(main.threads[0].id);
+    });
+    it("rejects cross-topic idempotency replay and archives only idle conversations", async () => {
+      const send = request();
+      const run = await createRun("ai-test", "owner", send);
+      await expect(createRun("ai-test", "owner", {...send, threadId: randomUUID()})).rejects.toThrow("another conversation");
+      await expect(patchThread("ai-test", run.threadId, {archived: true})).rejects.toThrow("running task");
+      await patchThread("ai-test", run.threadId, {title: "Renamed during execution"});
+      await patchTask(run.id, {phase: "Thinking"});
+      const stream = await events("ai-test", 0);
+      expect(stream.filter(event => event.thread)).toHaveLength(2);
+      const reconstructed = stream.reduce((current, event) => applyAiEvent(current, event), undefined as typeof run | undefined);
+      expect(reconstructed).toEqual((await getRun(run.id)).task);
+    });
+    it("enforces read-only discussion at the server tool boundary", async () => {
+      const run = await createRun("ai-test", "owner", request());
+      await patchTask(run.id, {intent: "discuss"});
+      await toolCall(run.id, `${run.id}:read`, "read", {});
+      for (const name of ["changeElement", "createComponent", "navigate", "validate", "save"]) {
+        await expect(toolCall(run.id, `${run.id}:${name}`, name, {})).rejects.toThrow("only read");
+      }
+      expect((await getRun(run.id)).task.records).toEqual([]);
+      expect((await getRun(run.id)).task.operations.map(operation => operation.name)).toEqual(["read"]);
+    });
+    it("keeps a conversation requiring saved-design verification out of the archive", async () => {
+      const run = await createRun("ai-test", "owner", request());
+      await patchTask(run.id, {status: "stopped", phase: "Stopped", needsReconciliation: true});
+      expect((await getThread("ai-test", run.threadId)).lastTask?.needsReconciliation).toBe(true);
+      await expect(patchThread("ai-test", run.threadId, {archived: true})).rejects.toThrow("Verify the saved design");
+      await expect(createRun("ai-test", "owner", request())).rejects.toThrow("reconcile");
     });
     it("stores real image previews privately and rejects a mismatched binary format", async () => {
       const image = await sharp({
@@ -411,8 +496,8 @@ describe.skipIf(!process.env.AI_CHAT_INTEGRATION_DB)(
         task = applyAiEvent(task, event);
       }
       expect(task).toEqual((await getRun(run.id)).task);
-      expect(JSON.stringify(chain[2]).length).toBeLessThan(1000);
-      expect(applyAiEvent(undefined, chain[2])).toBeUndefined();
+      expect(JSON.stringify(chain[3]).length).toBeLessThan(1000);
+      expect(applyAiEvent(undefined, chain[3])).toBeUndefined();
       expect(applyAiEvent(task, chain[1])).toEqual(task);
     });
     it("replays reasoning deltas and explicit answer completion metadata", async () => {

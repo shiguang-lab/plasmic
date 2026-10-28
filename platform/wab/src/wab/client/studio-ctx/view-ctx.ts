@@ -1,3 +1,4 @@
+import { CanvasContentEditor } from "@/wab/client/studio-ctx/canvas-content-editor";
 import {
   isRenderReady,
   setRenderReadyAttr,
@@ -461,6 +462,7 @@ export class ViewCtx extends WithDbCtx {
   private _autoOpenTransitioning = false;
 
   readonly canvasExporting = observable.box(false);
+  readonly contentEditor = new CanvasContentEditor(this);
 
   // One editing state per rendered instance. The source records whether the
   // next selection update may change it; business props are never modified.
@@ -832,6 +834,7 @@ export class ViewCtx extends WithDbCtx {
    * as possible.
    */
   dispose() {
+    this.contentEditor.exit(false);
     if (this._isDisposed) {
       return;
     }

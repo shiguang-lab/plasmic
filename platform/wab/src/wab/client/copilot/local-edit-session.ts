@@ -5,6 +5,8 @@ import { ensure } from "@/wab/shared/common";
 import type {
   AiEvent,
   AiTask,
+  AiThread,
+  AiThreadPage,
   AiToolCall,
   EditRecord,
 } from "@/wab/shared/copilot/ai-chat";
@@ -87,7 +89,363 @@ export class AiEventCursor {
 export class LocalEditSession {
   tasks: AiTask[] = [];
   error?: Error;
-  before?: string;
+  branchId: string | null = null;
+  activeThreadId: string = crypto.randomUUID();
+  private branchReady = false;
+  private lastThreadByBranch = new Map<string | null, string>();
+  private threadsById = new Map<string, AiThread>();
+  private localThreads = new Set<string>([this.activeThreadId]);
+  private threadStates = new Map<
+    string,
+    {
+      draft: LocalAiDraft;
+      before?: string;
+      loaded: boolean;
+      loading: boolean;
+      scrollTop: number;
+    }
+  >([
+    [
+      this.activeThreadId,
+      {
+        draft: { prompt: "", attachments: [] },
+        loaded: true,
+        loading: false,
+        scrollTop: -1,
+      },
+    ],
+  ]);
+  private threadIds: string[] = [];
+  threadListBefore?: string;
+  threadListLoading = false;
+  threadFilter = { query: "", archived: false };
+  private listRequest = 0;
+  private loadingThreads = new Set<string>();
+  private view(id = this.activeThreadId) {
+    let state = this.threadStates.get(id);
+    if (!state) {
+      state = {
+        draft: { prompt: "", attachments: [] },
+        loaded: false,
+        loading: false,
+        scrollTop: -1,
+      };
+      this.threadStates.set(id, state);
+    }
+    return state;
+  }
+  get activeThread() {
+    return this.threadsById.get(this.activeThreadId);
+  }
+  get visibleTasks() {
+    return this.tasks.filter((task) => task.threadId === this.activeThreadId);
+  }
+  get activeRun() {
+    return this.tasks.find((task) => task.status === "running");
+  }
+  get blockingTask() {
+    return this.tasks.find(
+      (task) => task.status === "running" || task.needsReconciliation,
+    );
+  }
+  get historyLoading() {
+    return this.booting || this.view().loading;
+  }
+  get scrollTop() {
+    return this.view().scrollTop;
+  }
+  set scrollTop(value: number) {
+    this.view().scrollTop = value;
+  }
+  get before() {
+    return this.view().before;
+  }
+  set before(value: string | undefined) {
+    this.view().before = value;
+  }
+  get threads(): Array<AiThread & { draft?: string }> {
+    const ids = new Set([...this.threadIds, ...this.localThreads]);
+    return [...ids]
+      .flatMap((id) => {
+        const thread = this.threadsById.get(id);
+        const draft = this.localThreads.has(id)
+          ? this.view(id).draft
+          : undefined;
+        const preview =
+          draft?.prompt ||
+          draft?.attachments.map((file) => file.name).join(", ");
+        if (draft && id !== this.activeThreadId && !preview) {
+          return [];
+        }
+        return thread &&
+          thread.branchId === this.branchId &&
+          !!thread.archivedAt === this.threadFilter.archived &&
+          (thread.title || preview || "")
+            .toLocaleLowerCase()
+            .includes(this.threadFilter.query.toLocaleLowerCase())
+          ? [{ ...thread, draft: preview }]
+          : [];
+      })
+      .sort(
+        (a, b) =>
+          b.lastMessageAt.localeCompare(a.lastMessageAt) ||
+          b.id.localeCompare(a.id),
+      );
+  }
+  private selectionKey() {
+    return `plasmic.ai.thread:${this.userId}:${this.projectId}:${this.branchId ?? "main"}`;
+  }
+  private rememberThread() {
+    this.lastThreadByBranch.set(this.branchId, this.activeThreadId);
+    try {
+      if (this.localThreads.has(this.activeThreadId)) {
+        localStorage.removeItem(this.selectionKey());
+      } else {
+        localStorage.setItem(this.selectionKey(), this.activeThreadId);
+      }
+    } catch {
+      /* The active conversation still works when browser storage is unavailable. */
+    }
+  }
+  async setBranch(branchId: string | null) {
+    if (this.branchReady && branchId === this.branchId) {
+      return;
+    }
+    this.branchReady = true;
+    this.branchId = branchId;
+    let remembered = this.lastThreadByBranch.get(branchId) ?? null;
+    if (!remembered) {
+      try {
+        remembered = localStorage.getItem(this.selectionKey());
+      } catch {
+        /* Storage can be disabled. */
+      }
+    }
+    this.createThread(false);
+    const initial = this.activeThreadId;
+    const generation = this.generation;
+    // Directory reads follow the project cursor snapshot, so buffered metadata
+    // changes cannot be discarded between an earlier directory read and reset.
+    await this.initializing;
+    if (branchId !== this.branchId || generation !== this.generation) {
+      return;
+    }
+    await this.searchThreads("", false);
+    if (
+      branchId !== this.branchId ||
+      generation !== this.generation ||
+      initial !== this.activeThreadId
+    ) {
+      return;
+    }
+    if (remembered) {
+      try {
+        const thread =
+          this.threadsById.get(remembered) ??
+          (await aiChatRequest<AiThread>(
+            this.url(`/threads/${encodeURIComponent(remembered)}`),
+          ));
+        if (
+          generation === this.generation &&
+          initial === this.activeThreadId &&
+          !this.draft.prompt &&
+          !this.draft.attachments.length &&
+          branchId === this.branchId &&
+          thread.branchId === branchId &&
+          !thread.archivedAt
+        ) {
+          if (!this.localThreads.has(thread.id)) {
+            this.applyThread(thread);
+          }
+          await this.selectThread(thread.id);
+        }
+      } catch {
+        /* A removed or inaccessible last conversation falls back to a new topic. */
+      }
+    }
+  }
+  newThread(id?: string) {
+    this.createThread(true, id);
+  }
+  private createThread(remember: boolean, id: string = crypto.randomUUID()) {
+    if (
+      this.localThreads.has(this.activeThreadId) &&
+      !this.draft.prompt &&
+      !this.draft.attachments.length
+    ) {
+      this.localThreads.delete(this.activeThreadId);
+      this.threadsById.delete(this.activeThreadId);
+      this.threadStates.delete(this.activeThreadId);
+    }
+    this.activeThreadId = id;
+    this.localThreads.add(this.activeThreadId);
+    const now = new Date().toISOString();
+    this.threadsById.set(this.activeThreadId, {
+      id: this.activeThreadId,
+      projectId: this.projectId,
+      branchId: this.branchId,
+      title: "",
+      createdBy: this.userId ?? "",
+      createdAt: now,
+      lastMessageAt: now,
+      archivedAt: null,
+      seq: 0,
+    });
+    this.view().loaded = true;
+    if (remember) {
+      this.rememberThread();
+    }
+    this.notify();
+  }
+  async selectThread(id: string) {
+    const thread = this.threadsById.get(id);
+    if (!thread || thread.branchId !== this.branchId) {
+      return;
+    }
+    this.activeThreadId = id;
+    this.rememberThread();
+    this.notify();
+    if (!this.view().loaded) {
+      await this.loadThread(id);
+    }
+  }
+  async searchThreads(query: string, archived: boolean, more = false) {
+    if (more && (!this.threadListBefore || this.threadListLoading)) {
+      return;
+    }
+    const request = ++this.listRequest;
+    const generation = this.generation;
+    const branch = this.branchId;
+    const before = more ? this.threadListBefore : undefined;
+    this.threadFilter = { query, archived };
+    this.threadListLoading = true;
+    this.notify();
+    const params = new URLSearchParams({
+      branchId: branch ?? "",
+      query,
+      archived: archived ? "1" : "0",
+    });
+    if (before) {
+      params.set("before", before);
+    }
+    try {
+      const page = await aiChatRequest<AiThreadPage>(
+        this.url(`/threads?${params}`),
+      );
+      if (
+        generation !== this.generation ||
+        request !== this.listRequest ||
+        branch !== this.branchId
+      ) {
+        return;
+      }
+      page.threads.forEach((thread) => this.applyThread(thread));
+      this.threadIds = [
+        ...new Set([
+          ...(more ? this.threadIds : []),
+          ...page.threads.map((thread) => thread.id),
+        ]),
+      ];
+      this.threadListBefore = page.before;
+    } catch (error) {
+      if (generation === this.generation && request === this.listRequest) {
+        this.error = normalizeError(error);
+      }
+    } finally {
+      if (generation === this.generation && request === this.listRequest) {
+        this.threadListLoading = false;
+        this.notify();
+      }
+    }
+  }
+  async updateThread(
+    id: string,
+    patch: { title?: string; archived?: boolean },
+  ) {
+    const generation = this.generation;
+    try {
+      const thread = await aiChatRequest<AiThread>(
+        this.url(`/threads/${encodeURIComponent(id)}`),
+        patch,
+      );
+      if (generation !== this.generation) {
+        return;
+      }
+      this.applyThread(thread);
+      if (patch.archived && id === this.activeThreadId) {
+        this.newThread();
+      }
+      this.notify();
+    } catch (error) {
+      if (generation === this.generation) {
+        this.error = normalizeError(error);
+        this.notify();
+      }
+    }
+  }
+  private applyThread(thread: AiThread) {
+    const previous = this.threadsById.get(thread.id);
+    if (previous && previous.seq > thread.seq) {
+      return;
+    }
+    const latest = this.tasks
+      .filter((task) => task.threadId === thread.id)
+      .at(-1);
+    const lastTask =
+      latest &&
+      (!thread.lastTask ||
+        latest.createdAt > thread.lastTask.createdAt ||
+        (latest.id === thread.lastTask.id &&
+          (latest.seq ?? 0) > (thread.lastTask.seq ?? 0)))
+        ? latest
+        : thread.lastTask;
+    this.threadsById.set(thread.id, {
+      ...thread,
+      lastTask: lastTask
+        ? {
+            id: lastTask.id,
+            prompt: lastTask.prompt,
+            status: lastTask.status,
+            createdAt: lastTask.createdAt,
+            seq: lastTask.seq,
+            needsReconciliation: lastTask.needsReconciliation,
+          }
+        : undefined,
+    });
+    this.localThreads.delete(thread.id);
+    if (!this.threadIds.includes(thread.id)) {
+      this.threadIds.unshift(thread.id);
+    }
+  }
+  private async loadThread(id: string) {
+    const state = this.view(id);
+    if (state.loading) {
+      return;
+    }
+    const generation = this.generation;
+    state.loading = true;
+    this.notify();
+    try {
+      const page = await aiChatRequest<{ tasks: AiTask[]; before?: string }>(
+        this.url(`?threadId=${encodeURIComponent(id)}`),
+      );
+      if (generation !== this.generation) {
+        return;
+      }
+      page.tasks.forEach((task) => this.apply(task));
+      state.before = page.before;
+      state.loaded = true;
+    } catch (error) {
+      if (generation === this.generation) {
+        this.error = normalizeError(error);
+      }
+    } finally {
+      state.loading = false;
+      if (generation === this.generation) {
+        this.notify();
+      }
+    }
+  }
   private _userId?: string;
   get userId() {
     return this._userId;
@@ -98,26 +456,53 @@ export class LocalEditSession {
     }
     this.generation++;
     this._userId = value;
-    this._draft = { prompt: "", attachments: [] };
+    this.threadsById.clear();
+    this.lastThreadByBranch.clear();
+    this.threadStates.clear();
+    this.localThreads.clear();
+    this.threadIds = [];
+    this.threadListBefore = undefined;
+    this.threadListLoading = false;
+    this.threadFilter = { query: "", archived: false };
+    this.loadingThreads.clear();
+    this.listRequest++;
+    this.branchReady = false;
     this._selectedModel = undefined;
     this.tasks = [];
     this.receipts.clear();
     this.localRecords.clear();
     this.editorSessionId = undefined;
     this.error = undefined;
-    this.before = undefined;
     this.cursor = new AiEventCursor();
     this.buffer = [];
     this.missingRuns.clear();
-    this.notify();
+    this.createThread(false);
   }
-  private _draft: LocalAiDraft = { prompt: "", attachments: [] };
   get draft() {
-    return this._draft;
+    return this.view().draft;
   }
   set draft(value: LocalAiDraft) {
-    this._draft = value;
+    this.view().draft = value;
     this.notify();
+  }
+  setThreadDraft(id: string, value: LocalAiDraft) {
+    if (!this.threadStates.has(id)) {
+      return;
+    }
+    this.view(id).draft = value;
+    this.notify();
+  }
+  setThreadAttachments(id: string, attachments: LocalAiAttachment[]) {
+    if (!this.threadStates.has(id)) {
+      return;
+    }
+    this.view(id).draft = { ...this.view(id).draft, attachments };
+    this.notify();
+  }
+  setThreadScroll(id: string, value: number) {
+    if (this.threadStates.has(id)) {
+      this.view(id).scrollTop = value;
+    }
   }
   private _selectedModel?: string;
   get selectedModel() {
@@ -143,6 +528,7 @@ export class LocalEditSession {
   private executionController?: AbortController;
   private stoppedRuns = new Set<string>();
   private booting = false;
+  private initializing?: Promise<void>;
   private buffer: AiEvent[] = [];
   private receipts = new Map<
     string,
@@ -170,11 +556,7 @@ export class LocalEditSession {
   };
   snapshot = () => this.tasks;
   get running() {
-    return (
-      this.sending ||
-      this.undoing ||
-      this.tasks.some((task) => task.status === "running")
-    );
+    return this.sending || this.undoing || !!this.blockingTask;
   }
   canUndo(record: EditRecord) {
     return (
@@ -203,11 +585,34 @@ export class LocalEditSession {
       (a, b) =>
         a.createdAt.localeCompare(b.createdAt) || a.id.localeCompare(b.id),
     );
+    const thread = this.threadsById.get(task.threadId);
+    if (thread) {
+      this.applyThread(thread);
+    } else if (task.threadId && !this.loadingThreads.has(task.threadId)) {
+      this.loadingThreads.add(task.threadId);
+      const generation = this.generation;
+      void aiChatRequest<AiThread>(
+        this.url(`/threads/${encodeURIComponent(task.threadId)}`),
+      )
+        .then((next) => {
+          if (generation === this.generation) {
+            this.applyThread(next);
+            this.notify();
+          }
+        })
+        .catch(() => undefined)
+        .finally(() => this.loadingThreads.delete(task.threadId));
+    }
     this.notify();
   };
   private loadingRuns = new Set<string>();
   private missingRuns = new Set<string>();
   private applyEvent = (event: AiEvent) => {
+    if (event.thread) {
+      this.applyThread(event.thread);
+      this.notify();
+      return;
+    }
     const task = this.tasks.find((candidate) => candidate.id === event.runId);
     const next = applyAiEvent(task, event);
     if (next) {
@@ -275,7 +680,7 @@ export class LocalEditSession {
         void this.sync();
       }
     });
-    void this.initialize();
+    this.initializing = this.initialize(this.branchReady);
     this.timer = setInterval(() => {
       void this.sync();
       void this.executePending();
@@ -295,7 +700,7 @@ export class LocalEditSession {
   private url(suffix = "") {
     return `/api/v1/projects/${encodeURIComponent(this.projectId)}/ai/chat${suffix}`;
   }
-  private async initialize() {
+  private async initialize(refreshDirectory = false) {
     const generation = this.generation;
     try {
       const page = await aiChatRequest<{
@@ -306,8 +711,7 @@ export class LocalEditSession {
       if (!this.connected || generation !== this.generation) {
         return;
       }
-      this.tasks = page.tasks;
-      this.before = page.before;
+      page.tasks.forEach((task) => this.apply(task));
       this.cursor.reset(page.seq);
       this.booting = false;
       for (const event of this.buffer) {
@@ -316,6 +720,22 @@ export class LocalEditSession {
       this.buffer = [];
       this.notify();
       await this.sync();
+      if (refreshDirectory && generation === this.generation) {
+        const id = this.activeThreadId;
+        await this.searchThreads(
+          this.threadFilter.query,
+          this.threadFilter.archived,
+        );
+        if (!this.localThreads.has(id)) {
+          const thread = await aiChatRequest<AiThread>(
+            this.url(`/threads/${encodeURIComponent(id)}`),
+          );
+          if (generation === this.generation) {
+            this.applyThread(thread);
+            this.notify();
+          }
+        }
+      }
     } catch (error) {
       if (generation === this.generation) {
         this.error = normalizeError(error);
@@ -325,23 +745,39 @@ export class LocalEditSession {
     }
   }
   async loadEarlier() {
-    if (!this.before) {
+    if (!this.before || this.historyLoading) {
       return;
     }
     const generation = this.generation;
-    const page = await aiChatRequest<{ tasks: AiTask[]; before?: string }>(
-      this.url(`?before=${encodeURIComponent(this.before)}`),
-    );
-    if (generation !== this.generation) {
-      return;
-    }
-    for (const task of page.tasks) {
-      if (!this.tasks.some((t) => t.id === task.id)) {
-        this.apply(task);
+    const id = this.activeThreadId;
+    const state = this.view(id);
+    state.loading = true;
+    this.notify();
+    try {
+      const page = await aiChatRequest<{ tasks: AiTask[]; before?: string }>(
+        this.url(
+          `?threadId=${encodeURIComponent(id)}&before=${encodeURIComponent(this.before)}`,
+        ),
+      );
+      if (generation !== this.generation) {
+        return;
+      }
+      for (const task of page.tasks) {
+        if (!this.tasks.some((t) => t.id === task.id)) {
+          this.apply(task);
+        }
+      }
+      state.before = page.before;
+    } catch (error) {
+      if (generation === this.generation) {
+        this.error = normalizeError(error);
+      }
+    } finally {
+      state.loading = false;
+      if (generation === this.generation) {
+        this.notify();
       }
     }
-    this.before = page.before;
-    this.notify();
   }
   private async sync() {
     if (!this.connected || this.booting || this.syncing) {
@@ -399,6 +835,7 @@ export class LocalEditSession {
     target?: PageGenerationOptions | "auto",
     attachments: LocalAiAttachment[] = [],
     model?: string,
+    threadId = this.activeThreadId,
   ) {
     if (this.running || !prompt.trim()) {
       return;
@@ -406,6 +843,7 @@ export class LocalEditSession {
     this.sending = true;
     this.notify();
     const author = this.userId;
+    const submittedDraft = this.view(threadId).draft;
     const clientRequestId = crypto.randomUUID();
     try {
       const context = PROTOTYPE_TOOL_META.getEditorContext.outputSchema.parse(
@@ -413,6 +851,17 @@ export class LocalEditSession {
       );
       if (!context.canEdit || context.projectId !== this.projectId) {
         throw new Error("Open an editable current project to use AI.");
+      }
+      const thread = this.threadsById.get(threadId);
+      if (thread?.archivedAt) {
+        throw new Error(
+          "Restore this conversation before sending another message.",
+        );
+      }
+      if (thread && thread.branchId !== context.branchId) {
+        throw new Error(
+          "Choose a conversation in the current branch before sending.",
+        );
       }
       const binding = pinned ?? {
         projectId: this.projectId,
@@ -428,6 +877,7 @@ export class LocalEditSession {
       };
       const body = {
         clientRequestId,
+        threadId,
         prompt,
         binding,
         target,
@@ -446,7 +896,12 @@ export class LocalEditSession {
         return;
       }
       this.apply(task);
-      this.draft = { prompt: "", attachments: [] };
+      if (this.view(threadId).draft === submittedDraft) {
+        this.view(threadId).draft = { prompt: "", attachments: [] };
+      }
+      if (this.activeThreadId === threadId) {
+        this.rememberThread();
+      }
     } catch (error) {
       this.error = normalizeError(error);
       this.notify();
@@ -457,7 +912,7 @@ export class LocalEditSession {
   }
   stop() {
     const task = this.tasks.find((t) => t.status === "running");
-    if (task && this.canStop(task)) {
+    if (task && task.threadId === this.activeThreadId && this.canStop(task)) {
       const generation = this.generation;
       this.stoppedRuns.add(task.id);
       this.executionController?.abort();
@@ -698,6 +1153,7 @@ export class LocalEditSession {
         changeCounter: context.changeCounter,
         frameUuid: context.frameUuid,
       };
+      await this.selectThread(task.threadId);
       this.draft = { prompt: task.prompt, attachments };
       await this.run(
         task.prompt,
@@ -707,6 +1163,7 @@ export class LocalEditSession {
           : undefined,
         attachments,
         this.selectedModel ?? task.model,
+        task.threadId,
       );
     } catch (error) {
       this.error = normalizeError(error);

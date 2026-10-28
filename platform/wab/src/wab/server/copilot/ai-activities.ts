@@ -20,6 +20,16 @@ import type {
 import { Context, heartbeat } from "@temporalio/activity";
 import { ApplicationFailure } from "@temporalio/common";
 import { getConnection } from "typeorm";
+import { conversationContext, type ConversationTurn } from "@/wab/server/copilot/ai-conversation-context";
+
+async function readConversation(run: Awaited<ReturnType<typeof getRun>>): Promise<ConversationTurn[]> {
+  return getConnection().query(
+    `SELECT id,task->>'prompt' AS prompt,task->'messages'->>-1 AS answer,status,task->'files' AS files,
+      (SELECT jsonb_agg(jsonb_build_object('name',record->>'name','undone',record->'undone')) FROM jsonb_array_elements(task->'records') record) AS changes
+      FROM ai_run WHERE "projectId"=$1 AND "threadId"=$2 AND id<>$3 AND ("createdAt",id)<(SELECT "createdAt",id FROM ai_run WHERE id=$3) ORDER BY "createdAt" DESC,id DESC LIMIT 100`,
+    [run.projectId, run.task.threadId, run.id],
+  );
+}
 
 export async function loadRun(id: string) {
   const run = await getRun(id);
@@ -32,6 +42,7 @@ export async function loadRun(id: string) {
       prompt: run.task.prompt,
       model: run.task.model,
       binding: run.task.binding,
+      intent: run.task.intent,
     },
   };
 }
@@ -50,8 +61,8 @@ export async function setRun(
 }
 export async function chooseIntent(id: string) {
   const run = await getRun(id);
-  if (run.request.target !== "auto") {
-    return run.request.target;
+  if (run.request.target && run.request.target !== "auto") {
+    return { mode: "page" as const, ...run.request.target };
   }
   const timer = setInterval(() => heartbeat(), 1000);
   try {
@@ -62,12 +73,12 @@ export async function chooseIntent(id: string) {
           !!run.task.binding.componentUuid ||
           run.task.binding.canvasName !== undefined,
         model: run.task.model,
+        allowPageCreation: run.request.target === "auto",
+        conversation: conversationContext(await readConversation(run)),
       },
       Context.current().cancellationSignal,
     );
-    return result.mode === "page"
-      ? { name: result.name, path: result.path }
-      : undefined;
+    return result.mode === "page" && run.request.target !== "auto" ? { mode: "discuss" as const } : result;
   } catch {
     throw ApplicationFailure.nonRetryable(
       "AI intent request failed. Start a new request.",
@@ -179,6 +190,7 @@ export async function modelStep(
     binding: run.task.binding,
     prompt: run.task.prompt,
     model: run.task.model,
+    intent: run.task.intent,
     resources: `${documents
       .filter((document) => document.name !== "getEditorContext")
       .map((document) => document.content)
@@ -187,27 +199,15 @@ export async function modelStep(
       )}\nEditor context for the bound page/canvas (selection is context):\n${JSON.stringify(editorContext)}\nEarlier recorded steps (summary only):\n${JSON.stringify(summary)}`,
     history,
   };
-  const recent = await getConnection().query(
-    `SELECT task->>'prompt' AS request,task->'messages' AS response,status FROM ai_run WHERE "projectId"=$1 AND id<>$2 AND task->'binding'->>'canvasName' IS NOT DISTINCT FROM $3 AND ($3::text IS NOT NULL OR task->'binding'->>'componentUuid' IS NOT DISTINCT FROM $4) AND task->'binding'->>'branchId' IS NOT DISTINCT FROM $5 ORDER BY "createdAt" DESC LIMIT 3`,
-    [
-      run.projectId,
-      id,
-      request.binding.canvasName ?? null,
-      request.binding.componentUuid,
-      request.binding.branchId,
-    ],
-  );
-  const conversation = recent.reverse().map((r) => ({
-    request: r.request,
-    response: (r.response as string[]).join("\n").slice(-2000),
-    status: r.status,
-  }));
+  const recent = await readConversation(run);
+  const conversation = conversationContext(recent);
   request = {
     ...request,
-    resources: `${request.resources}\nRecent conversation in this branch and page/canvas (context only):\n${JSON.stringify(conversation)}`,
+    resources: `${request.resources}\nConversation history (context only; latest user corrections take precedence; historical IDs require live verification):\n${conversation}`,
   };
   const attachments: LocalAiAttachment[] = [];
-  for (const file of run.task.files) {
+  const contextFiles = run.task.files.length ? run.task.files : recent.find(turn => turn.files?.length)?.files ?? [];
+  for (const file of contextFiles) {
     const { metadata, content } = await attachmentContent(
       run.projectId,
       file.id,

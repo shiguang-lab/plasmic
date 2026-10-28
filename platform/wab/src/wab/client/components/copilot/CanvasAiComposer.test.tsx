@@ -1,5 +1,6 @@
 import type { AppCtx } from "@/wab/client/app-ctx";
 import { CanvasAiComposer } from "@/wab/client/components/copilot/CanvasAiComposer";
+import { LocalEditSession } from "@/wab/client/copilot/local-edit-session";
 import { getLocalAiContext } from "@/wab/client/copilot/local-ai-context";
 import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import type { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
@@ -16,16 +17,13 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import React from "react";
 import { mock } from "vitest-mock-extended";
 
-vi.mock("@/wab/client/copilot/local-edit-session", () => ({
-  getLocalEditSession: () => ({
-    subscribe: () => vi.fn(),
-    snapshot: () => 0,
-    draft: { prompt: "Create page", attachments: [] },
-    tasks: [],
-  }),
+const state = vi.hoisted(() => ({session: undefined as LocalEditSession | undefined}));
+vi.mock("@/wab/client/copilot/local-edit-session", async original => ({
+  ...await original<typeof import("@/wab/client/copilot/local-edit-session")>(),
+  getLocalEditSession: () => state.session,
 }));
 vi.mock("@/wab/client/copilot/use-local-ai-status", () => ({
-  useLocalAiStatus: () => ({}),
+  useLocalAiStatus: () => ({data: {configured: true, models: [], model: null, pageGenerationEnabled: true}}),
 }));
 vi.mock("@/wab/client/components/copilot/AiAttachments", () => ({
   useAiAttachments: () => ({ reading: false }),
@@ -49,6 +47,11 @@ vi.mock("@/wab/client/components/copilot/AiComposer", () => ({
   ),
 }));
 afterEach(cleanup);
+beforeEach(() => {
+  state.session = new LocalEditSession("project");
+  state.session.draft = {prompt: "Create page", attachments: []};
+  vi.spyOn(state.session, "run").mockResolvedValue(undefined);
+});
 it.each([new Arena({ name: "Pages", children: [] })])(
   "sends canvas requests without a focused page in arena=%s",
   (currentArena) => {
@@ -61,13 +64,13 @@ it.each([new Arena({ name: "Pages", children: [] })])(
     studio.dbCtx.mockReturnValue(mock<ReturnType<StudioCtx["dbCtx"]>>());
     studio.focusedViewCtx.mockReturnValue(undefined);
     const context = getLocalAiContext(studio);
-    const onSubmit = vi.fn();
+    const onOpen = vi.fn();
     render(
       <CanvasAiComposer
         appCtx={{ appConfig: { enableLocalAiEditing: true } } as AppCtx}
         projectId="project"
         context={context}
-        onSubmit={onSubmit}
+        onOpen={onOpen}
         hiddenByModal={false}
       />,
     );
@@ -76,10 +79,10 @@ it.each([new Arena({ name: "Pages", children: [] })])(
       screen.getByPlaceholderText("Describe what you want to change…"),
     ).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Send" }));
-    expect(onSubmit).toHaveBeenCalledWith(
-      expect.objectContaining({
-        prompt: "Create page",
-        localEditBinding: {
+    expect(onOpen).toHaveBeenCalledExactlyOnceWith();
+    expect(state.session?.run).toHaveBeenCalledWith(
+        "Create page",
+        {
           projectId: "project",
           branchId: null,
           sessionId: "session",
@@ -88,8 +91,7 @@ it.each([new Arena({ name: "Pages", children: [] })])(
           canvasName: "Pages",
           frameUuid: null,
           elementUuids: [],
-        },
-      }),
+        }, undefined, [], undefined, state.session?.activeThreadId,
     );
   },
 );
@@ -125,7 +127,7 @@ it("keeps page editing available and restores page scope when selection and canv
       appCtx={{ appConfig: { enableLocalAiEditing: true } } as AppCtx}
       projectId="project"
       context={nextContext}
-      onSubmit={vi.fn()}
+      onOpen={vi.fn()}
       hiddenByModal={false}
     />
   );
@@ -172,7 +174,7 @@ it("requires a workspace only when no page or canvas is open", () => {
       appCtx={{ appConfig: { enableLocalAiEditing: true } } as AppCtx}
       projectId="project"
       context={{}}
-      onSubmit={vi.fn()}
+      onOpen={vi.fn()}
       hiddenByModal={false}
     />,
   );

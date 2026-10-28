@@ -283,6 +283,7 @@ export function usePlasmicCanvasComponentInfo(props: any) {
     if (selectionInfo) {
       return {
         isSelected: selectionInfo.isSelected as boolean,
+        isEditingContents: selectionInfo.isEditingContents === true,
         selectedSlotName: selectionInfo.selectedSlotName as string | undefined,
       };
     }

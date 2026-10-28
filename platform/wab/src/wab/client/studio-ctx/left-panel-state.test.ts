@@ -315,3 +315,16 @@ it("clears AI open options on close and on a different panel selection", () => {
     studioCtx.dispose();
   }
 });
+
+it("opens the assistant without creating a deferred request or changing the design", () => {
+  const {studioCtx, dbCtx, history} = fakeStudioCtx();
+  try {
+    const revision = dbCtx.revisionNum;
+    const location = history.location;
+    studioCtx.openCopilotChat();
+    expect(studioCtx.isCopilotChatOpen).toBe(true);
+    expect(studioCtx.copilotChatOpenOpts).toBeUndefined();
+    expect(dbCtx.revisionNum).toBe(revision);
+    expect(history.location).toBe(location);
+  } finally {studioCtx.dispose();}
+});

@@ -4,6 +4,23 @@ import type { LocalEditSession } from "@/wab/client/copilot/local-edit-session";
 export type AiSessionView = Pick<
   LocalEditSession,
   | "tasks"
+  | "visibleTasks"
+  | "activeRun"
+  | "blockingTask"
+  | "activeThreadId"
+  | "branchId"
+  | "activeThread"
+  | "threads"
+  | "threadFilter"
+  | "threadListBefore"
+  | "threadListLoading"
+  | "historyLoading"
+  | "scrollTop"
+  | "newThread"
+  | "selectThread"
+  | "searchThreads"
+  | "updateThread"
+  | "setThreadAttachments"
   | "error"
   | "before"
   | "draft"
@@ -24,21 +41,56 @@ export type AiSessionView = Pick<
 
 export type AiSessionSnapshot = Pick<
   AiSessionView,
-  "tasks" | "error" | "before" | "draft" | "selectedModel" | "running"
+  | "tasks"
+  | "activeThreadId"
+  | "branchId"
+  | "activeThread"
+  | "threads"
+  | "threadFilter"
+  | "threadListBefore"
+  | "threadListLoading"
+  | "historyLoading"
+  | "scrollTop"
+  | "error"
+  | "before"
+  | "draft"
+  | "selectedModel"
+  | "running"
 > & { stoppable: string[]; undoable: string[] };
 
 type ActionName =
-  "run" | "stop" | "loadEarlier" | "locate" | "reconcile" | "retry" | "undo";
+  | "run"
+  | "stop"
+  | "loadEarlier"
+  | "locate"
+  | "reconcile"
+  | "retry"
+  | "undo"
+  | "newThread"
+  | "selectThread"
+  | "searchThreads"
+  | "updateThread"
+  | "setThreadAttachments";
 export type AiSessionAction =
   | {
       [K in ActionName]: { type: K; args: Parameters<AiSessionView[K]> };
     }[ActionName]
-  | { type: "draft"; value: AiSessionView["draft"] }
+  | { type: "draft"; value: AiSessionView["draft"]; threadId: string }
+  | { type: "scroll"; value: number; threadId: string }
   | { type: "model"; value: string | undefined };
 
 export function snapshotAiSession(session: AiSessionView): AiSessionSnapshot {
   return {
     tasks: session.tasks,
+    activeThreadId: session.activeThreadId,
+    branchId: session.branchId,
+    activeThread: session.activeThread,
+    threads: session.threads,
+    threadFilter: session.threadFilter,
+    threadListBefore: session.threadListBefore,
+    threadListLoading: session.threadListLoading,
+    historyLoading: session.historyLoading,
+    scrollTop: session.scrollTop,
     error: session.error,
     before: session.before,
     draft: session.draft,
@@ -55,12 +107,15 @@ export function snapshotAiSession(session: AiSessionView): AiSessionSnapshot {
 }
 
 export async function applyAiSessionAction(
-  session: AiSessionView,
+  session: LocalEditSession,
   action: AiSessionAction,
 ) {
   switch (action.type) {
     case "draft":
-      session.draft = action.value;
+      session.setThreadDraft(action.threadId, action.value);
+      return;
+    case "scroll":
+      session.setThreadScroll(action.threadId, action.value);
       return;
     case "model":
       session.selectedModel = action.value;
@@ -79,5 +134,15 @@ export async function applyAiSessionAction(
       return session.retry(...action.args);
     case "undo":
       return session.undo(...action.args);
+    case "newThread":
+      return session.newThread(...action.args);
+    case "selectThread":
+      return session.selectThread(...action.args);
+    case "searchThreads":
+      return session.searchThreads(...action.args);
+    case "updateThread":
+      return session.updateThread(...action.args);
+    case "setThreadAttachments":
+      return session.setThreadAttachments(...action.args);
   }
 }

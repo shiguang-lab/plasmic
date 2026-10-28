@@ -20,6 +20,9 @@ export const FreeFramesLayout = observer(function FreeFramesLayout(props: {
   // the DOM doesn't auto-compute the size.
   // Instead, we compute the size and set it on a container div.
   const arenaScalerSize = getMixedArenaSize(arena);
+  const contentView = studioCtx.viewCtxs.find((vc) => vc.contentEditor.target);
+  const contentSize = contentView?.contentEditor.size.get();
+  const contentFrame = contentView?.arenaFrame();
 
   // We sort arenaFrames here by their uid as we render, so that
   // if they get re-ordered, we don't re-render a CanvasFrame.  The frame
@@ -28,8 +31,8 @@ export const FreeFramesLayout = observer(function FreeFramesLayout(props: {
   return (
     <div
       style={{
-        width: `${arenaScalerSize.x}px`,
-        height: `${arenaScalerSize.y}px`,
+        width: `${Math.max(arenaScalerSize.x, contentSize && contentFrame ? (contentFrame.left ?? 0) + contentSize.width : 0)}px`,
+        height: `${Math.max(arenaScalerSize.y, contentSize && contentFrame ? (contentFrame.top ?? 0) + contentSize.height : 0)}px`,
       }}
     >
       {L.sortBy(arena.children, (f) => f.uid).map((frame) => {

@@ -1,3 +1,4 @@
+import { CanvasContentEditor } from "@/wab/client/studio-ctx/canvas-content-editor";
 import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import { CanvasFrame } from "@/wab/client/components/canvas/CanvasFrame/CanvasFrame";
 import { CanvasCtx } from "@/wab/client/components/canvas/canvas-ctx";
@@ -60,6 +61,7 @@ it("shows a bounded local skeleton until first render, preserves component-regis
   const rendered = observable.box(false);
   const updatingRegistry = observable.box(false);
   const vc = mock<ViewCtx>();
+  Object.defineProperty(vc, "contentEditor", { value: new CanvasContentEditor(vc) });
   const canvas = mock<CanvasCtx>();
   Object.defineProperty(vc, "canvasCtx", { value: canvas });
   Object.defineProperty(vc, "initialRenderReady", {
@@ -94,6 +96,15 @@ it("shows a bounded local skeleton until first render, preserves component-regis
     expect(screen.getByRole("status")).toBeTruthy();
     act(() => updatingRegistry.set(false));
     expect(screen.queryByRole("status")).toBeNull();
+    act(() => vc.contentEditor.size.set({ width: 1600, height: 2400 }));
+    const contentFrame = container.querySelector<HTMLElement>(".CanvasFrame__Container");
+    expect(contentFrame?.style.width).toBe("1600px");
+    expect(contentFrame?.style.height).toBe("2400px");
+    expect(frame.width).toBe(800);
+    expect(frame.height).toBe(600);
+    act(() => vc.contentEditor.size.set(undefined));
+    expect(contentFrame?.style.width).toBe("800px");
+    expect(contentFrame?.style.height).toBe("600px");
   } finally {
     cleanup();
     studioCtx.dispose();

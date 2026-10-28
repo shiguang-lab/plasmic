@@ -14,10 +14,13 @@ it("sends the resolved Studio appearance to the native desktop bridge", () => {
   });
   setAppearancePreference("light");
   expect(setUiAppearance).toHaveBeenLastCalledWith("light");
+  expect(document.documentElement.style.colorScheme).toBe("light");
   setAppearancePreference("dark");
   expect(setUiAppearance).toHaveBeenLastCalledWith("dark");
+  expect(document.documentElement.style.colorScheme).toBe("dark");
   setAppearancePreference("system");
   expect(setUiAppearance).toHaveBeenLastCalledWith(getUiAppearance());
+  expect(document.documentElement.style.colorScheme).toBe(getUiAppearance());
 });
 it("syncs external preference changes through the same appearance source", () => {
   const setUiAppearance = vi.fn().mockResolvedValue(undefined);
@@ -30,6 +33,7 @@ it("syncs external preference changes through the same appearance source", () =>
     new StorageEvent("storage", { key: "shiguang.ui.appearance" }),
   );
   expect(getUiAppearance()).toBe("light");
+  expect(document.documentElement.style.colorScheme).toBe("light");
   expect(setUiAppearance).toHaveBeenLastCalledWith("light");
 });
 
@@ -58,12 +62,14 @@ it("retains the startup host appearance until the live frame bridge connects", a
     const hostTheme = await import("@/wab/client/ui-theme");
     expect(hostTheme.getUiAppearance()).toBe("dark");
     expect(document.documentElement.dataset.uiAppearance).toBe("dark");
+    expect(document.documentElement.style.colorScheme).toBe("dark");
     window.dispatchEvent(
       new StorageEvent("storage", { key: "shiguang.ui.appearance" }),
     );
     expect(hostTheme.getUiAppearance()).toBe("dark");
     hostTheme.setUiAppearance("light");
     expect(hostTheme.getUiAppearance()).toBe("light");
+    expect(document.documentElement.style.colorScheme).toBe("light");
     expect(localStorage.getItem("shiguang.ui.appearance")).toBe("light");
   } finally {
     Reflect.deleteProperty(window, "__PlasmicStudioArgs");

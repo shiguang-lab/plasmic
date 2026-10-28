@@ -176,10 +176,7 @@ export const EmptyCanvasPrompt = observer(function EmptyCanvasPrompt({
       ),
       action: t("Open AI assistant"),
       onClick: () => {
-        void studioCtx.openCopilotChat({
-          prompt: "",
-          mode: undefined,
-        });
+        void studioCtx.openCopilotChat();
       },
       disabled: !studioCtx.chatCopilotEnabled(),
     },

@@ -21,7 +21,7 @@ import type { PreviewPage } from "@plasmic-shared/preview";
 import { ExtendedKeyboardEvent } from "mousetrap";
 
 export type HostFrameApi = {
-  openCopilotChat(opts: CopilotChatOpenOpts): Promise<void>;
+  openCopilotChat(opts?: CopilotChatOpenOpts): Promise<void>;
   switchLeftTab(
     tabKey: LeftTabKey | undefined,
     opts?: { highlight?: boolean },

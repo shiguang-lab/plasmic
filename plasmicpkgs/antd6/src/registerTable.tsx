@@ -98,8 +98,12 @@ function getColumns(
     if (child.type === React.Fragment) {
       return getColumns(child.props.children, bodyCell, headerCell, isEditing);
     }
-    const { onCellClick: _click, children: nested, render, ...column } =
-      child.props;
+    const {
+      onCellClick: _click,
+      children: nested,
+      render,
+      ...column
+    } = child.props;
     const onHeaderCell: NonNullable<ColumnType<any>["onHeaderCell"]> = (
       col,
     ) => ({
@@ -165,8 +169,9 @@ function TableWithColumns({
   children,
   columns,
   components,
+  contentEditing,
   ...props
-}: React.ComponentProps<typeof Table>) {
+}: React.ComponentProps<typeof Table> & { contentEditing?: boolean }) {
   const canvas = usePlasmicCanvasContext();
   // Evaluate a data-context reader's slot inside its observer, preserving bindings.
   if (
@@ -179,7 +184,11 @@ function TableWithColumns({
     const renderChildren = children.props.children;
     return React.cloneElement(children, {
       children: (...args: unknown[]) => (
-        <TableWithColumns {...props} components={components}>
+        <TableWithColumns
+          {...props}
+          components={components}
+          contentEditing={contentEditing}
+        >
           {renderChildren(...args)}
         </TableWithColumns>
       ),
@@ -195,13 +204,32 @@ function TableWithColumns({
             props.pagination?.pageSize ?? props.pagination?.defaultPageSize,
         }
       : props.pagination;
+  const editingProps = contentEditing
+    ? {
+        scroll: undefined,
+        virtual: false,
+        sticky: false,
+        style: { ...props.style, width: "max-content" },
+      }
+    : {};
+  const expandColumns = (
+    items: (ColumnType<any> | ColumnGroupType<any>)[],
+  ): (ColumnType<any> | ColumnGroupType<any>)[] =>
+    items.map((column) => ({
+      ...column,
+      fixed: undefined,
+      ...("children" in column
+        ? { children: expandColumns(column.children) }
+        : {}),
+    }));
   if (columns !== undefined) {
     return (
       <Table
         {...props}
         pagination={pagination}
-        columns={columns}
+        columns={contentEditing ? expandColumns(columns) : columns}
         components={components}
+        {...editingProps}
       />
     );
   }
@@ -222,12 +250,16 @@ function TableWithColumns({
         data-plasmic-canvas-part-scope={
           canvas && !canvas.interactive ? "true" : undefined
         }
-        columns={getColumns(
-          children,
-          body?.cell ?? "td",
-          components?.header?.cell ?? "th",
-          !!canvas && !canvas.interactive,
-        )}
+        columns={(() => {
+          const resolved = getColumns(
+            children,
+            body?.cell ?? "td",
+            components?.header?.cell ?? "th",
+            !!canvas && !canvas.interactive,
+          );
+          return contentEditing ? expandColumns(resolved) : resolved;
+        })()}
+        {...editingProps}
         components={{
           ...components,
           header: { ...components?.header, cell: TableHeaderCell },
@@ -259,6 +291,7 @@ export const AntdTable = React.forwardRef(function AntdTable(
     onSelectedRowKeysChange?: (keys: string[]) => void;
     onSelectedRowsChange?: (rows: any[]) => void;
     setControlContextData?: (ctx: any) => void;
+    __plasmic_selection_prop__?: unknown;
   },
   ref: React.Ref<TableRef>,
 ) {
@@ -273,6 +306,8 @@ export const AntdTable = React.forwardRef(function AntdTable(
     defaultSelectedRowKeys,
     ...rest
   } = props;
+  const canvas = usePlasmicCanvasContext();
+  const info = usePlasmicCanvasComponentInfo(props);
   setControlContextData?.(data);
 
   const isControlled = !!selectedRowKeys;
@@ -352,6 +387,9 @@ export const AntdTable = React.forwardRef(function AntdTable(
       rowSelection={selection}
       rowKey={rowKey}
       {...rest}
+      contentEditing={
+        !!canvas && !canvas.interactive && info?.isEditingContents
+      }
     />
   );
 });
@@ -360,6 +398,7 @@ export function registerTable(loader?: Registerable) {
   registerComponentHelper(loader, AntdTable, {
     name: "plasmic-antd6-table",
     displayName: "Table",
+    canvasContentEditor: true,
     props: {
       data: {
         type: "dataSourceOpData" as any,
@@ -401,7 +440,8 @@ export function registerTable(loader?: Registerable) {
         type: "custom",
         displayName: "Pagination",
         control: TablePaginationControl,
-        description: "False hides pagination; otherwise use native pagination options: current, pageSize/defaultPageSize, total, pageSizeOptions, showSizeChanger, and showTotal(total, range) returning content. Bind showTotal to display the total before the pager controls; keep paging and total under this one owner.",
+        description:
+          "False hides pagination; otherwise use native pagination options: current, pageSize/defaultPageSize, total, pageSizeOptions, showSizeChanger, and showTotal(total, range) returning content. Bind showTotal to display the total before the pager controls; keep paging and total under this one owner.",
       },
       scroll: {
         type: "custom",
@@ -525,7 +565,8 @@ export function registerTable(loader?: Registerable) {
       dataIndex: {
         type: "string",
         displayName: "Data index",
-        description: "The data field used by this column. Changes apply to every row.",
+        description:
+          "The data field used by this column. Changes apply to every row.",
       },
       render: {
         type: "slot",

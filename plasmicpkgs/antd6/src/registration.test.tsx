@@ -1,3 +1,4 @@
+import { PlasmicCanvasContext } from "@plasmicapp/host";
 import * as antd from "antd";
 import assert from "node:assert/strict";
 import { test } from "node:test";
@@ -603,4 +604,59 @@ test("Button keeps its icon-only shape without an empty label container", () => 
   );
   assert.match(labelled, /Search/);
   assert.match(labelled, /ant-btn-icon-end/);
+});
+
+test("content editing expands native and virtual table viewports only in Studio, retaining pagination and saved props", () => {
+  const table = components.get("plasmic-antd6-table")!;
+  const column = components.get("plasmic-antd6-table-column")!;
+  assert.equal(table.meta.canvasContentEditor, true);
+  for (const nativeColumns of [false, true]) {
+    const props = {
+      data: {
+        data: Array.from({ length: 41 }, (_, i) => ({
+          id: i + 1,
+          name: `Record ${i + 1}`,
+        })),
+      },
+      rowKey: "id",
+      scroll: { x: 1200, y: 240 },
+      virtual: true,
+      pagination: { defaultPageSize: 20 },
+      __plasmic_selection_prop__: { isEditingContents: true },
+      ...(nativeColumns
+        ? {
+            columns: [
+              { title: "Name", dataIndex: "name", width: 240, fixed: "left" },
+            ],
+          }
+        : {
+            children: React.createElement(column.component, {
+              title: "Name",
+              dataIndex: "name",
+              width: 240,
+              fixed: "left",
+            }),
+          }),
+    };
+    const savedScroll = { ...props.scroll };
+    const render = (interactive: boolean) =>
+      renderToStaticMarkup(
+        React.createElement(
+          PlasmicCanvasContext.Provider,
+          { value: { componentName: "Test", globalVariants: {}, interactive } },
+          React.createElement(table.component, props),
+        ),
+      );
+    const editing = render(false);
+    assert.doesNotMatch(editing, /ant-table-tbody-virtual/);
+    assert.doesNotMatch(editing, /max-height:240px/);
+    assert.doesNotMatch(editing, /ant-table-cell-fix-start/);
+    assert.match(editing, /Record 20/);
+    assert.doesNotMatch(editing, /Record 21/);
+    const preview = render(true);
+    assert.match(preview, /ant-table-tbody-virtual/);
+    assert.deepEqual(props.scroll, savedScroll);
+    assert.equal(props.virtual, true);
+    assert.equal(props.pagination.defaultPageSize, 20);
+  }
 });

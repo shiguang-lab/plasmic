@@ -155,6 +155,11 @@ export function TopFrameChrome({
     session.connect();
     return () => session.disconnect();
   }, [project.id, appCtx.appConfig.enableLocalAiEditing, appCtx.selfInfo?.id]);
+  React.useEffect(() => {
+    if (appCtx.appConfig.enableLocalAiEditing) {
+      void getLocalEditSession(project.id).setBranch(rest.activatedBranch?.id ?? null);
+    }
+  }, [project.id, appCtx.appConfig.enableLocalAiEditing, appCtx.selfInfo?.id, rest.activatedBranch?.id]);
   const { hostFrameApi, hostFrameApiReady } = useTopFrameCtx();
   React.useEffect(() => {
     if (!desktopDraftBridge()) {return;}
@@ -422,7 +427,7 @@ export function TopFrameChrome({
                   appCtx={appCtx}
                   projectId={project.id}
                   context={rest.localAiContext}
-                  onSubmit={hostFrameApi.openCopilotChat}
+                  onOpen={() => hostFrameApi.openCopilotChat()}
                   hiddenByModal={rest.studioModalOpen}
                 />
               )}

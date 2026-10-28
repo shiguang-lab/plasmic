@@ -1,6 +1,8 @@
 import { AppCtx } from "@/wab/client/app-ctx";
 import { useAiAttachments } from "@/wab/client/components/copilot/AiAttachments";
 import { AiComposer } from "@/wab/client/components/copilot/AiComposer";
+import { AiRunningNotice, AiThreadPicker } from "@/wab/client/components/copilot/AiThreadPicker";
+import { useErrorMessage } from "@/wab/client/hooks/useErrorMessage";
 import {
   editorCanvasControlsLayout,
   editorLeftRailLayout,
@@ -8,7 +10,6 @@ import {
 import { getLocalEditSession } from "@/wab/client/copilot/local-edit-session";
 import { useLocalAiStatus } from "@/wab/client/copilot/use-local-ai-status";
 import { useI18n } from "@/wab/client/i18n";
-import { CopilotChatOpenOpts } from "@/wab/shared/ApiSchema";
 import { LocalAiContext } from "@/wab/shared/copilot/local-edit";
 import { createStyles } from "antd-style";
 import * as React from "react";
@@ -16,7 +17,8 @@ import * as React from "react";
 const leftInset = editorLeftRailLayout.left + editorLeftRailLayout.width + editorLeftRailLayout.panelGap;
 // Keep the bottom-right canvas controls clear as the editor viewport narrows.
 const rightInset = 180;
-const useStyles = createStyles(() => ({
+const useStyles = createStyles(({token}) => ({
+  conversations: { background: token.colorBgContainer, border: `1px solid ${token.colorBorderSecondary}`, borderRadius: token.borderRadiusLG, marginBottom: 6, padding: "2px 6px", width: "100%" },
   position: {
     position: "fixed",
     bottom: editorCanvasControlsLayout.edgeInset,
@@ -33,13 +35,13 @@ export function CanvasAiComposer({
   appCtx,
   projectId,
   context,
-  onSubmit,
+  onOpen,
   hiddenByModal,
 }: {
   appCtx: AppCtx;
   projectId: string;
   context: LocalAiContext;
-  onSubmit: (opts: CopilotChatOpenOpts) => Promise<void>;
+  onOpen: () => Promise<void>;
   hiddenByModal: boolean;
 }) {
   const { t } = useI18n();
@@ -49,36 +51,45 @@ export function CanvasAiComposer({
     [projectId],
   );
   React.useSyncExternalStore(session.subscribe, session.snapshot);
+  useErrorMessage(session.error);
   const enabled = appCtx.appConfig.enableLocalAiEditing;
   const { data: status } = useLocalAiStatus(projectId, enabled);
-  const activeTask = session.tasks.find((task) => task.status === "running");
+  const activeTask = session.activeRun;
+  const archived = !!session.activeThread?.archivedAt;
+  const threadId = session.activeThreadId;
   const attachmentState = useAiAttachments(
     session.draft.attachments,
-    (attachments) => {
-      session.draft = { ...session.draft, attachments };
-    },
+    attachments => session.setThreadAttachments(threadId, attachments),
+    threadId,
   );
   const open = () => {
     if (
       !enabled ||
+      !status?.configured ||
+      session.running ||
+      session.historyLoading ||
+      archived ||
       !context.binding ||
       !session.draft.prompt.trim() ||
       attachmentState.reading
     ) {
       return;
     }
-    void onSubmit({
-      prompt: session.draft.prompt.trim(),
-      mode: undefined,
-      attachments: session.draft.attachments,
-      localEditBinding: context.binding,
-    });
+    // Submit once in the execution owner; opening the panel carries no deferred request.
+    void session.run(session.draft.prompt.trim(), context.binding,
+      appCtx.appConfig.enableLocalAiPageGeneration && status.pageGenerationEnabled ? "auto" : undefined,
+      session.draft.attachments, session.selectedModel ?? status.model ?? undefined, session.activeThreadId);
+    void onOpen();
   };
   return (
     <div
       className={styles.position}
       style={{ visibility: hiddenByModal ? "hidden" : undefined }}
     >
+      <div className={styles.conversations}>
+        <AiThreadPicker session={session} disabled={!enabled} onOpen={() => void onOpen()} />
+        <AiRunningNotice session={session} onOpen={() => void onOpen()} />
+      </div>
       <AiComposer
         value={session.draft.prompt}
         onChange={(prompt) => {
@@ -92,11 +103,11 @@ export function CanvasAiComposer({
         onModelChange={(model) => {
           session.selectedModel = model;
         }}
-        disabled={!enabled}
-        running={session.running}
+        disabled={!enabled || archived}
+        running={!!activeTask && activeTask.threadId === session.activeThreadId}
         onStop={() => session.stop()}
         stopDisabled={!activeTask || !session.canStop(activeTask)}
-        canSubmit={enabled && !!context.binding}
+        canSubmit={enabled && !!context.binding && !!status?.configured && !session.running && !session.historyLoading && !archived}
         placeholder={t(
           !context.binding
             ? "Open a page or canvas before using AI."
@@ -107,6 +118,14 @@ export function CanvasAiComposer({
         availability={
           !enabled
             ? t("Local AI editing is disabled.")
+            : archived
+              ? t("This conversation is archived. Restore it to continue.")
+            : !status?.configured
+              ? t("Configure the AI service on the server to start editing.")
+            : session.blockingTask?.needsReconciliation
+              ? t("Verify saved design")
+            : session.running && activeTask?.threadId !== session.activeThreadId
+              ? t("A task is running in another conversation.")
             : !context.binding
               ? t("Open a page or canvas before using AI.")
               : undefined

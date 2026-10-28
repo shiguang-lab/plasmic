@@ -3,6 +3,7 @@ import { MenuItemContent } from "@/wab/client/components/menu-builder";
 import { IFrameAwareDropdownMenu } from "@/wab/client/components/widgets";
 import { setAppearancePreference } from "@/wab/client/ui-theme";
 import {
+  act,
   cleanup,
   fireEvent,
   render,
@@ -13,6 +14,55 @@ import { Menu } from "antd";
 import * as React from "react";
 
 afterEach(cleanup);
+
+it("limits a side-aligned menu to the space beside its trigger and updates on resize and scroll", async () => {
+  let viewportHeight = 720;
+  let triggerTop = 520;
+  vi.spyOn(document.documentElement, "clientHeight", "get").mockImplementation(
+    () => viewportHeight,
+  );
+  render(
+    <AntdConfigProvider productUI>
+      <IFrameAwareDropdownMenu
+        align={{ points: ["tl", "tr"], offset: [4, 0] }}
+        menu={
+          <Menu>
+            <Menu.Item key="last">Last action</Menu.Item>
+          </Menu>
+        }
+      >
+        <button>Layer menu</button>
+      </IFrameAwareDropdownMenu>
+    </AntdConfigProvider>,
+  );
+  const trigger = screen.getByRole("button", { name: "Layer menu" });
+  vi.spyOn(trigger, "getBoundingClientRect").mockImplementation(
+    () => new DOMRect(282, triggerTop, 16, 24),
+  );
+  fireEvent.click(trigger);
+  const item = await screen.findByRole("menuitem", { name: "Last action" });
+  const scroll = item.closest(".studio-scrollbar") as HTMLElement;
+  // 544px above the button's bottom, less an 8px viewport inset.
+  expect(scroll.style.maxHeight).toBe("536px");
+  expect(
+    getComputedStyle(item.closest('[role="menu"]') as Element).overflow,
+  ).toBe("visible");
+
+  act(() => {
+    viewportHeight = 480;
+    triggerTop = 240;
+    window.dispatchEvent(new Event("resize"));
+  });
+  expect(scroll.style.maxHeight).toBe("256px");
+
+  act(() => {
+    triggerTop = 80;
+    window.dispatchEvent(new Event("scroll"));
+  });
+  // Enough room below: retain the existing 80vh maximum.
+  expect(scroll.style.maxHeight).toBe("384px");
+});
+
 it("Escape closes the open menu, updates its trigger state and returns keyboard focus", async () => {
   const changed = vi.fn();
   render(

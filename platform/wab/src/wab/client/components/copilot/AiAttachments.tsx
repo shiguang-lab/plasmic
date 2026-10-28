@@ -63,10 +63,20 @@ export async function readAiAttachment(file: File): Promise<LocalAiAttachment> {
 export function useAiAttachments(
   attachments: LocalAiAttachment[],
   setAttachments: (attachments: LocalAiAttachment[]) => void,
+  scope?: string,
 ) {
   const [reading, setReading] = React.useState(false);
   const [error, setError] = React.useState<string>();
   const readingRef = React.useRef(false);
+  const currentScope = React.useRef(scope);
+  if (currentScope.current !== scope) {
+    currentScope.current = scope;
+    readingRef.current = false;
+  }
+  React.useEffect(() => {
+    setReading(false);
+    setError(undefined);
+  }, [scope]);
   const add = async (files: File[]) => {
     if (readingRef.current) {
       return;
@@ -104,14 +114,16 @@ export function useAiAttachments(
       }
       setAttachments(next);
     } catch (reason) {
-      setError(
+      if (currentScope.current === scope) { setError(
         reason instanceof Error
           ? reason.message
           : "Could not read the attachment.",
-      );
+      ); }
     } finally {
-      readingRef.current = false;
-      setReading(false);
+      if (currentScope.current === scope) {
+        readingRef.current = false;
+        setReading(false);
+      }
     }
   };
   return {

@@ -561,6 +561,11 @@ const TextEditor = observer(function TextEditor_(props: {
   if (!text) {
     return null;
   }
+  const editingText = viewCtx.editingTextContext();
+  const content =
+    editingText?.val.tpl === tpl && editingText.draftText !== undefined
+      ? editingText.draftText.text
+      : getRichTextContent(text, viewCtx);
   return (
     <button
       className={cx(
@@ -579,7 +584,7 @@ const TextEditor = observer(function TextEditor_(props: {
         }
       }}
     >
-      {getRichTextContent(text, viewCtx)}
+      {content}
     </button>
   );
 });

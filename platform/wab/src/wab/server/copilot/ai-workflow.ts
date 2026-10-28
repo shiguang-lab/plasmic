@@ -67,7 +67,9 @@ export async function aiChatRun(id: string) {
     if (run.status !== "running") {
       return;
     }
-    const page = await model.chooseIntent(id);
+    const intent = await model.chooseIntent(id);
+    await a.setRun(id, { intent: intent.mode });
+    const page = intent.mode === "page" ? intent : undefined;
     let contextOperation: string | undefined;
     if (page) {
       await a.setRun(id, {
@@ -217,19 +219,17 @@ export async function aiChatRun(id: string) {
         );
       }
     }
-    await a.setRun(id, { phase: "Checking structure" });
-    const checked = await execute("validate", {}, true);
-    if (!checked.result) {
-      throw new Error("Validation result is missing");
-    }
-    const validation = JSON.parse(checked.result.result);
-    if (!validation.valid) {
-      throw new Error(validation.errors.join("; "));
-    }
-    run = await a.loadRun(id);
-    resources.push(checked.operationId);
-    if (run.hasChanges) {
-      resources.push((await execute("save", {})).operationId);
+    if (intent.mode !== "discuss") {
+      await a.setRun(id, { phase: "Checking structure" });
+      const checked = await execute("validate", {}, true);
+      if (!checked.result) { throw new Error("Validation result is missing"); }
+      const validation = JSON.parse(checked.result.result);
+      if (!validation.valid) { throw new Error(validation.errors.join("; ")); }
+      run = await a.loadRun(id);
+      resources.push(checked.operationId);
+      if (run.hasChanges) {
+        resources.push((await execute("save", {})).operationId);
+      }
     }
     await a.setRun(id, { phase: "Generating response" });
     const answer = await model.modelStep(id, step + 1, resources, "answer");

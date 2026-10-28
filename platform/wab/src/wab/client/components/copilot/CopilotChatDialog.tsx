@@ -3,6 +3,8 @@ import { useAiAttachments } from "@/wab/client/components/copilot/AiAttachments"
 import { AiComposer } from "@/wab/client/components/copilot/AiComposer";
 import { AiNodeReference } from "@/wab/client/components/copilot/AiNodeReference";
 import { AiResponse } from "@/wab/client/components/copilot/AiResponse";
+import { AiRunningNotice, AiThreadPicker } from "@/wab/client/components/copilot/AiThreadPicker";
+import { AiWelcome } from "@/wab/client/components/copilot/AiWelcome";
 import { PanelCloseButton } from "@/wab/client/components/studio/PanelCloseButton";
 import { editorPanelHeaderStyle } from "@/wab/client/components/ui/layout-styles";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
@@ -14,7 +16,7 @@ import type { AiTask } from "@/wab/shared/copilot/ai-chat";
 import type { LocalAiStatus } from "@/wab/shared/copilot/local-edit";
 import { getPublicUrl } from "@/wab/shared/urls";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
-import { Alert, Button, Image, Tag } from "antd";
+import { Alert, Button, Image, Spin, Tag } from "antd";
 import { createStyles } from "antd-style";
 import * as React from "react";
 
@@ -47,19 +49,13 @@ const useStyles = createStyles(({ token }) => ({
     lineHeight: 1.6,
   },
   header: editorPanelHeaderStyle(token),
+  conversations: { padding: "8px 12px", borderBottom: `1px solid ${token.colorBorderSecondary}`, flexShrink: 0 },
   history: { flex: 1, minHeight: 0 },
   historyContent: {
     padding: 16,
     display: "flex",
     flexDirection: "column",
     gap: 24,
-  },
-  empty: {
-    margin: 0,
-    padding: "8px 0",
-    color: token.colorTextSecondary,
-    fontSize: 13,
-    fontWeight: 400,
   },
   request: {
     padding: "10px 12px",
@@ -130,17 +126,18 @@ export function CopilotChatDialog({
   const { styles } = useStyles();
   const appCtx = useAppCtx();
   const enabled = appCtx.appConfig.enableLocalAiEditing;
-  const tasks = React.useSyncExternalStore(session.subscribe, session.snapshot);
+  React.useSyncExternalStore(session.subscribe, session.snapshot);
+  const tasks = session.visibleTasks;
   const model = session.selectedModel;
   const draft = session.draft.prompt;
+  const threadId = session.activeThreadId;
   const setDraft = (prompt: string) => {
     session.draft = { ...session.draft, prompt };
   };
   const attachmentState = useAiAttachments(
     session.draft.attachments,
-    (attachments) => {
-      session.draft = { ...session.draft, attachments };
-    },
+    attachments => session.setThreadAttachments(threadId, attachments),
+    threadId,
   );
   const { data: status, error } = useLocalAiStatus(
     project.id,
@@ -164,38 +161,42 @@ export function CopilotChatDialog({
       session.draft = {
         ...session.draft,
         prompt: chatOpenOpts.prompt,
-        attachments: chatOpenOpts.attachments ?? [],
       };
       if (!readOnly && status?.configured && !session.running) {
         consumed.current = chatOpenOpts;
         void session.run(
           chatOpenOpts.prompt,
-          chatOpenOpts.localEditBinding,
+          context?.binding,
           appCtx.appConfig.enableLocalAiPageGeneration &&
             status.pageGenerationEnabled
             ? "auto"
             : undefined,
-          chatOpenOpts.attachments,
+          session.draft.attachments,
           model ?? status.model ?? undefined,
         );
       }
     }
   }, [chatOpenOpts, status, session, model, session.running]);
   const historyRef = React.useRef<HTMLElement>(null);
-  const followLatest = React.useRef(true);
+  const followLatest = React.useRef(session.scrollTop < 0);
   const previousLastTask = React.useRef(tasks.at(-1)?.id);
+  const previousThread = React.useRef(session.activeThreadId);
   React.useLayoutEffect(() => {
-    if (tasks.at(-1)?.id !== previousLastTask.current) {
+    const changedThread = previousThread.current !== session.activeThreadId;
+    if (changedThread) {
+      followLatest.current = session.scrollTop < 0;
+      previousThread.current = session.activeThreadId;
+    } else if (tasks.at(-1)?.id !== previousLastTask.current) {
       followLatest.current = true;
     }
     previousLastTask.current = tasks.at(-1)?.id;
     const viewport = historyRef.current;
-    if (viewport && followLatest.current) {
-      viewport.scrollTop = viewport.scrollHeight;
+    if (viewport && (changedThread || followLatest.current)) {
+      viewport.scrollTop = changedThread && session.scrollTop >= 0 ? session.scrollTop : viewport.scrollHeight;
     }
-  }, [tasks]);
+  }, [tasks, session.activeThreadId]);
   const lastTask = tasks.at(-1);
-  const lastRecord = tasks
+  const lastRecord = session.tasks
     .flatMap((task) => task.records)
     .filter((record) => !record.undone)
     .at(-1);
@@ -208,6 +209,8 @@ export function CopilotChatDialog({
       !readOnly &&
       draft.trim() &&
       !session.running &&
+      !session.historyLoading &&
+      !session.activeThread?.archivedAt &&
       status?.configured &&
       !attachmentState.reading
     ) {
@@ -233,6 +236,7 @@ export function CopilotChatDialog({
         <strong>{t("AI assistant")}</strong>
         <PanelCloseButton onClick={onClose} />
       </div>
+      <div className={styles.conversations}><AiThreadPicker session={session} readOnly={readOnly} disabled={!enabled} /></div>
       <Scrollbar
         ref={historyRef}
         scrollX={false}
@@ -246,10 +250,11 @@ export function CopilotChatDialog({
                 viewport.scrollTop -
                 viewport.clientHeight <
               48;
+            session.scrollTop = viewport.scrollTop;
           },
           initialized: (instance) => {
             const viewport = instance.elements().viewport;
-            viewport.scrollTop = viewport.scrollHeight;
+            viewport.scrollTop = session.scrollTop >= 0 ? session.scrollTop : viewport.scrollHeight;
           },
         }}
       >
@@ -281,15 +286,9 @@ export function CopilotChatDialog({
               {t("Load earlier messages")}
             </Button>
           )}
-          {!tasks.length && (
-            <p className={styles.empty}>
-              {t(
-                pageEnabled
-                  ? "Describe what you need. AI can edit the current selection or page, or create a new page."
-                  : "Describe a change to the current selection or page. The editing scope stays fixed during the task.",
-              )}
-            </p>
-          )}
+          {session.historyLoading && <Spin size="small" />}
+          {!tasks.length && !session.historyLoading && <AiWelcome pageEnabled={!!pageEnabled} hasWorkspace={!!context?.binding} disabled={!enabled || readOnly || !status?.configured || !!session.activeThread?.archivedAt}
+            onChoose={prompt => setDraft(draft ? `${draft}\n${prompt}` : prompt)} />}
           {tasks.map((task) => (
             <article
               key={task.id}
@@ -398,7 +397,7 @@ export function CopilotChatDialog({
                     })}
                   </p>
                 )}
-                {task.status === "completed" && (
+                {task.status === "completed" && task.intent !== "discuss" && (
                   <p className={styles.note}>
                     {t(
                       "Model structure checked. Visual layout and interactions were not tested.",
@@ -419,6 +418,8 @@ export function CopilotChatDialog({
         </div>
       </Scrollbar>
       <div className={styles.composer}>
+        <AiRunningNotice session={session} />
+        {session.activeThread?.archivedAt && <Alert type="info" message={t("This conversation is archived. Restore it to continue.")} action={!readOnly && <Button size="small" onClick={() => void session.updateThread(session.activeThreadId, {archived: false})}>{t("Restore conversation")}</Button>} />}
         <AiComposer
           value={draft}
           onChange={setDraft}
@@ -435,9 +436,9 @@ export function CopilotChatDialog({
           onModelChange={(value) => {
             session.selectedModel = value;
           }}
-          disabled={!enabled || readOnly}
-          canSubmit={!!status?.configured}
-          running={session.running}
+          disabled={!enabled || readOnly || !!session.activeThread?.archivedAt}
+          canSubmit={!!status?.configured && !session.running && !session.historyLoading}
+          running={session.activeRun?.threadId === session.activeThreadId}
           onStop={() => session.stop()}
           stopDisabled={
             lastTask?.status !== "running" ||

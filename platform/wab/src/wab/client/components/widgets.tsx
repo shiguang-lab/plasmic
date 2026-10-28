@@ -819,6 +819,45 @@ export const IFrameAwareDropdownMenu = (props: {
   const productUI = usesProductTheme(window.location.pathname);
   const [menuVisible, setMenuVisibleState] = React.useState(false);
   const triggerElement = React.useRef<HTMLElement | null>(null);
+  const dropdownTrigger = React.useRef<HTMLElement | null>(null);
+  const [menuMaxHeight, setMenuMaxHeight] = React.useState<number>();
+  const [popupPoint, targetPoint] = props.align?.points ?? [];
+  const sideAligned = popupPoint?.[0] === "t" && targetPoint?.[0] === "t";
+  const offsetY = Number(props.align?.offset?.[1] ?? 0);
+
+  React.useLayoutEffect(() => {
+    if (!menuVisible || !productUI || !sideAligned) {
+      setMenuMaxHeight(undefined);
+      return;
+    }
+    const trigger = dropdownTrigger.current;
+    if (!trigger) {
+      return;
+    }
+    const updateHeight = () => {
+      const { top, bottom } = trigger.getBoundingClientRect();
+      const viewportHeight = trigger.ownerDocument.documentElement.clientHeight;
+      // Antd can flip a side-aligned menu to align with the trigger's bottom.
+      // Fit the larger side, leaving the trigger as the anchor in either case.
+      setMenuMaxHeight(
+        Math.max(
+          0,
+          Math.min(
+            viewportHeight * 0.8,
+            Math.max(viewportHeight - top - offsetY, bottom + offsetY) - 8,
+          ),
+        ),
+      );
+    };
+    updateHeight();
+    const ownerWindow = trigger.ownerDocument.defaultView;
+    ownerWindow?.addEventListener("resize", updateHeight);
+    ownerWindow?.addEventListener("scroll", updateHeight, true);
+    return () => {
+      ownerWindow?.removeEventListener("resize", updateHeight);
+      ownerWindow?.removeEventListener("scroll", updateHeight, true);
+    };
+  }, [menuVisible, productUI, sideAligned, offsetY]);
 
   const setMenuVisible = React.useCallback(
     (visible: boolean) => {
@@ -850,12 +889,13 @@ export const IFrameAwareDropdownMenu = (props: {
     return () => document.removeEventListener("keydown", closeOnEscape, true);
   }, [menuVisible, setMenuVisible]);
 
-  const renderScrollableMenu = (menu: ReactNode) =>
+  const renderScrollableMenu = (menu: ReactNode, maxHeight?: number) =>
     productUI ? (
       <Scrollbar
         scrollX={false}
         defer={false}
         className={cx("studio-scrollbar", popupStyles.menuScroll)}
+        style={maxHeight === undefined ? undefined : { maxHeight }}
       >
         {menu}
       </Scrollbar>
@@ -865,6 +905,7 @@ export const IFrameAwareDropdownMenu = (props: {
 
   return (
     <Dropdown
+      ref={dropdownTrigger}
       disabled={props.disabled}
       placement={props.placement}
       align={
@@ -911,6 +952,7 @@ export const IFrameAwareDropdownMenu = (props: {
               e.domEvent.stopPropagation();
             },
           }),
+          menuMaxHeight,
         );
       }}
       trigger={["click"]}

@@ -21,7 +21,7 @@ const fixture = vi.hoisted(() => {
       },
     })),
     runState: vi.fn(async () => ({ status: state.status })),
-    chooseIntent: vi.fn(async () => undefined),
+    chooseIntent: vi.fn(async (): Promise<import("@/wab/shared/copilot/local-edit").LocalAiIntent> => ({mode: "edit"})),
     requestTool: vi.fn(async (_run: string, id: string, name: string) => {
       names.set(id, name);
       order.push(name);
@@ -111,6 +111,18 @@ it("validates and saves before requesting the explicit final answer channel", as
     "run:3",
     "run:4",
   ]);
+});
+
+it("answers discussion requests without mutation, structural validation or saving", async () => {
+  fixture.a.chooseIntent.mockResolvedValueOnce({mode: "discuss"});
+  fixture.a.modelStep.mockImplementationOnce(async () => {
+    fixture.order.push("commentary");
+    return {text: "Proposed improvements", calls: []};
+  });
+  await aiChatRun("run");
+  expect(fixture.a.setRun).toHaveBeenCalledWith("run", {intent: "discuss"});
+  expect(fixture.order).toEqual(["read", "read", "commentary", "answer"]);
+  expect(fixture.a.setRun).toHaveBeenLastCalledWith("run", {status: "completed", phase: "Completed"});
 });
 
 it("passes the explicitly declared failed call identity to the retry operation", async () => {

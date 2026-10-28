@@ -5,6 +5,8 @@ import { attachmentContent, claimTool, createRun, events, getRun, history, patch
 import { getUser, userDbMgr } from "@/wab/server/routes/util";
 import { BadRequestError, ForbiddenError } from "@/wab/shared/ApiErrors/errors";
 import { aiClaimSchema, aiReceiptSchema, aiSendSchema, aiHeartbeatSchema, aiReconcileSchema } from "@/wab/shared/copilot/ai-chat";
+import { aiThreadPatchSchema } from "@/wab/shared/copilot/ai-chat";
+import { getThread, listThreads, patchThread } from "@/wab/server/copilot/ai-threads";
 
 async function authorize(req: Request, edit = false) {
   const user = getUser(req);
@@ -16,7 +18,26 @@ export async function aiChatHistory(req: Request,res: Response) {
   await authorize(req);
   const before = req.query.before;
   if (before !== undefined && (!z.string().uuid().safeParse(before).success)) { throw new BadRequestError("Invalid history cursor."); }
-  res.json(await history(req.params.projectId,typeof before === "string" ? before : undefined));
+  const threadId = req.query.threadId;
+  if (threadId !== undefined && !z.string().uuid().safeParse(threadId).success) { throw new BadRequestError("Invalid conversation."); }
+  res.json(await history(req.params.projectId,typeof before === "string" ? before : undefined, typeof threadId === "string" ? threadId : undefined));
+}
+export async function aiChatThreads(req: Request, res: Response) {
+  await authorize(req);
+  const parsed = z.object({branchId:z.string().max(200).optional(),archived:z.enum(["0","1"]).optional(),query:z.string().max(200).optional(),before:z.string().min(1).max(500).optional()}).strict().safeParse(req.query);
+  if (!parsed.success) { throw new BadRequestError("Invalid conversation query."); }
+  res.json(await listThreads(req.params.projectId, parsed.data.branchId || null, parsed.data.archived === "1", parsed.data.query, parsed.data.before));
+}
+export async function aiChatThread(req: Request, res: Response) {
+  await authorize(req);
+  if (!z.string().uuid().safeParse(req.params.threadId).success) { throw new BadRequestError("Invalid conversation."); }
+  res.json(await getThread(req.params.projectId, req.params.threadId));
+}
+export async function aiChatPatchThread(req: Request, res: Response) {
+  await authorize(req, true);
+  const parsed = aiThreadPatchSchema.safeParse(req.body);
+  if (!parsed.success || !z.string().uuid().safeParse(req.params.threadId).success) { throw new BadRequestError("Invalid conversation update."); }
+  res.json(await patchThread(req.params.projectId, req.params.threadId, parsed.data));
 }
 export async function aiChatRunSnapshot(req: Request,res: Response) {
   await authorize(req);

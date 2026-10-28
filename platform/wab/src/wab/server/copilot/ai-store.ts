@@ -2,6 +2,7 @@ import {
   aiOperationDetails,
   aiOperationError,
 } from "@/wab/server/copilot/ai-operation-details";
+import { emitThread, getThread } from "@/wab/server/copilot/ai-threads";
 import { BadRequestError, ForbiddenError } from "@/wab/shared/ApiErrors/errors";
 import { ensure } from "@/wab/shared/common";
 import type {
@@ -91,6 +92,7 @@ export async function emitTask(db: EntityManager, task: AiTask) {
           "savedRevision",
           "scopeLabel",
           "needsReconciliation",
+          "intent",
         ] as const
       )
         .filter(
@@ -173,7 +175,9 @@ export async function createRun(
     [projectId, authorId, request.clientRequestId],
   );
   if (existing.length) {
-    return existing[0].task as AiTask;
+    const task = existing[0].task as AiTask;
+    if (task.threadId !== request.threadId) { throw new BadRequestError("Request identity belongs to another conversation."); }
+    return task;
   }
   const id = randomUUID();
   const files: (AiAttachment & { objectKey: string })[] = [];
@@ -270,6 +274,7 @@ export async function createRun(
         [projectId, authorId, request.clientRequestId],
       );
       if (duplicate) {
+        if (duplicate.task.threadId !== request.threadId) { throw new BadRequestError("Request identity belongs to another conversation."); }
         return duplicate.task as AiTask;
       }
       const active = await db.query(
@@ -280,13 +285,22 @@ export async function createRun(
         throw new BadRequestError("Another AI run is active in this project.");
       }
       const unresolved = await db.query(
-        `SELECT t.id FROM ai_tool_call t JOIN ai_run r ON r.id=t."runId" WHERE r."projectId"=$1 AND (t.call->>'uncertain'='true' OR (t.call->>'status'='executing' AND t.call->>'name' NOT IN ('read','queryElements','getEditorContext','selectElement','scrollElementIntoView','navigate','validate','save'))) LIMIT 1`,
+        `SELECT r.id FROM ai_run r WHERE r."projectId"=$1 AND (r.task->>'needsReconciliation'='true' OR EXISTS (SELECT 1 FROM ai_tool_call t WHERE t."runId"=r.id AND (t.call->>'uncertain'='true' OR (t.call->>'status'='executing' AND t.call->>'name' NOT IN ('read','queryElements','getEditorContext','selectElement','scrollElementIntoView','navigate','validate','save'))))) LIMIT 1`,
         [projectId],
       );
       if (unresolved.length) {
         throw new BadRequestError(
           "Verify saved design to reconcile an unconfirmed editor operation before another request.",
         );
+      }
+      const [existingThread] = await db.query(`SELECT * FROM ai_thread WHERE id=$1`, [request.threadId]);
+      if (existingThread && (existingThread.projectId !== projectId || existingThread.branchId !== request.binding.branchId)) {
+        throw new ForbiddenError("Conversation does not belong to the current project and branch.");
+      }
+      if (existingThread?.archivedAt) { throw new BadRequestError("Restore this conversation before sending another message."); }
+      if (!existingThread) {
+        const title = request.prompt.replace(/\s+/g, " ").slice(0, 60);
+        await db.query(`INSERT INTO ai_thread(id,"projectId","branchId",title,"createdBy") VALUES($1,$2,$3,$4,$5)`, [request.threadId, projectId, request.binding.branchId, title, authorId]);
       }
       const references = files.map(
         ({ objectKey: _key, ...metadata }) => metadata,
@@ -304,6 +318,7 @@ export async function createRun(
       }));
       const task: AiTask = {
         id,
+        threadId: request.threadId,
         authorId,
         authorName,
         nodes,
@@ -323,7 +338,7 @@ export async function createRun(
       };
       const { attachments: _attachments, ...storedRequest } = request;
       await db.query(
-        `INSERT INTO ai_run(id,"projectId","authorId","clientRequestId",request,task,"createdAt") VALUES($1,$2,$3,$4,$5,$6,$7)`,
+        `INSERT INTO ai_run(id,"projectId","authorId","clientRequestId",request,task,"createdAt","threadId") VALUES($1,$2,$3,$4,$5,$6,$7,$8)`,
         [
           id,
           projectId,
@@ -332,6 +347,7 @@ export async function createRun(
           storedRequest,
           task,
           task.createdAt,
+          request.threadId,
         ],
       );
       const userParts: AiMessagePart[] = [
@@ -353,6 +369,8 @@ export async function createRun(
           [file.id, id, metadata, objectKey],
         );
       }
+      await db.query(`UPDATE ai_thread SET "lastMessageAt"=$2 WHERE id=$1`, [request.threadId, task.createdAt]);
+      await emitThread(db, projectId, request.threadId);
       await emitTask(db, task);
       return task;
     });
@@ -365,15 +383,16 @@ export async function createRun(
     throw error;
   }
 }
-export async function history(projectId: string, before?: string) {
+export async function history(projectId: string, before?: string, threadId?: string) {
   return getConnection().transaction("REPEATABLE READ", async (db) => {
+    if (threadId) { await getThread(projectId, threadId, db); }
     const [conversation] = await db.query(
       `SELECT seq FROM ai_conversation WHERE "projectId"=$1`,
       [projectId],
     );
     const rows = await db.query(
-      `SELECT task FROM ai_run WHERE "projectId"=$1 AND ($2::uuid IS NULL OR ("createdAt",id)<(SELECT "createdAt",id FROM ai_run WHERE id=$2 AND "projectId"=$1)) ORDER BY "createdAt" DESC,id DESC LIMIT 31`,
-      [projectId, before ?? null],
+      `SELECT task FROM ai_run WHERE "projectId"=$1 AND ($3::uuid IS NULL OR "threadId"=$3) AND ($2::uuid IS NULL OR ("createdAt",id)<(SELECT "createdAt",id FROM ai_run WHERE id=$2 AND "projectId"=$1 AND ($3::uuid IS NULL OR "threadId"=$3))) ORDER BY "createdAt" DESC,id DESC LIMIT 31`,
+      [projectId, before ?? null, threadId ?? null],
     );
     const page = rows
       .slice(0, 30)
@@ -458,6 +477,9 @@ export async function toolCall(
     }
     if (row.status !== "running") {
       throw new Error("Run stopped");
+    }
+    if (row.task.intent === "discuss" && !["read", "queryElements", "getEditorContext"].includes(name)) {
+      throw new ForbiddenError("Discussion tasks can only read the current design.");
     }
     if (
       retryOf &&

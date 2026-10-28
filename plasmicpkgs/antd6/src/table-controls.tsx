@@ -1,7 +1,8 @@
 import type { CustomControlProps } from "@plasmicapp/host";
+import { Checkbox, Input, type CheckboxProps } from "antd";
 import React from "react";
 
-// Controls are portaled into Studio's document; use native inputs with local styles.
+// StudioControlsProvider supplies the editor theme and target document styles.
 const rowStyle: React.CSSProperties = {
   display: "flex",
   alignItems: "center",
@@ -9,23 +10,18 @@ const rowStyle: React.CSSProperties = {
   gap: 8,
 };
 const inputStyle: React.CSSProperties = {
-  appearance: "auto",
   width: 120,
   minWidth: 0,
-  height: 26,
-  border: "1px solid #ddd",
-  borderRadius: 4,
-  padding: "2px 6px",
-  boxSizing: "border-box",
-  background: "white",
-  color: "#333",
-  font: "inherit",
+  flexShrink: 0,
 };
-const checkboxStyle: React.CSSProperties = {
-  appearance: "auto",
-  width: 16,
-  height: 16,
-  accentColor: "#1677ff",
+const checkboxStyles: CheckboxProps["styles"] = {
+  root: {
+    ...rowStyle,
+    flexDirection: "row-reverse",
+    gap: 0,
+    font: "inherit",
+  },
+  label: { flex: 1, paddingInlineStart: 0, paddingInlineEnd: 8 },
 };
 
 /** Edits the real pagination prop, preserving options not exposed by these controls. */
@@ -37,30 +33,31 @@ export function TablePaginationControl({
   const options = value && typeof value === "object" ? value : {};
   const update = (key: string, next: unknown) => {
     const result = { ...options };
-    if (next == null) delete result[key];
-    else result[key] = next;
+    if (next == null) {
+      delete result[key];
+    } else {
+      result[key] = next;
+    }
     updateValue(result);
   };
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-      <label style={rowStyle}>
-        Show pagination{" "}
-        <input
-          type="checkbox"
-          style={checkboxStyle}
-          aria-label="Show pagination"
-          checked={value !== false}
-          onChange={(e) =>
-            updateValue(e.target.checked ? { ...options } : false)
-          }
-        />
-      </label>
+      <Checkbox
+        styles={checkboxStyles}
+        checked={value !== false}
+        onChange={(e) =>
+          updateValue(e.target.checked ? { ...options } : false)
+        }
+      >
+        Show pagination
+      </Checkbox>
       {value !== false && (
         <>
           <label style={rowStyle}>
             Page size{" "}
-            <input
+            <Input
               type="number"
+              size="small"
               style={inputStyle}
               aria-label="Page size"
               min={1}
@@ -68,7 +65,9 @@ export function TablePaginationControl({
               value={options.pageSize ?? options.defaultPageSize ?? ""}
               placeholder="10"
               onChange={(e) => {
-                if (!e.target.validity.valid) return;
+                if (!e.target.validity.valid) {
+                  return;
+                }
                 update(
                   options.pageSize !== undefined
                     ? "pageSize"
@@ -78,29 +77,23 @@ export function TablePaginationControl({
               }}
             />
           </label>
-          <label style={rowStyle}>
-            Show size changer{" "}
-            <input
-              type="checkbox"
-              style={checkboxStyle}
-              aria-label="Show size changer"
-              checked={
-                options.showSizeChanger ??
-                (options.total ?? componentProps?.data?.data?.length ?? 0) > 50
-              }
-              onChange={(e) => update("showSizeChanger", e.target.checked)}
-            />
-          </label>
-          <label style={rowStyle}>
-            Show quick jumper{" "}
-            <input
-              type="checkbox"
-              style={checkboxStyle}
-              aria-label="Show quick jumper"
-              checked={options.showQuickJumper ?? false}
-              onChange={(e) => update("showQuickJumper", e.target.checked)}
-            />
-          </label>
+          <Checkbox
+            styles={checkboxStyles}
+            checked={
+              options.showSizeChanger ??
+              (options.total ?? componentProps?.data?.data?.length ?? 0) > 50
+            }
+            onChange={(e) => update("showSizeChanger", e.target.checked)}
+          >
+            Show size changer
+          </Checkbox>
+          <Checkbox
+            styles={checkboxStyles}
+            checked={options.showQuickJumper ?? false}
+            onChange={(e) => update("showQuickJumper", e.target.checked)}
+          >
+            Show quick jumper
+          </Checkbox>
         </>
       )}
     </div>
@@ -114,16 +107,20 @@ export function TableScrollControl({
   const options = value && typeof value === "object" ? value : {};
   const update = (key: string, next: unknown) => {
     const result = { ...options };
-    if (next == null || next === "") delete result[key];
-    else result[key] = next;
+    if (next == null || next === "") {
+      delete result[key];
+    } else {
+      result[key] = next;
+    }
     updateValue(result);
   };
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
       <label style={rowStyle}>
         Horizontal scroll width{" "}
-        <input
+        <Input
           type="text"
+          size="small"
           style={inputStyle}
           aria-label="Horizontal scroll width"
           value={options.x ?? ""}
@@ -139,15 +136,18 @@ export function TableScrollControl({
       </label>
       <label style={rowStyle}>
         Table body height{" "}
-        <input
+        <Input
           type="number"
+          size="small"
           style={inputStyle}
           aria-label="Table body height"
           min={1}
           value={options.y ?? ""}
           placeholder="Grow with content"
           onChange={(e) => {
-            if (!e.target.validity.valid) return;
+            if (!e.target.validity.valid) {
+              return;
+            }
             update("y", e.target.value === "" ? null : Number(e.target.value));
           }}
         />

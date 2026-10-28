@@ -69,6 +69,7 @@ export const CanvasViewControls = observer(function CanvasViewControls({
 }) {
   const { t } = useI18n();
   const { styles } = useStyles();
+  const contentView = studioCtx?.viewCtxs.find((vc) => vc.contentEditor.target);
   const frame =
     studioCtx?.focusedContentFrame() ??
     getArenaFrames(studioCtx?.currentArena)[0];
@@ -93,7 +94,8 @@ export const CanvasViewControls = observer(function CanvasViewControls({
           }
           onClick={() => {
             if (studioCtx && frame) {
-              studioCtx.tryZoomToFitFrame(frame, 1);
+              if (contentView) { contentView.contentEditor.locate(); }
+              else { studioCtx.tryZoomToFitFrame(frame, 1); }
             }
           }}
         />
@@ -127,6 +129,7 @@ export const CanvasViewControls = observer(function CanvasViewControls({
             if (!studioCtx) {
               return;
             }
+            if (contentView) { contentView.contentEditor.locate(true); return; }
             studioCtx.returnToCanvasOverview();
             if (studioCtx.focusedMode) {
               studioCtx.turnFocusedModeOff();

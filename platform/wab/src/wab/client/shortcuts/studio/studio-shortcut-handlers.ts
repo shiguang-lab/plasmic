@@ -275,6 +275,11 @@ export function bindStudioShortcutHandlers(studioCtx: StudioCtx) {
               // has been called by checking the cancelBubble flag!
               // If no one else has handled this ESCAPE, then de-select whatever
               // we're currently selecting on the canvas.
+              const contentView = sc.viewCtxs.find((view) => view.contentEditor.target);
+              if (contentView) {
+                contentView.contentEditor.exit();
+                return;
+              }
               const vc = sc.focusedViewCtx();
               if (vc) {
                 vc.setStudioFocusBySelectable(null);

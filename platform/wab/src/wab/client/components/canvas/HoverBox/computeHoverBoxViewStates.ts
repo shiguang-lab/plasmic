@@ -181,7 +181,7 @@ export function computeHoverBoxViewState(vc: ViewCtx, target: HoverBoxTarget) {
 
   const { node, focusObj } = target;
 
-  if (node == null || node[0] == null || !hasLayoutBox(node[0]) || !focusObj) {
+  if (node == null || !node.toArray().some(hasLayoutBox) || !focusObj) {
     return { display: "none" };
   }
 

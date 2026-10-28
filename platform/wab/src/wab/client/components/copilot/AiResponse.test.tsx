@@ -40,6 +40,7 @@ function task(
 ): AiTask {
   return {
     id: "run",
+    threadId: "thread",
     authorId: "user",
     createdAt: "2026-10-14T00:00:00Z",
     prompt: "Inspect page",

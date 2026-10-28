@@ -334,7 +334,7 @@ it.each([
     type: "function",
     function: { name: "resolveIntent" },
   });
-  expect(body.messages[0].content).toContain("when intent is ambiguous");
+  expect(body.messages[0].content).toContain("Choose discuss");
 });
 
 it("rejects a model outside the server catalog before calling the provider", async () => {

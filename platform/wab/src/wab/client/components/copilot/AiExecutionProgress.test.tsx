@@ -36,6 +36,7 @@ const binding = {
 function task(overrides: Partial<AiTask> = {}): AiTask {
   return {
     id: "task",
+    threadId: "thread",
     authorId: "user",
     createdAt: "2026-10-13T00:00:00Z",
     prompt: "Update title",

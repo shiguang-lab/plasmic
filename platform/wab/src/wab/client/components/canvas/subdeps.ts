@@ -12,6 +12,7 @@ import type {
 import type * as ReactWeb from "@plasmicapp/react-web";
 import type * as PlasmicDataSources from "@plasmicapp/react-web/lib/data-sources";
 import type * as PlasmicQuery from "@plasmicapp/react-web/lib/query";
+import type { ThemeConfig } from "antd";
 import type domAlign from "dom-align";
 import type $ from "jquery";
 import type React from "react";
@@ -61,7 +62,7 @@ export type SubDeps = {
 
 // Make sure this matches the type in canvas-packages/src/index.ts
 interface CanvasPkgs {
-  StudioControlsProvider: React.ComponentType<{ studioDocument: Document; children?: React.ReactNode }>;
+  StudioControlsProvider: React.ComponentType<{ studioDocument: Document; theme: ThemeConfig | undefined; children?: React.ReactNode }>;
   ResizeObserver: typeof ResizeObserver;
   GenericErrorBoundary: React.ComponentType<{ className?: string }>;
   slate: typeof slate;

@@ -10,6 +10,7 @@ import {
   nativeAntd6EnUS,
   nativeAntd6ZhCN,
 } from "@shiguang-lab/plasmic-antd6";
+import type { ThemeConfig } from "antd";
 import type domAlign from "dom-align";
 import { toPng } from "html-to-image";
 import type React from "react";
@@ -24,7 +25,7 @@ import { createModal } from "./modals";
 // Types copied from subdeps.ts to verify compatibility
 // TODO: wab should depend on canvas-packages
 interface CanvasPkgs {
-  StudioControlsProvider: React.ComponentType<{ studioDocument: Document; children?: React.ReactNode }>;
+  StudioControlsProvider: React.ComponentType<{ studioDocument: Document; theme: ThemeConfig | undefined; children?: React.ReactNode }>;
   Antd6: typeof nativeAntd6 & {
     localeZhCN: typeof nativeAntd6ZhCN;
     localeEnUS: typeof nativeAntd6EnUS;

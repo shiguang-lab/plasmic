@@ -12,13 +12,24 @@ import * as React from "react";
 export class RemoteAiSessionView implements AiSessionView {
   private state: AiSessionSnapshot = {
     tasks: [],
+    before: undefined,
+    threadListBefore: undefined,
+    activeThreadId: "",
+    branchId: null,
+    activeThread: undefined,
+    threads: [],
+    threadFilter: { query: "", archived: false },
+    threadListLoading: false,
+    historyLoading: false,
+    scrollTop: -1,
     selectedModel: undefined,
     draft: { prompt: "", attachments: [] },
     running: false,
     stoppable: [],
     undoable: [],
   };
-  private pendingDraft?: AiSessionView["draft"];
+  private pendingDrafts = new Map<string, AiSessionView["draft"]>();
+  private pendingThreadId?: string;
   private pendingModel: { value: string | undefined } | undefined;
   private listeners = new Set<() => void>();
   constructor(
@@ -28,11 +39,27 @@ export class RemoteAiSessionView implements AiSessionView {
   update = (state: AiSessionSnapshot) => {
     // Stream snapshots arrive in order, but may echo an earlier keystroke
     // while a newer local edit is still travelling to the top frame.
-    if (this.pendingDraft) {
-      if (isEqual(state.draft, this.pendingDraft)) {
-        this.pendingDraft = undefined;
+    if (this.pendingThreadId) {
+      if (state.activeThreadId === this.pendingThreadId) {
+        this.pendingThreadId = undefined;
       } else {
-        state = { ...state, draft: this.pendingDraft };
+        state = {
+          ...state,
+          activeThreadId: this.state.activeThreadId,
+          activeThread: this.state.activeThread,
+          draft: this.state.draft,
+          before: this.state.before,
+          historyLoading: this.state.historyLoading,
+          scrollTop: this.state.scrollTop,
+        };
+      }
+    }
+    const pendingDraft = this.pendingDrafts.get(state.activeThreadId);
+    if (pendingDraft) {
+      if (!this.pendingThreadId && isEqual(state.draft, pendingDraft)) {
+        this.pendingDrafts.delete(state.activeThreadId);
+      } else {
+        state = { ...state, draft: pendingDraft };
       }
     }
     if (this.pendingModel) {
@@ -58,6 +85,50 @@ export class RemoteAiSessionView implements AiSessionView {
   get tasks() {
     return this.state.tasks;
   }
+  get visibleTasks() {
+    return this.state.tasks.filter(
+      (task) => task.threadId === this.activeThreadId,
+    );
+  }
+  get activeThreadId() {
+    return this.state.activeThreadId;
+  }
+  get branchId() {
+    return this.state.branchId;
+  }
+  get activeThread() {
+    return this.state.activeThread;
+  }
+  get activeRun() {
+    return this.state.tasks.find((task) => task.status === "running");
+  }
+  get blockingTask() {
+    return this.state.tasks.find(
+      (task) => task.status === "running" || task.needsReconciliation,
+    );
+  }
+  get threads() {
+    return this.state.threads;
+  }
+  get threadFilter() {
+    return this.state.threadFilter;
+  }
+  get threadListBefore() {
+    return this.state.threadListBefore;
+  }
+  get threadListLoading() {
+    return this.state.threadListLoading;
+  }
+  get historyLoading() {
+    return this.state.historyLoading;
+  }
+  get scrollTop() {
+    return this.state.scrollTop;
+  }
+  set scrollTop(value: number) {
+    this.state = { ...this.state, scrollTop: value };
+    void this.send({ type: "scroll", value, threadId: this.activeThreadId });
+  }
   get error() {
     return this.state.error;
   }
@@ -71,10 +142,10 @@ export class RemoteAiSessionView implements AiSessionView {
     return this.state.draft;
   }
   set draft(value: AiSessionView["draft"]) {
-    this.pendingDraft = value;
+    this.pendingDrafts.set(this.activeThreadId, value);
     this.state = { ...this.state, draft: value, tasks: [...this.state.tasks] };
     this.notify();
-    void this.send({ type: "draft", value });
+    void this.send({ type: "draft", value, threadId: this.activeThreadId });
   }
   get selectedModel() {
     return this.state.selectedModel;
@@ -98,7 +169,64 @@ export class RemoteAiSessionView implements AiSessionView {
     this.state.undoable.includes(record.id);
   private send = (action: AiSessionAction) =>
     this.api.updateAiSession(this.projectId, action);
-  run: AiSessionView["run"] = (...args) => this.send({ type: "run", args });
+  run: AiSessionView["run"] = (
+    prompt,
+    binding,
+    target,
+    attachments,
+    model,
+    threadId = this.activeThreadId,
+  ) =>
+    this.send({
+      type: "run",
+      args: [prompt, binding, target, attachments, model, threadId],
+    });
+  private beginSelection(id: string) {
+    this.pendingThreadId = id;
+    this.state = {
+      ...this.state,
+      activeThreadId: id,
+      activeThread: this.threads.find((thread) => thread.id === id),
+      draft: this.pendingDrafts.get(id) ?? { prompt: "", attachments: [] },
+      before: undefined,
+      historyLoading: true,
+      scrollTop: 0,
+      tasks: [...this.tasks],
+    };
+    this.notify();
+  }
+  newThread: AiSessionView["newThread"] = (id = crypto.randomUUID()) => {
+    this.beginSelection(id);
+    void this.send({ type: "newThread", args: [id] });
+  };
+  selectThread: AiSessionView["selectThread"] = (id) => {
+    return this.send({ type: "selectThread", args: [id] });
+  };
+  searchThreads: AiSessionView["searchThreads"] = (...args) =>
+    this.send({ type: "searchThreads", args });
+  updateThread: AiSessionView["updateThread"] = (...args) =>
+    this.send({ type: "updateThread", args });
+  setThreadAttachments: AiSessionView["setThreadAttachments"] = (
+    id,
+    attachments,
+  ) => {
+    if (id === this.activeThreadId) {
+      this.state = {
+        ...this.state,
+        draft: { ...this.state.draft, attachments },
+        tasks: [...this.tasks],
+      };
+      this.notify();
+    }
+    const pending = this.pendingDrafts.get(id);
+    if (pending || id === this.activeThreadId) {
+      this.pendingDrafts.set(id, {
+        ...(pending ?? this.state.draft),
+        attachments,
+      });
+    }
+    void this.send({ type: "setThreadAttachments", args: [id, attachments] });
+  };
   stop: AiSessionView["stop"] = (...args) => this.send({ type: "stop", args });
   loadEarlier: AiSessionView["loadEarlier"] = (...args) =>
     this.send({ type: "loadEarlier", args });

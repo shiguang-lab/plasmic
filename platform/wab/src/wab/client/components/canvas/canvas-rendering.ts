@@ -1807,7 +1807,13 @@ function renderTplComponent(
 
   if (isCodeComponent(node.component)) {
     const codeComponentSelectionInfo = getAutoOpenSelectionInfo(ctx, node);
-    props[INTERNAL_CC_CANVAS_SELECTION_PROP] = codeComponentSelectionInfo;
+    props[INTERNAL_CC_CANVAS_SELECTION_PROP] = {
+      ...codeComponentSelectionInfo,
+      isEditingContents:
+        !ctx.viewCtx.studioCtx.isInteractiveMode &&
+        !ctx.viewCtx.canvasExporting.get() &&
+        ctx.viewCtx.contentEditor.isExpanded(computeFullKey(ctx)),
+    };
     if (supportsCanvasOverlay(node) && ctx.viewCtx.canvasExporting.get()) {
       props.previewOpen = undefined;
     } else if (

@@ -1,3 +1,5 @@
+import { getContentEditorTarget } from "@/wab/client/studio-ctx/canvas-content-editor";
+import { CanvasContentEditorControls } from "@/wab/client/components/canvas/CanvasContentEditorControls";
 import { StudioLoading } from "@/wab/client/components/widgets/StudioLoading";
 import { translate } from "@/wab/client/i18n/locales";
 
@@ -565,6 +567,10 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
         this.handleHotkey(e, async () =>
           this.props.studioCtx.changeUnsafe(() => {
             const vc = this.ensureViewCtx();
+            if (getContentEditorTarget(vc)) {
+              void vc.contentEditor.enter();
+              return;
+            }
             const focusObj = vc.focusedSelectable();
             if (!focusObj) {
               return;
@@ -2274,6 +2280,7 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
               )}
               <PlayerCursors />
               <FocusedModeToolbar studioCtx={studioCtx} />
+              {studioCtx.showDevControls && <CanvasContentEditorControls studioCtx={studioCtx} />}
               {studioCtx.showDevControls && (
                 <CanvasViewControls studioCtx={studioCtx} />
               )}

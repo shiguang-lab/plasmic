@@ -1,0 +1,70 @@
+{
+  "date": "2026-10-28",
+  "scope": "AI assistant conversations, shared canvas composer, guidance and discussion workflow",
+  "checks": {
+    "focusedRegression": {
+      "files": 22,
+      "tests": 239,
+      "passed": true
+    },
+    "finalPromptAndPanelRegression": {
+      "files": 2,
+      "tests": 28,
+      "passed": true
+    },
+    "typecheck": {
+      "command": "pnpm typecheck --noErrorTruncation false",
+      "exitCode": 0
+    },
+    "eslint": {
+      "changedProductionFiles": 23,
+      "exitCode": 0
+    },
+    "databaseIntegration": {
+      "tests": 18,
+      "database": "isolated PostgreSQL 15",
+      "objectStorage": "authenticated local SeaweedFS S3 API",
+      "passed": true,
+      "includes": [
+        "topic and branch isolation",
+        "search and stable directory pagination",
+        "archive and restoration",
+        "idempotency ownership",
+        "read-only discussion enforcement",
+        "migration preserves historical messages and attachments",
+        "unconfirmed task prevents archive and new runs",
+        "private attachments reject anonymous access"
+      ]
+    },
+    "browser": {
+      "surface": "actual React components with isolated fixture data",
+      "passed": true,
+      "checks": [
+        "canvas and panel share active conversation and draft",
+        "history picker search and selection",
+        "collapse preserves active conversation",
+        "explicit new topic preserves other drafts",
+        "canvas send submits once to selected conversation",
+        "light and dark themes",
+        "no horizontal overflow at viewport widths 1280, 820 and 600",
+        "history scroll position restored from 700px to 700px"
+      ],
+      "pageErrors": []
+    }
+  },
+  "broaderRegression": {
+    "files": 33,
+    "passedTests": 406,
+    "failedTests": 4,
+    "failureAreas": [
+      "three existing browser import expectations about the Workspace canvas and undo",
+      "content-editing translations missing Content editing and Exit content editing keys in Japanese and Korean"
+    ],
+    "note": "These failures are outside the conversation implementation; the affected behavior was not changed for this task."
+  },
+  "deployment": {
+    "appliedToActualService": false,
+    "migration": "platform/wab/src/wab/server/migrations/1793145600000-AiThreads.ts",
+    "note": "Migration exercised only against the isolated integration database."
+  }
+}

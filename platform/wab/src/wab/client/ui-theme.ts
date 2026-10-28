@@ -42,6 +42,7 @@ function syncDesktopAppearance() {
 }
 const notify = () => {
   document.documentElement.dataset.uiAppearance = getUiAppearance();
+  document.documentElement.style.colorScheme = getUiAppearance();
   syncDesktopAppearance();
   listeners.forEach((listener) => listener());
 };

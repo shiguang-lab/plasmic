@@ -657,8 +657,10 @@ export const CanvasFrame = observer(function CanvasFrame({
     return () => dispose();
   }, [makeFrameHash, iframeRef.current]);
 
+  const contentView = studioCtx.viewCtxs.find((vc) => vc.contentEditor.target);
+  const contentSize = maybeViewCtx()?.contentEditor.size.get();
   return (
-    <div className={styles.root} onClick={handleSelectionClick}>
+    <div className={styles.root} onClick={handleSelectionClick} style={contentView && contentView.arenaFrame() !== arenaFrame ? { visibility: "hidden", pointerEvents: "none" } : undefined}>
       <div
         className={"CanvasFrame__Container"}
         style={
@@ -673,12 +675,12 @@ export const CanvasFrame = observer(function CanvasFrame({
                   arenaFrame.top,
                   () => "Expected arenaFrame.top to exist",
                 ),
-                width: arenaFrame.width,
-                height: getFrameHeight(arenaFrame),
+                width: contentSize?.width ?? arenaFrame.width,
+                height: contentSize?.height ?? getFrameHeight(arenaFrame),
               }
             : {
-                width: arenaFrame.width,
-                height: getFrameHeight(arenaFrame),
+                width: contentSize?.width ?? arenaFrame.width,
+                height: contentSize?.height ?? getFrameHeight(arenaFrame),
               }
         }
         data-frame-id={`${arenaFrame.uid}`}
@@ -746,6 +748,7 @@ export const CanvasFrame = observer(function CanvasFrame({
           </div>
         )}
 
+        {!contentSize && <>
         <CanvasHeader studioCtx={studioCtx} frame={arenaFrame} arena={arena} />
         <XDraggable
           onStart={(e) => startMove(e)}
@@ -765,6 +768,7 @@ export const CanvasFrame = observer(function CanvasFrame({
             <CanvasCommentMarkers arena={arena} arenaFrame={arenaFrame} />
           )}
         <CanvasActions arena={arena} arenaFrame={arenaFrame} />
+        </>}
         <CopilotActivityOverlay studioCtx={studioCtx} frame={arenaFrame} />
       </div>
     </div>

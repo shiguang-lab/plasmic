@@ -62,6 +62,33 @@ function Canvas({
   );
 }
 
+test.each([
+  [false, false],
+  [false, true],
+  [true, false],
+  [true, true],
+])("Table forwards className and style with interactive=%s and native columns=%s", (interactive, nativeColumns) => {
+  const { container } = render(
+    <Canvas interactive={interactive}>
+      <AntdTable
+        className="studio-table studio-size"
+        style={{ width: 640, marginTop: 12 }}
+        data={data}
+        rowKey="id"
+        pagination={false}
+        {...(nativeColumns
+          ? { columns: [{ title: "Name", dataIndex: "name" }] }
+          : { children: <AntdColumn title="Name" dataIndex="name" /> })}
+      />
+    </Canvas>,
+  );
+  const root = container.querySelector<HTMLElement>(".ant-table-wrapper");
+  expect(root?.classList.contains("studio-table")).toBe(true);
+  expect(root?.classList.contains("studio-size")).toBe(true);
+  expect(root?.style.width).toBe("640px");
+  expect(root?.style.marginTop).toBe("12px");
+});
+
 // Studio walks the DOM's React Fiber ancestors to find the authored node.
 function authoredKey(element: Element) {
   const key = Object.keys(element).find(

@@ -7,6 +7,7 @@ import {
 import { localAiAttachmentsSchema } from "@/wab/shared/copilot/local-edit";
 import {
   cleanup,
+  act,
   fireEvent,
   render,
   screen,
@@ -15,6 +16,35 @@ import {
 import React from "react";
 
 afterEach(cleanup);
+
+it("keeps overlapping file reads attached to their own conversation and reading state", async () => {
+  const readers: FileReader[] = [];
+  const read = vi.spyOn(FileReader.prototype, "readAsText").mockImplementation(function(this: FileReader) {readers.push(this);});
+  const updated = vi.fn();
+  function Scoped({scope}: {scope: string}) {
+    const state = useAiAttachments([], files => updated(scope, files), scope);
+    return <><button onClick={() => void state.add([new File([scope], `${scope}.md`)])}>Read</button><span data-testid="reading">{String(state.reading)}</span></>;
+  }
+  const view = render(<Scoped scope="a" />);
+  try {
+    fireEvent.click(screen.getByRole("button", {name: "Read"}));
+    view.rerender(<Scoped scope="b" />);
+    fireEvent.click(screen.getByRole("button", {name: "Read"}));
+    expect(readers).toHaveLength(2);
+    await act(async () => {
+      Object.defineProperty(readers[0], "result", {value: "A requirements"});
+      readers[0].dispatchEvent(new ProgressEvent("load"));
+    });
+    expect(updated).toHaveBeenCalledWith("a", [{type: "text", name: "a.md", text: "A requirements"}]);
+    expect(screen.getByTestId("reading").textContent).toBe("true");
+    await act(async () => {
+      Object.defineProperty(readers[1], "result", {value: "B requirements"});
+      readers[1].dispatchEvent(new ProgressEvent("load"));
+    });
+    expect(updated).toHaveBeenCalledWith("b", [{type: "text", name: "b.md", text: "B requirements"}]);
+    expect(screen.getByTestId("reading").textContent).toBe("false");
+  } finally {read.mockRestore();}
+});
 
 it.each(["iframe", "outside", "escape"])(
   "closes the attachment menu on %s without clearing chosen files",

@@ -1,6 +1,7 @@
 import { applyAiEvent, type AiTask } from "@/wab/shared/copilot/ai-chat";
 const task: AiTask = {
   id: "run",
+  threadId: "thread",
   seq: 1,
   authorId: "user",
   createdAt: "2026-10-14",

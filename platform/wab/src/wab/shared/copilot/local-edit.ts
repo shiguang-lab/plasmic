@@ -62,18 +62,20 @@ export const localAiIntentRequestSchema = z
   .object({
     prompt: z.string().trim().min(1).max(10000),
     hasCurrentPage: z.boolean(),
+    allowPageCreation: z.boolean().optional(),
+    conversation: z.string().max(14000).optional(),
     model: z.string().min(1).max(200).optional(),
   })
   .strict();
 export const localAiIntentSchema = z.discriminatedUnion("mode", [
   z.object({ mode: z.literal("edit") }).strict(),
+  z.object({ mode: z.literal("discuss") }).strict(),
   z
     .object({
       mode: z.literal("page"),
       name: z
         .string()
-        .max(100)
-        .regex(/^[A-Z][A-Za-z0-9]*$/),
+        .min(1).max(100),
       path: z
         .string()
         .max(200)
@@ -145,6 +147,7 @@ export type LocalEditStep = z.infer<typeof localEditStepSchema>;
 export const localEditRequestSchema = z
   .object({
     binding: localEditBindingSchema,
+    intent: z.enum(["discuss", "edit", "page"]).optional(),
     prompt: z.string().trim().min(1).max(10000),
     resources: z.string().max(600000),
     model: z.string().min(1).max(200).optional(),

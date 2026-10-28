@@ -26,7 +26,7 @@ import { codeLit } from "@/wab/shared/core/exprs";
 import { SlotSelection } from "@/wab/shared/core/slots";
 import { RenderExpr, TplComponent } from "@/wab/shared/model/classes";
 import { Action, ActionProps, PlasmicElement } from "@plasmicapp/host";
-import { notification } from "antd";
+import { ConfigProvider, notification } from "antd";
 import domAlign from "dom-align";
 import $ from "jquery";
 import { observer } from "mobx-react";
@@ -110,6 +110,7 @@ export function useStudioOps(
 ): ActionProps<any>["studioOps"] {
   const canvasCtx = viewCtx.canvasCtx;
   const sub = canvasCtx.Sub;
+  const { theme } = React.useContext(ConfigProvider.ConfigContext);
   const root = React.useRef<Root | null>(null);
   const [modalProps, setModalProps] = React.useState<null | {
     onClose?: () => void;
@@ -141,7 +142,7 @@ export function useStudioOps(
     }
     const renderElement = sub.React.createElement(
       sub.StudioControlsProvider,
-      { studioDocument: node.ownerDocument },
+      { studioDocument: node.ownerDocument, theme },
       sub.React.createElement(
         sub.GenericErrorBoundary,
         {
@@ -162,7 +163,7 @@ export function useStudioOps(
     } else if (sub.ReactDOM.render) {
       sub.ReactDOM.render(renderElement, node);
     }
-  }, [modalProps, sub, node, FullScreenModal]);
+  }, [modalProps, sub, node, FullScreenModal, theme]);
 
   useUnmount(() => {
     if (root.current) {
@@ -474,6 +475,7 @@ function CustomAction<P>({
   tplComp: TplComponent;
 }) {
   const sub = viewCtx.canvasCtx.Sub;
+  const { theme } = React.useContext(ConfigProvider.ConfigContext);
   const actionContainerRef = React.useRef<HTMLDivElement>(null);
   const actionRoot = React.useRef<Root | null>(null);
   const modalContainerRef = React.useRef<HTMLDivElement>(null);
@@ -495,7 +497,7 @@ function CustomAction<P>({
     }
     const renderElement = sub.React.createElement(
       sub.StudioControlsProvider,
-      { studioDocument: node.ownerDocument },
+      { studioDocument: node.ownerDocument, theme },
       sub.React.createElement(
         sub.GenericErrorBoundary,
         {
@@ -521,6 +523,7 @@ function CustomAction<P>({
     ccContextData,
     studioOps,
     sub,
+    theme,
   ]);
 
   return (

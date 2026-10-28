@@ -3435,7 +3435,7 @@ export class StudioCtx extends WithDbCtx {
     }
   }
 
-  openCopilotChat(opts: CopilotChatOpenOpts) {
+  openCopilotChat(opts?: CopilotChatOpenOpts) {
     this.setLeftPanel({ type: "ai", opts });
   }
 
@@ -4746,7 +4746,7 @@ export class StudioCtx extends WithDbCtx {
     }
   }
 
-  private canvasZoomPadding() {
+  canvasZoomPadding() {
     const clipper = ensure(this.viewportCtx, "Canvas viewport is not ready")
       .clipperBox()
       .rect();

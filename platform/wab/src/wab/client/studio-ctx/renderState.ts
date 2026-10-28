@@ -1,11 +1,11 @@
 import { CanvasCtx } from "@/wab/client/components/canvas/canvas-ctx";
 import { getRealClassNames } from "@/wab/client/components/canvas/styles-name";
-import { SubDeps } from "@/wab/client/components/canvas/subdeps";
 import { Fiber } from "@/wab/client/react-global-hook/fiber";
 import {
   asArray,
   assert,
   ensureInstance,
+  isHTMLElt,
   maybe,
   removeWhere,
   withoutNils,
@@ -17,7 +17,9 @@ import {
   ValComponent,
   ValNode,
   ValSlot,
+  ValTextTag,
   cloneValNode,
+  writeableValNode,
 } from "@/wab/shared/core/val-nodes";
 import { TplNode } from "@/wab/shared/model/classes";
 import $ from "jquery";
@@ -119,6 +121,26 @@ class RenderStateImpl {
     const mergedVal = cloneValNode(registeredVals[0]);
     registeredVals.forEach((val) => mergedVal.merge(val));
 
+    if (mergedVal instanceof ValTextTag && registeredVals.length > 1) {
+      // Code components may render a clipped measurement copy of a text slot.
+      // Its handle must not replace the handle of the actual text on canvas.
+      const editableVal = registeredVals
+        .slice()
+        .reverse()
+        .find(
+          (val) =>
+            val instanceof ValTextTag &&
+            val.handle &&
+            val.fibers.some((fiber) =>
+              [...getDomNodesFromFiber(fiber, false)].some(
+                shouldAcceptAsMappedDomNode,
+              ),
+            ),
+        );
+      writeableValNode(mergedVal).handle =
+        editableVal instanceof ValTextTag ? editableVal.handle : undefined;
+    }
+
     let cachedValNode = this.cachedValNodes.get(fullKey)?.deref();
 
     if (!cachedValNode || cachedValNode.constructor !== mergedVal.constructor) {
@@ -219,13 +241,9 @@ class RenderStateImpl {
       const maybeFiber = bestPlaceholderKey
         ? this._fullSlotPlaceholderKey2fiber.get(bestPlaceholderKey)
         : undefined;
-      const win = cctx.win();
       return maybeFiber
-        ? withoutNils(
-            [...getDomNodesFromFiber(maybeFiber, win, cctx.Sub, false)].filter(
-              (v) =>
-                v && !(v instanceof win.Text) && shouldAcceptAsMappedDomNode(v),
-            ) as HTMLElement[],
+        ? [...getDomNodesFromFiber(maybeFiber, false)].filter(
+            shouldAcceptAsMappedDomNode,
           )
         : null;
     };
@@ -268,19 +286,13 @@ class RenderStateImpl {
     }
   }
 
-  val2dom(val: ValNode, cctx: CanvasCtx) {
-    const win = cctx.win();
+  val2dom(val: ValNode, _cctx: CanvasCtx) {
     const $doms = $(
       asArray(this._fullKey2vals.get(this.bestFullKeyForVal(val))).flatMap(
         ({ fibers }) =>
-          withoutNils(
-            fibers.flatMap((fiber) =>
-              [...getDomNodesFromFiber(fiber, win, cctx.Sub, false)].filter(
-                (v): v is HTMLElement =>
-                  !!v &&
-                  !(v instanceof win.Text) &&
-                  shouldAcceptAsMappedDomNode(v),
-              ),
+          fibers.flatMap((fiber) =>
+            [...getDomNodesFromFiber(fiber, false)].filter(
+              shouldAcceptAsMappedDomNode,
             ),
           ),
       ),
@@ -290,7 +302,9 @@ class RenderStateImpl {
         .map((cls) => `.${cls}`)
         .join("");
       if (!$doms.is(selector)) {
-        const $found = $doms.find(selector);
+        const $found = $doms
+          .find(selector)
+          .filter((_, element) => shouldAcceptAsMappedDomNode(element));
         if ($found.length > 0) {
           return $found.get();
         }
@@ -427,23 +441,17 @@ export function createRenderState(frameUid: number): RenderState {
 // renders to.
 function* getDomNodesFromFiber(
   fiber: Fiber,
-  win: typeof window,
-  sub: SubDeps,
   visitSiblings = true,
-): Generator<HTMLElement | Text | null> {
-  if (
-    fiber.stateNode != null &&
-    (fiber.stateNode instanceof win.HTMLElement ||
-      fiber.stateNode instanceof win.Text)
-  ) {
+): Generator<HTMLElement> {
+  if (isHTMLElt(fiber.stateNode)) {
     yield fiber.stateNode;
   } else if (fiber.child) {
     // function component
-    yield* getDomNodesFromFiber(fiber.child, win, sub);
+    yield* getDomNodesFromFiber(fiber.child);
   }
 
   if (visitSiblings && fiber.sibling) {
-    yield* getDomNodesFromFiber(fiber.sibling, win, sub);
+    yield* getDomNodesFromFiber(fiber.sibling);
   }
 }
 
@@ -456,6 +464,10 @@ function shouldAcceptAsMappedDomNode(element: HTMLElement) {
   if (!element.isConnected) {
     return false;
   }
+  // Components may render resource/metadata siblings alongside their visible roots.
+  if (element.matches("style, script, link, meta, title, base, template")) {
+    return false;
+  }
   if (element.hidden) {
     // react-aria also renders hidden elements as markers for start/end of
     // FocusScope
@@ -465,6 +477,25 @@ function shouldAcceptAsMappedDomNode(element: HTMLElement) {
     // react-aria <HiddenSelect/>, etc, which is rendered for accesssibility
     // but is absolutely positioned
     return false;
+  }
+  for (
+    let parent = element.parentElement;
+    parent;
+    parent = parent.parentElement
+  ) {
+    const style = parent.ownerDocument.defaultView?.getComputedStyle(parent);
+    const overflowX = style?.overflowX || style?.overflow;
+    const overflowY = style?.overflowY || style?.overflow;
+    if (
+      style?.display !== "contents" &&
+      style?.display !== "inline" &&
+      ((parent.clientHeight === 0 &&
+        (overflowY === "hidden" || overflowY === "clip")) ||
+        (parent.clientWidth === 0 &&
+          (overflowX === "hidden" || overflowX === "clip")))
+    ) {
+      return false;
+    }
   }
   return true;
 }
