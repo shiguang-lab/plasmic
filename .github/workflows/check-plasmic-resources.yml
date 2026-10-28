@@ -9,6 +9,7 @@ on:
       - 'scripts/plasmic-cli-artifact.mjs'
       - 'scripts/release-*.mjs'
       - 'scripts/github-release*.mjs'
+      - 'scripts/test-fixtures/**'
       - '.github/workflows/publish-*.yml'
       - 'packages/plasmic-cli/**'
       - 'desktop/tests/plasmic-resources.test.cjs'
@@ -23,6 +24,7 @@ on:
       - 'scripts/plasmic-cli-artifact.mjs'
       - 'scripts/release-*.mjs'
       - 'scripts/github-release*.mjs'
+      - 'scripts/test-fixtures/**'
       - '.github/workflows/publish-*.yml'
       - 'packages/plasmic-cli/**'
       - 'desktop/tests/plasmic-resources.test.cjs'
@@ -52,3 +54,5 @@ jobs:
           node --test scripts/validate-plasmic-component-coverage.test.mjs
           npm --prefix packages/plasmic-cli test
           node --test desktop/tests/plasmic-resources.test.cjs
+      - name: Verify fixed download routing with Caddy
+        run: node --test scripts/release-downloads.integration.test.mjs

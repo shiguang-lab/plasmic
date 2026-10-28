@@ -1,7 +1,12 @@
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import type { AiSessionView } from "@/wab/client/copilot/ai-session-view";
 import { useI18n } from "@/wab/client/i18n";
-import { DownOutlined, MoreOutlined, PlusOutlined } from "@ant-design/icons";
+import {
+  DownOutlined,
+  MessageOutlined,
+  MoreOutlined,
+  PlusOutlined,
+} from "@ant-design/icons";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import {
   Button,
@@ -23,6 +28,12 @@ const useStyles = createStyles(({ token }) => ({
     gap: 6,
     minWidth: 0,
     width: "100%",
+    minHeight: 28,
+    "& .ant-btn": { height: 24, paddingInline: 4, fontSize: 12 },
+    "& > .ant-btn": { flexShrink: 0, color: token.colorTextSecondary },
+    "& .ant-btn:not(:disabled):not(.ant-btn-disabled):hover": {
+      background: "transparent",
+    },
   },
   current: {
     display: "flex",
@@ -30,6 +41,7 @@ const useStyles = createStyles(({ token }) => ({
     flex: 1,
     minWidth: 0,
     "& > .ant-btn": { minWidth: 0, textAlign: "left" },
+    "& .anticon-down": { fontSize: 10 },
     "& .ant-btn > span:not(.anticon)": {
       overflow: "hidden",
       textOverflow: "ellipsis",
@@ -37,11 +49,12 @@ const useStyles = createStyles(({ token }) => ({
     },
   },
   title: {
-    flex: 1,
+    flex: "0 1 auto",
     minWidth: 0,
+    maxWidth: "100%",
     display: "flex",
     alignItems: "center",
-    justifyContent: "space-between",
+    justifyContent: "flex-start",
     gap: 6,
   },
   popup: {
@@ -140,6 +153,7 @@ export function AiThreadPicker({
     <Button
       type="text"
       size="small"
+      icon={!onOpen && <MessageOutlined />}
       className={onOpen ? undefined : styles.title}
       aria-label={t("Switch conversation")}
       aria-expanded={open}
@@ -159,6 +173,7 @@ export function AiThreadPicker({
               <Button
                 type="text"
                 size="small"
+                icon={<MessageOutlined />}
                 className={styles.title}
                 onClick={onOpen}
                 aria-label={t("Open conversation: {title}", { title })}

@@ -190,7 +190,7 @@ npx -y @plasmickit/cli@latest context resolve --mode prototype
 
 发布前运行 `node scripts/release-plan.mjs <tag>` 检查范围，设置 `RELEASE_FORCE_ALL=true` 检查强制全发布。选中 Desktop 时，其 package/lockfile 版本必须等于 tag，并有五语言发布说明；同时构建 Studio 时 `webImage` 指向该 tag，仅发布 Desktop 时指向已有镜像。校验失败则不开始构建。
 
-所有选中的任务成功后才公开同一个 GitHub Release。CLI/资源资产包含 `plasmic-cli.tgz`、`resources.json.gz`、`plasmic-latest.json` 和 `plasmic-manifest.json`；薄 Skill 已包含在 CLI 包中。资产上传后按大小和 SHA-256 验证，失败保留草稿供重跑。资源 artifact 仍包含原始 `latest.json` 和 `releases/<releaseId>/`，供现有 NAS 部署命令使用。Release 上传不会自动改 NAS、首尔代理或客户端地址。
+所有选中的任务成功后才公开同一个 GitHub Release。CLI/资源资产包含 `plasmic-cli.tgz`、`resources.json.gz`、`plasmic-latest.json` 和 `plasmic-manifest.json`；薄 Skill 已包含在 CLI 包中。每个实际发布的数字版本都包含六份公开 latest 清单，未更新产品沿用此前清单的原始字节、版本和下载地址。资产上传后按大小和 SHA-256 验证，失败保留草稿供重跑；全部就绪后才推进 GitHub latest。资源 artifact 仍包含原始 `latest.json` 和 `releases/<releaseId>/`，供 NAS 部署命令使用。固定首尔代理会自动跟随 latest，发布不修改代理配置或部署 NAS 服务。
 
 `MIN_CLI_VERSION` 位于 `src/protocol.mjs`，不得高于资源清单的 `cliVersion`。资源目录使用内容哈希 `releaseId`，记录所有文件和安装包的 SHA-256 与大小。
 
@@ -202,17 +202,17 @@ npx -y @plasmickit/cli@latest context resolve --mode prototype
 
 ## 部署公开资源下载
 
-公开 CLI/Skill 资源与 Desktop 下载由首尔 Caddy 从 GitHub Release 获取，客户端继续使用原有 `/desktop-updates/plasmic/` 地址。Release 成功后执行：
+公开 CLI/Skill 资源与 Desktop 下载由首尔 Caddy 从 GitHub Release 获取，客户端继续使用原有 `/desktop-updates/plasmic/` 地址。一次性安装固定规则：
 
 ```sh
-node scripts/release-downloads.mjs 0.5.0 /absolute/path/to/current/Caddyfile
+node scripts/release-downloads.mjs /absolute/path/to/current/Caddyfile
 ```
 
-命令校验已发布 Release 的资源哈希和大小，更新 `deploy/release-downloads.json` 与 Caddy 的 Plasmic 路由块。只推进本次 Release 含有的产品清单；资源单独发布不改变 Desktop，历史不可变资源地址保留。校验、备份并重载首尔 Caddy 后，检查公开资源清单、包哈希与 CLI resolve。GitHub 的签名跳转在服务端处理，客户端不接触 GitHub 地址，不需要将新资源上传 NAS。部署位置、回滚和验证要求见 [下载路由](../../deploy/README.md#release-download-routing)。
+latest 固定转发至 GitHub latest。资源按内容哈希存入固定的 `plasmic-resources` Release，文件名为 `<releaseId>-manifest.json`、`<releaseId>-plasmic-cli.tgz` 和 `<releaseId>-resources.json.gz`，已有哈希只读，新版本只追加；该 Release 永不设为 latest。发布器会补齐历史数字版本的资源。首次启用固定规则前，用当前发布器补齐最新数字 Release 的六份清单及资源；之后发布无需修改或重载 Caddy。GitHub 的两次跳转都在服务端处理。校验、部署位置、回滚和验证要求见 [下载路由](../../deploy/README.md#release-download-routing)。
 
 ### NAS 历史资源
 
-NAS 卷保留旧版资源，供尚未注册 GitHub 路由的历史地址读取。下面的命令只用于 NAS 托管的分发，不会推进首尔公开下载清单。从成功的资源 workflow 下载 `plasmic-resources-<tag>` artifact，解压后通过 `--from` 直接使用原始产物，保持 CLI 安装包与 npm 包字节一致。
+NAS 卷保留旧版资源，供 GitHub 缺失文件时按原地址回退读取。下面的命令只用于 NAS 托管的分发，不会推进首尔公开下载清单。从成功的资源 workflow 下载 `plasmic-resources-<tag>` artifact，解压后通过 `--from` 直接使用原始产物，保持 CLI 安装包与 npm 包字节一致。
 
 ```sh
 # 首次配置 nginx 和只读更新卷：

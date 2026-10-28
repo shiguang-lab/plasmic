@@ -46,7 +46,7 @@ const useStyles = createStyles(({ token }) => ({
     color: token.colorText,
     fontWeight: 400,
     border: `1px solid ${token.colorBorder}`,
-    borderRadius: 23,
+    borderRadius: 16,
     boxShadow: token.boxShadowSecondary,
     "& svg[data-ai-composer-icon]": {
       width: 16,
@@ -143,11 +143,11 @@ const useStyles = createStyles(({ token }) => ({
     display: "inline-flex",
     flexShrink: 0,
     "& .ant-btn": {
-      width: 30,
-      height: 30,
+      width: 28,
+      height: 28,
       padding: 0,
       boxShadow: "none",
-      borderRadius: "50%",
+      borderRadius: 8,
     },
     "& .ant-btn:disabled": {
       background: token.colorPrimary,

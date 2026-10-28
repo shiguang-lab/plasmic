@@ -407,18 +407,15 @@ The release image contains the installers and manifests built for that release.
 Ordinary releases cannot overwrite existing image versions; explicitly forced tag rebuilds are limited to versions not deployed on NAS. Make this GHCR package public so NAS
 deployments can pull it without GitHub credentials.
 
-After Actions succeeds, advance the public download routes from the repository root:
-
-```sh
-node scripts/release-downloads.mjs 0.5.0 /absolute/path/to/current/Caddyfile
-```
-
-Validate and reload the resulting Seoul Caddy configuration as described in
-[Release download routing](../deploy/README.md#release-download-routing). This uses
-the published installers directly and requires no large installer image pull on NAS.
-Desktop and resource feeds advance independently for partial releases; immutable
-paths remain registered. Historical NAS files remain the fallback for earlier
-versions. Downloads and `latest.json` retain
+After Actions succeeds, the fixed Seoul Caddy rules follow GitHub latest
+automatically. Install the rules once as described in
+[Release download routing](../deploy/README.md#release-download-routing).
+Each numeric Release includes all six feeds, reusing unchanged products' files
+byte-for-byte. Installer filenames determine their numeric Release tag; content
+hashes determine immutable CLI/Skill asset names in `plasmic-resources`.
+Releases need no proxy edits, reloads or large installer image pull on NAS.
+Historical NAS files remain the fallback for missing GitHub assets.
+Downloads and `latest.json` retain
 `https://plasmic-studio.shiguanglab.com/desktop-updates/`. JSON and YAML have
 `no-store` caching; versioned files are immutable and support HTTP ranges. CORS
 allows the website to fetch metadata and HEAD installer sizes without credentials.

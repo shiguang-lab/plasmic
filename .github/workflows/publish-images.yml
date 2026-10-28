@@ -40,7 +40,7 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0, Node 24
         with:
           node-version: 24
-      - run: node --test scripts/release-plan.test.mjs scripts/github-release.test.mjs
+      - run: node --test scripts/release-plan.test.mjs scripts/github-release.test.mjs scripts/release-downloads.test.mjs scripts/release-downloads.integration.test.mjs
       - id: plan
         env:
           RELEASE_TAG: ${{ inputs.release-tag || github.ref_name }}

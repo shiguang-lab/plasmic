@@ -24,16 +24,19 @@ All jobs use one verified source commit. Desktop OS tests run alongside Studio
 builds and are reused by the installer workflow only for the same commit.
 
 After all selected jobs succeed, one GitHub Release is published under the numeric
-tag. It contains only those products' downloadable assets: native installers,
-update ZIPs/blockmaps, architecture-specific update YAML, `desktop-latest.json`,
-`plasmic-cli.tgz`, `resources.json.gz`, `plasmic-latest.json` and
-`plasmic-manifest.json`, as applicable. Studio image references appear in the notes.
+tag. It contains selected products' installers, update ZIPs/blockmaps and resource
+packages, plus all six public feeds: `desktop-latest.json`, `latest-mac-arm64.yml`,
+`latest-mac-x64.yml`, `latest.yml`, `latest-linux.yml` and `plasmic-latest.json`.
+Unchanged products reuse their preceding published feeds byte-for-byte, preserving
+their product versions and download URLs without rebuilding or copying installers.
+Studio image references appear in the notes.
 Uploads are verified by size and SHA-256 before the draft becomes public. Ordinary
 reruns reuse identical assets and reject different published bytes. An explicitly
 forced tag update permits rebuilding the Desktop image and replacing Release
-assets; npm versions remain immutable. Rebuild only versions not deployed on NAS.
-Existing NAS routes and deployment commands are unchanged; Release publication
-does not switch the download proxy or deploy any service.
+assets; npm versions and content-hash resource assets remain immutable. Rebuild
+only versions not deployed on NAS. Publication advances GitHub latest only after
+the feeds and resource assets pass verification; the fixed proxy follows it
+automatically. It does not deploy NAS services.
 
 If the final Release step fails after every build succeeds, manually run
 `Publish existing release artifacts` with the numeric tag and the original
@@ -56,6 +59,8 @@ Validate release configuration without publishing:
 docker buildx bake --file deploy/docker-bake.hcl --print
 docker buildx bake --file deploy/docker-bake.hcl --check
 node --test scripts/release-plan.test.mjs
+node --test scripts/github-release.test.mjs scripts/release-downloads.test.mjs
+node --test scripts/release-downloads.integration.test.mjs
 ```
 
 The server target skips frontend bundling and copies the platform runtime
@@ -139,25 +144,37 @@ database. Resource authentication and role permissions still apply.
 
 Public Desktop and CLI/Skill downloads use Seoul Caddy to fetch GitHub Release
 assets. Clients retain the existing Studio domain and `/desktop-updates/` paths.
-Caddy handles GitHub's redirect to `release-assets.githubusercontent.com` internally;
-clients receive the file without a redirect. Both upstream connections verify TLS.
+Caddy handles GitHub latest's redirect to the numeric tag and the subsequent
+signed redirect to `release-assets.githubusercontent.com` internally; clients
+receive the file without a redirect. Upstream connections verify TLS.
 Cookies, authorization and identity headers are removed before either upstream.
 Only the explicitly registered public download paths accept GET, HEAD and OPTIONS.
 Application, API, canvas and preview traffic continues through the NAS gateway.
 
-After publishing a Release, update the route state and a copy of the current relay
-Caddyfile, for example:
+Install the fixed rules once into a copy of the current relay Caddyfile:
 
 ```sh
-node scripts/release-downloads.mjs 0.5.0 /absolute/path/to/Caddyfile
+node scripts/release-downloads.mjs /absolute/path/to/Caddyfile
 ```
 
-`deploy/release-downloads.json` records the active Desktop/resource versions and
-immutable historical paths. The command verifies the published Release and resource
-artifact digests, advances only feeds present in that Release, and rejects
-downgrades or replacement of immutable routes. Studio-only releases do not change
-downloads. A resource-only patch keeps the Desktop feed unchanged and vice versa.
-Commit this state with the relay's corresponding Plasmic block.
+No version or release state is stored in Caddy. Installer filenames contain their
+numeric tag, so fixed platform rules derive the matching Release URL. The six
+unversioned feed paths use GitHub `/releases/latest/download/<asset>`. Every real
+release supplies all six, carrying unchanged product feeds forward without changing
+their contents. A resource-only patch therefore retains the Desktop version;
+a Studio-only patch retains both product versions.
+
+CLI/Skill URLs contain a content hash instead of a version. Their fixed rule uses
+the `plasmic-resources` Release with assets named `<releaseId>-manifest.json`,
+`<releaseId>-plasmic-cli.tgz` and `<releaseId>-resources.json.gz`. The publisher
+seeds historical numeric resource releases and appends new hashes there. Existing
+hashes cannot be replaced, including during a forced numeric rebuild. This shared
+Release is always published with `--latest=false`.
+
+Before enabling these rules, run the current publisher for the latest numeric
+release to fill missing feeds and seed the resource Release. The recovery workflow
+can reuse its verified build artifacts. Subsequent releases need no Caddy edits,
+reloads, server-local release files or NAS uploads.
 
 The relay source lives at `shiguang/deploy/umami/Caddyfile`; the running copy is
 `/home/ubuntu/umami-relay/Caddyfile` on SSH host `seoul`. Start from the running copy
@@ -172,10 +189,16 @@ on the internal signed-URL rewrite so the query remains intact. GitHub requests
 include a per-request identifier to avoid reusing an expired cached redirect.
 Both GitHub upstreams retry connection failures for at most ten seconds.
 
-New releases require no installer image pull or resource upload to NAS. The NAS
-`desktop-releases` service and resource volume retain previously published files
-for historical paths that have no GitHub route. Their existing image-based
+The NAS `desktop-releases` service and resource volume retain previously published
+files. A missing GitHub asset falls back to the original NAS path and query;
+failed responses are never cached as immutable. Their existing image-based
 deployment scripts remain applicable only to that NAS-hosted distribution.
+
+The integration test runs the actual publisher against a GitHub HTTP fixture and
+the production Caddy version in Docker. It verifies successive Studio-only,
+resources-only and Desktop-only releases with the same running configuration,
+all six feeds, historical hashes, signed queries, HEAD, ranges, CORS, header
+stripping, rejected redirects and NAS fallback. No GitHub credentials are needed.
 
 ## Product branding
 
