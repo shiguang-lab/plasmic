@@ -304,8 +304,13 @@ Directory APIs are POST `/v1/identity/users/batch-get` (`ids`, max 200),
 `/v1/identity/users/by-email` (`email`, exact verified active account), and
 `/v1/identity/users/query` (`query`, bounded admin search). The batch profile contains
 `id`, `loginName`, `displayName`, `email`, `emailVerified` and `state`.
-Use `SG_IDENTITY_JWKS_URL` for signing keys and `INTEGRATION_SESSION_SECRET` solely
-for ten-minute external data-source OAuth state. Browser sign-out is POST
+Set `SG_IDENTITY_JWKS_URL` to the private auth-service signing-key endpoint
+`http://shiguang-auth-auth-service-1:8081/.well-known/jwks.json` on the NAS,
+using the same auth-edge network as the identity directory. This avoids routing
+server-side verification through the public relay. The public endpoint is
+`https://shiguanglab.com/.well-known/sg-identity-jwks.json` for external consumers.
+Use `INTEGRATION_SESSION_SECRET` solely for ten-minute external data-source OAuth
+state. Browser sign-out is POST
 `/api/auth/logout` on Studio, routed directly to IAM; it signs out the shared
 browser session. A device cookie signs out only its device grant.
 
