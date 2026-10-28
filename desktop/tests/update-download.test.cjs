@@ -25,6 +25,9 @@ async function fixture(t) {
     const range = req.headers.range;
     state.requests.push({ filename, range, encoding: req.headers["accept-encoding"] });
     let start = 0, end = bytes.length - 1;
+    // Finish the truncated response with FIN so every written byte reaches the
+    // client before EOF. A timed socket reset can discard queued bytes on Windows.
+    if (state.interrupt) res.setHeader("Connection", "close");
     if (range && !state.ignoreRange) {
       [, start, end] = /^bytes=(\d+)-(\d+)$/.exec(range).map((x, i) => i ? Number(x) : x);
       res.writeHead(206, { "Content-Range": state.badRange ? `bytes 0-${end}/${bytes.length}` : `bytes ${start}-${end}/${bytes.length}`, "Content-Length": end - start + 1 });
@@ -37,7 +40,7 @@ async function fixture(t) {
       body = body.subarray(0, Math.max(1, Math.floor(body.length / 2)));
       state.sent += body.length;
       res.write(body);
-      setTimeout(() => res.destroy(), 30);
+      setTimeout(() => res.end(), 30);
     } else {
       state.sent += body.length;
       res.end(body);
