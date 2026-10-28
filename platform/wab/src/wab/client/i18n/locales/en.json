@@ -5726,5 +5726,8 @@
   "{distance}px above is cut off and can't be scrolled into view. Change the size in the right panel.": "{distance}px above is cut off and can't be scrolled into view. Change the size in the right panel.",
   "{distance}px below is cut off and can't be scrolled into view. Change the size in the right panel.": "{distance}px below is cut off and can't be scrolled into view. Change the size in the right panel.",
   "{distance}px to the left is cut off and can't be scrolled into view. Change the size in the right panel.": "{distance}px to the left is cut off and can't be scrolled into view. Change the size in the right panel.",
-  "{distance}px to the right is cut off and can't be scrolled into view. Change the size in the right panel.": "{distance}px to the right is cut off and can't be scrolled into view. Change the size in the right panel."
+  "{distance}px to the right is cut off and can't be scrolled into view. Change the size in the right panel.": "{distance}px to the right is cut off and can't be scrolled into view. Change the size in the right panel.",
+  "The gateway could not reach the service. It may be restarting or unavailable.": "The gateway could not reach the service. It may be restarting or unavailable.",
+  "The gateway timed out waiting for the service to respond.": "The gateway timed out waiting for the service to respond.",
+  "No response was received. Check your network connection and whether the service is reachable.": "No response was received. Check your network connection and whether the service is reachable."
 }

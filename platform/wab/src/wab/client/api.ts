@@ -144,6 +144,9 @@ export const ajax = async (
           error = new HttpError(xhr.status, error.message);
         }
         if (!noErrorTransform) {
+          if (error instanceof ApiError) {
+            error.request = { method: method.toUpperCase(), url: fullApiPath(apiSubpath) + search };
+          }
           error.stack += `\n${callingStack}`;
         }
         reject(error);

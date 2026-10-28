@@ -1,4 +1,4 @@
-const modelReads = new Set(["identify", "read", "queryElements", "readVector", "getEditorContext", "validate", "findEmptySpace"]);
+const modelReads = new Set(["identify", "read", "listLibraries", "getLibrary", "searchLibraryComponents", "queryElements", "readVector", "getEditorContext", "validate", "findEmptySpace"]);
 const viewOperations = new Set(["navigate", "navigateCanvas", "restoreEditorView", "selectElement", "scrollElementIntoView", "setCanvasPageHeight"]);
 
 function requiredContext(method, input = {}) {

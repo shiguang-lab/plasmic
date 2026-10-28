@@ -1,0 +1,7 @@
+{
+  "en": "- Discover and search component libraries through MCP, inspect their components and versions, then install or update them.\n- Load updated component contracts reliably, retry failed registration downloads, and restore the correct version when undoing updates.\n- Improve icon preview contrast across light and dark themes.\n- Clarify network and gateway errors, and improve AI session synchronization and recovery after connection failures.",
+  "zh-CN": "- 支持通过 MCP 发现和搜索组件库，查看组件与版本，并安装或更新组件库。\n- 更新后可靠加载新组件契约，下载失败可重试，撤销更新时恢复对应版本。\n- 改善图标预览在明暗主题下的对比度。\n- 完善网络和网关错误提示，改进 AI 会话同步及连接失败后的恢复。",
+  "zh-TW": "- 支援透過 MCP 探索與搜尋元件庫，檢視元件與版本，並安裝或更新元件庫。\n- 更新後可靠載入新元件契約，下載失敗可重試，復原更新時恢復對應版本。\n- 改善圖示預覽在明暗主題下的對比度。\n- 完善網路與閘道錯誤提示，改善 AI 工作階段同步及連線失敗後的恢復。",
+  "ja": "- MCP からコンポーネントライブラリを検索し、コンポーネントとバージョンを確認してインストール・更新できます。\n- 更新後の定義を確実に読み込み、ダウンロード失敗時の再試行と更新を取り消した際のバージョン復元を改善しました。\n- ライト・ダークテーマでアイコンプレビューのコントラストを改善しました。\n- ネットワークとゲートウェイのエラー表示、AI セッションの同期と接続障害からの復旧を改善しました。",
+  "ko": "- MCP에서 구성 요소 라이브러리를 검색하고 구성 요소와 버전을 확인한 뒤 설치하거나 업데이트할 수 있습니다.\n- 업데이트된 정의를 안정적으로 불러오고, 다운로드 실패 시 재시도하며, 업데이트를 취소하면 해당 버전을 복원합니다.\n- 밝은 테마와 어두운 테마에서 아이콘 미리보기의 대비를 개선했습니다.\n- 네트워크 및 게이트웨이 오류 안내와 AI 세션 동기화 및 연결 실패 후 복구를 개선했습니다."
+}

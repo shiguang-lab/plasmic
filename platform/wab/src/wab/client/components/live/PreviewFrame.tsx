@@ -200,12 +200,14 @@ export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
       setIsInstalling(true);
       spawn(
         (async () => {
-          const newInstalledPkgs = [...installedPkgs];
-          for (const [pkg, pkgModule] of await getSortedHostLessPkgs(
+          const modules = await getSortedHostLessPkgs(
             usedPkgs,
             getVersionForCanvasPackages(win),
             previewCtx.studioCtx.site,
-          )) {
+          );
+          const currentPackages = new Set(modules.map(([pkg]) => pkg));
+          const newInstalledPkgs = installedPkgs.filter((pkg) => currentPackages.has(pkg));
+          for (const [pkg, pkgModule] of modules) {
             if (!installedPkgsSet.has(pkg)) {
               if (!isCurrentFrame()) {
                 return;

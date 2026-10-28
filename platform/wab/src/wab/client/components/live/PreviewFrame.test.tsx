@@ -219,3 +219,17 @@ it.each([null, undefined, "", "   "])("reports an empty navigation destination (
   expect(trapInteractionError).toHaveBeenCalledWith(expect.anything(), loc,
     expect.objectContaining({ message: "Navigation destination must be a non-empty string" }));
 });
+
+it("reloads the original library version in Preview after an update is undone", async () => {
+  mocks.packages = [{ id: "icons@1.0.0" }];
+  mocks.sortedPackages.mockImplementation(async () => mocks.packages.map((pkg) => {
+    const { id } = pkg as { id: string };
+    return [id, id];
+  }));
+  const hook = await setup(false);
+  mocks.packages = [{ id: "icons@2.0.0" }];
+  await act(async () => hook.rerender());
+  mocks.packages = [{ id: "icons@1.0.0" }];
+  await act(async () => hook.rerender());
+  expect(mocks.exec.mock.calls.map(([, source]) => source)).toEqual(["icons@1.0.0", "icons@2.0.0", "icons@1.0.0"]);
+});

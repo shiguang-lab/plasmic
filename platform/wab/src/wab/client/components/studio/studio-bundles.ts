@@ -8,10 +8,18 @@ import { DEVFLAGS } from "@/wab/shared/devflags";
 import { walkDependencyTree } from "@/wab/shared/core/project-deps";
 import type { Site } from "@/wab/shared/model/classes";
 
-const fetchCanvasPkgs = memoizeOne(() =>
+const fetchCanvasPkgs = memoize(() =>
   fetch(
     `${getStaticBaseUrl()}/canvas-packages/build/client.${ENV.COMMITHASH}.js`,
-  ).then((res) => res.text()),
+  ).then((res) => {
+    if (!res.ok) {
+      throw new Error(`Unable to load component library runtime: ${res.status}`);
+    }
+    return res.text();
+  }).catch((error) => {
+    fetchCanvasPkgs.cache.delete(undefined);
+    throw error;
+  }),
 );
 const fetchReactWebBundle = memoizeOne(() =>
   fetch(
@@ -26,20 +34,20 @@ const fetchLiveFrameClient = memoizeOne(() =>
 
 const fetchHostLessPkg = memoize(
   async (pkg: string, version: string, libraryVersion?: string) => {
-    const managed = (DEVFLAGS.hostLessComponents ?? []).some((entry) => entry.codeName === pkg && entry.hasCodeArtifacts);
-    if (managed) {
-      const response = await fetch(`/api/v1/hostless-libraries/${encodeURIComponent(pkg)}/canvas${libraryVersion ? `?version=${encodeURIComponent(libraryVersion)}` : ""}`);
+    try {
+      const managed = (DEVFLAGS.hostLessComponents ?? []).some((entry) => entry.codeName === pkg && entry.hasCodeArtifacts);
+      const url = managed
+        ? `/api/v1/hostless-libraries/${encodeURIComponent(pkg)}/canvas${libraryVersion ? `?version=${encodeURIComponent(libraryVersion)}` : ""}`
+        : `${getStaticBaseUrl()}/canvas-packages/build/${pkg}${version}.${ENV.COMMITHASH}.js`;
+      const response = await fetch(url);
       if (!response.ok) {
         throw new Error(`Unable to load component library ${pkg}${libraryVersion ? `@${libraryVersion}` : ""}: ${response.status}`);
       }
-      return response.text();
+      return withLibraryRegistrations(pkg, await response.text());
+    } catch (error) {
+      fetchHostLessPkg.cache.delete(`${pkg}:${version}:${libraryVersion ?? "latest"}`);
+      throw error;
     }
-    const source = await fetch(
-      `${getStaticBaseUrl()}/canvas-packages/build/${pkg}${version}.${
-        ENV.COMMITHASH
-      }.js`,
-    ).then((res) => res.text());
-    return source;
   },
   (pkg, version, libraryVersion) => `${pkg}:${version}:${libraryVersion ?? "latest"}`,
 );
@@ -63,6 +71,33 @@ function needsCanvasRuntime(pkg: string) {
 
 function withCanvasRuntime(source: string, runtime: string) {
   return `if (!window.__CanvasPkgs) {\n${runtime}\n}\n${source}`;
+}
+
+// Each destination window owns its registrations. Replacing one library must
+// remove its previous definitions (including removed components) without
+// discarding the other libraries or app-host registrations in that window.
+function withLibraryRegistrations(pkg: string, source: string) {
+  return `(function(){
+    var keys = ["__PlasmicComponentRegistry", "__PlasmicContextRegistry", "__PlasmicFunctionsRegistry", "__PlasmicTokenRegistry", "__PlasmicTraitRegistry", "__PlasmicLibraryRegistry"];
+    var owned = window.__PlasmicHostlessRegistrations || (window.__PlasmicHostlessRegistrations = {});
+    var previous = owned[${JSON.stringify(pkg)}] || {};
+    var before = {};
+    keys.forEach(function(key){
+      before[key] = (window[key] || []).slice();
+      window[key] = before[key].filter(function(entry){ return !(previous[key] || []).includes(entry); });
+    });
+    try {
+      (function(){ ${source}\n })();
+      var current = {};
+      keys.forEach(function(key){
+        current[key] = (window[key] || []).filter(function(entry){ return !before[key].includes(entry); });
+      });
+      owned[${JSON.stringify(pkg)}] = current;
+    } catch (error) {
+      keys.forEach(function(key){ window[key] = before[key]; });
+      throw error;
+    }
+  })();`;
 }
 
 export async function getHostLessPkg(pkg: string, version: string, libraryVersion?: string) {

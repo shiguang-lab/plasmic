@@ -32,6 +32,9 @@ async function transportResult(request, response, started) {
 const EDITOR_METHODS = [
   "identify",
   "read",
+  "listLibraries",
+  "getLibrary",
+  "searchLibraryComponents",
   "upgradeLibrary",
   "installLibrary",
   "queryElements",
@@ -229,7 +232,7 @@ const tools = [
   {
     name: "execute",
     description:
-      "Call only a native editor operation from availableEditorTools; never put top-level list_orgs, list_projects, create_project, open_design or preview here. Use an envelope {name, input}, where input holds that operation's own parameters. Supports read, createComponent (page/component), insertHtml, changeElement (props/layout), deleteElement, state/interactions/tokens, navigate, scrollElementIntoView (reveal rendered content without changing the design), setCanvasPageHeight (session-only full page height view when screenshots stay incomplete; restore the returned previous mode), validate, save and undo. Parameterless operations (save, undo, validate) take no parameters, so input may be omitted. Reading specific element properties with propNames requires view: 'properties'. Targeting elementUuid in changeElement/selectElement requires its defining componentUuid, not the host page. deleteCanvas and deleteElement return standard mutation receipts with created: [] and messages confirming deletion. Obtain exact input schemas from get_app_state. Read component props/slot contracts before editing. Native schemas describe complete values; MCP may return ResultReference for large results or SVG source, retrievable through read_result. Save explicitly after design changes.",
+      "Call only a native editor operation from availableEditorTools; never put top-level list_orgs, list_projects, create_project, open_design or preview here. Use an envelope {name, input}, where input holds that operation's own parameters. Component libraries: listLibraries lists/searches the catalog and installed versions; getLibrary reads latest publication/components and update availability; searchLibraryComponents finds providers before installation; installLibrary/upgradeLibrary use the returned projectId. Supports read, createComponent (page/component), insertHtml, changeElement (props/layout), deleteElement, state/interactions/tokens, navigate, scrollElementIntoView (reveal rendered content without changing the design), setCanvasPageHeight (session-only full page height view when screenshots stay incomplete; restore the returned previous mode), validate, save and undo. Parameterless operations (save, undo, validate) take no parameters, so input may be omitted. Reading specific element properties with propNames requires view: 'properties'. Targeting elementUuid in changeElement/selectElement requires its defining componentUuid, not the host page. deleteCanvas and deleteElement return standard mutation receipts with created: [] and messages confirming deletion. Obtain exact input schemas from get_app_state. Read component props/slot contracts before editing. Native schemas describe complete values; MCP may return ResultReference for large results or SVG source, retrievable through read_result. Save explicitly after design changes.",
     inputSchema: {
       ...object({
         name: { type: "string", enum: EDITOR_METHODS.filter((name) => !["preview", "executeBatch"].includes(name)) },
@@ -448,6 +451,9 @@ tools.push(
                     ![
                       "identify",
                       "read",
+                      "listLibraries",
+                      "getLibrary",
+                      "searchLibraryComponents",
                       "upgradeLibrary",
                       "installLibrary",
                       "queryElements",

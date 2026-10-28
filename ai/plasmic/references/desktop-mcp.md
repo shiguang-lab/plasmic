@@ -10,7 +10,7 @@ read returns counts without targets; collection pages inventory. Target componen
 
 open_design saves before switching editable projects. Read-only work uses the open target/dependencies; obtain authorization before switching would save unrelated work.
 
-Discover UUIDs/names/contracts together with read {collection:"components",nameContains:ROLE,view:"contract",fromProject:LIBRARY_ID}. componentUuids takes UUIDs; data-plasmic-component takes registration names. Reread after library changes.
+Find IDs and contracts: read {collection:"components",nameContains:ROLE,view:"contract",fromProject:LIBRARY_ID}. Use UUIDs in componentUuids and registration names in markup. Reread after changes. [Find/install/update libraries](desktop-libraries.md).
 
 Global contexts retain isContext:true in inventories/projections and belong to project settings, not the Page tree. Read collection:globalContexts in the consuming project for installed instances, definition componentUuid and stored properties. Read the definition's contract.globalActions for qualified keys and ordered parameters; call directly without a Page wrapper. See [context discovery](desktop-examples.md#project-global-contexts).
 

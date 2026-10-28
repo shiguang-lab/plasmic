@@ -27,6 +27,35 @@ const jsonValue: z.ZodType<JsonValue> = z.lazy(() =>
 );
 const uuid = z.string().min(1);
 const element = { componentUuid: uuid, elementUuid: uuid };
+const libraryComponent = z.object({
+  name: uuid,
+  displayName: z.string(),
+  description: z.string().optional(),
+  importPath: z.string().optional(),
+  importName: z.string().optional(),
+  section: z.string().optional(),
+  isContext: z.boolean(),
+});
+const librarySummary = z.object({
+  name: uuid,
+  codeName: z.string().optional(),
+  category: z.string().optional(),
+  projectIds: z.array(uuid),
+  installed: z.boolean(),
+  installedProjects: z.array(z.object({ projectId: uuid, version: uuid })),
+});
+const libraryPublication = z.object({
+  projectId: uuid,
+  name: uuid,
+  version: uuid,
+  installedVersion: z.string().nullable(),
+  updateAvailable: z.boolean(),
+});
+const libraryPaging = {
+  offset: z.number().int().nonnegative().default(0),
+  limit: z.number().int().min(1).max(100).default(30),
+};
+const libraryPage = { total: z.number().int(), nextOffset: z.number().int().optional() };
 
 /** Wire contracts shared by the browser bridge and host-frame implementations. */
 const EDIT_TOOL_META = {
@@ -68,11 +97,45 @@ const EDIT_TOOL_META = {
       .strict(),
     outputSchema: modelReadResultSchema,
   },
+  listLibraries: {
+    toolName: "listLibraries",
+    title: "Find available and installed component libraries",
+    description:
+      "List the current Component Store catalog and installed dependencies without installing or saving. Search library names, code names (for example icons, overseas, react-ui), and categories with query; punctuation and spaces are ignored. installed filters fully installed libraries. Each result returns exact projectIds for installLibrary/upgradeLibrary. A library with multiple projectIds requires all of them. getLibrary reads its latest published components/version; searchLibraryComponents finds a needed component across libraries before installation. Synthetic session-only palettes are excluded.",
+    inputSchema: z.object({ query: uuid.optional(), installed: z.boolean().optional(), ...libraryPaging }).strict(),
+    outputSchema: z.object({ libraries: z.array(librarySummary), ...libraryPage }),
+  },
+  getLibrary: {
+    toolName: "getLibrary",
+    title: "Inspect a published library before installation",
+    description:
+      "Read the latest publication for a library projectId, its installed version/update availability, package names, required dependency versions and paginated component inventory. query filters registered names, display names, import names, descriptions and sections. Reads published models through authenticated APIs in an isolated bundler; never installs, opens, saves or executes library code. Inventory metadata is not a live Props/Slots contract. After installLibrary/upgradeLibrary, use read with fromProject, collection:components and view:contract.",
+    inputSchema: z.object({ projectId: uuid, query: uuid.optional(), ...libraryPaging }).strict(),
+    outputSchema: libraryPublication.extend({
+      packages: z.array(z.string()),
+      dependencies: z.array(z.object({ projectId: uuid, name: uuid, version: uuid })),
+      components: z.array(libraryComponent),
+      ...libraryPage,
+    }),
+  },
+  searchLibraryComponents: {
+    toolName: "searchLibraryComponents",
+    title: "Find which library provides a component",
+    description:
+      "Search latest published component names, display names, import names, descriptions and sections across the visible Component Store and installed libraries, including libraries not installed yet. Returns exact library projectId/version with each match for installLibrary. projectId optionally restricts to one library. Does not install or execute library code. Global search reads publications and can be slower than listLibraries/getLibrary; failures lists libraries that could not be searched, so incomplete results do not prove absence. Page with offset/limit, then install and read live contracts before composition.",
+    inputSchema: z.object({ query: uuid, projectId: uuid.optional(), ...libraryPaging }).strict(),
+    outputSchema: z.object({
+      components: z.array(libraryComponent.extend({ projectId: uuid, libraryName: uuid, version: uuid })),
+      libraries: z.array(libraryPublication),
+      failures: z.array(z.object({ projectId: uuid, message: z.string() })),
+      ...libraryPage,
+    }),
+  },
   installLibrary: {
     toolName: "installLibrary",
     title: "Install a published component library",
     description:
-      "Install a library through Studio dependency operations and load its component registrations. Requires full edit permission. Save separately and read the installed contracts before inserting components.",
+      "Install a library through Studio dependency operations and load its component registrations. Discover the exact projectId with listLibraries or searchLibraryComponents; inspect getLibrary for publication details. An already installed library is a no-op; use upgradeLibrary to update it. Requires full edit permission. Save separately and read the installed contracts before inserting components.",
     inputSchema: z.object({ projectId: uuid }).strict(),
     outputSchema: z.object({
       projectId: uuid,
@@ -84,7 +147,7 @@ const EDIT_TOOL_META = {
     toolName: "upgradeLibrary",
     title: "Upgrade an installed component library",
     description:
-      "Upgrade an already installed library to its latest published package through Studio dependency operations. projectId is the library project ID. Atomically aligns its already installed dependencies to the exact versions required by that publication. Keeps local pages and rewrites their references. Requires an editable project; save separately and read the new component contracts before use.",
+      "Upgrade an already installed library to its latest published package through Studio dependency operations. Discover projectId with listLibraries installed:true; getLibrary reports latest/installed versions and update availability. Atomically aligns its already installed dependencies to the exact versions required by that publication. Keeps local pages and rewrites their references. Requires an editable project; save separately and read the new component contracts before use.",
     inputSchema: z.object({ projectId: uuid }).strict(),
     outputSchema: z.object({
       projectId: uuid,

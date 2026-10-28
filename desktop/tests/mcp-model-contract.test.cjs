@@ -7,6 +7,44 @@ const { Client } = require("@modelcontextprotocol/sdk/client/index.js");
 const { StdioClientTransport } = require("@modelcontextprotocol/sdk/client/stdio.js");
 const { startRpc } = require("../src/local-rpc.cjs");
 
+test("MCP advertises and routes library discovery, inspection, component search, install and upgrade", async () => {
+  const profile = await fs.mkdtemp(path.join(os.tmpdir(), "plasmic-libraries-"));
+  const calls = [];
+  const names = ["listLibraries", "getLibrary", "searchLibraryComponents", "installLibrary", "upgradeLibrary"];
+  const stop = await startRpc(profile, async (method, input) => {
+    calls.push({ method, input });
+    return { operation: input.name, projectId: input.input.projectId ?? "library-icons" };
+  });
+  const client = new Client({ name: "library-test", version: "1.0.0" });
+  try {
+    await client.connect(new StdioClientTransport({ command: process.execPath,
+      args: ["-e", `require(${JSON.stringify(require.resolve("../src/mcp.cjs"))}).serveMcp(${JSON.stringify(profile)})`], stderr: "pipe" }));
+    const { tools } = await client.listTools();
+    const execute = tools.find((tool) => tool.name === "execute");
+    const state = tools.find((tool) => tool.name === "get_app_state");
+    const batch = tools.find((tool) => tool.name === "execute_batch");
+    assert.match(execute.description, /listLibraries.*getLibrary.*searchLibraryComponents.*installLibrary\/upgradeLibrary/);
+    for (const name of names) {
+      assert.ok(execute.inputSchema.properties.name.enum.includes(name), name);
+      assert.ok(state.inputSchema.properties.toolNames.items.enum.includes(name), name);
+      assert.ok(!batch.inputSchema.properties.operations.items.properties.name.enum.includes(name), name);
+      const input = name === "listLibraries" ? { query: "icons" }
+        : name === "searchLibraryComponents" ? { query: "AccountBook" } : { projectId: "library-icons" };
+      const envelope = { name, input };
+      const result = await client.callTool({ name: "execute", arguments: envelope });
+      assert.equal(result.isError, false, result.content[0].text);
+      assert.deepEqual(calls.at(-1), { method: "execute", input: envelope });
+      assert.equal(JSON.parse(result.content[0].text).operation, name);
+    }
+    const invalid = await client.callTool({ name: "execute_batch", arguments: { operations: [{ name: "listLibraries", input: {} }] } });
+    assert.equal(invalid.isError, true);
+    assert.equal(calls.length, names.length);
+  } finally {
+    await client.close(); await stop();
+    await fs.rm(profile, { recursive: true, force: true });
+  }
+});
+
 test("MCP transports batch bindings, compact receipts and explicit read projections", async () => {
   const profile = await fs.mkdtemp(path.join(os.tmpdir(), "plasmic-model-"));
   const calls = [];

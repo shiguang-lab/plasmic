@@ -37,7 +37,6 @@ import {
   ensure,
   ensureInstance,
   spawn,
-  spawnWrapper,
   withTimeout,
 } from "@/wab/shared/common";
 import { makeTokenRefResolver } from "@/wab/shared/core/site-style-tokens";
@@ -120,16 +119,22 @@ export class CanvasCtx {
 
   private async updateCcRegistry(pkgs: string[], site: Site) {
     const previousFetch = this._hostLessPkgsLock;
-    this.updatingCcRegistryCount++;
-    this._hostLessPkgsLock = new Promise(
-      spawnWrapper(async (resolve: () => void) => {
-        await previousFetch;
+    runInAction(() => { this.updatingCcRegistryCount++; });
+    this._hostLessPkgsLock = previousFetch
+      .catch(() => undefined)
+      .then(async () => {
         const pkgsData = await getSortedHostLessPkgs(
           pkgs,
           getVersionForCanvasPackages(this._win),
           site,
         );
         runInAction(() => {
+          const currentPackages = new Set(pkgsData.map(([pkg]) => pkg));
+          for (const pkg of this.installedHostLessPkgs) {
+            if (!currentPackages.has(pkg)) {
+              this.installedHostLessPkgs.delete(pkg);
+            }
+          }
           // We run in action because `installedHostLessPkgs` is observable
           // so we want computed values to re-compute only after all packages
           // have been installed and the `ccRegistry` is cleared
@@ -141,11 +146,11 @@ export class CanvasCtx {
           }
           // Clear the memoized map
           this.ccRegistry?.clear();
-          this.updatingCcRegistryCount--;
         });
-        resolve();
-      }),
-    );
+      })
+      .finally(() => {
+        runInAction(() => { this.updatingCcRegistryCount--; });
+      });
     await this._hostLessPkgsLock;
   }
 

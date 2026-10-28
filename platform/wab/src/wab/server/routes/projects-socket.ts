@@ -204,7 +204,7 @@ export class ProjectsSocket {
     });
 
     // Subscribe to rooms by project ID.
-    socket.on("subscribe", async (args) => {
+    socket.on("subscribe", async (args, acknowledge?: () => void) => {
       if (args.namespace !== "projects") {
         socket.emit("error", "Unknown reason for connection");
         socket.disconnect(true);
@@ -246,6 +246,8 @@ export class ProjectsSocket {
           return;
         }
       }
+
+      acknowledge?.();
 
       if (args.studio) {
         // We subscribe for changes from Studio and from cli

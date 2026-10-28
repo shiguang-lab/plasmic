@@ -721,7 +721,8 @@ remain identity/version references; read each via fromProject; the verifier requ
 components, canvases, pageFrames and devicePresets, while preserving complete Pages
 and layouts in evidence files.
 
-`execute` supports `identify`, `read`, `createComponent`, `insertHtml`,
+`execute` supports `identify`, `read`, `listLibraries`, `getLibrary`,
+`searchLibraryComponents`, `installLibrary`, `upgradeLibrary`, `createComponent`, `insertHtml`,
 `changeElement`, `deleteElement`, `createState`, `createInteraction`,
 `createStyleToken`, `copyElement`, `moveElement`, `queryElements`,
 `updateState`, `deleteState`, `updateStyleToken`, `deleteStyleToken`,
@@ -735,6 +736,22 @@ editing. New pages and component definitions are created with `createComponent`;
 new elements and registered Ant Design 6 instances are inserted with `insertHtml`.
 Call `validate`, inspect a screenshot and then `save`. Changes persist through the
 NAS API and remain editable in Studio.
+
+For component libraries, `listLibraries` searches the visible store by name/code
+name/category and lists installed versions. `searchLibraryComponents` searches
+latest published components before installation and reports any libraries it
+could not read. Both return exact project IDs for `installLibrary`; use
+`getLibrary` for one publication's component inventory, dependencies and update
+availability, and `upgradeLibrary` for installed projects. Queries use authenticated
+reads in an isolated bundler, honor hidden catalog entries and do not install or
+execute library code. Installation loads registrations; save explicitly and read
+the installed `fromProject` component contracts before composition.
+
+Installation and upgrades wait for registrations to load. Failed downloads and
+registration loads reject without blocking the next retry. A version change
+replaces that library's registrations in each destination window while preserving
+other libraries; failed registration restores the previous entries. Undo reloads
+the selected previous version in Studio metadata, canvas and Preview.
 
 DeepSeek Harness uses its Desktop profile at `$DSH_HOME/profiles/desktop/cordis.patch.yml` (default `~/.dsh`). The switch inserts/removes only the `plasmic-desktop` instance of `@deepseek-ai/dsh-mcp-client`, preserving other patches, comments and unevaluated `!!js` expressions. It does not configure CLI profiles such as headless/web. DSH profile hot reload loads the plugin; verify actual tools in the current session, or reopen the session if its tool inventory has not refreshed.
 

@@ -15,11 +15,11 @@ type MessageHandler<T> = (data: T) => unknown | Promise<unknown>;
  * Events that clients can emit.
  */
 export type ClientToServerEvents = {
-  subscribe: MessageHandler<{
+  subscribe: (data: {
     namespace: "projects";
     projectIds: string[];
     studio: boolean;
-  }>;
+  }, acknowledge?: () => void) => unknown | Promise<unknown>;
   view: MessageHandler<UpdatePlayerViewRequest>;
 };
 

@@ -1,0 +1,12 @@
+# Component libraries
+
+Discover libraries through native operations in `execute`, after requesting their contracts with `get_app_state`:
+
+- `listLibraries({query?,installed?,offset?,limit?})` lists/searches the visible Component Store and installed dependencies. Names, code names and categories are searchable; `reactUI` matches `react-ui`/`React UI`. Results provide exact `projectIds` and installed versions. A multi-project library requires every returned ID. Synthetic session-only palettes are excluded.
+- `searchLibraryComponents({query,projectId?,offset?,limit?})` searches actual latest published component names/imports/descriptions across libraries before installation. Narrow with `projectId` when known. Check `failures`; failed library reads leave search incomplete. Follow `nextOffset` before claiming absence.
+- `getLibrary({projectId,query?,offset?,limit?})` reads one latest publication, its package names, dependency versions, installed version/update availability and component inventory. Inventories and component searches honor the catalog's hidden component entries. These are published metadata, not live Props/Slots contracts. Discovery reads do not install, execute library code, navigate or save.
+- `installLibrary({projectId})` installs through Studio's dependency manager and loads registrations; an existing installation is a no-op. `upgradeLibrary({projectId})` updates an installed library to its latest publication and aligns required installed dependencies. Both require full edit permission. Save explicitly, then reread installed versions and live component contracts before composition.
+
+For example, search `AccountBookFilled`, install its returned library `projectId`, then `read({fromProject:projectId,collection:"components",nameContains:"AccountBookFilled",view:"contract"})`. For updates, list installed libraries, inspect `getLibrary.updateAvailable`, upgrade the selected project, save and reread.
+
+Install and upgrade wait for registration readiness. Failed script/runtime downloads reject and can be retried without reopening Studio. Loading a different library version replaces that library's per-window registrations, including removed definitions, and preserves other libraries. Failed registration restores the previous registry entries. Undoing an upgrade reloads the selected old version in metadata, canvas and Preview. When inserting an imported component, include its returned library ID as `data-plasmic-project` as well as the exact registration name.

@@ -5726,5 +5726,8 @@
   "{distance}px above is cut off and can't be scrolled into view. Change the size in the right panel.": "上の {distance}px は切り取られていて、スクロールでは表示できません。右パネルでサイズを変更してください",
   "{distance}px below is cut off and can't be scrolled into view. Change the size in the right panel.": "下の {distance}px は切り取られていて、スクロールでは表示できません。右パネルでサイズを変更してください",
   "{distance}px to the left is cut off and can't be scrolled into view. Change the size in the right panel.": "左の {distance}px は切り取られていて、スクロールでは表示できません。右パネルでサイズを変更してください",
-  "{distance}px to the right is cut off and can't be scrolled into view. Change the size in the right panel.": "右の {distance}px は切り取られていて、スクロールでは表示できません。右パネルでサイズを変更してください"
+  "{distance}px to the right is cut off and can't be scrolled into view. Change the size in the right panel.": "右の {distance}px は切り取られていて、スクロールでは表示できません。右パネルでサイズを変更してください",
+  "The gateway could not reach the service. It may be restarting or unavailable.": "ゲートウェイからサービスに接続できません。サービスが再起動中か、一時的に利用できない可能性があります。",
+  "The gateway timed out waiting for the service to respond.": "ゲートウェイでサービスの応答待ちがタイムアウトしました。",
+  "No response was received. Check your network connection and whether the service is reachable.": "サービスから応答がありません。ネットワーク接続とサービスにアクセスできるかを確認してください。"
 }

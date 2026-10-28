@@ -4,7 +4,7 @@ import {
   translate,
   translateUiLabel,
 } from "@/wab/client/i18n/locales";
-import { ApiError, HttpError } from "@/wab/shared/ApiErrors/ApiError";
+import { ApiError, HttpError, NetworkError } from "@/wab/shared/ApiErrors/ApiError";
 import { transformErrors } from "@/wab/shared/ApiErrors/errors";
 import { UserError } from "@/wab/shared/UserError";
 import React from "react";
@@ -132,6 +132,18 @@ export function getApiErrorPresentation(error: ApiError): {
         description: "Too many requests. Wait a moment and try again.",
         type: "warning",
       };
+    case 502:
+      return {
+        title: "Service unavailable",
+        description: "The gateway could not reach the service. It may be restarting or unavailable.",
+        type: "error",
+      };
+    case 504:
+      return {
+        title: "Service unavailable",
+        description: "The gateway timed out waiting for the service to respond.",
+        type: "error",
+      };
     case 503:
       return {
         title: "Service unavailable",
@@ -194,6 +206,9 @@ const reasons: Record<string, MessageKey> = {
 
 export function getErrorMessage(error: unknown): string {
   const locale = getUiLocale();
+  if (error instanceof NetworkError) {
+    return translate(locale, "No response was received. Check your network connection and whether the service is reachable.");
+  }
   const apiError = asApiError(error);
   if (apiError) {
     // Subscription restrictions returned by deployments that use billing.

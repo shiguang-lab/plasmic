@@ -23,9 +23,10 @@ import BoxControlsIcon from "@/wab/client/plasmic/plasmic_kit_design_system/Plas
 import { PlasmicAddDrawerItem } from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicAddDrawerItem";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { isCodeComponent } from "@/wab/shared/core/components";
+import { asSvgDataUrl, parseDataUrlToSvgXml, parseSvgXml } from "@/wab/shared/data-urls";
 import { TplNode } from "@/wab/shared/model/classes";
 import { EyeOutlined } from "@ant-design/icons";
-import { Button, Tooltip, Typography } from "antd";
+import { Button, Tooltip, Typography, theme } from "antd";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useOverlayTriggerState } from "react-stately";
@@ -75,9 +76,34 @@ export function getAddItemLabel(item: AddItem, locale: UiLocale): string {
     : item.label;
 }
 
+export function isAntDesignIconItem(item: AddItem) {
+  return (
+    isTplAddItem(item) &&
+    !!item.component &&
+    isCodeComponent(item.component) &&
+    item.component.codeComponentMeta.importPath === "@ant-design/icons"
+  );
+}
+
 function AddItemCard(props: AddDrawerItemProps) {
   const { locale, t } = useI18n();
   const { item, matcher, isHighlighted } = props;
+  const { token } = theme.useToken();
+  const iconThumbnail = isAntDesignIconItem(item);
+  const previewImageUrl = React.useMemo(() => {
+    if (!iconThumbnail || !item.previewImageUrl) {
+      return item.previewImageUrl;
+    }
+    // An SVG loaded through <img> cannot inherit the Studio text color.
+    // Recolor only the preview; keep the registration and runtime props intact.
+    const svg = parseSvgXml(decodeURIComponent(parseDataUrlToSvgXml(item.previewImageUrl)));
+    svg.setAttribute("color", token.colorText);
+    // The registered Two Tone thumbnails use this fill for their second layer.
+    svg.querySelectorAll('[fill="#e6f4ff"]').forEach((node) => {
+      node.setAttribute("fill", token.colorPrimaryBgHover);
+    });
+    return asSvgDataUrl(svg.outerHTML);
+  }, [iconThumbnail, item.previewImageUrl, token.colorText, token.colorPrimaryBgHover]);
   const previewState = useOverlayTriggerState({
     isOpen: props.previewOpen,
     onOpenChange: props.onPreviewOpenChange,
@@ -141,7 +167,7 @@ function AddItemCard(props: AddDrawerItemProps) {
               ? "video"
               : undefined
         }
-        previewImageUrl={item.previewImageUrl}
+        previewImageUrl={previewImageUrl}
         previewVideoUrl={item.previewVideoUrl}
         focused={isHighlighted}
       />

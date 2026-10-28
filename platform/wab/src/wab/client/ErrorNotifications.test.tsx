@@ -3,6 +3,7 @@ import { normalizeError, showError } from "@/wab/client/ErrorNotifications";
 import { showTemporaryInfo } from "@/wab/client/components/quick-modals";
 import { setLanguagePreference } from "@/wab/client/i18n";
 import { UserError } from "@/wab/shared/UserError";
+import { HttpError, NetworkError } from "@/wab/shared/ApiErrors/ApiError";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { message, notification } from "antd";
 import copy from "copy-to-clipboard";
@@ -134,6 +135,31 @@ it("preserves the name, message and original stack of an exception from another 
   expect(normalized.name).toBe("TypeError");
   expect(normalized.message).toBe(error.message);
   expect(normalized.stack).toBe(error.stack);
+});
+
+it.each([
+  {error: Object.assign(new HttpError(502), {request: {method: "GET", url: "/api/v1/projects/project/ai/chat/events?afterSeq=7"}}), title: "服务不可用", reason: "网关无法连接服务，服务可能正在重启或暂时不可用。", status: "HTTP 502"},
+  {error: Object.assign(new HttpError(504), {request: {method: "GET", url: "/api/v1/projects/project/ai/chat/events?afterSeq=7"}}), title: "服务不可用", reason: "网关等待服务响应超时。", status: "HTTP 504"},
+  {error: new NetworkError({method: "GET", url: "/api/v1/projects/project/ai/chat/events?afterSeq=7"}), title: "连接暂时中断", reason: "未收到服务响应，请检查网络连接及服务是否可访问。", status: undefined},
+])("distinguishes $error.name/$status and includes the request in copied details", async ({error, title, reason, status}) => {
+  await act(async () => await setLanguagePreference("zh-CN"));
+  const open = vi.spyOn(message, "error").mockReturnValue(mock());
+  showError(error);
+  const args = open.mock.calls[0][0];
+  assert(args !== null && typeof args === "object" && "content" in args, "Expected a message configuration");
+  const toast = render(<>{args.content}</>);
+  expect(screen.getByText(title)).toBeTruthy();
+  expect(screen.getByText(reason)).toBeTruthy();
+  fireEvent.click(screen.getByRole("button", {name: "查看详情"}));
+  await waitFor(() => expect(showTemporaryInfo).toHaveBeenCalledOnce());
+  const modal = vi.mocked(showTemporaryInfo).mock.calls[0][0];
+  toast.unmount();
+  const details = render(<>{modal.content}</>);
+  expect(details.container.querySelector("pre")?.textContent).toContain("GET /api/v1/projects/project/ai/chat/events?afterSeq=7");
+  if (status) {expect(details.container.querySelector("pre")?.textContent).toContain(status);}
+  fireEvent.click(screen.getByRole("button", {name: "复制详情"}));
+  expect(copy).toHaveBeenCalledWith(details.container.querySelector("pre")?.textContent);
+  args.onClose?.();
 });
 
 it("keeps the actual details dialog open after the toast disappears and closes it normally", async () => {

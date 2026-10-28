@@ -6,6 +6,7 @@ import {
   revealCanvasElement,
 } from "@/wab/client/components/canvas/canvas-scroll";
 import { activityTargets } from "@/wab/client/copilot/activity";
+import { getLibrary, listLibraries, searchLibraryComponents } from "@/wab/client/copilot/libraries";
 import {
   browserImportCanvas,
   browserImportCanvasName,
@@ -2067,6 +2068,9 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
   updateVector: defineCopilotTool(meta.updateVector, (studio, input) =>
     runMutation(studio, { name: "updateVector", input }),
   ),
+  listLibraries: defineCopilotTool(meta.listLibraries, listLibraries),
+  getLibrary: defineCopilotTool(meta.getLibrary, getLibrary),
+  searchLibraryComponents: defineCopilotTool(meta.searchLibraryComponents, searchLibraryComponents),
   installLibrary: defineCopilotTool(
     meta.installLibrary,
     async (studio, input) => {
@@ -2136,6 +2140,7 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
           ...requiredInstalledDeps,
         ]);
       }
+      await studio.ensureCodeComponentRegistrations();
       return {
         projectId: input.projectId,
         previousVersion,

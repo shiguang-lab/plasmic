@@ -242,7 +242,6 @@ import {
   mkShortId,
   removeWhere,
   spawn,
-  spawnWrapper,
   swallow,
   switchType,
   tuple,
@@ -1071,15 +1070,22 @@ export class StudioCtx extends WithDbCtx {
 
   async updateCcRegistry(pkgs: string[]) {
     const previousFetch = this.hostLessPkgsLock;
-    this.hostLessPkgsLock = new Promise(
-      spawnWrapper(async (resolve: () => void) => {
-        await previousFetch;
+    this.hostLessPkgsLock = previousFetch
+      // A failed load rejects its caller, but must not poison later retries.
+      .catch(() => undefined)
+      .then(async () => {
         const pkgsData = await getSortedHostLessPkgs(
           pkgs,
           getVersionForCanvasPackages(this.hostLessPkgsFrame.contentWindow),
           this.site,
         );
         runInAction(() => {
+          const currentPackages = new Set(pkgsData.map(([pkg]) => pkg));
+          for (const pkg of this.installedHostLessPkgs) {
+            if (!currentPackages.has(pkg)) {
+              this.installedHostLessPkgs.delete(pkg);
+            }
+          }
           // We run in action because `installedHostLessPkgs` is observable
           // so we want computed values to re-compute only after all packages
           // have been installed and the `ccRegistry` is cleared
@@ -1096,9 +1102,7 @@ export class StudioCtx extends WithDbCtx {
           // Clear the memoized map
           this.hostLessRegistry.clear();
         });
-        resolve();
-      }),
-    );
+      });
     await this.hostLessPkgsLock;
   }
 

@@ -5726,5 +5726,8 @@
   "{distance}px above is cut off and can't be scrolled into view. Change the size in the right panel.": "上方 {distance}px 被裁切，無法捲動查看。可在右側面板修改尺寸",
   "{distance}px below is cut off and can't be scrolled into view. Change the size in the right panel.": "下方 {distance}px 被裁切，無法捲動查看。可在右側面板修改尺寸",
   "{distance}px to the left is cut off and can't be scrolled into view. Change the size in the right panel.": "左側 {distance}px 被裁切，無法捲動查看。可在右側面板修改尺寸",
-  "{distance}px to the right is cut off and can't be scrolled into view. Change the size in the right panel.": "右側 {distance}px 被裁切，無法捲動查看。可在右側面板修改尺寸"
+  "{distance}px to the right is cut off and can't be scrolled into view. Change the size in the right panel.": "右側 {distance}px 被裁切，無法捲動查看。可在右側面板修改尺寸",
+  "The gateway could not reach the service. It may be restarting or unavailable.": "閘道無法連線至服務，服務可能正在重新啟動或暫時無法使用。",
+  "The gateway timed out waiting for the service to respond.": "閘道等候服務回應逾時。",
+  "No response was received. Check your network connection and whether the service is reachable.": "未收到服務回應，請檢查網路連線及服務是否可存取。"
 }

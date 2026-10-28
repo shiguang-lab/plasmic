@@ -5,7 +5,9 @@ import {
   aiChatRequest,
 } from "@/wab/client/copilot/local-edit-session";
 import type { AiEvent, AiTask } from "@/wab/shared/copilot/ai-chat";
+import { io, Socket } from "socket.io-client";
 import { mock } from "vitest-mock-extended";
+vi.mock("socket.io-client", () => ({ io: vi.fn() }));
 const task: AiTask = {
   id: "run",
   threadId: "thread",
@@ -33,6 +35,169 @@ const event = (seq: number): AiEvent => ({
   runId: task.id,
   seq,
   task: { ...task, phase: `step ${seq}` },
+});
+
+describe("AI event synchronization", () => {
+  let socket = mock<Socket>();
+  let session: LocalEditSession;
+  const listeners = new Map<string, (...args: any[]) => void>();
+  const request = vi.fn();
+  const history = { tasks: [], seq: 0 };
+  const success = (value: unknown) => ({ ok: true, json: async () => value });
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    listeners.clear();
+    socket = mock<Socket>();
+    socket.on.mockImplementation((name, listener) => {
+      listeners.set(name, listener);
+      return socket;
+    });
+    vi.mocked(io).mockReturnValue(socket);
+    request.mockReset().mockImplementation(async (url: string) => success(url.includes("/events?") ? [] : history));
+    vi.stubGlobal("fetch", request);
+    session = new LocalEditSession("project");
+    session.newThread("thread");
+  });
+
+  afterEach(() => {
+    session.disconnect();
+    vi.unstubAllGlobals();
+    vi.useRealTimers();
+  });
+
+  async function subscribe() {
+    listeners.get("connect")?.();
+    const call = socket.emit.mock.calls.at(-1);
+    const acknowledge = call?.[2];
+    if (typeof acknowledge !== "function") {
+      throw new Error("Expected a subscription acknowledgement callback");
+    }
+    acknowledge();
+    await vi.advanceTimersByTimeAsync(0);
+  }
+
+  async function start() {
+    session.connect();
+    await vi.advanceTimersByTimeAsync(0);
+    await subscribe();
+    request.mockClear();
+  }
+
+  it("does not poll while subscribed and applies pushed events", async () => {
+    await start();
+    listeners.get("aiChat")?.(event(1));
+    await vi.advanceTimersByTimeAsync(60000);
+    expect(request).not.toHaveBeenCalled();
+    expect(session.tasks[0].phase).toBe("step 1");
+  });
+
+  it("keeps fallback reads until subscription is acknowledged, then catches up once", async () => {
+    session.connect();
+    await vi.advanceTimersByTimeAsync(0);
+    request.mockClear();
+    listeners.get("connect")?.();
+    await vi.advanceTimersByTimeAsync(5000);
+    expect(request).toHaveBeenCalledTimes(1);
+    await subscribe();
+    expect(request).toHaveBeenCalledTimes(2);
+    await vi.advanceTimersByTimeAsync(60000);
+    expect(request).toHaveBeenCalledTimes(2);
+  });
+
+  it("uses a five-second fallback during disconnection and stops after reconnection", async () => {
+    await start();
+    listeners.get("disconnect")?.();
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(request).toHaveBeenCalledTimes(1);
+    await vi.advanceTimersByTimeAsync(4000);
+    expect(request).toHaveBeenCalledTimes(1);
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(request).toHaveBeenCalledTimes(2);
+    await subscribe();
+    expect(request).toHaveBeenCalledTimes(3);
+    await vi.advanceTimersByTimeAsync(60000);
+    expect(request).toHaveBeenCalledTimes(3);
+  });
+
+  it("backs off repeated failures, reports the outage once and clears it on recovery", async () => {
+    await start();
+    const notice = vi.fn();
+    session.subscribe(() => { if (session.error) {notice(session.error);} });
+    request.mockResolvedValue({ok: false, status: 502, json: async () => {throw new SyntaxError("Not JSON");}});
+    listeners.get("disconnect")?.();
+    await vi.advanceTimersByTimeAsync(1000);
+    const error = session.error;
+    expect(error).toMatchObject({statusCode: 502, request: {method: "GET", url: "/api/v1/projects/project/ai/chat/events?afterSeq=0"}});
+    for (const delay of [5000, 10000, 20000, 30000]) {
+      const count = request.mock.calls.length;
+      await vi.advanceTimersByTimeAsync(delay - 1000);
+      expect(request).toHaveBeenCalledTimes(count);
+      await vi.advanceTimersByTimeAsync(1000);
+      expect(request).toHaveBeenCalledTimes(count + 1);
+    }
+    expect(session.error).toBe(error);
+    expect(notice).toHaveBeenCalledOnce();
+    request.mockResolvedValue(success([]));
+    await subscribe();
+    expect(session.error).toBeUndefined();
+    request.mockClear();
+    await vi.advanceTimersByTimeAsync(60000);
+    expect(request).not.toHaveBeenCalled();
+  });
+
+  it("retries the initial history snapshot before reading events after a failed startup", async () => {
+    request.mockResolvedValue({ok: false, status: 503, json: async () => ({})});
+    session.connect();
+    await vi.advanceTimersByTimeAsync(0);
+    await vi.advanceTimersByTimeAsync(4000);
+    expect(request).toHaveBeenCalledTimes(1);
+    request.mockImplementation(async (url: string) => success(url.includes("/events?") ? [] : {tasks: [{...task, seq: 7}], seq: 7}));
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(request.mock.calls.map(([url]) => url)).toEqual([
+      "/api/v1/projects/project/ai/chat",
+      "/api/v1/projects/project/ai/chat",
+      "/api/v1/projects/project/ai/chat/events?afterSeq=7",
+    ]);
+    expect(session.tasks[0].id).toBe("run");
+    expect(session.error).toBeUndefined();
+  });
+
+  it("repairs an event gap while subscribed without resuming idle polling", async () => {
+    await start();
+    request.mockResolvedValueOnce(success([event(1), event(2)]));
+    listeners.get("aiChat")?.(event(3));
+    await vi.advanceTimersByTimeAsync(0);
+    expect(request).toHaveBeenCalledExactlyOnceWith("/api/v1/projects/project/ai/chat/events?afterSeq=0", expect.anything());
+    expect(session.tasks[0].phase).toBe("step 3");
+    await vi.advanceTimersByTimeAsync(60000);
+    expect(request).toHaveBeenCalledOnce();
+  });
+
+  it("reconciles events received while the initial snapshot is in flight", async () => {
+    const snapshot = Promise.withResolvers<ReturnType<typeof success>>();
+    request.mockImplementation((url: string) => url.includes("/events?") ? Promise.resolve(success([event(2)])) : snapshot.promise);
+    session.connect();
+    listeners.get("aiChat")?.(event(3));
+    await subscribe();
+    expect(request).toHaveBeenCalledTimes(1);
+    snapshot.resolve(success({tasks: [{...task, seq: 1, phase: "step 1"}], seq: 1}));
+    await vi.advanceTimersByTimeAsync(0);
+    expect(request).toHaveBeenLastCalledWith("/api/v1/projects/project/ai/chat/events?afterSeq=1", expect.anything());
+    expect(session.tasks[0].phase).toBe("step 3");
+    await vi.advanceTimersByTimeAsync(60000);
+    expect(request).toHaveBeenCalledTimes(2);
+  });
+});
+
+it("preserves request context for a network failure before an HTTP response", async () => {
+  const cause = new TypeError("Failed to fetch");
+  vi.stubGlobal("fetch", vi.fn().mockRejectedValue(cause));
+  try {
+    await expect(aiChatRequest("/api/v1/example", {prompt: "private"})).rejects.toMatchObject({
+      name: "NetworkError", cause, request: {method: "POST", url: "/api/v1/example"},
+    });
+  } finally {vi.unstubAllGlobals();}
 });
 it("does not advance across gaps and applies duplicate and out-of-order events exactly once", () => {
   const cursor = new AiEventCursor();

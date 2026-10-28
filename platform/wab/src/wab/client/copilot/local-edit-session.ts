@@ -1,5 +1,6 @@
 import { normalizeError } from "@/wab/client/ErrorNotifications";
 import type { PlasmicAiTools } from "@/wab/client/components/studio/TopFrameCopilotToolsBridge";
+import { NetworkError } from "@/wab/shared/ApiErrors/ApiError";
 import { deserializeApiError } from "@/wab/shared/ApiErrors/errors";
 import { ensure } from "@/wab/shared/common";
 import type {
@@ -36,12 +37,19 @@ export async function aiChatRequest<T>(
   url: string,
   body?: unknown,
 ): Promise<T> {
-  const response = await fetch(url, {
-    method: body === undefined ? "GET" : "POST",
+  const request = { method: body === undefined ? "GET" : "POST", url };
+  const options: RequestInit = {
+    method: request.method,
     credentials: "same-origin",
     headers: { "Content-Type": "application/json" },
     body: body === undefined ? undefined : JSON.stringify(body),
-  });
+  };
+  let response: Response;
+  try {
+    response = await fetch(url, options);
+  } catch (cause) {
+    throw new NetworkError(request, { cause });
+  }
   const result = await response.json().catch((error) => {
     if (!response.ok) {
       return {};
@@ -49,7 +57,9 @@ export async function aiChatRequest<T>(
     throw error;
   });
   if (!response.ok) {
-    throw deserializeApiError(result.error, response.status);
+    throw Object.assign(deserializeApiError(result.error, response.status), {
+      request,
+    });
   }
   return result as T;
 }
@@ -522,6 +532,11 @@ export class LocalEditSession {
   private connected = false;
   private generation = 0;
   private syncing = false;
+  private subscribed = false;
+  private snapshotLoaded = false;
+  private nextSyncAt = 0;
+  private syncRetryDelay = 0;
+  private syncError?: Error;
   private executing = false;
   private sending = false;
   private undoing = false;
@@ -653,16 +668,37 @@ export class LocalEditSession {
     this.connected = true;
     this.generation++;
     this.syncing = false;
+    this.subscribed = false;
+    this.snapshotLoaded = false;
+    this.nextSyncAt = 0;
+    this.syncRetryDelay = 0;
+    if (this.error === this.syncError) {
+      this.error = undefined;
+    }
+    this.syncError = undefined;
     const generation = this.generation;
     this.booting = true;
     this.socket = io({ path: "/api/v1/socket", transports: ["websocket"] });
     this.socket.on("connect", () => {
-      this.socket?.emit("subscribe", {
-        namespace: "projects",
-        projectIds: [this.projectId],
-        studio: false,
-      });
-      void this.sync();
+      this.socket?.emit(
+        "subscribe",
+        {
+          namespace: "projects",
+          projectIds: [this.projectId],
+          studio: false,
+        },
+        () => {
+          if (!this.connected || generation !== this.generation) {
+            return;
+          }
+          this.subscribed = true;
+          this.nextSyncAt = 0;
+          void this.sync();
+        },
+      );
+    });
+    this.socket.on("disconnect", () => {
+      this.subscribed = false;
     });
     this.socket.on("aiChat", (event: AiEvent) => {
       if (generation !== this.generation) {
@@ -682,12 +718,15 @@ export class LocalEditSession {
     });
     this.initializing = this.initialize(this.branchReady);
     this.timer = setInterval(() => {
-      void this.sync();
+      if (!this.subscribed || !this.snapshotLoaded || this.syncRetryDelay || this.cursor.gap || this.missingRuns.size) {
+        void this.sync();
+      }
       void this.executePending();
     }, 1000);
   }
   disconnect() {
     this.connected = false;
+    this.subscribed = false;
     this.generation++;
     this.editorSessionId = undefined;
     if (this.timer) {
@@ -701,6 +740,7 @@ export class LocalEditSession {
     return `/api/v1/projects/${encodeURIComponent(this.projectId)}/ai/chat${suffix}`;
   }
   private async initialize(refreshDirectory = false) {
+    this.booting = true;
     const generation = this.generation;
     try {
       const page = await aiChatRequest<{
@@ -713,6 +753,7 @@ export class LocalEditSession {
       }
       page.tasks.forEach((task) => this.apply(task));
       this.cursor.reset(page.seq);
+      this.snapshotLoaded = true;
       this.booting = false;
       for (const event of this.buffer) {
         this.cursor.accept(event, this.applyEvent);
@@ -738,9 +779,8 @@ export class LocalEditSession {
       }
     } catch (error) {
       if (generation === this.generation) {
-        this.error = normalizeError(error);
         this.booting = false;
-        this.notify();
+        this.failSync(error);
       }
     }
   }
@@ -780,7 +820,12 @@ export class LocalEditSession {
     }
   }
   private async sync() {
-    if (!this.connected || this.booting || this.syncing) {
+    if (!this.connected || this.booting || this.syncing || Date.now() < this.nextSyncAt) {
+      return;
+    }
+    if (!this.snapshotLoaded) {
+      this.initializing = this.initialize(this.branchReady);
+      await this.initializing;
       return;
     }
     this.syncing = true;
@@ -799,19 +844,31 @@ export class LocalEditSession {
         }
       } while (page.length === 100 && this.connected);
       this.missingRuns.forEach((runId) => this.fetchRun(runId));
-      if (this.error) {
+      this.syncRetryDelay = 0;
+      this.nextSyncAt = this.subscribed ? 0 : Date.now() + 5000;
+      if (this.syncError && this.error === this.syncError) {
         this.error = undefined;
         this.notify();
       }
+      this.syncError = undefined;
     } catch (error) {
       if (generation === this.generation) {
-        this.error = normalizeError(error);
-        this.notify();
+        this.failSync(error);
       }
     } finally {
       if (generation === this.generation) {
         this.syncing = false;
       }
+    }
+  }
+  private failSync(error: unknown) {
+    this.syncRetryDelay = Math.min(this.syncRetryDelay ? this.syncRetryDelay * 2 : 5000, 30000);
+    this.nextSyncAt = Date.now() + this.syncRetryDelay;
+    // Keep one error identity throughout an outage, so retries don't reopen toasts.
+    if (!this.syncError) {
+      this.syncError = normalizeError(error);
+      this.error = this.syncError;
+      this.notify();
     }
   }
   private async raw(

@@ -5,6 +5,7 @@ import {
 import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
 import { analytics } from "@/wab/client/observability";
 import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { ApiError, NetworkError } from "@/wab/shared/ApiErrors/ApiError";
 import { UserError } from "@/wab/shared/UserError";
 import {
   AssertionError,
@@ -69,7 +70,7 @@ export function showError(
   const businessError = asApiError(error);
   console.error("Studio operation failed", { error, title, description });
   const deriveErrorInfo = () => {
-    if (normalized.message?.includes("XHRStatus0Error")) {
+    if (error instanceof NetworkError || normalized.message?.includes("XHRStatus0Error")) {
       return { title: "Temporarily disconnected", type: type ?? ("error" as const) };
     }
     if (businessError) {
@@ -83,7 +84,9 @@ export function showError(
   };
 
   const info = deriveErrorInfo();
-  const reason = businessError
+  const reason = error instanceof NetworkError
+    ? "No response was received. Check your network connection and whether the service is reachable."
+    : businessError
     ? getApiErrorPresentation(businessError).description
     : error instanceof UserError
       ? normalized.message
@@ -91,14 +94,19 @@ export function showError(
   const summary = reason.replace(/\s+/g, " ").trim();
   const briefReason = summary.length > 180 ? `${summary.slice(0, 180)}…` : summary;
   const errorText = `${normalized.name || "Error"}: ${normalized.message}`;
+  const request = error instanceof ApiError || error instanceof NetworkError
+    ? error.request
+    : undefined;
   const details = [
+    request ? `${request.method} ${request.url}` : undefined,
+    businessError ? `HTTP ${businessError.statusCode}` : undefined,
     normalized.stack?.startsWith(errorText)
       ? normalized.stack
       : [errorText, normalized.stack].filter(Boolean).join("\n"),
     description,
     error instanceof UserError ? error.description : undefined,
   ].filter(Boolean).join("\n\n");
-  const key = JSON.stringify([info.title, normalized.name, normalized.message]);
+  const key = JSON.stringify([info.title, normalized.name, normalized.message, businessError?.statusCode, request]);
   const newCount = 1 + (errorMessageCounters.get(key) || 0);
   errorMessageCounters.set(key, newCount);
 

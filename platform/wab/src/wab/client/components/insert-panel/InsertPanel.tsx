@@ -47,6 +47,7 @@ import {
 } from "@/wab/client/components/studio/add-drawer/AddDrawer";
 import AddDrawerItem, {
   getAddItemLabel,
+  isAntDesignIconItem,
 } from "@/wab/client/components/studio/add-drawer/AddDrawerItem";
 import {
   DraggableInsertable,
@@ -202,15 +203,6 @@ function filterResourceGroups(
 const rightSideHPadding = 8;
 const sameRowGap = 5;
 const compactPerRow = 3;
-
-function isAntDesignIconItem(item: AddItem) {
-  return (
-    isTplAddItem(item) &&
-    !!item.component &&
-    isCodeComponent(item.component) &&
-    item.component.codeComponentMeta.importPath === "@ant-design/icons"
-  );
-}
 
 function breakIconNameAtWords(node: React.ReactNode): React.ReactNode {
   if (typeof node === "string") {

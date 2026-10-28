@@ -5726,5 +5726,8 @@
   "{distance}px above is cut off and can't be scrolled into view. Change the size in the right panel.": "위쪽 {distance}px가 잘려 있어 스크롤로 볼 수 없습니다. 오른쪽 패널에서 크기를 변경하세요",
   "{distance}px below is cut off and can't be scrolled into view. Change the size in the right panel.": "아래쪽 {distance}px가 잘려 있어 스크롤로 볼 수 없습니다. 오른쪽 패널에서 크기를 변경하세요",
   "{distance}px to the left is cut off and can't be scrolled into view. Change the size in the right panel.": "왼쪽 {distance}px가 잘려 있어 스크롤로 볼 수 없습니다. 오른쪽 패널에서 크기를 변경하세요",
-  "{distance}px to the right is cut off and can't be scrolled into view. Change the size in the right panel.": "오른쪽 {distance}px가 잘려 있어 스크롤로 볼 수 없습니다. 오른쪽 패널에서 크기를 변경하세요"
+  "{distance}px to the right is cut off and can't be scrolled into view. Change the size in the right panel.": "오른쪽 {distance}px가 잘려 있어 스크롤로 볼 수 없습니다. 오른쪽 패널에서 크기를 변경하세요",
+  "The gateway could not reach the service. It may be restarting or unavailable.": "게이트웨이가 서비스에 연결할 수 없습니다. 서비스가 다시 시작 중이거나 일시적으로 사용할 수 없습니다.",
+  "The gateway timed out waiting for the service to respond.": "게이트웨이에서 서비스 응답을 기다리는 시간이 초과되었습니다.",
+  "No response was received. Check your network connection and whether the service is reachable.": "서비스 응답을 받지 못했습니다. 네트워크 연결과 서비스에 접근할 수 있는지 확인하세요."
 }

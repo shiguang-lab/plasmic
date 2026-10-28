@@ -71,6 +71,20 @@ test("dashboard context fails immediately without opening or saving a project; m
   assert.deepEqual(calls, []);
 });
 
+test("library discovery remains read-only in Preview while installation and upgrades require edit mode", async (t) => {
+  const { controller, context, calls } = fixture(t, "preview");
+  for (const name of ["listLibraries", "getLibrary", "searchLibraryComponents"]) {
+    await controller.dispatch("execute", { name, input: { projectId: "library-icons", query: "Icon" } });
+  }
+  assert.deepEqual(calls.map((call) => call.name), ["listLibraries", "getLibrary", "searchLibraryComponents"]);
+  for (const name of ["installLibrary", "upgradeLibrary"]) {
+    await assert.rejects(controller.dispatch("execute", { name, input: { projectId: "library-icons" } }),
+      (error) => error.context.code === "CONTEXT_MISMATCH" && error.context.operationExecuted === false);
+  }
+  assert.equal(calls.length, 3);
+  assert.equal(context.mode, "preview");
+});
+
 test("legacy local workflow state cannot affect status or block an ordinary edit", async (t) => {
   const profile = await fs.mkdtemp(path.join(os.tmpdir(), "plasmic-legacy-state-"));
   t.after(() => fs.rm(profile, { recursive: true, force: true }));
