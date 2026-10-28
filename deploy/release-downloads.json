@@ -2,27 +2,27 @@
   "schemaVersion": 1,
   "routes": {
     "/desktop-updates/latest.json": {
-      "tag": "0.5.0",
+      "tag": "0.5.2",
       "asset": "desktop-latest.json",
       "mutable": true
     },
     "/desktop-updates/darwin/arm64/latest-mac.yml": {
-      "tag": "0.5.0",
+      "tag": "0.5.2",
       "asset": "latest-mac-arm64.yml",
       "mutable": true
     },
     "/desktop-updates/darwin/x64/latest-mac.yml": {
-      "tag": "0.5.0",
+      "tag": "0.5.2",
       "asset": "latest-mac-x64.yml",
       "mutable": true
     },
     "/desktop-updates/win32/x64/latest.yml": {
-      "tag": "0.5.0",
+      "tag": "0.5.2",
       "asset": "latest.yml",
       "mutable": true
     },
     "/desktop-updates/linux/x64/latest-linux.yml": {
-      "tag": "0.5.0",
+      "tag": "0.5.2",
       "asset": "latest-linux.yml",
       "mutable": true
     },
@@ -105,8 +105,68 @@
       "tag": "0.5.0",
       "asset": "plasmic-cli.tgz",
       "mutable": false
+    },
+    "/desktop-updates/darwin/arm64/Plasmic-0.5.2-mac-arm64.dmg": {
+      "tag": "0.5.2",
+      "asset": "Plasmic-0.5.2-mac-arm64.dmg",
+      "mutable": false
+    },
+    "/desktop-updates/darwin/arm64/Plasmic-0.5.2-mac-arm64.dmg.blockmap": {
+      "tag": "0.5.2",
+      "asset": "Plasmic-0.5.2-mac-arm64.dmg.blockmap",
+      "mutable": false
+    },
+    "/desktop-updates/darwin/arm64/Plasmic-0.5.2-mac-arm64.zip": {
+      "tag": "0.5.2",
+      "asset": "Plasmic-0.5.2-mac-arm64.zip",
+      "mutable": false
+    },
+    "/desktop-updates/darwin/arm64/Plasmic-0.5.2-mac-arm64.zip.blockmap": {
+      "tag": "0.5.2",
+      "asset": "Plasmic-0.5.2-mac-arm64.zip.blockmap",
+      "mutable": false
+    },
+    "/desktop-updates/darwin/x64/Plasmic-0.5.2-mac-x64.dmg": {
+      "tag": "0.5.2",
+      "asset": "Plasmic-0.5.2-mac-x64.dmg",
+      "mutable": false
+    },
+    "/desktop-updates/darwin/x64/Plasmic-0.5.2-mac-x64.dmg.blockmap": {
+      "tag": "0.5.2",
+      "asset": "Plasmic-0.5.2-mac-x64.dmg.blockmap",
+      "mutable": false
+    },
+    "/desktop-updates/darwin/x64/Plasmic-0.5.2-mac-x64.zip": {
+      "tag": "0.5.2",
+      "asset": "Plasmic-0.5.2-mac-x64.zip",
+      "mutable": false
+    },
+    "/desktop-updates/darwin/x64/Plasmic-0.5.2-mac-x64.zip.blockmap": {
+      "tag": "0.5.2",
+      "asset": "Plasmic-0.5.2-mac-x64.zip.blockmap",
+      "mutable": false
+    },
+    "/desktop-updates/win32/x64/Plasmic-0.5.2-win-x64.exe": {
+      "tag": "0.5.2",
+      "asset": "Plasmic-0.5.2-win-x64.exe",
+      "mutable": false
+    },
+    "/desktop-updates/win32/x64/Plasmic-0.5.2-win-x64.exe.blockmap": {
+      "tag": "0.5.2",
+      "asset": "Plasmic-0.5.2-win-x64.exe.blockmap",
+      "mutable": false
+    },
+    "/desktop-updates/linux/x64/Plasmic-0.5.2-linux-x86_64.AppImage": {
+      "tag": "0.5.2",
+      "asset": "Plasmic-0.5.2-linux-x86_64.AppImage",
+      "mutable": false
+    },
+    "/desktop-updates/linux/x64/Plasmic-0.5.2-linux-x86_64.AppImage.blockmap": {
+      "tag": "0.5.2",
+      "asset": "Plasmic-0.5.2-linux-x86_64.AppImage.blockmap",
+      "mutable": false
     }
   },
-  "desktopVersion": "0.5.0",
+  "desktopVersion": "0.5.2",
   "resourceVersion": "0.5.0"
 }
