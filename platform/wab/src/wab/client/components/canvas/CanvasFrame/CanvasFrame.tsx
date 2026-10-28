@@ -364,7 +364,7 @@ export const CanvasFrame = observer(function CanvasFrame({
   );
 
   const handleSelectionClick = useCallback(() => {
-    if (studioCtx.isInteractiveMode) {
+    if (studioCtx.isInteractiveMode || maybeViewCtx()?.contentEditor.target) {
       return;
     }
     spawn(
@@ -373,7 +373,7 @@ export const CanvasFrame = observer(function CanvasFrame({
         return ok();
       }),
     );
-  }, [studioCtx]);
+  }, [studioCtx, arenaFrame, maybeViewCtx]);
   const handleArenaHandleClick = useCallback(
     (e?: React.MouseEvent<HTMLElement>) => {
       if (studioCtx.isInteractiveMode) {
@@ -659,12 +659,14 @@ export const CanvasFrame = observer(function CanvasFrame({
 
   const contentView = studioCtx.viewCtxs.find((vc) => vc.contentEditor.target);
   const contentSize = maybeViewCtx()?.contentEditor.size.get();
+  const isContentEditing = !!maybeViewCtx()?.contentEditor.target;
+  const contentReady = maybeViewCtx()?.contentEditor.ready.get();
   return (
     <div className={styles.root} onClick={handleSelectionClick} style={contentView && contentView.arenaFrame() !== arenaFrame ? { visibility: "hidden", pointerEvents: "none" } : undefined}>
       <div
         className={"CanvasFrame__Container"}
-        style={
-          isFree
+        style={{
+          ...(isFree
             ? {
                 position: "absolute",
                 left: ensure(
@@ -681,8 +683,9 @@ export const CanvasFrame = observer(function CanvasFrame({
             : {
                 width: contentSize?.width ?? arenaFrame.width,
                 height: contentSize?.height ?? getFrameHeight(arenaFrame),
-              }
-        }
+              }),
+          boxShadow: isContentEditing ? "none" : undefined,
+        }}
         data-frame-id={`${arenaFrame.uid}`}
       >
         {(!maybeViewCtx()?.initialRenderReady ||
@@ -697,6 +700,7 @@ export const CanvasFrame = observer(function CanvasFrame({
           </div>
         )}
         <iframe
+          style={isContentEditing ? { background: "transparent", opacity: contentReady ? 1 : 0 } : undefined}
           data-plasmic-frame-uuid={arenaFrame.uuid}
           data-plasmic-component-uuid={arenaFrame.container.component.uuid}
           className={cx(
@@ -715,7 +719,7 @@ export const CanvasFrame = observer(function CanvasFrame({
             String(loadState === "unloaded" || loadState === "queued")
           }
         />
-        <div
+        {!isContentEditing && <><div
           className={"CanvasFrame__OverlayTop"}
           data-frame-uid={arenaFrame.uid}
         />
@@ -731,6 +735,7 @@ export const CanvasFrame = observer(function CanvasFrame({
           className={"CanvasFrame__OverlayLeft"}
           data-frame-uid={arenaFrame.uid}
         />
+        </>}
         {DEVFLAGS.loadingDebug && (
           <div className={styles.statusBadge}>
             {loadState === "unloaded" && studioUiT("Mounted...")}
@@ -748,7 +753,7 @@ export const CanvasFrame = observer(function CanvasFrame({
           </div>
         )}
 
-        {!contentSize && <>
+        {!isContentEditing && <>
         <CanvasHeader studioCtx={studioCtx} frame={arenaFrame} arena={arena} />
         <XDraggable
           onStart={(e) => startMove(e)}

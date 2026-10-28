@@ -53,6 +53,7 @@ import {
   getArenaUuidOrName,
   getFrameHeight,
   isDedicatedArena,
+  isHeightAutoDerived,
   mkArenaFrame,
 } from "@/wab/shared/Arenas";
 import { VariantOptionsType } from "@/wab/shared/TplMgr";
@@ -60,7 +61,13 @@ import { VariantTplMgr } from "@/wab/shared/VariantTplMgr";
 import { getBaseVariant, isBaseVariant, isScreenVariantGroup } from "@/wab/shared/Variants";
 import { usedHostLessPkgs } from "@/wab/shared/cached-selectors";
 import { paramToVarName } from "@/wab/shared/codegen/util";
-import { assert, asyncTimeout, ensure, withTimeout } from "@/wab/shared/common";
+import {
+  assert,
+  asyncTimeout,
+  delay,
+  ensure,
+  withTimeout,
+} from "@/wab/shared/common";
 import { getComponentArenaBaseFrame } from "@/wab/shared/component-arenas";
 import {
   GlobalVariantFrame,
@@ -120,6 +127,7 @@ import { ScreenSizeSpec } from "@/wab/shared/css-size";
 import { parseDataUrlToSvgXml } from "@/wab/shared/data-urls";
 import { Pt } from "@/wab/shared/geom";
 import {
+  ArenaFrame,
   Component,
   RawText,
   TplNode,
@@ -1517,6 +1525,32 @@ function localSnapshot(studio: StudioCtx, components: Component[]) {
   );
 }
 
+/**
+ * Page artboards follow their measured content through a debounced
+ * ResizeObserver (up to ~500ms per step). Wait until every height has been
+ * stable for longer than one step, or report that it never settled.
+ */
+async function waitForFrameHeights(
+  frames: ArenaFrame[],
+  { stableMs = 800, timeoutMs = 8000, intervalMs = 100 } = {},
+) {
+  const read = () => frames.map((frame) => getFrameHeight(frame)).join(",");
+  let last = read();
+  let stableSince = Date.now();
+  const deadline = stableSince + timeoutMs;
+  while (Date.now() < deadline) {
+    await delay(intervalMs);
+    const current = read();
+    if (current !== last) {
+      last = current;
+      stableSince = Date.now();
+    } else if (Date.now() - stableSince >= stableMs) {
+      return true;
+    }
+  }
+  return false;
+}
+
 export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
   executeLocalEdit: defineCopilotTool(
     meta.executeLocalEdit,
@@ -2721,6 +2755,39 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
           width: rect.width,
           height: rect.height,
         },
+      };
+    },
+  ),
+  setCanvasPageHeight: defineCopilotTool(
+    meta.setCanvasPageHeight,
+    async (studio, input) => {
+      const previous = studio.fullPageHeight
+        ? ("full" as const)
+        : ("viewport" as const);
+      studio.setFullPageHeightOverride(input.mode === "full");
+      const views = studio.viewCtxs.filter((vc) =>
+        isHeightAutoDerived(vc.arenaFrame()),
+      );
+      // Never block the editor queue on a canvas that cannot finish rendering.
+      const synced = await withTimeout(
+        Promise.all(views.map((vc) => vc.awaitSync())),
+        "Timed out waiting for page artboards to render",
+        10000,
+      ).then(
+        () => true,
+        () => false,
+      );
+      const settled =
+        (await waitForFrameHeights(views.map((vc) => vc.arenaFrame()))) &&
+        synced;
+      return {
+        previous,
+        current: input.mode,
+        settled,
+        frames: views.map((vc) => ({
+          frameUuid: vc.arenaFrame().uuid,
+          height: getFrameHeight(vc.arenaFrame()),
+        })),
       };
     },
   ),

@@ -395,6 +395,7 @@ export class CanvasCtx {
     const MAX_RESIZES_WITHOUT_USER_EDIT = 16;
     let resizeObserverLastChangeCounter = sc._changeCounter;
     let resizeObserverResizeCounter = 0;
+    let resizeObserverLastFullPageHeight = sc.fullPageHeight;
     const resizeObserverCallback = debounce(
       ([entry]: ResizeObserverEntry[]) => {
         if (isHeightAutoDerived(arenaFrame)) {
@@ -403,9 +404,13 @@ export class CanvasCtx {
           if (height && height !== frameHeight) {
             // We need to resize, but we want to limit how many resizes
             // happen without user-edits (as measured by sc._changeCounter)
-            if (resizeObserverLastChangeCounter !== sc._changeCounter) {
-              // Reset the counter, a user edit has been made
+            if (
+              resizeObserverLastChangeCounter !== sc._changeCounter ||
+              resizeObserverLastFullPageHeight !== sc.fullPageHeight
+            ) {
+              // Reset the counter, a user edit or full-height toggle happened
               resizeObserverLastChangeCounter = sc._changeCounter;
+              resizeObserverLastFullPageHeight = sc.fullPageHeight;
               resizeObserverResizeCounter = 0;
             } else {
               // No user edits made, but we still need to resize
@@ -713,6 +718,7 @@ export class CanvasCtx {
       viewMode: frame.viewMode as CanvasFrameInfo["viewMode"],
       height: frame.height,
       isHeightAutoDerived: isHeightAutoDerived(frame),
+      fullPageHeight: viewCtx.isFullContentView(),
       bgColor: frame.bgColor
         ? (makeTokenRefResolver(viewCtx.site)(frame.bgColor) ?? frame.bgColor)
         : undefined,

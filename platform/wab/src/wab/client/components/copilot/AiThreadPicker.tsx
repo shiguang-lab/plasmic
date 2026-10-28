@@ -1,4 +1,5 @@
 import { Modal } from "@/wab/client/components/widgets/Modal";
+import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import type { AiSessionView } from "@/wab/client/copilot/ai-session-view";
 import { useI18n } from "@/wab/client/i18n";
 import {
@@ -117,12 +118,12 @@ export function AiThreadPicker({
   session,
   readOnly = false,
   disabled = false,
-  onOpen,
+  placement = "bottomLeft",
 }: {
   session: AiSessionView;
   readOnly?: boolean;
   disabled?: boolean;
-  onOpen?: () => void;
+  placement?: "bottomLeft" | "topRight";
 }) {
   const { t, locale } = useI18n();
   const { styles } = useStyles();
@@ -153,14 +154,14 @@ export function AiThreadPicker({
     <Button
       type="text"
       size="small"
-      icon={!onOpen && <MessageOutlined />}
-      className={onOpen ? undefined : styles.title}
+      icon={<MessageOutlined />}
+      className={styles.title}
       aria-label={t("Switch conversation")}
-      aria-expanded={open}
+      aria-expanded={open && !disabled}
       aria-haspopup="dialog"
       disabled={disabled}
     >
-      {!onOpen && <span>{title}</span>}
+      <span>{title}</span>
       <DownOutlined />
     </Button>
   );
@@ -168,24 +169,10 @@ export function AiThreadPicker({
     <>
       <div className={styles.bar} data-test-id="ai-thread-picker">
         <div className={styles.current}>
-          {onOpen && (
-            <Tooltip title={t("Open conversation: {title}", { title })}>
-              <Button
-                type="text"
-                size="small"
-                icon={<MessageOutlined />}
-                className={styles.title}
-                onClick={onOpen}
-                aria-label={t("Open conversation: {title}", { title })}
-              >
-                {title}
-              </Button>
-            </Tooltip>
-          )}
           <Popover
             trigger="click"
             destroyOnHidden
-            placement={onOpen ? "topLeft" : "bottomLeft"}
+            placement={placement}
             open={open && !disabled}
             onOpenChange={(value) => {
               setOpen(value && !disabled);
@@ -371,7 +358,7 @@ export function AiThreadPicker({
               </section>
             }
           >
-            {trigger}
+            <TriggerTarget>{trigger}</TriggerTarget>
           </Popover>
         </div>
         <Button

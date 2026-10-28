@@ -30,6 +30,11 @@ const useStyles = createStyles(() => ({
     width: "100%",
     boxSizing: "border-box",
   },
+  threadPicker: {
+    width: "fit-content",
+    maxWidth: "100%",
+    marginInlineStart: "auto",
+  },
   position: {
     position: "fixed",
     bottom: editorCanvasControlsLayout.edgeInset,
@@ -106,11 +111,13 @@ export function CanvasAiComposer({
       style={{ visibility: hiddenByModal ? "hidden" : undefined }}
     >
       <div className={styles.conversations}>
-        <AiThreadPicker
-          session={session}
-          disabled={!enabled}
-          onOpen={() => void onOpen()}
-        />
+        <div className={styles.threadPicker}>
+          <AiThreadPicker
+            session={session}
+            disabled={!enabled}
+            placement="topRight"
+          />
+        </div>
         <AiRunningNotice session={session} onOpen={() => void onOpen()} />
       </div>
       <AiComposer

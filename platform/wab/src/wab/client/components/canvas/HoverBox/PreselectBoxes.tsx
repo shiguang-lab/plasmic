@@ -1,20 +1,23 @@
 import { EditableNodeLabel } from "@/wab/client/components/canvas/EditableNodeLabel";
 import styles from "@/wab/client/components/canvas/HoverBox/HoverBox.module.scss";
-import { recomputeBounds } from "@/wab/client/components/canvas/HoverBox/recomputeBounds";
 import { useTagPlacement } from "@/wab/client/components/canvas/HoverBox/useTagPlacement";
+import { computeScalerVisibility } from "@/wab/client/components/canvas/HoverBox/visible-bounds";
 import { createNodeIcon } from "@/wab/client/components/sidebar-tabs/tpl-tree";
 import {
   BASE_VARIANT_COLOR,
   NON_BASE_VARIANT_COLOR,
 } from "@/wab/client/components/studio/GlobalCssVariables";
-import { frameToScalerRect } from "@/wab/client/coords";
-import { hasLayoutBox } from "@/wab/client/dom";
-import { StudioCtx, cssPropsForInvertTransform } from "@/wab/client/studio-ctx/StudioCtx";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
+import { hasLayoutBox } from "@/wab/client/dom";
+import {
+  StudioCtx,
+  cssPropsForInvertTransform,
+} from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { useForceUpdate } from "@/wab/client/useForceUpdate";
 import { summarizeFocusObj } from "@/wab/client/utils/tpl-client-utils";
 import { getArenaFrames } from "@/wab/shared/Arenas";
+import { ensure } from "@/wab/shared/common";
 import {
   SQ,
   Selectable,
@@ -49,7 +52,9 @@ function PreselectBoxes_() {
     viewCtx && hoveredSelectable
       ? SQ(hoveredSelectable, viewCtx.valState())
       : undefined;
-  const ancestorsSelectables = hoveredSQ?.ancestors().toArray() ?? [];
+  const ancestorsSelectables = (hoveredSQ?.ancestors().toArray() ?? []).filter(
+    (selectable) => viewCtx?.contentEditor.contains(selectable),
+  );
 
   const preselectBoxes = studioCtx.showAncestorsHoverBoxes()
     ? ancestorsSelectables.map((selectable) => (
@@ -90,6 +95,7 @@ function PreselectBox_(props: {
 
   const shouldShow =
     viewCtx &&
+    viewCtx.contentEditor.contains(selectable) &&
     !studioCtx.shouldHidePreselectBox() &&
     $element?.length &&
     $element?.get(0).isConnected &&
@@ -136,16 +142,23 @@ function PreselectBoxInner(props: {
   const shouldShowHoverTag =
     isHoveredElt && $element && (!$focused || !$element.is($focused));
 
-  const frameRect = recomputeBounds($element!).rect();
-  const scalerRect = frameToScalerRect(frameRect, viewCtx);
+  // Hover outlines show only what the user can see of the element.
+  const { visible: scalerRect } = computeScalerVisibility(
+    ensure($element, "PreselectBoxInner requires a hovered element"),
+    viewCtx,
+  );
   const cssProps = cssPropsForInvertTransform(studioCtx.zoom, scalerRect);
 
   const tagPlacement = useTagPlacement(
     hoverTagRef,
-    scalerRect.width,
+    scalerRect?.width ?? 0,
     studioCtx.zoom,
     viewCtx,
   );
+
+  if (!scalerRect) {
+    return null;
+  }
 
   const hoverVtm = viewCtx.hoverVariantTplMgr(selectable);
   const isTargetingSomeNonBaseVariant =

@@ -55,6 +55,13 @@ const useStyles = createStyles(({ token }) => ({
       "&.ant-btn-icon-only": { width: 28 },
     },
   },
+  pressed: {
+    // Outrank Antd's text-button hover rule so the pressed state stays visible.
+    "&.ant-btn.ant-btn, &.ant-btn.ant-btn:not(:disabled):hover": {
+      color: token.colorPrimary,
+      background: token.colorPrimaryBg,
+    },
+  },
   separator: {
     width: 1,
     height: 14,
@@ -68,7 +75,8 @@ export const CanvasViewControls = observer(function CanvasViewControls({
   studioCtx?: StudioCtx;
 }) {
   const { t } = useI18n();
-  const { styles } = useStyles();
+  const { styles, cx } = useStyles();
+  const fullPageHeight = !!studioCtx?.fullPageHeight;
   const contentView = studioCtx?.viewCtxs.find((vc) => vc.contentEditor.target);
   const frame =
     studioCtx?.focusedContentFrame() ??
@@ -80,6 +88,27 @@ export const CanvasViewControls = observer(function CanvasViewControls({
       data-test-id="canvas-view-controls"
       aria-label={t("Canvas view")}
     >
+      <Tooltip
+        title={t(
+          fullPageHeight ? "Fit to viewport height" : "Show full page height",
+        )}
+      >
+        <Button
+          type="text"
+          className={cx(styles.action, fullPageHeight && styles.pressed)}
+          aria-label={t("Full page height")}
+          aria-pressed={fullPageHeight}
+          data-test-id="toggle-full-page-height"
+          disabled={!studioCtx}
+          icon={
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 3v18 M8 7l4-4 4 4 M8 17l4 4 4-4 M4 3h3 M17 3h3 M4 21h3 M17 21h3" />
+            </svg>
+          }
+          onClick={() => studioCtx?.toggleFullPageHeight()}
+        />
+      </Tooltip>
+      <span className={styles.separator} aria-hidden="true" />
       <Tooltip title={t("Locate current canvas")}>
         <Button
           type="text"

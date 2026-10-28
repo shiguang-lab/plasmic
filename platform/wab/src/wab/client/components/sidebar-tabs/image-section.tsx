@@ -215,7 +215,10 @@ export const ImageSection = observer(function ImageSection(props: {
                     </>
                   }
                 >
-                  <FaLink />
+                  {/* react-icons don't forward refs; anchor on a span. */}
+                  <span>
+                    <FaLink />
+                  </span>
                 </Tooltip>
               </span>
             )}

@@ -420,7 +420,10 @@ export function makeTplMenu(
               />
             }
           >
-            <UiText message={"Ungroup"} />
+            {/* Tooltips anchor through a DOM ref; `UiText` is bare text. */}
+            <span>
+              <UiText message={"Ungroup"} />
+            </span>
           </Tooltip>
         </Menu.Item>,
       );

@@ -7,6 +7,7 @@ import {
   InvalidArgsSummary,
 } from "@/wab/client/components/widgets/InvalidArgs";
 import { Modal } from "@/wab/client/components/widgets/Modal";
+import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { observer } from "@/wab/client/utils/mobx-client-util";
@@ -82,9 +83,12 @@ function InlineValidationErrorPreview(props: {
   const invalidArgs = Object.values(props.invalidArgs);
   return (
     <Tooltip title={<InvalidArgsSummary invalidArgs={invalidArgs} />}>
-      <InvalidArgsBadge className="value-preview">
-        <UiText message={"Fix validation errors"} />
-      </InvalidArgsBadge>
+      {/* InvalidArgsBadge doesn't forward refs; anchor via TriggerTarget. */}
+      <TriggerTarget>
+        <InvalidArgsBadge className="value-preview">
+          <UiText message={"Fix validation errors"} />
+        </InvalidArgsBadge>
+      </TriggerTarget>
     </Tooltip>
   );
 }

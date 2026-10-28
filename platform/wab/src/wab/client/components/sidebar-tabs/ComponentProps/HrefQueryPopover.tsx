@@ -1,4 +1,5 @@
 import { PopupFocuser } from "@/wab/client/components/widgets";
+import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import { useI18n } from "@/wab/client/i18n";
 import { PageHref } from "@/wab/shared/model/classes";
 import { Popover, RefSelectProps, Select } from "antd";
@@ -73,7 +74,7 @@ export function HrefQueryPopover({
         </FocusScope>
       }
     >
-      {children}
+      <TriggerTarget>{children}</TriggerTarget>
     </Popover>
   );
 }

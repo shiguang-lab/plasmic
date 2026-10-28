@@ -7,7 +7,7 @@ import { mkArenaFrame, mkMixedArena } from "@/wab/shared/Arenas";
 import { ComponentType, mkComponent } from "@/wab/shared/core/components";
 import { createSite } from "@/wab/shared/core/sites";
 import { mkTplTag } from "@/wab/shared/core/tpls";
-import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { observable } from "mobx";
 import React from "react";
 import { mock } from "vitest-mock-extended";
@@ -62,6 +62,10 @@ it("shows a bounded local skeleton until first render, preserves component-regis
   const updatingRegistry = observable.box(false);
   const vc = mock<ViewCtx>();
   Object.defineProperty(vc, "contentEditor", { value: new CanvasContentEditor(vc) });
+  const editing = observable.box(false);
+  vi.spyOn(vc.contentEditor, "target", "get").mockImplementation(() =>
+    editing.get() ? { tpl: component.tplTree as never, fullKey: "target", element: document.body } : undefined,
+  );
   const canvas = mock<CanvasCtx>();
   Object.defineProperty(vc, "canvasCtx", { value: canvas });
   Object.defineProperty(vc, "initialRenderReady", {
@@ -102,6 +106,20 @@ it("shows a bounded local skeleton until first render, preserves component-regis
     expect(contentFrame?.style.height).toBe("2400px");
     expect(frame.width).toBe(800);
     expect(frame.height).toBe(600);
+    const iframe = container.querySelector("iframe");
+    expect(iframe?.style.background).toBe("");
+    expect(container.querySelector(".CanvasFrame__OverlayTop")).not.toBeNull();
+    act(() => editing.set(true));
+    expect(iframe?.style.background).toBe("transparent");
+    expect(contentFrame?.style.boxShadow).toBe("none");
+    expect(container.querySelector(".CanvasFrame__OverlayTop")).toBeNull();
+    const focusFrame = vi.spyOn(studioCtx, "setStudioFocusOnFrame");
+    fireEvent.click(contentFrame as HTMLElement);
+    expect(focusFrame).not.toHaveBeenCalled();
+    act(() => editing.set(false));
+    expect(iframe?.style.background).toBe("");
+    expect(contentFrame?.style.boxShadow).toBe("");
+    expect(container.querySelector(".CanvasFrame__OverlayTop")).not.toBeNull();
     act(() => vc.contentEditor.size.set(undefined));
     expect(contentFrame?.style.width).toBe("800px");
     expect(contentFrame?.style.height).toBe("600px");

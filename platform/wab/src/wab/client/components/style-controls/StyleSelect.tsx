@@ -1,6 +1,7 @@
 import { ValueSetState } from "@/wab/client/components/sidebar/sidebar-helpers";
 import Option from "@/wab/client/components/style-controls/StyleSelect__Option";
 import OptionGroup from "@/wab/client/components/style-controls/StyleSelect__OptionGroup";
+import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import {
   DefaultStyleSelectProps,
   PlasmicStyleSelect,
@@ -29,7 +30,9 @@ function StyleSelect_(props: StyleSelectProps, ref: SelectRef) {
       root={{
         wrap: (elt) =>
           props.isDisabled && props.disabledTooltip ? (
-            <Tooltip title={props.disabledTooltip}>{elt}</Tooltip>
+            <Tooltip title={props.disabledTooltip}>
+              <TriggerTarget>{elt}</TriggerTarget>
+            </Tooltip>
           ) : (
             elt
           ),

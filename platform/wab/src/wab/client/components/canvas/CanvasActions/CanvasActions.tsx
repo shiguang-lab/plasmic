@@ -1,11 +1,12 @@
 import { CanvasTransformedBox } from "@/wab/client/components/canvas/CanvasTransformedBox";
 import { useRerenderOnUserBodyChange } from "@/wab/client/components/canvas/UserBodyObserver";
+import { Icon } from "@/wab/client/components/widgets/Icon";
 import { InvalidArgsList } from "@/wab/client/components/widgets/InvalidArgs";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { hasLayoutBox } from "@/wab/client/dom";
 import { UiText } from "@/wab/client/i18n/UiText";
 import WarningIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__WarningTriangleSvg";
 import { RightTabKey } from "@/wab/client/studio-ctx/StudioCtx";
-import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { AnyArena } from "@/wab/shared/Arenas";
 import { getTplComponentArg } from "@/wab/shared/TplMgr";
@@ -72,6 +73,9 @@ function _CanvasAction(props: {
       $elt={$elt}
       viewCtx={viewCtx}
       keepDims={true}
+      // Pin the warning to the visible corner of the component, not to a
+      // corner scrolled away or outside the artboard.
+      clipToVisible
     >
       <div
         style={{
@@ -140,10 +144,8 @@ function _CanvasAction(props: {
             <TooltipMessage component={component} invalidArgs={invalidArgs} />
           }
         >
-          <WarningIcon
-            className="invalid-arg-warning"
-            style={{ width: 25, height: 25 }}
-          />
+          {/* `Icon` gives the tooltip a DOM anchor. */}
+          <Icon icon={WarningIcon} className="invalid-arg-warning" size={25} />
         </Tooltip>
       </div>
     </CanvasTransformedBox>

@@ -100,8 +100,41 @@ try {
       await page.setViewportSize({ width: 1440, height: measured.content });
     }
   }
+  // Studio's "full page height" view: the shell grows with long content and
+  // keeps the authored viewport as its minimum; removing the variable restores
+  // the bounded, scrolling content region.
+  await page.setViewportSize({ width: 1440, height: 720 });
+  const fullHeight = (enabled, rows) => page.evaluate(({ enabled, rows }) => {
+    const root = document.getElementById("root");
+    root.querySelectorAll("[data-height-fixture]").forEach((el) => el.remove());
+    root.style.setProperty("--viewport-height", "720px");
+    if (enabled) root.style.setProperty("--canvas-content-height", "auto");
+    else root.style.removeProperty("--canvas-content-height");
+    document.querySelector(".ant-layout-content > div > div").style.height = `${rows}px`;
+    const layout = document.querySelector(".ant-layout-has-sider");
+    const content = document.querySelector(".ant-layout-content");
+    const height = (element) => element.getBoundingClientRect().height;
+    return {
+      shell: height(layout.parentElement),
+      layout: height(layout),
+      sidebar: height(layout.querySelector(".ant-layout-sider")),
+      contentOverflow: content.scrollHeight - content.clientHeight,
+      document: document.documentElement.scrollHeight,
+    };
+  }, { enabled, rows });
+  const tall = await fullHeight(true, 2400);
+  assert(tall.shell > 2400 && tall.layout === tall.shell && tall.sidebar === tall.shell, `Full height must grow: ${JSON.stringify(tall)}`);
+  assert.equal(tall.contentOverflow, 0, "Full height content region must not scroll");
+  const short = await fullHeight(true, 120);
+  assert.equal(short.shell, 720, `Full height keeps the viewport minimum: ${JSON.stringify(short)}`);
+  assert.equal(short.layout, 720);
+  assert.equal(short.sidebar, 720);
+  const bounded = await fullHeight(false, 2400);
+  assert.equal(bounded.shell, 720, `Viewport mode stays bounded: ${JSON.stringify(bounded)}`);
+  assert(bounded.contentOverflow > 0, "Viewport mode scrolls inside the content region");
+
   assert.deepEqual(errors, []);
-  console.log("AppShell viewport sizing passed: auto/fixed-height parents, shorter viewport, parent width, saved CSS, long-content scrolling and 16 auto-height measurements at 1024/720.");
+  console.log("AppShell viewport sizing passed: auto/fixed-height parents, shorter viewport, parent width, saved CSS, long-content scrolling, 16 auto-height measurements at 1024/720 and the Studio full page height view.");
 } finally {
   await browser.close();
 }

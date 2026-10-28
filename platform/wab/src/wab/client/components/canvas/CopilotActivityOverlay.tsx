@@ -1,21 +1,26 @@
 import styles from "@/wab/client/components/canvas/CopilotActivityOverlay.module.scss";
-import { createAgentCursor } from "@/wab/client/copilot/agent-cursor";
+import {
+  clipBox,
+  computeClipBounds,
+} from "@/wab/client/components/canvas/HoverBox/visible-bounds";
 import {
   ActivityTarget,
   CanvasActivity,
   activityText,
   currentActivity,
 } from "@/wab/client/copilot/activity";
+import { createAgentCursor } from "@/wab/client/copilot/agent-cursor";
 import { useI18n } from "@/wab/client/i18n";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { getArenaName, getFrameHeight } from "@/wab/shared/Arenas";
-import { ancestorsUp, flattenTpls } from "@/wab/shared/core/tpls";
 import { ensure } from "@/wab/shared/common";
-import { findLast, groupBy } from "lodash";
+import { ancestorsUp, flattenTpls } from "@/wab/shared/core/tpls";
+import { Box } from "@/wab/shared/geom";
 import { ArenaFrame, TplNode } from "@/wab/shared/model/classes";
 import { createStyles } from "antd-style";
 import classNames from "classnames";
+import { findLast, groupBy } from "lodash";
 import { observer } from "mobx-react";
 import React from "react";
 
@@ -29,48 +34,26 @@ const useActivityStyles = createStyles(({ token }) => ({
 
 type Bounds = { left: number; top: number; width: number; height: number };
 
-/** Canvas DOM coordinates, clipped to the frame and nested scroll containers. */
+/**
+ * Canvas DOM coordinates of the visible part of `elements`: clipped like the
+ * selection outline (overflow ancestors in each element's containing block
+ * chain and the artboard viewport), and to the `width`×`height` frame.
+ */
 export function activityBounds(
   elements: Element[],
   width: number,
   height: number,
 ): Bounds | undefined {
-  const rects = elements.flatMap((element) => {
-    const rect = element.getBoundingClientRect();
-    let left = Math.max(0, rect.left),
-      top = Math.max(0, rect.top);
-    let right = Math.min(width, rect.right),
-      bottom = Math.min(height, rect.bottom);
-    const win = element.ownerDocument.defaultView;
-    for (
-      let parent = element.parentElement;
-      parent && win;
-      parent = parent.parentElement
-    ) {
-      const css = win.getComputedStyle(parent);
-      const bounds = parent.getBoundingClientRect();
-      if (/^(hidden|clip|auto|scroll)$/.test(css.overflowX)) {
-        left = Math.max(left, bounds.left);
-        right = Math.min(right, bounds.right);
-      }
-      if (/^(hidden|clip|auto|scroll)$/.test(css.overflowY)) {
-        top = Math.max(top, bounds.top);
-        bottom = Math.min(bottom, bounds.bottom);
-      }
-    }
-    return right > left && bottom > top ? [{ left, top, right, bottom }] : [];
+  const frame = { top: 0, left: 0, right: width, bottom: height };
+  const visible = elements.flatMap((element) => {
+    const box = clipBox(
+      Box.fromRect(element.getBoundingClientRect()),
+      computeClipBounds(element),
+    );
+    const inFrame = box && clipBox(box, frame);
+    return inFrame ? [inFrame.rect()] : [];
   });
-  if (!rects.length) {
-    return undefined;
-  }
-  const left = Math.min(...rects.map((r) => r.left));
-  const top = Math.min(...rects.map((r) => r.top));
-  return {
-    left,
-    top,
-    width: Math.max(...rects.map((r) => r.right)) - left,
-    height: Math.max(...rects.map((r) => r.bottom)) - top,
-  };
+  return Box.mergeBBs(visible)?.posRect();
 }
 
 const ActivityRegion = observer(function ActivityRegion({
@@ -196,7 +179,10 @@ export const CopilotActivityOverlay = observer(function CopilotActivityOverlay({
       (!target.frameUuid || target.frameUuid === frame.uuid),
   );
   const cursorRequest = currentActivity(
-    matchingRegions.map((region) => region.request).filter((r) => r.kind === "edit").sort((a, b) => a.id - b.id),
+    matchingRegions
+      .map((region) => region.request)
+      .filter((r) => r.kind === "edit")
+      .sort((a, b) => a.id - b.id),
   );
   React.useEffect(() => {
     // Failed requests disappear immediately; successful feedback may fade out.
@@ -205,35 +191,52 @@ export const CopilotActivityOverlay = observer(function CopilotActivityOverlay({
     }
     previousRequest.current = cursorRequest;
   }, [cursorRequest]);
-  const onBounds = React.useCallback((bounds: Bounds | undefined) => {
-    if (!bounds || !cursorRequest) {
-      cursor.current?.clear();
-      return;
-    }
-    cursor.current?.update(cursorRequest.id, {
-      x: bounds.left + bounds.width / 2,
-      y: bounds.top + bounds.height / 2,
-    }, cursorRequest.status === "running", cursorRequest.caller?.name ?? t("AI assistant"));
-  }, [cursorRequest, t]);
+  const onBounds = React.useCallback(
+    (bounds: Bounds | undefined) => {
+      if (!bounds || !cursorRequest) {
+        cursor.current?.clear();
+        return;
+      }
+      cursor.current?.update(
+        cursorRequest.id,
+        {
+          x: bounds.left + bounds.width / 2,
+          y: bounds.top + bounds.height / 2,
+        },
+        cursorRequest.status === "running",
+        cursorRequest.caller?.name ?? t("AI assistant"),
+      );
+    },
+    [cursorRequest, t],
+  );
   if (!viewCtx) {
     return null;
   }
   // Scope fields select frames; once matched, they do not distinguish nodes.
   // A whole-component request and its root Tpl also address the same region.
-  const regions = Object.entries(groupBy(matchingRegions, ({ target }) =>
-    target.elementUuid ?? frame.container.component.tplTree.uuid,
-  )).map(([key, matches]) => ({
+  const regions = Object.entries(
+    groupBy(
+      matchingRegions,
+      ({ target }) =>
+        target.elementUuid ?? frame.container.component.tplTree.uuid,
+    ),
+  ).map(([key, matches]) => ({
     ...matches[0],
     key,
     request: ensure(
-      currentActivity(matches.map(({ request }) => request).sort((a, b) => a.id - b.id)),
+      currentActivity(
+        matches.map(({ request }) => request).sort((a, b) => a.id - b.id),
+      ),
       "Matching activity region has no requests",
     ),
     scanning: matches.some(({ scanning }) => scanning),
   }));
   const tpls = new Map(
     regions.some(({ target }) => target.elementUuid)
-      ? flattenTpls(frame.container.component.tplTree).map((tpl) => [tpl.uuid, tpl])
+      ? flattenTpls(frame.container.component.tplTree).map((tpl) => [
+          tpl.uuid,
+          tpl,
+        ])
       : [],
   );
   // Keep nested activity of a different kind, but show each kind only at its
@@ -256,11 +259,17 @@ export const CopilotActivityOverlay = observer(function CopilotActivityOverlay({
           ancestorUuids.has(parent.target.elementUuid)),
     );
   });
-  const cursorRegion = findLast(visibleRegions, (region) => region.request.id === cursorRequest?.id)
-    ?? findLast(visibleRegions, (region) => region.request.kind === "edit");
+  const cursorRegion =
+    findLast(
+      visibleRegions,
+      (region) => region.request.id === cursorRequest?.id,
+    ) ?? findLast(visibleRegions, (region) => region.request.kind === "edit");
   return (
     <>
-      <div ref={cursorHost} className={classNames(styles.cursorHost, themeStyles.root)} />
+      <div
+        ref={cursorHost}
+        className={classNames(styles.cursorHost, themeStyles.root)}
+      />
       {visibleRegions.map(({ key, request, target, scanning }) => (
         <ActivityRegion
           key={key}

@@ -1,4 +1,5 @@
 import { Matcher } from "@/wab/client/components/view-common";
+import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import { XMultiSelect } from "@/wab/client/components/XMultiSelect";
 import { useI18n } from "@/wab/client/i18n";
 import { siteCCVariantsToInfos } from "@/wab/shared/cached-selectors";
@@ -241,9 +242,11 @@ export function SelectorsInput({
             }
           })()}
         >
-          {matcher.boldSnippets(
-            selectorToDisplayName(selector, isTypingPseudoSelector),
-          )}
+          <TriggerTarget>
+            {matcher.boldSnippets(
+              selectorToDisplayName(selector, isTypingPseudoSelector),
+            )}
+          </TriggerTarget>
         </Tooltip>
       )}
       onSelect={(newSelector: Selector) => {

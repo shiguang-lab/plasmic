@@ -24,9 +24,10 @@ import {
   makeTplTextOps,
 } from "@/wab/client/components/tpl-text-ops";
 import { LabelWithDetailedTooltip } from "@/wab/client/components/widgets/LabelWithDetailedTooltip";
+import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
-import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { MaybeWrap } from "@/wab/commons/components/ReactUtil";
 import {
@@ -376,7 +377,11 @@ export const TextContentRow = observer(function TextContentRow(props: {
         >
           <MaybeWrap
             cond={!!isDisabled}
-            wrapper={(x) => <Tooltip title={disabledTooltip}>{x}</Tooltip>}
+            wrapper={(x) => (
+              <Tooltip title={disabledTooltip}>
+                <TriggerTarget>{x}</TriggerTarget>
+              </Tooltip>
+            )}
           >
             {editDataToken && (
               <DataTokenEditModal

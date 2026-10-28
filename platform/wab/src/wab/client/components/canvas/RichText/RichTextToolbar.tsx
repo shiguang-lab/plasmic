@@ -1,4 +1,3 @@
-import { isForwardedFrameInteraction } from "@/wab/client/frame-ctx/frame-interactions";
 import { CustomCssProps } from "@/wab/client/components/canvas/CanvasText";
 import {
   marksForToolbar,
@@ -13,6 +12,9 @@ import {
 import { useClientTokenResolver } from "@/wab/client/components/widgets/ColorPicker/client-token-resolver";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import Select from "@/wab/client/components/widgets/Select";
+import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
+import { isForwardedFrameInteraction } from "@/wab/client/frame-ctx/frame-interactions";
 import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import StrikeIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Strike";
@@ -30,7 +32,6 @@ import {
   DefaultRichTextToolbarProps,
   PlasmicRichTextToolbar,
 } from "@/wab/client/plasmic/plasmic_kit_rich_text_toolbar/PlasmicRichTextToolbar";
-import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { EditingTextContext } from "@/wab/client/studio-ctx/view-ctx";
 import { fontWeightOptions } from "@/wab/client/typography-utils";
 import { INTERACT_OUTSIDE_EXCEPTION_SELECTORS } from "@/wab/commons/components/OnClickAway";
@@ -330,7 +331,7 @@ function RichTextToolbar_(
               }
               trigger="click"
             >
-              {node}
+              <TriggerTarget>{node}</TriggerTarget>
             </Popover>
           ),
         }}

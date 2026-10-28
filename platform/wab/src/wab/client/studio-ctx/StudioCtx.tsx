@@ -7,6 +7,7 @@ import {
 } from "@/wab/client/ErrorNotifications";
 import {
   focusPreferenceKey,
+  fullPageHeightKey,
   storageViewAsKey,
 } from "@/wab/client/LocalStorageKey";
 import { ProjectDependencyManager } from "@/wab/client/ProjectDependencyManager";
@@ -26,7 +27,11 @@ import {
 } from "@/wab/client/clipboard/local";
 import { paste } from "@/wab/client/clipboard/paste";
 import { syncCodeComponentsAndHandleErrors } from "@/wab/client/code-components/code-components";
-import { showReloadError, showSaveErrorRecoveredNotice } from "@/wab/client/components/Messages";
+import {
+  showReloadError,
+  showSaveErrorRecoveredNotice,
+} from "@/wab/client/components/Messages";
+import { getVisibleFrameRect } from "@/wab/client/components/canvas/HoverBox/visible-bounds";
 import { CanvasCtx } from "@/wab/client/components/canvas/canvas-ctx";
 import { handleCanvasContentWheel } from "@/wab/client/components/canvas/canvas-scroll";
 import { SiteOps } from "@/wab/client/components/canvas/site-ops";
@@ -103,10 +108,9 @@ import {
   CommentsCtx,
 } from "@/wab/client/studio-ctx/comments-ctx";
 import { ComponentCtx } from "@/wab/client/studio-ctx/component-ctx";
+import { DesktopDraftController } from "@/wab/client/studio-ctx/desktop-drafts";
 import { MultiplayerCtx } from "@/wab/client/studio-ctx/multiplayer-ctx";
 import { StudioLoadTimings } from "@/wab/client/studio-ctx/studio-load-timings";
-import { DesktopDraftController } from "@/wab/client/studio-ctx/desktop-drafts";
-import type { DesktopDraft } from "@/wab/shared/desktop-drafts";
 import { UiActionBus } from "@/wab/client/studio-ctx/ui/UiActionBus";
 import { UiId, parseUiId } from "@/wab/client/studio-ctx/ui/studio-ui-ids";
 import {
@@ -281,6 +285,7 @@ import { customFunctionId } from "@/wab/shared/core/query-ids";
 import {
   isSelectable,
   makeSelectableFullKey,
+  type Selectable,
 } from "@/wab/shared/core/selection";
 import {
   allGlobalVariants,
@@ -324,6 +329,7 @@ import {
   mkDataSourceTemplate,
 } from "@/wab/shared/data-sources-meta/data-sources";
 import { AddItemPrefs, getSimplifiedStyles } from "@/wab/shared/default-styles";
+import type { DesktopDraft } from "@/wab/shared/desktop-drafts";
 import { isAdminTeamEmail } from "@/wab/shared/devflag-utils";
 import {
   DEVFLAGS,
@@ -1134,6 +1140,11 @@ export class StudioCtx extends WithDbCtx {
   get hoverBoxControlledObj() {
     const vc = this.focusedViewCtx();
 
+    if (this.canvasContentEditor) {
+      const selection = vc?.focusedSelectable();
+      return selection && vc?.contentEditor.contains(selection) ? selection : undefined;
+    }
+
     if (!vc) {
       return this.focusedFrame();
     }
@@ -1160,8 +1171,23 @@ export class StudioCtx extends WithDbCtx {
     return obj;
   }
 
+  get canvasContentEditor() {
+    return this.viewCtxs.find((vc) => vc.contentEditor.target)?.contentEditor;
+  }
+
   get hoverBoxControlledObjs() {
     const vc = this.focusedViewCtx();
+
+    if (this.canvasContentEditor) {
+      return (
+        vc
+          ?.focusedSelectables()
+          .filter(
+            (selection): selection is Selectable =>
+              !!selection && vc.contentEditor.contains(selection),
+          ) ?? []
+      );
+    }
 
     if (!vc) {
       return [this.focusedFrame()];
@@ -1387,7 +1413,11 @@ export class StudioCtx extends WithDbCtx {
         context !== vc.currentComponentCtx() ||
         viewCtxInfoChanged(vc.getSpotlightAndVariantsInfo(), info)
       ) {
-        vc.scheduleSync({ asap: vc === this.focusedViewCtx(), eval: true, styles: false });
+        vc.scheduleSync({
+          asap: vc === this.focusedViewCtx(),
+          eval: true,
+          styles: false,
+        });
       }
     }
     // Let the selection chrome paint before mounting controls for the latest focus.
@@ -1908,10 +1938,20 @@ export class StudioCtx extends WithDbCtx {
   }
 
   runAfterInitialCanvasReady(task: () => Promise<unknown>) {
-    this.disposals.push(when(
-      () => this.canvasLoadingDisposed || (this.initialRouteReady && this.initialViewportReady && this.activeCanvasReady),
-      () => { if (!this.canvasLoadingDisposed) {spawn(task());} },
-    ));
+    this.disposals.push(
+      when(
+        () =>
+          this.canvasLoadingDisposed ||
+          (this.initialRouteReady &&
+            this.initialViewportReady &&
+            this.activeCanvasReady),
+        () => {
+          if (!this.canvasLoadingDisposed) {
+            spawn(task());
+          }
+        },
+      ),
+    );
   }
 
   dispose() {
@@ -2336,8 +2376,9 @@ export class StudioCtx extends WithDbCtx {
     const routeDone = this.loadTimings.begin("initial-route");
     const viewportDone = this.loadTimings.begin("initial-viewport");
     const desktop = navigator.userAgent.includes("PlasmicDesktop/");
-    const [focusPreference] = await Promise.all([
+    const [focusPreference, fullPageHeightPreference] = await Promise.all([
       this.appCtx.api.getStorageItem(this.mkFocusPreferenceKey()),
+      this.appCtx.api.getStorageItem(this.mkFullPageHeightKey()),
       (async () => {
         if (desktop && this.appCtx.topFrameApi) {
           this.initialViewportLoaded.set(false);
@@ -2358,6 +2399,7 @@ export class StudioCtx extends WithDbCtx {
     if (!isNil(focusPreference)) {
       this.focusPreference.set(focusPreference === "true");
     }
+    this._fullPageHeight.set(fullPageHeightPreference === "true");
 
     const location = this.appCtx.history.location;
     await this.handleRouteChange(location);
@@ -2406,7 +2448,9 @@ export class StudioCtx extends WithDbCtx {
           const layoutDone = this.loadTimings.begin("initial-viewport-layout");
           await Promise.race([
             new Promise<void>((resolve) =>
-              requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+              requestAnimationFrame(() =>
+                requestAnimationFrame(() => resolve()),
+              ),
             ),
             asyncTimeout(100),
           ]);
@@ -4089,6 +4133,61 @@ export class StudioCtx extends WithDbCtx {
     return focusPreferenceKey(this.siteInfo.id);
   };
 
+  private mkFullPageHeightKey = () => {
+    return fullPageHeightKey(this.siteInfo.id);
+  };
+
+  /**
+   * Canvas-only view preference: page artboards grow to show their full
+   * content instead of their authored viewport height. Stored per user and
+   * project; it never changes the site model, previews or exports.
+   */
+  private readonly _fullPageHeight = observable.box(false);
+  /**
+   * Session-only override set by AI tools (setCanvasPageHeight). It is never
+   * persisted, so the user's own preference returns on the next load.
+   */
+  private readonly _fullPageHeightOverride = observable.box<
+    boolean | undefined
+  >(undefined);
+
+  get fullPageHeight() {
+    return this._fullPageHeightOverride.get() ?? this._fullPageHeight.get();
+  }
+
+  /** User toggle: becomes the persisted preference and clears AI overrides. */
+  toggleFullPageHeight = action(() => {
+    const next = !this.fullPageHeight;
+    this._fullPageHeightOverride.set(undefined);
+    this._fullPageHeight.set(next);
+    spawn(
+      this.appCtx.api.addStorageItem(
+        this.mkFullPageHeightKey(),
+        next ? "true" : "false",
+      ),
+    );
+    this.resyncFullPageHeightViews();
+  });
+
+  /**
+   * Temporarily show or hide full page height without touching the user's
+   * stored preference. Restoring the user's value clears the override.
+   */
+  setFullPageHeightOverride = action((full: boolean) => {
+    this._fullPageHeightOverride.set(
+      full === this._fullPageHeight.get() ? undefined : full,
+    );
+    this.resyncFullPageHeightViews();
+  });
+
+  // Code components read the view through their canvas props, which are
+  // produced by a render evaluation rather than observed directly.
+  private resyncFullPageHeightViews() {
+    this.viewCtxs.forEach((vc) =>
+      vc.scheduleSync({ eval: true, styles: false, asap: true }),
+    );
+  }
+
   /**
    * Initially set to the value in local storage of mkFocusPreferenceKey.
    *
@@ -4754,7 +4853,9 @@ export class StudioCtx extends WithDbCtx {
       .querySelector<HTMLElement>(".canvas-editor__left-pane")
       ?.getBoundingClientRect();
     const rail = document
-      .querySelector<HTMLElement>(".canvas-editor__left-pane-container")
+      .querySelector<HTMLElement>(
+        ".canvas-editor__left-pane-container .editor-tool-rail-group",
+      )
       ?.getBoundingClientRect();
     const right = document
       .querySelector<HTMLElement>(".canvas-editor__right-pane")
@@ -4858,7 +4959,13 @@ export class StudioCtx extends WithDbCtx {
         ? COMMENTS_DIALOG_RIGHT_ZOOM_PADDING
         : DEFAULT_ZOOM_PADDING;
 
-    const scalerRect = frameToScalerRect(element.getBoundingClientRect(), vc);
+    // Fit the part of the element that is visible in the artboard, matching
+    // its selection outline; parts clipped by scroll containers or the
+    // artboard would only add empty canvas.
+    const scalerRect = frameToScalerRect(
+      getVisibleFrameRect(element).rect(),
+      vc,
+    );
     const padding = this.canvasZoomPadding();
     this.viewportCtx!.zoomToScalerBox(Box.fromRect(scalerRect), {
       minPadding: {
@@ -6234,7 +6341,9 @@ export class StudioCtx extends WithDbCtx {
   private desktopSaveConflict = false;
 
   async useRemoteVersion() {
-    if (!this.desktopSaveConflict) {return;}
+    if (!this.desktopSaveConflict) {
+      return;
+    }
     await this.loadVersion(undefined, true, this.branchInfo());
     runInAction(() => {
       this.desktopSaveConflict = false;
@@ -6247,47 +6356,89 @@ export class StudioCtx extends WithDbCtx {
 
   async initializeDesktopDrafts() {
     this.desktopDraft?.dispose();
-    runInAction(() => { this.desktopDraft = undefined; });
-    if (!this.appCtx.selfInfo?.id || !this.canSave() || !this.appCtx.topFrameApi) {return;}
+    runInAction(() => {
+      this.desktopDraft = undefined;
+    });
+    if (
+      !this.appCtx.selfInfo?.id ||
+      !this.canSave() ||
+      !this.appCtx.topFrameApi
+    ) {
+      return;
+    }
     const location = parseProjectLocation(this.appCtx.history.location);
-    if (location?.isPreview || location?.branchRevision || location?.branchVersion && location.branchVersion !== latestTag) {return;}
+    if (
+      location?.isPreview ||
+      location?.branchRevision ||
+      (location?.branchVersion && location.branchVersion !== latestTag)
+    ) {
+      return;
+    }
     const drafts = new DesktopDraftController(
       this.appCtx.topFrameApi,
       () => {
         const bundler = this.bundler();
         const version = this.appCtx.lastBundleVersion;
-        const dependencies = walkDependencyTree(this.site, "all").map(dep => {
-          const id = ensure(bundler.addrOf(dep), "Missing dependency bundle").uuid;
+        const dependencies = walkDependencyTree(this.site, "all").map((dep) => {
+          const id = ensure(
+            bundler.addrOf(dep),
+            "Missing dependency bundle",
+          ).uuid;
           return { id, model: bundler.bundle(dep, id, version) };
         });
         // Library bundles must be unbundled after their own dependencies.
         const ordered: typeof dependencies = [];
         const visited = new Set<string>();
         const visit = (dep: (typeof dependencies)[number]) => {
-          if (visited.has(dep.id)) {return;}
+          if (visited.has(dep.id)) {
+            return;
+          }
           visited.add(dep.id);
-          for (const id of dep.model.deps) {visit(ensure(dependencies.find(item => item.id === id), "Missing draft dependency"));}
+          for (const id of dep.model.deps) {
+            visit(
+              ensure(
+                dependencies.find((item) => item.id === id),
+                "Missing draft dependency",
+              ),
+            );
+          }
           ordered.push(dep);
         };
         dependencies.forEach(visit);
         return {
-          projectId: this.siteInfo.id, projectName: this.siteInfo.name,
+          projectId: this.siteInfo.id,
+          projectName: this.siteInfo.name,
           branchId: this.branchInfo()?.id ?? null,
-          baseRevision: this.dbCtx().revisionNum, sequence: this._changeCounter,
-          modelVersion: this.dbCtx().modelVersion, hostlessDataVersion: this.dbCtx().hostlessDataVersion,
-          bundle: bundler.bundle(this.site, this.siteInfo.id, version), dependencies: ordered,
+          baseRevision: this.dbCtx().revisionNum,
+          sequence: this._changeCounter,
+          modelVersion: this.dbCtx().modelVersion,
+          hostlessDataVersion: this.dbCtx().hostlessDataVersion,
+          bundle: bundler.bundle(this.site, this.siteInfo.id, version),
+          dependencies: ordered,
         };
       },
       () => this.hasUnsavedChanges(),
       () => this._changeCounter,
       () => this.dbCtx().revisionNum,
-      async draft => {
+      async (draft) => {
         await this.loadVersion(undefined, true, this.branchInfo(), draft);
-        notification.info({ message: translate(getUiLocale(), "Recovered local edits"), description: translate(getUiLocale(), "Your local draft has been restored and will sync when the server is available.") });
+        notification.info({
+          message: translate(getUiLocale(), "Recovered local edits"),
+          description: translate(
+            getUiLocale(),
+            "Your local draft has been restored and will sync when the server is available.",
+          ),
+        });
       },
     );
-    runInAction(() => { this.desktopDraft = drafts; });
-    await drafts.initialize(this.appCtx.selfInfo.id, this.siteInfo.id, this.branchInfo()?.id ?? null);
+    runInAction(() => {
+      this.desktopDraft = drafts;
+    });
+    await drafts.initialize(
+      this.appCtx.selfInfo.id,
+      this.siteInfo.id,
+      this.branchInfo()?.id ?? null,
+    );
   }
 
   get saveStatus() {
@@ -6319,9 +6470,15 @@ export class StudioCtx extends WithDbCtx {
   }
 
   private async trySave(preferIncremental = true): Promise<SaveResult> {
-    if (this.desktopSaveConflict) {return SaveResult.SkipIsChanging;}
-    if (this.desktopDraft?.initializing) {return SaveResult.SkipUpToDate;}
-    if (this.hasUnsavedChanges()) {await this.desktopDraft?.flush();}
+    if (this.desktopSaveConflict) {
+      return SaveResult.SkipIsChanging;
+    }
+    if (this.desktopDraft?.initializing) {
+      return SaveResult.SkipUpToDate;
+    }
+    if (this.hasUnsavedChanges()) {
+      await this.desktopDraft?.flush();
+    }
     if (this.aiSaveReceipt && !this.aiSaveReceipt.result) {
       return SaveResult.SkipUpToDate;
     }
@@ -6419,7 +6576,9 @@ export class StudioCtx extends WithDbCtx {
         allIids.forEach((iid) => this._savedIids.add(iid));
         this.needsFullSave = false;
         this._savedChangeCounter = changeCounterBeingSaved;
-        if (draftToken) {void this.desktopDraft?.acknowledged(draftToken);}
+        if (draftToken) {
+          void this.desktopDraft?.acknowledged(draftToken);
+        }
         if (this.saveErrorState === "error") {
           showSaveErrorRecoveredNotice();
         }
@@ -6470,7 +6629,9 @@ export class StudioCtx extends WithDbCtx {
         ) {
           reportError(e, "Gateway save error");
           if (this.saveErrorState === "normal") {
-            showError(e, { title: translate(getUiLocale(), "Unexpected error when saving") });
+            showError(e, {
+              title: translate(getUiLocale(), "Unexpected error when saving"),
+            });
           }
           runInAction(() => {
             this.saveErrorState = "error";
@@ -6491,7 +6652,9 @@ export class StudioCtx extends WithDbCtx {
           //
           // Even if no save has been committed yet, the request could be
           // fulfilled afterwards, so we will just discard the local changes.
-          showError(e, { title: translate(getUiLocale(), "Failed to sync project") });
+          showError(e, {
+            title: translate(getUiLocale(), "Failed to sync project"),
+          });
           await this.loadVersion(undefined, true, this.branchInfo());
           return SaveResult.TimedOut;
         } else {
@@ -6841,7 +7004,9 @@ export class StudioCtx extends WithDbCtx {
     draft?: DesktopDraft,
     preserveCheckpoint = false,
   ) {
-    if (!draft) {await this.desktopDraft?.protect(preserveCheckpoint);}
+    if (!draft) {
+      await this.desktopDraft?.protect(preserveCheckpoint);
+    }
     const hideLoadingMsg = message.loading("Loading...", 0);
     const branchChanged = branch?.id !== this.branchInfo()?.id;
     const previousEditMode = this.editMode;
@@ -6861,7 +7026,11 @@ export class StudioCtx extends WithDbCtx {
         revisionNum,
       } = await (async () => {
         if (draft) {
-          return { bundle: draft.bundle, depPkgs: draft.dependencies, revisionNum: this.dbCtx().revisionNum };
+          return {
+            bundle: draft.bundle,
+            depPkgs: draft.dependencies,
+            revisionNum: this.dbCtx().revisionNum,
+          };
         }
         if (versionOrRevision && isPkgVersionInfoMeta(versionOrRevision)) {
           const { pkg, depPkgs: _depPkgs } =
@@ -6904,7 +7073,9 @@ export class StudioCtx extends WithDbCtx {
           };
         }
       })();
-      if (!draft) {await this.desktopDraft?.reconcileRemote(bundle);}
+      if (!draft) {
+        await this.desktopDraft?.reconcileRemote(bundle);
+      }
       runInAction(() => {
         const newBundler = new FastBundler();
         const { site, depPkgs: depPkgVersions } = unbundleSite(
@@ -6973,7 +7144,11 @@ export class StudioCtx extends WithDbCtx {
         await this.initializeDesktopDrafts();
       }
     } catch (error) {
-      if (draft) {runInAction(() => { this.editMode = previousEditMode; });}
+      if (draft) {
+        runInAction(() => {
+          this.editMode = previousEditMode;
+        });
+      }
       throw error;
     } finally {
       this._isRestoring = false;
@@ -6981,7 +7156,9 @@ export class StudioCtx extends WithDbCtx {
     }
 
     if (editMode) {
-      if (this.hasUnsavedChanges()) {this.desktopDraft?.changed();}
+      if (this.hasUnsavedChanges()) {
+        this.desktopDraft?.changed();
+      }
       // No matter which revision we loaded, either via switching
       // branch or reverting to a previous published version,
       // we need to sync with the currently-registered code components
@@ -7496,14 +7673,22 @@ export class StudioCtx extends WithDbCtx {
    * in a spawn() to avoid deadlocks and/or breaking this.modelChangeQueue.
    */
   private async fetchUpdatesInternal() {
-    if (this.desktopSaveConflict) {return;}
+    if (this.desktopSaveConflict) {
+      return;
+    }
     assert(
       !this._isChanging && !this._isUndoing,
       "should not be changing nor undoing",
     );
     const projectId = this.siteInfo.id;
-    if (this.hasUnsavedChanges() && this.desktopDraft?.enabled && !(await this.desktopDraft.flush())) {
-      throw new Error("Cannot back up local edits before syncing remote updates");
+    if (
+      this.hasUnsavedChanges() &&
+      this.desktopDraft?.enabled &&
+      !(await this.desktopDraft.flush())
+    ) {
+      throw new Error(
+        "Cannot back up local edits before syncing remote updates",
+      );
     }
     const updatedModel = await this.appCtx.api.getModelUpdates(
       projectId,
@@ -7727,7 +7912,9 @@ export class StudioCtx extends WithDbCtx {
         );
 
         this.dbCtx().revisionNum = updatedModel.revision;
-        if (this.hasUnsavedChanges()) {this.desktopDraft?.changed();}
+        if (this.hasUnsavedChanges()) {
+          this.desktopDraft?.changed();
+        }
         this._isRefreshing = false;
       } catch (e) {
         this._isRefreshing = false;
@@ -7750,7 +7937,13 @@ export class StudioCtx extends WithDbCtx {
             duration: 5,
           });
         }
-        return this.loadVersion(undefined, true, this.branchInfo(), undefined, true);
+        return this.loadVersion(
+          undefined,
+          true,
+          this.branchInfo(),
+          undefined,
+          true,
+        );
       }
     }
   }
@@ -8584,7 +8777,6 @@ interface CanvasLoadRequest {
   load: () => Promise<void>;
   name: string;
 }
-
 
 function canUserEditProject(user: ApiUser | null, project: SiteInfo) {
   if (isUnownedProject(project)) {

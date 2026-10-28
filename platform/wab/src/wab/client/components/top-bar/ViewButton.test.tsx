@@ -94,6 +94,8 @@ function context(shown: boolean) {
     showCommentsOverlay: shown,
     isContentEditor: () => false,
     contentEditorMode: shown,
+    fullPageHeight: shown,
+    toggleFullPageHeight: vi.fn(),
     toggleShowSlotPlaceholder: vi.fn(),
     toggleShowContainerPlaceholder: vi.fn(),
     toggleShowMultiplayerSelections: vi.fn(),
@@ -115,6 +117,7 @@ const showMessages = [
   "Show cursors and selections from other users",
   "Show container outlines when hovering",
   "Show outline mode",
+  "Show full page height",
   "Turn off design mode",
   "Turn on auto-open mode",
   "Show comments overlay",
@@ -127,6 +130,7 @@ const hideMessages = [
   "Hide cursors and selections from other users",
   "Hide container outlines when hovering",
   "Hide outline mode",
+  "Fit to viewport height",
   "Turn on design mode",
   "Turn off auto-open mode",
   "Hide comments overlay",
@@ -164,6 +168,8 @@ it("updates an already mounted menu and preserves its actions", async () => {
   expect(screen.queryByText("Hide placeholders for empty slots")).toBeNull();
   fireEvent.click(screen.getByText("隐藏空插槽占位符"));
   expect(studio.toggleShowSlotPlaceholder).toHaveBeenCalledOnce();
+  fireEvent.click(screen.getByText("按视口高度显示"));
+  expect(studio.toggleFullPageHeight).toHaveBeenCalledOnce();
   fireEvent.click(screen.getByText("关闭自动展开模式"));
   expect(studio.toggleAutoOpenMode).toHaveBeenCalledOnce();
   fireEvent.click(screen.getByText("关闭内容编辑模式"));

@@ -239,9 +239,6 @@ export interface CodeComponentMeta<P> {
    * of its trigger slot. Other slots are content, not overlay triggers.
    */
   canvasOverlay?: { triggerSlot?: string };
-  /** Supports isolated content editing. Read isEditingContents from
-   * usePlasmicCanvasComponentInfo() to expand internal viewports in Studio. */
-  canvasContentEditor?: boolean;
   /**
    * Whether style sections should be shown in Studio. For styles to work, the
    * component must accept a `className` prop. If unset, defaults to all styles.

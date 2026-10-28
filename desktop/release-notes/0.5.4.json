@@ -1,0 +1,7 @@
+{
+  "en": "- Edit clipped scroll-container content in an isolated canvas, including nested containers.\n- Keep content-editing controls anchored to their component and stack overlapping node labels above them.\n- Improve canvas selection, clipping indicators, view controls, tooltips, and theme consistency.\n- Refine Table and AppShell contracts and Desktop task context.",
+  "zh-CN": "- 支持在隔离画布中编辑滚动容器的隐藏内容及嵌套容器。\n- 内容编辑工具条跟随组件，重叠的节点标签显示在工具条上方。\n- 改进画布选中、裁剪提示、视图控制、提示框及主题一致性。\n- 完善 Table、AppShell 组件契约与桌面任务上下文。",
+  "zh-TW": "- 支援在隔離畫布中編輯捲動容器的隱藏內容與巢狀容器。\n- 內容編輯工具列跟隨元件，重疊的節點標籤顯示於工具列上方。\n- 改善畫布選取、裁切提示、視圖控制、提示框與主題一致性。\n- 完善 Table、AppShell 元件契約與桌面任務情境。",
+  "ja": "- 分離したキャンバスでスクロール領域の隠れた内容と入れ子の領域を編集できます。\n- 編集ツールバーをコンポーネントに追従させ、重なるノードラベルを上に配置します。\n- キャンバスの選択、クリッピング表示、表示操作、ツールチップとテーマを改善しました。\n- Table、AppShell の定義と Desktop のタスク情報を改善しました。",
+  "ko": "- 격리된 캔버스에서 스크롤 컨테이너의 숨겨진 내용과 중첩 컨테이너를 편집합니다.\n- 편집 도구 모음이 구성 요소를 따라가며 겹치는 노드 레이블은 위에 표시됩니다.\n- 캔버스 선택, 잘림 표시, 보기 조작, 툴팁과 테마 일관성을 개선했습니다.\n- Table, AppShell 계약과 Desktop 작업 컨텍스트를 개선했습니다."
+}

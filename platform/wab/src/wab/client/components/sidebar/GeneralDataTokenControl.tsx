@@ -1,6 +1,7 @@
 import { useMultiAssetsActions } from "@/wab/client/components/sidebar/MultiAssetsActions";
 import { Matcher } from "@/wab/client/components/view-common";
 import Checkbox from "@/wab/client/components/widgets/Checkbox";
+import { TriggerAnchor } from "@/wab/client/components/widgets/TriggerAnchor";
 import PlasmicGeneralTokenControl from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicGeneralTokenControl";
 import { DataTokenValue, getDataTokenType } from "@/wab/commons/DataToken";
 import { FinalToken, MutableToken } from "@/wab/shared/core/tokens";
@@ -47,25 +48,31 @@ const GeneralDataTokenControl = observer(function GeneralTokenControl(
 
   return (
     <Tooltip title={tokenName} mouseEnterDelay={0.5}>
-      <PlasmicGeneralTokenControl
-        value={matcher.boldSnippets(displayValue)}
-        rowItem={{
-          style,
-          menu,
-          onClick,
-          icon: (
-            <>
-              {multiAssetsActions.isSelecting &&
-                token instanceof MutableToken && (
-                  <Checkbox isChecked={isSelected}> </Checkbox>
-                )}
-            </>
-          ),
-        }}
-        showIcon
-      >
-        {matcher.boldSnippets(tokenName)}
-      </PlasmicGeneralTokenControl>
+      <TriggerAnchor>
+        {(ref, triggerProps) => (
+          <PlasmicGeneralTokenControl
+            {...triggerProps}
+            root={{ ref }}
+            value={matcher.boldSnippets(displayValue)}
+            rowItem={{
+              style,
+              menu,
+              onClick,
+              icon: (
+                <>
+                  {multiAssetsActions.isSelecting &&
+                    token instanceof MutableToken && (
+                      <Checkbox isChecked={isSelected}> </Checkbox>
+                    )}
+                </>
+              ),
+            }}
+            showIcon
+          >
+            {matcher.boldSnippets(tokenName)}
+          </PlasmicGeneralTokenControl>
+        )}
+      </TriggerAnchor>
     </Tooltip>
   );
 });

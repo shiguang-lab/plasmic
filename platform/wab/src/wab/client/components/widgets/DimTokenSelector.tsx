@@ -1,4 +1,3 @@
-import { showError } from "@/wab/client/ErrorNotifications";
 import { FieldAriaProps } from "@/wab/client/components/aria-utils";
 import ListItem from "@/wab/client/components/ListItem";
 import ListSectionHeader from "@/wab/client/components/ListSectionHeader";
@@ -10,8 +9,10 @@ import Chip from "@/wab/client/components/widgets/Chip";
 import { useClientTokenResolver } from "@/wab/client/components/widgets/ColorPicker/client-token-resolver";
 import DropdownOverlay from "@/wab/client/components/widgets/DropdownOverlay";
 import { Icon } from "@/wab/client/components/widgets/Icon";
+import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import { VirtualListScrollbar } from "@/wab/client/components/widgets/VirtualListScrollbar";
 import { useOnContainerScroll } from "@/wab/client/dom-utils";
+import { showError } from "@/wab/client/ErrorNotifications";
 import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import PencilIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Pencil";
@@ -587,7 +588,7 @@ export const DimTokenSpinner = observer(
           cond={!!props.tooltip}
           wrapper={(x) => (
             <Tooltip title={props.tooltip} placement={props.tooltipPlacement}>
-              {x as React.ReactElement}
+              <TriggerTarget>{x as React.ReactElement}</TriggerTarget>
             </Tooltip>
           )}
         >
@@ -732,7 +733,11 @@ export const DimTokenSpinner = observer(
 
               wrap: (elt) => {
                 if (disabled && disabledTooltip) {
-                  return <Tooltip title={disabledTooltip}>{elt}</Tooltip>;
+                  return (
+                    <Tooltip title={disabledTooltip}>
+                      <TriggerTarget>{elt}</TriggerTarget>
+                    </Tooltip>
+                  );
                 } else {
                   return elt;
                 }
@@ -1105,7 +1110,9 @@ function useDimValue(opts: DimValueOpts) {
       if (result.valid) {
         return true;
       }
-      showError(result.error || "Invalid value", { title: studioUiT("Invalid value") });
+      showError(result.error || "Invalid value", {
+        title: studioUiT("Invalid value"),
+      });
       return false;
     }
 

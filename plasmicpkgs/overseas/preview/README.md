@@ -18,6 +18,7 @@ AppShell 已加入 Overseas 的 `registerAll()`，组件名为
 239px 侧栏、80px 折叠侧栏、64px 顶栏、16px 内容外边距。业务内容区域背景由页面决定。
 每页使用同一个 AppShell，在 `Page body` 插槽中编辑业务内容。
 AppShell 最外层自身设置 `width:100%`、`height:100vh`，注册默认尺寸与此一致。保留普通 Page 的默认根节点布局，不需要为祖先逐层设置高度。
+Studio 画布开启「显示完整页面高度」时会注入 `--canvas-content-height:auto`，AppShell 随内容长高（最小为画板视口高度），内容区不再内部滚动；预览和导出中不存在该变量，行为不变。
 
 预览服务运行后，在仓库根目录执行 `node plasmicpkgs/overseas/preview/verify-app-shell.mjs`，验证无父级高度、短视口、受限父容器、已有实例 CSS 和长内容滚动下的尺寸及操作可达性。浏览器路径规则同上。
 

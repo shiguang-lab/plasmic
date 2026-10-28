@@ -749,6 +749,19 @@ const EDIT_TOOL_META = {
       }),
     }),
   },
+  setCanvasPageHeight: {
+    toolName: "setCanvasPageHeight",
+    title: "Show page artboards at viewport or full content height",
+    description:
+      "Canvas view only; never changes the design, saved props, Preview or exports. Use after get_screenshot and get_screenshot fullContent:true are still incomplete (for example virtualized or bounded tables): mode full lets page artboards grow to their content and lets components that support it (AppShell, Table) render content from internal vertical scroll viewports in the page flow. Then capture again and restore with the returned previous mode. The change is session-only and does not overwrite the user's saved view preference. Returns after page artboard heights settle; settled=false means a component kept resizing.",
+    inputSchema: z.object({ mode: z.enum(["viewport", "full"]) }).strict(),
+    outputSchema: z.object({
+      previous: z.enum(["viewport", "full"]),
+      current: z.enum(["viewport", "full"]),
+      settled: z.boolean(),
+      frames: z.array(z.object({ frameUuid: uuid, height: z.number() })),
+    }),
+  },
   validate: {
     toolName: "validate",
     title: "Validate prototype structure",

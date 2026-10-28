@@ -43,6 +43,32 @@ import iconButton from "@/wab/client/plasmic/PlasmicIconButton.module.css";
 import type { GlobalToken } from "antd";
 import { createStyles, type CSSObject } from "antd-style";
 
+const labeledItemRoots = [".labeled-item", '[data-plasmic-role="labeled-item"]'];
+const labeledItemAntdInputs = labeledItemRoots
+  .flatMap((root) => [
+    `& ${root} .ant-input`,
+    `& ${root} .ant-input-number-input`,
+  ])
+  .join(", ");
+const labeledItemAntdFields = [
+  ...labeledItemRoots.flatMap((root) => [
+    `& ${root} .ant-input`,
+    `& ${root} .ant-input-number`,
+    `& ${root} .ant-select.textboxlike .ant-select-selector`,
+  ]),
+  "& .tag-select .ant-select.textboxlike .ant-select-selector",
+].join(", ");
+const hoverOf = (selectors: string) =>
+  selectors
+    .split(", ")
+    .map((selector) => `${selector}:hover`)
+    .join(", ");
+const placeholderOf = (selectors: string) =>
+  selectors
+    .split(", ")
+    .map((selector) => `${selector}::placeholder`)
+    .join(", ");
+
 // These tokens belong to the product's generated UI library. Scoped binding
 // keeps the shared application/editor palette out of business iframe documents.
 export const productPalette = (token: GlobalToken): CSSObject => ({
@@ -421,6 +447,17 @@ export const productPalette = (token: GlobalToken): CSSObject => ({
       borderColor: token.colorBorder,
     },
   "& .templated-string-input:hover": { background: token.colorFillTertiary },
+  // antd-overrides.scss gives property-row antd inputs a fixed light fill.
+  // Host custom controls (e.g. table Pagination/Scroll) render real antd
+  // inputs there, so bind those surfaces to the theme like other row controls.
+  [labeledItemAntdFields]: {
+    background: token.colorBgContainer,
+    color: token.colorText,
+  },
+  [hoverOf(labeledItemAntdFields)]: { background: token.colorFillTertiary },
+  [placeholderOf(labeledItemAntdInputs)]: {
+    color: token.colorTextPlaceholder,
+  },
   "& .templated-string-input:focus, & .image-paster:focus": {
     borderColor: token.colorPrimary,
   },

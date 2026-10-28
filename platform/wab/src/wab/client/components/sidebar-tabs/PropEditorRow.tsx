@@ -37,6 +37,7 @@ import {
 import { TplExpsProvider } from "@/wab/client/components/style-controls/StyleComponent";
 import StyleSwitch from "@/wab/client/components/style-controls/StyleSwitch";
 import Button from "@/wab/client/components/widgets/Button";
+import { Icon } from "@/wab/client/components/widgets/Icon";
 import { LabelWithDetailedTooltip } from "@/wab/client/components/widgets/LabelWithDetailedTooltip";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
@@ -658,7 +659,8 @@ function WarnInvalid(props: { message: string; onClick?: () => void }) {
       data-test-id={props.onClick ? "linked-prop-warning" : undefined}
     >
       <Tooltip title={props.message}>
-        <WarningIcon />
+        {/* `Icon` gives the tooltip a ref-able anchor; keep the 1em size. */}
+        <Icon icon={WarningIcon} size="1em" />
       </Tooltip>
     </div>
   );

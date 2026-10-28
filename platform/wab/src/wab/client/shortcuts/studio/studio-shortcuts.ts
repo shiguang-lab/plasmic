@@ -74,6 +74,11 @@ export const VIEW_SHORTCUT_GROUP = mkShortcutGroup("View", {
     combos: ["ctrl+alt+o"],
     description: "Toggle Outline mode",
   },
+  // Follows Shift+1/Shift+2. Cmd+Option+H is reserved by macOS (Hide Others).
+  TOGGLE_FULL_PAGE_HEIGHT: {
+    combos: ["shift+3"],
+    description: "Toggle full page height",
+  },
   PREV_ARENA: {
     combos: ["pageup"],
     description: "Switch to previous arena",

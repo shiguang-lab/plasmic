@@ -17,12 +17,13 @@ import {
 import { ColorTokenSelector } from "@/wab/client/components/widgets/ColorTokenSelector";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { IconButton } from "@/wab/client/components/widgets/IconButton";
+import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { useI18n } from "@/wab/client/i18n";
 import { ensureNumber, nudgeIntoRange } from "@/wab/client/number-utils";
 import { CloseIcon } from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Close";
 import { useUndo } from "@/wab/client/shortcuts/studio/useUndo";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
-import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import {
   derefTokenRefs,
   isStyleTokenEditable,
@@ -500,7 +501,7 @@ function ColorPicker_({
                 cond={!!isEditable}
                 wrapper={(x) => (
                   <Tooltip title={uiT("Edit color token")}>
-                    {x as React.ReactElement}
+                    <TriggerTarget>{x as React.ReactElement}</TriggerTarget>
                   </Tooltip>
                 )}
               >

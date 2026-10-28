@@ -1,4 +1,5 @@
 import { recomputeBounds } from "@/wab/client/components/canvas/HoverBox";
+import { computeElementVisibility } from "@/wab/client/components/canvas/HoverBox/visible-bounds";
 import { frameToScalerRect } from "@/wab/client/coords";
 import { useElementHasLayout } from "@/wab/client/dom-utils";
 import { cssPropsForInvertTransform } from "@/wab/client/studio-ctx/StudioCtx";
@@ -18,6 +19,7 @@ export const CanvasTransformedBox = observer(function CanvasTransformedBox({
   style,
   children,
   keepDims,
+  clipToVisible,
 }: {
   relativeTo: "arena" | "frame";
   $elt: JQuery<HTMLElement>;
@@ -26,33 +28,47 @@ export const CanvasTransformedBox = observer(function CanvasTransformedBox({
   style?: React.CSSProperties;
   children?: ReactNode;
   keepDims?: boolean;
+  /**
+   * Draw only the part of the element that is visible after overflow and
+   * artboard clipping, and nothing when it is fully clipped. For outlines and
+   * highlights; anchors that must follow the real element should not set it.
+   */
+  clipToVisible?: boolean;
 }) {
   const element = useElementHasLayout($elt.length > 0 ? $elt[0] : null);
   if (!element) {
     return null;
   }
 
-  const eltRect = recomputeBounds($(element)).rect();
-  const scalerRect =
-    relativeTo === "arena"
-      ? frameToScalerRect(eltRect, viewCtx)
+  const $element = $(element);
+  const geometry = recomputeBounds($element);
+  const frameRect = clipToVisible
+    ? computeElementVisibility($element, geometry).visible?.rect()
+    : geometry.rect();
+  const scalerRect = !frameRect
+    ? undefined
+    : relativeTo === "arena"
+      ? frameToScalerRect(frameRect, viewCtx)
       : relativeTo === "frame"
-        ? eltRect
+        ? frameRect
         : unexpected();
+  if (!scalerRect) {
+    return null;
+  }
   const cssProps = cssPropsForInvertTransform(
     viewCtx.studioCtx.zoom,
     scalerRect,
   );
   const cssPropsForJqElt = {
-    ...(scalerRect ? scalerRect : {}),
+    ...scalerRect,
     ...cssProps,
   };
 
   return (
     <div
       className={"CanvasTransformedBox " + className}
-      data-original-width={scalerRect ? scalerRect.width : undefined}
-      data-original-height={scalerRect ? scalerRect.height : undefined}
+      data-original-width={scalerRect.width}
+      data-original-height={scalerRect.height}
       style={omit(
         {
           ...cssPropsForJqElt,

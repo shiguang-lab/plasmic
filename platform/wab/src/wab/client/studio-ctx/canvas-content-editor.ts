@@ -1,14 +1,21 @@
+import { getVisibleFrameRect } from "@/wab/client/components/canvas/HoverBox/visible-bounds";
 import { frameToScalerRect } from "@/wab/client/coords";
 import type { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import {
   isCodeComponent,
   isCodeComponentTpl,
 } from "@/wab/shared/core/components";
+import { SQ, type Selectable } from "@/wab/shared/core/selection";
 import { isSlotSelection } from "@/wab/shared/core/slots";
-import { isTplTag, isTplTextBlock } from "@/wab/shared/core/tpls";
+import {
+  ancestorsUp,
+  isTplTag,
+  isTplTextBlock,
+  tplChildren,
+} from "@/wab/shared/core/tpls";
 import type { ValNode } from "@/wab/shared/core/val-nodes";
 import { Box } from "@/wab/shared/geom";
-import type { TplComponent, TplTag } from "@/wab/shared/model/classes";
+import type { TplComponent, TplNode, TplTag } from "@/wab/shared/model/classes";
 import { observable, reaction } from "mobx";
 
 export interface ContentEditorTarget {
@@ -24,7 +31,72 @@ function contentElements(vc: ViewCtx, val: ValNode) {
   );
 }
 
-/** Nearest supported owner; code component internals are owned by their registration. */
+export interface ClippedContentRegion {
+  element: HTMLElement;
+  horizontal: boolean;
+  vertical: boolean;
+}
+
+/** Internal viewports are discovered from rendered geometry, never component names or opt-in flags. */
+export function findClippedContent(
+  root: HTMLElement,
+  boundaries = new Set<HTMLElement>(),
+): ClippedContentRegion[] {
+  const regions: ClippedContentRegion[] = [];
+  const pending = [root];
+  const win = root.ownerDocument.defaultView;
+  while (pending.length) {
+    const element = pending.pop();
+    if (!element || (element !== root && boundaries.has(element))) {
+      continue;
+    }
+    const css = win?.getComputedStyle(element);
+    if (!css || css.display === "none") {
+      continue;
+    }
+    const horizontal =
+      element.clientWidth > 0 &&
+      /^(auto|scroll|overlay|hidden|clip)$/.test(
+        css.overflowX || css.overflow,
+      ) &&
+      css.textOverflow !== "ellipsis" &&
+      element.scrollWidth > element.clientWidth + 1;
+    const vertical =
+      element.clientHeight > 0 &&
+      /^(auto|scroll|overlay|hidden|clip)$/.test(
+        css.overflowY || css.overflow,
+      ) &&
+      element.scrollHeight > element.clientHeight + 1;
+    if (horizontal || vertical) {
+      regions.push({ element, horizontal, vertical });
+    }
+    pending.push(
+      ...(Array.from(element.children).filter(
+        (child): child is HTMLElement =>
+          child.namespaceURI === "http://www.w3.org/1999/xhtml",
+      ) as HTMLElement[]),
+    );
+  }
+  return regions;
+}
+
+function contentRegions(
+  vc: ViewCtx,
+  tpl: TplComponent | TplTag,
+  element: HTMLElement,
+) {
+  // A child design node owns its own clipping. AppShell's internal viewport is
+  // discoverable, while a Table inside its children slot is a separate target.
+  const boundaries = new Set(
+    tplChildren(tpl).flatMap((child) =>
+      vc
+        .maybeTpl2ValsInContext(child, { allowAnyContext: true })
+        .flatMap((val) => contentElements(vc, val)),
+    ),
+  );
+  return findClippedContent(element, boundaries);
+}
+
 export function getContentEditorTarget(
   vc: ViewCtx,
 ): ContentEditorTarget | undefined {
@@ -34,44 +106,23 @@ export function getContentEditorTarget(
   const selected = vc.focusedDomElts().flatMap((elts) => elts?.toArray() ?? []);
   for (const { node } of vc.focusedTplAncestorsThroughComponents()) {
     const tpl = isSlotSelection(node) ? node.getTpl() : node;
-    if (!isCodeComponentTpl(tpl) && !isTplTag(tpl)) {
+    if ((!isCodeComponentTpl(tpl) && !isTplTag(tpl)) || isTplTextBlock(tpl)) {
       continue;
     }
-    const registered =
-      isCodeComponentTpl(tpl) && isCodeComponent(tpl.component)
-        ? vc.getCodeComponentMeta(tpl.component)?.canvasContentEditor === true
-        : false;
-    if (!registered && (!isTplTag(tpl) || isTplTextBlock(tpl))) {
-      continue;
-    }
-    const candidates = vc.maybeTpl2ValsInContext(tpl, {
-      allowAnyContext: true,
-    });
-    const targets = candidates.flatMap((val: ValNode) =>
-      contentElements(vc, val).map((element: HTMLElement) => ({
-        tpl,
-        fullKey: val.fullKey,
-        element,
-      })),
-    );
-    // A repeated owner must resolve to the selected rendered instance.
+    const targets = vc
+      .maybeTpl2ValsInContext(tpl, { allowAnyContext: true })
+      .flatMap((val) =>
+        contentElements(vc, val).map((element) => ({
+          tpl,
+          fullKey: val.fullKey,
+          element,
+        })),
+      );
     const target =
       targets.find(({ element }) =>
         selected.some((el) => element.contains(el)),
       ) ?? (targets.length === 1 ? targets[0] : undefined);
-    if (!target) {
-      continue;
-    }
-    const style = target.element.ownerDocument.defaultView?.getComputedStyle(
-      target.element,
-    );
-    const clipped =
-      style &&
-      ((/(auto|scroll|hidden)/.test(style.overflowX) &&
-        target.element.scrollWidth > target.element.clientWidth) ||
-        (/(auto|scroll|hidden)/.test(style.overflowY) &&
-          target.element.scrollHeight > target.element.clientHeight));
-    if (registered || clipped) {
+    if (target && contentRegions(vc, tpl, target.element).length) {
       return target;
     }
   }
@@ -79,7 +130,11 @@ export function getContentEditorTarget(
 }
 
 /** Isolates the existing DOM, retaining React ownership and all data providers. */
-export function isolateContentElement(element: HTMLElement, minWidth: number) {
+export function isolateContentElement(
+  element: HTMLElement,
+  minWidth: number,
+  regions = findClippedContent(element),
+) {
   const doc = element.ownerDocument;
   const ancestors: HTMLElement[] = [];
   for (
@@ -90,6 +145,25 @@ export function isolateContentElement(element: HTMLElement, minWidth: number) {
     ancestors.push(parent);
     parent.setAttribute("data-plasmic-content-ancestor", "");
   }
+  const expanded = new Set<HTMLElement>();
+  for (const region of regions) {
+    for (
+      let node: HTMLElement | null = region.element;
+      node && element.contains(node);
+      node = node.parentElement
+    ) {
+      if (region.horizontal) {
+        node.setAttribute("data-plasmic-content-expand-x", "");
+      }
+      if (region.vertical) {
+        node.setAttribute("data-plasmic-content-expand-y", "");
+      }
+      expanded.add(node);
+      if (node === element) {
+        break;
+      }
+    }
+  }
   element.setAttribute("data-plasmic-content-target", "");
   doc.documentElement.setAttribute("data-plasmic-content-editor", "");
   const style = doc.createElement("style");
@@ -98,6 +172,8 @@ export function isolateContentElement(element: HTMLElement, minWidth: number) {
   style.textContent = `
     html[data-plasmic-content-editor] body * { visibility: hidden !important; }
     html[data-plasmic-content-editor], html[data-plasmic-content-editor] body { overflow: hidden !important; background: transparent !important; }
+    [data-plasmic-content-expand-x] { width: max-content !important; max-width: none !important; overflow: visible !important; flex-shrink: 0 !important; }
+    [data-plasmic-content-expand-y] { height: auto !important; min-height: 0 !important; max-height: none !important; overflow: visible !important; flex-basis: auto !important; flex-shrink: 0 !important; }
     [data-plasmic-content-ancestor] { overflow: visible !important; clip-path: none !important; contain: none !important; transform: none !important; filter: none !important; perspective: none !important; position: static !important; }
     html[data-plasmic-content-editor] body [data-plasmic-content-target] { visibility: visible !important; position: absolute !important; left: 32px !important; top: 48px !important; margin: 0 !important; transform: none !important; width: max-content !important; min-width: ${minWidth}px !important; max-width: none !important; height: auto !important; min-height: 0 !important; max-height: none !important; overflow: visible !important; }
     html[data-plasmic-content-editor] body [data-plasmic-content-target] * { visibility: visible !important; }
@@ -106,6 +182,10 @@ export function isolateContentElement(element: HTMLElement, minWidth: number) {
   return () => {
     style.remove();
     element.removeAttribute("data-plasmic-content-target");
+    expanded.forEach((node) => {
+      node.removeAttribute("data-plasmic-content-expand-x");
+      node.removeAttribute("data-plasmic-content-expand-y");
+    });
     ancestors.forEach((parent) =>
       parent.removeAttribute("data-plasmic-content-ancestor"),
     );
@@ -122,6 +202,7 @@ export class CanvasContentEditor {
     undefined,
     { deep: false },
   );
+  readonly ready = observable.box(false);
   // Render dependencies, not navigation history: virtualized ancestors must
   // keep the current target mounted until the entire editing session ends.
   private expandedAncestors = observable.set<string>();
@@ -134,6 +215,68 @@ export class CanvasContentEditor {
 
   get target() {
     return this.targetState.get();
+  }
+
+  get root() {
+    const target = this.target;
+    return (
+      target &&
+      this.vc
+        .maybeTpl2ValsInContext(target.tpl, { allowAnyContext: true })
+        .find((val) => val.fullKey === target.fullKey)
+    );
+  }
+
+  containsElement(element: Element) {
+    const target = this.target;
+    if (!target) {
+      return !this.vc.studioCtx.canvasContentEditor;
+    }
+    const marked = target.element.ownerDocument.querySelector(
+      "[data-plasmic-content-target]",
+    );
+    if (marked) {
+      return marked.contains(element);
+    }
+    const root = this.root;
+    return (root ? contentElements(this.vc, root) : [target.element]).some(
+      (candidate) => candidate.contains(element),
+    );
+  }
+
+  contains(selectable: Selectable) {
+    if (!this.target) {
+      return !this.vc.studioCtx.canvasContentEditor;
+    }
+    const val = isSlotSelection(selectable) ? selectable.val : selectable;
+    if (!val) {
+      return false;
+    }
+    if (
+      val.fullKey === this.target.fullKey ||
+      contentElements(this.vc, val).some((element) =>
+        this.containsElement(element),
+      )
+    ) {
+      return true;
+    }
+    return SQ(val, this.vc.valState())
+      .fullstack()
+      .ancestors()
+      .toArrayOfValNodes()
+      .some((ancestor) => ancestor.fullKey === this.target?.fullKey);
+  }
+
+  containsTpl(tpl: TplNode) {
+    if (!this.target) {
+      return !this.vc.studioCtx.canvasContentEditor;
+    }
+    return (
+      ancestorsUp(tpl).includes(this.target.tpl) ||
+      this.vc
+        .maybeTpl2ValsInContext(tpl, { allowAnyContext: true })
+        .some((val) => this.contains(val))
+    );
   }
 
   isExpanded(fullKey: string) {
@@ -164,11 +307,7 @@ export class CanvasContentEditor {
       targetIndex < 0
         ? []
         : ancestorPath.slice(targetIndex + 1).flatMap((tpl) => {
-            if (
-              !isCodeComponentTpl(tpl) ||
-              !isCodeComponent(tpl.component) ||
-              !this.vc.getCodeComponentMeta(tpl.component)?.canvasContentEditor
-            ) {
+            if (!isCodeComponentTpl(tpl) || !isCodeComponent(tpl.component)) {
               return [];
             }
             return this.vc
@@ -185,6 +324,12 @@ export class CanvasContentEditor {
     this.cleanup?.();
     this.cleanup = undefined;
     this.expandedAncestors.replace(ancestors);
+    this.ready.set(false);
+    this.vc.studioCtx.showStackOfParents = false;
+    this.vc.studioCtx.viewCtxs.forEach((vc) => {
+      vc.setViewCtxHoverBySelectable(null);
+      vc.setMeasureToolDomElt(null);
+    });
     this.size.set(undefined);
     this.targetState.set(target);
     this.vc.scheduleSync({ eval: true, styles: false, asap: true });
@@ -227,7 +372,12 @@ export class CanvasContentEditor {
       return;
     }
     let element = currentElement;
-    let undo = isolateContentElement(element, originalWidth);
+    target.element = element;
+    let undo = isolateContentElement(
+      element,
+      originalWidth,
+      contentRegions(this.vc, target.tpl, element),
+    );
     const measure = () => {
       const width =
         Math.ceil(
@@ -248,6 +398,7 @@ export class CanvasContentEditor {
     const resize = new ResizeObserver(measure);
     resize.observe(element);
     let pending = 0;
+    let reveal = 0;
     const mutations = new MutationObserver(() => {
       if (pending) {
         return;
@@ -266,7 +417,12 @@ export class CanvasContentEditor {
           resize.disconnect();
           undo();
           element = next;
-          undo = isolateContentElement(element, originalWidth);
+          target.element = element;
+          undo = isolateContentElement(
+            element,
+            originalWidth,
+            contentRegions(this.vc, target.tpl, element),
+          );
           resize.observe(element);
         }
         measure();
@@ -289,7 +445,17 @@ export class CanvasContentEditor {
           this.vc.studioCtx.isLiveMode ||
           this.vc.canvasExporting.get(),
         arena: this.vc.studioCtx.currentArena,
-        resolved: getContentEditorTarget(this.vc),
+        resolved: this.vc
+          .maybeTpl2ValsInContext(target.tpl, { allowAnyContext: true })
+          .find((val) =>
+            contentElements(this.vc, val).some((candidateRoot) =>
+              this.vc
+                .focusedDomElts()
+                .some((nodes) =>
+                  nodes?.toArray().some((node) => candidateRoot.contains(node)),
+                ),
+            ),
+          ),
       }),
       ({ path, active, interactive, arena: currentArena, resolved }) => {
         if (
@@ -308,13 +474,20 @@ export class CanvasContentEditor {
       mutations.disconnect();
       resize.disconnect();
       win.cancelAnimationFrame(pending);
+      win.cancelAnimationFrame(reveal);
       undo();
     };
     measure();
     // Keep a readable scale; fit-to-all remains an explicit canvas action.
-    win.requestAnimationFrame(() => {
+    reveal = win.requestAnimationFrame(() => {
       if (this.target === target) {
+        measure();
         this.locate();
+        reveal = win.requestAnimationFrame(() => {
+          if (this.target === target) {
+            this.ready.set(true);
+          }
+        });
       }
     });
   }
@@ -331,8 +504,13 @@ export class CanvasContentEditor {
     if (!element) {
       return;
     }
-    const bounds = element.getBoundingClientRect();
-    const selection = this.vc.focusedDomElts()[0]?.[0]?.getBoundingClientRect();
+    // Frame what is visible, like every other element-anchored canvas UI.
+    // While editing, the target is isolated (ancestor clipping removed and the
+    // artboard sized to it), so this is normally its whole box.
+    const bounds = getVisibleFrameRect(element).rect();
+    const selectedElement = this.vc.focusedDomElts()[0]?.[0];
+    const selection =
+      selectedElement && getVisibleFrameRect(selectedElement).rect();
     const rect = fitAll
       ? bounds
       : {
@@ -357,6 +535,7 @@ export class CanvasContentEditor {
     this.cleanup?.();
     this.cleanup = undefined;
     this.targetState.set(undefined);
+    this.ready.set(false);
     this.expandedAncestors.clear();
     this.size.set(undefined);
     this.vc.scheduleSync({ eval: true, styles: false, asap: true });

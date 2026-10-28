@@ -1,5 +1,5 @@
 import { usePlasmicCanvasContext, usePlasmicCanvasComponentInfo } from '@plasmicapp/host';
-import { Input, Checkbox, Table } from 'antd';
+import { Tooltip, Input, Checkbox, Table } from 'antd';
 import React from 'react';
 import { b as asArray, r as registerComponentHelper } from './utils-Cmdig6Yl.esm.js';
 import '@plasmicapp/host/registerComponent';
@@ -7,6 +7,7 @@ import '@plasmicapp/host/registerGlobalContext';
 
 const rowStyle = {
   display: "flex",
+  minHeight: 32,
   alignItems: "center",
   justifyContent: "space-between",
   gap: 8
@@ -16,9 +17,14 @@ const inputStyle = {
   minWidth: 0,
   flexShrink: 0
 };
-const checkboxStyle = {
-  ...rowStyle,
-  flexDirection: "row-reverse"
+const checkboxStyles = {
+  root: {
+    ...rowStyle,
+    flexDirection: "row-reverse",
+    gap: 0,
+    font: "inherit"
+  },
+  label: { flex: 1, paddingInlineStart: 0, paddingInlineEnd: 8 }
 };
 function TablePaginationControl({
   value,
@@ -28,14 +34,17 @@ function TablePaginationControl({
   const options = value && typeof value === "object" ? value : {};
   const update = (key, next) => {
     const result = { ...options };
-    if (next == null) delete result[key];
-    else result[key] = next;
+    if (next == null) {
+      delete result[key];
+    } else {
+      result[key] = next;
+    }
     updateValue(result);
   };
-  return /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } }, /* @__PURE__ */ React.createElement(
+  return /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8, width: "100%" } }, /* @__PURE__ */ React.createElement(
     Checkbox,
     {
-      style: checkboxStyle,
+      styles: checkboxStyles,
       checked: value !== false,
       onChange: (e) => updateValue(e.target.checked ? { ...options } : false)
     },
@@ -44,7 +53,6 @@ function TablePaginationControl({
     Input,
     {
       type: "number",
-      size: "small",
       style: inputStyle,
       "aria-label": "Page size",
       min: 1,
@@ -52,7 +60,9 @@ function TablePaginationControl({
       value: options.pageSize ?? options.defaultPageSize ?? "",
       placeholder: "10",
       onChange: (e) => {
-        if (!e.target.validity.valid) return;
+        if (!e.target.validity.valid) {
+          return;
+        }
         update(
           options.pageSize !== void 0 ? "pageSize" : "defaultPageSize",
           e.target.value === "" ? null : Number(e.target.value)
@@ -62,7 +72,7 @@ function TablePaginationControl({
   )), /* @__PURE__ */ React.createElement(
     Checkbox,
     {
-      style: checkboxStyle,
+      styles: checkboxStyles,
       checked: options.showSizeChanger ?? (options.total ?? componentProps?.data?.data?.length ?? 0) > 50,
       onChange: (e) => update("showSizeChanger", e.target.checked)
     },
@@ -70,7 +80,7 @@ function TablePaginationControl({
   ), /* @__PURE__ */ React.createElement(
     Checkbox,
     {
-      style: checkboxStyle,
+      styles: checkboxStyles,
       checked: options.showQuickJumper ?? false,
       onChange: (e) => update("showQuickJumper", e.target.checked)
     },
@@ -84,19 +94,20 @@ function TableScrollControl({
   const options = value && typeof value === "object" ? value : {};
   const update = (key, next) => {
     const result = { ...options };
-    if (next == null || next === "") delete result[key];
-    else result[key] = next;
+    if (next == null || next === "") {
+      delete result[key];
+    } else {
+      result[key] = next;
+    }
     updateValue(result);
   };
-  return /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } }, /* @__PURE__ */ React.createElement("label", { style: rowStyle }, "Horizontal scroll width", " ", /* @__PURE__ */ React.createElement(
+  return /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8, width: "100%" } }, /* @__PURE__ */ React.createElement("label", { style: rowStyle }, /* @__PURE__ */ React.createElement(Tooltip, { title: "Horizontal scroll width in pixels, a percentage, or max-content. Leave empty to fit the container without horizontal scrolling." }, /* @__PURE__ */ React.createElement("span", null, "x")), /* @__PURE__ */ React.createElement(
     Input,
     {
       type: "text",
-      size: "small",
       style: inputStyle,
-      "aria-label": "Horizontal scroll width",
+      "aria-label": "scroll.x",
       value: options.x ?? "",
-      placeholder: "Fit content",
       onChange: (e) => {
         const text = e.target.value.trim();
         update(
@@ -105,18 +116,18 @@ function TableScrollControl({
         );
       }
     }
-  )), /* @__PURE__ */ React.createElement("label", { style: rowStyle }, "Table body height", " ", /* @__PURE__ */ React.createElement(
+  )), /* @__PURE__ */ React.createElement("label", { style: rowStyle }, /* @__PURE__ */ React.createElement(Tooltip, { title: "Table body height in pixels. Leave empty to grow with content." }, /* @__PURE__ */ React.createElement("span", null, "y")), /* @__PURE__ */ React.createElement(
     Input,
     {
       type: "number",
-      size: "small",
       style: inputStyle,
-      "aria-label": "Table body height",
+      "aria-label": "scroll.y",
       min: 1,
       value: options.y ?? "",
-      placeholder: "Grow with content",
       onChange: (e) => {
-        if (!e.target.validity.valid) return;
+        if (!e.target.validity.valid) {
+          return;
+        }
         update("y", e.target.value === "" ? null : Number(e.target.value));
       }
     }
@@ -231,6 +242,7 @@ function TableWithColumns({
   columns,
   components,
   contentEditing,
+  fullContentView,
   ...props
 }) {
   const canvas = usePlasmicCanvasContext();
@@ -244,7 +256,8 @@ function TableWithColumns({
         {
           ...props,
           components,
-          contentEditing
+          contentEditing,
+          fullContentView
         },
         renderChildren(...args)
       )
@@ -259,6 +272,12 @@ function TableWithColumns({
     virtual: false,
     sticky: false,
     style: { ...props.style, width: "max-content" }
+  } : fullContentView ? {
+    // Studio's full page height view: render every row in the page flow.
+    // Horizontal scrolling and the saved props stay unchanged.
+    scroll: props.scroll && { ...props.scroll, y: void 0 },
+    virtual: false,
+    sticky: false
   } : {};
   const expandColumns = (items) => items.map((column) => ({
     ...column,
@@ -388,7 +407,9 @@ const AntdTable = React.forwardRef(function AntdTable2(props, ref) {
       rowSelection: selection,
       rowKey,
       ...rest,
-      contentEditing: !!canvas && !canvas.interactive && info?.isEditingContents
+      contentEditing: !!canvas && !canvas.interactive && info?.isEditingContents,
+      fullContentView: !!canvas && !canvas.interactive && // Read from the canvas prop so this works with any @plasmicapp/host.
+      props.__plasmic_selection_prop__?.isFullContentView === true
     }
   );
 });
@@ -396,7 +417,6 @@ function registerTable(loader) {
   registerComponentHelper(loader, AntdTable, {
     name: "plasmic-antd6-table",
     displayName: "Table",
-    canvasContentEditor: true,
     props: {
       data: {
         type: "dataSourceOpData",

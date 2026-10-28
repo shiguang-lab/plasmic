@@ -10,13 +10,15 @@ import {
 } from "@/wab/client/components/menu-builder";
 import { useEditorPopupStyles } from "@/wab/client/components/ui/layout-styles";
 import { IFrameAwareDropdownMenu } from "@/wab/client/components/widgets";
+import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { DefaultViewButtonProps } from "@/wab/client/plasmic/plasmic_kit_top_bar/PlasmicViewButton";
 import { getComboForAction } from "@/wab/client/shortcuts/studio/studio-shortcuts";
-import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { isDedicatedArena } from "@/wab/shared/Arenas";
 import { DEVFLAGS } from "@/wab/shared/devflags";
 import {
   BorderOutlined,
+  ColumnHeightOutlined,
   CommentOutlined,
   ControlOutlined,
   EditOutlined,
@@ -131,6 +133,7 @@ const ViewButton = observer(function ViewButton(props: ViewButtonProps) {
   const showContainerPlaceholder = studioCtx.showContainerPlaceholder();
   const showMultiplayerSelections = studioCtx.showMultiplayerSelections();
   const showAncestorsHoverBoxes = studioCtx.showAncestorsHoverBoxes();
+  const fullPageHeight = studioCtx.fullPageHeight;
 
   return (
     <IFrameAwareDropdownMenu
@@ -219,6 +222,24 @@ const ViewButton = observer(function ViewButton(props: ViewButtonProps) {
               </Menu.Item>,
             );
           }
+
+          push(
+            <Menu.Item
+              onClick={() => studioCtx.toggleFullPageHeight()}
+              key="toggle-full-page-height"
+            >
+              <ColumnHeightOutlined />
+              <TextAndShortcut
+                shortcut={getComboForAction("TOGGLE_FULL_PAGE_HEIGHT")}
+              >
+                {t(
+                  fullPageHeight
+                    ? "Fit to viewport height"
+                    : "Show full page height",
+                )}
+              </TextAndShortcut>
+            </Menu.Item>,
+          );
         });
         builder.genSection(undefined, (push) => {
           const isFocusedMode = studioCtx.focusedMode;
@@ -291,11 +312,13 @@ const ViewButton = observer(function ViewButton(props: ViewButtonProps) {
               >
                 <EditOutlined />
                 <Tooltip zIndex={200000} title={contentCreatorModeHelp}>
-                  {t(
-                    studioCtx.contentEditorMode
-                      ? "Turn off content creator mode"
-                      : "Turn on content creator mode",
-                  )}
+                  <TriggerTarget>
+                    {t(
+                      studioCtx.contentEditorMode
+                        ? "Turn off content creator mode"
+                        : "Turn on content creator mode",
+                    )}
+                  </TriggerTarget>
                 </Tooltip>
               </Menu.Item>,
             );

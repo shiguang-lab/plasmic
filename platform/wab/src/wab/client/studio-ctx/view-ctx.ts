@@ -31,7 +31,7 @@ import { ViewStateSnapshot } from "@/wab/client/undo-log";
 import { mkTokenRef } from "@/wab/commons/StyleToken";
 import { drainQueue } from "@/wab/commons/asyncutil";
 import { safeCallbackify } from "@/wab/commons/control";
-import { getArenaFrames } from "@/wab/shared/Arenas";
+import { getArenaFrames, isHeightAutoDerived } from "@/wab/shared/Arenas";
 import { RSH } from "@/wab/shared/RuleSetHelpers";
 import { getAncestorSlotArg } from "@/wab/shared/SlotUtils";
 import { $$$ } from "@/wab/shared/TplQuery";
@@ -339,6 +339,20 @@ export class ViewCtx extends WithDbCtx {
 
   arenaFrameRoot() {
     return this.arenaFrame().container.component.tplTree;
+  }
+
+  /**
+   * Whether this artboard shows its full page height, so code components may
+   * render content they would otherwise keep inside an internal scroll viewport.
+   * Canvas-only: never applies to interactive mode or exported renderings.
+   */
+  isFullContentView() {
+    return (
+      this.studioCtx.fullPageHeight &&
+      isHeightAutoDerived(this.arenaFrame()) &&
+      !this.studioCtx.isInteractiveMode &&
+      !this.canvasExporting.get()
+    );
   }
 
   getContextData(val: ValComponent) {
@@ -1060,6 +1074,9 @@ export class ViewCtx extends WithDbCtx {
     anchorCloneKey = this.focusedCloneKey(),
     opts: { appendToMultiSelection?: boolean } = {},
   ) {
+    if (x && this.studioCtx.canvasContentEditor && !this.contentEditor.containsTpl(x)) {
+      this.studioCtx.canvasContentEditor.exit();
+    }
     this.popDrillForTpl(x);
     this.setViewCtxFocusByTpl(x, anchorCloneKey, opts);
     this.studioCtx.setStudioFocusOnViewCtxContent(this);
@@ -1214,6 +1231,9 @@ export class ViewCtx extends WithDbCtx {
     anchorCloneKey = this.focusedCloneKey(),
     opts: { appendToMultiSelection?: boolean } = {},
   ) {
+    if (val && !this.contentEditor.contains(val)) {
+      this.studioCtx.canvasContentEditor?.exit();
+    }
     this.popDrillForTpl(val ? tplFromSelectable(val) : null);
     this.setViewCtxFocusBySelectable(val, anchorCloneKey, opts);
     this.studioCtx.setStudioFocusOnViewCtxContent(this);
@@ -1292,6 +1312,9 @@ export class ViewCtx extends WithDbCtx {
     val: Selectable | null | undefined,
     anchorCloneKey?: string,
   ) {
+    if (val && !this.contentEditor.contains(val)) {
+      val = null;
+    }
     this.setHoveredSelectable(val);
     const { focusedDom } = this.computeFocus(val, anchorCloneKey);
     this.setHoveredDomElt(focusedDom);

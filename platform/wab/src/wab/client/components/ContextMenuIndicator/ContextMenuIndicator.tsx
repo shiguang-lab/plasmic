@@ -1,5 +1,6 @@
 import { MenuType, useContextMenu } from "@/wab/client/components/ContextMenu";
 import MenuButton from "@/wab/client/components/widgets/MenuButton";
+import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import { UiText } from "@/wab/client/i18n/UiText";
 import {
   DefaultContextMenuIndicatorProps,
@@ -93,7 +94,7 @@ function ContextMenuIndicator_(
           wrap: (node) =>
             !showDynamicValueButton ? null : (
               <Tooltip title={openTooltip === false ? null : tooltip}>
-                {node}
+                <TriggerTarget>{node}</TriggerTarget>
               </Tooltip>
             ),
           props: {

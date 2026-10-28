@@ -1,5 +1,6 @@
 import sty from "@/wab/client/components/studio/arenas/GhostFrame.module.sass";
 import { Icon } from "@/wab/client/components/widgets/Icon";
+import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import {
   useScaledElementRef,
   useZoomStyledRef,
@@ -134,7 +135,7 @@ export const GhostFrame = React.forwardRef(function GhostFrame_(
   if (tooltip) {
     content = (
       <Tooltip motion={{ motionName: "" }} title={tooltip}>
-        {content}
+        <TriggerTarget>{content}</TriggerTarget>
       </Tooltip>
     );
   }
@@ -149,7 +150,7 @@ export const GhostFrame = React.forwardRef(function GhostFrame_(
         popupRender={menu}
         trigger={["contextMenu", "click"]}
       >
-        {content}
+        <TriggerTarget>{content}</TriggerTarget>
       </Dropdown>
     );
   }
@@ -162,7 +163,7 @@ export const GhostFrame = React.forwardRef(function GhostFrame_(
         trigger="click"
         destroyOnHidden
       >
-        {content}
+        <TriggerTarget>{content}</TriggerTarget>
       </Popover>
     );
   }

@@ -1,4 +1,7 @@
-import { useSelectionBounds } from "@/wab/client/components/canvas/selection-bounds";
+import {
+  getVisibleSelectionBounds,
+  useSelectionBounds,
+} from "@/wab/client/components/canvas/selection-bounds";
 import { frameToScalerRect } from "@/wab/client/coords";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { cssPropsForInvertTransform } from "@/wab/client/studio-ctx/StudioCtx";
@@ -11,15 +14,19 @@ export const MultiSelectionBox = observer(function MultiSelectionBox({
 }: {
   viewCtx: ViewCtx;
 }) {
+  // `bounds` is the real union of the selection and drives the size badge;
+  // the box itself is drawn on the visible part of that union.
   const bounds = useSelectionBounds(viewCtx);
+  const visibleBounds = getVisibleSelectionBounds(viewCtx.focusedDomElts());
   if (
     !bounds ||
+    !visibleBounds ||
     viewCtx.studioCtx.isDraggingObject() ||
     viewCtx.studioCtx.isTransformingObject()
   ) {
     return null;
   }
-  const rect = frameToScalerRect(bounds.rect(), viewCtx);
+  const rect = frameToScalerRect(visibleBounds.rect(), viewCtx);
   return (
     <div
       className="canvas-editor__multi-selection"

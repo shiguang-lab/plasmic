@@ -5,6 +5,7 @@ import {
   StyleComponentProps,
 } from "@/wab/client/components/style-controls/StyleComponent";
 import { DimTokenSpinnerRef } from "@/wab/client/components/widgets/DimTokenSelector";
+import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import { makeVariantedStylesHelperFromCurrentCtx } from "@/wab/client/utils/style-utils";
 import {
   INTERACT_OUTSIDE_EXCEPTION_SELECTORS,
@@ -499,35 +500,39 @@ class SpacingControl_ extends StyleComponent<
               </div>
             }
           >
-            <LabeledStyleDimItem
-              styleName={this.selectedStyleProps()}
-              displayStyleName={this.props.spacingStyleProp}
-              label={spacingLabel}
-              subtitle={subtitle}
-              tokenType={"Spacing"}
-              vsh={vsh}
-              dimOpts={{
-                ref: this.spinner,
-                value: this.showSelectedValues(),
-                onChange: (val) => {
-                  this.clearSidesIfSelectionChanges = true;
-                  if (val === undefined) {
-                    this.clearAllSelected();
-                  } else {
-                    this.setAllSelected(val);
-                  }
-                  defer(() => this.spinner.current?.focus());
-                },
-                onFocus: this.handleSpinnerFocus,
-                onBlur: this.handleSpinnerBlur,
-                shorthand: this.state.selection.sides.isEmpty(),
-                extraOptions: this.props.allowAuto ? ["auto"] : [],
-                dragScale: "10",
-                min: spacingStyleProp === "padding" ? 0 : undefined,
-                allowedUnits: LENGTH_PERCENTAGE_UNITS,
-                allowFunctions: true,
-              }}
-            />
+            {/* LabeledStyleDimItem doesn't forward refs; TriggerTarget
+                anchors the popover on its root element. */}
+            <TriggerTarget>
+              <LabeledStyleDimItem
+                styleName={this.selectedStyleProps()}
+                displayStyleName={this.props.spacingStyleProp}
+                label={spacingLabel}
+                subtitle={subtitle}
+                tokenType={"Spacing"}
+                vsh={vsh}
+                dimOpts={{
+                  ref: this.spinner,
+                  value: this.showSelectedValues(),
+                  onChange: (val) => {
+                    this.clearSidesIfSelectionChanges = true;
+                    if (val === undefined) {
+                      this.clearAllSelected();
+                    } else {
+                      this.setAllSelected(val);
+                    }
+                    defer(() => this.spinner.current?.focus());
+                  },
+                  onFocus: this.handleSpinnerFocus,
+                  onBlur: this.handleSpinnerBlur,
+                  shorthand: this.state.selection.sides.isEmpty(),
+                  extraOptions: this.props.allowAuto ? ["auto"] : [],
+                  dragScale: "10",
+                  min: spacingStyleProp === "padding" ? 0 : undefined,
+                  allowedUnits: LENGTH_PERCENTAGE_UNITS,
+                  allowFunctions: true,
+                }}
+              />
+            </TriggerTarget>
           </Popover>
         </div>
       </OnClickAwayExcept>

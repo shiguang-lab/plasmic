@@ -9,6 +9,7 @@ import { PageQueryParamsTooltip } from "@/wab/client/components/widgets/Detailed
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { LabelWithDetailedTooltip } from "@/wab/client/components/widgets/LabelWithDetailedTooltip";
 import { LabeledListItem } from "@/wab/client/components/widgets/LabeledListItem";
+import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { useI18n } from "@/wab/client/i18n";
 import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
@@ -119,7 +120,7 @@ export function URLParamTooltip(props: { type: URLParamType }) {
         )
       }
     >
-      {text}
+      <TriggerTarget>{text}</TriggerTarget>
     </Tooltip>
   );
 }
@@ -420,7 +421,7 @@ export function AddQueryParamButton({
         </>
       }
     >
-      {children}
+      <TriggerTarget>{children}</TriggerTarget>
     </Popover>
   );
 }

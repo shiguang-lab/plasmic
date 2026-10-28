@@ -22,33 +22,47 @@ vi.mock("@/wab/client/studio-ctx/canvas-content-editor", () => ({
 }));
 afterEach(async () => {
   cleanup();
+  vi.restoreAllMocks();
   await act(async () => {
     await setLanguagePreference("en");
   });
   setAppearancePreference("dark");
 });
 
-test("entry names its owner and keeps a visible generic exit independent of the selected child", () => {
+test("entry names its owner and keeps a visible generic exit independent of the selected child", async () => {
+  vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockReturnValue({
+    x: 0, y: 0, left: 0, top: 0, right: 1200, bottom: 800,
+    width: 1200, height: 800, toJSON: () => ({}),
+  });
+  vi.spyOn(HTMLElement.prototype, "offsetWidth", "get").mockReturnValue(240);
+  vi.spyOn(HTMLElement.prototype, "offsetHeight", "get").mockReturnValue(28);
   const tpl = mkTplTagX("div");
   tpl.name = "ActivityFeed";
   const element = document.createElement("div");
   document.body.append(element);
+  const panel = document.createElement("div");
+  panel.className = "canvas-editor__left-pane";
+  document.body.append(panel);
+  const padding = { left: 80, right: 320, bottom: 80 };
   const target = { tpl, element, fullKey: "feed[0]" };
   const active = observable.box<typeof target | undefined>();
   const editor = {
+    ready: observable.box(true),
+    containsElement: (node: Element) => active.get()?.element.contains(node) ?? false,
     get target() {
       return active.get();
     },
     enter: vi.fn(() => active.set(target)),
     exit: vi.fn(() => active.set(undefined)),
   };
-  const vc = { contentEditor: editor, canvasCtx: { viewport: () => element } };
+  const vc = {
+    focusedDomElts: () => [], contentEditor: editor, canvasCtx: { viewport: () => element } };
   const studioCtx = {
     viewCtxs: [vc],
     focusedViewCtx: () => vc,
     zoom: 1,
     viewportCtx: { scroll: () => ({ x: 0, y: 0 }) },
-    canvasZoomPadding: () => ({ left: 20, right: 20 }),
+    canvasZoomPadding: () => padding,
     isInteractiveMode: false,
     isLiveMode: false,
   } as unknown as StudioCtx;
@@ -60,13 +74,48 @@ test("entry names its owner and keeps a visible generic exit independent of the 
     </div>,
   );
   expect(screen.getByText("ActivityFeed")).toBeTruthy();
+  expect(screen.getByRole("toolbar", { name: "Edit content" }).style.width).toBe("");
   fireEvent.click(screen.getByRole("button", { name: "Edit content" }));
   expect(editor.enter).toHaveBeenCalledWith(target);
-  expect(screen.getByRole("toolbar", { name: "Content editing" })).toBeTruthy();
+  const mode = screen.getByRole("toolbar", { name: "Content editing" });
+  expect(mode.style.left).toBe("640px");
+  expect(mode.style.top).toBe("60px");
+  expect(mode.style.maxWidth).toBe("800px");
+  expect(mode.style.width).toBe("");
+  expect(getComputedStyle(mode).height).toBe("28px");
+  expect(getComputedStyle(mode).flexWrap).toBe("nowrap");
+  expect(screen.getByRole("button", { name: /Exit content editing/ }).classList.contains("ant-btn-primary")).toBe(false);
+  const label = document.createElement("div");
+  label.className = "node-outline-tag";
+  label.setAttribute("role", "toolbar");
+  label.getBoundingClientRect = () => new DOMRect(640, 60, 240, 28);
+  const tree = label.appendChild(document.createElement("div"));
+  tree.setAttribute("data-canvas-node-tree", "");
+  tree.getBoundingClientRect = () => new DOMRect(640, 40, 240, 200);
+  await act(async () => { mode.parentElement?.appendChild(label); });
+  expect(mode.style.left).toBe("640px");
+  expect(mode.style.top).toBe("60px");
+  label.remove();
+  padding.left = 320;
+  fireEvent.transitionEnd(panel);
+  expect(mode.style.left).toBe("640px");
+  expect(mode.style.maxWidth).toBe("560px");
+  padding.left = 80;
+  fireEvent.transitionEnd(panel);
+  expect(mode.style.left).toBe("640px");
+  expect(mode.style.maxWidth).toBe("800px");
+  // Reduced-motion panels update their open state without a transition event.
+  await act(async () => {
+    padding.left = 320;
+    panel.setAttribute("data-open", "true");
+  });
+  expect(mode.style.left).toBe("640px");
+  expect(mode.style.maxWidth).toBe("560px");
   fireEvent.click(screen.getByRole("button", { name: /Exit content editing/ }));
   expect(editor.exit).toHaveBeenCalledOnce();
   expect(screen.getByRole("button", { name: "Edit content" })).toBeTruthy();
   element.remove();
+  panel.remove();
 });
 
 test("nested entry switches the single target while exit remains available and no parent navigation is added", () => {
@@ -87,6 +136,8 @@ test("nested entry switches the single target while exit remains available and n
     deep: false,
   });
   const editor = {
+    ready: observable.box(true),
+    containsElement: (node: Element) => active.get()?.element.contains(node) ?? false,
     get target() {
       return active.get();
     },
@@ -94,6 +145,7 @@ test("nested entry switches the single target while exit remains available and n
     exit: vi.fn(() => active.set(undefined)),
   };
   const vc = {
+    focusedDomElts: () => [],
     contentEditor: editor,
     canvasCtx: { viewport: () => outerElement },
   };
@@ -102,7 +154,7 @@ test("nested entry switches the single target while exit remains available and n
     focusedViewCtx: () => vc,
     zoom: 1,
     viewportCtx: { scroll: () => ({ x: 0, y: 0 }) },
-    canvasZoomPadding: () => ({ left: 20, right: 20 }),
+    canvasZoomPadding: () => ({ left: 20, right: 20, bottom: 80 }),
     isInteractiveMode: false,
     isLiveMode: false,
   } as unknown as StudioCtx;
@@ -148,7 +200,11 @@ test("entry and mode controls follow all Studio languages and live light/dark th
     fullKey: "panel[0].list[0]",
   };
   const vc = {
-    contentEditor: { target: current },
+    focusedDomElts: () => [],
+    contentEditor: {
+      target: current, ready: observable.box(true),
+      containsElement: (node: Element) => element.contains(node),
+    },
     canvasCtx: { viewport: () => element },
   };
   const studioCtx = {
@@ -156,7 +212,7 @@ test("entry and mode controls follow all Studio languages and live light/dark th
     focusedViewCtx: () => vc,
     zoom: 1,
     viewportCtx: { scroll: () => ({ x: 0, y: 0 }) },
-    canvasZoomPadding: () => ({ left: 20, right: 20 }),
+    canvasZoomPadding: () => ({ left: 20, right: 20, bottom: 80 }),
     isInteractiveMode: false,
     isLiveMode: false,
   } as unknown as StudioCtx;

@@ -1,5 +1,6 @@
 import { ValueSetState } from "@/wab/client/components/sidebar/sidebar-helpers";
 import StyleToggleButton from "@/wab/client/components/style-controls/StyleToggleButton";
+import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import {
   DefaultStyleToggleButtonGroupProps,
   PlasmicStyleToggleButtonGroup,
@@ -57,7 +58,9 @@ function StyleToggleButtonGroup(props: StyleToggleButtonGroupProps) {
       root={{
         wrap: (x) =>
           disabledTooltip && isDisabled ? (
-            <Tooltip title={disabledTooltip}>{x}</Tooltip>
+            <Tooltip title={disabledTooltip}>
+              <TriggerTarget>{x}</TriggerTarget>
+            </Tooltip>
           ) : (
             x
           ),

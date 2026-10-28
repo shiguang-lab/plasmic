@@ -95,3 +95,62 @@ test("authored page height bounds nested scrolling while automatic pages grow", 
     ).toBe(0);
   }
 });
+
+test("full page height view lets opted-in viewport shells grow with content", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1000, height: 600 });
+  // The shell mirrors AppShell's opt-in sizing contract.
+  await page.setContent(`<style>${canvasCss}
+    .__wab_val_root { display:flex; flex-direction:column; width:100%; height:100%; }
+    #shell {
+      width:100%; flex-shrink:0; overflow:hidden;
+      height:var(--canvas-content-height, var(--viewport-height, 100vh));
+      min-height:var(--viewport-height, 100vh);
+    }
+    #layout {
+      display:flex; flex-direction:column; height:100%;
+      min-height:var(--viewport-height, 100vh);
+    }
+    header { height:64px; flex-shrink:0; }
+    main { flex:1 1 auto; min-height:0; overflow:auto; }
+    #rows { height:1600px; }
+    </style><div id="root" class="__wab_root __wab_root--stretch __wab_root--page-stretch __wab_root--full-height"
+      style="min-height:600px; --viewport-height:600px; --canvas-content-height:auto">
+      <div class="__wab_val_root"><div id="shell"><div id="layout">
+        <header>Header</header><main><div id="rows"></div></main>
+      </div></div></div>
+    </div>`);
+  const measure = () =>
+    page.evaluate(() => ({
+      shell: document.getElementById("shell")!.getBoundingClientRect().height,
+      // The artboard height is derived from the measured canvas body.
+      body: document.body.getBoundingClientRect().height,
+      mainOverflow:
+        document.querySelector("main")!.scrollHeight -
+        document.querySelector("main")!.clientHeight,
+    }));
+  const full = await measure();
+  expect(full.shell).toBe(1664);
+  expect(full.body).toBeGreaterThanOrEqual(1664);
+  expect(full.mainOverflow).toBe(0);
+
+  // Short content keeps the authored viewport as the minimum height.
+  await page.locator("#rows").evaluate((el: HTMLElement) => {
+    el.style.height = "100px";
+  });
+  expect((await measure()).shell).toBe(600);
+
+  // Leaving the view restores the bounded shell and its inner scrolling.
+  await page.locator("#rows").evaluate((el: HTMLElement) => {
+    el.style.height = "1600px";
+  });
+  await page.locator("#root").evaluate((el: HTMLElement) => {
+    el.style.removeProperty("--canvas-content-height");
+    el.classList.remove("__wab_root--full-height");
+  });
+  const bounded = await measure();
+  expect(bounded.shell).toBe(600);
+  expect(bounded.body).toBe(600);
+  expect(bounded.mainOverflow).toBeGreaterThan(0);
+});

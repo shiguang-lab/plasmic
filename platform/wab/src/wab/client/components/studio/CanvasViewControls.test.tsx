@@ -151,3 +151,35 @@ it("uses content navigation without leaving the active editing scope", () => {
   expect(ctx.returnToCanvasOverview).not.toHaveBeenCalled();
   expect(ctx.tryZoomToFitArena).not.toHaveBeenCalled();
 });
+
+it("toggles the full page height view and reflects its pressed state", async () => {
+  const state = observable({ full: false });
+  const ctx = mock<StudioCtx>();
+  const frame = mock<ArenaFrame>();
+  Object.defineProperties(ctx, {
+    viewCtxs: { value: [] },
+    currentArena: { value: new Arena({ name: "Pages", children: [frame] }) },
+    currentArenaEmpty: { value: false },
+    fullPageHeight: { get: () => state.full },
+  });
+  ctx.toggleFullPageHeight.mockImplementation(() =>
+    runInAction(() => {
+      state.full = !state.full;
+    }),
+  );
+  render(
+    <AntdConfigProvider productUI>
+      <CanvasViewControls studioCtx={ctx} />
+    </AntdConfigProvider>,
+  );
+  const toggle = screen.getByRole("button", { name: "Full page height" });
+  expect(toggle.getAttribute("aria-pressed")).toBe("false");
+  await act(async () => fireEvent.click(toggle));
+  expect(ctx.toggleFullPageHeight).toHaveBeenCalledTimes(1);
+  expect(toggle.getAttribute("aria-pressed")).toBe("true");
+  // Viewing preferences never touch selection, focus or the camera.
+  expect(ctx.tryZoomToFitFrame).not.toHaveBeenCalled();
+  expect(ctx.setStudioFocusOnFrame).not.toHaveBeenCalled();
+  await act(async () => fireEvent.click(toggle));
+  expect(toggle.getAttribute("aria-pressed")).toBe("false");
+});

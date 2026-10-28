@@ -3,10 +3,11 @@ import { RevisionsList } from "@/wab/client/components/sidebar-tabs/versions-tab
 import { VersionsList } from "@/wab/client/components/sidebar-tabs/versions-tab/VersionsList";
 import { useVersionsStyles } from "@/wab/client/components/sidebar-tabs/versions-tab/styles";
 import { Matcher } from "@/wab/client/components/view-common";
+import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import PlasmicLeftVersionsPanel from "@/wab/client/plasmic/plasmic_kit/PlasmicLeftVersionsPanel";
-import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { spawn } from "@/wab/shared/common";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { Dropdown, Input, Menu, Spin } from "antd";
@@ -110,7 +111,7 @@ export const VersionsTab = observer(function VersionsTab(
               </Menu>
             )}
           >
-            {node}
+            <TriggerTarget>{node}</TriggerTarget>
           </Dropdown>
         ),
       }}

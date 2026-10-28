@@ -1,4 +1,5 @@
 import styles from "@/wab/client/components/widgets/EditableLabel/EditableLabel.module.scss";
+import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import { OnClickAway } from "@/wab/commons/components/OnClickAway";
 import { MaybeWrap } from "@/wab/commons/components/ReactUtil";
 import Tooltip from "antd/lib/tooltip";
@@ -86,7 +87,7 @@ const EditableLabel_: ForwardRefRenderFunction<
         cond={showTooltip}
         wrapper={(content) => (
           <Tooltip title={value} placement="topLeft">
-            {content}
+            <TriggerTarget>{content}</TriggerTarget>
           </Tooltip>
         )}
       >

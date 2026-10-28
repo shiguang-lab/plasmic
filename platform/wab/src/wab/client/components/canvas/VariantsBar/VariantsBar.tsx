@@ -1,3 +1,4 @@
+import { getVisibleFrameRect } from "@/wab/client/components/canvas/HoverBox/visible-bounds";
 import {
   getSpotlightDomInfo,
   getSpotlightInfo,
@@ -6,12 +7,12 @@ import VariantBadge from "@/wab/client/components/canvas/VariantsBar/VariantBadg
 import styles from "@/wab/client/components/canvas/VariantsBar/VariantsBar.module.scss";
 import VariantsDrawer from "@/wab/client/components/canvas/VariantsBar/VariantsDrawer";
 import { makeVariantsController } from "@/wab/client/components/variants/VariantsController";
+import { usePlasmicCtx } from "@/wab/client/contexts/StudioContexts";
 import { frameToClientRect } from "@/wab/client/coords";
 import { plasmicCanvasTransformEvent } from "@/wab/client/definitions/events";
 import { useAutoFocus } from "@/wab/client/hooks/useAutoFocus";
 import PlasmicVariantsBar from "@/wab/client/plasmic/plasmic_kit_variants_bar/PlasmicVariantsBar";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
-import { usePlasmicCtx } from "@/wab/client/contexts/StudioContexts";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { useSignalListener } from "@/wab/commons/components/use-signal-listener";
 import {
@@ -92,7 +93,10 @@ function getFocusedElementRect(studioCtx: StudioCtx) {
       )
       .rect();
   } else {
-    const objRect = vc?.focusedDomElt()?.[0]?.getBoundingClientRect();
+    // The bar keeps clear of the selection's name tag, which sits on the
+    // visible part of the element, so measure that part.
+    const elt = vc?.focusedDomElt()?.[0];
+    const objRect = elt && getVisibleFrameRect(elt).rect();
 
     return vc && objRect
       ? Box.fromRect(frameToClientRect(objRect, vc)).rect()

@@ -1,3 +1,4 @@
+import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import PlasmicColorSwatch from "@/wab/client/plasmic/plasmic_kit_style_controls/PlasmicColorSwatch";
 import { Tooltip } from "antd";
 import React from "react";
@@ -23,7 +24,11 @@ export function ColorSwatch(props: {
   );
 
   if (tooltip) {
-    content = <Tooltip title={tooltip}>{content}</Tooltip>;
+    content = (
+      <Tooltip title={tooltip}>
+        <TriggerTarget>{content}</TriggerTarget>
+      </Tooltip>
+    );
   }
   return content;
 }

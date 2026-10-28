@@ -13,7 +13,7 @@ import {
   ArenaFrameGrid,
   PageArena,
 } from "@/wab/shared/model/classes";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import React from "react";
 import { mock } from "vitest-mock-extended";
 
@@ -185,4 +185,31 @@ it("requires a workspace only when no page or canvas is open", () => {
   expect(
     screen.getByPlaceholderText("Open a page or canvas before using AI."),
   ).toBeTruthy();
+});
+
+it("opens the conversation picker from its title without opening the assistant panel", async () => {
+  const onOpen = vi.fn();
+  const search = vi.spyOn(state.session as LocalEditSession, "searchThreads")
+    .mockResolvedValue(undefined);
+  render(
+    <CanvasAiComposer
+      appCtx={{ appConfig: { enableLocalAiEditing: true } } as AppCtx}
+      projectId="project"
+      context={{}}
+      onOpen={onOpen}
+      hiddenByModal={false}
+    />,
+  );
+  const trigger = screen.getByRole("button", { name: "Switch conversation" });
+  fireEvent.click(screen.getByText("New conversation"));
+  expect(trigger.getAttribute("aria-expanded")).toBe("true");
+  expect(screen.getByRole("dialog", { name: "Conversations" })).toBeTruthy();
+  await waitFor(() => expect(search).toHaveBeenCalledWith("", false));
+  expect(onOpen).not.toHaveBeenCalled();
+
+  fireEvent.keyDown(screen.getByRole("textbox", { name: "Search conversations" }), {
+    key: "Escape",
+  });
+  expect(trigger.getAttribute("aria-expanded")).toBe("false");
+  expect(onOpen).not.toHaveBeenCalled();
 });

@@ -2,7 +2,7 @@ import { mockDeepAuto } from "@/wab/__testonly__/mock";
 import { useTagPlacement } from "@/wab/client/components/canvas/HoverBox/useTagPlacement";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { Box } from "@/wab/shared/geom";
-import { render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import React from "react";
 
 function setup(crowded: boolean, frameWidth = 1000, clientWidth = 1000) {
@@ -13,6 +13,12 @@ function setup(crowded: boolean, frameWidth = 1000, clientWidth = 1000) {
   vc.canvasCtx.viewport.mockReturnValue(iframe);
   vc.canvasCtx.doc.mockReturnValue(document);
   vc.viewportCtx.clipperBox.mockReturnValue(new Box(0, 0, 1000, 700));
+  vc.studioCtx.canvasZoomPadding.mockReturnValue({
+    left: 80,
+    right: 80,
+    top: 0,
+    bottom: 80,
+  });
   const button = document.createElement("button");
   vc.canvasCtx.getActualTargetUnderCanvasOverlay.mockImplementation((_x, y) =>
     crowded || y < 100 ? button : undefined,
@@ -80,13 +86,21 @@ it("hides a crowded label and lets input reach the canvas", () => {
   expect(style.visibility).toBe("hidden");
 });
 
-it.each([[0, 1000], [0, 0]])("hides labels when an arena canvas is not laid out (%s / %s)", (frameWidth, clientWidth) => {
-  const { vc } = setup(false, frameWidth, clientWidth);
-  expect(vc.canvasCtx.getActualTargetUnderCanvasOverlay).not.toHaveBeenCalled();
-  const style = screen.getByTestId("placement").style;
-  expect(style.visibility).toBe("hidden");
-  expect(style.pointerEvents).toBe("none");
-});
+it.each([
+  [0, 1000],
+  [0, 0],
+])(
+  "hides labels when an arena canvas is not laid out (%s / %s)",
+  (frameWidth, clientWidth) => {
+    const { vc } = setup(false, frameWidth, clientWidth);
+    expect(
+      vc.canvasCtx.getActualTargetUnderCanvasOverlay,
+    ).not.toHaveBeenCalled();
+    const style = screen.getByTestId("placement").style;
+    expect(style.visibility).toBe("hidden");
+    expect(style.pointerEvents).toBe("none");
+  },
+);
 
 it("places a new node using its current label size and bounds without waiting for a frame", () => {
   const { selectNode } = setup(false);
@@ -94,7 +108,12 @@ it("places a new node using its current label size and bounds without waiting fo
   expect(style.left).toBe("0px");
   expect(style.top).toBe("65px");
 
-  selectNode({ width: 50, labelWidth: 180, top: 300, name: "SceneSelect (Select)" });
+  selectNode({
+    width: 50,
+    labelWidth: 180,
+    top: 300,
+    name: "SceneSelect (Select)",
+  });
   expect(style.left).toBe("-130px");
   expect(style.top).toBe("-25px");
   expect(style.visibility).toBe("visible");
@@ -115,4 +134,84 @@ it("hides a previously visible label immediately when the next node is crowded",
   const style = screen.getByTestId("placement").style;
   expect(style.visibility).toBe("hidden");
   expect(style.pointerEvents).toBe("none");
+});
+
+afterEach(() =>
+  document
+    .querySelectorAll("[data-content-editor-mode]")
+    .forEach((element) => element.remove()),
+);
+
+function toolbar(rect: DOMRect) {
+  const element = document.body.appendChild(document.createElement("div"));
+  element.setAttribute("data-content-editor-mode", "true");
+  element.getBoundingClientRect = () => rect;
+  return element;
+}
+
+it("stacks a colliding label above the content toolbar while preserving its horizontal anchor", () => {
+  const mode = toolbar(new DOMRect(350, 275, 240, 28));
+  const { vc, selectNode } = setup(false);
+  vc.canvasCtx.getActualTargetUnderCanvasOverlay.mockReturnValue(undefined);
+  selectNode({ top: 300 });
+  const style = screen.getByTestId("placement").style;
+  expect(style.left).toBe("0px");
+  expect(style.top).toBe("-58px");
+  expect(style.visibility).toBe("visible");
+  expect(mode.getBoundingClientRect().top).toBe(275);
+});
+
+it("puts the label above a wide toolbar without moving it to the toolbar's left", () => {
+  toolbar(new DOMRect(120, 275, 600, 28));
+  const { vc, selectNode } = setup(false);
+  vc.canvasCtx.getActualTargetUnderCanvasOverlay.mockReturnValue(undefined);
+  selectNode({ top: 300 });
+  const style = screen.getByTestId("placement").style;
+  expect(style.left).toBe("0px");
+  expect(style.top).toBe("-58px");
+  expect(style.visibility).toBe("visible");
+});
+
+it("keeps a narrow column's long label aligned with the column when stacking above the toolbar", () => {
+  toolbar(new DOMRect(135, 266, 240, 28));
+  const { vc, selectNode } = setup(false);
+  vc.canvasCtx.getActualTargetUnderCanvasOverlay.mockReturnValue(undefined);
+  selectNode({ top: 300, width: 75, labelWidth: 212, name: "ActionsColumn" });
+  const style = screen.getByTestId("placement").style;
+  expect(style.left).toBe("-137px");
+  expect(style.top).toBe("-67px");
+  expect(style.visibility).toBe("visible");
+});
+
+it("repositions the label after the toolbar moves without another selection change", async () => {
+  const mode = toolbar(new DOMRect(350, 275, 240, 28));
+  const { vc, selectNode } = setup(false);
+  vc.canvasCtx.getActualTargetUnderCanvasOverlay.mockReturnValue(undefined);
+  selectNode({ top: 300 });
+  expect(screen.getByTestId("placement").style.left).toBe("0px");
+  expect(screen.getByTestId("placement").style.top).toBe("-58px");
+  await act(async () => {
+    mode.getBoundingClientRect = () => new DOMRect(700, 275, 200, 28);
+    mode.style.left = "700px";
+  });
+  expect(screen.getByTestId("placement").style.left).toBe("0px");
+  expect(screen.getByTestId("placement").style.top).toBe("-25px");
+});
+
+it("moves an expanded parent tree together with its label so neither covers the toolbar", async () => {
+  toolbar(new DOMRect(350, 275, 240, 28));
+  const { vc, selectNode } = setup(false);
+  vc.canvasCtx.getActualTargetUnderCanvasOverlay.mockReturnValue(undefined);
+  selectNode({ top: 300 });
+  const container = screen.getByTestId("placement");
+  container.getBoundingClientRect = () => new DOMRect(300, 275, 80, 25);
+  await act(async () => {
+    const tree = document.createElement("div");
+    tree.setAttribute("data-canvas-node-tree", "");
+    tree.getBoundingClientRect = () => new DOMRect(300, 230, 120, 45);
+    container.prepend(tree);
+  });
+  expect(container.style.left).toBe("0px");
+  expect(container.style.top).toBe("-58px");
+  expect(container.style.visibility).toBe("visible");
 });

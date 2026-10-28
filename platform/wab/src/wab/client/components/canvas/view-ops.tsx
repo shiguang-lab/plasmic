@@ -1180,6 +1180,7 @@ export class ViewOps {
   }
 
   private focusHeuristics() {
+    const selectionRoot = this.viewCtx().contentEditor.root;
     return new FocusHeuristics(
       this.site(),
       this.tplMgr(),
@@ -1188,6 +1189,7 @@ export class ViewOps {
       this.viewCtx().showDefaultSlotContents(),
       (tpl, anchor) =>
         this.viewCtx().renderState.tpl2bestVal(tpl, anchor.fullKey),
+      selectionRoot,
     );
   }
 
@@ -1719,6 +1721,7 @@ export class ViewOps {
       candidate = selector(SQ(currentSelected, this.valState())).tryGet();
       if (
         !candidate ||
+        (this.viewCtx().contentEditor.target && !this.viewCtx().contentEditor.contains(candidate)) ||
         (candidate instanceof ValNode &&
           !this.isSelectableValNode(candidate)) ||
         currentSelected == candidate

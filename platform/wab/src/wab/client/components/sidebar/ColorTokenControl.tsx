@@ -6,8 +6,9 @@ import { ColorSwatch } from "@/wab/client/components/style-controls/ColorSwatch"
 import { TokenDefinedIndicator } from "@/wab/client/components/style-controls/TokenDefinedIndicator";
 import { Matcher } from "@/wab/client/components/view-common";
 import Checkbox from "@/wab/client/components/widgets/Checkbox";
-import { PlasmicColorTokenControl } from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicColorTokenControl";
+import { TriggerAnchor } from "@/wab/client/components/widgets/TriggerAnchor";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
+import { PlasmicColorTokenControl } from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicColorTokenControl";
 import { StyleTokenValue } from "@/wab/commons/StyleToken";
 import { VariantedStylesHelper } from "@/wab/shared/VariantedStylesHelper";
 import { FinalToken, MutableToken } from "@/wab/shared/core/tokens";
@@ -51,33 +52,40 @@ function ColorTokenControl(props: ColorTokenControlProps) {
 
   return (
     <Tooltip title={tokenName} mouseEnterDelay={0.5}>
-      <PlasmicColorTokenControl
-        icon={
-          <>
-            {/* Only mutable tokens can be multi-selected */}
-            {multiAssetsActions.isSelecting && token instanceof MutableToken ? (
-              <Checkbox isChecked={isSelected}> </Checkbox>
-            ) : (
-              <TokenDefinedIndicator
-                token={token}
-                vsh={vsh}
-                studioCtx={studioCtx}
-                className={classNames("mr-sm")}
-                indicatorType={indicatorType}
-              />
-            )}
-            <ColorSwatch color={tokenValue} />
-          </>
-        }
-        value={matcher.boldSnippets(Chroma.stringify(tokenValue))}
-        rowItem={{
-          style,
-          menu,
-          onClick,
-        }}
-      >
-        {matcher.boldSnippets(tokenName)}
-      </PlasmicColorTokenControl>
+      <TriggerAnchor>
+        {(ref, triggerProps) => (
+          <PlasmicColorTokenControl
+            {...triggerProps}
+            root={{ ref }}
+            icon={
+              <>
+                {/* Only mutable tokens can be multi-selected */}
+                {multiAssetsActions.isSelecting &&
+                token instanceof MutableToken ? (
+                  <Checkbox isChecked={isSelected}> </Checkbox>
+                ) : (
+                  <TokenDefinedIndicator
+                    token={token}
+                    vsh={vsh}
+                    studioCtx={studioCtx}
+                    className={classNames("mr-sm")}
+                    indicatorType={indicatorType}
+                  />
+                )}
+                <ColorSwatch color={tokenValue} />
+              </>
+            }
+            value={matcher.boldSnippets(Chroma.stringify(tokenValue))}
+            rowItem={{
+              style,
+              menu,
+              onClick,
+            }}
+          >
+            {matcher.boldSnippets(tokenName)}
+          </PlasmicColorTokenControl>
+        )}
+      </TriggerAnchor>
     </Tooltip>
   );
 }

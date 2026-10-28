@@ -1635,6 +1635,7 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
         }
         const targetVc =
           marquee.viewCtx ??
+          this.props.studioCtx.viewCtxs.find((view) => view.contentEditor.target) ??
           this.props.studioCtx.viewCtxs
             .filter((viewCtx) => viewCtx.isVisible())
             .reduce<ViewCtx | undefined>((best, viewCtx) => {
@@ -1844,6 +1845,25 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
   };
 
   private extractEventTarget(
+    e: MouseEvent,
+    focusedVc: ViewCtx | undefined | null,
+  ): [JQuery, ViewCtx | undefined] | undefined {
+    const result = this.extractCanvasEventTarget(e, focusedVc);
+    if (!result) {
+      return undefined;
+    }
+    const [$target, targetVc] = result;
+    // The iframe and hidden ancestors still provide React/data context, but
+    // only the isolated content belongs to the visible editing surface.
+    if (
+      targetVc && !targetVc.contentEditor.containsElement($target[0])
+    ) {
+      return tuple($target, undefined);
+    }
+    return result;
+  }
+
+  private extractCanvasEventTarget(
     e: MouseEvent,
     focusedVc: ViewCtx | undefined | null,
   ): [JQuery, ViewCtx | undefined] | undefined {

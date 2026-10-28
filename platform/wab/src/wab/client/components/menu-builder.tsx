@@ -1,5 +1,6 @@
 import { comboToKeyLabels } from "@/wab/client/components/studio/Shortcuts";
 import { Icon } from "@/wab/client/components/widgets/Icon";
+import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { analytics } from "@/wab/client/observability";
 import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
@@ -189,7 +190,11 @@ export function KeyboardShortcut(props: {
   return props.children ? (
     <MaybeWrap
       cond={!!props.tooltip}
-      wrapper={(x) => <Tooltip title={props.tooltip}>{x}</Tooltip>}
+      wrapper={(x) => (
+        <Tooltip title={props.tooltip}>
+          <TriggerTarget>{x}</TriggerTarget>
+        </Tooltip>
+      )}
     >
       <div
         className={

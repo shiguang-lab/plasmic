@@ -1,6 +1,7 @@
 import { WithContextMenu } from "@/wab/client/components/ContextMenu";
 import { DocsPortalCtx } from "@/wab/client/components/docs/DocsPortalCtx";
 import { createNodeIcon } from "@/wab/client/components/sidebar-tabs/tpl-tree";
+import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { PlasmicElementProp } from "@/wab/client/plasmic/plasmic_kit_docs_portal/PlasmicElementProp";
@@ -155,7 +156,7 @@ const ElementProp = observer(function ElementProp(props: ElementPropProps) {
 
           wrap: (x) => (
             <Dropdown popupRender={renderElementMenu} trigger={["click"]}>
-              {x}
+              <TriggerTarget>{x}</TriggerTarget>
             </Dropdown>
           ),
         }}

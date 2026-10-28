@@ -1813,6 +1813,9 @@ function renderTplComponent(
         !ctx.viewCtx.studioCtx.isInteractiveMode &&
         !ctx.viewCtx.canvasExporting.get() &&
         ctx.viewCtx.contentEditor.isExpanded(computeFullKey(ctx)),
+      // The artboard shows its full page height; components with internal
+      // vertical scroll viewports may render all of their content instead.
+      isFullContentView: ctx.viewCtx.isFullContentView(),
     };
     if (supportsCanvasOverlay(node) && ctx.viewCtx.canvasExporting.get()) {
       props.previewOpen = undefined;
@@ -3535,6 +3538,8 @@ export interface CanvasFrameInfo {
   viewMode: "stretch" | "centered";
   height: number;
   isHeightAutoDerived: boolean;
+  /** Studio view preference to show the full content height of the page. */
+  fullPageHeight: boolean;
   bgColor: string | undefined;
   pageSizeType?: PageSizeType;
   containerType?: ContainerType;
@@ -3552,8 +3557,14 @@ export const mkCanvas = ownedComputedFn(
       return mkUseCanvasObserver(sub, vc)(
         () => {
           const { children, frameInfo } = props;
-          const { viewMode, height, isHeightAutoDerived, bgColor } =
-            frameInfo.get();
+          const {
+            viewMode,
+            height,
+            isHeightAutoDerived,
+            fullPageHeight,
+            bgColor,
+          } = frameInfo.get();
+          const showFullHeight = isHeightAutoDerived && fullPageHeight;
 
           const appUserCtx = vc.studioCtx.currentAppUserCtx;
 
@@ -3570,10 +3581,17 @@ export const mkCanvas = ownedComputedFn(
                 "__wab_root--centered": viewMode === "centered",
                 "__wab_root--checkerboard": viewMode === "centered" && !bgColor,
                 "__wab_root--page-stretch": isHeightAutoDerived,
+                "__wab_root--full-height": showFullHeight,
               }),
               style: {
                 minHeight: `${height}px`,
                 "--viewport-height": `${height}px`,
+                // Layout components opt in by reading this variable, e.g.
+                // `height: var(--canvas-content-height, <viewport height>)`.
+                // It is only defined on the canvas, never in previews/exports.
+                ...(showFullHeight
+                  ? { "--canvas-content-height": "auto" }
+                  : {}),
               },
             },
             children,

@@ -1,4 +1,5 @@
 import { recomputeBounds } from "@/wab/client/components/canvas/HoverBox/recomputeBounds";
+import { computeElementVisibility } from "@/wab/client/components/canvas/HoverBox/visible-bounds";
 import { hasLayoutBox } from "@/wab/client/dom";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
@@ -13,6 +14,25 @@ export function getSelectionBounds(doms: (JQuery | null)[]): Box | undefined {
     doms.flatMap((dom) =>
       dom?.toArray().some(hasLayoutBox) ? [recomputeBounds(dom).rect()] : [],
     ),
+  );
+}
+
+/**
+ * Union of the visible parts of the selection (after overflow and artboard
+ * clipping), in the artboard's CSS pixels. Undefined when nothing is visible.
+ * Use `getSelectionBounds` for sizes; this is only where to draw.
+ */
+export function getVisibleSelectionBounds(
+  doms: (JQuery | null)[],
+): Box | undefined {
+  return Box.mergeBBs(
+    doms.flatMap((dom) => {
+      if (!dom?.toArray().some(hasLayoutBox)) {
+        return [];
+      }
+      const { visible } = computeElementVisibility(dom, recomputeBounds(dom));
+      return visible ? [visible.rect()] : [];
+    }),
   );
 }
 
@@ -51,6 +71,9 @@ export function useSelectionBounds(viewCtx: ViewCtx) {
 
 /** Artboard selection bounds in Studio scaler coordinates. */
 export function getFrameSelectionBounds(studioCtx: StudioCtx) {
+  if (studioCtx.canvasContentEditor) {
+    return undefined;
+  }
   return Box.mergeBBs(
     studioCtx.focusedFrames().flatMap((frame) => {
       const rect = studioCtx.getArenaFrameScalerRect(frame);

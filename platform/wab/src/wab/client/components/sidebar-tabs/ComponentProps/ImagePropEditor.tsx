@@ -7,6 +7,7 @@ import {
 import { PlainLinkButton } from "@/wab/client/components/widgets";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { IconButton } from "@/wab/client/components/widgets/IconButton";
+import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import { useI18n } from "@/wab/client/i18n";
 import TrashIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Trash";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
@@ -69,7 +70,7 @@ export const ImagePropEditor = observer(function ImagePropEditor(props: {
                 wrapper={(x) =>
                   readOnly ? (
                     <Tooltip title={uiT("Replace image...")}>
-                      {x as React.ReactElement}
+                      <TriggerTarget>{x as React.ReactElement}</TriggerTarget>
                     </Tooltip>
                   ) : (
                     (x as React.ReactElement)

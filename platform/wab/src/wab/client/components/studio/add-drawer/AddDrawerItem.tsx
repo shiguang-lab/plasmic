@@ -7,6 +7,7 @@ import { Matcher } from "@/wab/client/components/view-common";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import IconButton from "@/wab/client/components/widgets/IconButton";
 import { Modal } from "@/wab/client/components/widgets/Modal";
+import { TriggerAnchor } from "@/wab/client/components/widgets/TriggerAnchor";
 import {
   AddItem,
   AddTplItem,
@@ -233,43 +234,49 @@ function AddItemRow(props: AddDrawerItemProps) {
   const displayLabel = item.displayLabel ?? getAddItemLabel(item, locale);
   return (
     <Tooltip title={item.description}>
-      <PlasmicAddDrawerItem
-        root={{
-          props: {
-            "data-plasmic-class": "AddDrawerItem",
-            "data-drawer-item-name": item.label,
-          } as any,
-        }}
-        previewImage={
-          <ImagePreview
-            uri={item.type === "frame" ? item.addDrawerPreviewImage : ""}
-          />
-        }
-        listItem={{
-          style: {
-            paddingLeft: 16 + indent * 20,
-          },
-        }}
-        className="no-select"
-        icon={item.icon}
-        isHighlighted={isHighlighted}
-        actions={
-          isTplAddItem(item) ? (
-            <InsertActions
-              studioCtx={studioCtx}
-              item={item}
-              onInserted={onInserted}
-              validTplLocs={validTplLocs}
-            />
-          ) : null
-        }
-      >
-        {item.monospaced ? (
-          <code>{displayLabel}</code>
-        ) : (
-          <>{matcher ? matcher.boldSnippets(displayLabel) : displayLabel}</>
+      <TriggerAnchor>
+        {(ref, triggerProps) => (
+          <PlasmicAddDrawerItem
+            {...triggerProps}
+            root={{
+              props: {
+                ref,
+                "data-plasmic-class": "AddDrawerItem",
+                "data-drawer-item-name": item.label,
+              } as any,
+            }}
+            previewImage={
+              <ImagePreview
+                uri={item.type === "frame" ? item.addDrawerPreviewImage : ""}
+              />
+            }
+            listItem={{
+              style: {
+                paddingLeft: 16 + indent * 20,
+              },
+            }}
+            className="no-select"
+            icon={item.icon}
+            isHighlighted={isHighlighted}
+            actions={
+              isTplAddItem(item) ? (
+                <InsertActions
+                  studioCtx={studioCtx}
+                  item={item}
+                  onInserted={onInserted}
+                  validTplLocs={validTplLocs}
+                />
+              ) : null
+            }
+          >
+            {item.monospaced ? (
+              <code>{displayLabel}</code>
+            ) : (
+              <>{matcher ? matcher.boldSnippets(displayLabel) : displayLabel}</>
+            )}
+          </PlasmicAddDrawerItem>
         )}
-      </PlasmicAddDrawerItem>
+      </TriggerAnchor>
     </Tooltip>
   );
 }

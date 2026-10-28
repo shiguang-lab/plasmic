@@ -71,7 +71,7 @@ test("island reports real read/write/Preview activity and ignores metadata polli
   assert.equal(operationKind("preview", { action: "state" }), null);
   for (const name of ["read", "queryElements", "beginCanvasInspection"]) assert.equal(operationKind("execute", { name }), "read");
   assert.equal(operationKind("execute", { name: "changeElement" }), "write");
-  for (const name of ["navigate", "selectElement", "restoreEditorView"]) assert.equal(operationKind("execute", { name }), "view");
+  for (const name of ["navigate", "selectElement", "restoreEditorView", "setCanvasPageHeight"]) assert.equal(operationKind("execute", { name }), "view");
   assert.equal(operationKind("execute_batch"), "write");
   for (const name of ["make_vector", "vectorize_image"]) {
     assert.equal(operationKind(name), "resource", "local vector output reports activity without canvas feedback");

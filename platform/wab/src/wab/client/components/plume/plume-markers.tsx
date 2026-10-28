@@ -1,4 +1,5 @@
 import { Icon } from "@/wab/client/components/widgets/Icon";
+import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import InfoIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Info";
 import PlumeMarkIcon from "@/wab/client/plasmic/plasmic_kit_design_system/icons/PlasmicIcon__PlumeMark";
 import { MaybeWrap } from "@/wab/commons/components/ReactUtil";
@@ -29,7 +30,11 @@ export function PlumyIcon(props: {
   return (
     <MaybeWrap
       cond={!!def}
-      wrapper={(x) => <Tooltip title={def?.info}>{x}</Tooltip>}
+      wrapper={(x) => (
+        <Tooltip title={def?.info}>
+          <TriggerTarget>{x}</TriggerTarget>
+        </Tooltip>
+      )}
     >
       <div className="rel">
         {children}

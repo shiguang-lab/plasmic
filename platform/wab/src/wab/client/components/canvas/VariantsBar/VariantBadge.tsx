@@ -6,11 +6,12 @@ import {
 } from "@/wab/client/components/VariantControls";
 import styles from "@/wab/client/components/canvas/VariantsBar/VariantBadge.module.scss";
 import { EditableLabelHandles } from "@/wab/client/components/widgets/EditableLabel";
+import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import {
   DefaultVariantBadgeProps,
   PlasmicVariantBadge,
 } from "@/wab/client/plasmic/plasmic_kit_variants_bar/PlasmicVariantBadge";
-import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { MaybeWrap } from "@/wab/commons/components/ReactUtil";
 import {
   StyleVariant,
@@ -103,7 +104,7 @@ const VariantBadge = observer(function VariantBadge_({
               />
             )}
           >
-            {children}
+            <TriggerTarget>{children}</TriggerTarget>
           </Popover>
         )}
       >

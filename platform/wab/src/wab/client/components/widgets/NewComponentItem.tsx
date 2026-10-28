@@ -1,3 +1,4 @@
+import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import {
   DefaultNewComponentItemProps,
   PlasmicNewComponentItem,
@@ -27,7 +28,11 @@ function NewComponentItem(props: NewComponentItemProps) {
           },
         },
         ...(tooltip && {
-          wrap: (root) => <Tooltip title={tooltip}>{root}</Tooltip>,
+          wrap: (root) => (
+            <Tooltip title={tooltip}>
+              <TriggerTarget>{root}</TriggerTarget>
+            </Tooltip>
+          ),
         }),
       }}
       title={title}

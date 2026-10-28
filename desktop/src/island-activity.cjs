@@ -7,7 +7,7 @@ const operationLabels = {
   generate_image: "Generating image", search_stock_images: "Searching images", export_code: "Exporting code",
 };
 const quiet = new Set(["get_app_state", "get_build_info", "get_image_service_status", "report_task"]);
-const view = new Set(["navigate", "navigateCanvas", "restoreEditorView", "selectElement", "scrollElementIntoView"]);
+const view = new Set(["navigate", "navigateCanvas", "restoreEditorView", "selectElement", "scrollElementIntoView", "setCanvasPageHeight"]);
 
 function operationTargets(method, input = {}) {
   const target = (value) => Object.fromEntries(["componentUuid", "elementUuid", "frameUuid", "ref"].flatMap((key) => typeof value?.[key] === "string" ? [[key, value[key]]] : []));

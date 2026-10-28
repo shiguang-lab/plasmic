@@ -1,5 +1,5 @@
 const modelReads = new Set(["identify", "read", "queryElements", "readVector", "getEditorContext", "validate", "findEmptySpace"]);
-const viewOperations = new Set(["navigate", "navigateCanvas", "restoreEditorView", "selectElement", "scrollElementIntoView"]);
+const viewOperations = new Set(["navigate", "navigateCanvas", "restoreEditorView", "selectElement", "scrollElementIntoView", "setCanvasPageHeight"]);
 
 function requiredContext(method, input = {}) {
   if (method === "browser" && input.action === "close") return null;

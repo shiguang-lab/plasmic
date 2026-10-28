@@ -1,10 +1,11 @@
 import type { CustomControlProps } from "@plasmicapp/host";
-import { Checkbox, Input, type CheckboxProps } from "antd";
+import { Checkbox, Input, Tooltip, type CheckboxProps } from "antd";
 import React from "react";
 
 // StudioControlsProvider supplies the editor theme and target document styles.
 const rowStyle: React.CSSProperties = {
   display: "flex",
+  minHeight: 32,
   alignItems: "center",
   justifyContent: "space-between",
   gap: 8,
@@ -41,7 +42,7 @@ export function TablePaginationControl({
     updateValue(result);
   };
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 8, width: "100%" }}>
       <Checkbox
         styles={checkboxStyles}
         checked={value !== false}
@@ -57,7 +58,6 @@ export function TablePaginationControl({
             Page size{" "}
             <Input
               type="number"
-              size="small"
               style={inputStyle}
               aria-label="Page size"
               min={1}
@@ -115,16 +115,16 @@ export function TableScrollControl({
     updateValue(result);
   };
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 8, width: "100%" }}>
       <label style={rowStyle}>
-        Horizontal scroll width{" "}
+        <Tooltip title="Horizontal scroll width in pixels, a percentage, or max-content. Leave empty to fit the container without horizontal scrolling.">
+          <span>x</span>
+        </Tooltip>
         <Input
           type="text"
-          size="small"
           style={inputStyle}
-          aria-label="Horizontal scroll width"
+          aria-label="scroll.x"
           value={options.x ?? ""}
-          placeholder="Fit content"
           onChange={(e) => {
             const text = e.target.value.trim();
             update(
@@ -135,15 +135,15 @@ export function TableScrollControl({
         />
       </label>
       <label style={rowStyle}>
-        Table body height{" "}
+        <Tooltip title="Table body height in pixels. Leave empty to grow with content.">
+          <span>y</span>
+        </Tooltip>
         <Input
           type="number"
-          size="small"
           style={inputStyle}
-          aria-label="Table body height"
+          aria-label="scroll.y"
           min={1}
           value={options.y ?? ""}
-          placeholder="Grow with content"
           onChange={(e) => {
             if (!e.target.validity.valid) {
               return;

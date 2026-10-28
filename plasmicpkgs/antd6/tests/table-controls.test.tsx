@@ -37,11 +37,11 @@ test("scroll controls retain the other dimension and accept CSS widths", () => {
     scrollToFirstRowOnChange: false,
   });
   render(<TableScrollControl {...p} />);
-  fireEvent.change(screen.getByRole("textbox", { name: "Horizontal scroll width" }), {
+  fireEvent.change(screen.getByRole("textbox", { name: "scroll.x" }), {
     target: { value: "1200" },
   });
   expect(p.updateValue).toHaveBeenLastCalledWith({ ...p.value, x: 1200 });
-  fireEvent.change(screen.getByRole("textbox", { name: "Horizontal scroll width" }), {
+  fireEvent.change(screen.getByRole("textbox", { name: "scroll.x" }), {
     target: { value: "100%" },
   });
   expect(p.updateValue).toHaveBeenLastCalledWith({ ...p.value, x: "100%" });

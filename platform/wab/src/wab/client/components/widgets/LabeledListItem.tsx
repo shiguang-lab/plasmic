@@ -79,6 +79,8 @@ function LabeledListItem_(
           ? {
               props: {
                 menu,
+                // Preserve IconButton centering over the generated block layout.
+                style: { display: "inline-flex" },
               },
             }
           : undefined
@@ -115,6 +117,9 @@ function LabeledListItem_(
         hasActions
           ? {
               onClick: swallowClick,
+              style: {
+                alignSelf: rest.alignment === "center" ? "center" : undefined,
+              },
             }
           : { style: { display: "none" } }
       }

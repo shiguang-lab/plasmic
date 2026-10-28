@@ -183,6 +183,7 @@ it("selects all layers in the current editing scope, including outside the viewp
   const { vc, first, firstVal, secondVal, selected, measure } = setup();
   measure(secondVal, new Box(1100, 10, 30, 30));
   const studioCtx = mock<StudioCtx>();
+  Object.defineProperty(studioCtx, "canvasContentEditor", { value: undefined });
   studioCtx.focusedFrames.mockReturnValue([]);
   studioCtx.focusedViewCtx.mockReturnValue(vc);
   selectAllInCanvas(studioCtx);
@@ -214,4 +215,17 @@ it("treats component instances as a single selectable boundary", () => {
   expect(getSelectableLayers(vc, new Box(250, 100, 100, 50))).toEqual([
     instance,
   ]);
+});
+
+it("encloses a clipped layer by its visible part", () => {
+  const { vc, firstVal, measure } = setup();
+  // Runs past the bottom of the artboard viewport (jsdom: 1024×768).
+  measure(firstVal, new Box(700, 10, 30, 400));
+  // The marquee covers what is visible (y 700–768) but not the real box.
+  expect(getSelectableLayers(vc, new Box(890, 100, 100, 100))).toEqual([
+    firstVal,
+  ]);
+  // Nothing visible left: the layer can't be picked by a marquee.
+  measure(firstVal, new Box(800, 10, 30, 30));
+  expect(getSelectableLayers(vc, new Box(890, 100, 100, 200))).toEqual([]);
 });

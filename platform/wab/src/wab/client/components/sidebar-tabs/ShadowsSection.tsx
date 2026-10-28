@@ -14,6 +14,7 @@ import {
   ListBoxItem,
 } from "@/wab/client/components/widgets";
 import { Icon } from "@/wab/client/components/widgets/Icon";
+import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import { getUiLocale } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { translate } from "@/wab/client/i18n/locales";
@@ -131,7 +132,11 @@ class _ShadowsPanelSection extends StyleComponent<
         controls={
           <MaybeWrap
             cond={!!disabledTooltip && !!isDisabled}
-            wrapper={(e) => <Tooltip title={disabledTooltip}>{e}</Tooltip>}
+            wrapper={(e) => (
+              <Tooltip title={disabledTooltip}>
+                <TriggerTarget>{e}</TriggerTarget>
+              </Tooltip>
+            )}
           >
             <IconLinkButton onClick={addShadowLayer} disabled={isDisabled}>
               <Icon icon={PlusIcon} />

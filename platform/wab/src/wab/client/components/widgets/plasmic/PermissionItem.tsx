@@ -19,6 +19,8 @@ interface PermissionItemProps {
   showOwnerOption?: boolean;
 }
 
+// The labels are wrapped in spans: tooltips anchor through a DOM ref, and
+// `UiText` renders bare text.
 export const contentCreatorTooltip = (
   <Tooltip
     zIndex={200000}
@@ -30,7 +32,9 @@ export const contentCreatorTooltip = (
       />
     }
   >
-    <UiText message={"Content creator"} />
+    <span>
+      <UiText message={"Content creator"} />
+    </span>
   </Tooltip>
 );
 export const designerTooltip = (
@@ -44,7 +48,9 @@ export const designerTooltip = (
       />
     }
   >
-    <UiText message={"Designer"} />
+    <span>
+      <UiText message={"Designer"} />
+    </span>
   </Tooltip>
 );
 export const developerTooltip = (
@@ -52,7 +58,9 @@ export const developerTooltip = (
     zIndex={200000}
     title={<UiText message={"Can update anything including model schemas."} />}
   >
-    <UiText message={"Developer"} />
+    <span>
+      <UiText message={"Developer"} />
+    </span>
   </Tooltip>
 );
 export const commenterTooltip = (
@@ -60,12 +68,16 @@ export const commenterTooltip = (
     zIndex={200000}
     title={<UiText message={"Can view and comment on content."} />}
   >
-    <UiText message={"Commenter"} />
+    <span>
+      <UiText message={"Commenter"} />
+    </span>
   </Tooltip>
 );
 export const viewerTooltip = (
   <Tooltip zIndex={200000} title={<UiText message={"Can view content."} />}>
-    <UiText message={"Viewer"} />
+    <span>
+      <UiText message={"Viewer"} />
+    </span>
   </Tooltip>
 );
 

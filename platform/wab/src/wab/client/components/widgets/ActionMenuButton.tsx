@@ -1,4 +1,5 @@
 import { IFrameAwareDropdownMenu } from "@/wab/client/components/widgets";
+import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import { useI18n } from "@/wab/client/i18n";
 import {
   DefaultActionMenuButtonProps,
@@ -90,7 +91,7 @@ const ActionMenuButton = React.forwardRef(function ActionMenuButton(
                 setTooltipVisible(visible && !menuVisible);
               }}
             >
-              {x}
+              <TriggerTarget>{x}</TriggerTarget>
             </Tooltip>
           ) : (
             x

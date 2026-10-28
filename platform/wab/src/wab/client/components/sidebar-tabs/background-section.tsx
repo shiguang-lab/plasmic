@@ -29,6 +29,7 @@ import { useClientTokenResolver } from "@/wab/client/components/widgets/ColorPic
 import { DimTokenSpinner } from "@/wab/client/components/widgets/DimTokenSelector";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import IconButton from "@/wab/client/components/widgets/IconButton";
+import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import CloseIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Close";
@@ -308,7 +309,7 @@ export const BackgroundSection = observer(function BackgroundSection(
                               title={mainContentText}
                               mouseEnterDelay={0.5}
                             >
-                              {mainContentText}
+                              <TriggerTarget>{mainContentText}</TriggerTarget>
                             </Tooltip>
                           </div>
                         }

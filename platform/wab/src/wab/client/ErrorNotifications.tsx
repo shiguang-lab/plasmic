@@ -21,11 +21,36 @@ import { DEVFLAGS } from "@/wab/shared/devflags";
 import { isStampedIgnoreError } from "@/wab/shared/error-handling";
 import { TplNode } from "@/wab/shared/model/classes";
 import * as Sentry from "@sentry/browser";
-import { message as antdMessage } from "antd";
+import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
+import { Button, message as antdMessage } from "antd";
 import { IconType } from "antd/lib/notification/interface";
+import copy from "copy-to-clipboard";
 import React from "react";
 
 const errorMessageCounters = new Map<string, number>();
+
+function ErrorDetailsContent({ details }: { details: string }) {
+  const [copied, setCopied] = React.useState(false);
+  return (
+    <div style={{ minWidth: 0 }}>
+      <Scrollbar scrollX={false} style={{ maxHeight: "60vh", minHeight: 0 }}>
+        <pre
+          style={{
+            margin: 0,
+            whiteSpace: "pre-wrap",
+            overflowWrap: "anywhere",
+            userSelect: "text",
+          }}
+        >
+          {details}
+        </pre>
+      </Scrollbar>
+      <Button style={{ marginTop: 16 }} onClick={() => setCopied(copy(details))}>
+        <UiText message={copied ? "Copied" : "Copy details"} />
+      </Button>
+    </div>
+  );
+}
 
 // Note that sometimes you will see double errors, due to React rethrowing
 // errors and/or mobx rethrowing errors.  I don't fully understand the mechanics
@@ -58,22 +83,59 @@ export function showError(
   };
 
   const info = deriveErrorInfo();
-  const newCount = 1 + (errorMessageCounters.get(info.title) || 0);
-  errorMessageCounters.set(info.title, newCount);
+  const reason = businessError
+    ? getApiErrorPresentation(businessError).description
+    : error instanceof UserError
+      ? normalized.message
+      : `${normalized.name || "Error"}: ${normalized.message}`;
+  const summary = reason.replace(/\s+/g, " ").trim();
+  const briefReason = summary.length > 180 ? `${summary.slice(0, 180)}…` : summary;
+  const errorText = `${normalized.name || "Error"}: ${normalized.message}`;
+  const details = [
+    normalized.stack?.startsWith(errorText)
+      ? normalized.stack
+      : [errorText, normalized.stack].filter(Boolean).join("\n"),
+    description,
+    error instanceof UserError ? error.description : undefined,
+  ].filter(Boolean).join("\n\n");
+  const key = JSON.stringify([info.title, normalized.name, normalized.message]);
+  const newCount = 1 + (errorMessageCounters.get(key) || 0);
+  errorMessageCounters.set(key, newCount);
 
   const heading = (
-    <>
-      <UiLabel text={info.title} />
-      {newCount > 1 && (
-        <UiText message=" ({count} occurrences)" values={{ count: newCount }} />
-      )}
-    </>
+    <div style={{ maxWidth: "min(520px, calc(100vw - 80px))", textAlign: "left" }}>
+      <div>
+        <UiLabel text={info.title} />
+        {newCount > 1 && (
+          <UiText message=" ({count} occurrences)" values={{ count: newCount }} />
+        )}
+      </div>
+      <div style={{ marginTop: 4, overflowWrap: "anywhere" }}>
+        <UiLabel text={briefReason} />
+      </div>
+      <button
+        type="button"
+        className="link-like"
+        onClick={() => {
+          antdMessage.destroy(key);
+          spawn(import("@/wab/client/components/quick-modals").then(({ showTemporaryInfo }) =>
+            showTemporaryInfo({
+              title: <UiText message="Error details" />,
+              content: <ErrorDetailsContent details={details} />,
+              width: 720,
+            }),
+          ));
+        }}
+      >
+        <UiText message="View details" />
+      </button>
+    </div>
   );
-  const onClose = () => errorMessageCounters.delete(info.title);
+  const onClose = () => errorMessageCounters.delete(key);
   const showMessage = info.type === "error" ? antdMessage.error : antdMessage.open;
   void showMessage({
     type: info.type,
-    key: info.title,
+    key,
     content: heading,
     duration: 4,
     onClose,
@@ -254,6 +316,11 @@ export function normalizeError(error: any) {
       ? error
       : error && error.error
         ? (error.error as Error)
+        : error && typeof error.message === "string"
+          ? Object.assign(new Error(error.message), {
+              ...(typeof error.name === "string" ? { name: error.name } : {}),
+              ...(typeof error.stack === "string" ? { stack: error.stack } : {}),
+            })
         : typeof error === "string"
           ? new Error(error)
           : new Error(

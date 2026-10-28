@@ -1,3 +1,4 @@
+import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import {
   DefaultSwitchProps,
   PlasmicSwitch,
@@ -25,9 +26,17 @@ function Switch_({ className, ...props }: SwitchProps, ref: SwitchRef) {
 
   let content = <PlasmicSwitch {...plasmicProps} />;
   if (props.isDisabled && props.disabledTooltip) {
-    content = <Tooltip title={props.disabledTooltip}>{content}</Tooltip>;
+    content = (
+      <Tooltip title={props.disabledTooltip}>
+        <TriggerTarget>{content}</TriggerTarget>
+      </Tooltip>
+    );
   } else if (props.tooltip) {
-    content = <Tooltip title={props.tooltip}>{content}</Tooltip>;
+    content = (
+      <Tooltip title={props.tooltip}>
+        <TriggerTarget>{content}</TriggerTarget>
+      </Tooltip>
+    );
   }
   return (
     <div

@@ -199,14 +199,18 @@ function ActionBuilder_(
                     : "Run this action"
               }
             >
-              <Comp
-                {...ps}
-                onClick={() => {
-                  if (!disabledRunInteraction) {
-                    runInteraction(interaction, vc, tpl);
-                  }
-                }}
-              />
+              {/* `Comp` is a generated icon that can't take the popover's
+                  ref; anchor on a host element around it. */}
+              <span style={{ display: "inline-flex" }}>
+                <Comp
+                  {...ps}
+                  onClick={() => {
+                    if (!disabledRunInteraction) {
+                      runInteraction(interaction, vc, tpl);
+                    }
+                  }}
+                />
+              </span>
             </Popover>
           ),
         }}

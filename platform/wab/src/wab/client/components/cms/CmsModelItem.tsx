@@ -2,11 +2,16 @@
 // This file is owned by you, feel free to edit as you see fit.
 import { Matcher } from "@/wab/client/components/view-common";
 import {
+  chainTriggerProps,
+  TriggerAnchor,
+} from "@/wab/client/components/widgets/TriggerAnchor";
+import {
   DefaultCmsModelItemProps,
   PlasmicCmsModelItem,
 } from "@/wab/client/plasmic/plasmic_kit_cms/PlasmicCmsModelItem";
 import { Link } from "@/wab/client/route/Link";
 import { useMatchedRoute } from "@/wab/client/route/useMatchedRoute";
+import { mergeRefs } from "@/wab/commons/components/ReactUtil";
 import { ApiCmsTable, CmsDatabaseId, CmsTableId } from "@/wab/shared/ApiSchema";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
@@ -27,21 +32,25 @@ function CmsModelItem_(props: CmsModelItemProps, ref: HTMLElementRefOf<"div">) {
   const params = { databaseId: match.pathParams.databaseId, tableId: table.id };
   return (
     <Tooltip title={table.description}>
-      <PlasmicCmsModelItem
-        {...rest}
-        root={{
-          as: Link,
-          props: {
-            to: (match.route.pattern.includes("/schemas")
-              ? APP_ROUTES.cmsModelSchema
-              : APP_ROUTES.cmsModelContent
-            ).fill(params),
-            ref,
-          },
-        }}
-        isActive={match.pathParams.tableId === table.id}
-        children={matcher ? matcher.boldSnippets(table.name) : table.name}
-      />
+      <TriggerAnchor>
+        {(triggerRef, triggerProps) => (
+          <PlasmicCmsModelItem
+            {...chainTriggerProps(triggerProps, rest)}
+            root={{
+              as: Link,
+              props: {
+                to: (match.route.pattern.includes("/schemas")
+                  ? APP_ROUTES.cmsModelSchema
+                  : APP_ROUTES.cmsModelContent
+                ).fill(params),
+                ref: mergeRefs(ref, triggerRef),
+              },
+            }}
+            isActive={match.pathParams.tableId === table.id}
+            children={matcher ? matcher.boldSnippets(table.name) : table.name}
+          />
+        )}
+      </TriggerAnchor>
     </Tooltip>
   );
 }

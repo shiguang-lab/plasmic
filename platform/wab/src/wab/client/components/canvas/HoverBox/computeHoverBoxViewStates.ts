@@ -3,6 +3,10 @@ import {
   SpaceEdgeType,
 } from "@/wab/client/components/canvas/HoverBox/draggable-edge";
 import { recomputeBounds } from "@/wab/client/components/canvas/HoverBox/recomputeBounds";
+import {
+  NO_CLIPPED_SIDES,
+  computeElementVisibility,
+} from "@/wab/client/components/canvas/HoverBox/visible-bounds";
 import { isCodeComponentMissingPositionClass } from "@/wab/client/components/sidebar-tabs/Sections";
 import { createNodeIcon } from "@/wab/client/components/sidebar-tabs/tpl-tree";
 import { frameToScalerRect } from "@/wab/client/coords";
@@ -45,7 +49,7 @@ import {
   getTargetBlockingCombo,
 } from "@/wab/shared/defined-indicator";
 import { EffectiveVariantSetting } from "@/wab/shared/effective-variant-setting";
-import { Box, Orient, Side } from "@/wab/shared/geom";
+import { Box, Orient, Rect, Side } from "@/wab/shared/geom";
 import {
   ContainerLayoutType,
   getRshContainerType,
@@ -61,14 +65,20 @@ import { uniq } from "lodash";
 import * as React from "react";
 
 export interface HoverBoxViewDisplayProps {
-  // These should always match the size of the selected element and not the size
-  // of the desired HoverBox.  HoverBoxView will calculate its own size by
-  // itself (using CSS).
+  // The real box of the selected element in scaler coordinates. Sizes shown
+  // to the user (dimension badge, measurements) and drag computations use it.
+  // It is not where the HoverBox is drawn; see `visibleBox`.
   width: number;
   height: number;
   position: string;
   top: number;
   left: number;
+  // The visible part of the element after overflow-ancestor and artboard
+  // viewport clipping, in scaler coordinates. The outline, edge handles, name
+  // tag and other controls are drawn on this box.
+  visibleBox: Rect;
+  // Sides whose real edge is clipped away; they get no outline or handles.
+  clippedSides: Record<Side, boolean>;
   tagName: string;
   tagUid?: number;
   tagIcon?: React.ReactNode;
@@ -145,11 +155,14 @@ export function computeHoverBoxTargets(studioCtx: StudioCtx): HoverBoxTarget[] {
 }
 
 export type HoverBoxTarget =
-  | ArenaFrame
-  | { node: JQuery<HTMLElement> | null; focusObj: Selectable };
+  ArenaFrame | { node: JQuery<HTMLElement> | null; focusObj: Selectable };
 
 export function computeHoverBoxViewState(vc: ViewCtx, target: HoverBoxTarget) {
   const studioCtx = vc.studioCtx;
+  if (studioCtx.canvasContentEditor &&
+    (isKnownArenaFrame(target) || !vc.contentEditor.contains(target.focusObj))) {
+    return { display: "none" };
+  }
   if (isKnownArenaFrame(target)) {
     const scalerRect = studioCtx.getArenaFrameScalerRect(target);
     const component = target.container.component;
@@ -167,6 +180,14 @@ export function computeHoverBoxViewState(vc: ViewCtx, target: HoverBoxTarget) {
         height: getFrameHeight(target),
         top: scalerRect.top,
         left: scalerRect.left,
+        // Artboards are never clipped by their own content.
+        visibleBox: {
+          top: scalerRect.top,
+          left: scalerRect.left,
+          width: target.width,
+          height: getFrameHeight(target),
+        },
+        clippedSides: { ...NO_CLIPPED_SIDES },
         tagUid: target.uid,
         tagName: studioCtx.tplMgr().describeArenaFrame(target),
         tagIcon: isFrameComponent(component)
@@ -193,6 +214,13 @@ export function computeHoverBoxViewState(vc: ViewCtx, target: HoverBoxTarget) {
 
   const boxInFrame = recomputeBounds(node);
   const boxInScaler = Box.fromRect(frameToScalerRect(boxInFrame.rect(), vc));
+  const visibility = computeElementVisibility(node, boxInFrame);
+  if (!visibility.visible) {
+    // Entirely clipped (scrolled away, outside the artboard, or inside a
+    // collapsed overflow container): there is nothing on the canvas to outline.
+    return { display: "none" };
+  }
+  const visibleBox = frameToScalerRect(visibility.visible.rect(), vc);
 
   const tplOrSlot = focusObj instanceof ValNode ? focusObj.tpl : focusObj;
   const tpl = isKnownTplNode(tplOrSlot) ? tplOrSlot : undefined;
@@ -206,6 +234,8 @@ export function computeHoverBoxViewState(vc: ViewCtx, target: HoverBoxTarget) {
     displayProps: {
       position: "absolute",
       ...boxInScaler.posRect(),
+      visibleBox: Box.fromRect(visibleBox).posRect(),
+      clippedSides: visibility.clippedSides,
       isRepeated: !!effectiveVariantSetting?.dataRep,
       tagName: summarizeFocusObj(focusObj, vc, effectiveVariantSetting),
       tagIcon: createNodeIcon(tplOrSlot, effectiveVariantSetting),

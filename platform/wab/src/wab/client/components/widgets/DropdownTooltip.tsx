@@ -1,3 +1,4 @@
+import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import { Dropdown, Tooltip } from "antd";
 import * as React from "react";
 
@@ -49,7 +50,7 @@ export function DropdownTooltip(props: DropdownTooltipProps) {
         open={isTooltipShown && !isDropdownOpen}
         onOpenChange={(visible) => setTooltipShown(visible)}
       >
-        {children}
+        <TriggerTarget>{children}</TriggerTarget>
       </Tooltip>
     </Dropdown>
   );

@@ -1,4 +1,3 @@
-import { useErrorMessage } from "@/wab/client/hooks/useErrorMessage";
 import { apiKey } from "@/wab/client/api";
 import { menuSection } from "@/wab/client/components/menu-builder";
 import {
@@ -8,10 +7,11 @@ import {
 import { promptBranchVersion } from "@/wab/client/components/sidebar-tabs/ProjectPanel/BranchVersionDialog";
 import { Matcher } from "@/wab/client/components/view-common";
 import { useTopFrameApi } from "@/wab/client/contexts/AppContexts";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
+import { useErrorMessage } from "@/wab/client/hooks/useErrorMessage";
 import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
-import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { testIds } from "@/wab/client/test-ids";
 import {
   ApiBranch,
@@ -30,7 +30,16 @@ import {
   SearchOutlined,
 } from "@ant-design/icons";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
-import { Button, Dropdown, Empty, Input, Menu, Spin, Tooltip, notification } from "antd";
+import {
+  Button,
+  Dropdown,
+  Empty,
+  Input,
+  Menu,
+  Spin,
+  Tooltip,
+  notification,
+} from "antd";
 import { createStyles } from "antd-style";
 import { trimStart } from "lodash";
 import { observer } from "mobx-react";
@@ -370,7 +379,11 @@ function BranchPanelTop_(
     <div className={styles.root} ref={outerRef} {...testIds.projectPanel}>
       <div className={styles.header}>
         <strong>{t("Branches")}</strong>
-        {branchesError && (<Button size="small" onClick={() => void reloadBranches()}>{t("Retry")}</Button>)}
+        {branchesError && (
+          <Button size="small" onClick={() => void reloadBranches()}>
+            {t("Retry")}
+          </Button>
+        )}
         {canManage && (
           <Button
             type="text"
@@ -469,20 +482,23 @@ function getBranchMenuRenderer({
                   />
                 }
               >
-                <UiText
-                  message={"{part1} main branch"}
-                  values={{
-                    part1: (
-                      <strong>
-                        <UiText
-                          message={
-                            isMainBranchProtected ? "Unprotect" : "Protect"
-                          }
-                        />
-                      </strong>
-                    ),
-                  }}
-                />
+                {/* Tooltips anchor through a DOM ref; `UiText` is bare text. */}
+                <span>
+                  <UiText
+                    message={"{part1} main branch"}
+                    values={{
+                      part1: (
+                        <strong>
+                          <UiText
+                            message={
+                              isMainBranchProtected ? "Unprotect" : "Protect"
+                            }
+                          />
+                        </strong>
+                      ),
+                    }}
+                  />
+                </span>
               </Tooltip>
             </Menu.Item>
           ),

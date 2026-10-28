@@ -1,4 +1,5 @@
 import { ValueViewer } from "@/wab/client/components/coding/ValueViewer";
+import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { MaybeWrap } from "@/wab/commons/components/ReactUtil";
@@ -79,7 +80,11 @@ export function ValuePreview(props: ValuePreviewProps) {
       ) : (
         <MaybeWrap
           cond={!!props.onClick}
-          wrapper={(x) => <Tooltip title={uiT("Inspect data")}>{x}</Tooltip>}
+          wrapper={(x) => (
+            <Tooltip title={uiT("Inspect data")}>
+              <TriggerTarget>{x}</TriggerTarget>
+            </Tooltip>
+          )}
         >
           {summarizeVal(props.val ?? props.err)}
         </MaybeWrap>

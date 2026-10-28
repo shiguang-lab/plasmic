@@ -3,6 +3,7 @@ import { promptMoveToWorkspace } from "@/wab/client/components/dashboard/dashboa
 import { confirmDeleteDataSource } from "@/wab/client/components/data-source-ui";
 import { Matcher } from "@/wab/client/components/view-common";
 import MenuButton from "@/wab/client/components/widgets/MenuButton";
+import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import { getUiLocale } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { translate } from "@/wab/client/i18n/locales";
@@ -75,7 +76,7 @@ function DataSource_(
       cond={!props.readOnly}
       wrapper={(children) => (
         <Dropdown popupRender={renderMenu} trigger={["contextMenu"]}>
-          {children}
+          <TriggerTarget>{children}</TriggerTarget>
         </Dropdown>
       )}
     >

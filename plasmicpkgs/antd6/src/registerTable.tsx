@@ -170,8 +170,12 @@ function TableWithColumns({
   columns,
   components,
   contentEditing,
+  fullContentView,
   ...props
-}: React.ComponentProps<typeof Table> & { contentEditing?: boolean }) {
+}: React.ComponentProps<typeof Table> & {
+  contentEditing?: boolean;
+  fullContentView?: boolean;
+}) {
   const canvas = usePlasmicCanvasContext();
   // Evaluate a data-context reader's slot inside its observer, preserving bindings.
   if (
@@ -188,6 +192,7 @@ function TableWithColumns({
           {...props}
           components={components}
           contentEditing={contentEditing}
+          fullContentView={fullContentView}
         >
           {renderChildren(...args)}
         </TableWithColumns>
@@ -211,7 +216,15 @@ function TableWithColumns({
         sticky: false,
         style: { ...props.style, width: "max-content" },
       }
-    : {};
+    : fullContentView
+      ? {
+          // Studio's full page height view: render every row in the page flow.
+          // Horizontal scrolling and the saved props stay unchanged.
+          scroll: props.scroll && { ...props.scroll, y: undefined },
+          virtual: false,
+          sticky: false,
+        }
+      : {};
   const expandColumns = (
     items: (ColumnType<any> | ColumnGroupType<any>)[],
   ): (ColumnType<any> | ColumnGroupType<any>)[] =>
@@ -390,6 +403,16 @@ export const AntdTable = React.forwardRef(function AntdTable(
       contentEditing={
         !!canvas && !canvas.interactive && info?.isEditingContents
       }
+      fullContentView={
+        !!canvas &&
+        !canvas.interactive &&
+        // Read from the canvas prop so this works with any @plasmicapp/host.
+        (
+          props.__plasmic_selection_prop__ as
+            | { isFullContentView?: boolean }
+            | undefined
+        )?.isFullContentView === true
+      }
     />
   );
 });
@@ -398,7 +421,6 @@ export function registerTable(loader?: Registerable) {
   registerComponentHelper(loader, AntdTable, {
     name: "plasmic-antd6-table",
     displayName: "Table",
-    canvasContentEditor: true,
     props: {
       data: {
         type: "dataSourceOpData" as any,

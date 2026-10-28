@@ -1,4 +1,5 @@
 import { ValueSetState } from "@/wab/client/components/sidebar/sidebar-helpers";
+import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import {
   DefaultStyleCheckboxProps,
   PlasmicStyleCheckbox,
@@ -37,9 +38,17 @@ function StyleCheckbox_(props: StyleCheckboxProps, ref: CheckboxRef) {
     />
   );
   if (isDisabled && disabledTooltip) {
-    content = <Tooltip title={disabledTooltip}>{content}</Tooltip>;
+    content = (
+      <Tooltip title={disabledTooltip}>
+        <TriggerTarget>{content}</TriggerTarget>
+      </Tooltip>
+    );
   } else if (tooltip) {
-    content = <Tooltip title={tooltip}>{content}</Tooltip>;
+    content = (
+      <Tooltip title={tooltip}>
+        <TriggerTarget>{content}</TriggerTarget>
+      </Tooltip>
+    );
   }
   return content;
 }

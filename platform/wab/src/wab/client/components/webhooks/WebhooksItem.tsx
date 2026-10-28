@@ -5,6 +5,7 @@ import {
   PlasmicWebhooksItem,
 } from "@/wab/client/components/webhooks/plasmic/plasmic_kit_continuous_deployment/PlasmicWebhooksItem";
 import Select from "@/wab/client/components/widgets/Select";
+import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import TrashIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Trash";
@@ -176,7 +177,7 @@ const WebhooksItem = observer(function WebhooksItem(props: WebhooksItemProps) {
                 </StandardMarkdown>
               }
             >
-              {node}
+              <TriggerTarget>{node}</TriggerTarget>
             </Popover>
           ),
         }}

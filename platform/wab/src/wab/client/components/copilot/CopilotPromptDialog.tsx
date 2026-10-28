@@ -11,6 +11,7 @@ import {
   CopilotData,
   useCopilot,
 } from "@/wab/client/components/copilot/useCopilot";
+import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import { useAutoFocus } from "@/wab/client/hooks/useAutoFocus";
 import { isSubmitKeyCombo } from "@/wab/client/shortcuts/shortcut";
 import { CopilotPrompt, CopilotType } from "@/wab/client/studio-ctx/StudioCtx";
@@ -80,7 +81,7 @@ function CopilotPromptDialog<Response>({
           },
           wrap: (elt) => (
             <Tooltip title={uiT("Run Plasmic AI")} mouseEnterDelay={0.5}>
-              {elt}
+              <TriggerTarget>{elt}</TriggerTarget>
             </Tooltip>
           ),
         },

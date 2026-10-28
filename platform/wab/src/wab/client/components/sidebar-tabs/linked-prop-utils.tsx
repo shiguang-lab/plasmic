@@ -1,6 +1,7 @@
 import { reactConfirm } from "@/wab/client/components/quick-modals";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import IconButton from "@/wab/client/components/widgets/IconButton";
+import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import { getUiLocale } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { translate } from "@/wab/client/i18n/locales";
@@ -231,17 +232,19 @@ export function LinkedPropIndicator(props: {
       </span>
       {warning && (
         <Tooltip title={warning}>
-          {onWarningClick ? (
-            <IconButton
-              onClick={onWarningClick}
-              className="ml-ch"
-              data-test-id="linked-prop-warning"
-            >
-              <Icon icon={WarningIcon} className="icon-warning" />
-            </IconButton>
-          ) : (
-            <Icon icon={WarningIcon} className="icon-warning ml-ch" />
-          )}
+          <TriggerTarget>
+            {onWarningClick ? (
+              <IconButton
+                onClick={onWarningClick}
+                className="ml-ch"
+                data-test-id="linked-prop-warning"
+              >
+                <Icon icon={WarningIcon} className="icon-warning" />
+              </IconButton>
+            ) : (
+              <Icon icon={WarningIcon} className="icon-warning ml-ch" />
+            )}
+          </TriggerTarget>
         </Tooltip>
       )}
     </div>

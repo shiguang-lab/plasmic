@@ -5,6 +5,7 @@ import {
   mkFreestyleManipForFocusedDomElt,
 } from "@/wab/client/FreestyleManipulator";
 import { TplClip } from "@/wab/client/clipboard/local";
+import { getHitTestFrameRect } from "@/wab/client/components/canvas/HoverBox/visible-bounds";
 import { hasLinkedSelectable } from "@/wab/client/components/canvas/studio-canvas-util";
 import {
   MeasuredGrid,
@@ -22,10 +23,6 @@ import {
 } from "@/wab/client/definitions/insertables";
 import * as domMod from "@/wab/client/dom";
 import { getPaddingRect, hasLayoutBox } from "@/wab/client/dom";
-import {
-  getElementVisibleBounds,
-  getVisibleBoundingClientRect,
-} from "@/wab/client/dom-utils";
 import {
   CONTENT_LAYOUT_ICON,
   ERROR_ICON,
@@ -983,6 +980,15 @@ export class NodeTargeter {
     private cursorOffset?: Pt,
   ) {
     this.boxes = this.calcBoxes(toInsert);
+    if (vc.studioCtx.canvasContentEditor) {
+      this.boxes.nodeBoxes = this.boxes.nodeBoxes.filter((box) =>
+        vc.contentEditor.contains(box.selectable),
+      );
+      this.boxes.insertionBoxes = this.boxes.insertionBoxes.filter((box) =>
+        vc.contentEditor.contains(box.valNode) &&
+        box.valNode.fullKey !== vc.contentEditor.target?.fullKey,
+      );
+    }
   }
 
   /**
@@ -1098,7 +1104,9 @@ export class NodeTargeter {
 
       // So far we've failed to slot in as a child of this nodeBox.  But maybe we can
       // slot in as a neighbor of this nodeBox?
-      if (nodeBox.acceptsNeighbors) {
+      if (nodeBox.acceptsNeighbors &&
+        (!this.vc.contentEditor.target ||
+          asVal(nodeBox.selectable)?.fullKey !== this.vc.contentEditor.target.fullKey)) {
         // This found node may accept either before and/or after (or neither).
         // These are informed by whether the element is a repeated element, and
         // if so whether it's at the beginning, middle, or end of the repeated
@@ -1646,17 +1654,18 @@ export class NodeTargeter {
         const box = isBody(targetSelectable)
           ? Box.fromRect($viewport[0].getBoundingClientRect())
           : Box.fromRect(
-              frameToClientRect(getVisibleBoundingClientRect(domElt), viewCtx),
+              // Visible part only, clipped like the selection outline.
+              frameToClientRect(getHitTestFrameRect(domElt).rect(), viewCtx),
             );
         const paddingBox = isBody(targetSelectable)
           ? box
           : Box.fromRect(frameToClientRect(getPaddingRect(domElt), viewCtx));
         const boxInScaler = isBody(targetSelectable)
-          ? Box.fromRect(getElementVisibleBounds($viewport)).moveBy(
+          ? getHitTestFrameRect($viewport[0]).moveBy(
               frameContainerOffsetToScaler.left,
               frameContainerOffsetToScaler.top,
             )
-          : Box.fromRect(getElementVisibleBounds(domElt)).moveBy(
+          : getHitTestFrameRect(domElt).moveBy(
               frameContainerOffsetToScaler.left,
               frameContainerOffsetToScaler.top,
             );
@@ -1751,7 +1760,7 @@ export class NodeTargeter {
     if (slotChildrenDoms.length > 0) {
       const box = Box.mergeBBs(
         slotChildrenDoms.map((domElt) => {
-          return frameToClientRect(getVisibleBoundingClientRect(domElt), vc);
+          return frameToClientRect(getHitTestFrameRect(domElt).rect(), vc);
         }),
       );
       const paddingBox = Box.mergeBBs(
@@ -1761,7 +1770,7 @@ export class NodeTargeter {
       );
       const boxInScaler = Box.mergeBBs(
         slotChildrenDoms.map((domElt) => {
-          return getElementVisibleBounds(domElt);
+          return getHitTestFrameRect(domElt).rect();
         }),
       )?.moveBy(
         frameContainerOffsetToScaler.left,

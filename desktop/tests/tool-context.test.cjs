@@ -230,3 +230,16 @@ test("root Preview routes are native Preview contexts, including the route witho
     assert.equal(context.previewKind, "in-app");
   }
 });
+
+test("the page height view runs on read-only canvases as a view operation", async (t) => {
+  const { controller, context, calls } = fixture(t);
+  context.canEdit = false;
+  await controller.dispatch("execute", { name: "setCanvasPageHeight", input: { mode: "full" } });
+  assert.deepEqual(calls.at(-1), { name: "setCanvasPageHeight", input: { mode: "full" } });
+  const { EDITOR_METHODS } = require("../src/mcp.cjs");
+  assert.ok(EDITOR_METHODS.includes("setCanvasPageHeight"));
+  await assert.rejects(
+    controller.dispatch("execute", { name: "changeElement", input: { componentUuid: "page" } }),
+    (error) => error.context.required.canEdit === true,
+  );
+});

@@ -247,6 +247,9 @@ export function bindStudioShortcutHandlers(studioCtx: StudioCtx) {
           vc.canvasCtx.setOutlineMode(!vc.canvasCtx.isOutlineMode());
         }
       },
+      TOGGLE_FULL_PAGE_HEIGHT: () => {
+        studioCtx.toggleFullPageHeight();
+      },
       DESELECT: async (e) => {
         const sc = studioCtx;
         if (sc.app.isDragging()) {

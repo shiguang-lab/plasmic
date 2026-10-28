@@ -22,6 +22,7 @@ import { FontFamilySelector } from "@/wab/client/components/widgets/FontFamilySe
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import LabeledListItem from "@/wab/client/components/widgets/LabeledListItem";
 import { SimpleTextbox } from "@/wab/client/components/widgets/SimpleTextbox";
+import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import { useI18n } from "@/wab/client/i18n";
 import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
 import TriangleBottomIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__TriangleBottom";
@@ -170,7 +171,9 @@ export function LabeledItem(props: {
         <MaybeWrap
           cond={!!props.tooltip}
           wrapper={(x) => (
-            <Tooltip title={props.tooltip}>{x as React.ReactElement}</Tooltip>
+            <Tooltip title={props.tooltip}>
+              <TriggerTarget>{x as React.ReactElement}</TriggerTarget>
+            </Tooltip>
           )}
         >
           <label className="text-wrap" {...(props.labelAriaProps ?? {})}>
@@ -709,7 +712,11 @@ export const LabeledStyleComboBoxItem = observer(
       >
         <MaybeWrap
           cond={!!isDisabled && !!disabledTooltip}
-          wrapper={(elt) => <Tooltip title={disabledTooltip}>{elt}</Tooltip>}
+          wrapper={(elt) => (
+            <Tooltip title={disabledTooltip}>
+              <TriggerTarget>{elt}</TriggerTarget>
+            </Tooltip>
+          )}
         >
           <Select
             className={cx({
@@ -786,7 +793,11 @@ export const LabeledFontFamilySelector = observer(
       >
         <MaybeWrap
           cond={!!isDisabled && !!disabledTooltip}
-          wrapper={(elt) => <Tooltip title={disabledTooltip}>{elt}</Tooltip>}
+          wrapper={(elt) => (
+            <Tooltip title={disabledTooltip}>
+              <TriggerTarget>{elt}</TriggerTarget>
+            </Tooltip>
+          )}
         >
           <FontFamilySelector
             studioCtx={sc.studioCtx()}

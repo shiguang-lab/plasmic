@@ -1,3 +1,4 @@
+import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import {
   DefaultLabeledPropProps,
   PlasmicLabeledProp,
@@ -17,7 +18,11 @@ function LabeledProp(props: LabeledPropProps) {
       label={label}
       menuButton={{ menu }}
       labelContainer={{
-        wrap: (x) => <Tooltip title={label}>{x as React.ReactElement}</Tooltip>,
+        wrap: (x) => (
+          <Tooltip title={label}>
+            <TriggerTarget>{x as React.ReactElement}</TriggerTarget>
+          </Tooltip>
+        ),
       }}
     />
   );

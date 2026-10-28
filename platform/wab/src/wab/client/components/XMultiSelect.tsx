@@ -1,5 +1,6 @@
 import { IconLinkButton } from "@/wab/client/components/widgets";
 import { Icon } from "@/wab/client/components/widgets/Icon";
+import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import { useFocusOnDisplayed } from "@/wab/client/dom-utils";
 import CloseIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Close";
 import ChevronDownsvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__ChevronDownSvg";
@@ -154,7 +155,11 @@ class _XMultiSelect<Item> extends React.Component<
           return (
             <MaybeWrap
               cond={!!isDisabled && !!disabledTooltip}
-              wrapper={(x) => <Tooltip title={disabledTooltip}>{x}</Tooltip>}
+              wrapper={(x) => (
+                <Tooltip title={disabledTooltip}>
+                  <TriggerTarget>{x}</TriggerTarget>
+                </Tooltip>
+              )}
             >
               <div
                 className={cx({

@@ -17,6 +17,7 @@ import {
 import { Spinner } from "@/wab/client/components/widgets";
 import Button from "@/wab/client/components/widgets/Button";
 import Chip from "@/wab/client/components/widgets/Chip";
+import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import {
@@ -590,7 +591,9 @@ function PermissionsTab_(
               infoIcon={{
                 wrap: (child) => {
                   return (
-                    <Tooltip title={GENERAL_ACCESS_TOOLTIP}>{child}</Tooltip>
+                    <Tooltip title={GENERAL_ACCESS_TOOLTIP}>
+                      <TriggerTarget>{child}</TriggerTarget>
+                    </Tooltip>
                   );
                 },
               }}

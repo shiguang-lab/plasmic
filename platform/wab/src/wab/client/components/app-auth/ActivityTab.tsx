@@ -12,6 +12,7 @@ import { Icon } from "@/wab/client/components/widgets/Icon";
 import IconButton from "@/wab/client/components/widgets/IconButton";
 import Select from "@/wab/client/components/widgets/Select";
 import Textbox from "@/wab/client/components/widgets/Textbox";
+import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
 import { useTopFrameCtx } from "@/wab/client/frame-ctx/top-frame-ctx";
 import { useI18n } from "@/wab/client/i18n";
@@ -210,9 +211,11 @@ function ActivityTab_(props: ActivityTabProps, ref: HTMLElementRefOf<"div">) {
                                 )
                           }
                         >
-                          {record.matchedRoles.length === 0
-                            ? uiT("Remove from list")
-                            : uiT("Revoke access")}
+                          <TriggerTarget>
+                            {record.matchedRoles.length === 0
+                              ? uiT("Remove from list")
+                              : uiT("Revoke access")}
+                          </TriggerTarget>
                         </Tooltip>
                       </Menu.Item>
                     </Menu>,

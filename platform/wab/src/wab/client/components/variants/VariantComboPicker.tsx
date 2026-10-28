@@ -1,6 +1,7 @@
 import VariantBadge from "@/wab/client/components/canvas/VariantsBar/VariantBadge";
 import VariantsDrawer from "@/wab/client/components/canvas/VariantsBar/VariantsDrawer";
 import styles from "@/wab/client/components/variants/VariantComboPicker.module.scss";
+import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import { useAutoFocus } from "@/wab/client/hooks/useAutoFocus";
 import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
 import { VARIANTS_LOWER } from "@/wab/shared/Labels";
@@ -107,28 +108,30 @@ function VariantComboPicker_({
         />
       )}
     >
-      {children || (
-        <div className={styles.valueContainer}>
-          {displayVariants.length === 0 && (
-            <div className={styles.placeholder}>
-              <UiText
-                message={"Select a combination of {part1}"}
-                values={{ part1: <UiLabel text={VARIANTS_LOWER} /> }}
+      <TriggerTarget>
+        {children || (
+          <div className={styles.valueContainer}>
+            {displayVariants.length === 0 && (
+              <div className={styles.placeholder}>
+                <UiText
+                  message={"Select a combination of {part1}"}
+                  values={{ part1: <UiLabel text={VARIANTS_LOWER} /> }}
+                />
+              </div>
+            )}
+            {displayVariants.map((variant) => (
+              <VariantBadge
+                isUnpinnable
+                isFocused
+                component={component}
+                isRecording={false}
+                variant={variant}
+                onUnpin={() => onRemoveVariant(variant)}
               />
-            </div>
-          )}
-          {displayVariants.map((variant) => (
-            <VariantBadge
-              isUnpinnable
-              isFocused
-              component={component}
-              isRecording={false}
-              variant={variant}
-              onUnpin={() => onRemoveVariant(variant)}
-            />
-          ))}
-        </div>
-      )}
+            ))}
+          </div>
+        )}
+      </TriggerTarget>
     </Dropdown>
   );
 }

@@ -1,5 +1,6 @@
 import { CanvasOverlayToolbar } from "@/wab/client/components/canvas/CanvasOverlayToolbar";
 import { EditableNodeLabel } from "@/wab/client/components/canvas/EditableNodeLabel";
+import { ClippedEdgeIndicators } from "@/wab/client/components/canvas/HoverBox/ClippedEdgeIndicator";
 import {
   computeHoverBoxTargets,
   computeHoverBoxViewState,
@@ -22,6 +23,10 @@ import { SpacingVisualizer } from "@/wab/client/components/canvas/HoverBox/Spaci
 import { StackOfParents } from "@/wab/client/components/canvas/HoverBox/StackOfParents";
 import { useTagPlacement } from "@/wab/client/components/canvas/HoverBox/useTagPlacement";
 import { VirtualScrollBar } from "@/wab/client/components/canvas/HoverBox/virtual-scrollbar";
+import {
+  geometryLayerStyle,
+  NO_CLIPPED_SIDES,
+} from "@/wab/client/components/canvas/HoverBox/visible-bounds";
 import { maybeShowContextMenu } from "@/wab/client/components/ContextMenu";
 import { toast } from "@/wab/client/components/Messages";
 import {
@@ -366,7 +371,26 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
 
   const resizable = getObjResizability(controlledObj, viewCtx);
 
-  const cssProps = cssPropsForInvertTransform(studioCtx.zoom, state);
+  // `state` width/height/top/left are the element's real box; the HoverBox
+  // outline is drawn on all four edges of its visible part. Edge handles are
+  // hidden on clipped sides, and controls laid out against the real box go in
+  // a geometry layer that is cut off on those sides.
+  const visibleBox = state?.visibleBox;
+  const clippedSides = state?.clippedSides ?? NO_CLIPPED_SIDES;
+  const geometryLayer = (zIndex?: number): React.CSSProperties | undefined =>
+    state && visibleBox
+      ? {
+          ...geometryLayerStyle(
+            state,
+            visibleBox,
+            clippedSides,
+            studioCtx.zoom,
+          ),
+          zIndex,
+        }
+      : undefined;
+
+  const cssProps = cssPropsForInvertTransform(studioCtx.zoom, visibleBox);
 
   useEffect(() => {
     setDimsBoxWidth(dimsBoxRef.current ? dimsBoxRef.current.offsetWidth : 0);
@@ -426,7 +450,7 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
 
   const tagPlacement = useTagPlacement(
     hoverTagRef,
-    state?.width || 0,
+    visibleBox?.width || 0,
     studioCtx.zoom,
     viewCtx,
   );
@@ -443,6 +467,24 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
       isKnownArena(studioCtx.currentArena)) &&
     !spacingDragState;
   const shouldShowDimBadge = shouldShowHoverTag;
+  // The size badge sits centered below the box. When the name tag has to go
+  // below the box too, stack the badge under the tag instead of over it.
+  const tagIsBelow =
+    shouldShowHoverTag &&
+    tagPlacement.visibility === "visible" &&
+    typeof tagPlacement.top === "number" &&
+    tagPlacement.top > 0;
+  const dimsStyle: React.CSSProperties | undefined =
+    tagIsBelow && typeof tagPlacement.left === "number"
+      ? {
+          top:
+            (tagPlacement.top as number) +
+            (hoverTagRef.current?.offsetHeight ?? 0) +
+            3,
+          left: tagPlacement.left,
+          transform: "none",
+        }
+      : undefined;
 
   // The controlledSpacingObj might be undefined if the component's artboard frame
   // view mode is set to `FrameViewMode.Centered`, if that is the case treat the
@@ -482,12 +524,12 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
                 maybeShowContextMenu(e.nativeEvent, menu);
               }
             }}
-            data-original-width={state?.width}
-            data-original-height={state?.height}
+            data-original-width={visibleBox?.width}
+            data-original-height={visibleBox?.height}
             style={{
               position: state?.position as any,
-              top: state?.top,
-              left: state?.left,
+              top: visibleBox?.top,
+              left: visibleBox?.left,
               display: viewProps.display,
               ...cssProps,
             }}
@@ -502,13 +544,15 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
                     const allowMargin = anyEdge?.includes("margin") ?? false;
 
                     return (
-                      <SpacingVisualizer
-                        allowPadding={allowPadding}
-                        allowMargin={allowMargin}
-                        paddingPx={state?.paddingPx}
-                        marginPx={state?.marginPx}
-                        zoom={studioCtx.zoom}
-                      />
+                      <div style={geometryLayer(-1)}>
+                        <SpacingVisualizer
+                          allowPadding={allowPadding}
+                          allowMargin={allowMargin}
+                          paddingPx={state?.paddingPx}
+                          marginPx={state?.marginPx}
+                          zoom={studioCtx.zoom}
+                        />
+                      </div>
                     );
                   })()}
 
@@ -560,20 +604,20 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
                   <div
                     className="HoverBox__Resizers"
                     style={
-                      {
-                        "--selected-element-margin-top": `${
-                          (state?.marginPx?.top ?? 0) * studioCtx.zoom
-                        }px`,
-                        "--selected-element-margin-bottom": `${
-                          (state?.marginPx?.bottom ?? 0) * studioCtx.zoom
-                        }px`,
-                        "--selected-element-margin-left": `${
-                          (state?.marginPx?.left ?? 0) * studioCtx.zoom
-                        }px`,
-                        "--selected-element-margin-right": `${
-                          (state?.marginPx?.right ?? 0) * studioCtx.zoom
-                        }px`,
-                      } as React.CSSProperties
+                      // Edges extend across neighbouring margins; a clipped
+                      // side's margin is not on screen, so don't extend into it.
+                      Object.fromEntries(
+                        (["top", "bottom", "left", "right"] as const).map(
+                          (s) => [
+                            `--selected-element-margin-${s}`,
+                            `${
+                              clippedSides[s]
+                                ? 0
+                                : (state?.marginPx?.[s] ?? 0) * studioCtx.zoom
+                            }px`,
+                          ],
+                        ),
+                      ) as React.CSSProperties
                     }
                   >
                     {shouldShowSideControls &&
@@ -581,6 +625,9 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
                         ...(canShowCornerResizers
                           ? {
                               corner: (corner) =>
+                                !sideOrCornerToSides(corner).some(
+                                  (s) => clippedSides[s],
+                                ) &&
                                 state?.edgeControls["top"].includes("size") &&
                                 state?.edgeControls["bottom"].includes(
                                   "size",
@@ -609,6 +656,11 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
                             }
                           : undefined),
                         side: (side) => {
+                          if (clippedSides[side]) {
+                            // The real edge is not visible; a handle on the
+                            // visible box would move an edge the user can't see.
+                            return null;
+                          }
                           const isVertical = isAxisSide(side, "width");
                           const isHorizontal = isAxisSide(side, "height");
                           const allowPadding =
@@ -675,8 +727,10 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
                                 ]
                               }
                               showMeasurements={showingMeasurements}
-                              focusedHeight={state?.height}
-                              focusedWidth={state?.width}
+                              // Edge controls span the visible edge, so size
+                              // their labels/thickness by its on-screen length.
+                              focusedHeight={visibleBox?.height}
+                              focusedWidth={visibleBox?.width}
                               onDragStart={async (side2, edgeType) => {
                                 await studioCtx.change(() => {
                                   if (edgeType === "size") {
@@ -919,20 +973,42 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
                   </div>
                 </div>
                 {focusedElt && viewCtx && (
-                  <>
+                  // The editor scrollbar maps 1:1 onto the element's own
+                  // scroll area, so it is laid out on the real box.
+                  <div style={geometryLayer()}>
                     <VirtualScrollBar element={focusedElt} axis={"vertical"} />
                     <VirtualScrollBar
                       element={focusedElt}
                       axis={"horizontal"}
                     />
-                  </>
+                  </div>
                 )}
                 {state &&
                   shouldShowDimBadge &&
                   !viewCtx?.hasShownHiddenContent && (
-                    <div ref={dimsBoxRef} className={"HoverBox__Dims"}>
+                    // Real element size, even when the drawn box is clipped.
+                    <div
+                      ref={dimsBoxRef}
+                      className={"HoverBox__Dims"}
+                      style={dimsStyle}
+                    >
                       {Math.round(state.width)} × {Math.round(state.height)}
                     </div>
+                  )}
+                {state &&
+                  visibleBox &&
+                  viewCtx &&
+                  !isMultiSelection &&
+                  !manipState &&
+                  !spacingDragState &&
+                  !studioCtx.isDraggingObject() && (
+                    <ClippedEdgeIndicators
+                      elements={viewCtx.focusedDomElt()?.get() ?? []}
+                      geometry={state}
+                      visible={visibleBox}
+                      clippedSides={clippedSides}
+                      zoom={studioCtx.zoom}
+                    />
                   )}
                 {resizePart && (
                   <div
@@ -946,10 +1022,14 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
                   viewCtx &&
                   controlledTpl &&
                   isTplColumns(controlledTpl) && (
-                    <ResponsiveColumnsCanvasControls
-                      viewCtx={viewCtx}
-                      tpl={controlledTpl}
-                    />
+                    // Column dividers are positioned from the element's real
+                    // content box.
+                    <div style={geometryLayer(-1)}>
+                      <ResponsiveColumnsCanvasControls
+                        viewCtx={viewCtx}
+                        tpl={controlledTpl}
+                      />
+                    </div>
                   )}
               </>
             }
@@ -960,8 +1040,8 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
                   left: Math.max(
                     -28,
                     ((studioCtx.viewportCtx?.visibleScalerBox().left() ??
-                      state.left) -
-                      state.left) *
+                      state.visibleBox.left) -
+                      state.visibleBox.left) *
                       studioCtx.zoom +
                       (studioCtx.leftTabKey ? studioCtx.leftPaneWidth : 0) +
                       4,
@@ -973,8 +1053,9 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
             )}
             {!isMultiSelection && (
               <InlineAddButton
-                elementWidth={state?.width}
-                elementHeight={state?.height}
+                // The button sits on the drawn box, so check space against it.
+                elementWidth={visibleBox?.width}
+                elementHeight={visibleBox?.height}
                 dimensionsBoxWidth={dimsBoxWidth}
                 key={state?.tagUid}
               />

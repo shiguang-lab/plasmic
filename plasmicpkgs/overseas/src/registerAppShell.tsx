@@ -227,9 +227,13 @@ export function AppShell({
         style={{
           width: "100%",
           // Studio's iframe can grow with content; use its authored viewport.
-          height: "var(--viewport-height, 100vh)",
+          // Studio's "full page height" view sets --canvas-content-height to
+          // `auto`, so the shell grows with its content and the content region
+          // stops scrolling. Neither variable exists in previews or exports.
+          height:
+            "var(--canvas-content-height, var(--viewport-height, 100vh))",
           minWidth: 0,
-          minHeight: 0,
+          minHeight: "var(--viewport-height, 100vh)",
           flexShrink: 0,
           overflow: "hidden",
         }}
@@ -238,7 +242,8 @@ export function AppShell({
           style={{
             width: "100%",
             height: "100%",
-            minHeight: 0,
+            // Fills the viewport when the shell height is `auto`.
+            minHeight: "var(--viewport-height, 100vh)",
             overflow: "hidden",
             background: "#f0f2f5",
           }}

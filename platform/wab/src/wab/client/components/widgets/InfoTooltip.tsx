@@ -23,7 +23,11 @@ export function InfoTooltip({ tooltip }: InfoTooltipProps) {
           </div>
         )}
       >
-        <Icon icon={InfoIcon} className="dimfg pointer" />
+        <Icon
+          icon={InfoIcon}
+          className="dimfg pointer"
+          data-test-id="info-tooltip-trigger"
+        />
       </Popover>
     </InlineIcon>
   );

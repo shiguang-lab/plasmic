@@ -17,6 +17,7 @@ export type LocalStorageKey =
   | "plasmic.tours.top-project-nav"
   | `copy/${ProjectId}`
   | `plasmic.focused.${ProjectId}`
+  | `plasmic.full-page-height.${ProjectId}`
   | `plasmic.free-trial.${TeamId}`
   | `plasmic.load-cache.${string}`
   | `plasmic.tours.${ProjectId}`
@@ -42,6 +43,10 @@ export const copyFromProjectKey = (projectId: ProjectId): LocalStorageKey =>
 
 export const focusPreferenceKey = (projectId: ProjectId): LocalStorageKey =>
   `plasmic.focused.${projectId}`;
+
+/** Per-user canvas view preference; never stored in the project. */
+export const fullPageHeightKey = (projectId: ProjectId): LocalStorageKey =>
+  `plasmic.full-page-height.${projectId}`;
 
 export const tourSeenForProjectKey = (projectId: ProjectId): LocalStorageKey =>
   `plasmic.tours.${projectId}`;

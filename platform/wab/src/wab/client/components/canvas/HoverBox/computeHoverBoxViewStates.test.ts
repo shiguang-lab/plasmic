@@ -110,3 +110,52 @@ it("shows a selection when an initially hidden root gains layout", () => {
     top: 220, left: 110, width: 80, height: 40,
   });
 });
+
+describe("clipped selections", () => {
+  afterEach(() => {
+    document.body.innerHTML = "";
+  });
+
+  function clipper(box: Box) {
+    const elt = element(box);
+    elt.style.overflow = "hidden";
+    for (const [key, value] of Object.entries({
+      clientWidth: box.width(),
+      clientHeight: box.height(),
+      clientLeft: 0,
+      clientTop: 0,
+    })) {
+      Object.defineProperty(elt, key, { value });
+    }
+    document.body.appendChild(elt);
+    return elt;
+  }
+
+  it("keeps the real size but draws on the visible part", () => {
+    const { vc, focusObj } = fixture();
+    const container = clipper(new Box(0, 0, 300, 100));
+    const elt = element(new Box(50, 20, 200, 400));
+    container.appendChild(elt);
+    const result = computeHoverBoxViewState(vc, { node: $(elt), focusObj });
+    expect(result.displayProps).toMatchObject({
+      // Real box: drives the size badge and drag computations.
+      top: 250,
+      left: 120,
+      width: 200,
+      height: 400,
+      // Drawn box: cut at the container's bottom edge.
+      visibleBox: { top: 250, left: 120, width: 200, height: 50 },
+      clippedSides: { top: false, right: false, bottom: true, left: false },
+    });
+  });
+
+  it("hides the selection when the element is entirely clipped", () => {
+    const { vc, focusObj } = fixture();
+    const container = clipper(new Box(0, 0, 300, 100));
+    const elt = element(new Box(150, 20, 200, 40));
+    container.appendChild(elt);
+    expect(computeHoverBoxViewState(vc, { node: $(elt), focusObj })).toEqual({
+      display: "none",
+    });
+  });
+});

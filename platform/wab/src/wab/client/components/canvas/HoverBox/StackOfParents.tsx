@@ -36,6 +36,7 @@ function useParentsOfFocusedSelectable() {
         : SQ(focusedSelectable, viewCtx!.valState(), false)
             .parents()
             .toArray()
+            .filter((selectable) => viewCtx?.contentEditor.contains(selectable))
             .map((selectable) => {
               const tpl = selectable.tpl;
 
@@ -82,7 +83,7 @@ function useParentsOfFocusedSelectable() {
               };
             })
             .reverse(),
-    [viewCtx, focusedSelectable, isValRendered],
+    [viewCtx, focusedSelectable, isValRendered, viewCtx?.contentEditor.target],
   );
 
   return parentsChain;
@@ -160,10 +161,11 @@ function StackOfParents_({
   }, [hoverTagRef.current]);
 
   return !parentsChain.length ? null : !studioCtx.showStackOfParents ? (
-    <div className={styles.visualHint} />
+    <div className={styles.visualHint} data-canvas-node-tree />
   ) : (
     <div
       className={styles.root}
+      data-canvas-node-tree
       onMouseEnter={cancelAutoHide}
       onMouseLeave={scheduleAutoHide as any}
     >

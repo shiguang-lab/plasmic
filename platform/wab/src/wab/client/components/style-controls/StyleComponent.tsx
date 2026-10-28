@@ -16,6 +16,7 @@ import { ColorSwatch } from "@/wab/client/components/style-controls/ColorSwatch"
 import { DefinedIndicator } from "@/wab/client/components/style-controls/DefinedIndicator";
 import { UnloggedDragCatcher } from "@/wab/client/components/style-controls/UnloggedDragCatcher";
 import { Tab, Tabs } from "@/wab/client/components/widgets";
+import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import { getUiLocale } from "@/wab/client/i18n";
 import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
 import { StudioChangeOpts, StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
@@ -998,7 +999,9 @@ export const TabbedStylePanelSection = observer(
                 );
                 return new Tab({
                   name: tab.iconOnly ? (
-                    <Tooltip title={tab.label}>{<>{iconBlock}</>}</Tooltip>
+                    <Tooltip title={tab.label}>
+                      <TriggerTarget>{<>{iconBlock}</>}</TriggerTarget>
+                    </Tooltip>
                   ) : (
                     <>
                       {iconBlock}

@@ -6,6 +6,7 @@ import {
 } from "@/wab/client/components/sidebar-tabs/versions-tab/utils";
 import VersionsListItem from "@/wab/client/components/sidebar/VersionsListItem";
 import { ClickStopper } from "@/wab/client/components/widgets";
+import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
@@ -112,7 +113,7 @@ export const RevisionsList = observer(function RevisionsList(
                   preventDefault
                 >
                   <Tooltip title={uiT("Revert to this version")}>
-                    {node}
+                    <TriggerTarget>{node}</TriggerTarget>
                   </Tooltip>
                 </ClickStopper>
               ),

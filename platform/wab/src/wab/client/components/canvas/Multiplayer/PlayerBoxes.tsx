@@ -1,8 +1,10 @@
-import { recomputeBounds } from "@/wab/client/components/canvas/HoverBox/recomputeBounds";
-import { frameToScalerRect } from "@/wab/client/coords";
-import { hasLayoutBox } from "@/wab/client/dom";
-import { cssPropsForInvertTransform, StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { computeScalerVisibility } from "@/wab/client/components/canvas/HoverBox/visible-bounds";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
+import { hasLayoutBox } from "@/wab/client/dom";
+import {
+  cssPropsForInvertTransform,
+  StudioCtx,
+} from "@/wab/client/studio-ctx/StudioCtx";
 import { useForceUpdate } from "@/wab/client/useForceUpdate";
 import { getArenaFrames } from "@/wab/shared/Arenas";
 import { maybe } from "@/wab/shared/common";
@@ -84,8 +86,12 @@ const PlayerBox = observer(function PlayerBox({
       const resizeObserver = new ResizeObserver(forceUpdate);
       const elts = $elt.toArray();
       elts.forEach((elt) => resizeObserver.observe(elt));
+      // Scrolling moves the element and changes which part of it is visible.
+      const doc = elts[0].ownerDocument;
+      doc.addEventListener("scroll", forceUpdate, true);
       return () => {
         resizeObserver.disconnect();
+        doc.removeEventListener("scroll", forceUpdate, true);
       };
     } else {
       return undefined;
@@ -98,18 +104,21 @@ const PlayerBox = observer(function PlayerBox({
 
   const { viewCtx, playerData } = maybeData;
 
-  const eltRect = recomputeBounds($elt).rect();
-  const scalerRect = frameToScalerRect(eltRect, viewCtx);
+  // Like the local selection, outline only the visible part of the element.
+  const { visible: scalerRect } = computeScalerVisibility($elt, viewCtx);
+  if (!scalerRect) {
+    return null;
+  }
   const cssProps = cssPropsForInvertTransform(studioCtx.zoom, scalerRect);
 
   return (
     <div
       className={"PlayerBox"}
-      data-original-width={scalerRect ? scalerRect.width : undefined}
-      data-original-height={scalerRect ? scalerRect.height : undefined}
+      data-original-width={scalerRect.width}
+      data-original-height={scalerRect.height}
       style={{
         display: "block",
-        ...(scalerRect ? scalerRect : {}),
+        ...scalerRect,
         ...cssProps,
         borderColor: playerData.color,
       }}

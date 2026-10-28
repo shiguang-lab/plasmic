@@ -1,8 +1,9 @@
 import { CopilotPromptDialog } from "@/wab/client/components/copilot/CopilotPromptDialog";
 import { dataPickerShouldHideKey } from "@/wab/client/components/sidebar-tabs/DataBinding/DataPickerUtil";
+import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { useI18n } from "@/wab/client/i18n";
 import PlasmicCopilotCodePrompt from "@/wab/client/plasmic/plasmic_kit_data_binding/PlasmicCopilotCodePrompt";
-import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { CopilotResponseData } from "@/wab/shared/ApiSchema";
 import {
   ensure,
@@ -55,7 +56,7 @@ export const CopilotCodePrompt = observer(function CopilotCodePrompt({
         wrap: (elt) => (
           <>
             <Tooltip title={uiT("Open Plasmic AI")} mouseEnterDelay={0.5}>
-              {elt}
+              <TriggerTarget>{elt}</TriggerTarget>
             </Tooltip>
             <CopilotPromptDialog<string>
               className={"CopilotCodePromptDialog"}

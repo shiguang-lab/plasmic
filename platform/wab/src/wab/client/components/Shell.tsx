@@ -7,6 +7,7 @@ import { isTopFrame } from "@/wab/client/cli-routes";
 import { initClientFlags } from "@/wab/client/client-dev-flags";
 import { Root } from "@/wab/client/components/root-view";
 import { StudioStartupBoundary } from "@/wab/client/components/studio/StudioChrome";
+import { watchUnanchoredPopups } from "@/wab/client/components/widgets/TriggerAnchor";
 import { ENV } from "@/wab/client/env";
 import {
   HostFrameCtxProvider,
@@ -100,6 +101,11 @@ export function main() {
   applyDevFlagOverrides(initClientFlags(DEVFLAGS));
 
   configureAntdStatics();
+
+  if (process.env.NODE_ENV !== "production") {
+    // Surfaces Tooltip/Popover/Dropdown triggers whose child can't anchor them.
+    watchUnanchoredPopups(document);
+  }
 
   initObservability();
 

@@ -1,8 +1,9 @@
 import { Icon as IconComponent } from "@/wab/client/components/widgets/Icon";
 import IconButton from "@/wab/client/components/widgets/IconButton";
+import { TriggerAnchor } from "@/wab/client/components/widgets/TriggerAnchor";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import PlasmicReactionButton from "@/wab/client/plasmic/plasmic_kit_comments/PlasmicReactionButton";
 import EmojiPlusSvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__EmojiPlusSvg";
-import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { OnClickAway } from "@/wab/commons/components/OnClickAway";
 import { ApiCommentReaction, CommentId } from "@/wab/shared/ApiSchema";
 import { fullName } from "@/wab/shared/ApiSchemaUtil";
@@ -98,23 +99,29 @@ export function ReactionsByEmoji(props: {
               )
               .join(", ")}
           >
-            <PlasmicReactionButton
-              includesSelf={!!currentUsersReaction}
-              emoji={<Emoji size={20} unified={emojiName} />}
-              count={<>{reactions.length}</>}
-              onClick={(e) => {
-                e.stopPropagation();
-                if (currentUsersReaction) {
-                  commentsCtx.removeReactionFromComment(
-                    currentUsersReaction.id,
-                  );
-                } else {
-                  commentsCtx.addReactionToComment(commentId, {
-                    emojiName,
-                  });
-                }
-              }}
-            />
+            <TriggerAnchor>
+              {(ref, triggerProps) => (
+                <PlasmicReactionButton
+                  {...triggerProps}
+                  root={{ ref }}
+                  includesSelf={!!currentUsersReaction}
+                  emoji={<Emoji size={20} unified={emojiName} />}
+                  count={<>{reactions.length}</>}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (currentUsersReaction) {
+                      commentsCtx.removeReactionFromComment(
+                        currentUsersReaction.id,
+                      );
+                    } else {
+                      commentsCtx.addReactionToComment(commentId, {
+                        emojiName,
+                      });
+                    }
+                  }}
+                />
+              )}
+            </TriggerAnchor>
           </Tooltip>
         );
       })}

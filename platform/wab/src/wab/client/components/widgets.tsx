@@ -6,6 +6,7 @@ import { Icon } from "@/wab/client/components/widgets/Icon";
 import { IconButton } from "@/wab/client/components/widgets/IconButton";
 import { LoadingError } from "@/wab/client/components/widgets/LoadingError";
 import { Textbox, TextboxRef } from "@/wab/client/components/widgets/Textbox";
+import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import {
   useFocusOnDisplayed,
   useToggleDisplayed,
@@ -67,15 +68,25 @@ export interface PlainLinkButtonProps extends React.ComponentProps<"button"> {
   "data-test-id"?: string;
   tooltip?: React.ReactNode;
 }
-export function PlainLinkButton(props: PlainLinkButtonProps) {
+// Forwards its ref to the button so antd Tooltip/Popover/Dropdown can anchor
+// on it when it is their direct child.
+export const PlainLinkButton = React.forwardRef<
+  HTMLButtonElement,
+  PlainLinkButtonProps
+>(function PlainLinkButton(props, ref) {
   const { disabled, onClick, className, tooltip, ...forwardedProps } = props;
   return (
     <MaybeWrap
       cond={!!tooltip}
-      wrapper={(x) => <Tooltip title={tooltip}>{x}</Tooltip>}
+      wrapper={(x) => (
+        <Tooltip title={tooltip}>
+          <TriggerTarget>{x}</TriggerTarget>
+        </Tooltip>
+      )}
     >
       <button
         {...forwardedProps}
+        ref={ref}
         aria-label={
           props["aria-label"] ??
           (typeof tooltip === "string" ? tooltip : undefined)
@@ -93,7 +104,7 @@ export function PlainLinkButton(props: PlainLinkButtonProps) {
       />
     </MaybeWrap>
   );
-}
+});
 
 export function PlainLink(
   props: React.ComponentProps<"a"> & {
@@ -120,14 +131,18 @@ export function PlainLink(
   );
 }
 
-export function IconLinkButton(props: PlainLinkButtonProps) {
+export const IconLinkButton = React.forwardRef<
+  HTMLButtonElement,
+  PlainLinkButtonProps
+>(function IconLinkButton(props, ref) {
   return (
     <PlainLinkButton
       {...props}
+      ref={ref}
       className={`icon-link-btn ${props.className}`}
     />
   );
-}
+});
 
 type ModalProps = {
   className?: string;
@@ -965,7 +980,7 @@ export const IFrameAwareDropdownMenu = (props: {
       overlayStyle={props.overlayStyle}
       destroyPopupOnHide
     >
-      {props.children}
+      <TriggerTarget>{props.children}</TriggerTarget>
     </Dropdown>
   );
 };

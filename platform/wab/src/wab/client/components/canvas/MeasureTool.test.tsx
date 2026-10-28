@@ -46,6 +46,7 @@ it("updates existing measurement lines on nested content scroll and cleans up wh
   const studioCtx = mockDeepAuto<StudioCtx>();
   studioCtx.focusedViewCtx.mockImplementation(() => focused.get() as any);
   Object.defineProperties(studioCtx, {
+    canvasContentEditor: { value: undefined },
     zoom: { value: 1 },
     isResizeDragging: { value: false },
   });

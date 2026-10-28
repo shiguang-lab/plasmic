@@ -1,4 +1,5 @@
 import StarterProject from "@/wab/client/components/StarterProject";
+import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
 import { useI18n } from "@/wab/client/i18n";
 import {
@@ -63,7 +64,7 @@ function StarterGroup(props: StarterGroupProps) {
         wrap: (node) =>
           !props.infoTooltip ? null : (
             <Tooltip title={props.infoTooltip}>
-              {node as React.ReactElement}
+              <TriggerTarget>{node as React.ReactElement}</TriggerTarget>
             </Tooltip>
           ),
       }}

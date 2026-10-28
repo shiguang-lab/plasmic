@@ -2,6 +2,7 @@ import { maybeShowContextMenu } from "@/wab/client/components/ContextMenu";
 import * as widgets from "@/wab/client/components/widgets";
 import { PlainLinkButtonProps } from "@/wab/client/components/widgets";
 import { Icon } from "@/wab/client/components/widgets/Icon";
+import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import TriangleBottomIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__TriangleBottom";
 import { swallowClick } from "@/wab/commons/components/ReactUtil";
 import { Dropdown, Tooltip } from "antd";
@@ -63,7 +64,7 @@ export function IconLinkButton(props: IconLinkButtonProps) {
       onOpenChange={onTooltipVisibleChange}
       placement={"bottom"}
     >
-      {node as React.ReactElement}
+      <TriggerTarget>{node as React.ReactElement}</TriggerTarget>
     </Tooltip>
   );
 
@@ -118,20 +119,22 @@ export function IconLinkButton(props: IconLinkButtonProps) {
         open={showingDropdown}
         onOpenChange={onDropdownVisibleChange}
       >
-        {wrapTooltip(
-          <widgets.PlainLinkButton
-            {...plainButtonProps}
-            className={outerClassName}
-          >
-            {buttonContent}
-            <div
-              className="icon-link-btn__dropdown no-line-height"
-              onClick={(e) => props.onClick && swallowClick(e)}
+        <TriggerTarget>
+          {wrapTooltip(
+            <widgets.PlainLinkButton
+              {...plainButtonProps}
+              className={outerClassName}
             >
-              <Icon icon={TriangleBottomIcon} />
-            </div>
-          </widgets.PlainLinkButton>,
-        )}
+              {buttonContent}
+              <div
+                className="icon-link-btn__dropdown no-line-height"
+                onClick={(e) => props.onClick && swallowClick(e)}
+              >
+                <Icon icon={TriangleBottomIcon} />
+              </div>
+            </widgets.PlainLinkButton>,
+          )}
+        </TriggerTarget>
       </Dropdown>
     );
   } else {

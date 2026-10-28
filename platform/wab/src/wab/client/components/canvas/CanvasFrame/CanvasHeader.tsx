@@ -8,6 +8,8 @@ import { CanvasConfigButton } from "@/wab/client/components/canvas/CanvasFrame/C
 import styles from "@/wab/client/components/canvas/CanvasFrame/CanvasHeader.module.scss";
 import { EditableLabelHandles } from "@/wab/client/components/widgets/EditableLabel";
 import { Icon } from "@/wab/client/components/widgets/Icon";
+import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import {
   useScaledElementRef,
   useZoomStyledRef,
@@ -16,7 +18,6 @@ import { useI18n } from "@/wab/client/i18n";
 import ComponentIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Component";
 import PageIcon from "@/wab/client/plasmic/plasmic_kit_design_system/icons/PlasmicIcon__Page";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
-import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { MaybeWrap } from "@/wab/commons/components/ReactUtil";
 import {
   AnyArena,
@@ -198,7 +199,7 @@ function CanvasHeaderContent_(props: {
             </div>
           }
         >
-          {children}
+          <TriggerTarget>{children}</TriggerTarget>
         </Tooltip>
       )}
     >
@@ -271,7 +272,7 @@ export const VariantName = observer(function VariantName_({
               />
             )}
           >
-            {children}
+            <TriggerTarget>{children}</TriggerTarget>
           </Popover>
         )}
       >

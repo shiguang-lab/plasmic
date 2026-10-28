@@ -96,6 +96,8 @@ describe("list-item drops", () => {
         insertTplAsChild(node, parent, ctx, opts).isOk(),
       );
       const vc = {
+        studioCtx: {},
+        contentEditor: {},
         valState: () => ({}),
         setDndTentativeInsertion: vi.fn(),
         getViewOps: () => ({ tryInsertAsChild }),
@@ -119,4 +121,38 @@ describe("list-item drops", () => {
       );
     },
   );
+});
+
+it("content editing excludes external drop targets and siblings of its root", () => {
+  const selectable = new ValTag({
+    tpl: Tpls.mkTplTagX("div", {}), children: [], className: "", key: "root",
+    fullKey: "root", frameUid: 1, fibers: [], parent: undefined,
+    valOwner: undefined, slotInfo: undefined,
+  });
+  const box = new Box(0, 0, 100, 100);
+  const nodeBox = {
+    selectable, dom: document.createElement("div"), box, paddingBox: box,
+    boxInScaler: box, flowDir: "vertical", isInFlex: false,
+    isInFlexReverse: false, acceptsChildren: { type: "CantAddToTplComponent" },
+    acceptsNeighbors: true, measuredGrid: undefined, containerType: "slot",
+  };
+  const insertionBox = { valNode: selectable, box };
+  vi.spyOn(NodeTargeter.prototype as unknown as { calcBoxes: () => unknown }, "calcBoxes")
+    .mockReturnValue({nodeBoxes: [nodeBox], insertionBoxes: [insertionBox],
+      nodeBoxToBeforeAfter: new Map([[nodeBox, {before: insertionBox, after: insertionBox}]]),
+      frameRect: { left: 0, top: 0, width: 100, height: 100 }});
+  const contains = vi.fn(() => false);
+  const vc = {
+    studioCtx: { canvasContentEditor: {} },
+    contentEditor: { contains, target: {fullKey: selectable.fullKey} },
+    valState: () => ({}), setDndTentativeInsertion: vi.fn(),
+  } as unknown as ViewCtx;
+  const outside = new NodeTargeter(vc);
+  expect(outside.getInsertion(new Pt(50, 50))).toBeUndefined();
+  expect(outside.getAbsInsertion(new Pt(50, 50))).toBeUndefined();
+  expect(outside.getAbsInsertionAndAdoptees(box.rect(), false, true)).toEqual([undefined, []]);
+  contains.mockReturnValue(true);
+  const root = new NodeTargeter(vc);
+  expect(root.getInsertion(new Pt(50, 50))).toBeUndefined();
+  vi.restoreAllMocks();
 });

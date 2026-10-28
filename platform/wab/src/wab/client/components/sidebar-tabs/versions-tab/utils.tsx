@@ -1,10 +1,11 @@
-import { useErrorMessage } from "@/wab/client/hooks/useErrorMessage";
 import { SiteDiffs } from "@/wab/client/components/modals/SiteDiffs";
 import { showTemporaryPrompt } from "@/wab/client/components/quick-modals";
 import { NoItemMessage } from "@/wab/client/components/sidebar-tabs/versions-tab/NoItemMessage";
 import Button from "@/wab/client/components/widgets/Button";
 import { Modal } from "@/wab/client/components/widgets/Modal";
+import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import { useAsyncStrict } from "@/wab/client/hooks/useAsyncStrict";
+import { useErrorMessage } from "@/wab/client/hooks/useErrorMessage";
 import { getUiLocale, useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { translate } from "@/wab/client/i18n/locales";
@@ -148,7 +149,11 @@ const RevertConfirmModal = ({
         />
       </div>
       {error ? (
-        <p>{uiT("Could not fetch the differences. You can still proceed with the revert.")}</p>
+        <p>
+          {uiT(
+            "Could not fetch the differences. You can still proceed with the revert.",
+          )}
+        </p>
       ) : isLoadingDiffs ? (
         <div className="p-m text-center">
           <Spin />
@@ -330,7 +335,9 @@ export const UserOnDate = function ({
         message={"{part1} on {part2}"}
         values={{
           part1: user ? (
-            <Tooltip title={getUserEmail(user)}>{fullName(user)}</Tooltip>
+            <Tooltip title={getUserEmail(user)}>
+              <TriggerTarget>{fullName(user)}</TriggerTarget>
+            </Tooltip>
           ) : (
             studioUiT("Unknown User")
           ),

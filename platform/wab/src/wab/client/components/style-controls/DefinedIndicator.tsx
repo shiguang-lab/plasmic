@@ -17,6 +17,8 @@ import MenuButton from "@/wab/client/components/widgets/MenuButton";
 import { getUiLocale, useI18n } from "@/wab/client/i18n";
 import { translateUiLabel } from "@/wab/client/i18n/locales";
 
+import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
 import { getVisibilityIcon } from "@/wab/client/icons";
 import CloseIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Close";
@@ -27,7 +29,6 @@ import MixinIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Mixin";
 import ThemeIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Theme";
 import TokenIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Token";
 import VariantGroupIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__VariantGroup";
-import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { derefTokenRefs, tryParseTokenRef } from "@/wab/commons/StyleToken";
 import { joinReactNodes } from "@/wab/commons/components/ReactUtil";
@@ -197,11 +198,15 @@ export function getStylePropValue(
     } else if (isColor) {
       return (
         <Tooltip title={<code>{Chroma(val).hex()}</code>}>
-          {displayValue}
+          <TriggerTarget>{displayValue}</TriggerTarget>
         </Tooltip>
       );
     } else {
-      return <Tooltip title={<code>{val}</code>}>{displayValue}</Tooltip>;
+      return (
+        <Tooltip title={<code>{val}</code>}>
+          <TriggerTarget>{displayValue}</TriggerTarget>
+        </Tooltip>
+      );
     }
   };
 
@@ -410,7 +415,7 @@ export const SourceValue = observer(function SourceValue(props: {
   } else if (source.type === "visibility") {
     return (
       <Tooltip title={getVisibilityLabel(source.value)}>
-        {getVisibilityIcon(source.value)}
+        <TriggerTarget>{getVisibilityIcon(source.value)}</TriggerTarget>
       </Tooltip>
     );
   } else if (source.type === "text") {

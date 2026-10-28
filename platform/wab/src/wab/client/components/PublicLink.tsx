@@ -4,12 +4,16 @@ import * as React from "react";
 
 type PublicLinkProps = React.ComponentProps<"a">;
 
-export function PublicLink(props: PublicLinkProps) {
+// Forwards its ref to the anchor so antd Tooltip/Popover can anchor on it.
+export const PublicLink = React.forwardRef<
+  HTMLAnchorElement,
+  Omit<PublicLinkProps, "ref">
+>(function PublicLink(props, ref) {
   if (isAbsoluteUrl(props.href || "")) {
     // Use normal link for absolute URLs
-    return <a {...props} />;
+    return <a {...props} ref={ref} />;
   } else {
     // Use our routing-aware Link for internal navigation
-    return <RouterLink {...props} to={props.href || ""} />;
+    return <RouterLink {...props} ref={ref} to={props.href || ""} />;
   }
-}
+});

@@ -609,7 +609,6 @@ test("Button keeps its icon-only shape without an empty label container", () => 
 test("content editing expands native and virtual table viewports only in Studio, retaining pagination and saved props", () => {
   const table = components.get("plasmic-antd6-table")!;
   const column = components.get("plasmic-antd6-table-column")!;
-  assert.equal(table.meta.canvasContentEditor, true);
   for (const nativeColumns of [false, true]) {
     const props = {
       data: {
@@ -659,4 +658,45 @@ test("content editing expands native and virtual table viewports only in Studio,
     assert.equal(props.virtual, true);
     assert.equal(props.pagination.defaultPageSize, 20);
   }
+});
+
+test("full page height view renders every row in Studio, keeping horizontal scroll, fixed columns and saved props", () => {
+  const table = components.get("plasmic-antd6-table")!;
+  const props = {
+    data: {
+      data: Array.from({ length: 41 }, (_, i) => ({
+        id: i + 1,
+        name: `Record ${i + 1}`,
+      })),
+    },
+    rowKey: "id",
+    columns: [{ title: "Name", dataIndex: "name", width: 240, fixed: "left" }],
+    scroll: { x: 1200, y: 240 },
+    virtual: true,
+    pagination: false,
+    __plasmic_selection_prop__: { isFullContentView: true },
+  };
+  const savedScroll = { ...props.scroll };
+  const render = (interactive: boolean, extra: object = {}) =>
+    renderToStaticMarkup(
+      React.createElement(
+        PlasmicCanvasContext.Provider,
+        { value: { componentName: "Test", globalVariants: {}, interactive } },
+        React.createElement(table.component, { ...props, ...extra }),
+      ),
+    );
+  const full = render(false);
+  assert.doesNotMatch(full, /ant-table-tbody-virtual/);
+  assert.doesNotMatch(full, /max-height:240px/);
+  assert.match(full, /Record 41/);
+  assert.match(full, /ant-table-cell-fix-start/);
+  assert.match(full, /width:1200px/);
+  // Interactive mode and the ordinary viewport view keep the runtime behavior.
+  assert.match(render(true), /ant-table-tbody-virtual/);
+  assert.match(
+    render(false, { __plasmic_selection_prop__: { isFullContentView: false } }),
+    /ant-table-tbody-virtual/,
+  );
+  assert.deepEqual(props.scroll, savedScroll);
+  assert.equal(props.virtual, true);
 });

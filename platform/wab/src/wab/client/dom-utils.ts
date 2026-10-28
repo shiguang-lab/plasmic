@@ -21,7 +21,6 @@ import {
   parseDataUrl,
   parseSvgXml,
 } from "@/wab/shared/data-urls";
-import { Rect } from "@/wab/shared/geom";
 import { ImageAsset } from "@/wab/shared/model/classes";
 import {
   clearExplicitColors,
@@ -37,7 +36,6 @@ import { isString } from "lodash";
 import isFunction from "lodash/isFunction";
 import memoize from "lodash/memoize";
 import React from "react";
-import intersection from "rectangle-overlap";
 import defer = setTimeout;
 
 const MaxImageDim = 4096;
@@ -338,7 +336,10 @@ export async function maybeUploadImage(
     });
     if (uploadedImage.warning) {
       console.warn("Image upload warning", uploadedImage.warning);
-      void message.warning({ content: translate(getUiLocale(), "Image uploaded with warnings"), duration: 4 });
+      void message.warning({
+        content: translate(getUiLocale(), "Image uploaded with warnings"),
+        duration: 4,
+      });
     }
     imageResult = new ResizableImage(
       uploadedImage.dataUri,
@@ -446,62 +447,6 @@ export function getBackgroundImageProps(url: string) {
   return {
     background: mkBackgroundLayer(new ImageBackground({ url })).showCss(),
   };
-}
-
-export function getClippingParent(
-  element: HTMLElement | null,
-): HTMLElement | undefined {
-  if (!element) {
-    return undefined;
-  }
-
-  if (
-    element.parentElement &&
-    element.parentElement.scrollHeight > element.parentElement.offsetHeight
-  ) {
-    return element.parentElement;
-  }
-
-  return getClippingParent(element.parentElement);
-}
-
-export function getVisibleBoundingClientRect(element: HTMLElement): Rect {
-  const scrollableParent = getClippingParent(element);
-
-  if (
-    scrollableParent &&
-    !(scrollableParent instanceof Document) &&
-    getComputedStyle(scrollableParent).overflow !== "visible"
-  ) {
-    const sty = getComputedStyle(scrollableParent);
-    const clipsX = sty.overflowX !== "visible";
-    const clipsY = sty.overflowY !== "visible";
-    const elementRect = element.getBoundingClientRect();
-
-    if (clipsX || clipsY) {
-      const parentRect = scrollableParent?.getBoundingClientRect();
-      const overlap = intersection(elementRect, parentRect);
-
-      if (!overlap) {
-        return new DOMRect(0, 0, 0, 0);
-      }
-
-      const left = clipsX ? overlap.x : elementRect.left;
-      const width = clipsX ? overlap.width : elementRect.width;
-      const top = clipsY ? overlap.y : elementRect.top;
-      const height = clipsY ? overlap.height : elementRect.height;
-      return { top, left, width, height };
-    } else {
-      return elementRect;
-    }
-  }
-
-  return element.getBoundingClientRect();
-}
-
-export function getElementVisibleBounds(node: JQuery | HTMLElement) {
-  const elt = ensure($(node).get(0), `Unexpected undefined query ${node}.`);
-  return getVisibleBoundingClientRect(elt);
 }
 
 export function getElementBounds(node: JQuery | HTMLElement) {

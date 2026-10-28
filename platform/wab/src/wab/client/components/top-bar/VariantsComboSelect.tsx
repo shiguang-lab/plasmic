@@ -1,12 +1,13 @@
 import { usePreviewCtx } from "@/wab/client/components/live/PreviewCtx";
 import VariantsMenu from "@/wab/client/components/top-bar/VariantsMenu";
+import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { useAutoFocus } from "@/wab/client/hooks/useAutoFocus";
 import { UiText } from "@/wab/client/i18n/UiText";
 import {
   DefaultVariantsComboSelectProps,
   PlasmicVariantsComboSelect,
 } from "@/wab/client/plasmic/plasmic_kit_top_bar/PlasmicVariantsComboSelect";
-import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import {
   getAllVariantsForTpl,
   getVariantLabel,
@@ -127,15 +128,18 @@ const VariantsComboSelect = observer(function VariantsComboSelect(
         />
       )}
     >
-      <PlasmicVariantsComboSelect isOpen={isOpen} {...props}>
-        {activeVariants.length === 0 ? (
-          <UiText message={"Base"} />
-        ) : (
-          activeVariants
-            .map((v) => getVariantLabel(studioCtx.site, v))
-            .join(", ")
-        )}
-      </PlasmicVariantsComboSelect>
+      {/* The generated component drops refs; TriggerTarget anchors the menu. */}
+      <TriggerTarget>
+        <PlasmicVariantsComboSelect isOpen={isOpen} {...props}>
+          {activeVariants.length === 0 ? (
+            <UiText message={"Base"} />
+          ) : (
+            activeVariants
+              .map((v) => getVariantLabel(studioCtx.site, v))
+              .join(", ")
+          )}
+        </PlasmicVariantsComboSelect>
+      </TriggerTarget>
     </Dropdown>
   );
 });

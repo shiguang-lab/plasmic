@@ -19,6 +19,7 @@ import {
 import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 
+import { Icon } from "@/wab/client/components/widgets/Icon";
 import InfoIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Info";
 import GatsbyIcon from "@/wab/commons/images/gatsby.svg";
 import NextjsIcon from "@/wab/commons/images/nextjs.svg";
@@ -522,7 +523,8 @@ function GithubIntegration(props: GithubIntegrationProps) {
       actionInfo={{
         render: () => (
           <Tooltip mouseEnterDelay={0.5} title={<DefaultActionTooltip />}>
-            <InfoIcon />
+            {/* `Icon` gives the tooltip a DOM anchor; keep the 1em size. */}
+            <Icon icon={InfoIcon} size="1em" />
           </Tooltip>
         ),
       }}

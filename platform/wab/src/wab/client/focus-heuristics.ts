@@ -45,6 +45,7 @@ export class FocusHeuristics {
     private currentComponentCtx: ComponentCtx | null,
     private showingDefaultSlotContents: boolean,
     private valForTpl: (tpl: TplNode, anchor: ValNode) => ValNode | undefined,
+    private selectionRoot?: ValNode,
   ) {}
 
   // Similar to containingComponentWithinCurrentComponentCtx.  This serves as
@@ -330,7 +331,8 @@ export class FocusHeuristics {
     const root = path[0];
     let start =
       root instanceof ValNode &&
-      root.tpl === root.valOwner?.tpl.component.tplTree
+      (root.fullKey === this.selectionRoot?.fullKey ||
+        root.tpl === root.valOwner?.tpl.component.tplTree)
         ? 1
         : 0;
     if (current && (current instanceof ValNode || current.val)) {
@@ -421,7 +423,7 @@ export class FocusHeuristics {
     // without rendering that child. Fiber ancestry then skips authored groups.
     // Use the editor tree for every component, and resolve each rendered
     // ancestor in the hit node's owner and repeated instance.
-    return withoutNils(
+    const path = withoutNils(
       ancestorsUpWithSlotSelections(
         target instanceof SlotSelection ? target.valToTpl() : target.tpl,
       ).map((node): Selectable | undefined => {
@@ -437,6 +439,12 @@ export class FocusHeuristics {
           : val;
       }),
     ).reverse();
+    const rootIndex = this.selectionRoot
+      ? path.findIndex((node) =>
+          node instanceof ValNode && node.fullKey === this.selectionRoot?.fullKey,
+        )
+      : -1;
+    return rootIndex < 0 ? path : path.slice(rootIndex);
   }
 
   // Returns either the best ValComponent that is within the current component

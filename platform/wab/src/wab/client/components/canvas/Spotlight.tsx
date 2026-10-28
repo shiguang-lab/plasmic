@@ -1,4 +1,8 @@
-import { recomputeBounds } from "@/wab/client/components/canvas/HoverBox";
+import {
+  clipBox,
+  computeClipBounds,
+  getVisibleFrameRect,
+} from "@/wab/client/components/canvas/HoverBox/visible-bounds";
 import { frameToScalerRect } from "@/wab/client/coords";
 import { hasLayoutBox } from "@/wab/client/dom";
 import { UiText } from "@/wab/client/i18n/UiText";
@@ -8,7 +12,7 @@ import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { swallowClick } from "@/wab/commons/components/ReactUtil";
 import { getTplSlots } from "@/wab/shared/SlotUtils";
 import * as common from "@/wab/shared/common";
-import { ensure, maybe, swallow } from "@/wab/shared/common";
+import { maybe, swallow, withoutNils } from "@/wab/shared/common";
 import { SlotSelection } from "@/wab/shared/core/slots";
 import { Box } from "@/wab/shared/geom";
 import { Switch } from "antd";
@@ -145,10 +149,26 @@ function Spotlight_(props: { viewCtx: ViewCtx }) {
             if (valDoms.length === 0) {
               return null;
             }
-            const valRect = ensure(
-              Box.mergeBBs(valDoms.map((d) => d.getBoundingClientRect())),
-              "Should return a Box",
-            ).rect();
+            // Shade only the visible part of each slot, like other overlays;
+            // a slot that is entirely clipped gets no shadow.
+            // Boxless doms (`display: contents`) report a 0×0 rect at the
+            // origin, which would stretch the shadow to the artboard corner.
+            const visibleParts = withoutNils(
+              valDoms
+                .filter(hasLayoutBox)
+                .map((d) =>
+                  clipBox(
+                    Box.fromRect(d.getBoundingClientRect()),
+                    computeClipBounds(d),
+                  ),
+                ),
+            );
+            const valRect = Box.mergeBBs(
+              visibleParts.map((box) => box.rect()),
+            )?.rect();
+            if (!valRect) {
+              return null;
+            }
             const valScalerRect = frameToScalerRect(valRect, viewCtx);
             return (
               <div
@@ -185,8 +205,12 @@ export function getSpotlightDomInfo(viewCtx: ViewCtx) {
       ? $focused.get().filter(hasLayoutBox)
       : undefined;
 
+  // The spotlight (and the controls below it and the variants bar above it)
+  // follows the visible part of the component, like the selection outline.
+  // Slot shadows are positioned relative to this rect from their own visible
+  // parts.
   const focusedFrameRect =
-    focusedElements && recomputeBounds($(focusedElements)).rect();
+    focusedElements && getVisibleFrameRect(focusedElements).rect();
   const focusedScalerRect =
     focusedFrameRect && frameToScalerRect(focusedFrameRect, viewCtx);
 

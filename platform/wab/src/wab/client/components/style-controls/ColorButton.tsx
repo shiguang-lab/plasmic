@@ -13,6 +13,7 @@ import PlasmicColorButton from "@/wab/client/plasmic/plasmic_kit_style_controls/
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { isTokenRef, tryParseTokenRef } from "@/wab/commons/StyleToken";
 
+import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import { VariantedStylesHelper } from "@/wab/shared/VariantedStylesHelper";
 import { zeroWidthSpace } from "@/wab/shared/common";
 import { siteFinalColorTokens } from "@/wab/shared/core/site-style-tokens";
@@ -125,7 +126,9 @@ function _ColorButton(props: ColorButtonProps) {
             },
             wrap: (elt) =>
               isDisabled && disabledTooltip ? (
-                <Tooltip title={disabledTooltip}>{elt}</Tooltip>
+                <Tooltip title={disabledTooltip}>
+                  <TriggerTarget>{elt}</TriggerTarget>
+                </Tooltip>
               ) : (
                 elt
               ),

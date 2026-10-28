@@ -1,3 +1,4 @@
+import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import AnonymousIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__UserSvg";
 import { ApiUser } from "@/wab/shared/ApiSchema";
 import { fullNameAndEmail } from "@/wab/shared/ApiSchemaUtil";
@@ -64,7 +65,7 @@ export function RawAvatar({
   );
   return showToolTip ? (
     <Tooltip title={name} placement={tooltipPlacement}>
-      {AvatarContent}
+      <TriggerTarget>{AvatarContent}</TriggerTarget>
     </Tooltip>
   ) : (
     AvatarContent

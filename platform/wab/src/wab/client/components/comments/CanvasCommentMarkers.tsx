@@ -8,8 +8,8 @@ import {
   TplCommentThread,
 } from "@/wab/client/components/comments/utils";
 import { Avatar } from "@/wab/client/components/studio/Avatar";
-import { useI18n } from "@/wab/client/i18n";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
+import { useI18n } from "@/wab/client/i18n";
 import {
   getSetOfPinnedVariantsForViewCtx,
   ViewCtx,
@@ -21,8 +21,8 @@ import {
   isTplVariantable,
   tryGetTplOwnerComponent,
 } from "@/wab/shared/core/tpls";
-import { ArenaFrame, ObjInst, TplNode } from "@/wab/shared/model/classes";
 import { Box } from "@/wab/shared/geom";
+import { ArenaFrame, ObjInst, TplNode } from "@/wab/shared/model/classes";
 import { mkSemVerSiteElement } from "@/wab/shared/site-diffs";
 import { Popover, Tooltip } from "antd";
 import $ from "jquery";
@@ -326,6 +326,9 @@ export const CanvasCommentOverlay = observer(function CanvasCommentOverlay({
       viewCtx={viewCtx}
       style={{ zIndex }}
       className="ElementHighlightBoxContainer"
+      // Anchor markers to the visible part of the element so they never float
+      // outside the artboard over Studio UI.
+      clipToVisible
     >
       <div
         className={className}

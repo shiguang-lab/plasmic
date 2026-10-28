@@ -1,6 +1,7 @@
 import { MenuBuilder } from "@/wab/client/components/menu-builder";
 import DataPicker from "@/wab/client/components/sidebar-tabs/DataBinding/DataPicker";
 import { ClickStopper } from "@/wab/client/components/widgets";
+import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import { getUiLocale } from "@/wab/client/i18n";
 import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
 import { translate } from "@/wab/client/i18n/locales";
@@ -494,7 +495,7 @@ export function VariantDataPicker(props: {
         destroyOnHidden={true}
         overlayClassName="data-picker-popover-overlay"
       >
-        {children}
+        <TriggerTarget>{children}</TriggerTarget>
       </Popover>
     </ClickStopper>
   );

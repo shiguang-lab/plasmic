@@ -43,7 +43,7 @@ describe("FocusHeuristics", function () {
     valTree,
     defaultSlotChild,
     valState: ValState,
-    getHeuristics: (ctx?: ComponentCtx) => FocusHeuristics;
+    getHeuristics: (ctx?: ComponentCtx, selectionRoot?: ValNode) => FocusHeuristics;
 
   const componentB = Components.mkComponent({
     name: "B",
@@ -138,7 +138,7 @@ describe("FocusHeuristics", function () {
           globalRoot: sysTree,
         });
 
-        getHeuristics = (ctx?: ComponentCtx) => {
+        getHeuristics = (ctx?: ComponentCtx, selectionRoot?: ValNode) => {
           const currentComponentCtx = ctx
             ? new ComponentCtx({
                 valComponent: ensureInstance(
@@ -157,6 +157,7 @@ describe("FocusHeuristics", function () {
               ValNodes.flattenVals(valTree).find(
                 (val) => val.tpl === tpl && val.valOwner === anchor.valOwner,
               ),
+            selectionRoot,
           );
         };
       };
@@ -370,6 +371,20 @@ describe("FocusHeuristics", function () {
         fh.bestFocusTarget(leaf, { exact: false, deepSelect: true })
           .focusTarget,
       ).toBe(leaf);
+    });
+
+    it("an isolated content root remains the selection boundary after clearing selection", () => {
+      const outer = valTree.children[0];
+      const content = outer.children[0];
+      const leaf = content.children[0];
+      const fh = getHeuristics(undefined, content);
+      expect(fh.bestFocusTarget(leaf, { exact: false, curFocused: null }).focusTarget).toBe(leaf);
+      expect(fh.bestFocusTarget(leaf, { exact: false, curFocused: content }).focusTarget).toBe(leaf);
+      expect(fh.bestFocusTarget(content, { exact: false }).focusTarget).toBe(content);
+      expect(fh.selectionParent(content)).toBeUndefined();
+      expect(fh.selectionParent(leaf)).toBe(content);
+      // Explicitly selecting another tree node still uses its normal scope.
+      expect(fh.bestFocusTarget(outer, { exact: true }).focusTarget).toBe(outer);
     });
 
     it("double click descends one layout level and single click stays in the entered level", () => {

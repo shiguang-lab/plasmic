@@ -24,7 +24,35 @@ export interface AddCommentMarkerProps extends DefaultAddCommentMarkerProps {
   icon?: PlasmicAddCommentMarker__OverridesType["icon"];
 }
 
-export function AddCommentMarker(props: AddCommentMarkerProps) {
+/** Adds `ref` to a Plasmic override given as props or as `{ props }`. */
+function withOverrideRef(override: unknown, ref: React.Ref<any>) {
+  if (!ref) {
+    return override;
+  }
+  if (override == null) {
+    return { ref };
+  }
+  if (typeof override !== "object" || React.isValidElement(override)) {
+    // Children or render-function overrides can't take a ref.
+    return override;
+  }
+  const full = ["props", "as", "render", "wrap", "wrapChildren"].some(
+    (key) => key in override,
+  );
+  return full
+    ? {
+        ...override,
+        props: { ...(override as { props?: object }).props, ref },
+      }
+    : { ...override, ref };
+}
+
+// The root element is the `icon` button. Tooltip triggers anchor through the
+// ref, so forward it there.
+export const AddCommentMarker = React.forwardRef<
+  HTMLButtonElement,
+  AddCommentMarkerProps
+>(function AddCommentMarker({ icon, ...props }, ref) {
   // Use PlasmicAddCommentMarker to render this component as it was
   // designed in Plasmic, by activating the appropriate variants,
   // attaching the appropriate event handlers, etc.  You
@@ -40,5 +68,15 @@ export function AddCommentMarker(props: AddCommentMarkerProps) {
   // By default, we are just piping all AddCommentMarkerProps here, but feel free
   // to do whatever works for you.
 
-  return <PlasmicAddCommentMarker {...props} />;
-}
+  return (
+    <PlasmicAddCommentMarker
+      {...props}
+      icon={
+        withOverrideRef(
+          icon,
+          ref,
+        ) as PlasmicAddCommentMarker__OverridesType["icon"]
+      }
+    />
+  );
+});

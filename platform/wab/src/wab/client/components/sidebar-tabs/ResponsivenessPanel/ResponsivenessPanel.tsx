@@ -5,6 +5,8 @@ import LeftPaneHeader from "@/wab/client/components/studio/LeftPaneHeader";
 import Button from "@/wab/client/components/widgets/Button";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import Select from "@/wab/client/components/widgets/Select";
+import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { useResponsiveBreakpoints } from "@/wab/client/hooks/useResponsiveBreakpoints";
 import { getUiLocale, useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
@@ -14,7 +16,6 @@ import PlasmicIcon__Plus from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plu
 import PlasmicIcon__Trash2 from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Trash2";
 import TriangleBottomIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__TriangleBottom";
 import PlasmicIcon__Alert from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__WarningTriangleSvg";
-import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { UiActionsWrapper } from "@/wab/client/studio-ctx/ui/studio-ui-actions";
 import { mkModelUiId } from "@/wab/client/studio-ctx/ui/studio-ui-ids";
 import { FRAMES_LOWER, FRAME_LOWER } from "@/wab/shared/Labels";
@@ -485,13 +486,16 @@ export function ResponsivenessPanel_() {
                 />
               }
             >
-              <PlasmicButton
-                type={"clear"}
-                withIcons={["startIcon"]}
-                startIcon={<Icon icon={PlasmicIcon__Plus} />}
-              >
-                <UiText message={"New breakpoint"} />
-              </PlasmicButton>
+              {/* PlasmicButton drops refs; TriggerTarget anchors the popover. */}
+              <TriggerTarget>
+                <PlasmicButton
+                  type={"clear"}
+                  withIcons={["startIcon"]}
+                  startIcon={<Icon icon={PlasmicIcon__Plus} />}
+                >
+                  <UiText message={"New breakpoint"} />
+                </PlasmicButton>
+              </TriggerTarget>
             </Popover>
           )}
         </div>

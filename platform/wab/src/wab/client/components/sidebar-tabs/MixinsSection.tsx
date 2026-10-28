@@ -3,6 +3,7 @@ import { MixinPopup } from "@/wab/client/components/sidebar/MixinControls";
 import { SidebarSection } from "@/wab/client/components/sidebar/SidebarSection";
 import { ApplyMixinsTooltip } from "@/wab/client/components/widgets/DetailedTooltips";
 import { LabelWithDetailedTooltip } from "@/wab/client/components/widgets/LabelWithDetailedTooltip";
+import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { MaybeWrap } from "@/wab/commons/components/ReactUtil";
@@ -104,13 +105,15 @@ export const MixinsSection = observer(function (props: {
               </>
             }
           >
-            {fixedMixins.map((mixin, index) => (
-              <div key={mixin.uuid} className={"fixed-mixins-pill"}>
-                <span className={"fixed-mixins-pill__contents"}>
-                  <div>{mixin.name}</div>
-                </span>
-              </div>
-            ))}
+            <TriggerTarget>
+              {fixedMixins.map((mixin, index) => (
+                <div key={mixin.uuid} className={"fixed-mixins-pill"}>
+                  <span className={"fixed-mixins-pill__contents"}>
+                    <div>{mixin.name}</div>
+                  </span>
+                </div>
+              ))}
+            </TriggerTarget>
           </Tooltip>
         </div>
       )}
@@ -151,7 +154,7 @@ export const MixinsSection = observer(function (props: {
                   </>
                 }
               >
-                {x as React.ReactElement}
+                <TriggerTarget>{x as React.ReactElement}</TriggerTarget>
               </Tooltip>
             )}
           >
