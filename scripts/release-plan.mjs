@@ -45,6 +45,9 @@ export function affectedProducts(files) {
       result.cli = true;
       result.resources = true;
     }
+    if (["deploy/compose.yml", "deploy/.env.example"].includes(file)) {
+      continue;
+    }
     if (
       /\.(test|spec)\.[^/]+$/.test(file) ||
       /(^|\/)(tests|__tests__|release-notes)\//.test(file) ||
@@ -82,6 +85,30 @@ export function affectedProducts(files) {
   return result;
 }
 const git = (...args) => execFileSync("git", args, { encoding: "utf8" }).trim();
+function localeImpact(file, baseline, ref) {
+  if (!baseline) return "shared";
+  const contains = (revision, key, paths) => {
+    try {
+      execFileSync("git", ["grep", "-F", "-q", "-e", key, revision, "--", ...paths], { stdio: "pipe" });
+      return true;
+    } catch (error) {
+      if (error.status === 1) return false;
+      throw error;
+    }
+  };
+  const before = JSON.parse(git("show", `${baseline}:${file}`));
+  const after = JSON.parse(git("show", `${ref}:${file}`));
+  const keys = [...new Set([...Object.keys(before), ...Object.keys(after)])]
+    .filter(key => before[key] !== after[key]);
+  if (!keys.length) return "none";
+  const studioPaths = ["platform", "packages", "plasmicpkgs", ":(exclude,glob)**/locales/*.json"];
+  // Only proven Desktop-owned captions can avoid a Studio build. Shared and
+  // unrecognized captions keep the full frontend release path.
+  return keys.every(key => key && !key.includes("\n") &&
+    [baseline, ref].some(revision => contains(revision, key, ["desktop/src"])) &&
+    ![baseline, ref].some(revision => contains(revision, key, studioPaths)))
+    ? "desktop" : "shared";
+}
 export function releasePlan(tag, ref = "HEAD", { forceAll = false } = {}) {
   if (!patterns.studio.test(tag)) throw new Error(`Unsupported release tag: ${tag}`);
   const tags = git("tag", "--merged", ref, "--sort=-version:refname")
@@ -91,6 +118,7 @@ export function releasePlan(tag, ref = "HEAD", { forceAll = false } = {}) {
   const unifiedBaseline = baseline && Boolean(git("ls-tree", "--name-only", baseline, "scripts/github-release.mjs"));
   const baselines = {};
   const changes = {};
+  const locales = new Map();
   for (const product of Object.keys(patterns)) {
     // Preserve the last independently released source until a unified tag
     // supersedes it. Historical tags are comparison points, not entrypoints.
@@ -105,7 +133,20 @@ export function releasePlan(tag, ref = "HEAD", { forceAll = false } = {}) {
     const files = baselines[product]
       ? git("diff", "--name-only", baselines[product], ref)
       : git("ls-tree", "-r", "--name-only", ref);
-    changes[product] = affectedProducts(files.split("\n"));
+    let desktopLocale = false;
+    const inputs = files.split("\n").filter(file => {
+      if (!/^platform\/wab\/src\/wab\/client\/i18n\/locales\/[^/]+\.json$/.test(file)) return true;
+      const key = `${baselines[product]}:${file}`;
+      if (!locales.has(key)) {
+        try { locales.set(key, localeImpact(file, baselines[product], ref)); }
+        catch { locales.set(key, "shared"); }
+      }
+      const impact = locales.get(key);
+      desktopLocale ||= impact === "desktop";
+      return impact === "shared";
+    });
+    changes[product] = affectedProducts(inputs);
+    changes[product].desktop ||= desktopLocale;
   }
   const full = forceAll || !baseline || isNewReleaseSeries(tag, baseline);
   const studio = full || changes.studio.studio;

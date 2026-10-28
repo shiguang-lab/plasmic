@@ -93,6 +93,9 @@ jobs:
         with:
           name: desktop-renderer
       - run: tar -xzf renderer.tar.gz -C desktop
+      - name: Test Desktop on macOS
+        if: matrix.platform == 'darwin' && matrix.arch == 'x64'
+        run: npm test --prefix desktop
       - name: Verify expired-session startup
         if: matrix.platform == 'darwin'
         run: npm run test:auth-startup --prefix desktop

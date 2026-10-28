@@ -185,3 +185,41 @@ test("unified patches select changed products; minor, major and manual full rele
     rmSync(repo, { recursive: true, force: true });
   }
 });
+
+
+test("Desktop-owned translations reuse Studio; shared and unknown captions rebuild it", () => {
+  const original = process.cwd(), repo = mkdtempSync(path.join(tmpdir(), "release-locales-"));
+  const git = (...args) => execFileSync("git", args, { cwd: repo, stdio: "pipe" });
+  const put = (file, value) => { mkdirSync(path.dirname(path.join(repo, file)), { recursive: true }); writeFileSync(path.join(repo, file), value); };
+  const commit = () => { git("add", "."); git("-c", "user.name=Release test", "-c", "user.email=test@example.invalid", "-c", "core.hooksPath=/dev/null", "commit", "-m", "test"); };
+  const desktop = (version, image) => {
+    put("desktop/package.json", JSON.stringify({ version }));
+    put("desktop/package-lock.json", JSON.stringify({ version, packages: { "": { version } } }));
+    put("desktop/desktop.config.json", JSON.stringify({ webImage: `ghcr.io/shiguang-lab/plasmic-web:${image}` }));
+    put(`desktop/release-notes/${version}.md`, "Update");
+    put(`desktop/release-notes/${version}.json`, JSON.stringify(Object.fromEntries(["en", "zh-CN", "zh-TW", "ja", "ko"].map(locale => [locale, "Update"]))));
+  };
+  const file = "platform/wab/src/wab/client/i18n/locales/en.json";
+  try {
+    git("init"); desktop("1.2.0", "1.2.0");
+    put("scripts/github-release.mjs", "publisher");
+    put("desktop/src/main.cjs", 't("Desktop old caption"); t("Save")');
+    put("platform/wab/src/wab/client/main.ts", 't("Save")');
+    put(file, JSON.stringify({ "Desktop old caption": "Old", Save: "Save" }));
+    commit(); git("tag", "1.2.0"); process.chdir(repo);
+    put(file, JSON.stringify({ Save: "Save", "Desktop old caption": "Old" }, null, 2)); commit();
+    assert.equal(releasePlan("1.2.1").publish, false, "formatting alone does not release products");
+    desktop("1.2.1", "1.2.0"); put(file, JSON.stringify({ "Desktop old caption": "New", Save: "Save" })); commit();
+    assert.equal(releasePlan("1.2.1").studio, false); assert.equal(releasePlan("1.2.1").desktop, true); git("tag", "1.2.1");
+    desktop("1.2.2", "1.2.0"); put("desktop/src/main.cjs", 't("Desktop new caption"); t("Save")');
+    put(file, JSON.stringify({ "Desktop new caption": "New", Save: "Save" })); commit();
+    assert.equal(releasePlan("1.2.2").studio, false, "renaming a Desktop-only key remains Desktop-only"); git("tag", "1.2.2");
+    desktop("1.2.3", "1.2.3"); put(file, JSON.stringify({ "Desktop new caption": "New", Save: "Changed" })); commit();
+    assert.equal(releasePlan("1.2.3").studio, true); git("tag", "1.2.3");
+    desktop("1.2.4", "1.2.4"); put(file, JSON.stringify({ "Desktop new caption": "New", Save: "Changed", Unknown: "Unknown" })); commit();
+    assert.equal(releasePlan("1.2.4").studio, true, "unknown ownership keeps the full build");
+  } finally { process.chdir(original); rmSync(repo, { recursive: true, force: true }); }
+});
+test("external deployment settings do not rebuild image contents", () => {
+  assert.deepEqual(products(["deploy/compose.yml", "deploy/.env.example"]), []);
+});

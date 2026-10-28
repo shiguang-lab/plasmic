@@ -1,4 +1,4 @@
-name: Test Desktop on supported operating systems
+name: Test Desktop on Linux and Windows
 on:
   workflow_call:
     inputs:
@@ -19,7 +19,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        runner: [ubuntu-24.04, macos-26, windows-2025]
+        runner: [ubuntu-24.04, windows-2025]
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 20
     outputs:

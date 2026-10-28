@@ -212,6 +212,8 @@ latest 固定转发至 GitHub latest。资源按内容哈希存入固定的 `pla
 
 ## 本地构建与发布检查
 
+同一构建进程内复用已通过的完整验收脚本单测，失败后可重试；每个资源产物仍独立检查 references、manifest 与文件哈希。正式发布进程必须先通过完整单测。
+
 ```sh
 node packages/plasmic-cli/src/index.mjs skill install --dry-run
 node scripts/build-plasmic-resources.mjs --version 0.0.59

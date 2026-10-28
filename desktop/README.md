@@ -355,7 +355,10 @@ that language changes.
 Release notes contain the update body only. The dialog supplies the "What's new"
 heading; do not repeat it in the Markdown file. Use `##` headings for subsections.
 
-A patch selects changed products. Frontend changes build Studio and Desktop; a
+A patch selects changed products. Frontend changes build Studio and Desktop. Shared language-pack changes that only
+affect captions used by Desktop reuse the existing Studio image; shared or unknown
+caption ownership keeps the full frontend build. Compose and environment-example
+changes are applied as deployment configuration without rebuilding images. A
 backend-only patch builds Studio; a Desktop-only patch reuses an existing Studio
 image. Major/minor releases and manual `force-all` dispatches build every product.
 When Studio is selected alongside Desktop, pin the new Studio image in the same
@@ -370,9 +373,10 @@ The release plan compares production inputs and skips unchanged patch products. 
 builds macOS arm64 on Apple Silicon, macOS x64 on Intel, Windows x64 on Windows,
 and Linux x64 on Linux. macOS installers and updates use only
 `darwin/arm64/` and `darwin/x64/`; Rosetta launches select arm64.
-The Node test suite runs once per OS (Linux, macOS arm64, Windows) alongside the
-Studio image build for linked releases, or alongside renderer preparation and
-installer packaging for standalone Desktop releases. A linked release reuses
+The Node test suite runs on Linux and Windows alongside the Studio image build.
+The Intel Mac installer job runs the macOS Node suite before native acceptance
+and packaging, so the release requests an ARM Mac runner only for its native
+acceptance and installer job. A linked release reuses
 successful tests only when their commit matches the packaged source revision.
 Both macOS installer runners retain
 the native startup and session-lifecycle checks, signature checks, and architecture

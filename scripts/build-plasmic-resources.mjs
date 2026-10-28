@@ -10,6 +10,7 @@ import { inspectCliArtifact } from "./plasmic-cli-artifact.mjs";
 import { validateReferences } from "./validate-plasmic-references.mjs";
 import { validateComponentReferences } from "./validate-plasmic-component-coverage.mjs";
 
+let verifierPassed = false;
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 export async function buildCli(version = CLI_VERSION) {
   compareVersions(version, version);
@@ -39,10 +40,14 @@ export async function buildCli(version = CLI_VERSION) {
 export async function buildResources(output = path.join(repo, "dist/plasmic-resources"), version = CLI_VERSION, { cliVersion = CLI_VERSION, cliArtifact } = {}) {
   compareVersions(version, version);
   if (compareVersions(cliVersion, MIN_CLI_VERSION) < 0) throw new Error(`CLI version must be at least ${MIN_CLI_VERSION}`);
-  // Every resource publication goes through this builder, including local NAS releases.
-  execFileSync("python3", ["-m", "unittest", "discover", "-s", "ai/plasmic/scripts", "-p", "test_*.py"], {
-    cwd: repo, stdio: "inherit",
-  });
+  // Repeated artifacts in one process share the same immutable verifier suite.
+  // Each artifact still validates its current references, manifest and bytes.
+  if (!verifierPassed) {
+    execFileSync("python3", ["-m", "unittest", "discover", "-s", "ai/plasmic/scripts", "-p", "test_*.py"], {
+      cwd: repo, stdio: "inherit",
+    });
+    verifierPassed = true;
+  }
   const files = [];
   async function visit(relative) {
     const entries = await readdir(path.join(repo, "ai/plasmic", relative), { withFileTypes: true });

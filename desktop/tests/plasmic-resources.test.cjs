@@ -20,3 +20,34 @@ test("failed verifier tests block resource packaging before artifacts are writte
   assert.match(result.stderr, /python3/);
   await assert.rejects(fs.access(output));
 });
+
+test("one build process retries a failed verifier and shares a successful suite across artifacts", async (t) => {
+  const temporary = await fs.mkdtemp(path.join(os.tmpdir(), "plasmic-verifier-reuse-"));
+  t.after(() => fs.rm(temporary, { recursive: true, force: true }));
+  const script = `
+    const assert = require('node:assert/strict');
+    const cp = require('node:child_process');
+    const real = cp.execFileSync;
+    let checks = 0;
+    cp.execFileSync = (command, ...args) => {
+      if (command === 'python3') {
+        checks++;
+        if (checks === 1) throw new Error('fixture verifier failed');
+        return '';
+      }
+      return real(command, ...args);
+    };
+    require('node:module').syncBuiltinESMExports();
+    (async () => {
+      const { buildResources } = await import(${JSON.stringify(require("node:url").pathToFileURL(path.resolve(__dirname, "../../scripts/build-plasmic-resources.mjs")).href)});
+      const output = ${JSON.stringify(temporary)};
+      await assert.rejects(buildResources(output), /fixture verifier failed/);
+      const first = await buildResources(output);
+      const second = await buildResources(output);
+      assert.equal(checks, 2, 'failed verification retries; successful verification is reused');
+      assert.deepEqual(first.manifest, second.manifest, 'repeated artifacts retain all hashes and metadata');
+    })().catch(error => { console.error(error); process.exitCode = 1; });
+  `;
+  const result = spawnSync(process.execPath, ["-e", script], { encoding: "utf8", timeout: 30000 });
+  assert.equal(result.status, 0, result.stderr);
+});
