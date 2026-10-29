@@ -1,6 +1,6 @@
 # Read-only design and template inspection
 
-Use for explaining a page/component/template, assessing reuse, or reviewing a design. No design edit permission is required for accessible reads. Do not install/upgrade libraries, detach, change initial props, save or publish as part of inspection.
+Use for explaining a page/component/template, assessing reuse, or reviewing the design itself. Reviewing application code against a design uses [codegen](codegen.md), even without edits. No design edit permission is required for accessible reads. Do not install/upgrade libraries, detach, change initial props, save or publish as part of inspection.
 
 1. Resolve `--mode inspect`, discover the Desktop/project and exact operation schemas, then identify the session. Read the overview and the named target using the [model-reading contract](../model-reading.md). Follow referenced custom components and hidden branches; distinguish known contracts from unavailable implementation details.
 2. For template interpretation read [template selection](../admin-templates.md#select-by-scenario), its [read-only acquisition path](../admin-templates.md#read-and-compose-through-public-tools) and the [catalog](../templates/admin/catalog.json). Read only selected live templates and their nested definitions. Explain source/version, composition, Slots, shell ownership, sample behavior and destination binding work. Catalog records and screenshots alone do not prove current contracts.

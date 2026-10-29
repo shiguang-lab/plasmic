@@ -102,7 +102,14 @@ async function setup(t) {
     await new Promise((resolve) => server.close(resolve));
     await rm(home, { recursive: true, force: true });
   });
-  return { home, feed: `http://127.0.0.1:${server.address().port}`, state };
+  const env = {
+    ...process.env,
+    HOME: home, USERPROFILE: home, CODEX_HOME: path.join(home, ".codex"),
+    CLAUDE_CONFIG_DIR: path.join(home, ".claude"), DSH_HOME: path.join(home, ".dsh"), DSH_AGENTS_HOME: path.join(home, ".agents"),
+    XDG_CONFIG_HOME: path.join(home, ".config"), XDG_DATA_HOME: path.join(home, ".local/share"),
+    APPDATA: path.join(home, "roaming"), ProgramData: path.join(home, "system"),
+  };
+  return { home, feed: `http://127.0.0.1:${server.address().port}`, state, env };
 }
 test(
   "CLI streams download bytes and waiting messages before completion, preserves JSON stdout and reports cache reuse",
@@ -128,6 +135,7 @@ test(
     ];
     const child = spawn(process.execPath, args, {
       stdio: ["ignore", "pipe", "pipe"],
+      env: options.env,
     });
     t.after(() => child.kill());
     let stdout = "",
@@ -169,7 +177,7 @@ test(
       options.state.requests.filter((r) => r.path.endsWith(".gz")).length,
       1,
     );
-    const cached = await run(process.execPath, args);
+    const cached = await run(process.execPath, args, { env: options.env });
     assert.equal(JSON.parse(cached.stdout).updated, false);
     assert.match(cached.stderr, /当前资源已是最新版本/);
     assert.match(
@@ -212,6 +220,67 @@ test("CLI failures identify the failed stage and give a readable action without 
     },
   );
 });
+test("CLI syncs installed entries independently of resource changes and resource failures", async (t) => {
+  const options = await setup(t);
+  const target = path.join(options.home, ".agents/skills/plasmic/SKILL.md");
+  await mkdir(path.dirname(target), { recursive: true });
+  await mkdir(path.join(options.home, ".codex"));
+  await mkdir(path.join(options.home, ".qwen"));
+  await writeFile(target, "old entry");
+  const args = [new URL("../src/index.mjs", import.meta.url).pathname, "context", "resolve", "--mode", "prototype", "--feed", options.feed, "--home", path.join(options.home, "cache")];
+  const first = JSON.parse((await run(process.execPath, args, { env: options.env })).stdout);
+  assert.equal(first.skillUpdate.ok, true);
+  assert.equal(first.skillUpdate.installations.find((item) => item.agents.includes("codex")).status, "updated");
+  const expected = (await readFile(new URL("../skill/plasmic/SKILL.md", import.meta.url), "utf8")).trimEnd() + `\n\n<!-- plasmickit-cli-version: ${CLI_VERSION} -->\n`;
+  assert.equal(await readFile(target, "utf8"), expected);
+  await assert.rejects(access(path.join(options.home, ".qwen/skills")), { code: "ENOENT" });
+
+  await writeFile(target, "outdated entry with current resources");
+  const cached = JSON.parse((await run(process.execPath, args, { env: options.env })).stdout);
+  assert.equal(cached.updated, false);
+  assert.equal(cached.skillUpdate.installations.find((item) => item.agents.includes("codex")).status, "updated");
+  assert.equal(options.state.requests.filter((request) => request.path.endsWith(".gz")).length, 1);
+
+  options.state.failure = true;
+  await writeFile(target, "entry before unavailable resources");
+  await assert.rejects(run(process.execPath, args, { env: options.env }), (error) => {
+    const result = JSON.parse(error.stderr.trim().split("\n").at(-1));
+    assert.equal(result.ok, false);
+    assert.equal(result.skillUpdate.ok, true);
+    assert.equal(result.skillUpdate.installations.find((item) => item.agents.includes("codex")).status, "updated");
+    assert.equal(result.stage, "manifest");
+    return true;
+  });
+  assert.equal(await readFile(target, "utf8"), expected);
+
+  options.state.failure = false;
+  const broken = path.join(options.home, ".claude/skills/plasmic/SKILL.md");
+  await mkdir(broken, { recursive: true });
+  const partial = await run(process.execPath, args, { env: options.env });
+  const result = JSON.parse(partial.stdout);
+  assert.equal(result.ok, true);
+  assert.equal(result.skillUpdate.ok, false);
+  assert.equal(result.skillUpdate.installations.find((item) => item.agents.includes("claude-code")).status, "failed");
+  assert.match(partial.stderr, /Skill 入口更新失败/);
+  await access(result.referencePath);
+  await rm(broken, { recursive: true });
+  await writeFile(broken, "retry entry");
+  const retried = JSON.parse((await run(process.execPath, args, { env: options.env })).stdout);
+  assert.equal(retried.skillUpdate.ok, true);
+  assert.equal(await readFile(broken, "utf8"), expected);
+});
+
+test("invalid context modes do not synchronize skills", async (t) => {
+  const options = await setup(t);
+  const filename = path.join(options.home, ".agents/skills/plasmic/SKILL.md");
+  await mkdir(path.dirname(filename), { recursive: true });
+  await mkdir(path.join(options.home, ".codex"));
+  await writeFile(filename, "untouched");
+  await assert.rejects(run(process.execPath, [new URL("../src/index.mjs", import.meta.url).pathname, "context", "resolve", "--mode", "invalid"], { env: options.env }), /--mode must be/);
+  assert.equal(await readFile(filename, "utf8"), "untouched");
+  assert.equal(options.state.requests.length, 0);
+});
+
 test("context checks the feed every task, reuses valid bytes and switches both modes to changed resources", async (t) => {
   const options = await setup(t);
   assert.equal((await checkReferences(options)).updateAvailable, true);
@@ -520,6 +589,8 @@ test("built NAS artifacts install a working CLI binary and only the thin skill",
     USERPROFILE: agentHome,
     CODEX_HOME: path.join(agentHome, ".codex"),
     CLAUDE_CONFIG_DIR: path.join(agentHome, ".claude"),
+    DSH_HOME: path.join(agentHome, ".dsh"),
+    DSH_AGENTS_HOME: path.join(agentHome, ".agents"),
     XDG_CONFIG_HOME: path.join(agentHome, ".config"),
     XDG_DATA_HOME: path.join(agentHome, ".local/share"),
     APPDATA: path.join(agentHome, "AppData/Roaming"),
@@ -536,10 +607,10 @@ test("built NAS artifacts install a working CLI binary and only the thin skill",
   assert.deepEqual(await readdir(codexSkill.target), ["SKILL.md"]);
   assert.equal(
     await readFile(codexSkill.skillPath, "utf8"),
-    await readFile(
+    (await readFile(
       new URL("../skill/plasmic/SKILL.md", import.meta.url),
       "utf8",
-    ),
+    )).trimEnd() + `\n\n<!-- plasmickit-cli-version: ${CLI_VERSION} -->\n`,
   );
   assert.ok(
     built.manifest.files.some((f) => f.path === "scripts/verify_structure.py"),
@@ -579,7 +650,7 @@ test("built NAS artifacts install a working CLI binary and only the thin skill",
   assert.equal(versions.cliUpdateAvailable, false);
   for (const mode of ["inspect", "prototype", "codegen"]) {
     const context = JSON.parse(
-      (await run(binary, ["context", "resolve", "--mode", mode, ...args]))
+      (await run(binary, ["context", "resolve", "--mode", mode, ...args], { env: installEnv }))
         .stdout,
     );
     assert.deepEqual(

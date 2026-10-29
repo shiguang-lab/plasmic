@@ -1,7 +1,7 @@
 ---
 name: plasmic
 compatibility: Requires Node.js >=22.12, Python >=3.9 available as python3, and signed-in Plasmic Desktop MCP for design inspection or editing.
-description: Inspect self-hosted Plasmic pages and templates, create or revise editable Plasmic prototypes, and implement native React code from Plasmic designs. Use for Plasmic Studio/Desktop MCP work such as 原型设计, 后台页面原型 (list/form/detail pages), 按需求或线框/设计稿生成页面, 解读模板或页面, and 根据 Plasmic 设计生成代码. Not for generic React pages without a Plasmic design, or for developing the Plasmic platform itself.
+description: Create, revise and review editable UI prototypes in Plasmic (原型设计/修改/验收), and generate, repair or verify their application code (代码生成/修复/还原验收). Use for prototype design when no other tool is specified, explicit Plasmic work, and follow-ups in established Plasmic design/code context. Excludes unrelated application coding and Plasmic platform development.
 ---
 
 # Plasmic
@@ -10,19 +10,27 @@ This is the entrypoint for resolving current resources and selecting a workflow.
 
 ## Resolve the workflow
 
-Choose `inspect` for read-only explanation/review, `prototype` for editable design creation or revision, or `codegen` for native application implementation.
+Choose by the task's artifact and intent, not whether it is new work or uses MCP:
+
+- `inspect`: explain or review the design/model itself without changing it.
+- `prototype`: create, revise or repair an editable design and verify the resulting prototype.
+- `codegen`: generate, update, repair or review application code against a Plasmic design, including read-only implementation acceptance.
+
+For an editable prototype request with no chosen tool or existing design source, use Plasmic; honor another explicitly selected tool or established source. Follow-up work keeps its design/code context without repeating the skill name. Switch workflows when the target changes; read-only code review still uses codegen. Review does not authorize repairs. If the intended artifact is unclear, clarify it rather than choosing an editor or codebase by keyword alone.
 
 If this skill contains `local-source.json`, read its absolute `resolver` path and run `node RESOLVER_PATH --mode MODE`. This selects current local development resources. A missing resolver/resource is an error; do not fall back to published or cached resources.
 
 Otherwise run the matching published command:
 
 ```sh
-npx -y @plasmickit/cli@latest context resolve --mode inspect
-npx -y @plasmickit/cli@latest context resolve --mode prototype
-npx -y @plasmickit/cli@latest context resolve --mode codegen
+npx -y --prefer-online @plasmickit/cli@latest context resolve --mode inspect
+npx -y --prefer-online @plasmickit/cli@latest context resolve --mode prototype
+npx -y --prefer-online @plasmickit/cli@latest context resolve --mode codegen
 ```
 
-Read every returned `mustRead` file, starting with `referencePath`. Resolve linked documents from the returned `resourceRoot`; follow the workflow's scenario-specific reading and evidence requirements. Resource readiness does not mean the documents have been read. For a task spanning modes, resolve and read each workflow before its work begins.
+Published `context resolve` first synchronizes existing installed skill entries from its CLI bundle, independently of resource updates. Local-source and symlinked entries are preserved. Report `skillUpdate` failures separately; they do not invalidate usable resources. Updated discovery instructions apply when the client reloads skills, not necessarily in this conversation.
+
+Before work in a mode, resolve its resources and read every returned `mustRead` file, starting with `referencePath`; follow relevant links from `resourceRoot`. Within the same task, reuse known, already-read resources and retain pending checks; do not resolve again just because a new message arrived. Resolve/read a newly required mode or recover missing resource context before dependent work; reread affected design inputs when they change. Resource readiness or document reading alone does not establish workflow completion.
 
 Both resolvers verify that Python 3.9+ is available as `python3` for reference readers and gates. The published resolver also checks the NAS release manifest and verifies resource hashes. Stop dependent work on failure; do not silently use stale references. If it requires a newer CLI before npm has that version, install its returned `cliUrl` and rerun. Relay meaningful preparation progress from stderr; stdout contains the result. Report local versus published resources accurately.
 
@@ -40,7 +48,7 @@ Select components before composing markup. Discover existing business components
 
 For admin prototypes, read `references/admin-templates.md` and its catalog, inspect applicable live templates, then adapt the selected composition to the requirement. Read the relevant component and composition references before using them. A template or component must fit the current requirement and the project's actual library.
 
-Use the selected workflow for source interpretation, project selection, editing and verification. Keep plans and acceptance evidence outside the business UI. Inspect is read-only; prototype mutations require edit permission. Codegen uses the target application's architecture and codegen workflow; an explicit official Plasmic CLI request follows the guide's official-CLI reference.
+Keep plans and acceptance evidence outside the business UI. Prototype mutations require edit permission. Codegen follows the target application's architecture; an explicit official Plasmic CLI request follows the guide's official-CLI reference.
 
 For prototype work, follow the workflow's execution-stage table. Derive observable acceptance cases from the current requirements before generation, prepare the current Page's detailed inputs, and retain actual gate/runtime results at each stage. Use existing preparation and verification commands; declarations, tool success and screenshots alone do not establish business acceptance.
 

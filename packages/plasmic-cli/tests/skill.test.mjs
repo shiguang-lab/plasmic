@@ -1,15 +1,18 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
-import { access, chmod, mkdir, mkdtemp, readFile, readdir, rm, stat, symlink, writeFile } from "node:fs/promises";
+import { access, chmod, cp, lstat, mkdir, mkdtemp, readFile, readdir, rm, stat, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
+import { pathToFileURL } from "node:url";
 import { detectInstalledAgents } from "../src/agents.mjs";
 import { installSkill } from "../src/skill.mjs";
+import { CLI_VERSION } from "../src/protocol.mjs";
 
 const run = promisify(execFile);
-const bundled = await readFile(new URL("../skill/plasmic/SKILL.md", import.meta.url), "utf8");
+const sourceSkill = await readFile(new URL("../skill/plasmic/SKILL.md", import.meta.url), "utf8");
+const bundled = `${sourceSkill.trimEnd()}\n\n<!-- plasmickit-cli-version: ${CLI_VERSION} -->\n`;
 async function setup(t) {
   const home = await mkdtemp(path.join(tmpdir(), "plasmic-skills-"));
   t.after(() => rm(home, { recursive: true, force: true }));
@@ -219,4 +222,108 @@ test("CLI needs no target argument and returns nonzero with detailed partial fai
     return true;
   });
   await assert.rejects(run(process.execPath, [cli.pathname, "skill", "install", "--target", options.home], { env }), (error) => error.code === 1 && /Unknown option/.test(error.stderr));
+});
+
+test("automatic synchronization adopts existing unversioned installs without installing other clients", async (t) => {
+  const options = await setup(t);
+  await mkdir(path.join(options.home, ".codex"));
+  await mkdir(path.join(options.home, ".claude"));
+  const target = path.join(options.home, ".agents/skills/plasmic");
+  await file(path.join(target, "SKILL.md"), sourceSkill);
+  await file(path.join(target, "notes.txt"), "keep");
+  const result = await installSkill({ ...options, existingOnly: true });
+  assert.equal(result.ok, true);
+  assert.equal(result.mode, "sync");
+  assert.equal(result.installations.find((item) => item.agents.includes("codex")).status, "updated");
+  assert.equal(result.installations.find((item) => item.agents.includes("claude-code")).reason, "not-installed");
+  await assert.rejects(access(path.join(options.home, ".claude/skills")), { code: "ENOENT" });
+  assert.equal(await readFile(path.join(target, "SKILL.md"), "utf8"), bundled);
+  assert.equal(await readFile(path.join(target, "notes.txt"), "utf8"), "keep");
+  const before = await stat(path.join(target, "SKILL.md"));
+  await installSkill({ ...options, existingOnly: true });
+  assert.equal((await stat(path.join(target, "SKILL.md"))).mtimeMs, before.mtimeMs);
+  assert.deepEqual((await readdir(target)).sort(), ["SKILL.md", "notes.txt"]);
+});
+
+test("automatic synchronization is a no-op without installed clients", async (t) => {
+  const options = await setup(t);
+  const result = await installSkill({ ...options, existingOnly: true });
+  assert.equal(result.ok, true);
+  assert.deepEqual(result.installations, []);
+  assert.deepEqual(await readdir(options.home), []);
+});
+
+test("synchronization preserves local sources and symlinked skill entries", { skip: process.platform === "win32" }, async (t) => {
+  const options = await setup(t);
+  await mkdir(path.join(options.home, ".codex"));
+  await mkdir(path.join(options.home, ".qwen"));
+  const local = path.join(options.home, ".agents/skills/plasmic");
+  await file(path.join(local, "SKILL.md"), "local skill");
+  await file(path.join(local, "local-source.json"), '{"source":"local"}');
+  const source = path.join(options.home, "source/SKILL.md");
+  await file(source, "source skill");
+  const linked = path.join(options.home, ".claude/skills/plasmic");
+  await mkdir(linked, { recursive: true });
+  await symlink(source, path.join(linked, "SKILL.md"));
+  const linkedDirectory = path.join(options.home, ".qwen/skills/plasmic");
+  await mkdir(path.dirname(linkedDirectory), { recursive: true });
+  await symlink(path.dirname(source), linkedDirectory, "dir");
+  const result = await installSkill({ ...options, existingOnly: true });
+  assert.equal(result.ok, true);
+  assert.deepEqual(result.installations.map((item) => item.reason), ["local-source", "symlink", "symlink"]);
+  assert.equal(await readFile(path.join(local, "SKILL.md"), "utf8"), "local skill");
+  assert.equal(await readFile(source, "utf8"), "source skill");
+  assert.equal((await lstat(path.join(linked, "SKILL.md"))).isSymbolicLink(), true);
+  assert.deepEqual(await readdir(path.dirname(source)), ["SKILL.md"]);
+});
+
+test("a newer installed version is never replaced by an older CLI", async (t) => {
+  const options = await setup(t);
+  await mkdir(path.join(options.home, ".codex"));
+  const filename = path.join(options.home, ".agents/skills/plasmic/SKILL.md");
+  const newer = "New instructions\n\n<!-- plasmickit-cli-version: 999.0.0 -->\n";
+  await file(filename, newer);
+  for (const existingOnly of [true, false]) {
+    const result = await installSkill({ ...options, existingOnly });
+    assert.equal(result.installations[0].reason, "newer-installed");
+    assert.equal(await readFile(filename, "utf8"), newer);
+  }
+});
+
+test("concurrent CLI versions serialize writes and keep the newest entry", async (t) => {
+  const options = await setup(t);
+  await mkdir(path.join(options.home, ".codex"));
+  const filename = path.join(options.home, ".agents/skills/plasmic/SKILL.md");
+  await file(filename, "old unversioned skill");
+  const copy = path.join(options.home, "new-cli");
+  await mkdir(copy);
+  for (const name of ["src", "skill"]) await cp(new URL(`../${name}`, import.meta.url), path.join(copy, name), { recursive: true });
+  await file(path.join(copy, "package.json"), JSON.stringify({ version: "999.0.0", type: "module" }));
+  await file(path.join(copy, "skill/plasmic/SKILL.md"), "New instructions\n");
+  const runInstall = (module) => run(process.execPath, ["--input-type=module", "-e",
+    `const {installSkill} = await import(${JSON.stringify(module)}); console.log(JSON.stringify(await installSkill(${JSON.stringify({ ...options, existingOnly: true })})));`,
+  ]);
+  const oldModule = new URL("../src/skill.mjs", import.meta.url).href;
+  const newModule = pathToFileURL(path.join(copy, "src/skill.mjs")).href;
+  const results = await Promise.all([runInstall(oldModule), runInstall(newModule), runInstall(oldModule), runInstall(newModule)]);
+  assert.ok(results.every(({ stdout }) => JSON.parse(stdout).ok));
+  assert.equal(await readFile(filename, "utf8"), "New instructions\n\n<!-- plasmickit-cli-version: 999.0.0 -->\n");
+  assert.deepEqual(await readdir(path.dirname(filename)), ["SKILL.md"]);
+});
+
+test("an occupied update lock fails within a bound and can be retried without losing the entry", async (t) => {
+  const options = await setup(t);
+  await mkdir(path.join(options.home, ".codex"));
+  const target = path.join(options.home, ".agents/skills/plasmic");
+  await file(path.join(target, "SKILL.md"), "keep until unlocked");
+  const lock = path.join(target, ".plasmickit-skill-lock");
+  await mkdir(lock);
+  const result = await installSkill({ ...options, existingOnly: true });
+  assert.equal(result.ok, false);
+  assert.match(result.installations[0].error, /Skill update still locked/);
+  assert.equal(await readFile(path.join(target, "SKILL.md"), "utf8"), "keep until unlocked");
+  await access(lock);
+  await rm(lock, { recursive: true });
+  assert.equal((await installSkill({ ...options, existingOnly: true })).ok, true);
+  assert.equal(await readFile(path.join(target, "SKILL.md"), "utf8"), bundled);
 });

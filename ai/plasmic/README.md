@@ -69,15 +69,19 @@ Page plan 的步骤、命令和读取台账见 [规划](references/planning.md)�
 需要 Node.js 22.12 或更高版本，以及当前客户端 PATH 中可调用的 Python 3.9+（`python3`）。本地和发布版 context resolver 都先检查 Python；失败时报告环境缺口，不会把资源就绪当成流程可执行。npm 发布完成后：
 
 ```sh
-npx -y @plasmickit/cli@latest skill install
-npx -y @plasmickit/cli@latest context resolve --mode inspect
-npx -y @plasmickit/cli@latest context resolve --mode prototype
-npx -y @plasmickit/cli@latest context resolve --mode codegen
+npx -y --prefer-online @plasmickit/cli@latest skill install
+npx -y --prefer-online @plasmickit/cli@latest context resolve --mode inspect
+npx -y --prefer-online @plasmickit/cli@latest context resolve --mode prototype
+npx -y --prefer-online @plasmickit/cli@latest context resolve --mode codegen
 ```
 
 `skill install` 非交互地检测本机受支持的 Agent CLI、桌面应用、IDE 扩展和用户配置目录，为所有检测到的客户端安装包内同一份 `plasmic/SKILL.md`，无需选择客户端或输入安装路径。CLI 检测检查 PATH 中的可执行文件，不启动客户端。应用检测使用 macOS 系统/用户 Applications、Windows 开始菜单快捷方式、Linux XDG 桌面入口；IDE 扩展检测包含 VS Code、VS Code Insiders、Cursor 和 Windsurf 的扩展目录。配置目录是安装线索，可能属于尚未卸载干净的客户端；检测依据随结果返回。
 
-默认使用用户级 Skill 目录，不修改当前项目。共用目录或已存在的 Skill 目录符号链接会合并为一次安装。内容相同返回 `unchanged`；更新通过临时文件原子替换 `SKILL.md`，保留其他 Skill 与用户附加文件。未发现受支持客户端时不写入并返回非零退出码；某个安装位置失败时继续其他位置，结果逐项报告错误并返回非零退出码。
+默认使用用户级 Skill 目录，不修改当前项目。共用目录按真实路径合并处理；本地开发配置与入口符号链接跳过。内容相同返回 `unchanged`；更新通过临时文件原子替换 `SKILL.md`，保留其他 Skill 与用户附加文件。未发现受支持客户端时不写入并返回非零退出码；某个安装位置失败时继续其他位置，结果逐项报告错误并返回非零退出码。
+
+首次安装后，CLI 的 `context resolve` 在请求 resources 前自动同步已检测客户端中已安装的 `SKILL.md`，不需要重复运行 `skill install`。同步使用正在执行的 CLI 包，和 resources 的版本、缓存或网络结果无关；`--prefer-online` 让 npm 检查最新包信息，仍可复用缓存内容。没有安装 Skill 的客户端不会自动安装；`local-source.json`、Skill 目录自身或 `SKILL.md` 的符号链接均跳过，保留本地开发来源。共享父目录的符号链接仍按真实路径去重。
+
+安装文件末尾的 CLI 版本注释随正文一起原子写入；旧的无版本入口在首次同步时补齐，较旧 CLI 不覆盖较新入口。每个安装目录用 `.plasmickit-skill-lock` 串行更新，等待最多 5 秒；进程异常退出遗留锁时，只在确认没有更新进程后删除。同步结果通过 `skillUpdate` 单独返回，包含更新、未变化、跳过原因或失败；入口同步失败不阻止可用资源加载，下次执行重试，资源失败仍按原规则阻止依赖工作。新入口在客户端重新加载技能后采用，不保证当前会话立即刷新；未触发 Skill、未执行 CLI 时不会后台更新。
 
 只检查检测结果和安装位置，不写文件：
 

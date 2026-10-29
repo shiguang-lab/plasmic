@@ -6,11 +6,11 @@ Read resolved `mustRead` files and [context/evidence rules](context-reading.md),
 
 | Intent | Mode |
 | --- | --- |
-| Explain/review a page, component or template | [inspect](workflows/inspect.md), read-only |
-| Create/revise an editable design | [prototype](workflows/prototype.md), requires `canEdit` |
-| Implement/update native React project code | [codegen](workflows/codegen.md), reads design, writes target code |
+| Explain/review the design of a page, component or template | [inspect](workflows/inspect.md), read-only |
+| Create/revise/repair an editable design and verify it | [prototype](workflows/prototype.md), writes require `canEdit` |
+| Implement/repair application code or verify it against a design | [codegen](workflows/codegen.md), code review may be read-only |
 
-Switch modes with the task; review never authorizes edits. Check only present/required behavior and reuse current evidence. Discover the accessible project and identify the session using configured Desktop MCP/live schemas. Save/reopen, installation and repair require edit authorization. Studio: `https://plasmic-studio.shiguanglab.com`.
+Follow-ups retain the artifact/workflow; switch when the target changes. Review does not authorize edits. Use current evidence and Desktop MCP schemas. Studio: `https://plasmic-studio.shiguanglab.com`.
 
 ## Tool choice
 

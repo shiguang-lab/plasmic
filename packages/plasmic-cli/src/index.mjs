@@ -4,7 +4,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import { formatProgress } from "./progress.mjs";
-import { CLI_VERSION } from "./protocol.mjs";
+import { CLI_VERSION, MODE_REFERENCES } from "./protocol.mjs";
 import {
   checkCliVersion,
   checkReferences,
@@ -66,7 +66,17 @@ export async function main(argv) {
   } else if (command === "references" && action === "path") {
     output = await referencePath(values);
   } else if (command === "context" && action === "resolve") {
-    output = await resolveContext(values.mode, values);
+    if (!Object.hasOwn(MODE_REFERENCES, values.mode)) throw new Error("--mode must be inspect, prototype or codegen");
+    let skillUpdate;
+    try { skillUpdate = await installSkill({ existingOnly: true }); }
+    catch (error) { skillUpdate = { ok: false, error: error.message, installations: [] }; }
+    for (const entry of skillUpdate.installations) {
+      if (entry.status === "updated") process.stderr.write(`✓ Skill 入口已更新：${entry.skillPath}；客户端重新加载技能后采用新入口\n`);
+      if (entry.status === "failed") process.stderr.write(`! Skill 入口更新失败：${entry.skillPath}：${entry.error}\n`);
+    }
+    if (skillUpdate.error) process.stderr.write(`! Skill 入口更新失败：${skillUpdate.error}\n`);
+    try { output = { ...await resolveContext(values.mode, values), skillUpdate }; }
+    catch (error) { error.skillUpdate = skillUpdate; throw error; }
   } else {
     throw new Error(`Unknown command: ${command} ${action}`);
   }
@@ -85,6 +95,7 @@ if (
         ok: false,
         error: error.message,
         ...(error.stage ? { stage: error.stage } : {}),
+        ...(error.skillUpdate ? { skillUpdate: error.skillUpdate } : {}),
         ...(error.cliUrl
           ? {
               cliUrl: error.cliUrl,
