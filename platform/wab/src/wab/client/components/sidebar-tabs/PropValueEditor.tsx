@@ -1130,12 +1130,19 @@ const PropValueEditor_ = (
               env,
             ).val
           : value;
-      const compositeValue = deserCompositeExprMaybe(value);
+      const compositeValue =
+        litValue ?? deserCompositeExprMaybe(value);
       return (
         <ObjectPropEditor
+          label={label}
+          disabled={disabled || readOnly}
           data-plasmic-prop={attr}
           onChange={(newValue) => {
-            onChange(clone(serCompositeExprMaybe(newValue)));
+            if (newValue === undefined && onDelete) {
+              onDelete();
+            } else {
+              onChange(newValue === undefined ? undefined : clone(serCompositeExprMaybe(newValue)));
+            }
           }}
           compositeValue={
             value === undefined ? defaultValueHint : (compositeValue as any)
@@ -1153,6 +1160,7 @@ const PropValueEditor_ = (
           controlExtras={controlExtras}
           propType={propType}
           display={propType.display}
+          toggleable={"toggleable" in propType && propType.toggleable === true}
         />
       );
     } else {
@@ -1256,13 +1264,18 @@ const PropValueEditor_ = (
       <CodeEditor
         onChange={onChange}
         value={
-          value === undefined ? defaultValueHint : (value as string | null)
+          value === undefined ? defaultValueHint : ((litValue ?? value) as string | null)
         }
         title={label}
         lang={"text"}
+        templateVariables={
+          "templateVariables" in propType && Array.isArray(propType.templateVariables)
+            ? propType.templateVariables
+            : undefined
+        }
         defaultFullscreen
-        isDisabled={readOnly}
-        fileName={attr}
+        isDisabled={disabled || readOnly}
+        fileName={tpl ? `${tpl.uid}.${controlExtras.path.join(".")}` : attr}
       />
     );
   } else if (getPropTypeType(propType) === "imageUrl") {

@@ -150,6 +150,13 @@ test("resource operations remain visible outside the editor, retain failures and
   activity.finish("next");
   assert.equal(activity.snapshot(null,null).operation.phase,"completed");
   assert.equal(activity.snapshot(null,null,Date.now()+3000).operation,null);
+  for (const [method, label] of [["rename_project", "Renaming project"], ["move_project", "Moving project"], ["clone_project", "Copying project"]]) {
+    activity.enqueue(method, method, { name: "订单", secret: "private" });
+    activity.start(method);
+    assert.equal(activity.snapshot(null, null).operation.label, label);
+    assert.ok(!JSON.stringify(activity.snapshot(null, null).operation).includes("private"));
+    activity.finish(method);
+  }
 });
 
 test('parallel calls keep the first running subject stable and count running work separately from the queue',()=>{

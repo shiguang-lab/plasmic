@@ -5552,6 +5552,9 @@
   "When closing the main window": "When closing the main window",
   "Ask every time": "Ask every time",
   "Creating project": "Creating project",
+  "Renaming project": "Renaming project",
+  "Moving project": "Moving project",
+  "Copying project": "Copying project",
   "Creating workspace": "Creating workspace",
   "Creating organization": "Creating organization",
   "Opening project": "Opening project",
@@ -5788,5 +5791,10 @@
   "Run this action": "Run this action",
   "Re-open": "Re-open",
   "Resolve": "Resolve",
-  "This action depends on the results of the previous step or the event arguments. You need to manually trigger it through the interactive mode": "This action depends on the results of the previous step or the event arguments. You need to manually trigger it through the interactive mode"
+  "This action depends on the results of the previous step or the event arguments. You need to manually trigger it through the interactive mode": "This action depends on the results of the previous step or the event arguments. You need to manually trigger it through the interactive mode",
+  "Invite by link": "Invite by link",
+  "Invite by email": "Invite by email",
+  "Enable link invitations": "Enable link invitations",
+  "Default role": "Default role",
+  "People can register or sign in and use this link to join the organization.": "People can register or sign in and use this link to join the organization."
 }

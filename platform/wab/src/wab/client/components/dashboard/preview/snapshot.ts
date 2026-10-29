@@ -37,7 +37,14 @@ async function reversedShadowOffsets() {
 }
 
 // Preserve browser CSS and pixels from Canvas 2D in the isolated renderer.
-export async function snapshot(doc: Document, width: number, height: number) {
+// `assets` maps absolute URLs to data URLs; pass one map to every artboard of a
+// preview so fonts and images are downloaded and encoded once.
+export async function snapshot(
+  doc: Document,
+  width: number,
+  height: number,
+  assets = new Map<string, Promise<string>>(),
+) {
   const win = ensure(doc.defaultView, "Snapshot window");
   // Skip runtime scripts before cloning; copying multi-megabyte bundles would spike memory.
   const omitted = /^(SCRIPT|IFRAME|OBJECT|EMBED|LINK|STYLE|META|BASE)$/;
@@ -75,7 +82,6 @@ export async function snapshot(doc: Document, width: number, height: number) {
     svgs: 0,
     assetErrors: [] as string[],
   };
-  const assets = new Map<string, Promise<string>>();
   const inline = (url: string) => {
     if (url.startsWith("data:") || url.startsWith("#")) {
       return Promise.resolve(url);

@@ -15,7 +15,60 @@ import { getStaticBaseUrl } from "@/wab/shared/urls";
 
 const queue = new PreviewQueue();
 
+function engineUrl(request: PreviewRequest) {
+  return `${location.origin}/canvas-preview/index.html?v=${encodeURIComponent(ENV.COMMITHASH)}#live=true&origin=${encodeURIComponent(location.origin)}&staticBaseUrl=${encodeURIComponent(request.staticBaseUrl)}`;
+}
+
+/** Desktop renders previews in a separate process with the same engine document. */
+interface DesktopPreviewBridge {
+  render(
+    id: string,
+    src: string,
+    request: PreviewRequest,
+    scale: number,
+  ): Promise<Uint8Array<ArrayBuffer>>;
+  cancel(id: string): void;
+}
+function desktopPreviewBridge() {
+  return (window as Window & { desktopPreview?: DesktopPreviewBridge })
+    .desktopPreview;
+}
+
 export function renderPreview(request: PreviewRequest, signal: AbortSignal) {
+  const desktop = desktopPreviewBridge();
+  return desktop
+    ? renderInDesktop(desktop, request, signal)
+    : renderInFrame(request, signal);
+}
+
+async function renderInDesktop(
+  desktop: DesktopPreviewBridge,
+  request: PreviewRequest,
+  signal: AbortSignal,
+) {
+  signal.throwIfAborted();
+  const id = crypto.randomUUID();
+  const abort = () => desktop.cancel(id);
+  signal.addEventListener("abort", abort, { once: true });
+  try {
+    const bytes = await desktop.render(
+      id,
+      engineUrl(request),
+      request,
+      window.devicePixelRatio || 1,
+    );
+    signal.throwIfAborted();
+    return new Blob([bytes], { type: "image/png" });
+  } catch (error) {
+    // Report cancellation the same way as the in-page renderer.
+    signal.throwIfAborted();
+    throw error;
+  } finally {
+    signal.removeEventListener("abort", abort);
+  }
+}
+
+function renderInFrame(request: PreviewRequest, signal: AbortSignal) {
   return new Promise<Blob>((resolve, reject) => {
     signal.throwIfAborted();
     const frame = document.createElement("iframe");
@@ -76,7 +129,7 @@ export function renderPreview(request: PreviewRequest, signal: AbortSignal) {
     window.addEventListener("message", message);
     frame.onerror = () => finish(new Error("Canvas preview failed to load"));
     // Keep the runtime in a separate same-origin document, never import it into Dashboard.
-    frame.src = `/canvas-preview/index.html?v=${encodeURIComponent(ENV.COMMITHASH)}#live=true&origin=${encodeURIComponent(location.origin)}&staticBaseUrl=${encodeURIComponent(request.staticBaseUrl)}`;
+    frame.src = engineUrl(request);
     document.body.append(frame);
   });
 }
@@ -85,6 +138,8 @@ export function subscribePreview(
   userId: string,
   projectId: string,
   listener: (blob?: Blob) => void,
+  /** Called when this project's preview starts generating (not while it waits in the queue). */
+  onGenerating?: () => void,
 ) {
   const key = `${userId}:${projectId}`;
   const controller = new AbortController();
@@ -116,7 +171,9 @@ export function subscribePreview(
         throw new Error("Invalid preview revision");
       }
       signal.throwIfAborted();
-      if (cached?.revision === revision && cached.build === ENV.COMMITHASH && cached.format === previewFormat) {
+      // A new app build alone does not invalidate previews; Desktop releases
+      // ship several times a day. Bump `previewFormat` when rendering changes.
+      if (cached?.revision === revision && cached.format === previewFormat) {
         return;
       }
       unsubscribe = queue.subscribe(
@@ -143,6 +200,12 @@ export function subscribePreview(
             listener(blob);
           }
         },
+        onGenerating &&
+          (() => {
+            if (!signal.aborted) {
+              onGenerating();
+            }
+          }),
       );
     } catch {
       if (!signal.aborted && !cached) {

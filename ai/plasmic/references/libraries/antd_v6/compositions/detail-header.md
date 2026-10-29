@@ -6,7 +6,7 @@ Applies to [Ant Design v6](../index.md) Card/Button/Tooltip and [Ant Design Icon
 
 ### Detail page header
 
-Use this recipe only for a current user-requested entity heading area permitted by [admin content entry](../../../design/layout.md#admin-content-entry). Record that exception's named region and source in the task inventory; otherwise skip this recipe.
+Use this recipe only for a current user-requested entity heading area after the Header necessity assessment in [admin content entry](../../../design/layout.md#admin-content-entry). Record that exception's named region and source in the task inventory; otherwise skip this recipe and apply that section's content/action ownership and breadcrumb-first return-navigation decisions. Omitting the Header does not move its return Button into a standalone row or footer.
 
 For an explicitly requested header, use an icon-only return Button immediately before the entity title in the same heading row, with type/status and page actions at the right. Do not allocate a separate return row or repeat the shell breadcrumb. Pattern reference: [Ant Design PageHeader examples](https://4x.ant.design/components/page-header/). This is a composition rule, not a registered PageHeader component: use the actual Button/Tooltip/icon contracts and registered Flex/Space for layout.
 

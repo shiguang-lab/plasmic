@@ -85,10 +85,10 @@ vi.mock("@/wab/client/components/dashboard/preview/cache", () => ({
   writePreview: cacheMocks.write,
 }));
 
-it.each(["revision", "build"])("displays cache outside the rendering queue and replaces stale %s images", async (change) => {
+it.each(["revision", "format"])("displays cache outside the rendering queue and replaces stale %s images", async (change) => {
   cacheMocks.write.mockResolvedValue(undefined);
   const blob = new Blob(["old"]);
-  cacheMocks.read.mockResolvedValue({ blob, revision: change === "revision" ? 1 : 2, build: change === "build" ? "old-build" : ENV.COMMITHASH, format: previewFormat });
+  cacheMocks.read.mockResolvedValue({ blob, revision: change === "revision" ? 1 : 2, build: ENV.COMMITHASH, format: change === "format" ? "old-format" : previewFormat });
   vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({ rev: { revision: 2 } }))));
   const listener = vi.fn();
   const cancel = subscribePreview("user", "stale", listener);
@@ -110,9 +110,10 @@ it.each(["revision", "build"])("displays cache outside the rendering queue and r
   vi.unstubAllGlobals();
 });
 
-it.each(["matching", "offline"])("retains cached images for %s revision checks", async (mode) => {
+it.each(["matching", "offline", "older-build"])("retains cached images for %s revision checks", async (mode) => {
   const blob = new Blob(["cached"]);
-  cacheMocks.read.mockResolvedValue({ blob, revision: 1, build: ENV.COMMITHASH, format: previewFormat });
+  // Images from an earlier app build stay valid while revision and format match.
+  cacheMocks.read.mockResolvedValue({ blob, revision: 1, build: mode === "older-build" ? "old-build" : ENV.COMMITHASH, format: previewFormat });
   vi.stubGlobal("fetch", vi.fn(async () => {
     if (mode === "offline") { throw new Error("offline"); }
     return new Response(JSON.stringify({ rev: { revision: 1 } }));

@@ -35,16 +35,26 @@ const useStyles = createStyles(() => ({
     width: "fit-content",
     maxWidth: "100%",
     marginInlineStart: "auto",
+    position: "relative",
+    zIndex: 1000,
+    mixBlendMode: "difference",
+    color: "#fff",
+    "& .ant-btn:not(:disabled):not(.ant-btn-disabled)": { color: "inherit" },
+    "& .ant-btn:disabled": { color: "inherit", opacity: 0.4 },
+  },
+  foreground: {
+    position: "relative",
+    zIndex: 1000,
   },
   position: {
-    position: "fixed",
+    // A fixed/z-indexed ancestor would isolate the picker from the canvas backdrop.
+    position: "absolute",
     bottom: editorCanvasControlsLayout.edgeInset,
     left: leftInset,
     right: rightInset,
     marginInline: "auto",
     width: 530,
     maxWidth: `calc(100% - ${leftInset + rightInset}px)`,
-    zIndex: 1000,
   },
 }));
 
@@ -128,59 +138,67 @@ export function CanvasAiComposer({
             onOpenChange={setPickerOpen}
           />
         </div>
-        <AiRunningNotice session={session} onOpen={() => void onOpen()} />
-        {(pickerOpen || !!activeTask) && <AiSyncNotice session={session} />}
+        <div className={styles.foreground}>
+          <AiRunningNotice session={session} onOpen={() => void onOpen()} />
+          {(pickerOpen || !!activeTask) && <AiSyncNotice session={session} />}
+        </div>
       </div>
-      <AiComposer
-        value={session.draft.prompt}
-        onChange={(prompt) => {
-          session.draft = { ...session.draft, prompt };
-        }}
-        onSubmit={open}
-        attachmentState={attachmentState}
-        scope={context.scope ?? t("Current canvas")}
-        models={status?.models}
-        model={session.selectedModel ?? status?.model}
-        onModelChange={(model) => {
-          session.selectedModel = model;
-        }}
-        disabled={!enabled || archived}
-        running={!!activeTask && activeTask.threadId === session.activeThreadId}
-        onStop={() => session.stop()}
-        stopDisabled={!activeTask || !session.canStop(activeTask)}
-        canSubmit={
-          enabled &&
-          !!context.binding &&
-          !!status?.configured &&
-          !session.running &&
-          !session.historyLoading &&
-          !session.syncError &&
-          !archived
-        }
-        placeholder={t(
-          !context.binding
-            ? "Open a page or canvas before using AI."
-            : "Describe what you want to change…",
-        )}
-        ariaLabel={t("AI canvas editing")}
-        testId="canvas-ai-composer"
-        availability={
-          !enabled
-            ? t("Local AI editing is disabled.")
-            : archived
-              ? t("This conversation is archived. Restore it to continue.")
-              : !status?.configured
-                ? t("Configure the AI service on the server to start editing.")
-                : session.blockingTask?.needsReconciliation
-                  ? t("Verify saved design")
-                  : session.running &&
-                      activeTask?.threadId !== session.activeThreadId
-                    ? t("A task is running in another conversation.")
-                    : !context.binding
-                      ? t("Open a page or canvas before using AI.")
-                      : undefined
-        }
-      />
+      <div className={styles.foreground}>
+        <AiComposer
+          value={session.draft.prompt}
+          onChange={(prompt) => {
+            session.draft = { ...session.draft, prompt };
+          }}
+          onSubmit={open}
+          attachmentState={attachmentState}
+          scope={context.scope ?? t("Current canvas")}
+          models={status?.models}
+          model={session.selectedModel ?? status?.model}
+          onModelChange={(model) => {
+            session.selectedModel = model;
+          }}
+          disabled={!enabled || archived}
+          running={
+            !!activeTask && activeTask.threadId === session.activeThreadId
+          }
+          onStop={() => session.stop()}
+          stopDisabled={!activeTask || !session.canStop(activeTask)}
+          canSubmit={
+            enabled &&
+            !!context.binding &&
+            !!status?.configured &&
+            !session.running &&
+            !session.historyLoading &&
+            !session.syncError &&
+            !archived
+          }
+          placeholder={t(
+            !context.binding
+              ? "Open a page or canvas before using AI."
+              : "Describe what you want to change…",
+          )}
+          ariaLabel={t("AI canvas editing")}
+          testId="canvas-ai-composer"
+          availability={
+            !enabled
+              ? t("Local AI editing is disabled.")
+              : archived
+                ? t("This conversation is archived. Restore it to continue.")
+                : !status?.configured
+                  ? t(
+                      "Configure the AI service on the server to start editing.",
+                    )
+                  : session.blockingTask?.needsReconciliation
+                    ? t("Verify saved design")
+                    : session.running &&
+                        activeTask?.threadId !== session.activeThreadId
+                      ? t("A task is running in another conversation.")
+                      : !context.binding
+                        ? t("Open a page or canvas before using AI.")
+                        : undefined
+          }
+        />
+      </div>
     </div>
   );
 }

@@ -1,14 +1,33 @@
 'use strict';
 
 var Ant = require('antd');
+var React = require('react');
 var names = require('./names-DbJduus8.cjs.js');
 var utils = require('./utils-DMWa5SeG.cjs.js');
 require('@plasmicapp/host/registerComponent');
 require('@plasmicapp/host/registerGlobalContext');
-require('react');
+
+function _interopDefault (e) { return e && e.__esModule ? e : { default: e }; }
+
+var React__default = /*#__PURE__*/_interopDefault(React);
 
 const AntdInput = Ant.Input;
-const AntdTextArea = Ant.Input.TextArea;
+const AntdTextArea = React__default.default.forwardRef(function AntdTextArea2({ showCount, ...props }, ref) {
+  const template = showCount?.formatter;
+  return /* @__PURE__ */ React__default.default.createElement(
+    Ant.Input.TextArea,
+    {
+      ...props,
+      ref,
+      showCount: template ? {
+        formatter: ({ count, maxLength }) => template.replace(
+          /\{(count|maxLength)\}/g,
+          (_match, variable) => variable === "count" ? String(count) : String(maxLength ?? "")
+        )
+      } : !!showCount
+    }
+  );
+});
 const AntdPassword = Ant.Input.Password;
 const AntdInputNumber = Ant.InputNumber;
 const inputHelpers = {
@@ -156,6 +175,19 @@ function registerTextArea(loader) {
       maxLength: {
         type: "number",
         advanced: true
+      },
+      showCount: {
+        type: "object",
+        toggleable: true,
+        description: "Configure the native character counter. An empty object shows the default count; leave unset to hide it.",
+        fields: {
+          formatter: {
+            type: "string",
+            control: "large",
+            templateVariables: ["count", "maxLength"],
+            description: 'Counter template with {count} and {maxLength} variables, for example "Entered {count} / {maxLength} characters". Leave empty for the native default. Without a character limit, {maxLength} is empty. Templates are plain text, not JavaScript.'
+          }
+        }
       },
       variant: {
         type: "choice",

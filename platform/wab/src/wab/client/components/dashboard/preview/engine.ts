@@ -13,6 +13,8 @@ async function generate(request: PreviewRequest) {
   const ctx = ensure(canvas.getContext("2d"), "Overview context");
   ctx.fillStyle = previewCanvasBackground;
   ctx.fillRect(0, 0, 640, 360);
+  // Artboards of one project share fonts and images; inline each URL once.
+  const assets = new Map<string, Promise<string>>();
   try {
     for (let i = 0; i < pages.length; i++) {
       const board = pages[i],
@@ -25,7 +27,7 @@ async function generate(request: PreviewRequest) {
       frame.style.height = `${board.height}px`;
       await (window as any).__renderCover(board.uuid);
       await ready();
-      const shot = await snapshot(document, board.width, board.height);
+      const shot = await snapshot(document, board.width, board.height, assets);
       if (shot.stats.assetErrors.length) {
         throw new Error(shot.stats.assetErrors.join("\n"));
       }

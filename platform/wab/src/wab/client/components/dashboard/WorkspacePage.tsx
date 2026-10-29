@@ -52,6 +52,13 @@ function WorkspacePage_(
   );
   const fetchAsyncData = () =>
     mutate((current) => current, { revalidate: true, throwOnError: false });
+  // Stable so memoized project cards skip re-rendering on unrelated changes.
+  const onUpdate = React.useCallback(async () => {
+    await mutate((current) => current, {
+      revalidate: true,
+      throwOnError: false,
+    });
+  }, [mutate]);
 
   const {
     projects,
@@ -114,9 +121,7 @@ function WorkspacePage_(
             workspace,
             projects,
             databases,
-            onUpdate: async () => {
-              await fetchAsyncData();
-            },
+            onUpdate,
             perms,
             matcher,
             filterProps,

@@ -27,6 +27,7 @@ export interface FullCodeEditorProps {
   onSave?: (val: string) => void;
   onChange?: (val: string) => void;
   data?: Record<string, any>;
+  templateVariables?: string[];
   hideLineNumbers?: boolean;
   enableMinimap?: boolean;
   editorHeight?: number;
@@ -158,6 +159,38 @@ export const FullCodeEditor = React.forwardRef(
       },
       onAfterEditorCreate: function* (editor, actions) {
         editorRef.current = editor;
+        const model = editor.getModel();
+        if (model && props.templateVariables?.length) {
+          yield monaco.languages.registerCompletionItemProvider(model.getLanguageId(), {
+            triggerCharacters: ["{"],
+            provideCompletionItems: (candidate, position) => {
+              if (candidate !== model) {
+                return { suggestions: [] };
+              }
+              const prefix = candidate.getLineContent(position.lineNumber).slice(0, position.column - 1);
+              const token = /\{[a-zA-Z]*$/.exec(prefix);
+              const startColumn = token ? position.column - token[0].length : position.column;
+              const suffix = candidate.getLineContent(position.lineNumber).slice(position.column - 1);
+              const endColumn = token
+                ? position.column + (suffix.match(/^[a-zA-Z]*\}/)?.[0].length ?? 0)
+                : position.column;
+              return {
+                suggestions: (props.templateVariables ?? []).map((name) => ({
+                  label: name,
+                  kind: monaco.languages.CompletionItemKind.Variable,
+                  insertText: `{${name}}`,
+                  filterText: `{${name}}`,
+                  range: {
+                    startLineNumber: position.lineNumber,
+                    endLineNumber: position.lineNumber,
+                    startColumn,
+                    endColumn,
+                  },
+                })),
+              };
+            },
+          });
+        }
         yield editor.onDidChangeModelContent(() => {
           handlersRef.current.onChange?.(actions.getUserValue());
         });

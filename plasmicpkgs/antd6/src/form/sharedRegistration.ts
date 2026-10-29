@@ -4,6 +4,7 @@ import { Input, InputNumber, Radio } from "antd";
 import React from "react";
 import { AntdCheckbox } from "../registerCheckbox";
 import { AntdDatePicker } from "../registerDatePicker";
+import { AntdTextArea } from "../registerInput";
 import { AntdRadioGroup } from "../registerRadio";
 import { AntdSelect } from "../registerSelect";
 import { arrayEq } from "../utils";
@@ -19,6 +20,7 @@ import { CommonFormControlContextData } from "./contexts";
 const mapAntdComponentToInputType = new Map<any, InputType>([
   [Input, InputType.Text],
   [Input.TextArea, InputType.TextArea],
+  [AntdTextArea, InputType.TextArea],
   [Input.Password, InputType.Password],
   [InputNumber, InputType.Number],
   [AntdSelect, InputType.Select],

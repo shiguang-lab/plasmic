@@ -20,18 +20,23 @@ export default function ShareDialog({
     return null;
   }
   const isProject = props.resource.type === "project";
+  const isWorkspace = props.resource.type === "workspace";
   return (
     <ShareDialogContent
       {...props}
       renderDialog={(body, footer) => (
         <Modal
           open={open}
-          title={isProject ? t("Share project") : undefined}
+          title={
+            isWorkspace
+              ? undefined
+              : t(isProject ? "Share project" : "Organization members")
+          }
           onCancel={props.closeDialog}
           footer={footer}
-          width={isProject ? 560 : 500}
+          width={isWorkspace ? 500 : 560}
           style={{ maxWidth: "calc(100vw - 32px)", top: 64 }}
-          styles={isProject ? undefined : { container: { padding: 0 } }}
+          styles={isWorkspace ? { container: { padding: 0 } } : undefined}
           modalRender={(node) => (
             <div
               onKeyDownCapture={(event) => {

@@ -245,8 +245,26 @@
       render(latestStatus);
     }
   }
-  const observer = new MutationObserver(place);
-  document.addEventListener("load", place, true);
+  // place() queries slots and checks CSS visibility, which forces a style
+  // recalculation. Run it at most once per frame, before that frame paints,
+  // instead of after every batch of DOM changes.
+  let placeScheduled = false;
+  function schedulePlace() {
+    if (typeof requestAnimationFrame !== "function") {
+      place();
+      return;
+    }
+    if (placeScheduled) {
+      return;
+    }
+    placeScheduled = true;
+    requestAnimationFrame(() => {
+      placeScheduled = false;
+      place();
+    });
+  }
+  const observer = new MutationObserver(schedulePlace);
+  document.addEventListener("load", schedulePlace, true);
   place();
   if (isMain) {
     subscribe(() => {

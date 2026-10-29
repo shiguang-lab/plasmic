@@ -8,6 +8,7 @@ var Ant = require('antd');
 require('react');
 var registerCheckbox = require('./registerCheckbox.cjs.js');
 var registerDatePicker = require('./registerDatePicker.cjs.js');
+var registerInput = require('./registerInput.cjs.js');
 var registerRadio = require('./registerRadio.cjs.js');
 var registerSelect = require('./registerSelect.cjs.js');
 var FormItem = require('./FormItem.cjs.js');
@@ -27,6 +28,7 @@ require('./react-utils-CP3JYj1p.cjs.js');
 /* @__PURE__ */ new Map([
   [Ant.Input, Form.InputType.Text],
   [Ant.Input.TextArea, Form.InputType.TextArea],
+  [registerInput.AntdTextArea, Form.InputType.TextArea],
   [Ant.Input.Password, Form.InputType.Password],
   [Ant.InputNumber, Form.InputType.Number],
   [registerSelect.AntdSelect, Form.InputType.Select],

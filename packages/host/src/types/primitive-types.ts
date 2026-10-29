@@ -26,6 +26,8 @@ export interface SliderNumberCore<Ctx extends any[]>
 export interface PlainStringCore {
   type: "string";
   control?: "default" | "large" | "multiLine";
+  /** Placeholder names offered as {name} completions in the large text editor. */
+  templateVariables?: string[];
   isLocalizable?: boolean;
 }
 

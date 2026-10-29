@@ -5552,6 +5552,9 @@
   "When closing the main window": "メインウィンドウを閉じるとき",
   "Ask every time": "毎回確認する",
   "Creating project": "プロジェクトを作成",
+  "Renaming project": "プロジェクト名を変更",
+  "Moving project": "プロジェクトを移動",
+  "Copying project": "プロジェクトをコピー",
   "Creating workspace": "ワークスペースを作成",
   "Creating organization": "組織を作成",
   "Opening project": "プロジェクトを開く",
@@ -5788,5 +5791,10 @@
   "Run this action": "このアクションを実行",
   "Re-open": "再開する",
   "Resolve": "解決済みにする",
-  "This action depends on the results of the previous step or the event arguments. You need to manually trigger it through the interactive mode": "このアクションは前のステップの結果またはイベント引数に依存しています。インタラクティブモードで手動で実行してください。"
+  "This action depends on the results of the previous step or the event arguments. You need to manually trigger it through the interactive mode": "このアクションは前のステップの結果またはイベント引数に依存しています。インタラクティブモードで手動で実行してください。",
+  "Invite by link": "リンクで招待",
+  "Invite by email": "メールで招待",
+  "Enable link invitations": "リンク招待を有効にする",
+  "Default role": "デフォルトの役割",
+  "People can register or sign in and use this link to join the organization.": "ユーザーは登録またはログイン後、このリンクから組織に参加できます。"
 }

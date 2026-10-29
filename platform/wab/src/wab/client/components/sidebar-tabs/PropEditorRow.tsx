@@ -1140,6 +1140,7 @@ function InnerPropEditorRow_(props: PropEditorRowProps) {
         propType={propType}
         component={ownerComponent}
         disableDynamicValue={props.disableDynamicValue}
+        onDelete={onDelete}
         onChange={(val) => {
           if (exprLit == null && val == null) {
             return;

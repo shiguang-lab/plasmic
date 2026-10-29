@@ -1,12 +1,27 @@
 import { Input, InputNumber } from 'antd';
+import React from 'react';
 import { i as inputComponentName, t as textAreaComponentName, p as passwordComponentName, d as inputNumberComponentName } from './names-DKofLcnC.esm.js';
 import { r as registerComponentHelper } from './utils-Cmdig6Yl.esm.js';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
-import 'react';
 
 const AntdInput = Input;
-const AntdTextArea = Input.TextArea;
+const AntdTextArea = React.forwardRef(function AntdTextArea2({ showCount, ...props }, ref) {
+  const template = showCount?.formatter;
+  return /* @__PURE__ */ React.createElement(
+    Input.TextArea,
+    {
+      ...props,
+      ref,
+      showCount: template ? {
+        formatter: ({ count, maxLength }) => template.replace(
+          /\{(count|maxLength)\}/g,
+          (_match, variable) => variable === "count" ? String(count) : String(maxLength ?? "")
+        )
+      } : !!showCount
+    }
+  );
+});
 const AntdPassword = Input.Password;
 const AntdInputNumber = InputNumber;
 const inputHelpers = {
@@ -154,6 +169,19 @@ function registerTextArea(loader) {
       maxLength: {
         type: "number",
         advanced: true
+      },
+      showCount: {
+        type: "object",
+        toggleable: true,
+        description: "Configure the native character counter. An empty object shows the default count; leave unset to hide it.",
+        fields: {
+          formatter: {
+            type: "string",
+            control: "large",
+            templateVariables: ["count", "maxLength"],
+            description: 'Counter template with {count} and {maxLength} variables, for example "Entered {count} / {maxLength} characters". Leave empty for the native default. Without a character limit, {maxLength} is empty. Templates are plain text, not JavaScript.'
+          }
+        }
       },
       variant: {
         type: "choice",

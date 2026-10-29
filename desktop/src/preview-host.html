@@ -1,0 +1,58 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Canvas preview host</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      // Hosts the Dashboard's canvas preview engine in a separate renderer
+      // process. It embeds the engine exactly like the Dashboard does
+      // (components/dashboard/preview/client.ts), so rendering is unchanged.
+      (() => {
+        const channel = "plasmic-canvas-preview";
+        const host = window.desktopPreviewHost;
+        host.onStart(({ src, request }) => {
+          const frame = document.createElement("iframe");
+          frame.title = "Canvas preview renderer";
+          frame.setAttribute("aria-hidden", "true");
+          frame.tabIndex = -1;
+          frame.setAttribute("inert", "");
+          frame.style.cssText =
+            "position:fixed;left:0;top:0;width:1440px;height:1024px;border:0;pointer-events:none;opacity:0;z-index:-1";
+          window.addEventListener("message", (event) => {
+            if (
+              event.source !== frame.contentWindow ||
+              event.origin !== location.origin ||
+              event.data?.channel !== channel
+            ) {
+              return;
+            }
+            if (event.data.type === "ready") {
+              frame.contentWindow.postMessage(
+                { channel, type: "start", request },
+                location.origin,
+              );
+            } else if (
+              event.data.type === "result" &&
+              event.data.bytes instanceof ArrayBuffer
+            ) {
+              host.result(new Uint8Array(event.data.bytes));
+            } else if (event.data.type === "error") {
+              host.fail(String(event.data.message));
+            }
+          });
+          frame.onerror = () => host.fail("Canvas preview failed to load");
+          frame.src = src;
+          document.body.append(frame);
+        });
+      })();
+    </script>
+  </body>
+</html>

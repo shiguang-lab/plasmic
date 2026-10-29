@@ -254,3 +254,20 @@ test("RPC preserves response text when a socket chunk splits a UTF-8 character",
     await fs.rm(profile, { recursive: true, force: true });
   }
 });
+
+test("disconnect notifies editor ownership even after all caller commands completed", async () => {
+  const profile = await fs.mkdtemp(path.join(os.tmpdir(), "plasmic-rpc-disconnect-"));
+  let disconnected;
+  const ended = new Promise(resolve => { disconnected = resolve; });
+  const stop = await startRpc(profile, async () => ({}), disconnected);
+  const session = await connectRpcSession(profile);
+  try {
+    await requestRpc(profile, MCP_REGISTER_CALLER, { clientInfo: { name: "codex" } }, session.callerId);
+    await requestRpc(profile, "read", {}, session.callerId);
+    session.end();
+    assert.deepEqual(await ended, { id: session.callerId, name: "Codex" });
+  } finally {
+    session.destroy(); await stop();
+    await fs.rm(profile, { recursive: true, force: true });
+  }
+});

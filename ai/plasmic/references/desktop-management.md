@@ -5,15 +5,15 @@ to the same platform resource: MCP uses `orgId`, and responses retain `team` or
 `teams`. Use public Desktop MCP tools and the signed-in account's permissions.
 Discovery, resource creation and open_design work without a ready Studio editor. These are top-level tools, never execute operation names; use Desktop.call rather than Desktop.execute in public script clients. See [transport and routing](desktop-transports.md).
 
-Queries/creation return resource IDs/names/parents only. No permissions, members, billing, configuration or full-detail bypass is exposed. The platform enforces access; confirm current edit capability with identify after opening. A creation result supplies project/workspace/team identity, not a revision object; read current revision from the opened editor context.
+Management results return resource IDs/names/parents only. No permissions, members, billing, configuration or full-detail bypass is exposed. The platform enforces access; confirm current edit capability with identify after opening. A creation result supplies project/workspace/team identity, not a revision object; read current revision from the opened editor context.
 
 ## Find or choose each level
 
 | Level | Discovery | Authorized creation | ID to retain |
 | --- | --- | --- | --- |
 | Team / Org | `list_orgs({})`, optional name `query`; `get_org({orgId})` for a known ID | `create_org({name})` | `team.id` as `orgId` |
-| Workspace | `list_workspaces({orgId})` within the chosen Team | `create_workspace({orgId, name, description?})` | `workspace.id` |
-| Project | `list_projects({workspaceId})` within the chosen Workspace | `create_project({name, workspaceId})` | `project.id` |
+| Workspace | `list_workspaces({orgId})` within the chosen Team; `get_workspace({workspaceId})` for a known ID | `create_workspace({orgId, name, description?})` | `workspace.id` |
+| Project | `list_projects({workspaceId})` within the chosen Workspace; `get_project({projectId})` for a known ID | `create_project({name, workspaceId})` | `project.id` |
 
 Read `get_app_state` first and extract any Team, Workspace and Project names or
 IDs from the request. Resolve the parent before selecting its child. Search for
@@ -46,6 +46,10 @@ response carries `workspaceId` and `teamId`, and a Workspace carries `team.id`.
 Never replace an explicitly requested parent with a similarly named child from
 another parent. An already established current Project can be reused when no
 requested hierarchy conflicts; check its current identity before editing.
+
+## Manage an existing Project
+
+Before rename, move or copy, read [Project mutation tools, save behavior and recovery](desktop-project-mutations.md). Resolve source and destination with the hierarchy checks above.
 
 ## Open the resolved Project and design
 

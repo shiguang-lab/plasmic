@@ -44,3 +44,52 @@ test("real MCP handshakes own subsequent calls without identity in tool argument
     await stop(); await fs.rm(profile, { recursive: true, force: true });
   }
 });
+
+test("MCP cancellation and session disconnect reach only their own running RPC", { timeout: 10000 }, async () => {
+  const profile = await fs.mkdtemp(path.join(os.tmpdir(), "plasmic-mcp-cancel-"));
+  const calls = [];
+  let nextCall;
+  const waitForCall = () => new Promise(resolve => { nextCall = resolve; });
+  const stop = await startRpc(profile, async (_method, _input, caller, signal) => {
+    let release, aborted;
+    const released = new Promise(resolve => { release = resolve; });
+    const cancelled = new Promise(resolve => { aborted = resolve; });
+    signal.addEventListener("abort", aborted, { once: true });
+    const call = { caller, signal, release, cancelled };
+    calls.push(call); nextCall(call);
+    await released;
+    return {};
+  });
+  const clients = [];
+  const connect = async name => {
+    const client = new Client({ name, version: "1" }); clients.push(client);
+    await client.connect(new StdioClientTransport({ command: process.execPath,
+      args: ["-e", `require(${JSON.stringify(require.resolve("../src/mcp.cjs"))}).serveMcp(${JSON.stringify(profile)})`], stderr: "pipe" }));
+    return client;
+  };
+  try {
+    const first = await connect("codex"), second = await connect("chatgpt");
+    const abort = new AbortController();
+    let entered = waitForCall();
+    const a = first.callTool({ name: "get_app_state", arguments: {} }, undefined, { signal: abort.signal });
+    const failed = assert.rejects(a);
+    const firstCall = await entered;
+    entered = waitForCall();
+    const b = second.callTool({ name: "get_app_state", arguments: {} });
+    const secondCall = await entered;
+    abort.abort();
+    await failed; await firstCall.cancelled;
+    assert.equal(secondCall.signal.aborted, false);
+    firstCall.release(); secondCall.release(); await b;
+    entered = waitForCall();
+    const disconnected = second.callTool({ name: "get_app_state", arguments: {} });
+    const closed = assert.rejects(disconnected);
+    const lastCall = await entered;
+    await second.close(); await closed; await lastCall.cancelled;
+    assert.equal(lastCall.signal.aborted, true);
+  } finally {
+    calls.forEach(call => call.release());
+    await Promise.all(clients.map(client => client.close()));
+    await stop(); await fs.rm(profile, { recursive: true, force: true });
+  }
+});

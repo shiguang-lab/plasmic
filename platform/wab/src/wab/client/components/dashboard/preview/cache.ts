@@ -1,8 +1,12 @@
 import { ENV } from "@/wab/client/env";
 import { previewFormat } from "@/wab/client/components/dashboard/preview/types";
 
-const maxBytes = 16 * 1024 * 1024;
-const maxEntries = 64;
+// Room for a few hundred 640×360 PNGs, so browsing a large dashboard back and
+// forth does not evict and regenerate previews.
+const maxBytes = 64 * 1024 * 1024;
+const maxEntries = 256;
+// A single image larger than this is not cached (unchanged from before).
+const maxImageBytes = 16 * 1024 * 1024;
 interface Metadata {
   key: string;
   revision: number;
@@ -63,7 +67,7 @@ export async function readPreview(key: string) {
 }
 
 export async function writePreview(key: string, revision: number, blob: Blob) {
-  if (blob.size > maxBytes) {
+  if (blob.size > maxImageBytes) {
     return;
   }
   // ArrayBuffer is supported by WebKit IndexedDB where Blob writes may fail.

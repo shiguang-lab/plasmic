@@ -146,6 +146,7 @@ export const CodeEditor = observer(function CodeEditor(props: {
   saveAsObject?: boolean;
   requireObject?: boolean;
   data?: Record<string, any>;
+  templateVariables?: string[];
   isDisabled?: boolean;
   disabledTooltip?: React.ReactNode;
   "data-plasmic-prop"?: string;
@@ -321,6 +322,15 @@ export const CodeEditor = observer(function CodeEditor(props: {
                 </div>
               </div>
             )}
+            {props.templateVariables && (
+              <div className="flex gap-sm mb-sm">
+                {props.templateVariables.map((name) => (
+                  <Button key={name} onClick={() => editor.current?.insertAtCursor(`{${name}}`)}>
+                    {`{${name}}`}
+                  </Button>
+                ))}
+              </div>
+            )}
             <ObserverLoadable
               loader={() =>
                 import("@/wab/client/components/coding/FullCodeEditor").then(
@@ -334,6 +344,7 @@ export const CodeEditor = observer(function CodeEditor(props: {
                   language={lang}
                   defaultValue={draft ?? stringValue ?? ""}
                   data={data}
+                  templateVariables={props.templateVariables}
                   onSave={trySave}
                   editorHeight={fullscreen ? 396 : 310}
                   fileName={fileName}

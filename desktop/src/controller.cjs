@@ -37,6 +37,7 @@ class DesktopController {
     this.prepareSession = prepareSession;
     this.activity = new IslandActivity();
     this.callerContext = new AsyncLocalStorage();
+    this.signalContext = new AsyncLocalStorage();
     this.operations = this.activity.operations;
     this.pending = new Map();
     this.queue = Promise.resolve();
@@ -51,6 +52,7 @@ class DesktopController {
         return;
       }
       clearTimeout(pending.timer);
+      pending.cleanup();
       this.pending.delete(id);
       if (result?.success === false) {
         pending.reject(
@@ -62,14 +64,28 @@ class DesktopController {
     };
     ipcMain.on("desktop:result", this.receive);
   }
+  clearCallerActivity(callerId) {
+    const window = this.getWindow();
+    if (window && !window.isDestroyed()) {
+      window.webContents.send("desktop:caller-disconnected", { callerId });
+    }
+  }
   invoke(method, input = {}, timeout = 600000) {
+    const signal = this.signalContext.getStore();
+    signal?.throwIfAborted();
     const window = this.getWindow();
     if (!window || window.isDestroyed()) {
       throw new Error("Open the desktop editor window");
     }
     return new Promise((resolve, reject) => {
       const id = randomUUID();
+      const cancel = () => {
+        if (!window.isDestroyed()) window.webContents.send("desktop:cancel", { id });
+      };
+      const cleanup = () => signal?.removeEventListener("abort", cancel);
       const timer = setTimeout(() => {
+        cancel();
+        cleanup();
         this.pending.delete(id);
         reject(
           new Error(
@@ -81,8 +97,12 @@ class DesktopController {
           ),
         );
       }, timeout);
-      this.pending.set(id, { window, timer, resolve, reject });
+      this.pending.set(id, { window, timer, resolve, reject, cleanup, cancel });
       window.webContents.send("desktop:invoke", { id, method, input, caller: this.callerContext.getStore() });
+      if (this.pending.has(id)) {
+        signal?.addEventListener("abort", cancel, { once: true });
+        if (signal?.aborted) cancel();
+      }
     });
   }
   async editor(name, input = {}) {
@@ -160,7 +180,7 @@ class DesktopController {
     }
     throw new Error("Design did not become ready");
   }
-  async requestStudio(path, body, signal) {
+  async requestStudio(path, body, signal, method = body === undefined ? "GET" : "POST") {
     const response = await this.getWindow().webContents.session.fetch(
       this.config.studioOrigin + path,
       {
@@ -168,7 +188,7 @@ class DesktopController {
         credentials: "include",
         redirect: "manual",
         ...(signal ? { signal } : {}),
-        method: body === undefined ? "GET" : "POST",
+        method,
         headers: {
           Accept: "application/json",
           ...(body === undefined
@@ -194,6 +214,16 @@ class DesktopController {
       );
     }
     return response.json();
+  }
+  async getProject(projectId) {
+    validateResourceId(projectId, "projectId");
+    const url = new URL("/api/v1/projects", this.config.studioOrigin);
+    url.searchParams.set("query", JSON.stringify("byIds"));
+    url.searchParams.set("projectIds", JSON.stringify([projectId]));
+    const result = await this.requestStudio(url.pathname + url.search);
+    const project = result.projects.find((item) => item.id === projectId);
+    if (!project) throw new Error("Project not found or inaccessible: " + projectId);
+    return managementResult({ project });
   }
   async saveBeforeNavigation(state) {
     if (state.ready) {
@@ -231,16 +261,17 @@ class DesktopController {
     const url = state.url || this.getWindow()?.webContents?.getURL?.();
     return assertContext(required, { ...state, ...(url ? { url } : {}) }, this.config.studioOrigin);
   }
-  dispatch(method, input, caller) {
+  dispatch(method, input, caller, signal) {
     if (this.updating) return Promise.reject(uiError("Plasmic is restarting to install an update. Retry after it reopens."));
     if (!input || typeof input !== "object" || Array.isArray(input)) return Promise.reject(new Error("Arguments must be an object"));
     try { assertToolRouting(method, input); } catch (error) { return Promise.reject(error); }
     const id = randomUUID();
     this.activity.enqueue(id, method, input, caller);
-    const run = () => this.callerContext.run(caller, async () => {
+    const run = () => this.signalContext.run(signal, () => this.callerContext.run(caller, async () => {
       this.activity.start(id);
       let failure;
       try {
+        signal?.throwIfAborted();
         if (method === "report_task") {
           const state = await this.state();
           const context = currentContext(state, this.config.studioOrigin);
@@ -251,6 +282,7 @@ class DesktopController {
         await this.prepareSession();
         if (!["list_projects", "search_stock_images", "generate_image", "browser", "reference_browser", "import_reference", "design_reference", "capture_browser", "make_vector", "vectorize_image"].includes(method)) await this.waitForStartup();
         this.activity.bind(id, await this.checkContext(method, input), this.getWindow()?.webContents?.getURL?.());
+        signal?.throwIfAborted();
         return await this.execute(method, input);
       } catch (error) {
         failure = error;
@@ -262,7 +294,7 @@ class DesktopController {
       } finally {
         this.activity.finish(id, failure);
       }
-    });
+    }));
     if (
       [
         "report_task",
@@ -270,6 +302,8 @@ class DesktopController {
         "get_build_info",
         "get_image_service_status",
         "get_org",
+        "get_workspace",
+        "get_project",
         "list_orgs",
         "list_workspaces",
         "list_projects",
@@ -311,7 +345,7 @@ class DesktopController {
     if (!input || typeof input !== "object" || Array.isArray(input)) {
       throw new Error("Arguments must be an object");
     }
-    if (["get_org", "list_orgs", "create_org", "create_workspace", "list_workspaces", "create_project", "list_projects"].includes(method)
+    if (["get_org", "list_orgs", "create_org", "create_workspace", "get_workspace", "list_workspaces", "create_project", "get_project", "list_projects", "rename_project", "move_project", "clone_project"].includes(method)
       && Object.hasOwn(input, "view")) {
       throw new Error("Management tools return resource identities only; view is not supported");
     }
@@ -389,7 +423,9 @@ class DesktopController {
         }
       } else {
         if (input.action === "state" && (before.mode !== "preview" || !before.previewContext?.componentUuid)) result = { ready: false };
-        else result = await runPreview(win, input, before, undefined, this.callerContext.getStore());
+        else result = await runPreview(win, input, before,
+          AbortSignal.any([AbortSignal.timeout(30000), ...[this.signalContext.getStore()].filter(Boolean)]),
+          this.callerContext.getStore());
       }
       diagnostics.phase = "context-read";
       if (input.action !== "state") diagnostics.operationExecuted = true;
@@ -477,6 +513,66 @@ class DesktopController {
         name: resourceName(input.name),
         workspaceId: input.workspaceId,
       }));
+    }
+    if (method === "get_workspace") {
+      validateResourceId(input.workspaceId, "workspaceId");
+      return managementResult(await this.requestStudio("/api/v1/workspaces/" + input.workspaceId));
+    }
+    if (method === "get_project") return this.getProject(input.projectId);
+    if (["rename_project", "move_project", "clone_project"].includes(method)) {
+      validateResourceId(input.projectId, "projectId");
+      const cloning = method === "clone_project";
+      const body = {};
+      if (method === "rename_project" || cloning && input.name !== undefined) body.name = resourceName(input.name);
+      if (method === "move_project" || cloning && input.workspaceId !== undefined) {
+        validateResourceId(input.workspaceId, "workspaceId");
+        body.workspaceId = input.workspaceId;
+      }
+      const activeUrl = win.webContents.getURL();
+      const active = new URL(activeUrl).pathname.match(/^\/projects\/([^/]+)/)?.[1] === input.projectId;
+      let operationExecuted = false;
+      let projectId = cloning ? undefined : input.projectId;
+      try {
+        if (active) {
+          const state = await this.state([]);
+          assertContext({ surface: "editor" }, state, this.config.studioOrigin);
+          if (state.projectId !== input.projectId || state.url !== activeUrl) {
+            throw contextError({ surface: "editor", projectId: input.projectId }, currentContext(state, this.config.studioOrigin),
+              "The active project changed before it could be saved; inspect current state before retrying");
+          }
+          await this.saveBeforeNavigation(state);
+        }
+        // A transport failure can leave the outcome unknown. Only a platform
+        // response establishes whether the mutation committed or rolled back.
+        operationExecuted = null;
+        const result = await this.requestStudio(
+          "/api/v1/projects/" + input.projectId + (cloning ? "/clone" : ""),
+          body, undefined, cloning ? "POST" : "PUT",
+        );
+        if (!cloning && result.paywall !== "pass") {
+          if (!["upsell", "requireTeam"].includes(result.paywall)) throw new Error("Invalid project update response; check project identity before retrying");
+          operationExecuted = false;
+          throw new Error("Cannot " + (method === "move_project" ? "move" : "rename") + " project: plan restriction (" + result.paywall +
+            (result.description ? ": " + result.description : "") + ")");
+        }
+        operationExecuted = true;
+        let identity;
+        if (cloning) {
+          projectId = result.projectId;
+          identity = await this.getProject(projectId);
+        } else {
+          if (result.response?.project?.id !== input.projectId) throw new Error("Project update returned an unexpected identity; check the project before retrying");
+          identity = managementResult(result.response);
+          if (active && win.webContents.getURL() === activeUrl) await win.loadURL(activeUrl);
+        }
+        return identity;
+      } catch (error) {
+        error.context = { ...error.context, operationExecuted,
+          recovery: error.context?.recovery ?? (projectId ? [{ tool: "get_project", arguments: { projectId } }]
+            : [{ tool: "list_projects", arguments: input.workspaceId ? { workspaceId: input.workspaceId } : {} }]),
+        };
+        throw error;
+      }
     }
     if (method === "open_org" || method === "open_workspace") {
       const isOrg = method === "open_org";
@@ -1066,9 +1162,9 @@ class DesktopController {
     try {
       return await read(inspection.inspectionId);
     } finally {
-      await this.editor("endCanvasInspection", {
+      await this.signalContext.run(undefined, () => this.editor("endCanvasInspection", {
         inspectionId: inspection.inspectionId,
-      });
+      }));
     }
   }
   cancelPending(window, message) {
@@ -1077,6 +1173,8 @@ class DesktopController {
         continue;
       }
       clearTimeout(request.timer);
+      request.cancel();
+      request.cleanup();
       request.reject(new Error(message));
       this.pending.delete(id);
     }

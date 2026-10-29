@@ -24,31 +24,38 @@ function clock() {
   };
 }
 
-it("reuses one cursor, travels continuously, retains active work, and fades idle work", () => {
+it("reuses one cursor, travels continuously, expires without completion, and does not revive from layout updates", () => {
   const c = clock();
   let scale = 1;
   const cursor = createAgentCursor(document.body, { label: "AI assistant", color: "#1677ff", scale: () => scale });
   const root = ensure(document.querySelector<HTMLElement>("[data-plasmic-agent-cursor]"), "Cursor root was not mounted");
-  cursor.update(1, { x: 100, y: 80 }, true);
+  cursor.update(1, { x: 100, y: 80 });
   c.step(300);
   expect(root.style.opacity).toBe("1");
-  cursor.update(2, { x: 300, y: 80 }, true);
+  cursor.update(2, { x: 300, y: 80 });
   c.step(350);
   const x = Number(root.style.transform.match(/translate3d\(([^p]+)/)?.[1]);
   expect(x).toBeGreaterThan(100);
   expect(x).toBeLessThan(300);
   expect(document.querySelector("[data-plasmic-agent-cursor]")).toBe(root);
   scale = 2;
-  c.step(7000);
+  c.step(500);
   expect(root.style.transform).toContain("scale(0.5)");
   expect(root.style.display).toBe("block");
-  cursor.update(2, { x: 300, y: 80 }, false);
-  c.step(12500);
+  cursor.update(2, { x: 300, y: 80 });
+  c.step(5800);
   expect(Number(root.style.opacity)).toBeGreaterThan(0);
   expect(Number(root.style.opacity)).toBeLessThan(1);
-  c.step(13500);
+  c.step(6800);
   expect(root.style.display).toBe("none");
   expect(c.callbacks.size).toBe(0);
+  cursor.update(2, { x: 400, y: 80 });
+  c.step(7000);
+  expect(root.style.display).toBe("none");
+  expect(c.callbacks.size).toBe(0);
+  cursor.update(3, { x: 400, y: 80 });
+  c.step(7300);
+  expect(root.style.display).toBe("block");
   cursor.dispose();
   expect(root.isConnected).toBe(false);
 });
@@ -57,9 +64,9 @@ it("isolates UI from inspection, disables motion when requested, and restores ca
   const c = clock();
   vi.spyOn(window, "matchMedia").mockReturnValue({ matches: true } as MediaQueryList);
   const cursor = createAgentCursor(document.body, { label: "AI assistant", color: "#1677ff", scale: () => 1 });
-  cursor.update(1, { x: 100, y: 80 }, false);
+  cursor.update(1, { x: 100, y: 80 });
   c.step(110);
-  cursor.update(2, { x: 300, y: 80 }, false);
+  cursor.update(2, { x: 300, y: 80 });
   c.step(120);
   const root = ensure(document.querySelector<HTMLElement>("[data-plasmic-agent-cursor]"), "Cursor root was not mounted");
   expect(root.style.transform).toBe("translate3d(300px,80px,0) scale(1)");
@@ -101,7 +108,7 @@ it("tracks preview elements, clears replaced targets and navigation, and does no
   expect(root.shadowRoot?.querySelector("span")?.textContent).toBe("AI assistant");
   c.step(6900);
   el.remove();
-  c.step(7000);
+  c.step(500);
   expect(root.style.display).toBe("none");
   send({ action: "move", element: document.body });
   send({ action: "clear" });

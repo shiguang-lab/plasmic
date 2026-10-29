@@ -12,22 +12,7 @@ Prefer the native MCP stdio server configured in the **current Agent client/sess
 
 ## DeepSeek Harness Desktop profile
 
-Profile-based DSH Desktop uses `$DSH_HOME/profiles/desktop/cordis.patch.yml`, with `DSH_HOME` defaulting to `~/.dsh`. This is a YAML **patch list**, not a `mcpServers` mapping. Plasmic Desktop's MCP settings include a DeepSeek Harness switch that manages this entry. An Agent using a CLI profile must identify that profile instead; changing the Desktop profile does not configure headless/web profiles.
-
-Append this insert patch only when the same instance/server namespace is absent, using the verified executable path:
-
-```yaml
-- insert:
-    - id: plasmic-desktop
-      name: '@deepseek-ai/dsh-mcp-client'
-      config:
-        transport: stdio
-        serverName: plasmic-desktop
-        command: /Applications/Plasmic.app/Contents/MacOS/Plasmic
-        args: ["--mcp"]
-```
-
-Preserve all other patches and literal `!!js` expressions without evaluating them. DSH hot-reloads profile patches; verify the session's tool inventory after reload. If tools are not refreshed, open a new session. TOML/JSON clients require their own documented structure. Installed skill files do not execute setup on their own: the Agent follows these steps when invoked and Desktop access is needed.
+For DSH, read [profile patch setup](desktop-dsh.md) before configuring the connection. Other clients retain their own documented format.
 
 ## Prototype preflight
 
@@ -50,6 +35,11 @@ Authenticated local RPC is a script transport, not an editor operation namespace
 | List organizations | `list_orgs({})` | `list_orgs` / `{}` |
 | List projects | `list_projects({workspaceId})` | `list_projects` / `{workspaceId}` |
 | Create a project | `create_project({name,workspaceId})` | `create_project` / `{name,workspaceId}` |
+| Read a project by ID | `get_project({projectId})` | `get_project` / `{projectId}` |
+| Read a workspace by ID | `get_workspace({workspaceId})` | `get_workspace` / `{workspaceId}` |
+| Rename a project | `rename_project({projectId,name})` | `rename_project` / `{projectId,name}` |
+| Move a project | `move_project({projectId,workspaceId})` | `move_project` / `{projectId,workspaceId}` |
+| Copy a project | `clone_project({projectId,name?,workspaceId?})` | `clone_project` / `{projectId,name?,workspaceId?}` |
 | Open a project | `open_design({projectId})` | `open_design` / `{projectId}` |
 | Read model | `execute({name:"read",input:{collection:"components"}})` | `execute` / `{name:"read",input:{collection:"components"}}` |
 | Save | `execute({name:"save",input:{}})` | `execute` / `{name:"save",input:{}}` |

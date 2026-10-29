@@ -9,6 +9,7 @@ export function BoolPropEditor(props: {
   valueSetState?: ValueSetState;
   disabled?: boolean;
   "data-plasmic-prop"?: string;
+  "aria-label"?: string;
 }) {
   return (
     <div className="flex justify-start">
@@ -18,6 +19,7 @@ export function BoolPropEditor(props: {
         valueSetState={props.valueSetState}
         isDisabled={props.disabled}
         data-plasmic-prop={props["data-plasmic-prop"]}
+        aria-label={props["aria-label"]}
       >
         {null}
       </StyleSwitch>

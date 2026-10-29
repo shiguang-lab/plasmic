@@ -85,3 +85,15 @@ test("literal insertion defaults survive the canvas registration realm", () => {
   expect(result).toEqual({ type: "array", defaultValue: [{ key: "create", label: "Create" }] });
   expect(result?.defaultValue).not.toBe(metadata.defaultValue);
 });
+
+test("optional object and template editor metadata preserve the nested string contract", () => {
+  const metadata = { type: "object", toggleable: true, fields: {
+    formatter: { type: "string", control: "large", templateVariables: ["count", "maxLength"] },
+  } };
+  expect(registrationContract(metadata)).toEqual({ type: "object", toggleable: true, fields: {
+    formatter: { type: "string", templateVariables: ["count", "maxLength"] },
+  } });
+  expect(validateRegisteredValue({}, metadata, "showCount")).toBeUndefined();
+  expect(validateRegisteredValue({ formatter: "{count}/{maxLength}" }, metadata, "showCount")).toBeUndefined();
+  expect(validateRegisteredValue({ formatter: () => "count" }, metadata, "showCount")).toBe("showCount.formatter expects a string");
+});

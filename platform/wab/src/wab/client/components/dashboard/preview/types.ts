@@ -14,6 +14,11 @@ export interface ArtboardBounds {
   top: number;
 }
 
+/**
+ * Cached previews stay valid across app builds while the project revision and
+ * this format match. Bump it when a change alters rendered previews (engine,
+ * code generation, runtime or bundled component libraries) to regenerate them.
+ */
 export const previewFormat = "canvas-overview-v1";
 export const previewChannel = "plasmic-canvas-preview";
 

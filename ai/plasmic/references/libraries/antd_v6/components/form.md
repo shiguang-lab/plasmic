@@ -66,6 +66,7 @@ Triage every piece of field copy before choosing a Slot or a component:
 
 | Question | Decision |
 | --- | --- |
+| TextArea count or length limit? | Use native `maxLength` + `showCount`; see [Input](input.md#value-and-field-ownership). Never substitute instruction, `description`, `tooltip`, placeholder or text copy. Missing registration is a contract gap. |
 | Does the user need to perceive this text at all, or is it requirement/implementation description? | Not user-facing: render nothing. Record the text in the field's `excludedCopy` with its source quote so the omission is reviewable. |
 | Must it be visible while entering the value (format, range, constraint)? | User-facing now: use an inline instruction for a short note beside a compact control, or `description` for one short line below. |
 | Is it background, definition or rationale the user opens on demand? | User-facing on demand: use the label `tooltip`. Never paste it as a persistent description. |

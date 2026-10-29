@@ -123,11 +123,17 @@ test("management tools expose strict MCP schemas and forward valid calls through
       ],
       ["list_workspaces", {}],
       ["list_workspaces", { orgId: "org" }],
+      ["get_workspace", { workspaceId: "workspace" }],
       ["list_projects", {}],
       ["list_projects", { workspaceId: "workspace" }],
       ["open_workspace", { workspaceId: "workspace" }],
       ["create_project", { name: "App", workspaceId: "workspace" }],
       ["create_project", { name: "Personal" }],
+      ["get_project", { projectId: "project" }],
+      ["rename_project", { projectId: "project", name: "Orders" }],
+      ["move_project", { projectId: "project", workspaceId: "workspace" }],
+      ["clone_project", { projectId: "project" }],
+      ["clone_project", { projectId: "project", name: "Copy", workspaceId: "workspace" }],
     ];
     for (const [name, input] of valid) {
       const tool = tools.find((entry) => entry.name === name);
@@ -184,12 +190,27 @@ test("management tools expose strict MCP schemas and forward valid calls through
       ["open_workspace", { workspaceId: "../workspace" }],
       ["create_project", { name: "App", isPublic: "false" }],
       ["create_project", { name: "App", workspaceId: "workspace?other" }],
+      ["get_workspace", {}],
+      ["get_workspace", { workspaceId: "../workspace" }],
+      ["get_project", {}],
+      ["get_project", { projectId: "project?private" }],
+      ["get_project", { projectId: "project", view: "full" }],
+      ["rename_project", { projectId: "project", name: " " }],
+      ["rename_project", { name: "Orders" }],
+      ["move_project", { projectId: "project" }],
+      ["move_project", { projectId: "project", workspaceId: null }],
+      ["move_project", { projectId: "project", workspaceId: "../workspace" }],
+      ["clone_project", { projectId: "project", name: 5 }],
+      ["clone_project", { projectId: "project", name: " " }],
+      ["clone_project", { projectId: "project", workspaceId: "" }],
+      ["clone_project", { projectId: "project", branchName: "branch" }],
+      ["rename_project", { projectId: "project", name: "Orders", readableByPublic: true }],
     ];
     for (const [name, input] of invalid) {
       const result = await client.callTool({ name, arguments: input });
       assert.equal(result.isError, true, name);
     }
-    for (const name of ["list_orgs", "list_projects", "create_project", "open_design"]) {
+    for (const name of ["list_orgs", "list_projects", "create_project", "get_workspace", "get_project", "rename_project", "move_project", "clone_project", "open_design"]) {
       const input = { name: "Draft", projectId: "project" };
       const result = await client.callTool({ name: "execute", arguments: { name, input } });
       assert.equal(result.isError, true);
@@ -244,6 +265,190 @@ test("workspace lists use the account or organization access scope", async (t) =
     calls.map((call) => call.url),
     [origin + "/api/v1/workspaces", origin + "/api/v1/teams/org/workspaces"],
   );
+});
+
+test("resource lookups use scoped APIs without reading design content or requiring an editor", async (t) => {
+  const project = { id: "project", name: "Orders", workspaceId: "workspace", workspaceName: "Apps", teamId: "org", teamName: "Design" };
+  const workspace = { id: "workspace", name: "Apps", team: { id: "org", name: "Design", billingEmail: "private" }, uiConfig: {} };
+  const { controller, win, calls } = fixture(t);
+  controller.state = async () => assert.fail("Resource lookups must not read the editor");
+  win.webContents.session.fetch = async (target, options) => {
+    const url = new URL(target);
+    calls.push({ url, options });
+    assert.equal(options.method, "GET");
+    if (url.pathname === "/api/v1/workspaces/workspace") return { ok: true, json: async () => ({ workspace, perms: ["private"] }) };
+    assert.equal(url.pathname, "/api/v1/projects");
+    assert.equal(JSON.parse(url.searchParams.get("query")), "byIds");
+    assert.deepEqual(JSON.parse(url.searchParams.get("projectIds")), ["project"]);
+    return { ok: true, json: async () => ({ projects: [{ ...project, projectApiToken: "private", uiConfig: {} }], perms: ["private"] }) };
+  };
+  assert.deepEqual(await controller.dispatch("get_project", { projectId: "project" }), { project });
+  assert.deepEqual(await controller.dispatch("get_workspace", { workspaceId: "workspace" }), {
+    workspace: { id: "workspace", name: "Apps", team: { id: "org", name: "Design" } },
+  });
+  assert.equal(calls.length, 2);
+  controller.requestStudio = async () => ({ projects: [] });
+  await assert.rejects(controller.dispatch("get_project", { projectId: "missing" }), /not found or inaccessible/);
+});
+
+test("project mutations use the platform APIs, return filtered identities and leave other editors alone", async (t) => {
+  const identity = { id: "project", name: "Orders", workspaceId: "destination", teamId: "org" };
+  const { controller, calls } = fixture(t, {
+    paywall: "pass", response: { project: { ...identity, projectApiToken: "private" }, perms: ["private"], owner: { email: "private" } },
+  });
+  controller.state = async () => assert.fail("Other projects must not read or save the editor");
+  for (const [method, input, body] of [
+    ["rename_project", { projectId: "project", name: " Orders " }, { name: "Orders" }],
+    ["move_project", { projectId: "project", workspaceId: "destination" }, { workspaceId: "destination" }],
+  ]) {
+    assert.deepEqual(await controller.dispatch(method, input), { project: identity });
+    const call = calls.at(-1);
+    assert.equal(call.url, origin + "/api/v1/projects/project");
+    assert.equal(call.options.method, "PUT");
+    assert.equal(call.options.credentials, "include");
+    assert.equal(call.options.redirect, "manual");
+    assert.equal(call.options.headers.Origin, origin);
+    assert.equal(call.options.headers["Content-Type"], "application/json");
+    assert.deepEqual(JSON.parse(call.options.body), body);
+  }
+  assert.equal(calls.length, 2);
+});
+
+test("copying returns the new project's readback, including actual personal workspace placement", async (t) => {
+  for (const extra of [{}, { name: " Orders copy ", workspaceId: "destination" }]) {
+    const { controller, win, calls } = fixture(t);
+    controller.state = async () => assert.fail("Copying another project must not access the editor");
+    const project = { id: "copy", name: extra.name?.trim() || "Copy of Orders", workspaceId: extra.workspaceId || "personal", teamId: "team" };
+    win.webContents.session.fetch = async (target, options) => {
+      calls.push({ target, options });
+      if (options.method === "POST") {
+        assert.equal(target, origin + "/api/v1/projects/source/clone");
+        assert.deepEqual(JSON.parse(options.body), extra.name ? { name: "Orders copy", workspaceId: "destination" } : {});
+        return { ok: true, json: async () => ({ projectId: "copy", workspaceId: project.workspaceId }) };
+      }
+      assert.deepEqual(JSON.parse(new URL(target).searchParams.get("projectIds")), ["copy"]);
+      return { ok: true, json: async () => ({ projects: [{ ...project, projectApiToken: "private" }] }) };
+    };
+    assert.deepEqual(await controller.dispatch("clone_project", { projectId: "source", ...extra }), { project });
+    assert.equal(calls.length, 2);
+  }
+});
+
+test("active project mutations save before writing and only rename or move reload the editor", async (t) => {
+  for (const [method, input] of [
+    ["rename_project", { name: "Renamed" }],
+    ["move_project", { workspaceId: "destination" }],
+    ["clone_project", {}],
+  ]) {
+    const { controller, win, calls } = fixture(t);
+    win.webContents.session.fetch = async (target, options) => {
+      calls.push({ method: options.method, url: target });
+      return { ok: true, json: async () => options.method === "POST" ? { projectId: "copy" }
+        : options.method === "GET" ? { projects: [{ id: "copy", name: "Copy" }] }
+        : { paywall: "pass", response: { project: { id: "current", name: "Orders" } } } };
+    };
+    await controller.dispatch(method, { projectId: "current", ...input });
+    assert.deepEqual(calls.map((call) => call.method), method === "clone_project"
+      ? ["identify", "save", "POST", "GET"] : ["identify", "save", "PUT", "loadURL"]);
+    assert.equal(win.webContents.getURL(), origin + "/projects/current");
+  }
+});
+
+test("failed saves and unavailable or mismatched editor models block active project mutations", async (t) => {
+  for (const method of ["rename_project", "move_project", "clone_project"]) {
+    const { controller, calls } = fixture(t);
+    controller.editor = async (name) => {
+      if (name === "save") throw new Error("Save failed");
+      return { canEdit: true };
+    };
+    const input = { projectId: "current", ...(method === "rename_project" ? { name: "Orders" } : method === "move_project" ? { workspaceId: "destination" } : {}) };
+    await assert.rejects(controller.dispatch(method, input), (error) => error.message === "Save failed" && error.context.operationExecuted === false);
+    for (const state of [
+      { ready: false, projectId: "current", url: origin + "/projects/current" },
+      { ready: true, projectId: "current", url: origin + "/projects/current", editorContext: { projectId: "other" } },
+    ]) {
+      controller.state = async () => state;
+      await assert.rejects(controller.dispatch(method, input), (error) => error.context.code === "CONTEXT_MISMATCH" && error.context.operationExecuted === false);
+    }
+    assert.deepEqual(calls, []);
+  }
+});
+
+test("a read-only active source can be copied without saving or changing its editor", async (t) => {
+  const { controller, calls } = fixture(t);
+  controller.editor = async (method) => { calls.push({ method }); return { canEdit: false }; };
+  controller.requestStudio = async (_path, _body, _signal, method) => method === "POST"
+    ? { projectId: "copy" } : { projects: [{ id: "copy" }] };
+  assert.deepEqual(await controller.dispatch("clone_project", { projectId: "current" }), { project: { id: "copy" } });
+  assert.deepEqual(calls, [{ method: "identify" }]);
+});
+
+test("a project mutation does not reload a different surface the user opened during the request", async (t) => {
+  const { controller, win, calls } = fixture(t);
+  controller.requestStudio = async () => {
+    await win.loadURL(origin + "/projects/other");
+    return { paywall: "pass", response: { project: { id: "current", name: "Renamed" } } };
+  };
+  await controller.dispatch("rename_project", { projectId: "current", name: "Renamed" });
+  assert.deepEqual(calls.map((call) => call.method), ["identify", "save", "loadURL"]);
+  assert.equal(win.webContents.getURL(), origin + "/projects/other");
+  await win.loadURL(origin + "/projects/current");
+  controller.state = async () => ({ ready: true, projectId: "other", url: origin + "/projects/other" });
+  calls.length = 0;
+  await assert.rejects(controller.dispatch("move_project", { projectId: "current", workspaceId: "destination" }),
+    (error) => error.context.code === "CONTEXT_MISMATCH" && error.context.operationExecuted === false);
+  assert.deepEqual(calls, []);
+});
+
+test("project update restrictions and HTTP permission failures cannot report success or reload the editor", async (t) => {
+  for (const method of ["rename_project", "move_project"]) {
+    const input = { projectId: "project", ...(method === "rename_project" ? { name: "Orders" } : { workspaceId: "destination" }) };
+    for (const paywall of ["upsell", "requireTeam"]) {
+      const { controller, calls } = fixture(t, { paywall, description: "moreSeats", response: { project: { id: "project" } } });
+      await assert.rejects(controller.dispatch(method, input), (error) =>
+        /plan restriction.*moreSeats/.test(error.message) && error.context.operationExecuted === false);
+      assert.equal(calls.length, 1);
+    }
+  }
+  for (const [method, input] of [
+    ["rename_project", { projectId: "project", name: "Orders" }],
+    ["move_project", { projectId: "project", workspaceId: "destination" }],
+    ["clone_project", { projectId: "project" }],
+    ["get_project", { projectId: "project" }],
+    ["get_workspace", { workspaceId: "workspace" }],
+  ]) {
+    const { controller, win, calls } = fixture(t);
+    win.webContents.session.fetch = async () => ({ ok: false, status: 403 });
+    await assert.rejects(controller.dispatch(method, input), /access denied/);
+    assert.deepEqual(calls, []);
+  }
+});
+
+test("post-mutation failures preserve committed identities and transport failures leave an unknown outcome", async (t) => {
+  const copying = fixture(t);
+  copying.controller.requestStudio = async (_path, _body, _signal, method) => {
+    if (method === "POST") return { projectId: "new-copy" };
+    throw new Error("Readback failed");
+  };
+  await assert.rejects(copying.controller.dispatch("clone_project", { projectId: "project" }), (error) => {
+    assert.equal(error.context.operationExecuted, true);
+    assert.deepEqual(error.context.recovery, [{ tool: "get_project", arguments: { projectId: "new-copy" } }]);
+    return true;
+  });
+  const moving = fixture(t, { paywall: "pass", response: { project: { id: "current" } } });
+  moving.win.loadURL = async () => { throw new Error("Reload failed"); };
+  await assert.rejects(moving.controller.dispatch("move_project", { projectId: "current", workspaceId: "destination" }),
+    (error) => error.message === "Reload failed" && error.context.operationExecuted === true);
+  const malformed = fixture(t, {});
+  await assert.rejects(malformed.controller.dispatch("move_project", { projectId: "project", workspaceId: "destination" }),
+    (error) => /Invalid project update response/.test(error.message) && error.context.operationExecuted === null);
+  const uncertain = fixture(t);
+  uncertain.controller.requestStudio = async () => { throw new Error("Connection lost"); };
+  await assert.rejects(uncertain.controller.dispatch("clone_project", { projectId: "project", workspaceId: "destination" }), (error) => {
+    assert.equal(error.context.operationExecuted, null);
+    assert.deepEqual(error.context.recovery, [{ tool: "list_projects", arguments: { workspaceId: "destination" } }]);
+    return true;
+  });
 });
 
 test("project lists use the selected workspace and preserve platform permissions", async (t) => {
@@ -735,6 +940,15 @@ test("invalid resource IDs and creation inputs never reach the NAS", async (t) =
     ["create_workspace", { orgId: "org", name: "Apps", description: 3 }],
     ["create_project", { name: "App", workspaceId: "../workspace" }],
     ["create_project", { name: 5 }],
+    ["get_workspace", { workspaceId: "../workspace" }],
+    ["get_project", { projectId: "" }],
+    ["rename_project", { projectId: "project", name: " " }],
+    ["rename_project", { projectId: "../project", name: "Orders" }],
+    ["move_project", { projectId: "project" }],
+    ["move_project", { projectId: "project", workspaceId: null }],
+    ["move_project", { projectId: "project", workspaceId: "../workspace" }],
+    ["clone_project", { projectId: "project", name: 5 }],
+    ["clone_project", { projectId: "project", workspaceId: "" }],
   ]) {
     await assert.rejects(controller.dispatch(method, input));
   }

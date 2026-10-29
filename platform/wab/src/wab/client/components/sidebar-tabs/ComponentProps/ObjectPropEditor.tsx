@@ -5,6 +5,7 @@ import {
   PropValueEditorContext,
   usePropValueEditorContext,
 } from "@/wab/client/components/sidebar-tabs/PropEditorRow";
+import { BoolPropEditor } from "@/wab/client/components/sidebar-tabs/ComponentProps/BoolPropEditor";
 import { PopoverFrame } from "@/wab/client/components/sidebar/PopoverFrame";
 import { SidebarSection } from "@/wab/client/components/sidebar/SidebarSection";
 import Button from "@/wab/client/components/widgets/Button";
@@ -44,7 +45,7 @@ export const ObjectPropEditor = observer(function ObjectPropEditor<
   objectNameFunc?: ItemFunc<Value, string | undefined>;
   modalKey: string;
   ccContextData: any;
-  onChange: (val: Value) => void;
+  onChange: (val: Value | undefined) => void;
   buttonType?: React.ComponentProps<typeof Button>["type"];
   defaultShowModal?: boolean;
   onClose?: () => void;
@@ -54,6 +55,8 @@ export const ObjectPropEditor = observer(function ObjectPropEditor<
   propType: StudioPropType<any>;
   disabled?: boolean;
   display?: ObjectType<any, any>["display"];
+  toggleable?: boolean;
+  label?: string;
 }) {
   const {
     compositeValue,
@@ -71,6 +74,7 @@ export const ObjectPropEditor = observer(function ObjectPropEditor<
     propType,
     disabled,
     display = "popup",
+    toggleable,
   } = props;
   const valueEditorCtx = usePropValueEditorContext();
   const exprCtx = valueEditorCtx.exprCtx;
@@ -187,6 +191,7 @@ export const ObjectPropEditor = observer(function ObjectPropEditor<
         onDelete={onDeleteItem}
         expr={fieldValueExpr}
         disableLinkToProp={true}
+        disabled={disabled}
         definedIndicator={definedIndicator}
       />
     );
@@ -209,6 +214,28 @@ export const ObjectPropEditor = observer(function ObjectPropEditor<
       </PropValueEditorContext.Provider>
     );
   };
+
+  if (toggleable) {
+    const enabled = compositeValue != null;
+    return (
+      <>
+        <BoolPropEditor
+          value={enabled}
+          disabled={disabled}
+          aria-label={props.label}
+          data-plasmic-prop={props["data-plasmic-prop"]}
+          onChange={(checked) => onChange(checked ? uncheckedCast(defaultValue) : undefined)}
+        />
+        {enabled && (
+          <div className="pt-sm">
+            {Object.entries(fields).map(([fieldName, fieldPropType]) =>
+              renderItem(fieldName, fieldPropType),
+            )}
+          </div>
+        )}
+      </>
+    );
+  }
 
   switch (display) {
     case "popup":

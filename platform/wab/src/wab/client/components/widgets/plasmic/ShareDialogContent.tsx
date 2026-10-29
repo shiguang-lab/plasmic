@@ -51,9 +51,17 @@ import {
 } from "@/wab/shared/perms";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import { getPublicUrl } from "@/wab/shared/urls";
-import { LockOutlined } from "@ant-design/icons";
+import { CheckOutlined, LinkOutlined, LockOutlined } from "@ant-design/icons";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
-import { Select as AntdSelect, Button, Input, notification, message } from "antd";
+import {
+  Select as AntdSelect,
+  Button,
+  Flex,
+  Input,
+  message,
+  notification,
+  Switch,
+} from "antd";
 import { createStyles } from "antd-style";
 import copy from "copy-to-clipboard";
 import L from "lodash";
@@ -90,6 +98,16 @@ const useShareStyles = createStyles(({ token }) => ({
       button: { gridColumn: "1 / -1" },
     },
   },
+  linkRole: {
+    display: "flex",
+    alignItems: "center",
+    flexWrap: "wrap",
+    gap: 12,
+    marginTop: 16,
+    "& .ant-select": { width: 120 },
+  },
+  copySuccess: { color: token.colorSuccess },
+  copyError: { color: token.colorError, margin: "10px 0 0", fontSize: 12 },
   inherited: {
     padding: "0 0 20px",
     color: token.colorTextSecondary,
@@ -184,6 +202,16 @@ function ShareDialogContent(props: ShareDialogContentProps) {
   const { t: uiT } = useI18n();
   const { styles, cx } = useShareStyles();
   const [updatingAccess, setUpdatingAccess] = useState(false);
+  const [copyStatus, setCopyStatus] = useState<"idle" | "copied" | "error">(
+    "idle",
+  );
+  useEffect(() => {
+    if (copyStatus === "idle") {
+      return;
+    }
+    const timeout = window.setTimeout(() => setCopyStatus("idle"), 3000);
+    return () => window.clearTimeout(timeout);
+  }, [copyStatus]);
   const { className, resource, perms, reloadPerms, updateResourceCallback } =
     props;
   const [projectInviteOnly, setProjectInviteOnly] = useState(
@@ -194,6 +222,13 @@ function ShareDialogContent(props: ShareDialogContentProps) {
   useEffect(() => {
     setProjectInviteOnly(resourceInviteOnly);
   }, [resource.resource.id, resourceInviteOnly]);
+  const resourceLinkRole =
+    resource.type === "team" ? resource.resource.defaultAccessLevel : null;
+  const [linkRole, setLinkRole] = useState(resourceLinkRole);
+  useEffect(() => {
+    setLinkRole(resourceLinkRole);
+    setCopyStatus("idle");
+  }, [resource.resource.id, resourceLinkRole]);
   const appCtx = useAppCtx();
   const hasTopFrameCtx = !!useTopFrameCtxMaybe();
 
@@ -297,14 +332,6 @@ function ShareDialogContent(props: ShareDialogContentProps) {
     }
   }
 
-  const shareByLinkAllowed =
-    resource.type === "team" ? !!resource.resource.defaultAccessLevel : false;
-  const noShareByLink =
-    resource.type === "team" && !!resource.resource.defaultAccessLevel
-      ? ownAccessLevelRank <
-        accessLevelRank(resource.resource.defaultAccessLevel)
-      : false;
-
   const updateProject = async (inviteOnly: boolean) => {
     assert(resource.type === "project", 'Resource type must be "project"');
     setUpdatingAccess(true);
@@ -325,10 +352,19 @@ function ShareDialogContent(props: ShareDialogContentProps) {
     defaultAccessLevel: GrantableAccessLevel | null,
   ) => {
     assert(resource.type === "team", 'Resource type must be "team"');
-    const data = await appCtx.api.updateTeam(resource.resource.id, {
-      defaultAccessLevel,
-    });
-    await updateResourceCallback?.(data);
+    setUpdatingAccess(true);
+    try {
+      const data = await appCtx.api.updateTeam(resource.resource.id, {
+        defaultAccessLevel,
+      });
+      setLinkRole(defaultAccessLevel);
+      setCopyStatus("idle");
+      await updateResourceCallback?.(data);
+    } catch {
+      void message.error({ content: uiT("Failed to update permissions") });
+    } finally {
+      setUpdatingAccess(false);
+    }
   };
 
   const existingPermItems = L.sortBy(
@@ -462,11 +498,92 @@ function ShareDialogContent(props: ShareDialogContentProps) {
     ) : null;
 
   const collaboratorShareDialog =
-    resource.type === "project" ? (
+    resource.type !== "workspace" ? (
       <div className={cx(styles.root, className)}>
         <Scrollbar scrollX={false} className={styles.body}>
-          <section className={styles.section}>
-            <h3>{uiT("Invite members")}</h3>
+          {resource.type === "team" && (
+            <section
+              className={styles.section}
+              aria-label={uiT("Invite by link")}
+            >
+              <Flex align="center" justify="space-between" gap={12}>
+                <h3 style={{ margin: 0 }}>{uiT("Invite by link")}</h3>
+                <Switch
+                  aria-label={uiT("Enable link invitations")}
+                  checked={!!linkRole}
+                  disabled={!canEdit}
+                  loading={updatingAccess}
+                  onChange={(checked) =>
+                    spawn(updateTeam(checked ? "viewer" : null))
+                  }
+                />
+              </Flex>
+              <p className={styles.caption}>
+                {uiT(
+                  "People can register or sign in and use this link to join the organization.",
+                )}
+              </p>
+              {linkRole && (
+                <div className={styles.linkRole}>
+                  <span>{uiT("Default role")}</span>
+                  <AntdSelect
+                    aria-label={uiT("Default permission for link sharing")}
+                    value={linkRole}
+                    disabled={!canEdit || updatingAccess}
+                    onChange={(value) => spawn(updateTeam(value))}
+                    options={permissionRoles.map(([value, label]) => ({
+                      value,
+                      label: uiT(label),
+                    }))}
+                  />
+                  <Button
+                    aria-label={uiT(
+                      copyStatus === "copied" ? "Copied" : "Copy link",
+                    )}
+                    style={{ marginLeft: "auto" }}
+                    className={
+                      copyStatus === "copied" ? styles.copySuccess : undefined
+                    }
+                    icon={
+                      copyStatus === "copied" ? (
+                        <CheckOutlined />
+                      ) : (
+                        <LinkOutlined />
+                      )
+                    }
+                    disabled={
+                      updatingAccess ||
+                      ownAccessLevelRank < accessLevelRank(linkRole)
+                    }
+                    onClick={() => {
+                      const copied = copy(getTeamInviteLink(resource.resource));
+                      setCopyStatus(copied ? "copied" : "error");
+                    }}
+                  >
+                    <span role="status" aria-live="polite">
+                      {uiT(copyStatus === "copied" ? "Copied" : "Copy link")}
+                    </span>
+                  </Button>
+                </div>
+              )}
+              {copyStatus === "error" && (
+                <p role="alert" className={styles.copyError}>
+                  {uiT("Could not copy link")}
+                </p>
+              )}
+            </section>
+          )}
+          <section
+            className={styles.section}
+            aria-label={uiT(
+              resource.type === "team" ? "Invite by email" : "Invite members",
+            )}
+          >
+            <h3>
+              {uiT(
+                resource.type === "team" ? "Invite by email" : "Invite members",
+              )}
+            </h3>
             <form
               onSubmit={(event) => {
                 event.preventDefault();
@@ -523,8 +640,9 @@ function ShareDialogContent(props: ShareDialogContentProps) {
             <h3>{uiT("Who has access")}</h3>
             {existingPermItems}
           </section>
-          {(resource.resource.teamId ||
-            (resource.resource.workspaceId && !isPersonalProject)) &&
+          {resource.type === "project" &&
+            (resource.resource.teamId ||
+              (resource.resource.workspaceId && !isPersonalProject)) &&
             !isPersonalProject && (
               <details className={styles.inherited}>
                 <summary>
@@ -560,31 +678,33 @@ function ShareDialogContent(props: ShareDialogContentProps) {
                 )}
               </details>
             )}
-          <section className={styles.access}>
-            <div className={styles.accessRow}>
-              <h3>
-                <LockOutlined /> {uiT("Everyone else")}
-              </h3>
-              <AntdSelect
-                aria-label={uiT("Everyone else permission")}
-                value={projectInviteOnly ? "none" : "viewer"}
-                disabled={!canEdit || updatingAccess}
-                loading={updatingAccess}
-                onChange={(key) => spawn(updateProject(key === "none"))}
-                options={[
-                  { value: "none", label: uiT("None") },
-                  { value: "viewer", label: uiT("Viewer") },
-                ]}
-              />
-            </div>
-            <p className={styles.caption}>
-              {uiT(
-                projectInviteOnly
-                  ? "Other people cannot view this project. Existing project, workspace, and organization permissions still apply."
-                  : "Other people can open this project with viewer permissions.",
-              )}
-            </p>
-          </section>
+          {resource.type === "project" && (
+            <section className={styles.access}>
+              <div className={styles.accessRow}>
+                <h3>
+                  <LockOutlined /> {uiT("Everyone else")}
+                </h3>
+                <AntdSelect
+                  aria-label={uiT("Everyone else permission")}
+                  value={projectInviteOnly ? "none" : "viewer"}
+                  disabled={!canEdit || updatingAccess}
+                  loading={updatingAccess}
+                  onChange={(key) => spawn(updateProject(key === "none"))}
+                  options={[
+                    { value: "none", label: uiT("None") },
+                    { value: "viewer", label: uiT("Viewer") },
+                  ]}
+                />
+              </div>
+              <p className={styles.caption}>
+                {uiT(
+                  projectInviteOnly
+                    ? "Other people cannot view this project. Existing project, workspace, and organization permissions still apply."
+                    : "Other people can open this project with viewer permissions.",
+                )}
+              </p>
+            </section>
+          )}
         </Scrollbar>
       </div>
     ) : (
@@ -603,7 +723,6 @@ function ShareDialogContent(props: ShareDialogContentProps) {
                   ? "noPermToShare"
                   : undefined
         }
-        shareByLinkAllowed={shareByLinkAllowed ? "yes" : "no"}
         newUserRoleDropdown={{
           value: inviteAccessLevel,
           "aria-label": uiT("Permission level for new user"),
@@ -632,31 +751,6 @@ function ShareDialogContent(props: ShareDialogContentProps) {
           ],
           isDisabled: submitting || !canInvite,
         }}
-        shareByLinkPermDropdown={
-          resource.type === "team" && resource.resource.defaultAccessLevel
-            ? {
-                "aria-label": uiT("Default permission for link sharing"),
-                value: resource.resource.defaultAccessLevel,
-                onChange: (value) => updateTeam(value as GrantableAccessLevel),
-                children: [
-                  <Select.Option value="viewer">{viewerTooltip}</Select.Option>,
-                  <Select.Option value="commenter">
-                    {commenterTooltip}
-                  </Select.Option>,
-                  <Select.Option value="content">
-                    {contentCreatorTooltip}
-                  </Select.Option>,
-                  <Select.Option value="designer">
-                    {designerTooltip}
-                  </Select.Option>,
-                  <Select.Option value="editor">
-                    {developerTooltip}
-                  </Select.Option>,
-                ],
-                isDisabled: !canEdit,
-              }
-            : undefined
-        }
         newUserEmail={{
           onChange: (e) => {
             setEmail(e.target.value);
@@ -670,28 +764,6 @@ function ShareDialogContent(props: ShareDialogContentProps) {
         sendInviteButton={{
           onClick: invite,
         }}
-        copyLink={
-          resource.type === "team"
-            ? {
-                onClick: () => copy(getTeamInviteLink(resource.resource)),
-              }
-            : undefined
-        }
-        noShareByLink={noShareByLink}
-        shareByLinkSwitch={
-          resource.type === "team"
-            ? {
-                isDisabled: !canEdit,
-                onChange: (checked: boolean) => {
-                  if (checked) {
-                    spawn(updateTeam("viewer"));
-                  } else {
-                    spawn(updateTeam(null));
-                  }
-                },
-              }
-            : undefined
-        }
         permsCascade={{ showTeam: resource.type === "workspace" }}
         teamLink={{
           props: {

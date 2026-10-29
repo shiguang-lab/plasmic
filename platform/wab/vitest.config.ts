@@ -72,6 +72,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
+      "monaco-editor": require.resolve("monaco-editor/esm/vs/editor/editor.api.js"),
       "@plasmicpkgs/antd5/form-meta": path.resolve(__dirname, "../../plasmicpkgs/antd5/src/form-meta.ts"),
       "@/": `${srcDir}/`,
       "src/": `${srcDir}/`,

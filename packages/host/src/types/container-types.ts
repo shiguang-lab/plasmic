@@ -7,6 +7,8 @@ export interface ObjectTypeBaseCore<
 > {
   type: "object";
   fields?: Record<Keys, Values>;
+  /** Show an enable switch that sets the default object (or {}) or clears the prop. */
+  toggleable?: boolean;
   nameFunc?: (item: any, ...args: Ctx) => string | undefined;
   /**
    * Controls how the object editor is displayed in the UI. If not specified, Plasmic will choose the appropriate display mode.

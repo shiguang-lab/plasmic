@@ -8,6 +8,7 @@ import { useEffect } from "react";
 export type PlasmicAiTools = {
   _meta: ReturnType<typeof mapCopilotToolsToJsonSchema>;
   _getLocalContext: () => Promise<CopilotToolCallResult>;
+  _clearCallerActivity: (callerId: string) => Promise<void>;
   _executeLocal: (
     input: Record<string, unknown>,
     signal?: AbortSignal,
@@ -16,6 +17,7 @@ export type PlasmicAiTools = {
   [K in keyof typeof PROTOTYPE_TOOL_META]: (
     input: Record<string, unknown>,
     caller?: CopilotCaller,
+    signal?: AbortSignal,
   ) => Promise<CopilotToolCallResult>;
 };
 
@@ -58,7 +60,21 @@ export function TopFrameCopilotToolsBridge() {
               "This project session has closed; reconnect to the open project.",
             );
           }
-          return await hostFrameApi.executeCopilotToolCall(name, input, outputFormat, caller);
+          if (!signal) {
+            return await hostFrameApi.executeCopilotToolCall(name, input, outputFormat, caller);
+          }
+          const requestId = crypto.randomUUID();
+          // Send execution before cancellation on the same host-frame RPC channel.
+          const result = hostFrameApi.executeCopilotToolCall(name, input, outputFormat, caller, requestId);
+          const cancel = () => { void hostFrameApi.cancelCopilotToolCall(requestId).catch(() => {}); };
+          signal.addEventListener("abort", cancel, { once: true });
+          if (signal.aborted) { cancel(); }
+          try {
+            // Keep the queue locked until an in-flight editor transaction settles.
+            return await result;
+          } finally {
+            signal.removeEventListener("abort", cancel);
+          }
         } catch (error) {
           return {
             success: false,
@@ -80,12 +96,13 @@ export function TopFrameCopilotToolsBridge() {
     const tools = Object.fromEntries(
       Object.keys(PROTOTYPE_TOOL_META).map((name) => [
         name,
-        (input: Record<string, unknown>, caller?: CopilotCaller) => enqueue(name, input, undefined, undefined, caller),
+        (input: Record<string, unknown>, caller?: CopilotCaller, signal?: AbortSignal) => enqueue(name, input, signal, undefined, caller),
       ]),
     );
     const api = {
       ...tools,
       _meta: mapCopilotToolsToJsonSchema(PROTOTYPE_TOOL_META),
+      _clearCallerActivity: (callerId: string) => hostFrameApi.clearCopilotCallerActivity(callerId),
       _getLocalContext: () =>
         enqueue("getEditorContext", {}, undefined, "json"),
       _executeLocal: (input: Record<string, unknown>, signal?: AbortSignal) =>

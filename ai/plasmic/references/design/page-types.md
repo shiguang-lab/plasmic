@@ -141,7 +141,7 @@ AppShell › children
 1. Information region: one headerless Card holding one titled Descriptions per source information group (Flex vertical, gap 16; each Descriptions title owns its heading), three columns.
 2. Related records: one Card per related list, header `title` (`distinguish`), Table with pagination.
 
-Record-level actions follow the source: in the owning list's row actions by default, or in a requested header under [detail header](../libraries/antd_v6/compositions/detail-header.md).
+Place required detail actions in existing toolbars, Tabs extra or owning regions by scope, not a new Header; apply [Header assessment](layout.md#admin-content-entry).
 
 Reference structure:
 

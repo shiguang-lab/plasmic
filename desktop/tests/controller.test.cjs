@@ -414,9 +414,10 @@ test("a lost metadata response expires, releases the queue and ignores a late IP
   );
   assert.equal(controller.pending.size, 0);
   const healthy = controller.invoke("metadata", {}, 1000);
+  assert.equal(sent[1].id, sent[0].id, "timeout sends cleanup for the expired invocation");
   controller.receive(
     { sender: webContents, senderFrame: webContents.mainFrame },
-    sent[1].id,
+    sent[2].id,
     { ready: true },
   );
   assert.deepEqual(await healthy, { ready: true });
@@ -775,4 +776,60 @@ test("native API operations wait for device session restoration, while local sta
   assert.deepEqual(await operation, { team: { id: "org" } });
   assert.equal(requests, 1);
   controller.close();
+});
+
+test("cancellation clears only its IPC activity and keeps the transaction queue locked", async (t) => {
+  const sent = [], entered = deferred();
+  const webContents = { mainFrame: {}, send: (channel, request) => {
+    sent.push({ channel, request });
+    if (channel === "desktop:invoke") entered.resolve();
+  } };
+  const controller = new DesktopController(() => ({ isDestroyed: () => false, webContents }), {});
+  t.after(() => controller.close());
+  controller.checkContext = async () => {};
+  controller.execute = () => controller.invoke("read", {});
+  const abort = new AbortController();
+  const first = controller.dispatch("execute", {}, undefined, abort.signal);
+  await entered.promise;
+  const second = controller.dispatch("execute", {});
+  abort.abort();
+  await new Promise(resolve => setImmediate(resolve));
+  assert.deepEqual(sent.map(s => s.channel), ["desktop:invoke", "desktop:cancel"]);
+  assert.equal(sent[0].request.id, sent[1].request.id);
+  assert.equal(controller.pending.size, 1);
+  controller.receive({ sender: webContents, senderFrame: webContents.mainFrame }, sent[0].request.id, { success: true });
+  await first;
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(sent[2].channel, "desktop:invoke");
+  controller.receive({ sender: webContents, senderFrame: webContents.mainFrame }, sent[2].request.id, { success: true });
+  await second;
+  assert.equal(controller.pending.size, 0);
+  const stopped = new AbortController(); stopped.abort();
+  await assert.rejects(controller.dispatch("execute", {}, undefined, stopped.signal), { name: "AbortError" });
+  assert.equal(sent.length, 3);
+});
+
+test("cancelled inspection still releases its background canvas", async (t) => {
+  const controller = new DesktopController(() => null, {});
+  t.after(() => controller.close());
+  const abort = new AbortController(), calls = [];
+  controller.editor = async (method) => {
+    controller.signalContext.getStore()?.throwIfAborted();
+    calls.push(method);
+    return { inspectionId: "lease" };
+  };
+  await assert.rejects(controller.signalContext.run(abort.signal, () =>
+    controller.inspectCanvas({ componentUuid: "page" }, async () => {
+      abort.abort(); throw new Error("Cancelled read");
+    })), /Cancelled read/);
+  assert.deepEqual(calls, ["beginCanvasInspection", "endCanvasInspection"]);
+});
+
+test("caller disconnect is forwarded without a pending editor invocation", (t) => {
+  const sent = [];
+  const win = { isDestroyed: () => false, webContents: { send: (channel, input) => sent.push({ channel, input }) } };
+  const controller = new DesktopController(() => win, {});
+  t.after(() => controller.close());
+  controller.clearCallerActivity("session");
+  assert.deepEqual(sent, [{ channel: "desktop:caller-disconnected", input: { callerId: "session" } }]);
 });

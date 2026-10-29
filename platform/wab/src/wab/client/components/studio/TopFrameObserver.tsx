@@ -92,6 +92,7 @@ export const TopFrameObserver = observer(function _TopFrameObserver({
   const studioCtx = useStudioCtx();
   const previewCtx = usePreviewCtx();
   const topFrameApi = useTopFrameApi();
+  const toolControllers = React.useMemo(() => new Map<string, AbortController>(), [studioCtx]);
 
   const hostFrameApi = React.useMemo<HostFrameApi>(
     () => ({
@@ -241,11 +242,18 @@ export const TopFrameObserver = observer(function _TopFrameObserver({
       async blockChanges(): Promise<void> {
         studioCtx.blockChanges = true;
       },
+      async cancelCopilotToolCall(requestId: string) {
+        toolControllers.get(requestId)?.abort();
+      },
+      async clearCopilotCallerActivity(callerId: string) {
+        studioCtx.copilotActivity.clearCaller(callerId);
+      },
       async executeCopilotToolCall(
         toolName: string,
         toolArgs: Record<string, unknown>,
         outputFormat?: AiOutputFormat,
         caller?: CopilotCaller,
+        requestId?: string,
       ): Promise<CopilotToolCallResult> {
         const copilotTool = COPILOT_TOOLS[toolName];
 
@@ -259,10 +267,15 @@ export const TopFrameObserver = observer(function _TopFrameObserver({
           };
         }
 
+        const controller = requestId ? new AbortController() : undefined;
+        if (requestId && controller) {
+          toolControllers.set(requestId, controller);
+        }
         try {
           const output = await copilotTool.execute(studioCtx, toolArgs, {
             outputFormat,
             caller,
+            signal: controller?.signal,
           });
           return { success: true, output };
         } catch (err) {
@@ -273,6 +286,10 @@ export const TopFrameObserver = observer(function _TopFrameObserver({
               type: "EXECUTION_FAILED",
             },
           };
+        } finally {
+          if (requestId) {
+            toolControllers.delete(requestId);
+          }
         }
       },
       async setPreferredAiOutputFormat(format: AiOutputFormat): Promise<void> {
@@ -309,7 +326,7 @@ export const TopFrameObserver = observer(function _TopFrameObserver({
         fileDragMonitor.onRemoteEvent(event);
       },
     }),
-    [studioCtx],
+    [studioCtx, toolControllers],
   );
 
   React.useEffect(() => {

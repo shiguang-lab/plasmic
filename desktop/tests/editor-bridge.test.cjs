@@ -33,7 +33,7 @@ function fixture(t) {
   window.top = window;
   const origin = "https://studio.example";
   vm.runInNewContext(fs.readFileSync(path.join(__dirname, "../src/editor-bridge.js"), "utf8"), {
-    window, location: { origin },
+    window, location: { origin }, AbortController,
   });
   const controllerPath = path.join(__dirname, "../src/controller.cjs");
   const requireSource = createRequire(controllerPath);
@@ -118,4 +118,38 @@ test("readiness polling retains context and propagates editor failures without f
   failContext();
   await assert.rejects(state({ toolNames: [] }), /Context read failed/);
   assert.deepEqual(reads, []);
+});
+
+test("editor cancellation targets one invocation and still returns its eventual result", async () => {
+  let message;
+  const disconnected = [];
+  const signals = new Map(), releases = new Map(), responses = [];
+  const window = {
+    PLASMIC_AI_TOOLS: { _clearCallerActivity: async (id) => disconnected.push(id), _meta: { read: {} }, read: (input, _caller, signal) => {
+      signals.set(input.key, signal);
+      return new Promise(resolve => releases.set(input.key, resolve));
+    } },
+    addEventListener: (_name, handler) => { message = handler; },
+    postMessage: response => responses.push(response),
+  };
+  window.top = window;
+  const origin = "https://studio.example";
+  vm.runInNewContext(fs.readFileSync(path.join(__dirname, "../src/editor-bridge.js"), "utf8"), {
+    window, location: { origin }, AbortController,
+  });
+  const send = (channel, id) => message({ source: window, origin, data: { channel, id, method: "read", input: { key: id } } });
+  const first = send("plasmic-desktop-request", "first");
+  const second = send("plasmic-desktop-request", "second");
+  await send("plasmic-desktop-cancel", "first");
+  assert.equal(signals.get("first").aborted, true);
+  assert.equal(signals.get("second").aborted, false);
+  assert.equal(responses.length, 0, "cancellation does not fabricate a mutation result");
+  releases.get("first")({ success: true, output: "{}" });
+  releases.get("second")({ success: true, output: "{}" });
+  await Promise.all([first, second]);
+  assert.deepEqual(responses.map(r => r.id), ["first", "second"]);
+  await send("plasmic-desktop-cancel", "second");
+  assert.equal(signals.get("second").aborted, false, "completed invocations release cancellation handlers");
+  await message({ source: window, origin, data: { channel: "plasmic-desktop-caller-disconnected", callerId: "session" } });
+  assert.deepEqual(disconnected, ["session"], "disconnect cleanup does not require a pending invocation");
 });

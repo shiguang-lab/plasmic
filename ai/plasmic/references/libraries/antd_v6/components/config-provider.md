@@ -37,7 +37,7 @@ Verify the initiating action, actual data effect and Message **appearing immedia
 
 Read the installed context's actual color, radius, line, control-height, size, wireframe, defaultDark and themeStyles controls together with registered theme tokens. Keep native semantic text/status mappings and verify inherited styling in nested controls and portal overlays. Its exposed token subset is not the entire native ConfigProvider theme API.
 
-The implementation accepts locale in code but does not expose it as a registered Studio control. Studio UI language and business content language do not set the canvas component locale automatically. Do not invent a locale/direction/componentSize property in this registration. Verify the real provider and imported library before changing locale or another inherited native behavior.
+The registered `locale` control exposes all 73 language packs shipped by Ant Design 6.6.5, using their native identifiers such as `zh_CN`, `ja_JP` and `fr_FR`; the default is `en_US`. Built-in Modal/Popconfirm buttons, pagination and date controls inherit it, with corresponding Day.js date locale data included. Set it on the installed project context; ordinary confirmation buttons inherit it, while explicit business labels such as `okText="确认下线"` take precedence. Code can also pass a native Ant Design locale object. Studio UI language and business content language do not set the canvas component locale automatically. Existing projects must upgrade the hostless library metadata and load the updated runtime to expose this control. Do not invent direction/componentSize properties; verify the installed contract before changing inherited behavior.
 
 ### Notification actions and acceptance
 

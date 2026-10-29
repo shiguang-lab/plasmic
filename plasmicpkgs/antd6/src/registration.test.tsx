@@ -1,6 +1,8 @@
 import { PlasmicCanvasContext } from "@plasmicapp/host";
 import * as antd from "antd";
 import assert from "node:assert/strict";
+import { readdirSync } from "node:fs";
+import { dirname } from "node:path";
 import { test } from "node:test";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -33,6 +35,34 @@ test("every registered visual component includes a self-contained SVG thumbnail"
     assert.match(svg, /viewBox="0 0 \d+ \d+"/);
     assert.match(svg, /<(rect|circle|path|text)\b/);
     assert.doesNotMatch(svg, /<(script|image|foreignObject)\b/);
+  }
+});
+
+test("system settings expose every installed Ant Design locale and pass the native pack", () => {
+  const provider = contexts.find((c) => c.meta.name === "plasmic-antd6-config-provider")!;
+  const locale = provider.meta.props.locale;
+  assert.equal(locale.type, "choice");
+  assert.equal(locale.defaultValue, undefined);
+  assert.equal(locale.defaultValueHint, "en_US");
+  const localeDir = dirname(require.resolve("antd/lib/locale/en_US.js"));
+  const officialLocales = readdirSync(localeDir)
+    .filter((file) => /^[a-z]{2,3}_[A-Z]{2}\.js$/.test(file))
+    .map((file) => file.slice(0, -3));
+  assert.deepEqual(locale.options, officialLocales);
+  for (const value of locale.options) {
+    const expected = require(`antd/lib/locale/${value}.js`).default;
+    function CheckLocale() {
+      assert.deepEqual(React.useContext(antd.ConfigProvider.ConfigContext).locale, expected, value);
+      return null;
+    }
+    renderToStaticMarkup(
+      React.createElement(provider.component, {
+        themeStyles: {},
+        removeLoading: true,
+        locale: JSON.parse(JSON.stringify(value)),
+        children: React.createElement(CheckLocale),
+      }),
+    );
   }
 });
 

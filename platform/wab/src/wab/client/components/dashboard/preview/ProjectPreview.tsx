@@ -14,9 +14,12 @@ export function ProjectPreview({
 }) {
   const root = React.useRef<HTMLDivElement>(null);
   const [src, setSrc] = React.useState<string>();
-  const [status, setStatus] = React.useState<"loading" | "ready" | "failed">(
-    "loading",
-  );
+  // "waiting": checking the cache or queued behind other previews (static
+  // skeleton); "loading": this preview is being generated (animated skeleton).
+  // The skeleton animation repaints every frame, so only the active card runs it.
+  const [status, setStatus] = React.useState<
+    "waiting" | "loading" | "ready" | "failed"
+  >("waiting");
   React.useEffect(() => {
     const element = root.current;
     if (!element) {
@@ -33,7 +36,7 @@ export function ProjectPreview({
         url = undefined;
       }
       setSrc(undefined);
-      setStatus("loading");
+      setStatus("waiting");
     };
     const update = () => {
       if (visible && document.visibilityState !== "hidden") {
@@ -41,17 +44,23 @@ export function ProjectPreview({
           return;
         }
         attempted = true;
-        unsubscribe = subscribePreview(userId, projectId, (blob) => {
-          if (!blob) {
-            setStatus("failed");
-            return;
-          }
-          if (url) {
-            URL.revokeObjectURL(url);
-          }
-          url = URL.createObjectURL(blob);
-          setSrc(url);
-        });
+        unsubscribe = subscribePreview(
+          userId,
+          projectId,
+          (blob) => {
+            if (!blob) {
+              setStatus("failed");
+              return;
+            }
+            if (url) {
+              URL.revokeObjectURL(url);
+            }
+            url = URL.createObjectURL(blob);
+            setSrc(url);
+          },
+          // A cached image stays visible while a newer preview generates.
+          () => setStatus((current) => (current === "waiting" ? "loading" : current)),
+        );
       } else {
         release();
         attempted = false;

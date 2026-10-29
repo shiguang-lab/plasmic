@@ -62,6 +62,25 @@ it("cancels queued work and waits for active teardown before replacing a job", a
   expect(next).toHaveBeenCalledTimes(1);
 });
 
+it("reports a start only when a job leaves the queue, including to late subscribers", async () => {
+  vi.useFakeTimers();
+  const queue = new PreviewQueue(),
+    first = deferred<Blob>();
+  const firstStart = vi.fn(),
+    lateStart = vi.fn(),
+    secondStart = vi.fn();
+  queue.subscribe("first", () => first.promise, vi.fn(), firstStart);
+  queue.subscribe("second", async () => new Blob(), vi.fn(), secondStart);
+  expect(firstStart).toHaveBeenCalledTimes(1);
+  expect(secondStart).not.toHaveBeenCalled();
+  queue.subscribe("first", () => first.promise, vi.fn(), lateStart);
+  expect(lateStart).toHaveBeenCalledTimes(1);
+  first.resolve(new Blob());
+  await vi.runAllTimersAsync();
+  expect(secondStart).toHaveBeenCalledTimes(1);
+  expect(firstStart).toHaveBeenCalledTimes(1);
+});
+
 it("continues after an error", async () => {
   vi.useFakeTimers();
   const queue = new PreviewQueue(),

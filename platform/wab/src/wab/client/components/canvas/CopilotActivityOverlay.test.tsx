@@ -7,11 +7,11 @@ import {
 import { ActivityTarget } from "@/wab/client/copilot/activity";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
-import { IArenaFrame } from "@/wab/shared/Arenas";
+import { IArenaFrame, mkMixedArena } from "@/wab/shared/Arenas";
 import { ensure } from "@/wab/shared/common";
 import { mkTplTagX } from "@/wab/shared/core/tpls";
 import { ValTag } from "@/wab/shared/core/val-nodes";
-import { Component, TplComponent } from "@/wab/shared/model/classes";
+import { Component, TplComponent, TplNode } from "@/wab/shared/model/classes";
 import { act, cleanup, render } from "@testing-library/react";
 import { theme } from "antd";
 import { ThemeProvider } from "antd-style";
@@ -64,7 +64,38 @@ function nestedActivity() {
     elementUuid,
     label: elementUuid ?? "Page",
   });
-  return { studioCtx, frame, parent, child, descendant, sibling, target };
+  return { studioCtx, frame, parent, child, descendant, sibling, target, renderState };
+}
+
+/** Renders only the given Tpls, each at its own box; others have no DOM. */
+function renderOnly(
+  renderState: ViewCtx["renderState"],
+  boxes: [TplNode, [number, number, number, number]][],
+) {
+  const rendered = boxes.map(([tpl, [left, top, width, height]]) => {
+    const element = document.createElement("div");
+    document.body.append(element);
+    rect(element, left, top, width, height);
+    return { tpl, val: mock<ValTag>(), element };
+  });
+  vi.mocked(renderState.tpl2bestVal).mockImplementation(
+    (tpl) => rendered.find((entry) => entry.tpl === tpl)?.val,
+  );
+  vi.mocked(renderState.sel2dom).mockImplementation((val) =>
+    rendered
+      .filter((entry) => entry.val === val)
+      .map(({ element }) => element),
+  );
+}
+
+function scans(container: HTMLElement) {
+  return Array.from(
+    container.querySelectorAll<HTMLElement>("[data-copilot-target]"),
+    (region) => ({
+      target: region.getAttribute("data-copilot-target"),
+      box: [region.style.left, region.style.top, region.style.width, region.style.height].join(" "),
+    }),
+  );
 }
 
 it("reuses the cursor while switching operation owners and clears failed work", () => {
@@ -214,6 +245,78 @@ it("uses captured ancestors for removed targets and releases suppression when a 
   act(() => finishParent("error"));
   expect(container.querySelectorAll("[data-copilot-target]")).toHaveLength(1);
   expect(container.querySelector('[data-copilot-target="removed"]')).toBeTruthy();
+  activity.dispose();
+});
+
+it.each(["inspection", "edit"] as const)("treats an unrendered %s target as its drawn ancestor when hiding nested scans", (kind) => {
+  const { studioCtx, frame, parent, child, descendant, sibling, target, renderState } = nestedActivity();
+  const root = frame.container.component.tplTree;
+  // `child` has no DOM (closed overlay, inactive panel, slot...), so its scan
+  // is drawn on `parent`, which contains `descendant`.
+  renderOnly(renderState, [
+    [root, [0, 0, 1440, 1024]],
+    [parent, [0, 0, 800, 600]],
+    [descendant, [100, 100, 100, 40]],
+    [sibling, [900, 0, 100, 200]],
+  ]);
+  const activity = studioCtx.copilotActivity;
+  activity.begin([target(child.uuid), target(descendant.uuid), target(sibling.uuid)], kind);
+  const { container } = render(<CopilotActivityOverlay studioCtx={studioCtx} frame={frame} />);
+  expect(scans(container)).toEqual([
+    { target: child.uuid, box: "0px 0px 800px 600px" },
+    { target: sibling.uuid, box: "900px 0px 100px 200px" },
+  ]);
+  // A scan of the drawn element itself merges with the fallback scan.
+  let finishParent: ReturnType<typeof activity.begin> | undefined;
+  act(() => {
+    finishParent = activity.begin([target(parent.uuid)], kind);
+  });
+  expect(scans(container)).toEqual([
+    { target: parent.uuid, box: "0px 0px 800px 600px" },
+    { target: sibling.uuid, box: "900px 0px 100px 200px" },
+  ]);
+  act(() => ensure(finishParent, "Parent request was not started")("error"));
+  expect(scans(container)).toEqual([
+    { target: child.uuid, box: "0px 0px 800px 600px" },
+    { target: sibling.uuid, box: "900px 0px 100px 200px" },
+  ]);
+  activity.dispose();
+});
+
+it("treats a removed target as its surviving ancestor when hiding nested scans", () => {
+  const { studioCtx, frame, parent, descendant, target, renderState } = nestedActivity();
+  renderOnly(renderState, [
+    [frame.container.component.tplTree, [0, 0, 1440, 1024]],
+    [parent, [0, 0, 800, 600]],
+    [descendant, [100, 100, 100, 40]],
+  ]);
+  const activity = studioCtx.copilotActivity;
+  activity.begin([
+    { ...target("removed"), ancestorUuids: [parent.uuid] },
+    target(descendant.uuid),
+  ]);
+  const { container } = render(<CopilotActivityOverlay studioCtx={studioCtx} frame={frame} />);
+  expect(scans(container)).toEqual([
+    { target: "removed", box: "0px 0px 800px 600px" },
+  ]);
+  activity.dispose();
+});
+
+it("keeps a different-kind scan nested in an unrendered target's drawn ancestor", () => {
+  const { studioCtx, frame, parent, child, descendant, target, renderState } = nestedActivity();
+  renderOnly(renderState, [
+    [frame.container.component.tplTree, [0, 0, 1440, 1024]],
+    [parent, [0, 0, 800, 600]],
+    [descendant, [100, 100, 100, 40]],
+  ]);
+  const activity = studioCtx.copilotActivity;
+  activity.begin([target(child.uuid)], "edit");
+  activity.begin([target(descendant.uuid)], "inspection");
+  const { container } = render(<CopilotActivityOverlay studioCtx={studioCtx} frame={frame} />);
+  expect(scans(container)).toEqual([
+    { target: child.uuid, box: "0px 0px 800px 600px" },
+    { target: descendant.uuid, box: "100px 100px 100px 40px" },
+  ]);
   activity.dispose();
 });
 
@@ -380,4 +483,49 @@ it("clips a table cell to its nested scrolling viewport instead of highlighting 
   });
   rect(cell, 401, 220, 200, 80);
   expect(activityBounds([cell], 1440, 1024)).toBeUndefined();
+});
+
+it("owns one cursor across artboards and destroys completed feedback on disconnect", () => {
+  const { studioCtx, frame, target } = nestedActivity();
+  const other = mock<IArenaFrame>({ uuid: "other-frame", width: 1440, height: 1024 });
+  other.container = frame.container;
+  vi.spyOn(studioCtx, "currentArena", "get").mockReturnValue(mkMixedArena("Canvas", [frame, other]));
+  let next = 0;
+  const callbacks = new Map<number, FrameRequestCallback>();
+  vi.mocked(window.requestAnimationFrame).mockImplementation((cb) => { callbacks.set(++next, cb); return next; });
+  vi.spyOn(window, "cancelAnimationFrame").mockImplementation((id) => { callbacks.delete(id); });
+  const step = () => act(() => {
+    const batch = [...callbacks.values()]; callbacks.clear();
+    batch.forEach((cb) => cb(performance.now() + 250));
+  });
+  const caller = { id: "session", name: "Codex" };
+  const finish = studioCtx.copilotActivity.begin([{ ...target(), frameUuid: frame.uuid }], "edit", caller);
+  const { container } = render(<>
+    <section data-frame="first"><CopilotActivityOverlay studioCtx={studioCtx} frame={frame} /></section>
+    <section data-frame="second"><CopilotActivityOverlay studioCtx={studioCtx} frame={other} /></section>
+  </>);
+  step(); step();
+  const first = ensure(container.querySelector<HTMLElement>("[data-plasmic-agent-cursor]"), "Cursor missing");
+  expect(first.style.display).toBe("block");
+  act(() => { finish("success"); vi.advanceTimersByTime(2000); });
+  expect(first.isConnected).toBe(true);
+  let finishOther = finish;
+  act(() => {
+    finishOther = studioCtx.copilotActivity.begin([{ ...target(), frameUuid: other.uuid }], "edit", caller);
+  });
+  step(); step();
+  expect(first.isConnected).toBe(false);
+  expect(container.querySelectorAll("[data-plasmic-agent-cursor]")).toHaveLength(1);
+  expect(container.querySelector('[data-frame="second"] [data-plasmic-agent-cursor]')).not.toBeNull();
+  act(() => { finishOther("success"); vi.advanceTimersByTime(2000); });
+  expect(studioCtx.copilotActivity.requests).toHaveLength(0);
+  act(() => studioCtx.copilotActivity.clearCaller(caller.id));
+  expect(container.querySelector("[data-plasmic-agent-cursor]")).toBeNull();
+  // A component-wide request matches both artboards, but still has one cursor.
+  act(() => { studioCtx.copilotActivity.begin([target()], "edit", caller); });
+  step(); step();
+  expect(container.querySelectorAll("[data-plasmic-agent-cursor]")).toHaveLength(1);
+  act(() => vi.advanceTimersByTime(6500));
+  expect(container.querySelector("[data-plasmic-agent-cursor]")).toBeNull();
+  act(() => studioCtx.copilotActivity.dispose());
 });

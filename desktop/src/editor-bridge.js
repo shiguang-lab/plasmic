@@ -4,15 +4,26 @@
   if (window.top !== window) {
     return;
   }
+  const pending = new Map();
   window.addEventListener("message", async (event) => {
     if (
       event.source !== window ||
       event.origin !== location.origin ||
-      event.data?.channel !== "plasmic-desktop-request"
+      !["plasmic-desktop-request", "plasmic-desktop-cancel", "plasmic-desktop-caller-disconnected"].includes(event.data?.channel)
     ) {
       return;
     }
     const { id, method, input, caller } = event.data;
+    if (event.data.channel === "plasmic-desktop-caller-disconnected") {
+      await window.PLASMIC_AI_TOOLS?._clearCallerActivity(event.data.callerId);
+      return;
+    }
+    if (event.data.channel === "plasmic-desktop-cancel") {
+      pending.get(id)?.abort();
+      return;
+    }
+    const controller = new AbortController();
+    pending.set(id, controller);
     let result;
     try {
       const tools = window.PLASMIC_AI_TOOLS;
@@ -51,10 +62,12 @@
         if (!tools || !Object.hasOwn(tools._meta, method)) {
           throw new Error("Open a design before calling editor tools");
         }
-        result = await tools[method](input, caller);
+        result = await tools[method](input, caller, controller.signal);
       }
     } catch (error) {
       result = { success: false, error: { message: error.message } };
+    } finally {
+      pending.delete(id);
     }
     window.postMessage(
       { channel: "plasmic-desktop-response", id, result },

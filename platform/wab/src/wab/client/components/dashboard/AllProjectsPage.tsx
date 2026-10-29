@@ -39,6 +39,10 @@ const AllProjectsPage = React.forwardRef<HTMLDivElement>(
       isValidating,
       mutate: updateProjectsData,
     } = useAllProjectsData();
+    // Stable so memoized project cards skip re-rendering on unrelated changes.
+    const onProjectUpdate = React.useCallback(async () => {
+      await updateProjectsData();
+    }, [updateProjectsData]);
     useErrorMessage(loadError, "Failed to load projects");
     const {
       projects,
@@ -184,9 +188,7 @@ const AllProjectsPage = React.forwardRef<HTMLDivElement>(
                               key={project.id}
                               project={project}
                               perms={projectsData.perms}
-                              onUpdate={async () => {
-                                await updateProjectsData();
-                              }}
+                              onUpdate={onProjectUpdate}
                               workspaces
                               matcher={matcher}
                               showWorkspace

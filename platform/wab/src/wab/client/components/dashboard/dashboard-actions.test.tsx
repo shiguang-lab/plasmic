@@ -1,8 +1,17 @@
-import { promptWorkspace } from "@/wab/client/components/dashboard/dashboard-actions";
+import type { AppCtx } from "@/wab/client/app-ctx";
+import {
+  promptMoveToWorkspace,
+  promptWorkspace,
+} from "@/wab/client/components/dashboard/dashboard-actions";
 import Select from "@/wab/client/components/widgets/Select";
 import { setLanguagePreference } from "@/wab/client/i18n";
 import { languageOptions, translate } from "@/wab/client/i18n/locales";
-import { ApiTeam, ApiWorkspace } from "@/wab/shared/ApiSchema";
+import {
+  ApiPermission,
+  ApiTeam,
+  ApiUser,
+  ApiWorkspace,
+} from "@/wab/shared/ApiSchema";
 import "@testing-library/jest-dom/vitest";
 import {
   act,
@@ -76,10 +85,10 @@ it.each(languageOptions)(
       translate(value, "Copy of {name}", { name }),
     );
     fireEvent.keyDown(
-      screen.getByRole("button", {
+      screen.getByRole("combobox", {
         name: translate(value, "Select a destination workspace:"),
       }),
-      { key: "ArrowDown" },
+      { key: "ArrowDown", keyCode: 40 },
     );
     expect(
       await screen.findByText(translate(value, "No workspaces available.")),
@@ -141,8 +150,8 @@ it.each(["Move", undefined] as const)(
       }),
     ).toBeDisabled();
     fireEvent.keyDown(
-      screen.getByRole("button", { name: "选择目标工作区：" }),
-      { key: "ArrowDown" },
+      screen.getByRole("combobox", { name: "选择目标工作区：" }),
+      { key: "ArrowDown", keyCode: 40 },
     );
     expect(await screen.findByText(team.name)).toBeTruthy();
     await userEvent.click(screen.getByRole("option", { name: workspace.name }));
@@ -170,4 +179,60 @@ it("preserves an explicit Select placeholder", async () => {
   await act(async () => await setLanguagePreference("zh-CN"));
   render(<Select placeholder="Business placeholder" />);
   expect(screen.getByText("Business placeholder")).toBeTruthy();
+});
+
+it("opens the workspace prompt while loading and uses refreshed permissions", async () => {
+  const team = mock<ApiTeam>({ id: "team" as ApiTeam["id"], name: "Team" });
+  const workspace = mock<ApiWorkspace>({
+    id: "workspace" as ApiWorkspace["id"],
+    name: "Destination",
+    team,
+  });
+  const user = mock<ApiUser>({ id: "user" as ApiUser["id"] });
+  const permission = mock<ApiPermission>({
+    userId: user.id,
+    teamId: team.id,
+    accessLevel: "designer",
+  });
+  const { promise: pending, resolve: finishLoading } =
+    Promise.withResolvers<void>();
+  const appCtx = mock<AppCtx>({
+    selfInfo: user,
+    workspaces: [],
+    perms: [permission],
+  });
+  appCtx.getAllTeams.mockReturnValue([team]);
+  appCtx.reloadAppCtx.mockImplementation(async () => {
+    await pending;
+    appCtx.workspaces = [workspace];
+    appCtx.perms = [{ ...permission, accessLevel: "editor" }];
+  });
+
+  await act(async () => {
+    await promptMoveToWorkspace(appCtx, null, false, "Move");
+  });
+  expect(screen.getByRole("dialog")).toBeInTheDocument();
+  expect(screen.getByRole("combobox")).toBeDisabled();
+  expect(screen.getByRole("combobox")).toHaveAttribute("aria-busy", "true");
+  expect(screen.getByText("Loading…")).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Move" })).toBeDisabled();
+  expect(screen.getByRole("button", { name: "Cancel" })).toBeEnabled();
+
+  await act(async () => {
+    finishLoading();
+    await pending;
+  });
+  expect(screen.getByRole("combobox")).toBeEnabled();
+  fireEvent.keyDown(screen.getByRole("combobox"), { key: "ArrowDown", keyCode: 40 });
+  await userEvent.click(
+    await screen.findByRole("option", { name: "Destination" }),
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Move" }));
+  await waitFor(() =>
+    expect(onSubmit).toHaveBeenCalledWith({
+      result: "workspace",
+      workspace,
+      name: undefined,
+    }),
+  );
 });

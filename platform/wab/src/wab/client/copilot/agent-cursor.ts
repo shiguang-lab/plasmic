@@ -5,6 +5,8 @@ export interface AgentCursorPoint {
   y: number;
 }
 
+export const AGENT_CURSOR_IDLE_MS = 6500;
+
 /** Transient UI only. Coordinates belong to the container; size belongs to the screen. */
 export function createAgentCursor(
   container: HTMLElement,
@@ -43,7 +45,6 @@ export function createAgentCursor(
   let current: AgentCursorPoint | undefined;
   let target: AgentCursorPoint | undefined;
   let key: unknown;
-  let active = false;
   let appeared = 0;
   let touched = 0;
   let previous = 0;
@@ -57,7 +58,6 @@ export function createAgentCursor(
     frame = 0;
     current = target = undefined;
     key = undefined;
-    active = false;
     root.style.display = "none";
   };
   const tick = (now: number) => {
@@ -65,8 +65,11 @@ export function createAgentCursor(
     if (!current || !target || disposed) {
       return;
     }
-    if (!active && now - touched >= 6500) {
+    if (now - touched >= AGENT_CURSOR_IDLE_MS) {
+      const expiredKey = key;
       clear();
+      // Layout tracking must not revive an expired operation.
+      key = expiredKey;
       return;
     }
     const dt = Math.min(0.1, Math.max(0, (now - previous) / 1000));
@@ -80,27 +83,29 @@ export function createAgentCursor(
     const x = current.x + Math.cos(now * 0.003 + phase) * wobble;
     const y = current.y + Math.sin(now * 0.0023 + phase) * wobble;
     const fadeIn = reduced.matches ? 1 : Math.min(1, Math.max(0, (now - appeared) / 200));
-    const fadeOut = active ? 1 : Math.min(1, Math.max(0, (6500 - idle) / 1500));
+    const fadeOut = Math.min(1, Math.max(0, (AGENT_CURSOR_IDLE_MS - idle) / 1500));
     root.style.transform = `translate3d(${x}px,${y}px,0) scale(${1 / scale})`;
     root.style.opacity = String(fadeIn * fadeOut);
     root.style.display = hidden ? "none" : "block";
     frame = win.requestAnimationFrame(tick);
   };
-  const update = (id: unknown, point: AgentCursorPoint, running: boolean, name = options.label) => {
+  const update = (id: unknown, point: AgentCursorPoint, name = options.label) => {
     if (disposed || !Number.isFinite(point.x) || !Number.isFinite(point.y)) {
       return;
     }
     const now = win.performance.now();
+    if (id === key && !current) {
+      return;
+    }
     label.textContent = name;
     if (!current) {
       current = { ...point };
       appeared = previous = now;
     }
-    if (id !== key || active !== running || !target) {
+    if (id !== key) {
       touched = now;
     }
     key = id;
-    active = running;
     target = { ...point };
     if (!frame) {
       frame = win.requestAnimationFrame(tick);
@@ -150,7 +155,7 @@ export function installPreviewAgentCursor(
       return;
     }
     // Keep the real hit point's offset as its element moves or scrolls.
-    cursor.update(id, { x: rect.left + (point?.x ?? rect.width / 2), y: rect.top + (point?.y ?? rect.height / 2) }, false, name);
+    cursor.update(id, { x: rect.left + (point?.x ?? rect.width / 2), y: rect.top + (point?.y ?? rect.height / 2) }, name);
     frame = win.requestAnimationFrame(track);
   };
   const clear = () => {
@@ -171,7 +176,7 @@ export function installPreviewAgentCursor(
       point = detail.point;
       name = detail.caller?.name ?? options.label;
       id++;
-      expires = win.performance.now() + 6500;
+      expires = win.performance.now() + AGENT_CURSOR_IDLE_MS;
       track();
     }
   };

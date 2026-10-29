@@ -26,6 +26,7 @@ const { UnifiedAuthWindow, AUTH_PATH } = require("./unified-auth-window.cjs");
 const { createSessionRecovery } = require("./session-recovery.cjs");
 const { createDeviceCredentials } = require("./device-credentials.cjs");
 const { DesktopDraftStore, createDraftHandler } = require("./drafts.cjs");
+const { createDashboardPreviews } = require("./dashboard-preview.cjs");
 const { DesktopController } = require("./controller.cjs");
 const { startRpc } = require("./local-rpc.cjs");
 const { McpIntegrations } = require("./mcp-integrations.cjs");
@@ -217,6 +218,7 @@ async function startDesktop() {
         updateUiPath: path.join(__dirname, "update-ui.js"),
         updateDialogPath: path.join(__dirname, "update-dialog.js"),
         rendererI18nPath: path.join(__dirname, "renderer-i18n.js"),
+        previewHostPath: path.join(__dirname, "preview-host.html"),
         bundledFontCss: fs
           .readdirSync(path.join(root, "static/desktop-fonts"))
           .filter((file) => file.endsWith(".css"))
@@ -289,6 +291,10 @@ async function startDesktop() {
       preload: path.join(__dirname, "preload.cjs"),
       additionalArguments: [
         `--shiguang-system-languages=${JSON.stringify(app.getPreferredSystemLanguages())}`,
+        // Development-only A/B switch: render Dashboard previews inside the page as before.
+        ...(!app.isPackaged && process.env.PLASMIC_DESKTOP_PREVIEW_IN_PAGE === "1"
+          ? ["--plasmic-dashboard-preview-in-page"]
+          : []),
       ],
       nodeIntegration: false,
       contextIsolation: true,
@@ -440,6 +446,12 @@ async function startDesktop() {
       currentUser: async () => (await controller.requestStudio("/api/v1/auth/self", undefined, AbortSignal.timeout(10_000))).user?.id,
     });
     ipcMain.handle("desktop:drafts", (event, command, input) => drafts.command(event, command, input));
+    const dashboardPreviews = createDashboardPreviews({
+      session: desktopSession,
+      studioOrigin: config.studioOrigin,
+      trustedSender: trustedAuthSender,
+    });
+    app.once("will-quit", () => dashboardPreviews.dispose());
     mainWindow.webContents.on("did-start-navigation", (_event, _url, inPlace, isMainFrame) => {
       if (isMainFrame && !inPlace) {drafts.reset();}
     });
@@ -470,8 +482,9 @@ async function startDesktop() {
       if (!trustedAuthSender(event)) {throw new Error("Invalid Studio page");}
       return controller.dispatch("browser", { action: "open" });
     });
-    stopRpc = await startRpc(app.getPath("userData"), (method, input, caller) =>
-      controller.dispatch(method, input, caller),
+    stopRpc = await startRpc(app.getPath("userData"), (method, input, caller, signal) =>
+      controller.dispatch(method, input, caller, signal),
+      (caller) => controller.clearCallerActivity(caller.id),
     );
     app.once("will-quit", () => {
       presentation.dispose();

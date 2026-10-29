@@ -4,6 +4,8 @@ const { createHash, randomUUID } = require("node:crypto");
 
 const hash = (value) => createHash("sha256").update(JSON.stringify(value)).digest("hex");
 const validId = (value) => typeof value === "string" && value.length > 0 && value.length < 256;
+const summarize = ({ id, projectId, branchId, baseRevision, sequence, savedAt, projectName, needsAttention }) =>
+  ({ id, projectId, branchId, baseRevision, sequence, savedAt, projectName, needsAttention });
 
 // Each editor owns a file. Never replace another editor's unsynced work.
 class DesktopDraftStore {
@@ -11,6 +13,9 @@ class DesktopDraftStore {
     this.directory = directory;
     this.maxBytes = maxBytes;
     this.queue = Promise.resolve();
+    // Summaries keyed by draft file and validated against its inode, size and
+    // mtime. Drafts are MB-scale and parsing runs on Electron's UI thread.
+    this.summaries = new Map();
   }
   scope(scope) {
     if (!validId(scope.origin) || !validId(scope.userId) || !validId(scope.projectId) ||
@@ -26,15 +31,33 @@ class DesktopDraftStore {
     this.queue = result.catch(() => {});
     return result;
   }
-  async readFile(file) {
+  async readDraft(file) {
     try {
-      return JSON.parse(await fs.readFile(file, "utf8"));
+      return { draft: JSON.parse(await fs.readFile(file, "utf8")), recovered: false };
     } catch (error) {
-      if (error.code === "ENOENT") {return null;}
+      if (error.code === "ENOENT") {return { draft: null, recovered: false };}
       if (!(error instanceof SyntaxError)) {throw error;}
       // Preserve the damaged file for inspection and recover the previous checkpoint.
-      return JSON.parse(await fs.readFile(file + ".previous", "utf8"));
+      return { draft: JSON.parse(await fs.readFile(file + ".previous", "utf8")), recovered: true };
     }
+  }
+  async readFile(file) {
+    return (await this.readDraft(file)).draft;
+  }
+  // Same result as summarizing readFile(file), but parses only after the file changed.
+  async readSummary(file) {
+    let stat;
+    try { stat = await fs.stat(file); }
+    catch (error) { if (error.code === "ENOENT") {this.summaries.delete(file); return null;} throw error; }
+    const key = `${stat.ino}:${stat.size}:${stat.mtimeMs}`;
+    const cached = this.summaries.get(file);
+    if (cached?.key === key) {return cached;}
+    const { draft, recovered } = await this.readDraft(file);
+    if (!draft) {this.summaries.delete(file); return null;}
+    const entry = { key, size: stat.size, recovered, summary: summarize(draft) };
+    // A recovered checkpoint lives in another file; never reuse it by this file's identity.
+    if (recovered) {this.summaries.delete(file);} else {this.summaries.set(file, entry);}
+    return entry;
   }
   async list(scope, allProjects = false) {
     await this.queue;
@@ -43,10 +66,9 @@ class DesktopDraftStore {
     try { names = await fs.readdir(directory); }
     catch (error) { if (error.code === "ENOENT") {return [];} throw error; }
     const entries = await Promise.all(names.filter(name => name.endsWith(".json")).map(async name => {
-      const draft = await this.readFile(path.join(directory, name));
+      const draft = (await this.readSummary(path.join(directory, name)))?.summary;
       if (!draft || (!allProjects && (draft.projectId !== scope.projectId || draft.branchId !== scope.branchId))) {return null;}
-      const { id, projectId, branchId, baseRevision, sequence, savedAt, projectName, needsAttention } = draft;
-      return { id, projectId, branchId, baseRevision, sequence, savedAt, projectName, needsAttention };
+      return { ...draft };
     }));
     return entries.filter(Boolean).sort((a, b) => b.savedAt - a.savedAt);
   }
@@ -63,22 +85,48 @@ class DesktopDraftStore {
         draft.format !== 1 || !draft.bundle?.map || !Array.isArray(draft.dependencies)) {
         throw new Error("Invalid draft");
       }
-      const previous = await this.readFile(file);
+      const stored = await this.readSummary(file);
+      const previous = stored?.summary;
       if (previous && (previous.sequence > draft.sequence || previous.sequence === draft.sequence &&
         previous.baseRevision >= draft.baseRevision && !!previous.needsAttention === !!draft.needsAttention)) {return;}
       const data = JSON.stringify(draft);
       const directory = path.dirname(file);
       await fs.mkdir(directory, { recursive: true, mode: 0o700 });
       const names = await fs.readdir(directory);
-      let bytes = Buffer.byteLength(data) + (previous ? Buffer.byteLength(JSON.stringify(previous)) : 0);
+      // The previous checkpoint is kept byte-for-byte, so its size is the size of
+      // the file it comes from: this file, or the checkpoint it was recovered from.
+      const previousSize = !stored ? 0 : stored.recovered ? (await fs.stat(file + ".previous")).size : stored.size;
+      let bytes = Buffer.byteLength(data) + previousSize;
       for (const name of names) {
         const entry = path.join(directory, name);
         if (entry !== file && entry !== file + ".previous") {bytes += (await fs.stat(entry)).size;}
       }
       if (bytes > this.maxBytes) {throw new Error("Local draft storage is full. Export or discard old drafts to free space.");}
-      if (previous) {await this.atomicWrite(file + ".previous", JSON.stringify(previous));}
+      // A recovered checkpoint already is the .previous file; otherwise copy this
+      // file's bytes instead of parsing and serializing the whole model again.
+      if (stored && !stored.recovered) {await this.atomicCopy(file, file + ".previous");}
+      this.summaries.delete(file);
       await this.atomicWrite(file, data);
+      const stat = await fs.stat(file);
+      // Round-trip only the small summary so it matches what parsing the file yields.
+      const summary = summarize(JSON.parse(JSON.stringify(summarize(draft))));
+      this.summaries.set(file, { key: `${stat.ino}:${stat.size}:${stat.mtimeMs}`, size: stat.size, recovered: false, summary });
     });
+  }
+  async atomicCopy(source, target) {
+    const temporary = target + ".tmp";
+    let handle;
+    try {
+      await fs.copyFile(source, temporary);
+      handle = await fs.open(temporary, "r+");
+      await handle.chmod(0o600);
+      await handle.sync();
+      await handle.close();
+      await fs.rename(temporary, target);
+    } finally {
+      await handle?.close();
+      await fs.rm(temporary, { force: true });
+    }
   }
   async atomicWrite(file, data) {
     const temporary = file + ".tmp";
@@ -96,9 +144,10 @@ class DesktopDraftStore {
   remove(scope, id, sequence) {
     return this.run(async () => {
       const file = this.file(scope, id);
-      const draft = await this.readFile(file);
+      const draft = (await this.readSummary(file))?.summary;
       // A delayed acknowledgement must never delete a newer checkpoint.
       if (!draft || draft.sequence > sequence) {return false;}
+      this.summaries.delete(file);
       await fs.rm(file, { force: true });
       await fs.rm(file + ".previous", { force: true });
       return true;

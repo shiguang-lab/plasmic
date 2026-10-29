@@ -18,18 +18,10 @@ import type {
   NotificationPlacement,
 } from "antd/es/notification/interface";
 import type { Locale } from "antd/lib/locale";
-import enUS from "antd/lib/locale/en_US.js";
 import React from "react";
+import { AntdLocale, antdLocales } from "./locales";
 import { useIsMounted } from "./react-utils";
 import { Registerable, makeRegisterGlobalContext } from "./utils";
-
-// enUS is a CJS file, and it doesn't always import correctly in
-// esm mode (nextjs does it right, but create-react-app does it wrong).
-// We normalize it ourselves here 😬😬😬
-let defaultLocale = enUS;
-if ("default" in enUS) {
-  defaultLocale = (enUS as any).default as typeof enUS;
-}
 
 export interface ThemeOpts {
   fontFamily?: string;
@@ -52,11 +44,8 @@ export interface ThemeOpts {
 
   defaultDark?: boolean;
 
-  /**
-   * `locale` is a prop that can be set by code, but is not registered,
-   * i.e. exposed to Plasmic studio.
-   */
-  locale?: Locale;
+  /** An Ant Design locale identifier or a native locale pack supplied by code. */
+  locale?: AntdLocale | Locale;
 }
 
 export function themeToAntdConfig(opts: ThemeOpts): ConfigProviderProps {
@@ -116,7 +105,7 @@ export function AntdConfigProvider(
     props;
   return (
     <ConfigProvider
-      locale={locale ?? defaultLocale}
+      locale={typeof locale === "string" ? antdLocales[locale] : locale ?? antdLocales.en_US}
       {...themeToAntdConfig({
         ...rest,
         fontFamily: themeStyles.fontFamily,
@@ -595,6 +584,12 @@ export const registerConfigProvider = makeRegisterGlobalContext(
     displayName: "Ant Design System Settings",
     description: "Project-wide Ant Design theme and feedback context, managed in System Settings. It wraps pages automatically; do not insert it into a page or component tree. Use its qualified showMessage/showNotification global actions without adding a wrapper.",
     props: {
+      locale: {
+        type: "choice",
+        options: Object.keys(antdLocales),
+        defaultValueHint: "en_US",
+        description: "Language for built-in component text. Custom business text is unchanged.",
+      },
       colorPrimary: {
         type: "color",
         defaultValue: "#1677ff",

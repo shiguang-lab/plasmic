@@ -10,6 +10,7 @@ import {
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import Select from "@/wab/client/components/widgets/Select";
 import Textbox from "@/wab/client/components/widgets/Textbox";
+import { useAsyncStrict } from "@/wab/client/hooks/useAsyncStrict";
 import { getUiLocale, useI18n } from "@/wab/client/i18n";
 import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
 import {
@@ -41,7 +42,8 @@ import {
   canEditUiConfig,
   mergeUiConfigs,
 } from "@/wab/shared/ui-config-utils";
-import { Form, Menu } from "antd";
+import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
+import { Select as AntdSelect, Form, Menu } from "antd";
 import { History } from "history";
 import * as React from "react";
 import { MakeADT } from "ts-adt/MakeADT";
@@ -500,32 +502,60 @@ export async function promptMoveToWorkspace(
   operationLabel: PromptMoveToWorkspaceOperation,
   projectName?: string,
 ): Promise<PromptWorkspaceResponse | undefined> {
-  const selfInfo = ensure(appCtx.selfInfo, "Unexpected nullish selfInfo");
-  const { workspaces, perms } = appCtx;
-  const allTeams = appCtx.getAllTeams();
-
-  const filteredWorkspaces = workspaces.filter(
-    (w) =>
-      w.id !== currentWorkspaceId &&
-      accessLevelRank(
-        getAccessLevelToResource(
-          { type: "workspace", resource: w },
-          selfInfo,
-          perms,
-        ),
-      ) >= accessLevelRank("editor"),
+  return showTemporaryPrompt<PromptWorkspaceResponse | undefined>(
+    (onSubmit, onCancel) => (
+      <MoveToWorkspacePrompt
+        appCtx={appCtx}
+        allowNoWorkspace={allowNoWorkspace}
+        confirmButtonMessage={operationLabel}
+        message="Select a destination workspace:"
+        noWorkspacesMessage="No workspaces available."
+        selectedWorkspaceId={currentWorkspaceId ?? undefined}
+        projectName={projectName}
+        onSubmit={onSubmit}
+        onCancel={onCancel}
+      />
+    ),
   );
+}
 
-  return await promptWorkspace({
-    workspaces: filteredWorkspaces,
-    allTeams,
-    allowNoWorkspace,
-    confirmButtonMessage: operationLabel,
-    message: "Select a destination workspace:",
-    noWorkspacesMessage: "No workspaces available.",
-    selectedWorkspaceId: currentWorkspaceId ?? undefined,
-    projectName,
-  });
+function MoveToWorkspacePrompt({
+  appCtx,
+  ...props
+}: Omit<
+  React.ComponentProps<typeof WorkspacePrompt>,
+  "workspaces" | "allTeams"
+> & {
+  appCtx: AppCtx;
+}) {
+  const data = useAsyncStrict(async () => {
+    await appCtx.reloadAppCtx();
+    const selfInfo = ensure(appCtx.selfInfo, "Unexpected nullish selfInfo");
+    return {
+      workspaces: appCtx.workspaces.filter(
+        (w) =>
+          w.id !== props.selectedWorkspaceId &&
+          accessLevelRank(
+            getAccessLevelToResource(
+              { type: "workspace", resource: w },
+              selfInfo,
+              appCtx.perms,
+            ),
+          ) >= accessLevelRank("editor"),
+      ),
+      allTeams: appCtx.getAllTeams(),
+    };
+  }, [appCtx, props.selectedWorkspaceId]);
+
+  return (
+    <WorkspacePrompt
+      {...props}
+      workspaces={data.value?.workspaces ?? []}
+      allTeams={data.value?.allTeams ?? []}
+      loading={data.loading}
+      loadFailed={!!data.error}
+    />
+  );
 }
 
 interface PromptWorkspaceProps {
@@ -537,6 +567,8 @@ interface PromptWorkspaceProps {
   allowNoWorkspace: boolean;
   allTeams: ApiTeam[];
   projectName?: string;
+  loading?: boolean;
+  loadFailed?: boolean;
 }
 
 export async function promptWorkspace(props: PromptWorkspaceProps) {
@@ -556,6 +588,8 @@ function WorkspacePrompt({
   allowNoWorkspace,
   allTeams,
   projectName,
+  loading = false,
+  loadFailed = false,
   onSubmit,
   onCancel,
 }: PromptWorkspaceProps & {
@@ -563,6 +597,7 @@ function WorkspacePrompt({
   onCancel: () => void;
 }) {
   const [form] = Form.useForm();
+  const popupViewport = React.useRef<HTMLElement>(null);
   const formId = React.useId();
   const selected = Form.useWatch("select", form);
   const defaultNewName = projectName
@@ -580,7 +615,7 @@ function WorkspacePrompt({
       okButtonProps={{
         htmlType: "submit",
         form: formId,
-        disabled: !allowNoWorkspace && !selected,
+        disabled: loading || loadFailed || (!allowNoWorkspace && !selected),
       }}
       onCancel={onCancel}
       closable={false}
@@ -590,6 +625,9 @@ function WorkspacePrompt({
         id={formId}
         form={form}
         onFinish={(e) => {
+          if (loading || loadFailed) {
+            return;
+          }
           const workspace = workspaces.find((w) => w.id === e.select);
           if (workspace) {
             onSubmit({
@@ -623,29 +661,45 @@ function WorkspacePrompt({
           </Form.Item>
         )}
         <Form.Item name="select" label={<UiText message={message} />}>
-          <Select name="select" autoFocus>
-            {selectedWorkspaceId && allowNoWorkspace ? (
-              <Select.Option key="none" value="">
-                {<UiLabel text={PERSONAL_WORKSPACE} />}
-              </Select.Option>
-            ) : null}
-            {teams.map((t) => (
-              <Select.OptionGroup key={t.id} title={t.name}>
-                {workspaces
-                  .filter((w) => w.team.id === t.id)
-                  .map((w) => (
-                    <Select.Option key={w.id} value={w.id}>
-                      {w.name}
-                    </Select.Option>
-                  ))}
-              </Select.OptionGroup>
-            ))}
-            {!selectedWorkspaceId && teams.length === 0 && (
-              <Select.Option value={null} isDisabled={true}>
-                <UiText message={noWorkspacesMessage} />
-              </Select.Option>
+          <AntdSelect
+            autoFocus
+            loading={loading}
+            disabled={loading || loadFailed}
+            aria-busy={loading}
+            placeholder={
+              <UiText message={loading ? "Loading…" : "Select..."} />
+            }
+            notFoundContent={<UiText message={noWorkspacesMessage} />}
+            virtual={false}
+            // Let the shared Scrollbar own scrolling; the option list fits its content.
+            listHeight={(workspaces.length + teams.length + 1) * 40}
+            popupRender={(menu) => (
+              <Scrollbar ref={popupViewport} style={{ maxHeight: 256 }}>
+                {menu}
+              </Scrollbar>
             )}
-          </Select>
+            onInputKeyDown={() => {
+              requestAnimationFrame(() => {
+                popupViewport.current
+                  ?.querySelector(".ant-select-item-option-active")
+                  ?.scrollIntoView({ block: "nearest" });
+              });
+            }}
+            options={[
+              ...(selectedWorkspaceId && allowNoWorkspace
+                ? [{ value: "", label: <UiLabel text={PERSONAL_WORKSPACE} /> }]
+                : []),
+              ...teams.map((team) => ({
+                label: team.name,
+                options: workspaces
+                  .filter((workspace) => workspace.team.id === team.id)
+                  .map((workspace) => ({
+                    value: workspace.id,
+                    label: workspace.name,
+                  })),
+              })),
+            ]}
+          />
         </Form.Item>
       </Form>
     </Modal>

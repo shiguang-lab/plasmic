@@ -41,7 +41,7 @@ export type CopilotTool<
   execute: (
     studioCtx: StudioCtx,
     input: z.input<TInput>,
-    opts?: { prettify?: boolean; outputFormat?: AiOutputFormat; caller?: CopilotCaller },
+    opts?: { prettify?: boolean; outputFormat?: AiOutputFormat; caller?: CopilotCaller; signal?: AbortSignal },
   ) => Promise<string>;
 };
 
@@ -61,6 +61,7 @@ export function defineCopilotTool<
     studioCtx: StudioCtx,
     input: z.infer<TInput>,
     caller?: CopilotCaller,
+    signal?: AbortSignal,
   ) => Promise<z.infer<TOutput>>,
 ): CopilotTool<TInput, TOutput> {
   return {
@@ -73,7 +74,7 @@ export function defineCopilotTool<
       }
       const parsedInput = checked.data;
       const output = meta.outputSchema.parse(
-        await execute(studioCtx, parsedInput, opts?.caller),
+        await execute(studioCtx, parsedInput, opts?.caller, opts?.signal),
       );
       return meta.toolName !== "executeLocalEdit" && (opts?.outputFormat ?? studioCtx.preferredAiOutputFormat()) === "xml"
         ? jsonToXml(output, prettify)

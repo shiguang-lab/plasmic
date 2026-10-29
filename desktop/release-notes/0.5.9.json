@@ -1,0 +1,7 @@
+{
+  "en": "- Improve project previews, dashboard actions and sharing.\n- Improve AI operation feedback, cancellation and Desktop project management.\n- Fix property editors, Ant Design language settings and input counters.",
+  "zh-CN": "- 优化项目预览、项目管理操作与分享体验。\n- 改进 AI 操作反馈、取消机制与桌面端项目管理。\n- 修复属性编辑器、Ant Design 语言设置与输入字数统计。",
+  "zh-TW": "- 最佳化專案預覽、專案管理操作與分享體驗。\n- 改進 AI 操作回饋、取消機制與桌面端專案管理。\n- 修復屬性編輯器、Ant Design 語言設定與輸入字數統計。",
+  "ja": "- プロジェクトのプレビュー、管理操作、共有を改善しました。\n- AI 操作のフィードバック、キャンセル、デスクトップのプロジェクト管理を改善しました。\n- プロパティエディター、Ant Design の言語設定、入力文字数の表示を修正しました。",
+  "ko": "- 프로젝트 미리보기, 관리 작업 및 공유 환경을 개선했습니다.\n- AI 작업 피드백, 취소 기능 및 데스크톱 프로젝트 관리를 개선했습니다.\n- 속성 편집기, Ant Design 언어 설정 및 입력 글자 수 표시를 수정했습니다."
+}

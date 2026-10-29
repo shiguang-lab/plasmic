@@ -308,7 +308,7 @@ function createIsland({ getWindow, controller, i18n, appearance, config, signIn,
   const unsubscribe = controller.activity.subscribe(() => {
     const latest = controller.activity.latest;
     if (latest && ["read", "write", "view"].includes(latest.kind)) {lastCanvasOperation = latest;}
-    if (latest?.id !== lastResource && latest?.phase === "completed" && ["create_project", "create_workspace", "create_org"].includes(latest.method)) {
+    if (latest?.id !== lastResource && latest?.phase === "completed" && ["create_project", "create_workspace", "create_org", "rename_project", "move_project", "clone_project"].includes(latest.method)) {
       lastResource = latest.id;
       account.invalidate(false);
     }

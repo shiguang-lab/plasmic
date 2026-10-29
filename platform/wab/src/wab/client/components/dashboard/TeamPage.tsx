@@ -67,6 +67,10 @@ function TeamPage_(props: TeamPageProps, ref: HTMLElementRefOf<"div">) {
     return { ...res, databases };
   }, [teamId, inviteId]);
   useAsyncStrict(fetchAsyncData, [teamId]);
+  // Stable so memoized project cards skip re-rendering on unrelated changes.
+  const onUpdate = React.useCallback(async () => {
+    await fetchAsyncData();
+  }, [fetchAsyncData]);
 
   if (asyncData.error) {
     // Deleted org, or one the user can't access.
@@ -97,9 +101,7 @@ function TeamPage_(props: TeamPageProps, ref: HTMLElementRefOf<"div">) {
       {...rest}
       ref={ref}
       data={data}
-      onUpdate={async () => {
-        await fetchAsyncData();
-      }}
+      onUpdate={onUpdate}
     />
   );
 }

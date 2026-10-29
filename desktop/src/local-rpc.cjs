@@ -20,7 +20,7 @@ function socketPath(profile) {
         createHash("sha256").update(profile).digest("hex").slice(0, 24)
     : path.join(profile, "mcp.sock");
 }
-async function startRpc(profile, dispatch) {
+async function startRpc(profile, dispatch, onCallerDisconnected = () => {}) {
   await fs.mkdir(profile, { recursive: true, mode: 0o700 });
   const socket = socketPath(profile);
   if (process.platform !== "win32") {
@@ -34,12 +34,21 @@ async function startRpc(profile, dispatch) {
   const connections = new Set();
   // Command sockets are short-lived; their caller belongs to a lifecycle socket.
   const callers = new Map();
+  const sessions = new Map();
   const server = net.createServer((connection) => {
     connections.add(connection);
     let callerId;
+    const controller = new AbortController();
+    let finished = false;
     connection.once("close", () => {
       connections.delete(connection);
-      if (callerId) callers.delete(callerId);
+      if (!finished) controller.abort(new Error("MCP connection closed"));
+      if (callerId) {
+        const caller = callers.get(callerId);
+        callers.delete(callerId);
+        sessions.delete(callerId);
+        if (caller) onCallerDisconnected(caller);
+      }
     });
     connection.setEncoding("utf8");
     let buffer = "",
@@ -73,6 +82,7 @@ async function startRpc(profile, dispatch) {
         if (request.method === MCP_SESSION) {
           callerId = randomUUID();
           callers.set(callerId, undefined);
+          sessions.set(callerId, controller.signal);
           connection.setTimeout(0);
           connection.write(JSON.stringify({ result: { connected: true, callerId } }) + "\n");
           return;
@@ -89,11 +99,15 @@ async function startRpc(profile, dispatch) {
         }
         const caller = callers.get(request.callerId);
         if (request.callerId !== undefined && !caller) throw new Error("MCP caller is not registered");
-        const result = await dispatch(request.method, request.input || {}, caller);
+        const sessionSignal = sessions.get(request.callerId);
+        const signal = sessionSignal ? AbortSignal.any([controller.signal, sessionSignal]) : controller.signal;
+        signal.throwIfAborted();
+        const result = await dispatch(request.method, request.input || {}, caller, signal);
         response = { result };
       } catch (error) {
         response = { error: errorPayload(error) };
       }
+      finished = true;
       const encoded = JSON.stringify(response);
       const metrics = authenticated ? {
         requestId, time: new Date().toISOString(), method: request.method,
@@ -179,10 +193,18 @@ async function connectRpcSession(profile) {
     });
   });
 }
-async function requestRpc(profile, method, input = {}, callerId) {
+async function requestRpc(profile, method, input = {}, callerId, signal) {
+  signal?.throwIfAborted();
   const address = await rpcAddress(profile);
+  signal?.throwIfAborted();
   return new Promise((resolve, reject) => {
     const connection = net.createConnection(address.socket);
+    const abort = () => { reject(signal.reason); connection.destroy(); };
+    signal?.addEventListener("abort", abort, { once: true });
+    connection.once("close", () => {
+      signal?.removeEventListener("abort", abort);
+      reject(new Error("Desktop connection closed before a response"));
+    });
     connection.setEncoding("utf8");
     let buffer = "";
     connection.setTimeout(150000, () =>

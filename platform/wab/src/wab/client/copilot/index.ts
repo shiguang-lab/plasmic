@@ -206,9 +206,10 @@ async function restoreEditorView(studio: StudioCtx, input: ReturnType<typeof met
 
 // Keep input/output validation and serialization in the shared tool wrapper.
 const defineCopilotTool: typeof defineTool = (toolMeta, execute) =>
-  defineTool(toolMeta, async (studio, input, caller) => {
+  defineTool(toolMeta, async (studio, input, caller, signal) => {
+    signal?.throwIfAborted();
     if (!editTools.has(toolMeta.toolName)) {
-      return execute(studio, input, caller);
+      return execute(studio, input, caller, signal);
     }
     const targets = activityTargets(toolMeta.toolName, input).map((target) => {
       const component =
@@ -233,9 +234,9 @@ const defineCopilotTool: typeof defineTool = (toolMeta, execute) =>
           : (target.canvasName ?? "Project"),
       };
     });
-    const finish = studio.copilotActivity.begin(targets, "edit", caller);
+    const finish = studio.copilotActivity.begin(targets, "edit", caller, signal);
     try {
-      const output = await execute(studio, input, caller);
+      const output = await execute(studio, input, caller, signal);
       finish("success");
       return output;
     } catch (error) {
@@ -1556,7 +1557,7 @@ async function waitForFrameHeights(
 export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
   executeLocalEdit: defineCopilotTool(
     meta.executeLocalEdit,
-    async (studio, input) => {
+    async (studio, input, caller, signal) => {
       const binding = input.binding;
       assertLocalBinding(studio, binding);
       if (binding.mode === "page") {
@@ -1797,7 +1798,7 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
           const result = await ensure(
             COPILOT_TOOLS[input.name],
             "Unknown local tool",
-          ).execute(studio, input.input, { outputFormat: "json" });
+          ).execute(studio, input.input, { outputFormat: "json", caller, signal });
           assertLocalBinding(studio, binding);
           return await finish(result);
         }
@@ -1873,6 +1874,9 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
               label: `${component.name} / ${("name" in tpl && tpl.name) || tpl.uuid}`,
             };
           }),
+          "edit",
+          caller,
+          signal,
         );
         try {
           const components = [

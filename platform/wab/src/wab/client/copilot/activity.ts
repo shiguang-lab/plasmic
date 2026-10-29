@@ -1,4 +1,5 @@
 import { ensure } from "@/wab/shared/common";
+import { AGENT_CURSOR_IDLE_MS } from "@/wab/client/copilot/agent-cursor";
 import type { CopilotCaller } from "@/wab/shared/copilot/copilot-tool-types";
 import { findLast } from "lodash";
 import { observable, runInAction } from "mobx";
@@ -43,8 +44,28 @@ export function currentActivity(requests: readonly CanvasActivity[]) {
 /** Editor UI state only; never part of the site model or undo history. */
 export class CopilotActivity {
   readonly requests = observable.array<CanvasActivity>([], { deep: false });
+  // Cursor feedback outlives scan feedback, but has one owner across all frames.
+  private readonly cursorRequests = observable.array<CanvasActivity>([], { deep: false });
   private nextId = 0;
   private timers = new Set<ReturnType<typeof setTimeout>>();
+  private cursorTimers = new Map<number, ReturnType<typeof setTimeout>>();
+
+  get cursorActivity() {
+    return currentActivity(this.cursorRequests);
+  }
+
+  private removeCursor(request: CanvasActivity) {
+    clearTimeout(this.cursorTimers.get(request.id));
+    this.cursorTimers.delete(request.id);
+    this.cursorRequests.remove(request);
+  }
+
+  clearCaller(callerId: string) {
+    runInAction(() => {
+      this.requests.replace(this.requests.filter((request) => request.caller?.id !== callerId));
+      this.cursorRequests.filter((request) => request.caller?.id === callerId).forEach((request) => this.removeCursor(request));
+    });
+  }
 
   /** Each retained request holds one reference per node, including its exit delay. */
   get regions(): ActivityRegion[] {
@@ -85,7 +106,8 @@ export class CopilotActivity {
     }));
   }
 
-  begin(targets: ActivityTarget[], kind: CanvasActivity["kind"] = "edit", caller?: CopilotCaller) {
+  begin(targets: ActivityTarget[], kind: CanvasActivity["kind"] = "edit", caller?: CopilotCaller, signal?: AbortSignal) {
+    signal?.throwIfAborted();
     const request: CanvasActivity = {
       id: ++this.nextId,
       targets,
@@ -96,22 +118,42 @@ export class CopilotActivity {
     };
     const started = Date.now();
     let finished = false;
-    runInAction(() => this.requests.push(request));
-    return (status: "success" | "error") => {
+    runInAction(() => {
+      this.requests.push(request);
+      if (kind === "edit") this.cursorRequests.push(request);
+    });
+    if (kind === "edit") {
+      const timer = setTimeout(() => {
+        runInAction(() => {
+          const current = this.cursorRequests.find((r) => r.id === request.id);
+          if (current) this.removeCursor(current);
+        });
+      }, AGENT_CURSOR_IDLE_MS);
+      this.cursorTimers.set(request.id, timer);
+    }
+    const cancel = () => finish("error");
+    const finish = (status: "success" | "error") => {
       if (finished) {
         return;
       }
       finished = true;
+      signal?.removeEventListener("abort", cancel);
       const index = this.requests.findIndex((r) => r.id === request.id);
       if (index < 0) {
         return;
       }
       if (status === "error") {
-        runInAction(() => this.requests.remove(this.requests[index]));
+        runInAction(() => {
+          this.requests.remove(this.requests[index]);
+          const cursorRequest = this.cursorRequests.find((r) => r.id === request.id);
+          if (cursorRequest) this.removeCursor(cursorRequest);
+        });
         return;
       }
       runInAction(() => {
         this.requests[index] = { ...request, status };
+        const cursorIndex = this.cursorRequests.findIndex((r) => r.id === request.id);
+        if (cursorIndex >= 0) this.cursorRequests[cursorIndex] = this.requests[index];
       });
       // Report the result immediately; only the canvas animation has a minimum duration.
       const stopScan = () => {
@@ -147,12 +189,19 @@ export class CopilotActivity {
         stopScan();
       }
     };
+    signal?.addEventListener("abort", cancel, { once: true });
+    return finish;
   }
 
   dispose() {
     this.timers.forEach(clearTimeout);
     this.timers.clear();
-    runInAction(() => this.requests.clear());
+    this.cursorTimers.forEach(clearTimeout);
+    this.cursorTimers.clear();
+    runInAction(() => {
+      this.requests.clear();
+      this.cursorRequests.clear();
+    });
   }
 }
 

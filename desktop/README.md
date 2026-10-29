@@ -650,7 +650,9 @@ The server provides these tools:
 | `get_org` / `list_orgs`                                   | Read an organization by ID or list accessible organizations with an optional name query                   |
 | `create_org` / `open_org`                                 | Create an organization or open its dashboard                                                              |
 | `create_workspace` / `list_workspaces` / `open_workspace` | Create, list or open workspaces; lists can be scoped to an organization                                   |
+| `get_workspace` / `get_project`                          | Read a resource by ID, returning only identity and parent information                                    |
 | `create_project`                                          | Create an empty project in a workspace or the account's personal workspace                                |
+| `rename_project` / `move_project` / `clone_project`       | Rename, move to a workspace, or copy a project using platform permissions                                 |
 | `list_projects` / `open_design`                           | List accessible NAS projects, optionally in a workspace, and open a design                                |
 | `read_skill` / `get_style`                                | Editing workflow and local palette/spacing presets                                                        |
 | `execute` / `execute_batch`                               | Validated edits; a batch rolls back completely on failure and is one undo step                            |
@@ -693,7 +695,36 @@ then verify its identity, readiness and edit permission before design writes.
 private project. Without a workspace ID, the platform uses the account's
 personal workspace. It returns project identity; call `open_design` with
 `project.id` to open the editor. Creation and query tools do not navigate or
-save the active design. `open_org` and `open_workspace` check access before
+save the active design. `get_project({projectId})` uses an ID-scoped project
+query without loading design content; `get_workspace({workspaceId})` returns
+the workspace identity and its parent team.
+
+`rename_project({projectId, name})` changes the project name.
+`move_project({projectId, workspaceId})` requires an explicit destination ID,
+including when moving to the personal workspace. It reuses the platform's
+transaction, source/destination permissions, transfer restrictions, plan checks
+and application authentication migration. Plan restrictions are errors even
+on HTTP 200. Both tools return the updated project identity.
+
+`clone_project({projectId, name?, workspaceId?})` copies the saved main branch
+and reads back the new project's identity and actual parent IDs. Omitting the
+workspace uses the personal workspace; omitting the name uses the platform's
+copy name. It never opens the copy. If the source is currently open and
+editable, it saves that editor first; this includes the current branch, while
+the copy is still made from the saved main branch.
+
+All three project mutations save the target first when it is the current
+editable project. Failed saves or unavailable editor models block the
+mutation. Rename and move reload that same editor after success to refresh
+its metadata and permissions; they preserve a dashboard or different project
+the user navigated to during the operation. Mutating another project does not
+save or navigate the active editor. Errors retain `operationExecuted`: false
+before a mutation or after a plan rollback, true after a committed response,
+and null when a transport failure leaves the outcome unknown. Use the returned
+read-only recovery call to check the outcome before retrying. A failed copy
+readback retains the new project ID in its recovery call.
+
+`open_org` and `open_workspace` check access before
 saving the active editable design and opening their dashboard; a failed save
 prevents navigation. All management tools use the signed-in Desktop session
 and the platform's existing permission checks.

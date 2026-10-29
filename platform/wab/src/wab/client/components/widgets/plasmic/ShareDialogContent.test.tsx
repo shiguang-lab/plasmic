@@ -1,9 +1,11 @@
 import ShareDialog from "@/wab/client/components/widgets/ShareDialog";
 import PermissionItem from "@/wab/client/components/widgets/plasmic/PermissionItem";
 import ShareDialogContent from "@/wab/client/components/widgets/plasmic/ShareDialogContent";
-import { ApiFeatureTier, ApiTeam } from "@/wab/shared/ApiSchema";
+import { ApiFeatureTier, ApiTeam, TeamId } from "@/wab/shared/ApiSchema";
 import { AccessLevel } from "@/wab/shared/EntUtil";
-import { fireEvent, render, screen } from "@testing-library/react";
+import "@testing-library/jest-dom/vitest";
+import { fireEvent, render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import React from "react";
 import { mock } from "vitest-mock-extended";
 
@@ -13,6 +15,7 @@ const actor = vi.hoisted(() => ({
   search: "",
   grant: vi.fn(),
   setSiteInfo: vi.fn(),
+  updateTeam: vi.fn(),
   track: vi.fn(),
   copy: vi.fn(),
 }));
@@ -20,7 +23,11 @@ vi.mock("copy-to-clipboard", () => ({ default: actor.copy }));
 vi.mock("@/wab/client/contexts/AppContexts", () => ({
   useAppCtx: () => ({
     selfInfo: { id: "self", email: "owner@example.com" },
-    api: { grantRevoke: actor.grant, setSiteInfo: actor.setSiteInfo },
+    api: {
+      grantRevoke: actor.grant,
+      setSiteInfo: actor.setSiteInfo,
+      updateTeam: actor.updateTeam,
+    },
     history: { location: { search: actor.search } },
   }),
 }));
@@ -65,42 +72,15 @@ vi.mock("@/wab/client/components/widgets/Select", () => ({
 }));
 vi.mock(
   "@/wab/client/components/widgets/plasmic/PlasmicShareDialogContent",
-  () => ({
-    default: ({ newUserRoleDropdown, shareByLinkPermDropdown }) => (
-      <>
-        <TestDropdown label="Invite role" {...newUserRoleDropdown} />
-        {shareByLinkPermDropdown && (
-          <TestDropdown label="Link role" {...shareByLinkPermDropdown} />
-        )}
-      </>
-    ),
-  }),
+  () => ({ default: () => null }),
 );
 
-function TestDropdown({
-  label,
-  value,
-  isDisabled,
-  children,
-  onChange,
-}: {
-  label: string;
-  value: string;
-  isDisabled?: boolean;
-  children: React.ReactNode;
-  onChange: (value: string) => void;
-}) {
-  return (
-    <select
-      aria-label={label}
-      value={value}
-      disabled={isDisabled}
-      onChange={(e) => onChange(e.target.value)}
-    >
-      {children}
-    </select>
-  );
-}
+beforeEach(() => {
+  actor.level = "owner";
+  actor.updateTeam.mockReset().mockResolvedValue({});
+  actor.grant.mockReset().mockResolvedValue({ perms: [] });
+  actor.copy.mockReset().mockReturnValue(true);
+});
 
 function renderShare() {
   return render(
@@ -109,6 +89,8 @@ function renderShare() {
       resource={{
         type: "team",
         resource: mock<ApiTeam>({
+          id: "team" as TeamId,
+          inviteId: "invite-token",
           defaultAccessLevel: "viewer",
           featureTier: mock<ApiFeatureTier>({
             contentRole: false,
@@ -123,47 +105,133 @@ function renderShare() {
   );
 }
 
-test("both roles can be selected for invitations and link sharing without a paid tier", () => {
-  actor.level = "owner";
+test("separates link invitations from email invitations and keeps their roles independent", async () => {
+  const user = userEvent.setup();
   renderShare();
+  const linkSection = screen.getByRole("region", { name: "Invite by link" });
+  const emailSection = screen.getByRole("region", { name: "Invite by email" });
+  expect(within(linkSection).queryByRole("textbox")).toBeNull();
+  expect(within(emailSection).queryByRole("switch")).toBeNull();
+  await user.click(within(linkSection).getByRole("combobox"));
+  await user.click(
+    screen.getByText("Content creator", {
+      selector: ".ant-select-item-option-content",
+    }),
+  );
+  await vi.waitFor(() =>
+    expect(actor.updateTeam).toHaveBeenCalledWith("team", {
+      defaultAccessLevel: "content",
+    }),
+  );
+  expect(within(emailSection).getByTitle("Developer")).toBeTruthy();
+  const inviteRole = within(emailSection).getByRole("combobox");
   for (const role of ["Content creator", "Designer"]) {
-    for (const option of screen.getAllByRole<HTMLOptionElement>("option", {
-      name: role,
-    })) {
-      expect(option.disabled).toBe(false);
-    }
+    await user.click(inviteRole);
+    await user.click(
+      screen.getByText(role, {
+        selector:
+          ".ant-select-dropdown:not(.ant-select-dropdown-hidden) .ant-select-item-option-content",
+      }),
+    );
+    expect(within(emailSection).getByTitle(role)).toBeTruthy();
   }
-  const invite = screen.getByRole<HTMLSelectElement>("combobox", {
-    name: "Invite role",
+  expect(within(linkSection).getByTitle("Content creator")).toBeTruthy();
+  fireEvent.change(within(emailSection).getByRole("textbox"), {
+    target: { value: "new@example.com" },
   });
-  fireEvent.change(invite, { target: { value: "content" } });
-  expect(invite.value).toBe("content");
-  fireEvent.change(invite, { target: { value: "designer" } });
-  expect(invite.value).toBe("designer");
+  fireEvent.click(within(emailSection).getByRole("button", { name: "Invite" }));
+  await vi.waitFor(() =>
+    expect(actor.grant).toHaveBeenCalledWith({
+      grants: [
+        { email: "new@example.com", accessLevel: "designer", teamId: "team" },
+      ],
+      revokes: [],
+    }),
+  );
 });
 
-test("content creators still cannot grant designer or developer access or edit link sharing", () => {
+test("content creators cannot grant higher roles or edit link invitations", () => {
   actor.level = "content";
   renderShare();
-  const invite = screen.getByRole<HTMLSelectElement>("combobox", {
-    name: "Invite role",
+  expect(
+    screen.getByRole("switch", { name: "Enable link invitations" }),
+  ).toBeDisabled();
+  expect(
+    screen.getByRole("combobox", {
+      name: "Default permission for link sharing",
+    }),
+  ).toBeDisabled();
+  const inviteRole = screen.getByRole("combobox", {
+    name: "Permission level for new user",
   });
-  expect(invite.disabled).toBe(false);
+  expect(inviteRole).not.toBeDisabled();
+  fireEvent.mouseDown(inviteRole);
   expect(
-    invite.querySelector<HTMLOptionElement>('option[value="content"]')
-      ?.disabled,
-  ).toBe(false);
+    screen.getByText("Content creator").closest(".ant-select-item-option"),
+  ).not.toHaveClass("ant-select-item-option-disabled");
+  for (const role of ["Designer", "Developer"]) {
+    expect(
+      screen.getByText(role).closest(".ant-select-item-option"),
+    ).toHaveClass("ant-select-item-option-disabled");
+  }
+});
+
+test("disabling link invitations leaves email invitations available and enabling starts with viewer", async () => {
+  renderShare();
+  fireEvent.click(
+    screen.getByRole("switch", { name: "Enable link invitations" }),
+  );
+  await vi.waitFor(() =>
+    expect(actor.updateTeam).toHaveBeenCalledWith("team", {
+      defaultAccessLevel: null,
+    }),
+  );
+  await vi.waitFor(() =>
+    expect(screen.queryByRole("button", { name: "Copy link" })).toBeNull(),
+  );
   expect(
-    invite.querySelector<HTMLOptionElement>('option[value="designer"]')
-      ?.disabled,
-  ).toBe(true);
+    screen.getByRole("textbox", { name: "Invite email" }),
+  ).not.toBeDisabled();
+  fireEvent.click(
+    screen.getByRole("switch", { name: "Enable link invitations" }),
+  );
+  await vi.waitFor(() =>
+    expect(actor.updateTeam).toHaveBeenLastCalledWith("team", {
+      defaultAccessLevel: "viewer",
+    }),
+  );
   expect(
-    invite.querySelector<HTMLOptionElement>('option[value="editor"]')?.disabled,
-  ).toBe(true);
-  expect(
-    screen.getByRole<HTMLSelectElement>("combobox", { name: "Link role" })
-      .disabled,
-  ).toBe(true);
+    await screen.findByRole("button", { name: "Copy link" }),
+  ).toBeEnabled();
+  expect(screen.getByText("Developer")).toBeTruthy();
+});
+
+test("copying the fixed invitation link shows success without changing permissions", () => {
+  renderShare();
+  fireEvent.click(screen.getByRole("button", { name: "Copy link" }));
+  expect(actor.copy).toHaveBeenCalledWith(
+    "http://localhost/orgs/team?inviteId=invite-token",
+  );
+  expect(screen.getByRole("button", { name: "Copied" })).toBeTruthy();
+  expect(screen.getByRole("status").textContent).toBe("Copied");
+  expect(actor.updateTeam).not.toHaveBeenCalled();
+  expect(actor.grant).not.toHaveBeenCalled();
+});
+
+test("failed copying shows an error and can be retried", () => {
+  actor.copy.mockReturnValueOnce(false);
+  renderShare();
+  const linkSection = within(
+    screen.getByRole("region", { name: "Invite by link" }),
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Copy link" }));
+  expect(linkSection.getByRole("alert").textContent).toBe(
+    "Could not copy link",
+  );
+  expect(screen.queryByRole("button", { name: "Copied" })).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "Copy link" }));
+  expect(screen.getByRole("button", { name: "Copied" })).toBeTruthy();
+  expect(linkSection.queryByRole("alert")).toBeNull();
 });
 
 test("existing members can receive either role, while read-only permission controls stay disabled", async () => {

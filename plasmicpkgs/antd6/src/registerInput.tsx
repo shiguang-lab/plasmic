@@ -9,7 +9,32 @@ import {
 import { Registerable, registerComponentHelper } from "./utils";
 
 export const AntdInput = Input;
-export const AntdTextArea = Input.TextArea;
+export type AntdTextAreaProps = Omit<
+  React.ComponentProps<typeof Input.TextArea>,
+  "showCount"
+> & {
+  showCount?: { formatter?: string };
+};
+
+export const AntdTextArea = React.forwardRef<
+  React.ComponentRef<typeof Input.TextArea>,
+  AntdTextAreaProps
+>(function AntdTextArea({ showCount, ...props }, ref) {
+  const template = showCount?.formatter;
+  return (
+    <Input.TextArea
+      {...props}
+      ref={ref}
+      showCount={template ? {
+        formatter: ({ count, maxLength }) => template.replace(
+          /\{(count|maxLength)\}/g,
+          (_match, variable: string) =>
+            variable === "count" ? String(count) : String(maxLength ?? ""),
+        ),
+      } : !!showCount}
+    />
+  );
+});
 export const AntdPassword = Input.Password;
 export const AntdInputNumber: typeof InputNumber = InputNumber;
 
@@ -169,6 +194,21 @@ export function registerTextArea(loader?: Registerable) {
       maxLength: {
         type: "number",
         advanced: true,
+      },
+      showCount: {
+        type: "object",
+        toggleable: true,
+        description:
+          "Configure the native character counter. An empty object shows the default count; leave unset to hide it.",
+        fields: {
+          formatter: {
+            type: "string",
+            control: "large",
+            templateVariables: ["count", "maxLength"],
+            description:
+              'Counter template with {count} and {maxLength} variables, for example "Entered {count} / {maxLength} characters". Leave empty for the native default. Without a character limit, {maxLength} is empty. Templates are plain text, not JavaScript.',
+          },
+        },
       },
       variant: {
         type: "choice",

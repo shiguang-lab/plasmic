@@ -23,6 +23,14 @@ if (window.top === window) {
       root.inert = editorInert;
     }
   });
+  if (!process.argv.includes("--plasmic-dashboard-preview-in-page")) {
+    // Dashboard previews render in a separate offscreen renderer process.
+    contextBridge.exposeInMainWorld("desktopPreview", {
+      render: (id, src, request, scale) =>
+        ipcRenderer.invoke("desktop:dashboard-preview", id, src, request, scale),
+      cancel: (id) => ipcRenderer.send("desktop:dashboard-preview-cancel", id),
+    });
+  }
   contextBridge.exposeInMainWorld("desktopBrowser", {
     open: () => ipcRenderer.invoke("desktop:open-reference-browser"),
     openPreview: (url) => ipcRenderer.invoke("desktop:open-preview", url),
@@ -78,6 +86,14 @@ if (window.top === window) {
   });
 }
 const pending = new Set();
+ipcRenderer.on("desktop:caller-disconnected", (_event, { callerId }) => {
+  window.postMessage({ channel: "plasmic-desktop-caller-disconnected", callerId }, location.origin);
+});
+ipcRenderer.on("desktop:cancel", (_event, { id }) => {
+  if (pending.has(id)) {
+    window.postMessage({ channel: "plasmic-desktop-cancel", id }, location.origin);
+  }
+});
 ipcRenderer.on("desktop:invoke", (_event, request) => {
   pending.add(request.id);
   window.postMessage(

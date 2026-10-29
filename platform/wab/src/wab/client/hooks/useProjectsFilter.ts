@@ -26,7 +26,8 @@ export function useProjectsFilter(
   );
   const [query, setQuery] = React.useState("");
 
-  const matcher = new Matcher(query);
+  // Stable per query so memoized project cards skip unrelated re-renders.
+  const matcher = React.useMemo(() => new Matcher(query), [query]);
   const filteredProjects = unsortedProjects?.filter(
     (p) =>
       matcher.matches(p.name) ||

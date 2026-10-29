@@ -7,6 +7,7 @@ import { DesktopDraftBadge } from "@/wab/client/components/dashboard/DesktopDraf
 import { maybeShowPaywall } from "@/wab/client/components/modals/PricingModal";
 import { reactConfirm } from "@/wab/client/components/quick-modals";
 import { Matcher } from "@/wab/client/components/view-common";
+import type { AppCtx } from "@/wab/client/app-ctx";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
 import { useI18n } from "@/wab/client/i18n";
 import { useHistory } from "@/wab/client/route/HistoryProvider";
@@ -81,9 +82,41 @@ function ProjectTitle({
   );
 }
 
-function ProjectListItem(props: ProjectListItemProps) {
-  const { project, perms, onUpdate, workspaces, matcher, showWorkspace } =
-    props;
+// Constructing Intl formatters is costly and every card shows the same format.
+const updatedAtFormats = new Map<string, Intl.DateTimeFormat>();
+function formatUpdatedAt(locale: string, date: Date) {
+  let format = updatedAtFormats.get(locale);
+  if (!format) {
+    format = new Intl.DateTimeFormat(locale, {
+      dateStyle: "medium",
+      timeStyle: "short",
+    });
+    updatedAtFormats.set(locale, format);
+  }
+  return format.format(date);
+}
+
+interface ProjectListItemContentProps extends ProjectListItemProps {
+  // AppCtx is mutated in place on reload. Pass the values the card renders so
+  // the memoized card still updates when a reload replaces them.
+  selfInfo: AppCtx["selfInfo"];
+  personalWorkspace: AppCtx["personalWorkspace"];
+}
+
+// A dashboard can mount many cards; re-render one only when its inputs change.
+const ProjectListItemContent = React.memo(function ProjectListItemContent(
+  props: ProjectListItemContentProps,
+) {
+  const {
+    project,
+    perms,
+    onUpdate,
+    workspaces,
+    matcher,
+    showWorkspace,
+    selfInfo,
+    personalWorkspace,
+  } = props;
   const { t, locale } = useI18n();
   const appCtx = useAppCtx();
   const history = useHistory();
@@ -124,24 +157,19 @@ function ProjectListItem(props: ProjectListItemProps) {
 
   const projectAccessLevel = getAccessLevelToResource(
     { type: "project", resource: project },
-    appCtx.selfInfo,
+    selfInfo,
     perms,
   );
 
   const workspaceAccessLevel = getAccessLevelToParent(
     { type: "project", resource: project },
-    appCtx.selfInfo,
+    selfInfo,
     perms,
   );
 
   const canMove = project.workspaceId
     ? accessLevelRank(workspaceAccessLevel) >= accessLevelRank("editor")
     : accessLevelRank(projectAccessLevel) >= accessLevelRank("editor");
-
-  const personalWorkspace = React.useMemo(
-    () => appCtx.personalWorkspace,
-    [appCtx.workspaces],
-  );
 
   const duplicateProject = async () => {
     const response = await promptMoveToWorkspace(
@@ -192,9 +220,9 @@ function ProjectListItem(props: ProjectListItemProps) {
         }}
       >
         <div className={styles.thumbnail} aria-hidden>
-          {DEVFLAGS.dashboardCanvasPreview && appCtx.selfInfo?.id ? (
+          {DEVFLAGS.dashboardCanvasPreview && selfInfo?.id ? (
             <ProjectPreview
-              userId={appCtx.selfInfo.id}
+              userId={selfInfo.id}
               projectId={project.id}
               updatedAt={new Date(project.updatedAt).toISOString()}
             />
@@ -413,10 +441,7 @@ function ProjectListItem(props: ProjectListItemProps) {
           <div className={styles.meta}>
             <span>
               {t("Updated {date}", {
-                date: new Intl.DateTimeFormat(locale, {
-                  dateStyle: "medium",
-                  timeStyle: "short",
-                }).format(new Date(project.updatedAt)),
+                date: formatUpdatedAt(locale, new Date(project.updatedAt)),
               })}
             </span>
             {accessLevelRank(workspaceAccessLevel) >=
@@ -459,6 +484,17 @@ function ProjectListItem(props: ProjectListItemProps) {
         />
       )}
     </>
+  );
+});
+
+function ProjectListItem(props: ProjectListItemProps) {
+  const appCtx = useAppCtx();
+  return (
+    <ProjectListItemContent
+      {...props}
+      selfInfo={appCtx.selfInfo}
+      personalWorkspace={appCtx.personalWorkspace}
+    />
   );
 }
 

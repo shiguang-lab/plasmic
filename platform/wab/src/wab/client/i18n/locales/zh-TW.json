@@ -5552,6 +5552,9 @@
   "When closing the main window": "關閉主視窗時",
   "Ask every time": "每次詢問",
   "Creating project": "建立專案",
+  "Renaming project": "重新命名專案",
+  "Moving project": "移動專案",
+  "Copying project": "複製專案",
   "Creating workspace": "建立工作區",
   "Creating organization": "建立組織",
   "Opening project": "開啟專案",
@@ -5788,5 +5791,10 @@
   "Run this action": "執行此操作",
   "Re-open": "重新開啟",
   "Resolve": "標為已解決",
-  "This action depends on the results of the previous step or the event arguments. You need to manually trigger it through the interactive mode": "此操作依賴上一步的結果或事件參數，請在互動模式下手動觸發。"
+  "This action depends on the results of the previous step or the event arguments. You need to manually trigger it through the interactive mode": "此操作依賴上一步的結果或事件參數，請在互動模式下手動觸發。",
+  "Invite by link": "連結邀請",
+  "Invite by email": "電子郵件邀請",
+  "Enable link invitations": "啟用連結邀請",
+  "Default role": "預設角色",
+  "People can register or sign in and use this link to join the organization.": "使用者註冊或登入後，可透過此連結加入組織。"
 }

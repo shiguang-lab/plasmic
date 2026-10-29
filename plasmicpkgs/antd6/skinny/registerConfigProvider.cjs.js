@@ -4,8 +4,147 @@ var host = require('@plasmicapp/host');
 var registerToken = require('@plasmicapp/host/registerToken');
 var query = require('@plasmicapp/query');
 var Ant = require('antd');
-var enUS = require('antd/lib/locale/en_US.js');
 var React = require('react');
+var ar_EG = require('antd/lib/locale/ar_EG.js');
+var az_AZ = require('antd/lib/locale/az_AZ.js');
+var bg_BG = require('antd/lib/locale/bg_BG.js');
+var bn_BD = require('antd/lib/locale/bn_BD.js');
+var by_BY = require('antd/lib/locale/by_BY.js');
+var ca_ES = require('antd/lib/locale/ca_ES.js');
+var cs_CZ = require('antd/lib/locale/cs_CZ.js');
+var da_DK = require('antd/lib/locale/da_DK.js');
+var de_DE = require('antd/lib/locale/de_DE.js');
+var el_GR = require('antd/lib/locale/el_GR.js');
+var en_GB = require('antd/lib/locale/en_GB.js');
+var en_US = require('antd/lib/locale/en_US.js');
+var es_ES = require('antd/lib/locale/es_ES.js');
+var es_US = require('antd/lib/locale/es_US.js');
+var et_EE = require('antd/lib/locale/et_EE.js');
+var eu_ES = require('antd/lib/locale/eu_ES.js');
+var fa_IR = require('antd/lib/locale/fa_IR.js');
+var fi_FI = require('antd/lib/locale/fi_FI.js');
+var fr_BE = require('antd/lib/locale/fr_BE.js');
+var fr_CA = require('antd/lib/locale/fr_CA.js');
+var fr_FR = require('antd/lib/locale/fr_FR.js');
+var ga_IE = require('antd/lib/locale/ga_IE.js');
+var gl_ES = require('antd/lib/locale/gl_ES.js');
+var he_IL = require('antd/lib/locale/he_IL.js');
+var hi_IN = require('antd/lib/locale/hi_IN.js');
+var hr_HR = require('antd/lib/locale/hr_HR.js');
+var hu_HU = require('antd/lib/locale/hu_HU.js');
+var hy_AM = require('antd/lib/locale/hy_AM.js');
+var id_ID = require('antd/lib/locale/id_ID.js');
+var is_IS = require('antd/lib/locale/is_IS.js');
+var it_IT = require('antd/lib/locale/it_IT.js');
+var ja_JP = require('antd/lib/locale/ja_JP.js');
+var ka_GE = require('antd/lib/locale/ka_GE.js');
+var kk_KZ = require('antd/lib/locale/kk_KZ.js');
+var km_KH = require('antd/lib/locale/km_KH.js');
+var kmr_IQ = require('antd/lib/locale/kmr_IQ.js');
+var kn_IN = require('antd/lib/locale/kn_IN.js');
+var ko_KR = require('antd/lib/locale/ko_KR.js');
+var ku_IQ = require('antd/lib/locale/ku_IQ.js');
+var lt_LT = require('antd/lib/locale/lt_LT.js');
+var lv_LV = require('antd/lib/locale/lv_LV.js');
+var mk_MK = require('antd/lib/locale/mk_MK.js');
+var ml_IN = require('antd/lib/locale/ml_IN.js');
+var mn_MN = require('antd/lib/locale/mn_MN.js');
+var mr_IN = require('antd/lib/locale/mr_IN.js');
+var ms_MY = require('antd/lib/locale/ms_MY.js');
+var my_MM = require('antd/lib/locale/my_MM.js');
+var nb_NO = require('antd/lib/locale/nb_NO.js');
+var ne_NP = require('antd/lib/locale/ne_NP.js');
+var nl_BE = require('antd/lib/locale/nl_BE.js');
+var nl_NL = require('antd/lib/locale/nl_NL.js');
+var pl_PL = require('antd/lib/locale/pl_PL.js');
+var pt_BR = require('antd/lib/locale/pt_BR.js');
+var pt_PT = require('antd/lib/locale/pt_PT.js');
+var ro_RO = require('antd/lib/locale/ro_RO.js');
+var ru_RU = require('antd/lib/locale/ru_RU.js');
+var si_LK = require('antd/lib/locale/si_LK.js');
+var sk_SK = require('antd/lib/locale/sk_SK.js');
+var sl_SI = require('antd/lib/locale/sl_SI.js');
+var sq_AL = require('antd/lib/locale/sq_AL.js');
+var sr_RS = require('antd/lib/locale/sr_RS.js');
+var sv_SE = require('antd/lib/locale/sv_SE.js');
+var ta_IN = require('antd/lib/locale/ta_IN.js');
+var th_TH = require('antd/lib/locale/th_TH.js');
+var tk_TK = require('antd/lib/locale/tk_TK.js');
+var tr_TR = require('antd/lib/locale/tr_TR.js');
+var uk_UA = require('antd/lib/locale/uk_UA.js');
+var ur_PK = require('antd/lib/locale/ur_PK.js');
+var uz_UZ = require('antd/lib/locale/uz_UZ.js');
+var vi_VN = require('antd/lib/locale/vi_VN.js');
+var zh_CN = require('antd/lib/locale/zh_CN.js');
+var zh_HK = require('antd/lib/locale/zh_HK.js');
+var zh_TW = require('antd/lib/locale/zh_TW.js');
+require('dayjs/locale/ar');
+require('dayjs/locale/az');
+require('dayjs/locale/be');
+require('dayjs/locale/bg');
+require('dayjs/locale/bn-bd');
+require('dayjs/locale/ca');
+require('dayjs/locale/cs');
+require('dayjs/locale/da');
+require('dayjs/locale/de');
+require('dayjs/locale/el');
+require('dayjs/locale/en-gb');
+require('dayjs/locale/es');
+require('dayjs/locale/et');
+require('dayjs/locale/eu');
+require('dayjs/locale/fa');
+require('dayjs/locale/fi');
+require('dayjs/locale/fr');
+require('dayjs/locale/fr-ca');
+require('dayjs/locale/ga');
+require('dayjs/locale/gl');
+require('dayjs/locale/he');
+require('dayjs/locale/hi');
+require('dayjs/locale/hr');
+require('dayjs/locale/hu');
+require('dayjs/locale/hy-am');
+require('dayjs/locale/id');
+require('dayjs/locale/is');
+require('dayjs/locale/it');
+require('dayjs/locale/ja');
+require('dayjs/locale/ka');
+require('dayjs/locale/kk');
+require('dayjs/locale/km');
+require('dayjs/locale/kn');
+require('dayjs/locale/ko');
+require('dayjs/locale/ku');
+require('dayjs/locale/lt');
+require('dayjs/locale/lv');
+require('dayjs/locale/mk');
+require('dayjs/locale/ml');
+require('dayjs/locale/mn');
+require('dayjs/locale/mr');
+require('dayjs/locale/ms');
+require('dayjs/locale/my');
+require('dayjs/locale/nb');
+require('dayjs/locale/nl');
+require('dayjs/locale/nl-be');
+require('dayjs/locale/pl');
+require('dayjs/locale/pt');
+require('dayjs/locale/pt-br');
+require('dayjs/locale/ro');
+require('dayjs/locale/ru');
+require('dayjs/locale/si');
+require('dayjs/locale/sk');
+require('dayjs/locale/sl');
+require('dayjs/locale/sq');
+require('dayjs/locale/sr');
+require('dayjs/locale/sv');
+require('dayjs/locale/ta');
+require('dayjs/locale/th');
+require('dayjs/locale/tk');
+require('dayjs/locale/tr');
+require('dayjs/locale/uk');
+require('dayjs/locale/ur');
+require('dayjs/locale/uz');
+require('dayjs/locale/vi');
+require('dayjs/locale/zh-cn');
+require('dayjs/locale/zh-tw');
 var reactUtils = require('./react-utils-CP3JYj1p.cjs.js');
 var utils = require('./utils-DMWa5SeG.cjs.js');
 require('classnames');
@@ -15,13 +154,163 @@ require('@plasmicapp/host/registerGlobalContext');
 function _interopDefault (e) { return e && e.__esModule ? e : { default: e }; }
 
 var registerToken__default = /*#__PURE__*/_interopDefault(registerToken);
-var enUS__default = /*#__PURE__*/_interopDefault(enUS);
 var React__default = /*#__PURE__*/_interopDefault(React);
+var ar_EG__default = /*#__PURE__*/_interopDefault(ar_EG);
+var az_AZ__default = /*#__PURE__*/_interopDefault(az_AZ);
+var bg_BG__default = /*#__PURE__*/_interopDefault(bg_BG);
+var bn_BD__default = /*#__PURE__*/_interopDefault(bn_BD);
+var by_BY__default = /*#__PURE__*/_interopDefault(by_BY);
+var ca_ES__default = /*#__PURE__*/_interopDefault(ca_ES);
+var cs_CZ__default = /*#__PURE__*/_interopDefault(cs_CZ);
+var da_DK__default = /*#__PURE__*/_interopDefault(da_DK);
+var de_DE__default = /*#__PURE__*/_interopDefault(de_DE);
+var el_GR__default = /*#__PURE__*/_interopDefault(el_GR);
+var en_GB__default = /*#__PURE__*/_interopDefault(en_GB);
+var en_US__default = /*#__PURE__*/_interopDefault(en_US);
+var es_ES__default = /*#__PURE__*/_interopDefault(es_ES);
+var es_US__default = /*#__PURE__*/_interopDefault(es_US);
+var et_EE__default = /*#__PURE__*/_interopDefault(et_EE);
+var eu_ES__default = /*#__PURE__*/_interopDefault(eu_ES);
+var fa_IR__default = /*#__PURE__*/_interopDefault(fa_IR);
+var fi_FI__default = /*#__PURE__*/_interopDefault(fi_FI);
+var fr_BE__default = /*#__PURE__*/_interopDefault(fr_BE);
+var fr_CA__default = /*#__PURE__*/_interopDefault(fr_CA);
+var fr_FR__default = /*#__PURE__*/_interopDefault(fr_FR);
+var ga_IE__default = /*#__PURE__*/_interopDefault(ga_IE);
+var gl_ES__default = /*#__PURE__*/_interopDefault(gl_ES);
+var he_IL__default = /*#__PURE__*/_interopDefault(he_IL);
+var hi_IN__default = /*#__PURE__*/_interopDefault(hi_IN);
+var hr_HR__default = /*#__PURE__*/_interopDefault(hr_HR);
+var hu_HU__default = /*#__PURE__*/_interopDefault(hu_HU);
+var hy_AM__default = /*#__PURE__*/_interopDefault(hy_AM);
+var id_ID__default = /*#__PURE__*/_interopDefault(id_ID);
+var is_IS__default = /*#__PURE__*/_interopDefault(is_IS);
+var it_IT__default = /*#__PURE__*/_interopDefault(it_IT);
+var ja_JP__default = /*#__PURE__*/_interopDefault(ja_JP);
+var ka_GE__default = /*#__PURE__*/_interopDefault(ka_GE);
+var kk_KZ__default = /*#__PURE__*/_interopDefault(kk_KZ);
+var km_KH__default = /*#__PURE__*/_interopDefault(km_KH);
+var kmr_IQ__default = /*#__PURE__*/_interopDefault(kmr_IQ);
+var kn_IN__default = /*#__PURE__*/_interopDefault(kn_IN);
+var ko_KR__default = /*#__PURE__*/_interopDefault(ko_KR);
+var ku_IQ__default = /*#__PURE__*/_interopDefault(ku_IQ);
+var lt_LT__default = /*#__PURE__*/_interopDefault(lt_LT);
+var lv_LV__default = /*#__PURE__*/_interopDefault(lv_LV);
+var mk_MK__default = /*#__PURE__*/_interopDefault(mk_MK);
+var ml_IN__default = /*#__PURE__*/_interopDefault(ml_IN);
+var mn_MN__default = /*#__PURE__*/_interopDefault(mn_MN);
+var mr_IN__default = /*#__PURE__*/_interopDefault(mr_IN);
+var ms_MY__default = /*#__PURE__*/_interopDefault(ms_MY);
+var my_MM__default = /*#__PURE__*/_interopDefault(my_MM);
+var nb_NO__default = /*#__PURE__*/_interopDefault(nb_NO);
+var ne_NP__default = /*#__PURE__*/_interopDefault(ne_NP);
+var nl_BE__default = /*#__PURE__*/_interopDefault(nl_BE);
+var nl_NL__default = /*#__PURE__*/_interopDefault(nl_NL);
+var pl_PL__default = /*#__PURE__*/_interopDefault(pl_PL);
+var pt_BR__default = /*#__PURE__*/_interopDefault(pt_BR);
+var pt_PT__default = /*#__PURE__*/_interopDefault(pt_PT);
+var ro_RO__default = /*#__PURE__*/_interopDefault(ro_RO);
+var ru_RU__default = /*#__PURE__*/_interopDefault(ru_RU);
+var si_LK__default = /*#__PURE__*/_interopDefault(si_LK);
+var sk_SK__default = /*#__PURE__*/_interopDefault(sk_SK);
+var sl_SI__default = /*#__PURE__*/_interopDefault(sl_SI);
+var sq_AL__default = /*#__PURE__*/_interopDefault(sq_AL);
+var sr_RS__default = /*#__PURE__*/_interopDefault(sr_RS);
+var sv_SE__default = /*#__PURE__*/_interopDefault(sv_SE);
+var ta_IN__default = /*#__PURE__*/_interopDefault(ta_IN);
+var th_TH__default = /*#__PURE__*/_interopDefault(th_TH);
+var tk_TK__default = /*#__PURE__*/_interopDefault(tk_TK);
+var tr_TR__default = /*#__PURE__*/_interopDefault(tr_TR);
+var uk_UA__default = /*#__PURE__*/_interopDefault(uk_UA);
+var ur_PK__default = /*#__PURE__*/_interopDefault(ur_PK);
+var uz_UZ__default = /*#__PURE__*/_interopDefault(uz_UZ);
+var vi_VN__default = /*#__PURE__*/_interopDefault(vi_VN);
+var zh_CN__default = /*#__PURE__*/_interopDefault(zh_CN);
+var zh_HK__default = /*#__PURE__*/_interopDefault(zh_HK);
+var zh_TW__default = /*#__PURE__*/_interopDefault(zh_TW);
 
-let defaultLocale = enUS__default.default;
-if ("default" in enUS__default.default) {
-  defaultLocale = enUS__default.default.default;
+const localePacks = {
+  ar_EG: ar_EG__default.default,
+  az_AZ: az_AZ__default.default,
+  bg_BG: bg_BG__default.default,
+  bn_BD: bn_BD__default.default,
+  by_BY: by_BY__default.default,
+  ca_ES: ca_ES__default.default,
+  cs_CZ: cs_CZ__default.default,
+  da_DK: da_DK__default.default,
+  de_DE: de_DE__default.default,
+  el_GR: el_GR__default.default,
+  en_GB: en_GB__default.default,
+  en_US: en_US__default.default,
+  es_ES: es_ES__default.default,
+  es_US: es_US__default.default,
+  et_EE: et_EE__default.default,
+  eu_ES: eu_ES__default.default,
+  fa_IR: fa_IR__default.default,
+  fi_FI: fi_FI__default.default,
+  fr_BE: fr_BE__default.default,
+  fr_CA: fr_CA__default.default,
+  fr_FR: fr_FR__default.default,
+  ga_IE: ga_IE__default.default,
+  gl_ES: gl_ES__default.default,
+  he_IL: he_IL__default.default,
+  hi_IN: hi_IN__default.default,
+  hr_HR: hr_HR__default.default,
+  hu_HU: hu_HU__default.default,
+  hy_AM: hy_AM__default.default,
+  id_ID: id_ID__default.default,
+  is_IS: is_IS__default.default,
+  it_IT: it_IT__default.default,
+  ja_JP: ja_JP__default.default,
+  ka_GE: ka_GE__default.default,
+  kk_KZ: kk_KZ__default.default,
+  km_KH: km_KH__default.default,
+  kmr_IQ: kmr_IQ__default.default,
+  kn_IN: kn_IN__default.default,
+  ko_KR: ko_KR__default.default,
+  ku_IQ: ku_IQ__default.default,
+  lt_LT: lt_LT__default.default,
+  lv_LV: lv_LV__default.default,
+  mk_MK: mk_MK__default.default,
+  ml_IN: ml_IN__default.default,
+  mn_MN: mn_MN__default.default,
+  mr_IN: mr_IN__default.default,
+  ms_MY: ms_MY__default.default,
+  my_MM: my_MM__default.default,
+  nb_NO: nb_NO__default.default,
+  ne_NP: ne_NP__default.default,
+  nl_BE: nl_BE__default.default,
+  nl_NL: nl_NL__default.default,
+  pl_PL: pl_PL__default.default,
+  pt_BR: pt_BR__default.default,
+  pt_PT: pt_PT__default.default,
+  ro_RO: ro_RO__default.default,
+  ru_RU: ru_RU__default.default,
+  si_LK: si_LK__default.default,
+  sk_SK: sk_SK__default.default,
+  sl_SI: sl_SI__default.default,
+  sq_AL: sq_AL__default.default,
+  sr_RS: sr_RS__default.default,
+  sv_SE: sv_SE__default.default,
+  ta_IN: ta_IN__default.default,
+  th_TH: th_TH__default.default,
+  tk_TK: tk_TK__default.default,
+  tr_TR: tr_TR__default.default,
+  uk_UA: uk_UA__default.default,
+  ur_PK: ur_PK__default.default,
+  uz_UZ: uz_UZ__default.default,
+  vi_VN: vi_VN__default.default,
+  zh_CN: zh_CN__default.default,
+  zh_HK: zh_HK__default.default,
+  zh_TW: zh_TW__default.default
+};
+function normalizeLocale(locale) {
+  return "default" in locale ? locale.default : locale;
 }
+const antdLocales = Object.fromEntries(
+  Object.entries(localePacks).map(([key, locale]) => [key, normalizeLocale(locale)])
+);
+
 function themeToAntdConfig(opts) {
   const {
     colorTextBase,
@@ -71,7 +360,7 @@ function AntdConfigProvider(props) {
   return /* @__PURE__ */ React__default.default.createElement(
     Ant.ConfigProvider,
     {
-      locale: locale ?? defaultLocale,
+      locale: typeof locale === "string" ? antdLocales[locale] : locale ?? antdLocales.en_US,
       ...themeToAntdConfig({
         ...rest,
         fontFamily: themeStyles.fontFamily,
@@ -457,6 +746,12 @@ const registerConfigProvider = utils.makeRegisterGlobalContext(
     displayName: "Ant Design System Settings",
     description: "Project-wide Ant Design theme and feedback context, managed in System Settings. It wraps pages automatically; do not insert it into a page or component tree. Use its qualified showMessage/showNotification global actions without adding a wrapper.",
     props: {
+      locale: {
+        type: "choice",
+        options: Object.keys(antdLocales),
+        defaultValueHint: "en_US",
+        description: "Language for built-in component text. Custom business text is unchanged."
+      },
       colorPrimary: {
         type: "color",
         defaultValue: "#1677ff",

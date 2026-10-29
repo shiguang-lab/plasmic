@@ -75,7 +75,7 @@ export function registrationContract(value: unknown, seen = new Set<object>()): 
   if (typeof meta.type !== "string") { return undefined; }
   seen.add(value);
   const result: Record<string, unknown> = { type: meta.type };
-  for (const key of ["displayName", "description", "required", "min", "max", "step", "editOnly", "uncontrolledProp"]) {
+  for (const key of ["displayName", "description", "required", "min", "max", "step", "editOnly", "uncontrolledProp", "toggleable"]) {
     if (["string", "boolean", "number"].includes(typeof meta[key])) { result[key] = meta[key]; }
   }
   if (meta.type !== "slot") {
@@ -88,6 +88,7 @@ export function registrationContract(value: unknown, seen = new Set<object>()): 
   if (meta.fields && typeof meta.fields === "object") { result.fields = Object.fromEntries(Object.entries(meta.fields).map(([name, type]) => [name, registrationContract(type, seen)]).filter(([, type]) => type)); }
   if (meta.itemType) { result.itemType = registrationContract(meta.itemType, seen); }
   if (Array.isArray(meta.allowedComponents)) { result.allowedComponents = meta.allowedComponents; }
+  if (Array.isArray(meta.templateVariables) && meta.templateVariables.every((name) => typeof name === "string")) { result.templateVariables = meta.templateVariables; }
   if (typeof meta.options === "function") { result.optionsDynamic = true; }
   else if (Array.isArray(meta.options)) { result.options = meta.options.map((option) => typeof option === "object" && option !== null ? { value: option.value, label: option.label } : option); }
   seen.delete(value);

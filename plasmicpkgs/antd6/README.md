@@ -21,6 +21,12 @@ pages import the same wrappers from the package's `skinny` entry points.
   static subcomponents use their own illustration or their parent's diagram.
 - ConfigProvider and App are supplied by the registered global context. Theme
   tokens use `--antd6-*` CSS variables and `antd6-*` registration names.
+- Set `locale` in Ant Design System Settings to any of the 73 locale identifiers
+  shipped by Ant Design 6.6.5, such as `zh_CN`, `ja_JP` or `fr_FR`. The default is
+  `en_US`. Built-in confirmation buttons, pagination and date controls inherit
+  this setting, with the corresponding Day.js date locale data included. Custom
+  business text such as `okText="确认下线"` takes precedence. Code can also pass a
+  native Ant Design locale object. Studio UI language does not change this setting.
 - Date and time controls expose ISO strings; range controls expose arrays.
 - Menus, breadcrumbs, tabs and collapse convert editable slots into native item
   data. Card and list actions convert slots into arrays of React nodes.

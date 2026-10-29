@@ -193,6 +193,12 @@ const tools = [
     inputSchema: object({ orgId: resourceId }),
   },
   {
+    name: "get_workspace",
+    description:
+      "Resolve an accessible workspace by workspaceId. Returns workspace id/name and parent team id/name only. Requires login; does not navigate or save.",
+    inputSchema: { ...object({ workspaceId: resourceId }), required: ["workspaceId"] },
+  },
+  {
     name: "open_workspace",
     description:
       "Open the workspace dashboard at /workspaces/:workspaceId after checking access. Saves the current editable design before leaving it. Requires desktop login; returns opened, workspaceId and url.",
@@ -215,6 +221,30 @@ const tools = [
     description:
       "List accessible project identities and parent workspace/team IDs and names, optionally within workspaceId. Does not return permissions, credentials or platform configuration. Does not navigate or save.",
     inputSchema: object({ workspaceId: resourceId }),
+  },
+  {
+    name: "get_project",
+    description:
+      "Resolve an accessible project by projectId. Returns project identity and parent workspace/team IDs and names only. Does not read design content, navigate or save.",
+    inputSchema: { ...object({ projectId: resourceId }), required: ["projectId"] },
+  },
+  {
+    name: "rename_project",
+    description:
+      "Rename a project using the platform's existing permissions. Returns updated project identity. If this project is open, saves it before renaming and reloads the editor after success; a failed save blocks the rename. Other projects do not navigate or save the active design.",
+    inputSchema: { ...object({ projectId: resourceId, name: resourceName }), required: ["projectId", "name"] },
+  },
+  {
+    name: "move_project",
+    description:
+      "Move a project to an explicit destination workspaceId, including the personal workspace's actual ID. The platform checks source/destination permissions, transfer restrictions and plan limits. Returns updated project identity; plan restrictions are errors. If this project is open, saves it before moving and reloads the editor after success; a failed save blocks the move. Other projects do not navigate or save the active design.",
+    inputSchema: { ...object({ projectId: resourceId, workspaceId: resourceId }), required: ["projectId", "workspaceId"] },
+  },
+  {
+    name: "clone_project",
+    description:
+      "Copy a project's saved main branch into a new project, with optional name and destination workspaceId (omitting it uses the personal workspace). Returns the new project identity. Saves the source first if it is open and editable; a failed save blocks copying. Does not open the copy or change the active editor. Requires platform read access to the source and create access at the destination.",
+    inputSchema: { ...object({ projectId: resourceId, name: resourceName, workspaceId: resourceId }), required: ["projectId"] },
   },
   {
     name: "open_design",
@@ -577,7 +607,7 @@ async function serveMcp(profile) {
   server.onclose = () => session.destroy();
   session.once("close", () => { void server.close(); });
   server.setRequestHandler(ListToolsRequestSchema, async () => { requireDesktop(); await registerCaller(); return { tools }; });
-  server.setRequestHandler(CallToolRequestSchema, async (request) => {
+  server.setRequestHandler(CallToolRequestSchema, async (request, { signal }) => {
     const started = Date.now();
     try {
       requireDesktop();
@@ -616,6 +646,7 @@ async function serveMcp(profile) {
                 request.params.name,
                 request.params.arguments || {},
                 session.callerId,
+                signal,
               );
       if (request.params.name === "reference_browser") result = browserOutput(request.params.arguments?.action, result);
       if (request.params.name === "export_code" && Array.isArray(result.files)) result = { ...result, fileCount: result.files.length, files: results.retain(result.files) };

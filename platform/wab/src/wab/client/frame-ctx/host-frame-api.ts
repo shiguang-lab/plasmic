@@ -69,7 +69,10 @@ export type HostFrameApi = {
     toolArgs: Record<string, unknown>,
     outputFormat?: AiOutputFormat,
     caller?: CopilotCaller,
+    requestId?: string,
   ): Promise<CopilotToolCallResult>;
+  cancelCopilotToolCall(requestId: string): Promise<void>;
+  clearCopilotCallerActivity(callerId: string): Promise<void>;
   /** Store the AI agent's preferred copilot tool output format on StudioCtx. */
   setPreferredAiOutputFormat(format: AiOutputFormat): Promise<void>;
   /** Resolves once the studio and its active canvas are ready. */

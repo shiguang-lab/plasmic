@@ -6,6 +6,7 @@ import { Input, InputNumber, Radio } from 'antd';
 import 'react';
 import { AntdCheckbox } from './registerCheckbox.esm.js';
 import { AntdDatePicker } from './registerDatePicker.esm.js';
+import { AntdTextArea } from './registerInput.esm.js';
 import { AntdRadioGroup } from './registerRadio.esm.js';
 import { AntdSelect } from './registerSelect.esm.js';
 import { formRuleTypes } from './FormItem.esm.js';
@@ -26,6 +27,7 @@ import './react-utils-BpvCcwyE.esm.js';
 /* @__PURE__ */ new Map([
   [Input, InputType.Text],
   [Input.TextArea, InputType.TextArea],
+  [AntdTextArea, InputType.TextArea],
   [Input.Password, InputType.Password],
   [InputNumber, InputType.Number],
   [AntdSelect, InputType.Select],

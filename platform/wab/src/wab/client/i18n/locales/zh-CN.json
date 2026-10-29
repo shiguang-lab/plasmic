@@ -5552,6 +5552,9 @@
   "When closing the main window": "关闭主窗口时",
   "Ask every time": "每次询问",
   "Creating project": "创建项目",
+  "Renaming project": "重命名项目",
+  "Moving project": "移动项目",
+  "Copying project": "复制项目",
   "Creating workspace": "创建工作区",
   "Creating organization": "创建组织",
   "Opening project": "打开项目",
@@ -5788,5 +5791,10 @@
   "Run this action": "运行此操作",
   "Re-open": "重新打开",
   "Resolve": "标为已解决",
-  "This action depends on the results of the previous step or the event arguments. You need to manually trigger it through the interactive mode": "此操作依赖上一步的结果或事件参数，请在交互模式下手动触发。"
+  "This action depends on the results of the previous step or the event arguments. You need to manually trigger it through the interactive mode": "此操作依赖上一步的结果或事件参数，请在交互模式下手动触发。",
+  "Invite by link": "链接邀请",
+  "Invite by email": "邮箱邀请",
+  "Enable link invitations": "启用链接邀请",
+  "Default role": "默认角色",
+  "People can register or sign in and use this link to join the organization.": "用户注册或登录后，可通过此链接加入组织。"
 }

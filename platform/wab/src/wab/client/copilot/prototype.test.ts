@@ -1572,6 +1572,24 @@ describe("AI prototype editor tools", () => {
     expect(studioCtx.copilotActivity.requests[0].status).toBe("success");
     studioCtx.copilotActivity.dispose();
   });
+  it("clears cancelled edit feedback without reviving it when the transaction completes", async () => {
+    const { studioCtx, createPage } = fixture();
+    const page = await createPage("CancelledScan");
+    studioCtx.copilotActivity.dispose();
+    const controller = new AbortController();
+    const input = { operations: [{ name: "changeElement", input: {
+      componentUuid: page.uuid, elementUuid: page.tplTree.uuid, styles: { color: "red" },
+    } }] };
+    const result = COPILOT_TOOLS.executeBatch.execute(studioCtx, input, { signal: controller.signal });
+    expect(studioCtx.copilotActivity.requests).toHaveLength(1);
+    controller.abort();
+    expect(studioCtx.copilotActivity.requests).toHaveLength(0);
+    await result;
+    expect(studioCtx.copilotActivity.requests).toHaveLength(0);
+    await expect(COPILOT_TOOLS.executeBatch.execute(studioCtx, input, { signal: controller.signal })).rejects.toThrow();
+    expect(studioCtx.copilotActivity.requests).toHaveLength(0);
+    studioCtx.copilotActivity.dispose();
+  });
   it("organizes canvases and keeps pages while replacing device previews with Desktop", async () => {
     const { studioCtx, call, createPage } = fixture();
     const page = await createPage();

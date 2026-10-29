@@ -124,12 +124,15 @@ export async function prepare(request: PreviewRequest) {
   }));
   overviewLayout(pages);
   const components = artboards.map((f) => f.container.component);
+  // Code generation memoizes component output per context object. One context
+  // lets components shared by several artboards be generated only once.
+  const codegenCtx = {
+    site,
+    siteInfo: { id: data.project.id, name: data.project.name, appAuthProvider: data.appAuthProvider },
+  };
   const generated = [...new Set(components)].map((component) => ({
     component,
-    output: buildPreviewModules({
-      site,
-      siteInfo: { id: data.project.id, name: data.project.name, appAuthProvider: data.appAuthProvider },
-    }, component),
+    output: buildPreviewModules(codegenCtx, component),
   }));
   const first = ensure(generated[0], "No preview components").output;
   const project = first.projectConfig;
@@ -230,6 +233,8 @@ export async function load(request: PreviewRequest) {
     usedHostLessPkgs(payload.site),
     getVersionForCanvasPackages(win),
     payload.site,
+    // Injected above, so the guarded copy for library modules would never run.
+    { canvasRuntimeLoaded: true },
   )) {
     inject(doc, module);
   }

@@ -66,7 +66,7 @@ const useStyles = createStyles(({ token }) => ({
     background: token.colorBgElevated,
   },
   filters: { display: "flex", alignItems: "center", gap: 4, margin: "8px 0" },
-  list: { maxHeight: "min(340px, calc(100vh - 220px))", minHeight: 0 },
+  list: { maxHeight: "min(340px, calc(100vh - 220px))", minHeight: 64 },
   row: {
     display: "flex",
     alignItems: "center",
@@ -109,7 +109,6 @@ const useStyles = createStyles(({ token }) => ({
     whiteSpace: "nowrap",
   },
   date: { flexShrink: 0, color: token.colorTextTertiary, fontSize: 11 },
-  loading: { display: "flex", justifyContent: "center", padding: 12 },
   more: { width: "100%", marginTop: 8 },
 }));
 
@@ -225,130 +224,127 @@ export function AiThreadPicker({
                     {t("Archived conversations")}
                   </Button>
                 </div>
-                <Scrollbar
-                  className={styles.list}
-                  scrollX={false}
-                  defer={false}
-                >
-                  {session.threads.map((thread) => {
-                    const name =
-                      thread.title ||
-                      thread.draft?.slice(0, 60) ||
-                      t("New conversation");
-                    const running =
-                      session.activeRun?.threadId === thread.id ||
-                      thread.lastTask?.status === "running";
-                    return (
-                      <div
-                        key={thread.id}
-                        className={styles.row}
-                        data-selected={thread.id === session.activeThreadId}
-                      >
-                        <button
-                          type="button"
-                          className={styles.entry}
-                          aria-current={
-                            thread.id === session.activeThreadId
-                              ? "true"
-                              : undefined
-                          }
-                          onClick={() => choose(thread.id)}
+                <Spin spinning={session.threadListLoading} size="small">
+                  <Scrollbar
+                    className={styles.list}
+                    scrollX={false}
+                    defer={false}
+                  >
+                    {session.threads.map((thread) => {
+                      const name =
+                        thread.title ||
+                        thread.draft?.slice(0, 60) ||
+                        t("New conversation");
+                      const running =
+                        session.activeRun?.threadId === thread.id ||
+                        thread.lastTask?.status === "running";
+                      return (
+                        <div
+                          key={thread.id}
+                          className={styles.row}
+                          data-selected={thread.id === session.activeThreadId}
                         >
-                          <span className={styles.line}>
-                            <Tooltip title={name}>
-                              <span className={styles.name}>{name}</span>
-                            </Tooltip>
-                            {running && (
-                              <Tag color="processing">{t("Running")}</Tag>
-                            )}
-                            {thread.lastTask?.needsReconciliation && (
-                              <Tag color="warning">
-                                {t("Verify saved design")}
-                              </Tag>
-                            )}
-                            {thread.lastTask?.status === "failed" &&
-                              !running && (
-                                <Tag color="error">{t("Failed")}</Tag>
+                          <button
+                            type="button"
+                            className={styles.entry}
+                            aria-current={
+                              thread.id === session.activeThreadId
+                                ? "true"
+                                : undefined
+                            }
+                            onClick={() => choose(thread.id)}
+                          >
+                            <span className={styles.line}>
+                              <Tooltip title={name}>
+                                <span className={styles.name}>{name}</span>
+                              </Tooltip>
+                              {running && (
+                                <Tag color="processing">{t("Running")}</Tag>
                               )}
-                            <time
-                              className={styles.date}
-                              dateTime={thread.lastMessageAt}
+                              {thread.lastTask?.needsReconciliation && (
+                                <Tag color="warning">
+                                  {t("Verify saved design")}
+                                </Tag>
+                              )}
+                              {thread.lastTask?.status === "failed" &&
+                                !running && (
+                                  <Tag color="error">{t("Failed")}</Tag>
+                                )}
+                              <time
+                                className={styles.date}
+                                dateTime={thread.lastMessageAt}
+                              >
+                                {new Date(
+                                  thread.lastMessageAt,
+                                ).toLocaleDateString(locale, {
+                                  month: "short",
+                                  day: "numeric",
+                                })}
+                              </time>
+                            </span>
+                            <span
+                              className={styles.secondary}
+                              style={{ display: "block" }}
                             >
-                              {new Date(
-                                thread.lastMessageAt,
-                              ).toLocaleDateString(locale, {
-                                month: "short",
-                                day: "numeric",
-                              })}
-                            </time>
-                          </span>
-                          <span
-                            className={styles.secondary}
-                            style={{ display: "block" }}
-                          >
-                            {thread.lastTask?.prompt || t("Unsent draft")}
-                          </span>
-                        </button>
-                        {!!thread.title && !readOnly && (
-                          <Dropdown
-                            trigger={["click"]}
-                            menu={{
-                              items: [
-                                {
-                                  key: "rename",
-                                  label: t("Rename conversation"),
+                              {thread.lastTask?.prompt || t("Unsent draft")}
+                            </span>
+                          </button>
+                          {!!thread.title && !readOnly && (
+                            <Dropdown
+                              trigger={["click"]}
+                              menu={{
+                                items: [
+                                  {
+                                    key: "rename",
+                                    label: t("Rename conversation"),
+                                  },
+                                  {
+                                    key: "archive",
+                                    label: t(
+                                      thread.archivedAt
+                                        ? "Restore conversation"
+                                        : "Archive conversation",
+                                    ),
+                                    disabled:
+                                      running ||
+                                      thread.lastTask?.needsReconciliation,
+                                  },
+                                ],
+                                onClick: ({ key }) => {
+                                  if (key === "rename") {
+                                    setRenaming({
+                                      id: thread.id,
+                                      title: thread.title,
+                                    });
+                                  } else {
+                                    void session.updateThread(thread.id, {
+                                      archived: !thread.archivedAt,
+                                    });
+                                  }
                                 },
-                                {
-                                  key: "archive",
-                                  label: t(
-                                    thread.archivedAt
-                                      ? "Restore conversation"
-                                      : "Archive conversation",
-                                  ),
-                                  disabled:
-                                    running ||
-                                    thread.lastTask?.needsReconciliation,
-                                },
-                              ],
-                              onClick: ({ key }) => {
-                                if (key === "rename") {
-                                  setRenaming({
-                                    id: thread.id,
-                                    title: thread.title,
-                                  });
-                                } else {
-                                  void session.updateThread(thread.id, {
-                                    archived: !thread.archivedAt,
-                                  });
-                                }
-                              },
-                            }}
-                          >
-                            <Button
-                              type="text"
-                              size="small"
-                              icon={<MoreOutlined />}
-                              aria-label={t("Conversation actions: {title}", {
-                                title: name,
-                              })}
-                            />
-                          </Dropdown>
-                        )}
-                      </div>
-                    );
-                  })}
-                  {!session.threads.length && !session.threadListLoading && (
-                    <Empty
-                      image={Empty.PRESENTED_IMAGE_SIMPLE}
-                      description={t("No conversations found")}
-                    />
-                  )}
-                </Scrollbar>
-                {session.threadListLoading && (
-                  <div className={styles.loading}>
-                    <Spin size="small" />
-                  </div>
-                )}
+                              }}
+                            >
+                              <Button
+                                type="text"
+                                size="small"
+                                icon={<MoreOutlined />}
+                                aria-label={t("Conversation actions: {title}", {
+                                  title: name,
+                                })}
+                              />
+                            </Dropdown>
+                          )}
+                        </div>
+                      );
+                    })}
+                    {!session.threads.length && !session.threadListLoading && (
+                      <Empty
+                        image={Empty.PRESENTED_IMAGE_SIMPLE}
+                        description={t("No conversations found")}
+                      />
+                    )}
+                  </Scrollbar>
+                </Spin>
                 {session.threadListBefore && (
                   <Button
                     className={styles.more}

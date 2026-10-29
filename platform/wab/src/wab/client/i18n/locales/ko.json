@@ -5552,6 +5552,9 @@
   "When closing the main window": "기본 창을 닫을 때",
   "Ask every time": "매번 확인",
   "Creating project": "프로젝트 생성",
+  "Renaming project": "프로젝트 이름 변경",
+  "Moving project": "프로젝트 이동",
+  "Copying project": "프로젝트 복사",
   "Creating workspace": "워크스페이스 생성",
   "Creating organization": "조직 생성",
   "Opening project": "프로젝트 열기",
@@ -5788,5 +5791,10 @@
   "Run this action": "이 작업 실행",
   "Re-open": "다시 열기",
   "Resolve": "해결됨으로 표시",
-  "This action depends on the results of the previous step or the event arguments. You need to manually trigger it through the interactive mode": "이 작업은 이전 단계의 결과 또는 이벤트 인수에 의존합니다. 대화형 모드에서 수동으로 실행해야 합니다."
+  "This action depends on the results of the previous step or the event arguments. You need to manually trigger it through the interactive mode": "이 작업은 이전 단계의 결과 또는 이벤트 인수에 의존합니다. 대화형 모드에서 수동으로 실행해야 합니다.",
+  "Invite by link": "링크로 초대",
+  "Invite by email": "이메일로 초대",
+  "Enable link invitations": "링크 초대 활성화",
+  "Default role": "기본 역할",
+  "People can register or sign in and use this link to join the organization.": "사용자는 가입하거나 로그인한 후 이 링크로 조직에 참여할 수 있습니다."
 }

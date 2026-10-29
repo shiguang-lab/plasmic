@@ -4,6 +4,15 @@
 
 Inside an admin AppShell, start with the actual filters, form, Tabs, summary or data region. Do not add a standalone Page title/header, hero, subtitle or explanatory intro. The shell already owns navigation and breadcrumbs. This applies to list, create/edit and detail Pages. Only an explicit current user request for that area permits it; a template, Pen frame or generic detail-header recipe does not opt in. Keep entity names as real information fields and actions in functional toolbars. Legitimate section, Table/Card, Form group, Descriptions and Modal titles remain with their native owners; they do not justify a redundant Page heading.
 
+Assess Header necessity before return navigation/actions; record the assessment in the task plan. Generic page-type titles (e.g. “券模板详情”), repeated record names/status/metadata, or actions alone do not justify a Header. Keep fields in their information group; shared actions in Tabs extra/page toolbar and region actions with their region, using registered Slots. Identity and decision-critical state across Tabs may justify proposing a Header, but the explicit-user-request rule still applies. Preserve explicit Header choices without unnecessary duplication; verify orientation, fields and action scope across Tabs in Preview.
+
+Then choose return navigation:
+- With an explicitly requested Header, put any needed return action inside its heading row using the library's composition; no separate return row/footer.
+- Otherwise use existing shell/host breadcrumbs. Verify their parent/list route is clickable and correct; repair bindings and omit standalone “返回”/“返回列表”.
+- Only without usable parent navigation, when the flow needs it, place one registered return action in the existing action area. Never create a Header, Card, footer or full-width return-only surface.
+
+Form Cancel, previous-step and close keep their workflow semantics. Remove redundant return controls and empty wrappers/spacing across the whole page. Test the parent destination, direct entry and required list-state restoration in Preview; screenshots prove placement only.
+
 Keep requirement rationale, P0/P1 scope, implementation/API notes, acceptance instructions and simulation controls in task evidence. Permission simulation switches and current-role debug badges are also outside the page; express record access through the relevant actions and fields under one current user, following [permission presentation](permissions.md#presentation-without-simulation-controls). UI copy consists of actual labels/data/actions, concise field help and actionable feedback needed by the product user. Interpret a requirement's behavior; do not paste its explanatory sentences into the page. Source-reviewed copy and native component mappings are checked with the [structural inventory](../requirement-alignment.md#presentation-copy-and-native-components).
 
 ## Standalone AppShell golden boilerplate

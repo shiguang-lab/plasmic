@@ -8,6 +8,23 @@ import { afterEach, expect, it, vi } from "vitest";
 
 afterEach(() => vi.useRealTimers());
 
+it("cancels only the owning activity and ignores its late completion", () => {
+  const activity = new CopilotActivity();
+  const cancelled = new AbortController();
+  const target = { componentUuid: "page", label: "Page" };
+  const finish = activity.begin([target], "edit", undefined, cancelled.signal);
+  const other = activity.begin([target]);
+  cancelled.abort();
+  expect(activity.requests).toHaveLength(1);
+  expect(activity.requests[0].id).toBe(2);
+  finish("success");
+  expect(activity.requests).toHaveLength(1);
+  expect(() => activity.begin([target], "edit", undefined, cancelled.signal)).toThrow();
+  other("error");
+  expect(activity.requests).toHaveLength(0);
+  activity.dispose();
+});
+
 it.each([
   ["inspection", "Read"],
   ["edit", "Edit"],
@@ -79,7 +96,7 @@ it("does not let stale cleanup remove a new reference or double completion relea
   const first = activity.begin([target]);
   first("success");
   first("error");
-  expect(vi.getTimerCount()).toBe(1);
+  expect(vi.getTimerCount()).toBe(2); // Scan completion and cursor expiry.
   expect(activity.requests[0].status).toBe("success");
   vi.advanceTimersByTime(1500);
   const second = activity.begin([target]);
@@ -151,6 +168,9 @@ it("keeps successful edit scans moving for at least 1.6 seconds", () => {
   expect(activity.requests).toHaveLength(1);
   vi.advanceTimersByTime(1);
   expect(activity.requests).toHaveLength(0);
+  expect(activity.cursorActivity?.status).toBe("success");
+  vi.advanceTimersByTime(4500);
+  expect(activity.cursorActivity).toBeUndefined();
   expect(vi.getTimerCount()).toBe(0);
 });
 
@@ -168,7 +188,7 @@ it("removes failed edits immediately without affecting other edits or retaining 
     request: { status: "running" },
     scanning: true,
   });
-  expect(vi.getTimerCount()).toBe(0);
+  expect(vi.getTimerCount()).toBe(1); // Only the other request's cursor expiry remains.
   second("error");
   expect(activity.regions).toHaveLength(0);
   expect(vi.getTimerCount()).toBe(0);
@@ -197,4 +217,24 @@ it("resolves both source and destination of batched moves", () => {
     { componentUuid: "page", elementUuid: "dest" },
     { canvasName: "Draft", frameUuid: "frame" },
   ]);
+});
+
+it("clears disconnected caller feedback after scan completion and preserves other callers", () => {
+  vi.useFakeTimers();
+  const activity = new CopilotActivity();
+  const finish = activity.begin([{ label: "Page" }], "edit", { id: "first", name: "Codex" });
+  finish("success");
+  vi.advanceTimersByTime(2000);
+  expect(activity.requests).toHaveLength(0);
+  expect(activity.cursorActivity?.caller?.id).toBe("first");
+  const other = activity.begin([{ label: "Page" }], "edit", { id: "second", name: "Codex" });
+  activity.clearCaller("first");
+  expect(activity.cursorActivity?.caller?.id).toBe("second");
+  expect(activity.requests).toHaveLength(1);
+  activity.clearCaller("second");
+  other("success");
+  expect(activity.cursorActivity).toBeUndefined();
+  expect(activity.requests).toHaveLength(0);
+  expect(vi.getTimerCount()).toBe(0);
+  activity.dispose();
 });

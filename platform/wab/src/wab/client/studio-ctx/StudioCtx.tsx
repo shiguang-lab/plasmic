@@ -6375,6 +6375,13 @@ export class StudioCtx extends WithDbCtx {
     ) {
       return;
     }
+    // Imported library versions are immutable, and upgrades replace the
+    // ProjectDependency object. Reuse each dependency's bundle so a backup only
+    // re-serializes the edited project instead of every library each time.
+    const dependencyBundles = new WeakMap<
+      ProjectDependency,
+      { bundler: FastBundler; id: string; version: string; model: Bundle }
+    >();
     const drafts = new DesktopDraftController(
       this.appCtx.topFrameApi,
       () => {
@@ -6385,7 +6392,17 @@ export class StudioCtx extends WithDbCtx {
             bundler.addrOf(dep),
             "Missing dependency bundle",
           ).uuid;
-          return { id, model: bundler.bundle(dep, id, version) };
+          const cached = dependencyBundles.get(dep);
+          if (
+            cached?.bundler === bundler &&
+            cached.id === id &&
+            cached.version === version
+          ) {
+            return { id, model: cached.model };
+          }
+          const model = bundler.bundle(dep, id, version);
+          dependencyBundles.set(dep, { bundler, id, version, model });
+          return { id, model };
         });
         // Library bundles must be unbundled after their own dependencies.
         const ordered: typeof dependencies = [];

@@ -114,7 +114,19 @@ export function getHostLessPkgIdentity(pkg: string, site: Site) {
   return dep ? `${pkg}@${dep.version}` : pkg;
 }
 
-export async function getSortedHostLessPkgs(pkgs: string[], version: string, site?: Site) {
+export async function getSortedHostLessPkgs(
+  pkgs: string[],
+  version: string,
+  site?: Site,
+  opts?: {
+    /**
+     * The destination already executed getCanvasPkgs(). The bootstrap would
+     * be skipped by its `window.__CanvasPkgs` guard, but its multi-MB source
+     * would still be parsed, so leave it out.
+     */
+    canvasRuntimeLoaded?: boolean;
+  },
+) {
   const sortedPkgs = sortAs(pkgs, fstPartyHostLessComponents, (t) => t);
   const [modules, runtime] = await Promise.all([
     Promise.all(
@@ -123,7 +135,9 @@ export async function getSortedHostLessPkgs(pkgs: string[], version: string, sit
       return [site ? getHostLessPkgIdentity(pkg, site) : pkg, await fetchHostLessPkg(pkg, version, dep?.version)];
     }),
     ),
-    sortedPkgs.some(needsCanvasRuntime) ? getCanvasPkgs() : undefined,
+    !opts?.canvasRuntimeLoaded && sortedPkgs.some(needsCanvasRuntime)
+      ? getCanvasPkgs()
+      : undefined,
   ]);
   // Each destination executes modules in order. Carry the shared bootstrap in
   // one source, rather than copying and parsing it for every registration.
