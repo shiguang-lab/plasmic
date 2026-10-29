@@ -6,6 +6,7 @@ import {
   PlasmicThreadHistoryStatus,
 } from "@/wab/client/plasmic/plasmic_kit_comments/PlasmicThreadHistoryStatus";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
 import * as React from "react";
 
@@ -37,6 +38,7 @@ function ThreadHistoryStatus_(
         },
       }}
       resolved={commentThread.resolved}
+      tooltip={{ content: <UiText message={commentThread.resolved ? "Re-open" : "Resolve"} /> }}
     />
   );
 }

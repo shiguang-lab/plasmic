@@ -1,5 +1,6 @@
 import { activateTheme } from "@/wab/client/activate-theme";
 import { UiText } from "@/wab/client/i18n/UiText";
+import { useI18n } from "@/wab/client/i18n";
 import PlasmicLeftThemesPanel from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicLeftThemesPanel";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { ensure } from "@/wab/shared/common";
@@ -8,6 +9,7 @@ import { observer } from "mobx-react";
 import React from "react";
 
 export const DefaultStylesPanel = observer(function DefaultStylesPanel() {
+  const { t } = useI18n();
   const studioCtx = useStudioCtx();
   const site = studioCtx.site;
   const activeTheme = site.activeTheme;
@@ -28,13 +30,11 @@ export const DefaultStylesPanel = observer(function DefaultStylesPanel() {
           options: themes.map((theme) => ({
             value: theme.defaultStyle.uuid,
             label: studioCtx.tplMgr().isOwnedBySite(theme)
-              ? "This project's theme"
-              : `Theme from ${
-                  ensure(
+              ? t("This project's theme")
+              : t("Theme from {project}", { project: ensure(
                     studioCtx.projectDependencyManager.getOwnerDep(theme),
                     "Could not find owner dep for theme",
-                  ).name
-                }`,
+                  ).name }),
           })),
           value: activeTheme ? activeTheme.defaultStyle.uuid : undefined,
           onChange: async (newVal) => {

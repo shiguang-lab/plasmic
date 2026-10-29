@@ -404,7 +404,7 @@ function CmsEntryDetailsForm_(
             onClick={async () => {
               spawn(
                 message.loading({
-                  content: "Refreshing data...",
+                  content: <UiText message="Refreshing data..." />,
                   key: "update-message",
                   duration: undefined,
                 }),
@@ -452,7 +452,7 @@ function CmsEntryDetailsForm_(
 
     const hideLoadingMessage = message.loading({
       key: "uniqueness-message",
-      content: `Checking uniqueness violation...`,
+      content: <UiText message="Checking uniqueness violation..." />,
     });
 
     const checks = await api.checkUniqueFields(table.id, {
@@ -512,7 +512,7 @@ function CmsEntryDetailsForm_(
       } else {
         spawn(
           message.info({
-            content: "Updated to latest changes",
+            content: <UiText message="Updated to latest changes" />,
             key: "update-message",
           }),
         );
@@ -698,7 +698,7 @@ function CmsEntryDetailsForm_(
                           setHasUnpublishedChanges(false);
                           spawn(
                             message.success({
-                              content: "Your changes have been published.",
+                              content: <UiText message="Your changes have been published." />,
                               duration: 5,
                             }),
                           );
@@ -756,7 +756,7 @@ function CmsEntryDetailsForm_(
                         spawn(
                           message.loading({
                             key: "unpublish-message",
-                            content: `Unpublishing ${entryDisplayName}...`,
+                            content: <UiText message="Unpublishing {name}..." values={{ name: entryDisplayName }} />,
                           }),
                         );
                         const { identifier, ...draftData } =
@@ -770,7 +770,7 @@ function CmsEntryDetailsForm_(
                         spawn(
                           message.success({
                             key: "unpublish-message",
-                            content: `Unpublished ${entryDisplayName}.`,
+                            content: <UiText message="Unpublished {name}." values={{ name: entryDisplayName }} />,
                             duration: 5,
                           }),
                         );
@@ -800,7 +800,7 @@ function CmsEntryDetailsForm_(
                           spawn(
                             message.loading({
                               key: "revert-message",
-                              content: `Reverting ${entryDisplayName}...`,
+                              content: <UiText message="Reverting {name}..." values={{ name: entryDisplayName }} />,
                             }),
                           );
                           await api.updateCmsRow(row.id, {
@@ -810,7 +810,7 @@ function CmsEntryDetailsForm_(
                           spawn(
                             message.success({
                               key: "revert-message",
-                              content: `Reverted ${entryDisplayName}.`,
+                              content: <UiText message="Reverted {name}." values={{ name: entryDisplayName }} />,
                               duration: 5,
                             }),
                           );
@@ -858,14 +858,14 @@ function CmsEntryDetailsForm_(
                       spawn(
                         message.loading({
                           key: "delete-message",
-                          content: `Deleting ${entryDisplayName}...`,
+                          content: <UiText message="Deleting {name}..." values={{ name: entryDisplayName }} />,
                         }),
                       );
                       await api.deleteCmsRow(row.id);
                       spawn(
                         message.success({
                           key: "delete-message",
-                          content: `Deleted ${entryDisplayName}.`,
+                          content: <UiText message="Deleted {name}." values={{ name: entryDisplayName }} />,
                           duration: 5,
                         }),
                       );
@@ -931,7 +931,7 @@ function CmsEntryDetailsForm_(
           spawn(
             message.loading({
               key: "duplicate-message",
-              content: `Duplicating ${entryDisplayName}...`,
+              content: <UiText message="Duplicating {name}..." values={{ name: entryDisplayName }} />,
             }),
           );
           try {
@@ -951,7 +951,7 @@ function CmsEntryDetailsForm_(
             spawn(
               message.success({
                 key: "duplicate-message",
-                content: `A duplicate of ${entryDisplayName} has been created. You are now viewing the duplicated entry.`,
+                content: <UiText message="A duplicate of {name} has been created. You are now viewing the duplicated entry." values={{ name: entryDisplayName }} />,
                 duration: 5,
               }),
             );
@@ -988,14 +988,14 @@ async function triggerPublishWebhooksAndNotify(
   if (failures.length === 0) {
     spawn(
       message.success({
-        content: `Publish webhook(s) succeeded.`,
+        content: <UiText message="Publish webhook(s) succeeded." />,
         duration: 5,
       }),
     );
   } else {
     spawn(
       message.error({
-        content: `${failures.length} publish webhook(s) responded with non-2xx response code.`,
+        content: <UiText message="{count} publish webhook(s) responded with non-2xx response code." values={{ count: failures.length }} />,
         duration: 5,
       }),
     );

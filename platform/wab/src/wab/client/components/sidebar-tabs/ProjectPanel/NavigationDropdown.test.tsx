@@ -1,14 +1,19 @@
 import { NavigationDropdown } from "@/wab/client/components/sidebar-tabs/ProjectPanel/NavigationDropdown";
+import { setLanguagePreference } from "@/wab/client/i18n";
+import { languageOptions, translate } from "@/wab/client/i18n/locales";
 import {
   promptComponentTemplate,
   promptPageTemplate,
 } from "@/wab/client/prompts";
 import { TplMgr } from "@/wab/shared/TplMgr";
+import { ARENAS_DESCRIPTION } from "@/wab/shared/Labels";
+import { ensure } from "@/wab/shared/common";
 import { ComponentType } from "@/wab/shared/core/components";
 import { createSite } from "@/wab/shared/core/sites";
 import { Arena } from "@/wab/shared/model/classes";
 import "@testing-library/jest-dom/vitest";
 import {
+  act,
   cleanup,
   fireEvent,
   render,
@@ -27,11 +32,24 @@ vi.mock(
     HEADER_HEIGHT: 28,
     ROW_HEIGHT: 30,
     getArenaDisplay: (type: string) => type,
-    NavigationHeaderRow: () => null,
+    NavigationHeaderRow: ({ children }: React.PropsWithChildren) => (
+      <>{children}</>
+    ),
     NavigationFolderRow: () => null,
     NavigationArenaRow: () => null,
   }),
 );
+vi.mock("@/wab/client/components/widgets/ListStack", async (importOriginal) => ({
+  ...(await importOriginal<
+    typeof import("@/wab/client/components/widgets/ListStack")
+  >()),
+  // jsdom has no layout; give the real virtual tree a visible viewport.
+  ListSpace: ({
+    children,
+  }: {
+    children: (size: { height: number }) => React.ReactNode;
+  }) => children({ height: 500 }),
+}));
 vi.mock(
   "@/wab/client/components/sidebar-tabs/ProjectPanel/ArenaContextMenu",
   () => ({ deleteArenas: vi.fn() }),
@@ -78,7 +96,10 @@ beforeAll(() =>
   ),
 );
 afterAll(() => vi.unstubAllGlobals());
-afterEach(cleanup);
+afterEach(async () => {
+  cleanup();
+  await act(async () => await setLanguagePreference("en"));
+});
 
 function Directory() {
   const [expanded, setExpanded] = React.useState(true);
@@ -90,7 +111,8 @@ function Directory() {
     />
   );
 }
-beforeEach(() => {
+beforeEach(async () => {
+  await setLanguagePreference("en");
   const arena = new Arena({ name: "Customer overview", children: [] });
   fixture.ctx = {
     site: createSite(),
@@ -113,6 +135,28 @@ beforeEach(() => {
       fixture.ctx.navigationPanel = panel;
     }),
   };
+});
+
+it("localizes the cached directory tooltip and updates it while open", async () => {
+  const { container } = render(<Directory />);
+  fireEvent.click(
+    ensure(
+      container.querySelector('[data-test-id="info-tooltip-trigger"]'),
+      "The directory header must expose its info tooltip",
+    ),
+  );
+  await waitFor(() => expect(screen.getByText(ARENAS_DESCRIPTION)).toBeVisible());
+
+  for (const { value } of languageOptions) {
+    await act(async () => await setLanguagePreference(value));
+    await waitFor(() =>
+      expect(screen.getByText(translate(value, ARENAS_DESCRIPTION))).toBeVisible(),
+    );
+    if (value !== "en") {
+      expect(screen.queryByText(ARENAS_DESCRIPTION)).not.toBeInTheDocument();
+    }
+  }
+  expect(fixture.ctx.currentArena.name).toBe("Customer overview");
 });
 
 it("toggles the whole directory repeatedly and shows the current object without changing selection", () => {

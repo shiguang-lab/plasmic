@@ -6,6 +6,7 @@ import {
 } from "@/wab/client/components/style-controls/DefinedIndicator";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { UiText } from "@/wab/client/i18n/UiText";
+import { useI18n } from "@/wab/client/i18n";
 import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
 import VariantIcon from "@/wab/client/plasmic/plasmic_kit_design_system/PlasmicIcon__Variant";
 import KeyframesIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__Keyframes";
@@ -79,6 +80,7 @@ export function pinStateToPlasmicPinState(pinState?: VariantPinState) {
 }
 
 const VariantRow = observer(function VariantRow(props: VariantRowProps) {
+  const { t } = useI18n();
   const {
     studioCtx,
     isStandalone,
@@ -146,7 +148,7 @@ const VariantRow = observer(function VariantRow(props: VariantRowProps) {
       recordButton={
         onTarget
           ? {
-              tooltip: isRecording ? "Stop recording" : "Add to recording",
+              tooltip: t(isRecording ? "Stop recording" : "Add to recording"),
               onClick: (e) => {
                 e.stopPropagation();
                 onTarget(!isRecording);

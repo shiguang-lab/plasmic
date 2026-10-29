@@ -35,7 +35,6 @@ import { joinReactNodes } from "@/wab/commons/components/ReactUtil";
 import {
   ANIMATIONS_CAP,
   MIXINS_CAP,
-  MIXIN_CAP,
   MIXIN_LOWER,
   SLOT_CAP,
   VARIANTS_LOWER,
@@ -361,7 +360,9 @@ export const SourceValue = observer(function SourceValue(props: {
     } else {
       return (
         <div className="flex flex-vcenter">
-          <Tooltip title={`${MIXIN_CAP} ${source.mixin.name}`}>
+          <Tooltip title={studioUiT("Style preset {name}", {
+            name: source.mixin.name,
+          })}>
             <Icon icon={MixinIcon} className="mr-ch" />
           </Tooltip>
           {getStylePropValue(
@@ -1065,7 +1066,7 @@ export const VariantSettingPopoverContent = observer(
         {vs.rs.mixins.length > 0 && (
           <SourceRow
             key={"mixins"}
-            title={MIXINS_CAP}
+            title={<UiText message={MIXINS_CAP} />}
             type="target"
             onClear={() => viewCtx.change(() => (vs.rs.mixins = []))}
           >
@@ -1085,7 +1086,7 @@ export const VariantSettingPopoverContent = observer(
         {vs.rs.animations && (
           <SourceRow
             key={"animations"}
-            title={ANIMATIONS_CAP}
+            title={<UiText message={ANIMATIONS_CAP} />}
             type="target"
             onClear={() => viewCtx.change(() => (vs.rs.animations = null))}
           >

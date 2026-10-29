@@ -110,7 +110,7 @@ export function DataSourcePicker({
                   ({ workspace }) => workspace.id === thisProjectsWorkspace.id,
                 )?.dataSources ?? [];
               return (
-                <Form.Item label={DATA_SOURCE_CAP} name={"sourceId"}>
+                <Form.Item label={uiT(DATA_SOURCE_CAP)} name={"sourceId"}>
                   <div className="flex">
                     <Select
                       name={"dataSource"}
@@ -140,7 +140,7 @@ export function DataSourcePicker({
                       <Select.Option
                         key="create"
                         textValue={uiT("Create new {part1}", {
-                          part1: String(DATA_SOURCE_LOWER),
+                          part1: translateUiLabel(getUiLocale(), DATA_SOURCE_LOWER),
                         })}
                         value="create"
                       >

@@ -129,6 +129,34 @@ export interface TopFrameChromeProps {
 
 export const topFrameTourSignals = new Signals.Signal();
 
+export function useProjectAiSession({ projectId, userId, branchId, enabled, panelOpen }: {
+  projectId: string;
+  userId: string | undefined;
+  branchId: string | null;
+  enabled: boolean;
+  panelOpen: boolean;
+}) {
+  React.useEffect(() => {
+    if (!enabled) {
+      return;
+    }
+    const session = getLocalEditSession(projectId);
+    session.userId = userId;
+    return () => session.disconnect();
+  }, [projectId, enabled, userId]);
+  React.useEffect(() => {
+    if (enabled) {
+      void getLocalEditSession(projectId).setBranch(branchId);
+    }
+  }, [projectId, enabled, userId, branchId]);
+  React.useEffect(() => {
+    if (enabled && panelOpen) {
+      return getLocalEditSession(projectId).retain();
+    }
+    return undefined;
+  }, [projectId, enabled, userId, panelOpen]);
+}
+
 export function TopFrameChrome({
   appCtx,
   project,
@@ -146,20 +174,13 @@ export function TopFrameChrome({
 }: TopFrameChromeProps) {
   const { t: studioUiT } = useI18n();
 
-  React.useEffect(() => {
-    if (!appCtx.appConfig.enableLocalAiEditing) {
-      return;
-    }
-    const session = getLocalEditSession(project.id);
-    session.userId = appCtx.selfInfo?.id;
-    session.connect();
-    return () => session.disconnect();
-  }, [project.id, appCtx.appConfig.enableLocalAiEditing, appCtx.selfInfo?.id]);
-  React.useEffect(() => {
-    if (appCtx.appConfig.enableLocalAiEditing) {
-      void getLocalEditSession(project.id).setBranch(rest.activatedBranch?.id ?? null);
-    }
-  }, [project.id, appCtx.appConfig.enableLocalAiEditing, appCtx.selfInfo?.id, rest.activatedBranch?.id]);
+  useProjectAiSession({
+    projectId: project.id,
+    userId: appCtx.selfInfo?.id,
+    branchId: rest.activatedBranch?.id ?? null,
+    enabled: appCtx.appConfig.enableLocalAiEditing,
+    panelOpen: rest.aiPanelOpen,
+  });
   const { hostFrameApi, hostFrameApiReady } = useTopFrameCtx();
   React.useEffect(() => {
     if (!desktopDraftBridge()) {return;}

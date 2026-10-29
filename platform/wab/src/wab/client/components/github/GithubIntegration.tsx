@@ -355,8 +355,8 @@ function GithubIntegration(props: GithubIntegrationProps) {
         )),
         isDisabled: (githubData.value?.organizations.length || 0) < 2,
         placeholder: githubData.loading
-          ? "Loading organizations..."
-          : "Select organization...",
+          ? uiT("Loading organizations...")
+          : uiT("Select organization..."),
       }}
       name={{
         disabled: saveState.loading,
@@ -390,8 +390,8 @@ function GithubIntegration(props: GithubIntegrationProps) {
           </Select.Option>
         )),
         placeholder: githubData.loading
-          ? "Loading repositories..."
-          : "Select repository...",
+          ? uiT("Loading repositories...")
+          : uiT("Select repository..."),
       }}
       missingOrg={missing}
       missingRepo={missing}
@@ -414,8 +414,8 @@ function GithubIntegration(props: GithubIntegrationProps) {
           ),
         ),
         placeholder: branches.loading
-          ? "Loading branches..."
-          : "Select branch...",
+          ? uiT("Loading branches...")
+          : uiT("Select branch..."),
       }}
       framework={{
         "aria-label": uiT("Framework"),
@@ -455,8 +455,8 @@ function GithubIntegration(props: GithubIntegrationProps) {
         ],
         isDisabled: existingRepo,
         placeholder: detectedOptions.loading
-          ? "Detecting framework..."
-          : "Select framework...",
+          ? uiT("Detecting framework...")
+          : uiT("Select framework..."),
       }}
       language={{
         "aria-label": uiT("Language"),
@@ -474,8 +474,8 @@ function GithubIntegration(props: GithubIntegrationProps) {
         ],
         isDisabled: existingRepo,
         placeholder: detectedOptions.loading
-          ? "Detecting language..."
-          : "Select language...",
+          ? uiT("Detecting language...")
+          : uiT("Select language..."),
       }}
       mode={{
         "aria-label": uiT("Mode"),

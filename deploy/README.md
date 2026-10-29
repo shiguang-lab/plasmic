@@ -118,10 +118,78 @@ docker compose up -d temporal server ai-worker preview web
 ```
 
 Component library versions also require immutable code artifacts before website
-publication. Register new libraries with the generic `publish-library.ts` command;
-for existing Project dependencies, attach matching historical artifacts once or
-publish new library versions and upgrade those dependencies. See the
-[component library publication instructions](../platform/preview/README.md#component-library-publication).
+publication. Register new libraries with the generic `publish-library.ts` command.
+Projects importing platform component libraries are upgraded to each new release
+automatically; see [Platform component library upgrades](#platform-component-library-upgrades)
+and the [component library publication instructions](../platform/preview/README.md#component-library-publication).
+
+## Platform component library upgrades
+
+Ant Design 6, Overseas, React UI, Ant Design Icons and libraries registered with
+`publish-library.ts` are platform component libraries. Their projects live in the
+`平台组件库` workspace, configured as the `hostLessWorkspaceId` dev flag. Every
+project importing an older version is upgraded to the latest release the next time
+it is opened, published as a website or exported; nobody upgrades projects by hand.
+Upgrades keep the existing props, data bindings, interactions and styles. Settings of
+a prop that the new release no longer declares are removed, so releases are checked
+against real projects first. Ant Design 5 is retired: projects keep their installed
+version. Studio design libraries keep the accept-update flow. Published websites keep
+their published result until they are published again.
+
+`nas-platform-libraries.ts` manages this. `status` is read-only and lists the
+libraries, catalog corrections and every project revision or published version that
+an upgrade changes, including settings it removes and conditions that block it.
+`enable` creates the workspace (in a team without members), moves the libraries into
+it, corrects the catalog and turns on automatic upgrades. It refuses blocked upgrades,
+and requires `--accept-dropped-args` when settings would be removed. `upgrade` upgrades
+all existing projects immediately through the regular bundle migrator, which saves a
+backup of each previous model in `bundle_backup`. The server reads the setting at
+startup, so keep it stopped while enabling.
+
+### Enabling on an existing deployment
+
+Do this once, after deploying an image that contains this command. Rehearse on a copy
+of the database first; the copy needs the services using the database to be stopped.
+
+```sh
+docker compose stop server preview ai-worker
+docker compose run --rm server node_modules/typeorm/cli.js migration:run
+# Publish the latest library releases and correct their catalog entries.
+docker compose run --rm server src/wab/server/nas-antd6.ts
+docker compose run --rm server src/wab/server/nas-icons.ts
+docker compose run --rm server src/wab/server/nas-react-ui.ts
+docker compose run --rm server src/wab/server/nas-platform-libraries.ts status
+
+# Rehearsal on a copy.
+docker compose exec db createdb -U wab -T wab wab_rehearsal
+rehearse() {
+  docker compose run --rm --entrypoint sh server -c \
+    'export DATABASE_URI="${DATABASE_URI%/wab}/wab_rehearsal"; exec plasmic-server "$@"' \
+    sh src/wab/server/nas-platform-libraries.ts "$@"
+}
+rehearse enable                         # add --accept-dropped-args after review
+rehearse upgrade
+docker compose exec db dropdb -U wab wab_rehearsal
+
+# Production.
+docker compose exec -T db pg_dump -U wab -Fc wab > wab-before-platform-libraries.dump
+docker compose run --rm server src/wab/server/nas-platform-libraries.ts enable
+docker compose run --rm server src/wab/server/nas-platform-libraries.ts upgrade
+docker compose up -d server ai-worker preview
+```
+
+`upgrade` exits with status 1 and lists each project it could not upgrade; those
+projects would also fail to open. Fix the cause, or restore the dump, before starting
+the server. Add `--report /plasmic/report.json` with a mounted volume to keep the
+JSON report.
+
+### Releasing a library update
+
+Run the library registration commands (`nas-antd6.ts`, `nas-icons.ts`,
+`nas-react-ui.ts` or `publish-library.ts`) with the server stopped, as above. When a
+release removes or renames props, run the registration on a `wab_rehearsal` copy
+first and check `status` there. Then run `upgrade` and start the server. Open Studio
+sessions show the out-of-date banner and must reload before saving.
 
 The server runs in development mode to retain the public-source self-hosting
 behavior. The frontend uses a production build; `PLASMIC_SELF_HOSTED=1` allows
@@ -348,7 +416,7 @@ the catalog while preserving other entries and dev flags, and restores the
 default Plume and HTML entries if missing. Design systems shows one cover card
 per version; Ant Design lists components grouped under Ant Design 5 and Ant
 Design 6. Reload Studio after running the command. Re-running refreshes the
-catalog without creating duplicate libraries. Existing projects upgrade their installed library through the desktop MCP `execute` → `upgradeLibrary` with the library project ID, then `save`; `read` confirms the new component contracts.
+catalog without creating duplicate libraries. Existing projects receive new Ant Design 6 and Overseas releases automatically; see [Platform component library upgrades](#platform-component-library-upgrades).
 
 The registration package is distributed with the web image. For a separate
 Codegen or Loader application, install it before syncing/rendering components:

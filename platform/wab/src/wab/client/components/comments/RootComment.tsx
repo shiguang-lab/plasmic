@@ -17,10 +17,15 @@ export default observer(function RootComment({
   const studioCtx = useStudioCtx();
   const { t } = useI18n();
   const [comment] = commentThread.comments;
+  const subjectLabel = !commentThread.subjectInfo
+    ? t("Deleted element")
+    : !commentThread.subjectInfo.variants
+      ? t("Deleted variant")
+      : commentThread.label;
   const label =
     showLocation && commentThread.subjectInfo
-      ? `${commentThread.subjectInfo.ownerComponent.name} · ${commentThread.label}`
-      : commentThread.label;
+      ? `${commentThread.subjectInfo.ownerComponent.name} · ${subjectLabel}`
+      : subjectLabel;
 
   return (
     <CommentPost

@@ -60,6 +60,7 @@ COPY --chown=node:node deploy/nas-init.ts src/wab/server/nas-init.ts
 COPY --chown=node:node deploy/nas-antd6.ts src/wab/server/nas-antd6.ts
 COPY --chown=node:node deploy/nas-icons.ts src/wab/server/nas-icons.ts
 COPY --chown=node:node deploy/nas-react-ui.ts src/wab/server/nas-react-ui.ts
+COPY --chown=node:node deploy/nas-platform-libraries.ts src/wab/server/nas-platform-libraries.ts
 COPY --chown=node:node deploy/nas-ai-init.ts src/wab/server/nas-ai-init.ts
 COPY --chown=node:node deploy/ai-chat/migrate-message-channels.cjs /plasmic/deploy/ai-chat/migrate-message-channels.cjs
 COPY --chown=node:node deploy/migrate-domains.cjs /plasmic/deploy/migrate-domains.cjs

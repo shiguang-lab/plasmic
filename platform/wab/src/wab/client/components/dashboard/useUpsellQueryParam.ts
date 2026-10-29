@@ -45,7 +45,7 @@ export function shouldUpsellRedirect(
 
 /** Prompts upsell using `?upsell=<tierName>`, which comes from nwww pricing page. */
 export function useUpsellQueryParam(team: ApiTeam) {
-  const { t: studioUiT } = useI18n();
+  const { t: studioUiT, label } = useI18n();
 
   const appCtx = useAppCtx();
   const history = useHistory();
@@ -70,7 +70,7 @@ export function useUpsellQueryParam(team: ApiTeam) {
       void message.error({
         content: studioUiT(
           "You don't have permission to upgrade this {part1}.",
-          { part1: String(ORGANIZATION_LOWER) },
+          { part1: label(ORGANIZATION_LOWER) },
         ),
       });
       return;

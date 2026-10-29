@@ -118,7 +118,7 @@ const VariantLabel_: ForwardRefRenderFunction<
         inputBoxClassName,
       )}
       inputBoxPlaceholder={studioUiT("{part1} name", {
-        part1: String(VARIANT_CAP),
+        part1: translateUiLabel(getUiLocale(), VARIANT_CAP),
       })}
     >
       <span className={className}>{variantName}</span>

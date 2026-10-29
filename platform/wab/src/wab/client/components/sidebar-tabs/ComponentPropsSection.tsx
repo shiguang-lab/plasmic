@@ -726,7 +726,7 @@ export function InteractionExprEditor(props: {
             )
           ) {
             notification.error({
-              message: BLOCKED_RUN_INTERACTION_MESSAGE,
+              message: <UiText message={BLOCKED_RUN_INTERACTION_MESSAGE} />,
             });
             return;
           }

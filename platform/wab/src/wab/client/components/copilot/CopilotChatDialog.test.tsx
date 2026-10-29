@@ -12,6 +12,7 @@ import {
   localAiFetch,
 } from "@/wab/client/copilot/local-edit-session";
 import { ensure } from "@/wab/shared/common";
+import { NetworkError } from "@/wab/shared/ApiErrors/ApiError";
 import { toOpaque } from "@/wab/commons/types";
 import { ApiProject, CopilotChatOpenOpts } from "@/wab/shared/ApiSchema";
 import type { LocalAiStatus } from "@/wab/shared/copilot/local-edit";
@@ -92,6 +93,34 @@ function mount(chatOpenOpts?: CopilotChatOpenOpts) {
     ),
   };
 }
+it.each([false, true])("shows synchronization failures inside the assistant without a global toast (running=%s)", async (running) => {
+  vi.mocked(showError).mockClear();
+  const session = ensure(state.session, "Missing test AI session");
+  session.userId = "user";
+  session.draft = {prompt: "Keep my draft", attachments: []};
+  session.syncError = new NetworkError({method: "GET", url: "/ai/chat/events?afterSeq=0"});
+  if (running) {
+    session.tasks = [{id: "running", threadId: session.activeThreadId, status: "running", parts: [], messages: [], records: [], operations: [], files: [], prompt: "Edit", phase: "Thinking", binding: {projectId: "project", branchId: null, sessionId: "session", changeCounter: 0, componentUuid: null, elementUuids: []}, authorId: "user", createdAt: "2026-10-29T00:00:00Z"}];
+  }
+  mount();
+  expect(screen.getByRole("status").textContent).toContain(running
+    ? "AI task status is temporarily unavailable. Retrying…"
+    : "AI conversation sync was interrupted. Retrying…");
+  expect(showError).not.toHaveBeenCalled();
+  expect(screen.getByRole("textbox")).toHaveProperty("innerText", "Keep my draft");
+  if (running) {
+    expect(screen.queryByRole("button", {name: "Send AI request"})).toBeNull();
+    expect(screen.getByRole("button", {name: "Stop AI task"})).toBeEnabled();
+  } else {
+    expect(screen.getByRole("button", {name: "Send AI request"})).toBeDisabled();
+  }
+  act(() => {
+    session.syncError = undefined;
+    session.draft = {...session.draft};
+  });
+  await waitFor(() => expect(screen.queryByRole("status")).toBeNull());
+  expect(session.draft.prompt).toBe("Keep my draft");
+});
 it("renders a working Web composer and submits once through the session", async () => {
   const run = vi
     .spyOn(state.session as LocalEditSession, "run")

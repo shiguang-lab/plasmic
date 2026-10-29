@@ -402,9 +402,9 @@ export function useDataSourceOpExprBottomModals() {
       modalActions.open(queryKey, {
         title:
           title ||
-          (ctx.isRowSelector
-            ? `Switch to a different record`
-            : `Configure ${DATA_SOURCE_OPERATION_LOWER}`),
+          <UiText message={ctx.isRowSelector
+            ? "Switch to a different record"
+            : "Configure operation"} />,
         children: <DataSourceOpExprBottomModalContent {...props} />,
       });
     },
@@ -1108,7 +1108,7 @@ const DataSourceOpExprFormAndPreview = observer(
                           )
                         ) {
                           notification.error({
-                            message: BLOCKED_RUN_INTERACTION_MESSAGE,
+                            message: <UiText message={BLOCKED_RUN_INTERACTION_MESSAGE} />,
                           });
                         } else {
                           setExecuteQueue([
@@ -1447,7 +1447,7 @@ export function DataSourceOpDraftForm(props: {
       )}
       {!isRowSelector && (
         <LabeledItemRow
-          label={DATA_SOURCE_CAP}
+          label={uiT(DATA_SOURCE_CAP)}
           menu={
             studioCtx.siteInfo.workspaceId ? (
               <Menu>

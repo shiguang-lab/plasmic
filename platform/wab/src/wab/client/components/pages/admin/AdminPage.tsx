@@ -559,7 +559,7 @@ function DevFlagControls() {
                     type="button"
                     onClick={async () => {
                       const confirm = window.confirm(
-                        "Are you sure you want to revert to this version?",
+                        uiT("Are you sure you want to revert to this version?"),
                       );
                       if (confirm) {
                         await nonAuthCtx.api.setDevFlagOverrides(record.data);

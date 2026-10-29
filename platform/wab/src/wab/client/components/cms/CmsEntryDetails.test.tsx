@@ -1,5 +1,9 @@
 import CmsEntryDetails from "@/wab/client/components/cms/CmsEntryDetails";
+import { setLanguagePreference } from "@/wab/client/i18n";
+import { languageOptions, translate } from "@/wab/client/i18n/locales";
+import { message } from "antd";
 import {
+  act,
   cleanup,
   fireEvent,
   render,
@@ -101,7 +105,8 @@ vi.mock("@/wab/client/plasmic/plasmic_kit_cms/PlasmicCmsEntryDetails", () => ({
   },
 }));
 
-beforeEach(() => {
+beforeEach(async () => {
+  await setLanguagePreference("en");
   vi.clearAllMocks();
   mocks.published = false;
   mocks.update.mockResolvedValue({});
@@ -132,9 +137,26 @@ it("enables republishing immediately after unpublishing a previously unchanged e
     ).toBe(false),
   );
 });
-afterEach(() => {
+afterEach(async () => {
   cleanup();
+  await setLanguagePreference("en");
   vi.clearAllMocks();
+});
+
+it("updates an open publish notification in all languages while retaining CMS content", async () => {
+  const success = vi.spyOn(message, "success").mockImplementation(vi.fn());
+  render(<CmsEntryDetails />);
+  fireEvent.click(screen.getByRole("button", { name: "Publish fixture" }));
+  await waitFor(() => expect(success).toHaveBeenCalledOnce());
+  const notice = success.mock.calls[0][0] as { content: React.ReactNode };
+  const view = render(<>{notice.content}</>);
+  for (const { value } of languageOptions) {
+    await act(async () => await setLanguagePreference(value));
+    expect(view.container.textContent).toBe(translate(value, "Your changes have been published."));
+  }
+  expect(mocks.update).toHaveBeenCalledWith("row1", {
+    identifier: "Fixture", data: mocks.row.draftData, draftData: null, revision: 1,
+  });
 });
 
 it("publishes never-expanded nested lists and localized values without losing data", async () => {

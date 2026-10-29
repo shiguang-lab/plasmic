@@ -185,18 +185,18 @@ function ActionBuilder_(
               content={
                 hasCachedStepValue
                   ? // TODO: improve preview value
-                    `Current value: ${(() => {
+                    uiT("Current value: {value}", { value: (() => {
                       try {
-                        return JSON.stringify(
+                        return String(JSON.stringify(
                           vc.studioCtx.getCached$stepValue(interaction.uuid),
-                        );
+                        ));
                       } catch (e) {
-                        return `(cannot display)`;
+                        return uiT("(cannot display)");
                       }
-                    })()}`
+                    })() })
                   : disabledRunInteraction
-                    ? BLOCKED_RUN_INTERACTION_MESSAGE
-                    : "Run this action"
+                    ? uiT(BLOCKED_RUN_INTERACTION_MESSAGE)
+                    : uiT("Run this action")
               }
             >
               {/* `Comp` is a generated icon that can't take the popover's

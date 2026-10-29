@@ -21,7 +21,7 @@ interface UseAnimationsOptions {
 }
 
 export function useAnimations(options: UseAnimationsOptions) {
-  const { t: studioUiT } = useI18n();
+  const { t: studioUiT, label } = useI18n();
 
   const { tpl, variants, viewCtx, isDisabled } = options;
   const studioCtx = useStudioCtx();
@@ -87,7 +87,7 @@ export function useAnimations(options: UseAnimationsOptions) {
       studioCtx.switchLeftTab("animationSequences", { highlight: true });
       notification.warning({
         message: studioUiT("Please add {part1} in your project.", {
-          part1: String(ANIMATIONS_LOWER),
+          part1: label(ANIMATIONS_LOWER),
         }),
       });
       return;

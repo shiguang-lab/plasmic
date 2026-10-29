@@ -320,7 +320,7 @@ function PermissionsTab_(
         value: group.name,
       })),
       parseEmailAddress(search.trim()) && {
-        label: "Add " + search,
+        label: uiT("Add {name}", { name: search }),
         value: search,
       },
       isDomainEntry(search) && {

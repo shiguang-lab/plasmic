@@ -1,6 +1,7 @@
 import { desktopDraftBridge } from "@/wab/client/desktop-drafts";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
 import { useI18n } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { useHistory } from "@/wab/client/route/HistoryProvider";
 import { APP_ROUTES, SEARCH_PARAM_BRANCH } from "@/wab/shared/route/app-routes";
 import type { ProjectId } from "@/wab/shared/ApiSchema";
@@ -31,11 +32,17 @@ export function DesktopDraftBadge({ projectId }: { projectId: ProjectId }) {
         if (draft.branchId) {
           const { branches } = await appCtx.api.listBranchesForProject(projectId);
           const branch = branches.find(item => item.id === draft.branchId);
-          if (!branch) {throw new Error(t("The draft branch is no longer available."));}
+          if (!branch) {
+            void message.error(<UiText message="The draft branch is no longer available." />);
+            return;
+          }
           url += "?" + new URLSearchParams({ [SEARCH_PARAM_BRANCH]: branch.name });
         }
         history.push(url);
-      } catch (error) { void message.error(String(error)); }
+      } catch (error) {
+        console.error("Could not open local draft", error);
+        void message.error(<UiText message="Could not open project" />);
+      }
     }}>{attention ? t("Drafts need attention") : t("Local draft")}</Button>
   </Tooltip>;
 }

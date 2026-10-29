@@ -12,6 +12,7 @@ import {
 import { LabeledItemRow } from "@/wab/client/components/sidebar/sidebar-helpers";
 import { Spinner } from "@/wab/client/components/widgets";
 import { useI18n } from "@/wab/client/i18n";
+import { MessageKey } from "@/wab/client/i18n/locales";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { StandardMarkdown } from "@/wab/client/utils/StandardMarkdown";
 import { ensure } from "@/wab/shared/common";
@@ -37,7 +38,7 @@ export const INVALID_DATA_SOURCE_MESSAGE = {
 
   For the selected integration type, you will need to [manually configure your form](https://docs.plasmic.app/learn/forms/#configuring-fields) instead.`,
   default: `This operation only supports integrations where Plasmic can understand the data schema.`,
-};
+} satisfies Record<string, MessageKey>;
 
 interface DataSourceTablePickerProps {
   studioCtx: StudioCtx;
@@ -48,7 +49,7 @@ interface DataSourceTablePickerProps {
   draft: LookupSpecDraft | undefined;
   onChange: (newDraft: LookupSpecDraft) => void;
   requiredStandardQueries?: (keyof StandardQueries)[];
-  invalidDataSourceMessage?: string;
+  invalidDataSourceMessage?: MessageKey;
   exprCtx: ExprCtx;
 }
 
@@ -177,7 +178,7 @@ export function DataSourceTablePicker(props: DataSourceTablePickerProps) {
   }, [draft, lookupFieldMeta]);
   return (
     <div className="flex flex-col gap-m">
-      <LabeledItemRow label={DATA_SOURCE_CAP}>
+      <LabeledItemRow label={uiT(DATA_SOURCE_CAP)}>
         <DataSourcePicker
           sourceId={sourceId}
           sourceType={undefined}
@@ -208,8 +209,8 @@ export function DataSourceTablePicker(props: DataSourceTablePickerProps) {
           return (
             <p className="pt-xlg light-error">
               <StandardMarkdown>
-                {props.invalidDataSourceMessage ??
-                  INVALID_DATA_SOURCE_MESSAGE.default}
+                {uiT(props.invalidDataSourceMessage ??
+                  INVALID_DATA_SOURCE_MESSAGE.default)}
               </StandardMarkdown>
             </p>
           );

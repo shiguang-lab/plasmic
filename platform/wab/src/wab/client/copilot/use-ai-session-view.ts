@@ -132,6 +132,9 @@ export class RemoteAiSessionView implements AiSessionView {
   get error() {
     return this.state.error;
   }
+  get syncError() {
+    return this.state.syncError;
+  }
   get before() {
     return this.state.before;
   }

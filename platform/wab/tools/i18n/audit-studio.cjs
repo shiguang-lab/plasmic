@@ -3,6 +3,38 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const { parse } = require("@babel/parser");
+
+// Shared editor captions are presentation text even when imported through an
+// alias or assembled from other captions. Resolve their pure string expressions
+// without evaluating the TypeScript module.
+function readSharedLabels() {
+  const labels = new Map();
+  const source = fs.readFileSync(path.resolve(__dirname, "../../src/wab/shared/Labels.ts"), "utf8");
+  const ast = parse(source, { sourceType: "module", plugins: ["typescript"] });
+  function value(node) {
+    if (node.type === "StringLiteral") { return node.value; }
+    if (node.type === "Identifier" && labels.has(node.name)) { return labels.get(node.name); }
+    if (node.type === "BinaryExpression" && node.operator === "+") { return value(node.left) + value(node.right); }
+    if (node.type === "TemplateLiteral") { return node.quasis.reduce(
+      (text, part, index) => text + (part.value.cooked ?? part.value.raw) +
+        (node.expressions[index] ? value(node.expressions[index]) : ""), "",
+    ); }
+    if (node.type === "CallExpression" && node.callee.type === "MemberExpression" &&
+      node.callee.property.name === "toLowerCase" && node.arguments.length === 0) {
+      return value(node.callee.object).toLowerCase();
+    }
+    throw new Error(`Unsupported shared label expression: ${node.type}`);
+  }
+  for (const statement of ast.program.body) {
+    if (statement.type === "ExportNamedDeclaration" && statement.declaration?.type === "VariableDeclaration") {
+      for (const declaration of statement.declaration.declarations) {
+        labels.set(declaration.id.name, value(declaration.init));
+      }
+    }
+  }
+  return labels;
+}
+const sharedLabels = readSharedLabels();
 const uiFields = new Set([
   "title",
   "label",
@@ -10,6 +42,7 @@ const uiFields = new Set([
   "tooltip",
   "description",
   "message",
+  "content",
   "okText",
   "cancelText",
   "aria-label",
@@ -65,7 +98,8 @@ function scanSource(source, file = "source.tsx") {
   });
   const candidates = new Map();
   const declarations = new Map();
-  // Resolve only unambiguous local names. Cross-file data flow still needs review.
+  const importedLabels = new Map();
+  // Other cross-file data flow still needs review.
   function children(node, visit) {
     for (const [key, value] of Object.entries(node)) {
       if (["loc", "extra", "comments", "tokens"].includes(key)) {
@@ -79,6 +113,13 @@ function scanSource(source, file = "source.tsx") {
     }
   }
   function index(node) {
+    if (node.type === "ImportDeclaration" && node.source.value === "@/wab/shared/Labels") {
+      for (const specifier of node.specifiers) {
+        if (specifier.type === "ImportSpecifier" && sharedLabels.has(specifier.imported.name)) {
+          importedLabels.set(specifier.local.name, sharedLabels.get(specifier.imported.name));
+        }
+      }
+    }
     if (
       node.type === "VariableDeclarator" &&
       node.id.type === "Identifier" &&
@@ -122,7 +163,11 @@ function scanSource(source, file = "source.tsx") {
         node.expressions.forEach((n) => sink(n, "interpolation", seen));
         break;
       case "Identifier":
-        sink(declarations.get(node.name), "variable:" + node.name, seen);
+        if (importedLabels.has(node.name)) {
+          report({ ...node, type: "StringLiteral", value: importedLabels.get(node.name) }, "shared-label:" + node.name);
+        } else {
+          sink(declarations.get(node.name), "variable:" + node.name, seen);
+        }
         break;
       case "ConditionalExpression":
         sink(node.consequent, kind, seen);

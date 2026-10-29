@@ -124,7 +124,7 @@ function CopilotPromptDialog<Response>({
       historyBtn={{
         onClick: () => setShowHistory(!showHistory),
         tooltip: showHistory
-          ? "Close suggestion history"
+          ? uiT("Close suggestion history")
           : uiT("Suggestion history"),
       }}
       historyContents={{

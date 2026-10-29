@@ -1,4 +1,5 @@
 import { getUiLocale } from "@/wab/client/i18n";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { translate, translateUiLabel } from "@/wab/client/i18n/locales";
 import {
   insertPenDesign,
@@ -13,6 +14,7 @@ import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { assert } from "@/wab/shared/common";
 import { message, notification } from "antd";
 import { releaseProxy, wrap } from "comlink";
+import { createElement } from "react";
 
 export async function importPenFile(studioCtx: StudioCtx) {
   const editable = () =>
@@ -105,8 +107,8 @@ export async function importPenFile(studioCtx: StudioCtx) {
   } catch (error) {
     console.error("Pen import failed", error);
     notification.error({
-      message: t("Could not import Pen file"),
-      description: `${t("Check the file and include its libraries, images and scripts in the selected folder or ZIP.")} ${error instanceof Error ? error.message : String(error)}`,
+      message: createElement(UiText, { message: "Could not import Pen file" }),
+      description: createElement(UiText, { message: "Check the file and include its libraries, images and scripts in the selected folder or ZIP." }),
       duration: 0,
     });
   } finally {

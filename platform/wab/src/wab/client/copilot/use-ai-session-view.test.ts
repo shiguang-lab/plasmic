@@ -7,6 +7,19 @@ import { RemoteAiSessionView } from "@/wab/client/copilot/use-ai-session-view";
 import { TopFrameApi } from "@/wab/client/frame-ctx/top-frame-api";
 import { mock } from "vitest-mock-extended";
 
+it("relays background synchronization failures separately from operation errors and clears them on recovery", () => {
+  const service = new LocalEditSession("project");
+  const view = new RemoteAiSessionView(mock<TopFrameApi>(), "project");
+  const failure = new Error("Offline");
+  service.syncError = failure;
+  view.update(snapshotAiSession(service));
+  expect(view.syncError).toBe(failure);
+  expect(view.error).toBeUndefined();
+  service.syncError = undefined;
+  view.update(snapshotAiSession(service));
+  expect(view.syncError).toBeUndefined();
+});
+
 it("keeps rapid local edits while earlier stream snapshots arrive, then accepts server changes", async () => {
   const api = mock<TopFrameApi>();
   const view = new RemoteAiSessionView(api, "project");

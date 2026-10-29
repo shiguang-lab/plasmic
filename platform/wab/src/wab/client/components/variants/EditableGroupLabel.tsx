@@ -18,7 +18,7 @@ function EditableGroupLabel_(
   { group, onEdit, defaultEditing }: EditableGroupLabelProps,
   ref: React.Ref<EditableLabelHandles>,
 ) {
-  const { t: studioUiT } = useI18n();
+  const { t: studioUiT, label } = useI18n();
 
   return (
     <EditableLabel
@@ -28,7 +28,7 @@ function EditableGroupLabel_(
       doubleClickToEdit
       defaultEditing={defaultEditing}
       inputBoxPlaceholder={studioUiT("{part1} group name", {
-        part1: String(VARIANTS_CAP),
+        part1: label(VARIANTS_CAP),
       })}
       onEdit={onEdit}
     />

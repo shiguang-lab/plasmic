@@ -1,4 +1,8 @@
 import { importPenFile } from "@/wab/client/pen-importer/import-file";
+import { setLanguagePreference } from "@/wab/client/i18n";
+import { languageOptions, translate } from "@/wab/client/i18n/locales";
+import { act, cleanup, render } from "@testing-library/react";
+import { createElement, Fragment } from "react";
 import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 
 const mocks = vi.hoisted(() => ({
@@ -25,7 +29,6 @@ vi.mock("@/wab/client/pen-importer/insert", () => ({
   uploadPenAssets: mocks.uploads,
   insertPenDesign: mocks.insert,
 }));
-vi.mock("@/wab/client/i18n", () => ({ getUiLocale: () => "en" }));
 vi.mock("antd", () => ({
   notification: { error: mocks.error, warning: mocks.warning },
   message: { success: mocks.success },
@@ -47,7 +50,8 @@ const ctx = {
   app: { withSpinner: <T>(promise: Promise<T>) => promise },
 } as unknown as StudioCtx;
 const design = { root: {}, width: 800, height: 600, assets: [], warnings: [] };
-beforeEach(() => {
+beforeEach(async () => {
+  await setLanguagePreference("en");
   vi.clearAllMocks();
   ctx.isAtTip = true;
   const file = new File(["{}"], "design.pen");
@@ -78,9 +82,28 @@ beforeEach(() => {
     },
   );
 });
-afterEach(() => {
+afterEach(async () => {
+  cleanup();
+  await setLanguagePreference("en");
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
+});
+
+it("localizes an open import error in every language and keeps raw diagnostics in the console", async () => {
+  const error = new Error("fixture failure from worker");
+  mocks.read.mockRejectedValueOnce(error);
+  await importPenFile(ctx);
+  const notice = mocks.error.mock.calls[0][0];
+  const view = render(createElement(Fragment, null, notice.message, notice.description));
+  for (const { value } of languageOptions) {
+    await act(async () => await setLanguagePreference(value));
+    expect(view.container.textContent).toBe(
+      translate(value, "Could not import Pen file") +
+      translate(value, "Check the file and include its libraries, images and scripts in the selected folder or ZIP."),
+    );
+    expect(view.container.textContent).not.toContain(error.message);
+  }
+  expect(console.error).toHaveBeenCalledWith("Pen import failed", error);
 });
 
 it("imports the selected folder-relative file into an independent canvas", async () => {

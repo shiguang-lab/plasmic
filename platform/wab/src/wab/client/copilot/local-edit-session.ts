@@ -2,6 +2,7 @@ import { normalizeError } from "@/wab/client/ErrorNotifications";
 import type { PlasmicAiTools } from "@/wab/client/components/studio/TopFrameCopilotToolsBridge";
 import { NetworkError } from "@/wab/shared/ApiErrors/ApiError";
 import { deserializeApiError } from "@/wab/shared/ApiErrors/errors";
+import { UserError } from "@/wab/shared/UserError";
 import { ensure } from "@/wab/shared/common";
 import type {
   AiEvent,
@@ -99,6 +100,7 @@ export class AiEventCursor {
 export class LocalEditSession {
   tasks: AiTask[] = [];
   error?: Error;
+  syncError?: Error;
   branchId: string | null = null;
   activeThreadId: string = crypto.randomUUID();
   private branchReady = false;
@@ -223,6 +225,18 @@ export class LocalEditSession {
     }
     this.branchReady = true;
     this.branchId = branchId;
+    this.createThread(false);
+    if (!this.connected || !this.viewers) {
+      return;
+    }
+    const generation = this.generation;
+    await this.initializing;
+    if (branchId === this.branchId && generation === this.generation) {
+      await this.restoreBranch();
+    }
+  }
+  private async restoreBranch() {
+    const branchId = this.branchId;
     let remembered = this.lastThreadByBranch.get(branchId) ?? null;
     if (!remembered) {
       try {
@@ -231,15 +245,8 @@ export class LocalEditSession {
         /* Storage can be disabled. */
       }
     }
-    this.createThread(false);
     const initial = this.activeThreadId;
     const generation = this.generation;
-    // Directory reads follow the project cursor snapshot, so buffered metadata
-    // changes cannot be discarded between an earlier directory read and reset.
-    await this.initializing;
-    if (branchId !== this.branchId || generation !== this.generation) {
-      return;
-    }
     await this.searchThreads("", false);
     if (
       branchId !== this.branchId ||
@@ -258,6 +265,7 @@ export class LocalEditSession {
         if (
           generation === this.generation &&
           initial === this.activeThreadId &&
+          !this.sending &&
           !this.draft.prompt &&
           !this.draft.attachments.length &&
           branchId === this.branchId &&
@@ -266,6 +274,7 @@ export class LocalEditSession {
         ) {
           if (!this.localThreads.has(thread.id)) {
             this.applyThread(thread);
+            this.view(thread.id).loaded = false;
           }
           await this.selectThread(thread.id);
         }
@@ -312,14 +321,25 @@ export class LocalEditSession {
     if (!thread || thread.branchId !== this.branchId) {
       return;
     }
-    this.activeThreadId = id;
-    this.rememberThread();
-    this.notify();
-    if (!this.view().loaded) {
-      await this.loadThread(id);
+    const release = this.connected ? this.retain() : undefined;
+    try {
+      this.activeThreadId = id;
+      this.rememberThread();
+      this.notify();
+      if (!this.view().loaded) {
+        await this.loadThread(id);
+      }
+    } finally {
+      release?.();
     }
   }
   async searchThreads(query: string, archived: boolean, more = false) {
+    if (this.booting) {
+      await this.initializing;
+      if (!this.connected || !this.snapshotLoaded) {
+        return;
+      }
+    }
     if (more && (!this.threadListBefore || this.threadListLoading)) {
       return;
     }
@@ -483,6 +503,7 @@ export class LocalEditSession {
     this.localRecords.clear();
     this.editorSessionId = undefined;
     this.error = undefined;
+    this.syncError = undefined;
     this.cursor = new AiEventCursor();
     this.buffer = [];
     this.missingRuns.clear();
@@ -536,7 +557,7 @@ export class LocalEditSession {
   private snapshotLoaded = false;
   private nextSyncAt = 0;
   private syncRetryDelay = 0;
-  private syncError?: Error;
+  private viewers = 0;
   private executing = false;
   private sending = false;
   private undoing = false;
@@ -620,7 +641,7 @@ export class LocalEditSession {
     }
     this.notify();
   };
-  private loadingRuns = new Set<string>();
+  private loadingRuns = new Map<string, Promise<void>>();
   private missingRuns = new Set<string>();
   private applyEvent = (event: AiEvent) => {
     if (event.thread) {
@@ -635,15 +656,19 @@ export class LocalEditSession {
       return;
     }
     this.missingRuns.add(event.runId);
-    this.fetchRun(event.runId);
+    const generation = this.generation;
+    void this.fetchRun(event.runId).catch((error) => {
+      if (generation === this.generation) {
+        this.failSync(error);
+      }
+    });
   };
   private fetchRun(runId: string) {
     if (this.loadingRuns.has(runId)) {
-      return;
+      return ensure(this.loadingRuns.get(runId), "Missing in-flight AI task snapshot");
     }
-    this.loadingRuns.add(runId);
     const generation = this.generation;
-    void aiChatRequest<AiTask>(this.url(`/runs/${runId}`))
+    const loading = aiChatRequest<AiTask>(this.url(`/runs/${runId}`))
       .then((task) => {
         if (generation !== this.generation) {
           return;
@@ -651,17 +676,37 @@ export class LocalEditSession {
         this.apply(task);
         this.missingRuns.delete(runId);
       })
-      .catch((error) => {
-        if (generation === this.generation) {
-          this.error = normalizeError(error);
-          this.notify();
-        }
-      })
       .finally(() => {
-        this.loadingRuns.delete(runId);
+        if (this.loadingRuns.get(runId) === loading) {
+          this.loadingRuns.delete(runId);
+        }
       });
+    this.loadingRuns.set(runId, loading);
+    return loading;
   }
-  connect() {
+  /** UI subscriptions and in-flight work own the connection, not project mounting. */
+  retain() {
+    const refreshDirectory = !this.viewers && this.connected && !this.booting && this.branchReady;
+    this.viewers++;
+    this.connect();
+    if (refreshDirectory) {
+      void this.restoreBranch();
+    }
+    let released = false;
+    return () => {
+      if (!released) {
+        released = true;
+        this.viewers--;
+        this.disconnectIfIdle();
+      }
+    };
+  }
+  private disconnectIfIdle() {
+    if (!this.viewers && !this.sending && !this.undoing && !this.activeRun && !this.executing && !this.receipts.size) {
+      this.disconnect();
+    }
+  }
+  private connect() {
     if (this.connected) {
       return;
     }
@@ -672,9 +717,6 @@ export class LocalEditSession {
     this.snapshotLoaded = false;
     this.nextSyncAt = 0;
     this.syncRetryDelay = 0;
-    if (this.error === this.syncError) {
-      this.error = undefined;
-    }
     this.syncError = undefined;
     const generation = this.generation;
     this.booting = true;
@@ -717,14 +759,18 @@ export class LocalEditSession {
       }
     });
     this.initializing = this.initialize(this.branchReady);
+    this.notify();
     this.timer = setInterval(() => {
       if (!this.subscribed || !this.snapshotLoaded || this.syncRetryDelay || this.cursor.gap || this.missingRuns.size) {
         void this.sync();
       }
-      void this.executePending();
+      void this.executePending().finally(() => this.disconnectIfIdle());
     }, 1000);
   }
   disconnect() {
+    if (!this.connected) {
+      return;
+    }
     this.connected = false;
     this.subscribed = false;
     this.generation++;
@@ -735,6 +781,10 @@ export class LocalEditSession {
     this.timer = undefined;
     this.socket?.close();
     this.socket = undefined;
+    this.booting = false;
+    this.initializing = undefined;
+    this.syncError = undefined;
+    this.notify();
   }
   private url(suffix = "") {
     return `/api/v1/projects/${encodeURIComponent(this.projectId)}/ai/chat${suffix}`;
@@ -751,6 +801,11 @@ export class LocalEditSession {
       if (!this.connected || generation !== this.generation) {
         return;
       }
+      for (const task of this.tasks) {
+        if (task.status === "running" && !page.tasks.some((next) => next.id === task.id)) {
+          this.missingRuns.add(task.id);
+        }
+      }
       page.tasks.forEach((task) => this.apply(task));
       this.cursor.reset(page.seq);
       this.snapshotLoaded = true;
@@ -761,21 +816,8 @@ export class LocalEditSession {
       this.buffer = [];
       this.notify();
       await this.sync();
-      if (refreshDirectory && generation === this.generation) {
-        const id = this.activeThreadId;
-        await this.searchThreads(
-          this.threadFilter.query,
-          this.threadFilter.archived,
-        );
-        if (!this.localThreads.has(id)) {
-          const thread = await aiChatRequest<AiThread>(
-            this.url(`/threads/${encodeURIComponent(id)}`),
-          );
-          if (generation === this.generation) {
-            this.applyThread(thread);
-            this.notify();
-          }
-        }
+      if (refreshDirectory && this.viewers && generation === this.generation) {
+        await this.restoreBranch();
       }
     } catch (error) {
       if (generation === this.generation) {
@@ -843,14 +885,16 @@ export class LocalEditSession {
           this.cursor.accept(event, this.applyEvent);
         }
       } while (page.length === 100 && this.connected);
-      this.missingRuns.forEach((runId) => this.fetchRun(runId));
+      await Promise.all([...this.missingRuns].map((runId) => this.fetchRun(runId)));
+      if (generation !== this.generation) {
+        return;
+      }
       this.syncRetryDelay = 0;
       this.nextSyncAt = this.subscribed ? 0 : Date.now() + 5000;
-      if (this.syncError && this.error === this.syncError) {
-        this.error = undefined;
+      if (this.syncError) {
+        this.syncError = undefined;
         this.notify();
       }
-      this.syncError = undefined;
     } catch (error) {
       if (generation === this.generation) {
         this.failSync(error);
@@ -864,10 +908,9 @@ export class LocalEditSession {
   private failSync(error: unknown) {
     this.syncRetryDelay = Math.min(this.syncRetryDelay ? this.syncRetryDelay * 2 : 5000, 30000);
     this.nextSyncAt = Date.now() + this.syncRetryDelay;
-    // Keep one error identity throughout an outage, so retries don't reopen toasts.
+    // Keep one error identity throughout an outage; recovery clears the local notice.
     if (!this.syncError) {
       this.syncError = normalizeError(error);
-      this.error = this.syncError;
       this.notify();
     }
   }
@@ -908,6 +951,17 @@ export class LocalEditSession {
       );
       if (!context.canEdit || context.projectId !== this.projectId) {
         throw new Error("Open an editable current project to use AI.");
+      }
+      this.connect();
+      await this.initializing;
+      if (this.userId !== author) {
+        return;
+      }
+      if (!this.snapshotLoaded || this.syncError) {
+        throw this.syncError ?? new UserError("AI conversations have not loaded.", "");
+      }
+      if (this.blockingTask) {
+        throw new UserError("Finish or reconcile the active AI task before sending another request.", "");
       }
       const thread = this.threadsById.get(threadId);
       if (thread?.archivedAt) {
@@ -965,6 +1019,7 @@ export class LocalEditSession {
     } finally {
       this.sending = false;
       this.notify();
+      this.disconnectIfIdle();
     }
   }
   stop() {

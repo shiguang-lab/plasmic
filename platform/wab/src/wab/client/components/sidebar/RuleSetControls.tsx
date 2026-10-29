@@ -204,7 +204,7 @@ export function SelectorsInput({
       placeholder={
         codeComponent
           ? studioUiT("Choose a variant")
-          : "e.g. :hover, :focus, :nth-child(odd)"
+          : studioUiT("e.g. :hover, :focus, :nth-child(odd)")
       }
       autoFocus={autoFocus}
       selectedItems={selectors}

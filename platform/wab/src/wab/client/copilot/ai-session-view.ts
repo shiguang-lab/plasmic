@@ -22,6 +22,7 @@ export type AiSessionView = Pick<
   | "updateThread"
   | "setThreadAttachments"
   | "error"
+  | "syncError"
   | "before"
   | "draft"
   | "selectedModel"
@@ -52,6 +53,7 @@ export type AiSessionSnapshot = Pick<
   | "historyLoading"
   | "scrollTop"
   | "error"
+  | "syncError"
   | "before"
   | "draft"
   | "selectedModel"
@@ -92,6 +94,7 @@ export function snapshotAiSession(session: AiSessionView): AiSessionSnapshot {
     historyLoading: session.historyLoading,
     scrollTop: session.scrollTop,
     error: session.error,
+    syncError: session.syncError,
     before: session.before,
     draft: session.draft,
     selectedModel: session.selectedModel,

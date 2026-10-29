@@ -119,11 +119,13 @@ export function AiThreadPicker({
   readOnly = false,
   disabled = false,
   placement = "bottomLeft",
+  onOpenChange,
 }: {
   session: AiSessionView;
   readOnly?: boolean;
   disabled?: boolean;
   placement?: "bottomLeft" | "topRight";
+  onOpenChange?: (open: boolean) => void;
 }) {
   const { t, locale } = useI18n();
   const { styles } = useStyles();
@@ -136,6 +138,10 @@ export function AiThreadPicker({
   }>();
   const [saving, setSaving] = React.useState(false);
   const title = session.activeThread?.title || t("New conversation");
+  React.useEffect(() => {
+    onOpenChange?.(open && !disabled);
+    return () => onOpenChange?.(false);
+  }, [open, disabled, onOpenChange]);
   React.useEffect(() => {
     if (!open || disabled) {
       return;

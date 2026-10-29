@@ -444,7 +444,7 @@ function CancelTeamPlan({
             part1: String(featureTier.name),
             part2: String(team.name),
           }),
-          content: `This cancels the Stripe subscription and puts the organization on the free tier. No refunds will be issued.`,
+          content: <UiText message="This cancels the Stripe subscription and puts the organization on the free tier. No refunds will be issued." />,
           onOk: async () => {
             await nonAuthCtx.api.cancelSubscription(team.id);
             refetch();
@@ -473,7 +473,7 @@ function ResetTeamTrial({ team, refetch }: TeamProps) {
       onClick={() => {
         Modal.confirm({
           title: studioUiT("Reset team trial?"),
-          content: `This will reset the team trial for team "${team.name}"`,
+          content: <UiText message={'This will reset the team trial for team "{name}"'} values={{ name: team.name }} />,
           onOk: async () => {
             await nonAuthCtx.api.resetTeamTrial(team.id);
             refetch();
@@ -810,7 +810,7 @@ function GenerateTeamApiToken({ team, refetch }: TeamProps) {
       onClick={() =>
         Modal.confirm({
           title: studioUiT("Generate Team API Token?"),
-          content: `This will replace the existing token for team "${team.name}".`,
+          content: <UiText message={'This will replace the existing token for team "{name}".'} values={{ name: team.name }} />,
           onOk: async () => {
             try {
               const res = await nonAuthCtx.api.createTeamApiToken(team.id);

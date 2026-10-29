@@ -84,8 +84,10 @@ The `hostless_library_version` table binds a code artifact to `pkg_version.id`.
 Library publication with `PREVIEW_ORIGIN` configured saves the metadata and code
 artifact together. Code or transitive dependency changes publish a new library
 version even if the component prop metadata is unchanged. Existing artifacts are
-never overwritten. Updating a library does not upgrade any Project automatically;
-upgrade the Project dependency explicitly, then publish its website.
+never overwritten. Libraries in the platform library workspace (`hostLessWorkspaceId`)
+upgrade every importing Project to the new version the next time it is loaded; a
+published website keeps its result until it is published again. See
+[Platform component library upgrades](../../deploy/README.md#platform-component-library-upgrades).
 
 New libraries use one administrator command; no preview dependency list, canvas
 entry file or Dockerfile change is required. The package must export `registerAll`
@@ -137,8 +139,8 @@ bash tools/run.bash src/wab/server/db/publish-library.ts /absolute/path/library.
 Use the sources/packages that belong to that exact historical version, specifying
 `projectId` when it is not already in the catalog. The command rejects overwriting
 an existing artifact. The system never guesses historical code from the latest
-installed package. Alternatively, publish a new library release and upgrade the
-Project dependencies to it.
+installed package. Platform libraries do not need this: their Projects are upgraded
+to the latest version, which has an artifact.
 
 To verify the generic npm/tarball registration lifecycle against the disposable
 `plasmic_preview_test` database, run from `platform/wab`:

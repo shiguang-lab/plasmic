@@ -1001,7 +1001,7 @@ const buildItems = computedFn(
     };
     const items: ArenaPanelRow[] = withoutNils([
       getSection(
-        <LabelWithDetailedTooltip tooltip={ARENAS_DESCRIPTION}>
+        <LabelWithDetailedTooltip tooltip={<UiText message={ARENAS_DESCRIPTION} />}>
           <UiText message={"Arenas"} />
         </LabelWithDetailedTooltip>,
         "custom",

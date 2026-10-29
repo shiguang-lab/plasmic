@@ -120,8 +120,12 @@ the initial route, viewport and active target readiness. Ordinary comments wait
 for the same gate; comment-thread deep links load immediately so route resolution
 can consume them. Same-branch comment requests share an in-flight promise.
 Disposal cancels pending readiness work. Local AI capability discovery waits for
-Studio readiness; session recovery and active-edit state keep their earlier
-connection because editing locks depend on them.
+Studio readiness. AI chat history, conversation directories and event subscriptions
+start when the assistant or conversation picker opens, or before sending a request.
+Closing these views releases the connection once running tasks, tool execution and
+pending receipts have finished. Reopening refreshes the project snapshot and event
+cursor before restoring conversations. Active-edit state and editing locks retain
+their startup connections independently of AI chat.
 
 Browser performance marks include `studio-entry`, `studio-shell`,
 `studio-root-start`, `studio-bootstrap-ready` and `studio:<phase>:<frameUuid>`.

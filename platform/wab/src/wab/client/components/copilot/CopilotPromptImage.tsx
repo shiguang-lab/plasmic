@@ -3,6 +3,7 @@ import {
   PlasmicCopilotPromptImage,
 } from "@/wab/client/plasmic/plasmic_kit_data_binding/PlasmicCopilotPromptImage";
 import { CopilotImage } from "@/wab/shared/ApiSchema";
+import { UiText } from "@/wab/client/i18n/UiText";
 import { asDataUrl } from "@/wab/shared/data-urls";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
 import * as React from "react";
@@ -25,6 +26,7 @@ function CopilotPromptImage_(
     <PlasmicCopilotPromptImage
       root={{ ref }}
       button={{ onClick: onDelete }}
+      tooltip={{ content: <UiText message="Delete image" /> }}
       overrides={{ img }}
       {...plasmicProps}
     />

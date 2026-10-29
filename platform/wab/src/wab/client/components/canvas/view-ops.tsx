@@ -3012,9 +3012,8 @@ export class ViewOps {
     if (!insertLoc) {
       notification.error({
         message: translate(getUiLocale(), "Cannot paste here"),
-        description:
-          "You cannot paste into or around the selected" +
-          " element. Try pasting elsewhere.",
+        description: translate(getUiLocale(),
+          "You cannot paste into or around the selected element. Try pasting elsewhere."),
       });
       return false;
     }

@@ -1607,7 +1607,7 @@ export class SiteOps {
     const isCurrentArena =
       isComponentArena(curArena) && curArena.component === component;
     this.tplMgr.convertComponentToPage(component);
-    toast("Component converted to page.");
+    toast(<UiText message="Component converted to page." />);
     if (isCurrentArena) {
       this.studioCtx.switchToComponentArena(component);
     }
@@ -1624,7 +1624,7 @@ export class SiteOps {
       ],
       () => {
         this.tplMgr.convertPageToComponent(component);
-        toast("Page converted to reusable component.");
+        toast(<UiText message="Page converted to reusable component." />);
         if (isCurrentArena) {
           // Switch to the corresponding component arena!
           this.studioCtx.switchToComponentArena(component);

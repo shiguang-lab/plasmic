@@ -3,6 +3,7 @@ import { unbundlePkgVersion } from "@/wab/server/db/DbBundleLoader";
 import { ensureDbConnection } from "@/wab/server/db/DbCon";
 import { DbMgr, SUPER_USER } from "@/wab/server/db/DbMgr";
 import { publishHostlessProject } from "@/wab/server/db/PublishHostless";
+import { HostlessLibraryVersion } from "@/wab/server/entities/CustomEntities";
 import { Bundler } from "@/wab/shared/bundler";
 import { ensure, ensureArray } from "@/wab/shared/common";
 import {
@@ -56,12 +57,25 @@ async function main() {
         id: dependency.projectId,
         readableByPublic: true,
       });
+      // Studio loads the stored code of the installed version only when it exists.
+      const libraryPkg = ensure(
+        await db.getPkgByProjectId(dependency.projectId),
+        "Missing React UI package",
+      );
+      const libraryVersion = await db.getPkgVersion(
+        libraryPkg.id,
+        dependency.version,
+      );
+      const hasCodeArtifacts = !!(await em.findOne(HostlessLibraryVersion, {
+        pkgVersionId: libraryVersion.id,
+      }));
       const imageUrl =
         "https://plasmic-studio.shiguanglab.com/static/img/react-ui.svg";
       const entry: CatalogPackage = {
         type: "hostless-package",
         name: "React UI",
         codeName: "react-ui",
+        hasCodeArtifacts,
         codeLink:
           "https://github.com/shiguang-lab/plasmic/tree/master/plasmicpkgs/react-ui",
         projectId: [dependency.projectId],

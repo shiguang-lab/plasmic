@@ -191,7 +191,7 @@ export const ComponentArenaLayout = observer(
                   inputBoxPlaceholder={
                     isKnownVariantGroup(row.rowKey) &&
                     isStandaloneVariantGroup(row.rowKey)
-                      ? uiT("{part1} name", { part1: String(VARIANT_CAP) })
+                      ? uiT("{part1} name", { part1: translateUiLabel(getUiLocale(), VARIANT_CAP) })
                       : uiT("Group name")
                   }
                 >

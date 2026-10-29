@@ -1,4 +1,5 @@
 import { UiText } from "@/wab/client/i18n/UiText";
+import { useI18n } from "@/wab/client/i18n";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ProjectDependency } from "@/wab/shared/model/classes";
 import { Menu } from "antd";
@@ -9,6 +10,7 @@ export function useDepFilterButton(opts: {
   studioCtx: StudioCtx;
   deps: ProjectDependency[];
 }) {
+  const { t } = useI18n();
   const { studioCtx, deps } = opts;
   const [filterDeps, setFilterDeps] = React.useState<ProjectDependency[]>([]);
 
@@ -22,15 +24,15 @@ export function useDepFilterButton(opts: {
         : {
             tooltip:
               filterDeps.length === 0
-                ? "Filter by imported projects"
-                : `Filtering by: ${filterDeps
+                ? t("Filter by imported projects")
+                : t("Filtering by: {projects}", { projects: filterDeps
                     .map(
                       (d) =>
                         `"${studioCtx.projectDependencyManager.getNiceDepName(
                           d,
                         )}"`,
                     )
-                    .join(", ")}`,
+                    .join(", ") }),
             popupRender: () => {
               return (
                 <Menu selectedKeys={filterDeps.map((d) => d.uuid)}>

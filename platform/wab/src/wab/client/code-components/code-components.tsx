@@ -469,9 +469,8 @@ export async function maybeConvertToHostLessProject(studioCtx: StudioCtx) {
 
       if (deletedComps.size > 0) {
         const proceed = await reactConfirm({
-          message:
-            "The following components have been deleted, would you like to proceed? " +
-            [...deletedComps.keys()].map((c) => c.name),
+          message: <UiText message="The following components have been deleted, would you like to proceed? {components}"
+            values={{ components: [...deletedComps.keys()].map((c) => c.name).join(", ") }} />,
         });
         if (!proceed) {
           const latestVersion = ensure(

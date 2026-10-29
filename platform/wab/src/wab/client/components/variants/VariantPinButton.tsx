@@ -3,7 +3,7 @@ import {
   DefaultVariantPinButtonProps,
   PlasmicVariantPinButton,
 } from "@/wab/client/plasmic/plasmic_kit_variants/PlasmicVariantPinButton";
-import { VARIANT_OPTION_LOWER } from "@/wab/shared/Labels";
+import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 interface VariantPinButtonProps extends DefaultVariantPinButtonProps {
@@ -12,6 +12,7 @@ interface VariantPinButtonProps extends DefaultVariantPinButtonProps {
 }
 
 function VariantPinButton(props: VariantPinButtonProps) {
+  const { t } = useI18n();
   const { onToggle, ...rest } = props;
   const pinState = props.pinState;
   const isVisible =
@@ -25,8 +26,8 @@ function VariantPinButton(props: VariantPinButtonProps) {
           tooltip: isSelected
             ? undefined
             : isVisible
-              ? `Turn off ${VARIANT_OPTION_LOWER}`
-              : `View ${VARIANT_OPTION_LOWER}`,
+              ? t("Turn off variant")
+              : t("View variant"),
           "data-test-class": `variant-pin-button-${
             isVisible ? "deactivate" : "activate"
           }`,

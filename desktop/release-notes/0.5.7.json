@@ -1,0 +1,7 @@
+{
+  "en": "- Complete missing translations across Studio tooltips, dialogs, CMS notifications and interaction controls.\n- Improve AI conversation navigation and editing guidance.\n- Add platform component library management and improve NAS library deployment.",
+  "zh-CN": "- 补齐 Studio 提示、弹窗、CMS 通知和交互控件的多语言文案。\n- 改进 AI 会话导航与编辑引导。\n- 新增平台组件库管理，完善 NAS 组件库部署。",
+  "zh-TW": "- 補齊 Studio 提示、對話框、CMS 通知及互動控制項的多語言文案。\n- 改善 AI 對話導覽與編輯引導。\n- 新增平台元件庫管理，完善 NAS 元件庫部署。",
+  "ja": "- Studio のツールチップ、ダイアログ、CMS 通知、インタラクション操作の翻訳を補完しました。\n- AI 会話のナビゲーションと編集ガイドを改善しました。\n- プラットフォームのコンポーネントライブラリ管理と NAS 配備を改善しました。",
+  "ko": "- Studio 도구 설명, 대화 상자, CMS 알림 및 상호작용 컨트롤의 번역을 보완했습니다.\n- AI 대화 탐색과 편집 안내를 개선했습니다.\n- 플랫폼 컴포넌트 라이브러리 관리와 NAS 배포를 개선했습니다."
+}

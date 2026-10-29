@@ -1,6 +1,7 @@
 import { AppCtx } from "@/wab/client/app-ctx";
 import { useAiAttachments } from "@/wab/client/components/copilot/AiAttachments";
 import { AiComposer } from "@/wab/client/components/copilot/AiComposer";
+import { AiSyncNotice } from "@/wab/client/components/copilot/AiSyncNotice";
 import {
   AiRunningNotice,
   AiThreadPicker,
@@ -69,6 +70,13 @@ export function CanvasAiComposer({
   React.useSyncExternalStore(session.subscribe, session.snapshot);
   useErrorMessage(session.error);
   const enabled = appCtx.appConfig.enableLocalAiEditing;
+  const [pickerOpen, setPickerOpen] = React.useState(false);
+  React.useEffect(() => {
+    if (enabled && pickerOpen) {
+      return session.retain();
+    }
+    return undefined;
+  }, [enabled, pickerOpen, session]);
   const { data: status } = useLocalAiStatus(projectId, enabled);
   const activeTask = session.activeRun;
   const archived = !!session.activeThread?.archivedAt;
@@ -84,6 +92,7 @@ export function CanvasAiComposer({
       !status?.configured ||
       session.running ||
       session.historyLoading ||
+      session.syncError ||
       archived ||
       !context.binding ||
       !session.draft.prompt.trim() ||
@@ -116,9 +125,11 @@ export function CanvasAiComposer({
             session={session}
             disabled={!enabled}
             placement="topRight"
+            onOpenChange={setPickerOpen}
           />
         </div>
         <AiRunningNotice session={session} onOpen={() => void onOpen()} />
+        {(pickerOpen || !!activeTask) && <AiSyncNotice session={session} />}
       </div>
       <AiComposer
         value={session.draft.prompt}
@@ -143,6 +154,7 @@ export function CanvasAiComposer({
           !!status?.configured &&
           !session.running &&
           !session.historyLoading &&
+          !session.syncError &&
           !archived
         }
         placeholder={t(

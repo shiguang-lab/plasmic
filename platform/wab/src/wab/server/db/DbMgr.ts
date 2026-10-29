@@ -207,6 +207,7 @@ import {
   xor,
 } from "@/wab/shared/common";
 import { CreateChatCompletionRequest } from "@/wab/shared/copilot/prompt-utils";
+import { isRetiredHostlessLibrary } from "@/wab/shared/core/platform-libraries";
 import {
   cloneSite,
   fixAppAuthRefs,
@@ -1192,6 +1193,22 @@ export class DbMgr implements MigrationDbMgr {
       userId,
     );
 
+    return team;
+  }
+
+  /** Creates a team without members for platform-owned projects. */
+  async createSystemTeam(name: string) {
+    this.checkSuperUser();
+    const devflags = await getDevFlagsMergedWithOverrides(this);
+    const team = this.teams().create({
+      ...this.stampNew({ genShortUuid: true }),
+      name,
+      billingEmail: "",
+      inviteId: generateId(),
+      defaultAccessLevel: "viewer",
+      trialDays: devflags.freeTrialDays,
+    });
+    await this.entMgr.save(team);
     return team;
   }
 
@@ -7557,11 +7574,17 @@ export class DbMgr implements MigrationDbMgr {
     bundler: Bundler,
   ) {
     const site = await createSiteForHostlessProject(hostLessPackageInfo);
+    // Projects importing libraries from the platform library workspace are
+    // upgraded to each new release automatically.
+    const { hostLessWorkspaceId } = await getDevFlagsMergedWithOverrides(this);
 
     const { project, rev } = await this.createProjectAndSaveRev({
       site,
       bundler,
       name: hostLessPackageInfo.name,
+      workspaceId: isRetiredHostlessLibrary(hostLessPackageInfo.name)
+        ? undefined
+        : hostLessWorkspaceId,
     });
 
     const { pkgVersion } = await this.publishProject(

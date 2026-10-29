@@ -9,6 +9,7 @@ import {
   PlasmicDataPickerColumnItem,
 } from "@/wab/client/plasmic/plasmic_kit_data_binding/PlasmicDataPickerColumnItem";
 import { BLOCKED_RUN_INTERACTION_MESSAGE } from "@/wab/client/state-management/interactions-meta";
+import { UiText } from "@/wab/client/i18n/UiText";
 import {
   canRunInteraction,
   runInteraction,
@@ -88,7 +89,7 @@ function DataPickerColumnItem_(
           }
           if (!canRunInteraction(interaction, vc)) {
             notification.error({
-              message: BLOCKED_RUN_INTERACTION_MESSAGE,
+              message: <UiText message={BLOCKED_RUN_INTERACTION_MESSAGE} />,
             });
             return;
           }

@@ -1,13 +1,49 @@
 import { fakeAppCtx } from "@/wab/client/__testonly__/fake-init-ctx";
-import { useTopFrameState } from "@/wab/client/components/TopFrame/TopFrameChrome";
+import { useProjectAiSession, useTopFrameState } from "@/wab/client/components/TopFrame/TopFrameChrome";
 import type { AiSessionSnapshot } from "@/wab/client/copilot/ai-session-view";
 import { getLocalEditSession } from "@/wab/client/copilot/local-edit-session";
 import { HistoryProvider } from "@/wab/client/route/HistoryProvider";
 import { toOpaque } from "@/wab/commons/types";
 import { ApiProject } from "@/wab/shared/ApiSchema";
-import { act, renderHook } from "@testing-library/react";
+import { act, renderHook, waitFor } from "@testing-library/react";
 import * as React from "react";
+import { io, Socket } from "socket.io-client";
 import { mock } from "vitest-mock-extended";
+vi.mock("socket.io-client", () => ({ io: vi.fn() }));
+
+it("starts chat only when a view opens, releases idle connections and keeps project setup local", async () => {
+  const socket = mock<Socket>();
+  vi.mocked(io).mockReset().mockReturnValue(socket);
+  const request = vi.fn(async (url: string) => ({ok: true, json: async () =>
+    url.includes("/events?") ? [] : url.includes("/threads?") ? {threads: []} : {tasks: [], seq: 0}}));
+  vi.stubGlobal("fetch", request);
+  const initialProps = {projectId: "lazy-project", userId: "user", branchId: null as string | null, enabled: true, panelOpen: false};
+  const mounted = renderHook(useProjectAiSession, {initialProps});
+  try {
+    await act(() => Promise.resolve());
+    mounted.rerender({...initialProps, branchId: "branch"});
+    await act(() => Promise.resolve());
+    expect(request).not.toHaveBeenCalled();
+    expect(io).not.toHaveBeenCalled();
+    mounted.rerender({...initialProps, branchId: "branch", panelOpen: true});
+    await waitFor(() => expect(request.mock.calls.some(([url]) => url.includes("/threads?branchId=branch"))).toBe(true));
+    expect(io).toHaveBeenCalledOnce();
+    expect(request.mock.calls.some(([url]) => url.includes("/events?"))).toBe(true);
+    mounted.rerender({...initialProps, branchId: "branch"});
+    expect(socket.close).toHaveBeenCalledOnce();
+    request.mockClear();
+    mounted.rerender({...initialProps, branchId: "other"});
+    await act(() => Promise.resolve());
+    expect(request).not.toHaveBeenCalled();
+    mounted.rerender({...initialProps, enabled: false, panelOpen: true});
+    await act(() => Promise.resolve());
+    expect(request).not.toHaveBeenCalled();
+    expect(io).toHaveBeenCalledOnce();
+  } finally {
+    mounted.unmount();
+    vi.unstubAllGlobals();
+  }
+});
 
 it("relays one authenticated AI session to the host panel without changing history", async () => {
   const { appCtx, history } = fakeAppCtx();

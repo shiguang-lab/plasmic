@@ -3,6 +3,7 @@ import { useAiAttachments } from "@/wab/client/components/copilot/AiAttachments"
 import { AiComposer } from "@/wab/client/components/copilot/AiComposer";
 import { AiNodeReference } from "@/wab/client/components/copilot/AiNodeReference";
 import { AiResponse } from "@/wab/client/components/copilot/AiResponse";
+import { AiSyncNotice } from "@/wab/client/components/copilot/AiSyncNotice";
 import { AiRunningNotice, AiThreadPicker } from "@/wab/client/components/copilot/AiThreadPicker";
 import { AiWelcome } from "@/wab/client/components/copilot/AiWelcome";
 import { PanelCloseButton } from "@/wab/client/components/studio/PanelCloseButton";
@@ -210,6 +211,7 @@ export function CopilotChatDialog({
       draft.trim() &&
       !session.running &&
       !session.historyLoading &&
+      !session.syncError &&
       !session.activeThread?.archivedAt &&
       status?.configured &&
       !attachmentState.reading
@@ -286,8 +288,9 @@ export function CopilotChatDialog({
               {t("Load earlier messages")}
             </Button>
           )}
+          <AiSyncNotice session={session} />
           {session.historyLoading && <Spin size="small" />}
-          {!tasks.length && !session.historyLoading && <AiWelcome pageEnabled={!!pageEnabled} hasWorkspace={!!context?.binding} disabled={!enabled || readOnly || !status?.configured || !!session.activeThread?.archivedAt}
+          {!tasks.length && !session.historyLoading && !session.syncError && <AiWelcome pageEnabled={!!pageEnabled} hasWorkspace={!!context?.binding} disabled={!enabled || readOnly || !status?.configured || !!session.activeThread?.archivedAt}
             onChoose={prompt => setDraft(draft ? `${draft}\n${prompt}` : prompt)} />}
           {tasks.map((task) => (
             <article
@@ -437,7 +440,7 @@ export function CopilotChatDialog({
             session.selectedModel = value;
           }}
           disabled={!enabled || readOnly || !!session.activeThread?.archivedAt}
-          canSubmit={!!status?.configured && !session.running && !session.historyLoading}
+          canSubmit={!!status?.configured && !session.running && !session.historyLoading && !session.syncError}
           running={session.activeRun?.threadId === session.activeThreadId}
           onStop={() => session.stop()}
           stopDisabled={

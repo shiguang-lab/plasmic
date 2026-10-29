@@ -1,5 +1,3 @@
-import { getUiLocale } from "@/wab/client/i18n";
-import { translate } from "@/wab/client/i18n/locales";
 import { CommentsCtx } from "@/wab/client/studio-ctx/comments-ctx";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import {
@@ -88,7 +86,7 @@ export function getCommentThreadWithModelMetadata(
     return {
       ...commentThread,
       subjectInfo: undefined,
-      label: translate(getUiLocale(), "Deleted element"),
+      label: "Deleted element",
     };
   }
   const allComponentVariantsMap = keyBy(
