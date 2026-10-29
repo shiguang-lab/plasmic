@@ -547,6 +547,16 @@ export function getStateValuePropName(state: State) {
   return toVarName(state.param.variable.name);
 }
 
+/** Explicit native value props own control; edit-only initializers do not. */
+export function hasExplicitStateValue(state: State, props: Record<string, unknown>) {
+  return !!(
+    state.tplNode && Tpls.isTplCodeComponent(state.tplNode) &&
+    state.implicitState && isWritableState(state.implicitState) &&
+    !state.implicitState.param.propEffect &&
+    Object.prototype.hasOwnProperty.call(props, getStateValuePropName(state.implicitState))
+  );
+}
+
 export function getStateOnChangePropName(state: State) {
   const onChangeParam = state.onChangeParam;
   return onChangeParam ? toVarName(onChangeParam.variable.name) : undefined;

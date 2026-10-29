@@ -182,6 +182,7 @@ import {
   getStateDisplayName,
   getStateOnChangePropName,
   getStateValuePropName,
+  hasExplicitStateValue,
   getStateVarName,
   getVirtualWritableStateInitialValue,
   isReadonlyState,
@@ -1681,6 +1682,8 @@ function renderTplComponent(
       const maybeOnChangePropName = getStateOnChangePropName(
         state.implicitState,
       );
+      const explicitlyControlled = hasExplicitStateValue(state, props) &&
+        props[getStateValuePropName(state.implicitState)] !== undefined;
       const stateHelpers =
         isTplCodeComponent(node) && meta
           ? tryGetStateHelpers(
@@ -1688,7 +1691,7 @@ function renderTplComponent(
               ensureKnownNamedState(state.implicitState),
             )
           : undefined;
-      if (maybeOnChangePropName) {
+      if (maybeOnChangePropName && !explicitlyControlled) {
         const pushEventHandler = (handler: any) => {
           withDefaultFunc(
             builtinEventHandlers,
@@ -1731,7 +1734,7 @@ function renderTplComponent(
           );
         }
       }
-      if (isWritableState(state.implicitState)) {
+      if (isWritableState(state.implicitState) && !explicitlyControlled) {
         props[getStateValuePropName(state.implicitState)] =
           ctx.sub.reactWeb.generateStateValueProp(ctx.env.$state, statePath);
       }

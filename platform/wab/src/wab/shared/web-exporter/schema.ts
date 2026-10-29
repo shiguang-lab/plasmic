@@ -622,6 +622,7 @@ export function stateSchema() {
       .describe(
         "Initial value: the real typed value when statically known, otherwise a serialized dynamic expression.",
       ),
+    valueProp: z.string().optional().describe("Controlled value prop of a writable state."),
     onChangeProp: z
       .string()
       .optional()

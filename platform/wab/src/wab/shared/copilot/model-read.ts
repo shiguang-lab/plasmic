@@ -33,7 +33,7 @@ export function selectedReadFields(options: ModelReadOptions) {
     case "full": return [...fullReadFields];
     case "tree": return [...identity, "tag", "registeredComponentUuid", "tree", "children", "slots", "editable", "source"];
     case "properties": return [...identity, "tag", "registeredComponentUuid", "properties", ...(options.propNames ? [] : ["styles", "attributes", "text"]), "editable", "source"];
-    case "contract": return [...identity.filter((field) => field !== "rootElementUuid"), "description", "fromProject", "props", "refActions", "globalActions", "variants", "variantGroups"];
+    case "contract": return [...identity.filter((field) => field !== "rootElementUuid"), "description", "fromProject", "props", "states", "refActions", "globalActions", "variants", "variantGroups"];
     case "context": return [...identity, "pageMeta", "states", "interactions", "dataQueries", "legacyDataQueries", "variantSettings"];
   }
 }

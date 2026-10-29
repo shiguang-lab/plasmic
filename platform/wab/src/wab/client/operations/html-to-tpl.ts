@@ -1175,6 +1175,7 @@ export function getComponentArgFromHtmlProp(
 ): Result<[Param, Expr], WIError> {
   const name = toVarName(propName);
   const param =
+    component.params.find((p) => paramToVarName(component, p, { useControlledProp: true }) === propName) ??
     component.params.find((p) => paramToVarName(component, p) === propName) ??
     component.params.find((p) => paramToVarName(component, p) === name);
   // Unknown props and invalid optional literal values can be omitted. Slots,

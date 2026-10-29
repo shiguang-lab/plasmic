@@ -138,11 +138,15 @@ function registerTabs(loader) {
       addIcon: { type: "slot", hidePlaceholder: true },
       removeIcon: { type: "slot", hidePlaceholder: true },
       activeKey: {
-        editOnly: true,
         displayName: "Active tab key",
-        uncontrolledProp: "defaultActiveKey",
         type: "choice",
-        description: "The initially active tab key. Temporary canvas reveals do not change this value.",
+        description: "The controlled active tab key. Bind to state and update it in onChange to allow switching. Takes precedence over defaultActiveKey.",
+        options: (ps) => ps.items === void 0 ? void 0 : getTabItemKeys(ps.items)
+      },
+      defaultActiveKey: {
+        displayName: "Default active tab key",
+        type: "choice",
+        description: "The initially active tab key when activeKey is not set. Temporary canvas reveals do not change this value.",
         options: (ps) => ps.items === void 0 ? void 0 : getTabItemKeys(ps.items)
       },
       animated: {
@@ -337,7 +341,7 @@ function registerTabs(loader) {
             },
             "items"
           );
-          studioOps.updateProps({ activeKey: tabKey });
+          studioOps.updateProps({ defaultActiveKey: tabKey });
         }
       },
       {
@@ -357,7 +361,7 @@ function registerTabs(loader) {
               (_, index) => index !== currTabPos
             );
             studioOps.updateProps({
-              activeKey: remaining[Math.max(0, currTabPos - 1)]
+              defaultActiveKey: remaining[Math.max(0, currTabPos - 1)]
             });
           }
         }

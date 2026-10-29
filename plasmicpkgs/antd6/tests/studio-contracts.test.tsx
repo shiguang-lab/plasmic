@@ -22,6 +22,37 @@ const tabs = (selected: boolean) => <>
   <AntdTabItem key="second" label="Second" {...{ __plasmic_selection_prop__: { isSelected: selected } }}>Second content</AntdTabItem>
 </>;
 
+test("Tabs exposes independent native controlled and initial keys", () => {
+  const meta = metadata(registerTabs).get("plasmic-antd6-tabs");
+  expect(meta.props.activeKey.editOnly).toBeUndefined();
+  expect(meta.props.activeKey.uncontrolledProp).toBeUndefined();
+  expect(meta.props.defaultActiveKey.type).toBe("choice");
+  expect(meta.props.defaultActiveKey.options({ items: tabs(false) })).toEqual(["first", "second"]);
+  expect(meta.states.activeKey).toMatchObject({ type: "writable", valueProp: "activeKey", onChangeProp: "onChange" });
+});
+
+test("controlled Tabs follows changed bindings and reports clicks without changing the value itself", () => {
+  const onChange = vi.fn();
+  const view = render(<Canvas interactive><AntdTabs {...{ activeKey: "first", defaultActiveKey: "second", items: tabs(false), onChange } as any} /></Canvas>);
+  expect(screen.getByRole("tab", { selected: true }).textContent).toBe("First");
+  fireEvent.click(screen.getByRole("tab", { name: "Second" }));
+  expect(onChange).toHaveBeenCalledWith("second");
+  expect(screen.getByRole("tab", { selected: true }).textContent).toBe("First");
+  view.rerender(<Canvas interactive><AntdTabs {...{ activeKey: "second", defaultActiveKey: "first", items: tabs(false), onChange } as any} /></Canvas>);
+  expect(screen.getByRole("tab", { selected: true }).textContent).toBe("Second");
+});
+
+test("uncontrolled Tabs uses the initial key once and keeps user switching", () => {
+  const onChange = vi.fn();
+  const view = render(<AntdTabs {...{ defaultActiveKey: "second", items: tabs(false), onChange } as any} />);
+  expect(screen.getByRole("tab", { selected: true }).textContent).toBe("Second");
+  view.rerender(<AntdTabs {...{ defaultActiveKey: "first", items: tabs(false), onChange } as any} />);
+  expect(screen.getByRole("tab", { selected: true }).textContent).toBe("Second");
+  fireEvent.click(screen.getByRole("tab", { name: "First" }));
+  expect(onChange).toHaveBeenCalledWith("first");
+  expect(screen.getByRole("tab", { selected: true }).textContent).toBe("First");
+});
+
 test("inactive tab selection reveals content only in editing, without business events", () => {
   const onChange = vi.fn();
   const props = { activeKey: "first", items: tabs(true), onChange };
@@ -98,7 +129,7 @@ test.each([undefined, "second"])("delete uses native default active key %s", (de
     componentProps: { items: tabs(false), defaultActiveKey }, studioOps: { removeFromSlotAt: remove, updateProps: update },
   });
   expect(remove).toHaveBeenCalledWith(defaultActiveKey ? 1 : 0, "items");
-  expect(update).toHaveBeenCalledWith({ activeKey: defaultActiveKey ? "first" : "second" });
+  expect(update).toHaveBeenCalledWith({ defaultActiveKey: defaultActiveKey ? "first" : "second" });
 });
 
 test("deleting final tab clears the active key", () => {
@@ -108,7 +139,7 @@ test("deleting final tab clears the active key", () => {
     componentProps: { items: <AntdTabItem key="last" label="Last" />, activeKey: "last" },
     studioOps: { removeFromSlotAt: vi.fn(), updateProps: update },
   });
-  expect(update).toHaveBeenCalledWith({ activeKey: undefined });
+  expect(update).toHaveBeenCalledWith({ defaultActiveKey: undefined });
 });
 
 test("Collapse rich slots render without competing default items; explicit native items retain precedence", () => {

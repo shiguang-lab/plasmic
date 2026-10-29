@@ -28,8 +28,10 @@ import {
   UpdateVariableOperations,
   UpdateVariantOperations,
   getStateOnChangePropName,
+  getStateValuePropName,
   getStateVarName,
   isPublicState,
+  isWritableState,
 } from "@/wab/shared/core/states";
 import {
   generateAnimationPropValue,
@@ -914,6 +916,9 @@ function buildComponentStates(component: Component): StateJson[] {
       }
     }
     if (isPublicState(state)) {
+      if (isWritableState(state)) {
+        stateJson.valueProp = getStateValuePropName(state);
+      }
       const onChangeProp = getStateOnChangePropName(state);
       if (onChangeProp) {
         stateJson.onChangeProp = onChangeProp;

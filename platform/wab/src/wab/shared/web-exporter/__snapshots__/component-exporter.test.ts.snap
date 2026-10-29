@@ -930,7 +930,7 @@ exports[`Component Serialization > serializes all components 1`] = `
   <states>
     <ARRAY>
       <ITEM>
-        <State name="ariaCheckbox.isSelected" uuid="PARs2uSgmnFT" variableType="boolean" accessType="writable" onChangeProp="onChange" elementUuid="wSXrGkHnJdlR"></State>
+        <State name="ariaCheckbox.isSelected" uuid="PARs2uSgmnFT" variableType="boolean" accessType="writable" valueProp="isSelected" onChangeProp="onChange" elementUuid="wSXrGkHnJdlR"></State>
       </ITEM>
     </ARRAY>
   </states>
@@ -996,7 +996,7 @@ exports[`Component Serialization > serializes all components 1`] = `
   <states>
     <ARRAY>
       <ITEM>
-        <State name="ariaCheckboxGroup.value" uuid="9jCOvXOQ2Ocf" variableType="array" accessType="writable" onChangeProp="onChange" elementUuid="EQwO08BkwohB"></State>
+        <State name="ariaCheckboxGroup.value" uuid="9jCOvXOQ2Ocf" variableType="array" accessType="writable" valueProp="value" onChangeProp="onChange" elementUuid="EQwO08BkwohB"></State>
       </ITEM>
     </ARRAY>
   </states>
@@ -1137,10 +1137,10 @@ exports[`Component Serialization > serializes all components 1`] = `
   <states>
     <ARRAY>
       <ITEM>
-        <State name="ariaComboBox.isOpen" uuid="vzyiFOUgHYmh" variableType="boolean" accessType="writable" onChangeProp="onOpenChange" elementUuid="6toPxJJ_4YJU"></State>
+        <State name="ariaComboBox.isOpen" uuid="vzyiFOUgHYmh" variableType="boolean" accessType="writable" valueProp="isOpen" onChangeProp="onOpenChange" elementUuid="6toPxJJ_4YJU"></State>
       </ITEM>
       <ITEM>
-        <State name="ariaComboBox.selectedValue" uuid="BhDADAjRzJxn" variableType="text" accessType="writable" onChangeProp="onChange" elementUuid="6toPxJJ_4YJU"></State>
+        <State name="ariaComboBox.selectedValue" uuid="BhDADAjRzJxn" variableType="text" accessType="writable" valueProp="value" onChangeProp="onChange" elementUuid="6toPxJJ_4YJU"></State>
       </ITEM>
       <ITEM>
         <State name="type" uuid="xCeagevuQTtB" variableType="variant" accessType="private"></State>
@@ -1291,7 +1291,7 @@ exports[`Component Serialization > serializes all components 1`] = `
   <states>
     <ARRAY>
       <ITEM>
-        <State name="ariaDialogTrigger.isOpen" uuid="WWAR4e_xlUN9" variableType="boolean" accessType="writable" onChangeProp="onOpenChange" elementUuid="WAQLbjkAZ5OA"></State>
+        <State name="ariaDialogTrigger.isOpen" uuid="WWAR4e_xlUN9" variableType="boolean" accessType="writable" valueProp="isOpen" onChangeProp="onOpenChange" elementUuid="WAQLbjkAZ5OA"></State>
       </ITEM>
       <ITEM>
         <State name="ariaModal.isOpen" uuid="46ap1DPcso29" variableType="boolean" accessType="private" elementUuid="8STuIQigZ3vG"></State>
@@ -1928,7 +1928,7 @@ Join our Slack community (icon in bottom left) for help any time.</div>
   <states>
     <ARRAY>
       <ITEM>
-        <State name="ariaDialogTrigger.isOpen" uuid="O7tuIIZ_EZem" variableType="boolean" accessType="writable" onChangeProp="onOpenChange" elementUuid="6A5IRex_ZR1p"></State>
+        <State name="ariaDialogTrigger.isOpen" uuid="O7tuIIZ_EZem" variableType="boolean" accessType="writable" valueProp="isOpen" onChangeProp="onOpenChange" elementUuid="6A5IRex_ZR1p"></State>
       </ITEM>
       <ITEM>
         <State name="ariaModal.isOpen" uuid="a47VEnYBuvqj" variableType="boolean" accessType="private" elementUuid="PHvR-wvOnOUX"></State>
@@ -2156,7 +2156,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
   <states>
     <ARRAY>
       <ITEM>
-        <State name="ariaDialogTrigger.isOpen" uuid="hBnA9ChRWOJ2" variableType="boolean" accessType="writable" onChangeProp="onOpenChange" elementUuid="HZQuYqG0j_TX"></State>
+        <State name="ariaDialogTrigger.isOpen" uuid="hBnA9ChRWOJ2" variableType="boolean" accessType="writable" valueProp="isOpen" onChangeProp="onOpenChange" elementUuid="HZQuYqG0j_TX"></State>
       </ITEM>
     </ARRAY>
   </states>
@@ -2280,7 +2280,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
   <states>
     <ARRAY>
       <ITEM>
-        <State name="ariaRadioGroup.value" uuid="Zgka_BaU1U1J" variableType="array" accessType="writable" onChangeProp="onChange" elementUuid="VjDG6dqVYVzS"></State>
+        <State name="ariaRadioGroup.value" uuid="Zgka_BaU1U1J" variableType="array" accessType="writable" valueProp="value" onChangeProp="onChange" elementUuid="VjDG6dqVYVzS"></State>
       </ITEM>
     </ARRAY>
   </states>
@@ -2384,7 +2384,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
   <states>
     <ARRAY>
       <ITEM>
-        <State name="ariaRangeSlider.value" uuid="-szCRSoc-rJp" variableType="array" accessType="writable" onChangeProp="onChange" elementUuid="ZRpvtB4bErD6"></State>
+        <State name="ariaRangeSlider.value" uuid="-szCRSoc-rJp" variableType="array" accessType="writable" valueProp="value" onChangeProp="onChange" elementUuid="ZRpvtB4bErD6"></State>
       </ITEM>
     </ARRAY>
   </states>
@@ -2516,10 +2516,10 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
   <states>
     <ARRAY>
       <ITEM>
-        <State name="ariaSelect.isOpen" uuid="4SNnUAN6pQ9S" variableType="boolean" accessType="writable" onChangeProp="onOpenChange" elementUuid="P6ldrdX5EJky"></State>
+        <State name="ariaSelect.isOpen" uuid="4SNnUAN6pQ9S" variableType="boolean" accessType="writable" valueProp="isOpen" onChangeProp="onOpenChange" elementUuid="P6ldrdX5EJky"></State>
       </ITEM>
       <ITEM>
-        <State name="ariaSelect.selectedValue" uuid="MTY4BeRazZTi" variableType="text" accessType="writable" onChangeProp="onChange" elementUuid="P6ldrdX5EJky"></State>
+        <State name="ariaSelect.selectedValue" uuid="MTY4BeRazZTi" variableType="text" accessType="writable" valueProp="value" onChangeProp="onChange" elementUuid="P6ldrdX5EJky"></State>
       </ITEM>
       <ITEM>
         <State name="type" uuid="wN7Z5EgViD0q" variableType="variant" accessType="private"></State>
@@ -2638,7 +2638,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
   <states>
     <ARRAY>
       <ITEM>
-        <State name="ariaSlider.value" uuid="z4733k960gUc" variableType="number" accessType="writable" onChangeProp="onChange" elementUuid="QE2I6Xu6adAX"></State>
+        <State name="ariaSlider.value" uuid="z4733k960gUc" variableType="number" accessType="writable" valueProp="value" onChangeProp="onChange" elementUuid="QE2I6Xu6adAX"></State>
       </ITEM>
     </ARRAY>
   </states>
@@ -2748,7 +2748,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
   <states>
     <ARRAY>
       <ITEM>
-        <State name="ariaSwitch.isSelected" uuid="-KQ--oGB1A43" variableType="boolean" accessType="writable" onChangeProp="onChange" elementUuid="qOaYUalmx_Mw"></State>
+        <State name="ariaSwitch.isSelected" uuid="-KQ--oGB1A43" variableType="boolean" accessType="writable" valueProp="isSelected" onChangeProp="onChange" elementUuid="qOaYUalmx_Mw"></State>
       </ITEM>
     </ARRAY>
   </states>
@@ -2996,7 +2996,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
   <states>
     <ARRAY>
       <ITEM>
-        <State name="ariaTextField.value" uuid="kZEkBx_AeP79" variableType="text" accessType="writable" onChangeProp="onChange" elementUuid="NESDFXPGRUxY"></State>
+        <State name="ariaTextField.value" uuid="kZEkBx_AeP79" variableType="text" accessType="writable" valueProp="value" onChangeProp="onChange" elementUuid="NESDFXPGRUxY"></State>
       </ITEM>
       <ITEM>
         <State name="multiLine" uuid="J1a1T5Z8YB1I" variableType="variant" accessType="private"></State>
@@ -3343,7 +3343,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
   <states>
     <ARRAY>
       <ITEM>
-        <State name="ariaInput.value" uuid="sEAycUKOkOJe" variableType="text" accessType="writable" onChangeProp="onChange" elementUuid="PzECf6Nfa4vE"></State>
+        <State name="ariaInput.value" uuid="sEAycUKOkOJe" variableType="text" accessType="writable" valueProp="value" onChangeProp="onChange" elementUuid="PzECf6Nfa4vE"></State>
       </ITEM>
       <ITEM>
         <State name="type" uuid="VaTmIkYmhT5D" variableType="variant" accessType="private"></State>
@@ -3647,7 +3647,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
   <states>
     <ARRAY>
       <ITEM>
-        <State name="ariaTextArea.value" uuid="L1AvEltDyZ2_" variableType="text" accessType="writable" onChangeProp="onChange" elementUuid="yx_4PVCh-WFR"></State>
+        <State name="ariaTextArea.value" uuid="L1AvEltDyZ2_" variableType="text" accessType="writable" valueProp="value" onChangeProp="onChange" elementUuid="yx_4PVCh-WFR"></State>
       </ITEM>
       <ITEM>
         <State name="type" uuid="nL4iCiwXiGhz" variableType="variant" accessType="private"></State>
@@ -3863,7 +3863,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
   <states>
     <ARRAY>
       <ITEM>
-        <State name="ariaTooltip.isOpen" uuid="a_wqJulunKCd" variableType="boolean" accessType="writable" onChangeProp="onOpenChange" elementUuid="1FRybYqMkhR8"></State>
+        <State name="ariaTooltip.isOpen" uuid="a_wqJulunKCd" variableType="boolean" accessType="writable" valueProp="isOpen" onChangeProp="onOpenChange" elementUuid="1FRybYqMkhR8"></State>
       </ITEM>
     </ARRAY>
   </states>
@@ -5255,6 +5255,7 @@ exports[`Component Serialization > serializes all components 2`] = `
         "name": "ariaCheckbox.isSelected",
         "onChangeProp": "onChange",
         "uuid": "PARs2uSgmnFT",
+        "valueProp": "isSelected",
         "variableType": "boolean",
       },
     ],
@@ -5381,6 +5382,7 @@ exports[`Component Serialization > serializes all components 2`] = `
         "name": "ariaCheckboxGroup.value",
         "onChangeProp": "onChange",
         "uuid": "9jCOvXOQ2Ocf",
+        "valueProp": "value",
         "variableType": "array",
       },
     ],
@@ -5552,6 +5554,7 @@ exports[`Component Serialization > serializes all components 2`] = `
         "name": "ariaComboBox.isOpen",
         "onChangeProp": "onOpenChange",
         "uuid": "vzyiFOUgHYmh",
+        "valueProp": "isOpen",
         "variableType": "boolean",
       },
       {
@@ -5561,6 +5564,7 @@ exports[`Component Serialization > serializes all components 2`] = `
         "name": "ariaComboBox.selectedValue",
         "onChangeProp": "onChange",
         "uuid": "BhDADAjRzJxn",
+        "valueProp": "value",
         "variableType": "text",
       },
       {
@@ -5823,6 +5827,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
         "name": "ariaDialogTrigger.isOpen",
         "onChangeProp": "onOpenChange",
         "uuid": "WWAR4e_xlUN9",
+        "valueProp": "isOpen",
         "variableType": "boolean",
       },
       {
@@ -6603,6 +6608,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
         "name": "ariaDialogTrigger.isOpen",
         "onChangeProp": "onOpenChange",
         "uuid": "O7tuIIZ_EZem",
+        "valueProp": "isOpen",
         "variableType": "boolean",
       },
       {
@@ -6866,6 +6872,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
         "name": "ariaDialogTrigger.isOpen",
         "onChangeProp": "onOpenChange",
         "uuid": "hBnA9ChRWOJ2",
+        "valueProp": "isOpen",
         "variableType": "boolean",
       },
     ],
@@ -7036,6 +7043,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
         "name": "ariaRadioGroup.value",
         "onChangeProp": "onChange",
         "uuid": "Zgka_BaU1U1J",
+        "valueProp": "value",
         "variableType": "array",
       },
     ],
@@ -7188,6 +7196,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
         "name": "ariaRangeSlider.value",
         "onChangeProp": "onChange",
         "uuid": "-szCRSoc-rJp",
+        "valueProp": "value",
         "variableType": "array",
       },
     ],
@@ -7345,6 +7354,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
         "name": "ariaSelect.isOpen",
         "onChangeProp": "onOpenChange",
         "uuid": "4SNnUAN6pQ9S",
+        "valueProp": "isOpen",
         "variableType": "boolean",
       },
       {
@@ -7354,6 +7364,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
         "name": "ariaSelect.selectedValue",
         "onChangeProp": "onChange",
         "uuid": "MTY4BeRazZTi",
+        "valueProp": "value",
         "variableType": "text",
       },
       {
@@ -7552,6 +7563,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
         "name": "ariaSlider.value",
         "onChangeProp": "onChange",
         "uuid": "z4733k960gUc",
+        "valueProp": "value",
         "variableType": "number",
       },
     ],
@@ -7679,6 +7691,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
         "name": "ariaSwitch.isSelected",
         "onChangeProp": "onChange",
         "uuid": "-KQ--oGB1A43",
+        "valueProp": "isSelected",
         "variableType": "boolean",
       },
     ],
@@ -8158,6 +8171,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
         "name": "ariaTextField.value",
         "onChangeProp": "onChange",
         "uuid": "kZEkBx_AeP79",
+        "valueProp": "value",
         "variableType": "text",
       },
       {
@@ -8709,6 +8723,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
         "name": "ariaInput.value",
         "onChangeProp": "onChange",
         "uuid": "sEAycUKOkOJe",
+        "valueProp": "value",
         "variableType": "text",
       },
       {
@@ -9126,6 +9141,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
         "name": "ariaTextArea.value",
         "onChangeProp": "onChange",
         "uuid": "L1AvEltDyZ2_",
+        "valueProp": "value",
         "variableType": "text",
       },
       {
@@ -9575,6 +9591,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
         "name": "ariaTooltip.isOpen",
         "onChangeProp": "onOpenChange",
         "uuid": "a_wqJulunKCd",
+        "valueProp": "isOpen",
         "variableType": "boolean",
       },
     ],

@@ -1,0 +1,7 @@
+{
+  "en": "Fix Tabs controlled activeKey, initial defaultActiveKey, state interactions and MCP property contracts.",
+  "zh-CN": "修复 Tabs 受控 activeKey、初始 defaultActiveKey、状态交互与 MCP 属性契约。",
+  "zh-TW": "修復 Tabs 受控 activeKey、初始 defaultActiveKey、狀態互動與 MCP 屬性契約。",
+  "ja": "Tabs の activeKey、defaultActiveKey、状態連携と MCP プロパティ契約を修正しました。",
+  "ko": "Tabs의 activeKey, defaultActiveKey, 상태 연동 및 MCP 속성 계약을 수정했습니다."
+}

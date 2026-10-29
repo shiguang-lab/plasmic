@@ -490,7 +490,14 @@ function readNativeModel(studio: StudioCtx, component: Component, tpl: TplNode |
     if (options.view === "contract" && isCodeComponent(component) && fields.some((field) => ["props", "refActions", "globalActions"].includes(field))) {
       assert(registration, `Live registration is unavailable for "${component.name}" (${component.uuid}). The stored model does not contain complete argument or validation contracts. Check the installed component library's registration artifact before retrying; do not infer missing signatures from method names.`);
     }
-    if (fields.includes("props") && registration && Array.isArray(resource.props)) { resource.props = withRegisteredContracts(resource.props, registration.props); }
+    if (fields.includes("props") && registration && Array.isArray(resource.props)) {
+      // Component contracts use registered names; exported instance markup may
+      // instead use the uncontrolled prop recorded in param.propEffect.
+      resource.props = withRegisteredContracts(resource.props.map((prop) => {
+        const param = component.params.find((param) => param.uuid === prop.uuid);
+        return param ? { ...prop, name: param.variable.name } : prop;
+      }), registration.props);
+    }
     if (contextRegistration?.description) {resource.description = contextRegistration.description;}
     if (fields.includes("globalActions") && contextRegistration) {
       resource.globalActions = Object.entries(contextRegistration.globalActions ?? {}).map(([name, action]) => ({
@@ -1192,7 +1199,7 @@ function planMutation(studio: StudioCtx, operation: PrototypeMutation, assets: M
               `Cannot set and reset ${name} in one call`,
             );
             const param = tpl.component.params.find(
-              (p) => paramToVarName(tpl.component, p) === name,
+              (p) => paramToVarName(tpl.component, p, { useControlledProp: true }) === name || paramToVarName(tpl.component, p) === name,
             );
             if (!param) {
               messages.push(`Ignored reset of unknown component prop "${name}".`);

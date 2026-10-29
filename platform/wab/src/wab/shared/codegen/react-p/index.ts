@@ -275,6 +275,7 @@ import {
   getStateDisplayName,
   getStateOnChangePropName,
   getStateValuePropName,
+  hasExplicitStateValue,
   getStateVarName,
   isReadonlyState,
   isWritableState,
@@ -2185,13 +2186,16 @@ export function serializeTplComponentBase(
         const maybeOnChangePropName = getStateOnChangePropName(
           state.implicitState,
         );
+        const explicitValue = hasExplicitStateValue(state, attrs)
+          ? attrs[getStateValuePropName(state.implicitState)] : undefined;
         if (maybeOnChangePropName) {
           const pushEventHandler = (handlerCode: string) => {
             withDefaultFunc(
               builtinEventHandlers,
               maybeOnChangePropName,
               () => [],
-            ).push(handlerCode);
+            ).push(explicitValue === undefined ? handlerCode :
+              `(${explicitValue}) === undefined ? (${handlerCode}) : (() => {})`);
           };
           if (node.component.plumeInfo) {
             const plugin = getPlumeCodegenPlugin(node.component);
@@ -2230,6 +2234,10 @@ export function serializeTplComponentBase(
                   ? `?? ""`
                   : ""
             }`;
+          if (explicitValue !== undefined) {
+            const valueProp = getStateValuePropName(state.implicitState);
+            attrs[valueProp] = `((value: any) => value === undefined ? (${attrs[valueProp]}) : value)(${explicitValue})`;
+          }
         }
       });
 

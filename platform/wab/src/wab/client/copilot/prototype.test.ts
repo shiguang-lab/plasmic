@@ -2,6 +2,7 @@ import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import { mockDeepAuto } from "@/wab/__testonly__/mock";
 import { ViewportCtx } from "@/wab/client/studio-ctx/ViewportCtx";
 import { Pt } from "@/wab/shared/geom";
+import { FastBundler } from "@/wab/shared/bundler";
 import { svgData } from "@/wab/client/clipboard/__testonly__/clipboard-test-data";
 import { COPILOT_TOOLS } from "@/wab/client/copilot";
 import * as htmlImporter from "@/wab/client/operations/html-to-tpl";
@@ -9,17 +10,19 @@ import { RSH } from "@/wab/shared/RuleSetHelpers";
 import { ensureBaseVariantSetting, getBaseVariant } from "@/wab/shared/Variants";
 import { getTplComponentArg } from "@/wab/shared/TplMgr";
 import { fillVirtualSlotContents, isSlot } from "@/wab/shared/SlotUtils";
-import { mkCodeComponent } from "@/wab/shared/code-components/code-components";
+import { mkCodeComponent, propMetasToComponentParams } from "@/wab/shared/code-components/code-components";
 import { mkServerQuery } from "@/wab/shared/codegen/react-p/server-queries/__testonly__/test-utils";
 import { ensure } from "@/wab/shared/common";
 import { mapCopilotToolsToJsonSchema } from "@/wab/shared/copilot/copilot-tool-types";
 import { PROTOTYPE_TOOL_META } from "@/wab/shared/copilot/prototype-tools";
-import { ComponentType, mkComponent } from "@/wab/shared/core/components";
+import { ComponentType, mkComponent, getRealParams } from "@/wab/shared/core/components";
 import { codeLit, customCode, tryExtractJson } from "@/wab/shared/core/exprs";
 import { mkParam } from "@/wab/shared/core/lang";
-import { createSite } from "@/wab/shared/core/sites";
+import { ensureOk } from "@/wab/commons/neverthrow-utils";
+import { createSite, writeable } from "@/wab/shared/core/sites";
 import {
   addComponentState,
+  mkNamedState,
   mkValueStateForTextInput,
 } from "@/wab/shared/core/states";
 import * as taggedUnbundle from "@/wab/shared/core/tagged-unbundle";
@@ -30,6 +33,8 @@ import {
   isKnownTplComponent,
   isKnownTplTag,
   ensureKnownTplTag,
+  ensureKnownStateParam,
+  ensureKnownPropParam,
 } from "@/wab/shared/model/classes";
 import { typeFactory } from "@/wab/shared/model/model-util";
 import { runInAction } from "mobx";
@@ -61,6 +66,50 @@ function fixture(site = createSite()) {
 }
 
 describe("AI prototype editor tools", () => {
+  it.each([true, false])("reads and edits registered state props without losing their native contract (editOnly=%s)", async (editOnly) => {
+    const site = createSite();
+    const meta = {
+      name: "ContractTabs", importPath: "./ContractTabs", props: {
+        activeKey: { type: "choice", options: ["first", "second"], ...(editOnly ? { editOnly: true, uncontrolledProp: "defaultActiveKey" } : {}) },
+        ...(!editOnly ? { defaultActiveKey: { type: "choice", options: ["first", "second"] } } : {}),
+        onChange: { type: "eventHandler", argTypes: [{ name: "activeKey", type: "string" }] },
+      },
+      states: { activeKey: { type: "writable", valueProp: "activeKey", onChangeProp: "onChange", variableType: "text" } },
+    };
+    const definition = mkCodeComponent(meta.name, meta as any, {});
+    definition.params.push(...ensureOk(propMetasToComponentParams(meta.props as any, site, meta.name, meta as any)));
+    definition.states.push(mkNamedState({
+      name: "activeKey", param: ensureKnownStateParam(ensure(definition.params.find((p) => p.variable.name === "activeKey"), "Missing activeKey")),
+      onChangeParam: ensureKnownPropParam(ensure(definition.params.find((p) => p.variable.name === "onChange"), "Missing onChange")),
+      accessType: "writable", variableType: "text",
+    }));
+    writeable(definition.states[0].param).state = definition.states[0];
+    site.components.push(definition);
+    const { studioCtx, call, createPage } = fixture(site);
+    (studioCtx as any).hostLessPkgsFrame.contentWindow.__PlasmicComponentRegistry = [{ component: () => null, meta }];
+    (studioCtx as any).hostLessRegistry.clear();
+    const contract = (await call("read", { componentUuids: [definition.uuid], view: "contract" })).results[0];
+    expect(contract.props.find((p: any) => p.name === "activeKey").registration).toMatchObject({ type: "choice", ...(editOnly ? { editOnly: true, uncontrolledProp: "defaultActiveKey" } : {}) });
+    expect(contract.states).toEqual([expect.objectContaining({ name: "activeKey", accessType: "writable", valueProp: "activeKey", onChangeProp: "onChange" })]);
+    if (!editOnly) {
+      expect(contract.props.map((p: any) => p.name)).toContain("defaultActiveKey");
+      expect(getRealParams(definition).map((p) => p.variable.name)).toEqual(expect.arrayContaining(["activeKey", "defaultActiveKey"]));
+    }
+    const page = await createPage("TabsPage");
+    await call("insertHtml", { componentUuid: page.uuid, html: `<plasmic-component data-plasmic-component="ContractTabs" data-plasmic-name="Tabs" data-props='{"activeKey":"second"}'></plasmic-component>` });
+    const instance = ensure(flattenTpls(page.tplTree).find(isKnownTplComponent), "Missing tabs");
+    expect(tryExtractJson(ensure(instance.vsettings[0].args.find((arg) => arg.param.variable.name === "activeKey"), "Missing activeKey arg").expr)).toBe("second");
+    if (!editOnly) {
+      await call("changeElement", { componentUuid: page.uuid, elementUuid: instance.uuid, props: { defaultActiveKey: "first" } });
+      const saved = studioCtx.bundleSite().site;
+      const reopenedSite = taggedUnbundle.unbundleSite(new FastBundler(), studioCtx.siteInfo.id, saved, []).site;
+      const reopened = fixture(reopenedSite);
+      const properties = (await reopened.call("read", { elements: [{ componentUuid: page.uuid, elementUuid: instance.uuid }], view: "properties" })).results[0].properties;
+      expect(properties).toMatchObject({ activeKey: "second", defaultActiveKey: "first" });
+    }
+    await call("changeElement", { componentUuid: page.uuid, elementUuid: instance.uuid, resetProps: ["activeKey"] });
+    expect(instance.vsettings[0].args.some((arg) => arg.param.variable.name === "activeKey")).toBe(false);
+  });
   it("creates only native Desktop columns and one complete shared page overview", async () => {
     const { call, createPage, studioCtx } = fixture();
     await createPage("List");
