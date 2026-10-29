@@ -2,54 +2,46 @@ import { parseProjectLocation } from "@/wab/client/cli-routes";
 import { showCanvasPageNavigationNotification } from "@/wab/client/components/canvas/studio-canvas-util";
 import {
   DEVICE_VIEWPORTS,
+  PreviewViewportMode,
   isViewportDimension,
   parseViewportMode,
-  PreviewViewportMode,
 } from "@/wab/client/components/live/preview-viewport";
 import { ClientPinManager } from "@/wab/client/components/variants/ClientPinManager";
 import { HostFrameCtx } from "@/wab/client/frame-ctx/host-frame-ctx";
-import { getUiLocale } from "@/wab/client/i18n";
-import { translate } from "@/wab/client/i18n/locales";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { withProvider } from "@/wab/commons/components/ContextUtil";
 import { MainBranchId, ProjectId } from "@/wab/shared/ApiSchema";
 import { getFrameHeight } from "@/wab/shared/Arenas";
-import { toVarName } from "@/wab/shared/codegen/util";
 import {
-  ensure,
-  hackyCast,
-  spawn,
-  spawnWrapper,
-  tuple,
-} from "@/wab/shared/common";
+  VariantCombo,
+  getReferencedVariantGroups,
+  isGlobalVariant,
+} from "@/wab/shared/Variants";
+import { toVarName } from "@/wab/shared/codegen/util";
+import { ensure, hackyCast, spawn, tuple } from "@/wab/shared/common";
 import {
   allComponentNonStyleVariants,
   allComponentVariants,
 } from "@/wab/shared/core/components";
 import { allGlobalVariants } from "@/wab/shared/core/sites";
 import { Component, Variant } from "@/wab/shared/model/classes";
-import { FramePinManager } from "@/wab/shared/PinManager";
 import {
   APP_ROUTES,
-  mkProjectLocation,
   SEARCH_PARAM_BRANCH,
+  mkProjectLocation,
 } from "@/wab/shared/route/app-routes";
-import { Route } from "@/wab/shared/route/route";
+import { getPublicUrl } from "@/wab/shared/urls";
 import {
-  getMatchingPagePathParams,
-  joinDecodedSegments,
-  substituteUrlParams,
-} from "@/wab/shared/utils/url-utils";
-import {
-  getReferencedVariantGroups,
-  isGlobalVariant,
-  VariantCombo,
-} from "@/wab/shared/Variants";
+  findPreviewPage,
+  formatBusinessHref,
+  readBusinessLocation,
+  readBusinessQuery,
+  resolveBusinessHref,
+  type BusinessQuery,
+} from "@plasmic-shared/preview";
 import * as Sentry from "@sentry/browser";
-import { notification } from "antd";
-import { Location, parsePath } from "history";
+import { Location, createPath, parsePath } from "history";
 import _ from "lodash";
-import * as mobx from "mobx";
 import { makeObservable, observable } from "mobx";
 import React from "react";
 
@@ -59,6 +51,7 @@ const DEFAULT_VIEWPORT_HEIGHT = 480;
 /** All the input data required to make a preview route. */
 interface PreviewInputData {
   full: boolean;
+  presentationCode?: string;
   viewport: PreviewViewportMode;
   /**
    * Can be either:
@@ -71,11 +64,11 @@ interface PreviewInputData {
         /** Component/page. */
         component: Component;
         /** Page params that will be substituted into the page's path, e.g. { id: 123 } for "my-page/123" */
-        pageParams?: Record<string, string>;
+        pageParams?: Record<string, string | string[]>;
       }
     | string;
   /** Query params in the URL, e.g. { q: foo } for "my-page?q=foo" */
-  pageQuery: Record<string, string>;
+  pageQuery: BusinessQuery;
   /** Hash in the URL, e.g. #bar for "my-page#bar" */
   pageHash: string;
   allVariants: VariantCombo;
@@ -86,7 +79,7 @@ interface PreviewInputData {
 
 /** Preview input data plus extra output data, parsed from the route. */
 interface PreviewDataOutput extends PreviewInputData {
-  /** Everything after https://studio.plasmic.app/projects/123/preview/, e.g. "my-page?foo=bar#baz" */
+  /** The resolved business pathname, independently of the enclosing preview URL. */
   previewPath: string;
   variants: Record<string, string | string[]>;
   global: Record<string, string | string[]>;
@@ -107,7 +100,11 @@ export class PreviewCtx {
   }
 
   get canGoForward() {
-    return this.isLive && !this.navigating && this.navigationIndex < this.navigationEntries.length - 1;
+    return (
+      this.isLive &&
+      !this.navigating &&
+      this.navigationIndex < this.navigationEntries.length - 1
+    );
   }
 
   private recordNavigation(location: Location) {
@@ -119,9 +116,16 @@ export class PreviewCtx {
     const current = this.navigationEntries[this.navigationIndex];
     // Device sizes and variant controls are presentation settings, not pages.
     const pageKey = (entry: Partial<Location>) =>
-      JSON.stringify([entry.pathname, entry.search, new URLSearchParams(entry.hash?.replace(/^#/, "")).get("pageHash")]);
+      JSON.stringify([
+        entry.pathname,
+        entry.hash,
+        new URLSearchParams(entry.search).get("component"),
+      ]);
     if (!current || pageKey(current) !== pageKey(location)) {
-      this.navigationEntries = this.navigationEntries.slice(0, this.navigationIndex + 1);
+      this.navigationEntries = this.navigationEntries.slice(
+        0,
+        this.navigationIndex + 1,
+      );
       this.navigationEntries.push(location);
       this.navigationIndex++;
     } else {
@@ -142,19 +146,31 @@ export class PreviewCtx {
   }
 
   private async goToNavigationEntry(index: number) {
-    const location = ensure(this.navigationEntries[index], "Missing Preview history entry");
-    const hash = new URLSearchParams(location.hash?.replace(/^#/, ""));
-    const currentHash = new URLSearchParams(this.hostFrameCtx.history.location.hash.replace(/^#/, ""));
+    const location = ensure(
+      this.navigationEntries[index],
+      "Missing Preview history entry",
+    );
+    const settings = new URLSearchParams(location.search);
+    const currentSettings = new URLSearchParams(
+      this.hostFrameCtx.history.location.search,
+    );
     for (const key of ["viewport", "width", "height"]) {
-      const value = currentHash.get(key);
-      if (value === null) { hash.delete(key); } else { hash.set(key, value); }
+      const value = currentSettings.get(key);
+      if (value === null) {
+        settings.delete(key);
+      } else {
+        settings.set(key, value);
+      }
     }
     const previousIndex = this.navigationIndex;
     this.navigating = true;
     this.navigationIndex = index;
     try {
       // Replace the Studio route; never traverse the editor's browser history.
-      await this.pushRouteToHistoryOrPopup({ ...location, hash: hash.size ? `#${hash}` : "" }, true);
+      await this.pushRouteToHistory(
+        { ...location, search: settings.size ? `?${settings}` : "" },
+        true,
+      );
     } catch (error) {
       this.navigationIndex = previousIndex;
       throw error;
@@ -221,19 +237,19 @@ export class PreviewCtx {
 
   /**
    * True if current window is a preview URl.
-   * Note this is false if a preview popup is showing.
    */
   isLive = false;
-  popup: Window | undefined = undefined;
 
   constructor(
     public hostFrameCtx: HostFrameCtx,
     public studioCtx: StudioCtx,
   ) {
-    makeObservable<this, "navigationEntries" | "navigationIndex" | "navigating">(this, {
+    makeObservable<
+      this,
+      "navigationEntries" | "navigationIndex" | "navigating"
+    >(this, {
       previewData: observable,
       isLive: observable,
-      popup: observable,
       navigationEntries: observable.shallow,
       navigationIndex: observable,
       navigating: observable,
@@ -262,49 +278,6 @@ export class PreviewCtx {
     // Trigger initial history listener
     historyListener(hostFrameCtx.history.location);
 
-    // This reaction is only for the popup live window.
-    // It updates the popup to reflect the current component and variant settings in the editor.
-    this.disposals.push(
-      mobx.reaction(
-        async () => {
-          if (!this.popup) {
-            return undefined;
-          }
-
-          const viewCtx = studioCtx.focusedViewCtx();
-          if (!viewCtx) {
-            return undefined;
-          }
-
-          const pinManager = new FramePinManager(
-            viewCtx.site,
-            viewCtx.arenaFrame(),
-          );
-
-          // For async reactions, make sure to reference all observables before the first await.
-
-          // We may have a popup, but it may not have fully loaded yet (i.e. popup URL is not live mode).
-          // Skip this reaction in this case.
-          const location = await this.getLocation();
-          if (!isLiveMode(location.pathname)) {
-            return undefined;
-          }
-          return {
-            viewCtx,
-            activeVariants: pinManager.activeNonBaseVariants(),
-          };
-        },
-        (promise) =>
-          spawnWrapper(async () => {
-            const res = await promise;
-            if (res) {
-              const { viewCtx, activeVariants } = res;
-              spawn(this.pushComponent(viewCtx.component, activeVariants));
-            }
-          })(),
-      ),
-    );
-
     const match = parseProjectLocation(this.studioCtx.appCtx.history.location);
     if (match && match.isPreview) {
       // If we started from live mode, go back to the same component when
@@ -326,16 +299,7 @@ export class PreviewCtx {
     if (this.isLive) {
       await this._stopLiveMode();
     } else {
-      if (this.popup) {
-        notification.error({
-          message: translate(
-            getUiLocale(),
-            "External preview window is already open.",
-          ),
-        });
-      } else {
-        await this._startLiveMode();
-      }
+      await this._startLiveMode();
     }
   }
 
@@ -351,84 +315,47 @@ export class PreviewCtx {
     this.previousLocation = history.location;
 
     const location = await getUrlsForLiveMode(this.studioCtx, false);
-    await this.pushRouteToHistoryOrPopup(location);
+    await this.pushRouteToHistory(location);
   }
 
   private async _stopLiveMode() {
-    await this.pushRouteToHistoryOrPopup(
+    await this.pushRouteToHistory(
       this.previousLocation ||
         APP_ROUTES.project.fill({ projectId: this.studioCtx.siteInfo.id }),
     );
   }
 
-  async setPopup(popup: Window | undefined) {
-    this.popup = popup;
-    if (this.popup) {
-      await this.parseRoute();
-    }
-  }
-
   async getLocation(): Promise<Location> {
-    if (this.popup) {
-      const promise = new Promise<Location>((resolve) => {
-        const listener = (event: MessageEvent) => {
-          if (
-            event.data.source === "plasmic-popup" &&
-            event.data.type === "location"
-          ) {
-            window.removeEventListener("message", listener);
-
-            const url = new URL(event.data.url);
-            resolve({
-              pathname: url.pathname,
-              search: url.search,
-              hash: url.hash,
-              state: null,
-              key: "",
-            });
-          }
-        };
-        window.addEventListener("message", listener);
-      });
-
-      this.popup.postMessage(
-        {
-          source: "plasmic-studio",
-          type: "getLocation",
-        },
-        "*",
-      );
-
-      return promise;
-    } else {
-      return this.hostFrameCtx.history.location;
-    }
+    return this.hostFrameCtx.history.location;
   }
 
   async parseRoute() {
     const location = await this.getLocation();
-    this.isLive = !this.popup && isLiveMode(this.hostFrameCtx.history.location.pathname);
+    this.isLive = isLiveMode(this.hostFrameCtx.history.location.pathname);
     if (!isLiveMode(location.pathname)) {
       this.previewData = undefined;
       return;
     }
 
-    let full = false;
-    let matchRoute = APP_ROUTES.projectPreview.parse(location.pathname);
-    if (!matchRoute) {
-      matchRoute = APP_ROUTES.projectFullPreview.parse(location.pathname);
-      if (matchRoute) {
-        full = true;
-      }
-    }
-
-    const previewPath = joinDecodedSegments(matchRoute?.previewPath);
-    const componentPath = getComponentByPath(this.studioCtx, previewPath);
-
-    const pageQuery = queryStringToRecord(location.search);
-
-    const hashParams = new URLSearchParams(_.trimStart(location.hash, "#"));
-    const pageHash = hashParams.get("pageHash") || "";
+    const presentation = APP_ROUTES.projectPresentation.parse(
+      location.pathname,
+    );
+    const full = !!presentation;
+    const business = readBusinessLocation(location.hash);
+    const settings = new URLSearchParams(location.search);
+    const previewPath = business.pathname;
+    const componentTarget = settings.get("component");
+    const componentPath = componentTarget
+      ? (() => {
+          const component = this.studioCtx.site.components.find(
+            (c) => c.uuid === componentTarget && !c.pageMeta,
+          );
+          return component ? { component, pageParams: {} } : null;
+        })()
+      : getComponentByPath(this.studioCtx, previewPath);
+    const pageQuery = readBusinessQuery(business.search);
+    const hashParams = settings;
+    const pageHash = business.hash;
     const viewport = parseViewportMode(hashParams.get("viewport"));
     const defaults =
       viewport === "phone" || viewport === "tablet"
@@ -476,6 +403,7 @@ export class PreviewCtx {
 
     this.previewData = {
       full,
+      presentationCode: presentation?.code,
       viewport,
       previewPath,
       componentPath: componentPath || previewPath,
@@ -506,27 +434,64 @@ export class PreviewCtx {
     });
   }
 
+  private resolveNavigation(href: string) {
+    const current = ensure(this.previewData, "Preview route missing");
+    return resolveBusinessHref(
+      href,
+      {
+        pathname: current.previewPath,
+        search: mkPreviewSearch(current.pageQuery),
+        hash: current.pageHash,
+      },
+      new URL(getPublicUrl()).origin,
+      this.hostFrameCtx.history.location.pathname,
+    );
+  }
+
+  hrefForNavigation(href: string) {
+    const destination = this.resolveNavigation(href);
+    if (!destination) {
+      return undefined;
+    }
+    const current = ensure(this.previewData, "Preview route missing");
+    const route = mkPreviewRoute(this.studioCtx.siteInfo.id, {
+      ...current,
+      componentPath: this.componentForNavigation(destination.pathname),
+      pageQuery: readBusinessQuery(destination.search),
+      pageHash: destination.hash,
+      allVariants:
+        destination.pathname === current.previewPath ? current.allVariants : [],
+    });
+    return new URL(createPath(route), getPublicUrl()).href;
+  }
+
+  private componentForNavigation(pathname: string) {
+    const current = ensure(this.previewData, "Preview route missing");
+    if (
+      pathname === current.previewPath &&
+      typeof current.componentPath !== "string" &&
+      !current.componentPath.component.pageMeta
+    ) {
+      return current.componentPath;
+    }
+    return getComponentByPath(this.studioCtx, pathname) || pathname;
+  }
+
   /** Handle navigation, whether via a link or an interaction. */
   async handleNavigation(href: string) {
-    if (href.startsWith("#")) {
-      const url = mkUrl(href);
-      const pageHash = url.hash;
-      return this.pushRoute({ pageHash });
-    } else if (href.startsWith("/")) {
-      const url = mkUrl(href);
-      const pageHash = url.hash;
-      const componentPath = getComponentByPath(this.studioCtx, url.pathname);
-      const pageQuery = queryStringToRecord(url.search);
-      return this.pushRoute({
-        componentPath: componentPath || url.pathname,
-        pageQuery,
-        pageHash,
-        allVariants: [],
-      });
-    } else {
-      // external link clicked, don't navigate, but show a notification instead
+    const current = ensure(this.previewData, "Preview route missing");
+    const destination = this.resolveNavigation(href);
+    if (!destination) {
       showCanvasPageNavigationNotification(this.studioCtx, href);
+      return;
     }
+    return this.pushRoute({
+      componentPath: this.componentForNavigation(destination.pathname),
+      pageQuery: readBusinessQuery(destination.search),
+      pageHash: destination.hash,
+      allVariants:
+        destination.pathname === current.previewPath ? current.allVariants : [],
+    });
   }
 
   /** Update the preview viewport. */
@@ -553,6 +518,7 @@ export class PreviewCtx {
     const prev = ensure(this.previewData, "missing previous previewData");
     const location = mkPreviewRoute(this.studioCtx.siteInfo.id, {
       full: prev.full,
+      presentationCode: prev.presentationCode,
       viewport: viewport ?? prev.viewport,
       componentPath: componentPath || prev.componentPath,
       pageQuery: pageQuery || prev.pageQuery,
@@ -562,45 +528,51 @@ export class PreviewCtx {
       allVariants: allVariants || prev.allVariants,
       branchName: branchName === undefined ? prev.branchName : branchName,
     });
-    return this.pushRouteToHistoryOrPopup(location);
+    return this.pushRouteToHistory(location);
   }
 
-  private async pushRouteToHistoryOrPopup(
+  private async pushRouteToHistory(
     location: string | Partial<Location>,
     replace = false,
   ): Promise<void> {
-    const target = typeof location === "string" ? parsePath(location) : location;
-    if (this.popup) {
-      this.popup.postMessage(
-        {
-          source: "plasmic-studio",
-          type: "pushHistory",
-          url: (target.pathname ?? "") + (target.search ?? "") + (target.hash ?? ""),
-        },
-        "*",
+    const target =
+      typeof location === "string" ? parsePath(location) : location;
+    const history = this.hostFrameCtx.history;
+    const expected = {
+      pathname: target.pathname ?? history.location.pathname,
+      search: target.search ?? "",
+      hash: target.hash ?? "",
+    };
+    const matches = (current: Location) =>
+      (["pathname", "search", "hash"] as const).every(
+        (key) => (current[key] || "") === (expected[key] || ""),
       );
-    } else {
-      const history = this.hostFrameCtx.history;
-      const expected = { pathname: target.pathname ?? history.location.pathname, search: target.search ?? "", hash: target.hash ?? "" };
-      const matches = (current: Location) =>
-        (["pathname", "search", "hash"] as const).every(
-          (key) => (current[key] || "") === (expected[key] || ""),
-        );
-      await new Promise<void>((resolve, reject) => {
-        const dispose = history.listen(({ location: current }) => {
-          if (matches(current)) { clearTimeout(timer); dispose(); resolve(); }
-        });
-        const timer = setTimeout(() => {
+    await new Promise<void>((resolve, reject) => {
+      const dispose = history.listen(({ location: current }) => {
+        if (matches(current)) {
+          clearTimeout(timer);
           dispose();
-          reject(new Error("Native Preview history synchronization timed out"));
-        }, 5000);
-        try {
-          this.studioCtx.appCtx.history[replace ? "replace" : "push"](target);
-          if (matches(history.location)) { clearTimeout(timer); dispose(); resolve(); }
-        } catch (error) { clearTimeout(timer); dispose(); reject(error); }
+          resolve();
+        }
       });
-      await this.parseRoute();
-    }
+      const timer = setTimeout(() => {
+        dispose();
+        reject(new Error("Native Preview history synchronization timed out"));
+      }, 5000);
+      try {
+        this.studioCtx.appCtx.history[replace ? "replace" : "push"](target);
+        if (matches(history.location)) {
+          clearTimeout(timer);
+          dispose();
+          resolve();
+        }
+      } catch (error) {
+        clearTimeout(timer);
+        dispose();
+        reject(error);
+      }
+    });
+    await this.parseRoute();
   }
 
   getVariants(): VariantCombo {
@@ -658,24 +630,11 @@ function isVariantActive(
   );
 }
 
-function mkPreviewPathname<PathParams extends {}>(
-  route: Route<PathParams>,
-  params: { [K in keyof PathParams]: string },
-) {
-  // We do not use Route.fill because the preview path's inner slashes must
-  // stay un-encoded, and path-to-regexp would percent-encode them.
-  let path = route.pattern;
-  for (const [k, v] of Object.entries(params)) {
-    const value = _.trim(hackyCast(v), "/");
-    path = path
-      .replace(`{/*${k}}`, value ? `/${value}` : "")
-      .replace(`:${k}`, value);
-  }
-  return path;
-}
-
 export function isLiveMode(pathname: string) {
-  return !!pathname.match("/preview");
+  return !!(
+    APP_ROUTES.projectPreview.parse(pathname) ||
+    APP_ROUTES.projectPresentation.parse(pathname)
+  );
 }
 
 function mkPreviewRoute(
@@ -683,27 +642,25 @@ function mkPreviewRoute(
   previewData: PreviewInputData,
 ): Partial<Location> {
   const { full, componentPath, pageQuery } = previewData;
-
-  const pathname = mkPreviewPathname(
-    full ? APP_ROUTES.projectFullPreview : APP_ROUTES.projectPreview,
-    {
-      projectId,
-      previewPath:
-        typeof componentPath === "string"
-          ? componentPath
-          : mkPreviewPath(componentPath.component, componentPath.pageParams),
-    },
-  );
-  const search = mkPreviewSearch(
-    pageQuery,
-    typeof componentPath === "string" ? undefined : componentPath.component,
-  );
-  const hash = mkPreviewHash(previewData);
-
+  const pathname = full
+    ? APP_ROUTES.projectPresentation.fill({
+        code: ensure(previewData.presentationCode, "Presentation code missing"),
+      })
+    : APP_ROUTES.projectPreview.fill({ projectId });
+  const settings = new URLSearchParams(mkPreviewSettings(previewData));
+  if (typeof componentPath !== "string" && !componentPath.component.pageMeta) {
+    settings.set("component", componentPath.component.uuid);
+  }
+  const path =
+    typeof componentPath === "string"
+      ? componentPath
+      : componentPath.component.pageMeta
+        ? mkPreviewPath(componentPath.component, componentPath.pageParams)
+        : "/";
   return {
     pathname,
-    search,
-    hash,
+    search: settings.size ? `?${settings}` : "",
+    hash: `#${path.startsWith("/") ? path : `/${path}`}${mkPreviewSearch(pageQuery)}${previewData.pageHash}`,
   };
 }
 
@@ -713,11 +670,14 @@ function mkPreviewRoute(
  */
 function mkPreviewPath(
   component: Component,
-  pageParams?: Record<string, string>,
+  pageParams?: Record<string, string | string[]>,
 ) {
   let path = component.pageMeta?.path || component.uuid;
   if (component.pageMeta) {
-    path = substituteUrlParams(path, pageParams || component.pageMeta.params);
+    path = formatBusinessHref({
+      pathname: path,
+      query: pageParams || component.pageMeta.params,
+    });
   }
   return path;
 }
@@ -726,18 +686,17 @@ function mkPreviewPath(
  * Makes a query string for a component.
  * If query params are not supplied, the default preview query params will be used.
  */
-function mkPreviewSearch(
-  pageQuery: Record<string, string> | undefined,
-  component: Component | undefined,
-) {
-  const search = new URLSearchParams(
-    pageQuery || component?.pageMeta?.query || {},
-  ).toString();
-  return search ? `?${search}` : "";
+function mkPreviewSearch(pageQuery: BusinessQuery | undefined) {
+  const query = new URLSearchParams();
+  for (const [key, value] of Object.entries(pageQuery || {})) {
+    for (const item of Array.isArray(value) ? value : [value]) {
+      query.append(key, item);
+    }
+  }
+  return query.size ? `?${query}` : "";
 }
 
-function mkPreviewHash({
-  pageHash,
+function mkPreviewSettings({
   full,
   viewport,
   width,
@@ -747,9 +706,6 @@ function mkPreviewHash({
 }: PreviewInputData) {
   const hashParams = new URLSearchParams();
 
-  if (pageHash) {
-    hashParams.set("pageHash", pageHash);
-  }
   if (!full && viewport !== "desktop") {
     hashParams.set("viewport", viewport);
     hashParams.set("width", `${width}`);
@@ -771,14 +727,28 @@ function mkPreviewHash({
     hashParams.set(SEARCH_PARAM_BRANCH, branchName);
   }
 
-  const hash = hashParams.toString();
-  return hash ? `#${hash}` : "";
+  return hashParams.toString();
 }
 
 export async function getUrlsForLiveMode(
   studioCtx: StudioCtx,
   full: boolean,
 ): Promise<Partial<Location>> {
+  const presentationCode = full
+    ? (await studioCtx.appCtx.api.createPresentation(studioCtx.siteInfo.id))
+        .code
+    : undefined;
+  if (
+    full &&
+    studioCtx.previewCtx?.isLive &&
+    studioCtx.previewCtx.previewData
+  ) {
+    return mkPreviewRoute(studioCtx.siteInfo.id, {
+      ...studioCtx.previewCtx.previewData,
+      full: true,
+      presentationCode,
+    });
+  }
   const viewCtx = await studioCtx.getPreviewInitialViewCtx();
   const arenaFrame = viewCtx.arenaFrame();
   const component = viewCtx.component;
@@ -797,6 +767,7 @@ export async function getUrlsForLiveMode(
 
   return mkPreviewRoute(studioCtx.siteInfo.id, {
     full,
+    presentationCode,
     viewport: "desktop",
     componentPath: {
       component: viewCtx.component,
@@ -811,81 +782,28 @@ export async function getUrlsForLiveMode(
   });
 }
 
-function mkUrl(href: string) {
-  return new URL(href, "http://fake-url");
-}
-
 export function getComponentByPath(
   studioCtx: StudioCtx,
   componentPath: string,
 ) {
-  const matchComponents = studioCtx.site.components
-    .filter(
-      (c) =>
-        c.uuid === componentPath ||
-        (c.pageMeta &&
-          getMatchingPagePathParams(c.pageMeta.path, componentPath)),
-    )
-    // If we have two pages with paths like `/products/foo` and
-    // `/products/[slug]`, we want to resolve to `/products/foo` to the first
-    // one and all others to the second one. So, we sort the matched components
-    // by the number of params in the path
+  const pages = studioCtx.site.components
+    .filter((c) => !!c.pageMeta)
     .map((c) => ({
-      component: c,
-      paramCount: [
-        ...Object.keys(
-          (c.pageMeta &&
-            getMatchingPagePathParams(c.pageMeta.path, componentPath)) ||
-            {},
-        ),
-      ].length,
-    }))
-    .sort(
-      ({ paramCount: paramCount1 }, { paramCount: paramCount2 }) =>
-        paramCount1 - paramCount2,
-    );
-
-  if (matchComponents.length === 0) {
+      id: c.uuid,
+      name: c.name,
+      path: ensure(c.pageMeta, "Page metadata missing").path,
+    }));
+  const match = findPreviewPage(pages, componentPath);
+  if (!match) {
     return null;
-  } else if (
-    // Check for multiple components with the minimum number of path params
-    matchComponents.length > 1 &&
-    matchComponents[0].paramCount === matchComponents[1].paramCount
-  ) {
-    const error = new Error("Preview path matched more than one component");
-    Sentry.captureException(error, {
-      extra: {
-        previewPath: componentPath,
-        matchComponents: matchComponents.map(({ component }) => ({
-          uuid: component.uuid,
-          name: component.name,
-          pagePath: component.pageMeta?.path,
-        })),
-      },
-    });
-  }
-
-  const { component } = matchComponents[0];
-  let pageParams = {};
-  if (component?.pageMeta) {
-    pageParams = getMatchingPagePathParams(
-      component.pageMeta.path,
-      componentPath,
-    );
   }
   return {
-    component,
-    pageParams,
+    component: ensure(
+      studioCtx.site.components.find((c) => c.uuid === match.page.id),
+      "Matched page missing",
+    ),
+    pageParams: match.params,
   };
-}
-
-function queryStringToRecord(query: string): Record<string, string> {
-  const url = mkUrl(query);
-  const record = {};
-  for (const [key, value] of url.searchParams) {
-    record[key] = value;
-  }
-  return record;
 }
 
 const PreviewCtxContext = React.createContext<PreviewCtx | undefined>(

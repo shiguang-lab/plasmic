@@ -156,7 +156,7 @@ export function absorbLinkClick(
 
 export function studioMode(studioCtx: StudioCtx) {
   // check preview and API explorer mode first since interactive mode might also be true even though preview mode is showing on top
-  if (studioCtx.previewCtx?.isLive || studioCtx.previewCtx?.popup) {
+  if (studioCtx.previewCtx?.isLive) {
     return "preview mode";
   } else if (studioCtx.isDocs) {
     return "API explorer";

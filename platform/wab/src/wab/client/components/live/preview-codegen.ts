@@ -98,8 +98,8 @@ export interface PreviewRoute {
   previewPath: string;
   variants: Record<string, unknown>;
   globals: Record<string, unknown>;
-  pageParams?: Record<string, string>;
-  pageQuery: Record<string, string>;
+  pageParams?: Record<string, string | string[]>;
+  pageQuery: Record<string, string | string[]>;
   appUser: Extract<PreviewRender, { root: string }>["appUser"];
 }
 

@@ -319,6 +319,16 @@ usage must be read from the actual model client, not inferred from byte counts.
 Run `npm test` for Desktop checks and `npx electron tests/reference-browser-native.cjs`
 for actual Chromium selection, navigation, isolation and import integration.
 
+## Presentation addresses
+
+Present opens the saved draft at the Studio origin under `/d/<code>#/<page-path>`.
+The stable project code is allocated on first use and retains project read permissions;
+it does not publish the draft. In-app Preview uses `/projects/<id>/preview#/<page-path>`.
+Both use design page paths and the shared business route resolver. Branch, variant,
+viewport and non-page component selections belong to the container query before `#`;
+business queries and anchors stay inside the fragment. Published websites use the
+public preview origin at `/s/<code>#/<page-path>` and read only the selected published bundle.
+
 ## Desktop updates and releases
 
 Updates use `desktop.config.json`'s HTTPS `updateUrl`. Feeds are partitioned by

@@ -123,9 +123,9 @@ test("reference tools reject Studio Preview and keep external CDP read-only", as
   const calls = [];
   controller.state = async () => ({ ready: true, projectId: "p", editorContext: { mode: "edit", canEdit: true } });
   controller.browser = { state: { url: "https://example.org" }, dispose() {}, command: async (input) => { calls.push(input); return { performed: input.action }; } };
-  await assert.rejects(controller.dispatch("reference_browser", { action: "load_page", url: "https://studio.example/projects/p/preview/page#live=true" }), /authenticated preview/);
+  await assert.rejects(controller.dispatch("reference_browser", { action: "load_page", url: "https://studio.example/projects/p/preview#/page#live=true" }), /authenticated preview/);
   await assert.rejects(controller.dispatch("reference_browser", { action: "load_page", url: "https://studio.example/projects/p" }), /external to Studio/);
-  controller.browser.state.url = "https://studio.example/projects/p/preview/page";
+  controller.browser.state.url = "https://studio.example/projects/p/preview#/page";
   await assert.rejects(controller.dispatch("import_reference", { action: "editable" }), /authenticated preview/);
   controller.browser.state.url = "https://example.org";
   await assert.rejects(controller.dispatch("reference_browser", { action: "cdp", method: "Input.dispatchMouseEvent", params: {} }), /read-only/);
@@ -149,7 +149,7 @@ test("reference tools reject source-free opens and unloaded sources before showi
   assert.deepEqual(calls, [{ action: "load_page", url: "https://example.org/reference" }]);
 });
 test("reference UI, capture and imports require an editable project in edit mode", async (t) => {
-  let url = "https://studio.example/projects/p/preview/page";
+  let url = "https://studio.example/projects/p/preview#/page";
   let state = { ready: true, projectId: "p", editorContext: { mode: "edit", canEdit: true } };
   const win = { isDestroyed: () => false, webContents: { getURL: () => url } };
   const controller = new DesktopController(() => win, { studioOrigin: "https://studio.example" });
@@ -160,7 +160,7 @@ test("reference UI, capture and imports require an editable project in edit mode
   const editable = state;
   const contexts = [
     [url, editable],
-    ["https://studio.example/projects/p/preview-full/page", editable],
+    ["https://studio.example/d/0123456789#/page", editable],
     ["https://studio.example/workspaces/w", editable],
     ["https://studio.example/desktop/unified-login", editable],
     ["https://studio.example/projects/p/docs", editable],

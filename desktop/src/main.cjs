@@ -74,7 +74,7 @@ function openDesktopPreview(event, url) {
   const parsed = new URL(url);
   if (
     parsed.origin !== config.studioOrigin ||
-    !/^\/projects\/[^/]+\/preview-full(?:\/|$)/.test(parsed.pathname)
+    !/^\/d\/[\w-]{10}$/.test(parsed.pathname)
   ) {
     throw new Error("Invalid preview URL");
   }
@@ -124,7 +124,7 @@ function protectWindow(win) {
     const parsed = new URL(url);
     if (
       parsed.origin === config.studioOrigin &&
-      /^\/projects\/[^/]+\/preview-full(?:\/|$)/.test(parsed.pathname)
+      /^\/d\/[\w-]{10}$/.test(parsed.pathname)
     ) {
       void openBrowser(url);
       return { action: "deny" };

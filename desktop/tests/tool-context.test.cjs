@@ -26,7 +26,7 @@ function fixture(t, initialMode = "edit") {
   let url;
   const calls = [];
   const controller = new DesktopController(() => ({ isDestroyed: () => false,
-    webContents: { getURL: () => url || `https://studio.example/projects/project${context.mode === "preview" ? "/preview/page" : ""}` } }),
+    webContents: { getURL: () => url || `https://studio.example/projects/project${context.mode === "preview" ? "/preview#/page" : ""}` } }),
   { studioOrigin: "https://studio.example" });
   t.after(() => controller.close());
   controller.state = async () => ({ ready: true, projectId: "project", editorContext: { ...context } });
@@ -236,7 +236,7 @@ test("status distinguishes retained editor selection from native, external and i
 });
 
 test("root Preview routes are native Preview contexts, including the route without a trailing slash", () => {
-  for (const route of ["/preview", "/preview/", "/preview-full", "/preview-full/"]) {
+  for (const route of ["/preview", "/preview/"]) {
     const context = currentContext({ ready: true, projectId: "project", url: "https://studio.example/projects/project" + route,
       editorContext: { mode: "preview" } }, "https://studio.example");
     assert.equal(context.surface, "editor");

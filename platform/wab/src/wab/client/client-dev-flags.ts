@@ -48,7 +48,7 @@ export function getClientDevFlagOverrides(): DevFlagsType {
   if (flags.noObserve && typeof window !== "undefined") {
     if (
       typeof window === "undefined" ||
-      !window.location.href.includes("/preview-full")
+      !/^\/d\/[\w-]{10}$/.test(window.location.pathname)
     ) {
       console.warn(`Can only use noObserve=true for full preview!`);
       flags.noObserve = false;

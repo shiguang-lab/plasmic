@@ -1,3 +1,4 @@
+import { registerPresentationProject } from "@/wab/client/route/presentation-projects";
 import { fakeAppCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import { AntdConfigProvider } from "@/wab/client/antd-theme";
 import { StudioStartupBoundary } from "@/wab/client/components/studio/StudioChrome";
@@ -44,7 +45,7 @@ afterEach(cleanup);
 
 it("sends an anonymous private-project visitor to sign in with the original preview route", async () => {
   const { appCtx, api } = fakeAppCtx();
-  const route = "/projects/project/preview-full/customer-groups?branch=main#width=1440";
+  const route = "/d/0123456789?width=1440&branch=main#/customer-groups";
   window.history.replaceState(null, "", route);
   appCtx.history.replace(route);
   appCtx.selfInfo = null;
@@ -128,3 +129,5 @@ it("preserves the visible skeleton through metadata, host registration and dialo
   rendered.rerender(view());
   expect(screen.queryByRole("status")).toBeNull();
 });
+
+beforeEach(() => registerPresentationProject("0123456789", "project" as import("@/wab/shared/ApiSchema").ProjectId));

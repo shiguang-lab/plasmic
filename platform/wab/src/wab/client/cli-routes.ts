@@ -1,3 +1,5 @@
+import { presentationProject } from "@/wab/client/route/presentation-projects";
+import { readBusinessLocation } from "@plasmic-shared/preview";
 import { latestTag } from "@/wab/commons/semver";
 import { MainBranchId, isArenaType } from "@/wab/shared/ApiSchema";
 import { ensure } from "@/wab/shared/common";
@@ -14,13 +16,11 @@ import {
 } from "@/wab/shared/route/app-routes";
 import { Route } from "@/wab/shared/route/route";
 import { getPublicUrl } from "@/wab/shared/urls";
-import { joinDecodedSegments } from "@/wab/shared/utils/url-utils";
 import { History, Location, To, createPath } from "history";
-import { trimStart } from "lodash";
 
 export function isProjectPath(pathname: string) {
   return !!(
-    APP_ROUTES.project.parse(pathname) || APP_ROUTES.projectSlug.parse(pathname)
+    APP_ROUTES.project.parse(pathname) || APP_ROUTES.projectSlug.parse(pathname) || APP_ROUTES.projectPresentation.parse(pathname)
   );
 }
 
@@ -28,7 +28,7 @@ export function parseProjectLocation(
   location: Location,
 ): ProjectLocationParams | undefined {
   const searchParams = new URLSearchParams(location.search);
-  let branchName = searchParams.get(SEARCH_PARAM_BRANCH) || MainBranchId;
+  const branchName = searchParams.get(SEARCH_PARAM_BRANCH) || MainBranchId;
   const branchVersion = searchParams.get(SEARCH_PARAM_VERSION) || latestTag;
   const branchRevision = searchParams.get(SEARCH_PARAM_REVISION) || undefined;
   const arenaTypeString = searchParams.get(SEARCH_PARAM_ARENA_TYPE);
@@ -65,23 +65,14 @@ export function parseProjectLocation(
     };
   }
 
-  const matchProjectPreview =
-    APP_ROUTES.projectPreview.parse(location.pathname) ||
-    APP_ROUTES.projectFullPreview.parse(location.pathname);
-  if (matchProjectPreview) {
-    const previewHashParams = new URLSearchParams(
-      trimStart(location.hash, "#"),
-    );
-    branchName = previewHashParams.get(SEARCH_PARAM_BRANCH) || MainBranchId;
-    const previewPath = joinDecodedSegments(matchProjectPreview.previewPath);
+  const preview = APP_ROUTES.projectPreview.parse(location.pathname);
+  const presentation = APP_ROUTES.projectPresentation.parse(location.pathname);
+  const projectId = preview?.projectId || (presentation && presentationProject(presentation.code));
+  if (projectId) {
     return {
-      projectId: matchProjectPreview.projectId,
-      slug: undefined,
-      arenaType: undefined,
-      branchRevision: undefined,
-      branchName,
-      branchVersion: latestTag,
-      arenaUuidOrNameOrPath: previewPath,
+      projectId, slug: undefined, arenaType: undefined, branchRevision: undefined,
+      branchName, branchVersion: latestTag,
+      arenaUuidOrNameOrPath: readBusinessLocation(location.hash).pathname,
       isPreview: true,
     };
   }

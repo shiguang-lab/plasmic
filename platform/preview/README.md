@@ -12,8 +12,8 @@ changes and creates a project version when needed before building the website;
 it also works for projects that have never published a version. Use **Copy link**
 to share the result. Select **Update website when publishing a version** to include
 the website in the dialog's main **Publish** action.
-The link has the form `https://plasmic-preview.shiguanglab.com/s/<code>` and redirects
-to `/p/<code>/<page-path>`. Updating the website keeps that link. **Unpublish website**
+The link has the form `https://plasmic-preview.shiguanglab.com/s/<code>` and stays at `/s/<code>#/<page-path>`. The fragment contains the design page path,
+business query parameters and optional anchor; the server resolves only the publication code. Updating the website keeps that link. **Unpublish website**
 disables the public routes and removes the stored bundle; republishing reuses the link.
 
 Studio's publishing pipeline saves the project version, then updates a selected
@@ -36,7 +36,7 @@ sharing identical dependency modules and React contexts. Build cache keys includ
 artifact digests. Publishing never installs npm packages or reads a newer library
 from the server environment. Custom components registered only in a separate application host
 require their own runtime and are rejected with an explicit publishing error.
-Page links and navigation actions stay under the publication prefix, preserving
+Page links and navigation actions share the business URL resolver with Studio previews, preserving
 business routes, dynamic parameters and query strings. Browser interactions use
 the actual compiled components. Published Loader requests and prefill use the same
 artifact resolution, so Studio's version publication can finish before website publication. Existing data services retain their own access rules.

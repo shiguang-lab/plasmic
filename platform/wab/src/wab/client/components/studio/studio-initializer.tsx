@@ -281,10 +281,10 @@ class StudioInitializer_ extends React.Component<
                       </>
                     ),
                   }),
-                  switchCase({
+                  switchCase<{}>({
                     route: [
                       APP_ROUTES.projectPreview,
-                      APP_ROUTES.projectFullPreview,
+                      APP_ROUTES.projectPresentation,
                     ],
                     render: () => {
                       return (

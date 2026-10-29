@@ -1,3 +1,4 @@
+import { registerPresentationProject } from "@/wab/client/route/presentation-projects";
 import { AntdConfigProvider } from "@/wab/client/antd-theme";
 import { ApplicationPageLoading } from "@/wab/client/components/ApplicationPageLoading";
 import { LoadingError } from "@/wab/client/components/widgets/LoadingError";
@@ -114,10 +115,10 @@ it("keeps compact canvas placeholders from inheriting Antd's default input dimen
   }
 });
 
-it.each(["preview", "preview-full"])(
+it.each(["/projects/project/preview", "/d/0123456789"])(
   "uses preview loading without a startup boundary for %s",
   (mode) => {
-    const { container } = setup(`/projects/project/${mode}/home`);
+    const { container } = setup(`${mode}#/home`);
     expect(screen.getByText("Loading preview…")).toBeTruthy();
     expect(container.querySelectorAll(".preview-loading__page")).toHaveLength(
       3,
@@ -127,9 +128,9 @@ it.each(["preview", "preview-full"])(
 );
 
 it.each([
-  ["/projects/project/preview/home", "preview-startup-loading"],
-  ["/projects/project/preview-full/home", "preview-startup-loading"],
-  ["/projects/project/preview-full", "preview-startup-loading"],
+  ["/projects/project/preview#/home", "preview-startup-loading"],
+  ["/d/0123456789#/home", "preview-startup-loading"],
+  ["/d/0123456789#/", "preview-startup-loading"],
   ["/projects/project", "studio-startup-loading"],
   ["/projects/project/-/preview-full", "studio-startup-loading"],
 ])(
@@ -153,7 +154,7 @@ it.each([
       }),
     };
     new Function("window", "document", script ?? "")(
-      { location: { pathname } },
+      { location: { pathname: new URL(pathname, "http://localhost").pathname } },
       bootstrapDocument,
     );
     expect(shown).toEqual([expected]);
@@ -171,3 +172,5 @@ it("replaces the spaces navigation skeleton with a page failure state", async ()
   ).toBeNull();
   expect(screen.getByRole("button", { name: "Retry" })).toBeTruthy();
 });
+
+beforeEach(() => registerPresentationProject("0123456789", "project" as import("@/wab/shared/ApiSchema").ProjectId));

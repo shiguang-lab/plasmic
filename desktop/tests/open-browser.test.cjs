@@ -29,7 +29,7 @@ function setup(platform) {
 
 test("macOS targets the default browser and waits for LaunchServices handoff", async () => {
   const s = setup("darwin");
-  const url = "https://studio.example/projects/p/preview-full?tab=one#page";
+  const url = "https://studio.example/d/0123456789?tab=one#page";
   let done = false;
   const pending = s.openBrowser(url).then(() => { done = true; });
   await new Promise(setImmediate);

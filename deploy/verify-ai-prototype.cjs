@@ -231,14 +231,19 @@ let browser;
   await page.waitForTimeout(4000);
   await page.screenshot({ path: path.join(reportDir, "form.png") });
   const saved = await call("save");
+  const presentation = await context.request.post(
+    `${base}/api/v1/projects/${projectId}/presentation`,
+  );
+  assert(presentation.ok(), "Could not resolve presentation code");
+  const { code } = await presentation.json();
   const preview = await context.newPage();
   preview.on("pageerror", (error) => errors.push(error.message));
   async function previewFrame(route, width) {
     await preview.setViewportSize({ width, height: 1000 });
-    await preview.goto(
-      base + "/projects/" + projectId + "/preview-full" + route,
-      { waitUntil: "commit", timeout: 60000 },
-    );
+    await preview.goto(`${base}/d/${code}#${route}`, {
+      waitUntil: "commit",
+      timeout: 60000,
+    });
     for (let n = 0; n < 120; n++) {
       for (const frame of preview.frames()) {
         try {
@@ -290,8 +295,7 @@ let browser;
     .click();
   await preview.waitForURL(
     (url) =>
-      url.pathname ===
-      "/projects/" + projectId + "/preview-full" + form.pageMeta.path,
+      url.pathname === `/d/${code}` && url.hash === `#${form.pageMeta.path}`,
     { timeout: 30000 },
   );
   await interactive

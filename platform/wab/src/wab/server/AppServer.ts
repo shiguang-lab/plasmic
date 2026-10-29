@@ -1,3 +1,4 @@
+import { createPresentation, getPresentation } from "@/wab/server/routes/presentations";
 import { getEditorBootstrap } from "@/wab/server/routes/editor-bootstrap";
 import { getPreviewPublication, publishPreviewPublication, unpublishPreviewPublication } from "@/wab/server/routes/preview-publications";
 import { getHostlessLibraryCanvas } from "@/wab/server/routes/hostless-library-artifacts";
@@ -1283,6 +1284,8 @@ export function addMainAppServerRoutes(
   app.get("/api/v1/projects/:projectId/ai/chat/attachments/:attachmentId", withNext(aiChatAttachment));
   app.get("/api/v1/app-ctx", withNext(getAppCtx));
   app.get("/api/v1/editor-bootstrap/:projectId", withNext(getEditorBootstrap));
+  app.post("/api/v1/projects/:projectId/presentation", withNext(createPresentation));
+  app.get("/api/v1/presentations/:code", withNext(getPresentation));
 
   /**
    * Pkg routes

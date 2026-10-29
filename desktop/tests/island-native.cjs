@@ -55,7 +55,7 @@ const editorScript = `
       fixture.counter++;fixture.saveStatus='pending';document.querySelector('iframe').contentWindow.postMessage({fixtureWrite:true},'${canvasOrigin}');return result({changed:true});},
     save:async()=>{fixture.saveStatus='saved';return result({saved:true});},
     preview:async input=>{fixture.mode=input.action==='close'?'edit':'preview';
-      history.pushState({},'',fixture.mode==='edit'?'/projects/p':'/projects/p/preview/page');
+      history.pushState({},'',fixture.mode==='edit'?'/projects/p':'/projects/p/preview#/page');
       document.querySelector('iframe').style.width=fixture.mode==='edit'?'1100px':'360px';
       document.querySelector('iframe').style.height=fixture.mode==='edit'?'650px':'560px';
       document.querySelector('iframe').src=fixture.mode==='edit'?'${canvasOrigin}/editor':'${canvasOrigin}/preview#live=true';

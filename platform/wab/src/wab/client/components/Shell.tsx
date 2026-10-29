@@ -1,3 +1,4 @@
+import { PresentationEntry } from "@/wab/client/components/live/PresentationEntry";
 import { handleError, normalizeError } from "@/wab/client/ErrorNotifications";
 import {
   AntdConfigProvider,
@@ -139,13 +140,15 @@ export function Shell() {
     <HistoryProvider history={history}>
       <ShellThemeProvider>
         <OverlayProvider style={{ width: "100%", height: "100%" }}>
-          {hostFrameCtx ? (
-            <Root />
-          ) : (
-            <StudioStartupBoundary>
+          <PresentationEntry>
+            {hostFrameCtx ? (
               <Root />
-            </StudioStartupBoundary>
-          )}
+            ) : (
+              <StudioStartupBoundary>
+                <Root />
+              </StudioStartupBoundary>
+            )}
+          </PresentationEntry>
         </OverlayProvider>
       </ShellThemeProvider>
     </HistoryProvider>

@@ -1,0 +1,7 @@
+{
+  "en": "- Use short presentation and publication addresses with hash routes that match your designed pages.\n- Improve page navigation, browser history, query parameters, anchors, downloads, and opening links in new tabs.\n- Fix Desktop template previews and retain separate access rules for drafts and public published websites.",
+  "zh-CN": "- 演示与公开发布地址使用短地址和 hash 路由，与设计时的页面路径保持一致。\n- 完善页面跳转、浏览器历史、查询参数、锚点、下载以及新标签打开链接的行为。\n- 修复 Desktop 模板预览，草稿演示与公开发布网站继续遵循各自的访问权限。",
+  "zh-TW": "- 演示與公開發佈位址使用短位址和 hash 路由，與設計時的頁面路徑保持一致。\n- 完善頁面跳轉、瀏覽器歷史、查詢參數、錨點、下載及在新分頁開啟連結的行為。\n- 修復 Desktop 範本預覽，草稿演示與公開發佈網站繼續遵循各自的存取權限。",
+  "ja": "- プレゼンテーションと公開サイトの URL を短縮し、デザイン時のページパスに沿ったハッシュルーティングに統一しました。\n- ページ遷移、ブラウザー履歴、クエリパラメーター、アンカー、ダウンロード、新しいタブでのリンク表示を改善しました。\n- Desktop のテンプレートプレビューを修正し、下書きと公開サイトそれぞれのアクセス権限を維持しました。",
+  "ko": "- 프레젠테이션과 공개 사이트에 짧은 주소와 해시 라우팅을 적용하여 디자인의 페이지 경로와 일치하도록 개선했습니다.\n- 페이지 이동, 브라우저 방문 기록, 쿼리 매개변수, 앵커, 다운로드 및 새 탭에서 링크 열기를 개선했습니다.\n- Desktop 템플릿 미리보기를 수정하고 초안과 공개 사이트의 접근 권한을 각각 유지했습니다."
+}

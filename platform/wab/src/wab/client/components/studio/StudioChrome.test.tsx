@@ -1,3 +1,4 @@
+import { registerPresentationProject } from "@/wab/client/route/presentation-projects";
 import { AntdConfigProvider } from "@/wab/client/antd-theme";
 import { ApplicationPageLoading } from "@/wab/client/components/ApplicationPageLoading";
 import {
@@ -176,12 +177,12 @@ it("starts loading for a new project but not for arena or slug changes within a 
   expect(screen.getByRole("status")).toBeTruthy();
 });
 
-it.each(["preview", "preview-full"])(
+it.each(["/projects/project/preview", "/d/0123456789"])(
   "uses preview loading throughout %s startup and removes it when ready",
   (mode) => {
     const { rerender } = setup(
       <ApplicationPageLoading />,
-      `/projects/project/${mode}/home`,
+      `${mode}#/home`,
     );
     expect(screen.getAllByRole("status")).toHaveLength(1);
     expect(screen.getByText("Loading preview…")).toBeTruthy();
@@ -199,7 +200,7 @@ it("shows preview startup failures with retry without editor chrome", () => {
   const retry = vi.fn();
   setup(
     <ApplicationPageLoading failure={<LoadingError onRetry={retry} />} />,
-    "/projects/project/preview-full/home",
+    "/d/0123456789#/home",
   );
   expect(screen.queryByRole("status")).toBeNull();
   expect(document.querySelector(".canvas-editor")).toBeNull();
@@ -207,7 +208,7 @@ it("shows preview startup failures with retry without editor chrome", () => {
   expect(retry).toHaveBeenCalledOnce();
 });
 
-it.each(["preview", "preview-full"])(
+it.each(["/projects/project/preview", "/d/0123456789"])(
   "keeps a lazy sign-in failure inside a loading boundary during %s startup",
   async (mode) => {
     let releaseSignIn!: () => void;
@@ -219,7 +220,7 @@ it.each(["preview", "preview-full"])(
       static getDerivedStateFromError() { return { failed: true }; }
       render() { return this.state.failed ? <div>Startup crashed</div> : this.props.children; }
     }
-    const history = createMemoryHistory({ initialEntries: [`/projects/project/${mode}/home`] });
+    const history = createMemoryHistory({ initialEntries: [`${mode}#/home`] });
     render(
       <HistoryProvider history={history}>
         <AntdConfigProvider productUI>
@@ -293,3 +294,5 @@ it("keeps the Desktop web import action inside the tool rail and opens it throug
     vi.restoreAllMocks();
   }
 });
+
+beforeEach(() => registerPresentationProject("0123456789", "project" as import("@/wab/shared/ApiSchema").ProjectId));

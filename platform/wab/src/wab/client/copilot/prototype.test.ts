@@ -1406,7 +1406,7 @@ describe("AI prototype editor tools", () => {
     vi.spyOn(studioCtx, "awaitStudioReady").mockResolvedValue();
     const before = await call("read", { view: "full" });
     const preview = {
-      isLive: false, popup: undefined as Window | undefined,
+      isLive: false,
       component: page, previewPath: "list", width: 1440, height: 1024,
       toggleLiveMode: vi.fn(async () => { preview.isLive = !preview.isLive; }),
       stopLiveMode: vi.fn(() => { preview.isLive = false; }),
@@ -1425,14 +1425,12 @@ describe("AI prototype editor tools", () => {
     await expect(call("preview", { action: "close", height: 720, width: 1440 })).rejects.toThrow("close accepts no");
     expect(await call("preview", { action: "close" })).toEqual({ mode: "edit", componentUuid: null, path: null, width: null, height: null, canGoBack: false, canGoForward: false });
     expect(await call("read", { view: "full" })).toEqual(before);
-    preview.popup = {} as Window;
-    await expect(call("preview", { action: "open" })).rejects.toThrow("external Preview");
     studioCtx.copilotActivity.dispose();
   });
   it("delegates Preview navigation and refresh without opening Preview or editing models", async () => {
     const { studioCtx, call } = fixture();
     const preview = {
-      isLive: false, popup: undefined, component: undefined,
+      isLive: false, component: undefined,
       previewPath: "groups", width: 1440, height: 900,
       canGoBack: true, canGoForward: false,
       parseRoute: vi.fn().mockResolvedValue(undefined),
@@ -1475,7 +1473,7 @@ describe("AI prototype editor tools", () => {
     const ready = vi.spyOn(studioCtx, "awaitStudioReady").mockImplementation(() => new Promise<void>((resolve) => { releases.push(resolve); }));
     const restored = vi.spyOn(studioCtx, "restoreStudioViewportSnapshot").mockReturnValue(undefined);
     const preview = {
-      isLive: false, component: target, previewPath: "target", width: 1440, height: 1024, popup: undefined,
+      isLive: false, component: target, previewPath: "target", width: 1440, height: 1024,
       toggleLiveMode: vi.fn(async () => { preview.isLive = true; }),
       stopLiveMode: vi.fn(async () => { preview.isLive = false; }),
       parseRoute: vi.fn().mockResolvedValue(undefined), pushComponent: vi.fn().mockResolvedValue(undefined),

@@ -2,8 +2,8 @@ import { trapInteractionError } from "@/wab/client/components/canvas/studio-canv
 import { PreviewCtx } from "@/wab/client/components/live/PreviewCtx";
 import { useLivePreview } from "@/wab/client/components/live/PreviewFrame";
 import { act, cleanup, renderHook } from "@testing-library/react";
-import { mock } from "vitest-mock-extended";
 import { observable, runInAction } from "mobx";
+import { mock } from "vitest-mock-extended";
 
 const mocks = vi.hoisted(() => ({
   api: { setStudioReady: vi.fn().mockResolvedValue(undefined) },
@@ -20,7 +20,11 @@ vi.mock("@/wab/client/contexts/AppContexts", () => ({
 }));
 vi.mock("@/wab/client/components/live/live-syncer", () => ({
   onLoadInjectLiveRuntime: mocks.load,
-  pushPreviewModules: (_win: Window, _ctx: unknown, options: { onRendered: () => void }) => {
+  pushPreviewModules: (
+    _win: Window,
+    _ctx: unknown,
+    options: { onRendered: () => void },
+  ) => {
     mocks.push(_win);
     mocks.committed = options.onRendered;
     return mocks.dispose;
@@ -48,24 +52,43 @@ beforeEach(() => {
 afterEach(cleanup);
 
 it("clears SPA navigation feedback and removes the cursor layer on reset and close", async () => {
-  const data = observable.box<PreviewCtx["previewData"]>(undefined, { deep: false });
-  const previewCtx = mock<PreviewCtx>({ full: false, isLive: false, popup: undefined, pageHash: "" });
+  const data = observable.box<PreviewCtx["previewData"]>(undefined, {
+    deep: false,
+  });
+  const previewCtx = mock<PreviewCtx>({
+    full: false,
+    isLive: false,
+    pageHash: "",
+  });
   Object.defineProperty(previewCtx, "previewData", { get: () => data.get() });
   const hook = renderHook(() => useLivePreview(previewCtx));
   hook.result.current.frameRef.current = window;
   await act(async () => hook.result.current.onLoad());
-  expect(document.querySelectorAll("[data-plasmic-agent-cursor]")).toHaveLength(2);
+  expect(document.querySelectorAll("[data-plasmic-agent-cursor]")).toHaveLength(
+    2,
+  );
   const events: string[] = [];
-  const listen = (event: Event) => events.push((event as CustomEvent).detail.action);
+  const listen = (event: Event) =>
+    events.push((event as CustomEvent).detail.action);
   window.addEventListener("plasmic-agent-cursor", listen);
   try {
-    act(() => runInAction(() => data.set(mock<NonNullable<PreviewCtx["previewData"]>>({ previewPath: "/next" }))));
+    act(() =>
+      runInAction(() =>
+        data.set(
+          mock<NonNullable<PreviewCtx["previewData"]>>({
+            previewPath: "/next",
+          }),
+        ),
+      ),
+    );
     expect(events).toEqual(["clear"]);
     act(() => hook.result.current.reset());
     expect(document.querySelector("[data-plasmic-agent-cursor]")).toBeNull();
     hook.result.current.frameRef.current = window;
     await act(async () => hook.result.current.onLoad());
-    expect(document.querySelectorAll("[data-plasmic-agent-cursor]")).toHaveLength(2);
+    expect(
+      document.querySelectorAll("[data-plasmic-agent-cursor]"),
+    ).toHaveLength(2);
     hook.unmount();
     expect(document.querySelector("[data-plasmic-agent-cursor]")).toBeNull();
   } finally {
@@ -77,7 +100,6 @@ async function setup(full: boolean) {
   const previewCtx = mock<PreviewCtx>({
     full,
     isLive: false,
-    popup: undefined,
     pageHash: "",
   });
   const hook = renderHook(() => useLivePreview(previewCtx));
@@ -151,85 +173,172 @@ it("ignores a commit from the previous generation before effect cleanup", async 
 
 it("does not activate a delayed host after reset", async () => {
   let finish = () => {};
-  mocks.load.mockImplementationOnce(() => new Promise<void>((resolve) => { finish = resolve; }));
-  const previewCtx = mock<PreviewCtx>({ full: true, isLive: false, popup: undefined, pageHash: "" });
+  mocks.load.mockImplementationOnce(
+    () =>
+      new Promise<void>((resolve) => {
+        finish = resolve;
+      }),
+  );
+  const previewCtx = mock<PreviewCtx>({
+    full: true,
+    isLive: false,
+    pageHash: "",
+  });
   const hook = renderHook(() => useLivePreview(previewCtx));
   hook.result.current.frameRef.current = window;
   let loading: Promise<void> | undefined;
-  act(() => { loading = hook.result.current.onLoad(); });
+  act(() => {
+    loading = hook.result.current.onLoad();
+  });
   expect(mocks.load).toHaveBeenCalledTimes(1);
   act(() => hook.result.current.reset());
-  await act(async () => { finish(); await loading; });
+  await act(async () => {
+    finish();
+    await loading;
+  });
   expect(mocks.committed).toBeUndefined();
   expect(mocks.api.setStudioReady).not.toHaveBeenCalled();
 });
 
 it("does not activate an earlier load after reset even when the WindowProxy is reused", async () => {
   let finish = () => {};
-  mocks.load.mockImplementationOnce(() => new Promise<void>((resolve) => { finish = resolve; }));
-  const previewCtx = mock<PreviewCtx>({ full: true, isLive: false, popup: undefined, pageHash: "" });
+  mocks.load.mockImplementationOnce(
+    () =>
+      new Promise<void>((resolve) => {
+        finish = resolve;
+      }),
+  );
+  const previewCtx = mock<PreviewCtx>({
+    full: true,
+    isLive: false,
+    pageHash: "",
+  });
   const hook = renderHook(() => useLivePreview(previewCtx));
   hook.result.current.frameRef.current = window;
   let loading: Promise<void> | undefined;
-  act(() => { loading = hook.result.current.onLoad(); });
+  act(() => {
+    loading = hook.result.current.onLoad();
+  });
   act(() => hook.result.current.reset());
   hook.result.current.frameRef.current = window;
-  await act(async () => { finish(); await loading; });
+  await act(async () => {
+    finish();
+    await loading;
+  });
   expect(mocks.push).not.toHaveBeenCalled();
 });
 
-it.each([true, false])("isolates package installation across reset (old resolves first: %s)", async (oldFirst) => {
-  mocks.packages = [{ id: "components" }];
-  let finishOld = (_value: [string, string][]) => {};
-  let finishNew = (_value: [string, string][]) => {};
-  mocks.sortedPackages
-    .mockImplementationOnce(() => new Promise<[string, string][]>((resolve) => { finishOld = resolve; }))
-    .mockImplementationOnce(() => new Promise<[string, string][]>((resolve) => { finishNew = resolve; }));
-  const previewCtx = mock<PreviewCtx>({ full: true, isLive: false, popup: undefined, pageHash: "" });
+it.each([true, false])(
+  "isolates package installation across reset (old resolves first: %s)",
+  async (oldFirst) => {
+    mocks.packages = [{ id: "components" }];
+    let finishOld = (_value: [string, string][]) => {};
+    let finishNew = (_value: [string, string][]) => {};
+    mocks.sortedPackages
+      .mockImplementationOnce(
+        () =>
+          new Promise<[string, string][]>((resolve) => {
+            finishOld = resolve;
+          }),
+      )
+      .mockImplementationOnce(
+        () =>
+          new Promise<[string, string][]>((resolve) => {
+            finishNew = resolve;
+          }),
+      );
+    const previewCtx = mock<PreviewCtx>({
+      full: true,
+      isLive: false,
+      pageHash: "",
+    });
+    const hook = renderHook(() => useLivePreview(previewCtx));
+    hook.result.current.frameRef.current = window;
+    await act(async () => hook.result.current.onLoad());
+    expect(mocks.sortedPackages).toHaveBeenCalledTimes(1);
+    expect(mocks.push).not.toHaveBeenCalled();
+    act(() => hook.result.current.reset());
+    // Navigating an iframe can retain its WindowProxy identity.
+    hook.result.current.frameRef.current = window;
+    await act(async () => hook.result.current.onLoad());
+    expect(mocks.sortedPackages).toHaveBeenCalledTimes(2);
+    if (oldFirst) {
+      await act(async () => finishOld([["components", "old package"]]));
+      expect(mocks.exec).not.toHaveBeenCalled();
+      expect(mocks.push).not.toHaveBeenCalled();
+    }
+    await act(async () => finishNew([["components", "new package"]]));
+    expect(mocks.exec).toHaveBeenCalledExactlyOnceWith(window, "new package");
+    expect(mocks.push).toHaveBeenCalledExactlyOnceWith(window);
+    if (!oldFirst) {
+      await act(async () => finishOld([["components", "old package"]]));
+      expect(mocks.exec).toHaveBeenCalledExactlyOnceWith(window, "new package");
+      expect(mocks.push).toHaveBeenCalledExactlyOnceWith(window);
+    }
+  },
+);
+
+it.each([null, undefined, "", "   "])(
+  "reports an empty navigation destination (%s) without a null property error",
+  async (destination) => {
+    await setup(false);
+    const loc = {
+      type: "InteractionLoc",
+      actionName: "navigation",
+      interactionUuid: "openTarget",
+    };
+    const run = () =>
+      (window as any).__PlasmicWrapUserFunction(loc, vi.fn(), { destination });
+    expect(run).toThrow("Navigation destination must be a non-empty string");
+    expect(trapInteractionError).toHaveBeenCalledWith(
+      expect.anything(),
+      loc,
+      expect.objectContaining({
+        message: "Navigation destination must be a non-empty string",
+      }),
+    );
+  },
+);
+
+it("routes anchor actions through business history like page actions", async () => {
+  const previewCtx = mock<PreviewCtx>({
+    full: false,
+    isLive: false,
+    pageHash: "",
+  });
   const hook = renderHook(() => useLivePreview(previewCtx));
   hook.result.current.frameRef.current = window;
   await act(async () => hook.result.current.onLoad());
-  expect(mocks.sortedPackages).toHaveBeenCalledTimes(1);
-  expect(mocks.push).not.toHaveBeenCalled();
-  act(() => hook.result.current.reset());
-  // Navigating an iframe can retain its WindowProxy identity.
-  hook.result.current.frameRef.current = window;
-  await act(async () => hook.result.current.onLoad());
-  expect(mocks.sortedPackages).toHaveBeenCalledTimes(2);
-  if (oldFirst) {
-    await act(async () => finishOld([["components", "old package"]]));
-    expect(mocks.exec).not.toHaveBeenCalled();
-    expect(mocks.push).not.toHaveBeenCalled();
-  }
-  await act(async () => finishNew([["components", "new package"]]));
-  expect(mocks.exec).toHaveBeenCalledExactlyOnceWith(window, "new package");
-  expect(mocks.push).toHaveBeenCalledExactlyOnceWith(window);
-  if (!oldFirst) {
-    await act(async () => finishOld([["components", "old package"]]));
-    expect(mocks.exec).toHaveBeenCalledExactlyOnceWith(window, "new package");
-    expect(mocks.push).toHaveBeenCalledExactlyOnceWith(window);
-  }
-});
-
-it.each([null, undefined, "", "   "])("reports an empty navigation destination (%s) without a null property error", async (destination) => {
-  await setup(false);
-  const loc = { type: "InteractionLoc", actionName: "navigation", interactionUuid: "openTarget" };
-  const run = () => (window as any).__PlasmicWrapUserFunction(loc, vi.fn(), { destination });
-  expect(run).toThrow("Navigation destination must be a non-empty string");
-  expect(trapInteractionError).toHaveBeenCalledWith(expect.anything(), loc,
-    expect.objectContaining({ message: "Navigation destination must be a non-empty string" }));
+  (window as any).__PlasmicWrapUserFunction(
+    {
+      type: "InteractionLoc",
+      actionName: "navigation",
+      interactionUuid: "anchor",
+    },
+    vi.fn(),
+    { destination: "#%E8%A7%84%E5%88%99" },
+  );
+  expect(previewCtx.handleNavigation).toHaveBeenCalledWith(
+    "#%E8%A7%84%E5%88%99",
+  );
 });
 
 it("reloads the original library version in Preview after an update is undone", async () => {
   mocks.packages = [{ id: "icons@1.0.0" }];
-  mocks.sortedPackages.mockImplementation(async () => mocks.packages.map((pkg) => {
-    const { id } = pkg as { id: string };
-    return [id, id];
-  }));
+  mocks.sortedPackages.mockImplementation(async () =>
+    mocks.packages.map((pkg) => {
+      const { id } = pkg as { id: string };
+      return [id, id];
+    }),
+  );
   const hook = await setup(false);
   mocks.packages = [{ id: "icons@2.0.0" }];
   await act(async () => hook.rerender());
   mocks.packages = [{ id: "icons@1.0.0" }];
   await act(async () => hook.rerender());
-  expect(mocks.exec.mock.calls.map(([, source]) => source)).toEqual(["icons@1.0.0", "icons@2.0.0", "icons@1.0.0"]);
+  expect(mocks.exec.mock.calls.map(([, source]) => source)).toEqual([
+    "icons@1.0.0",
+    "icons@2.0.0",
+    "icons@1.0.0",
+  ]);
 });

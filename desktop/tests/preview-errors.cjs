@@ -34,7 +34,7 @@ app.whenReady().then(async () => {
   await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
   const origin = `http://127.0.0.1:${server.address().port}`;
   win = new BrowserWindow({ show: false, width: 1000, height: 800, webPreferences: { backgroundThrottling: false } });
-  await win.loadURL(origin + "/projects/p/preview/records");
+  await win.loadURL(origin + "/projects/p/preview#/records");
   // An inactive macOS window receives movement but consumes the first button
   // input for activation. Focus the fixture before checking actual DOM clicks.
   win.show(); app.focus({ steal: true }); win.focus();

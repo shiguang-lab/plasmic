@@ -196,8 +196,8 @@ export function TopFrameChrome({
   const location = useLocation();
   const preview =
     !!APP_ROUTES.projectPreview.parse(location.pathname, false) ||
-    !!APP_ROUTES.projectFullPreview.parse(location.pathname, false);
-  const fullPreview = !!APP_ROUTES.projectFullPreview.parse(
+    !!APP_ROUTES.projectPresentation.parse(location.pathname, false);
+  const fullPreview = !!APP_ROUTES.projectPresentation.parse(
     location.pathname,
     false,
   );
@@ -866,14 +866,14 @@ function validateNewLocation(
   assert(isPlasmicPath(path), `${path} is not Plasmic`);
 
   // https://app.shortcut.com/plasmic/story/20746/improve-isolation-to-support-arbitrary-code
-  if (APP_ROUTES.projectFullPreview.parse(previousLocation.pathname, false)) {
+  if (APP_ROUTES.projectPresentation.parse(previousLocation.pathname, false)) {
     assert(
-      APP_ROUTES.projectFullPreview.parse(path, false),
+      APP_ROUTES.projectPresentation.parse(path, false),
       `Cannot navigate from full preview mode to outside of it, from ${previousLocation.pathname} to ${path}`,
     );
   } else {
     assert(
-      !APP_ROUTES.projectFullPreview.parse(path, false),
+      !APP_ROUTES.projectPresentation.parse(path, false),
       `Cannot navigate from studio to full preview mode, from ${previousLocation.pathname} to ${path}`,
     );
   }

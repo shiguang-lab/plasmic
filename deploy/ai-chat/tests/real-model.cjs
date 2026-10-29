@@ -126,10 +126,14 @@ let browser;
   const preview = await browser.newPage({
     viewport: { width: 1600, height: 1100 },
   });
-  await preview.goto(
-    `http://localhost:3003/projects/${projectId}/preview-full/local-edit-acceptance`,
-    { waitUntil: "domcontentloaded" },
+  const presentation = await page.request.post(
+    `http://localhost:3003/api/v1/projects/${projectId}/presentation`,
   );
+  assert(presentation.ok(), "Could not resolve presentation code");
+  const { code } = await presentation.json();
+  await preview.goto(`http://localhost:3003/d/${code}#/local-edit-acceptance`, {
+    waitUntil: "domcontentloaded",
+  });
   let runtime;
   for (let i = 0; i < 180; i++) {
     for (const frame of preview.frames()) {

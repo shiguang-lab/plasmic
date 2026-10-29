@@ -1,3 +1,4 @@
+import { registerPresentationProject } from "@/wab/client/route/presentation-projects";
 import {
   isHostFrame,
   isTopFrame,
@@ -190,60 +191,17 @@ describe("mkProjectLocation/parseProjectLocation", () => {
   });
 
   it("ignores the AI panel query flag", () => {
-    for (const pathname of ["/projects/PROJECT_ID", "/projects/PROJECT_ID/preview/ARENA_UUID"]) {
+    for (const pathname of ["/projects/PROJECT_ID", "/projects/PROJECT_ID/preview#/ARENA_UUID"]) {
       expect(parseProjectLocation({ pathname, search: "?copilot_chat=true" })).toEqual(
         parseProjectLocation({ pathname, search: "" }),
       );
     }
   });
-  it.each(["preview", "preview-full"])("parses %s locations", (mode) => {
-    expect(
-      parseProjectLocation({
-        pathname: `/projects/PROJECT_ID/${mode}/ARENA NAME`,
-      }),
-    ).toEqual({
-      arenaType: undefined,
-      arenaUuidOrNameOrPath: "ARENA%20NAME",
-      branchVersion: "latest",
-      branchName: "main",
-      isPreview: true,
-      projectId: "PROJECT_ID",
-      slug: undefined,
-    });
-    expect(
-      parseProjectLocation({
-        pathname: `/projects/PROJECT_ID/${mode}/ARENA%20NAME`,
-      }),
-    ).toEqual({
-      arenaType: undefined,
-      arenaUuidOrNameOrPath: "ARENA%20NAME",
-      branchVersion: "latest",
-      branchName: "main",
-      isPreview: true,
-      projectId: "PROJECT_ID",
-      slug: undefined,
-    });
-    expect(
-      parseProjectLocation({
-        pathname: `/projects/PROJECT_ID/${mode}/ARENA_UUID`,
-        hash: "#width=1180&height=540&branch=test",
-      }),
-    ).toEqual({
-      arenaType: undefined,
-      arenaUuidOrNameOrPath: "ARENA_UUID",
-      branchVersion: "latest",
-      branchName: "test",
-      isPreview: true,
-      projectId: "PROJECT_ID",
-      slug: undefined,
-    });
-    expect(
-      parseProjectLocation({
-        pathname: `/projects/PROJECT_ID/${mode}/ARENA_UUID`,
-        search: "?copilot_chat=true",
-      }),
-    ).toMatchObject({
-      isPreview: true,
+  it.each(["/projects/PROJECT_ID/preview", "/d/0123456789"])("parses hash business routes at %s", (pathname) => {
+    registerPresentationProject("0123456789", "PROJECT_ID" as import("@/wab/shared/ApiSchema").ProjectId);
+    expect(parseProjectLocation({ pathname, search: "?branch=design", hash: "#/groups/a%2Fb?branch=business#rules" })).toEqual({
+      projectId: "PROJECT_ID", slug: undefined, arenaType: undefined, branchRevision: undefined,
+      branchName: "design", branchVersion: "latest", arenaUuidOrNameOrPath: "/groups/a%2Fb", isPreview: true,
     });
   });
 });

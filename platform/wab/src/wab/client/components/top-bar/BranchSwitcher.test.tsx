@@ -33,7 +33,8 @@ vi.mock("@/wab/client/contexts/StudioContexts", () => ({
       history: {
         location: {
           pathname: "/projects/project/preview",
-          hash: "#width=390&height=844&viewport=phone",
+          search: "?width=390&height=844&viewport=phone",
+          hash: "#/groups?branch=business",
         },
         push: mocks.push,
       },
@@ -72,6 +73,7 @@ vi.mock("@/wab/client/i18n", () => ({
 }));
 vi.mock("@/wab/client/i18n/UiText", () => ({
   UiText: ({ message }: { message: string }) => <>{message}</>,
+  UiLabel: ({ message }: { message: string }) => <>{message}</>,
 }));
 
 vi.mock(
@@ -128,13 +130,15 @@ test("opens on click and switches without waiting for publication checks", async
   );
 });
 
-test("preview switches through the hash and preserves viewport settings", async () => {
+test("preview switches branch context without changing the business route", async () => {
   mocks.live = true;
   mount();
   fireEvent.click(screen.getByRole("button", { name: "Branches: main" }));
   fireEvent.click(await screen.findByRole("button", { name: "feature" }));
   expect(mocks.push).toHaveBeenCalledWith({
-    hash: "#width=390&height=844&viewport=phone&branch=feature",
+    pathname: "/projects/project/preview",
+    search: "?width=390&height=844&viewport=phone&branch=feature",
+    hash: "#/groups?branch=business",
   });
   expect(mocks.switchBranch).not.toHaveBeenCalled();
   expect(

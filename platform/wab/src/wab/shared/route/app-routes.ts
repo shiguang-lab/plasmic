@@ -94,8 +94,8 @@ export const APP_ROUTES = {
   settings: route("/settings"),
   project: route("/projects/:projectId"),
   projectSlug: route("/projects/:projectId/-/:slug"),
-  projectPreview: route("/projects/:projectId/preview{/*previewPath}"),
-  projectFullPreview: route("/projects/:projectId/preview-full{/*previewPath}"),
+  projectPreview: route("/projects/:projectId/preview"),
+  projectPresentation: route("/d/:code"),
   projectDocs: route("/projects/:projectId/docs"),
   projectDocsComponents: route(
     "/projects/:projectId/docs/:codegenType/components",

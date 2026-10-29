@@ -1,4 +1,5 @@
 import LivePopOutButton from "@/wab/client/components/top-bar/LivePopOutButton";
+import { registerPresentationProject } from "@/wab/client/route/presentation-projects";
 import { STUDIO_SHORTCUTS } from "@/wab/client/shortcuts/studio/studio-shortcuts";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { notification } from "antd";
@@ -15,7 +16,7 @@ const mocks = vi.hoisted(() => ({
     focusedViewCtx: () => undefined,
     getHostUrl: () => "https://canvas.example",
   },
-  preview: { popup: undefined, isLive: false, setPopup: vi.fn() },
+  preview: { isLive: false },
   history: {
     location: { pathname: "/projects/project", search: "", hash: "" },
   },
@@ -81,9 +82,9 @@ beforeEach(() => {
     "https://studio.example",
   );
   mocks.getUrls.mockResolvedValue({
-    pathname: "/projects/project/preview-full/groups/123",
-    search: "?market=MX",
-    hash: "#branch=design&variants=%7B%22tab%22%3A%22mine%22%7D",
+    pathname: "/d/0123456789",
+    search: "?branch=design&variants=%7B%22tab%22%3A%22mine%22%7D",
+    hash: "#/groups/123?market=MX",
   });
   mocks.preview.isLive = false;
   mocks.studio.currentArenaEmpty = false;
@@ -111,31 +112,34 @@ test("desktop saves and opens the full preview route without tracking a popup", 
   finishSave("Success");
   await waitFor(() =>
     expect(mocks.openDesktopPreview).toHaveBeenCalledWith(
-      "https://studio.example/projects/project/preview-full/groups/123?market=MX#branch=design&variants=%7B%22tab%22%3A%22mine%22%7D",
+      "https://studio.example/d/0123456789?branch=design&variants=%7B%22tab%22%3A%22mine%22%7D#/groups/123?market=MX",
     ),
   );
   expect(mocks.getUrls).toHaveBeenCalledWith(mocks.studio, true);
-  expect(mocks.preview.setPopup).not.toHaveBeenCalled();
-  expect(mocks.preview.popup).toBeUndefined();
 });
 
 test("desktop browser preview preserves the currently navigated preview page", async () => {
   mocks.preview.isLive = true;
   mocks.history.location = {
-    pathname: "/projects/project/preview/details/123",
-    search: "?tab=history",
-    hash: "#branch=design&pageHash=activity",
+    pathname: "/projects/project/preview",
+    search: "?branch=design",
+    hash: "#/details/123?tab=history#activity",
   };
+  mocks.getUrls.mockResolvedValue({
+    pathname: "/d/0123456789",
+    search: "?branch=design",
+    hash: "#/details/123?tab=history#activity",
+  });
   render(<LivePopOutButton />);
   fireEvent.click(
     screen.getByRole("button", { name: "Open preview in browser" }),
   );
   await waitFor(() =>
     expect(mocks.openDesktopPreview).toHaveBeenCalledWith(
-      "https://studio.example/projects/project/preview-full/details/123?tab=history#branch=design&pageHash=activity",
+      "https://studio.example/d/0123456789?branch=design#/details/123?tab=history#activity",
     ),
   );
-  expect(mocks.getUrls).not.toHaveBeenCalled();
+  expect(mocks.getUrls).toHaveBeenCalledWith(mocks.studio, true);
 });
 
 test("desktop does not open stale preview content when changes remain unsaved", async () => {
@@ -173,13 +177,17 @@ test("presents from the play button and shows the matching shortcut", async () =
   expect(tooltip.textContent).toBe("Present⌘Enter");
   expect(tooltip.querySelector(".shortcut-combo")).toBeNull();
   fireEvent.click(button);
-  await waitFor(() => expect(mocks.openDesktopPreview).toHaveBeenCalledTimes(1));
+  await waitFor(() =>
+    expect(mocks.openDesktopPreview).toHaveBeenCalledTimes(1),
+  );
 });
 
 test("Command+Enter runs the same saved browser preview and unbinds on unmount", async () => {
   const { unmount } = render(<LivePopOutButton iconOnly />);
   pressPresent();
-  await waitFor(() => expect(mocks.openDesktopPreview).toHaveBeenCalledTimes(1));
+  await waitFor(() =>
+    expect(mocks.openDesktopPreview).toHaveBeenCalledTimes(1),
+  );
   expect(mocks.studio.save).toHaveBeenCalledTimes(1);
   expect(mocks.getUrls).toHaveBeenCalledWith(mocks.studio, true);
   unmount();
@@ -215,7 +223,11 @@ test("shows loading through native browser handoff and prevents repeated clicks 
   let finishSave: (result: string) => void = vi.fn();
   let finishUrl: (url: string) => void = vi.fn();
   let finishOpen: () => void = vi.fn();
-  mocks.openDesktopPreview.mockReturnValue(new Promise<void>((resolve) => { finishOpen = resolve; }));
+  mocks.openDesktopPreview.mockReturnValue(
+    new Promise<void>((resolve) => {
+      finishOpen = resolve;
+    }),
+  );
   mocks.studio.save.mockReturnValue(
     new Promise((resolve) => {
       finishSave = resolve;
@@ -244,7 +256,9 @@ test("shows loading through native browser handoff and prevents repeated clicks 
   pressPresent();
   expect(mocks.studio.save).toHaveBeenCalledTimes(1);
   finishUrl("https://studio.example");
-  await waitFor(() => expect(mocks.openDesktopPreview).toHaveBeenCalledTimes(1));
+  await waitFor(() =>
+    expect(mocks.openDesktopPreview).toHaveBeenCalledTimes(1),
+  );
   expect(button.getAttribute("aria-busy")).toBe("true");
   fireEvent.click(button);
   pressPresent();
@@ -267,7 +281,9 @@ test("clears loading and allows retry when unsaved changes prevent presentation"
   expect(mocks.openDesktopPreview).not.toHaveBeenCalled();
   mocks.studio.hasUnsavedChanges.mockReturnValue(false);
   fireEvent.click(button);
-  await waitFor(() => expect(mocks.openDesktopPreview).toHaveBeenCalledTimes(1));
+  await waitFor(() =>
+    expect(mocks.openDesktopPreview).toHaveBeenCalledTimes(1),
+  );
 });
 
 test("clears loading when a web preview window is blocked", async () => {
@@ -278,4 +294,33 @@ test("clears loading when a web preview window is blocked", async () => {
   await waitFor(() => expect(window.open).toHaveBeenCalledTimes(1));
   await waitFor(() => expect(button.getAttribute("aria-busy")).toBe("false"));
   expect(button.hasAttribute("disabled")).toBe(false);
+});
+
+beforeEach(() =>
+  registerPresentationProject(
+    "0123456789",
+    "project" as import("@/wab/shared/ApiSchema").ProjectId,
+  ),
+);
+
+test("web presentation uses the same saved standalone page with no opener channel", async () => {
+  vi.spyOn(navigator, "userAgent", "get").mockReturnValue("Mozilla/5.0");
+  const browserWindow = {
+    opener: window,
+    location: { replace: vi.fn() },
+    close: vi.fn(),
+  };
+  vi.mocked(window.open).mockReturnValue(browserWindow as unknown as Window);
+  render(<LivePopOutButton showLabel />);
+  fireEvent.click(
+    screen.getByRole("button", { name: "Open preview in new tab" }),
+  );
+  expect(window.open).toHaveBeenCalledWith("about:blank", "_blank");
+  await waitFor(() =>
+    expect(browserWindow.location.replace).toHaveBeenCalledWith(
+      "https://studio.example/d/0123456789?branch=design&variants=%7B%22tab%22%3A%22mine%22%7D#/groups/123?market=MX",
+    ),
+  );
+  expect(browserWindow.opener).toBeNull();
+  expect(browserWindow.close).not.toHaveBeenCalled();
 });

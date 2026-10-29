@@ -1,7 +1,4 @@
-import {
-  absorbLinkClick,
-  showCanvasAuthNotification,
-} from "@/wab/client/components/canvas/studio-canvas-util";
+import { showCanvasAuthNotification } from "@/wab/client/components/canvas/studio-canvas-util";
 import { SubDeps } from "@/wab/client/components/canvas/subdeps";
 import { PreviewCtx } from "@/wab/client/components/live/PreviewCtx";
 import { buildPreviewUpdate } from "@/wab/client/components/live/preview-codegen";
@@ -97,6 +94,7 @@ export async function onLoadInjectLiveRuntime(
   frameWindow: Window,
   captureExceptions = true,
   onAnchorClick?: (href: string) => void,
+  previewHref?: (href: string) => string | undefined,
 ) {
   await waitForLiveHost(frameWindow);
   if (!(frameWindow as any).__PlasmicReactWebBundle) {
@@ -122,14 +120,14 @@ export async function onLoadInjectLiveRuntime(
     studioCtx.getAllDataOpCacheKeys;
   initPreviewInteractionGlobals(frameWindow);
   (frameWindow as any).__PLASMIC_STUDIO_PATH = () => {
-    return studioCtx.previewCtx?.component?.pageMeta?.path;
+    return studioCtx.previewCtx?.previewPath;
   };
   (frameWindow as any).__PLASMIC_AUTH_OVERRIDE = () => {
     showCanvasAuthNotification("preview mode");
   };
   const liveFrameClientJs = await getLiveFrameClientJs();
   scriptExec(frameWindow, liveFrameClientJs);
-  swallowAnchorClicks(frameWindow.document, onAnchorClick);
+  swallowAnchorClicks(frameWindow.document, onAnchorClick, previewHref);
   (
     frameWindow as unknown as { __Sub: SubDeps }
   ).__Sub.hostUtils.registerRenderErrorListener((error: Error) => {
@@ -171,15 +169,64 @@ export async function waitForLiveHost(win: Window) {
   }
 }
 
-function swallowAnchorClicks(
+export function swallowAnchorClicks(
   doc: Document,
   onAnchorClick?: (href: string) => void,
+  previewHref?: (href: string) => string | undefined,
 ) {
-  // Listen in the capture phase so we catch clicks even if a child
-  // component (like a button) calls stopPropagation.
-  doc.body.addEventListener(
-    "click",
-    (e) => absorbLinkClick(e, onAnchorClick),
-    true,
-  );
+  const anchorHrefs = new WeakMap<
+    HTMLAnchorElement,
+    { source: string; encoded: string }
+  >();
+  const click = (event: MouseEvent) => {
+    const target = event.target as Element | null;
+    const anchor = target?.closest?.("a[href]") as HTMLAnchorElement | null;
+    if (!anchor || anchor.hasAttribute("download") || event.defaultPrevented) {
+      return;
+    }
+    const raw = anchor.getAttribute("href");
+    const previous = anchorHrefs.get(anchor);
+    const href = raw === previous?.encoded ? previous.source : raw;
+    if (!href) {
+      return;
+    }
+    if (href === "#") {
+      event.preventDefault();
+      return;
+    }
+    const encoded = previewHref?.(href);
+    if (previewHref && !encoded) {
+      return;
+    }
+    if (
+      event.type === "contextmenu" ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey ||
+      event.button !== 0 ||
+      (anchor.target && anchor.target !== "_self")
+    ) {
+      if (encoded) {
+        anchor.setAttribute("href", encoded);
+        anchorHrefs.set(anchor, { source: href, encoded });
+        if (event.type === "contextmenu") {
+          return;
+        }
+        setTimeout(() => {
+          if (anchor.getAttribute("href") === encoded) {
+            anchor.setAttribute("href", href);
+            anchorHrefs.delete(anchor);
+          }
+        }, 0);
+      }
+      return;
+    }
+    event.preventDefault();
+    event.stopPropagation();
+    onAnchorClick?.(href);
+  };
+  doc.body.addEventListener("click", click, true);
+  doc.body.addEventListener("auxclick", click, true);
+  doc.body.addEventListener("contextmenu", click, true);
 }

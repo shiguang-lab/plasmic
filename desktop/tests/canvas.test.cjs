@@ -38,7 +38,7 @@ test('export checks path and extension, writes PDF bytes, and never overwrites',
 test('live preview ignores retained editor canvases and reads only runtime state', async () => {
  const live = {url:'https://canvas.example/static/host.html#live=true',executeJavaScript:async()=>({ready:true,elements:[{text:'Count 13'}],images:[]})};
  const retained = {url:'https://canvas.example/static/host.html#canvas=true',executeJavaScript:async()=>{throw new Error('Read stale editor frame')}};
- const preview = {webContents:{getURL:()=> 'https://studio.example/projects/test/preview/workbench',mainFrame:{framesInSubtree:[retained,live]}}};
+ const preview = {webContents:{getURL:()=> 'https://studio.example/projects/test/preview#/workbench',mainFrame:{framesInSubtree:[retained,live]}}};
  const result=await canvasFrames(preview);
  assert.equal(result.length,1);assert.equal(result[0].layout.elements[0].text,'Count 13');
 });
@@ -111,7 +111,7 @@ test("current custom-host canvases and previews can be read without a background
     const win = {
       webContents: {
         getURL: () =>
-          `https://studio.example/projects/test${preview ? "/preview/" : ""}`,
+          `https://studio.example/projects/test${preview ? "/preview#/" : ""}`,
         mainFrame: { framesInSubtree: [unrelated, frame] },
       },
     };

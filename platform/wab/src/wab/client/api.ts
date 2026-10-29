@@ -555,6 +555,15 @@ export function filteredApi(
       assert(isWhitelistedStorageKey(key), "Unexpected key " + key);
       return f(key);
     },
+    createPresentation: (f) => (siteId) => {
+      assert([projectId, ...insertableProjectIds].includes(siteId), "Unexpected projectId");
+      return f(siteId);
+    },
+    getPresentation: (f) => async (code) => {
+      const result = await f(code);
+      checkprojectId(result.projectId);
+      return result;
+    },
     getModelUpdates: checkProjectIdInFirstArg,
     getSiteInfo: (f) => async (siteId, opts) => {
       // The only projects we need to fetch are the site itself and the

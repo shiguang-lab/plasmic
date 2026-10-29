@@ -12,9 +12,9 @@ import {
   getVersionForCanvasPackages,
 } from "@/wab/client/components/studio/studio-bundles";
 import { useTopFrameApi } from "@/wab/client/contexts/AppContexts";
+import { installPreviewAgentCursor } from "@/wab/client/copilot/agent-cursor";
 import { scriptExec } from "@/wab/client/dom-utils";
 import { useI18n } from "@/wab/client/i18n";
-import { installPreviewAgentCursor } from "@/wab/client/copilot/agent-cursor";
 import { maybeToggleTrailingSlash } from "@/wab/client/utils/app-hosting-utils";
 import { isComponentArena } from "@/wab/shared/Arenas";
 import { usedHostLessPkgs } from "@/wab/shared/cached-selectors";
@@ -31,8 +31,9 @@ import {
 } from "@/wab/shared/core/exprs";
 import { getDedicatedArena } from "@/wab/shared/core/sites";
 import { getPublicUrl, getStaticBaseUrl } from "@/wab/shared/urls";
-import { createStyles } from "antd-style";
+import { readBusinessAnchor } from "@plasmic-shared/preview";
 import { theme } from "antd";
+import { createStyles } from "antd-style";
 import { autorun } from "mobx";
 import { observer } from "mobx-react";
 import React from "react";
@@ -72,15 +73,26 @@ export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
       color: token.colorPrimary,
       scale: () => {
         const iframe = win.frameElement;
-        return iframe ? iframe.getBoundingClientRect().width / (iframe as HTMLElement).offsetWidth || 1 : 1;
+        return iframe
+          ? iframe.getBoundingClientRect().width /
+              (iframe as HTMLElement).offsetWidth || 1
+          : 1;
       },
     });
     const stop = autorun(() => {
       // SPA navigation keeps the iframe but must discard the previous target.
       void previewCtx.previewData;
-      win.dispatchEvent(new (win as Window & typeof globalThis).CustomEvent("plasmic-agent-cursor", { detail: { action: "clear" } }));
+      win.dispatchEvent(
+        new (win as Window & typeof globalThis).CustomEvent(
+          "plasmic-agent-cursor",
+          { detail: { action: "clear" } },
+        ),
+      );
     });
-    return () => { stop(); dispose(); };
+    return () => {
+      stop();
+      dispose();
+    };
   }, [frameLoaded, frameRef.current, previewCtx, t, token.colorPrimary]);
 
   const usedPkgs = usedHostLessPkgs(previewCtx.studioCtx.site);
@@ -106,7 +118,7 @@ export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
     // TODO: Trigger the scroll exactly when the anchored element is rendered.
     setTimeout(() => {
       setTimeout(() => {
-        const id = previewCtx.pageHash.replace(/^#/, "");
+        const id = readBusinessAnchor(previewCtx.pageHash);
         const anchorElement = frameRef.current?.document.getElementById(id);
         anchorElement?.scrollIntoView();
       }, 0);
@@ -129,6 +141,7 @@ export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
       frameWindow,
       true,
       onAnchorClick,
+      (href) => previewCtx.hrefForNavigation(href),
     );
     if (
       !isMounted() ||
@@ -145,16 +158,15 @@ export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
     ) => {
       try {
         if (isInteractionLoc(loc) && loc.actionName === "navigation") {
-          if (typeof args.destination !== "string" || !args.destination.trim()) {
-            throw new Error("Navigation destination must be a non-empty string");
+          if (
+            typeof args.destination !== "string" ||
+            !args.destination.trim()
+          ) {
+            throw new Error(
+              "Navigation destination must be a non-empty string",
+            );
           }
-          if (args.destination.startsWith("#")) {
-            frameWindow.document
-              .getElementById(args.destination.substring(1))
-              ?.scrollIntoView({ behavior: "smooth" });
-          } else {
-            spawn(previewCtx.handleNavigation(`${args.destination}`));
-          }
+          spawn(previewCtx.handleNavigation(args.destination));
           return;
         }
         return fn();
@@ -206,7 +218,9 @@ export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
             previewCtx.studioCtx.site,
           );
           const currentPackages = new Set(modules.map(([pkg]) => pkg));
-          const newInstalledPkgs = installedPkgs.filter((pkg) => currentPackages.has(pkg));
+          const newInstalledPkgs = installedPkgs.filter((pkg) =>
+            currentPackages.has(pkg),
+          );
           for (const [pkg, pkgModule] of modules) {
             if (!installedPkgsSet.has(pkg)) {
               if (!isCurrentFrame()) {
@@ -291,7 +305,7 @@ export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
   // This effect scrolls when the component or hash changes.
   React.useEffect(() => {
     return autorun(() => {
-      if (!frameRef.current || (!previewCtx.isLive && !previewCtx.popup)) {
+      if (!frameRef.current || !previewCtx.isLive) {
         return;
       }
 

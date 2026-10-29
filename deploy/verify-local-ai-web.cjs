@@ -325,7 +325,12 @@ let browser;
     );
     const preview = await context.newPage();
     preview.on("pageerror", (error) => errors.push(error.message));
-    await preview.goto(projectUrl + "/preview-full" + route, {
+    const presentation = await context.request.post(
+      `${base}/api/v1/projects/${projectId}/presentation`,
+    );
+    assert(presentation.ok(), "Could not resolve presentation code");
+    const { code } = await presentation.json();
+    await preview.goto(`${base}/d/${code}#${route}`, {
       waitUntil: "domcontentloaded",
     });
     const runtime = preview

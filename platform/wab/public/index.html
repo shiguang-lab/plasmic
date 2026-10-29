@@ -642,7 +642,7 @@
     </div>
     <script>
       if (
-        /^\/projects\/[^/]+\/preview(?:-full)?(?:\/|$)/.test(
+        /^(?:\/projects\/[^/]+\/preview\/?|\/d\/[\w-]{10})$/.test(
           window.location.pathname,
         )
       ) {

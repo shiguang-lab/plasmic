@@ -94,7 +94,7 @@ test("Preview screenshots hide feedback and restore it even when capture fails",
     calls.push(script.includes('action:"hide"') ? "hide" : script.includes('action:"clear"') ? "clear" : "show");
   } };
   const win = { getContentBounds: () => ({ width: 800, height: 600 }), webContents: {
-    getURL: () => "https://studio.example/projects/p/preview/records", getZoomFactor: () => 1,
+    getURL: () => "https://studio.example/projects/p/preview#/records", getZoomFactor: () => 1,
     mainFrame: { framesInSubtree: [frame] }, capturePage: async () => { calls.push("capture"); throw new Error("capture failed"); },
   } };
   await assert.rejects(runPreview(win, { action: "screenshot" }, { sessionId: "s" }), /capture failed/);
@@ -109,7 +109,7 @@ test("background runtime discovery uses the committed Preview root and waits for
   w.document.querySelector(".live-root-container").getBoundingClientRect = () => ({ width: 1440, height: 720 });
   const frame = { url: w.location.href, executeJavaScript: (script) => w.eval(script) };
   const retained = { url: "https://canvas.example/#canvas=true", executeJavaScript: () => { throw new Error("Read stale editor frame"); } };
-  const win = { webContents: { getURL: () => "https://studio.example/projects/p/preview/records", mainFrame: { framesInSubtree: [retained, frame] } } };
+  const win = { webContents: { getURL: () => "https://studio.example/projects/p/preview#/records", mainFrame: { framesInSubtree: [retained, frame] } } };
   setTimeout(() => w.document.querySelector(".live-root-container").setAttribute("data-plasmic-preview-component", "requested-page"), 20);
   const result = await previewFrame(win, "requested-page");
   assert.equal(result.frame, frame);
@@ -121,7 +121,7 @@ test("Preview render errors surface immediately instead of a misleading missing-
   t.after(() => dom.window.close());
   const w = dom.window;
   w.document.fonts = { ready: Promise.resolve() }; w.requestAnimationFrame = (cb) => cb();
-  const win = { webContents: { getURL: () => "https://studio.example/projects/p/preview/records", mainFrame: { framesInSubtree: [{ url: w.location.href, executeJavaScript: (s) => w.eval(s) }] } } };
+  const win = { webContents: { getURL: () => "https://studio.example/projects/p/preview#/records", mainFrame: { framesInSubtree: [{ url: w.location.href, executeJavaScript: (s) => w.eval(s) }] } } };
   await assert.rejects(previewFrame(win, "page"), /Native Preview render failed: Invalid registered widget prop/);
 });
 
@@ -133,7 +133,7 @@ test("committed Pages with a display:contents root are ready without a root bord
   w.requestAnimationFrame = (cb) => cb();
   assert.equal(w.document.querySelector(".live-root-container").getBoundingClientRect().width, 0);
   const frame = { url: w.location.href, executeJavaScript: (s) => w.eval(s) };
-  const win = { webContents: { getURL: () => "https://studio.example/projects/p/preview/records", mainFrame: { framesInSubtree: [frame] } } };
+  const win = { webContents: { getURL: () => "https://studio.example/projects/p/preview#/records", mainFrame: { framesInSubtree: [frame] } } };
   assert.equal((await previewFrame(win, "page")).layout.ready, true);
 });
 
@@ -152,7 +152,7 @@ function pendingRuntime(stage) {
   } };
   parent.frames = [frame];
   const win = { webContents: {
-    getURL: () => "https://studio.example/projects/p/preview/records",
+    getURL: () => "https://studio.example/projects/p/preview#/records",
     mainFrame: { framesInSubtree: [frame] }, getZoomFactor: () => 1,
     capturePage: hang,
     debugger: { isAttached: () => true, sendCommand: async (method, input) => {
@@ -189,7 +189,7 @@ test("a cancelled Preview action releases the actual controller queue for close 
   const f = pendingRuntime("settle");
   f.win.isDestroyed = () => false;
   let mode = "preview";
-  f.win.webContents.getURL = () => `https://studio.example/projects/p${mode === "preview" ? "/preview/records" : ""}`;
+  f.win.webContents.getURL = () => `https://studio.example/projects/p${mode === "preview" ? "/preview#/records" : ""}`;
   const controller = new DesktopController(() => f.win, { studioOrigin: "https://studio.example" });
   t.after(() => controller.close());
   controller.checkContext = async () => {};

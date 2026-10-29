@@ -21,7 +21,7 @@ import {
 } from "@/wab/shared/ApiSchema";
 import { validateBranchName } from "@/wab/shared/ApiSchemaUtil";
 import { assert, ensure, spawnWrapper } from "@/wab/shared/common";
-import { APP_ROUTES, SEARCH_PARAM_BRANCH } from "@/wab/shared/route/app-routes";
+import { SEARCH_PARAM_BRANCH } from "@/wab/shared/route/app-routes";
 import {
   BranchesOutlined,
   CheckOutlined,
@@ -41,7 +41,6 @@ import {
   notification,
 } from "antd";
 import { createStyles } from "antd-style";
-import { trimStart } from "lodash";
 import { observer } from "mobx-react";
 import React, { useState } from "react";
 import { useDebounce } from "react-use";
@@ -307,17 +306,11 @@ function BranchPanelTop_(
     const selected = branch?.id === focusedBranch?.id;
     const onSwitch = async () => {
       if (!selected) {
-        if (
-          studioCtx.isLiveMode &&
-          APP_ROUTES.projectPreview.parse(
-            studioCtx.appCtx.history.location.pathname,
-          )
-        ) {
-          const hashParams = new URLSearchParams(
-            trimStart(studioCtx.appCtx.history.location.hash, "#"),
-          );
-          hashParams.set(SEARCH_PARAM_BRANCH, branch?.name || MainBranchId);
-          studioCtx.appCtx.history.push({ hash: `#${hashParams.toString()}` });
+        if (studioCtx.isLiveMode) {
+          const location = studioCtx.appCtx.history.location;
+          const settings = new URLSearchParams(location.search);
+          settings.set(SEARCH_PARAM_BRANCH, branch?.name || MainBranchId);
+          studioCtx.appCtx.history.push({ ...location, search: `?${settings}` });
         } else {
           await studioCtx.switchToBranch(branch);
         }

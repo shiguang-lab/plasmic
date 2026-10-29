@@ -13,8 +13,8 @@ export type PreviewRender =
       globalVariants: { module: string; provider: string; prop: string }[];
       page?: {
         route: string;
-        params?: Record<string, string>;
-        query: Record<string, string>;
+        params?: Record<string, string | string[]>;
+        query: Record<string, string | string[]>;
       };
       globals: Record<string, unknown>;
       appUser: unknown;

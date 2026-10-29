@@ -2,6 +2,7 @@ import { Icon } from "@/wab/client/components/widgets/Icon";
 import NewComponentItem from "@/wab/client/components/widgets/NewComponentItem";
 import NewComponentSection from "@/wab/client/components/widgets/NewComponentSection";
 import { TextboxRef } from "@/wab/client/components/widgets/Textbox";
+import { useTopFrameApi } from "@/wab/client/contexts/AppContexts";
 import { useI18n } from "@/wab/client/i18n";
 import { getPageTemplatesGroups } from "@/wab/client/insertable-templates";
 import EyeIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Eye";
@@ -10,8 +11,10 @@ import {
   PlasmicNewComponentModal,
 } from "@/wab/client/plasmic/plasmic_kit_new_component/PlasmicNewComponentModal";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { ProjectId } from "@/wab/shared/ApiSchema";
 import { InsertableTemplatesItem } from "@/wab/shared/devflags";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
+import { formatBusinessHref } from "@plasmic-shared/preview";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { Tooltip } from "antd";
 import * as React from "react";
@@ -45,6 +48,8 @@ interface NewPageModalProps extends Omit<
 function NewPageModal(props: NewPageModalProps) {
   const { t: uiT } = useI18n();
   const { onSubmit, onCancel, studioCtx, folderPath, ...rest } = props;
+  const topFrameApi = useTopFrameApi();
+  const isDesktop = navigator.userAgent.includes("PlasmicDesktop/");
 
   const [pageInfo, setPageInfo] = React.useState<NewPageInfo>({
     type: "blank",
@@ -176,23 +181,62 @@ function NewPageModal(props: NewPageModalProps) {
                     <Icon
                       icon={EyeIcon}
                       onClick={async () => {
-                        await studioCtx.projectDependencyManager.fetchInsertableTemplate(
-                          comp.projectId,
-                        );
-                        const template =
-                          studioCtx.projectDependencyManager.getInsertableTemplate(
-                            comp,
-                          );
-                        if (!template) {
+                        const preview = isDesktop
+                          ? undefined
+                          : window.open("about:blank", "_blank");
+                        if (!isDesktop && !preview) {
                           return;
                         }
-                        const route = APP_ROUTES.projectFullPreview.pattern
-                          .replace(":projectId", comp.projectId)
-                          .replace(
-                            "{/*previewPath}",
-                            `/${template.component.uuid}`,
+                        if (preview) {
+                          preview.opener = null;
+                        }
+                        let launched = false;
+                        try {
+                          await studioCtx.projectDependencyManager.fetchInsertableTemplate(
+                            comp.projectId,
                           );
-                        window.open(route, "_blank");
+                          const template =
+                            studioCtx.projectDependencyManager.getInsertableTemplate(
+                              comp,
+                            );
+                          if (!template) {
+                            return;
+                          }
+                          const { code } =
+                            await studioCtx.appCtx.api.createPresentation(
+                              comp.projectId as ProjectId,
+                            );
+                          const component = template.component;
+                          const page = component.pageMeta;
+                          const pathname = page
+                            ? formatBusinessHref({
+                                pathname: page.path,
+                                query: page.params,
+                              })
+                            : "/";
+                          const path = formatBusinessHref({
+                            pathname,
+                            query: page?.query,
+                          });
+                          const route =
+                            APP_ROUTES.projectPresentation.fill(
+                              { code },
+                              page ? {} : { component: component.uuid },
+                            ) + `#${path}`;
+                          const studioUrl =
+                            await studioCtx.appCtx.api.getStudioUrl();
+                          const url = new URL(route, studioUrl).href;
+                          if (isDesktop) {
+                            await topFrameApi.openDesktopPreview(url);
+                          } else {
+                            preview?.location.replace(url);
+                          }
+                          launched = true;
+                        } finally {
+                          if (!launched) {
+                            preview?.close();
+                          }
+                        }
                       }}
                     />
                   </Tooltip>

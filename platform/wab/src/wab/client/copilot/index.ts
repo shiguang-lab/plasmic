@@ -2477,8 +2477,7 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
       browserImportCanvasName:
         browserImportCanvas(studio)?.name ?? browserImportCanvasName(),
       editorView: editorView(studio),
-      previewKind: studio.previewCtx?.popup ? "external" as const
-        : studio.isInteractiveMode ? "interactive" as const
+      previewKind: studio.isInteractiveMode ? "interactive" as const
         : studio.isLiveMode ? "in-app" as const : null,
       previewContext:
         studio.isLiveMode && studio.previewCtx
@@ -2543,7 +2542,6 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
     }
     assert(!component || (studio.site.components.includes(component) && isPageComponent(component)), "Preview target must be a local Page");
     const preview = ensure(studio.previewCtx, "Native Preview is unavailable");
-    assert(!preview.popup, "Close the external Preview window before using in-app Preview");
     if (input.action === "close") {
       const wasPreview = preview.isLive || studio.isInteractiveMode;
       await preview.stopLiveMode();

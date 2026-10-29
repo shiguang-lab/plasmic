@@ -1,3 +1,4 @@
+import { registerPresentationProject } from "@/wab/client/route/presentation-projects";
 import { fakeAppCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import { useProjectAiSession, useTopFrameState } from "@/wab/client/components/TopFrame/TopFrameChrome";
 import type { AiSessionSnapshot } from "@/wab/client/copilot/ai-session-view";
@@ -126,7 +127,7 @@ it("awaits the native preview handoff across the host-to-top-frame API", async (
     { wrapper: ({ children }: { children: React.ReactNode }) => <HistoryProvider history={history}>{children}</HistoryProvider> },
   );
   try {
-    const url = "https://studio.example/projects/test/preview-full";
+    const url = "https://studio.example/d/0123456789#/";
     let done = false;
     const pending = mounted.result.current.topFrameApi.openDesktopPreview(url).then(() => { done = true; });
     await Promise.resolve();
@@ -142,3 +143,5 @@ it("awaits the native preview handoff across the host-to-top-frame API", async (
     vi.unstubAllGlobals();
   }
 });
+
+beforeEach(() => registerPresentationProject("0123456789", "project" as import("@/wab/shared/ApiSchema").ProjectId));

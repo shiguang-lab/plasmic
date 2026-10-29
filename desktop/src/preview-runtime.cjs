@@ -204,7 +204,7 @@ async function runtimeCommand(input, documentId, caller) {
 }
 
 async function previewFrame(win, componentUuid, signal = AbortSignal.timeout(30000)) {
-  if (!/\/preview(?:\/|$|-full(?:\/|$))/.test(new URL(win.webContents.getURL()).pathname)) throw new Error("Open native Preview first; the reference browser is not a runtime Preview");
+  if (!/^(?:\/projects\/[^/]+\/preview\/?|\/d\/[\w-]{10})$/.test(new URL(win.webContents.getURL()).pathname)) throw new Error("Open native Preview first; the reference browser is not a runtime Preview");
   const frames = await canvasFrames(win, undefined, async function inspectPreview(expected) {
     await Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 5000))]);
     await Promise.race([new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))), new Promise((r) => setTimeout(r, 100))]);

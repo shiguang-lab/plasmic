@@ -1,27 +1,19 @@
-import { publicationPath } from "@plasmic-shared/preview";
 import type { GetServerSideProps } from "next";
+import dynamic from "next/dynamic";
+import type { PublishedPageProps } from "../../components/PublishedPage";
 import { getPublication } from "../../lib/publications";
 
-export default function ShortLink() {
-  return null;
-}
+export default dynamic(() => import("../../components/PublishedPage"), {
+  ssr: false,
+});
 
-export const getServerSideProps: GetServerSideProps = async ({
-  params,
-  resolvedUrl,
-  res,
-}) => {
+export const getServerSideProps: GetServerSideProps<
+  PublishedPageProps
+> = async ({ params, res }) => {
   res.setHeader("Cache-Control", "no-store");
   const publication = await getPublication(String(params?.publicationCode));
   if (!publication) {
     return { notFound: true };
   }
-  const search = new URL(resolvedUrl, "http://preview.local").search;
-  return {
-    redirect: {
-      destination:
-        publicationPath(publication.code, publication.entryPath) + search,
-      permanent: false,
-    },
-  };
+  return { props: publication };
 };

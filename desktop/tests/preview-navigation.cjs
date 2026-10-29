@@ -43,7 +43,7 @@ app.whenReady().then(async () => {
     assert.equal((await read).text, "Editor restored");
     assert.equal(controller.operations.size, 0);
   }
-  await win.loadURL(origin + "/projects/p/preview/page");
+  await win.loadURL(origin + "/projects/p/preview#/page");
   const snapshot = await controller.dispatch("preview", { action: "snapshot" });
   const ref = snapshot.elements.find((el) => el.name === "Missing route").ref;
   const start = Date.now();
@@ -60,7 +60,7 @@ app.whenReady().then(async () => {
   report.push({ case: "missing-route", elapsedMs: Date.now() - start, error: error.message, queueReleased: true });
 
   mode = "preview";
-  await win.loadURL(origin + "/projects/p/preview/page?hung");
+  await win.loadURL(origin + "/projects/p/preview#/page?hung");
   const hungStart = Date.now();
   const failed = assert.rejects(controller.dispatch("preview", { action: "state" }), /runtime timed out after 30 seconds/);
   // Queue recovery immediately behind the real, non-settling renderer Promise.

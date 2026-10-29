@@ -1,3 +1,4 @@
+import { registerPresentationProject } from "@/wab/client/route/presentation-projects";
 import { Root } from "@/wab/client/components/root-view";
 import { HistoryProvider } from "@/wab/client/route/HistoryProvider";
 import { HttpError } from "@/wab/shared/ApiErrors/ApiError";
@@ -149,7 +150,7 @@ it("uses the project bootstrap once and reuses its permission and host metadata"
 it.each([401, 403])("initializes identity after a denied project bootstrap (%s) so project access can be handled", async (status) => {
   mocks.getEditorBootstrap.mockRejectedValue(new HttpError(status, "Access denied"));
   mocks.loadAppCtx.mockRejectedValue(new Error("Stop after identity initialization"));
-  setup("/projects/project/preview-full/customer-groups?branch=main");
+  setup("/d/0123456789?branch=main#/customer-groups");
   await screen.findByRole("alert");
   expect(mocks.loadAppCtxData).toHaveBeenCalledOnce();
   expect(mocks.getSiteInfo).not.toHaveBeenCalled();
@@ -180,7 +181,7 @@ it.each(["bundle", "app-data", "app-context"])(
     } else {
       mocks.loadAppCtx.mockRejectedValue(denied);
     }
-    const path = "/projects/project/preview-full/audiences?market=MX#width=1440";
+    const path = "/d/0123456789?width=1440#/audiences?market=MX";
     setup(path);
     expect((await screen.findByText("Ready")).getAttribute("data-return-to")).toBe(path);
     expect(screen.queryByRole("button", { name: "Retry" })).toBeNull();
@@ -193,3 +194,5 @@ it("does not treat a forbidden startup request as an expired session", async () 
   expect(await screen.findByRole("button", { name: "Retry" })).toBeTruthy();
   expect(screen.queryByText("Ready")).toBeNull();
 });
+
+beforeEach(() => registerPresentationProject("0123456789", "project" as import("@/wab/shared/ApiSchema").ProjectId));

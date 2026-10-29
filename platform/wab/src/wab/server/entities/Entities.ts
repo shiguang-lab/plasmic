@@ -228,6 +228,7 @@ export type User = ApiUser;
 
 @Entity()
 export class Project extends Base<"ProjectId"> {
+  @Column("text", { nullable: true, unique: true }) presentationCode: string | null;
   @Column("text") name: string;
   /**
    * If true, users visiting the site automatically get

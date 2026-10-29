@@ -303,7 +303,7 @@ async function readyDocument() {
 }
 const js = (fn, input) => `(${fn.toString()})(${JSON.stringify(input)})`;
 async function canvasFrames(win, inspectionId, inspect = inspectCanvas, input, signal) {
-  const previewMode = /\/preview(?:\/|$|-full(?:\/|$))/.test(new URL(win.webContents.getURL()).pathname);
+  const previewMode = /^(?:\/projects\/[^/]+\/preview\/?|\/d\/[\w-]{10})$/.test(new URL(win.webContents.getURL()).pathname);
   const end = Date.now() + 20000;
   while (Date.now() < end) {
     signal?.throwIfAborted();

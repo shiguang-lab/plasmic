@@ -1709,6 +1709,12 @@ export abstract class SharedApi {
       }),
     );
   }
+  createPresentation(projectId: ProjectId): Promise<{ code: string; projectId: ProjectId }> {
+    return this.post(`/projects/${projectId}/presentation`, {});
+  }
+  getPresentation(code: string): Promise<{ code: string; projectId: ProjectId }> {
+    return this.get(`/presentations/${encodeURIComponent(code)}`);
+  }
   getPreviewPublication(projectId: ProjectId): Promise<{ publication: PreviewPublication | null }> {
     return this.get(`/projects/${projectId}/preview-publication`);
   }

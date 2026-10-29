@@ -121,16 +121,11 @@ function LoggedInContainer(props: LoggedInContainerProps) {
 
   const selfInfo = appCtx.selfInfo;
 
-  const projectRoute = switchCase({
-    route: APP_ROUTES.project,
-    render: ({ projectId }) => {
-      return (
-        <LoggedInPages.ViewInitializer
-          appCtx={appCtx}
-          onRefreshUi={onRefreshUi}
-          projectId={projectId}
-        />
-      );
+  const projectRoute = switchCase<{}>({
+    route: [APP_ROUTES.project, APP_ROUTES.projectPresentation],
+    render: () => {
+      const projectId = ensure(parseProjectLocation(appCtx.history.location)?.projectId, "Project route not resolved");
+      return <LoggedInPages.ViewInitializer appCtx={appCtx} onRefreshUi={onRefreshUi} projectId={projectId as import("@/wab/shared/ApiSchema").ProjectId} />;
     },
   });
 

@@ -265,11 +265,6 @@ const appConfig = defineConfig({
             resolveUiLocale: require("./src/wab/client/i18n/locale-resolution.cjs").resolveUiLocale.toString(),
           },
         }),
-        new HtmlWebpackPlugin({
-          template: "../sub/public/static/popup.html",
-          filename: `static/popup.html`,
-          inject: false,
-        }),
         new MonacoWebpackPlugin(),
         new HtmlWebpackPlugin(
           Object.assign(

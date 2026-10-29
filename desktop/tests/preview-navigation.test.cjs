@@ -100,8 +100,8 @@ function setup({ save = async () => {}, load = async () => {}, open = async () =
 test("full preview opens in the default browser and denies creating an Electron window", () => {
   const s = setup();
   for (const route of [
-    "/projects/project/preview-full",
-    "/projects/project/preview-full/groups/123?market=MX#branch=design",
+    "/d/0123456789",
+    "/d/0123456789?branch=design#/groups/123?market=MX",
   ]) {
     const url = config.studioOrigin + route;
     assert.equal(s.handle(url).action, "deny");
@@ -131,7 +131,7 @@ test("embedded preview navigation stays in the current window", () => {
         prevented = true;
       },
     },
-    config.studioOrigin + "/projects/project/preview/groups",
+    config.studioOrigin + "/projects/project/preview#/groups",
   );
   assert.equal(prevented, false);
 });
@@ -189,7 +189,7 @@ test("external links, sign-in and blank popups cannot create application windows
 test("preview IPC waits for native handoff and propagates launch failures", async () => {
   let finish;
   const s = setup({ open: () => new Promise((resolve) => { finish = resolve; }) });
-  const url = config.studioOrigin + "/projects/project/preview-full/groups";
+  const url = config.studioOrigin + "/d/0123456789#/groups";
   let done = false;
   const pending = s.preview(url).then(() => { done = true; });
   await new Promise(setImmediate);
@@ -204,13 +204,13 @@ test("preview IPC waits for native handoff and propagates launch failures", asyn
 
 test("preview IPC only accepts the main Studio frame and full preview URLs", () => {
   const s = setup();
-  const url = config.studioOrigin + "/projects/project/preview-full/groups";
+  const url = config.studioOrigin + "/d/0123456789#/groups";
   for (const event of [
     { sender: {}, senderFrame: s.webContents.mainFrame },
     { sender: s.webContents, senderFrame: { url: s.webContents.mainFrame.url } },
   ]) assert.throws(() => s.preview(url, event), /Invalid Studio page/);
   for (const invalid of [
-    "https://example.org/projects/project/preview-full",
+    "https://example.org/d/0123456789",
     config.studioOrigin + "/projects/project/preview",
     config.studioOrigin + "/projects/project/preview-fullscreen",
   ]) assert.throws(() => s.preview(invalid), /Invalid preview URL/);

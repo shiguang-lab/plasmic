@@ -32,7 +32,7 @@ function fixture(t) {
   const frame = { url: w.location.href, processId: 12, routingId: 34, executeJavaScript: (script) => w.eval(script) };
   const inputs = [];
   const win = { isDestroyed: () => false, webContents: {
-    getURL: () => "https://studio.example/projects/p/preview/records", mainFrame: { framesInSubtree: [frame] },
+    getURL: () => "https://studio.example/projects/p/preview#/records", mainFrame: { framesInSubtree: [frame] },
     debugger: { isAttached: () => true, sendCommand: async (method, params) => { inputs.push({ method, ...params }); } },
   } };
   const context = { projectId: "p", branchId: null, sessionId: "session", revision: 1, changeCounter: 0,

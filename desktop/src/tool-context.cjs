@@ -41,7 +41,7 @@ function currentContext(state, studioOrigin) {
     else if (/\/(?:login|unified-login)(?:\/|$)/.test(url.pathname)) surface = "login";
     else if (/^\/(?:orgs|workspaces)(?:\/|$)/.test(url.pathname)) surface = "dashboard";
     else if (/^\/projects\/[^/]+(?:\/-\/[^/]+)?\/?$/.test(url.pathname)) surface = "editor";
-    else if (/^\/projects\/[^/]+\/preview(?:\/|$|-full(?:\/|$))/.test(url.pathname)) { surface = "editor"; routeMode = "preview"; }
+    else if (/^(?:\/projects\/[^/]+\/preview\/?|\/d\/[\w-]{10})$/.test(url.pathname)) { surface = "editor"; routeMode = "preview"; }
     else surface = "other";
   }
   const mode = routeMode || editor.mode || null;

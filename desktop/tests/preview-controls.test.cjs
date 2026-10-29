@@ -20,7 +20,7 @@ test("MCP Preview state and navigation report availability without operating Stu
   const context = { projectId: "p", branchId: null, sessionId: "s", changeCounter: 0, mode: "preview", previewKind: "in-app",
     componentUuid: "editor-page", previewContext: { componentUuid: "details", path: "/details", canGoBack: true, canGoForward: false } };
   const controller = new DesktopController(() => ({ isDestroyed: () => false, webContents: {
-    getURL: () => `https://studio.example/projects/p/preview${context.previewContext.path}`,
+    getURL: () => `https://studio.example/projects/p/preview#${context.previewContext.path}`,
     mainFrame: { framesInSubtree: [frame] },
     reload: () => assert.fail("Studio reloaded"),
     navigationHistory: { goBack: () => assert.fail("Studio went back"), goForward: () => assert.fail("Studio went forward") },

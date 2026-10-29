@@ -1,3 +1,4 @@
+import { validatePreviewPages } from "@plasmic-shared/preview";
 import { DbMgr } from "@/wab/server/db/DbMgr";
 import { PreviewPublication } from "@/wab/server/entities/CustomEntities";
 import {
@@ -86,6 +87,9 @@ async function publishWebsite(req: Request) {
       }));
     if (!pages.length) {
       throw new BadRequestError("This project has no published pages.");
+    }
+    try { validatePreviewPages(pages); } catch (error) {
+      throw new BadRequestError(error instanceof Error ? error.message : String(error));
     }
     // A non-hostless custom component needs an application-specific registration.
     if (bundle.components.some((c) => c.isCode)) {
