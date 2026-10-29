@@ -14,9 +14,7 @@
 
 从页面根递归读取引用的自定义组件与 Slot，包括非活动 Tab、关闭的 Drawer/Modal、隐藏分支和重复模板。对于 opaque 第三方组件，读取公开注册契约和提供方文档；无法取得的内部行为标为未知。渲染 DOM 不替代组件的业务语义。
 
-`view:"contract"` 返回注册属性名和可写状态的 `valueProp` / `onChangeProp` 关联。`registration.editOnly` 与 `registration.uncontrolledProp` 表示编辑入口到运行时初始属性的映射；实例 `properties` 或导出 markup 可能使用映射后的名字，不能据此判断注册属性不存在。查询组件能力时同时核对 props、states 和返回的字段范围。
-
-原生受控属性与初始属性分别配置，例如 Tabs 的 `activeKey` 和 `defaultActiveKey`。显式提供 `activeKey` 时由该值控制，通过 `onChange` 更新绑定的状态；未提供时使用初始值并允许组件交互或实例可写状态控制。画布临时 reveal 不修改这两个业务属性。
+核对 contract 的 props/states 与 `editOnly/uncontrolledProp`；省略不代表不支持。
 
 [渲染检查](desktop-inspection.md)负责几何、截图与 Preview。布局索引不是模型 UUID，静态截图不执行交互；只读任务不得通过修改 open/activeKey、初值或保存设计获取隐藏内容。无法观测的状态标为未知。
 
