@@ -1,0 +1,7 @@
+{
+  "en": "- Fix presentation pages crashing with React error #426 while the sign-in screen loads.",
+  "zh-CN": "- 修复演示页面加载登录界面时出现 React #426 错误和白屏的问题。",
+  "zh-TW": "- 修復演示頁面載入登入畫面時出現 React #426 錯誤與空白頁的問題。",
+  "ja": "- サインイン画面の読み込み中にプレゼンテーションページが React エラー #426 でクラッシュする問題を修正しました。",
+  "ko": "- 로그인 화면을 불러오는 동안 프레젠테이션 페이지가 React 오류 #426으로 중단되는 문제를 수정했습니다。"
+}

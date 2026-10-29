@@ -207,6 +207,44 @@ it("shows preview startup failures with retry without editor chrome", () => {
   expect(retry).toHaveBeenCalledOnce();
 });
 
+it.each(["preview", "preview-full"])(
+  "keeps a lazy sign-in failure inside a loading boundary during %s startup",
+  async (mode) => {
+    let releaseSignIn!: () => void;
+    const SignIn = React.lazy(() => new Promise<{ default: React.ComponentType }>((resolve) => {
+      releaseSignIn = () => resolve({ default: () => <div>Sign in to preview</div> });
+    }));
+    class ErrorBoundary extends React.Component<React.PropsWithChildren, { failed: boolean }> {
+      state = { failed: false };
+      static getDerivedStateFromError() { return { failed: true }; }
+      render() { return this.state.failed ? <div>Startup crashed</div> : this.props.children; }
+    }
+    const history = createMemoryHistory({ initialEntries: [`/projects/project/${mode}/home`] });
+    render(
+      <HistoryProvider history={history}>
+        <AntdConfigProvider productUI>
+          <ErrorBoundary>
+            <StudioStartupBoundary>
+              <Loadable loader={async () => true} contents={() => (
+                <React.Suspense fallback={<ApplicationPageLoading />}>
+                  <ApplicationPageLoading failure={<SignIn />} />
+                </React.Suspense>
+              )} loadingContents={() => <ApplicationPageLoading />} />
+            </StudioStartupBoundary>
+          </ErrorBoundary>
+        </AntdConfigProvider>
+      </HistoryProvider>,
+      { legacyRoot: true },
+    );
+    await act(() => Promise.resolve());
+    expect(screen.queryByText("Startup crashed")).toBeNull();
+    expect(screen.getByRole("status").textContent).toContain("Loading preview…");
+    await act(async () => releaseSignIn());
+    expect(screen.getByText("Sign in to preview")).toBeTruthy();
+    expect(screen.queryByRole("status")).toBeNull();
+  },
+);
+
 it("provides one desktop update slot after the loading editor brand capsule", () => {
   vi.spyOn(navigator, "userAgent", "get").mockReturnValue(
     "PlasmicDesktop/darwin",

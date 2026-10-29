@@ -92,16 +92,26 @@ export function StudioStartupBoundary({
             visibility: state.hidden ? "hidden" : "visible",
           }}
         >
-          {projectLocation?.isPreview ? (
-            <PreviewLoading>{state.failure}</PreviewLoading>
-          ) : (
-            <StudioChromeContent
-              projectName={state.projectName}
-              loading={!startupLoading}
-            >
-              {state.failure}
-            </StudioChromeContent>
-          )}
+          {/* Failures render here, outside the route boundary that reported
+              them, and can themselves suspend while sign-in loads. */}
+          <React.Suspense
+            fallback={projectLocation?.isPreview ? (
+              <PreviewLoading />
+            ) : (
+              <StudioChromeContent projectName={state.projectName} />
+            )}
+          >
+            {projectLocation?.isPreview ? (
+              <PreviewLoading>{state.failure}</PreviewLoading>
+            ) : (
+              <StudioChromeContent
+                projectName={state.projectName}
+                loading={!startupLoading}
+              >
+                {state.failure}
+              </StudioChromeContent>
+            )}
+          </React.Suspense>
         </div>
       )}
     </>
