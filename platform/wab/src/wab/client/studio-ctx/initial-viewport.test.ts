@@ -9,7 +9,7 @@ import { mock } from "vitest-mock-extended";
 
 afterEach(() => vi.unstubAllGlobals());
 
-it.each(["saved", "suspended-layout", "suspended-commit", "missing-frame", "invalid"])("initializes %s viewport before releasing loading", async (mode) => {
+it.each(["saved", "suspended-layout", "suspended-commit", "missing-frame", "missing-padding", "invalid"])("initializes %s viewport before releasing loading", async (mode) => {
   vi.stubGlobal("navigator", { userAgent: "PlasmicDesktop/darwin" });
   // Electron can stop animation frames while still reporting a visible document.
   vi.spyOn(document, "visibilityState", "get").mockReturnValue("visible");
@@ -19,12 +19,13 @@ it.each(["saved", "suspended-layout", "suspended-commit", "missing-frame", "inva
   const arena = mkMixedArena("Overview");
   site.arenas.push(arena);
   const topFrameApi = mock<TopFrameApi>();
-  topFrameApi.getSavedEditorView.mockResolvedValue({
+  topFrameApi.getSavedEditorView.mockResolvedValue(JSON.parse(JSON.stringify({
     arenaId: arena.name, arenaType: "custom",
     frameUuid: mode === "missing-frame" ? "deleted" : null,
     scale: mode === "invalid" ? -1 : 0.5,
     scroll: { x: 240, y: 360 },
-  });
+    canvasPadding: mode === "missing-padding" ? undefined : { x: 0, y: 0 },
+  })));
   const { studioCtx } = fakeStudioCtx({ site, topFrameApi, initialUrl: "/projects/test?arena_type=custom&arena=Overview" });
   const dom = mock<DomActions>();
   const viewport = new ViewportCtx({ dom, initialArena: arena, initialClipperBox: new Box(0, 0, 1000, 800), initialClipperScroll: new Pt(0, 0) });
@@ -32,7 +33,7 @@ it.each(["saved", "suspended-layout", "suspended-commit", "missing-frame", "inva
   const zoom = vi.spyOn(viewport, "zoomToScalerBox");
   try {
     await waitFor(() => expect(studioCtx.initialRouteReady).toBe(true));
-    if (mode !== "missing-frame" && mode !== "invalid") {
+    if (mode !== "missing-frame" && mode !== "missing-padding" && mode !== "invalid") {
       expect(studioCtx.initialViewportReady).toBe(false);
       expect(studioCtx.hasInitialEditorView).toBe(true);
       let toolReady = false;
@@ -69,6 +70,7 @@ it.each(["saved", "suspended-layout", "suspended-commit", "missing-frame", "inva
       await waitFor(() => expect(studioCtx.initialViewportReady).toBe(true));
       expect(studioCtx.hasInitialEditorView).toBe(false);
       expect(viewport.scale()).not.toBe(-1);
+      expect(zoom).toHaveBeenCalled();
     }
   } finally {
     viewport.dispose();

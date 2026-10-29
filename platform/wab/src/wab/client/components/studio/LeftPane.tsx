@@ -243,7 +243,7 @@ const LeftPane = observer(function LeftPane(props: LeftPaneProps) {
               <strong className="editor-panel-title">
                 {t(
                   studioCtx.leftTabKey === "outline"
-                    ? "Structure"
+                    ? "Navigation"
                     : studioCtx.leftTabKey === "lint"
                       ? "Issues"
                       : (panelTitles[studioCtx.leftTabKey] ?? "Assets"),

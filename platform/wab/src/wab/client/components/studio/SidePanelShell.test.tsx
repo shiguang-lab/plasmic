@@ -18,21 +18,21 @@ it.each(["left", "right"] as const)(
         <div>{content}</div>
       </SidePanelShell>
     );
-    const mounted = render(renderShell(false, "Structure"));
+    const mounted = render(renderShell(false, "Navigation"));
     const shell = mounted.container.querySelector(
       `[data-test-id="${side}-panel-shell"]`,
     );
     expect(shell).toHaveAttribute("data-open", "false");
     expect(shell).toHaveAttribute("inert");
-    mounted.rerender(renderShell(true, "Structure"));
-    expect(screen.getByText("Structure")).toBeVisible();
+    mounted.rerender(renderShell(true, "Navigation"));
+    expect(screen.getByText("Navigation")).toBeVisible();
     expect(shell).toHaveAttribute("data-open", "true");
     mounted.rerender(renderShell(true, "AI"));
     expect(
       mounted.container.querySelector(`[data-test-id="${side}-panel-shell"]`),
     ).toBe(shell);
     expect(shell).toHaveAttribute("data-open", "true");
-    expect(screen.queryByText("Structure")).toBeNull();
+    expect(screen.queryByText("Navigation")).toBeNull();
     mounted.rerender(renderShell(false, ""));
     expect(shell).toHaveAttribute("data-open", "false");
     expect(screen.getByText("AI")).toBeInTheDocument();

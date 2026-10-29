@@ -2465,10 +2465,7 @@ export class StudioCtx extends WithDbCtx {
               focusedArenaFrame: frame,
               scale: saved.scale,
               scroll: new Pt(saved.scroll.x, saved.scroll.y),
-              canvasPadding: ensure(
-                this.viewportCtx,
-                "Canvas viewport is not ready",
-              ).canvasPadding(),
+              canvasPadding: new Pt(saved.canvasPadding.x, saved.canvasPadding.y),
             },
             false,
           );

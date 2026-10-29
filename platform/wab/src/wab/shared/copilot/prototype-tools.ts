@@ -687,6 +687,7 @@ const EDIT_TOOL_META = {
           frameUuid: uuid.nullable(),
           scale: z.number().positive().finite(),
           scroll: z.object({ x: z.number().finite(), y: z.number().finite() }),
+          canvasPadding: z.object({ x: z.number().finite(), y: z.number().finite() }),
         })
         .nullable(),
       selectedSlot: z
@@ -731,6 +732,7 @@ const EDIT_TOOL_META = {
         frameUuid: uuid.nullable(),
         scale: z.number().positive().finite(),
         scroll: z.object({ x: z.number().finite(), y: z.number().finite() }),
+        canvasPadding: z.object({ x: z.number().finite(), y: z.number().finite() }),
       })
       .strict(),
     outputSchema: z.object({ restored: z.boolean() }),

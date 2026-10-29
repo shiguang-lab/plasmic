@@ -147,6 +147,7 @@ test("restart restores a trusted project and viewport without persisting design 
       frameUuid: "frame",
       scale: 0.7,
       scroll: { x: 20, y: 40 },
+      canvasPadding: { x: 9000, y: 3000 },
     };
     workspace.remember({
       url: origin + "/projects/one?arena_type=mixed",

@@ -1,0 +1,7 @@
+{
+  "en": "- Fix blank canvas on reopening projects by restoring the complete viewport position.\n- Rename the Structure panel to Navigation.",
+  "zh-CN": "- 修复重新打开项目时画布空白的问题，完整恢复视口位置与缩放。\n- 将「结构」面板更名为「导航」。",
+  "zh-TW": "- 修復重新開啟專案時畫布空白的問題，完整還原視口位置與縮放。\n- 將「結構」面板更名為「導覽」。",
+  "ja": "- プロジェクトを再度開いた際にキャンバスが空白になる問題を修正し、表示位置とズームを復元します。\n- 構造パネルをナビゲーションに変更しました。",
+  "ko": "- 프로젝트를 다시 열 때 캔버스가 비어 보이는 문제를 수정하고 위치와 확대 비율을 복원합니다.\n- 구조 패널 이름을 탐색으로 변경했습니다。"
+}

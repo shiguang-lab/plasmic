@@ -129,7 +129,12 @@ it("marks first render only after evaluation and post-eval work, and stays ready
   }
 });
 
-it.each(["running", "suspended"])("restores a saved non-first target with %s animation frames before revealing, preserving zoom, scroll and props while other boards are pending", async (animationState) => {
+it.each([
+  ["running", false],
+  ["suspended", false],
+  ["running", true],
+  ["suspended", true],
+])("restores a saved non-first target with %s animation frames and expanded surface %s before revealing, preserving zoom, scroll and props while other boards are pending", async (animationState, expandedSurface) => {
   vi.stubGlobal("navigator", { userAgent: "PlasmicDesktop/darwin" });
   const animationFrames: FrameRequestCallback[] = [];
   vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => {
@@ -140,12 +145,17 @@ it.each(["running", "suspended"])("restores a saved non-first target with %s ani
   const target = arena.children[3];
   const savedProps = JSON.stringify(target.container.vsettings);
   const api = mock<TopFrameApi>();
+  const savedPadding = expandedSurface
+    ? new Pt(9000, 3000) : new Pt(950, 760);
+  const savedScroll = expandedSurface
+    ? new Pt(9529.5, 2773.5) : new Pt(240, 360);
   api.getSavedEditorView.mockResolvedValue({
     arenaId: arena.name,
     arenaType: "custom",
     frameUuid: target.uuid,
     scale: 0.5,
-    scroll: { x: 240, y: 360 },
+    scroll: { x: savedScroll.x, y: savedScroll.y },
+    canvasPadding: { x: savedPadding.x, y: savedPadding.y },
   });
   const rendered = observable.box(false);
   const { studioCtx } = fakeStudioCtx({
@@ -168,9 +178,11 @@ it.each(["running", "suspended"])("restores a saved non-first target with %s ani
   const viewport = new ViewportCtx({
     dom,
     initialArena: arena,
-    initialClipperBox: new Box(0, 0, 1000, 800),
+    initialClipperBox: expandedSurface
+      ? new Box(0, 0, 1400, 900) : new Box(0, 0, 1000, 800),
     initialClipperScroll: new Pt(0, 0),
   });
+  dom.scrollTo.mockImplementation((scroll) => viewport.setScroll(scroll));
   studioCtx.viewportCtx = viewport;
   const fit = vi.spyOn(viewport, "zoomToScalerBox");
   try {
@@ -202,7 +214,12 @@ it.each(["running", "suspended"])("restores a saved non-first target with %s ani
     await tools;
     expect(toolReady).toBe(true);
     expect(viewport.scale()).toBe(0.5);
-    expect(dom.scrollTo).toHaveBeenLastCalledWith(new Pt(240, 360), false);
+    expect(viewport.visibleScalerBox().topLeft().x).toBeCloseTo(
+      (savedScroll.x - savedPadding.x) / 0.5,
+    );
+    expect(viewport.visibleScalerBox().topLeft().y).toBeCloseTo(
+      (savedScroll.y - savedPadding.y) / 0.5,
+    );
     expect(fit).not.toHaveBeenCalled();
     expect(JSON.stringify(target.container.vsettings)).toBe(savedProps);
   } finally {

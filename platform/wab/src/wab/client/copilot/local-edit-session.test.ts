@@ -741,6 +741,7 @@ it.each(["send", "retry"] as const)(
           frameUuid: null,
           scale: 1,
           scroll: { x: 0, y: 0 },
+          canvasPadding: { x: 0, y: 0 },
         },
         selectedSlot: null,
         previewKind: null, previewContext: null,

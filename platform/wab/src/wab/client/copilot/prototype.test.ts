@@ -1468,7 +1468,8 @@ describe("AI prototype editor tools", () => {
     const viewport = mockDeepAuto<ViewportCtx>();
     viewport.scale.mockReturnValue(0.75);
     viewport.scroll.mockReturnValue(new Pt(123, 456));
-    viewport.canvasPadding.mockReturnValue(Pt.zero());
+    const savedPadding = new Pt(9000, 3000);
+    viewport.canvasPadding.mockReturnValue(savedPadding);
     vi.spyOn(studioCtx, "viewportCtx", "get").mockReturnValue(viewport);
     const releases: Array<() => void> = [];
     const ready = vi.spyOn(studioCtx, "awaitStudioReady").mockImplementation(() => new Promise<void>((resolve) => { releases.push(resolve); }));
@@ -1482,6 +1483,7 @@ describe("AI prototype editor tools", () => {
     Object.assign(studioCtx, { previewCtx: preview });
     const model = await call("read", { view: "full" });
     await call("preview", { action: "open", componentUuid: target.uuid });
+    viewport.canvasPadding.mockReturnValue(new Pt(950, 760));
     studioCtx.currentArena = ensure(studioCtx.site.pageArenas.find((a) => a.component === target), "Target arena missing");
     let done = false;
     const close = call("preview", { action: "close" }).then((result) => { done = true; return result; });
@@ -1491,7 +1493,7 @@ describe("AI prototype editor tools", () => {
     ready.mockResolvedValue(); ensure(releases[0], "Canvas readiness was not requested")();
     expect(await close).toMatchObject({ mode: "edit" });
     expect(studioCtx.currentArena).toBe(arena);
-    expect(restored).toHaveBeenCalledWith({ focusedArenaFrame: frame, scale: 0.75, scroll: new Pt(123, 456), canvasPadding: Pt.zero() }, true);
+    expect(restored).toHaveBeenCalledWith({ focusedArenaFrame: frame, scale: 0.75, scroll: new Pt(123, 456), canvasPadding: savedPadding }, true);
     await call("preview", { action: "close" });
     expect(restored).toHaveBeenCalledTimes(1);
     await call("preview", { action: "open", componentUuid: target.uuid });

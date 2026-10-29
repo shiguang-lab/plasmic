@@ -179,6 +179,7 @@ function editorView(studio: StudioCtx) {
         frameUuid: (vc?.arenaFrame() ?? studio.focusedFrame())?.uuid ?? null,
         scale: studio.viewportCtx.scale(),
         scroll: { x: studio.viewportCtx.scroll().x, y: studio.viewportCtx.scroll().y },
+        canvasPadding: { x: studio.viewportCtx.canvasPadding().x, y: studio.viewportCtx.canvasPadding().y },
       }
     : null;
 }
@@ -195,7 +196,7 @@ async function restoreEditorView(studio: StudioCtx, input: ReturnType<typeof met
   await studio.awaitStudioReady();
   studio.restoreStudioViewportSnapshot({ focusedArenaFrame: frame, scale: input.scale,
     scroll: new Pt(input.scroll.x, input.scroll.y),
-    canvasPadding: ensure(studio.viewportCtx, "Canvas viewport is not ready").canvasPadding() }, true);
+    canvasPadding: new Pt(input.canvasPadding.x, input.canvasPadding.y) }, true);
   await studio.awaitStudioReady();
   await asyncTimeout(0);
   assert(studio.currentArena === arena, "Editor did not return to the saved canvas");

@@ -42,6 +42,7 @@ export interface SavedEditorView {
   frameUuid: string | null;
   scale: number;
   scroll: { x: number; y: number };
+  canvasPadding: { x: number; y: number };
 }
 
 export interface TopFrameApi {

@@ -17,6 +17,10 @@ inspector layout frames while target rendering proceeds. The viewport commit
 frame and observable first render readiness both complete before releasing the
 loading overlay. Editing tools continue to wait for the complete sync queue;
 initial reveal does not wait on subsequent evaluations.
+Saved views include the scroll offset and canvas padding together; restoration
+compensates for the current padding so window resizing and scroll-surface
+expansion preserve the same canvas coordinates and zoom. Incomplete saved views
+use the normal initial zoom-to-fit behavior.
 Other frames wait until the active target renders and the initial viewport is
 restored. Navigation may interrupt this wait to initialize a new target; disposal
 ends the wait. The first actual wait is recorded as `background-canvas-wait`.
