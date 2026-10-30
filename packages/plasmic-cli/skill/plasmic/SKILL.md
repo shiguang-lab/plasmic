@@ -52,7 +52,7 @@ Keep plans and acceptance evidence outside the business UI. Prototype mutations 
 
 For prototype work, follow the workflow's execution-stage table. Derive observable acceptance cases from the current requirements before generation, prepare the current Page's detailed inputs, and retain actual gate/runtime results at each stage. Use existing preparation and verification commands; declarations, tool success and screenshots alone do not establish business acceptance.
 
-Apply the workflow's Design, Saved-Page and Integration review checkpoints through its single review-mode policy: prefer an independent subagent, otherwise perform the same scoped checks in the current conversation and disclose the fallback. Resolve required findings before dependent work; scope local edits without adding unrelated reviews.
+Apply the workflow's Design, Saved-Page and Integration review checkpoints through its single review-mode policy: prefer an independent subagent, otherwise perform the same scoped checks in the current conversation and disclose the fallback. Resolve required findings before dependent work; retain runtime/persistence checks as pending until executed. Scope local edits without adding unrelated reviews.
 
 ## Client implementation boundary
 
