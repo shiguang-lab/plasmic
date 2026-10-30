@@ -34,7 +34,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   mocks.getProject.mockResolvedValue(mocks.project);
   mocks.find.mockResolvedValue(mocks.project);
-  mocks.query.mockResolvedValue([{ code: "0123456789" }]);
+  mocks.query.mockResolvedValue([[{ code: "0123456789" }], 1]);
 });
 it("allocates a stable draft identifier only after normal project permission checks", async () => {
   const { req, res } = fixture();

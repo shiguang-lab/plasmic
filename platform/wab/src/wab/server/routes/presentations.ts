@@ -13,7 +13,7 @@ export async function createPresentation(req: Request, res: Response) {
   const mgr = userDbMgr(req);
   const project = await mgr.getProjectById(ensureString(req.params.projectId));
   // Allocate once, including when two viewers open a presentation concurrently.
-  const [result] = await mgr
+  const [[result]] = await mgr
     .getEntMgr()
     .query(
       'UPDATE "project" SET "presentationCode" = COALESCE("presentationCode", $2) WHERE "id" = $1 RETURNING "presentationCode" AS code',
