@@ -30,6 +30,7 @@ for (const suffix of ["", "-v2"]) {
       );
       evaluate(path.join(__dirname, "build", `antd-icons${suffix}.js`));
       assert.equal(icons().length, 848);
+      assert(icons().every((entry) => entry.meta.thumbnailUrl === undefined), "built registrations do not duplicate icon previews");
       const plus = icons().find(
         (entry) => entry.meta.importName === "PlusOutlined",
       );

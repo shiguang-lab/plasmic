@@ -1,0 +1,355 @@
+{
+  "status": "PASS",
+  "measuredAt": "2026-10-30T13:31:57.719Z",
+  "projectId": "tk89W1Akg2HjAjyHAYEro7",
+  "projectName": "客服平台 · GP评论查询",
+  "revision": 158,
+  "changeCounter": 0,
+  "draftEnabled": true,
+  "registeredComponents": 977,
+  "registeredIcons": 848,
+  "electron": "44.5.1",
+  "resourceBuild": {
+    "kind": "local",
+    "revision": "e3a6c66342e3bd621a8d669de65cf1b6972ea5c3",
+    "dirty": true,
+    "builtAt": "2026-10-30T12:58:33.130Z",
+    "sourceHash": "77a76fe2780e38746a5833ad835247940421a895857e7ffef8c2cb036c2c35b8",
+    "rendererHash": "c215ba22c1889d8697606326ae26829d9c6ffaf9521349c46d6216e08f428927",
+    "desktopHash": "14810dbfeac758d24c319ff6b7d3b266cbe07d825f1442fd610a0affac9a85c7"
+  },
+  "appAsarFixture": "/Users/yanxianliang/Library/Caches/Plasmic-runtime-local-builds/2026-10-30-euwibxz2/plasmic/desktop/dist/0.5.26/darwin-arm64/mac-arm64/Plasmic.app/Contents/Resources/app.asar",
+  "method": "Isolated profiles and a fixed packaged app.asar snapshot for both variants. Before uses its desktop code; after compiles the six listed workspace main-process modules in matching development Electron. One initial load and one about:blank-to-project reentry per variant. Automatic saves disabled; project writes blocked. This task did not install or replace the App.",
+  "sourceOverrides": {
+    "desktop/src/main.cjs": "267f9aa0767eb3f7a4369449cdd14e0878f61b1732ef0f631d897142ced11f94",
+    "desktop/src/drafts.cjs": "c05d253d2b9e4886613c95124b91135afa157c58131b9283f929ed9618d35b20",
+    "desktop/src/identity.cjs": "e2e64e2f26a7e8ce82046ddcd8b93c11e5a2def88220a2dae2d7c07288821247",
+    "desktop/src/island.cjs": "669fad7e7800ecc9adc578bebba7be3d27008cce5f8b6816e8bd976efe371de0",
+    "desktop/src/island-account.cjs": "b220fb4e5deb3d481c59c1067cdbff87ee4964c311604d5a3116e3b096c33372",
+    "desktop/src/unified-login.cjs": "6526e90d28cd616b26ef73d62f9c5cd04738155275cecbfe187c5459cf0ab682"
+  },
+  "before": [
+    {
+      "phase": "initial",
+      "requestCount": 4,
+      "requests": [
+        {
+          "startMs": 0,
+          "headersReadyMs": 261,
+          "status": 200,
+          "caller": "    at IslandAccount.request (/Users/yanxianliang/Library/Caches/Plasmic-runtime-local-builds/2026-10-30-euwibxz2/plasmic/desktop/dist/0.5.26/darwin-arm64/mac-arm64/Plasmic.app/Contents/Resources/app.asar/src/island.cjs:36:63)"
+        },
+        {
+          "startMs": 223,
+          "headersReadyMs": 506,
+          "status": 200,
+          "caller": "    at IslandAccount.request (/Users/yanxianliang/Library/Caches/Plasmic-runtime-local-builds/2026-10-30-euwibxz2/plasmic/desktop/dist/0.5.26/darwin-arm64/mac-arm64/Plasmic.app/Contents/Resources/app.asar/src/island.cjs:36:63)"
+        },
+        {
+          "startMs": 223,
+          "headersReadyMs": 776,
+          "status": 200,
+          "caller": "    at IslandAccount.request (/Users/yanxianliang/Library/Caches/Plasmic-runtime-local-builds/2026-10-30-euwibxz2/plasmic/desktop/dist/0.5.26/darwin-arm64/mac-arm64/Plasmic.app/Contents/Resources/app.asar/src/island.cjs:36:63)"
+        },
+        {
+          "startMs": 1764,
+          "headersReadyMs": 2012,
+          "status": 200,
+          "caller": "    at currentUser (/Users/yanxianliang/Library/Caches/Plasmic-runtime-local-builds/2026-10-30-euwibxz2/plasmic/desktop/dist/0.5.26/darwin-arm64/mac-arm64/Plasmic.app/Contents/Resources/app.asar/src/main.cjs:445:50)"
+        }
+      ]
+    },
+    {
+      "phase": "reopen",
+      "requestCount": 4,
+      "requests": [
+        {
+          "startMs": 0,
+          "headersReadyMs": 258,
+          "status": 200,
+          "caller": "    at IslandAccount.request (/Users/yanxianliang/Library/Caches/Plasmic-runtime-local-builds/2026-10-30-euwibxz2/plasmic/desktop/dist/0.5.26/darwin-arm64/mac-arm64/Plasmic.app/Contents/Resources/app.asar/src/island.cjs:36:63)"
+        },
+        {
+          "startMs": 85,
+          "headersReadyMs": 517,
+          "status": 200,
+          "caller": "    at IslandAccount.request (/Users/yanxianliang/Library/Caches/Plasmic-runtime-local-builds/2026-10-30-euwibxz2/plasmic/desktop/dist/0.5.26/darwin-arm64/mac-arm64/Plasmic.app/Contents/Resources/app.asar/src/island.cjs:36:63)"
+        },
+        {
+          "startMs": 86,
+          "headersReadyMs": 767,
+          "status": 200,
+          "caller": "    at IslandAccount.request (/Users/yanxianliang/Library/Caches/Plasmic-runtime-local-builds/2026-10-30-euwibxz2/plasmic/desktop/dist/0.5.26/darwin-arm64/mac-arm64/Plasmic.app/Contents/Resources/app.asar/src/island.cjs:36:63)"
+        },
+        {
+          "startMs": 2041,
+          "headersReadyMs": 2296,
+          "status": 200,
+          "caller": "    at currentUser (/Users/yanxianliang/Library/Caches/Plasmic-runtime-local-builds/2026-10-30-euwibxz2/plasmic/desktop/dist/0.5.26/darwin-arm64/mac-arm64/Plasmic.app/Contents/Resources/app.asar/src/main.cjs:445:50)"
+        }
+      ]
+    }
+  ],
+  "after": [
+    {
+      "phase": "initial",
+      "requestCount": 1,
+      "requests": [
+        {
+          "startMs": 0,
+          "headersReadyMs": 292,
+          "status": 200,
+          "caller": "    at DesktopIdentity.fetchIdentity (/Users/yanxianliang/Library/Caches/Plasmic-runtime-local-builds/2026-10-30-euwibxz2/plasmic/desktop/dist/0.5.26/darwin-arm64/mac-arm64/Plasmic.app/Contents/Resources/app.asar/src/main.cjs:203:39)"
+        }
+      ]
+    },
+    {
+      "phase": "reopen",
+      "requestCount": 1,
+      "requests": [
+        {
+          "startMs": 0,
+          "headersReadyMs": 285,
+          "status": 200,
+          "caller": "    at DesktopIdentity.fetchIdentity (/Users/yanxianliang/Library/Caches/Plasmic-runtime-local-builds/2026-10-30-euwibxz2/plasmic/desktop/dist/0.5.26/darwin-arm64/mac-arm64/Plasmic.app/Contents/Resources/app.asar/src/main.cjs:203:39)"
+        }
+      ]
+    }
+  ],
+  "draftCommands": [
+    {
+      "command": "open",
+      "at": 1793367080473,
+      "ok": true
+    },
+    {
+      "command": "open",
+      "at": 1793367096511,
+      "ok": true
+    }
+  ],
+  "afterFrames": [
+    {
+      "phase": "initial",
+      "frames": [
+        {
+          "i": 0,
+          "componentCount": 0,
+          "ctx": false,
+          "hash": "",
+          "path": "/projects/tk89W1Akg2HjAjyHAYEro7",
+          "runtime": false
+        },
+        {
+          "i": 1,
+          "componentCount": 0,
+          "ctx": false,
+          "hash": "#origin=https%3A%2F%2Fplasmic-",
+          "path": "/static/host.html",
+          "probe": {
+            "sources": [
+              {
+                "bytes": 2284705,
+                "standalone": true
+              }
+            ]
+          },
+          "runtime": true
+        },
+        {
+          "i": 2,
+          "componentCount": 0,
+          "ctx": true,
+          "hash": "",
+          "path": "/static/host.html",
+          "probe": {
+            "sources": []
+          },
+          "runtime": false
+        },
+        {
+          "i": 3,
+          "componentCount": 977,
+          "ctx": false,
+          "hash": "",
+          "path": "blank",
+          "probe": {
+            "sources": [
+              {
+                "bytes": 2284705,
+                "standalone": true
+              }
+            ]
+          },
+          "runtime": true
+        },
+        {
+          "i": 4,
+          "componentCount": 977,
+          "ctx": false,
+          "hash": "#canvas=true&origin=https%3A%2",
+          "path": "/static/host.html",
+          "probe": {
+            "sources": [
+              {
+                "bytes": 2284705,
+                "standalone": true
+              }
+            ]
+          },
+          "runtime": true
+        }
+      ]
+    },
+    {
+      "phase": "reopen",
+      "frames": [
+        {
+          "i": 0,
+          "componentCount": 0,
+          "ctx": false,
+          "hash": "",
+          "path": "/projects/tk89W1Akg2HjAjyHAYEro7",
+          "probe": {
+            "sources": []
+          },
+          "runtime": false
+        },
+        {
+          "i": 1,
+          "componentCount": 0,
+          "ctx": false,
+          "hash": "#origin=https%3A%2F%2Fplasmic-",
+          "path": "/static/host.html",
+          "probe": {
+            "sources": [
+              {
+                "bytes": 2284705,
+                "standalone": true
+              }
+            ]
+          },
+          "runtime": true
+        },
+        {
+          "i": 2,
+          "componentCount": 0,
+          "ctx": true,
+          "hash": "",
+          "path": "/static/host.html",
+          "probe": {
+            "sources": []
+          },
+          "runtime": false
+        },
+        {
+          "i": 3,
+          "componentCount": 977,
+          "ctx": false,
+          "hash": "",
+          "path": "blank",
+          "probe": {
+            "sources": [
+              {
+                "bytes": 2284705,
+                "standalone": true
+              }
+            ]
+          },
+          "runtime": true
+        },
+        {
+          "i": 4,
+          "componentCount": 977,
+          "ctx": false,
+          "hash": "#canvas=true&origin=https%3A%2",
+          "path": "/static/host.html",
+          "probe": {
+            "sources": [
+              {
+                "bytes": 2284705,
+                "standalone": true
+              }
+            ]
+          },
+          "runtime": true
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "projectWriteRequests": [],
+  "profilesRemoved": true,
+  "identityContract": {
+    "scope": "Studio origin and Electron Session, main process only",
+    "memoryMaxAgeMs": 30000,
+    "navigation": "expire completed verification; retain in-flight check",
+    "authChange": "invalidate verified and pending identity; reject late results; reauthorize draft handles before reuse",
+    "sameAccountCookieRotation": "existing draft handle remains usable after successful reauthorization",
+    "accountReplacement": "old draft handle denied",
+    "failedAndAnonymousResultsCached": false
+  },
+  "tests": {
+    "desktopUnit": {
+      "passed": 478,
+      "failed": 0,
+      "command": "node --test desktop/tests/*.test.cjs"
+    },
+    "focusedUnit": {
+      "passed": 49,
+      "failed": 0
+    },
+    "island": {
+      "passed": true,
+      "fixture": "Deterministic editor + real Electron + stdio MCP",
+      "checks": [
+        "real main-frame navigation events share one pending identity read",
+        "native island starts compact; all dispatched calls expand and mirror without throttling; bridge restrictions and rounded hit geometry",
+        "stdio MCP read scans; idle and completed calls retain the current canvas without extra model reads or inferred progress",
+        "complete artboards fit independently of editor pan/zoom; structure trees, floating tools and editor-only overlays never enter the image or change source UI",
+        "overview opens complete; single-page calls fit their full viewport; completion and metadata retain focus; new page targets switch focus and whole-canvas reads restore overview",
+        "multi-artboard layout/spacing is preserved; editor loading clears stale pixels and never collapses the card",
+        "collapse/reopen reuses cached pixels and preserves scope/context without a renderer; async content refreshes and save metadata does not",
+        "scroll-content editing keeps isolated expanded content without tools, preserves live DOM/model/context and refreshes on exit",
+        "task stages, explicit plan, blocker persistence, actual write/result/error and continuously updating hidden mirror",
+        "account overview uses API totals without a canvas; creation refreshes totals; logout clears old identities; verified replacement restores account data; localized labels and sign-in action fit; MCP subject, queue, persistent error and recovery remain visible",
+        "native Preview real DOM snapshot/click, actual route, current view capture, shared theme/language, stale labeling and recovery",
+        "monotonic ten-minute expiry; native hover/leave grace overrides running calls and idle leases; completion stays collapsed and the next call reopens",
+        "right-click actions distinguish showing main from exiting island, remove floating icons, retain Preview; real fullscreen transitions and rapid mode changes serialize correctly; local preference persists",
+        "shared update manager across standard/island modes; background ring, fixed-size confirmation/progress, Later and no main-window reveal; install drains MCP, closes Preview and saves before restart",
+        "signed-out capsule keeps the Plasmic brand and localized login link; native hover stays compact; login invokes sign-in while the main window stays hidden",
+        "closing the main window during fullscreen transition releases the mode queue"
+      ]
+    },
+    "sessionIntegration": {
+      "status": "PASS",
+      "command": "electron desktop/tests/unified-session.cjs",
+      "coverage": [
+        "silent restore",
+        "credential rotation",
+        "draft opening adds no self request",
+        "existing draft handle after same-account Cookie restoration",
+        "revoked device blocks draft read"
+      ]
+    },
+    "startup": {
+      "status": "PASS",
+      "command": "electron desktop/tests/unified-startup.cjs"
+    },
+    "workspace": {
+      "status": "PASS",
+      "commands": [
+        "electron desktop/tests/workspace-startup.cjs",
+        "electron desktop/tests/workspace-startup.cjs --forbidden"
+      ]
+    },
+    "syntax": "PASS; six production CJS modules",
+    "note": "First full island run failed an English sign-in button geometry assertion. Full rerun passed all 16 groups. No layout code or assertion was changed."
+  },
+  "limits": [
+    "Self endpoint count only; bootstrap, project permission and IAM requests remain",
+    "No end-to-end latency A/B claim",
+    "Not newly packaged or installed by this task",
+    "No production publication"
+  ]
+}

@@ -14,6 +14,13 @@ import { HostlessLibraryVersion } from "@/wab/server/entities/CustomEntities";
 import { Bundler } from "@/wab/shared/bundler";
 import { PLUME_INSERTABLE_ID } from "@/wab/shared/insertables";
 import { assert, ensure } from "@/wab/shared/common";
+import { getHostlessLibraryCanvas, getHostlessLibraryRelease } from "@/wab/server/routes/hostless-library-artifacts";
+import { getPkgVersionByProjectId } from "@/wab/server/routes/projects";
+import { DEVFLAGS } from "@/wab/shared/devflags";
+import express from "express";
+import { runInNewContext } from "vm";
+import { checkShiguangOrigin } from "@/wab/server/auth/shiguang";
+const { LibraryCache } = require("../../../../../../desktop/src/library-cache.cjs");
 
 /** Run with tools/run.bash against a disposable plasmic_preview_test database. */
 async function main() {
@@ -47,6 +54,8 @@ async function main() {
     await fs.writeFile(path.join(source, "index.js"), `import {registerComponent} from "@plasmicapp/host"; import {Counter} from "./Counter.js"; export function registerAll(){registerComponent(Counter,{name:"dynamic-counter",props:{label:{type:"string",defaultValue:"Counter"}},importPath:"${packageName}/Counter",importName:"Counter"});}`);
     const configFile = path.join(temp, "library.json");
     const pack = async (label: string) => {
+      const additionalProps = label === "fixed-v2" ? ',extra:{type:"string"},children:{type:"slot"}' : "";
+      await fs.writeFile(path.join(source, "index.js"), `import {registerComponent} from "@plasmicapp/host"; import {Counter} from "./Counter.js"; export function registerAll(){registerComponent(Counter,{name:"dynamic-counter",props:{label:{type:"string",defaultValue:"Counter"}${additionalProps}},importPath:"${packageName}/Counter",importName:"Counter"});}`);
       await fs.writeFile(path.join(source, "Counter.js"), `export function Counter(){return ${JSON.stringify(label)};}`);
       const packed = await exec("npm", ["pack", "--json", "--ignore-scripts", "--pack-destination", temp], { cwd: source });
       const tarball = path.join(temp, JSON.parse(packed.stdout)[0].filename);
@@ -68,6 +77,9 @@ async function main() {
     const secondArtifact = ensure(await con.manager.findOne(HostlessLibraryVersion, { pkgVersionId: secondVersion.id }), "Missing second artifact").artifact;
     const secondDependency = await unbundlePkgVersion(db, new Bundler(), secondVersion);
     assert(firstDependency.site.components[0].uuid === secondDependency.site.components[0].uuid, "Library updates must preserve component identity");
+    assert(!firstDependency.site.components[0].params.some(p => p.variable.name === "extra"), "Old definition changed");
+    assert(secondDependency.site.components[0].params.some(p => p.variable.name === "extra"), "New prop definition missing");
+    assert(secondDependency.site.components[0].params.some(p => p.variable.name === "children"), "New slot definition missing");
     const exportCode = (artifact: typeof firstArtifact) => Buffer.from(artifact.files[artifact.imports[`${packageName}/Counter`]], "base64").toString();
     assert(exportCode(firstArtifact).includes("fixed-v1"), "First code snapshot changed");
     assert(exportCode(secondArtifact).includes("fixed-v2"), "Second code snapshot missing");
@@ -78,7 +90,70 @@ async function main() {
     assert(refused, "Existing artifacts must not be overwritten");
     const persisted = ensure(await con.manager.findOne(HostlessLibraryVersion, { pkgVersionId: firstVersion.id }), "Original artifact disappeared");
     assert(persisted.artifact.digest === firstArtifact.digest, "Original artifact digest changed");
-    console.log("PASS: npm tarball registration, code-only release, stable component identity, unchanged release deduplication and immutable old artifacts");
+    // Exercise the real publication -> authorized HTTP -> Desktop cache path.
+    const app = express();
+    const flags = { ...DEVFLAGS, ...JSON.parse((await db.tryGetDevFlagOverrides())?.data ?? "{}") };
+    app.use((req, _res, next) => {
+      Object.assign(req, { con, noTxMgr: con?.manager, cookies: {}, devflags: flags, shiguangIdentity: { roles: [] }, config: { host: origin } });
+      next();
+    });
+    app.use(checkShiguangOrigin);
+    app.use(express.json());
+    app.use((req, _res, next) => { req.body ??= {}; next(); });
+    app.get("/api/v1/hostless-libraries/:name/canvas", (req, res, next) => getHostlessLibraryCanvas(req, res).catch(next));
+    app.get("/api/v1/hostless-libraries/:name/release", (req, res, next) => getHostlessLibraryRelease(req, res).catch(next));
+    app.get("/api/v1/pkgs/projectId/:projectId", (req, res, next) => getPkgVersionByProjectId(req, res).catch(next));
+    app.post("/api/v1/pkgs/projectId/:projectId", (req, res, next) => getPkgVersionByProjectId(req, res).catch(next));
+    const server = app.listen(0, "127.0.0.1");
+    await new Promise<void>(resolve => server.once("listening", resolve));
+    const address = server.address();
+    assert(address && typeof address !== "string", "Missing test HTTP port");
+    const origin = `http://127.0.0.1:${address.port}`;
+    const identity = { epoch: 0, value: { user: { id: "test-account" } }, async read() { return this.value; } };
+    const requests: { path: string; responseBytes: number; transferredModels: number }[] = [];
+    const options = {
+      directory: path.join(temp, "desktop-cache"), studioOrigin: origin,
+      buildId: "one-unchanged-renderer", identity,
+      remoteFetch: async (request: Request) => {
+        const response = await fetch(request);
+        const body = await response.clone().text();
+        const json = response.headers.get("content-type")?.includes("application/json") ? JSON.parse(body) : undefined;
+        requests.push({ path: new URL(request.url).pathname, responseBytes: Buffer.byteLength(body), transferredModels: [json?.pkg, ...(json?.depPkgs ?? [])].filter(entry => entry?.model).length });
+        return response;
+      },
+    };
+    try {
+      const load = async (version: string, label: string, hasExtra: boolean) => {
+        const cache = new LibraryCache(options); // Simulate a process restart.
+        const response = await cache.fetch(new Request(`${origin}/api/v1/pkgs/projectId/${pkg.projectId}?version=${encodeURIComponent(JSON.stringify(version))}`));
+        assert(response.ok, `Package HTTP ${response.status}`);
+        const data = await response.json();
+        const resolved = version === "latest" ? secondVersion.version : version;
+        assert(data.pkg.version === resolved, "Model latest/exact release selection disagrees with code");
+        const dependency = await unbundlePkgVersion(db, new Bundler(), { ...data.pkg, model: JSON.stringify(data.pkg.model) });
+        assert(dependency.site.components[0].params.some(p => p.variable.name === "extra") === hasExtra, "Cached model belongs to another release");
+        const code = await cache.fetch(new Request(`${origin}/api/v1/hostless-libraries/${name}/canvas?version=${resolved}&pkgId=${pkg.id}`));
+        const frame = { window: { __Sub: {} } } as any;
+        runInNewContext(await code.text(), frame);
+        const registered = frame.__PlasmicComponentRegistry[0];
+        assert(registered.component() === label, "Cached implementation belongs to another release");
+        assert(!!registered.meta.props.extra === hasExtra, "Registration and model props disagree");
+        assert(!!registered.meta.props.children === hasExtra, "Registration and model slots disagree");
+      };
+      await load(firstVersion.version, "fixed-v1", false);
+      await load(firstVersion.version, "fixed-v1", false);
+      await load("latest", "fixed-v2", true);
+      await load(firstVersion.version, "fixed-v1", false); // Undo/manual old-version selection.
+      const codeRequests = requests.filter(request => request.path.endsWith("/canvas"));
+      const modelRequests = requests.filter(request => request.path.includes("/pkgs/"));
+      assert(codeRequests.length === 2, "Each code release should download only once across restarts");
+      assert(modelRequests.length === 4, "Current package permissions and version must still be checked");
+      assert(modelRequests[1].transferredModels === 0 && modelRequests[3].transferredModels === 0, "Warm/undo requests transferred cached definitions");
+      console.log(`CACHE HTTP EVIDENCE: ${JSON.stringify(requests)}`);
+    } finally {
+      await new Promise<void>((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
+    }
+    console.log("PASS: tarball publication, stable component identity, immutable releases, latest model selection, code/Props/Slots alignment, persistent cache, zero warm code requests and zero warm model bodies");
   } finally {
     await con.close();
     await fs.rm(temp, { recursive: true, force: true });

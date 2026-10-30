@@ -6,7 +6,7 @@ function fixture(){
  let time=1, reads=[], notices=0;
  const data={self:{user:{id:'a',firstName:'Li',lastName:'Lei',email:'li@example.test'}},app:{teams:[{id:'t',name:'Team'}],workspaces:[{id:'w',name:'Work',teamId:'t'}]},projects:{projects:[{id:'p'},{id:'p2'}]}};
  const request=async path=>{reads.push(path);return path.includes('auth/self')?data.self:path.includes('app-ctx')?data.app:data.projects};
- const account=new IslandAccount(request,()=>notices++,()=>time);
+ const account=new IslandAccount(()=>account.request("/api/v1/auth/self"),request,()=>notices++,()=>time);
  return {account,data,reads,get notices(){return notices},advance(){time+=30001}};
 }
 test('account summary reads authenticated API data once per cache interval and invalidation refreshes counts',async()=>{
@@ -39,6 +39,45 @@ test('concurrent refreshes share one read and disposal ignores pending results',
  const f=fixture(),pending=deferred();let reads=0;f.account.request=()=>{reads++;return pending.promise};
  const a=f.account.refresh(),b=f.account.refresh();assert.equal(a,b);assert.equal(reads,1);f.account.dispose();pending.resolve(f.data.self);await a;
  assert.equal(f.account.snapshot().status,'loading');assert.equal(reads,1);
+});
+test('forced navigation refreshes share pending identity and summary reads, then fetch again after completion',async()=>{
+ const f=fixture(),identity=deferred(),summary=deferred();const original=f.account.request;
+ f.account.request=path=>path.includes('auth/self')?(f.reads.push(path),identity.promise):path.includes('app-ctx')?(f.reads.push(path),summary.promise):original(path);
+ const first=f.account.refresh();
+ assert.equal(f.account.refresh(null,true),first);
+ assert.equal(f.account.refresh(null,true),first);
+ assert.equal(f.reads.length,1);
+ identity.resolve(f.data.self);await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(f.account.refresh(null,true),first,'navigation must also share the remaining summary reads');
+ assert.equal(f.reads.length,3);
+ summary.resolve(f.data.app);await first;
+ f.account.request=original;
+ await f.account.refresh();assert.equal(f.reads.length,3,'normal polling retains its existing interval');
+ await f.account.refresh(null,true);assert.equal(f.reads.length,6,'a later navigation still checks the server');
+});
+test('forced refresh retries a failed identity check without waiting for the summary interval',async()=>{
+ const f=fixture();f.account.request=async()=>{throw new Error('Offline')};
+ await f.account.refresh();assert.equal(f.account.snapshot().status,'error');
+ f.account.request=async path=>{f.reads.push(path);return path.includes('auth/self')?f.data.self:path.includes('app-ctx')?f.data.app:f.data.projects};
+ await f.account.refresh(null,true);
+ assert.equal(f.account.snapshot().status,'ready');assert.equal(f.reads.length,3);
+});
+test('an auth invalidation starts a new forced read and rejects the old account result',async()=>{
+ const f=fixture(),oldIdentity=deferred();const original=f.account.request;
+ f.account.request=()=>oldIdentity.promise;
+ const old=f.account.refresh();f.account.invalidate();
+ f.data.self={user:{id:'replacement'}};f.account.request=original;
+ const next=f.account.refresh(null,true);assert.notEqual(next,old);await next;
+ oldIdentity.resolve({user:{id:'old-account'}});await old;
+ assert.equal(f.account.snapshot().user.id,'replacement');assert.equal(f.reads.length,3);
+});
+test('navigation to a different workspace does not share the previous workspace task',async()=>{
+ const f=fixture(),oldIdentity=deferred();const original=f.account.request;
+ f.account.request=()=>oldIdentity.promise;
+ const old=f.account.refresh('old-workspace');f.account.request=original;
+ const next=f.account.refresh('new-workspace',true);assert.notEqual(next,old);await next;
+ oldIdentity.resolve({user:{id:'old-account'}});await old;
+ assert.equal(f.account.snapshot().user.id,'a');assert.equal(f.reads.length,3);
 });
 test('workspace statistics map nested teams and deduplicate effective users without counting invitations or blocked users',async()=>{
  const f=fixture();f.data.self.user.displayName='Displayed name';f.data.app.workspaces=[{id:'w',name:'Work',team:{id:'t'}}];f.data.projects.projects=[{id:'p',workspaceId:'w'},{id:'other',workspaceId:'another'}];

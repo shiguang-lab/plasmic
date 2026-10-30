@@ -1,9 +1,43 @@
 # Plasmic
 
-Electron desktop app with bundled Studio, canvas, Ant Design component bundles,
-fonts, CSS and Monaco workers. The NAS serves APIs, project data, user-uploaded
-assets and WebSocket updates. Static files are never downloaded at runtime; a
-missing bundled file returns 404.
+Electron desktop app with bundled Studio, Host/canvas shared runtimes, fonts, CSS
+and Monaco workers. The NAS serves APIs, project data, versioned component-library
+registrations, user-uploaded assets and WebSocket updates. Editor static files
+come from the installation; a missing bundled file returns 404.
+
+## Versioned component libraries
+
+Managed library code follows the project dependency package ID and exact version,
+including in local builds. Registration/wrapper updates are published with
+[`publish-library.ts`](../platform/preview/README.md#component-library-publication),
+without rebuilding Desktop. Local component source edits must be published to the
+backend used for acceptance; building the App does not replace server releases.
+Changing the bundled React/Antd runtime or editor registration protocol still
+requires an App update.
+
+Desktop stores immutable code and dependency-model contents in `library-cache/`
+under user data, isolated by Studio origin, account and actual renderer hash.
+Code hits read disk directly, without HEAD, ETag or expiry requests. The project
+and package APIs still authorize each load and select current revisions, migrations
+and automatic upgrades. Desktop uses read-only POST variants of those APIs with
+`X-Plasmic-Model-Cache: 1` and all cached hashes in the JSON `modelDigests` body;
+the inventory is not truncated or placed in HTTP headers. Current query parameters
+and the initiating Origin are retained. Desktop reconstructs the full model
+response before the editor receives it. Ordinary GET responses stay complete.
+Latest addresses, business project data and permission responses are not persisted
+by this cache.
+
+Cache writes are atomic and checksummed, concurrent code misses within the same
+verified authentication generation share a download,
+and failed/mismatched releases remain retryable. Corrupt or evicted models trigger
+one fresh authorized response. The global disk budget is 256 MiB, with unused
+entries evicted first; active reads/downloads are protected. Sign-out clears this resource cache across
+account/build namespaces, including prior-process entries. Previously downloaded private resources cannot be
+remotely recalled; opening a project continues to require server authorization.
+
+The matching backend routes must be deployed with this loader. Run
+`pnpm --dir desktop run test:library-cache` for isolated Chromium protocol and
+compressed-response verification.
 
 ## Local drafts
 
@@ -79,8 +113,8 @@ the direct reference/script links used before task resolution.
 The resolver exposes a runtime-only content-addressed snapshot of references/scripts, excluding
 repository evals and tests. MCP `read_skill` honors the configured local source
 in `DSH_AGENTS_HOME` (default `~/.agents`); a broken explicit local source is an
-error rather than a fallback to NAS. App/component changes still require a local
-rebuild and install; Skill edits require no publication.
+error rather than a fallback to NAS. App changes still require a local rebuild and install; managed component
+changes require a platform library release; Skill edits require no publication.
 App code changes require rerunning the local build/install command.
 
 For an isolated DS skills directory, install the same local source explicitly:
@@ -208,6 +242,13 @@ Projected code-component parts can mark DOM roots with
 `data-plasmic-canvas-part-scope` ancestor. Studio unifies the bounds of matching
 parts belonging to the same authored node and owner within that scope. Table
 uses this contract for column cells; hierarchy selection stays component-neutral.
+
+Canvas modifier-click uses Cmd on macOS and Ctrl on Windows/Linux, shared with
+direct node selection. It lets native component UI handle the click while the
+editor suppresses browser navigation and form submission. Ordinary clicks stay
+selection-only; authored business event handlers run in Interactive mode or
+Preview. Components keep editing interactions, such as temporary expanded Table
+rows, separate from saved defaults and runtime state.
 
 The app resumes the last Dashboard or editor route on startup. Recent projects
 remain a separate File-menu history. Login and external URLs do not replace the
@@ -633,7 +674,7 @@ The island hides the main window while its editor, native Preview and MCP remain
 
 The island starts as a compact capsule. Every tool invocation through the Desktop dispatcher expands the card, including state queries. Queued and concurrent calls keep it open; after the last call finishes (success or failure), it automatically collapses after ten minutes without another call. Pointer hover also expands it and prevents expiry from collapsing it under the cursor. Leaving collapses it after a 350 ms grace period, even during a call or its idle lease; existing calls, their results and internal refreshes cannot reopen it. Hover can still temporarily open it, and the next new tool invocation restores automatic expansion. Hover does not renew the MCP idle timer. Internal metadata polling and captures do not count as calls. Page changes, loading and task-status metadata never independently choose the shape. Editing and native in-app Preview provide the current canvas; other Studio pages replace the canvas with account information and accessible-resource counts. Loading clears old pixels and shows a loading placeholder. Idle capsules show the current page/canvas name with save state or Preview, or the account name with accessible project count; loading, signed-out and statistics failures have explicit labels. The card identifies real read/write/Preview operations separately from idle Canvas/Preview/Account context. The capsule retains actual operation/task name, execution/result/error state, activity indicator and queued count; its tooltip includes the resource name, actual stage and error. Successful results briefly acknowledge completion; failures remain until a meaningful operation replaces them. The capsule handle opens the same context menu and also supports dragging. Read/write stages and actual errors come from the Desktop dispatcher; `report_task` adds the caller's actual task/stage and optional known plan. No tool-count progress is inferred.
 
-Account cards show the authenticated account, current organization/workspace and organization, workspace and project totals. The existing self, app-context and all-project APIs supply the data; totals cover resources available to that account, independently of the current route. Internal reads are cached for 30 seconds and never enter MCP dispatch or renew the expansion lease. Successful resource creation refreshes totals. Authentication-cookie changes clear the old identity and counts immediately; late requests cannot restore them. Signed-out, loading and failed reads hide counts rather than displaying zeros. The header combines organization and workspace names and shows the username on the right. Accessible organization/workspace/project totals occupy the left column; the selected workspace’s project and effective-user counts occupy the right column. Permission counts remain unavailable when the API omits inherited grants. Active tasks retain statistics and show their current operation in the footer. Signed-out cards provide one inline sign-in action.
+Account cards show the authenticated account, current organization/workspace and organization, workspace and project totals. The existing self, app-context and all-project APIs supply the data; totals cover resources available to that account, independently of the current route. Internal reads are cached for 30 seconds and never enter MCP dispatch or renew the expansion lease. Navigation bypasses the summary interval and shares its pending task. Native account UI and drafts use one main-process identity verifier. A server-verified identity is held in memory for at most 30 seconds, after session preparation; new-document navigation expires completed verification, while in-document canvas routes reuse it. Cookie changes, login, logout and device revocation invalidate it and reject late results. Draft handles must reauthorize after those changes: the same account can continue editing, while a replacement account is rejected. Unchanged authorized draft sessions still read and write locally without network requests. Successful resource creation refreshes totals. Authentication-cookie changes clear the old identity and counts immediately; late requests cannot restore them. Signed-out, loading and failed reads hide counts rather than displaying zeros. The header combines organization and workspace names and shows the username on the right. Accessible organization/workspace/project totals occupy the left column; the selected workspace’s project and effective-user counts occupy the right column. Permission counts remain unavailable when the API omits inherited grants. Active tasks retain statistics and show their current operation in the footer. Signed-out cards provide one inline sign-in action.
 
 The readonly mirror starts with a complete current-arena overview, including offscreen artboards, with a 16 CSS-pixel outer margin. A read, write or navigation operation with one unambiguous page/frame target fits that entire artboard into the image; element targets highlight the node without cropping the page. Explicit frame identity takes priority; component targets with multiple responsive artboards use the matching active frame, or fall back to overview when ambiguous. Whole-canvas and multi-page operations use the full overview. Concurrent calls targeting different pages also use overview; a remaining single-page call can regain focus. Completed calls retain the last scope for inspection. Metadata queries, saves and internal polling do not change it. Collapsing, reopening or releasing capture resources preserves the last display scope. Project/arena changes reset to overview; new targeted calls can select another page. Unresolved targets use overview. Neither mode clips artboards to the editor viewport. It preserves original artboard viewports, backgrounds, spacing and offsets independently of editor pan and zoom. Sanitized copies of the live artboard DOM render in one reusable hidden surface; editor panels, structure trees, selection handles and floating toolbars are excluded. Static copies retain input values, scroll positions and Canvas pixels, remove authored scripts and editor-only elements, and reuse the export renderer. During scroll-container content editing, the mirror retains the current expanded frame dimensions and its explicitly marked content-isolation stylesheet, while excluding other editor styles and controls. Entering, switching targets and exiting invalidate the image through live geometry/DOM changes without writing the model; normal exports continue to omit the temporary isolation stylesheet. While expanded, an ephemeral rendering target lets the required current-arena artboards render outside the editor viewport: all for overview, or the selected frame for page focus. The image waits for those artboards to be render-ready. Refreshes never invoke screenshot tools or modify selection, zoom, pan or model state. The last compressed image stays cached in memory when collapsed and is displayed immediately on reopening. Polls inspect scene geometry, the model change counter and document-local visual revisions; unchanged static views do not clone DOM or recreate the hidden renderer. DOM changes, input, scrolling, asset/font loading and Preview viewport changes invalidate the image; changes settle for 150 ms before refreshing the same scope. Editor-only overlays, pan/zoom, save metadata and operation feedback do not regenerate pixels. Canvas/video and running animations retain low-frequency refreshes. Feedback geometry updates independently over cached pixels. Collapsing or leaving island mode cancels pending captures and releases the hidden surface and rendering flag. Native Preview retains its current complete runtime viewport. Contain sizing preserves aspect ratio. Page/session changes clear the previous image; a failed capture of the same view labels its last image as Previous frame. The expanded card uses a fixed 360 × 144 layout across canvas, account and update states. The header combines project and page/canvas names and places the username on the right. The main area has a wider left column and a fixed 144 px right column. Canvas previews use a contained 144 × 81 image (16:9); page, component and artboard totals remain vertically centered on the left. Without a canvas, custom-canvas, image and library counts appear on the left, with page/component counts on the right. Preview shows its actual viewport dimensions. Counts exclude registered code components and internal frame components. Native model metadata supplies these values without extra read tools; loading clears previous values. Theme and language remain in the lower-left corner. The lower-right corner shows the actual operation/stage or save state, with an explicit known step count and no repeated queue count. Errors and blockers show a brief label with an accessible detail tooltip. The capsule tooltip retains queue, concurrency, target and error information. Writes report Changes applied; only explicit successful saves report Saved.
 

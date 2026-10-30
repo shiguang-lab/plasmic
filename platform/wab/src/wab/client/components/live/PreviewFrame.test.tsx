@@ -41,7 +41,7 @@ vi.mock("@/wab/client/components/studio/studio-bundles", () => ({
   getSortedHostLessPkgs: mocks.sortedPackages,
   getVersionForCanvasPackages: () => "test",
 }));
-vi.mock("@/wab/client/dom-utils", () => ({ scriptExec: mocks.exec }));
+vi.mock("@/wab/client/script-exec", () => ({ scriptExec: mocks.exec }));
 
 beforeEach(() => {
   (window as any).__plasmicLive = { setErrorTitle: vi.fn(), reportError: vi.fn(), beginRender: vi.fn(), showError: vi.fn().mockResolvedValue(undefined), getDiagnostics: () => ({ generation: 1 }) };

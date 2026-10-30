@@ -20,8 +20,8 @@ it("rejects a failed registration load and allows the queued retry to finish", a
 it("propagates registration script failures and retries them without deadlocking", async () => {
   const { studioCtx } = fakeStudioCtx();
   const error = new Error("Invalid library registration");
-  const domUtils = await import("@/wab/client/dom-utils");
-  const execute = vi.spyOn(domUtils, "scriptExec")
+  const scriptUtils = await import("@/wab/client/script-exec");
+  const execute = vi.spyOn(scriptUtils, "scriptExec")
     .mockImplementationOnce(() => { throw error; })
     .mockImplementationOnce(() => undefined);
   vi.spyOn(studioBundles, "getSortedHostLessPkgs").mockResolvedValue([["react-ui", "registration"]]);
@@ -32,8 +32,8 @@ it("propagates registration script failures and retries them without deadlocking
 
 it("reloads the original registration when undo returns a library to a previously loaded version", async () => {
   const { studioCtx } = fakeStudioCtx();
-  const domUtils = await import("@/wab/client/dom-utils");
-  const execute = vi.spyOn(domUtils, "scriptExec").mockImplementation(() => undefined);
+  const scriptUtils = await import("@/wab/client/script-exec");
+  const execute = vi.spyOn(scriptUtils, "scriptExec").mockImplementation(() => undefined);
   vi.spyOn(studioBundles, "getSortedHostLessPkgs")
     .mockResolvedValueOnce([["overseas@1.0.0", "version one"]])
     .mockResolvedValueOnce([["overseas@2.0.0", "version two"]])

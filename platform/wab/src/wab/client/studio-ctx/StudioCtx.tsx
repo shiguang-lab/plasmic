@@ -1,3 +1,4 @@
+import { scriptExec } from "@/wab/client/script-exec";
 import { LEFT_PANE_INIT_WIDTH } from "@/wab/client/ClientConstants";
 import { DragInsertManager } from "@/wab/client/Dnd";
 import {
@@ -81,7 +82,6 @@ import {
   cachedJQSelector,
   getTextWidth,
   isCanvasIframeEvent,
-  scriptExec,
   setElementStyles,
 } from "@/wab/client/dom-utils";
 import { fixupChrome, fixupForChanges } from "@/wab/client/fixes-post-change";
@@ -1075,6 +1075,7 @@ export class StudioCtx extends WithDbCtx {
       .catch(() => undefined)
       .then(async () => {
         const pkgsData = await getSortedHostLessPkgs(
+          ensure(this.hostLessPkgsFrame.contentWindow, "Missing hostless window"),
           pkgs,
           getVersionForCanvasPackages(this.hostLessPkgsFrame.contentWindow),
           this.site,
@@ -6440,6 +6441,7 @@ export class StudioCtx extends WithDbCtx {
       () => this.dbCtx().revisionNum,
       async (draft) => {
         await this.loadVersion(undefined, true, this.branchInfo(), draft);
+        await this.handleRouteChange(this.appCtx.history.location);
         notification.info({
           message: translate(getUiLocale(), "Recovered local edits"),
           description: translate(

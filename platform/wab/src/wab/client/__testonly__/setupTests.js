@@ -23,10 +23,11 @@ vi.mock(
   async (importOriginal) => ({
     ...(await importOriginal()),
     getCanvasPkgs: async () => "",
+    ensureCanvasRuntime: async () => undefined,
     getReactWebBundle: async () => "",
     getLiveFrameClientJs: async () => "",
     getHostLessPkg: async () => "",
-    getSortedHostLessPkgs: async (pkgs) => pkgs.map((pkg) => [pkg, ""]),
+    getSortedHostLessPkgs: async (_win, pkgs) => pkgs.map((pkg) => [pkg, ""]),
   }),
 );
 

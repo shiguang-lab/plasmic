@@ -1,0 +1,291 @@
+{
+  "date": "2026-10-30",
+  "status": "PASS",
+  "scope": "Local macOS arm64 package, installed App smoke check, and the same packaged app.asar in an isolated Electron 44.5.1 session",
+  "sharedWorkingTree": true,
+  "installation": {
+    "installed": "/Applications/Plasmic.app",
+    "backup": "/Users/yanxianliang/Library/Caches/Plasmic-local-backups/2026-10-30T12-18-33.193Z/Plasmic.app",
+    "version": "0.5.26",
+    "build": {
+      "kind": "local",
+      "revision": "e3a6c66342e3bd621a8d669de65cf1b6972ea5c3",
+      "dirty": true,
+      "builtAt": "2026-10-30T12:12:35.436Z",
+      "sourceHash": "d7149f65dc1ec836d639c4524f9163fc109593e6cbab6b279276390a32085050",
+      "rendererHash": "0a2d0a00d497ecf03328aa33c264fa5757d482b7752a6429c7057f2dc66e9d27",
+      "desktopHash": "14810dbfeac758d24c319ff6b7d3b266cbe07d825f1442fd610a0affac9a85c7"
+    }
+  },
+  "installedMcp": {
+    "status": "PASS",
+    "version": "0.5.26",
+    "buildId": "6038f01f7b9e03a0ca6aea52391afc444f80b43b6b27acc5ec013fa2a5916814",
+    "rendererHash": "0a2d0a00d497ecf03328aa33c264fa5757d482b7752a6429c7057f2dc66e9d27"
+  },
+  "project": {
+    "name": "客服平台 · GP评论查询",
+    "id": "tk89W1Akg2HjAjyHAYEro7",
+    "revision": 158
+  },
+  "isolatedSession": {
+    "automaticServerSaveDisabled": true,
+    "blockedDesignWriteRequests": 0,
+    "profileAndLocalDraftsRemoved": true,
+    "libraryResponses": [
+      {
+        "path": "/api/v1/hostless-libraries/overseas/canvas",
+        "status": 200,
+        "local": "local"
+      },
+      {
+        "path": "/api/v1/hostless-libraries/antd6/canvas",
+        "status": 200,
+        "local": "local"
+      },
+      {
+        "path": "/api/v1/hostless-libraries/antd-icons/canvas",
+        "status": 200,
+        "local": "local"
+      },
+      {
+        "path": "/api/v1/hostless-libraries/react-ui/canvas",
+        "status": 200,
+        "local": "local"
+      }
+    ],
+    "diagnostics": [
+      "ResizeObserver loop completed with undelivered notifications.",
+      "WebSocket is already in CLOSING or CLOSED state."
+    ]
+  },
+  "installedUi": {
+    "iconResults": 848,
+    "visibleSvgPreviewsConfirmed": true,
+    "projectRestored": "Admin Templates",
+    "projectChangeCounter": 0
+  },
+  "cases": [
+    {
+      "appearance": "dark",
+      "cards": 24,
+      "changeCounter": 0,
+      "images": 0,
+      "name": "default-svg",
+      "names": [
+        "AccountBookFilled",
+        "AlertFilled",
+        "AlipayCircleFilled",
+        "AlipaySquareFilled",
+        "AliwangwangFilled",
+        "AmazonCircleFilled",
+        "AmazonSquareFilled",
+        "AndroidFilled",
+        "AnthropicFilled",
+        "ApiFilled",
+        "AppleFilled",
+        "AppstoreFilled",
+        "AudioFilled",
+        "BackwardFilled",
+        "BankFilled",
+        "BehanceCircleFilled",
+        "BehanceSquareFilled",
+        "BellFilled",
+        "BilibiliFilled",
+        "BookFilled",
+        "BoxPlotFilled",
+        "BugFilled",
+        "BuildFilled",
+        "BulbFilled"
+      ],
+      "status": "PASS",
+      "svgs": 24
+    },
+    {
+      "appearance": "dark",
+      "cards": 3,
+      "changeCounter": 0,
+      "images": 0,
+      "name": "search-all-styles",
+      "names": [
+        "AccountBookFilled",
+        "AccountBookOutlined",
+        "AccountBookTwoTone"
+      ],
+      "status": "PASS",
+      "svgs": 3
+    },
+    {
+      "appearance": "dark",
+      "cards": 1,
+      "changeCounter": 0,
+      "images": 0,
+      "name": "style-filter",
+      "names": [
+        "AccountBookOutlined"
+      ],
+      "status": "PASS",
+      "svgs": 1
+    },
+    {
+      "color": "rgb(37, 42, 56)",
+      "counter": 0,
+      "name": "theme-light",
+      "status": "PASS",
+      "twoTone": [
+        "#f6f0ff",
+        "#252a38",
+        "#252a38"
+      ]
+    },
+    {
+      "color": "rgb(237, 238, 245)",
+      "counter": 0,
+      "modelUnchanged": true,
+      "name": "theme-dark-and-model",
+      "status": "PASS"
+    },
+    {
+      "appearance": "dark",
+      "cards": 21,
+      "changeCounter": 0,
+      "images": 0,
+      "name": "virtual-scroll-back",
+      "names": [
+        "AccountBookFilled",
+        "AlertFilled",
+        "AlipayCircleFilled",
+        "AlipaySquareFilled",
+        "AliwangwangFilled",
+        "AmazonCircleFilled",
+        "AmazonSquareFilled",
+        "AndroidFilled",
+        "AnthropicFilled",
+        "ApiFilled",
+        "AppleFilled",
+        "AppstoreFilled",
+        "AudioFilled",
+        "BackwardFilled",
+        "BankFilled",
+        "BehanceCircleFilled",
+        "BehanceSquareFilled",
+        "BellFilled",
+        "BilibiliFilled",
+        "BookFilled",
+        "BoxPlotFilled"
+      ],
+      "status": "PASS",
+      "svgs": 21
+    },
+    {
+      "appearance": "dark",
+      "cards": 24,
+      "changeCounter": 0,
+      "height": 30590,
+      "images": 0,
+      "max": 30,
+      "name": "virtual-scroll-end",
+      "names": [
+        "ShoppingTwoTone",
+        "ShopTwoTone",
+        "SkinTwoTone",
+        "SlidersTwoTone",
+        "SmileTwoTone",
+        "SnippetsTwoTone",
+        "SoundTwoTone",
+        "StarTwoTone",
+        "StopTwoTone",
+        "SwitcherTwoTone",
+        "TabletTwoTone",
+        "TagsTwoTone",
+        "TagTwoTone",
+        "ThunderboltTwoTone",
+        "ToolTwoTone",
+        "TrademarkCircleTwoTone",
+        "TrophyTwoTone",
+        "UnlockTwoTone",
+        "UpCircleTwoTone",
+        "UpSquareTwoTone",
+        "UsbTwoTone",
+        "VideoCameraTwoTone",
+        "WalletTwoTone",
+        "WarningTwoTone"
+      ],
+      "status": "PASS",
+      "svgs": 24,
+      "top": 29845.5
+    },
+    {
+      "name": "external-thumbnail",
+      "src": "https://icon-preview-test.invalid/valid.svg",
+      "status": "PASS",
+      "svg": false,
+      "width": 48
+    },
+    {
+      "name": "data-thumbnail",
+      "status": "PASS",
+      "unchanged": true,
+      "width": 32
+    },
+    {
+      "appearance": "dark",
+      "cards": 1,
+      "changeCounter": 0,
+      "images": 0,
+      "name": "failed-thumbnail-fallback",
+      "names": [
+        "AccountBookFilled"
+      ],
+      "status": "PASS",
+      "svgs": 1
+    },
+    {
+      "appearance": "dark",
+      "cards": 1,
+      "changeCounter": 0,
+      "images": 0,
+      "name": "thumbnail-removed",
+      "names": [
+        "AccountBookFilled"
+      ],
+      "status": "PASS",
+      "svgs": 1
+    },
+    {
+      "component": "plasmic-antd-icon-AccountBookFilled",
+      "counter": 1,
+      "name": "insert",
+      "status": "PASS",
+      "uuid": "_A4CJ0Zs8zqt"
+    },
+    {
+      "counter": 1,
+      "isLive": true,
+      "name": "preview",
+      "status": "PASS"
+    },
+    {
+      "counter": 2,
+      "name": "undo",
+      "status": "PASS"
+    }
+  ],
+  "renderEvidence": {
+    "canvasSvgCount": 1,
+    "previewSvg": {
+      "width": 16,
+      "height": 16,
+      "display": "block",
+      "paths": 1
+    },
+    "undoCanvasSvgCount": 0
+  },
+  "limits": [
+    "Production App and component library were not published.",
+    "Server-side icon dependency model is still the published version; it was not changed by this test.",
+    "No canvas reopening latency A/B or CPU/memory profile was performed.",
+    "The current chat's pre-restart MCP transport closed; a fresh signed-App MCP stdio connection and authenticated local RPC both succeeded."
+  ],
+  "buildNote": "package:local --install completed all builds and signed artifacts; automatic quit timed out. After quitting the saved App through its GUI, installLocalApp completed and verified both running hashes."
+}

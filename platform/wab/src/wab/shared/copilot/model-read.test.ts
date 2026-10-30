@@ -9,6 +9,29 @@ test("dynamic choices expose metadata without a fake static enum or callback eva
   expect(options).not.toHaveBeenCalled();
 });
 
+test("multi-select contracts expose and validate arrays without evaluating dynamic choices", () => {
+  const options = vi.fn(() => ["o1", "o2"]);
+  const metadata = { type: "choice", multiSelect: true, editOnly: true, options };
+  const [prop] = withRegisteredContracts([{ name: "canvasExpandedRowKeys", type: "any" }], { canvasExpandedRowKeys: metadata });
+  expect(prop.registration).toEqual({ type: "choice", multiSelect: true, editOnly: true, optionsDynamic: true });
+  expect(validateRegisteredValue(["o1", "o2"], metadata, "keys")).toBeUndefined();
+  expect(validateRegisteredValue([], metadata, "keys")).toBeUndefined();
+  expect(validateRegisteredValue("o1", metadata, "keys")).toBe("keys expects an array");
+  expect(validateRegisteredValue("{{ $state.keys }}", metadata, "keys")).toBeUndefined();
+  expect(options).not.toHaveBeenCalled();
+  const staticChoice = { ...metadata, options: [1, { value: 2, label: "Two" }] };
+  expect(validateRegisteredValue([1, 2], staticChoice, "keys")).toBeUndefined();
+  expect(validateRegisteredValue([3], staticChoice, "keys")).toContain("keys must be one of");
+  expect(validateRegisteredValue(["1"], staticChoice, "keys")).toContain("keys must be one of");
+});
+
+test("contract descriptions use the current registration over stale imported help text", () => {
+  const stored = [{ name: "expandedRowRender", description: "Selecting the Table reveals rows" }];
+  expect(withRegisteredContracts(stored, { expandedRowRender: { type: "slot", description: "Selection does not broaden configured samples" } })[0])
+    .toEqual({ name: "expandedRowRender", description: "Selection does not broaden configured samples", registration: { type: "slot" } });
+  expect(stored[0].description).toBe("Selecting the Table reveals rows");
+});
+
 test("declared custom rule shapes reject raw Antd rules and preserve dynamic bindings", () => {
   const metadata = { type: "formValidationRules", itemType: { type: "object", fields: {
     ruleType: { type: "choice", options: ["required", "regex", "advanced"], required: true }, message: "string", custom: { type: "function", argNames: ["rule", "value"] },

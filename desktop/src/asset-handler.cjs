@@ -32,7 +32,6 @@ function createAssetHandler({
   rendererI18nPath,
   previewHostPath,
   bundledFontCss = "",
-  localCanvasLibraries = {},
 }) {
   root = path.resolve(root);
   return async function handle(request) {
@@ -72,23 +71,6 @@ function createAssetHandler({
       }
     }
     const studio = url.origin === studioOrigin;
-    // Local source builds must use their bundled registrations even when the
-    // project pins a managed library version on the server.
-    const library = url.pathname.match(
-      /^\/api\/v1\/hostless-libraries\/([^/]+)\/canvas$/,
-    )?.[1];
-    if (
-      studio &&
-      ["GET", "HEAD"].includes(request.method) &&
-      library &&
-      Object.hasOwn(localCanvasLibraries, library)
-    ) {
-      const file = path.resolve(root, localCanvasLibraries[library]);
-      if (!file.startsWith(root + path.sep)) {
-        return new Response("Forbidden", { status: 403 });
-      }
-      return fileResponse(file);
-    }
     if (studio && authPagePath && url.pathname === "/desktop/unified-login") {
       const html = await fs.readFile(authPagePath, "utf8");
       return new Response(

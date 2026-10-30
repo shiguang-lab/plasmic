@@ -39,6 +39,7 @@ try {
       links["@plasmicapp/react-web"] = "packages/react-web";
     }
     if (consumer === "platform/canvas-packages") {
+      links["@shiguang-lab/plasmic-antd-icons"] = "plasmicpkgs/antd-icons";
       links["@shiguang-lab/plasmic-antd6"] = "plasmicpkgs/antd6";
       links["@shiguang-lab/plasmic-overseas"] = "plasmicpkgs/overseas";
     }
@@ -67,6 +68,7 @@ try {
     "packages/host",
     "packages/react-web",
     "platform/react-web-bundle",
+    "plasmicpkgs/antd-icons",
     "plasmicpkgs/overseas",
     "plasmicpkgs/antd6",
     "platform/canvas-packages",
@@ -82,6 +84,13 @@ try {
       },
     );
   }
+  // Execute the actual browser bundles before packaging. Node-only registration
+  // checks cannot catch browser startup failures such as external require().
+  execFileSync(
+    process.platform === "win32" ? "npm.cmd" : "npm",
+    ["run", "test:preview-runtime"],
+    { cwd: path.join(repo, "platform/canvas-packages"), env, stdio: "inherit" },
+  );
   execFileSync(
     process.execPath,
     [path.join(repo, "scripts/build-studio.mjs")],

@@ -47,8 +47,8 @@ import {
 } from "@/wab/client/components/studio/add-drawer/AddDrawer";
 import AddDrawerItem, {
   getAddItemLabel,
-  isAntDesignIconItem,
 } from "@/wab/client/components/studio/add-drawer/AddDrawerItem";
+import { isAntDesignIconItem } from "@/wab/client/components/studio/add-drawer/IconComponentPreview";
 import {
   DraggableInsertable,
   DraggableInsertableProps,
@@ -312,6 +312,9 @@ export default InsertPanel;
  * Returns false if the item should show a short height row with an icon.
  */
 const shouldShowPreview = (group: AddItemGroup, item: AddItem): boolean => {
+  if (isAntDesignIconItem(item)) {
+    return true;
+  }
   if (
     item.key.startsWith("tpl-image-") ||
     item.key.startsWith("page-template-") ||

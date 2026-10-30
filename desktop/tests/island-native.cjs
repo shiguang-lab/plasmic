@@ -12,6 +12,7 @@ const { EventEmitter } = require("node:events");
 const { UpdateManager } = require("../src/update-manager.cjs");
 const { createUpdateDialog } = require("../src/update-dialog.cjs");
 const { createIsland, containsPoint } = require("../src/island.cjs");
+const { DesktopIdentity } = require("../src/identity.cjs");
 const { createDesktopI18n } = require("../src/i18n.cjs");
 const { createDesktopAppearance } = require("../src/ui-appearance.cjs");
 const { startRpc } = require("../src/local-rpc.cjs");
@@ -25,7 +26,7 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const root = path.resolve(__dirname, "..");
 const reportDir = process.env.PLASMIC_ISLAND_REPORT_DIR || path.join(os.tmpdir(), "plasmic-island-native-report");
 fs.mkdirSync(reportDir, { recursive: true });
-let main, island, controller, presentation, stopRpc, client;
+let main, island, controller, presentation, identity, stopRpc, client;
 const passed = [];
 // Advance only the monotonic presentation clock; real IPC and animation keep running.
 const realNow = performance.now.bind(performance);
@@ -64,7 +65,7 @@ const editorScript = `
 `;
 async function finish(code) {
   await client?.close(); await stopRpc?.();
-  presentation?.dispose(); controller?.close(); if (main && !main.isDestroyed()) main.destroy();
+  presentation?.dispose(); identity?.dispose(); controller?.close(); if (main && !main.isDestroyed()) main.destroy();
   fs.rmSync(profile, { recursive: true, force: true });
   clearTimeout(watchdog);
   app.exit(code);
@@ -107,17 +108,32 @@ app.whenReady().then(async () => {
   const accountData = { user:{id:"account-a",firstName:"演示账号",lastName:"",email:"demo@example.test"},
     teams:[{id:"team",name:"业务组织"}],workspaces:[{id:"w",team:{id:"team"},name:"采购工作区"}],projects:[{id:"p"},{id:"p2"}] };
   const requestStudio = controller.requestStudio.bind(controller);
+  let identityReads = 0, releaseInitialIdentity;
+  const initialIdentity = new Promise(resolve => { releaseInitialIdentity = resolve; });
   controller.requestStudio = async (url, input, signal) => {
-    if (url === "/api/v1/auth/self") return {user:accountData.user};
+    if (url === "/api/v1/auth/self") { identityReads++; await initialIdentity; return {user:accountData.user}; }
     if (url === "/api/v1/app-ctx") return {teams:accountData.teams,workspaces:accountData.workspaces};
     if (url === '/api/v1/projects?query=%22all%22') return {projects:accountData.projects};
     if (url === "/api/v1/workspaces/w") return {workspace:{team:{id:"team"}},perms:[{userId:accountData.user?.id,teamId:"team",accessLevel:"owner"}]};
     return requestStudio(url,input,signal);
   };
   let signInCalls = 0;
-  presentation = createIsland({ signIn: () => { signInCalls++; }, isQuitting: () => false, getWindow: () => main, controller, config: { studioOrigin: origin }, i18n, appearance });
+  identity = new DesktopIdentity({ session: partition, studioOrigin: origin, prepare: async () => {}, fetchIdentity: () => controller.requestStudio("/api/v1/auth/self") });
+  main.webContents.on("did-start-navigation", (_event, _url, inPlace, isMainFrame) => { if (isMainFrame && !inPlace) identity.expire(); });
+  presentation = createIsland({ identity, signIn: () => { signInCalls++; }, isQuitting: () => false, getWindow: () => main, controller, config: { studioOrigin: origin }, i18n, appearance });
   presentation.attach(main);
   await main.loadURL(origin + "/projects/p");
+  await main.webContents.executeJavaScript("history.replaceState({},'', '/projects/p?navigation=1');history.replaceState({},'', '/projects/p?navigation=2');history.replaceState({},'', '/projects/p');true");
+  await delay(80);
+  assert.equal(identityReads, 1, "real navigation events share the pending account check");
+  releaseInitialIdentity();
+  await until(() => presentation.snapshot().context.account.status === "ready", "shared initial account read completes");
+  assert.equal((await identity.read()).user.id, "account-a");
+  assert.equal(identityReads, 1, "a subsequent native consumer reuses the verified identity");
+  await main.webContents.executeJavaScript("history.replaceState({},'', '/projects/p?navigation=completed');history.replaceState({},'', '/projects/p');true");
+  await delay(80);
+  assert.equal(identityReads, 1, "canvas routing within the same document retains its verified identity");
+  passed.push("real main-frame navigation events share one pending identity read");
   await until(async () => (await controller.state()).ready, "editor bridge ready");
   await presentation.setMode("island");
   if (process.platform === "darwin") assert.equal(app.dock.isVisible(), false, "entering island hides the Dock icon");

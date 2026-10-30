@@ -1,0 +1,859 @@
+{
+  "measuredAt": "2026-10-30T09:05:41.541Z",
+  "version": "0.5.26",
+  "build": {
+    "kind": "release",
+    "revision": "e3a6c66342e3bd621a8d669de65cf1b6972ea5c3",
+    "dirty": false,
+    "builtAt": "2026-10-30T06:15:43.451Z",
+    "rendererHash": "007dd51bde97197b8e29504c860a6749f76071641626d118f0338343a04de9e4",
+    "desktopHash": "14810dbfeac758d24c319ff6b7d3b266cbe07d825f1442fd610a0affac9a85c7"
+  },
+  "runtime": {
+    "electron": "44.5.1",
+    "chrome": "152.0.7977.130",
+    "node": "24.21.0"
+  },
+  "projectId": "tk89W1Akg2HjAjyHAYEro7",
+  "projectName": "客服平台 · GP评论查询",
+  "method": "Installed app.asar code/resources in an isolated Electron window; copied disk caches; one priming open followed by three project-list-to-editor navigations; normal cache/network; auto-save disabled; no project writes. Excludes process startup.",
+  "samples": [
+    {
+      "round": "reopen-1",
+      "revision": 146,
+      "visibleMs": 4726,
+      "editableMs": 4743,
+      "preStudioMs": 1407.300048828125,
+      "timings": {
+        "elapsedMs": 3433.800000011921,
+        "entries": [
+          {
+            "durationMs": 149.60000002384186,
+            "phase": "studio-module-import",
+            "startMs": 0
+          },
+          {
+            "durationMs": 12.699999988079071,
+            "phase": "startup-preferences",
+            "startMs": 168.10000002384186
+          },
+          {
+            "durationMs": 1606.800000011921,
+            "phase": "project-fetch",
+            "startMs": 180.80000001192093
+          },
+          {
+            "durationMs": 127.5,
+            "phase": "model-unbundle",
+            "startMs": 1787.7000000178814
+          },
+          {
+            "durationMs": 52.400000005960464,
+            "phase": "studio-context",
+            "startMs": 1925
+          },
+          {
+            "durationMs": 97.40000000596046,
+            "phase": "initial-route",
+            "startMs": 1928.9000000059605
+          },
+          {
+            "durationMs": 3,
+            "phase": "code-component-sync",
+            "startMs": 2526.800000011921
+          },
+          {
+            "durationMs": 0,
+            "phase": "app-user-init",
+            "startMs": 2529.800000011921
+          },
+          {
+            "durationMs": 0,
+            "phase": "initializer-ready",
+            "startMs": 2529.800000011921
+          },
+          {
+            "durationMs": 0,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-load-start",
+            "startMs": 2541.300000011921
+          },
+          {
+            "durationMs": 72.5,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-host-document",
+            "startMs": 2556.800000011921
+          },
+          {
+            "durationMs": 7.5999999940395355,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-host-ready",
+            "startMs": 2630.7000000178814
+          },
+          {
+            "durationMs": 11.900000005960464,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-runtime",
+            "startMs": 2638.300000011921
+          },
+          {
+            "durationMs": 147.69999998807907,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-component-packages",
+            "startMs": 2650.300000011921
+          },
+          {
+            "durationMs": 0,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-context-created",
+            "startMs": 2799.4000000059605
+          },
+          {
+            "durationMs": 0,
+            "phase": "all-frame-contexts-created",
+            "startMs": 2799.4000000059605
+          },
+          {
+            "durationMs": 264,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-initialization",
+            "startMs": 2541.300000011921
+          },
+          {
+            "durationMs": 779.1999999880791,
+            "phase": "initial-target-wait",
+            "startMs": 2026.300000011921
+          },
+          {
+            "durationMs": 3,
+            "phase": "initial-viewport-layout",
+            "startMs": 2805.5
+          },
+          {
+            "durationMs": 6.800000011920929,
+            "phase": "initial-viewport-commit",
+            "startMs": 2808.5
+          },
+          {
+            "durationMs": 308.69999998807907,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-first-render",
+            "startMs": 2839.2000000178814
+          },
+          {
+            "durationMs": 0,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-rendered",
+            "startMs": 3151.600000023842
+          },
+          {
+            "durationMs": 0,
+            "phase": "all-frames-rendered",
+            "startMs": 3151.7000000178814
+          },
+          {
+            "durationMs": 336.80000001192093,
+            "phase": "initial-target-render-wait",
+            "startMs": 2815.300000011921
+          },
+          {
+            "durationMs": 1225.7000000178814,
+            "phase": "initial-viewport",
+            "startMs": 1928.9000000059605
+          },
+          {
+            "durationMs": 0,
+            "phase": "canvas-revealed",
+            "startMs": 3155.800000011921
+          }
+        ],
+        "frameCount": 1
+      },
+      "resources": [
+        {
+          "url": "https://plasmic-studio.shiguanglab.com/api/v1/editor-bootstrap/tk89W1Akg2HjAjyHAYEro7",
+          "query": "?",
+          "type": "XHR",
+          "status": 200,
+          "durationMs": 705.3040000027977,
+          "headersMs": 700.5899999930989,
+          "encodedDataLength": 69064
+        },
+        {
+          "url": "https://plasmic-studio.shiguanglab.com/api/v1/projects/tk89W1Akg2HjAjyHAYEro7",
+          "query": "",
+          "type": "XHR",
+          "status": 200,
+          "durationMs": 2018.3869999891613,
+          "headersMs": 1167.8710000123829,
+          "encodedDataLength": 6140190
+        },
+        {
+          "url": "https://plasmic-studio.shiguanglab.com/api/v1/hostless-libraries/antd6/canvas",
+          "query": "?",
+          "type": "Fetch",
+          "status": 200,
+          "durationMs": 746.9870000204537,
+          "headersMs": 743.9179999928456,
+          "encodedDataLength": 966827
+        },
+        {
+          "url": "https://plasmic-studio.shiguanglab.com/api/v1/hostless-libraries/overseas/canvas",
+          "query": "?",
+          "type": "Fetch",
+          "status": 200,
+          "durationMs": 625.6139999895822,
+          "headersMs": 639.6209999802522,
+          "encodedDataLength": 35925
+        },
+        {
+          "url": "https://plasmic-studio.shiguanglab.com/api/v1/hostless-libraries/antd-icons/canvas",
+          "query": "?",
+          "type": "Fetch",
+          "status": 200,
+          "durationMs": 664.134999999078,
+          "headersMs": 618.3850000088569,
+          "encodedDataLength": 1792337
+        },
+        {
+          "url": "https://plasmic-studio.shiguanglab.com/api/v1/hostless-libraries/react-ui/canvas",
+          "query": "?",
+          "type": "Fetch",
+          "status": 200,
+          "durationMs": 678.0629999993835,
+          "headersMs": 674.81699999189,
+          "encodedDataLength": 132079
+        }
+      ],
+      "local": {
+        "requestCount": 190,
+        "logicalBytes": 42797642,
+        "sumHandlerMs": 661.4357490000002,
+        "maxHandlerMs": 14.735249999999724
+      },
+      "identityRequestCountBeforeVisible": 4
+    },
+    {
+      "round": "reopen-2",
+      "revision": 146,
+      "visibleMs": 4729,
+      "editableMs": 4750,
+      "preStudioMs": 1193.60009765625,
+      "timings": {
+        "elapsedMs": 3655.699999988079,
+        "entries": [
+          {
+            "durationMs": 113.5,
+            "phase": "studio-module-import",
+            "startMs": 0
+          },
+          {
+            "durationMs": 0.29999998211860657,
+            "phase": "startup-preferences",
+            "startMs": 134
+          },
+          {
+            "durationMs": 1478,
+            "phase": "project-fetch",
+            "startMs": 134.40000000596046
+          },
+          {
+            "durationMs": 76.89999997615814,
+            "phase": "model-unbundle",
+            "startMs": 1612.4000000059605
+          },
+          {
+            "durationMs": 40.20000001788139,
+            "phase": "studio-context",
+            "startMs": 1697.699999988079
+          },
+          {
+            "durationMs": 69.69999998807907,
+            "phase": "initial-route",
+            "startMs": 1700
+          },
+          {
+            "durationMs": 3.2000000178813934,
+            "phase": "code-component-sync",
+            "startMs": 2739.2999999821186
+          },
+          {
+            "durationMs": 0,
+            "phase": "app-user-init",
+            "startMs": 2742.5
+          },
+          {
+            "durationMs": 0,
+            "phase": "initializer-ready",
+            "startMs": 2742.5
+          },
+          {
+            "durationMs": 0,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-load-start",
+            "startMs": 2755.4000000059605
+          },
+          {
+            "durationMs": 67.10000002384186,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-host-document",
+            "startMs": 2770.2999999821186
+          },
+          {
+            "durationMs": 9.699999988079071,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-host-ready",
+            "startMs": 2838.5999999940395
+          },
+          {
+            "durationMs": 17.5,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-runtime",
+            "startMs": 2848.2999999821186
+          },
+          {
+            "durationMs": 59.39999997615814,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-component-packages",
+            "startMs": 2865.9000000059605
+          },
+          {
+            "durationMs": 0,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-context-created",
+            "startMs": 2927.0999999940395
+          },
+          {
+            "durationMs": 0,
+            "phase": "all-frame-contexts-created",
+            "startMs": 2927.0999999940395
+          },
+          {
+            "durationMs": 178.19999998807907,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-initialization",
+            "startMs": 2755.4000000059605
+          },
+          {
+            "durationMs": 1163.9000000059605,
+            "phase": "initial-target-wait",
+            "startMs": 1769.699999988079
+          },
+          {
+            "durationMs": 4.300000011920929,
+            "phase": "initial-viewport-layout",
+            "startMs": 2933.5999999940395
+          },
+          {
+            "durationMs": 13.899999976158142,
+            "phase": "initial-viewport-commit",
+            "startMs": 2937.9000000059605
+          },
+          {
+            "durationMs": 377.19999998807907,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-first-render",
+            "startMs": 2968.9000000059605
+          },
+          {
+            "durationMs": 0,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-rendered",
+            "startMs": 3350.0999999940395
+          },
+          {
+            "durationMs": 0,
+            "phase": "all-frames-rendered",
+            "startMs": 3350.0999999940395
+          },
+          {
+            "durationMs": 398.80000001192093,
+            "phase": "initial-target-render-wait",
+            "startMs": 2951.7999999821186
+          },
+          {
+            "durationMs": 1653.2999999821186,
+            "phase": "initial-viewport",
+            "startMs": 1700
+          },
+          {
+            "durationMs": 0,
+            "phase": "canvas-revealed",
+            "startMs": 3354.5999999940395
+          }
+        ],
+        "frameCount": 1
+      },
+      "resources": [
+        {
+          "url": "https://plasmic-studio.shiguanglab.com/api/v1/editor-bootstrap/tk89W1Akg2HjAjyHAYEro7",
+          "query": "?",
+          "type": "XHR",
+          "status": 200,
+          "durationMs": 634.9090000148863,
+          "headersMs": 624.7429999930318,
+          "encodedDataLength": 69064
+        },
+        {
+          "url": "https://plasmic-studio.shiguanglab.com/api/v1/projects/tk89W1Akg2HjAjyHAYEro7",
+          "query": "",
+          "type": "XHR",
+          "status": 200,
+          "durationMs": 1758.7669999920763,
+          "headersMs": 884.950999985449,
+          "encodedDataLength": 6140190
+        },
+        {
+          "url": "https://plasmic-studio.shiguanglab.com/api/v1/hostless-libraries/antd6/canvas",
+          "query": "?",
+          "type": "Fetch",
+          "status": 200,
+          "durationMs": 1083.1659999967087,
+          "headersMs": 777.881999994861,
+          "encodedDataLength": 966827
+        },
+        {
+          "url": "https://plasmic-studio.shiguanglab.com/api/v1/hostless-libraries/overseas/canvas",
+          "query": "?",
+          "type": "Fetch",
+          "status": 200,
+          "durationMs": 702.4690000107512,
+          "headersMs": 702.5220000068657,
+          "encodedDataLength": 35925
+        },
+        {
+          "url": "https://plasmic-studio.shiguanglab.com/api/v1/hostless-libraries/antd-icons/canvas",
+          "query": "?",
+          "type": "Fetch",
+          "status": 200,
+          "durationMs": 468.90400000847876,
+          "headersMs": 465.1420000009239,
+          "encodedDataLength": 1792337
+        },
+        {
+          "url": "https://plasmic-studio.shiguanglab.com/api/v1/hostless-libraries/react-ui/canvas",
+          "query": "?",
+          "type": "Fetch",
+          "status": 200,
+          "durationMs": 569.3139999930281,
+          "headersMs": 568.9520000014454,
+          "encodedDataLength": 132079
+        }
+      ],
+      "local": {
+        "requestCount": 190,
+        "logicalBytes": 42797642,
+        "sumHandlerMs": 575.6680869999836,
+        "maxHandlerMs": 13.151499999999942
+      },
+      "identityRequestCountBeforeVisible": 4
+    },
+    {
+      "round": "reopen-3",
+      "revision": 146,
+      "visibleMs": 3865,
+      "editableMs": 3871,
+      "preStudioMs": 938.39990234375,
+      "timings": {
+        "elapsedMs": 3032.5,
+        "entries": [
+          {
+            "durationMs": 116.5,
+            "phase": "studio-module-import",
+            "startMs": 0
+          },
+          {
+            "durationMs": 14.599999994039536,
+            "phase": "startup-preferences",
+            "startMs": 131.10000002384186
+          },
+          {
+            "durationMs": 1190,
+            "phase": "project-fetch",
+            "startMs": 145.80000001192093
+          },
+          {
+            "durationMs": 86,
+            "phase": "model-unbundle",
+            "startMs": 1335.800000011921
+          },
+          {
+            "durationMs": 42,
+            "phase": "studio-context",
+            "startMs": 1427
+          },
+          {
+            "durationMs": 73.80000001192093,
+            "phase": "initial-route",
+            "startMs": 1429.4000000059605
+          },
+          {
+            "durationMs": 3.5,
+            "phase": "code-component-sync",
+            "startMs": 1975.4000000059605
+          },
+          {
+            "durationMs": 0,
+            "phase": "app-user-init",
+            "startMs": 1978.9000000059605
+          },
+          {
+            "durationMs": 0,
+            "phase": "initializer-ready",
+            "startMs": 1978.9000000059605
+          },
+          {
+            "durationMs": 0,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-load-start",
+            "startMs": 1991.6000000238419
+          },
+          {
+            "durationMs": 68.5,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-host-document",
+            "startMs": 2006.9000000059605
+          },
+          {
+            "durationMs": 12.200000017881393,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-host-ready",
+            "startMs": 2076.4000000059605
+          },
+          {
+            "durationMs": 13.199999988079071,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-runtime",
+            "startMs": 2088.7000000178814
+          },
+          {
+            "durationMs": 248.90000000596046,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-component-packages",
+            "startMs": 2102
+          },
+          {
+            "durationMs": 0,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-context-created",
+            "startMs": 2352.2000000178814
+          },
+          {
+            "durationMs": 0,
+            "phase": "all-frame-contexts-created",
+            "startMs": 2352.2000000178814
+          },
+          {
+            "durationMs": 366.89999997615814,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-initialization",
+            "startMs": 1991.6000000238419
+          },
+          {
+            "durationMs": 855.2999999821186,
+            "phase": "initial-target-wait",
+            "startMs": 1503.2000000178814
+          },
+          {
+            "durationMs": 3.800000011920929,
+            "phase": "initial-viewport-layout",
+            "startMs": 2358.5
+          },
+          {
+            "durationMs": 8.699999988079071,
+            "phase": "initial-viewport-commit",
+            "startMs": 2362.300000011921
+          },
+          {
+            "durationMs": 343.80000001192093,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-first-render",
+            "startMs": 2411
+          },
+          {
+            "durationMs": 0,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-rendered",
+            "startMs": 2763.300000011921
+          },
+          {
+            "durationMs": 0,
+            "phase": "all-frames-rendered",
+            "startMs": 2763.300000011921
+          },
+          {
+            "durationMs": 392.7000000178814,
+            "phase": "initial-target-render-wait",
+            "startMs": 2371
+          },
+          {
+            "durationMs": 1336.9000000059605,
+            "phase": "initial-viewport",
+            "startMs": 1429.4000000059605
+          },
+          {
+            "durationMs": 0,
+            "phase": "canvas-revealed",
+            "startMs": 2767.2000000178814
+          }
+        ],
+        "frameCount": 1
+      },
+      "resources": [
+        {
+          "url": "https://plasmic-studio.shiguanglab.com/api/v1/editor-bootstrap/tk89W1Akg2HjAjyHAYEro7",
+          "query": "?",
+          "type": "XHR",
+          "status": 200,
+          "durationMs": 404.73500001826324,
+          "headersMs": 382.2840000211727,
+          "encodedDataLength": 69064
+        },
+        {
+          "url": "https://plasmic-studio.shiguanglab.com/api/v1/projects/tk89W1Akg2HjAjyHAYEro7",
+          "query": "",
+          "type": "XHR",
+          "status": 200,
+          "durationMs": 1552.2739999869373,
+          "headersMs": 666.0960000008345,
+          "encodedDataLength": 6140190
+        },
+        {
+          "url": "https://plasmic-studio.shiguanglab.com/api/v1/hostless-libraries/antd6/canvas",
+          "query": "?",
+          "type": "Fetch",
+          "status": 200,
+          "durationMs": 820.1239999907557,
+          "headersMs": 819.0640000102576,
+          "encodedDataLength": 966827
+        },
+        {
+          "url": "https://plasmic-studio.shiguanglab.com/api/v1/hostless-libraries/overseas/canvas",
+          "query": "?",
+          "type": "Fetch",
+          "status": 200,
+          "durationMs": 672.6029999845196,
+          "headersMs": 673.4669999859761,
+          "encodedDataLength": 35925
+        },
+        {
+          "url": "https://plasmic-studio.shiguanglab.com/api/v1/hostless-libraries/antd-icons/canvas",
+          "query": "?",
+          "type": "Fetch",
+          "status": 200,
+          "durationMs": 633.3560000057332,
+          "headersMs": 595.3660000232048,
+          "encodedDataLength": 1792337
+        },
+        {
+          "url": "https://plasmic-studio.shiguanglab.com/api/v1/hostless-libraries/react-ui/canvas",
+          "query": "?",
+          "type": "Fetch",
+          "status": 200,
+          "durationMs": 714.2899999744259,
+          "headersMs": 713.8709999853745,
+          "encodedDataLength": 132079
+        }
+      ],
+      "local": {
+        "requestCount": 190,
+        "logicalBytes": 42797642,
+        "sumHandlerMs": 678.135374999958,
+        "maxHandlerMs": 12.345750000000407
+      },
+      "identityRequestCountBeforeVisible": 4
+    }
+  ],
+  "cacheValidation": [
+    {
+      "url": "https://plasmic-studio.shiguanglab.com/api/v1/projects/tk89W1Akg2HjAjyHAYEro7",
+      "conditionalRequest": false,
+      "wireStatus": [
+        "HTTP/1.1 200"
+      ],
+      "encoding": [
+        "content-encoding: gzip"
+      ],
+      "decodedBodyBytes": 6140190,
+      "encodedBodyBytesRead": 895750,
+      "bodySource": "network",
+      "networkResponseBodyBytes": 895750
+    },
+    {
+      "url": "https://plasmic-studio.shiguanglab.com/api/v1/hostless-libraries/antd6/canvas?version=3.7.0",
+      "conditionalRequest": true,
+      "wireStatus": [
+        "HTTP/1.1 304"
+      ],
+      "encoding": [],
+      "decodedBodyBytes": 966827,
+      "encodedBodyBytesRead": 210112,
+      "bodySource": "local-cache",
+      "networkResponseBodyBytes": 0
+    },
+    {
+      "url": "https://plasmic-studio.shiguanglab.com/api/v1/hostless-libraries/overseas/canvas?version=1.12.0",
+      "conditionalRequest": true,
+      "wireStatus": [
+        "HTTP/1.1 304"
+      ],
+      "encoding": [],
+      "decodedBodyBytes": 35925,
+      "encodedBodyBytesRead": 12938,
+      "bodySource": "local-cache",
+      "networkResponseBodyBytes": 0
+    },
+    {
+      "url": "https://plasmic-studio.shiguanglab.com/api/v1/hostless-libraries/antd-icons/canvas?version=0.2.0",
+      "conditionalRequest": true,
+      "wireStatus": [
+        "HTTP/1.1 304"
+      ],
+      "encoding": [],
+      "decodedBodyBytes": 1792337,
+      "encodedBodyBytesRead": 388176,
+      "bodySource": "local-cache",
+      "networkResponseBodyBytes": 0
+    },
+    {
+      "url": "https://plasmic-studio.shiguanglab.com/api/v1/hostless-libraries/react-ui/canvas?version=0.2.0",
+      "conditionalRequest": true,
+      "wireStatus": [
+        "HTTP/1.1 304"
+      ],
+      "encoding": [],
+      "decodedBodyBytes": 132079,
+      "encodedBodyBytesRead": 40886,
+      "bodySource": "local-cache",
+      "networkResponseBodyBytes": 0
+    }
+  ],
+  "summary": {
+    "editableMs": [
+      4743,
+      4750,
+      3871
+    ],
+    "editableMedianMs": 4743,
+    "visibleMs": [
+      4726,
+      4729,
+      3865
+    ],
+    "phases": {
+      "studio-module-import": {
+        "medianMs": 116,
+        "rangeMs": [
+          114,
+          150
+        ]
+      },
+      "project-fetch": {
+        "medianMs": 1478,
+        "rangeMs": [
+          1190,
+          1607
+        ]
+      },
+      "model-unbundle": {
+        "medianMs": 86,
+        "rangeMs": [
+          77,
+          128
+        ]
+      },
+      "studio-context": {
+        "medianMs": 42,
+        "rangeMs": [
+          40,
+          52
+        ]
+      },
+      "frame-host-document": {
+        "medianMs": 68,
+        "rangeMs": [
+          67,
+          72
+        ]
+      },
+      "frame-runtime": {
+        "medianMs": 13,
+        "rangeMs": [
+          12,
+          18
+        ]
+      },
+      "frame-component-packages": {
+        "medianMs": 148,
+        "rangeMs": [
+          59,
+          249
+        ]
+      },
+      "frame-first-render": {
+        "medianMs": 344,
+        "rangeMs": [
+          309,
+          377
+        ]
+      },
+      "initial-viewport-layout": {
+        "medianMs": 4,
+        "rangeMs": [
+          3,
+          4
+        ]
+      },
+      "initial-viewport-commit": {
+        "medianMs": 9,
+        "rangeMs": [
+          7,
+          14
+        ]
+      }
+    },
+    "libraries": [
+      {
+        "name": "antd6",
+        "version": "3.7.0",
+        "bodyBytes": 966827,
+        "medianMs": 820,
+        "rangeMs": [
+          747,
+          1083
+        ]
+      },
+      {
+        "name": "overseas",
+        "version": "1.12.0",
+        "bodyBytes": 35925,
+        "medianMs": 673,
+        "rangeMs": [
+          626,
+          702
+        ]
+      },
+      {
+        "name": "antd-icons",
+        "version": "0.2.0",
+        "bodyBytes": 1792337,
+        "medianMs": 633,
+        "rangeMs": [
+          469,
+          664
+        ]
+      },
+      {
+        "name": "react-ui",
+        "version": "0.2.0",
+        "bodyBytes": 132079,
+        "medianMs": 678,
+        "rangeMs": [
+          569,
+          714
+        ]
+      }
+    ]
+  },
+  "blockedProjectWrites": []
+}

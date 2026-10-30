@@ -1,7 +1,7 @@
 import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import { COPILOT_TOOLS } from "@/wab/client/copilot";
 import * as studioBundles from "@/wab/client/components/studio/studio-bundles";
-import * as domUtils from "@/wab/client/dom-utils";
+import * as scriptUtils from "@/wab/client/script-exec";
 import type { TeamId } from "@/wab/shared/ApiSchema";
 import type { PkgVersionInfo } from "@/wab/shared/SharedApi";
 import { FastBundler, type Bundle } from "@/wab/shared/bundler";
@@ -209,7 +209,7 @@ it("installs and upgrades through the real dependency manager, reads new live co
   const { studioCtx, api, call, versions } = fixture(catalog, [library]);
   const realBundles = await vi.importActual<typeof studioBundles>("@/wab/client/components/studio/studio-bundles");
   vi.spyOn(studioBundles, "getSortedHostLessPkgs").mockImplementation(realBundles.getSortedHostLessPkgs);
-  vi.spyOn(domUtils, "scriptExec").mockImplementation((win, source) => { runInNewContext(source, { window: win }); });
+  vi.spyOn(scriptUtils, "scriptExec").mockImplementation((win, source) => { runInNewContext(source, { window: win }); });
   vi.stubGlobal("fetch", vi.fn(async (url: string) => ({ ok: true, text: async () => {
     if (url.endsWith("client.test.js")) {
       return "window.__CanvasPkgs = {};";

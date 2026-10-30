@@ -157,28 +157,54 @@ class DesktopDraftStore {
 
 function createDraftHandler({ store, origin, trustedSender, projectId, currentUser }) {
   const sessions = new Map();
+  let epoch = 0;
   return {
-    reset() { sessions.clear(); },
+    reset() { epoch++; sessions.clear(); },
+    invalidate() { epoch++; },
     async command(event, command, input) {
       if (!trustedSender(event)) {throw new Error("Invalid Studio page");}
       if (command === "list" || command === "open") {
+        const version = epoch;
         const userId = await currentUser();
-        if (!userId || userId !== input.userId) {throw new Error("Invalid draft account");}
+        if (version !== epoch || !userId || userId !== input.userId) {throw new Error("Invalid draft account");}
         const scope = { origin, userId, projectId: input.projectId || "list", branchId: input.branchId ?? null };
-        if (command === "list") {return store.list(scope, true);}
+        if (command === "list") {
+          const drafts = await store.list(scope, true);
+          if (version !== epoch) {throw new Error("Invalid draft account");}
+          return drafts;
+        }
         if (projectId(event.senderFrame.url) !== input.projectId) {throw new Error("Invalid Studio project");}
+        const drafts = await store.list(scope);
+        if (version !== epoch) {throw new Error("Invalid draft account");}
         for (const [key, session] of sessions) {
           if (session.frame === event.senderFrame) {sessions.delete(key);}
         }
         const handle = randomUUID();
-        sessions.set(handle, { scope, frame: event.senderFrame });
-        return { handle, drafts: await store.list(scope) };
+        sessions.set(handle, { scope, frame: event.senderFrame, epoch });
+        return { handle, drafts };
       }
       const session = sessions.get(input.handle);
       if (!session || session.frame !== event.senderFrame || projectId(event.senderFrame.url) !== session.scope.projectId) {
         throw new Error("Invalid draft session");
       }
-      if (command === "read") {return store.read(session.scope, input.id);}
+      if (session.epoch !== epoch) {
+        const version = epoch;
+        const userId = await currentUser();
+        if (version !== epoch || sessions.get(input.handle) !== session) {
+          throw new Error("Invalid draft session");
+        }
+        if (userId !== session.scope.userId) {
+          sessions.delete(input.handle);
+          throw new Error("Invalid draft session");
+        }
+        session.epoch = version;
+      }
+      if (command === "read") {
+        const version = epoch;
+        const draft = await store.read(session.scope, input.id);
+        if (version !== epoch || sessions.get(input.handle) !== session) {throw new Error("Invalid draft session");}
+        return draft;
+      }
       if (command === "write") {return store.write(session.scope, input.draft);}
       if (command === "remove") {return store.remove(session.scope, input.id, input.sequence);}
       throw new Error("Invalid draft command");

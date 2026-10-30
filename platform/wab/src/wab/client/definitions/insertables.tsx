@@ -93,7 +93,7 @@ interface AddItemCommon {
   isNew?: boolean;
   /**
    * Indicates the item can be displayed compactly to fit multiple items
-   * in the same row. Requires a preview image/video.
+   * in the same row. Requires an image, video or registered icon preview.
    */
   isCompact?: boolean;
   previewImageUrl?: string;

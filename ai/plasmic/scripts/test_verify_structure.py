@@ -693,6 +693,30 @@ class StructureTests(unittest.TestCase):
         wide_title = column("SceneColumn", {"dataIndex": "scene", "width": 96}, "业务场景")
         self.assertEqual(errors([name, wide_title, actions], {"scroll": {"x": 600}}), [])
 
+    def test_expansion_width_counts_in_both_plan_and_saved_model(self):
+        from verify_selection import table_plan_errors
+        from verify_structure import table_width_errors
+        columns = [
+            {"nodeName": "Name", "component": "plasmic-antd6-table-column", "role": "widget", "owner": {"nodeName": "Records"}, "props": {"dataIndex": "name"}},
+            {"nodeName": "Status", "component": "plasmic-antd6-table-column", "role": "widget", "owner": {"nodeName": "Records"}, "props": {"dataIndex": "status", "width": 160}},
+        ]
+        for visible, scroll_x, passes in [(True, 180, False), (True, 224, False), (True, 225, True), (False, 180, True)]:
+            with self.subTest(visible=visible, scroll_x=scroll_x):
+                values = {"scroll": {"x": scroll_x}, "expandable": {"columnWidth": 64, "showExpandColumn": visible}}
+                declaration = {"nodeName": "Records", "component": "plasmic-antd6-table", "props": values}
+                plan_errors = table_plan_errors([declaration] + columns)
+                markup = '<plasmic-component data-props="' + html.escape(json.dumps(values), quote=True) + '">'
+                for column in columns:
+                    markup += '<plasmic-component data-props="' + html.escape(json.dumps(column["props"]), quote=True) + '"></plasmic-component>'
+                markup += '</plasmic-component>'
+                table = TextTree(markup).root["children"][0]
+                model_errors = table_width_errors(table, table["children"], {})
+                self.assertEqual(not plan_errors, passes)
+                self.assertEqual(not model_errors, passes)
+                if not passes:
+                    self.assertEqual(plan_errors[0]["fixedWidthSum"], 224)
+                    self.assertEqual(model_errors[0]["fixedWidthSum"], 224)
+
     def test_native_max_content_requires_same_source_approved_choice_in_plan_and_model(self):
         from verify_selection import table_plan_errors
         self.source.write_text('The required content sizing is scroll.x = max-content.', encoding="utf-8")

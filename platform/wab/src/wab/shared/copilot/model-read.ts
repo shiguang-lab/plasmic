@@ -75,7 +75,7 @@ export function registrationContract(value: unknown, seen = new Set<object>()): 
   if (typeof meta.type !== "string") { return undefined; }
   seen.add(value);
   const result: Record<string, unknown> = { type: meta.type };
-  for (const key of ["displayName", "description", "required", "min", "max", "step", "editOnly", "uncontrolledProp", "toggleable"]) {
+  for (const key of ["displayName", "description", "required", "min", "max", "step", "editOnly", "uncontrolledProp", "toggleable", "multiSelect"]) {
     if (["string", "boolean", "number"].includes(typeof meta[key])) { result[key] = meta[key]; }
   }
   if (meta.type !== "slot") {
@@ -100,6 +100,8 @@ export function withRegisteredContracts(props: Record<string, unknown>[], metada
     prop = { ...prop };
     const registration = registrationContract(metadata[String(prop.name)]);
     if (registration) {
+      // Help text describes the current registration, not an older imported model.
+      if (registration.description !== undefined) { prop.description = registration.description; }
       if (registration.optionsDynamic) { delete prop.options; }
       for (const key of ["description", "args", "options"]) {
         if (registration[key] !== undefined && JSON.stringify(registration[key]) === JSON.stringify(prop[key])) { delete registration[key]; }
@@ -132,9 +134,15 @@ export function validateRegisteredValue(value: unknown, metadata: unknown, path:
     return `${path} expects a ${contract.type}`;
   } else if (contract.type === "function" && typeof value !== "function") {
     return `${path} expects a function binding`;
-  } else if (contract.type === "choice" && Array.isArray(contract.options)
-    && !contract.options.some((option) => (typeof option === "object" && option !== null ? option.value : option) === value)) {
-    return `${path} must be one of ${JSON.stringify(contract.options)}`;
+  } else if (contract.type === "choice") {
+    if (contract.multiSelect === true && !Array.isArray(value)) {
+      return `${path} expects an array`;
+    }
+    const values = contract.multiSelect === true ? value as unknown[] : [value];
+    if (Array.isArray(contract.options) && values.some((item) =>
+      !(contract.options as unknown[]).some((option) => (typeof option === "object" && option !== null ? (option as { value: unknown }).value : option) === item))) {
+      return `${path} must be one of ${JSON.stringify(contract.options)}`;
+    }
   }
   return undefined;
 }

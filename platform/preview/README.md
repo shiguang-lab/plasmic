@@ -125,9 +125,24 @@ For example, current NAS libraries can use `/plasmic/platform/canvas-packages` w
 `@shiguang-lab/plasmic-antd6`, all currently `0.0.1`.
 
 Studio loads these libraries' registration scripts from
-`/api/v1/hostless-libraries/<name>/canvas?version=<Project-dependency-version>`.
+`/api/v1/hostless-libraries/<name>/canvas?version=<Project-dependency-version>&pkgId=<package-id>`.
 Access is checked against the library project; only browser registration code is
-returned. Reopen Studio after catalog registration so its library catalog refreshes.
+returned, with the package ID, version and browser-source SHA-256 bound in the
+`X-Plasmic-Library-Release` response header. Consumer projects require an exact
+dependency release. Library authoring resolves a concrete release through
+`/api/v1/hostless-libraries/<name>/release` before using the same code path.
+Desktop caches these immutable bodies without network revalidation; project
+permissions and automatic library upgrades still run on the server. Dependency
+models use the content-hash negotiation described in
+[Desktop libraries](../../desktop/README.md#versioned-component-libraries).
+Reopen Studio after catalog registration so its library catalog refreshes.
+
+Ordinary registration, Props/Slots, wrapper and bundled-style updates use this
+publication command independently of the numeric App release pipeline. Publish
+the exact npm version or compiled tarball to the target backend; rebuilding the
+App is not a substitute. The matching Desktop loader/backend must be installed
+once. Changes to shared Antd/React or the editor protocol still require an App
+release. Existing platform-library automatic upgrade rules remain in effect.
 
 For a library version created before artifact storage existed, an administrator
 can explicitly attach its matching code once:
@@ -153,7 +168,10 @@ bash tools/run.bash src/wab/server/db/publish-library.e2e.ts
 
 It applies the real migrations, seeds the real Plume metadata needed for library
 updates, registers a previously unknown local npm tarball through the generic
-command, changes only its implementation, verifies preserved component identity,
-checks that unchanged code creates no extra release, and refuses overwriting the
-original artifact. This is a disposable-database test; its library/Plume records
+command, changes its implementation/Props/Slots, verifies preserved component
+identity, checks unchanged-release deduplication and refuses artifact overwrite.
+It then serves real package/code routes over HTTP through the Desktop cache and
+checks exact/latest selection, code/definition alignment, restart hits and old
+version restoration. Warm loads make zero code requests and transfer no cached
+model bodies; package permission/version requests continue. This is a disposable-database test; its library/Plume records
 remain until that database is removed.

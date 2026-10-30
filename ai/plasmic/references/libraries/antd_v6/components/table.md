@@ -7,13 +7,15 @@ Library: [Ant Design v6](../index.md).
 | Table | `plasmic-antd6-table` |
 | Table.Column | `plasmic-antd6-table-column` |
 | Table.ColumnGroup | `plasmic-antd6-table-column-group` |
+| Table.ExpandColumn | `plasmic-antd6-table-expand-column` |
 
 **Hard constraints** (always delivered with any section):
 
-- Decide every Column's `width` in the plan before markup. The project default uses literal pixel widths, exactly one main text Column (`role:widget`, text presentation) without width, and numeric Table `scroll.x` greater than the explicit widths sum. Native `max-content` is available through a source-backed `scroll.x` override; this is a project layout policy, not an Ant Design limitation. See [content and scroll width](#content-and-scroll-width).
+- Decide every Column's `width` in the plan before markup. The project default uses literal pixel widths, exactly one main text Column (`role:widget`, native text or a text Tooltip render) without width, and numeric Table `scroll.x` greater than the explicit widths sum. Native `max-content` is available through a source-backed `scroll.x` override; this is a project layout policy, not an Ant Design limitation. See [content and scroll width](#content-and-scroll-width).
 - Size each width from its title as well as its values; status/time/short fields are fixed, never the main column.
 - Row operations: registered ActionGroup in the last leaf Column.render, `fixed:"right"` and a measured numeric width ([operation column sizing](#operation-column-sizing)).
 - Column presentation is a plan field: `text` leaves the native render Slot empty, `custom` composes registered components in it; status Columns render a mapped Badge, categories default to text.
+- Text columns expected to exceed their planned width use `ellipsis:{showTitle:false}` and a registered Tooltip in Column.render to expose the complete current-row value. Record `presentation:custom` for this render template. See [columns and content](#columns-and-content).
 - Every paginated list needs a fixture larger than the initial pageSize. Prototype-owned paging (bound `current`/`pageSize`, a server query or a source page policy) also needs first/second/return `page-change` cases, plus `page-size` when adjustable; native component-owned paging over local data needs no case. See [paging acceptance](#pagination-data-and-acceptance).
 
 ## Plan decisions
@@ -75,13 +77,19 @@ For tables, record each field's purpose, longest common real value, required com
 
 Use these starting widths in pixels: short IDs/counts and type/scenario 96–128; status and people 128–176; timestamps 160–192; names 200–280; keys/code 240–320; notes 280–360. Keep ID/count/time/enumeration/status values complete. Name/key/people may ellipsize; details or copy are additional ways to access the value. Set the real Table.Column ellipsis prop instead of shortening data or merely styling a span. Verify actual truncation and the complete value before claiming success; configuration alone is insufficient.
 
-Column `ellipsis` is native Ant Design truncation: a text cell keeps the native `title` attribute with its complete value. A styled popup is a registered Tooltip composed in Column.render, with children/title Slots bound to the row scope; as a native Tooltip it opens on hover/focus whether or not the text overflows. Edit these actual nodes; do not add a parallel tooltip configuration schema or copy a row's static text across all rows. A custom title may combine current-row fields; keep display and title bindings consistent with the intended complete content. Verify at least two distinct rows, text/template content, 0/false/empty values and resized columns, then save/reopen. Apply [Tooltip acceptance](tooltip.md) to hover/focus and temporary editing reveals.
+For text expected to exceed its planned width, follow the [official ellipsis with custom Tooltip pattern](https://github.com/ant-design/ant-design/blob/6.6.5/components/table/demo/ellipsis-custom-tooltip.tsx): set Column `ellipsis:{showTitle:false}` and compose a registered Tooltip in Column.render, with `placement:topLeft` and the complete current-row value as its title and visible text. This applies to ordinary long names, keys, addresses and notes, not only special multi-field content. Record `presentation:custom` because the render Slot contains a component; short text that needs no popup keeps `presentation:text` and an empty render Slot. The main text column may use this Tooltip render while still absorbing the remaining width.
+
+The registered `ellipsis` accepts the native boolean or object value: `false` disables ellipsis; `true` or `{showTitle:true}` enables single-line ellipsis with the body's browser `title`; `{showTitle:false}` retains ellipsis and disables that body-cell title to avoid competing hints. Header titles follow native Table behavior. `showTitle:false` does not create the Tooltip itself; `showSorterTooltip` concerns the sorting header only. Confirm the installed Column registration accepts the object form before authoring it; do not invent a separate `showTitle` prop or tooltip configuration schema.
+
+Bind Tooltip content to the live `cell`/`row` render scope, never one row's static text. Preserve complete source values, including meaningful 0/false; use an empty title for null/undefined/empty values so they create no popup. Multi-line or multi-field content may customize the popup using the same row scope. Native Tooltip opens on its configured trigger even when text fits; this pattern does not detect overflow. Verify at least two distinct rows, long/short/empty values, no competing body-cell title, and resized columns, then save/reopen. Apply [Tooltip acceptance](tooltip.md) to configured triggers and temporary editing reveals; verify actual truncation in Preview rather than inferring it from props.
 
 #### Render templates
 
 A Column without render content shows its field value natively; `custom` presentation composes registered components in the native `render` Slot, whose scope is the bare names `cell`, `row` and `index` (no `column` or `$ctx` prefix). Copyable starting points, values illustrative:
 
 ```html
+<!-- Long text: Column owns ellipsis; Tooltip exposes the complete cell value -->
+<plasmic-component data-plasmic-name="Address" data-plasmic-component="plasmic-antd6-table-column" data-props='{"dataIndex":"address","width":280,"ellipsis":{"showTitle":false}}'><slot name="render"><plasmic-component data-plasmic-name="AddressTooltip" data-plasmic-component="plasmic-antd6-tooltip" data-props='{"placement":"topLeft","titleText":"{{ cell == null ? String() : String(cell) }}"}'><slot name="children"><span>{{ cell == null ? String() : String(cell) }}</span></slot></plasmic-component></slot></plasmic-component>
 <!-- Status: Badge maps the value; never color/dot/count -->
 <plasmic-component data-plasmic-name="Status" data-plasmic-component="plasmic-antd6-table-column" data-props='{"dataIndex":"status","width":128}'><slot name="render"><plasmic-component data-plasmic-name="StatusBadge" data-plasmic-component="plasmic-antd6-badge" data-props='{"status":"{{ row.status === &#39;ENABLED&#39; ? &#39;success&#39; : &#39;default&#39; }}","text":"{{ row.statusLabel }}"}'></plasmic-component></slot></plasmic-component>
 <!-- Single-value category Tag: the expression maps value to native color and label -->
@@ -103,6 +111,79 @@ Measure the widest visible permission-filtered ActionGroup for valid rows in the
 #### Table.ColumnGroup
 
 Use the real ColumnGroup children/title contract for a required grouped header. Keep actual Column nodes and their render scopes inside that group; a decorative row above the Table is not a grouped header. Verify group order, fixed/scrolling boundaries and the complete leaf-column content after save/reopen.
+
+### Expandable row details
+
+Table supports inline row details through the `expandedRowRender` render Slot and the native `expandable` object. Before use, read the live Table and Table.ExpandColumn contracts with MCP `view:"contract"`. Confirm the Slot's ordered arguments and the expandable prop's `registration.fields` and the top-level expansion event arguments; local source or this document alone does not prove the consuming project's library/runtime is synchronized. If these contracts are missing, synchronize the library before composing; do not imitate expansion with HTML rows or mutate saved props just to reveal content.
+
+| Contract | Usage |
+| --- | --- |
+| `expandedRowRender` Slot | Receives `row`, `index`, `indent`, `expanded`. Compose registered components and bind to `row` fields. The wrapper maps this top-level Slot to native `expandable.expandedRowRender`; the Slot takes precedence over a function in that object. |
+| `rowKey` | Set a stable unique business field even when row selection is disabled. Expansion keys use the field's original string/number type. |
+| Table.ExpandColumn | Optional position marker, placed once directly among the Table's Columns, outside ColumnGroup. Its order becomes native `Table.EXPAND_COLUMN`; it owns no data/render props. Without a marker, Ant Design inserts the expansion column automatically. |
+| `expandable.showExpandColumn` | Defaults to true. False hides even an explicit position marker. Provide `expandRowByClick:true` or a controlled expansion action if users still need to open rows. |
+| `expandable.columnTitle`, `columnWidth`, `fixed` | Native heading, pixel width and fixed side (`left`/`right`). Include this width in horizontal sizing. Position comes from the marker order; pinning comes from `fixed`. |
+| `expandable.rowExpandable` | Expression `(row) => boolean` permitting individual rows; separate from whole-column visibility. |
+| `expandable.defaultExpandedRowKeys`, `defaultExpandAllRows` | Uncontrolled initial state. An explicit default keys array takes precedence over expand-all. Defaults apply on mount to loaded data. |
+| `expandable.expandedRowKeys` | Controlled keys array, including `[]` to close all. Bind state and update it using the top-level `onExpandedRowsChange(expandedKeys)` event. Omit for native component-owned expansion; a constant array freezes expansion. |
+| `canvasExpandedRowKeys` | Editing-only initial sample keys. Set representatives for every requirement-defined detail presentation variant. This is a real registered multi-select prop with `editOnly:true`, no uncontrolled/runtime mapping. Explicit `[]` starts the canvas closed; omit to follow native expansion settings. Only loaded, eligible keys of the original type render. Interactive mode, Preview and generated exports use native runtime settings. |
+| `onExpand` | Event arguments: `expanded` boolean, then `row` record. |
+| `onExpandedRowsChange` | Event argument: `expandedKeys` array. Configure expansion events as top-level Table props. The wrapper forwards them to native `expandable` callbacks; top-level handlers take precedence over callbacks in that object. |
+
+For controlled expansion, create a Page array state `expandedKeys`, bind `expandable.expandedRowKeys` to `{{ $state.expandedKeys }}`, then call MCP `createInteraction` with the actual Page and Table node IDs:
+
+```json
+{"componentUuid":"<pageUuid>","elementUuid":"<tableNodeUuid>","eventName":"onExpandedRowsChange","name":"SyncExpandedRows","action":{"actionName":"customFunction","code":"$state.expandedKeys = expandedKeys"}}
+```
+
+Use `eventName:"onExpand"` for per-row effects with `expanded` and `row` arguments. `eventName` is the top-level registered name; `expandable.onExpand` and `expandable.onExpandedRowsChange` are runtime destinations, not MCP event paths. Verify the updated state and visible detail rows in Preview.
+
+#### Expand from a cell control
+
+Hide the native expansion column with `expandable.showExpandColumn:false` and bind `expandable.expandedRowKeys` to a Page array state. Keep a stable `rowKey:"id"`; independent Tables need separate array states. Read the installed cell-control contract before choosing its event owner.
+
+When the user explicitly requires an `a` element for the inline detail action, keep it in Column.render with zero padding so its text aligns with the column heading. This is a local action with no destination: do not invent a URL. Give the anchor button semantics and keyboard access, and show noninteractive disabled text for records without details. The native render scope supplies `row` to the anchor's expressions and interactions:
+
+```html
+<a data-plasmic-name="DetailsLink" role="button" tabindex="0" data-visible-if="{{ row.hasDetails }}" style="display:inline;padding:0;color:var(--ant-color-link);cursor:pointer">{{ $state.expandedKeys.includes(row.id) ? "收起" : "详情" }}</a>
+<span data-plasmic-name="DetailsUnavailable" aria-disabled="true" data-visible-if="{{ !row.hasDetails }}" style="display:inline;color:var(--ant-color-text-disabled)">详情</span>
+```
+
+Attach `onClick` to the actual anchor node, not the Column, so the link owns its behavior without depending on href-based cell delegation:
+
+```json
+{"componentUuid":"<pageUuid>","elementUuid":"<anchorNodeUuid>","eventName":"onClick","name":"ToggleRowDetails","action":{"actionName":"customFunction","code":"event.preventDefault(); event.stopPropagation(); if (row.hasDetails) { $state.expandedKeys = $state.expandedKeys.includes(row.id) ? $state.expandedKeys.filter(key => key !== row.id) : [...$state.expandedKeys, row.id]; }"}}
+```
+
+Add native `onKeyDown` handling for Enter and Space: prevent default and run the same guarded toggle once when `!event.repeat`. If the installed Typography.Link contract exposes the required events, prefer that registered anchor; otherwise record the verified contract gap and exact native target in `elementFallbacks`. A user-requested Button uses its actual registration instead. General record-operation menus still follow ActionGroup.
+
+Keep Table's `onExpandedRowsChange` synchronized to the same state if native expansion interactions are also available. Updating controlled keys does not emit native `onExpand` callbacks; put any required cell-action effects in that action's own interaction. Verify actual anchor DOM, heading/text alignment, two distinct rows, disabled text, keyboard activation, empty-cell clicks, sorting by stable ID and independent state between Tables.
+
+#### Row detail template and canvas editing
+
+Example Slot composition (the consuming task supplies its own `data`):
+
+```html
+<plasmic-component data-plasmic-name="Orders" data-plasmic-component="plasmic-antd6-table" data-props='{"rowKey":"id","pagination":false,"expandable":{"columnWidth":48,"showExpandColumn":true,"rowExpandable":"{{ (row) => !!row.detail }}"}}'>
+  <slot name="children">
+    <plasmic-component data-plasmic-name="Expand" data-plasmic-component="plasmic-antd6-table-expand-column"></plasmic-component>
+    <plasmic-component data-plasmic-name="OrderNumber" data-plasmic-component="plasmic-antd6-table-column" data-props='{"dataIndex":"orderNo"}'><slot name="title"><span>订单号</span></slot></plasmic-component>
+  </slot>
+  <slot name="expandedRowRender"><span>{{ row.detail }}</span></slot>
+</plasmic-component>
+```
+
+The simple text detail above can be replaced by a registered Descriptions, nested Table or other requirement-derived content after reading its live contract. Each expanded row uses its own record scope. The position marker alone does not enable details; populate the render Slot. Tree data with `children` is a distinct native expansion mode; do not mix nested tree records and detail rendering on the same Table.
+
+Configure `canvasExpandedRowKeys` to show representative details directly in the ordinary canvas. MCP derives the representative records from the requirement's distinct detail presentations: conditional fields/groups, layouts, available actions, empty or missing data, collection cardinality, and required text boundaries. Cover meaningful combinations from the requirement, not a guessed status field or a fixed number of rows. Record the source, representative `rowKey` and expected presentation in the existing task plan/runtime cases. Ordinary value differences that do not change the presentation need no duplicate sample. Use real loaded fixture records and keep representatives reachable on the canvas's initial page; unavailable variants remain a reported coverage gap.
+
+For example, `canvasExpandedRowKeys:["full","empty","restricted"]` can seed three requirement-derived sample records while `expandable.expandedRowKeys:[]` keeps Preview initially closed. Read the live contract before setting these exact native props through MCP `changeElement`, then save and reread. Designers edit the same **Canvas expanded rows** multi-select in the property panel; there is no separate mode or translated property schema.
+
+Configured canvas samples take precedence over business expansion settings only while authoring. Selecting the Table or detail Slot does not add all remaining rows. The shared canvas modifier-click gesture (Cmd on macOS, Ctrl on Windows/Linux) changes temporary canvas keys; manual changes take precedence until the active sample configuration changes. Table defines no modifier shortcut of its own. Changing **Canvas expanded rows** refreshes the samples; Interactive mode, Preview and exports keep the native business configuration. The same repeated Slot template is edited for every row, and callbacks do not update business state during canvas expansion.
+
+When `canvasExpandedRowKeys` is omitted, the canvas follows native expanded/default keys. Selecting the expanded-content Slot/descendant or Edit contents can still reveal eligible loaded rows for authoring. Canvas expansion respects `rowExpandable`, requires stable keys, and has no sample to render without loaded data. Explicit runtime default edits are reflected when no canvas sample configuration overrides them.
+
+Acceptance: use multiple requirement-defined detail variants and a non-expandable record. Verify the configured representative keys on the ordinary canvas, row-key types, missing/ineligible keys, explicit empty samples, manual expansion and sample edits. Selecting content must not broaden configured samples. In Preview verify independent native controlled/default expansion and event arguments, hidden-column row click, marker order alongside selection/fixed columns, and correct row data in the Slot. Save/reopen and confirm sample configuration persists separately while temporary interaction keys do not. Verify `editOnly`/ToolsOnly excludes samples from generated exports and check pagination/horizontal scrolling with expanded content.
 
 ### Data identity, sorting and pagination
 

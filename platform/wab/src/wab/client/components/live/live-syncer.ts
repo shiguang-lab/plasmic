@@ -10,7 +10,7 @@ import {
   getLiveFrameClientJs,
   getReactWebBundle,
 } from "@/wab/client/components/studio/studio-bundles";
-import { scriptExec } from "@/wab/client/dom-utils";
+import { scriptExec } from "@/wab/client/script-exec";
 import { getUiLocale } from "@/wab/client/i18n";
 import { translate } from "@/wab/client/i18n/locales";
 import { PlasmicWindowInternals } from "@/wab/client/frame-ctx/windows";

@@ -1,7 +1,7 @@
 import { expect, it, vi } from "vitest";
 import express from "express";
 import { get } from "node:http";
-const state = vi.hoisted(() => ({ perms: vi.fn(), versions: vi.fn(async (_id: string, version?: string) => ({ id: version ?? "latest" })), missing: false }));
+const state = vi.hoisted(() => ({ perms: vi.fn(), versions: vi.fn(async (_id: string, version?: string) => ({ id: version ?? "latest", version: version ?? "2.0.0" })), missing: false }));
 vi.mock("@/wab/server/entities/CustomEntities", () => ({ HostlessLibraryVersion: class {} }));
 vi.mock("@/wab/shared/devflags", () => ({ DEVFLAGS: { hostLessComponents: [{ codeName: "new-library", projectId: ["library-project"], hasCodeArtifacts: true }] } }));
 vi.mock("@/wab/server/routes/util", () => ({ userDbMgr: () => ({
@@ -10,6 +10,8 @@ vi.mock("@/wab/server/routes/util", () => ({ userDbMgr: () => ({
   getEntMgr: () => ({ findOne: async (_entity: any, where: any) => state.missing ? undefined : { artifact: { digest: `digest-${where.pkgVersionId}`, canvas: `registration-${where.pkgVersionId}`, server: "private server code" } } }),
 }) }));
 import { getHostlessLibraryCanvas } from "@/wab/server/routes/hostless-library-artifacts";
+import { getHostlessLibraryRelease } from "@/wab/server/routes/hostless-library-artifacts";
+import { createHash } from "crypto";
 
 it("serves only the requested version's browser registration after checking access", async () => {
   state.perms.mockReset(); state.versions.mockClear(); state.missing = false;
@@ -20,8 +22,23 @@ it("serves only the requested version's browser registration after checking acce
   expect(res.send).toHaveBeenCalledWith("registration-1.2.3");
   expect(res.setHeader).toHaveBeenCalledWith("Cache-Control", "private, no-cache");
   expect(res.setHeader).toHaveBeenCalledWith("ETag", '"digest-1.2.3"');
+  expect(res.setHeader).toHaveBeenCalledWith("X-Plasmic-Library-Release", JSON.stringify({
+    pkgId: "library-package", version: "1.2.3",
+    digest: createHash("sha256").update("registration-1.2.3").digest("hex"),
+  }));
   state.perms.mockRejectedValueOnce(new Error("Forbidden"));
   await expect(getHostlessLibraryCanvas({ params: { name: "new-library" }, query: {} } as any, res as any)).rejects.toThrow("Forbidden");
+});
+
+it("rejects another package's same-name version and resolves authoring latest to a concrete release", async () => {
+  state.perms.mockReset(); state.versions.mockClear(); state.missing = false;
+  await expect(getHostlessLibraryCanvas({ params: { name: "new-library" }, query: { pkgId: "other-package", version: "1.0.0" } } as any, {} as any)).rejects.toThrow("does not match");
+  expect(state.versions).not.toHaveBeenCalled();
+  await expect(getHostlessLibraryCanvas({ params: { name: "new-library" }, query: { version: "latest" } } as any, {} as any)).rejects.toThrow("exact");
+  const res = { setHeader: vi.fn(), json: vi.fn() };
+  await getHostlessLibraryRelease({ params: { name: "new-library" }, query: {} } as any, res as any);
+  expect(res.json).toHaveBeenCalledWith({ pkgId: "library-package", version: "2.0.0" });
+  expect(res.setHeader).toHaveBeenCalledWith("Cache-Control", "private, no-store");
 });
 
 it("revalidates permissions before returning a cached artifact and rejects revoked access", async () => {

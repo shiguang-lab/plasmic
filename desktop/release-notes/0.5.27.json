@@ -1,0 +1,7 @@
+{
+  "en": "- Cache versioned component libraries and editor definitions locally.\n- Reduce repeated canvas runtime, identity and icon preview loading.\n- Improve Table scrolling and expandable-row editing.",
+  "zh-CN": "- 组件库代码与编辑器定义支持按版本本地缓存。\n- 减少画布运行时、身份校验和图标预览的重复加载。\n- 改进表格滚动与展开行编辑。",
+  "zh-TW": "- 元件庫程式碼與編輯器定義支援依版本本機快取。\n- 減少畫布執行階段、身分驗證和圖示預覽的重複載入。\n- 改善表格捲動與展開列編輯。",
+  "ja": "- バージョン別のコンポーネントと編集定義をローカルにキャッシュ。\n- キャンバス、認証、アイコンプレビューの重複読み込みを削減。\n- テーブルのスクロールと展開行の編集を改善。",
+  "ko": "- 버전별 컴포넌트와 편집기 정의를 로컬에 캐시합니다.\n- 캔버스, 인증 및 아이콘 미리보기의 중복 로딩을 줄입니다.\n- 표 스크롤과 펼친 행 편집을 개선합니다."
+}

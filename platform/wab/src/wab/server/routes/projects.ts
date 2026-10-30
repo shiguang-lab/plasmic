@@ -41,6 +41,7 @@ import "@/wab/server/extensions";
 import { logger } from "@/wab/server/observability";
 import { REAL_PLUME_VERSION } from "@/wab/server/pkg-mgr/plume-pkg-mgr";
 import { getUser } from "@/wab/server/routes/util";
+import { sendWithDependencyModels } from "@/wab/server/routes/dependency-model-cache";
 import { aiReceiptSchema } from "@/wab/shared/copilot/ai-chat";
 import { SELF_HOSTED } from "@/wab/shared/deployment";
 
@@ -1272,7 +1273,7 @@ export async function getModelUpdates(req: Request, res: Response) {
     }
     const deps = await getDeps(data);
 
-    res.json({
+    sendWithDependencyModels(req, res, {
       data: JSON.stringify(data),
       revision: ensure(last(partialChanges), "Couldn't find last partialChange")
         .revision,
@@ -1694,7 +1695,7 @@ export async function getProjectRev(req: Request, res: Response) {
     branchId,
     branchName: branch?.name,
   });
-  res.json({
+  sendWithDependencyModels(req, res, {
     rev,
     project: mkApiProject(project),
     perms,
@@ -2046,22 +2047,18 @@ export async function getPkgVersionByProjectId(req: Request, res: Response) {
     throw new BadRequestError("Missing sysname or projectId");
   }
 
-  const versionStrings = await mgr.getPkgVersionStrings(pkg.id);
-  const chosenVersion =
-    version === "latest" ? versionStrings.slice(-1)[0] : version;
-  ensure(
-    versionStrings.includes(chosenVersion),
-    `Unknown version ${chosenVersion}`,
-  );
+  // Database row order is not version order. Resolve latest using the same
+  // semver selection as upgrades and the registration-code endpoint.
+  const pkgVersion = await mgr.getPkgVersion(pkg.id, version);
+  const chosenVersion = pkgVersion.version;
 
   const etag = await getPkgVersionEtag(req, pkg.id, chosenVersion);
 
-  if (checkEtagSkippable(req, res, etag)) {
+  if (!req.get("X-Plasmic-Model-Cache") && checkEtagSkippable(req, res, etag)) {
     return;
   }
 
-  const pkgVersion = await mgr.getPkgVersion(pkg.id, chosenVersion);
-  res.json({
+  sendWithDependencyModels(req, res, {
     ...(await getPkgWithDeps(mgr, pkgVersion, false)),
     etag,
   });
@@ -2090,11 +2087,11 @@ export async function getPkgVersion(req: Request, res: Response) {
 
   const etag = await getPkgVersionEtag(req, pkgId, pkg.version);
 
-  if (checkEtagSkippable(req, res, etag)) {
+  if (!req.get("X-Plasmic-Model-Cache") && checkEtagSkippable(req, res, etag)) {
     return;
   }
 
-  res.json({
+  sendWithDependencyModels(req, res, {
     ...(await getPkgWithDeps(mgr, pkg, meta, { dontMigrateProject })),
     etag,
   });
@@ -2145,7 +2142,7 @@ export async function getProjectRevision(req: Request, res: Response) {
   const bundle = parseBundle(projectRev);
   const depPkgs = await loadDepPackages(mgr, bundle);
 
-  res.json({
+  sendWithDependencyModels(req, res, {
     depPkgs,
     rev: projectRev,
   });

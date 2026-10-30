@@ -14,7 +14,7 @@ import {
 } from "@/wab/client/components/studio/studio-bundles";
 import { useTopFrameApi } from "@/wab/client/contexts/AppContexts";
 import { installPreviewAgentCursor } from "@/wab/client/copilot/agent-cursor";
-import { scriptExec } from "@/wab/client/dom-utils";
+import { scriptExec } from "@/wab/client/script-exec";
 import { useI18n } from "@/wab/client/i18n";
 import { maybeToggleTrailingSlash } from "@/wab/client/utils/app-hosting-utils";
 import { isComponentArena } from "@/wab/shared/Arenas";
@@ -229,6 +229,7 @@ export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
       spawn(
         (async () => {
           const modules = await getSortedHostLessPkgs(
+            win,
             usedPkgs,
             getVersionForCanvasPackages(win),
             previewCtx.studioCtx.site,

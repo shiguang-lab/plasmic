@@ -13,11 +13,6 @@ const sections = {
 
 export function registerAll(loader?: Registerable) {
   for (const icon of catalog) {
-    const svg = icon.svg.replace(
-      'width="1em" height="1em"',
-      'x="80" y="40" width="32" height="32"',
-    );
-    const thumbnail = `<svg xmlns="http://www.w3.org/2000/svg" width="192" height="112" viewBox="0 0 192 112" color="#1f1f1f">${svg}</svg>`;
     (loader?.registerComponent ?? registerComponent)(
       Icons[
         icon.name as keyof typeof Icons
@@ -28,7 +23,6 @@ export function registerAll(loader?: Registerable) {
         importPath: "@ant-design/icons",
         importName: icon.name,
         section: sections[icon.theme as keyof typeof sections],
-        thumbnailUrl: `data:image/svg+xml,${encodeURIComponent(thumbnail)}`,
         props: {
           spin: { type: "boolean", defaultValueHint: false },
           rotate: "number",

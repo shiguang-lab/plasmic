@@ -1,13 +1,15 @@
 const { uiError } = require("./ui-error.cjs");
 const { randomBytes, createHash, timingSafeEqual } = require("node:crypto");
 const { consumeSessionTicket } = require("./session-ticket.cjs");
+const { EventEmitter } = require("node:events");
 const AUTH_ORIGIN = "https://shiguanglab.com";
 const CLIENT_ID = "plasmicapp";
 const REDIRECT_URI = AUTH_ORIGIN + "/auth/apps/" + CLIENT_ID + "/callback";
 const APP_CALLBACK_URL = "plasmic-desktop://oauth/callback";
 
-class DesktopUnifiedLogin {
+class DesktopUnifiedLogin extends EventEmitter {
   constructor({ session, studioOrigin, request, credentials, now = Date.now }) {
+    super();
     this.credentials = credentials;
     this.now = now;
     this.lastActivity = -Infinity;
@@ -39,6 +41,7 @@ class DesktopUnifiedLogin {
       throw uiError("Sign-in already in progress");
     }
     this.signingIn = true;
+    this.emit("session-changed");
     try {
       await this.restoring;
     } catch {}
@@ -90,6 +93,7 @@ class DesktopUnifiedLogin {
       return target.href;
     } finally {
       this.signingIn = false;
+      this.emit("session-changed");
       clearTimeout(timer);
       signal?.removeEventListener("abort", abort);
       if (this.pending?.state === state) {
@@ -158,7 +162,7 @@ class DesktopUnifiedLogin {
       }
       return restored;
     }
-    if (!this.credentials || this.signingIn) {
+    if (!this.credentials || this.signingIn || this.signingOut) {
       return false;
     }
     if (!force && this.expiresAt > this.now()) {
@@ -183,6 +187,7 @@ class DesktopUnifiedLogin {
         if (error.oauthError === "invalid_grant") {
           this.credentials.clear();
           this.expiresAt = 0;
+          this.emit("session-changed");
           return false;
         }
         throw error;
@@ -197,6 +202,8 @@ class DesktopUnifiedLogin {
     }
   }
   async signOut() {
+    this.signingOut = true;
+    this.emit("session-changed");
     // Wait for a rotation before reading the credential to revoke.
     try {
       await this.restoring;
@@ -209,6 +216,8 @@ class DesktopUnifiedLogin {
     } finally {
       this.credentials?.clear();
       this.expiresAt = 0;
+      this.signingOut = false;
+      this.emit("session-changed");
     }
   }
   acceptCallback(raw) {

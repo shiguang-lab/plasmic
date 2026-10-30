@@ -58,6 +58,11 @@ export const AntdColumnGroup = Object.assign(
   { __ANT_TABLE_COLUMN_GROUP: true },
 );
 
+/** An authored position for Ant Design's native expansion column. */
+export function AntdExpandColumn() {
+  return null;
+}
+
 interface TableColumnCellProps extends React.HTMLAttributes<HTMLElement> {
   __plasmic_column__?: {
     element: React.ReactElement<AntdColumnProps>;
@@ -97,6 +102,9 @@ function getColumns(
     }
     if (child.type === React.Fragment) {
       return getColumns(child.props.children, bodyCell, headerCell, isEditing);
+    }
+    if (child.type === AntdExpandColumn) {
+      return [Table.EXPAND_COLUMN];
     }
     const {
       onCellClick: _click,
@@ -218,6 +226,7 @@ function TableWithColumns({
         scroll: undefined,
         virtual: false,
         sticky: false,
+        expandable: props.expandable && { ...props.expandable, fixed: undefined },
         style: { ...props.style, width: "max-content" },
       }
     : fullContentView
@@ -232,19 +241,27 @@ function TableWithColumns({
   const expandColumns = (
     items: (ColumnType<any> | ColumnGroupType<any>)[],
   ): (ColumnType<any> | ColumnGroupType<any>)[] =>
-    items.map((column) => ({
+    items.map((column) => column === Table.EXPAND_COLUMN ? column : ({
       ...column,
       fixed: undefined,
       ...("children" in column
         ? { children: expandColumns(column.children) }
         : {}),
     }));
+  const prepareColumns = (items: (ColumnType<any> | ColumnGroupType<any>)[]) => {
+    // Native showExpandColumn only suppresses automatic insertion; an explicit
+    // EXPAND_COLUMN must also be removed when the author hides the column.
+    const visible = props.expandable?.showExpandColumn === false
+      ? items.filter((column) => column !== Table.EXPAND_COLUMN)
+      : items;
+    return contentEditing ? expandColumns(visible) : visible;
+  };
   if (columns !== undefined) {
     return (
       <Table
         {...props}
         pagination={pagination}
-        columns={contentEditing ? expandColumns(columns) : columns}
+        columns={prepareColumns(columns)}
         components={components}
         {...editingProps}
       />
@@ -274,7 +291,7 @@ function TableWithColumns({
             components?.header?.cell ?? "th",
             !!canvas && !canvas.interactive,
           );
-          return contentEditing ? expandColumns(resolved) : resolved;
+          return prepareColumns(resolved);
         })()}
         {...editingProps}
         components={{
@@ -299,12 +316,15 @@ export interface TableRef {
 }
 
 export const AntdTable = React.forwardRef(function AntdTable(
-  props: React.ComponentProps<typeof Table> & {
+  props: Omit<React.ComponentProps<typeof Table>, "onExpand" | "onExpandedRowsChange"> & {
+    onExpand?: NonNullable<React.ComponentProps<typeof Table>["expandable"]>["onExpand"];
+    onExpandedRowsChange?: NonNullable<React.ComponentProps<typeof Table>["expandable"]>["onExpandedRowsChange"];
     data: any;
     rowKey?: string;
     isSelectable?: undefined | "single" | "multiple";
     selectedRowKeys?: string[];
     defaultSelectedRowKeys?: string[];
+    canvasExpandedRowKeys?: readonly React.Key[];
     onSelectedRowKeysChange?: (keys: string[]) => void;
     onSelectedRowsChange?: (rows: any[]) => void;
     setControlContextData?: (ctx: any) => void;
@@ -321,10 +341,64 @@ export const AntdTable = React.forwardRef(function AntdTable(
     setControlContextData,
     selectedRowKeys,
     defaultSelectedRowKeys,
+    canvasExpandedRowKeys,
+    expandable,
+    expandedRowRender,
+    onExpand,
+    onExpandedRowsChange,
     ...rest
   } = props;
   const canvas = usePlasmicCanvasContext();
   const info = usePlasmicCanvasComponentInfo(props);
+  const isEditing = !!canvas && !canvas.interactive;
+  // Slots and events are top-level registration props so Studio and MCP can
+  // edit the template and attach native interactions. Forward them explicitly.
+  const rowExpansion = expandable || expandedRowRender || onExpand || onExpandedRowsChange
+    ? {
+        ...expandable,
+        ...(expandedRowRender ? { expandedRowRender } : {}),
+        ...(onExpand ? { onExpand } : {}),
+        ...(onExpandedRowsChange ? { onExpandedRowsChange } : {}),
+      }
+    : undefined;
+  const revealRows = isEditing && canvasExpandedRowKeys === undefined && !!rowExpansion?.expandedRowRender &&
+    (info?.isEditingContents || (info?.isSelected &&
+      info.selectedSlotName === "expandedRowRender"));
+  const canvasRowKeys: React.Key[] = [];
+  if (isEditing && (canvasExpandedRowKeys !== undefined || revealRows || rowExpansion?.defaultExpandAllRows)) {
+    const collect = (rows: any[]) => rows.forEach((row) => {
+      const key = row[rowKey ?? "key"];
+      if (key != null && (!rowExpansion?.rowExpandable || rowExpansion.rowExpandable(row))) {
+        canvasRowKeys.push(key);
+      }
+      const children = row[rowExpansion?.childrenColumnName ?? "children"];
+      if (Array.isArray(children)) collect(children);
+    });
+    collect(data?.data ?? []);
+  }
+  const initialCanvasKeys = canvasExpandedRowKeys?.filter(key => canvasRowKeys.includes(key)) ??
+    rowExpansion?.expandedRowKeys ??
+    rowExpansion?.defaultExpandedRowKeys ??
+    (rowExpansion?.defaultExpandAllRows ? canvasRowKeys : []);
+  const canvasKeysSource = JSON.stringify([rowKey, canvasExpandedRowKeys !== undefined, initialCanvasKeys]);
+  const [canvasExpansion, setCanvasExpansion] = React.useState<{
+    source: string;
+    keys: readonly React.Key[];
+  }>();
+  React.useEffect(() => setCanvasExpansion(undefined), [isEditing, canvasKeysSource]);
+  const resolvedExpansion = isEditing && rowExpansion
+    ? {
+        ...rowExpansion,
+        expandedRowKeys: revealRows ? canvasRowKeys :
+          canvasExpansion?.source === canvasKeysSource ? canvasExpansion.keys : initialCanvasKeys,
+        expandRowByClick: false,
+        onExpand: undefined,
+        onExpandedRowsChange: revealRows ? undefined : (keys: readonly React.Key[]) => {
+          // Native canvas interactions own temporary keys, never business state.
+          setCanvasExpansion({ source: canvasKeysSource, keys });
+        },
+      }
+    : rowExpansion;
   setControlContextData?.(data);
 
   const isControlled = !!selectedRowKeys;
@@ -399,11 +473,13 @@ export const AntdTable = React.forwardRef(function AntdTable(
   );
   return (
     <TableWithColumns
+      key={isEditing ? "canvas" : "runtime"}
       loading={data?.isLoading}
       dataSource={data?.data}
       rowSelection={selection}
       rowKey={rowKey}
       {...rest}
+      expandable={resolvedExpansion}
       contentEditing={
         !!canvas && !canvas.interactive && info?.isEditingContents
       }
@@ -436,7 +512,54 @@ export function registerTable(loader?: Registerable) {
         allowedComponents: [
           "plasmic-antd6-table-column",
           "plasmic-antd6-table-column-group",
+          "plasmic-antd6-table-expand-column",
         ],
+      },
+      expandedRowRender: {
+        type: "slot",
+        displayName: "Expanded row content",
+        renderPropParams: ["row", "index", "indent", "expanded"],
+        hidePlaceholder: true,
+        description:
+          "Row detail template receiving row, index, indent and expanded. Mapped to native expandable.expandedRowRender; takes precedence over a renderer in expandable. Use row fields in this slot. Configure Canvas expanded rows to show representative detail variants directly on the editing canvas. Selection does not broaden configured samples. When canvas samples are unset, selecting this slot or Edit contents reveals eligible rows without changing runtime expansion. Selecting the Table alone does not reveal rows. The canvas modifier-click gesture changes temporary keys. Requires data and a stable rowKey.",
+      },
+      onExpand: {
+        type: "eventHandler",
+        argTypes: [{ name: "expanded", type: "boolean" }, { name: "row", type: "object" }],
+        description: "Mapped to native expandable.onExpand(expanded, row). Use MCP createInteraction with eventName onExpand. Top-level handler takes precedence over expandable.onExpand.",
+      },
+      onExpandedRowsChange: {
+        type: "eventHandler",
+        argTypes: [{ name: "expandedKeys", type: "object" }],
+        description: "Mapped to native expandable.onExpandedRowsChange(expandedKeys). Use MCP createInteraction with eventName onExpandedRowsChange to update the state bound to expandable.expandedRowKeys. Top-level handler takes precedence over expandable.onExpandedRowsChange.",
+      },
+      expandable: {
+        type: "object",
+        displayName: "Expandable rows",
+        description:
+          "Native Ant Design expandable configuration. Add Expanded row content to enable row details. Insert one Table.ExpandColumn among Columns to choose its position; otherwise Ant Design places it automatically. State remains in this object; bind expandedRowKeys and update it from the top-level onExpandedRowsChange event for controlled expansion. Top-level render and event props take precedence over callbacks supplied in expandable.",
+        fields: {
+          showExpandColumn: { type: "boolean", defaultValueHint: true, description: "Show the expansion column. When false, use expandRowByClick or controlled expandedRowKeys to open rows." },
+          expandRowByClick: { type: "boolean", defaultValueHint: false },
+          columnTitle: { type: "string", description: "Expansion column heading." },
+          columnWidth: { type: "number", description: "Expansion column width in pixels." },
+          fixed: { type: "choice", options: ["left", "right"], description: "Pin the expansion column while scrolling horizontally. Leave unset for no explicit pinning." },
+          rowExpandable: { type: "exprEditor", description: "Predicate (row) => boolean. False prevents that row from expanding; it does not hide the entire column." },
+          defaultExpandAllRows: { type: "boolean", defaultValueHint: false, description: "Initially expand all loaded rows. Uncontrolled; defaultExpandedRowKeys takes precedence." },
+          defaultExpandedRowKeys: { type: "exprEditor", description: "Initial array of stable rowKey values. User clicks own expansion afterward." },
+          expandedRowKeys: { type: "exprEditor", description: "Controlled array of rowKey values. Bind state and update it from onExpandedRowsChange. An empty array closes every row; omit for uncontrolled expansion." },
+        },
+      },
+      canvasExpandedRowKeys: {
+        type: "choice",
+        displayName: "Canvas expanded rows",
+        multiSelect: true,
+        editOnly: true,
+        description:
+          "Initial rowKey values expanded only on the editing canvas. Select representative loaded rows covering every requirement-defined detail variant (fields, layout, available actions and boundary data); the Table does not infer a status field. An empty array closes all canvas rows; omit to follow native expansion settings. Manual canvas expansion is temporary. Changing this value refreshes the samples. Ignored in Interactive mode, Preview and generated exports. Requires Expanded row content and stable row keys; missing or ineligible rows are ignored.",
+        options: (ps: any) => (ps.data?.data ?? [])
+          .map((row: any) => row[ps.rowKey ?? "key"])
+          .filter((key: React.Key | null | undefined) => key != null),
       },
       title: {
         type: "slot",
@@ -499,7 +622,7 @@ export function registerTable(loader?: Registerable) {
       rowKey: {
         type: "choice",
         displayName: "Row key",
-        description: "Choose a unique, stable field to identify selected rows.",
+        description: "Choose a unique, stable field to identify rows for selection and expansion.",
         options: (ps: any) => {
           const data = ps.data;
           if (!data || data.isLoading) {
@@ -513,7 +636,6 @@ export function registerTable(loader?: Registerable) {
           }
           return data.data?.length ? Object.keys(data.data[0]) : undefined;
         },
-        hidden: (ps: any) => !ps.isSelectable,
       },
       selectedRowKeys: {
         type: "choice",
@@ -681,14 +803,28 @@ export function registerTable(loader?: Registerable) {
           "Native column width in pixels, applied to the header and all rows.",
       },
       ellipsis: {
-        type: "boolean",
+        type: "exprEditor",
         displayName: "Ellipsis",
         description:
-          "Native single-line ellipsis; the cell keeps the browser title for the full text. Place a Tooltip in Custom render for a styled popup.",
+          "Native column ellipsis: false disables truncation; true enables truncation with the browser title; { showTitle: false } keeps truncation without the cell title. For long text, use { showTitle: false } with a Tooltip in Custom render to show the complete cell value. This option does not create the Tooltip itself.",
       },
     },
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerTable",
     importName: "AntdColumn",
+  });
+
+  registerComponentHelper(loader, AntdExpandColumn, {
+    name: "plasmic-antd6-table-expand-column",
+    displayName: "Table.ExpandColumn",
+    thumbnailUrl: "data:image/svg+xml;charset=utf-8," + encodeURIComponent(
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 80"><rect x="8" y="10" width="104" height="60" rx="4" fill="#fff" stroke="#d9d9d9"/><path d="M8 30h104M8 50h104M32 10v40" stroke="#d9d9d9"/><path d="m16 18 4 4 4-4M16 40h8m-4-4v8" fill="none" stroke="#1677ff" stroke-width="2"/><rect x="36" y="55" width="68" height="10" rx="2" fill="#e6f4ff"/></svg>'
+    ),
+    description: "Place once directly in Table Columns to position the native expansion column. Configure visibility, title, width and fixed side in Table.expandable; put detail content in Table.expandedRowRender. Do not nest in ColumnGroup.",
+    parentComponentName: "plasmic-antd6-table",
+    styleSections: false,
+    props: {},
+    importPath: "@shiguang-lab/plasmic-antd6/skinny/registerTable",
+    importName: "AntdExpandColumn",
   });
 
   registerComponentHelper(loader, AntdColumnGroup, {

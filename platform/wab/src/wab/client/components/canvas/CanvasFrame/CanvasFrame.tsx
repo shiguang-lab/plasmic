@@ -6,7 +6,7 @@ import { CanvasHeader } from "@/wab/client/components/canvas/CanvasFrame/CanvasH
 import { headRegexp } from "@/wab/client/components/canvas/CanvasFrame/headRegexp";
 import { CopilotActivityOverlay } from "@/wab/client/components/canvas/CopilotActivityOverlay";
 import { CanvasCtx } from "@/wab/client/components/canvas/canvas-ctx";
-import { absorbEditingCanvasEvent } from "@/wab/client/components/canvas/canvas-interactions";
+import { absorbEditingCanvasEvent, isCanvasModifierPressed } from "@/wab/client/components/canvas/canvas-interactions";
 import { selectAllInCanvas } from "@/wab/client/components/canvas/marquee-selection";
 import {
   absorbLinkClick,
@@ -14,7 +14,6 @@ import {
 } from "@/wab/client/components/canvas/studio-canvas-util";
 import { CanvasCommentMarkers } from "@/wab/client/components/comments/CanvasCommentMarkers";
 import { useI18n } from "@/wab/client/i18n";
-import { PLATFORM } from "@/wab/client/platform";
 import { bindShortcutHandlers } from "@/wab/client/shortcuts/shortcut-handler";
 import { STUDIO_SHORTCUTS } from "@/wab/client/shortcuts/studio/studio-shortcuts";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
@@ -191,7 +190,7 @@ export const CanvasFrame = observer(function CanvasFrame({
         if (!viewCtx().editingTextContext()) {
           studioCtx.markKeyup(e.which);
           viewCtx().viewOps.refreshHover(
-            (PLATFORM === "osx" ? !!e.metaKey : !!e.ctrlKey) && !e.altKey,
+            isCanvasModifierPressed(e) && !e.altKey,
           );
         }
       };
@@ -203,7 +202,7 @@ export const CanvasFrame = observer(function CanvasFrame({
         if (!viewCtx().editingTextContext()) {
           studioCtx.markKeydown(e.which);
           viewCtx().viewOps.refreshHover(
-            (PLATFORM === "osx" ? !!e.metaKey : !!e.ctrlKey) && !e.altKey,
+            isCanvasModifierPressed(e) && !e.altKey,
           );
         }
       };

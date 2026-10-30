@@ -66,7 +66,7 @@ ROLES = {role: {norm(key) for key in keys} for role, keys in ROLE_COMPONENTS.ite
 CONSTRAINED = set().union(*ROLES.values()) - {'plasmicantd6tablecolumn'}
 # Child contracts are checked with their owning Form/Descriptions/Tabs/Table etc.
 OWNED_CHILDREN = {norm('plasmic-antd6-' + name) for name in (
-    'form-item', 'form-list', 'descriptions-item', 'tab-item', 'table-column-group',
+    'form-item', 'form-list', 'descriptions-item', 'tab-item', 'table-column-group', 'table-expand-column',
     'menu-item', 'menu-item-group', 'submenu', 'breadcrumb-item', 'step',
     'radio', 'checkbox', 'select-option', 'select-option-group')}
 OWNED_CHILDREN.add('plasmicoverseassearchformitem')

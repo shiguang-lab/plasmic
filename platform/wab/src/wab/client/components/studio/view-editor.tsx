@@ -27,6 +27,7 @@ import { Spotlight } from "@/wab/client/components/canvas/Spotlight";
 import { VariantsBar } from "@/wab/client/components/canvas/VariantsBar";
 import { CanvasArenaShell } from "@/wab/client/components/canvas/canvas-arena";
 import { CanvasClickTracker } from "@/wab/client/components/canvas/canvas-clicks";
+import { isCanvasModifierPressed } from "@/wab/client/components/canvas/canvas-interactions";
 import { CanvasCtx } from "@/wab/client/components/canvas/canvas-ctx";
 import {
   getMarqueeFrames,
@@ -296,7 +297,7 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
         this.viewCtx()
           ?.getViewOps()
           .refreshHover(
-            (PLATFORM === "osx" ? e.metaKey : e.ctrlKey) && !e.altKey,
+            isCanvasModifierPressed(e) && !e.altKey,
           );
         if (isArrowKey(e.key)) {
           this.props.studioCtx.startUnlogged();
@@ -317,7 +318,7 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
         this.viewCtx()
           ?.getViewOps()
           .refreshHover(
-            (PLATFORM === "osx" ? e.metaKey : e.ctrlKey) && !e.altKey,
+            isCanvasModifierPressed(e) && !e.altKey,
           );
         if (isArrowKey(e.key)) {
           this.props.studioCtx.stopUnlogged();
@@ -1207,7 +1208,7 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
     this.pendingCanvasClick = { viewCtx: targetVc, target: closest };
 
     const focusedSelectables = targetVc.focusedSelectables();
-    const directSelect = PLATFORM === "osx" ? e.metaKey : e.ctrlKey;
+    const directSelect = isCanvasModifierPressed(e);
     const deepSelect = directSelect && !e.altKey;
     const focusable = targetVc
       .getViewOps()
@@ -1521,7 +1522,7 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
         targetVc.setMeasureToolDomElt(null);
       } else {
         targetVc.getViewOps().tryHoverDomElt($target, {
-          deepSelect: (PLATFORM === "osx" ? e.metaKey : e.ctrlKey) && !e.altKey,
+          deepSelect: isCanvasModifierPressed(e) && !e.altKey,
           exact: false,
         });
       }

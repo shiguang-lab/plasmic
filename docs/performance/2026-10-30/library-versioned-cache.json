@@ -1,0 +1,635 @@
+{
+  "verifiedAt": "2026-10-30T14:55:12.688Z",
+  "status": "source-and-isolated-verification-passed",
+  "productionDeployed": false,
+  "productionLibrariesPublished": false,
+  "installedAppReplaced": false,
+  "onlineReadOnlyAudit": {
+    "measuredAt": "2026-10-30T14:22:11.769Z",
+    "autoUpgradeHostless": true,
+    "hostLessWorkspaceId": "1PExD1UnVufh3XH7Nmfj2o",
+    "libraries": [
+      {
+        "name": "antd-icons",
+        "projectId": "vuoraLeVbtw7rQTKJ6UKar",
+        "pkgId": "e5577195-30c1-4a54-ac98-5323a79ddaf6",
+        "latestVersion": "0.2.0",
+        "modelType": "object",
+        "hasCodeArtifacts": true,
+        "versions": [
+          {
+            "id": "af00aab9-ef35-4877-998e-5d4929a85b8a",
+            "version": "0.2.0",
+            "status": 200,
+            "bytes": 1792337,
+            "sha256": "9e086b0266ff85e84911c06e3368399c8e28d06296a02f536c9cd2855c9d4721"
+          },
+          {
+            "id": "c2b17e95-cb15-4f1d-b7e2-005dedabf737",
+            "version": "0.1.0",
+            "status": 200,
+            "bytes": 1792157,
+            "sha256": "e115f010c5d92f27de1fc4a27a7b46b5eca6f7ce0cdcc08e5454838c8e1026cf"
+          },
+          {
+            "id": "93c399aa-c467-4d8a-996a-aa5b1c0ee910",
+            "version": "0.0.1",
+            "status": 200,
+            "bytes": 1792337,
+            "sha256": "9e086b0266ff85e84911c06e3368399c8e28d06296a02f536c9cd2855c9d4721"
+          }
+        ],
+        "reportedByProjectLatest": "0.1.0"
+      },
+      {
+        "name": "react-ui",
+        "projectId": "vJfWZAFzStvt61gEWotC7k",
+        "pkgId": "da2a82c5-8da6-41fb-a64a-2c823a8bdfec",
+        "latestVersion": "0.2.0",
+        "modelType": "object",
+        "hasCodeArtifacts": true,
+        "versions": [
+          {
+            "id": "198a369c-926b-4462-9cd0-15350299ab5e",
+            "version": "0.2.0",
+            "status": 200,
+            "bytes": 132079,
+            "sha256": "df72fdb725d35814817a4d007ac8fe8b31f3254d91686064758bb428604973f4"
+          },
+          {
+            "id": "c8129b64-3756-4d4a-ab5d-feb0defbba3a",
+            "version": "0.1.0",
+            "status": 200,
+            "bytes": 25862,
+            "sha256": "cd530e9ebc3f6652a916b9c2cec2b535f4bd77dc258c78dd0448a55b47609485"
+          },
+          {
+            "id": "158194a2-5f94-4c18-a0ff-7392815fbc86",
+            "version": "0.0.1",
+            "status": 200,
+            "bytes": 132079,
+            "sha256": "df72fdb725d35814817a4d007ac8fe8b31f3254d91686064758bb428604973f4"
+          }
+        ],
+        "reportedByProjectLatest": "0.1.0"
+      },
+      {
+        "name": "antd6",
+        "projectId": "eYLujTHmWfX9qEoQaFDSi4",
+        "pkgId": "b6f20329-89de-4bed-b63d-bba007ff3af5",
+        "latestVersion": "3.9.0",
+        "modelType": "object",
+        "hasCodeArtifacts": true,
+        "versions": [
+          {
+            "id": "8e396d01-4b16-4b31-83cc-5b7f4dd781c6",
+            "version": "3.9.0",
+            "status": 200,
+            "bytes": 973002,
+            "sha256": "a8d5cf5797dcbe34683f9061d498c1cd342e2f989d3fd3aea86462574cb92d62"
+          },
+          {
+            "id": "ef619887-22a4-428b-8101-ce747132f53a",
+            "version": "3.8.0",
+            "status": 200,
+            "bytes": 971773,
+            "sha256": "be1a88df1db5dfb564ef071b9ccd1f36a4bd2e5089fc8a3be408674db4e94039"
+          },
+          {
+            "id": "0c41a58b-a99c-46e6-8537-74badca54030",
+            "version": "3.7.0",
+            "status": 200,
+            "bytes": 966827,
+            "sha256": "752b4b6c4b0f77515d5d1d9527fcd72e32832c517f4403a84ef117bfb8ebab0c"
+          },
+          {
+            "id": "05c6205a-6c3b-46f9-95cf-358ead09c309",
+            "version": "3.6.0",
+            "status": 200,
+            "bytes": 965131,
+            "sha256": "3b6f98d6f3b3f1810b5da44da06ba12ce529fb35547bd280f16bdc7a08fd6b64"
+          },
+          {
+            "id": "86462683-2501-4a29-9ba4-b743936acae3",
+            "version": "3.5.0",
+            "status": 200,
+            "bytes": 963964,
+            "sha256": "504eff9ad2cdf702be4306335883a1923f64bec9ca5990f93d0e907d0d0060f9"
+          },
+          {
+            "id": "f6c0584d-d051-48a3-b46d-5deec08c54fc",
+            "version": "3.4.0",
+            "status": 200,
+            "bytes": 963818,
+            "sha256": "126c145fcfbfab591662d0acabd35ef82b0d15b9bb583c93a33f3d7978e075ad"
+          },
+          {
+            "id": "7e8703c9-34ea-43b0-a07e-57a84416ae2e",
+            "version": "3.3.0",
+            "status": 200,
+            "bytes": 963564,
+            "sha256": "88bd751aa0432f182b50c96cdfaa68c92ae6b1230d8ace78c19d888e5122014a"
+          },
+          {
+            "id": "3fddf34f-5ba1-447f-9bfb-0b347d67a647",
+            "version": "3.2.0",
+            "status": 200,
+            "bytes": 232214,
+            "sha256": "14fa088c5d9054de12c0bbfe1f2ce7d88502179d1fc8296d49c7d86169215a76"
+          },
+          {
+            "id": "8c10eb99-b0eb-4f72-bbab-a1ccf64c0ac8",
+            "version": "3.1.0",
+            "status": 200,
+            "bytes": 231621,
+            "sha256": "785cdfb49dc128a8a305c1fb4f9c1782be21f02562270a8bda67cd4908fd18e2"
+          },
+          {
+            "id": "354655a3-fb15-4568-92a7-8beab0ca2048",
+            "version": "3.0.0",
+            "status": 200,
+            "bytes": 231584,
+            "sha256": "fce27f05c7de7295b69fd1e4cda0bd33ef9a3c18c5e3c298c2a303ff36b0b604"
+          },
+          {
+            "id": "cde4f1db-03f0-4825-a3ca-ce8305959231",
+            "version": "2.1.0",
+            "status": 200,
+            "bytes": 234248,
+            "sha256": "daf0d6254b41fbc2f8e58b3b390afd9aae376219ab167551cd3b9e37b687a4ed"
+          },
+          {
+            "id": "cab9bc47-127b-484f-9fd8-a001f800444d",
+            "version": "2.0.0",
+            "status": 200,
+            "bytes": 234174,
+            "sha256": "fd1fc4a1ac5eda1a9dae3175cd0f1b88f8deb89cfbe2bb2fef39b4e7d1fb74d2"
+          },
+          {
+            "id": "237f1ae1-b955-4d28-b6d2-aa6a469f4cbf",
+            "version": "1.22.0",
+            "status": 200,
+            "bytes": 237387,
+            "sha256": "fc39b8bb1c447034608f64e49868c699947cc200ce548e82ad6093fe00f1ee81"
+          },
+          {
+            "id": "b09a52c9-6ce5-4f0d-b7fe-8c317184aa43",
+            "version": "1.21.0",
+            "status": 200,
+            "bytes": 236757,
+            "sha256": "8e2e5fa333875cacaed90ce163c912e25ddb982e289c901df7c3fea03756360e"
+          },
+          {
+            "id": "f4f7db27-3d3b-46b1-9428-bb5b90853e5f",
+            "version": "1.20.0",
+            "status": 200,
+            "bytes": 236249,
+            "sha256": "9176231b30bb1582942a2769dfc0b0f244aa39a16e00467e35bf00bc5d6b1e96"
+          },
+          {
+            "id": "d7b02a64-c087-46a1-930c-d67535884983",
+            "version": "1.19.0",
+            "status": 200,
+            "bytes": 235809,
+            "sha256": "8f36e8bc3897b7a8903980fbcaefa699d51d6a9895060330888583fd0031dfc1"
+          },
+          {
+            "id": "bcdb1a7e-e27b-4489-8be6-6c9da039f609",
+            "version": "1.18.0",
+            "status": 200,
+            "bytes": 220433,
+            "sha256": "bf87f3e8a44bd6791f561215cb43f31802f41486b629e8c9e453baa9ddd0c40c"
+          },
+          {
+            "id": "86e7875c-7ec5-4a71-8fe9-6cd4b32df7b6",
+            "version": "1.17.0",
+            "status": 200,
+            "bytes": 220337,
+            "sha256": "704b64d69e8ce7f9917c64623d22ddddc3e523301d8bf07a3b88a3b85f3c9040"
+          },
+          {
+            "id": "eedaa6b8-a497-4af6-bff8-669ee1f73ccf",
+            "version": "1.16.0",
+            "status": 200,
+            "bytes": 219084,
+            "sha256": "60270316f7ca67d4dd1409b2f0a78eb48cf4d31726159cf1c0883cde4a87ee96"
+          },
+          {
+            "id": "3302a92d-298c-4d37-a352-a01db9d059de",
+            "version": "1.15.0",
+            "status": 200,
+            "bytes": 219065,
+            "sha256": "a94b79f98dba6f160221aa37662524b0506dfd77ab7844c228eb384d9043d12e"
+          },
+          {
+            "id": "fb3bfe6e-8492-45ec-85e0-d37281fad609",
+            "version": "1.14.0",
+            "status": 200,
+            "bytes": 219013,
+            "sha256": "05dd139a28e28f7059ea9d88af755909377d0075d617ef46db33f0e6fd702752"
+          },
+          {
+            "id": "db837d1a-568e-4644-b673-4f278d898b40",
+            "version": "1.13.0",
+            "status": 200,
+            "bytes": 218718,
+            "sha256": "0ec137ab9cc878513ba63d2c322efcb3ff6ba7b0dfc134230592a8b59eb5e44a"
+          },
+          {
+            "id": "3b0e931a-efc5-459e-860a-e491448e1d23",
+            "version": "1.12.0",
+            "status": 200,
+            "bytes": 217489,
+            "sha256": "5f1724a08e3846c0c1295f38db3474db6795890363b7f00c4355809cb52af5c7"
+          },
+          {
+            "id": "d49e9a87-4922-4fa8-8941-9c296b1bef38",
+            "version": "1.11.0",
+            "status": 200,
+            "bytes": 217410,
+            "sha256": "52b30316fd6b6246ff3590127bd4a1522d6ad37225d4f93fcc55139e02a5f1c3"
+          },
+          {
+            "id": "fbca1724-5841-4f02-8941-272708cd1720",
+            "version": "1.10.0",
+            "status": 404,
+            "bytes": 110
+          },
+          {
+            "id": "0bec9398-54f7-436c-82f0-46f9320fd885",
+            "version": "1.9.0",
+            "status": 404,
+            "bytes": 110
+          },
+          {
+            "id": "c197428d-af9d-470f-bb32-3626ea5e95f8",
+            "version": "1.8.0",
+            "status": 404,
+            "bytes": 110
+          },
+          {
+            "id": "5c1e58bc-7d36-423c-91e2-26c077154976",
+            "version": "1.7.0",
+            "status": 404,
+            "bytes": 110
+          },
+          {
+            "id": "5f9385b9-5fec-4085-9612-bcb97da1d862",
+            "version": "1.6.0",
+            "status": 404,
+            "bytes": 110
+          },
+          {
+            "id": "b23bf027-e992-4c49-b3a7-64d9d0ace350",
+            "version": "1.5.0",
+            "status": 404,
+            "bytes": 110
+          },
+          {
+            "id": "40ee0b47-44b2-406f-8d7f-ac09d3af6681",
+            "version": "1.4.0",
+            "status": 404,
+            "bytes": 110
+          },
+          {
+            "id": "c0b691ce-d921-4ec9-bcdf-6c2ff5af7199",
+            "version": "1.3.0",
+            "status": 404,
+            "bytes": 110
+          },
+          {
+            "id": "1b7dd237-2cda-440a-aae3-5b1e24961eba",
+            "version": "1.2.0",
+            "status": 404,
+            "bytes": 110
+          },
+          {
+            "id": "f40e5561-6a5c-45dc-b37b-608df5c111cc",
+            "version": "1.1.0",
+            "status": 404,
+            "bytes": 110
+          },
+          {
+            "id": "68710f5d-d4b3-4620-9359-15427ee7ae8c",
+            "version": "1.0.0",
+            "status": 404,
+            "bytes": 110
+          },
+          {
+            "id": "73ff64ba-6809-4f41-8e88-733706b0a30f",
+            "version": "0.5.0",
+            "status": 404,
+            "bytes": 110
+          },
+          {
+            "id": "9b94a950-fe03-427c-ac64-05fd2250eb50",
+            "version": "0.4.0",
+            "status": 404,
+            "bytes": 110
+          },
+          {
+            "id": "d449aa20-5701-4b14-8443-4c3c9f29c9f7",
+            "version": "0.3.0",
+            "status": 404,
+            "bytes": 110
+          },
+          {
+            "id": "f1e06182-6014-4fa2-a064-e564bb120c8a",
+            "version": "0.2.0",
+            "status": 404,
+            "bytes": 110
+          },
+          {
+            "id": "b4d1d3cf-aafc-4e9b-ba7c-68858857a802",
+            "version": "0.1.0",
+            "status": 404,
+            "bytes": 110
+          },
+          {
+            "id": "04ba3b5f-214e-4c1f-b886-f88f1a8191d3",
+            "version": "0.0.1",
+            "status": 200,
+            "bytes": 966827,
+            "sha256": "752b4b6c4b0f77515d5d1d9527fcd72e32832c517f4403a84ef117bfb8ebab0c"
+          }
+        ],
+        "reportedByProjectLatest": "1.15.0"
+      },
+      {
+        "name": "overseas",
+        "projectId": "f3f4ju424PVNTAQPkwovrE",
+        "pkgId": "8785f78a-be85-4369-893e-6f743d1d14b0",
+        "latestVersion": "1.12.0",
+        "modelType": "object",
+        "hasCodeArtifacts": true,
+        "versions": [
+          {
+            "id": "e7ea74ca-1100-4c17-96d9-4c5c77393b66",
+            "version": "1.12.0",
+            "status": 200,
+            "bytes": 35925,
+            "sha256": "0d57c73fd7e1a7b9960fae647b995cc5d12470690d05d11fef67c946ddb24767"
+          },
+          {
+            "id": "5f89279a-8f7e-4f19-b809-ef8f30f3b880",
+            "version": "1.11.0",
+            "status": 200,
+            "bytes": 35688,
+            "sha256": "4bcff52c250dd4f1bb3e54ed3620bc1397829a16add74852bbfc2d0ce31a019e"
+          },
+          {
+            "id": "d297c9ef-f79a-42e6-8dc9-e6963c3d083b",
+            "version": "1.10.0",
+            "status": 200,
+            "bytes": 35598,
+            "sha256": "8752eac50aa0ee70be00ae387d30b8299a0996f7df2a76c9eb2c799b526a1c92"
+          },
+          {
+            "id": "4109fff0-5e84-4e1b-bb80-4e24636263fb",
+            "version": "1.9.0",
+            "status": 200,
+            "bytes": 34280,
+            "sha256": "15b370102d7d0c5457a27e799f5675e518d75496be7fd3981241d73b7eae7730"
+          },
+          {
+            "id": "e9705bdb-bab0-452f-8b0c-474422efbed6",
+            "version": "1.8.0",
+            "status": 200,
+            "bytes": 34206,
+            "sha256": "144cb6943e790771915d3ff9379a41cb59125d1c65f785029102fc12a1c39322"
+          },
+          {
+            "id": "d608b419-c309-4068-a39d-0a3690d6c047",
+            "version": "1.7.0",
+            "status": 200,
+            "bytes": 33414,
+            "sha256": "87eb36e53832774167454cab963894705c781e591679c4439925e082f5cdca39"
+          },
+          {
+            "id": "a5c58419-0e55-4d5f-ba13-2feadb020893",
+            "version": "1.6.0",
+            "status": 200,
+            "bytes": 33390,
+            "sha256": "c3d91e071a81bb75d9fdd08545708afefc1a33245d2bcc5ebb09b95c4afb2383"
+          },
+          {
+            "id": "65fdc745-17f5-4c30-a975-75efaba9cf1b",
+            "version": "1.5.0",
+            "status": 200,
+            "bytes": 33341,
+            "sha256": "b9b6e78b0dcb4bfcd5cb3d96ee48964db66f2c36ec63c91978c2198d207df315"
+          },
+          {
+            "id": "a2d0e82c-b0c3-47eb-a6e1-c4fe5be99d9f",
+            "version": "1.4.0",
+            "status": 200,
+            "bytes": 33341,
+            "sha256": "b9b6e78b0dcb4bfcd5cb3d96ee48964db66f2c36ec63c91978c2198d207df315"
+          },
+          {
+            "id": "d8f83dd9-5e79-4299-99ab-1f14e017ab42",
+            "version": "1.3.0",
+            "status": 404,
+            "bytes": 110
+          },
+          {
+            "id": "4ae47024-c51a-4cc0-b7bf-f55e51f29ed5",
+            "version": "1.2.0",
+            "status": 404,
+            "bytes": 110
+          },
+          {
+            "id": "00be50ab-4583-4095-91e5-0a761010d540",
+            "version": "1.1.0",
+            "status": 404,
+            "bytes": 110
+          },
+          {
+            "id": "fe1c4614-1bed-4b26-a7b8-82851f2a6e36",
+            "version": "1.0.0",
+            "status": 404,
+            "bytes": 110
+          },
+          {
+            "id": "edd5634f-c949-4ec8-b5f2-a2df8b7774b4",
+            "version": "0.2.0",
+            "status": 404,
+            "bytes": 110
+          },
+          {
+            "id": "f370c8bb-0d98-4062-9c51-897aff1e253b",
+            "version": "0.1.0",
+            "status": 404,
+            "bytes": 110
+          },
+          {
+            "id": "45e2a879-bac1-4828-9359-0456c563f53a",
+            "version": "0.0.1",
+            "status": 200,
+            "bytes": 35925,
+            "sha256": "0d57c73fd7e1a7b9960fae647b995cc5d12470690d05d11fef67c946ddb24767"
+          }
+        ],
+        "reportedByProjectLatest": "1.4.0"
+      }
+    ],
+    "latestInterpretation": "latestVersion is the highest published version from versions-without-data. reportedByProjectLatest records the old by-project latest endpoint result; its unordered-row selection is fixed in source.",
+    "limitation": "Download availability and checksums do not prove historical source/model equivalence."
+  },
+  "checks": [
+    {
+      "command": "pnpm --dir desktop test",
+      "passed": true,
+      "tests": 494,
+      "log": "/tmp/plasmic-library-cache-fixes-desktop.log"
+    },
+    {
+      "command": "pnpm --dir platform/wab exec vitest run src/wab/server/routes/dependency-model-cache.test.ts src/wab/server/routes/hostless-library-artifacts.test.ts src/wab/server/routes/hostless-library-catalog.test.ts src/wab/client/components/studio/studio-bundles.test.ts src/wab/client/studio-ctx/hostless-registry.test.ts src/wab/client/components/live/PreviewFrame.test.tsx src/wab/server/loader/library-artifacts.test.ts src/wab/server/auth/shiguang.test.ts",
+      "passed": true,
+      "files": 8,
+      "tests": 75,
+      "log": "/tmp/plasmic-library-cache-fixes-wab.log"
+    },
+    {
+      "command": "pnpm --dir platform/wab typecheck",
+      "passed": true,
+      "log": "/tmp/plasmic-library-cache-fixes-typecheck.log"
+    },
+    {
+      "command": "pnpm exec eslint platform/wab/src/wab/server/routes/dependency-model-cache.ts platform/wab/src/wab/server/routes/dependency-model-cache.test.ts platform/wab/src/wab/server/db/publish-library.e2e.ts",
+      "passed": true,
+      "log": "/tmp/plasmic-library-cache-fixes-eslint.log"
+    },
+    {
+      "command": "env -u ELECTRON_RUN_AS_NODE pnpm --dir desktop run test:library-cache",
+      "passed": true,
+      "log": "/tmp/plasmic-library-cache-fixes-native.log",
+      "remoteCounts": {
+        "code": 1,
+        "project": 2,
+        "modelBodies": 1
+      },
+      "cachedInventory": 160,
+      "digestRequestBodyExceedsBytes": 8192,
+      "coverage": [
+        "sandboxed renderer",
+        "real protocol interception",
+        "gzip decoded bodies",
+        "all cached digests in POST body",
+        "preserved Origin",
+        "new cache instance and document",
+        "fresh project revisions"
+      ]
+    },
+    {
+      "command": "DATABASE_URI=<temporary plasmic_preview_test> bash tools/run.bash src/wab/server/db/publish-library.e2e.ts",
+      "cwd": "platform/wab",
+      "passed": true,
+      "log": "/tmp/plasmic-library-cache-fixes-publication.log",
+      "httpEvidence": [
+        {
+          "path": "/api/v1/pkgs/projectId/h1xMbKAacVTRmb5Vk6gDjN",
+          "responseBytes": 13378,
+          "transferredModels": 1
+        },
+        {
+          "path": "/api/v1/hostless-libraries/library-e2e-12b63624/canvas",
+          "responseBytes": 2151,
+          "transferredModels": 0
+        },
+        {
+          "path": "/api/v1/pkgs/projectId/h1xMbKAacVTRmb5Vk6gDjN",
+          "responseBytes": 968,
+          "transferredModels": 0
+        },
+        {
+          "path": "/api/v1/pkgs/projectId/h1xMbKAacVTRmb5Vk6gDjN",
+          "responseBytes": 7899,
+          "transferredModels": 1
+        },
+        {
+          "path": "/api/v1/hostless-libraries/library-e2e-12b63624/canvas",
+          "responseBytes": 2196,
+          "transferredModels": 0
+        },
+        {
+          "path": "/api/v1/pkgs/projectId/h1xMbKAacVTRmb5Vk6gDjN",
+          "responseBytes": 968,
+          "transferredModels": 0
+        }
+      ],
+      "originMiddlewareEnabled": true
+    },
+    {
+      "command": "DATABASE_URI=<temporary plasmic_platform_libraries_test> bash tools/run.bash src/wab/server/db/platform-libraries.e2e.ts",
+      "cwd": "platform/wab",
+      "passed": true,
+      "log": "/tmp/plasmic-library-cache-auto-upgrade-e2e.log",
+      "coverage": [
+        "dropped-settings gate",
+        "preserved settings",
+        "automatic upgrade on next load",
+        "new library workspace enrollment"
+      ]
+    },
+    {
+      "command": "node --test desktop/tests/library-cache.test.cjs",
+      "passed": true,
+      "tests": 16,
+      "log": "/tmp/plasmic-library-cache-fixes-green.log",
+      "additionalCoverage": [
+        "new auth generation proceeds while old download is pending",
+        "65 cached model definitions reused after restart and across projects",
+        "Origin and query preservation",
+        "unavailable disk cache preserves authorized code/model usage",
+        "corruption retry with empty POST inventory"
+      ]
+    }
+  ],
+  "cache": {
+    "maxBytes": 268435456,
+    "namespace": [
+      "Studio origin",
+      "account",
+      "actual renderer hash"
+    ],
+    "codeKey": [
+      "library path",
+      "package ID",
+      "exact canonical semver"
+    ],
+    "models": "SHA-256 of post-migration JSON content",
+    "expiryValidation": false,
+    "currentProjectAndPermissionRequests": true,
+    "logout": "Clear the redownloadable resource cache across all accounts/builds, including prior-process entries; do not delete business drafts.",
+    "modelDigestTransport": "JSON modelDigests in read-only POST; header is protocol marker only; no inventory truncation",
+    "pendingCodeKey": [
+      "account/source/build namespace",
+      "authentication epoch",
+      "resource key"
+    ]
+  },
+  "pending": [
+    "Coordinated matching backend deployment and one Desktop loader update",
+    "Publish intended current component sources as versioned remote artifacts before real project acceptance",
+    "Real packaged App canvas/property panel/Preview/Form/Table/Tabs/theme/overlay regression",
+    "Controlled real-project cold/warm/restart performance A/B"
+  ],
+  "exclusions": [
+    "component registration splitting",
+    "page model lazy loading",
+    "independently released underlying React/Antd runtime",
+    "permanent caching of latest/project/permissions"
+  ],
+  "reviewFixes": {
+    "regressionsReproducedBeforeFix": true,
+    "redLogs": [
+      "/tmp/plasmic-library-cache-fixes-red.log",
+      "/tmp/plasmic-library-cache-model-fixes-red.log"
+    ],
+    "fixed": [
+      "Do not join a stale generation download after successful identity reverification",
+      "Reuse all cached model snapshots without a global 64-digest header limit"
+    ]
+  }
+}

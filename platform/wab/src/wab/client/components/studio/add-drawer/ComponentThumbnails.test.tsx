@@ -29,6 +29,17 @@ it("uses the saved thumbnail when a registration is not loaded", () => {
     .previewImageUrl).toBe(savedThumbnail);
 });
 
+it("uses compact direct previews for registered icons without retaining an obsolete saved thumbnail", () => {
+  const icon = mkCodeComponent("plasmic-antd-icon-PlusOutlined", {
+    name: "plasmic-antd-icon-PlusOutlined", importPath: "@ant-design/icons", props: {}, thumbnailUrl: savedThumbnail,
+  }, {});
+  const studioCtx = { getCodeComponentMeta: () => ({ props: {} }) } as unknown as StudioCtx;
+  const item = createAddTplCodeComponent(studioCtx, icon);
+  expect(item.previewImageUrl).toBeUndefined();
+  expect(item.isCompact).toBe(true);
+  expect(icon.codeComponentMeta.thumbnailUrl).toBe(savedThumbnail);
+});
+
 it("deduplicates components and uses image cards only when their own thumbnail is available", () => {
   const button = component("button");
   const custom = component("custom");

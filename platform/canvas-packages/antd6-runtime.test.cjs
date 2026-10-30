@@ -100,9 +100,23 @@ for (const suffix of ["", "-v2"]) {
         const Actions = get("plasmic-react-ui-action-group");
         const Dropdown = get("plasmic-antd6-dropdown");
         // The actual preview combines a global Antd provider, AppShell and row actions.
-        const Provider = win.__PlasmicContextRegistry.find((entry) =>
+        const providerEntry = win.__PlasmicContextRegistry.find((entry) =>
           /config-provider/.test(entry.meta.name),
-        ).component;
+        );
+        const Provider = providerEntry.component;
+        const nativeAntd = win.__Sub.Antd6 ?? win.__CanvasPkgs.Antd6;
+        // Execute the shipped IIFEs without Node require, then exercise every
+        // advertised locale through the shared native ConfigProvider context.
+        for (const locale of providerEntry.meta.props.locale.options) {
+          let observed;
+          function ReadLocale() {
+            observed = React.useContext(nativeAntd.ConfigProvider.ConfigContext).locale;
+            return null;
+          }
+          await flush(() => root.render(React.createElement(Provider,
+            { themeStyles: {}, locale }, React.createElement(ReadLocale))));
+          assert.equal(typeof observed?.locale, "string", `missing native pack: ${locale}`);
+        }
         const show = async (readonly) => {
           await flush(() => {
             root.render(

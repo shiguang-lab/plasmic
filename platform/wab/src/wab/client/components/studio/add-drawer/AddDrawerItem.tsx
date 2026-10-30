@@ -2,6 +2,7 @@ import { getComponentPresets } from "@/wab/client/code-components/code-presets";
 import { InsertRelLoc } from "@/wab/client/components/canvas/view-ops";
 import { ResourceAssetActions } from "@/wab/client/components/insert-panel/ResourceAssetActions";
 import AddDrawerCardItem from "@/wab/client/components/studio/add-drawer/AddDrawerCardItem";
+import { IconComponentPreview, isAntDesignIconItem } from "@/wab/client/components/studio/add-drawer/IconComponentPreview";
 import { ImagePreview } from "@/wab/client/components/style-controls/ImageSelector";
 import { Matcher } from "@/wab/client/components/view-common";
 import { Icon } from "@/wab/client/components/widgets/Icon";
@@ -15,6 +16,8 @@ import {
   isTplAddItem,
 } from "@/wab/client/definitions/insertables";
 import { useI18n } from "@/wab/client/i18n";
+import { getRootSub } from "@/wab/client/frame-ctx/windows";
+import type { SubDeps } from "@/wab/client/components/canvas/subdeps";
 import { UiLocale, translateUiLabel } from "@/wab/client/i18n/locales";
 import AfterIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__After";
 import BeforeIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Before";
@@ -23,10 +26,9 @@ import BoxControlsIcon from "@/wab/client/plasmic/plasmic_kit_design_system/Plas
 import { PlasmicAddDrawerItem } from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicAddDrawerItem";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { isCodeComponent } from "@/wab/shared/core/components";
-import { asSvgDataUrl, parseDataUrlToSvgXml, parseSvgXml } from "@/wab/shared/data-urls";
 import { TplNode } from "@/wab/shared/model/classes";
 import { EyeOutlined } from "@ant-design/icons";
-import { Button, Tooltip, Typography, theme } from "antd";
+import { Button, Tooltip, Typography } from "antd";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useOverlayTriggerState } from "react-stately";
@@ -76,34 +78,31 @@ export function getAddItemLabel(item: AddItem, locale: UiLocale): string {
     : item.label;
 }
 
-export function isAntDesignIconItem(item: AddItem) {
-  return (
-    isTplAddItem(item) &&
-    !!item.component &&
-    isCodeComponent(item.component) &&
-    item.component.codeComponentMeta.importPath === "@ant-design/icons"
-  );
-}
-
 function AddItemCard(props: AddDrawerItemProps) {
   const { locale, t } = useI18n();
   const { item, matcher, isHighlighted } = props;
-  const { token } = theme.useToken();
-  const iconThumbnail = isAntDesignIconItem(item);
-  const previewImageUrl = React.useMemo(() => {
-    if (!iconThumbnail || !item.previewImageUrl) {
-      return item.previewImageUrl;
-    }
-    // An SVG loaded through <img> cannot inherit the Studio text color.
-    // Recolor only the preview; keep the registration and runtime props intact.
-    const svg = parseSvgXml(decodeURIComponent(parseDataUrlToSvgXml(item.previewImageUrl)));
-    svg.setAttribute("color", token.colorText);
-    // The registered Two Tone thumbnails use this fill for their second layer.
-    svg.querySelectorAll('[fill="#e6f4ff"]').forEach((node) => {
-      node.setAttribute("fill", token.colorPrimaryBgHover);
-    });
-    return asSvgDataUrl(svg.outerHTML);
-  }, [iconThumbnail, item.previewImageUrl, token.colorText, token.colorPrimaryBgHover]);
+  const [failedImage, setFailedImage] = React.useState<string>();
+  const previewImageUrl = item.previewImageUrl !== failedImage ? item.previewImageUrl : undefined;
+  const iconComponent = !previewImageUrl && isAntDesignIconItem(item) && isTplAddItem(item)
+    ? props.studioCtx.getCodeComponentsRegistration().find(
+        ({ meta }) => meta.name === item.component?.name,
+      )?.component
+    : undefined;
+  const previewNode = !previewImageUrl && iconComponent
+    ? <IconComponentPreview
+        component={iconComponent}
+        runtime={
+          isTplAddItem(item) && item.component &&
+          props.studioCtx.getHostLessComponentsMap().get(item.component.name)?.impl === iconComponent
+            // Hostless registrations are loaded with Studio's __Sub; custom
+            // host registrations use the parent Host's separate React instance.
+            ? (window as unknown as { __Sub: SubDeps }).__Sub
+            : getRootSub()
+        }
+      />
+    : !previewImageUrl && (failedImage || isAntDesignIconItem(item))
+      ? <span aria-hidden>{item.icon}</span>
+      : undefined;
   const previewState = useOverlayTriggerState({
     isOpen: props.previewOpen,
     onOpenChange: props.onPreviewOpenChange,
@@ -161,13 +160,15 @@ function AddItemCard(props: AddDrawerItemProps) {
         _new={item.isNew}
         installOnly={item["isPackage"]}
         preview={
-          item.previewImageUrl
+          previewImageUrl || previewNode
             ? "image"
             : item.previewVideoUrl
               ? "video"
               : undefined
         }
         previewImageUrl={previewImageUrl}
+        previewNode={previewNode}
+        onPreviewImageError={() => setFailedImage(item.previewImageUrl)}
         previewVideoUrl={item.previewVideoUrl}
         focused={isHighlighted}
       />

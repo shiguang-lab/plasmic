@@ -22,12 +22,15 @@ import * as React from "react";
 // You can also stop extending from DefaultAddDrawerCardItemProps altogether and have
 // total control over the props for your component.
 export type AddDrawerCardItemProps = DefaultAddDrawerCardItemProps &
-  Pick<PlasmicAddDrawerCardItem__OverridesType, "titleBox">;
+  Pick<PlasmicAddDrawerCardItem__OverridesType, "titleBox"> & {
+    onPreviewImageError?: React.ReactEventHandler<HTMLImageElement>;
+  };
 
 function AddDrawerCardItem_(
   props: AddDrawerCardItemProps,
   ref: HTMLElementRefOf<"div">,
 ) {
+  const { previewNode, onPreviewImageError, ...cardProps } = props;
   // Use PlasmicAddDrawerCardItem to render this component as it was
   // designed in Plasmic, by activating the appropriate variants,
   // attaching the appropriate event handlers, etc.  You
@@ -46,8 +49,12 @@ function AddDrawerCardItem_(
   return (
     <PlasmicAddDrawerCardItem
       root={{ ref }}
-      img={{ draggable: false }}
-      {...props}
+      img={{
+        draggable: false,
+        onError: onPreviewImageError,
+        ...(previewNode ? { render: () => previewNode } : {}),
+      }}
+      {...cardProps}
     />
   );
 }

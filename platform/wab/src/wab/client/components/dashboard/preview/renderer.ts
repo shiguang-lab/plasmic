@@ -12,7 +12,7 @@ import {
 } from "@/wab/client/components/live/live-syncer";
 import type { SourceModule } from "@/wab/client/components/live/preview-types";
 import {
-  getCanvasPkgs,
+  ensureCanvasRuntime,
   getLiveFrameClientJs,
   getReactWebBundle,
   getSortedHostLessPkgs,
@@ -212,7 +212,7 @@ export async function load(request: PreviewRequest) {
   const win = window as Window & Record<string, any>;
   await waitForLiveHost(win);
   inject(doc, await getReactWebBundle());
-  inject(doc, await getCanvasPkgs());
+  await ensureCanvasRuntime(win);
   const builtinRuntime = {
     ...win.__Sub,
     reactWeb: win.__PlasmicReactWebBundle,
@@ -231,11 +231,10 @@ export async function load(request: PreviewRequest) {
     );
   });
   for (const [, module] of await getSortedHostLessPkgs(
+    win,
     usedHostLessPkgs(payload.site),
     getVersionForCanvasPackages(win),
     payload.site,
-    // Injected above, so the guarded copy for library modules would never run.
-    { canvasRuntimeLoaded: true },
   )) {
     inject(doc, module);
   }

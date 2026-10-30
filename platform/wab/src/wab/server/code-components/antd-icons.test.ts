@@ -14,6 +14,7 @@ test("Ant Design Icons installs as an independent hostless library", async () =>
   );
   expect(site.components).toHaveLength(848);
   expect(site.imageAssets).toHaveLength(0);
+  expect(site.components.every((component) => component.codeComponentMeta?.thumbnailUrl == null)).toBe(true);
   const plus = site.components.find(
     (component) => component.name === "plasmic-antd-icon-PlusOutlined",
   );

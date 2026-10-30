@@ -1,11 +1,10 @@
 import type { SubDeps } from "@/wab/client/components/canvas/subdeps";
-import { getCanvasPkgs } from "@/wab/client/components/studio/studio-bundles";
-import { scriptExec } from "@/wab/client/dom-utils";
+import { ensureCanvasRuntime } from "@/wab/client/components/studio/studio-bundles";
 import { getUiLocale } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { translate } from "@/wab/client/i18n/locales";
 import { lt } from "@/wab/commons/semver";
-import { assert, withTimeout } from "@/wab/shared/common";
+import { assert } from "@/wab/shared/common";
 import { requiredPackageVersions } from "@/wab/shared/required-versions";
 import { notification } from "antd";
 import React from "react";
@@ -72,17 +71,7 @@ export function checkRootSubHostVersion() {
 }
 
 export async function initRootCanvasPkgs() {
-  if (!(window.parent as any).__CanvasPkgs) {
-    const source = await withTimeout(
-      getCanvasPkgs(),
-      "Couldn't get canvasPkgs.",
-      3 * 60 * 1000,
-    );
-    // Another initialization may have finished while the bundle was loading.
-    if (!(window.parent as any).__CanvasPkgs) {
-      scriptExec(window.parent, source);
-    }
-  }
+  await ensureCanvasRuntime(window.parent);
   rootSub = {
     ...rootSub,
     ...(window.parent as any).__CanvasPkgs,

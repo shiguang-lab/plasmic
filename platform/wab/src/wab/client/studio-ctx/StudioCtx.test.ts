@@ -10,20 +10,63 @@ import {
 import { getArenaFrames } from "@/wab/shared/Arenas";
 import { generateSiteFromBundle } from "@/wab/shared/__testonly__/site-tests-utils";
 import { Bundle } from "@/wab/shared/bundler";
-import { withoutNils } from "@/wab/shared/common";
+import { assert, ensure, withoutNils } from "@/wab/shared/common";
 import { ComponentType, mkComponent } from "@/wab/shared/core/components";
 import { ParamExportType, mkParam } from "@/wab/shared/core/lang";
 import { getDedicatedArena } from "@/wab/shared/core/sites";
-import { mkSlot, mkTplTag } from "@/wab/shared/core/tpls";
+import { isTplTag, mkSlot, mkTplTag } from "@/wab/shared/core/tpls";
 import { DEVFLAGS } from "@/wab/shared/devflags";
 import { typeFactory } from "@/wab/shared/model/model-util";
 import { SEARCH_PARAM_COMMENT } from "@/wab/shared/route/app-routes";
 import { waitFor } from "@testing-library/react";
 import { ok } from "neverthrow";
+import { mock } from "vitest-mock-extended";
+import type { AppCtx } from "@/wab/client/app-ctx";
+import type { DesktopDraft } from "@/wab/shared/desktop-drafts";
 
 import _bundle from "@/wab/shared/web-exporter/bundles/starter-project-desktop-first.json";
 
 const TEAM_ID = "team123" as TeamId;
+
+it("binds the active canvas to the restored draft model instead of the previous model", async () => {
+  const { studioCtx, appCtx } = fakeStudioCtx({
+    devFlagOverrides: { ccStubs: true },
+  });
+  try {
+    await waitFor(() => expect(studioCtx.initialRouteReady).toBe(true));
+    const page = await studioCtx.changeUnsafe(() =>
+      studioCtx.addComponent("Page", { type: ComponentType.Page }),
+    );
+    const previousArena = studioCtx.currentArena;
+    studioCtx.dbCtx().revisionNum = 10;
+    appCtx.selfInfo = mock<NonNullable<AppCtx["selfInfo"]>>({ id: "user" as UserId });
+    const remote = appCtx.bundler.bundle(studioCtx.site, studioCtx.siteInfo.id, appCtx.lastBundleVersion);
+    const bundle = structuredClone(remote);
+    const root = ensure(appCtx.bundler.addrOf(page.tplTree), "Missing page root bundle address");
+    bundle.map[root.iid].name = "RecoveredRoot";
+    const draft: DesktopDraft = {
+      format: 1, id: "draft", projectId: studioCtx.siteInfo.id, projectName: "Draft project", branchId: null,
+      baseRevision: 10, sequence: 3, savedAt: 1, modelVersion: studioCtx.dbCtx().modelVersion,
+      hostlessDataVersion: studioCtx.dbCtx().hostlessDataVersion, bundle, dependencies: [],
+    };
+    const topApi = mock<NonNullable<AppCtx["topFrameApi"]>>();
+    topApi.openDesktopDrafts.mockResolvedValue({ handle: "draft-handle", drafts: [draft] });
+    topApi.readDesktopDraft.mockResolvedValue(draft);
+    topApi.writeDesktopDraft.mockResolvedValue(undefined);
+    appCtx.topFrameApi = topApi;
+
+    await studioCtx.initializeDesktopDrafts();
+
+    const restoredPage = ensure(studioCtx.site.components.find(component => component.uuid === page.uuid), "Missing restored page");
+    assert(isTplTag(restoredPage.tplTree), "Expected a page root tag");
+    expect(restoredPage.tplTree.name).toBe("RecoveredRoot");
+    expect(studioCtx.currentArena).toBe(getDedicatedArena(studioCtx.site, restoredPage));
+    expect(studioCtx.currentArena).not.toBe(previousArena);
+    expect(studioCtx.desktopDraft?.error).toBeUndefined();
+  } finally {
+    studioCtx.dispose();
+  }
+});
 
 it("keeps startup pending until the initial route has resolved, including an empty project", async () => {
   const { studioCtx, appCtx } = fakeStudioCtx();

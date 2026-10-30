@@ -21,6 +21,15 @@ def component(name, key, **extra):
 
 
 class RuleRoutingTests(unittest.TestCase):
+    def test_expand_column_routes_to_table_usage_and_is_an_owned_child(self):
+        from verify_selection import OWNED_CHILDREN, norm
+        key = 'plasmic-antd6-table-expand-column'
+        self.assertEqual(rules_manifest.document_for(key), V6 + 'components/table.md')
+        self.assertIn(norm(key), OWNED_CHILDREN)
+        page = {'components': [component('Expand', key)]}
+        for stage in ('compose', 'accept'):
+            self.assertIn(V6 + 'components/table.md', required_reads(page, stage))
+
     def test_library_discovery_and_selection_are_required_before_composition(self):
         self.assertIn('references/libraries/index.md', project_reads())
         page = {'components': [component('Form', 'plasmic-antd6-form')]}

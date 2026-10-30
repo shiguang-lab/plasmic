@@ -60,7 +60,7 @@ Read the [library rules](index.md), then look up only the registrations used by 
 | [Statistic](components/statistic.md) | Statistic (`plasmic-antd6-statistic`); Statistic.Timer (`plasmic-antd6-statistic-timer`) |
 | [Steps](components/steps.md) | Steps (`plasmic-antd6-steps`) |
 | [Switch](components/switch.md) | Switch (`plasmic-antd6-switch`) |
-| [Table](components/table.md) | Table (`plasmic-antd6-table`); Table.Column (`plasmic-antd6-table-column`); Table.ColumnGroup (`plasmic-antd6-table-column-group`) |
+| [Table](components/table.md) | Table (`plasmic-antd6-table`); Table.Column (`plasmic-antd6-table-column`); Table.ColumnGroup (`plasmic-antd6-table-column-group`); Table.ExpandColumn (`plasmic-antd6-table-expand-column`) — expandable row details, column placement and canvas-only representative rows independent of runtime expansion |
 | [Tabs](components/tabs.md) | Tabs.TabPane (`plasmic-antd6-tab-item`); Tabs (`plasmic-antd6-tabs`) |
 | [Tag](components/tag.md) | Tag (`plasmic-antd6-tag`); Tag.CheckableTag (`plasmic-antd6-tag-checkable`) |
 | [TimePicker](components/time-picker.md) | Time Picker (`plasmic-antd6-time-picker`); TimePicker.RangePicker (`plasmic-antd6-time-range-picker`) |

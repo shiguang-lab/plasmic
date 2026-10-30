@@ -266,7 +266,10 @@ const clientConfigs = clientEntries.map(({ pkg, useSubJSXRuntime }) => ({
       : []),
     "@plasmicapp/host",
     ...(["antd6", "overseas", "react-ui"].includes(pkg)
-      ? Object.keys(antd6Modules)
+      // The exact root import is provided by externalGlobalPlugin. Marking
+      // "antd" external here also excludes every subpath, leaving unmapped
+      // locale packs as require() calls in the browser bundle.
+      ? Object.keys(antd6Modules).filter((name) => name !== "antd")
       : []),
     ...(pkg.includes("plasmic-rich-components")
       ? Object.keys(antdModules)

@@ -83,6 +83,8 @@ function callback(login, authorization, options = {}) {
 }
 test("HTTPS callback delivers a PKCE-bound code and establishes the IAM desktop session", async () => {
   const { login, calls } = fixture();
+  const transitions = [];
+  login.on("session-changed", () => transitions.push(login.signingIn));
   let authorization;
   const result = await login.start({
     returnUrl: studioOrigin + "/projects/example",
@@ -108,6 +110,7 @@ test("HTTPS callback delivers a PKCE-bound code and establishes the IAM desktop 
     },
   });
   assert.equal(result, studioOrigin + "/projects/example");
+  assert.deepEqual(transitions, [true, false], "both sides of login invalidate native verification");
   const form = new URLSearchParams(calls[0].init.body);
   assert.equal(form.get("code"), code);
   assert.equal(
@@ -305,12 +308,16 @@ test("only an explicit invalid_grant removes stored device authorization", async
       credentials,
       tokenResponse: () => Response.json({ error }, { status }),
     });
+    let changes = 0;
+    login.on("session-changed", () => changes++);
     if (status === 400) {
       assert.equal(await login.restore(), false);
       assert.equal(credentials.read(), undefined);
+      assert.equal(changes, 1, "device revocation invalidates native identity");
     } else {
       await assert.rejects(login.restore(), /503/);
       assert.equal(credentials.read().refreshToken, "old-refresh");
+      assert.equal(changes, 0, "a temporary failure does not report a changed session");
     }
   }
   const credentials = storedCredentials();
@@ -360,12 +367,15 @@ test("idle background requests do not count as user activity; reopening restores
 test("sign-out revokes the current refresh token and clears local authorization", async () => {
   const credentials = storedCredentials();
   const { login } = fixture({ credentials });
+  const transitions = [];
+  login.on("session-changed", () => transitions.push(login.signingOut));
   login.post = async (path, form) => {
     assert.equal(path, "/oauth/revoke");
     assert.deepEqual(form, { token: "old-refresh" });
     return {};
   };
   await login.signOut();
+  assert.deepEqual(transitions, [true, false], "sign-out cannot retain verification from either side of revocation");
   assert.equal(credentials.read(), undefined);
   assert.equal(await login.restore(), false);
 });

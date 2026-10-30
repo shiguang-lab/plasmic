@@ -1,0 +1,33 @@
+{
+  "date": "2026-10-30T10:23:35.811Z",
+  "method": "Same production canvas build configuration and dependencies; baseline library index/catalog from Git HEAD, compared with working source. Only icon client/v2/server entries built.",
+  "icons": 848,
+  "records": [
+    {
+      "file": "platform/canvas-packages/build-server/antd-icons.js",
+      "beforeBytes": 2736973,
+      "afterBytes": 2022051,
+      "beforeGzipBytes": 480015,
+      "afterGzipBytes": 325084
+    },
+    {
+      "file": "platform/canvas-packages/build/antd-icons.js",
+      "beforeBytes": 1792290,
+      "afterBytes": 1077080,
+      "beforeGzipBytes": 382804,
+      "afterGzipBytes": 228626
+    },
+    {
+      "file": "platform/canvas-packages/build/antd-icons-v2.js",
+      "beforeBytes": 1792293,
+      "afterBytes": 1077083,
+      "beforeGzipBytes": 382807,
+      "afterGzipBytes": 228629
+    }
+  ],
+  "notes": [
+    "Real icon entries built with the existing production canvas configuration; no App package installed and no library published.",
+    "Before source comes from Git HEAD; after source is this implementation. Other workspace changes are not included in the source comparison, and the build configuration/dependencies are identical on both sides.",
+    "This is a byte-size comparison, not an end-to-end latency benchmark."
+  ]
+}

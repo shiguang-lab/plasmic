@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { registerAll } from "./index";
 
-test("the installable library registers official icon components with native card previews", () => {
+test("the installable library preserves all official icon components without duplicate preview SVGs", () => {
   const names = new Set<string>();
   const sections = new Set<string>();
   registerAll({
@@ -15,7 +15,7 @@ test("the installable library registers official icon components with native car
       assert.equal(meta.importPath, "@ant-design/icons");
       assert.equal(meta.props.name, undefined);
       assert.equal(Boolean(meta.props.twoToneColor), name.endsWith("TwoTone"));
-      assert.match(meta.thumbnailUrl ?? "", /^data:image\/svg\+xml,/);
+      assert.equal(meta.thumbnailUrl, undefined);
       assert(!names.has(name), `Duplicate icon ${name}`);
       names.add(name);
       sections.add(meta.section ?? "");

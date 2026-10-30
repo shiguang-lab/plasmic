@@ -16,7 +16,7 @@ function containsPoint(point, rect) {
   return (point.x - x) ** 2 + (point.y - y) ** 2 <= radius ** 2;
 }
 
-function createIsland({ getWindow, controller, i18n, appearance, config, signIn, isQuitting, changed = () => {} }) {
+function createIsland({ getWindow, controller, identity, i18n, appearance, config, signIn, isQuitting, changed = () => {} }) {
   const page = pathToFileURL(path.join(__dirname, "island.html")).href;
   const preference = path.join(app.getPath("userData"), "presentation.json");
   let saved = {};
@@ -30,10 +30,15 @@ function createIsland({ getWindow, controller, i18n, appearance, config, signIn,
   let transitions = Promise.resolve();
   let fullscreenWait, navigationUrl;
   let refreshTimer, captureTimer, hitTimer;
-  let cookies, cookieChanged, lastResource, lastCanvasOperation;
+  let lastResource, lastCanvasOperation;
   const mirror = createIslandCapture();
   const framingOperations = () => [...controller.activity.operations.values(), ...(lastCanvasOperation ? [lastCanvasOperation] : [])];
-  const account = new IslandAccount(requestPath => controller.requestStudio(requestPath, undefined, AbortSignal.timeout(10_000)), publish);
+  const account = new IslandAccount(() => identity.read(), requestPath => controller.requestStudio(requestPath, undefined, AbortSignal.timeout(10_000)), publish);
+  const identityChanged = () => {
+    account.invalidate();
+    publish(); void refresh();
+  };
+  identity.on("changed", identityChanged);
   function persist() {
     const position = window && !window.isDestroyed() ? window.getPosition() : saved.position;
     saved = { mode, position, closeAction };
@@ -72,7 +77,7 @@ function createIsland({ getWindow, controller, i18n, appearance, config, signIn,
       }
     } finally { reading = false; }
   }
-  function updateContext(state) {
+  function updateContext(state, forceAccountRefresh = false) {
     const pathname = state.url ? new URL(state.url).pathname : "";
     const routeProject = pathname.match(/^\/projects\/([^/]+)/)?.[1] || null;
     const actual = currentContext({ ...state, projectId: state.projectId ?? routeProject }, config.studioOrigin), editor = state.editorContext || {};
@@ -96,7 +101,7 @@ function createIsland({ getWindow, controller, i18n, appearance, config, signIn,
     context.orgId = pathname.match(/^\/orgs\/([^/]+)/)?.[1] || null;
     context.workspaceId = pathname.match(/^\/workspaces\/([^/]+)/)?.[1] || null;
     if (!state.url || new URL(state.url).origin !== config.studioOrigin || actual.surface === "login") {account.clear("signed-out");}
-    else {void account.refresh(context.workspaceId);}
+    else {void account.refresh(context.workspaceId, forceAccountRefresh);}
   }
   async function capture() {
     const win = getWindow();
@@ -323,25 +328,10 @@ function createIsland({ getWindow, controller, i18n, appearance, config, signIn,
       publish();
     },
     attach(win) {
-      cookies = win.webContents.session.cookies;
-      const values = new Map();
-      const key = cookie => `${cookie.domain}:${cookie.path}:${cookie.name}`;
-      void cookies.get({ url: config.studioOrigin }).then(items => {
-        for (const cookie of items) {if (cookie.httpOnly && !values.has(key(cookie))) {values.set(key(cookie), cookie.value);}}
-      }).catch(() => {});
-      cookieChanged = (_event, cookie, cause, removed) => {
-        const host = new URL(config.studioOrigin).hostname, domain = cookie.domain.replace(/^\./, "");
-        if (!cookie.httpOnly || !(host === domain || host.endsWith(`.${domain}`)) || removed && cause === "overwrite") {return;}
-        const id = key(cookie), next = removed ? null : cookie.value;
-        if (values.get(id) === next) {return;}
-        values.set(id, next);
-        account.invalidate();
-        publish(); void refresh();
-      };
-      cookies.on("changed", cookieChanged);
       const invalidate = (url) => {
-        account.invalidate(false);
-        updateContext({ url: typeof url === "string" ? url : win.webContents.getURL(), ready: false });
+        // Navigation refreshes the summary, but does not change the account.
+        // Keep its in-flight read; cookie changes still invalidate that read.
+        updateContext({ url: typeof url === "string" ? url : win.webContents.getURL(), ready: false }, true);
         publish(); void refresh();
       };
       win.webContents.on("did-start-navigation", (_event, url, inPlace, main) => {
@@ -358,7 +348,7 @@ function createIsland({ getWindow, controller, i18n, appearance, config, signIn,
       win.on("leave-full-screen", () => nativeMode("window"));
       win.once("closed", () => { if (fullscreenWait?.win === win) {fullscreenWait.finish();} stop(); window?.hide(); });
     },
-    dispose() { disposed = true; account.dispose(); cookies?.removeListener("changed", cookieChanged); fullscreenWait?.finish(); stop(); unsubscribe(); stopLocale(); stopAppearance(); updates?.removeListener("status", publish); ipcMain.removeHandler("desktop:presentation"); window?.destroy(); },
+    dispose() { disposed = true; account.dispose(); identity.removeListener("changed", identityChanged); fullscreenWait?.finish(); stop(); unsubscribe(); stopLocale(); stopAppearance(); updates?.removeListener("status", publish); ipcMain.removeHandler("desktop:presentation"); window?.destroy(); },
   };
 }
 module.exports = { createIsland, containsPoint, MODES, CLOSE_ACTIONS };

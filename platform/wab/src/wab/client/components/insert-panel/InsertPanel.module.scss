@@ -64,15 +64,6 @@
   flex-shrink: 0;
 }
 
-.iconCardLayout img {
-  // The registered thumbnail has a 192×112 canvas and a centered 32×32 icon.
-  // Render the icon at 24px while its transparent canvas overflows the preview.
-  width: 144px;
-  height: 84px;
-  max-width: none;
-  max-height: none;
-  flex-shrink: 0;
-}
 
 .iconCardTitle {
   min-width: 0;

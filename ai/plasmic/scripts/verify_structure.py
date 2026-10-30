@@ -209,6 +209,15 @@ def column_width_errors(table_props, entries, context, spec=None):
             errors.append({**context, "column": name, "title": text, "width": width,
                            "requiredEstimate": estimated_title_width(text) + 2 * padding,
                            "message": "Column title likely wraps at this width; widen the Column or use the reviewed shorter title, then measure the rendered header"})
+    expansion = static_literal(table_props.get("expandable"))
+    if isinstance(expansion, dict) and static_literal(expansion.get("showExpandColumn")) is not False:
+        width = static_literal(expansion.get("columnWidth"))
+        if width is not None:
+            if pixel_number(width):
+                widths.append(width)
+            else:
+                errors.append({**context, "actual": expansion["columnWidth"],
+                               "message": "Project width policy requires a literal positive pixel expandable.columnWidth"})
     if not widths:
         return errors
     if len(unset) != 1:

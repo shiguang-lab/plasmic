@@ -10,7 +10,7 @@ import {
   getSortedHostLessPkgs,
   getVersionForCanvasPackages,
 } from "@/wab/client/components/studio/studio-bundles";
-import { scriptExec } from "@/wab/client/dom-utils";
+import { scriptExec } from "@/wab/client/script-exec";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { maybeToggleTrailingSlash } from "@/wab/client/utils/app-hosting-utils";
 import { usedHostLessPkgs } from "@/wab/shared/cached-selectors";
@@ -142,6 +142,7 @@ export const DocsPreviewCanvas = observer(function DocsPreviewCanvas(props: {
             };
 
             for (const [_pkg, pkgModule] of await getSortedHostLessPkgs(
+              frameWindow,
               usedPkgs,
               getVersionForCanvasPackages(frameWindow),
               studioCtx.site,

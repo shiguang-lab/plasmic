@@ -10,9 +10,12 @@ const { createAssetHandler } = require("../src/asset-handler.cjs");
 const { DesktopController } = require("../src/controller.cjs");
 const { DesktopUnifiedLogin, AUTH_ORIGIN } = require("../src/unified-login.cjs");
 const { IslandAccount } = require("../src/island-account.cjs");
+const { DesktopIdentity } = require("../src/identity.cjs");
+const { createDraftHandler } = require("../src/drafts.cjs");
 const profile = fs.mkdtempSync(path.join(os.tmpdir(), "plasmic-session-test-"));
 app.setPath("userData", profile);
 let destinationRequests = 0;
+let identityRequests = 0;
 let origin;
 const refreshActivity = [];
 let deviceRevoked = false;
@@ -49,6 +52,7 @@ const server = createServer(async (req, res) => {
       Location: origin + "/",
     });
   } else if (req.url.startsWith("/api/v1/")) {
+    if (req.url === "/api/v1/auth/self") identityRequests++;
     res.setHeader("Content-Type", "application/json");
     if (req.headers.cookie !== "fixture_session=issued-by-iam") {
       res.writeHead(401);
@@ -195,7 +199,20 @@ app
       }),
     });
     const controller = new DesktopController(() => win, { studioOrigin: origin });
-    const account = new IslandAccount(request => controller.requestStudio(request), () => {}, () => now);
+    const identity = new DesktopIdentity({
+      session: ses, studioOrigin: origin, now: () => now,
+      prepare: () => login.restore(),
+      fetchIdentity: () => controller.requestStudio("/api/v1/auth/self"),
+    });
+    login.on("session-changed", () => identity.invalidate());
+    const account = new IslandAccount(() => identity.read(), request => controller.requestStudio(request), () => {}, () => now);
+    const drafts = createDraftHandler({
+      store: { list: async () => [], read: async () => ({ id: "draft" }) }, origin,
+      trustedSender: () => true, projectId: url => new URL(url).pathname.split("/")[2],
+      currentUser: async () => (await identity.read()).user?.id,
+    });
+    identity.on("changed", () => drafts.invalidate());
+    const draftEvent = { senderFrame: { url: origin + "/projects/fixture" } };
     ses.protocol.unhandle("http");
     ses.protocol.handle("http", createAssetHandler({
       root: profile,
@@ -212,6 +229,9 @@ app
     assert.equal(account.snapshot().user.id, "fixture-user");
     assert.deepEqual(refreshActivity, ["false"], "background reads must not extend device inactivity");
     assert.equal(credentials.read().refreshToken, refreshToken);
+    const sharedReads = identityRequests;
+    const { handle } = await drafts.command(draftEvent, "open", { userId: "fixture-user", projectId: "fixture" });
+    assert.equal(identityRequests, sharedReads, "draft opening reuses the island's verified identity without another HTTP request");
     await Promise.all([controller.requestStudio("/api/v1/auth/self"), controller.requestStudio("/api/v1/app-ctx")]);
     assert.equal(refreshActivity.length, 1, "fresh cookies reuse the restored session");
     now += 16 * 60_000;
@@ -222,6 +242,9 @@ app
     assert.deepEqual(refreshActivity, ["false", "false"]);
     assert.equal(login.isActive(), false);
     assert.equal(credentials.read().refreshToken, refreshToken);
+    const restoredReads = identityRequests;
+    assert.equal((await drafts.command(draftEvent, "read", { handle, id: "draft" })).id, "draft");
+    assert.equal(identityRequests, restoredReads, "a same-account cookie rotation reauthorizes the existing draft handle from the restored identity");
     assert.deepEqual(await controller.requestStudio("/api/v1/teams", { name: "Fixture team" }), { name: "Fixture team" }, "native writes retain their body, cookies and Origin through the shared handler");
     deviceRevoked = true;
     now += 16 * 60_000;
@@ -230,9 +253,11 @@ app
     await account.refresh();
     assert.equal(account.snapshot().status, "signed-out", "rejected device authorization still requires sign-in");
     assert.equal(credentials.read(), undefined);
+    await assert.rejects(drafts.command(draftEvent, "read", { handle, id: "draft" }), /401|Invalid draft session/);
     assert.equal(win.webContents.getURL(), origin + "/page", "account polling never navigates the editor");
     assert.equal(controller.activity.keepExpanded(), false, "account polling stays outside MCP activity");
     account.dispose();
+    identity.dispose();
     controller.close();
     win.destroy();
     clearTimeout(timeout);

@@ -10,7 +10,7 @@ import {
 } from "@/wab/client/components/canvas/canvas-rendering";
 import { SubDeps } from "@/wab/client/components/canvas/subdeps";
 import {
-  getCanvasPkgs,
+  ensureCanvasRuntime,
   getHostLessPkgIdentity,
   getReactWebBundle,
   getSortedHostLessPkgs,
@@ -18,7 +18,8 @@ import {
 } from "@/wab/client/components/studio/studio-bundles";
 import * as domMod from "@/wab/client/dom";
 import { NodeAndOffset } from "@/wab/client/dom";
-import { scriptExec, upsertJQSelector } from "@/wab/client/dom-utils";
+import { upsertJQSelector } from "@/wab/client/dom-utils";
+import { scriptExec } from "@/wab/client/script-exec";
 import { ENV } from "@/wab/client/env";
 import { PlasmicWindowInternals } from "@/wab/client/frame-ctx/windows";
 import { globalHookCtx } from "@/wab/client/react-global-hook/globalHook";
@@ -124,6 +125,7 @@ export class CanvasCtx {
       .catch(() => undefined)
       .then(async () => {
         const pkgsData = await getSortedHostLessPkgs(
+          this._win,
           pkgs,
           getVersionForCanvasPackages(this._win),
           site,
@@ -317,14 +319,7 @@ export class CanvasCtx {
     }
     const scriptsDone = sc.loadTimings.begin("frame-runtime", arenaFrame.uuid);
     yield "script-wait";
-    scriptExec(
-      this._win,
-      await withTimeout(
-        getCanvasPkgs(),
-        "Couldn't get canvasPkgs.",
-        CANVAS_CTX_TIMEOUT_PERIOD,
-      ),
-    );
+    await ensureCanvasRuntime(this._win);
     scriptExec(
       this._win,
       await withTimeout(

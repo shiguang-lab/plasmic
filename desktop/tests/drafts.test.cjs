@@ -87,3 +87,66 @@ test("the draft bridge authenticates opening, binds scope, and then writes witho
   online = true; authenticated = "other";
   assert.deepEqual(await handler.command(event, "list", { userId: "other" }), []);
 });
+
+test("account resets fence draft opening during identity and file reads", async () => {
+  for (const waitingFor of ["identity", "files"]) {
+    let release, reached;
+    const gate = new Promise(resolve => { release = resolve; });
+    const started = new Promise(resolve => { reached = resolve; });
+    const frame = { url: scope.origin + "/projects/project" };
+    const handler = createDraftHandler({
+      store: { list: async () => { if (waitingFor === "files") { reached(); await gate; } return []; } },
+      origin: scope.origin, trustedSender: () => true,
+      projectId: url => new URL(url).pathname.split("/")[2],
+      currentUser: async () => { if (waitingFor === "identity") { reached(); await gate; } return "user"; },
+    });
+    const opening = handler.command({ senderFrame: frame }, "open", scope);
+    const rejected = assert.rejects(opening, /Invalid draft account/);
+    await started; handler.reset(); release(); await rejected;
+    const { handle } = await handler.command({ senderFrame: frame }, "open", scope);
+    assert.ok(handle, "the new account generation can open a fresh session");
+  }
+});
+
+test("session rotation reauthorizes existing draft handles for the same account and rejects a replacement account", async t => {
+  const store = await fixture(t), frame = { url: scope.origin + "/projects/project" };
+  let userId = "user", reads = 0;
+  const handler = createDraftHandler({ store, origin: scope.origin, trustedSender: () => true,
+    projectId: url => new URL(url).pathname.split("/")[2], currentUser: async () => { reads++; return userId; } });
+  const event = { senderFrame: frame }, { handle } = await handler.command(event, "open", scope), a = draft();
+  await handler.command(event, "write", { handle, draft: a }); assert.equal(reads, 1);
+  handler.invalidate();
+  await handler.command(event, "write", { handle, draft: { ...a, sequence: 2 } }); assert.equal(reads, 2);
+  assert.equal((await handler.command(event, "read", { handle, id: a.id })).sequence, 2); assert.equal(reads, 2);
+  userId = "replacement"; handler.invalidate();
+  await assert.rejects(handler.command(event, "read", { handle, id: a.id }), /Invalid draft session/);
+  assert.equal(reads, 3);
+});
+
+test("another auth change during reauthorization requires retry without destroying a same-account handle", async () => {
+  let wait = false, release, reached;
+  const gate = new Promise(resolve => { release = resolve; }), started = new Promise(resolve => { reached = resolve; });
+  const frame = { url: scope.origin + "/projects/project" }, event = { senderFrame: frame };
+  const handler = createDraftHandler({ store: { list: async () => [], read: async () => ({ id: "draft" }) }, origin: scope.origin,
+    trustedSender: () => true, projectId: url => new URL(url).pathname.split("/")[2],
+    currentUser: async () => { if (wait) { reached(); await gate; } return "user"; } });
+  const { handle } = await handler.command(event, "open", scope);
+  handler.invalidate(); wait = true;
+  const reading = handler.command(event, "read", { handle, id: "draft" });
+  const rejected = assert.rejects(reading, /Invalid draft session/);
+  await started; handler.invalidate(); release(); await rejected;
+  wait = false;
+  assert.equal((await handler.command(event, "read", { handle, id: "draft" })).id, "draft");
+});
+
+test("an auth change while reading a draft prevents returning its contents", async () => {
+  let release, reached;
+  const gate = new Promise(resolve => { release = resolve; }), started = new Promise(resolve => { reached = resolve; });
+  const frame = { url: scope.origin + "/projects/project" }, event = { senderFrame: frame };
+  const handler = createDraftHandler({ store: { list: async () => [], read: async () => { reached(); await gate; return { id: "draft" }; } },
+    origin: scope.origin, trustedSender: () => true, projectId: url => new URL(url).pathname.split("/")[2], currentUser: async () => "user" });
+  const { handle } = await handler.command(event, "open", scope);
+  const reading = handler.command(event, "read", { handle, id: "draft" });
+  const rejected = assert.rejects(reading, /Invalid draft session/);
+  await started; handler.invalidate(); release(); await rejected;
+});

@@ -1,0 +1,499 @@
+{
+  "status": "PASS",
+  "acceptedAt": "2026-10-30T14:13:29.143Z",
+  "installation": {
+    "installed": "/Applications/Plasmic.app",
+    "backup": "/Users/yanxianliang/Library/Caches/Plasmic-local-backups/2026-10-30T14-10-08.040Z/Plasmic.app",
+    "version": "0.5.26",
+    "build": {
+      "kind": "local",
+      "revision": "e3a6c66342e3bd621a8d669de65cf1b6972ea5c3",
+      "dirty": true,
+      "builtAt": "2026-10-30T14:05:09.913Z",
+      "sourceHash": "ff4d7cc83eaf14d28dd812e89042b9f9e04c459442238a12e3512aa2c46855f7",
+      "rendererHash": "f6b1441b37364207405c61ce85c6d44a9ab4b73aab6e154799c70c4c75647dba",
+      "desktopHash": "6394ae222987224cd93f6e513fe103a55cda1c5dcdd2409f0d60459b29daac16"
+    }
+  },
+  "initialAppBackup": "/Users/yanxianliang/Library/Caches/Plasmic-local-backups/2026-10-30T13-57-15.777Z/Plasmic.app",
+  "artifacts": "desktop/dist/identity-local-acceptance/darwin-arm64",
+  "buildId": "eab0a5810714c8b4f639f5706050dedd3013457171ee815a9b2bc54f58a1e9cf",
+  "sourceSnapshot": "/Users/yanxianliang/Library/Caches/Plasmic-identity-local-builds/2026-10-30-JoK5VC/plasmic",
+  "sourceFiles": [
+    {
+      "file": "desktop/src/main.cjs",
+      "sha256": "0873fcd98056fb5fcbc1c64e6d859dab413c5a52b3a19581b0ddad6aa1465cd4"
+    },
+    {
+      "file": "desktop/src/identity.cjs",
+      "sha256": "e2e64e2f26a7e8ce82046ddcd8b93c11e5a2def88220a2dae2d7c07288821247"
+    },
+    {
+      "file": "desktop/src/island.cjs",
+      "sha256": "669fad7e7800ecc9adc578bebba7be3d27008cce5f8b6816e8bd976efe371de0"
+    },
+    {
+      "file": "desktop/src/island-account.cjs",
+      "sha256": "b220fb4e5deb3d481c59c1067cdbff87ee4964c311604d5a3116e3b096c33372"
+    },
+    {
+      "file": "desktop/src/drafts.cjs",
+      "sha256": "c05d253d2b9e4886613c95124b91135afa157c58131b9283f929ed9618d35b20"
+    },
+    {
+      "file": "desktop/src/unified-login.cjs",
+      "sha256": "6526e90d28cd616b26ef73d62f9c5cd04738155275cecbfe187c5459cf0ab682"
+    },
+    {
+      "file": "platform/wab/src/wab/client/studio-ctx/StudioCtx.tsx",
+      "sha256": "c61b407c607385d2cec40afd2a34f91f9834da763e353d2c9568117e9ffe36b2"
+    }
+  ],
+  "package": {
+    "command": "pnpm --dir desktop run package:local",
+    "platform": "darwin-arm64",
+    "electron": "44.5.1",
+    "status": "PASS",
+    "signature": "Apple Development; verified at build and installation",
+    "formats": [
+      "app",
+      "dmg",
+      "zip"
+    ]
+  },
+  "verification": {
+    "desktopUnit": {
+      "passed": 478,
+      "failed": 0
+    },
+    "studioAndDraftUnit": {
+      "files": 2,
+      "passed": 32,
+      "failed": 0
+    },
+    "typecheck": "PASS",
+    "browserBundleTests": {
+      "passed": 4,
+      "failed": 0
+    },
+    "nativeIsland": {
+      "passed": true,
+      "fixture": "Deterministic editor + real Electron + stdio MCP",
+      "checks": [
+        "real main-frame navigation events share one pending identity read",
+        "native island starts compact; all dispatched calls expand and mirror without throttling; bridge restrictions and rounded hit geometry",
+        "stdio MCP read scans; idle and completed calls retain the current canvas without extra model reads or inferred progress",
+        "complete artboards fit independently of editor pan/zoom; structure trees, floating tools and editor-only overlays never enter the image or change source UI",
+        "overview opens complete; single-page calls fit their full viewport; completion and metadata retain focus; new page targets switch focus and whole-canvas reads restore overview",
+        "multi-artboard layout/spacing is preserved; editor loading clears stale pixels and never collapses the card",
+        "collapse/reopen reuses cached pixels and preserves scope/context without a renderer; async content refreshes and save metadata does not",
+        "scroll-content editing keeps isolated expanded content without tools, preserves live DOM/model/context and refreshes on exit",
+        "task stages, explicit plan, blocker persistence, actual write/result/error and continuously updating hidden mirror",
+        "account overview uses API totals without a canvas; creation refreshes totals; logout clears old identities; verified replacement restores account data; localized labels and sign-in action fit; MCP subject, queue, persistent error and recovery remain visible",
+        "native Preview real DOM snapshot/click, actual route, current view capture, shared theme/language, stale labeling and recovery",
+        "monotonic ten-minute expiry; native hover/leave grace overrides running calls and idle leases; completion stays collapsed and the next call reopens",
+        "right-click actions distinguish showing main from exiting island, remove floating icons, retain Preview; real fullscreen transitions and rapid mode changes serialize correctly; local preference persists",
+        "shared update manager across standard/island modes; background ring, fixed-size confirmation/progress, Later and no main-window reveal; install drains MCP, closes Preview and saves before restart",
+        "signed-out capsule keeps the Plasmic brand and localized login link; native hover stays compact; login invokes sign-in while the main window stays hidden",
+        "closing the main window during fullscreen transition releases the mode queue"
+      ]
+    },
+    "packagedSessionFixture": {
+      "status": "PASS",
+      "modules": "Loaded from final app.asar; fixture server and credentials isolated",
+      "checks": [
+        "silent session restoration",
+        "Cookie rotation",
+        "draft opening shares identity",
+        "same-account rotation preserves draft access",
+        "revoked authorization blocks draft access"
+      ]
+    }
+  },
+  "packagedProject": {
+    "projectName": "客服平台 · GP评论查询",
+    "projectId": "tk89W1Akg2HjAjyHAYEro7",
+    "revision": 158,
+    "method": "Final app.asar in matching development Electron; independent profile; autosave disabled; server project writes blocked; no source-module overrides",
+    "identityRequests": [
+      {
+        "start": 1793369199135,
+        "method": "GET",
+        "end": 1793369199385,
+        "status": 200
+      },
+      {
+        "start": 1793369222895,
+        "method": "GET",
+        "end": 1793369223159,
+        "status": 200
+      }
+    ],
+    "checkpoints": [
+      {
+        "name": "initial",
+        "counter": 0,
+        "draft": {
+          "pendingDrafts": 0,
+          "state": "synced"
+        },
+        "enabled": true,
+        "handle": true,
+        "revision": 158
+      },
+      {
+        "name": "draft-written",
+        "counter": 1,
+        "draft": {
+          "pendingDrafts": 0,
+          "savedAt": 1793369222681,
+          "state": "local"
+        },
+        "enabled": true,
+        "handle": true,
+        "revision": 158
+      },
+      {
+        "name": "draft-restored",
+        "counter": 1,
+        "draft": {
+          "pendingDrafts": 0,
+          "savedAt": 1793369226411,
+          "state": "local"
+        },
+        "enabled": true,
+        "handle": true,
+        "revision": 158
+      },
+      {
+        "name": "continued-write",
+        "counter": 2,
+        "draft": {
+          "pendingDrafts": 0,
+          "savedAt": 1793369238178,
+          "state": "local"
+        },
+        "enabled": true,
+        "handle": true,
+        "revision": 158
+      }
+    ],
+    "draftCommands": [
+      {
+        "command": "open",
+        "at": 1793369200926,
+        "ok": true
+      },
+      {
+        "command": "write",
+        "at": 1793369222828,
+        "ok": true
+      },
+      {
+        "command": "open",
+        "at": 1793369224740,
+        "ok": true
+      },
+      {
+        "command": "read",
+        "at": 1793369224916,
+        "ok": true
+      },
+      {
+        "command": "read",
+        "at": 1793369225191,
+        "ok": true
+      },
+      {
+        "command": "write",
+        "at": 1793369226556,
+        "ok": true
+      },
+      {
+        "command": "write",
+        "at": 1793369238347,
+        "ok": true
+      }
+    ],
+    "observations": [
+      {
+        "phase": "initial",
+        "frames": [
+          {
+            "i": 0,
+            "componentCount": 0,
+            "ctx": false,
+            "hash": "",
+            "path": "/projects/tk89W1Akg2HjAjyHAYEro7",
+            "runtime": false
+          },
+          {
+            "i": 1,
+            "componentCount": 0,
+            "ctx": false,
+            "hash": "#origin=https%3A%2F%2Fplasmic-",
+            "path": "/static/host.html",
+            "probe": {
+              "sources": [
+                {
+                  "bytes": 2284705,
+                  "standalone": true
+                }
+              ]
+            },
+            "runtime": true
+          },
+          {
+            "i": 2,
+            "componentCount": 0,
+            "ctx": true,
+            "hash": "",
+            "path": "/static/host.html",
+            "probe": {
+              "sources": []
+            },
+            "runtime": false
+          },
+          {
+            "i": 3,
+            "componentCount": 977,
+            "ctx": false,
+            "hash": "",
+            "path": "blank",
+            "probe": {
+              "sources": [
+                {
+                  "bytes": 2284705,
+                  "standalone": true
+                }
+              ]
+            },
+            "runtime": true
+          },
+          {
+            "i": 4,
+            "componentCount": 977,
+            "ctx": false,
+            "hash": "#canvas=true&origin=https%3A%2",
+            "path": "/static/host.html",
+            "probe": {
+              "sources": [
+                {
+                  "bytes": 2284705,
+                  "standalone": true
+                }
+              ]
+            },
+            "runtime": true
+          }
+        ]
+      },
+      {
+        "phase": "reopen",
+        "frames": [
+          {
+            "i": 0,
+            "componentCount": 0,
+            "ctx": false,
+            "hash": "",
+            "path": "/projects/tk89W1Akg2HjAjyHAYEro7",
+            "probe": {
+              "sources": []
+            },
+            "runtime": false
+          },
+          {
+            "i": 1,
+            "componentCount": 0,
+            "ctx": false,
+            "hash": "#origin=https%3A%2F%2Fplasmic-",
+            "path": "/static/host.html",
+            "probe": {
+              "sources": [
+                {
+                  "bytes": 2284705,
+                  "standalone": true
+                }
+              ]
+            },
+            "runtime": true
+          },
+          {
+            "i": 2,
+            "componentCount": 0,
+            "ctx": true,
+            "hash": "",
+            "path": "/static/host.html",
+            "probe": {
+              "sources": []
+            },
+            "runtime": false
+          },
+          {
+            "i": 3,
+            "componentCount": 977,
+            "ctx": false,
+            "hash": "",
+            "path": "blank",
+            "probe": {
+              "sources": [
+                {
+                  "bytes": 2284705,
+                  "standalone": true
+                }
+              ]
+            },
+            "runtime": true
+          },
+          {
+            "i": 4,
+            "componentCount": 977,
+            "ctx": false,
+            "hash": "#canvas=true&origin=https%3A%2",
+            "path": "/static/host.html",
+            "probe": {
+              "sources": [
+                {
+                  "bytes": 2284705,
+                  "standalone": true
+                }
+              ]
+            },
+            "runtime": true
+          }
+        ]
+      }
+    ],
+    "errors": [],
+    "serverProjectWrites": [],
+    "draftRestoreReadback": "IdentityDraftAcceptance",
+    "continuedWriteReadback": "IdentityDraftContinued",
+    "continuedSavedSequence": 3
+  },
+  "installedApp": {
+    "wire": {
+      "count": 2,
+      "events": [
+        {
+          "type": "HTTP_TRANSACTION_HTTP2_SEND_REQUEST_HEADERS",
+          "sourceId": 42,
+          "time": "203924653",
+          "epochMs": 1793369456869
+        },
+        {
+          "type": "HTTP_TRANSACTION_HTTP2_SEND_REQUEST_HEADERS",
+          "sourceId": 122,
+          "time": "203927749",
+          "epochMs": 1793369459965
+        }
+      ],
+      "eventTypeCounts": {
+        "HTTP_TRANSACTION_HTTP2_SEND_REQUEST_HEADERS": 2,
+        "HTTP2_SESSION_SEND_HEADERS": 2
+      },
+      "rawLogBytes": 1433210,
+      "phases": [
+        {
+          "name": "installed-first-entry",
+          "start": 1793369455195,
+          "ready": 1793369459944,
+          "requestCount": 1
+        },
+        {
+          "name": "installed-reopen",
+          "start": 1793369459945,
+          "ready": 1793369463424,
+          "requestCount": 1
+        }
+      ]
+    },
+    "method": "Actual signed /Applications/Plasmic.app, Chromium network log in default capture mode; counts use HTTP transaction request headers, excluding duplicate HTTP2 session events",
+    "rawNetworkLogRemoved": true,
+    "debuggingProtectionsUnchanged": true,
+    "freshMcpStdio": {
+      "status": "PASS",
+      "nodePathUnset": true,
+      "buildId": "eab0a5810714c8b4f639f5706050dedd3013457171ee815a9b2bc54f58a1e9cf"
+    },
+    "previewRuntime": {
+      "componentUuid": "tAxAvnjwKhs9",
+      "errors": [],
+      "generation": 1,
+      "status": "ready"
+    },
+    "restoredState": {
+      "ready": true,
+      "version": "0.5.26",
+      "orgId": null,
+      "workspaceId": null,
+      "projectId": "145nN6S5QQBwgjtNUwuiQZ",
+      "context": {
+        "surface": "editor",
+        "ready": true,
+        "projectId": "145nN6S5QQBwgjtNUwuiQZ",
+        "branchId": null,
+        "sessionId": "CSWErdN32NjE",
+        "mode": "edit",
+        "previewKind": null,
+        "canEdit": true,
+        "arenaId": "tAxAvnjwKhs9",
+        "componentUuid": "tAxAvnjwKhs9",
+        "frameUuid": "aBGIMrOVM_98"
+      },
+      "buildId": "eab0a5810714c8b4f639f5706050dedd3013457171ee815a9b2bc54f58a1e9cf",
+      "editorContext": {
+        "projectName": "Admin Templates",
+        "branchId": null,
+        "sessionId": "CSWErdN32NjE",
+        "revision": 113,
+        "changeCounter": 0,
+        "componentUuid": "tAxAvnjwKhs9",
+        "frameUuid": "aBGIMrOVM_98",
+        "selectedElementUuids": [
+          "14jGxsWQs-Gc"
+        ],
+        "mode": "edit",
+        "canEdit": true,
+        "previewContext": null
+      },
+      "running": true,
+      "windowOpen": true
+    }
+  },
+  "acceptanceFixes": [
+    {
+      "problem": "Draft restoration replaced the Site but left the active arena pointing at the previous model, preventing canvas render",
+      "file": "platform/wab/src/wab/client/studio-ctx/StudioCtx.tsx",
+      "solution": "Resolve the current route against the recovered model after loading the draft",
+      "regression": "Restored page content and active arena identity; 32 Studio/draft tests pass"
+    },
+    {
+      "problem": "In-document canvas routing expired fresh identity verification; actual native reopen sent three self requests",
+      "file": "desktop/src/main.cjs",
+      "solution": "Expire completed identity only for main-frame new-document navigation; authentication invalidations unchanged",
+      "regression": "New native assertion failed with 3 versus 1 before the change and passed after; signed App wire counts now 1/1",
+      "nativeWireBefore": [
+        {
+          "name": "installed-first-entry",
+          "start": 1793368685619,
+          "ready": 1793368690182,
+          "requestCount": 1
+        },
+        {
+          "name": "installed-reopen",
+          "start": 1793368698445,
+          "ready": 1793368701589,
+          "requestCount": 3
+        }
+      ]
+    }
+  ],
+  "cleanup": {
+    "isolatedProfilesRemoved": 6,
+    "testChangesNeverSavedToServer": true
+  },
+  "limits": [
+    "No end-to-end latency A/B or fixed-second speedup claim",
+    "Local package only; no production App or library publication"
+  ]
+}

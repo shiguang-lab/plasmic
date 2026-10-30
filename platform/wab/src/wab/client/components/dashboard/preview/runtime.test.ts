@@ -5,7 +5,7 @@ import fs from "fs";
 import path from "path";
 
 vi.mock("@/wab/client/components/studio/studio-bundles", () => ({
-  getCanvasPkgs: async () => "",
+  ensureCanvasRuntime: async () => undefined,
   getLiveFrameClientJs: async () => "",
   getReactWebBundle: async () => "",
   getSortedHostLessPkgs: async () => [],

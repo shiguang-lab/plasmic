@@ -26,6 +26,8 @@ const { UnifiedAuthWindow, AUTH_PATH } = require("./unified-auth-window.cjs");
 const { createSessionRecovery } = require("./session-recovery.cjs");
 const { createDeviceCredentials } = require("./device-credentials.cjs");
 const { DesktopDraftStore, createDraftHandler } = require("./drafts.cjs");
+const { DesktopIdentity } = require("./identity.cjs");
+const { LibraryCache } = require("./library-cache.cjs");
 const { createDashboardPreviews } = require("./dashboard-preview.cjs");
 const { DesktopController } = require("./controller.cjs");
 const { startRpc } = require("./local-rpc.cjs");
@@ -52,6 +54,7 @@ let desktopSession;
 let unifiedAuth;
 let recoverSession;
 let desktopLogin;
+let desktopIdentity;
 let startingDesktop;
 let desktopI18n;
 const { createDesktopI18n } = require("./i18n.cjs");
@@ -190,6 +193,18 @@ async function startDesktop() {
         file: path.join(app.getPath("userData"), "device-session.json"),
       }),
     });
+    desktopIdentity = new DesktopIdentity({
+      session: desktopSession,
+      studioOrigin: config.studioOrigin,
+      prepare: async () => {
+        if (desktopLogin.signingIn || desktopLogin.signingOut) throw new Error("Desktop sign-in is changing; retry the operation");
+        if (!await desktopLogin.restore()) desktopIdentity.expire();
+        if (desktopLogin.signingIn || desktopLogin.signingOut) throw new Error("Desktop sign-in is changing; retry the operation");
+      },
+      fetchIdentity: () => controller.requestStudio("/api/v1/auth/self", undefined, AbortSignal.timeout(10_000)),
+    });
+    desktopLogin.on("session-changed", () => desktopIdentity.invalidate());
+    app.once("will-quit", () => desktopIdentity.dispose());
     const proxy = process.env.HTTPS_PROXY || process.env.HTTP_PROXY;
     if (proxy) {
       await desktopSession.setProxy({
@@ -209,12 +224,21 @@ async function startDesktop() {
         );
       },
     );
+    const libraryCache = new LibraryCache({
+      directory: path.join(app.getPath("userData"), "library-cache"),
+      studioOrigin: config.studioOrigin,
+      buildId: manifest.build.rendererHash,
+      identity: desktopIdentity,
+      remoteFetch: fetchRemote,
+    });
+    desktopLogin.on("session-changed", () => {
+      if (desktopLogin.signingOut) void libraryCache.clear().catch(error => console.warn("Cannot clear library cache:", error.message));
+    });
     desktopSession.protocol.handle(
       "https",
       createAssetHandler({
         root,
         ...config,
-        localCanvasLibraries: manifest.localCanvasLibraries,
         bridgePath: path.join(__dirname, "editor-bridge.js"),
         authPagePath: path.join(__dirname, "unified-login.html"),
         updateUiPath: path.join(__dirname, "update-ui.js"),
@@ -231,39 +255,44 @@ async function startDesktop() {
             ),
           )
           .join("\n"),
-        remoteFetch: async (request) => {
-          const url = new URL(request.url);
-          const api =
-            url.origin === config.studioOrigin &&
-            url.pathname.startsWith("/api/v1/");
-          const logout =
-            url.origin === config.studioOrigin &&
-            url.pathname === "/api/auth/logout" &&
-            request.method === "POST";
-          if (api || logout) {
-            try {
-              await desktopLogin.restore();
-            } catch (error) {
-              console.warn("Cannot restore desktop session:", error.message);
-            }
-          }
-          const retry = api ? request.clone() : undefined;
-          const response = await forwardRemoteRequest(desktopSession, request);
-          if (logout && response.ok) {
-            await desktopLogin.signOut().catch((error) => {
-              console.warn(
-                "Cannot clean up revoked device tokens:",
-                error.message,
-              );
-            });
-          }
-          if (await recoverSession(response, request.url)) {
-            return forwardRemoteRequest(desktopSession, retry);
-          }
-          return response;
-        },
+        remoteFetch: (request) => libraryCache.fetch(request),
       }),
     );
+    async function fetchRemote(request) {
+      const url = new URL(request.url);
+      const api =
+        url.origin === config.studioOrigin &&
+        url.pathname.startsWith("/api/v1/");
+      const logout =
+        url.origin === config.studioOrigin &&
+        url.pathname === "/api/auth/logout" &&
+        request.method === "POST";
+      if (logout) {
+        await libraryCache.clear().catch(error => console.warn("Cannot clear library cache:", error.message));
+      }
+      if (api || logout) {
+        try {
+          await desktopLogin.restore();
+        } catch (error) {
+          console.warn("Cannot restore desktop session:", error.message);
+        }
+      }
+      const retry = api ? request.clone() : undefined;
+      const response = await forwardRemoteRequest(desktopSession, request);
+      if (api && response.status === 401) desktopIdentity.expire();
+      if (logout && response.ok) {
+        await desktopLogin.signOut().catch((error) => {
+          console.warn(
+            "Cannot clean up revoked device tokens:",
+            error.message,
+          );
+        });
+      }
+      if (await recoverSession(response, request.url)) {
+        return forwardRemoteRequest(desktopSession, retry);
+      }
+      return response;
+    }
   }
   mainWindow = new BrowserWindow({
     width: 1600,
@@ -366,6 +395,9 @@ async function startDesktop() {
     }
   });
   protectWindow(mainWindow);
+  mainWindow.webContents.on("did-start-navigation", (_event, _url, inPlace, isMainFrame) => {
+    if (isMainFrame && !inPlace) desktopIdentity.expire();
+  });
   if (!controller) {
     const integrations = new McpIntegrations({
       userData: app.getPath("userData"),
@@ -442,8 +474,9 @@ async function startDesktop() {
       origin: config.studioOrigin,
       trustedSender: trustedAuthSender,
       projectId: (url) => workspace.projectId(url),
-      currentUser: async () => (await controller.requestStudio("/api/v1/auth/self", undefined, AbortSignal.timeout(10_000))).user?.id,
+      currentUser: async () => (await desktopIdentity.read()).user?.id,
     });
+    desktopIdentity.on("changed", () => drafts.invalidate());
     ipcMain.handle("desktop:drafts", (event, command, input) => drafts.command(event, command, input));
     const dashboardPreviews = createDashboardPreviews({
       session: desktopSession,
@@ -454,7 +487,7 @@ async function startDesktop() {
     mainWindow.webContents.on("did-start-navigation", (_event, _url, inPlace, isMainFrame) => {
       if (isMainFrame && !inPlace) {drafts.reset();}
     });
-    presentation = createIsland({ getWindow: () => mainWindow, controller, isQuitting: () => quitting,
+    presentation = createIsland({ getWindow: () => mainWindow, controller, identity: desktopIdentity, isQuitting: () => quitting,
       i18n: desktopI18n, appearance: desktopAppearance, config,
       signIn: () => unifiedAuth.begin(),
       changed: (mode) => {

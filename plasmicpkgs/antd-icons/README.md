@@ -3,7 +3,9 @@
 The independent hostless library registers the official `@ant-design/icons`
 6.3.4 exports. Every icon has its own component identity and official import;
 there is no generic Icon/name wrapper. Registration provides Outlined, Filled
-and Two Tone sections, thumbnails, spin, rotate and twoToneColor props.
+and Two Tone sections, spin, rotate and twoToneColor props. Studio previews the
+registered SVG components directly, without storing a second set of SVG paths
+in thumbnails. Explicit `thumbnailUrl` metadata still overrides direct previews.
 
 The registrations are loaded by the `antd-icons` canvas package only for projects
 that install the library. They are not part of the default host or Ant Design 6
@@ -11,7 +13,7 @@ registrations. The standard Component Store install card, dependency import,
 Installed library section, component cards and slot editing handle the UI.
 The top-level Icons section keeps displaying project SVG assets.
 
-After changing the icon dependency, regenerate thumbnails from the repo root:
+After changing the icon dependency, regenerate the name/theme inventory from the repo root:
 
 ```sh
 node scripts/antd-icons/generate.cjs

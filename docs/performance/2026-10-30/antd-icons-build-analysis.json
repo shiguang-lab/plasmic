@@ -1,0 +1,23 @@
+{
+  "scope": "In-memory diagnostic builds, no repository source edits or production artifacts; all 848 official icons and registration metadata retained. Externalized thumbnails referenced by hypothetical hash URLs; assets not uploaded. Not an App performance A/B.",
+  "icons": 848,
+  "original": {
+    "rawBytes": 1798149,
+    "gzipBytes": 382824
+  },
+  "externalThumbnails": {
+    "rawBytes": 1133479,
+    "gzipBytes": 245938
+  },
+  "catalog": {
+    "originalBytes": 769191,
+    "externalReferencesBytes": 91193,
+    "svgTextBytes": 709382
+  },
+  "measuredAt": "2026-10-30",
+  "notes": [
+    "Two diagnostic esbuild builds use the same production define/minification and keep all 848 icons; this is not an installed App benchmark.",
+    "Hypothetical short asset URLs used in the diagnostic are not uploaded or wired into production. Real publication must resolve absolute asset origins, cached raw SVG retrieval and theme-aware previews.",
+    "The model JSON size and registration JavaScript size are different artifacts. Do not add their gzip/raw values together."
+  ]
+}

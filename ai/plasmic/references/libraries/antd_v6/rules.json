@@ -418,7 +418,8 @@
       "registrations": [
         "plasmic-antd6-table",
         "plasmic-antd6-table-column",
-        "plasmic-antd6-table-column-group"
+        "plasmic-antd6-table-column-group",
+        "plasmic-antd6-table-expand-column"
       ],
       "decisions": {
         "plasmic-antd6-table": [

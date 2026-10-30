@@ -1,0 +1,233 @@
+{
+  "date": "2026-10-30",
+  "status": "PASS",
+  "project": {
+    "id": "tk89W1Akg2HjAjyHAYEro7",
+    "name": "客服平台 · GP评论查询",
+    "revision": 158
+  },
+  "environment": {
+    "electron": "44.5.1",
+    "platform": "darwin-arm64",
+    "isolatedProfile": true,
+    "profileAndLocalDraftsRemoved": true,
+    "sharedWorkingTree": true,
+    "afterInstalled": false
+  },
+  "before": {
+    "build": {
+      "kind": "local",
+      "revision": "e3a6c66342e3bd621a8d669de65cf1b6972ea5c3",
+      "dirty": true,
+      "builtAt": "2026-10-30T12:12:35.436Z",
+      "sourceHash": "d7149f65dc1ec836d639c4524f9163fc109593e6cbab6b279276390a32085050",
+      "rendererHash": "0a2d0a00d497ecf03328aa33c264fa5757d482b7752a6429c7057f2dc66e9d27",
+      "desktopHash": "14810dbfeac758d24c319ff6b7d3b266cbe07d825f1442fd610a0affac9a85c7"
+    },
+    "frames": [
+      {
+        "role": "shell",
+        "runtimeReady": false,
+        "componentCount": 0,
+        "runtimeSources": []
+      },
+      {
+        "role": "host",
+        "runtimeReady": true,
+        "componentCount": 0,
+        "runtimeSources": [
+          {
+            "bytes": 2284617,
+            "standalone": true
+          }
+        ]
+      },
+      {
+        "role": "studio",
+        "runtimeReady": false,
+        "componentCount": 0,
+        "runtimeSources": []
+      },
+      {
+        "role": "registration",
+        "runtimeReady": true,
+        "componentCount": 977,
+        "runtimeSources": [
+          {
+            "bytes": 3040287,
+            "standalone": false
+          }
+        ]
+      },
+      {
+        "role": "canvas",
+        "runtimeReady": true,
+        "componentCount": 977,
+        "runtimeSources": [
+          {
+            "bytes": 2284617,
+            "standalone": true
+          },
+          {
+            "bytes": 3040287,
+            "standalone": false
+          }
+        ]
+      },
+      {
+        "role": "preview",
+        "runtimeReady": true,
+        "componentCount": 977,
+        "runtimeSources": [
+          {
+            "bytes": 3040287,
+            "standalone": false
+          }
+        ]
+      }
+    ],
+    "errors": [],
+    "blockedProjectWrites": 0
+  },
+  "after": {
+    "build": {
+      "kind": "local",
+      "revision": "e3a6c66342e3bd621a8d669de65cf1b6972ea5c3",
+      "dirty": true,
+      "builtAt": "2026-10-30T12:41:31.586Z",
+      "sourceHash": "67ad89644949cddd38f84abfda1ee90eeccbda431d08c0117e6727e187682cfa",
+      "rendererHash": "1af3f0de5894438c28a2abb7c4cc1fd6bbefb605a58f18a8a60afdb648891fc2",
+      "desktopHash": "14810dbfeac758d24c319ff6b7d3b266cbe07d825f1442fd610a0affac9a85c7"
+    },
+    "frames": [
+      {
+        "role": "shell",
+        "runtimeReady": false,
+        "componentCount": 0,
+        "runtimeSources": []
+      },
+      {
+        "role": "host",
+        "runtimeReady": true,
+        "componentCount": 0,
+        "runtimeSources": [
+          {
+            "bytes": 2284617,
+            "standalone": true
+          }
+        ]
+      },
+      {
+        "role": "studio",
+        "runtimeReady": false,
+        "componentCount": 0,
+        "runtimeSources": []
+      },
+      {
+        "role": "registration",
+        "runtimeReady": true,
+        "componentCount": 977,
+        "runtimeSources": [
+          {
+            "bytes": 2284617,
+            "standalone": true
+          }
+        ]
+      },
+      {
+        "role": "canvas",
+        "runtimeReady": true,
+        "componentCount": 977,
+        "runtimeSources": [
+          {
+            "bytes": 2284617,
+            "standalone": true
+          }
+        ]
+      },
+      {
+        "role": "preview",
+        "runtimeReady": true,
+        "componentCount": 977,
+        "runtimeSources": [
+          {
+            "bytes": 2284617,
+            "standalone": true
+          }
+        ]
+      }
+    ],
+    "errors": [],
+    "blockedProjectWrites": 0
+  },
+  "comparison": {
+    "measuredCanvasRuntimeSourceOccurrences": {
+      "before": 2,
+      "after": 1
+    },
+    "avoidedRuntimeSourceBytesPerMeasuredCanvas": 2284617,
+    "canvasPreviewAllJsBytes": {
+      "before": 2859697,
+      "after": 2831163
+    },
+    "note": "A source entry may also contain a library registration. The avoided byte count refers only to the identical shared runtime body, not the full registration script."
+  },
+  "functional": {
+    "status": "PASS",
+    "input": true,
+    "reset": true,
+    "previewRefresh": true,
+    "runtime": {
+      "componentUuid": "IhJkTFNrZlqm",
+      "errors": [],
+      "generation": 1,
+      "status": "ready"
+    },
+    "revision": 158,
+    "changeCounter": 0
+  },
+  "verification": {
+    "vitest": {
+      "files": 9,
+      "tests": 77,
+      "status": "PASS"
+    },
+    "typecheck": "PASS",
+    "productionStudioBuild": "PASS",
+    "desktopAssetPreparation": "PASS",
+    "eslint": {
+      "status": "Existing failures",
+      "errors": 8,
+      "warnings": 8,
+      "newErrors": 0,
+      "baselineRendererErrors": 8
+    },
+    "diffCheck": "PASS",
+    "reverificationTouchedFilesEslint": {
+      "status": "PASS",
+      "errors": 0,
+      "warnings": 0
+    }
+  },
+  "limits": [
+    "No end-to-end latency A/B or CPU/memory profiling was performed.",
+    "This changes in-process initialization and source composition, not persistent resource caching or component library version selection.",
+    "The installed App and production component libraries were not replaced or published."
+  ],
+  "reverification": {
+    "status": "PASS",
+    "runtimeDownloadTimeoutMs": 180000,
+    "regressions": [
+      "Stalled response headers time out, abort the request and permit a shared retry.",
+      "Stalled response body times out, aborts the request and permits a shared retry."
+    ],
+    "reproducedBeforeFix": {
+      "failed": 2
+    },
+    "afterFix": {
+      "passed": 2
+    },
+    "profileAndLocalDraftsRemoved": true,
+    "installedAppChanged": false
+  }
+}

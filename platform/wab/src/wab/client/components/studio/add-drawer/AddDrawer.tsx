@@ -1,4 +1,5 @@
 import { getUiLocale } from "@/wab/client/i18n";
+import { isAntDesignIconItem } from "@/wab/client/components/studio/add-drawer/IconComponentPreview";
 import { translate } from "@/wab/client/i18n/locales";
 import { isMixedArena } from "@/wab/shared/Arenas";
 /** @format */
@@ -446,14 +447,12 @@ export function createAddTplCodeComponent(
   studioCtx: StudioCtx,
   component: CodeComponent,
 ): AddTplItem {
-  const thumbUrl =
-    studioCtx.getCodeComponentMeta(component)?.thumbnailUrl ??
-    component.codeComponentMeta.thumbnailUrl;
+  const thumbUrl = (studioCtx.getCodeComponentMeta(component) ?? component.codeComponentMeta).thumbnailUrl;
+  const item = createAddTplComponent(component);
   return {
-    ...createAddTplComponent(component),
+    ...item,
     previewImageUrl: thumbUrl ?? undefined,
-    // If we are showing images, we want to show the compact version of the item
-    isCompact: !!thumbUrl,
+    isCompact: !!thumbUrl || isAntDesignIconItem(item),
   };
 }
 

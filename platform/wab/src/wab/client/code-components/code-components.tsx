@@ -7,7 +7,7 @@ import {
   getSortedHostLessPkgs,
   getVersionForCanvasPackages,
 } from "@/wab/client/components/studio/studio-bundles";
-import { scriptExec } from "@/wab/client/dom-utils";
+import { scriptExec } from "@/wab/client/script-exec";
 import { getUiLocale } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { translate } from "@/wab/client/i18n/locales";
@@ -325,6 +325,7 @@ export async function maybeConvertToHostLessProject(studioCtx: StudioCtx) {
 
       // First, install the deps
       for (const [_depName, depModule] of await getSortedHostLessPkgs(
+        window.parent,
         pkg.deps,
         getVersionForCanvasPackages(window.parent),
       )) {
@@ -356,6 +357,7 @@ export async function maybeConvertToHostLessProject(studioCtx: StudioCtx) {
       scriptExec(
         window.parent,
         await getHostLessPkg(
+          window.parent,
           pkg.name,
           getVersionForCanvasPackages(window.parent),
         ),

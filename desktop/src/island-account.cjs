@@ -1,6 +1,7 @@
 // Account data is read outside MCP dispatch, so refreshes never expand the island.
 class IslandAccount {
-  constructor(request, changed, now = Date.now) {
+  constructor(readIdentity, request, changed, now = Date.now) {
+    this.readIdentity = readIdentity;
     this.request = request;
     this.changed = changed;
     this.now = now;
@@ -22,13 +23,13 @@ class IslandAccount {
     this.value = { status };
     this.changed();
   }
-  refresh(workspaceId = null) {
+  refresh(workspaceId = null, force = false) {
     if (workspaceId !== this.workspaceId) {
       this.workspaceId = workspaceId;
       this.invalidate(false);
     }
     if (this.pending) return this.pending;
-    if (this.now() < this.until) return Promise.resolve();
+    if (!force && this.now() < this.until) return Promise.resolve();
     const epoch = this.epoch;
     this.until = this.now() + 30_000;
     const commit = value => {
@@ -38,7 +39,7 @@ class IslandAccount {
     };
     const load = async () => {
       try {
-        const self = await this.request("/api/v1/auth/self");
+        const self = await this.readIdentity();
         if (epoch !== this.epoch) return;
         if (!self.user?.id) { commit({ status: "signed-out" }); return; }
         const user = { id: self.user.id, email: self.user.email || "",
