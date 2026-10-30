@@ -10,7 +10,7 @@ Library: [Overseas](../index.md).
 **Hard constraints** (always delivered with any section):
 
 - Use only four columns (`colSpan=6`) or three columns (`colSpan=8`); choose three columns only for a visual draft with multiple aligned three-column rows. Any other value needs a requirement-document [source exception](../../../design/component-policy.md#protected-configuration).
-- `minRows=1` and runtime initial `collapsed=true`; Items inherit the column span except a recorded [measured or source span exception](#layout-and-state).
+- `minRows=1` and initially collapsed at runtime; use the verified initial-state mapping or an event-backed controlled state. Never freeze runtime `collapsed` to a literal to specify an initial state. Items inherit the column span except a recorded [measured or source span exception](#layout-and-state).
 - Every filter field is a real SearchForm.Item, declared in `components` and owned by the SearchForm `children` Slot; never drop or merge fields to fill a row.
 - Query and submission stay separate: submitted business fields use Form. SearchForm owns its card surface; never wrap it in a Card. Inside the content root Flex (gap 16) set `marginBottom` 0.
 
@@ -57,7 +57,7 @@ Choose before generation, in this order, and use the same basis for later adjust
 
 Record the selected `props.colSpan` and its source in `components` before generation; three columns is a supported regular mode and needs no fabricated requirement exception. The static script checks the mode and saved value; it cannot prove that the image really shows multiple three-column rows, so keep the image evidence for independent review. Other native grid values are reserved for explicit requirement exceptions, never a model's own choice.
 
-Both modes use `minRows=1` and runtime initial `collapsed=true`; Items do not override span and inherit the selected column width. Three columns does not mean initially expanded or several permanent rows; those initial states need an explicit requirement. Actions use the remaining grid of the last row and wrap when it is full. Beyond minRows the form collapses and always keeps at least the first field. Small screens keep the component's responsive grid xs=24, sm=12, md=selected span.
+Both modes use `minRows=1` and start collapsed at runtime under the initial-state contract below; Items do not override span and inherit the selected column width. Three columns does not mean initially expanded or several permanent rows; those initial states need an explicit requirement. Actions use the remaining grid of the last row and wrap when it is full. Beyond minRows the form collapses and always keeps at least the first field. Small screens keep the component's responsive grid xs=24, sm=12, md=selected span.
 
 `Item.span` takes precedence over `Form.colSpan`, so check every field's effective span and never mix the three- and four-column modes. A wider field has two accepted bases, declared before generation as the Item's `props.span` plus `overrides.span`:
 
@@ -78,11 +78,15 @@ Initial-value precedence is Item.initialValue > Form.initialValues > Item.clearV
 
 `onSearch(values)` returns all registered fields after validation; `onReset(values)` returns the reset values; `onValuesChange(values)` provides the current draft (including collapsed fields) and backs the readonly `values` state. Querying does not change applied data by itself: the page interaction assigns the submitted values to appliedFilters and sets page to 1. The reset event performs the same applied-state update. `collapsed` is writable state; ref actions are `submit()`, `reset()` and `setFieldsValue(values)`.
 
+Read MCP's live `collapsed` registration before setting an initial value. The initial-state control declares `editOnly:true` and `uncontrolledProp:"defaultCollapsed"`; authored initial values become native `defaultCollapsed` at runtime, while the writable `collapsed` state remains available for external control. The native uncontrolled default is `defaultCollapsed=true`. A fixed runtime `collapsed:true` or `collapsed:false` prevents the built-in toggle from changing the displayed state. Controlled use must update the owning state through `onCollapsedChange(value)`.
+
+An installed library can still supply a controlled `collapsed:true` default even after the instance override is removed. If its live contract lacks the initial-state mapping, use an explicit page-owned boolean initialized to true, bind `collapsed` to that state and assign the event's `value` in `onCollapsedChange`. Verify the actual Preview toggle; omission alone does not prove uncontrolled behavior, and a local package build does not update an installed library contract. Static policy checks inspect literal initial values; for a state binding, inspect the state's initial value and verify both toggle directions at runtime. Registration metadata and Preview determine whether a saved literal is an initial value or a frozen controlled prop.
+
 ### Page generation
 
 Every query field has a visible `label` or real `labelContent`, including keyword inputs. A placeholder is an input hint; it does not replace the label, and the label is never cleared to give the input more room. Derive the label from the business field and re-measure the form's labelWidth. A deliberately unlabeled special search entry needs its own source-reviewed Item declaration with `props.label:""` and the source; a placeholder-only reference image is not that exception.
 
-A standard list keeps `minRows=1`. Only a requirement that explicitly asks for an initially expanded form with a collapse button allows `collapsed=false`, through a source exception; never expand initially by raising minRows. Five fields at span=6 cover two rows: minRows=1 shows expand/collapse, while minRows=2 makes both rows permanent with no toggle; declare the latter in the plan only when two permanent rows are explicitly approved. The editor's forced full display and the runtime collapse setting are accepted separately.
+A standard list keeps `minRows=1`. Only a requirement that explicitly asks for an initially expanded form with a collapse button allows an initial false value, through a source exception and the verified `defaultCollapsed` mapping; never expand initially by raising minRows. Five fields at span=6 cover two rows: minRows=1 shows expand/collapse, while minRows=2 makes both rows permanent with no toggle; declare the latter in the plan only when two permanent rows are explicitly approved. The editor's forced full display and the runtime collapse setting are accepted separately.
 
 In the admin four-column composition (colSpan=6, minRows=1) with only three ordinary fields, query/reset occupy the fourth cell of the same row and no extra expand control appears. Check each Item's actual span; wider controls such as date ranges also inherit unless a recorded span exception applies.
 
@@ -126,6 +130,8 @@ Custom label (labelContent) and help are real editable Slots. Custom label overr
 ### Delivery and verification
 
 When the editor forces expansion it shows "收起", an upward indicator and `aria-expanded=true`; Preview uses the actual collapsed state. Check control start positions for short and long labels, complete single-line text, the native colon-to-control spacing and both directions of expand/collapse; clearing labelWidth restores content width without clipping or eliding labels.
+
+Verify omitted and explicit initial values remain interactive, and controlled state follows its owner. After save/reopen, check that initial props export through `defaultCollapsed` rather than a fixed controlled value; click expand then collapse and check both the button/ARIA state and actual hidden fields. A passing uncontrolled component test alone does not establish that Studio's registered initial-value path works.
 
 Check real Item/control Slot ownership, unique field keys and span overrides in the editor, Preview and saved/reopened readback, and verify initial/reset/clear values, validation and collapsed fields.
 

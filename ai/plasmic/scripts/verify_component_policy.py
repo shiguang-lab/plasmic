@@ -268,6 +268,11 @@ def policy_errors(spec, values, inherited_span=6):
             continue
         # An unset prop takes the component's native default, which may differ from the baseline.
         actual = at(values, prop, NATIVE_DEFAULTS.get(key, {}).get(prop, default))
+        if key == 'plasmicoverseassearchform' and prop == 'collapsed' and 'collapsed' not in values:
+            # Studio's edit-only initial value exports through its native uncontrolled prop.
+            actual = at(values, 'defaultCollapsed', default)
+        if key == 'plasmicoverseassearchform' and prop == 'collapsed' and isinstance(actual, str) and '{{' in actual:
+            continue  # State-owned collapse requires initial-state and toggle verification in Preview.
         if key == 'plasmicantd6table':
             if isinstance(actual, str) and '{{' in actual:
                 continue  # Bound paging is prototype-owned; its page-size cases cover the values.

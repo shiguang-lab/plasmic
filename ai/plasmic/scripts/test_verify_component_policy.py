@@ -126,6 +126,20 @@ class PolicyTests(unittest.TestCase):
                 'overrides': {'collapsed': {'reason': 'Explicit initial state', 'evidence': evidence}}}
         self.assertEqual([e['property'] for e in policy_errors(spec, spec['props'])], ['minRows'])
 
+    def test_search_form_initial_state_uses_exported_uncontrolled_prop(self):
+        spec = {'component': 'plasmic-overseas-search-form'}
+        self.assertEqual(policy_errors(spec, {'defaultCollapsed': True}), [])
+        self.assertEqual([e['property'] for e in policy_errors(spec, {'defaultCollapsed': False})], ['collapsed'])
+        evidence = self.evidence('筛选区默认展开。')
+        spec.update(props={'collapsed': False}, overrides={
+            'collapsed': {'reason': 'Explicit initial state', 'evidence': evidence}})
+        self.assertEqual(policy_errors(spec, {'defaultCollapsed': False}), [])
+
+    def test_search_form_bound_collapse_defers_to_runtime_without_hiding_literal_overrides(self):
+        spec = {'component': 'plasmic-overseas-search-form'}
+        self.assertEqual(policy_errors(spec, {'collapsed': '{{ $state.searchCollapsed }}'}), [])
+        self.assertEqual([e['property'] for e in policy_errors(spec, {'collapsed': '{{ false }}'})], ['collapsed'])
+
     def test_action_group_preserves_native_trigger_choices(self):
         spec = {'component': 'plasmic-react-ui-action-group'}
         for values in ({}, {'dropdownProps': {'trigger': ['click']}}, {'dropdownProps': {'trigger': ['hover']}}):

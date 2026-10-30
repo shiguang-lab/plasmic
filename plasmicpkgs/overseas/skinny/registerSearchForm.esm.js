@@ -382,8 +382,10 @@ const searchFormMeta = {
     disabled: "boolean",
     collapsed: {
       type: "boolean",
-      defaultValue: true,
-      description: "Collapse at runtime; the editor displays every field for editing."
+      editOnly: true,
+      uncontrolledProp: "defaultCollapsed",
+      defaultValueHint: true,
+      description: "Initial collapsed state. Preview/runtime initialize defaultCollapsed and let the expand/collapse control update it. Bind the writable collapsed state only when controlling it externally. The editor displays every field for editing."
     },
     onCollapsedChange: {
       type: "eventHandler",

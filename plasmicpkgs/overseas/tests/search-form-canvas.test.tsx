@@ -10,6 +10,7 @@ import { Input } from "antd";
 import React from "react";
 import { afterEach, beforeAll, expect, test, vi } from "vitest";
 import { SearchForm, SearchFormItem } from "../src/SearchForm";
+import { searchFormMeta } from "../src/registerSearchForm";
 afterEach(cleanup);
 beforeAll(() => {
   window.matchMedia = vi.fn().mockImplementation(() => ({
@@ -25,6 +26,42 @@ const fields = ["市场", "场景", "类型", "状态", "关键字"].map((label,
     <Input aria-label={label} />
   </SearchFormItem>
 ));
+test.each([true, false])("registered initial collapse value stays interactive (%s)", async (initial) => {
+  const meta = searchFormMeta.props.collapsed;
+  if (typeof meta !== "object" || !("uncontrolledProp" in meta) || !meta.uncontrolledProp) {
+    throw new Error("Initial collapsed must map to an uncontrolled prop");
+  }
+  const onCollapsedChange = vi.fn();
+  const { container, rerender } = render(
+    <SearchForm {...{ [meta.uncontrolledProp]: initial }} onCollapsedChange={onCollapsedChange}>
+      {fields}
+    </SearchForm>,
+  );
+  expect(container.querySelectorAll('[style*="display: none"]')).toHaveLength(initial ? 2 : 0);
+  await act(async () => fireEvent.click(screen.getByText(initial ? "展开" : "收起")));
+  expect(container.querySelectorAll('[style*="display: none"]')).toHaveLength(initial ? 0 : 2);
+  expect(onCollapsedChange).toHaveBeenLastCalledWith(!initial);
+  rerender(
+    <SearchForm {...{ [meta.uncontrolledProp]: initial }} onCollapsedChange={onCollapsedChange}>
+      {fields}
+    </SearchForm>,
+  );
+  expect(screen.getByText(initial ? "收起" : "展开").getAttribute("aria-expanded")).toBe(String(initial));
+  await act(async () => fireEvent.click(screen.getByText(initial ? "收起" : "展开")));
+  expect(onCollapsedChange).toHaveBeenLastCalledWith(initial);
+});
+
+test("controlled collapse follows the owner and reports requested changes", async () => {
+  const onCollapsedChange = vi.fn();
+  const { rerender } = render(<SearchForm collapsed onCollapsedChange={onCollapsedChange}>{fields}</SearchForm>);
+  await act(async () => fireEvent.click(screen.getByText("展开")));
+  expect(onCollapsedChange).toHaveBeenLastCalledWith(false);
+  expect(screen.getByText("展开").getAttribute("aria-expanded")).toBe("false");
+  rerender(<SearchForm collapsed={false} onCollapsedChange={onCollapsedChange}>{fields}</SearchForm>);
+  expect(screen.getByText("收起").getAttribute("aria-expanded")).toBe("true");
+  await act(async () => fireEvent.click(screen.getByText("收起")));
+  expect(onCollapsedChange).toHaveBeenLastCalledWith(true);
+});
 test("label width follows content unless configured and returns to content width when cleared", () => {
   const { container, rerender } = render(
     <SearchForm colSpan={6}>{fields}</SearchForm>,

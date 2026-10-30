@@ -212,6 +212,8 @@ function getColumns(children, bodyCell, headerCell, isEditing) {
       {
         ...column,
         key: child.key ?? column.key,
+        // Preview initial sorting edits without controlling sorting at runtime.
+        ...isEditing && column.sortOrder === void 0 ? { sortOrder: column.defaultSortOrder ?? null } : {},
         onHeaderCell,
         onCell: (row, index) => {
           const cellProps = column.onCell?.(row, index);
@@ -474,6 +476,7 @@ function registerTable(loader) {
       onChange: {
         type: "eventHandler",
         displayName: "On change",
+        description: "Receives pagination, filters, sorter and extra. Sorter contains field, columnKey and order (ascend/descend, or undefined when cleared); multiple sorting can return an array. extra.action is paginate, sort or filter. With Column.sorter=true, use these values to request server-sorted data; rows are not reordered locally.",
         argTypes: [
           { name: "pagination", type: "object" },
           { name: "filters", type: "object" },
@@ -614,6 +617,36 @@ function registerTable(loader) {
           { value: "center", label: "Center" }
         ],
         defaultValueHint: "left"
+      },
+      sorter: {
+        type: "exprEditor",
+        displayName: "Sorter",
+        description: "Native column sorter. For local sorting, use a comparator such as (a, b) => a.amount - b.amount or (a, b) => a.name.localeCompare(b.name). Use true for server sorting through Table On change; true alone does not reorder rows. Use false to disable. Multiple sorting accepts { compare: (a, b) => a.amount - b.amount, multiple: 1 }."
+      },
+      defaultSortOrder: {
+        type: "choice",
+        displayName: "Default sort order",
+        options: [
+          { value: "ascend", label: "Ascending" },
+          { value: "descend", label: "Descending" }
+        ],
+        description: "Initial sorting direction. Leave unset for no initial sorting. Requires Sorter; users can change the direction by clicking the header in Preview."
+      },
+      sortOrder: {
+        type: "choice",
+        displayName: "Sort order",
+        options: [
+          { value: "ascend", label: "Ascending" },
+          { value: "descend", label: "Descending" }
+        ],
+        advanced: true,
+        description: "Controlled sorting direction. Bind to state updated by Table On change; use null to clear sorting. Leave unset to let header clicks manage sorting. For single-column sorting, control only one column."
+      },
+      sortDirections: {
+        type: "exprEditor",
+        displayName: "Sort directions",
+        advanced: true,
+        description: 'Header click order. Defaults to ["ascend", "descend"], followed by clearing sorting. Repeat the first direction at the end to prevent clearing.'
       },
       fixed: {
         type: "choice",

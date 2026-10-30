@@ -36,6 +36,10 @@ test("Overseas registers an editable field tree, slots, events and actions", () 
   assert.equal(form.meta.props.colSpan.defaultValue, 6);
   assert.equal(form.meta.props.labelWidth.type, "number");
   assert.equal(form.meta.props.labelWidth.defaultValue, undefined);
+  assert.equal(form.meta.props.collapsed.editOnly, true);
+  assert.equal(form.meta.props.collapsed.uncontrolledProp, "defaultCollapsed");
+  assert.equal(form.meta.props.collapsed.defaultValue, undefined);
+  assert.equal(form.meta.props.collapsed.defaultValueHint, true);
   for (const prop of [
     "name",
     "label",
