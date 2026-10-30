@@ -1,0 +1,7 @@
+{
+  "en": "- Add Table header sorting configuration.\n- Fix SearchForm initial collapse configuration blocking Preview expansion.",
+  "zh-CN": "- 支持表格表头排序配置。\n- 修复查询表单初始收起配置导致预览无法展开。",
+  "zh-TW": "- 支援表格表頭排序設定。\n- 修正查詢表單初始收合設定導致預覽無法展開。",
+  "ja": "- テーブルヘッダーの並べ替え設定を追加。\n- 検索フォームをプレビューで展開できない問題を修正。",
+  "ko": "- 테이블 헤더 정렬 설정을 추가했습니다.\n- 미리보기에서 검색 폼을 펼칠 수 없는 문제를 수정했습니다."
+}
