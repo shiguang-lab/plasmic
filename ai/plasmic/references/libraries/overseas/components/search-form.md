@@ -2,6 +2,8 @@
 
 Library: [Overseas](../index.md).
 
+Initial collapse configuration must remain interactive in Preview after saving and reopening.
+
 | Registered component | Registration key |
 | --- | --- |
 | SearchForm | `plasmic-overseas-search-form` |
