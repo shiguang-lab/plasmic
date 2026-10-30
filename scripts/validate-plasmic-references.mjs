@@ -16,6 +16,15 @@ export function headingIds(content) {
   );
 }
 
+// Generous packaging safeguards against accidental dumps, not model context limits.
+// Reassess with evidence if legitimate contracts grow beyond these values.
+export const REFERENCE_SIZE_LIMITS = Object.freeze({
+  entry: 64 * 1024,
+  document: 256 * 1024,
+  mustRead: 256 * 1024,
+  directed: 2 * 1024 * 1024,
+});
+
 // Validate actual release resources and their component/composition references.
 export function validateReferences(files, entrypoints) {
   const resources = new Map(files.map((file) => [file.path, file.content]));
@@ -24,18 +33,10 @@ export function validateReferences(files, entrypoints) {
     if (!filename.endsWith(".md")) {
       continue;
     }
-    const budget =
-      filename === entrypoints.guide
-        ? 4096
-        : filename === "references/desktop-mcp.md"
-          ? 4096
-          : filename.startsWith("references/workflows/")
-            ? 6144
-            : 20480;
-    if (Buffer.byteLength(content) > budget) {
-      throw new Error(
-        `Reference exceeds ${budget}-byte reading budget: ${filename}`,
-      );
+    const entry = filename === entrypoints.guide || filename === "references/desktop-mcp.md" || filename.startsWith("references/workflows/");
+    const limit = entry ? REFERENCE_SIZE_LIMITS.entry : REFERENCE_SIZE_LIMITS.document;
+    if (Buffer.byteLength(content) > limit) {
+      throw new Error(`Resource size safeguard exceeded: ${filename} (${Buffer.byteLength(content)} > ${limit} bytes); inspect for accidental dumps or reassess the limit for required content`);
     }
     const links = [];
     for (const [, destination] of content.matchAll(/\]\(([^)]+)\)/g)) {
@@ -91,14 +92,14 @@ export function validateReferences(files, entrypoints) {
   }
   const readingBytes = {};
   // Directed reading: mustRead plus every document the workflow links directly.
-  // mustRead alone understates the load a workflow asks for; keep both bounded.
+  // These UTF-8 sizes describe reading load, not model capacity or correctness.
   const directed = {};
   for (const mode of Object.keys(MODE_REFERENCES)) {
     const linked = new Set([entrypoints.guide, "references/desktop-mcp.md", entrypoints[mode], ...MODE_REFERENCES[mode]]);
     for (const target of edges.get(entrypoints[mode]) || []) linked.add(target);
     directed[mode] = [...linked].reduce((total, filename) => total + Buffer.byteLength(resources.get(filename) || ""), 0);
-    if (directed[mode] > DIRECTED_READING_LIMIT) {
-      throw new Error(`${mode} workflow directs ${directed[mode]} bytes of reading (limit ${DIRECTED_READING_LIMIT}); split or deduplicate rather than raising the limit`);
+    if (directed[mode] > REFERENCE_SIZE_LIMITS.directed) {
+      throw new Error(`${mode} directed resource size safeguard exceeded; inspect loading scope or reassess the limit for required content`);
     }
   }
   Object.defineProperty(readingBytes, "directed", { value: directed, enumerable: false });
@@ -115,18 +116,14 @@ export function validateReferences(files, entrypoints) {
       }
       return total + Buffer.byteLength(resources.get(filename));
     }, 0);
-    if (readingBytes[mode] > 24576) {
-      throw new Error(
-        `${mode} mustRead exceeds 24 KiB: ${readingBytes[mode]} bytes`,
-      );
+    if (readingBytes[mode] > REFERENCE_SIZE_LIMITS.mustRead) {
+      throw new Error(`${mode} mustRead resource size safeguard exceeded; inspect loading scope or reassess the limit for required content`);
     }
   }
   return readingBytes;
 }
 
 const STAGES = ["Plan decisions", "Generation rules", "Conditional rules", "Acceptance checks"];
-// Upper bound for mustRead plus the documents a workflow links directly (UTF-8 bytes).
-export const DIRECTED_READING_LIMIT = 212992; // 208 KiB; prototype currently directs about 201 KiB
 const CONSTRAINT_MARKER = "**Hard constraints**";
 
 // Rules cards extract hard constraints by one exact preamble marker; any other

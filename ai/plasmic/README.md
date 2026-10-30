@@ -265,6 +265,6 @@ python3 ai/plasmic/scripts/test_verify_structure.py
 
 ## 渐进式资源检查
 
-构建器直接检查维护中的 references：本地链接、标题锚点、从 guide 的可达性以及注册组件目录覆盖；不生成或注入文档副本。guide 和 Desktop 核心契约各不超过 4 KiB，工作流各不超过 6 KiB，单份场景 reference 不超过 20 KiB，每个模式的 mustRead 总量不超过 24 KiB。mustRead 只覆盖入口；构建另外统计每个工作流的点名阅读量（mustRead 加工作流直接链接的文档，上限 208 KiB），实际每页负载以规则卡的 `totalBytes` 衡量，`readingBudgetExceeded` 为真表示阅读预算压力，按[逐页上下文处理](references/workflows/prototype.md#complete-one-page-at-a-time)选择实际可用的分工、压缩或分节读取路径，不能跳读规则。约束标记只认 `**Hard constraints**`，`gate-rules.json` 的项目/页面规则路径、`pageRules.pageType` 与页面类型章节由构建校验一致。超限应按真实场景拆分或去重，不能仅提高预算绕过检查。预算衡量 UTF-8 文本量，不代表模型 token 数或行为正确率。
+构建器直接检查维护中的 references：本地链接、标题锚点、从 guide 的可达性以及注册组件目录覆盖；不生成或注入文档副本。构建统计每个模式的 mustRead 和点名阅读量（mustRead 加工作流直接链接的文档），将读取压力提示与发布体积防护分开。入口/工作流单文件上限 64 KiB，其余 reference 单文件 256 KiB，模式 mustRead 256 KiB，直接引导阅读量 2 MiB；这些宽松上限用于检查误打包日志、重复转储或异常加载范围，不代表模型容量。阈值统一维护于 `REFERENCE_SIZE_LIMITS`，测试不另设更小上限。字节数不能直接代表模型 token、可用上下文或规范有效性，不据此删减功能和验收要求。触及上限先定位异常；内容确为必要时评估调整上限或按真实使用方式分节加载，不强制精简。实际每页负载由规则卡的 `totalBytes` 提示；`readingBudgetExceeded` 是上下文压力提示，不是失败门禁。根据当前宿主能力、剩余上下文和任务复杂度，按[逐页上下文处理](references/workflows/prototype.md#complete-one-page-at-a-time)选择分工、上下文整理或分节读取，保留完整规则与证据。拆分、去重和精简应改善可发现性与执行效果，并通过相关行为检查；不能只为降低统计值。约束标记只认 `**Hard constraints**`，`gate-rules.json` 的项目/页面规则路径、`pageRules.pageType` 与页面类型章节仍由构建严格校验一致。
 
 官方 `@plasmicapp/cli` 与资源 CLI 分工见 [工具选择](references/guide.md#tool-choice) 和 [官方 CLI](references/official-cli.md)。MCP 完整组件读取包含配置的现代/旧查询定义及注册 import 身份；集成设置和源码不随模型读取下载，未知参数或未核对的迁移条件必须明确。

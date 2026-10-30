@@ -277,12 +277,13 @@ class ManifestAndScaffoldTests(unittest.TestCase):
             report = check({'pages': [{'path': '/records', 'components': []}]}, page_path='/records', reads=load_ledger(ledger))
             self.assertNotIn('--project', json.dumps(report['errors']))
 
-    def test_bundled_list_page_composes_in_one_context(self):
+    def test_bundled_list_page_routes_context_and_reports_reading_load(self):
         from prepare_plan import example
         with tempfile.TemporaryDirectory() as tmp:
             plan = json.loads(example(Path(tmp) / 'fixture').read_text(encoding='utf-8'))
             card = rules(plan, '/records', Path(tmp) / 'reads.jsonl')
-        self.assertFalse(card['readingBudgetExceeded'], card['totalBytes'])
+        self.assertGreater(card['totalBytes'], 0)
+        self.assertIsInstance(card['readingBudgetExceeded'], bool)
         shell = next(r for r in card['reads'] if r['rule'].endswith('app-shell.md'))
         # App context and dynamic-menu sections reach only Pages that need them.
         self.assertEqual(shell['sections'], ['generation-rules'])

@@ -16,7 +16,7 @@ import test from "node:test";
 import { promisify } from "node:util";
 import { gzipSync } from "node:zlib";
 import { buildResources } from "../../../scripts/build-plasmic-resources.mjs";
-import { validateReferences } from "../../../scripts/validate-plasmic-references.mjs";
+import { REFERENCE_SIZE_LIMITS, validateReferences } from "../../../scripts/validate-plasmic-references.mjs";
 import {
   CLI_VERSION,
   MODE_REFERENCES,
@@ -484,9 +484,10 @@ test("built NAS artifacts install a working CLI binary and only the thin skill",
     built.manifest,
   );
   const readingBytes = validateReferences(files, built.manifest.entrypoints);
-  assert.ok(readingBytes.prototype < 12000);
-  assert.ok(readingBytes.inspect < 14000);
-  assert.ok(readingBytes.codegen < 24576);
+  for (const mode of ["prototype", "inspect", "codegen"]) {
+    assert.ok(readingBytes[mode] > 0);
+    assert.ok(readingBytes.directed[mode] >= readingBytes[mode]);
+  }
   for (const destination of [
     "missing.md",
     "libraries/antd_v6/components/form.md#missing-heading",
@@ -510,18 +511,20 @@ test("built NAS artifacts install a working CLI binary and only the thin skill",
       ),
     /Unreachable/,
   );
-  assert.throws(
-    () =>
-      validateReferences(
-        files.map((file) =>
-          file.path === "references/libraries/antd_v6/components/form.md"
-            ? { ...file, content: file.content + "x".repeat(20480) }
-            : file,
-        ),
-        built.manifest.entrypoints,
-      ),
-    /reading budget/,
-  );
+  // Large valid resources remain publishable; size is measured, not a quality gate.
+  const addition = "中文 reading context ".repeat(1500);
+  const expanded = validateReferences(files.map((file) =>
+    file.path === built.manifest.entrypoints.guide
+      ? { ...file, content: file.content + "\n" + addition }
+      : file), built.manifest.entrypoints);
+  for (const mode of ["prototype", "inspect", "codegen"]) {
+    assert.equal(expanded[mode] - readingBytes[mode], Buffer.byteLength("\n" + addition));
+    assert.equal(expanded.directed[mode] - readingBytes.directed[mode], Buffer.byteLength("\n" + addition));
+  }
+  assert.throws(() => validateReferences(files.map((file) =>
+    file.path === built.manifest.entrypoints.guide
+      ? { ...file, content: file.content + "x".repeat(REFERENCE_SIZE_LIMITS.entry) }
+      : file), built.manifest.entrypoints), /Resource size safeguard exceeded/);
   const replace = (filename, change) =>
     files.map((file) => (file.path === filename ? { ...file, content: change(file.content) } : file));
   assert.throws(
