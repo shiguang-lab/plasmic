@@ -180,6 +180,8 @@ async function startDesktop() {
     version: `${manifest.build.kind} · ${manifest.build.revision?.slice(0, 10) || "unknown"}${manifest.build.dirty ? " + local changes" : ""}\nRenderer ${manifest.build.rendererHash.slice(0, 12)}\nBuilt ${manifest.build.builtAt}`,
   });
   if (!desktopSession) {
+    // Per-window/session overrides do not reach cross-origin Studio frames.
+    app.userAgentFallback = `${app.userAgentFallback} PlasmicDesktop/${process.platform}`;
     desktopSession = session.fromPartition("persist:plasmic-desktop");
     desktopLogin = new DesktopUnifiedLogin({
       session: desktopSession,
@@ -784,8 +786,6 @@ function bootstrap() {
   app.setPath("userData", userData);
   app.setPath("sessionData", userData);
   app.setName("Plasmic");
-  // Per-window/session overrides do not reach cross-origin Studio frames.
-  app.userAgentFallback = `${app.userAgentFallback} PlasmicDesktop/${process.platform}`;
   if (!app.requestSingleInstanceLock()) {
     app.quit();
   } else {

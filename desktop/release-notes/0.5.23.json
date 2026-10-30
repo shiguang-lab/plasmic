@@ -1,0 +1,7 @@
+{
+  "en": "- Fix the Present button failing to open a browser preview from the cross-origin Studio editor.",
+  "zh-CN": "- 修复跨域 Studio 编辑器中点击“演示”无法打开浏览器预览的问题。",
+  "zh-TW": "- 修復跨來源 Studio 編輯器中點擊「演示」無法開啟瀏覽器預覽的問題。",
+  "ja": "- クロスオリジンの Studio エディターで「プレゼンテーション」をクリックしてもブラウザーのプレビューが開かない問題を修正しました。",
+  "ko": "- 교차 출처 Studio 편집기에서 프레젠테이션 버튼을 눌러도 브라우저 미리 보기가 열리지 않는 문제를 수정했습니다。"
+}
