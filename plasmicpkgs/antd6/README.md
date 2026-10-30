@@ -16,6 +16,11 @@ pages import the same wrappers from the package's `skinny` entry points.
 
 ## Design behavior
 
+- Slot `defaultValue` creates saved instance content; `hidePlaceholder` only
+  controls the canvas empty-slot affordance. Seed primary content and editable
+  structure (such as button labels and table columns). Optional headings,
+  descriptions and decorations stay unset so native behavior applies until the
+  consumer supplies content. Empty's description uses the native locale.
 - Visual registrations include self-contained SVG `thumbnailUrl` illustrations
   for Insert. Add new component illustrations in `src/componentThumbnails.ts`;
   static subcomponents use their own illustration or their parent's diagram.

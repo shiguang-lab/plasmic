@@ -6,10 +6,10 @@ See references/libraries/antd_v6/index.md for applicability.
 
 Expect {"pages": [{"componentUuid": "...", "groups": [{"name": "Summary",
 "container": "InformationCard", "title": "Basic information", "column": 2,
-"items": [{"key": "name", "label": "Name", "children": "Example"}]}]}]}.
-items may instead be the exact native array expression. No expression is executed.
-For editable fields, replace items with ordered itemSlots entries containing
-name, key, label/content Slot text or bindings (children), and optional span.
+"itemSlots": [{"name": "NameItem", "key": "name", "label": "Name", "children": "Example"}]}]}]}.
+Fixed fields use ordered itemSlots with label/content text or bindings and optional span.
+Native items require a source-backed itemsReason (dynamic-fields with a collection
+binding, or explicit-user-request). No expression is executed.
 Only inventoried pages are checked; Preview and source inventory review remain required.
 """
 import argparse
@@ -19,14 +19,8 @@ from collections import Counter
 from pathlib import Path
 from verify_forms import TextTree, content, identity, node_name, props, slot
 from verify_slots import walk
+from verify_component_policy import DESCRIPTIONS_ITEMS_RULE, descriptions_items_problem, descriptions_structure_problem
 
-
-def item_nodes(node):
-    if identity(node) == "plasmicantd6descriptionsitem":
-        yield node
-    else:
-        for child in node["children"]:
-            yield from item_nodes(child)
 
 
 WIDE_GROUP_PX = 640
@@ -95,6 +89,7 @@ def check(inventory, readback, layouts=None):
         "Container-specific column choice and whether a single-column exception applies to every value require rule review",
         "Layout direction: horizontal by default; vertical requires explicit user/source evidence and manual Preview review",
         "Heading ownership: separate native substitutes, duplicate headings and intentionally untitled groups require semantic review",
+        "Native items exception evidence: source meaning and whether the binding determines the field collection require review",
         "Rendered packing, full values and dynamic bindings require Preview and save/reopen verification",
     ]
     models = readback["results"]
@@ -131,8 +126,19 @@ def check(inventory, readback, layouts=None):
                 errors.append({**context, "error": "Wrong information container"})
             actual = props(node)
             children = slot(node, "children")
-            fields = list(item_nodes(children)) if children else []
+            fields = [child for child in children["children"]
+                      if child["tag"] == "plasmic-component" and identity(child) == "plasmicantd6descriptionsitem"] if children else []
+            problem = descriptions_structure_problem(node)
+            if actual.get("children") is not None:
+                problem = "Descriptions children must be authored as direct Descriptions.Item nodes, not a scalar/object children prop"
+            if problem:
+                errors.append({**context, "error": problem, "rule": DESCRIPTIONS_ITEMS_RULE})
             native_items = actual.get("items")
+            for items in (group.get("items"), native_items):
+                problem = descriptions_items_problem(items, group.get("itemsReason"))
+                if problem:
+                    errors.append({**context, "error": problem, "rule": DESCRIPTIONS_ITEMS_RULE})
+                    break
             packing_fields = ([props(field) for field in fields] if native_items is None else
                               native_items if isinstance(native_items, list) else [])
             check_packing(actual.get("column"), packing_fields, context, errors, not_checked)

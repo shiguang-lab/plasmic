@@ -110,8 +110,7 @@ function registerPopover(loader) {
       title: {
         type: "slot",
         displayName: "Popover title",
-        hidePlaceholder: true,
-        defaultValue: "Popover title"
+        hidePlaceholder: true
       },
       color: {
         type: "color",

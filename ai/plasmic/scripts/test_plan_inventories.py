@@ -250,6 +250,20 @@ class FormInventoryIntegrationTests(unittest.TestCase):
 
 
 class DescriptionAndOverlayTests(unittest.TestCase):
+    def test_native_items_exception_survives_derivation_outside_props(self):
+        reason = {'kind': 'dynamic-fields', 'binding': '$ctx.query.fields',
+                  'evidence': {'path': '/task/source.md', 'sha256': 'abc', 'quote': 'Fields come from the API'}}
+        declaration = spec('BasicInfo', 'plasmic-antd6-descriptions', 'InfoCard',
+                           props={'column': 3, 'items': '{{ $ctx.query.fields }}'}, itemsReason=reason)
+        plan = {'pages': [page([spec('InfoCard', 'plasmic-antd6-card'), declaration])]}
+        group = descriptions_inventory(plan)['pages'][0]['groups'][0]
+        self.assertEqual(group['itemsReason'], reason)
+        self.assertNotIn('itemsReason', declaration['props'])
+        group['itemsReason']['evidence']['quote'] = 'changed'
+        self.assertEqual(reason['evidence']['quote'], 'Fields come from the API')
+        del declaration['itemsReason']
+        self.assertEqual(descriptions_inventory(plan)['pages'][0]['groups'][0]['itemsReason'], PENDING)
+
     def test_description_column_evidence_survives_derivation(self):
         reason = {'kind': 'source', 'evidence': {'path': '/task/source.md', 'sha256': 'abc', 'quote': 'Use one column'}}
         components = [spec('InfoCard', 'plasmic-antd6-card'),

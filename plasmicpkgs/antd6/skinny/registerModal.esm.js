@@ -114,7 +114,7 @@ function registerModal(loader) {
       },
       title: {
         type: "slot",
-        defaultValue: "Modal title"
+        hidePlaceholder: true
       },
       footer: {
         type: "slot",

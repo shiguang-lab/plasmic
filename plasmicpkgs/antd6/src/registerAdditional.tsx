@@ -395,7 +395,7 @@ export function registerAdditional(loader?: Registerable) {
   register(loader, AntdAlert, "alert", "AntdAlert", {
     icon: { type: "slot", hidePlaceholder: true },
     title: { ...slot("Alert title"), hidePlaceholder: true },
-    description: { ...slot("Alert description"), hidePlaceholder: true },
+    description: { type: "slot", hidePlaceholder: true },
     type: choice(["success", "info", "warning", "error"], "info"),
     showIcon: "boolean",
     banner: "boolean",
@@ -455,7 +455,7 @@ export function registerAdditional(loader?: Registerable) {
   });
   register(loader, AntdCard, "card", "AntdCard", {
     children: slot("Card content"),
-    title: { ...slot("Card title"), hidePlaceholder: true },
+    title: { type: "slot", hidePlaceholder: true },
     extra: { type: "slot", hidePlaceholder: true },
     cover: { type: "slot", hidePlaceholder: true },
     actions: { type: "slot", hidePlaceholder: true },
@@ -468,7 +468,7 @@ export function registerAdditional(loader?: Registerable) {
   });
   register(loader, AntdCardMeta, "card-meta", "AntdCardMeta", {
     title: { ...slot("Title"), hidePlaceholder: true },
-    description: { ...slot("Description"), hidePlaceholder: true },
+    description: { type: "slot", hidePlaceholder: true },
     avatar: { type: "slot", hidePlaceholder: true },
   });
   register(loader, AntdCardGrid, "card-grid", "AntdCardGrid", {
@@ -571,11 +571,11 @@ export function registerAdditional(loader?: Registerable) {
     xxl: "object",
   });
   register(loader, AntdDescriptions, "descriptions", "AntdDescriptions", {
-    title: { ...slot("Details"), hidePlaceholder: true, description: "Editable heading for this read-only information group." },
+    title: { type: "slot", hidePlaceholder: true, description: "Editable heading for this read-only information group." },
     items: {
       type: "array",
       advanced: true,
-      description: "Native data-bound fields: [{ key, label, children, span? }]. Items take precedence. Clear items to edit labels and values through Descriptions.Item slots.",
+      description: "Use only when the field collection itself is determined at runtime or the user explicitly requests native items: [{ key, label, children, span? }]. Fixed fields must use Descriptions.Item label/content slots, even with data-bound values. Items override slots, including an empty array; leave unset for canvas editing.",
       itemType: {
         type: "object",
         fields: { key: "string", label: "string", children: "string", span: "number" },
@@ -589,7 +589,7 @@ export function registerAdditional(loader?: Registerable) {
       allowRootWrapper: false,
       hidePlaceholder: true,
       hidden: (ps) => ps.items != null,
-      description: "Only direct Descriptions.Item children are allowed. Edit each field's label and content inside its Item. This slot is not rendered when native items are set.",
+      description: "Only direct Descriptions.Item children are allowed; no span/div/text fields, layout wrappers or other components. Edit label/content inside each Item. Use either this slot or native items, never both; clear these children when setting items.",
       defaultValue: [{
         type: "component",
         name: "plasmic-antd6-descriptions-item",
@@ -616,7 +616,7 @@ export function registerAdditional(loader?: Registerable) {
     classNames: "object",
   }, { description: "Editable label and content for a read-only field. Converted to a native Descriptions items entry at runtime." });
   register(loader, AntdDivider, "divider", "AntdDivider", {
-    children: slot("Divider"),
+    children: { type: "slot", hidePlaceholder: true },
     orientation: choice(["horizontal", "vertical"]),
     titlePlacement: choice(["start", "center", "end"]),
     dashed: "boolean",
@@ -624,7 +624,7 @@ export function registerAdditional(loader?: Registerable) {
     size: sizes,
   });
   register(loader, AntdEmpty, "empty", "AntdEmpty", {
-    description: { ...slot("No data"), hidePlaceholder: true },
+    description: { type: "slot", hidePlaceholder: true },
     children: { type: "slot", hidePlaceholder: true },
     image: "imageUrl",
   });
@@ -645,7 +645,7 @@ export function registerAdditional(loader?: Registerable) {
   });
   register(loader, AntdFloatButton, "float-button", "AntdFloatButton", {
     icon: { type: "slot", hidePlaceholder: true },
-    content: { ...slot("Help"), hidePlaceholder: true },
+    content: { type: "slot", hidePlaceholder: true },
     tooltip: "string",
     type: choice(["default", "primary"]),
     shape: choice(["circle", "square"]),
@@ -754,7 +754,7 @@ export function registerAdditional(loader?: Registerable) {
   });
   register(loader, AntdListItemMeta, "list-item-meta", "AntdListItemMeta", {
     title: { ...slot("Item title"), hidePlaceholder: true },
-    description: { ...slot("Item description"), hidePlaceholder: true },
+    description: { type: "slot", hidePlaceholder: true },
     avatar: { type: "slot", hidePlaceholder: true },
   });
   register(loader, AntdListy, "listy", "AntdListy", {
@@ -835,7 +835,7 @@ export function registerAdditional(loader?: Registerable) {
   });
   register(loader, AntdResult, "result", "AntdResult", {
     title: { ...slot("Success"), hidePlaceholder: true },
-    subTitle: { ...slot("The operation completed"), hidePlaceholder: true },
+    subTitle: { type: "slot", hidePlaceholder: true },
     extra: { type: "slot", hidePlaceholder: true },
     icon: { type: "slot", hidePlaceholder: true },
     status: choice([
@@ -929,7 +929,7 @@ export function registerAdditional(loader?: Registerable) {
     collapsible: "object",
   });
   register(loader, AntdStatistic, "statistic", "AntdStatistic", {
-    title: { ...slot("Total"), hidePlaceholder: true },
+    title: { type: "slot", hidePlaceholder: true },
     value: { type: "number", defaultValue: 128 },
     precision: "number",
     prefix: { type: "slot", hidePlaceholder: true },
@@ -943,7 +943,7 @@ export function registerAdditional(loader?: Registerable) {
     "statistic-timer",
     "AntdStatisticTimer",
     {
-      title: { ...slot("Timer"), hidePlaceholder: true },
+      title: { type: "slot", hidePlaceholder: true },
       type: choice(["countdown", "countup"]),
       value: { type: "number", description: "Unix timestamp in milliseconds" },
       format: "string",

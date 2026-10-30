@@ -85,6 +85,10 @@ class ReadCoverageTests(unittest.TestCase):
         self.assertIn('### Composition', delivered)
         self.assertIn('intentionally untitled', delivered)
         self.assertIn('columnReason', delivered)
+        self.assertTrue(any('Fixed fields must use real Descriptions.Item' in value for value in entry['constraints']))
+        self.assertIn('itemsReason', delivered)
+        self.assertTrue(any('never both' in value and 'span/div/text' in value for value in entry['constraints']))
+        self.assertIn('Bound values within a fixed array', delivered)
 
     def ledger(self, directory, *selections):
         log = Path(directory) / 'reads.jsonl'

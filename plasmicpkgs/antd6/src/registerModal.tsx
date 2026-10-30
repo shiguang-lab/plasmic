@@ -154,7 +154,7 @@ export function registerModal(loader?: Registerable) {
       },
       title: {
         type: "slot",
-        defaultValue: "Modal title",
+        hidePlaceholder: true,
       },
       footer: {
         type: "slot",

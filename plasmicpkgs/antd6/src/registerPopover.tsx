@@ -122,7 +122,6 @@ export function registerPopover(loader?: Registerable) {
         type: "slot",
         displayName: "Popover title",
         hidePlaceholder: true,
-        defaultValue: "Popover title",
       },
       color: {
         type: "color",

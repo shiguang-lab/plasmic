@@ -122,6 +122,51 @@ def source_text(evidence):
     return text
 
 
+DESCRIPTIONS_ITEMS_RULE = 'references/libraries/antd_v6/components/descriptions.md#composition'
+
+
+def descriptions_children_problem(items, child_keys):
+    if any(key != 'plasmicantd6descriptionsitem' for key in child_keys):
+        return ('Descriptions children must be direct Descriptions.Item components; '
+                'do not draw fields with text/span/div, layout components or wrappers around Items')
+    if items is not None and child_keys:
+        return 'Descriptions must use either native items or Item children, never both'
+    return None
+
+
+def descriptions_structure_problem(node):
+    # Named title/extra Slots are not the field collection. Only unwrap the
+    # children Slot boundary, never authored containers around fields.
+    children = []
+    for child in node['children']:
+        if child['tag'] == 'slot':
+            if child['attrs'].get('name') == 'children':
+                children.extend(child['children'])
+        else:
+            children.append(child)
+    keys = [identity(child) if child['tag'] == 'plasmic-component' else child['tag']
+            for child in children if child['tag'] != 'text' or child.get('text', '').strip()]
+    return descriptions_children_problem(props(node).get('items'), keys)
+
+
+def descriptions_items_problem(items, reason):
+    """Validate a native-items exception; source meaning still needs review."""
+    if items is None:
+        return None
+    if not isinstance(reason, dict) or reason.get('kind') not in ('dynamic-fields', 'explicit-user-request'):
+        return ('Fixed fields require Descriptions.Item label/children Slots, even with bound values; '
+                'native items require itemsReason with kind dynamic-fields or explicit-user-request and source evidence')
+    if reason['kind'] == 'dynamic-fields':
+        if not (isinstance(items, str) and items.strip().startswith('{{') and items.strip().endswith('}}')
+                and uses_binding(items, reason.get('binding'))):
+            return 'Dynamic fields require an items expression using the declared itemsReason.binding for the runtime field collection'
+    try:
+        source_text(reason.get('evidence'))
+    except (ValueError, OSError, UnicodeError) as error:
+        return f'itemsReason source evidence is unusable: {error}'
+    return None
+
+
 def approved_override(spec, key):
     overrides = spec.get('overrides', {})
     override = overrides.get(key) if isinstance(overrides, dict) else None
@@ -201,6 +246,13 @@ def search_form_span(spec):
 def policy_errors(spec, values, inherited_span=6):
     key = re.sub(r'[^a-z0-9]', '', spec.get('component', '').lower())
     errors = []
+    if key == 'plasmicantd6descriptions':
+        problem = ('Descriptions children must be authored as direct Descriptions.Item nodes, not a scalar/object children prop'
+                   if at(values, 'children') is not None else
+                   descriptions_items_problem(at(values, 'items'), spec.get('itemsReason')))
+        if problem:
+            errors.append({'check': 'componentPolicy', 'node': spec.get('nodeName'), 'property': 'items',
+                           'message': problem, 'rule': DESCRIPTIONS_ITEMS_RULE})
     pagination = at(values, 'pagination')
     if key == 'plasmicantd6table' and (pagination is False or isinstance(pagination, str) and '{{' in pagination):
         return errors  # Disabled or dynamically owned pagination has no static density to compare.
@@ -248,6 +300,25 @@ def plan_errors(plan):
         inherited = search_form_span(owner) if re.sub(r'[^a-z0-9]', '', owner.get('component', '').lower()) == 'plasmicoverseassearchform' else 6
         errors.extend({'pointer': f'/components/{i}/props/' + error['property'].replace('.', '/'), **error}
                       for error in policy_errors(spec, spec.get('props', {}), inherited))
+    for i, spec in enumerate(components):
+        if re.sub(r'[^a-z0-9]', '', spec.get('component', '').lower()) != 'plasmicantd6descriptions':
+            continue
+        child_keys = []
+        for kind in ('components', 'nodes'):
+            for child in plan.get(kind, []):
+                owner = child.get('owner') if isinstance(child, dict) else None
+                if isinstance(owner, dict) and owner.get('nodeName') == spec.get('nodeName') and owner.get('slot', 'children') == 'children':
+                    child_keys.append(re.sub(r'[^a-z0-9]', '', child.get('component', '').lower())
+                                      if kind == 'components' else child.get('tag'))
+        copy = plan.get('copy')
+        for entry in copy.get('entries', []) if isinstance(copy, dict) else []:
+            if (isinstance(entry, dict) and entry.get('nodeName') == spec.get('nodeName')
+                    and entry.get('at') == '/slots/children/text' and str(entry.get('text', '')).strip()):
+                child_keys.append('text')
+        problem = descriptions_children_problem(at(spec.get('props', {}), 'items'), child_keys)
+        if problem:
+            errors.append({'check': 'componentPolicy', 'pointer': f'/components/{i}', 'node': spec.get('nodeName'),
+                           'message': problem, 'rule': DESCRIPTIONS_ITEMS_RULE})
     shells = [s for s in plan.get('components', []) if s.get('role') == 'shell']
     context = plan.get('appContext')
     if shells:
@@ -426,6 +497,11 @@ def check_page(plan, page):
     for node in nodes:
         spec = declarations.get(node_name(node), {'nodeName': node_name(node), 'component': identity(node)})
         errors.extend(policy_errors(spec, props(node), inherited.get(id(node), 6)))
+        if identity(node) == 'plasmicantd6descriptions':
+            problem = descriptions_structure_problem(node)
+            if problem:
+                errors.append({'check': 'componentPolicy', 'node': node_name(node),
+                               'message': problem, 'rule': DESCRIPTIONS_ITEMS_RULE})
         values = props(node)
         if identity(node) == 'plasmicantd6table':
             options = at(values, 'pagination.pageSizeOptions')

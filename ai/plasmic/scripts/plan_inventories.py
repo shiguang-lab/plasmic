@@ -225,10 +225,13 @@ def descriptions_inventory(plan):
             group = {'name': name, 'container': graph.owner(name)[0] or PENDING,
                      'title': graph.slot_text(name, 'title') or props.get('title') or '',
                      'column': props.get('column', PENDING)}
-            if 'columnReason' in graph.by_name[name]:
-                group['columnReason'] = deepcopy(graph.by_name[name]['columnReason'])
+            for key in ('columnReason', 'itemsReason'):
+                if key in graph.by_name[name]:
+                    group[key] = deepcopy(graph.by_name[name][key])
             if 'items' in props:
                 group['items'] = props['items']
+                if props['items'] is not None:
+                    group.setdefault('itemsReason', PENDING)
             else:
                 group['itemSlots'] = []
                 for item in [n for n in graph.children(name, 'children') if graph.kind(n) == DESCRIPTIONS_ITEM]:

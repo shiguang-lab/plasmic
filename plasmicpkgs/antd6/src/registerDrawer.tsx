@@ -94,7 +94,7 @@ export function registerDrawer(loader?: Registerable) {
       },
       title: {
         type: "slot",
-        defaultValue: "Drawer title",
+        hidePlaceholder: true,
       },
       footer: {
         type: "slot",
