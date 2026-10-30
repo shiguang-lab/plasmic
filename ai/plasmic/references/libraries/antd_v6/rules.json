@@ -142,7 +142,14 @@
             "prop": "column",
             "nullable": false,
             "rule": "column-and-span",
-            "note": "3 in a full-width page region, 2 in a half-width Card or 640px Drawer, 1 only below about 560px."
+            "note": "3 or 4 in a full-width page region based on actual value lengths and rendered density: use 4 when 3 is too sparse, 3 when 4 is too crowded; 2 in a half-width Card, 640px Drawer or 720px Modal; 1 below about 560px. A wider single-column group needs evidence that every value requires a full row, or an explicit source override."
+          },
+          {
+            "prop": "layout",
+            "baseline": "horizontal",
+            "nullable": false,
+            "rule": "layout-direction",
+            "note": "Horizontal by default. Use vertical only with an explicit user/source requirement cited in the task plan; template defaults or aesthetic preference do not justify it."
           }
         ]
       }

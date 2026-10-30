@@ -192,12 +192,13 @@ export async function prepare(request: PreviewRequest) {
  ${styleProvider ? `import {StyleTokensProvider} from './${styleProvider.fileName}';` : ""}
  export function __run(){window.__renderCover=async(id)=>{
    const board=boards[id];
+   window.__plasmicLive.beginRender(board.componentId);
    const Component=components[board.componentId];
    let content=${root};
    if(board.page){content=<PageParamsProvider {...board.page}>{content}</PageParamsProvider>;}
-   let failure;
-   const dispose=window.__Sub.hostUtils.registerRenderErrorListener(error=>{failure=error;});
-   try{await window.__plasmicLive.renderRoot(content);if(failure)throw failure;}finally{dispose();}
+   await window.__plasmicLive.renderRoot(content);
+   const failure=window.__plasmicLive.getDiagnostics().errors[0];
+   if(failure)throw Object.assign(new Error(failure.message),{stack:failure.stack});
  };}
  `,
   });

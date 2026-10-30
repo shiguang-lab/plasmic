@@ -1,0 +1,33 @@
+{
+  "scope": "Offline decision probes. All editor facts below are synthetic. No live MCP, preview, save or external access is authorized. Describe next actions and acceptance limits, not completed editor operations.",
+  "cases": [
+    {
+      "id": "new-page",
+      "prompt": "创建一个 Antd6 后台详情页，AppShell 内只有基础信息组：编号、状态、负责人、创建时间、更新时间，都是短值；整页内容区宽 1127px，组标题为基本信息。模拟契约：Descriptions 有 title/children Slots 和 number column，Item 有 key/label/children/span；原模板标题 Details。已确认项目可编辑且 MCP preflight 通过，但无本任务 plan/规则卡。请说明写入前如何准备、列数和标题如何处理，不执行真实写入。"
+    },
+    {
+      "id": "local-spacing",
+      "prompt": "已有后台页面只把两个操作按钮之间的间距从 8 改为 16，其他内容和交互都不变。已定位拥有 gap 的 Space，契约确认支持 size=16；已有 scoped checkpoint，但没有完整 Page plan。模拟 MCP preflight 已通过。说明本次准备、修改和验证范围，不执行真实写入。"
+    },
+    {
+      "id": "matching-bad-plan",
+      "prompt": "审查：计划和模型都把整页 1127px 宽的基础信息 Descriptions 设为 column=2、title 为空；上方单独 span 显示基本信息，五个值都短且无例外来源。verify_descriptions 返回 passed=true，validate 和 save 也成功。是否可以交付？给出修正及需补充的证据，不执行真实修改。"
+    },
+    {
+      "id": "legitimate-untitled",
+      "prompt": "审查：已确认 640px 半宽 Card 内有 Descriptions(column=2)，Card title=基本信息，Descriptions title 为空；两项短值，另一个长值 span=2。Card 下还有一句真实帮助文本。源要求只显示一个区域标题。没有运行时证据。是否必须加 Descriptions 标题或改三列？说明判断及验收边界。"
+    },
+    {
+      "id": "matching-invalid-values",
+      "prompt": "离线检查：计划和实际 native items 都包含 Descriptions(column=2)，第一个 Item span=3，第二个 span=true；另一组 column=0。字段字符串和标题完全一致。是否能以计划一致为由通过？指出哪些检查可确定，哪些不能靠静态检查证明。"
+    },
+    {
+      "id": "one-long-value",
+      "prompt": "整页宽 1127px 的 Descriptions 有六项，其中五项短值，只有 URL 很长。当前 column=1，columnReason={kind:measurement,longestValuePx:700}；检查脚本返回 passed=true。请判断该证据是否足够支持整组单列，以及如何处理。"
+    },
+    {
+      "id": "incomplete-reading",
+      "prompt": "准备新页面时 scaffold 已生成，rules card 已列出组件文档读取命令，但命令还未执行；之前只读过 scale 摘要。verify_selection --plan-only 返回 passed=true，MCP 当前允许 insertHtml。现在可以开始写入吗？请给出具体下一步，不操作真实编辑器。"
+    }
+  ]
+}

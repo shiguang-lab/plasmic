@@ -116,13 +116,51 @@ test("background runtime discovery uses the committed Preview root and waits for
   assert.equal(result.layout.componentUuid, "requested-page");
 });
 
+test("navigation waits for both the requested DOM identity and a committed runtime", { timeout: 2000 }, async (t) => {
+  const dom = new JSDOM('<div class="live-root-container" data-plasmic-preview-component="old-page">Old data</div>', { url: "https://canvas.example/#live=true", runScripts: "outside-only" });
+  t.after(() => dom.window.close());
+  const w = dom.window;
+  w.document.fonts = { ready: Promise.resolve() }; w.requestAnimationFrame = (cb) => cb();
+  const runtime = { generation: 2, componentUuid: "new-page", status: "loading", errors: [] };
+  w.__plasmicLive = { getDiagnostics: () => ({ ...runtime }) };
+  const frame = { url: w.location.href, executeJavaScript: (script) => w.eval(script) };
+  const win = { webContents: { getURL: () => "https://studio.example/projects/p/preview#/new", mainFrame: { framesInSubtree: [frame] } } };
+  const context = { previewContext: { componentUuid: "new-page" } };
+  assert.equal((await runPreview(win, { action: "state" }, context)).ready, false);
+  runtime.status = "ready";
+  assert.equal((await runPreview(win, { action: "state" }, context)).ready, false, "An old DOM must not be relabelled by runtime metadata");
+  runtime.status = "loading";
+  w.document.querySelector(".live-root-container").setAttribute("data-plasmic-preview-component", "new-page");
+  assert.equal((await runPreview(win, { action: "state" }, context)).ready, false, "DOM alone cannot certify a commit");
+  let accepted = false;
+  const opening = previewFrame(win, "new-page").then((result) => { accepted = true; return result; });
+  await new Promise((resolve) => setTimeout(resolve, 30));
+  assert.equal(accepted, false);
+  runtime.status = "ready";
+  assert.equal((await opening).layout.componentUuid, "new-page");
+  assert.equal((await runPreview(win, { action: "state" }, context)).ready, true);
+});
+
 test("Preview render errors surface immediately instead of a misleading missing-canvas timeout", async (t) => {
   const dom = new JSDOM('<div data-plasmic-preview-error>Invalid registered widget prop</div>', { url: "https://canvas.example/#live=true", runScripts: "outside-only" });
   t.after(() => dom.window.close());
   const w = dom.window;
   w.document.fonts = { ready: Promise.resolve() }; w.requestAnimationFrame = (cb) => cb();
+  const failure = w.document.querySelector("[data-plasmic-preview-error]");
+  failure.setAttribute("data-plasmic-error-name", "TypeError");
+  failure.setAttribute("data-plasmic-error-stack", "TypeError: Invalid registered widget prop\n at preparePreview");
   const win = { webContents: { getURL: () => "https://studio.example/projects/p/preview#/records", mainFrame: { framesInSubtree: [{ url: w.location.href, executeJavaScript: (s) => w.eval(s) }] } } };
-  await assert.rejects(previewFrame(win, "page"), /Native Preview render failed: Invalid registered widget prop/);
+  await assert.rejects(previewFrame(win, "page"), (error) => {
+    assert.equal(error.message, "Invalid registered widget prop");
+    assert.equal(error.context.code, "PREVIEW_RUNTIME_ERROR");
+    assert.equal(error.context.runtime.status, "failed");
+    return true;
+  });
+  const state = await runPreview(win, { action: "state" }, {});
+  assert.equal(state.ready, false);
+  assert.equal(state.runtime.errors[0].message, "Invalid registered widget prop");
+  assert.equal(state.runtime.errors[0].name, "TypeError");
+  assert.match(state.runtime.errors[0].stack, /at preparePreview/);
 });
 
 test("committed Pages with a display:contents root are ready without a root border box", { timeout: 25000 }, async (t) => {

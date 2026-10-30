@@ -7,7 +7,7 @@ export const CLI_VERSION = createRequire(import.meta.url)("../package.json").ver
 export const MIN_CLI_VERSION = "0.0.59";
 export const MODE_REFERENCES = {
   inspect: ["references/model-reading.md"],
-  prototype: [],
+  prototype: ["references/planning.md"],
   codegen: ["references/model-reading.md", "references/codegen/project-code.md", "references/codegen/acceptance.md"],
 };
 export function compareVersions(a, b) {

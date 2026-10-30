@@ -2,6 +2,8 @@
 
 Applies to every prototype Page plan (`structure-expectation.json`). The plan records source decisions; scripts derive which rules each decision needs, and deliver them at the moment they apply. The scripts read the machine-readable rule owners in each library's `rules.json` and the shared [gate rule map](gate-rules.json). Do not read these JSON files in full.
 
+Use the stages below for new Pages and structural changes. Start from the current Page's draft declarations; the project card includes the library indexes and selection rules, and the Page card resolves component documents by registration key. Do not replace these cards with remembered scale defaults or manually navigating only part of the library indexes. Before content writes, finish the workflow's [preparation checkpoint](workflows/prototype.md#before-content-writes). Local repairs reuse existing decisions and read/check only the affected scope; they do not require inventing a complete Page plan.
+
 ## Stages
 
 | Stage | What the agent does | Script support |
@@ -75,6 +77,6 @@ For each Page Form, `prepare_plan.py form-skeleton /task/structure-expectation.j
 
 With `--report`, preflight saves every error and prints counts by check, at most eight representative diagnostics and the report path. Diagnostics retain the Page route, native owner/action key, JSON `pointer`, allowed values and `rule`. Read the complete batch on disk, then use `show` for the needed fragment. A pointer to a missing field identifies where to add it; malformed JSON reports file, line and column.
 
-For each diagnostic, read its `rule` section before changing the plan or model, and check the other rules of that section that the same change touches. Repair the whole batch, rerun plan-only preflight, then recapture. Do not regenerate screenshots or rerun live capture to guess enum values.
+For each diagnostic, read its `rule` section before changing the plan or model, and check the other rules of that section that the same change touches. Repair the whole batch and rerun affected checks. For planned Page changes, refresh affected card reads and rerun selection preflight with `--reads` before dependent writes, then recapture. `--plan-only` may diagnose declarations but cannot replace that preflight. Do not regenerate screenshots or rerun live capture to guess enum values.
 
 A diagnostic whose cheapest repair is a declaration — `layoutReason`, `controlWidthReason`, `nonStatusReason`, `bindingsNotApplicable`, an override `reason` — is an evidence gate, not a checkbox. These fields are checked against hashed source quotes or measured geometry. If you cannot cite a sentence or measure the deviation, change the model to the baseline; never author the justification yourself. A reason written to satisfy a gate is fabricated evidence, and `verify_forms.py` rejects prose, unverifiable quotes and the same reason reused by two Forms.

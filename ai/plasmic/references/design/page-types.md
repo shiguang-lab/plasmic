@@ -138,7 +138,7 @@ AppShell › children
 
 ### basic-detail
 
-1. Information region: one headerless Card holding one titled Descriptions per source information group (Flex vertical, gap 16; each Descriptions title owns its heading), three columns.
+1. Information region: one headerless Card holding one titled Descriptions per source information group (Flex vertical, gap 16; each Descriptions title owns its heading), horizontal layout with 3 or 4 columns according to [value lengths and rendered density](../libraries/antd_v6/components/descriptions.md#column-and-span).
 2. Related records: one Card per related list, header `title` (`distinguish`), Table with pagination.
 
 Place required detail actions in existing toolbars, Tabs extra or owning regions by scope, not a new Header; apply [Header assessment](layout.md#admin-content-entry).
@@ -149,7 +149,7 @@ Reference structure:
 AppShell › children
 └ PageBody            Flex vertical, gap 16
   ├ InfoCard          Card, empty title/extra, body 16px 20px
-  │ └ Flex vertical gap 16 › one titled Descriptions per group (column 3)
+  │ └ Flex vertical gap 16 › one titled Descriptions per group (layout horizontal, column 3 or 4)
   └ RelatedCard       Card header title (related list name), body 16px 20px 0 › RelatedTable (Table large, pagination)
 ```
 
@@ -165,7 +165,7 @@ Reference structure:
 ```text
 AppShell › children
 └ PageBody            Flex vertical, gap 16
-  ├ InfoCard          Card, empty title/extra, body 16px 20px › SummaryDescriptions (title, column 3)
+  ├ InfoCard          Card, empty title/extra, body 16px 20px › SummaryDescriptions (title, layout horizontal, column 3 or 4)
   └ ContentCard       Card, empty title/extra, body 0 20px
     └ SectionTabs     Tabs line medium › one TabItem per related section (Table, metrics, Descriptions)
 ```

@@ -9,17 +9,20 @@ Library: [Ant Design v6](../index.md).
 
 **Hard constraints** (always delivered with any section):
 
-- Decide `column` from the group's container width before markup: 3 in a full-width page region, 2 in a half-width Card or a 640px Drawer, 1 only below about 560px. See [Column and span](#column-and-span).
+- Decide `column` from the group's container before markup: 3 or 4 in a full-width page region according to actual value lengths and rendered density (use 4 when 3 looks too sparse, 3 when 4 crowds the content), 2 in a half-width Card, 640px Drawer or 720px Modal, 1 below about 560px. A wider single-column group needs evidence that every value requires a full row, or an explicit source override. See [Column and span](#column-and-span).
+- Default to `layout="horizontal"` (label and value side by side). Use `vertical` only when explicitly required by the user or source; a template or aesthetic preference does not justify it. See [Layout direction](#layout-direction).
 - Short parallel facts (status, check results, owner, dates) fill the columns side by side; never stack them in one column inside a wide region.
 - A long value takes a larger `span`; it does not lower the whole group's `column`.
+- Give each region one heading owner. Use the real title Slot for a Descriptions group heading; do not clear it and imitate the heading with separate native text. A containing Card may own the region heading without repeating it on Descriptions; intentionally untitled groups remain valid. See [Composition](#composition).
 
 ## Plan decisions
 
-Declare these native props in each planned instance before markup. `prepare_plan.py scaffold` writes `"__DECIDE__"` for each; selection preflight rejects pending values.
+Declare these native props in each planned instance before markup. `prepare_plan.py scaffold` sets the horizontal layout baseline and writes `"__DECIDE__"` for column; selection preflight rejects pending values.
 
 | Registration | Prop | Decision |
 | --- | --- | --- |
-| `plasmic-antd6-descriptions` | `column` | Column count from the container width under [Column and span](#column-and-span). |
+| `plasmic-antd6-descriptions` | `column` | Column count from the container, actual value lengths and rendered density under [Column and span](#column-and-span). |
+| `plasmic-antd6-descriptions` | `layout` | `horizontal` by default; `vertical` only with an explicit user/source requirement under [Layout direction](#layout-direction). |
 
 ## Generation rules
 
@@ -27,13 +30,21 @@ Declare these native props in each planned instance before markup. `prepare_plan
 
 | Container the group renders in | `column` |
 | --- | --- |
-| Full-width region of a desktop Page (main content, full-width Card or Tab panel) | 3 |
+| Full-width region of a desktop Page (main content, full-width Card or Tab panel) | 3 or 4, according to actual value lengths and rendered density |
 | Half-width Card or column, 640px Drawer, 720px Modal | 2 |
-| Narrower than about 560px, or every value is a long sentence | 1 |
+| Narrower than about 560px, or evidence shows every value requires a full row | 1 |
 
-Measure the container in the target viewport when unsure; about 280px or more per column keeps a short label and value on one line. A text wireframe that lists the facts on one line (`a / b / c`) confirms a multi-column group. Give a long identifier, URL or sentence `span` 2 or 3 (at most `column`) so it stays complete, and keep the remaining short Items in normal cells. Fill rows in reading order; avoid a trailing row with a large unexplained gap by adjusting one Item's span, not the column count. An emphasized metric beside the group is a [Statistic](statistic.md) placed under [information composition](../compositions/summary-metrics.md), not another stacked Item.
+For a full-width region, compare the actual labels and realistic values at the target viewport: use 4 columns when 3 leaves excessive whitespace; use 3 when 4 crowds labels/values or causes avoidable wrapping. Choose from the rendered result, not container width alone or a fixed template count.
+
+For a wider single-column group, review every value at the target viewport or cite an explicit source override under [protected configuration](../../../design/component-policy.md#protected-configuration). One long value justifies that Item's span, not a single-column group. A width measurement alone does not identify a full-width region versus a half-width or overlay container.
+
+Measure the container in the target viewport when unsure; about 280px or more per column keeps a short label and value on one line. A text wireframe that lists the facts on one line (`a / b / c`) confirms a multi-column group. Give a long identifier, URL or sentence `span` 2, 3 or 4 (at most `column`) so it stays complete, and keep the remaining short Items in normal cells. Fill rows in reading order; avoid a trailing row with a large unexplained gap by adjusting one Item's span, not the column count. An emphasized metric beside the group is a [Statistic](statistic.md) placed under [information composition](../compositions/summary-metrics.md), not another stacked Item.
 
 Column widths follow their content natively, so two groups with different values do not share column edges. Keep that behavior: do not set widths on Items, labels or contents, or override the component's table styles, to equalize columns. Control the layout only through `column`, `span`, `bordered`/`layout` and grouping.
+
+### Layout direction
+
+Set `layout="horizontal"` by default in Pages, Cards, Tab panels, Modals and Drawers: labels and values appear side by side. `layout="vertical"` places labels above values and is reserved for an explicit user or source requirement; cite that requirement in the task plan. Narrow width, long content, a template default or a visual preference alone does not justify switching to vertical. Adjust column count and Item spans under [Column and span](#column-and-span) instead.
 
 ### Composition
 
@@ -49,6 +60,8 @@ Use the real title Slot with editable text for a group heading. Let the componen
 
 Before insertion, derive the information inventory from the reviewed plan with `prepare_plan.py inventories`, never from the generated HTML. For each reviewed Page, use its planned `path` (or unique existing `name` / known `componentUuid`) and `groups`; each group records its instance `name`, containing region `container`, `title` (empty when intentionally untitled), `column` and either ordered `itemSlots` entries (`name`, `key`, `label`, `children`, optional `span`) or the exact native `items` array/binding expression. Item Slot label/content expectations are their text or binding strings; verify nested rich components and their props separately through the Slot checks and model read. Keep these task-specific expectations outside the product model. Use [verify_all](../../../verification.md#collect-and-verify) to resolve these planned Page selectors against fresh readbacks. The standalone command `python3 scripts/verify_descriptions.py <resolved-inventory.json> <mcp-read.json>` instead requires actual `componentUuid` values already resolved from those readbacks. Check the inserted and saved/reopened models; never fabricate a UUID before creation. Before insertion, review the independent inventory; absent target nodes cannot pass the model gate. It checks component identity, group/container ownership, title, ordered Item nodes, spans and field/binding equality. A missing Descriptions, text substitute or altered field/binding fails even when Slot checks pass. Expressions are never executed by the checker; Preview must separately prove values render correctly. This gate does not detect regions omitted from the reviewed inventory or certify geometry, business APIs or independent AI generation quality.
 
+The report distinguishes inventory consistency and supported static checks from `notChecked` design obligations. Static checks reject non-positive/non-integer literal columns and literal spans outside 1..column, even when the plan agrees. Expressions remain for runtime review. Layout evidence enables the limited wide-single-column check; absent/hidden group measurements remain unverified. A verified quote or a longest-value measurement alone does not prove that the exception applies to every value. Keep `columnReason`, when needed, on the planned Descriptions declaration (beside `props`); inventory derivation preserves it.
+
 ### Descriptions.Item
 
 Use this registered child inside [Descriptions](descriptions.md). Each field has independent label and children Slots, a stable business key and the native span prop. Labels and values may contain text bindings, tags, links or other registered components; do not concatenate several fields into one Item or put React markup in JSON.
@@ -60,6 +73,16 @@ Choose span against the parent column count, available width and realistic value
 ### Rendered columns
 
 In Preview at the target viewport, measure each group's width against its `column`: a group wider than about 640px with one column and three or more Items fails unless a recorded measurement or source quote shows its values need the full width. Check row packing, long values and empty values after save/reopen.
+
+For full-width regions, verify the 3/4-column choice with realistic values: 3 must not leave excessive whitespace, and 4 must not crowd the content. Check the full Column and span table, not only that automated single-column condition. Establish the actual full-width/half-width/overlay container, review every value for a single-column exception, and exercise dynamic items/column/span bindings. Missing measurements or unexecuted expressions remain unverified; a matching plan and model is not evidence of the correct column choice.
+
+### Rendered direction
+
+Check the plan, saved/reopened native `layout` prop and Preview against the horizontal default. A vertical group requires an explicit user/source requirement; reject inherited template direction or aesthetic preference as the reason. This semantic exception review is manual, not covered by the static Descriptions inventory checker.
+
+### Heading ownership
+
+Review the group's surrounding content and native title Slot against its source purpose. Reject a separate native heading substituting for an empty Descriptions title, and duplicate Card/Descriptions headings for the same region. Keep legitimate Card-owned headings, unrelated help text and intentionally untitled groups. Do not classify arbitrary adjacent text as a heading solely from its tag or position; the static inventory checker compares the expected title, not its semantic ownership.
 
 ### Native code generation
 

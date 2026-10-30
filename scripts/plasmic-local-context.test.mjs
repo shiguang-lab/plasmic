@@ -12,12 +12,15 @@ test("local resolution creates searchable stable snapshots and picks up the late
   t.after(() => rm(root, { recursive: true, force: true }));
   await mkdir(path.join(root, "references/workflows"), { recursive: true });
   await mkdir(path.join(root, "scripts"));
-  for (const name of ["guide.md", "desktop-mcp.md", "workflows/prototype.md"]) await writeFile(path.join(root, "references", name), name);
+  for (const name of ["guide.md", "desktop-mcp.md", "workflows/prototype.md", "planning.md"]) await writeFile(path.join(root, "references", name), name);
   await mkdir(path.join(root, "evals"));
   await writeFile(path.join(root, "evals/answer.json"), "Historical answer");
   await writeFile(path.join(root, "scripts/test_private.py"), "Test fixture");
   const cache = path.join(root, "cache");
   const before = await resolveLocalContext("prototype", root, cache);
+  assert.deepEqual(before.mustRead.map((filename) => path.relative(before.resourceRoot, filename)), [
+    "references/guide.md", "references/desktop-mcp.md", "references/workflows/prototype.md", "references/planning.md",
+  ]);
   await writeFile(path.join(root, "references/guide.md"), "Updated local source");
   assert.equal(await readFile(before.referencePath, "utf8"), "guide.md");
   const after = await resolveLocalContext("prototype", root, cache);

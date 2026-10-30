@@ -250,6 +250,15 @@ class FormInventoryIntegrationTests(unittest.TestCase):
 
 
 class DescriptionAndOverlayTests(unittest.TestCase):
+    def test_description_column_evidence_survives_derivation(self):
+        reason = {'kind': 'source', 'evidence': {'path': '/task/source.md', 'sha256': 'abc', 'quote': 'Use one column'}}
+        components = [spec('InfoCard', 'plasmic-antd6-card'),
+                      spec('BasicInfo', 'plasmic-antd6-descriptions', 'InfoCard', props={'column': 1}, columnReason=reason)]
+        group = descriptions_inventory({'pages': [page(components)]})['pages'][0]['groups'][0]
+        self.assertEqual(group['columnReason'], reason)
+        group['columnReason']['evidence']['quote'] = 'changed'
+        self.assertEqual(reason['evidence']['quote'], 'Use one column')
+
     def test_description_items_take_label_and_value_text_from_their_slots(self):
         components = [spec('InfoCard', 'plasmic-antd6-card'),
                       spec('BasicInfo', 'plasmic-antd6-descriptions', 'InfoCard', props={'column': 3}),

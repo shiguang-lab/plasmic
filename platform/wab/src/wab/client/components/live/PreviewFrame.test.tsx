@@ -44,12 +44,58 @@ vi.mock("@/wab/client/components/studio/studio-bundles", () => ({
 vi.mock("@/wab/client/dom-utils", () => ({ scriptExec: mocks.exec }));
 
 beforeEach(() => {
+  (window as any).__plasmicLive = { setErrorTitle: vi.fn(), reportError: vi.fn(), beginRender: vi.fn(), showError: vi.fn().mockResolvedValue(undefined), getDiagnostics: () => ({ generation: 1 }) };
   vi.clearAllMocks();
   mocks.committed = undefined;
   mocks.packages = [];
   mocks.load.mockResolvedValue(undefined);
 });
 afterEach(cleanup);
+
+it("reports runtime bootstrap failure and releases the startup overlay", async () => {
+  const error = new Error("Runtime download failed");
+  mocks.load.mockRejectedValueOnce(error);
+  const previewCtx = mock<PreviewCtx>({ full: true, isLive: false, pageHash: "" });
+  const hook = renderHook(() => useLivePreview(previewCtx));
+  hook.result.current.frameRef.current = window;
+  await act(async () => hook.result.current.onLoad());
+  expect((window as any).__plasmicLive.showError).toHaveBeenCalledExactlyOnceWith(error);
+  expect(mocks.api.setStudioReady).toHaveBeenCalledOnce();
+  expect(mocks.push).not.toHaveBeenCalled();
+});
+
+it("reports package loading failure once and can load again after reset", async () => {
+  mocks.packages = [{ id: "components" }];
+  const error = new Error("Component package download failed");
+  mocks.sortedPackages.mockRejectedValueOnce(error).mockResolvedValueOnce([["components", "package"]]);
+  const previewCtx = mock<PreviewCtx>({ full: true, isLive: false, pageHash: "" });
+  const hook = renderHook(() => useLivePreview(previewCtx));
+  hook.result.current.frameRef.current = window;
+  await act(async () => hook.result.current.onLoad());
+  expect((window as any).__plasmicLive.showError).toHaveBeenCalledExactlyOnceWith(error);
+  expect(mocks.api.setStudioReady).toHaveBeenCalledOnce();
+  hook.rerender();
+  expect(mocks.sortedPackages).toHaveBeenCalledOnce();
+  expect(mocks.push).not.toHaveBeenCalled();
+  act(() => hook.result.current.reset());
+  hook.result.current.frameRef.current = window;
+  await act(async () => hook.result.current.onLoad());
+  expect(mocks.push).toHaveBeenCalledExactlyOnceWith(window);
+});
+
+it("ignores package failures from a disposed preview", async () => {
+  mocks.packages = [{ id: "components" }];
+  const pending = Promise.withResolvers<[string, string][]>();
+  mocks.sortedPackages.mockReturnValueOnce(pending.promise);
+  const previewCtx = mock<PreviewCtx>({ full: true, isLive: false, pageHash: "" });
+  const hook = renderHook(() => useLivePreview(previewCtx));
+  hook.result.current.frameRef.current = window;
+  await act(async () => hook.result.current.onLoad());
+  act(() => hook.result.current.reset());
+  await act(async () => pending.reject(new Error("Old load failed")));
+  expect((window as any).__plasmicLive.showError).not.toHaveBeenCalled();
+  expect(mocks.api.setStudioReady).not.toHaveBeenCalled();
+});
 
 it("clears SPA navigation feedback and removes the cursor layer on reset and close", async () => {
   const data = observable.box<PreviewCtx["previewData"]>(undefined, {
@@ -290,6 +336,9 @@ it.each([null, undefined, "", "   "])(
     const run = () =>
       (window as any).__PlasmicWrapUserFunction(loc, vi.fn(), { destination });
     expect(run).toThrow("Navigation destination must be a non-empty string");
+    expect((window as any).__plasmicLive.reportError).toHaveBeenCalledWith(expect.any(Error), {
+      kind: "interaction", fatal: false, interactionUuid: "openTarget",
+    });
     expect(trapInteractionError).toHaveBeenCalledWith(
       expect.anything(),
       loc,

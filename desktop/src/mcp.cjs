@@ -668,6 +668,7 @@ async function serveMcp(profile) {
         : detail.code === "CONTEXT_MISMATCH" ? "Switch to the required editor context."
         : detail.code === "PREVIEW_TARGET_BLOCKED" ? "The target is covered by another element."
         : detail.code === "PREVIEW_TIMEOUT" ? "Preview timed out."
+        : detail.code === "PREVIEW_RUNTIME_ERROR" ? `Preview runtime error: ${detail.message}`
         : detail.code?.startsWith("PREVIEW_") ? "Preview operation failed."
         : "Tool call failed.";
       return transportResult(request, results.error(msg, detail), started);

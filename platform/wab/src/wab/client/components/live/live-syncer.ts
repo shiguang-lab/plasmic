@@ -11,6 +11,8 @@ import {
   getReactWebBundle,
 } from "@/wab/client/components/studio/studio-bundles";
 import { scriptExec } from "@/wab/client/dom-utils";
+import { getUiLocale } from "@/wab/client/i18n";
+import { translate } from "@/wab/client/i18n/locales";
 import { PlasmicWindowInternals } from "@/wab/client/frame-ctx/windows";
 import { requestIdleCallback } from "@/wab/client/requestidlecallback";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
@@ -127,10 +129,12 @@ export async function onLoadInjectLiveRuntime(
   };
   const liveFrameClientJs = await getLiveFrameClientJs();
   scriptExec(frameWindow, liveFrameClientJs);
+  liveFrame(frameWindow).setErrorTitle(translate(getUiLocale(), "Error"));
   swallowAnchorClicks(frameWindow.document, onAnchorClick, previewHref);
   (
     frameWindow as unknown as { __Sub: SubDeps }
   ).__Sub.hostUtils.registerRenderErrorListener((error: Error) => {
+    liveFrame(frameWindow).reportError(error, { kind: "render", fatal: true });
     console.error("Live frame render error", error);
     if (captureExceptions) {
       Sentry.captureException(error);

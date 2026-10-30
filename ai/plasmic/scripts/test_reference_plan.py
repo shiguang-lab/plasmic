@@ -70,6 +70,22 @@ class TableWidthPlanTests(unittest.TestCase):
 
 
 class ReadCoverageTests(unittest.TestCase):
+    def test_descriptions_card_delivers_columns_and_heading_ownership(self):
+        from prepare_plan import scaffold
+        plan, _ = scaffold({'pages': [{'path': '/records', 'components': [
+            spec('Summary', 'plasmic-antd6-descriptions', 'read-only-group',
+                 rule='references/libraries/antd_v6/components/descriptions.md')]}]})
+        with tempfile.TemporaryDirectory() as directory:
+            card = rules(plan, '/records', Path(directory) / 'reads.jsonl')
+        entry = next(item for item in card['hardConstraints'] if item['rule'].endswith('/descriptions.md'))
+        self.assertTrue(any('every value' in value and 'source override' in value for value in entry['constraints']))
+        self.assertTrue(any('title Slot' in value and 'separate native text' in value for value in entry['constraints']))
+        read = next(item for item in card['reads'] if item['rule'].endswith('/descriptions.md'))
+        delivered = select((RESOURCE_ROOT / read['rule']).read_text(), read['sections'])
+        self.assertIn('### Composition', delivered)
+        self.assertIn('intentionally untitled', delivered)
+        self.assertIn('columnReason', delivered)
+
     def ledger(self, directory, *selections):
         log = Path(directory) / 'reads.jsonl'
         for selection in selections:

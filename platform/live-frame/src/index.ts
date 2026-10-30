@@ -3,6 +3,7 @@ import "./live.css";
 import { createPreview } from "./preview";
 import { createRenderer } from "./render";
 import { createLiveRuntime } from "./runtime";
+import { installErrorHandlers } from "./diagnostics";
 import type { LiveFrame, WindowWithLiveFrame } from "./types";
 
 const w = window as any;
@@ -30,6 +31,9 @@ const live: LiveFrame = {
   setProps: preview.setProps,
   setGlobals: preview.setGlobals,
   async update(modules, render) {
+    if (render) {
+      renderer.beginRender("componentUuid" in render ? render.componentUuid : undefined);
+    }
     runtime.update(modules);
     if (render) {
       await preview.render(render);
@@ -37,3 +41,5 @@ const live: LiveFrame = {
   },
 };
 (window as WindowWithLiveFrame).__plasmicLive = live;
+
+installErrorHandlers(window, renderer.reportError);

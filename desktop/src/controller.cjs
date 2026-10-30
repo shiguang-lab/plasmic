@@ -419,7 +419,8 @@ class DesktopController {
         diagnostics.operationExecuted = true;
         if (input.action !== "close") {
           diagnostics.phase = "frame-discovery";
-          await previewFrame(win, result.componentUuid);
+          const { layout } = await previewFrame(win, result.componentUuid);
+          result = { ...result, ready: layout.rootReady ?? layout.ready, runtime: layout.runtime };
         }
       } else {
         if (input.action === "state" && (before.mode !== "preview" || !before.previewContext?.componentUuid)) result = { ready: false };

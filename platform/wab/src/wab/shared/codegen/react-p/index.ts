@@ -2310,7 +2310,15 @@ function serializeTplComponent(ctx: SerializerBaseContext, node: TplComponent) {
 
   componentStr = serializeDataReps(ctx, node, componentStr);
 
-  return maybeCondExpr(orderedCondStr, componentStr);
+  const result = maybeCondExpr(orderedCondStr, componentStr);
+  // Match the editor canvas boundary rule: native parents accept a transparent
+  // boundary, while component slots may inspect their children's element types.
+  if (ctx.exportOpts.targetEnv === "preview" && isTplTag(node.parent)) {
+    return `(window as any).__plasmicLive.renderBoundary(() => (${result}), ${jsLiteral({
+      componentUuid: ctx.component.uuid, elementUuid: node.uuid, nodeName,
+    })})`;
+  }
+  return result;
 }
 
 export function serializeTplSlotArgsAsArray(

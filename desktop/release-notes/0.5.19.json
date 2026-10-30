@@ -1,0 +1,7 @@
+{
+  "en": "- Contain Preview errors, report diagnostics to MCP, and recover after data updates. Improve prototype workflows and component contract verification.",
+  "zh-CN": "- 隔离 Preview 异常，向 MCP 提供错误诊断，并支持数据更新后恢复。完善原型工作流与组件契约校验。",
+  "zh-TW": "- 隔離 Preview 異常，向 MCP 提供錯誤診斷，並支援資料更新後恢復。完善原型工作流程與元件契約驗證。",
+  "ja": "- Preview エラーの隔離、MCP 診断、データ更新後の復旧に対応しました。プロトタイプのワークフローとコンポーネント契約検証を改善しました。",
+  "ko": "- Preview 오류 격리, MCP 진단 및 데이터 업데이트 후 복구를 지원합니다. 프로토타입 워크플로와 컴포넌트 계약 검증을 개선했습니다."
+}

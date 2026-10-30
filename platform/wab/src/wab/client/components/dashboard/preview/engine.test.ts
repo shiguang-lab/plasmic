@@ -36,11 +36,9 @@ it.each(["counters-test", "global-variant-test", "style-token-overrides", "impor
   const { transform } = await import("sucrase");
   const generated = transform(cover?.source ?? "", { transforms: ["typescript", "jsx", "imports"] }).code;
   const commit = Promise.withResolvers<void>();
-  const dispose = vi.fn();
-  let renderError: (error: Error) => void;
   const host = {
-    __Sub: { hostUtils: { registerRenderErrorListener: vi.fn((listener) => { renderError = listener; return dispose; }) } },
-    __plasmicLive: { renderRoot: vi.fn(() => commit.promise) },
+    __Sub: {},
+    __plasmicLive: { beginRender: vi.fn(), getDiagnostics: vi.fn(() => ({ errors: [] })), renderRoot: vi.fn(() => commit.promise) },
   } as any;
   const moduleExports: any = {};
   const imported = new Proxy({}, { get: () => () => null });
@@ -50,13 +48,12 @@ it.each(["counters-test", "global-variant-test", "style-token-overrides", "impor
   const rendering = host.__renderCover(output.pages[0].uuid).then(() => { committed = true; });
   await Promise.resolve();
   expect(committed).toBe(false);
-  expect(dispose).not.toHaveBeenCalled();
+  expect(host.__plasmicLive.getDiagnostics).not.toHaveBeenCalled();
   commit.resolve(); await rendering;
   expect(committed).toBe(true);
-  expect(dispose).toHaveBeenCalledOnce();
-  host.__plasmicLive.renderRoot.mockImplementationOnce(async () => { renderError(new Error("Component failed")); });
+  expect(host.__plasmicLive.beginRender).toHaveBeenCalledWith(output.pages[0].componentId);
+  host.__plasmicLive.getDiagnostics.mockReturnValueOnce({ errors: [new Error("Component failed")] });
   await expect(host.__renderCover(output.pages[0].uuid)).rejects.toThrow("Component failed");
-  expect(dispose).toHaveBeenCalledTimes(2);
   for (const module of output.modules.filter((m) => m.lang !== "css")) {
     expect(() => transform(module.source, { transforms: ["typescript", "jsx", "imports"], jsxPragma: module.jsxPragma })).not.toThrow();
   }
@@ -92,7 +89,7 @@ it.each([
   };
   const host = {
     __Sub: { PageParamsProvider, hostUtils: { registerRenderErrorListener: () => () => {} } },
-    __plasmicLive: { renderRoot: async (node: React.ReactElement) => { renderToStaticMarkup(node); } },
+    __plasmicLive: { beginRender: () => {}, getDiagnostics: () => ({ errors: [] }), renderRoot: async (node: React.ReactElement) => { renderToStaticMarkup(node); } },
   } as any;
   const moduleExports: any = {};
   new Function("require", "exports", "window", generated)((name: string) => name === "react" ? React : { __esModule: true, default: Root }, moduleExports, host);

@@ -1,0 +1,41 @@
+{
+  "baselineCommit": "b67b212b97312767aaf2d15d144adf8d6de90a8b",
+  "workspace": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-feedback-pswjgqml",
+  "finalSources": {
+    "ai/plasmic/references/feedback-handling.md": "c04b4fad6002b06ce568c79a08f5227bdc1a72412452a02ac1465b58ab13d338",
+    "ai/plasmic/references/workflows/inspect.md": "780d20a10b69d376fed976d56b21513010092ce54b7f69572e1def47b894cde4",
+    "ai/plasmic/references/workflows/prototype.md": "db8b630a3c9b2a4624c7951880571b7d2664deebcb4b637a321ae42573050090",
+    "ai/plasmic/references/desktop-inspection.md": "d645641e480aa647d99a0f9b42bf3a9bf988d6d7ab409186a2e3d349c68fcb29",
+    "ai/plasmic/evals/feedback-handling/cases.json": "0cbde33e1ff2527266b6c0adc81613d0defb52ef3aa50f5ad02403bb65ffc7c2"
+  },
+  "responses": {
+    "iteration-1/business-conflict/old_skill/outputs/response.md": "2a662ae41171dc666773a7486dbe1ce12bde72260054141474bf9e4abd4448f2",
+    "iteration-1/business-conflict/with_skill/outputs/response.md": "144cee12137787ec9cee4008813ffa0f9f7753adc1a78f5b2e9786b160db3987",
+    "iteration-1/historical-image/old_skill/outputs/response.md": "9b037d618e73ba32b989317f1670d4c2f7485ee38ca0301b4d999ce6936f3f03",
+    "iteration-1/historical-image/with_skill/outputs/response.md": "ba34faeb8f68e370958fbb6514ed5c70614eca39c9ad964cb877a70b36998867",
+    "iteration-1/image-only/old_skill/outputs/response.md": "2cebd13fbdab9f6a7d9b339b841005ec33f32742011cab6e4a34671b4e1ceffc",
+    "iteration-1/image-only/with_skill/outputs/response.md": "28e19c173c856e01db60da7c5c7cb52a364c292d6adfec3322342ebdbd576197",
+    "iteration-1/module-optimization/old_skill/outputs/response.md": "cf9fb31f6a6858e99ea86b18da29885698827b290df0390a71e983655f3f810a",
+    "iteration-1/module-optimization/with_skill/outputs/response.md": "f9d2f1ea23b244c0705726b40996d6c67963b0ff5c4b61f0131af947ec44cf6e",
+    "iteration-1/readonly-severe/old_skill/outputs/response.md": "bd98aac84ebe45afb9ba3961202779e910f3dc212244933c10cc35b80e91b69f",
+    "iteration-1/readonly-severe/with_skill/outputs/response.md": "8330a3e9fb3024a29499d0ead59c0be54ca6df06819de4fea6a17fbaa8525a3f",
+    "iteration-1/shared-cause/old_skill/outputs/response.md": "be668b71d800a44585713c49fe72a0487c948d9756879f54b75dcb2e0b755114",
+    "iteration-1/shared-cause/with_skill/outputs/response.md": "3f1f8bb0d2141d0be2348e1a990c227b96b433385b7ab51cce7afa77b079b472",
+    "iteration-1/stale-repair-evidence/old_skill/outputs/response.md": "fda6848b47b6b6008dbcde931c3744774359c25f4f2f8a967a88cc706c3eb3b9",
+    "iteration-1/stale-repair-evidence/with_skill/outputs/response.md": "5280930ec952d665e69093cc35ce45194124e2adb01926f632e6b406e9e0acac",
+    "iteration-1/text-query/old_skill/outputs/response.md": "8a3c25df3f3bd07723e9dcf15373a97581f425e82efe57aadc26bef9afd12b8b",
+    "iteration-1/text-query/with_skill/outputs/response.md": "d892949ea86517e4e74fe6723351c7ddc27b47c8c1e475a919e643e5c3ec4f57",
+    "iteration-1/text-spacing/old_skill/outputs/response.md": "ae6d0cf37f37afbf041b811caaaec86745b3b2dc6053821a6ac11f2e83ea5702",
+    "iteration-1/text-spacing/with_skill/outputs/response.md": "222bcae832dd658bbb87a38d554626c10b13d49d460c428038fc211215d0ca6f",
+    "iteration-1/vague-region/old_skill/outputs/response.md": "fec56de780284e7e50a8c38283bc8d6f23a9ffe060ebb5e04cf8fa2584d28cd2",
+    "iteration-1/vague-region/with_skill/outputs/response.md": "2d60708f95bf86067b6528ac2eb0378069b2063610bf7e3cffc09de7a2711e5e",
+    "iteration-2/business-conflict/with_skill/outputs/response.md": "44889516b22f9d50b7afffebf009fb7f6b97656addafc87feb2ada107695dbbe",
+    "iteration-2/cancel-semantics/with_skill/outputs/response.md": "d71d9d6ad2aacfa417353869ecf1b76d30021f7dc189c4254809d49e70a40d1f"
+  },
+  "casesSha256": {
+    "initial10": "90d4a21b865921bbfc140e9936266f39e044c80c62d8e666e4a3e5903bbf9765",
+    "targeted2": "d93b9ecbf0c0cb92c2b8b651d001e1192ed8773d302af92bc52f5799795558bc"
+  },
+  "finalBuildReleaseId": "98a7cf6aa93b8d10f0c67ebdfeee1749f8e7cc8d7a0965e00cdd910dad21402b",
+  "timingAndTokens": null
+}

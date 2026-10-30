@@ -130,7 +130,7 @@ plasmickit references path
 
 `version check` 查询公开资源服务的当前发布清单；清单的 `version` 是资源版本，`cliVersion` 是所附 npm 包版本。CLI 升级判断只比较 `cliVersion`。命令返回正在运行的 `cliVersion`、公开清单中的 `latestCliVersion`、资源最低要求 `minCliVersion`、`cliUpdateAvailable`、`cliCompatible` 和可直接安装的 `cliUrl`。`references check` 同时返回资源差异与 CLI 版本结果。CLI 低于最低版本时，`update` / `context resolve` 返回升级信息并停止；兼容的旧 CLI 可以加载新 references，同时报告有可用升级。薄 skill 的 `npx …@latest` 入口自动选择 npm 最新 CLI。
 
-`context resolve` 每次读取公开资源服务的 `latest.json`，更新并验证全部缓存文件，返回 `releaseId`、`version`、`resourceRoot`、`referencePath` 和该模式的 `mustRead` 绝对路径。inspect 模式返回只读解读流程和共用模型读取契约；prototype 模式返回原型工作流，通过后台索引按受影响区域选读；codegen 模式返回模型读取、工程与验收规范，数据/交互规范在涉及对应行为时读取。解释模板和设计审查不要求编辑权限，不安装库或保存设计。
+`context resolve` 每次读取公开资源服务的 `latest.json`，更新并验证全部缓存文件，返回 `releaseId`、`version`、`resourceRoot`、`referencePath` 和该模式的 `mustRead` 绝对路径。inspect 模式返回只读解读流程和共用模型读取契约；prototype 模式返回原型工作流和 planning 必读入口，通过现有规则卡按注册组件和受影响范围送达规则；局部修复复用已有计划并执行针对性检查；codegen 模式返回模型读取、工程与验收规范，数据/交互规范在涉及对应行为时读取。解释模板和设计审查不要求编辑权限，不安装库或保存设计。
 
 资源命令在 stderr 实时输出友好的阶段提示，版本检查显示当前版本和最新版本，资源无需更新且缓存完整时直接提示当前已是最新版本；需要加载时显示下载与哈希校验进度。正常加载不展示缓存保存、更新协调和工作流入口等内部步骤。下载显示已接收字节与实际进度，阶段持续超过两秒时定期显示等待时长；失败提示标明当前阶段。stdout 仅输出最终 JSON，阶段内失败时，错误 JSON 包含失败阶段 `stage`。AI 应使用运行工具的增量输出能力转述阶段变化；工具若只在退出后返回日志，CLI 无法保证中途显示，AI 应说明仍在等待，不能编造进度。工作流入口就绪只代表文件可供阅读，Agent 仍需读取返回的 `mustRead`。
 

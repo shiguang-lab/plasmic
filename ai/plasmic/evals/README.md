@@ -22,6 +22,10 @@ The latest dynamic-check, evidence-reuse and counterexample audit is in [REQ075 
 
 [Service and simulation probes](codegen-services/README.md) cover distributed/missing API sources, network mock reuse, local data fallback, stateful workflows and evidence-aware review.
 
+[Feedback handling probes](feedback-handling/README.md) cover text-only and image-assisted feedback, narrow edits versus module optimization, read-only authority, source conflicts, shared consumers and stale repair evidence. They compare offline decisions against pinned inputs; they do not establish live visual or runtime acceptance.
+
+[Rule delivery probes](rule-delivery/README.md) cover preparation before writes, scoped repairs, native heading ownership, shared plan/model errors and static-check coverage. Results distinguish paired offline Agent decisions from deterministic verifier counterexamples.
+
 `evals.json` covers read-only template interpretation, a focused prototype edit, incremental React coding, an explicit official CLI request, a cross-project read with a saving side effect, and failed validation after a session change. Run each prompt in a fresh agent context with the designated skill and isolated inputs; use the original published skill as the baseline. Repeat the new skill cases to expose inconsistent decisions.
 
 Generate isolated models and public operation schemas from the actual Studio tools:

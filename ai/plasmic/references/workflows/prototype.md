@@ -2,9 +2,23 @@
 
 Sources → structure/contracts → Design review → compose → Saved-Page review → Integration review → delivery. Use the unified [review checkpoints and fallback](../review-mode.md#review-checkpoints) and [evidence integrity](../verification.md#evidence-integrity).
 
+## Before content writes
+
+Complete preparation for the affected scope before inserting or changing business content:
+
+- Verify current identity, `canEdit` and [MCP preflight](../desktop-transports.md#prototype-preflight); these establish tool capability, not design correctness.
+- For a new Page or structural change, follow [planning](../planning.md): project rules → current-Page scaffold → compose card and its reader commands → resolved decisions → `verify_selection.py PLAN --page ROUTE --reads LEDGER` → Design review. Read the selected live contracts as well. A card or ledger alone does not prove that every rule was read and applied; `--plan-only` does not complete preparation.
+- For a local repair, reuse the current plan/checkpoint, read the affected component and composition rules, and run applicable focused checks. Do not create a full-Page plan or redo unrelated template selection merely to change spacing, copy or one prop. Update existing affected declarations and evidence; apply Page preparation when the change actually alters structure.
+
+If preparation is incomplete, continue independent discovery and record the missing step; do not start dependent writes. Revisit affected rules and decisions when components, containers or scope change. Preserve valid unrelated evidence. `validate` checks model invariants and `save` persists changes; neither replaces the design checks below.
+
 ## Working set
 
 Sketch in-scope Pages and flows; detail one Page at a time. Keep local edits scoped. Read `mustRead` and applicable [sections](../context-reading.md); retain evidence on disk. Structure-only requests end with reviewed drafts and contract gaps, not composition readiness.
+
+## Existing prototype changes
+
+For requested changes, defect reports and module optimization, first follow [feedback handling](../feedback-handling.md), with or without screenshots. Separate inspection, edit and regression scopes; preserve the current plan and completed evidence. Existing-defect diagnosis may use read-only Preview before repair; post-repair acceptance follows the stages below. Apply scope/contracts and review stages only to the affected decisions, structure, components and flows; a cosmetic edit does not restart full-Page planning/template selection. New Pages or structural changes use the corresponding preparation steps. Read-only analysis stays in inspect; authorized repair/optimization needs no routine reconfirmation.
 
 ## Resolve scope and contracts
 

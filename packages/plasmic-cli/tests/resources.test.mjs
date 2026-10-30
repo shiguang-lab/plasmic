@@ -287,7 +287,9 @@ test("context checks the feed every task, reuses valid bytes and switches both m
   await assert.rejects(access(path.join(options.home, "current.json")));
   const first = await resolveContext("prototype", options);
   assert.equal(first.updated, true);
-  assert.equal(first.mustRead.length, 3);
+  assert.deepEqual(first.mustRead.map((filename) => path.relative(first.resourceRoot, filename)), [
+    "references/guide.md", "references/desktop-mcp.md", "references/prototype.md", "references/planning.md",
+  ]);
   assert.ok(first.mustRead.every(path.isAbsolute));
   assert.match(
     await readFile(first.mustRead[2], "utf8"),

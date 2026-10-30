@@ -20,7 +20,17 @@ app.on("window-all-closed", () => {}); // finish() controls the regression proce
 const watchdog = setTimeout(() => app.exit(1), 20000);
 app.whenReady().then(async () => {
   app.dock?.hide();
+  const bundle = await require("esbuild").build({
+    entryPoints: [path.join(__dirname, "fixtures/preview-runtime-errors.tsx")],
+    bundle: true, write: false, platform: "browser", format: "iife",
+    nodePaths: [path.join(__dirname, "../../platform/wab/node_modules")],
+    define: { "process.env.NODE_ENV": '"production"' },
+  });
   server = http.createServer((req, res) => {
+    if (req.url === "/errors-runtime.js") {
+      res.setHeader("Content-Type", "text/javascript");
+      return res.end(bundle.outputFiles[0].text);
+    }
     res.setHeader("Content-Type", "text/html; charset=utf-8");
     if (req.url.startsWith("/projects/")) return res.end('<iframe style="border:0;width:800px;height:600px" src="/runtime#live=true"></iframe>');
     res.end(`<div class="live-root-container" data-plasmic-preview-component="page">
@@ -29,7 +39,7 @@ app.whenReady().then(async () => {
       <div style="position:relative;width:200px;height:32px;margin-top:20px">
         <input role="combobox" aria-label="市场" readonly style="position:absolute;inset:0;width:100%;height:100%;opacity:0">
         <span style="position:absolute;inset:0;background:white">遮挡层</span>
-      </div></div><script>window.inputs=[];for(const type of ['mousemove','mousedown','mouseup','click'])document.addEventListener(type,e=>window.inputs.push({type,x:e.clientX,y:e.clientY,target:e.target.tagName,text:e.target.textContent}));</script>`);
+      </div><div id="error-region"></div></div><script>window.inputs=[];for(const type of ['mousemove','mousedown','mouseup','click'])document.addEventListener(type,e=>window.inputs.push({type,x:e.clientX,y:e.clientY,target:e.target.tagName,text:e.target.textContent}));</script><script src="/errors-runtime.js"></script>`);
   });
   await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
   const origin = `http://127.0.0.1:${server.address().port}`;
@@ -66,7 +76,7 @@ app.whenReady().then(async () => {
     const target = ref || snapshot.elements.find((element) => element.name === name).ref;
     const failed = await preview({ action: "click", ref: target });
     assert.equal(failed.isError, true);
-    const payload = JSON.parse(failed.content[0].text);
+    const payload = JSON.parse(failed.content[0].text).detail;
     assert.equal(payload.code, code);
     assert.equal(payload.operationExecuted, false);
     assert.equal(payload.runtimeAvailable, true);
@@ -86,6 +96,48 @@ app.whenReady().then(async () => {
   assert.equal(clicked.isError, false);
   const nativeInput = await frame.executeJavaScript("({clicks:window.nativeClicks||0,inputs:window.inputs})");
   assert.equal(nativeInput.clicks, 1);
+  for (const [name, message] of [["Render failure", /Cannot read properties of null/], ["Async failure", /async request failed/]]) {
+    await frame.executeJavaScript("window.resetPreview()");
+    const view = JSON.parse((await preview({ action: "snapshot" })).content[0].text);
+    const failed = await preview({ action: "click", ref: view.elements.find((element) => element.name === name).ref });
+    assert.equal(failed.isError, true);
+    const payload = JSON.parse(failed.content[0].text).detail;
+    assert.equal(payload.code, "PREVIEW_RUNTIME_ERROR");
+    assert.equal(payload.operationExecuted, true);
+    assert.equal(payload.runtime.status, "degraded");
+    assert.match(payload.runtime.errors[0].message, message);
+    assert.ok(payload.runtime.errors[0].stack);
+    if (name === "Render failure") assert.equal(payload.runtime.errors[0].elementUuid, "records");
+    const remaining = JSON.parse((await preview({ action: "snapshot" })).content[0].text);
+    assert.equal((await preview({ action: "click", ref: remaining.elements.find((element) => element.name === "查询").ref })).isError, false);
+    assert.equal((await preview({ action: "assert", checks: [{ kind: "text", text: "查询", present: true }] })).isError, true);
+    if (name === "Render failure") {
+      const recover = remaining.elements.find((element) => element.name === "Recover data").ref;
+      const repaired = await preview({ action: "click", ref: recover });
+      assert.equal(repaired.isError, false);
+      assert.deepEqual(JSON.parse(repaired.content[0].text).runtime.errors, []);
+      const checked = await preview({ action: "assert", checks: [{ kind: "text", text: "Record", present: true }] });
+      assert.equal(checked.isError, false);
+      assert.equal(JSON.parse(checked.content[0].text).passed, true);
+      const healthy = JSON.parse((await preview({ action: "snapshot" })).content[0].text);
+      assert.equal((await preview({ action: "click", ref: healthy.elements.find((element) => element.name === name).ref })).isError, true);
+      const hidden = await preview({ action: "click", ref: healthy.elements.find((element) => element.name === "Hide records").ref });
+      assert.equal(hidden.isError, false);
+      assert.deepEqual(JSON.parse(hidden.content[0].text).runtime.errors, []);
+    }
+    failures.push(payload);
+  }
+  await frame.executeJavaScript("window.resetPreview(true)");
+  const failedState = JSON.parse((await preview({ action: "state" })).content[0].text);
+  assert.equal(failedState.ready, false);
+  assert.equal(failedState.runtime.status, "failed");
+  assert.match(failedState.runtime.errors[0].message, /page initialization failed/);
+  assert.equal((await preview({ action: "snapshot" })).isError, false);
+  assert.equal((await preview({ action: "screenshot" })).isError, false);
+  await frame.executeJavaScript("window.resetPreview()");
+  const recovered = JSON.parse((await preview({ action: "state" })).content[0].text);
+  assert.equal(recovered.ready, true);
+  assert.deepEqual(recovered.runtime.errors, []);
   const report = { passed: true, electronVersion: process.versions.electron, nativeRejection, failures,
     subsequentClickExecuted: true, nativeInput, sameRoundContinued: true };
   if (process.env.PLASMIC_REPORT_DIR) {

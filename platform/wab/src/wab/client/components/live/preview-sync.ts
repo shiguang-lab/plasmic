@@ -19,9 +19,15 @@ export function syncPreview(
 ) {
   const queue = makeRenderQueue(win, onDone);
   const dispose = autorun(() => {
-    const update = build();
-    if (update) {
-      queue.push(update);
+    try {
+      const update = build();
+      if (update) {
+        queue.push(update);
+      }
+    } catch (error) {
+      // Serialize preparation failures with renders so an older in-flight
+      // commit cannot overwrite the failure, and a later valid build can recover.
+      queue.push({ error });
     }
   }, options);
   return () => {
@@ -35,6 +41,24 @@ export function liveFrame(win: Window): LiveFrame {
     (win as WindowWithLiveFrame).__plasmicLive,
     "window.__plasmicLive",
   );
+}
+
+/** Bootstrap can fail before the runtime bundle (and React) is available. */
+export async function showPreviewLoadError(win: Window, error: unknown) {
+  const runtime = (win as Partial<WindowWithLiveFrame>).__plasmicLive;
+  if (runtime) {
+    runtime.beginRender();
+    await runtime.showError(error);
+    return;
+  }
+  const failure = win.document.createElement("div");
+  failure.setAttribute("role", "alert");
+  failure.setAttribute("data-plasmic-preview-error", "true");
+  const value = error as Error | undefined;
+  failure.textContent = String(value?.message ?? error);
+  if (value?.name) { failure.setAttribute("data-plasmic-error-name", value.name); }
+  if (value?.stack) { failure.setAttribute("data-plasmic-error-stack", value.stack); }
+  win.document.body.replaceChildren(failure);
 }
 
 function createTranspiler() {
@@ -71,14 +95,20 @@ function makeRenderQueue(win: Window, onDone: (error?: unknown) => void) {
   let disposed = false;
   // Cargo holds updates until the previous render commits, then delivers the latest
   const queue = asynclib.cargo(
-    safeCallbackify(async (tasks: PreviewUpdate[]) => {
+    safeCallbackify(async (tasks: (PreviewUpdate | { error: unknown })[]) => {
+      let updating = false;
+      let render: PreviewUpdate["render"];
       try {
-        const { modules, render } = ensure(
+        const task = ensure(
           tasks[tasks.length - 1],
           "cargo has tasks",
         );
+        if ("error" in task) { throw task.error; }
+        const { modules } = task;
+        render = task.render;
         const compiled = await Promise.all(modules.map(transpile));
         if (!disposed) {
+          updating = true;
           await liveFrame(win).update(compiled, render);
         }
         if (!disposed) {
@@ -86,6 +116,9 @@ function makeRenderQueue(win: Window, onDone: (error?: unknown) => void) {
         }
       } catch (error) {
         if (!disposed) {
+          if (!updating) {
+            liveFrame(win).beginRender(render && "componentUuid" in render ? render.componentUuid : undefined);
+          }
           // Compilation fails in Studio and evaluation in the frame. Both must
           // replace stale content with the same visible error.
           await liveFrame(win).showError(error);
@@ -97,7 +130,7 @@ function makeRenderQueue(win: Window, onDone: (error?: unknown) => void) {
     }),
   );
   return {
-    push: (update: PreviewUpdate) => {
+    push: (update: PreviewUpdate | { error: unknown }) => {
       if (!disposed) {
         spawn(queue.push(update));
       }

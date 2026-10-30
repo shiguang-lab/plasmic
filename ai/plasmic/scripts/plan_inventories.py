@@ -225,6 +225,8 @@ def descriptions_inventory(plan):
             group = {'name': name, 'container': graph.owner(name)[0] or PENDING,
                      'title': graph.slot_text(name, 'title') or props.get('title') or '',
                      'column': props.get('column', PENDING)}
+            if 'columnReason' in graph.by_name[name]:
+                group['columnReason'] = deepcopy(graph.by_name[name]['columnReason'])
             if 'items' in props:
                 group['items'] = props['items']
             else:

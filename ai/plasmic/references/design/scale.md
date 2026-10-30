@@ -93,6 +93,6 @@ There is no Page title. Monospace is for code, identifiers and URLs only.
 | Page Form | Three short fields per row | [Form layout](../libraries/antd_v6/compositions/form-layout.md#columns-and-label-width) |
 | Modal Form | One column; two with a pairing reason | [Modal form layout](../libraries/antd_v6/compositions/form-layout.md#width-and-columns) |
 | SearchForm | Four columns (`colSpan` 6) | [SearchForm](../libraries/overseas/components/search-form.md) |
-| Descriptions | 3 full width, 2 half width or Drawer, 1 narrow | [Descriptions](../libraries/antd_v6/components/descriptions.md#column-and-span) |
+| Descriptions | Apply the component's column/span hard constraints and documented exceptions | [Column and span](../libraries/antd_v6/components/descriptions.md#column-and-span) |
 | Metric cards | Four per row (Row gutter 16, Col `span` 6); fewer only when content does not fit | This document |
 | Primary actions | One per region; one completion action per Page | [Action bars](../libraries/antd_v6/compositions/action-bars.md) |

@@ -138,6 +138,32 @@ test("diagnosing a disposed frame cannot replace the discovery exception", async
   });
 });
 
+test("loading state is readable and delayed exceptions stop assertion waits", { timeout: 2000 }, async (t) => {
+  const f = fixture(t);
+  const runtime = { generation: 1, componentUuid: "page", status: "loading", errors: [] };
+  f.w.__plasmicLive = { getDiagnostics: () => structuredClone(runtime) };
+  f.w.document.body.innerHTML = "Loading...";
+  f.w.document.fonts.ready = new Promise(() => {});
+  const state = await f.preview({ action: "state" });
+  assert.equal(state.ready, false);
+  assert.equal(state.runtime.status, "loading");
+  f.w.document.fonts.ready = Promise.resolve();
+  f.w.document.body.innerHTML = '<div class="live-root-container" data-plasmic-preview-component="page">Ready</div>';
+  runtime.status = "ready";
+  const timer = setTimeout(() => {
+    runtime.status = "degraded";
+    runtime.errors.push({ id: 1, kind: "unhandled", fatal: false, message: "Delayed query failure" });
+  }, 30);
+  t.after(() => clearTimeout(timer));
+  await assert.rejects(f.preview({ action: "assert", timeoutMs: 10000,
+    checks: [{ kind: "text", text: "Never appears", present: true }] }), (error) => {
+    assert.equal(error.context.code, "PREVIEW_RUNTIME_ERROR");
+    assert.equal(error.context.operationExecuted, false);
+    assert.equal(error.message, "Delayed query failure");
+    return true;
+  });
+});
+
 test("snapshot continuation and renderer diagnostics survive actual RPC and MCP", async (t) => {
   const f = fixture(t);
   const profile = await fs.mkdtemp(path.join(os.tmpdir(), "plasmic-preview-errors-"));
@@ -170,6 +196,34 @@ test("snapshot continuation and renderer diagnostics survive actual RPC and MCP"
     assert.equal(JSON.parse((await call({ action: "state" })).content[0].text).ready, true);
     assert.equal((await call(payload.recovery[0].arguments)).isError, false);
     assert.deepEqual(f.inputs, []);
+    // A business exception must survive the exact same RPC/MCP transport.
+    f.w.document.elementFromPoint = () => f.w.document.getElementById("target");
+    const runtime = { generation: 1, componentUuid: "page", status: "ready", errors: [] };
+    f.w.__plasmicLive = { getDiagnostics: () => structuredClone(runtime) };
+    f.inputs.push = function (value) {
+      Array.prototype.push.call(this, value);
+      if (value.type === "mouseReleased") {
+        runtime.status = "failed";
+        runtime.errors = [{ id: 1, kind: "render", message: "records.map is not a function", stack: "TypeError: records.map is not a function\n at Records", fatal: true, elementUuid: "records" }];
+        f.w.document.body.innerHTML = '<div role="alert" data-plasmic-preview-error>records.map is not a function</div>';
+      }
+    };
+    const crashed = await call({ action: "click", ref });
+    assert.equal(crashed.isError, true);
+    const diagnostic = JSON.parse(crashed.content[0].text);
+    assert.equal(diagnostic.msg, "Preview runtime error: records.map is not a function");
+    assert.equal(diagnostic.detail.code, "PREVIEW_RUNTIME_ERROR");
+    assert.equal(diagnostic.detail.operationExecuted, true);
+    assert.equal(diagnostic.detail.runtimeAvailable, true);
+    assert.equal(diagnostic.detail.canContinueRound, false);
+    assert.match(diagnostic.detail.runtime.errors[0].stack, /at Records/);
+    const failedState = JSON.parse((await call({ action: "state" })).content[0].text);
+    assert.equal(failedState.ready, false);
+    assert.equal(failedState.runtime.status, "failed");
+    assert.equal((await call({ action: "snapshot" })).isError, false);
+    const count = f.inputs.length;
+    assert.equal((await call({ action: "click", ref })).isError, true);
+    assert.equal(f.inputs.length, count, "A failed page must not dispatch another click");
   } finally {
     await client.close(); await stop(); await fs.rm(profile, { recursive: true, force: true });
   }

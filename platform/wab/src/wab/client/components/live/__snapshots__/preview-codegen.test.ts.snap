@@ -863,6 +863,7 @@ export const useScreenVariants = createUseScreenVariants(true,{
       "lang": "css",
       "name": "./plasmic__default_style.css",
       "source": "
+        :where(*, *::before, *::after) { box-sizing: border-box; }
         :where(.plasmic_default__all) {   display: block;
   white-space: inherit;
   grid-row: auto;
@@ -1204,7 +1205,8 @@ export const useScreenVariants = createUseScreenVariants(true,{
       
       
       :where(.root_reset_preview-test) {
-      font-family: var(--mixin-WrBbwj7AG_dL_font-family);
+      box-sizing: border-box;
+font-family: var(--mixin-WrBbwj7AG_dL_font-family);
 font-size: var(--mixin-WrBbwj7AG_dL_font-size);
 font-weight: var(--mixin-WrBbwj7AG_dL_font-weight);
 font-style: var(--mixin-WrBbwj7AG_dL_font-style);
@@ -1709,7 +1711,7 @@ const $$ = {};
 data-testid={"counter1-container"}
       
       >
-            <Counter
+            { (window as any).__plasmicLive.renderBoundary(() => (<Counter
       data-plasmic-name={"counter"}
       data-plasmic-override={overrides.counter}
       
@@ -1737,7 +1739,7 @@ onIsOddChange={async (...eventArgs: any) => {
       }}
 testName={"counter1"}
       
-      />
+      />), {"componentUuid":"BtG1cJsQymJd","elementUuid":"uIQOXZMdd","nodeName":"counter"}) }
 <div
       
       
@@ -1796,7 +1798,7 @@ data-odd-for={"Counter 1"}
 data-testid={"counter2-container"}
       
       >
-            <Counter
+            { (window as any).__plasmicLive.renderBoundary(() => (<Counter
       data-plasmic-name={"counter2"}
       data-plasmic-override={overrides.counter2}
       
@@ -1824,7 +1826,7 @@ onIsOddChange={async (...eventArgs: any) => {
       }}
 testName={"counter2"}
       
-      />
+      />), {"componentUuid":"BtG1cJsQymJd","elementUuid":"v8kQIygrg","nodeName":"counter2"}) }
 <div
       
       
@@ -1883,7 +1885,7 @@ data-odd-for={"Counter 2"}
 data-testid={"counter3-container"}
       
       >
-            <Counter
+            { (window as any).__plasmicLive.renderBoundary(() => (<Counter
       data-plasmic-name={"counter3"}
       data-plasmic-override={overrides.counter3}
       
@@ -1911,7 +1913,7 @@ onIsOddChange={async (...eventArgs: any) => {
       }}
 testName={"counter3"}
       
-      />
+      />), {"componentUuid":"BtG1cJsQymJd","elementUuid":"7iHyviq_H","nodeName":"counter3"}) }
 <div
       
       
@@ -2379,7 +2381,7 @@ data-testid={(() => {
     ) })}
       
       >
-            <Button
+            { (window as any).__plasmicLive.renderBoundary(() => (<Button
       
       
       
@@ -2440,7 +2442,7 @@ submitsForm={true}
       
       >
             { "-" }
-          </Button>
+          </Button>), {"componentUuid":"iFqCt8OVI9","elementUuid":"9RJyxNXJH"}) }
 <div
       
       
@@ -2465,7 +2467,7 @@ data-testid={\`\${ $props.testName }-count\`}
       }
     })()}</React.Fragment>
           </div>
-<Button
+{ (window as any).__plasmicLive.renderBoundary(() => (<Button
       
       
       
@@ -2509,7 +2511,7 @@ submitsForm={true}
       
       >
             { "+" }
-          </Button>
+          </Button>), {"componentUuid":"iFqCt8OVI9","elementUuid":"Caa29Hzr9uI"}) }
           </div>
           </div>
       ) as React.ReactElement | null;
@@ -3800,6 +3802,7 @@ export const useScreenVariants = createUseScreenVariants(true,{
       "lang": "css",
       "name": "./plasmic__default_style.css",
       "source": "
+        :where(*, *::before, *::after) { box-sizing: border-box; }
         :where(.plasmic_default__all) {   display: block;
   white-space: inherit;
   grid-row: auto;
@@ -4141,7 +4144,8 @@ export const useScreenVariants = createUseScreenVariants(true,{
       
       
       :where(.root_reset_preview-test) {
-      font-family: var(--mixin-cG4U01yCDhvE_font-family);
+      box-sizing: border-box;
+font-family: var(--mixin-cG4U01yCDhvE_font-family);
 font-size: var(--mixin-cG4U01yCDhvE_font-size);
 font-weight: var(--mixin-cG4U01yCDhvE_font-weight);
 font-style: var(--mixin-cG4U01yCDhvE_font-style);
@@ -4968,6 +4972,7 @@ export const myCode: any = (() => { try { return ("test" + " code"); } catch (e)
       "lang": "css",
       "name": "./plasmic__default_style.css",
       "source": "
+        :where(*, *::before, *::after) { box-sizing: border-box; }
         :where(.plasmic_default__all) {   display: block;
   white-space: inherit;
   grid-row: auto;
@@ -5351,7 +5356,8 @@ export const myCode: any = (() => { try { return ("test" + " code"); } catch (e)
       
       
       :where(.root_reset_1T8AHUHZeUyK1iDkHxrRw6) {
-      font-family: var(--mixin-TaQZ-0iruS1c_font-family);
+      box-sizing: border-box;
+font-family: var(--mixin-TaQZ-0iruS1c_font-family);
 font-size: var(--mixin-TaQZ-0iruS1c_font-size);
 font-weight: var(--mixin-TaQZ-0iruS1c_font-weight);
 font-style: var(--mixin-TaQZ-0iruS1c_font-style);
@@ -5517,7 +5523,8 @@ column-gap: var(--mixin-ita7gjNRonbA_column-gap);
       
       
       :where(.root_reset_3SFZdTKJa8BF7jgeRZMBcG) {
-      font-family: var(--mixin-G2nbCzgBASs4_font-family);
+      box-sizing: border-box;
+font-family: var(--mixin-G2nbCzgBASs4_font-family);
 font-size: var(--mixin-G2nbCzgBASs4_font-size);
 font-weight: var(--mixin-G2nbCzgBASs4_font-weight);
 font-style: var(--mixin-G2nbCzgBASs4_font-style);
@@ -5683,7 +5690,8 @@ column-gap: var(--mixin-0D38NP-hG_SH_column-gap);
       
       
       :where(.root_reset_preview-test) {
-      font-family: var(--mixin-f7_jdPLOIIXg_font-family);
+      box-sizing: border-box;
+font-family: var(--mixin-f7_jdPLOIIXg_font-family);
 font-size: var(--mixin-f7_jdPLOIIXg_font-size);
 font-weight: var(--mixin-f7_jdPLOIIXg_font-weight);
 font-style: var(--mixin-f7_jdPLOIIXg_font-style);
@@ -6738,6 +6746,7 @@ export function usePalette() {
       "lang": "css",
       "name": "./plasmic__default_style.css",
       "source": "
+        :where(*, *::before, *::after) { box-sizing: border-box; }
         :where(.plasmic_default__all) {   display: block;
   white-space: inherit;
   grid-row: auto;
@@ -7120,7 +7129,8 @@ palette: usePalette
       
       
       :where(.root_reset_nK82Sy7U95EbFvy7eCs7Ha) {
-      font-family: var(--mixin-t4HQNO20BDax_font-family);
+      box-sizing: border-box;
+font-family: var(--mixin-t4HQNO20BDax_font-family);
 font-size: var(--mixin-t4HQNO20BDax_font-size);
 font-weight: var(--mixin-t4HQNO20BDax_font-weight);
 font-style: var(--mixin-t4HQNO20BDax_font-style);
@@ -7309,7 +7319,8 @@ line-height: var(--mixin-OKRTF9ZQHNor_line-height);
       
       
       :where(.root_reset_preview-test) {
-      font-family: var(--mixin-Lu8-ypGxt-K3_font-family);
+      box-sizing: border-box;
+font-family: var(--mixin-Lu8-ypGxt-K3_font-family);
 font-size: var(--mixin-Lu8-ypGxt-K3_font-size);
 font-weight: var(--mixin-Lu8-ypGxt-K3_font-weight);
 font-style: var(--mixin-Lu8-ypGxt-K3_font-style);
@@ -7722,14 +7733,14 @@ id={"background"}
       "mobileOnly"
     ) ? "h1 text (mobile)" : "h1 text" }
           </h1>
-<Comp
+{ (window as any).__plasmicLive.renderBoundary(() => (<Comp
       data-plasmic-name={"comp"}
       data-plasmic-override={overrides.comp}
       
       
       className={classNames("__wab_instance", "Homepage__comp__nuHiw")}
       
-      />
+      />), {"componentUuid":"f3MXOrj1Y1BN","elementUuid":"NuHIWCWFfH6t","nodeName":"comp"}) }
 <h2
       data-plasmic-name={"h2"}
       data-plasmic-override={overrides.h2}
@@ -9112,6 +9123,7 @@ export const useScreenVariants = createUseScreenVariants(true,{
       "lang": "css",
       "name": "./plasmic__default_style.css",
       "source": "
+        :where(*, *::before, *::after) { box-sizing: border-box; }
         :where(.plasmic_default__all) {   display: block;
   white-space: inherit;
   grid-row: auto;
@@ -9512,7 +9524,8 @@ export const useScreenVariants = createUseScreenVariants(true,{
       
       
       :where(.root_reset_dDhZ6zwZLAf7xJZyZTRjNo) {
-      font-family: var(--mixin-dw7DM_moJQc9_font-family);
+      box-sizing: border-box;
+font-family: var(--mixin-dw7DM_moJQc9_font-family);
 font-size: var(--mixin-dw7DM_moJQc9_font-size);
 font-weight: var(--mixin-dw7DM_moJQc9_font-weight);
 font-style: var(--mixin-dw7DM_moJQc9_font-style);
@@ -9686,7 +9699,8 @@ line-height: var(--mixin--o30l7paavCV_line-height);
       
       
       :where(.root_reset_o4X34XVygFFWtxjFUskpCA) {
-      font-family: var(--mixin-NMKUUa6Zir08_font-family);
+      box-sizing: border-box;
+font-family: var(--mixin-NMKUUa6Zir08_font-family);
 font-size: var(--mixin-NMKUUa6Zir08_font-size);
 font-weight: var(--mixin-NMKUUa6Zir08_font-weight);
 font-style: var(--mixin-NMKUUa6Zir08_font-style);
@@ -9854,7 +9868,8 @@ line-height: var(--mixin-a5chFePC9AGQ_line-height);
       
       
       :where(.root_reset_preview-test) {
-      font-family: var(--mixin-K-a1yZi9mim-_font-family);
+      box-sizing: border-box;
+font-family: var(--mixin-K-a1yZi9mim-_font-family);
 font-size: var(--mixin-K-a1yZi9mim-_font-size);
 font-weight: var(--mixin-K-a1yZi9mim-_font-weight);
 font-style: var(--mixin-K-a1yZi9mim-_font-style);
@@ -11191,14 +11206,14 @@ const $$ = {};
       >
             { "Imported Project H1" }
           </h1>
-<TransitiveTest
+{ (window as any).__plasmicLive.renderBoundary(() => (<TransitiveTest
       data-plasmic-name={"transitiveTest"}
       data-plasmic-override={overrides.transitiveTest}
       
       
       className={classNames("__wab_instance", "ImportedComponentOne__transitiveTest__kPeRu")}
       
-      />
+      />), {"componentUuid":"q8WJnIKgY_jw","elementUuid":"kPeRUTvxbyiA","nodeName":"transitiveTest"}) }
           </div>
       ) as React.ReactElement | null;
     }
@@ -11917,15 +11932,15 @@ const $$ = {};
       >
             <React.Fragment><React.Fragment>{"If you haven't already done so, go back and learn the basics by going through the Plasmic Levels tutorial.\\n\\nIt's always easier to start from examples! Add a new page using a template\\u2014do this from the list of pages in the top toolbar.\\n\\nOr press the big blue + button to start inserting items into this page.\\n\\nIntegrate this project into your codebase\\u2014press the "}</React.Fragment><span className={"plasmic_default__all plasmic_default__span plasmic_default__span__previ"} style={{"fontWeight":700}}>{"Code"}</span><React.Fragment>{" button in the top right and follow the quickstart instructions.\\n\\nJoin our Slack community (icon in bottom left) for help any time."}</React.Fragment></React.Fragment>
           </div>
-<Test
+{ (window as any).__plasmicLive.renderBoundary(() => (<Test
       data-plasmic-name={"test"}
       data-plasmic-override={overrides.test}
       
       
       className={classNames("__wab_instance", "Homepage__test___78MJ")}
       
-      />
-<ImportedComponentOne
+      />), {"componentUuid":"WEcg8qFNJmkz","elementUuid":"_78mJmZuvldl","nodeName":"test"}) }
+{ (window as any).__plasmicLive.renderBoundary(() => (<ImportedComponentOne
       
       
       
@@ -11953,8 +11968,8 @@ const $$ = {};
       >
             { "Enter some text" }
           </div>
-          </ImportedComponentOne>
-<ImportedComponentOne
+          </ImportedComponentOne>), {"componentUuid":"WEcg8qFNJmkz","elementUuid":"gtKGKO6I9M12"}) }
+{ (window as any).__plasmicLive.renderBoundary(() => (<ImportedComponentOne
       
       
       
@@ -11982,8 +11997,8 @@ const $$ = {};
       >
             { "Enter some text" }
           </div>
-          </ImportedComponentOne>
-<ImportedComponentOneWithSlotStyles
+          </ImportedComponentOne>), {"componentUuid":"WEcg8qFNJmkz","elementUuid":"ycaW9A6lHYgv"}) }
+{ (window as any).__plasmicLive.renderBoundary(() => (<ImportedComponentOneWithSlotStyles
       data-plasmic-name={"importedComponentOneWithSlotStyles"}
       data-plasmic-override={overrides.importedComponentOneWithSlotStyles}
       
@@ -12011,8 +12026,8 @@ const $$ = {};
       >
             { "Enter some text" }
           </div>
-          </ImportedComponentOneWithSlotStyles>
-<ImportedComponentOneWithContainerStyles
+          </ImportedComponentOneWithSlotStyles>), {"componentUuid":"WEcg8qFNJmkz","elementUuid":"czr5IGkaPP3d","nodeName":"importedComponentOneWithSlotStyles"}) }
+{ (window as any).__plasmicLive.renderBoundary(() => (<ImportedComponentOneWithContainerStyles
       data-plasmic-name={"importedComponentOneWithContainerStyles"}
       data-plasmic-override={overrides.importedComponentOneWithContainerStyles}
       
@@ -12040,7 +12055,7 @@ const $$ = {};
       >
             { "Enter some text" }
           </div>
-          </ImportedComponentOneWithContainerStyles>
+          </ImportedComponentOneWithContainerStyles>), {"componentUuid":"WEcg8qFNJmkz","elementUuid":"HS-xSolXkwVN","nodeName":"importedComponentOneWithContainerStyles"}) }
           </section>
           </div>
       </div>
@@ -12722,6 +12737,7 @@ export const useScreenVariants = createUseScreenVariants(true,{
       "lang": "css",
       "name": "./plasmic__default_style.css",
       "source": "
+        :where(*, *::before, *::after) { box-sizing: border-box; }
         :where(.plasmic_default__all) {   display: block;
   white-space: inherit;
   grid-row: auto;
@@ -13104,7 +13120,8 @@ fontSize: useFontSize
       
       
       :where(.root_reset_iGygRUekJWXZgpf4Konyj4) {
-      font-family: var(--mixin-ImWYrsGbnoxE_font-family);
+      box-sizing: border-box;
+font-family: var(--mixin-ImWYrsGbnoxE_font-family);
 font-size: var(--mixin-ImWYrsGbnoxE_font-size);
 font-weight: var(--mixin-ImWYrsGbnoxE_font-weight);
 font-style: var(--mixin-ImWYrsGbnoxE_font-style);
@@ -13282,7 +13299,8 @@ line-height: var(--mixin-X4sE-67VK4TL_line-height);
       
       
       :where(.root_reset_preview-test) {
-      font-family: var(--mixin-rnC1eOLSIqFC_font-family);
+      box-sizing: border-box;
+font-family: var(--mixin-rnC1eOLSIqFC_font-family);
 font-size: var(--mixin-rnC1eOLSIqFC_font-size);
 font-weight: var(--mixin-rnC1eOLSIqFC_font-weight);
 font-style: var(--mixin-rnC1eOLSIqFC_font-style);
@@ -13679,14 +13697,14 @@ const $$ = {};
     ) })}
       
       >
-            <DepComp
+            { (window as any).__plasmicLive.renderBoundary(() => (<DepComp
       data-plasmic-name={"depComp"}
       data-plasmic-override={overrides.depComp}
       
       
       className={classNames("__wab_instance", "Homepage__depComp__mtl9A")}
       
-      />
+      />), {"componentUuid":"lRapkLBf4Fhi","elementUuid":"MTL9agYUNazv","nodeName":"depComp"}) }
 <p
       data-plasmic-name={"p"}
       data-plasmic-override={overrides.p}

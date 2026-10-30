@@ -6,6 +6,7 @@ import {
   pushPreviewModules,
 } from "@/wab/client/components/live/live-syncer";
 import { getViewportScale } from "@/wab/client/components/live/preview-viewport";
+import { liveFrame, showPreviewLoadError } from "@/wab/client/components/live/preview-sync";
 import {
   getHostLessPkgIdentity,
   getSortedHostLessPkgs,
@@ -68,6 +69,7 @@ export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
     if (!frameLoaded || !win) {
       return;
     }
+    liveFrame(win).setErrorTitle(t("Error"));
     const dispose = installPreviewAgentCursor(win, {
       label: t("AI assistant"),
       color: token.colorPrimary,
@@ -97,13 +99,13 @@ export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
 
   const usedPkgs = usedHostLessPkgs(previewCtx.studioCtx.site);
   const [installedPkgs, setInstalledPkgs] = React.useState<string[]>([]);
-  const [isInstalling, setIsInstalling] = React.useState(false);
+  const [installationStatus, setInstallationStatus] = React.useState<"idle" | "loading" | "failed">("idle");
   const isMounted = useMountedState();
 
   const reset = () => {
     frameGeneration.current++;
     frameRef.current = null;
-    setIsInstalling(false);
+    setInstallationStatus("idle");
     setInstalledPkgs([]);
     setFrameLoaded(false);
   };
@@ -136,13 +138,24 @@ export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
   const onLoad = async () => {
     const frameWindow = ensure(frameRef.current, `Frame must be loaded`);
     const generation = frameGeneration.current;
-    await onLoadInjectLiveRuntime(
-      previewCtx.studioCtx,
-      frameWindow,
-      true,
-      onAnchorClick,
-      (href) => previewCtx.hrefForNavigation(href),
-    );
+    try {
+      await onLoadInjectLiveRuntime(
+        previewCtx.studioCtx,
+        frameWindow,
+        true,
+        onAnchorClick,
+        (href) => previewCtx.hrefForNavigation(href),
+      );
+    } catch (error) {
+      if (!isMounted() || frameRef.current !== frameWindow || frameGeneration.current !== generation) { return; }
+      // The iframe owner retries this specific cross-origin URL failure.
+      if ((error as Error)?.name === "SecurityError") { throw error; }
+      await showPreviewLoadError(frameWindow, error);
+      if (full && isMounted() && frameRef.current === frameWindow && frameGeneration.current === generation) {
+        await topFrameApi.setStudioReady();
+      }
+      return;
+    }
     if (
       !isMounted() ||
       frameRef.current !== frameWindow ||
@@ -171,6 +184,7 @@ export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
         }
         return fn();
       } catch (error) {
+        liveFrame(frameWindow).reportError(error, { kind: "interaction", fatal: false, interactionUuid: loc.interactionUuid });
         trapInteractionError(previewCtx.studioCtx, loc, error);
         throw error;
       }
@@ -179,9 +193,11 @@ export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
       loc: InteractionLoc | InteractionArgLoc,
       promise: Promise<any>,
     ) => {
+      const runtimeGeneration = liveFrame(frameWindow).getDiagnostics().generation;
       try {
         return await promise;
       } catch (error) {
+        liveFrame(frameWindow).reportError(error, { kind: "interaction", fatal: false, interactionUuid: loc.interactionUuid }, runtimeGeneration);
         trapInteractionError(previewCtx.studioCtx, loc, error);
         throw error;
       }
@@ -192,7 +208,7 @@ export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
 
   React.useEffect(() => {
     const installedPkgsSet = new Set(installedPkgs);
-    if (!frameLoaded || !frameRef.current || isInstalling) {
+    if (!frameLoaded || !frameRef.current || installationStatus !== "idle") {
       return;
     }
     const win = frameRef.current;
@@ -209,7 +225,7 @@ export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
           ),
       )
     ) {
-      setIsInstalling(true);
+      setInstallationStatus("loading");
       spawn(
         (async () => {
           const modules = await getSortedHostLessPkgs(
@@ -232,9 +248,14 @@ export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
           }
           if (isCurrentFrame()) {
             setInstalledPkgs(newInstalledPkgs);
-            setIsInstalling(false);
+            setInstallationStatus("idle");
           }
-        })(),
+        })().catch(async (error) => {
+          if (!isCurrentFrame()) { return; }
+          setInstallationStatus("failed");
+          await showPreviewLoadError(win, error);
+          if (full && isCurrentFrame()) { await topFrameApi.setStudioReady(); }
+        }),
       );
     }
   }, [
@@ -242,7 +263,9 @@ export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
     frameLoaded,
     usedPkgs,
     installedPkgs,
-    isInstalling,
+    installationStatus,
+    full,
+    topFrameApi,
     isMounted,
   ]);
 
@@ -252,7 +275,7 @@ export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
     if (
       !frameLoaded ||
       !frameRef.current ||
-      isInstalling ||
+      installationStatus !== "idle" ||
       usedPkgs.some(
         (pkg) =>
           !installedPkgsSet.has(
@@ -295,7 +318,7 @@ export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
   }, [
     frameRef.current,
     frameLoaded,
-    isInstalling,
+    installationStatus,
     usedPkgs,
     installedPkgs,
     full,

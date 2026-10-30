@@ -44,6 +44,8 @@ Use the client's documented MCP reload/reconnect if available; otherwise state w
 
 ## Prototype principles
 
+Start with the workflow's **Before content writes** checkpoint and the resolved `references/planning.md`. For new Pages or structural changes, use the existing project/Page rules cards and selection preflight before composition. Local repairs read and check the affected rules without restarting unrelated Page planning. Tool availability, `validate` and `save` do not establish design-rule compliance.
+
 Design the in-scope Pages' region relationships before detailed generation under `references/design/page-structure.md`; reconcile the current Page with live templates and component contracts, then generate and review against that structure. Requirements constrain business behavior and explicit presentation choices; use design reasoning for unspecified layout. Select components before composing markup. Discover existing business components and matching templates, prefer them and registered library components, and read their current Props, Slots and event contracts. Do not redraw available functional components with HTML/CSS. Follow `references/libraries/index.md` for selection and verified contract gaps.
 
 For admin prototypes, read `references/admin-templates.md` and its catalog, inspect applicable live templates, then adapt the selected composition to the requirement. Read the relevant component and composition references before using them. A template or component must fit the current requirement and the project's actual library.

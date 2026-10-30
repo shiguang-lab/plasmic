@@ -1,0 +1,78 @@
+{
+  "date": "2026-10-30",
+  "scope": "Offline skill delivery and verifier regression; no live prototype writes or publication.",
+  "workspace": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-rule-delivery-4jo1jjdn",
+  "metrics": "Provider token counts and timing unavailable. No output-character substitution.",
+  "snapshots": {
+    "baseline": {
+      "root": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-rule-delivery-4jo1jjdn/baseline",
+      "manifest": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-rule-delivery-4jo1jjdn/baseline-hashes.json",
+      "sha256": "d2087c95afa08ee791a457acf45f564f2fa7415af6b3dc85408e751d55eeb359"
+    },
+    "candidate": {
+      "root": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-rule-delivery-4jo1jjdn/candidate",
+      "manifest": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-rule-delivery-4jo1jjdn/candidate-hashes.json",
+      "sha256": "0a3a2f15aaa9fd45a4b35a186133e45e98fb6bdacdfd03e31e498e112734cd7d"
+    },
+    "candidate-final": {
+      "root": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-rule-delivery-4jo1jjdn/candidate-final",
+      "manifest": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-rule-delivery-4jo1jjdn/candidate-final-hashes.json",
+      "sha256": "efafe522cabd7fe5feb57d7247476c29aaa52f822a1101c1912f4fcbc1f9b5f5"
+    }
+  },
+  "outputs": {
+    "baseline-response": {
+      "path": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-rule-delivery-4jo1jjdn/iteration-1/eval-0-rule-delivery/old_skill/outputs/response.md",
+      "sha256": "cfc9f13fff85a4c615c1f878a27dfbd0181675b919db2d1f2e0773112ef91ee0"
+    },
+    "candidate-response": {
+      "path": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-rule-delivery-4jo1jjdn/iteration-1/eval-0-rule-delivery/with_skill/outputs/response.md",
+      "sha256": "b82c261ccd1746f2d848784da181b7de35f2bb1cf7d912b0392bf4b021044bb1"
+    },
+    "final-continuation": {
+      "path": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-rule-delivery-4jo1jjdn/iteration-2/eval-0-rule-delivery/with_skill/outputs/response.md",
+      "sha256": "1b41c016d9f1acfd098ccc8f257288b68a55c58cd6ccf313fa5e8dbd2ae5e062"
+    },
+    "static-comparison": {
+      "path": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-rule-delivery-4jo1jjdn/static-comparison.json",
+      "sha256": "5fd5d496bf47277889621be072782f99d377fcb9afb2385509b0901cd3e57e60"
+    },
+    "paired-benchmark": {
+      "path": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-rule-delivery-4jo1jjdn/iteration-1/benchmark.json",
+      "sha256": "690c3c1c455f66fd904bcfd71ee30d97b68cb107f3cb5678c0ad87b1b1aed8b9"
+    }
+  },
+  "tests": {
+    "final_cli": {
+      "command": "npm --prefix packages/plasmic-cli test",
+      "exit_code": 0,
+      "node_tests": 47,
+      "python_tests_per_build": 536,
+      "log": "/tmp/plasmic-rule-delivery-final-tests.log",
+      "sha256": "6114f305596e958dbfdc14f9f9462189bb741374037ed783380b10935d1e8311"
+    },
+    "local_resolver": {
+      "command": "node --test scripts/plasmic-local-context.test.mjs",
+      "exit_code": 0,
+      "tests": 2
+    },
+    "final_snapshot_matches_working_resources": true
+  },
+  "source_files": {
+    "packages/plasmic-cli/skill/plasmic/SKILL.md": "4ee11dfde1a277a99a8ee91c57409616821981a38b00cd6f5083a871925e407d",
+    "packages/plasmic-cli/src/protocol.mjs": "757b3f94fdc9d5e4711a55166c715e89d376bd003539cfe7590f42985a740b2b",
+    "ai/plasmic/references/workflows/prototype.md": "c1a9a8bda99a4c600898175ce90fb4f15a231e353ad2b419f5047217cb3ae785",
+    "ai/plasmic/references/planning.md": "ba5062a50d56b77986a51bf1511f0c49bf4e810d8bb16ba858a7b6a849ab3673",
+    "ai/plasmic/references/design/scale.md": "f97c240114b2dfd0adfb5f5605033fc743077e9d9383b8c5c4278eef5dff3f6a",
+    "ai/plasmic/references/libraries/antd_v6/components/descriptions.md": "f4b6748b64e5d9d616204cb41b027239f4a23a1c339b785f0769ba3f4361e1d4",
+    "ai/plasmic/references/libraries/antd_v6/rules.json": "7c2bc610ff66297e97927740676440c250cd478b288cf19097c79a8904f67eb9",
+    "ai/plasmic/references/verification.md": "98d031a70b0e79a6a4088d489533b5b29de632cb251c081ce00a9e23aeaa41df",
+    "ai/plasmic/scripts/verify_descriptions.py": "7fd0719b866ab76afc35d81e4e537aadcc77329713e34253f8ce4ce72f3e917e",
+    "ai/plasmic/scripts/plan_inventories.py": "b413fe1ee85b5ec2196b73db6656dd3a47eea74f5bacff7fc2e7e8633ebef746",
+    "ai/plasmic/scripts/test_verify_descriptions.py": "10eb54456fb83fccb20ccea01f2770eb3c48706dbd2c5e2c2eb654188dd1c2be",
+    "ai/plasmic/scripts/test_plan_inventories.py": "dfa9a47ec20a6dba4d12ad65e8cc46b83dd1cc1d3aac3dafd9fec9c653d8924c",
+    "ai/plasmic/scripts/test_reference_plan.py": "4a70ef99a9b77f0d3058fee3fa2e680cd40d630c67176f62065ca39d2dc34f46",
+    "scripts/plasmic-local-context.test.mjs": "170b25eef9181fe0f72fde142149a1b881414c5678524a8ffcffc7b885d6d29b",
+    "packages/plasmic-cli/tests/resources.test.mjs": "e6afbfb56560105100b56420199ad1b4cd30b73a5d70c67d09638fe4154aac6d"
+  }
+}

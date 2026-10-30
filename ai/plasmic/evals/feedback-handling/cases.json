@@ -1,0 +1,103 @@
+{
+  "scope": "Offline feedback decision probes, not a live prototype. Each case is independent. Treat facts (including image descriptions) as synthetic inputs, never as observed tool results. Read only the designated resource snapshot and these cases; do not read the rubric or past results. Do not call Desktop/MCP, modify repository, or delegate. For each case give intent/mode; inspection/edit/regression scope; sources and evidence needed; concrete next actions and repair proposal where justified; whether clarification is necessary and its reason; completion limits. Do not perform the proposed changes.",
+  "cases": [
+    {
+      "id": "text-spacing",
+      "request": "只把当前订单页 SearchActions 两个按钮间距改成 16，其他保持原样，核对后保存。",
+      "facts": [
+        "没有截图。当前页和目标节点可读，当前间距为 8；按钮事件和其他布局正确。",
+        "原始模型与相关组件契约可用，MCP 支持几何、截图、Preview 和保存重开。"
+      ]
+    },
+    {
+      "id": "text-query",
+      "request": "订单筛选选择已完成，点击查询后结果没有变化，帮我修好。",
+      "facts": [
+        "没有截图。需求要求按状态查询，查询及重置回到第一页；重置保留当前租户范围。",
+        "现有筛选输入更新 draftFilters，查询更新 appliedFilters，但 Table.data 使用固定数组；分页状态为第 3 页。",
+        "可读取需求、当前模型与契约，并使用 Preview。"
+      ]
+    },
+    {
+      "id": "vague-region",
+      "request": "这里很乱，帮我整理一下。",
+      "facts": [
+        "没有截图。上一条对话已明确当前页的筛选区域；这是同一原型修改任务。",
+        "当前需求规定 6 个筛选字段，真实模型全部具备，其中 2 个位于折叠区；标签有遮挡，表格列和其他页面正常。",
+        "注册 SearchForm 提供原生折叠与布局配置，当前模型/几何/截图工具可用。"
+      ]
+    },
+    {
+      "id": "module-optimization",
+      "request": "按当前需求把订单查询模块完整检查优化，直接处理发现的问题。",
+      "facts": [
+        "没有截图。当前需求与 live contracts 均可读：6 个筛选字段、查询/重置/分页、角色可见范围和订单详情入口。",
+        "当前列表缺少需求中的一个筛选字段；重置丢失租户条件；详情跳转丢失记录身份；未要求批量审批或移动端适配。",
+        "当前可读取列表、详情和相关来源，Preview 及保存重开可用。"
+      ]
+    },
+    {
+      "id": "readonly-severe",
+      "request": "帮我检查这页有哪些问题，先给结论和建议，不要修改。",
+      "facts": [
+        "无截图。可读来源要求只有管理员才能审批，但当前 Preview 观察表明普通用户也能审批。",
+        "环境只提供会影响真实外部审批的提交，不存在隔离数据；可以读取模型及现有日志，不需要再真实提交来确认。",
+        "模型读取、静态截图可用，编辑权限也为 true。"
+      ]
+    },
+    {
+      "id": "historical-image",
+      "request": "对照这张截图检查客户页缺的内容，有问题就修复。",
+      "facts": [
+        "图片的可见事实：旧版客户页有手机号列和证件号列；这是离线夹具中的图片描述，不是本轮实际打开的图像。",
+        "最新已确认需求明确删除证件号，手机号仍必须保留；当前模型仅手机号缺失，其他内容符合需求。",
+        "可读来源、模型和工具均可用；用户没有明确要求恢复旧字段。"
+      ]
+    },
+    {
+      "id": "image-only",
+      "request": "用户只附了一张图片，没有文字。",
+      "facts": [
+        "图片可见事实：有一个红圈覆盖页面右下角的按钮区；离线夹具仅提供这段描述，没有真实像素。",
+        "没有此前任务或修改授权；当前打开多个页面，无法从图片唯一确定页面身份。",
+        "可读取页面清单与当前选择；不能证实图片对应当前选中页面。"
+      ]
+    },
+    {
+      "id": "shared-cause",
+      "request": "只修订单页右侧按钮被截断的问题，别动其他页面。",
+      "facts": [
+        "诊断显示缺陷来自共享业务 ActionBar 的内部固定宽度；订单页实例没有局部宽度 override。",
+        "该共享定义还用于结算页与退款页，修改定义会改变这两个页面。",
+        "公开契约没有实例配置可解决该缺陷，不允许编辑客户端内部实现；当前模型和消费者可读。"
+      ]
+    },
+    {
+      "id": "business-conflict",
+      "request": "把退款模块按需求优化好，其他能修的先修。",
+      "facts": [
+        "没有截图。两份同为当前版本、都未被用户选定的来源分别说：退款超过 1000 必须审批、退款超过 5000 才审批。",
+        "需求中的字段和普通取消流程没有争议；当前布局出现可复现遮挡。",
+        "修改权限与工具可用；尚未向用户澄清阈值。"
+      ]
+    },
+    {
+      "id": "stale-repair-evidence",
+      "request": "刚才已经改好了，检查一下可以交付了吗？",
+      "facts": [
+        "原反馈要求修复查询并保持重置功能。revision 10 的 runtime trace 查询和重置通过；随后 revision 11 修改了查询绑定。",
+        "revision 11 静态 gates 通过，截图显示按钮存在。Preview 当前不可用，保存重开后采集模型与 revision 11 不同。",
+        "已有完整旧报告，但未取得新版本运行证据。"
+      ]
+    },
+    {
+      "id": "cancel-semantics",
+      "request": "订单详情的取消按钮点了后状态不对，帮我修复。",
+      "facts": [
+        "无截图。按钮文案为取消，当前 model handler 直接关闭详情；需求明确该操作会将待处理订单转为已取消，并回到保留查询条件的列表。",
+        "只读 Preview 在隔离测试数据下已复现订单状态仍为待处理；当前模型、需求与组件契约可读。",
+        "该页面还有独立关闭按钮，其行为是仅返回列表，不变更订单状态。"
+      ]
+    }
+  ]
+}

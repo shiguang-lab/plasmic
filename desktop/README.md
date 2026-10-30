@@ -298,6 +298,24 @@ and refresh do not create history entries. Refresh remounts only the runtime ifr
 MCP `preview` supports `back`, `forward`, `refresh` and `close`; query `state` for
 `canGoBack`/`canGoForward` before navigating. Navigation actions return the updated
 flags, and boundary actions are safe no-ops. Closing clears that session’s history.
+Preview results include `runtime.status` (`loading`, `ready`, `degraded`, `failed`)
+and bounded, render-scoped `runtime.errors` with original messages/stacks and
+available node or interaction identities. Render, evaluation, interaction and
+unhandled asynchronous errors share this diagnostic stream. Known runtime errors
+return `PREVIEW_RUNTIME_ERROR` immediately on open or after input; input completion
+is reported separately by `operationExecuted`. DOM assertions cannot pass while
+runtime errors remain. `state`, `snapshot`, `screenshot` and `close` remain available
+after a page failure. Readiness requires the requested committed DOM and a ready
+runtime; preparing a different page never relabels old content as ready.
+Build and package/bootstrap failures use the same error path, including a DOM
+fallback with original diagnostics when the runtime bundle is unavailable.
+A fresh render/refresh clears previous diagnostics.
+Preview isolates component calls under native elements, including prop evaluation,
+without changing component-slot child types. Parent input changes retry a failed
+region once per parent render; successful commits, conditional hiding and unmounts
+clear that region's diagnostics without clearing unrelated failures. Persistent
+errors never schedule their own retries. Other render failures use a page
+fallback while the Preview toolbar remains available.
 The reference browser rejects Studio Preview URLs and exposes read-only CDP.
 It cannot verify authenticated business behavior. Imports are separate operations.
 

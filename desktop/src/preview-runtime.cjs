@@ -28,7 +28,7 @@ function previewError(error, input, diagnostics = {}) {
   return Object.assign(new Error(timedOut ? "Native Preview runtime timed out after 30 seconds" : message,
     { cause: { message, ...(name ? { name } : {}), ...(stack ? { stack } : {}), ...(cause ? { cause } : {}) } }), {
     context: { ...context, code, operationExecuted, runtimeAvailable,
-      canContinueRound: targetFailure ? true : runtimeAvailable === false ? false : null, recovery,
+      canContinueRound: details.canContinueRound ?? (targetFailure ? true : runtimeAvailable === false ? false : null), recovery,
       preview: { action: input.action, ...(input.ref ? { ref: input.ref } : {}),
         editorContext: diagnostics.editorContext || null, frame: diagnostics.frame || null,
         inputsDispatched: diagnostics.inputsDispatched || [],
@@ -145,7 +145,7 @@ async function runtimeCommand(input, documentId, caller) {
     });
     const deadline = Date.now() + (input.timeoutMs ?? 2000);
     let checks;
-    do { checks = evaluate(); if (checks.every((c) => c.passed) || Date.now() >= deadline) break; await new Promise((r) => setTimeout(r, 100)); } while (true);
+    do { checks = evaluate(); if (checks.every((c) => c.passed) || globalThis.__plasmicLive?.getDiagnostics().errors.length || Date.now() >= deadline) break; await new Promise((r) => setTimeout(r, 100)); } while (true);
     return { passed: checks.every((c) => c.passed), checks };
   }
   try {
@@ -203,19 +203,45 @@ async function runtimeCommand(input, documentId, caller) {
   }
 }
 
-async function previewFrame(win, componentUuid, signal = AbortSignal.timeout(30000)) {
+function runtimeFailure(runtime) {
+  const error = runtime.errors.find((item) => item.fatal) || runtime.errors.at(-1);
+  return Object.assign(new Error(error?.message || "Native Preview runtime failed"), {
+    context: { code: "PREVIEW_RUNTIME_ERROR", runtimeAvailable: true,
+      canContinueRound: runtime.status !== "failed", runtime,
+      recovery: [{ tool: "preview", arguments: { action: "snapshot" } },
+        { tool: "preview", arguments: { action: "close" } }],
+    },
+  });
+}
+
+async function previewFrame(win, componentUuid, signal = AbortSignal.timeout(30000), options = {}) {
   if (!/^(?:\/projects\/[^/]+\/preview\/?|\/d\/[\w-]{10})$/.test(new URL(win.webContents.getURL()).pathname)) throw new Error("Open native Preview first; the reference browser is not a runtime Preview");
-  const frames = await canvasFrames(win, undefined, async function inspectPreview(expected) {
-    await Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 5000))]);
+  const frames = await canvasFrames(win, undefined, async function inspectPreview({ expected, readState }) {
+    if (!readState && !globalThis.__plasmicLive?.getDiagnostics().errors.length && !document.querySelector("[data-plasmic-preview-error]")) {
+      await Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 5000))]);
+    }
     await Promise.race([new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))), new Promise((r) => setTimeout(r, 100))]);
     const failure = document.querySelector("[data-plasmic-preview-error]");
-    if (failure) throw new Error("Native Preview render failed: " + failure.textContent.slice(0, 1200));
     const root = document.querySelector(".live-root-container");
     const identity = root?.getAttribute("data-plasmic-preview-component");
+    const runtime = globalThis.__plasmicLive?.getDiagnostics() || {
+      generation: 0, componentUuid: identity,
+      status: failure ? "failed" : root ? "ready" : "loading",
+      errors: failure ? [{ id: 0, kind: "evaluation", fatal: true, message: failure.textContent,
+        name: failure.getAttribute("data-plasmic-error-name") || undefined,
+        stack: failure.getAttribute("data-plasmic-error-stack") || undefined }] : [],
+    };
+    const matches = !expected || (runtime.componentUuid || identity) === expected;
+    const rootReady = !!root && innerWidth > 0 && innerHeight > 0 && matches
+      && (!expected || identity === expected)
+      && (!runtime.componentUuid || identity === runtime.componentUuid)
+      && ["ready", "degraded"].includes(runtime.status);
     // Pages use display:contents here, so the committed root has no border box.
-    return { ready: !!root && innerWidth > 0 && innerHeight > 0 && (!expected || identity === expected), componentUuid: identity, width: innerWidth, height: innerHeight };
-  }, componentUuid, signal);
+    return { ready: readState || rootReady || runtime.errors.length > 0 && (!runtime.componentUuid || matches),
+      rootReady, runtime, componentUuid: runtime.componentUuid || identity, width: innerWidth, height: innerHeight };
+  }, { expected: componentUuid, readState: options.readState === true }, signal);
   if (frames.length !== 1) throw new Error("Expected one active native Preview iframe");
+  if (!options.allowErrors && frames[0].layout.runtime?.errors.length) throw runtimeFailure(frames[0].layout.runtime);
   return frames[0];
 }
 
@@ -245,10 +271,23 @@ async function runPreview(win, input, context, signal = AbortSignal.timeout(3000
   const diagnostics = { phase: "frame-discovery", operationExecuted: false, editorContext: context,
     frame: null, inputsDispatched: [] };
   try {
-  const { frame, layout } = await previewFrame(win, context.previewContext?.componentUuid, signal);
+  const readOnly = ["state", "snapshot", "screenshot"].includes(input.action);
+  const { frame, layout } = await previewFrame(win, context.previewContext?.componentUuid, signal,
+    { allowErrors: true, readState: input.action === "state" });
   feedbackFrame = frame;
   diagnostics.frame = frameIdentity(frame);
-  if (input.action === "state") return { ready: true, viewport: layout };
+  if (input.action === "state") return { ready: (layout.rootReady ?? layout.ready) && layout.runtime?.status !== "failed",
+    viewport: { width: layout.width, height: layout.height }, runtime: layout.runtime };
+  if (!readOnly && layout.runtime?.status === "failed") throw runtimeFailure(layout.runtime);
+  if (input.action === "assert" && layout.runtime?.errors.length) throw runtimeFailure(layout.runtime);
+  const finish = async (result) => {
+    const { frame: afterFrame, layout: after } = await previewFrame(win, undefined, signal, { allowErrors: true, readState: true });
+    const runtime = after.runtime;
+    const errors = runtime?.errors.filter((error) => afterFrame !== frame || runtime.componentUuid !== layout.runtime?.componentUuid || runtime.generation !== layout.runtime?.generation
+      || !layout.runtime?.errors.some((previous) => previous.id === error.id));
+    if (!readOnly && errors?.length) throw runtimeFailure({ ...runtime, errors });
+    return { ...result, ...(runtime ? { runtime } : {}) };
+  };
   const originalUrl = win.webContents.getURL();
   const settle = async () => {
     try { await abortable(signal, () => frame.executeJavaScript("Promise.race([new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))),new Promise(r=>setTimeout(r,100))])")); }
@@ -276,7 +315,7 @@ async function runPreview(win, input, context, signal = AbortSignal.timeout(3000
       // Also restore after cancellation; a destroyed/navigated frame needs no feedback.
       void notifyCursor("show");
     }
-    return { ...await abortable(signal, () => encodeImagePreview(image.toPNG(), { lossless: input.fullResolution === true })), viewport: { width: layout.width, height: layout.height }, presentationRect: rect };
+    return await finish({ ...await abortable(signal, () => encodeImagePreview(image.toPNG(), { lossless: input.fullResolution === true })), viewport: { width: layout.width, height: layout.height }, presentationRect: rect });
   }
   diagnostics.phase = "dom-command";
   diagnostics.source = "renderer";
@@ -315,7 +354,7 @@ async function runPreview(win, input, context, signal = AbortSignal.timeout(3000
     diagnostics.operationExecuted = true;
     diagnostics.phase = "settle";
     await settle();
-    return { performed: input.action, target: result.target };
+    return await finish({ performed: input.action, target: result.target });
   }
   if (input.action === "press") {
     const codes = { Enter: 13, Escape: 27, Tab: 9, ArrowDown: 40, ArrowUp: 38, ArrowLeft: 37, ArrowRight: 39, Space: 32, Backspace: 8, Delete: 46, Home: 36, End: 35 };
@@ -332,9 +371,9 @@ async function runPreview(win, input, context, signal = AbortSignal.timeout(3000
     diagnostics.operationExecuted = true;
     diagnostics.phase = "settle";
     await settle();
-    return { ...result, performed: "press", key: input.key };
+    return await finish({ ...result, performed: "press", key: input.key });
   }
-  return result;
+  return await finish(result);
   } catch (error) {
     void notifyCursor("clear");
     if (!diagnostics.frame) {

@@ -1,4 +1,4 @@
-import { syncPreview } from "@/wab/client/components/live/preview-sync";
+import { showPreviewLoadError, syncPreview } from "@/wab/client/components/live/preview-sync";
 import type { PreviewCtx } from "@/wab/client/components/live/PreviewCtx";
 import { pushPreviewModules } from "@/wab/client/components/live/live-syncer";
 import * as codegen from "@/wab/client/components/live/preview-codegen";
@@ -13,6 +13,7 @@ import { Root, createRoot } from "react-dom/client";
 import { createPreview } from "../../../../../../live-frame/src/preview";
 import { createRenderer } from "../../../../../../live-frame/src/render";
 import { createLiveRuntime } from "../../../../../../live-frame/src/runtime";
+import { createDiagnostics, installErrorHandlers } from "../../../../../../live-frame/src/diagnostics";
 
 let container: HTMLDivElement;
 let root: Root;
@@ -70,6 +71,7 @@ beforeEach(() => {
     ...preview,
     ...renderer,
     update: async (modules, spec) => {
+      if (spec) renderer.beginRender("componentUuid" in spec ? spec.componentUuid : undefined);
       runtime.update(modules);
       if (spec) {
         await preview.render(spec);
@@ -164,7 +166,8 @@ it.each([
     await deliver(update());
     const result = await deliver(update(source));
     expect(result.error).toBeDefined();
-    expect(result.text).toContain("Failed to load the preview");
+    expect(result.text).toContain("Error:");
+    expect(frame.getDiagnostics().status).toBe("failed");
     expect(result.text).not.toContain("Fresh preview");
     expect(await deliver(update())).toEqual({
       error: undefined,
@@ -174,7 +177,7 @@ it.each([
   },
 );
 
-it("leaves a render error to the host error boundary", async () => {
+it("contains a render error, records its cause, and recovers on the next render", async () => {
   vi.spyOn(console, "error").mockImplementation(() => undefined);
   window.addEventListener("error", preventRenderErrorReport);
   await deliver(update());
@@ -183,11 +186,16 @@ it("leaves a render error to the host error boundary", async () => {
       update('export default () => { throw new Error("render failed"); }'),
     ),
   ).toEqual({ error: undefined, text: "Error: render failed" });
+  expect(container.querySelector('[data-plasmic-preview-error]')).not.toBeNull();
+  expect(frame.getDiagnostics()).toMatchObject({ status: "failed", errors: [
+    { message: "render failed", kind: "render", fatal: true, stack: expect.stringContaining("render failed") },
+  ] });
   expect(await deliver(update())).toEqual({
     error: undefined,
     text: "Fresh preview",
   });
   expect(listeners.size).toBe(0);
+  expect(frame.getDiagnostics()).toMatchObject({ status: "ready", errors: [] });
   window.removeEventListener("error", preventRenderErrorReport);
 });
 
@@ -225,6 +233,153 @@ it("serializes commits and coalesces pending updates", async () => {
   await completed.promise;
   expect(calls).toEqual(["first", "latest"]);
   dispose();
+});
+
+it("serializes build failures after in-flight commits, then recovers on a valid build", async () => {
+  const gate = Promise.withResolvers<void>();
+  const originalUpdate = frame.update;
+  frame.update = vi.fn(async (...args: Parameters<LiveFrame["update"]>) => { await gate.promise; return originalUpdate(...args); });
+  const version = observable.box(0);
+  const error = new Error("Invalid preview model");
+  const onDone = vi.fn();
+  const dispose = syncPreview({ __plasmicLive: frame } as unknown as Window, () => {
+    if (version.get() === 1) { throw error; }
+    return update();
+  }, onDone);
+  try {
+    await vi.waitFor(() => expect(frame.update).toHaveBeenCalledOnce());
+    runInAction(() => version.set(1));
+    gate.resolve();
+    await vi.waitFor(() => expect(onDone).toHaveBeenLastCalledWith(error));
+    expect(container.textContent).toContain("Invalid preview model");
+    expect(container.textContent).not.toContain("Fresh preview");
+    expect(frame.getDiagnostics()).toMatchObject({ status: "failed", errors: [{ message: error.message, stack: error.stack }] });
+    runInAction(() => version.set(2));
+    await vi.waitFor(() => expect(container.textContent).toBe("Fresh preview"));
+    expect(frame.getDiagnostics()).toMatchObject({ status: "ready", errors: [] });
+  } finally { gate.resolve(); dispose(); }
+});
+
+it("shows bootstrap failures before the runtime exists without losing their stack", async () => {
+  const iframe = document.createElement("iframe");
+  document.body.append(iframe);
+  try {
+    const win = iframe.contentWindow as Window;
+    const error = new Error("Runtime download failed");
+    await showPreviewLoadError(win, error);
+    const failure = win.document.querySelector('[data-plasmic-preview-error]');
+    expect(failure?.textContent).toBe(error.message);
+    expect(failure?.getAttribute("data-plasmic-error-stack")).toBe(error.stack);
+    expect(failure?.getAttribute("role")).toBe("alert");
+  } finally { iframe.remove(); }
+});
+
+it.each(["data", "hide", "unmount"])("recovers a local failure after %s changes without an automatic retry loop", async (recovery) => {
+  vi.spyOn(console, "error").mockImplementation(() => undefined);
+  window.addEventListener("error", preventRenderErrorReport);
+  const disposeErrors = installErrorHandlers(window, frame.reportError);
+  try {
+    await deliver(update(`import React from "react"; import { renderBoundary } from "test-renderer";
+      export default function Page() {
+        const [mode, setMode] = React.useState("broken");
+        return <div>
+          <button onClick={() => setMode("${recovery}")}>Recover</button>
+          {mode !== "unmount" && renderBoundary(() => {
+            window.boundaryAttempts = (window.boundaryAttempts || 0) + 1;
+            if (mode === "broken") throw new Error("render failed");
+            return mode === "hide" ? null : <span>Valid data</span>;
+          }, { elementUuid: "records" })}
+        </div>;
+      }`));
+    const attempts = (window as any).boundaryAttempts;
+    await new Promise((resolve) => setTimeout(resolve, 40));
+    expect((window as any).boundaryAttempts).toBe(attempts);
+    expect(frame.getDiagnostics().status).toBe("degraded");
+    const unrelated = new Error("Unrelated action failed");
+    frame.reportError(unrelated, { kind: "interaction", fatal: false });
+    container.querySelector("button")?.click();
+    await vi.waitFor(() => expect(container.querySelector('[data-plasmic-preview-error]')).toBeNull());
+    expect(container.textContent).toBe(recovery === "data" ? "RecoverValid data" : "Recover");
+    expect(frame.getDiagnostics().errors).toEqual([expect.objectContaining({ message: unrelated.message })]);
+  } finally {
+    disposeErrors();
+    window.removeEventListener("error", preventRenderErrorReport);
+    delete (window as any).boundaryAttempts;
+  }
+});
+
+it.each(["props", "render"])("isolates %s failures while siblings remain interactive", async (kind) => {
+  vi.spyOn(console, "error").mockImplementation(() => undefined);
+  window.addEventListener("error", preventRenderErrorReport);
+  try {
+    const value = update(`import React from "react";
+      import { renderBoundary } from "test-renderer";
+      function Broken() { throw new Error("render failed"); }
+      export default function Page() {
+        const [count, setCount] = React.useState(0);
+        const [broken, setBroken] = React.useState(false);
+        return <div>
+          <button onClick={() => setCount(count + 1)}>Count {count}</button>
+          <button onClick={() => setBroken(true)}>Break</button>
+          {renderBoundary(() => broken ? ${kind === "props" ? '(() => { throw new Error("render failed"); })()' : "<Broken />"} : <span>Table ready</span>,
+            { componentUuid: "page", elementUuid: "table", nodeName: "Records" })}
+        </div>;
+      }`);
+    await deliver(value);
+    container.querySelectorAll("button")[1].click();
+    await vi.waitFor(() => expect(container.textContent).toContain("Error: render failed"));
+    expect(frame.getDiagnostics()).toMatchObject({ status: "degraded", errors: [
+      { elementUuid: "table", nodeName: "Records", fatal: false, componentStack: expect.any(String) },
+    ] });
+    expect(container.querySelector(".live-root-container")).not.toBeNull();
+    container.querySelector("button")?.click();
+    await vi.waitFor(() => expect(container.textContent).toContain("Count 1"));
+    await deliver(update());
+    expect(frame.getDiagnostics()).toMatchObject({ status: "ready", errors: [] });
+  } finally {
+    window.removeEventListener("error", preventRenderErrorReport);
+  }
+});
+
+it("captures browser and promise failures with bounded, render-scoped diagnostics", () => {
+  const diagnostics = createDiagnostics();
+  diagnostics.begin("first");
+  diagnostics.commit();
+  const dispose = installErrorHandlers(window, diagnostics.report);
+  const error = new Error("request failed");
+  try {
+    window.dispatchEvent(new ErrorEvent("error", { error }));
+    const rejection = new Event("unhandledrejection");
+    Object.defineProperty(rejection, "reason", { value: error });
+    window.dispatchEvent(rejection);
+    expect(diagnostics.read()).toMatchObject({ status: "degraded", errors: [{ message: "request failed", stack: error.stack }] });
+    const old = diagnostics.read().generation;
+    diagnostics.begin("second");
+    diagnostics.commit();
+    diagnostics.report(error, { kind: "interaction", fatal: false }, old);
+    // Rethrowing the old interaction also reaches the browser rejection event.
+    window.dispatchEvent(rejection);
+    expect(diagnostics.read()).toMatchObject({ componentUuid: "second", status: "ready", errors: [] });
+    for (let i = 0; i < 100; i++) diagnostics.report(new Error(`Failure ${i}`), { kind: "unhandled", fatal: false });
+    expect(diagnostics.read().errors).toHaveLength(50);
+    expect(diagnostics.read().errors.at(-1)?.message).toBe("Failure 99");
+  } finally { dispose(); }
+});
+
+it("does not discard historical or asynchronous failures when correlating React development probes", async () => {
+  const diagnostics = createDiagnostics();
+  diagnostics.begin("page");
+  diagnostics.commit();
+  const error = () => Object.assign(new Error("same failure"), { stack: "Error: same failure\n    at widget (widget.js:1:1)\n    at render (view.js:1:1)\n    at caller (main.js:1:1)" });
+  diagnostics.report(error(), { kind: "unhandled", fatal: false, source: "window-error" });
+  await Promise.resolve();
+  diagnostics.report(error(), { kind: "unhandled", fatal: false, source: "unhandledrejection" });
+  diagnostics.report(error(), { kind: "unhandled", fatal: false, source: "window-error" });
+  const caught = error();
+  diagnostics.report(caught, { kind: "render", fatal: false, elementUuid: "widget" });
+  expect(diagnostics.read().errors).toHaveLength(3);
+  diagnostics.resolve(caught, diagnostics.read().generation);
+  expect(diagnostics.read().errors.map((item) => item.source)).toEqual(["window-error", "unhandledrejection"]);
 });
 
 it("invalidates importers while preserving unrelated modules and CSS order", async () => {

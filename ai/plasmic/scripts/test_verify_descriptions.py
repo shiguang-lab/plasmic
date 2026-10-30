@@ -29,6 +29,7 @@ class InformationSelectionTests(unittest.TestCase):
         actual["results"][0]["baseVariantTplTree"] = tree.replace('&quot;column&quot;: 2', '&quot;column&quot;: 1')
         layouts = lambda width: {"page": {"snapshot": {"frames": [{"elements": [{"elementUuid": "desc1", "width": width}]}]}}}
         self.assertTrue(check(expected, actual)["passed"], "no layout evidence: geometry not checked here")
+        self.assertIn("wide-single-column check unverified", str(check(expected, actual)["notChecked"]))
         self.assertTrue(check(expected, actual, layouts(480))["passed"])
         result = check(expected, actual, layouts(1127))
         self.assertFalse(result["passed"])
@@ -37,6 +38,10 @@ class InformationSelectionTests(unittest.TestCase):
         self.assertFalse(check(expected, actual, layouts(1127))["passed"], "values that fit two per row do not justify one column")
         group["columnReason"] = {"kind": "measurement", "longestValuePx": 700}
         self.assertTrue(check(expected, actual, layouts(1127))["passed"])
+        self.assertIn("exception applies to every value", str(check(expected, actual, layouts(1127))["notChecked"]))
+        for value in (True, float('nan'), float('inf'), 0):
+            group["columnReason"]["longestValuePx"] = value
+            self.assertFalse(check(expected, actual, layouts(1127))["passed"])
 
     def test_editable_item_slots_and_bindings(self):
         expected = copy.deepcopy(INVENTORY)
@@ -102,6 +107,79 @@ class InformationSelectionTests(unittest.TestCase):
         self.assertFalse(check(INVENTORY, actual)["passed"])
         expected = {"pages": [{"componentUuid": "page", "groups": []}]}
         self.assertFalse(check(expected, model())["passed"])
+
+    def test_empty_page_inventory_is_rejected(self):
+        with self.assertRaisesRegex(ValueError, "distinct reviewed pages"):
+            check({"pages": []}, model())
+
+    def test_matching_invalid_columns_do_not_pass(self):
+        for column in (0, -1, 1.5, True, None, "2"):
+            with self.subTest(column=column):
+                expected = copy.deepcopy(INVENTORY)
+                expected["pages"][0]["groups"][0]["column"] = column
+                actual = model()
+                actual["results"][0]["baseVariantTplTree"] = actual["results"][0]["baseVariantTplTree"].replace(
+                    '&quot;column&quot;: 2', '&quot;column&quot;: ' + html.escape(json.dumps(column), quote=True))
+                result = check(expected, actual)
+                self.assertFalse(result["passed"])
+                self.assertIn("column must be a positive integer", str(result["errors"]))
+
+    def test_matching_invalid_native_item_spans_do_not_pass(self):
+        for span in (0, -1, 1.5, True, 3):
+            with self.subTest(span=span):
+                items = [{**item, "span": span} for item in ITEMS]
+                expected = copy.deepcopy(INVENTORY)
+                expected["pages"][0]["groups"][0]["items"] = items
+                result = check(expected, model(items=items))
+                self.assertFalse(result["passed"])
+                self.assertIn("Item span must be", str(result["errors"]))
+
+    def test_matching_invalid_editable_item_span_does_not_pass(self):
+        expected = copy.deepcopy(INVENTORY)
+        group = expected["pages"][0]["groups"][0]
+        del group["items"]
+        group["itemSlots"] = [{"name": "NameItem", "key": "name", "label": "Name", "children": "Example", "span": 3}]
+        actual = model(items=None)
+        field = ('<slot name="children"><plasmic-component data-plasmic-name="NameItem" '
+                 'data-plasmic-component="plasmicAntd6DescriptionsItem" data-props="{&quot;key&quot;:&quot;name&quot;,&quot;span&quot;:3}">'
+                 '<slot name="label"><span>Name</span></slot><slot name="children"><span>Example</span></slot>'
+                 '</plasmic-component></slot>')
+        actual["results"][0]["baseVariantTplTree"] = actual["results"][0]["baseVariantTplTree"].replace(
+            '</plasmic-component>', field + '</plasmic-component>')
+        result = check(expected, actual)
+        self.assertFalse(result["passed"])
+        self.assertEqual(len(result["errors"]), 1, result)
+        self.assertIn("Item span must be", result["errors"][0]["error"])
+
+    def test_dynamic_values_remain_runtime_obligations(self):
+        items = [{**ITEMS[0], "span": "{{ $ctx.span }}"}]
+        expected = copy.deepcopy(INVENTORY)
+        expected["pages"][0]["groups"][0]["items"] = items
+        result = check(expected, model(items=items))
+        self.assertTrue(result["passed"], result)
+        self.assertIn("evaluate span binding", str(result["notChecked"]))
+
+    def test_title_equality_does_not_certify_heading_ownership(self):
+        expected = copy.deepcopy(INVENTORY)
+        expected["pages"][0]["groups"][0]["title"] = ""
+        for surrounding in ('<span>Information</span>', '<span>Contact support for help.</span>', ''):
+            actual = model(title="")
+            actual["results"][0]["baseVariantTplTree"] = actual["results"][0]["baseVariantTplTree"].replace(
+                '<div label="InformationCard">', '<div label="InformationCard">' + surrounding)
+            result = check(expected, actual)
+            self.assertTrue(result["passed"], "Do not guess semantic heading ownership from adjacent text")
+            self.assertIn("Heading ownership", str(result["notChecked"]))
+
+    def test_width_does_not_guess_container_type(self):
+        actual = model()
+        actual["results"][0]["baseVariantTplTree"] = actual["results"][0]["baseVariantTplTree"].replace(
+            'data-plasmic-name="Summary"', 'id="desc1" data-plasmic-name="Summary"')
+        for width in (1127, 640, 0, -1, True, float('nan')):
+            layouts = {"page": {"snapshot": {"frames": [{"elements": [{"elementUuid": "desc1", "width": width}]}]}}}
+            result = check(INVENTORY, actual, layouts)
+            self.assertTrue(result["passed"], result)
+            self.assertIn("Container-specific column choice", str(result["notChecked"]))
+            self.assertEqual("wide-single-column check unverified" in str(result["notChecked"]), width not in (1127, 640))
 
 
 if __name__ == "__main__":
