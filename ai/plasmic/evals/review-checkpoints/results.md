@@ -35,3 +35,7 @@ CLI skill 安装/同步测试：`node --test tests/skill.test.mjs`，20 项通�
 通用 `skill-creator/quick_validate.py` 在当前文件与未修改 HEAD 上均拒绝既有 `compatibility` frontmatter；该字段未改动，未为通过此通用检查删除运行约束。仓库自己的资源与 skill 测试结果单独报告。
 
 未访问真实 Desktop/MCP、执行真实 Preview/save-reopen 或测量线上产物质量。复测行为场景时，把候选 skill 与 cases.json 交给新上下文，禁止附带本报告或旧结论；真实产品验收需另有受控页面、工具和实际执行证据。
+
+## 发布前完整回归
+
+0.5.15 CI 在完整 CLI 测试发现 prototype 必读量 12,230 bytes 超出打包测试的 <12,000-byte 限制。精简 workflow 重复措辞，保留原锚点、检查点和证据边界后降至 11,982 bytes。未修改测试阈值。随后 `npm --prefix packages/plasmic-cli test` 完整 47 项通过（86.548 秒），包含完整 Python 回归与资源构建/安装验证。发布改用新 tag 0.5.16，保留失败的 0.5.15 记录。
