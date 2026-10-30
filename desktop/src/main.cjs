@@ -303,9 +303,6 @@ async function startDesktop() {
       backgroundThrottling: false,
     },
   });
-  mainWindow.webContents.setUserAgent(
-    `${mainWindow.webContents.getUserAgent()} PlasmicDesktop/${process.platform}`,
-  );
   const appearanceWindow = mainWindow;
   if (process.platform === "darwin") {
     const alignWindowButtons = () => {
@@ -787,6 +784,8 @@ function bootstrap() {
   app.setPath("userData", userData);
   app.setPath("sessionData", userData);
   app.setName("Plasmic");
+  // Per-window/session overrides do not reach cross-origin Studio frames.
+  app.userAgentFallback = `${app.userAgentFallback} PlasmicDesktop/${process.platform}`;
   if (!app.requestSingleInstanceLock()) {
     app.quit();
   } else {
