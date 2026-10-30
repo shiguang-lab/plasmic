@@ -42,7 +42,38 @@ For a wider single-column group, review every value at the target viewport or ci
 
 Measure the container in the target viewport when unsure; about 280px or more per column keeps a short label and value on one line. A text wireframe that lists the facts on one line (`a / b / c`) confirms a multi-column group. Give a long identifier, URL or sentence `span` 2, 3 or 4 (at most `column`) so it stays complete, and keep the remaining short Items in normal cells. Fill rows in reading order; avoid a trailing row with a large unexplained gap by adjusting one Item's span, not the column count. An emphasized metric beside the group is a [Statistic](statistic.md) placed under [information composition](../compositions/summary-metrics.md), not another stacked Item.
 
-Column widths follow their content natively, so two groups with different values do not share column edges. Keep that behavior: do not set widths on Items, labels or contents, or override the component's table styles, to equalize columns. Control the layout only through `column`, `span`, `bordered`/`layout` and grouping.
+For ordinary admin detail groups, prefer equal-width field columns unless the source requests content-driven sizing. This is a project layout preference, not an Ant Design default: `column` sets row capacity and `span` sets column occupancy; neither guarantees equal pixel widths. Use native Item appearance props to establish the intended widths, then measure the rendered result.
+
+For an unbordered horizontal group with four single-span Items in its first row, set `style: { width: "25%" }` on those four Items. The native table shares those column tracks with later rows. A final Item that fills two remaining columns retains that two-column span. For other column counts, use `100 / column` percent per single-span first-row Item. Check actual spans and long-value wrapping; do not apply the single-span example blindly to merged first-row cells. Separate groups align only when their available width, column count and column sizing agree.
+
+### Native Item appearance
+
+The same native props work on editable Descriptions.Item nodes and entries in an already applicable native `items` array. Keep the field-source choice under [Composition](#composition); equal widths do not require converting fixed editable fields to `items`.
+
+| Prop | Meaning |
+| --- | --- |
+| `style` | React CSS properties on the Item table cell(s). `width` accepts a CSS string such as `"25%"` or `"160px"`, or a numeric pixel value. Use this for the whole field cell in unbordered horizontal layout. |
+| `className` | CSS class on the Item table cell(s). |
+| `styles.label` / `styles.content` | React CSS properties on the label/value semantic elements. Item values override the parent's corresponding styles; these are not whole-field width controls. |
+| `classNames.label` / `classNames.content` | CSS classes on the label/value semantic elements. |
+
+For example, when native `items` is the selected field source:
+
+```js
+{
+  column: 4,
+  layout: "horizontal",
+  bordered: false,
+  items: [
+    { key: "uid", label: "UID", children: "123", style: { width: "25%" } },
+    { key: "name", label: "姓名", children: "张三", style: { width: "25%" } },
+    { key: "phone", label: "手机号", children: "138****1234", style: { width: "25%" } },
+    { key: "status", label: "账号状态", children: "正常", style: { width: "25%" } }
+  ]
+}
+```
+
+In bordered horizontal layout, labels and values occupy separate cells, so the same Item `style.width` applies to both cells and is not a field-group percentage. Do not reuse the unbordered recipe or change `bordered`/`layout` merely to force equal widths. Inspect the current native contract and rendered cell structure before choosing widths. Do not invent an `equalWidth` prop or assume the outer Descriptions `styles` object can target its internal table.
 
 ### Layout direction
 
@@ -72,6 +103,8 @@ Use this registered child inside [Descriptions](descriptions.md). Each field has
 
 Choose span against the parent column count, available width and realistic value lengths. Keep required identifiers complete and preserve legitimate zero/false. Check ordered fields, rich children, bindings and packing through the parent [acceptance inventory](descriptions.md#acceptance-inventory) and real Preview.
 
+Use the Item's registered `style`, `className`, `styles` and `classNames` props under [Native Item appearance](#native-item-appearance). A width belongs to the Item cell, not its editable label/content Slot text.
+
 ## Acceptance checks
 
 ### Rendered columns
@@ -79,6 +112,8 @@ Choose span against the parent column count, available width and realistic value
 In Preview at the target viewport, measure each group's width against its `column`: a group wider than about 640px with one column and three or more Items fails unless a recorded measurement or source quote shows its values need the full width. Check row packing, long values and empty values after save/reopen.
 
 For full-width regions, verify the 3/4-column choice with realistic values: 3 must not leave excessive whitespace, and 4 must not crowd the content. Check the full Column and span table, not only that automated single-column condition. Establish the actual full-width/half-width/overlay container, review every value for a single-column exception, and exercise dynamic items/column/span bindings. Missing measurements or unexecuted expressions remain unverified; a matching plan and model is not evidence of the correct column choice.
+
+For equal-width groups, measure the first-row single-span field cells (within 1 CSS pixel of each other), later-row column starts and spanned widths. Verify that full expected values remain readable without new clipping in Preview and after save/reopen. Preserved `style.width` in the model alone does not establish equal rendered columns.
 
 ### Rendered direction
 

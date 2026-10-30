@@ -1,0 +1,7 @@
+{
+  "en": "- Expose Descriptions Item cell styles and semantic appearance in MCP contracts. Document equal-width columns for unbordered detail groups.",
+  "zh-CN": "- 在 MCP 契约中补齐 Descriptions.Item 单元格样式与标签、内容样式说明，完善无边框详情组的等宽列配置指引。",
+  "zh-TW": "- 在 MCP 契約中補齊 Descriptions.Item 儲存格樣式與標籤、內容樣式說明，完善無框線詳情群組的等寬欄設定指引。",
+  "ja": "- MCP 契約に Descriptions.Item のセルとラベル・内容のスタイル情報を追加し、枠線なしの詳細グループで列幅を均等にする設定方法を説明しました。",
+  "ko": "- MCP 계약에 Descriptions.Item 셀 및 레이블·콘텐츠 스타일 정보를 추가하고 테두리 없는 상세 그룹의 열 너비를 균등하게 설정하는 방법을 문서화했습니다."
+}

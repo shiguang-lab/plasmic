@@ -333,6 +333,29 @@ export function AntdTour(
 
 type EditorProps = Record<string, unknown>;
 type Props = Record<string, PropType<EditorProps>>;
+const descriptionsItemAppearance: Props = {
+  style: {
+    type: "object",
+    description: 'Native React.CSSProperties applied to the Item table cell, including width as a CSS string ("25%", "160px") or a number in pixels. For four equal columns in an unbordered horizontal Descriptions, set { width: "25%" } on each of the four first-row Items with span=1. With borders, label and content are separate cells; this is not a field-group width control.',
+  },
+  className: {
+    type: "string",
+    description: "CSS class applied to the Item table cell(s).",
+  },
+  styles: {
+    type: "object",
+    description: "Native per-Item semantic styles. These override the parent Descriptions label/content styles; they do not set the whole field group's width.",
+    fields: {
+      label: { type: "object", description: "React.CSSProperties for the label." },
+      content: { type: "object", description: "React.CSSProperties for the value." },
+    },
+  },
+  classNames: {
+    type: "object",
+    description: "Native per-Item semantic CSS classes.",
+    fields: { label: "string", content: "string" },
+  },
+};
 const slot = (text: string) => ({ type: "slot" as const, defaultValue: text });
 const choice = (options: string[], defaultValueHint?: string) => ({
   type: "choice" as const,
@@ -575,10 +598,16 @@ export function registerAdditional(loader?: Registerable) {
     items: {
       type: "array",
       advanced: true,
-      description: "Use only when the field collection itself is determined at runtime or the user explicitly requests native items: [{ key, label, children, span? }]. Fixed fields must use Descriptions.Item label/content slots, even with data-bound values. Items override slots, including an empty array; leave unset for canvas editing.",
+      description: "Use only when the field collection itself is determined at runtime or the user explicitly requests native items: [{ key, label, children, span?, style?, className?, styles?, classNames? }]. Item style controls its table cell; styles.label/content control its label/value. Fixed fields must use Descriptions.Item label/content slots, even with data-bound values. Items override slots, including an empty array; leave unset for canvas editing.",
       itemType: {
         type: "object",
-        fields: { key: "string", label: "string", children: "string", span: "number" },
+        fields: {
+          key: "string",
+          label: "string",
+          children: "string",
+          span: "number",
+          ...descriptionsItemAppearance,
+        },
         nameFunc: (item) => item.label ?? item.key,
       },
     },
@@ -600,7 +629,7 @@ export function registerAdditional(loader?: Registerable) {
         },
       }],
     },
-    column: { type: "number", description: "Number of fields per row. Allocate a full row to long values with an item span matching this count." },
+    column: { type: "number", description: 'Number of fields per row, not an equal-width switch. In unbordered horizontal layout, four first-row Items with span=1 and style: { width: "25%" } establish four equal columns. Use span for long values and verify rendered widths.' },
     layout: choice(["horizontal", "vertical"]),
     bordered: "boolean",
     size: sizes,
@@ -612,8 +641,7 @@ export function registerAdditional(loader?: Registerable) {
     label: { ...slot("Label"), hidePlaceholder: true },
     children: { ...slot("Value"), displayName: "Content", hidePlaceholder: true },
     span: { type: "number", min: 1, defaultValueHint: 1, description: "Columns occupied by this field." },
-    styles: "object",
-    classNames: "object",
+    ...descriptionsItemAppearance,
   }, { description: "Editable label and content for a read-only field. Converted to a native Descriptions items entry at runtime." });
   register(loader, AntdDivider, "divider", "AntdDivider", {
     children: { type: "slot", hidePlaceholder: true },

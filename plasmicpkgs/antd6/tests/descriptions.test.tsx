@@ -26,6 +26,14 @@ test("Descriptions registers editable Item slots as the default composition", ()
   expect(descriptions.props.children.allowedComponents).toEqual([item.name]);
   expect(descriptions.props.items.defaultValue).toBeUndefined();
   expect(descriptions.props.items.advanced).toBe(true);
+  for (const props of [descriptions.props.items.itemType.fields, item.props]) {
+    expect(props.style.type).toBe("object");
+    expect(props.style.description).toContain('width: "25%"');
+    expect(props.className.type).toBe("string");
+    expect(props.styles.fields.label.type).toBe("object");
+    expect(props.styles.fields.content.type).toBe("object");
+    expect(props.classNames.fields).toEqual({ label: "string", content: "string" });
+  }
   expect(descriptions.props.children.hidden({ items: [] })).toBe(true);
   expect(descriptions.props.children.hidden({})).toBe(false);
   const defaultItem = descriptions.props.children.defaultValue[0];
@@ -33,6 +41,48 @@ test("Descriptions registers editable Item slots as the default composition", ()
   expect(defaultItem.props.children).toEqual([
     { type: "text", value: "Example" },
   ]);
+});
+
+test.each(["items", "slots"])("%s passes native cell width and semantic appearance to separate DOM targets", (source) => {
+  const fields = [
+    {
+      key: "uid",
+      label: "UID",
+      children: "123",
+      style: { width: "25%" },
+      className: "identity-cell",
+      styles: { label: { color: "red" }, content: { fontWeight: 600 } },
+      classNames: { label: "identity-label", content: "identity-value" },
+    },
+    { key: "name", label: "Name", children: "Example", style: { width: "25%" } },
+    { key: "phone", label: "Phone", children: "123456", style: { width: "25%" } },
+    { key: "status", label: "Status", children: "Active", style: { width: "25%" } },
+  ];
+  const { container } = render(
+    <AntdDescriptions
+      column={4}
+      layout="horizontal"
+      bordered={false}
+      styles={{ label: { color: "blue" } }}
+      items={source === "items" ? fields : undefined}
+    >
+      {source === "slots" && fields.map(({ key, ...props }) => (
+        <AntdDescriptionsItem key={key} {...props} />
+      ))}
+    </AntdDescriptions>,
+  );
+  const cells = Array.from(container.querySelectorAll<HTMLTableCellElement>("td"));
+  expect(cells.map((cell) => cell.style.width)).toEqual(["25%", "25%", "25%", "25%"]);
+  expect(cells.map((cell) => cell.colSpan)).toEqual([1, 1, 1, 1]);
+  expect(cells[0].classList.contains("identity-cell")).toBe(true);
+  const label = cells[0].querySelector<HTMLElement>(".identity-label");
+  const value = cells[0].querySelector<HTMLElement>(".identity-value");
+  expect(label?.textContent).toBe("UID");
+  expect(label?.style.color).toBe("red");
+  expect(value?.textContent).toBe("123");
+  expect(value?.style.fontWeight).toBe("600");
+  expect(label?.style.width).toBe("");
+  expect(value?.style.width).toBe("");
 });
 
 test("rich Item slots, spans and cell classes render identically to official items", () => {
