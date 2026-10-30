@@ -1,0 +1,7 @@
+{
+  "en": "- Remove unintended optional component content and preserve native defaults. Improve editable Descriptions composition and prototype validation.",
+  "zh-CN": "- 清理组件可选槽的意外默认内容，保留原生默认行为。完善 Descriptions 可编辑组合与原型校验。",
+  "zh-TW": "- 清理元件可選插槽的非預期預設內容，保留原生預設行為。完善 Descriptions 可編輯組合與原型驗證。",
+  "ja": "- 任意スロットの不要な初期コンテンツを削除し、ネイティブの既定動作を維持しました。Descriptions の編集可能な構成とプロトタイプ検証を改善しました。",
+  "ko": "- 선택 슬롯의 불필요한 초기 콘텐츠를 제거하고 기본 동작을 유지했습니다. Descriptions 편집 구성과 프로토타입 검증을 개선했습니다."
+}
