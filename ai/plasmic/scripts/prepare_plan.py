@@ -156,6 +156,17 @@ def example(directory):
     transition = {'from': 'ACTIVE', 'to': 'INACTIVE', 'text': '停用'}
     page = {'path': '/records', 'name': '记录列表', 'source': str(source), 'pageHeader': None,
         'pageType': 'list',
+        'pageStructure': {
+            'intent': 'Find records by name and act on an authorized record',
+            'source': f'{source}: {query} {paging} No spatial arrangement is specified.',
+            'layout': 'Filters above ListCard; row confirmation appears only after a disable action.',
+            'rationale': 'Design inference: query then review results is sequential; a full-width list preserves column readability.',
+            'regions': [{'nodeName': 'Filters', 'purpose': 'Apply the name query'},
+                        {'nodeName': 'ListCard', 'purpose': 'Browse records and their row actions'},
+                        {'nodeName': 'RowConfirm', 'purpose': 'Confirm a record disable operation on demand'}],
+            'sizing': 'Both main regions fill the content width and grow with content; the main name column absorbs remaining width.',
+            'scrolling': 'AppShell content owns vertical scrolling; the Table retains native horizontal overflow and reachable pagination.',
+            'actions': 'Query/reset stay in Filters; view/disable stay in each record row; confirmation belongs to that row.'},
         'wireframe': {'notApplicable': 'Format fixture source is prose only; it contains no text wireframe.'},
         'templates': [], 'templatesNotApplicable': 'Local input-format fixture only; no prototype or template-composition acceptance. Do not copy this exemption into a business task.',
         'nodes': [{'nodeName': 'RowActionAnchor', 'tag': 'span',
@@ -288,12 +299,12 @@ def project_rules(ledger, stage='compose', plan=None):
     reads, total, constraints = card_reads(project_reads(stage, plan), ledger)
     follow = ('read once before the first Page compose card; verify_selection.py --reads checks them with every Page'
               if stage == 'compose' else
-              'record one project verdict per listed rule in the rule review file (review-mode.md#rule-review)')
+              'record static findings in the checkpoint; complete project rule verdicts after required Preview/persistence checks (review-mode.md#rule-review)')
     return {'scope': 'project', 'stage': stage, 'totalBytes': total, 'hardConstraints': constraints, 'reads': reads,
             'next': 'Run every command; ' + follow}
 
 
-def review_skeleton(plan, capture, mode):
+def review_skeleton(plan, capture, mode, page_path=None):
     """Rule review file with every accept-card rule and hard constraint pending ("__DECIDE__").
 
     Mechanical only: it binds checkedState to the capture and lists what needs a
@@ -307,6 +318,11 @@ def review_skeleton(plan, capture, mode):
     after = capture.get('after') if isinstance(capture, dict) else None
     if not valid_state(after):
         raise ValueError('Use the final verify_all capture.json; its after identity binds the review')
+    if capture.get('pagePath') is not None and capture['pagePath'] != page_path:
+        raise ValueError('Capture Page scope must match the review; a scoped capture cannot establish full-project review')
+    pages = [page_at(plan, page_path)] if page_path is not None else plan.get('pages', [])
+    if not pages:
+        raise ValueError('Review at least one planned Page')
 
     def entry(rule):
         item = {'rule': rule, 'sha256': rule_digest(rule), 'verdict': PENDING, 'evidence': []}
@@ -319,7 +335,7 @@ def review_skeleton(plan, capture, mode):
               'checkedPlanSha256': plan_digest(plan),
               'project': {'rules': [entry(rule) for rule in sorted(project_reads('accept', plan))]},
               'pages': [{'path': page.get('path'), 'rules': [entry(rule) for rule in sorted(required_reads(page, 'accept', plan))]}
-                        for page in plan.get('pages', [])]}
+                        for page in pages]}
     return review
 
 
@@ -331,15 +347,15 @@ def rules(plan, route, ledger, stage='compose'):
     reads, total, constraints = card_reads(required_reads(page, stage, plan), ledger)
     follow = ('verify_selection.py PLAN --page ' + route + ' --reads ' + str(Path(ledger).resolve())
               if stage == 'compose' else
-              'review every listed rule against the saved model and pixels and record each verdict in the rule review file')
+              'record static findings and pending runtime/persistence checks in the checkpoint; complete rule verdicts after those checks (review-mode.md#rule-review)')
     # A byte budget signals context pressure, not host delegation/compaction capability.
     budget_exceeded = total > READING_BUDGET_BYTES
     steps = ('Run this card on the scaffolded plan before deciding: decide every "__DECIDE__" value from the delivered '
              'Plan decisions rows and hard constraints, then check every hardConstraints item against the plan and its '
              'decisions values; a constraint without a matching decision or plan entry is a plan defect to fix before markup. '
              if stage == 'compose' else
-             'Check every hardConstraints item against the saved model and pixels; record one constraint verdict per item '
-             'inside its rule verdict. ')
+             'Assess each hard constraint using its required evidence; saved models/pixels cannot prove runtime behavior. '
+             'After execution, record one constraint verdict per item inside its final rule verdict. ')
     if budget_exceeded:
         steps += ('This card exceeds the reading budget; readingBudgetExceeded is a context-pressure signal, not a host-capability guarantee. '
                   'Use a verified fresh-context handoff or client-supported compaction when available '
@@ -348,6 +364,7 @@ def rules(plan, route, ledger, stage='compose'):
                   'at the current Page boundary and report the remaining reads/checks before further composition or acceptance. ')
     # Digest first: small, decisive and read before the long sections.
     return {'page': route, 'stage': stage, 'readingBudgetExceeded': budget_exceeded, 'totalBytes': total,
+            'pageStructure': page.get('pageStructure', 'MISSING'),
             'hardConstraints': constraints, 'decisions': decided_values(page), 'reads': reads,
             'next': steps + 'Run every command, apply each document\'s hard constraints and decision rows, then ' + follow}
 
@@ -495,11 +512,13 @@ def label_widths(plan, route):
                     'plan and model when they differ.'}
 
 
-def write_inventories(plan, plan_path, directory, reads_path):
+def write_inventories(plan, plan_path, directory, reads_path, page_path=None):
     """Write the gate inventories, Slot intents and suite.json derived from the plan into a new directory."""
     import os
     from plan_inventories import (descriptions_inventory, form_inventory, overlay_inventory, pending_count,
                                   route_slug, slot_intent)
+    if page_path is not None:
+        plan = {**plan, 'pages': [page_at(plan, page_path)]}
     reads_path = Path(reads_path).resolve()
     if not reads_path.is_file():
         raise ValueError('Use --reads with the existing compose ledger used by selection preflight')
@@ -544,13 +563,17 @@ def set_path(values, path, value):
     values.setdefault(keys[-1], value)
 
 
-def scaffold(minimal):
+def scaffold(minimal, page_path=None):
     """Add rule owners, baselines and "__DECIDE__" slots; never business values."""
     from rules_manifest import PENDING, decisions_for, document_for, manifest
     result = copy.deepcopy(minimal)
     if not isinstance(result.get('pages'), list) or not result['pages']:
         raise ValueError('Minimal plan needs pages:[{path, components:[...]}]')
+    if page_path is not None:
+        page_at(result, page_path)  # Reject missing/ambiguous targets before writing.
     for page in result['pages']:
+        if page_path is not None and page.get('path') != page_path:
+            continue
         if not isinstance(page.get('path'), str) or not page['path'].startswith('/'):
             raise ValueError('Every Page needs its exact absolute route path')
         components = page.get('components')
@@ -596,6 +619,7 @@ def main():
     card.add_argument('--ledger', type=Path, required=True)
     card.add_argument('--stage', choices=('compose', 'accept'), default='compose')
     build = commands.add_parser('scaffold', help='Add rule owners, baselines and __DECIDE__ slots to a minimal declaration list')
+    build.add_argument('--page', help='Scaffold only this Page; retain sibling structure drafts unchanged')
     build.add_argument('plan', type=Path)
     build.add_argument('--output', type=Path, required=True)
     demo = commands.add_parser('example', help='Write a runnable format fixture into a new local directory')
@@ -623,10 +647,12 @@ def main():
     widths.add_argument('--page', required=True)
     review = commands.add_parser('review-skeleton', help='Write the rule review file with every accept-card rule and hard constraint pending')
     review.add_argument('plan', type=Path)
+    review.add_argument('--page', help='Review shared project rules and only this Page; retain the complete plan digest')
     review.add_argument('--capture', type=Path, required=True, help='Final verify_all capture.json of the reviewed saved model')
     review.add_argument('--mode', choices=('independent', 'fallback'), required=True)
     review.add_argument('--output', type=Path, required=True)
     derive = commands.add_parser('inventories', help='Derive Form/Descriptions/overlay inventories, Slot intents and suite.json from the plan')
+    derive.add_argument('--page', help='Derive only this Page; use scoped verification until all Pages are ready')
     derive.add_argument('plan', type=Path)
     derive.add_argument('--output-dir', type=Path, required=True)
     derive.add_argument('--reads', type=Path, required=True, help='Existing compose ledger used by selection preflight; retained in suite.structure.reads')
@@ -655,7 +681,7 @@ def main():
             for read in result['reads']:
                 read.pop('args')
         elif args.command == 'scaffold':
-            plan, pending = scaffold(json.loads(args.plan.read_text(encoding='utf-8')))
+            plan, pending = scaffold(json.loads(args.plan.read_text(encoding='utf-8')), args.page)
             write_new(args.output, plan)
             result = {'output': str(args.output.resolve()), 'pendingDecisions': pending,
                       'next': 'Run rules PLAN --project once per task and rules PLAN --page ROUTE --stage compose on this scaffold; '
@@ -676,14 +702,15 @@ def main():
             result = label_widths(json.loads(args.plan.read_text(encoding='utf-8')), args.page)
         elif args.command == 'review-skeleton':
             skeleton = review_skeleton(json.loads(args.plan.read_text(encoding='utf-8')),
-                                       json.loads(args.capture.read_text(encoding='utf-8')), args.mode)
+                                       json.loads(args.capture.read_text(encoding='utf-8')), args.mode, args.page)
             write_new(args.output, skeleton)
             from verify_selection import pending_pointers
             result = {'output': str(args.output.resolve()), 'pendingVerdicts': sum(1 for _ in pending_pointers(skeleton)),
-                      'next': 'Run the accept cards, then replace every "__DECIDE__" with an observed verdict and its evidence, '
-                              'reason or finding; configure suite review {ledger, results} and rerun verify_all.py'}
+                      'next': 'After applicable static, Preview and persistence checks, run the accept cards and replace every "__DECIDE__" with its verdict, evidence, '
+                              'reason or finding; validate with verify_review.py --capture and the same --page scope. '
+                              'For full-project acceptance configure suite review {ledger, results} and rerun verify_all.py'}
         elif args.command == 'inventories':
-            result = write_inventories(json.loads(args.plan.read_text(encoding='utf-8')), args.plan, args.output_dir, args.reads)
+            result = write_inventories(json.loads(args.plan.read_text(encoding='utf-8')), args.plan, args.output_dir, args.reads, args.page)
         elif args.command == 'runtime-manifest':
             from verify_runtime import make_manifest
             raw = {name: getattr(args, name).read_bytes() for name in ('plan', 'capture', 'pages')}

@@ -1,0 +1,29 @@
+{
+  "scope": "Offline structure-stage evaluation. Read the candidate local Plasmic skill and relevant references; produce draft decisions, template candidates, next reads and evidence limits. Do not access Desktop/MCP, install libraries or modify repository sources. Live models/contracts and Preview are unavailable. Cases are independent; do not transfer unspecified requirements between them. Write outputs in an isolated temporary directory.",
+  "cases": [
+    {
+      "id": "live-preview",
+      "prompt": "为消息配置页设计结构：运营填写标题、正文和跳转地址，输入时立即看到手机上的呈现效果，保存后生效。桌面端，需求未指定区域位置。先给结构设计。"
+    },
+    {
+      "id": "explicit-vertical-output",
+      "prompt": "为规则试运行页设计结构：输入表达式并点击试运行，下方必须展示本次输出；无需输入时刷新结果。用户明确要求上下布局。先给结构设计。"
+    },
+    {
+      "id": "catalog-in-existing-shell",
+      "prompt": "项目已有 AppShell，要做左侧类目树、右侧当前类目的可筛选商品表格，短编辑在抽屉里完成。先做结构规划并说明模板来源和下一步读取。"
+    },
+    {
+      "id": "local-caption-edit",
+      "prompt": "当前已有两栏配置页，只把保存按钮文案改为发布，位置、行为和其他页面都不变。描述准确执行范围。"
+    },
+    {
+      "id": "topology-without-page-template",
+      "prompt": "为一个桌面监控页规划结构：上面是运行指标，中间显示大幅实时拓扑，点节点右侧显示详情。不需要筛选列表。目录里没有匹配的整页模板，怎样继续？"
+    },
+    {
+      "id": "multi-page-staged-planning",
+      "prompt": "本次做三个页面：消息列表、消息编辑（实时手机预览）、发送记录。先设计全体结构，只细化消息列表，不要提前生成其他两页组件参数。说明如何使用当前脚本完成阶段衔接。"
+    }
+  ]
+}

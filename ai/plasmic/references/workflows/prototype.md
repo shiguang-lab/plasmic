@@ -1,49 +1,50 @@
 # Product prototype workflow
 
-Sources → plan → compose → acceptance → Preview → repairs. Choose [review mode](../review-mode.md); follow [evidence integrity](../verification.md#evidence-integrity).
+Sources → structure/contracts → Design review → compose → Saved-Page review → Integration review → delivery. Use the unified [review checkpoints and fallback](../review-mode.md#review-checkpoints) and [evidence integrity](../verification.md#evidence-integrity).
 
 ## Working set
 
-Inventory scope/shared flows, then detail only the current Page. Read `mustRead` fully and [conditional sections](../context-reading.md) as applicable. Retain evidence on disk; inspect summaries/failures.
+Sketch in-scope Pages and flows; detail one Page at a time. Keep local edits scoped. Read `mustRead` and applicable [sections](../context-reading.md); retain evidence on disk. Structure-only requests end with reviewed drafts and contract gaps, not composition readiness.
 
 ## Resolve scope and contracts
 
-1. Resolve Team → Workspace → Project through [management](../desktop-management.md); reread identity/schemas. New projects use their returned ID. Edits require canEdit. Follow [MCP preflight](../desktop-transports.md#prototype-preflight) before writes; a failure blocks dependent work.
-2. Read sources under [requirement alignment](../requirement-alignment.md); reconcile content, roles, transitions, copy and scope. Before layout, derive [business cases](../behavior-acceptance.md#plan-from-the-source) and inventory every [text wireframe](../design/text-wireframes.md) element. Truncated reads are incomplete.
-3. Choose each Page's [page type](../design/page-types.md#choosing-the-type) from its user task; it selects templates and the region skeleton.
-4. Use [native library selection](../libraries/index.md#native-component-selection); for Overseas/Antd6 read [selection](../libraries/antd_v6/selection.md). Classify by purpose, then read live Props/Slots/events.
-5. Read [admin design](../admin-design.md), [templates](../admin-templates.md) and the complete [catalog](../templates/admin/catalog.json); match templates to regions. Capture live models/contracts and planned adaptation before writes. Stability tasks read [reproducibility](../reproducibility.md).
-6. Follow [Page planning](../planning.md): read the project card once, scaffold declarations with `pageType`, read the compose card, resolve every `"__DECIDE__"`, then pass `verify_selection.py --page ROUTE --reads LEDGER`. Omit `--page` for all Pages. [Component policy](../design/component-policy.md) owns cases/exceptions.
+1. Before editor work, resolve Team → Workspace → Project through [management](../desktop-management.md); reread identity/schemas and check canEdit. Pass [MCP preflight](../desktop-transports.md#prototype-preflight) before writes.
+2. Read and reconcile sources under [requirement alignment](../requirement-alignment.md). Derive [business cases](../behavior-acceptance.md#plan-from-the-source) and inventory source [wireframes](../design/text-wireframes.md) before layout. Truncated reads are incomplete.
+3. Draft `pageStructure` under [structure design](../design/page-structure.md), separating source constraints from inference. Choose a [page type](../design/page-types.md#choosing-the-type) for starting guidance.
+4. Use [native library selection](../libraries/index.md#native-component-selection); Overseas/Antd6 follows [selection](../libraries/antd_v6/selection.md). Read chosen live Props/Slots/events.
+5. Read [admin design](../admin-design.md), [templates](../admin-templates.md) and the full [catalog](../templates/admin/catalog.json) from resourceRoot. Match Page/regions by scenario, inspect live templates/contracts and finalize the current structure. Stability tasks read [reproducibility](../reproducibility.md).
+6. Follow [Page planning](../planning.md): read the project card, scaffold the current Page with `--page ROUTE`, read its compose card, resolve decisions/anchors and pass `verify_selection.py --page ROUTE --reads LEDGER`. Complete Design review before composition.
 
-Full-suite commands below apply to the [standalone fixed-viewport Overseas/Antd6 scope](../verification.md). For local edits or other/mixed libraries, preserve unrelated Pages, use focused checks from the [actual library](../libraries/index.md#read-by-actual-library), and report uncovered checks; do not change libraries to pass. Derive supported [inventories](../verification.md#reviewed-suite-configuration) with `prepare_plan.py inventories`; resolve pending decisions.
+Full-suite commands apply to the [standalone fixed-viewport Overseas/Antd6 scope](../verification.md). Local edits and other libraries use focused checks with explicit coverage limits; do not change libraries or unrelated Pages to pass.
 
 ## Execution plan and completion evidence
 
-| Plan stage | Completion evidence / next action |
+| Stage | Completion evidence / next action |
 | --- | --- |
-| Prepare inputs | MCP contract and selection with `--reads` pass; scope/flows reviewed; no pending decisions; suite, Slot intent and cases ready. |
-| Compose Page | Card read; content, states/events, overlays and mock/API effects complete or pending; label widths measured. |
-| Accept saved output | Save; scoped `verify_all.py` passes the [report contract](../verification.md#collect-and-verify); opened pixels have no unresolved findings. |
-| Preview round N | Saved-output gates pass for all scoped Pages/destinations; execute planned cases and match trace lines with `verify_runtime.py`; retain failed, unexecuted and invalid-evidence cases. |
-| Repair batch | Read each diagnostic's `rule` first. Close Preview; confirm edit mode and canEdit. Mutate, save, repeat saved-output gates. |
-| Persistence/delivery | Save/reopen; full-project suite; [rule review](../review-mode.md#rule-review) of that capture; `compare_models.py` of the exercised and reopened models; reconcile source rules/evidence. |
+| Structure draft | Page tasks, regions and shared flows recorded; sibling components may remain unplanned. |
+| Prepare current Page | Live templates/contracts reconciled; anchors resolved; MCP and selection checks pass; scoped suite, Slot intent and cases ready. |
+| Design review | Apply the checkpoint in review-mode; required source/structure findings resolved and recorded against current inputs before markup. |
+| Compose Page | Follow the reviewed structure/card; implement content, states/events, overlays and mock/API effects; measure label widths. |
+| Saved-Page review | Save; scoped automatic gates pass; review models/pixels and resolve static findings before advancing; runtime/persistence stays pending. |
+| Integration review | All scoped Pages/destinations ready; execute Preview cases, verify traces, resolve findings, then check save/reopen persistence and the final rule review. |
+| Repair batch | Close Preview before edits, verify identity/canEdit, repair, save/recapture and rerun affected gates plus reviewer regression. |
 
-Checkpoint identities/revision, stage, evidence, results and next action at Page boundaries; reconcile readback on resume.
+Retain [checkpoint records](../review-mode.md#checkpoint-records); launch or automatic pass does not complete review. No routine user approval.
 
 ## Complete one Page at a time
 
-Resume each Page from its plan, compose card, contracts and checkpoint. `readingBudgetExceeded` signals reading pressure. Use verified [fresh-context delegation](../review-mode.md#page-composition-handoff) with one Desktop controller, or supported compaction. Otherwise read sequentially, checkpoint decisions/evidence and finish one Page at a time; retain all reads and gates without claiming fresh context. If capacity is insufficient, stop and checkpoint the Page, remaining reads/checks and next action.
+Resume from the Page structure, compose card, contracts and checkpoint. `readingBudgetExceeded` signals context pressure. Use verified [composition handoff](../review-mode.md#page-composition-handoff) or supported compaction; otherwise read sequentially and checkpoint without skipping rules or claiming fresh context. If capacity is insufficient, stop dependent work with the remaining reads/checks and next action recorded.
 
-Keep plans outside UI; derive Slots from [Pen evidence](../design-references.md)/contracts. Preview adds no devices. Run `verify_all.py --page /exact-route` and [open pixels](../desktop-inspection.md) before siblings; review errors, hierarchy, copy, data and hidden states. Single-Page scope includes overlays, excludes sibling transitions. Follow [explicit recovery](../desktop-context.md).
+Keep plans outside UI; derive Slots from [Pen evidence](../design-references.md)/contracts. Run `verify_all.py --page /exact-route` and open [pixels](../desktop-inspection.md) before Saved-Page review. Then record the static review under [rule review](../review-mode.md#rule-review), with one Desktop controller and unified fallback. Single-Page scope includes overlays and hidden content, excludes sibling transitions. Preview adds no devices. Use [explicit recovery](../desktop-context.md).
 
 ## Final Preview review
 
-Preview requires complete in-scope Pages/destinations, without placeholders; leave excluded transitions unexecuted.
+Integration review uses complete in-scope Pages/destinations, without placeholders; excluded transitions remain unexecuted. Before Preview, full-scope automatic checks and static reviews must pass. Only the final rule-review gate may remain incomplete for pending runtime/persistence evidence; inspect its diagnostics and preserve findings. Final document verdicts follow execution.
 
-Maximum 10 rounds: collect planned issues, close, batch-repair, save/recheck, then reopen. Failed cases do not end a usable round; a crash may ([recovery](../desktop-inspection.md#native-preview)). Stop when cases pass; after round 10 report unresolved work. Do not retry timed-out calls into broken runtime.
+Within at most 10 Preview rounds: collect planned issues, close, batch-repair, save/recheck and reopen for regression. Failed cases do not end a usable round; crashes may ([recovery](../desktop-inspection.md#native-preview)). Stop when cases pass; after round 10 report unresolved work. Do not retry timed-out calls into broken runtime.
 
-Retain findings, images, repairs and pending cases under [runtime evidence checks](../behavior-acceptance.md#record-and-verify-execution).
+Retain findings, captures and failed/unexecuted/invalid-evidence cases under [runtime evidence checks](../behavior-acceptance.md#record-and-verify-execution). The reviewer executes required flows; main-agent claims are not execution evidence.
 
 ## Final acceptance
 
-Save; reopen via open_design with the same projectId and reopen:true. Apply [checks, review and model comparison](../verification.md#collect-and-verify). Report versions, source/template reads, review mode, mock/API limits and pending cases; separate source, static, visual, runtime and persistence results. Failed applicable gates block delivery.
+Save/reopen the same project and collect fresh evidence. Complete [model comparison and checks](../verification.md#collect-and-verify) and the Integration checkpoint's final rule review. Revalidate affected cases when reopened models differ. Local edits stay scoped to affected regions/flows; complete generation requires the full suite. Report actual review modes and separate source, static, visual, runtime and persistence outcomes. Required failures or missing checks block delivery.

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Check that final acceptance actually reviewed every rule on each accept card.
+"""Check recorded shared and Page rules for final single-Page or project acceptance.
 
 Inputs are the reviewed structure plan, the read_reference.py ledger written while
 running `prepare_plan.py rules PLAN --project --stage accept` and every Page's
@@ -235,7 +235,7 @@ def main():
     parser.add_argument("--ledger", type=Path, required=True)
     parser.add_argument("--review", type=Path, required=True)
     parser.add_argument("--capture", type=Path, help="Final verify_all capture.json; binds checkedState to its after identity")
-    parser.add_argument("--page", help="Check one route; omit for every planned Page and the project card")
+    parser.add_argument("--page", help="Check shared project rules and one route; omit for every planned Page")
     args = parser.parse_args()
     plan = json.loads(args.plan.read_text(encoding="utf-8"))
     pages = [p for p in plan.get("pages", []) if args.page is None or p.get("path") == args.page]
@@ -246,7 +246,9 @@ def main():
         capture = document.get("after") if isinstance(document, dict) else None
         if not valid_state(capture):
             parser.error("--capture requires a valid after identity: projectId, branchId, sessionId and nonnegative integer revision/changeCounter")
-    result = check(pages, load_ledger(args.ledger), review, capture, project=args.page is None, root=plan)
+        if document.get('pagePath') is not None and document['pagePath'] != args.page:
+            parser.error("Capture Page scope must match --page; a scoped capture cannot establish full-project review")
+    result = check(pages, load_ledger(args.ledger), review, capture, root=plan)
     print(json.dumps(result, ensure_ascii=False, indent=2))
     raise SystemExit(0 if result["passed"] else 1)
 

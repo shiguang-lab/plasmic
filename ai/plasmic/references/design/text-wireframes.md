@@ -1,5 +1,7 @@
 # Text wireframes
 
+This reference inventories wireframes supplied as requirement sources. Keep agent-authored structure sketches in [pageStructure](page-structure.md#plan-decision), not as fabricated source evidence.
+
 Requirements often draw pages as text wireframes: box-drawing frames, `[按钮]`, `[____]`, `▾` and short annotations. A text wireframe is the Page's visual source. Read it under [visual sources](../requirement-alignment.md#visual-sources-and-component-rules) and reconcile its members with the requirement body under [content before presentation](../requirement-alignment.md#content-before-presentation). It fixes regions, members, grouping and order; it does not fix pixel sizes, column counts or component library.
 
 ## Inventory

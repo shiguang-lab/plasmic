@@ -44,7 +44,7 @@ Use the client's documented MCP reload/reconnect if available; otherwise state w
 
 ## Prototype principles
 
-Select components before composing markup. Discover existing business components and matching templates, prefer them and registered library components, and read their current Props, Slots and event contracts. Do not redraw available functional components with HTML/CSS. Follow `references/libraries/index.md` for selection and verified contract gaps.
+Design the in-scope Pages' region relationships before detailed generation under `references/design/page-structure.md`; reconcile the current Page with live templates and component contracts, then generate and review against that structure. Requirements constrain business behavior and explicit presentation choices; use design reasoning for unspecified layout. Select components before composing markup. Discover existing business components and matching templates, prefer them and registered library components, and read their current Props, Slots and event contracts. Do not redraw available functional components with HTML/CSS. Follow `references/libraries/index.md` for selection and verified contract gaps.
 
 For admin prototypes, read `references/admin-templates.md` and its catalog, inspect applicable live templates, then adapt the selected composition to the requirement. Read the relevant component and composition references before using them. A template or component must fit the current requirement and the project's actual library.
 
@@ -52,7 +52,7 @@ Keep plans and acceptance evidence outside the business UI. Prototype mutations 
 
 For prototype work, follow the workflow's execution-stage table. Derive observable acceptance cases from the current requirements before generation, prepare the current Page's detailed inputs, and retain actual gate/runtime results at each stage. Use existing preparation and verification commands; declarations, tool success and screenshots alone do not establish business acceptance.
 
-Use the workflow's review-mode rules to prefer an independent subagent when available, otherwise perform the same checks in the current conversation and disclose the fallback.
+Apply the workflow's Design, Saved-Page and Integration review checkpoints through its single review-mode policy: prefer an independent subagent, otherwise perform the same scoped checks in the current conversation and disclose the fallback. Resolve required findings before dependent work; scope local edits without adding unrelated reviews.
 
 ## Client implementation boundary
 

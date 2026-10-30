@@ -460,9 +460,10 @@ def run_suite(config, base, evidence, project_id, page_path=None):
 
     for name in GATES:
         spec = config.get(name, {} if name in ("model", "rendering", "page_layout") else None)
-        # Per-Page runs gate composition; the rule review gates final (full-project) acceptance.
+        # Collect automatic prerequisites first; static review belongs to the
+        # Saved-Page checkpoint, final rule verdicts follow runtime/persistence.
         if name == "review" and page_path is not None:
-            results.append({"gate": name, "status": "not_applicable", "report": {"reason": "Per-Page run; final acceptance requires the rule review"}})
+            results.append({"gate": name, "status": "not_applicable", "report": {"reason": "Automatic Page prerequisites only; complete Saved-Page static review, then final rule review after runtime/persistence checks"}})
             continue
         if name == "review" and spec is None:
             results.append({"gate": name, "status": "failed", "rule": rules_manifest.manifest()["gates"].get(name),

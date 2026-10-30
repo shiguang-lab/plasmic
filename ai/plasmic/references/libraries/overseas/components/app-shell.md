@@ -11,7 +11,7 @@ Library: [Overseas](../index.md).
 ### Design defaults
 
 - One AppShell per standalone Page; it owns navigation, the header and the 16px content padding.
-- Its children Slot holds one vertical Flex with gap 16 that fills the width; regions follow the [page type](../../../design/page-types.md); no extra outer padding or Page title.
+- Its children Slot holds one full-width business layout following the decided [Page structure](../../../design/page-structure.md): Flex gap 16 with the chosen direction, or Row gutter 16 for columns; no extra outer padding or Page title.
 
 ### Standalone Page boilerplate
 

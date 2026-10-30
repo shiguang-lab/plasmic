@@ -10,7 +10,7 @@ Library: [Ant Design v6](../index.md).
 
 ### Design defaults
 
-- Content root inside AppShell: vertical, gap 16, filling the width. Stacked blocks inside one surface: vertical, gap 16.
+- Content root inside AppShell: fill the width, gap 16; choose direction from the decided [Page structure](../../../design/page-structure.md). Stacked blocks inside one surface: vertical, gap 16.
 - Horizontal rows of mixed items use `align: "center"`; wrapping groups of Tags or filters use wrap with gap 8.
 
 ### Row and column flow

@@ -16,6 +16,7 @@ ai/plasmic/references/design/              通用布局、键盘焦点、命名�
 ai/plasmic/references/libraries/index.md   按项目真实组件库和 API 版本选择规范
 ai/plasmic/references/libraries/*/rules.json  注册 → 规范文档、plan 决策项、门禁检查锚点的唯一机器可读映射
 ai/plasmic/references/gate-rules.json      门禁、通用诊断、页面级 plan 决策、规则卡的项目/页面组合文档与页面类型骨架
+ai/plasmic/references/design/page-structure.md  需求到页面区域结构、布局推导、模板核对与逐页评审
 ai/plasmic/references/planning.md          Page plan 脚手架、决策、规则卡、读取台账与修复循环
 ai/plasmic/references/libraries/antd_v6/   Ant Design 6 的组件与组合规范
 ai/plasmic/references/libraries/antd_v5/   Ant Design 5 已注册组件的独立规范
@@ -40,7 +41,7 @@ scripts/build-plasmic-resources.mjs        构建资源与独立版本的 CLI �
 
 Page plan 的步骤、命令和读取台账见 [规划](references/planning.md)，逐页编排与恢复见 [原型工作流](references/workflows/prototype.md)，最终验收见 [统一验证](references/verification.md) 和 [规则评审](references/review-mode.md#rule-review)。`rules.json` 维护注册与组件决策的映射，`gate-rules.json` 维护项目/页面规则路由；脚手架、规则卡和门禁从这两处读取，README 不另维护执行流程。
 
-没有设计稿时，间距、宽度、组件大小、字号和密度统一取 `design/scale.md` 的默认值（按钮、输入、选择、Tabs、Segmented、日期区间和 Table 的尺寸及 Table 分页 20/50/100 由门禁检查）；每个页面先按 `design/page-types.md` 定页面类型和区域骨架，预检按 `gate-rules.json` 的 `pageRules.pageType` 提供相应布局规则，实际内容按需求清单验收，不按页面类型强制组件数量；常用组件文档的第一节 Design defaults 写明何时用、放在哪、默认配置和相邻关系。按页面类型的回归用例在 `evals/page-types/`。通用布局维护尺寸与伸缩、对齐、间距归属、内容溢出、响应式范围、吸附和滚动原则；各库的 Flex/Grid/Space/Layout 等文档维护真实 Props/Slots。组合文件维护实际区域关系和跨组件交互，不重复父组件或通用布局规则。
+没有设计稿时，间距、宽度、组件大小、字号和密度统一取 `design/scale.md` 的默认值（按钮、输入、选择、Tabs、Segmented、日期区间和 Table 的尺寸及 Table 分页 20/50/100 由门禁检查）；先按 `design/page-structure.md` 推导涉及页面的区域关系与布局，再以 `design/page-types.md` 的页面类型选择起始骨架；模板与实时组件契约核对后定稿，逐页细化，预检按 `gate-rules.json` 的 `pageRules.pageType` 提供相应布局规则，实际内容按需求清单验收，不按页面类型强制组件数量；常用组件文档的第一节 Design defaults 写明何时用、放在哪、默认配置和相邻关系。按页面类型的回归用例在 `evals/page-types/`。通用布局维护尺寸与伸缩、对齐、间距归属、内容溢出、响应式范围、吸附和滚动原则；各库的 Flex/Grid/Space/Layout 等文档维护真实 Props/Slots。组合文件维护实际区域关系和跨组件交互，不重复父组件或通用布局规则。
 
 在已准备依赖的仓库根目录运行 `node scripts/validate-plasmic-component-coverage.mjs`，通过各库真实 `registerAll` 核对主组件归属、全部注册 key、最终显示名及图标目录。资源构建会额外检查组件文档与库索引的一致性，再校验链接、标题锚点、可达性和阅读预算。源码覆盖检查不替代组件运行或设计交付验收。
 

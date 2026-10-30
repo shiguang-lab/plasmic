@@ -17,7 +17,7 @@ Rows marked with an owner link are maintained in that document; the value is rep
 | Boundary | Default | Owner |
 | --- | --- | --- |
 | Shell content padding | 16px, owned by AppShell; the business root adds none | [AppShell](../libraries/overseas/components/app-shell.md) |
-| Between top-level regions (SearchForm, Cards, completion bar) | 16px gap on the content root (Flex vertical gap 16, or Row gutter 16 for a split workspace) | This document |
+| Between top-level regions (SearchForm, Cards, completion bar) | 16px gap on the content root (Flex gap 16 with direction from the Page structure, or Row gutter 16) | This document |
 | Between stacked blocks inside one surface (editor, feedback, table, group) | 16px gap on the surface's inner Flex | This document |
 | Buttons and inline actions in one group, including overlay footers | 8px (Space) | [Action bars](../libraries/antd_v6/compositions/action-bars.md#placement-and-ordering) |
 | A toolbar above the filters (only when the current user requests it) to the filter row | 16px | [Query and list](../libraries/overseas/compositions/search-table.md#query-and-list-structure) |

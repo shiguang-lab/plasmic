@@ -5,7 +5,7 @@ Use [library and API selection](libraries/index.md) and [native component select
 | Affected area | Read |
 | --- | --- |
 | A specific registered component | Its matching library index and component document |
-| Page regions and their order (every Page) | [Page types](design/page-types.md) |
+| Page task, region relationships and arrangement (before detailed planning; review per Page) | [Page structure design](design/page-structure.md), then [Page types](design/page-types.md) for starting skeletons |
 | Spacing, widths, component sizes, typography and density defaults (every Page) | [Admin design scale](design/scale.md) |
 | Shell, sizing, alignment, overflow, scrolling, responsive layouts or surfaces | [Shared layout](design/layout.md), then the chosen library's layout/shell/surface rules |
 | Supporting text, read-only fields, metrics or headings | Selected library's typography, information/metric components and applicable composition |

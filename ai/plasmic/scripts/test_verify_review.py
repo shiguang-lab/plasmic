@@ -63,8 +63,8 @@ class RuleReviewTests(unittest.TestCase):
                 'project': {'rules': [self.verdict(rule) for rule in self.project]},
                 'pages': [{'path': '/selector', 'rules': [v for v in verdicts if v]}]}
 
-    def resolved_skeleton(self, mode='independent'):
-        review = review_skeleton({'pages': [plan()]}, {'after': STATE}, mode)
+    def resolved_skeleton(self, mode='independent', root=None, page_path=None):
+        review = review_skeleton(root or {'pages': [plan()]}, {'after': STATE}, mode, page_path)
         review['reviewer' if mode == 'independent' else 'fallbackReason'] = (
             'review-child-1' if mode == 'independent' else 'No delegation tool')
         for scope in [review['project'], *review['pages']]:
@@ -254,6 +254,77 @@ class RuleReviewTests(unittest.TestCase):
         review['checkedPlanSha256'] = plan_digest({'pages': [plan(), other]})
         result = check([plan()], self.ledger(), review, STATE, project=False, root={'pages': [plan(), other]})
         self.assertTrue(result['passed'], result)
+
+    def test_scoped_skeleton_retains_shared_rules_without_sibling_placeholders(self):
+        root = {'pages': [plan(), {'path': '/draft', 'pageStructure': '__DECIDE__'}]}
+        for mode in ('independent', 'fallback'):
+            with self.subTest(mode=mode):
+                skeleton = review_skeleton(root, {'after': STATE, 'pagePath': '/selector'}, mode, '/selector')
+                self.assertEqual([p['path'] for p in skeleton['pages']], ['/selector'])
+                self.assertEqual(skeleton['checkedPlanSha256'], plan_digest(root))
+                self.assertIn('references/design/layout.md', [r['rule'] for r in skeleton['project']['rules']])
+                review = self.resolved_skeleton(mode, root, '/selector')
+                self.assertTrue(check([plan()], self.ledger(), review, STATE, root=root)['passed'])
+                self.assertFalse(check(root['pages'], self.ledger(), review, STATE, root=root)['passed'])
+        for route in (None, '/draft', '/missing'):
+            with self.subTest(route=route), self.assertRaisesRegex(ValueError, 'scope'):
+                review_skeleton(root, {'after': STATE, 'pagePath': '/selector'}, 'independent', route)
+        with self.assertRaisesRegex(ValueError, 'Exactly one'):
+            review_skeleton(root, {'after': STATE}, 'independent', '/missing')
+        with self.assertRaisesRegex(ValueError, 'at least one'):
+            review_skeleton({'pages': []}, {'after': STATE}, 'independent')
+
+    def test_single_page_cli_checks_shared_rules_and_capture_scope(self):
+        root = {'pages': [plan(), {'path': '/draft'}]}
+        for name, value in (('plan', root), ('capture', {'after': STATE, 'pagePath': '/selector'})):
+            (self.root / (name + '.json')).write_text(json.dumps(value))
+        review_path = self.root / 'scoped-review.json'
+        prepare = subprocess.run([sys.executable, str(Path(__file__).with_name('prepare_plan.py')),
+                                  'review-skeleton', str(self.root / 'plan.json'), '--page', '/selector',
+                                  '--capture', str(self.root / 'capture.json'), '--mode', 'independent',
+                                  '--output', str(review_path)], capture_output=True, text=True)
+        self.assertEqual(prepare.returncode, 0, prepare.stderr)
+        self.assertEqual([p['path'] for p in json.loads(review_path.read_text())['pages']], ['/selector'])
+        command = [sys.executable, str(Path(__file__).with_name('verify_review.py')), str(self.root / 'plan.json'),
+                   '--ledger', str(self.ledger_path), '--review', str(review_path),
+                   '--capture', str(self.root / 'capture.json')]
+        review = self.resolved_skeleton(root=root, page_path='/selector')
+        review_path.write_text(json.dumps(review))
+        run = subprocess.run(command + ['--page', '/selector'], capture_output=True, text=True)
+        self.assertEqual(run.returncode, 0, run.stderr + run.stdout)
+        full = subprocess.run(command, capture_output=True, text=True)
+        self.assertNotEqual(full.returncode, 0)
+        self.assertIn('scope', full.stderr)
+        for failure in ('missing shared rules', 'failed shared rule', 'failed rule after fallback'):
+            modified = copy.deepcopy(review)
+            if failure == 'missing shared rules':
+                modified.pop('project')
+            else:
+                modified['project']['rules'][0].update(verdict='fail', finding='Observed shared layout defect')
+                if failure.endswith('fallback'):
+                    modified.update(reviewMode='fallback', fallbackReason='Child lost tool access')
+            review_path.write_text(json.dumps(modified))
+            run = subprocess.run(command + ['--page', '/selector'], capture_output=True, text=True)
+            with self.subTest(failure=failure):
+                self.assertEqual(run.returncode, 1, run.stderr)
+                self.assertFalse(json.loads(run.stdout)['passed'])
+
+    def test_static_readiness_cannot_pass_final_review_with_pending_runtime(self):
+        # Synthetic record test only; actual static readiness is recorded in the task
+        # checkpoint, not a pass for a document that also requires real Preview.
+        root = {'pages': [plan()]}
+        review = self.resolved_skeleton(root=root, page_path='/selector')
+        accessibility = next(item for item in review['project']['rules']
+                             if item['rule'] == 'references/design/accessibility.md')
+        accessibility.update(verdict=rules_manifest.PENDING, evidence=[])
+        for mode in ('independent', 'fallback'):
+            review.update(reviewMode=mode, fallbackReason='No delegation tools')
+            result = check([plan()], self.ledger(), review, STATE, root=root)
+            with self.subTest(mode=mode):
+                self.assertFalse(result['passed'], result)
+                pointer = '/project/rules/' + str(review['project']['rules'].index(accessibility))
+                self.assertTrue(any(error.get('pointer') == pointer + '/verdict'
+                                    and error['check'] == 'ruleReview' for error in result['errors']))
 
     def test_constraint_identity_must_match_current_document_in_order(self):
         for name in ('missing', 'unrelated', 'reordered', 'duplicated'):

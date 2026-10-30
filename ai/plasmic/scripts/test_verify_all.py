@@ -57,6 +57,14 @@ class SuiteTests(unittest.TestCase):
         source.write_text('Single record administration; no application dimension.')
         write_json(self.root / "structure.json", {"pages": [{"path": "/records", "name": "记录列表", "source": "requirement §Records", "pageHeader": None,
                     "pageType": "basic-form",
+                    "pageStructure": {
+                        "intent": "Enter a record name", "source": str(source),
+                        "layout": "One FormCard in AppShell content",
+                        "rationale": "A single field group needs one continuous form region",
+                        "regions": [{"nodeName": "FormCard", "purpose": "Record name entry"}],
+                        "sizing": "Full-width content-sized form surface",
+                        "scrolling": "AppShell content owns vertical scrolling",
+                        "actions": "This validation fixture has no business submit action"},
                     "wireframe": {"notApplicable": "Prose-only fixture requirement without a text wireframe"},
                     "templates": [], "templatesNotApplicable": "Focused native Form fixture without a template-driven layout",
                     "appContext": {"required": False, "evidence": {"path": str(source), "sha256": hashlib.sha256(source.read_bytes()).hexdigest(), "quote": source.read_text()}}, "components": [

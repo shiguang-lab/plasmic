@@ -341,6 +341,7 @@ def wireframe_errors(plan):
 
 PAGE_TYPES = tuple(rules_manifest.manifest()['pageRules']['pageType'])
 PAGE_TYPE_RULE = 'references/design/page-types.md#choosing-the-type'
+PAGE_STRUCTURE_RULE = 'references/design/page-structure.md'
 SCALE = 'references/design/scale.md'
 APP_SHELL = 'plasmic-overseas-app-shell'
 OVERLAYS = {'plasmicantd6modal', 'plasmicantd6drawer'}
@@ -352,6 +353,54 @@ def page_type_errors(plan):
         return []
     return [{'check': 'pageType', 'pointer': '/pageType', 'rule': PAGE_TYPE_RULE, 'allowedValues': list(PAGE_TYPES),
              'message': 'Choose the Page type from the user task on this Page before declaring regions and components'}]
+
+
+def page_structure_errors(plan):
+    """Validate planning completeness and region references, not design quality."""
+    value = plan.get('pageStructure')
+    if value == rules_manifest.PENDING:
+        return []  # decision_errors reports pending values with the rule owner.
+    errors = []
+
+    def issue(pointer, message):
+        errors.append({'check': 'pageStructure', 'pointer': '/pageStructure' + pointer,
+                       'rule': PAGE_STRUCTURE_RULE + '#plan-decision', 'message': message})
+
+    if not isinstance(value, dict):
+        issue('', 'Design the Page structure before detailed generation; record pageStructure as an object')
+        return errors
+    for field in ('intent', 'source', 'layout', 'rationale', 'sizing', 'scrolling', 'actions'):
+        if not isinstance(value.get(field), str) or not value[field].strip():
+            issue('/' + field, 'Record ' + field + ' for the Page; distinguish source constraints from design reasoning')
+    regions = value.get('regions')
+    if regions == rules_manifest.PENDING:
+        return errors
+    if not isinstance(regions, list) or not regions:
+        issue('/regions', 'Declare the business regions and resolve their anchors before generation')
+        return errors
+    names = {spec['nodeName'] for key in ('components', 'nodes')
+             for spec in (plan.get(key) if isinstance(plan.get(key), list) else [])
+             if isinstance(spec, dict) and isinstance(spec.get('nodeName'), str)}
+    seen = set()
+    for index, region in enumerate(regions):
+        pointer = f'/regions/{index}'
+        if region == rules_manifest.PENDING:
+            continue
+        if not isinstance(region, dict):
+            issue(pointer, 'Each region needs a declared nodeName and business purpose')
+            continue
+        name = region.get('nodeName')
+        if name == rules_manifest.PENDING:
+            pass
+        elif not isinstance(name, str) or name not in names:
+            issue(pointer + '/nodeName', 'Region anchor must reference an existing components or nodes declaration')
+        elif name in seen:
+            issue(pointer + '/nodeName', 'Declare each region anchor once')
+        else:
+            seen.add(name)
+        if not isinstance(region.get('purpose'), str) or not region['purpose'].strip():
+            issue(pointer + '/purpose', 'Record the business responsibility of this region')
+    return errors
 
 
 def page_body_errors(plan):
@@ -366,14 +415,14 @@ def page_body_errors(plan):
             continue
         values = spec.get('props') if isinstance(spec.get('props'), dict) else {}
         key = norm(spec.get('component', ''))
-        expected = ({'vertical': True, 'gap': 16} if key == 'plasmicantd6flex' else
+        expected = ({'gap': 16} if key == 'plasmicantd6flex' else
                     {'gutter': 16} if key == 'plasmicantd6row' else {})
         for prop, value in expected.items():
             actual = verify_component_policy.at(values, prop)
             if actual != value and not verify_component_policy.approved_override(spec, prop):
                 errors.append({'check': 'pageBody', 'pointer': f'/components/{i}/props/{prop}', 'node': spec.get('nodeName'),
                                'rule': rule, 'expected': value, 'actual': actual,
-                               'message': 'The business root in AppShell children separates top-level regions with the scale gap (Flex vertical gap 16, Row gutter 16); another value needs a source override'})
+                               'message': 'The business root in AppShell children separates top-level regions with the scale gap (Flex gap 16, Row gutter 16); direction follows pageStructure, another gap needs a source override'})
     return errors
 
 
@@ -519,6 +568,8 @@ def plan_errors(plan):
         errors.extend(wireframe_errors(plan))
     if 'pageType' in plan:
         errors.extend(page_type_errors(plan))
+    if 'pageStructure' in plan:
+        errors.extend(page_structure_errors(plan))
     errors.extend(page_body_errors(plan))
     feedback = plan.get('feedback')
     if not isinstance(feedback, list):
@@ -730,6 +781,8 @@ def required_reads(plan, stage='compose', root=None):
         # Conditional rules arrive by explicit subsection (below), never as a whole stage.
         return {anchor for anchor in stages if anchor not in ('acceptance-checks', 'conditional-rules')}
     page_rules = rules_manifest.manifest()['pageRules']
+    if stage == 'accept' and 'components' in plan:
+        add(PAGE_STRUCTURE_RULE, None)
     if 'components' in plan:
         documents = list(page_rules.get('pageType', {}).get(plan.get('pageType'), [])) if admin_page(plan) else []
         for condition, applies in page_conditions(plan, root).items():
@@ -869,6 +922,8 @@ def check(expected, readback=None, page_path=None, reads=None):
         missing_decisions = []
         if 'pageType' not in plan:
             missing_decisions.extend(page_type_errors(plan))
+        if 'pageStructure' not in plan:
+            missing_decisions.extend(page_structure_errors(plan))
         if 'wireframe' not in plan:
             missing_decisions.extend(wireframe_errors(plan))
         if readback is None:

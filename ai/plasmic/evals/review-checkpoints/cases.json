@@ -1,0 +1,88 @@
+{
+  "scope": "Offline checkpoint/fallback decision probes. Read the current local skill and relevant workflow/review/scripts. Treat listed facts as fixtures, not observed live tool results. Do not access Desktop/MCP, edit the repository, change permissions, or spawn agents. For each independent case state checkpoint, reviewMode, remaining checks, permitted next action and completion/evidence limits. Write a report in /tmp.",
+  "cases": [
+    {
+      "id": "design-without-preview-tools",
+      "request": "当前页完成需求与结构规划，请安排生成前评审。",
+      "facts": [
+        "存在可启动的独立子 agent，可读取原始需求、规划、已采集的模板和组件契约。",
+        "子 agent 没有 Desktop/Preview 工具。当前阶段没有已生成页面。",
+        "主 agent 尚未生成；该页选择预检通过。"
+      ]
+    },
+    {
+      "id": "source-omission",
+      "request": "按当前规划继续生成消息编辑页。",
+      "facts": [
+        "需求要求标题、正文、跳转地址，以及实时手机预览。",
+        "plan 只包含标题、正文和点击预览按钮后显示的 Modal。",
+        "规划脚本返回 passed:true；独立评审指出跳转地址遗漏、预览方式与需求不符。",
+        "主 agent 认为表单已经足够，建议切换 fallback 并继续。"
+      ]
+    },
+    {
+      "id": "automatic-page-pass",
+      "request": "页面已经保存，检查是否可以推进下一页。",
+      "facts": [
+        "verify_all.py --page /messages 的 report.passed=true；review gate 为 not_applicable，原因要求单独执行 scoped review。",
+        "已保存 model、layout、capture.json 和 screenshot；尚无人查看截图，也没有 PAGE_REVIEW 文件。",
+        "有独立 agent 可读取文件，不能编辑 Desktop。"
+      ]
+    },
+    {
+      "id": "timed-out-live-reviewer",
+      "request": "评审子 agent 超时，主 agent 继续修复页面。",
+      "facts": [
+        "该子 agent 已取得共享 Desktop 控制权并进入 Preview。",
+        "等待超时；停止请求已发出，但没有确认 agent 已停止。",
+        "主 agent 有相同 Desktop 工具。存在未解决交互缺陷。"
+      ]
+    },
+    {
+      "id": "no-delegation",
+      "request": "按规范完成当前页和最终流程验收。",
+      "facts": [
+        "当前环境不提供 subagent 工具，用户也未授权更改插件或权限。",
+        "主 agent 可以读取原始需求、完整模型和截图，运行 gates 并实际执行 Preview。",
+        "其他页面已完成，所有所需目标与测试数据可用。"
+      ]
+    },
+    {
+      "id": "missing-runtime-access",
+      "request": "已有评审报告，交付吧。",
+      "facts": [
+        "独立 agent 完成了模型和截图检查，报告静态部分通过。",
+        "三个必需 runtime cases 未执行；子 agent 无 Preview 工具。",
+        "主 agent 同样无法打开 Preview；没有有效执行 trace。"
+      ]
+    },
+    {
+      "id": "caption-only",
+      "request": "只把当前页保存按钮的文案改成发布，位置和行为保持不变，核对后交付。",
+      "facts": [
+        "页面结构已存在且未要求调整；另外两个页面不在范围内。",
+        "该按钮的原模型与更新后模型、截图、保存回读可用。",
+        "独立评审可用，但原全项目业务测试有 30 个跨页 case。"
+      ]
+    },
+    {
+      "id": "repair-and-persistence",
+      "request": "缺陷修复后完成最终验收。",
+      "facts": [
+        "原 Saved-Page review 对 revision 3、changeCounter 0 的模型通过；之后修改了预览绑定，当前 revision 4。",
+        "之前 runtime trace 是针对 revision 3 执行的。",
+        "保存重开后 compare_models 返回模型有差异；完整 plan 还增加了一个受该绑定影响的消费者。",
+        "原评审者可回到任务执行复评。"
+      ]
+    },
+    {
+      "id": "interactive-preview-entry",
+      "request": "所有页面的静态检查完成，现在准备进入 Preview。",
+      "facts": [
+        "所有 scoped 自动 gate 已通过，独立 Saved-Page review 已检查真实模型和截图并关闭静态缺陷。",
+        "full suite 仅 final review gate 不完整，因为 accessibility、Table、Tabs 文档的真实运行与持久化检查仍未执行；对应 verdict 为 pending。",
+        "源需求已核对，所有目标与 fixtures 就绪，独立评审有真实 Preview 工具。"
+      ]
+    }
+  ]
+}

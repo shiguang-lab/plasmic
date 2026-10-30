@@ -1,17 +1,15 @@
 # Admin page types
 
-Every prototype Page has one page type. The type provides a starting layout for the Page's regions and surfaces before components are chosen; the source determines which regions are needed. The taxonomy follows [Ant Design Pro's page templates](https://pro.ant.design/docs/overview) (list, form, detail, result, overview) and maps to the [admin template catalog](../templates/admin/catalog.json). Spacing, widths and sizes come from the [admin design scale](scale.md); region internals come from the linked composition rules.
-
-Decide the type first and record it as the Page plan's `pageType` in the minimal declaration list, before choosing templates or declaring components: the type selects template candidates and the composition guidance delivered by preflight. Component counts are not inferred from the type: coverage is checked against the source inventory. A requirement or approved design that arranges the Page differently takes precedence; record that source in the plan and keep the remaining defaults.
+Choose `pageType` from the Page's primary user task during [structure design](page-structure.md), before templates or components. It routes starting skeletons and composition guidance; the source determines required content, not component counts. Put the type in the minimal plan. Explicit spatial constraints take precedence; otherwise decide arrangement through `pageStructure` reasoning without overriding protected component defaults. Use the [design scale](scale.md) for dimensions and the linked compositions for region internals.
 
 Rendered examples of every type live in the Plasmic project 页面类型参考 (`gPHk7DnpyjQisz59sZYNVJ`), one Page per type. Read a Page's model through MCP to compare structure and props; the reference structures below remain the rule.
 
 **Hard constraints** (always delivered with any section):
 
 - Decide `pageType` from the user task of the Page, not from its fields: find records, enter one record, read one record, follow a multi-stage flow, see an outcome or monitor indicators.
-- Use the regions and order below when the source leaves layout unspecified. Omit regions with no source content; retain source-required regions and arrangements even when they differ from the example. Record the source and verify its inventory.
+- Use the regions below as starting guidance, then decide arrangement from the source and task under [Page structure design](page-structure.md). Omit regions with no source content; retain required regions and explicit arrangements even when they differ from the example. Record source constraints separately from agent reasoning and verify the inventory.
 - Content starts with the first business region inside the AppShell; no Page title, intro or breadcrumb copy (see [admin content entry](layout.md#admin-content-entry)).
-- Top-level regions use the chosen type's layout: normally siblings in a vertical Flex with a 16px gap, or the catalog workspace's Row with gutter 16. Do not nest one region's surface inside another's.
+- Top-level regions follow the decided Page structure using native layout components and the shared 16px spacing baseline. Vertical Flex is suitable for sequential regions; Row or horizontal Flex can express simultaneous regions. Do not nest one region's surface inside another's.
 - Overlays (Modal, Drawer) belong to the Page that opens them; they are not separate Pages.
 
 ## Choosing the type
@@ -21,13 +19,15 @@ Rendered examples of every type live in the Plasmic project 页面类型参考 (
 | Find, filter and act on many records of one kind | `list` | StandardListPage / SearchTableSection |
 | The same, split into mutually exclusive scopes (all/mine, by status) | `tabbed-list` | TabsTableSection |
 | Choose a node in a catalog, then work on its records | `catalog-workspace` | SplitTabsPage / CatalogTabsSection |
-| Create or edit one record with a short field set | `basic-form` | BasicFormPage |
+| Enter a short field set to save a record or run an operation | `basic-form` | BasicFormPage |
 | Create or edit one record whose fields fall into named groups | `grouped-form` | None; compose (each group uses BasicFormPage's field structure) |
 | Create a record through ordered stages with prerequisites | `step-form` | None; compose |
 | Read one record's attributes and related records | `basic-detail` | RecordDetailPage / DetailSection |
 | Read one record whose related content splits into Tabs | `tabbed-detail` | RecordDetailPage with Tabs |
-| Monitor indicators, then drill into lists | `overview` | None; compose |
+| Monitor indicators and inspect a visual workspace or related records | `overview` | None; compose |
 | See the outcome of a finished operation or an error state | `result` | None; compose |
+
+An input-and-run tool uses the closest form type plus its output region; `result` is for an outcome-focused Page. Keep the real action (for example Run), without inventing Save or record persistence.
 
 A create/edit flow that keeps list context uses a Drawer or Modal on the list Page instead of a form Page; see [overlays](../libraries/antd_v6/compositions/modal-drawer.md).
 
@@ -186,7 +186,7 @@ AppShell › children
 
 ### result
 
-A single [Result](../libraries/antd_v6/components/result.md) with the actual status, title, a one-sentence subtitle and the recovery or next actions, in one headerless Card: the outcome is the Page's only business surface, so it sits on the same white surface as every other page type instead of the neutral content background. No Table, Form or second Card. See [content states](../libraries/antd_v6/compositions/content-states.md).
+A single [Result](../libraries/antd_v6/components/result.md) with the actual status, title, a one-sentence subtitle and the recovery or next actions, in one headerless Card: the outcome is the Page's only business surface, so it sits on the same white surface as every other page type instead of the neutral content background. A simple outcome needs no additional region; retain any source-required result details. See [content states](../libraries/antd_v6/compositions/content-states.md).
 
 Reference structure:
 
@@ -203,7 +203,8 @@ Some source content does not belong to one type and is placed as a region of the
 
 | Content | Region |
 | --- | --- |
-| An operation that produces a result on the same Page (validation, test run, preview, calculation) | The input surface holds the input and its action; the result follows in the same surface below the input: a continuing outcome as Alert, structured outcome as Descriptions or Table, a count as Statistic beside or above the data it counts |
+| Editing with a live preview or result that must stay observable | Decide a simultaneous workspace under [Page structure design](page-structure.md); on desktop, consider editor and preview side by side, sized for their content |
+| An operation that produces a result after an explicit action (validation, test run, calculation, on-demand preview) | Normally place the result near/below its input, or in an on-demand overlay when appropriate; choose simultaneous regions when comparison is needed. Use Alert for a continuing condition, Descriptions or Table for structured results, Statistic for a count |
 | A group of read-only attributes inside a form Page | Descriptions at the top of the form Card |
 | A continuing regional condition | Alert at the top of the affected surface |
 | No data, loading, failure | [Content states](../libraries/antd_v6/compositions/content-states.md) inside the affected region |

@@ -100,6 +100,7 @@ These are fields of the **existing structure inventory**, not an additional chec
 | Root `pages` | Array of Page objects; each has exact absolute route `path` and native `components` inventory. A fragment without `path` is not a full Page preflight. |
 | Decision values | `"__DECIDE__"` marks a [plan decision](../planning.md#plan-decisions) still pending and always fails preflight. `null` on a decided prop means deliberately unset; the saved-model gate then requires it to be absent. |
 | `components[*]` | `nodeName`, registered `component`, semantic `role`, source-derived `purpose`, citation `source`, resource-relative `rule`; existing native `props`, `dynamicProps` and `owner:{nodeName,slot}` constrain the same model. Use the selection decision table for exact roles. |
+| `pageStructure` | Required Page-level [structure decision](page-structure.md#plan-decision); never native props. |
 | `templates` | Existing template selections/capture evidence; see [template sources](../admin-templates.md#source-evidence-before-composition). No-fit uses `templates:[]` plus a source-reviewed `templatesNotApplicable`, never an omitted read. |
 | `feedback` | Array, including `[]` if no operation feedback. Entries need `nodeName`, native `event`, `kind:transient/asynchronous`, `source`, `success`, `failure`. |
 | `appContext` | `required` is boolean and `evidence` is mandatory for a shell. When required: native `shell`, shared `binding`, consumer array `{nodeName,property,kind}` and `cases`. |

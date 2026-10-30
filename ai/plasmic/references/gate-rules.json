@@ -41,6 +41,7 @@
     "overview": "references/design/naming.md#project-directory-names",
     "pageHeader": "references/design/layout.md#admin-content-entry",
     "pageName": "references/design/naming.md#project-directory-names",
+    "pageStructure": "references/design/page-structure.md#plan-decision",
     "planDecision": "references/planning.md#plan-decisions",
     "readback": "references/verification.md#collect-and-verify",
     "referenceReads": "references/planning.md#rules-card-and-read-ledger",
@@ -64,6 +65,7 @@
     "templates": "references/admin-templates.md#source-evidence-before-composition",
     "wireframe": "references/design/text-wireframes.md#inventory",
     "pageType": "references/design/page-types.md#choosing-the-type",
+    "pageStructure": "references/design/page-structure.md#plan-decision",
     "nodes": "references/design/content-review.md#before-generation",
     "copy": "references/design/content-review.md#before-generation",
     "bindings": "references/requirement-alignment.md#structural-gate",
@@ -75,6 +77,7 @@
   },
   "projectRules": [
     "references/libraries/index.md",
+    "references/design/page-structure.md",
     "references/design/layout.md",
     "references/design/naming.md",
     "references/design/content-review.md",

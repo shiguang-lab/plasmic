@@ -256,7 +256,7 @@ class SelectionCliModeTests(unittest.TestCase):
                            check=True, capture_output=True)
             records = load_ledger(ledger)
             self.assertTrue(check(expected, page_path='/records', reads=records)['passed'])
-            for fields in (('pageType',), ('wireframe',), ('pageType', 'wireframe')):
+            for fields in (('pageType',), ('wireframe',), ('pageStructure',), ('pageType', 'wireframe', 'pageStructure')):
                 with self.subTest(missing=fields):
                     incomplete = copy.deepcopy(expected)
                     for field in fields:
