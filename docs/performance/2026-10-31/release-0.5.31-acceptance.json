@@ -1,0 +1,178 @@
+{
+  "status": "PASS_WITH_CDN_FOLLOWUP",
+  "studioRelease": "0.5.31",
+  "studioRevision": "f7bf66b40620d0f9dadcbee356ddbc6721d4ddbc",
+  "desktopRelease": "0.5.30",
+  "desktopRevision": "4be192c7af42e89cda0a5b182082fdf07a5905a7",
+  "projectId": "tk89W1Akg2HjAjyHAYEro7",
+  "projectRevision": 158,
+  "changeCounter": 0,
+  "method": "Official Desktop renderer/main modules in an isolated Electron profile; independent HTTPS Web session; document reentry, not complete application-process startup.",
+  "samples": [
+    {
+      "phase": "app-resource-cold",
+      "editableMs": 4004
+    },
+    {
+      "phase": "app-warm-1",
+      "editableMs": 2466
+    },
+    {
+      "phase": "app-warm-2",
+      "editableMs": 2461
+    },
+    {
+      "phase": "app-warm-3",
+      "editableMs": 2358
+    },
+    {
+      "phase": "web-cold",
+      "editableMs": 9595
+    },
+    {
+      "phase": "web-warm-1",
+      "editableMs": 2440
+    },
+    {
+      "phase": "web-warm-2",
+      "editableMs": 2450
+    },
+    {
+      "phase": "web-warm-3",
+      "editableMs": 2344
+    }
+  ],
+  "warmMedianMs": {
+    "app": 2461,
+    "web": 2440
+  },
+  "coldLibraryResourceGets": {
+    "app": {
+      "models": 5,
+      "code": 4
+    },
+    "web": {
+      "models": 5,
+      "code": 4
+    }
+  },
+  "warmLibraryResourceGets": {
+    "app": {
+      "models": 0,
+      "code": 0
+    },
+    "web": {
+      "models": 0,
+      "code": 0
+    }
+  },
+  "closedPanelPreviewRequests": 0,
+  "webWarmHostOriginRequests": 0,
+  "warmPreviewImageNetworkRequests": {
+    "app": 0,
+    "web": 0
+  },
+  "thumbnailPanels": [
+    {
+      "surface": "app",
+      "query": "Button",
+      "visibleLoaded": 8
+    },
+    {
+      "surface": "app",
+      "query": "AppShell",
+      "visibleLoaded": 1
+    },
+    {
+      "surface": "web",
+      "query": "Button",
+      "visibleLoaded": 8
+    },
+    {
+      "surface": "web",
+      "query": "AppShell",
+      "visibleLoaded": 1
+    },
+    {
+      "surface": "app-warm",
+      "query": "Button",
+      "visibleLoaded": 8
+    },
+    {
+      "surface": "app-warm",
+      "query": "AppShell",
+      "visibleLoaded": 1
+    },
+    {
+      "surface": "web-warm",
+      "query": "Button",
+      "visibleLoaded": 8
+    },
+    {
+      "surface": "web-warm",
+      "query": "AppShell",
+      "visibleLoaded": 1
+    }
+  ],
+  "preview": {
+    "opened": true,
+    "filled": true,
+    "reset": true,
+    "refreshed": true,
+    "runtime": {
+      "componentUuid": "IhJkTFNrZlqm",
+      "errors": [],
+      "generation": 1,
+      "status": "ready"
+    }
+  },
+  "iconsPreserved": 848,
+  "publishedThumbnailMetadata": {
+    "antd6": {
+      "version": "3.11.0",
+      "externalUrls": 123,
+      "dataUrls": 0
+    },
+    "overseas": {
+      "version": "1.13.0",
+      "externalUrls": 1,
+      "dataUrls": 0
+    }
+  },
+  "automaticUpgrades": {
+    "enabled": true,
+    "affectedObjects": 7,
+    "failures": 0,
+    "droppedArgs": 0,
+    "blockers": 0
+  },
+  "webHostSha256": "8e14b7d38618caae8e9c990b316bcf76cd79d42e7ef7b349fadbba47220593f6",
+  "publicIndexSha256": "e4d80ee8673d92d077416edd2fa169812508f25ac79a9b2c1436088bda3ac500",
+  "publicHostCacheControl": "public, max-age=31536000, immutable",
+  "originPreviewCacheControl": "public, max-age=31536000, immutable",
+  "cdnExistingPreviewCacheControl": "max-age=14400, s-maxage=31536000",
+  "cdnPurgePending": true,
+  "cdnPurgeUrlCount": 123,
+  "consoleNotices": {
+    "ResizeObserver loop completed with undelivered notifications.": 3
+  },
+  "retainedPreviousImmutableFiles": 328,
+  "backup": "/volume1/docker/plasmic/backups/0.5.31-20261031-145358",
+  "resourceCountScope": "First timing round: current project dependencies through editable state; second functional round: complete observation window.",
+  "initialBackgroundModel": {
+    "library": "plume",
+    "version": "19.4.2",
+    "observedAfterEditableMs": [
+      418,
+      436,
+      476,
+      477,
+      486
+    ],
+    "rapidNavigationAbortedUnfinishedWebDownloads": true,
+    "completeFunctionalRoundModelAndCodeRequests": {
+      "app": 0,
+      "web": 0
+    }
+  }
+}

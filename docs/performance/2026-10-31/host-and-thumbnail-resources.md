@@ -1,6 +1,6 @@
 # Web Host 强缓存与非图标预览图外置
 
-状态：源码和本地验证完成，尚未部署本次改动或发布对应组件库版本。原始验收记录见 [JSON](host-and-thumbnail-resources.json)。
+状态：Studio 0.5.31、Desktop 0.5.30 已发布，Server/Web 已部署；Antd6 3.11.0、Overseas 1.13.0 已发布并通过画布、自动升级和热缓存验收。部分 CDN 图片旧缓存头待清理，见 [生产验收](release-0.5.31-acceptance.md)。本地验证记录见 [JSON](host-and-thumbnail-resources.json)。
 
 ## Web Host
 
@@ -16,8 +16,8 @@ Antd6 和 Overseas 的构建使用现有 SVG 生成器输出 `skinny/thumbnails.
 
 平台组件库发布时：
 
-1. 通过现有 SVG 上传服务生成内容寻址的绝对 `/assets/<md5>.svg` URL，不使用 Canvas 域上的相对资源地址。
-2. 对公开 URL 做 HEAD，确认成功和 SVG 类型。上传、访问或类型检查失败会中止发布，不保存含悬空预览链接的新版本。
+1. 通过现有 SVG 上传服务生成内容寻址的绝对 `/assets/<md5>.svg` URL，不使用 Canvas 域上的相对资源地址。百分号编码的 data URL 在上传前解码为真实图片字节，再进行文件类型检测。
+2. 对公开 URL 做 HEAD，确认成功和 SVG 类型。单次检查限时 15 秒，连接失败或 5xx 最多尝试 3 次。上传、持续访问失败或类型检查失败会中止发布，不保存含悬空预览链接的新版本。
 3. 编译注册代码时把专用 JSON 模块替换为 URL 清单；导出用的不可变模块快照也保存这份替换后的内容。Canvas、服务端注册代码及库模型指向同批内容。
 4. 显式发布入口将库模型的 SVG 预览引用外置，再按现有事务和版本规则发布。普通项目读取、依赖资源读取和模型迁移不执行上传或公开 URL 检查。
 
