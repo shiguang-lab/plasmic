@@ -592,3 +592,7 @@ Component Store → Business components lists React UI beside Overseas. Installi
 the card adds React UI to Installed. The command updates only this library and its
 catalog entry, preserving other flags and reusing an existing library project.
 The vendored source scope is documented in [vendor/react-ui](../vendor/react-ui/README.md).
+
+### Built-in Host cache
+
+The Web container requires both `STUDIO_ORIGIN` and `CANVAS_ORIGIN`. Startup configuration renders these origins, recomputes the content hash of the built-in Host HTML, and updates its compiled references before Nginx starts. Deploy the updated Compose and Nginx configuration with the Web image. Only `host.<sha256>.html` uses immutable HTML caching; the stable Host and Studio entry stay updateable. Retain immutable files needed by already-open builds.

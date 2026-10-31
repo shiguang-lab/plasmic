@@ -1,0 +1,53 @@
+{
+  "artifactValidation": {
+    "status": "PASS",
+    "svgResourceCount": 123,
+    "libraries": [
+      {
+        "library": "antd6",
+        "canvasBytes": 968041,
+        "serverBytes": 4881564,
+        "uploadCalls": 123,
+        "registrationContractUnchanged": true
+      },
+      {
+        "library": "overseas",
+        "canvasBytes": 34785,
+        "serverBytes": 3955297,
+        "uploadCalls": 1,
+        "registrationContractUnchanged": true
+      }
+    ],
+    "hostFilenameMatchesHtmlSha256": true
+  },
+  "browserValidation": {
+    "status": "PASS",
+    "coldImageCount": 16,
+    "coldHostRequests": 1,
+    "warmHostRequests": 0,
+    "warmImageRequests": 0,
+    "changedAssetRequests": 1,
+    "appWarmImageRequests": 0
+  },
+  "thumbnailValues": {
+    "antd6": {
+      "entries": 122,
+      "inlineValueBytes": 179977,
+      "externalValueBytes": 10004
+    },
+    "overseas": {
+      "entries": 1,
+      "inlineValueBytes": 2206,
+      "externalValueBytes": 82
+    }
+  },
+  "externalUrlExample": "https://plasmic-studio.shiguanglab.com/assets/00000000000000000000000000000000.svg",
+  "scope": "Local production build, actual package registrations and Nginx configuration; upload and public-read operations mocked in compiler validation; no production object-store/database writes; not an end-to-end startup latency benchmark.",
+  "sharedRuntimeValidation": {
+    "thumbnailManifestInputs": [],
+    "embeddedPreviewValues": false,
+    "registeredNames": false,
+    "themeAndAccountSwitchTests": 5
+  },
+  "hostScaffoldRouteTests": 7
+}

@@ -6,6 +6,7 @@ const state = vi.hoisted(() => ({
   site: {},
   save: vi.fn(),
   publish: vi.fn(),
+  externalize: vi.fn(),
 }));
 
 vi.mock("@/wab/server/code-components/code-components", () => ({
@@ -41,6 +42,9 @@ vi.mock("@/wab/server/entities/CustomEntities", () => ({ HostlessLibraryVersion:
 vi.mock("@/wab/server/loader/library-artifacts", () => ({
   captureLibraryArtifact: async () => ({ digest: "new-code" }),
 }));
+vi.mock("@/wab/server/loader/library-thumbnails", () => ({
+  externalizeSiteThumbnails: state.externalize,
+}));
 
 import { publishHostlessProject } from "@/wab/server/db/PublishHostless";
 
@@ -62,6 +66,7 @@ beforeEach(() => {
   state.removedParams = {};
   state.save.mockReset();
   state.publish.mockReset();
+  state.externalize.mockReset().mockResolvedValue(undefined);
 });
 afterEach(() => vi.unstubAllEnvs());
 
@@ -96,4 +101,13 @@ it("can publish a breaking code-only change without a top-level parameter remova
     breaking: true,
   })).toBe(true);
   expect(state.publish).toHaveBeenCalledExactlyOnceWith("project", "2.0.0", [], "");
+  expect(state.externalize).toHaveBeenCalledTimes(2);
+});
+
+it("does not save or publish a library whose thumbnail resources cannot be prepared", async () => {
+  vi.stubEnv("PREVIEW_ORIGIN", "https://preview.example.test");
+  state.externalize.mockRejectedValue(new Error("thumbnail unavailable"));
+  await expect(publishHostlessProject(db as any, "project" as any, { plumeSite: state.site as any })).rejects.toThrow("thumbnail unavailable");
+  expect(state.save).not.toHaveBeenCalled();
+  expect(state.publish).not.toHaveBeenCalled();
 });

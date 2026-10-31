@@ -3,9 +3,10 @@ import * as Ant from 'antd';
 import dayjs from 'dayjs';
 import React from 'react';
 import { r as renderCanvasSlot, g as getCanvasItems, u as useCanvasOverlay, p as previewOpenProp } from './canvas-overlay-Dan70Oxr.esm.js';
-import { r as registerComponentHelper } from './utils-Cmdig6Yl.esm.js';
+import { r as registerComponentHelper } from './utils-U416WEAa.esm.js';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
+import '@shiguang-lab/plasmic-antd6/thumbnails';
 
 const canvasOverlay = { triggerSlot: "children" };
 const AntdAffix = Ant.Affix;

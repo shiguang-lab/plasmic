@@ -11,7 +11,7 @@ const assert = require("node:assert/strict");
 const esbuild = require("esbuild");
 let origin;
 const sha = value => createHash("sha256").update(value).digest("hex");
-let profile, server, win, other;
+let profile, server, canvasServer, win, other;
 const timeout = setTimeout(() => { console.error("Web cache test timed out"); app.exit(1); }, 30000);
 (async () => {
   profile = await fs.mkdtemp(path.join(os.tmpdir(), "library-cache-native-"));
@@ -68,8 +68,47 @@ const timeout = setTimeout(() => { console.error("Web cache test timed out"); ap
   }).listen(0, "127.0.0.1");
   await new Promise(resolve => server.once("listening", resolve));
   origin = `http://127.0.0.1:${server.address().port}`;
+  const bridgeBundle = await esbuild.build({
+    stdin: {contents: `export * from "comlink";`, resolveDir: path.resolve(__dirname, "../../platform/wab")},
+    bundle: true, write: false, platform: "browser", format: "iife", globalName: "Bridge",
+  });
+  let canvasApiHits = 0;
+  canvasServer = createServer((req,res) => {
+    if (req.url.startsWith("/api/")) { canvasApiHits++; res.writeHead(404).end(); return; }
+    res.setHeader("Content-Type","text/html");
+    res.end(`<!doctype html><script>${bridgeBundle.outputFiles[0].text}</script><script>
+      const api = Bridge.wrap(Bridge.windowEndpoint(parent, self, ${JSON.stringify(origin)}));
+      api.loadLibrary().then(code => parent.postMessage({loaded:code}, ${JSON.stringify(origin)}));
+    </script>`);
+  }).listen(0,"127.0.0.1");
+  await new Promise(resolve => canvasServer.once("listening",resolve));
+  const canvasOrigin = `http://127.0.0.1:${canvasServer.address().port}`;
   const ses = session.fromPartition("persist:web-resource-cache-native");
   win = new BrowserWindow({ show: false, webPreferences: { session: ses, sandbox: true, contextIsolation: true, nodeIntegration: false } });
+  // A real cross-origin host talks to Studio through the existing Comlink bridge.
+  // Its origin deliberately has no API. Reload Studio to discard all JS memory.
+  for (let visit = 0; visit < 2; visit++) {
+    await win.loadURL(origin);
+    const loaded = await win.webContents.executeJavaScript(`(async () => {
+      ${bridgeBundle.outputFiles[0].text}
+      ResourceCacheHarness.setResourceCacheUser('account');
+      const iframe = document.createElement('iframe');
+      const result = new Promise(resolve => addEventListener('message', e => {
+        if(e.origin===${JSON.stringify(canvasOrigin)} && e.source===iframe.contentWindow && e.data.loaded) resolve(e.data.loaded);
+      }));
+      iframe.src=${JSON.stringify(canvasOrigin)};
+      document.body.appendChild(iframe);
+      Bridge.expose({loadLibrary: async () => {
+        const response = await ResourceCacheHarness.fetchLibraryResource('/api/v1/hostless-libraries/antd6/canvas?version=1.0.0&pkgId=pkg');
+        if(!response.ok) throw new Error('Library status '+response.status);
+        return response.text();
+      }}, Bridge.windowEndpoint(iframe.contentWindow), [${JSON.stringify(canvasOrigin)}]);
+      return result;
+    })()`);
+    assert.equal(loaded,code);
+    assert.equal(hits.code,1,"cold iframe loads from Studio; subsequent reload uses persistent Studio cache");
+    assert.equal(canvasApiHits,0,"no API request may go to the static canvas origin");
+  }
   for (let visit = 1; visit <= 2; visit++) {
     await win.loadURL(origin);
     const result = await win.webContents.executeJavaScript(`(async () => {
@@ -114,5 +153,6 @@ const timeout = setTimeout(() => { console.error("Web cache test timed out"); ap
   console.log("PASS: ordinary browser HTTP with real CacheStorage, persistent warm model/code hits without server checks, project GET/write preserved, gzip/error/HEAD semantics, account isolation, cross-tab revocation and logout cleanup");
 })().catch(error => { console.error(error); process.exitCode = 1; }).finally(async () => {
   clearTimeout(timeout); other?.destroy(); win?.destroy(); if (server) await new Promise(resolve => server.close(resolve));
+  if (canvasServer) await new Promise(resolve => canvasServer.close(resolve));
   if (profile) await fs.rm(profile, { recursive: true, force: true }); app.exit(process.exitCode || 0);
 });

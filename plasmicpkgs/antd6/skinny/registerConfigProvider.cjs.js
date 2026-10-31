@@ -146,10 +146,11 @@ require('dayjs/locale/vi');
 require('dayjs/locale/zh-cn');
 require('dayjs/locale/zh-tw');
 var reactUtils = require('./react-utils-CP3JYj1p.cjs.js');
-var utils = require('./utils-DMWa5SeG.cjs.js');
+var utils = require('./utils-Diqr9Iet.cjs.js');
 require('classnames');
 require('@plasmicapp/host/registerComponent');
 require('@plasmicapp/host/registerGlobalContext');
+require('@shiguang-lab/plasmic-antd6/thumbnails');
 
 function _interopDefault (e) { return e && e.__esModule ? e : { default: e }; }
 

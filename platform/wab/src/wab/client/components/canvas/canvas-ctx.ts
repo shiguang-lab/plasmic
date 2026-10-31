@@ -118,7 +118,7 @@ export class CanvasCtx {
     return this._updatingCcRegistryCount.get();
   }
 
-  private async updateCcRegistry(pkgs: string[], site: Site) {
+  private async updateCcRegistry(pkgs: string[], site: Site, sc: StudioCtx) {
     const previousFetch = this._hostLessPkgsLock;
     runInAction(() => { this.updatingCcRegistryCount++; });
     this._hostLessPkgsLock = previousFetch
@@ -126,6 +126,7 @@ export class CanvasCtx {
       .then(async () => {
         const pkgsData = await getSortedHostLessPkgs(
           this._win,
+          sc.appCtx.api,
           pkgs,
           getVersionForCanvasPackages(this._win),
           site,
@@ -160,14 +161,14 @@ export class CanvasCtx {
     return this.updatingCcRegistryCount !== 0;
   }
 
-  private updatePkgsList(pkgs: string[], site: Site) {
+  private updatePkgsList(pkgs: string[], site: Site, sc: StudioCtx) {
     if (
       pkgs.some(
         (pkg) =>
           !this.installedHostLessPkgs.has(getHostLessPkgIdentity(pkg, site)),
       )
     ) {
-      spawn(this.updateCcRegistry(pkgs, site));
+      spawn(this.updateCcRegistry(pkgs, site, sc));
     }
   }
 
@@ -347,7 +348,7 @@ export class CanvasCtx {
       this.usedPkgsDispose();
     }
     this.usedPkgsDispose = autorun(() =>
-      this.updatePkgsList(usedHostLessPkgs(sc.site), sc.site),
+      this.updatePkgsList(usedHostLessPkgs(sc.site), sc.site, sc),
     );
     const hostlessDone = sc.loadTimings.begin(
       "frame-component-packages",

@@ -9,7 +9,7 @@ import {
   nativeAntd6,
   nativeAntd6EnUS,
   nativeAntd6ZhCN,
-} from "@shiguang-lab/plasmic-antd6";
+} from "@shiguang-lab/plasmic-antd6/native";
 import type { ThemeConfig } from "antd";
 import type domAlign from "dom-align";
 import { toPng } from "html-to-image";

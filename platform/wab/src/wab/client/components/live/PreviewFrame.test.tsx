@@ -55,7 +55,7 @@ afterEach(cleanup);
 it("reports runtime bootstrap failure and releases the startup overlay", async () => {
   const error = new Error("Runtime download failed");
   mocks.load.mockRejectedValueOnce(error);
-  const previewCtx = mock<PreviewCtx>({ full: true, isLive: false, pageHash: "" });
+  const previewCtx = mock<PreviewCtx>({ studioCtx: { appCtx: { api: {} } } as any, full: true, isLive: false, pageHash: "" });
   const hook = renderHook(() => useLivePreview(previewCtx));
   hook.result.current.frameRef.current = window;
   await act(async () => hook.result.current.onLoad());
@@ -68,7 +68,7 @@ it("reports package loading failure once and can load again after reset", async 
   mocks.packages = [{ id: "components" }];
   const error = new Error("Component package download failed");
   mocks.sortedPackages.mockRejectedValueOnce(error).mockResolvedValueOnce([["components", "package"]]);
-  const previewCtx = mock<PreviewCtx>({ full: true, isLive: false, pageHash: "" });
+  const previewCtx = mock<PreviewCtx>({ studioCtx: { appCtx: { api: {} } } as any, full: true, isLive: false, pageHash: "" });
   const hook = renderHook(() => useLivePreview(previewCtx));
   hook.result.current.frameRef.current = window;
   await act(async () => hook.result.current.onLoad());
@@ -87,7 +87,7 @@ it("ignores package failures from a disposed preview", async () => {
   mocks.packages = [{ id: "components" }];
   const pending = Promise.withResolvers<[string, string][]>();
   mocks.sortedPackages.mockReturnValueOnce(pending.promise);
-  const previewCtx = mock<PreviewCtx>({ full: true, isLive: false, pageHash: "" });
+  const previewCtx = mock<PreviewCtx>({ studioCtx: { appCtx: { api: {} } } as any, full: true, isLive: false, pageHash: "" });
   const hook = renderHook(() => useLivePreview(previewCtx));
   hook.result.current.frameRef.current = window;
   await act(async () => hook.result.current.onLoad());
@@ -101,7 +101,7 @@ it("clears SPA navigation feedback and removes the cursor layer on reset and clo
   const data = observable.box<PreviewCtx["previewData"]>(undefined, {
     deep: false,
   });
-  const previewCtx = mock<PreviewCtx>({
+  const previewCtx = mock<PreviewCtx>({ studioCtx: { appCtx: { api: {} } } as any,
     full: false,
     isLive: false,
     pageHash: "",
@@ -143,7 +143,7 @@ it("clears SPA navigation feedback and removes the cursor layer on reset and clo
 });
 
 async function setup(full: boolean) {
-  const previewCtx = mock<PreviewCtx>({
+  const previewCtx = mock<PreviewCtx>({ studioCtx: { appCtx: { api: {} } } as any,
     full,
     isLive: false,
     pageHash: "",
@@ -225,7 +225,7 @@ it("does not activate a delayed host after reset", async () => {
         finish = resolve;
       }),
   );
-  const previewCtx = mock<PreviewCtx>({
+  const previewCtx = mock<PreviewCtx>({ studioCtx: { appCtx: { api: {} } } as any,
     full: true,
     isLive: false,
     pageHash: "",
@@ -254,7 +254,7 @@ it("does not activate an earlier load after reset even when the WindowProxy is r
         finish = resolve;
       }),
   );
-  const previewCtx = mock<PreviewCtx>({
+  const previewCtx = mock<PreviewCtx>({ studioCtx: { appCtx: { api: {} } } as any,
     full: true,
     isLive: false,
     pageHash: "",
@@ -293,7 +293,7 @@ it.each([true, false])(
             finishNew = resolve;
           }),
       );
-    const previewCtx = mock<PreviewCtx>({
+    const previewCtx = mock<PreviewCtx>({ studioCtx: { appCtx: { api: {} } } as any,
       full: true,
       isLive: false,
       pageHash: "",
@@ -350,7 +350,7 @@ it.each([null, undefined, "", "   "])(
 );
 
 it("routes anchor actions through business history like page actions", async () => {
-  const previewCtx = mock<PreviewCtx>({
+  const previewCtx = mock<PreviewCtx>({ studioCtx: { appCtx: { api: {} } } as any,
     full: false,
     isLive: false,
     pageHash: "",

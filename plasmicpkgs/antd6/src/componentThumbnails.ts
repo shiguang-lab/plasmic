@@ -1,7 +1,6 @@
 import { componentChildren } from "./componentSections";
 
-// Self-contained vector illustrations travel with registration metadata, so
-// Insert can show them without fetching screenshots from another host.
+// Build-time illustrations; published registrations use the thumbnail manifest.
 const blue = "#1677ff";
 const pale = "#e6f4ff";
 const muted = "#b8c4d4";
@@ -184,11 +183,18 @@ const diagrams: Record<string, string> = {
   "time-range-picker": field(57, "Time range", "09:30    →    18:00"),
 };
 
+const customThumbnails: Record<string, string> = {
+  "table-expand-column": '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 80"><rect x="8" y="10" width="104" height="60" rx="4" fill="#fff" stroke="#d9d9d9"/><path d="M8 30h104M8 50h104M32 10v40" stroke="#d9d9d9"/><path d="m16 18 4 4 4-4M16 40h8m-4-4v8" fill="none" stroke="#1677ff" stroke-width="2"/><rect x="36" y="55" width="68" height="10" rx="2" fill="#e6f4ff"/></svg>',
+};
+
 export function getComponentThumbnail(name: string): string | undefined {
   if (!name.startsWith("plasmic-antd6-")) {
     return undefined;
   }
   let suffix = name.slice("plasmic-antd6-".length);
+  if (customThumbnails[suffix]) {
+    return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(customThumbnails[suffix])}`;
+  }
   while (!diagrams[suffix] && componentChildren[suffix]) {
     suffix = componentChildren[suffix].parent;
   }
@@ -199,3 +205,5 @@ export function getComponentThumbnail(name: string): string | undefined {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="240" height="144" viewBox="0 0 240 144"><title>${name}</title>${rect(0, 0, 240, 144, "#fafcff", "none", 8)}${content}</svg>`;
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
 }
+
+export const componentThumbnailNames = Array.from(new Set([...Object.keys(diagrams), ...Object.keys(componentChildren), ...Object.keys(customThumbnails)])).map(suffix => `plasmic-antd6-${suffix}`);

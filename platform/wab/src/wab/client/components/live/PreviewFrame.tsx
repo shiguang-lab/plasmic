@@ -230,6 +230,7 @@ export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
         (async () => {
           const modules = await getSortedHostLessPkgs(
             win,
+          previewCtx.studioCtx.appCtx.api,
             usedPkgs,
             getVersionForCanvasPackages(win),
             previewCtx.studioCtx.site,

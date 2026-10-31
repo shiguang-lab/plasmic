@@ -3,6 +3,7 @@ import {
   Assets,
   Compiler,
   CopyRspackPlugin,
+  DefinePlugin,
   RspackPluginInstance,
 } from "@rspack/core";
 import { readFileSync } from "fs";
@@ -10,6 +11,7 @@ import HtmlWebpackPlugin from "html-webpack-plugin";
 import MonacoWebpackPlugin from "monaco-editor-webpack-plugin";
 import { homepage } from "./package.json";
 import { StudioHtmlPlugin } from "./tools/webpack/StudioHtmlPlugin";
+import { buildHostPage } from "./tools/webpack/host-page";
 import {
   getCommitHash,
   mkSharedRsbuildConfig,
@@ -29,6 +31,17 @@ const backendHost: string = process.env.BACKEND_HOST ?? "localhost";
 const publicUrl: string =
   process.env.PUBLIC_URL ?? (isProd ? homepage : `http://localhost:${port}`);
 const staticUrl: string = process.env.STATIC_URL ?? publicUrl;
+const hostPage = buildHostPage(readFileSync("../sub/public/static/host.html", "utf8"), {
+  commitHash,
+  studioUrl: publicUrl,
+  hostReadyMessages: Object.fromEntries(
+    ["en", "zh-CN", "zh-TW", "ja", "ko"].map((locale) => [
+      locale,
+      Object.fromEntries(Object.entries(require(`./src/wab/client/i18n/locales/${locale}.json`)).filter(([key]) => key.startsWith("hostReady."))),
+    ]),
+  ),
+  resolveUiLocale: require("./src/wab/client/i18n/locale-resolution.cjs").resolveUiLocale.toString(),
+});
 const devApiUser = process.env.PLASMIC_DEV_API_USER;
 const devApiToken = process.env.PLASMIC_DEV_API_TOKEN;
 if (
@@ -249,22 +262,16 @@ const appConfig = defineConfig({
             "static/canvas-packages/build/",
           ],
         }),
-        new HtmlWebpackPlugin({
-          template: "../sub/public/static/host.html",
-          filename: `static/host.html`,
-          inject: false,
-          templateParameters: {
-            commitHash,
-            studioUrl: publicUrl,
-            hostReadyMessages: Object.fromEntries(
-              ["en", "zh-CN", "zh-TW", "ja", "ko"].map((locale) => [
-                locale,
-                Object.fromEntries(Object.entries(require(`./src/wab/client/i18n/locales/${locale}.json`)).filter(([key]) => key.startsWith("hostReady."))),
-              ]),
-            ),
-            resolveUiLocale: require("./src/wab/client/i18n/locale-resolution.cjs").resolveUiLocale.toString(),
-          },
+        new DefinePlugin({
+          "process.env.REACT_APP_VERSIONED_HOST_PATH": JSON.stringify(isProd ? hostPage.path : ""),
+          "process.env.REACT_APP_DEFAULT_HOST_URL": JSON.stringify(process.env.REACT_APP_DEFAULT_HOST_URL ?? "https://host.plasmicdev.com/static/host.html"),
         }),
+        ...["/static/host.html", ...(isProd ? [hostPage.path] : [])].map((filename) => new HtmlWebpackPlugin({
+          templateContent: hostPage.html,
+          filename: filename.slice(1),
+          inject: false,
+          minify: false,
+        })),
         new MonacoWebpackPlugin(),
         new HtmlWebpackPlugin(
           Object.assign(

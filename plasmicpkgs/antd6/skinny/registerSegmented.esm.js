@@ -1,8 +1,9 @@
 import { Segmented } from 'antd';
 import React from 'react';
-import { r as registerComponentHelper } from './utils-Cmdig6Yl.esm.js';
+import { r as registerComponentHelper } from './utils-U416WEAa.esm.js';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
+import '@shiguang-lab/plasmic-antd6/thumbnails';
 
 const segmentedComponentName = "plasmic-antd6-segmented";
 function AntdSegmented(props) {

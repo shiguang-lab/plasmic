@@ -1,7 +1,7 @@
 'use strict';
 
 var names = require('./names-DbJduus8.cjs.js');
-var utils = require('./utils-DMWa5SeG.cjs.js');
+var utils = require('./utils-Diqr9Iet.cjs.js');
 var Form = require('./Form.cjs.js');
 var SchemaForm = require('./SchemaForm.cjs.js');
 var Ant = require('antd');
@@ -16,6 +16,7 @@ var FormGroup = require('./FormGroup.cjs.js');
 var FormList = require('./FormList.cjs.js');
 require('@plasmicapp/host/registerComponent');
 require('@plasmicapp/host/registerGlobalContext');
+require('@shiguang-lab/plasmic-antd6/thumbnails');
 require('fast-deep-equal');
 require('./contexts-DbLDJr3k.cjs.js');
 require('@plasmicapp/data-sources');

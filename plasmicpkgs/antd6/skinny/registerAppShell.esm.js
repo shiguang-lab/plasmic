@@ -1,9 +1,10 @@
 import { appShellMeta, AppShell } from '@shiguang-lab/plasmic-overseas';
 export { AppShell } from '@shiguang-lab/plasmic-overseas';
-import { r as registerComponentHelper } from './utils-Cmdig6Yl.esm.js';
+import { r as registerComponentHelper } from './utils-U416WEAa.esm.js';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
 import 'react';
+import '@shiguang-lab/plasmic-antd6/thumbnails';
 import 'antd';
 
 function registerAppShell(loader) {

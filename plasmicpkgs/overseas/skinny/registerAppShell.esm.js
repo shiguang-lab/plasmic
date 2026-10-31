@@ -1,3 +1,4 @@
+import { getComponentThumbnail } from '@shiguang-lab/plasmic-overseas/thumbnails';
 import { MenuUnfoldOutlined, MenuFoldOutlined, GlobalOutlined, SwapOutlined, DownOutlined } from '@ant-design/icons';
 import { usePlasmicCanvasContext, usePlasmicLink, useSelector } from '@plasmicapp/host';
 import registerComponent from '@plasmicapp/host/registerComponent';
@@ -434,8 +435,7 @@ const optionType = {
   fields: { value: "string", label: "string" },
   nameFunc: (item) => item.label
 };
-const thumbnail = `<svg xmlns="http://www.w3.org/2000/svg" width="480" height="270" viewBox="0 0 480 270"><rect width="480" height="270" fill="#f5f5f5"/><path d="M0 0h60v270H0zM60 0h420v16H60z" fill="white"/><text x="5" y="11" font-family="sans-serif" font-size="6" font-weight="bold">AppShell</text><rect x="2" y="24" width="56" height="12" rx="2" fill="#e6f4ff"/><text x="7" y="32" font-family="sans-serif" font-size="5" fill="#1677ff">Navigation</text><text x="7" y="47" font-family="sans-serif" font-size="5">Menu</text><text x="65" y="11" font-family="sans-serif" font-size="6">\u2630</text><text x="80" y="11" font-family="sans-serif" font-size="5" fill="#8c8c8c">Product / Page</text><text x="295" y="11" font-family="sans-serif" font-size="5" fill="#8c8c8c">Local time</text><rect x="330" y="4" width="45" height="9" rx="2" fill="white" stroke="#d9d9d9"/><text x="334" y="10" font-family="sans-serif" font-size="4">App Source</text><text x="386" y="11" font-family="sans-serif" font-size="5">\u25CE \u21C6 \u25CF User</text><rect x="64" y="20" width="412" height="246" fill="white"/><rect x="72" y="30" width="92" height="6" rx="2" fill="#e6e9ed"/><rect x="72" y="44" width="396" height="1" fill="#f0f0f0"/><text x="270" y="145" text-anchor="middle" font-family="sans-serif" font-size="14" fill="#8c8c8c">Page Body Slot</text></svg>`;
-const appShellThumbnail = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(thumbnail)}`;
+const appShellThumbnail = getComponentThumbnail("plasmic-overseas-app-shell");
 const appShellMeta = {
   name: "plasmic-overseas-app-shell",
   displayName: "AppShell",

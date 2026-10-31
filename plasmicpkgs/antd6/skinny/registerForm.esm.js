@@ -1,5 +1,5 @@
-import { b as buttonComponentName, f as formComponentName } from './names-DKofLcnC.esm.js';
-import { a as arrayEq, r as registerComponentHelper } from './utils-Cmdig6Yl.esm.js';
+import { b as buttonComponentName, j as formComponentName } from './names-oKrrGg47.esm.js';
+import { b as arrayEq, r as registerComponentHelper } from './utils-U416WEAa.esm.js';
 import { InputType, formHelpers } from './Form.esm.js';
 import { FormWrapper as SchemaForm } from './SchemaForm.esm.js';
 import { Input, InputNumber, Radio } from 'antd';
@@ -15,6 +15,7 @@ export { FormGroup } from './FormGroup.esm.js';
 export { FormListWrapper } from './FormList.esm.js';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
+import '@shiguang-lab/plasmic-antd6/thumbnails';
 import 'fast-deep-equal';
 import './contexts-DtHxvgts.esm.js';
 import '@plasmicapp/data-sources';

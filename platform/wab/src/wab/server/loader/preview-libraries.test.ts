@@ -9,6 +9,9 @@ import { buildLibraryArtifact, materializeLibraryArtifacts } from "@/wab/server/
 import type { Site } from "@/wab/shared/model/classes";
 import { assert } from "@/wab/shared/common";
 
+beforeEach(() => vi.stubGlobal("fetch", vi.fn(async () => new Response(null, { headers: { "Content-Type": "image/svg+xml" } }))));
+afterEach(() => vi.unstubAllGlobals());
+
 it("bundles Overseas and React UI through the production Loader pipeline", async () => {
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), "preview-libraries-"));
   const output = {
@@ -85,3 +88,12 @@ it("bundles Overseas and React UI through the production Loader pipeline", async
     await fs.rm(dir, { recursive: true, force: true });
   }
 }, 60000);
+
+// Library publication uploads thumbnail assets before capturing the code graph.
+vi.mock("@/wab/server/cdn/images", () => ({
+  uploadDataUriToS3: async (data: string) => {
+    const { createHash } = await import("crypto");
+    const { ok } = await import("neverthrow");
+    return ok(`https://assets.example/${createHash("md5").update(data).digest("hex")}.svg`);
+  },
+}));

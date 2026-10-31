@@ -2,11 +2,12 @@ import { usePlasmicCanvasContext } from '@plasmicapp/host';
 import { Form } from 'antd';
 import React, { isValidElement, cloneElement } from 'react';
 import { r as reactNodeToString, m as mergeProps } from './react-utils-BpvCcwyE.esm.js';
-import { e as ensureArray, g as get } from './utils-Cmdig6Yl.esm.js';
+import { e as ensureArray, g as get } from './utils-U416WEAa.esm.js';
 import { u as useFormItemRelativeName, a as useFormItemFullName, P as PathContext, F as FormLayoutContext, I as InternalFormInstanceContext, b as useFormInstanceMaybe } from './contexts-DtHxvgts.esm.js';
 import 'classnames';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
+import '@shiguang-lab/plasmic-antd6/thumbnails';
 
 const FormItem = Form.Item;
 const formRuleTypes = ["enum", "len", "max", "min", "regex", "required", "whitespace", "advanced"];

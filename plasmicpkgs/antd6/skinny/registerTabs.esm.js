@@ -3,9 +3,10 @@ import { Tabs } from 'antd';
 import cls from 'classnames';
 import React, { useMemo, useState, useEffect } from 'react';
 import { a as getSelectedCanvasItemKey } from './canvas-overlay-Dan70Oxr.esm.js';
-import { r as registerComponentHelper, b as asArray, t as traverseReactEltTree } from './utils-Cmdig6Yl.esm.js';
+import { r as registerComponentHelper, a as asArray, t as traverseReactEltTree } from './utils-U416WEAa.esm.js';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
+import '@shiguang-lab/plasmic-antd6/thumbnails';
 
 const tabsComponentName = "plasmic-antd6-tabs";
 const tabItemComponentName = "plasmic-antd6-tab-item";

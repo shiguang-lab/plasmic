@@ -20,6 +20,14 @@ import { scriptExec } from "@/wab/client/script-exec";
 import type * as StudioBundles from "@/wab/client/components/studio/studio-bundles";
 
 vi.mock("@/wab/client/script-exec", () => ({ scriptExec: vi.fn() }));
+const api = {
+  getHostlessLibraryRelease: async (pkg: string) => (await fetch(`/api/v1/hostless-libraries/${pkg}/release`)).json(),
+  getHostlessLibraryCanvas: async (pkg: string, release: {version:string;pkgId:string}) => {
+    const response = await fetch(`/api/v1/hostless-libraries/${pkg}/canvas?${new URLSearchParams({version:release.version,pkgId:release.pkgId})}`);
+    if (!response.ok) { throw new Error(`Component library: ${response.status}`); }
+    return response.text();
+  },
+};
 let bundles: typeof StudioBundles;
 beforeEach(async () => {
   vi.resetModules();
@@ -51,8 +59,8 @@ test("concurrent bootstrap and library loads share the pending initialization, t
   const first = bundles.ensureCanvasRuntime(win);
   expect(bundles.ensureCanvasRuntime(win)).toBe(first);
   const ready = vi.fn();
-  const libraries = bundles.getSortedHostLessPkgs(win, ["antd6", "overseas"], "-v2").then((sources) => { ready(); return sources; });
-  const single = bundles.getHostLessPkg(win, "react-ui", "-v2");
+  const libraries = bundles.getSortedHostLessPkgs(win, api, ["antd6", "overseas"], "-v2").then((sources) => { ready(); return sources; });
+  const single = bundles.getHostLessPkg(win, api, "react-ui", "-v2");
   await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(4));
   expect(ready).not.toHaveBeenCalled();
   expect(scriptExec).not.toHaveBeenCalled();
@@ -62,7 +70,7 @@ test("concurrent bootstrap and library loads share the pending initialization, t
   expect(scriptExec).toHaveBeenCalledOnce();
   expect([source, ...sources.map(([, code]) => code)].every((code) => !code.includes("window.initializations++"))).toBe(true);
   await bundles.ensureCanvasRuntime(win);
-  await bundles.getSortedHostLessPkgs(win, ["antd6"], "-v2");
+  await bundles.getSortedHostLessPkgs(win, api, ["antd6"], "-v2");
   expect(scriptExec).toHaveBeenCalledOnce();
   expect(fetchMock).toHaveBeenCalledTimes(4);
 });
@@ -72,10 +80,10 @@ test("ready frames do not fetch or execute the runtime, and ordinary libraries d
   vi.stubGlobal("fetch", fetchMock);
   const ready = targetWindow();
   ready.__CanvasPkgs = {};
-  await bundles.getSortedHostLessPkgs(ready, ["antd6"], "-v2");
+  await bundles.getSortedHostLessPkgs(ready, api, ["antd6"], "-v2");
   const ordinary = targetWindow();
-  await bundles.getHostLessPkg(ordinary, "ordinary", "-v2");
-  await bundles.getSortedHostLessPkgs(ordinary, [], "-v2");
+  await bundles.getHostLessPkg(ordinary, api, "ordinary", "-v2");
+  await bundles.getSortedHostLessPkgs(ordinary, api, [], "-v2");
   expect(fetchMock).toHaveBeenCalledTimes(2);
   expect(scriptExec).not.toHaveBeenCalled();
   expect(ordinary.__CanvasPkgs).toBeUndefined();
@@ -171,7 +179,7 @@ test("does not return registrations for a document replaced while its library wa
   vi.stubGlobal("fetch", vi.fn(async () => ({ ok: true, text: () => pending.promise })));
   const win = targetWindow();
   win.__CanvasPkgs = {};
-  const old = expect(bundles.getSortedHostLessPkgs(win, ["antd6"], "-v2")).rejects.toThrow("target navigated");
+  const old = expect(bundles.getSortedHostLessPkgs(win, api, ["antd6"], "-v2")).rejects.toThrow("target navigated");
   Object.defineProperty(win, "document", { value: {}, configurable: true });
   delete win.__CanvasPkgs;
   pending.resolve("registration");
@@ -195,7 +203,7 @@ test.each([["antd6", "overseas", "react-ui"], ["react-ui"]])(
     for (let frame = 0; frame < 2; frame++) {
       const win = targetWindow();
       for (let visit = 0; visit < 2; visit++) {
-        const modules = await bundles.getSortedHostLessPkgs(win, packages, "-v2");
+        const modules = await bundles.getSortedHostLessPkgs(win, api, packages, "-v2");
         expect(modules.every(([, source]) => !source.includes("window.initializations++"))).toBe(true);
         for (const [, source] of modules) {
           runInNewContext(source, { window: win });
@@ -213,10 +221,10 @@ test("loads a new library registration at the Project dependency version", async
   const fetchMock = vi.fn(async (url: string) => ({ ok: true, text: async () => url.endsWith("client.test.js") ? "window.__CanvasPkgs = {};" : "registration" }));
   vi.stubGlobal("fetch", fetchMock);
   const site = { projectDependencies: [{ pkgId: "library-package", version: "2.3.4", site: { hostLessPackageInfo: { name: "new-library" } } }] } as any;
-  const loaded = await bundles.getSortedHostLessPkgs(targetWindow(), ["new-library"], "-v2", site);
+  const loaded = await bundles.getSortedHostLessPkgs(targetWindow(), api, ["new-library"], "-v2", site);
   expect(loaded[0][0]).toBe("new-library@library-package:2.3.4");
   expect(loaded[0][1]).toContain("registration");
-  expect(fetchMock).toHaveBeenCalledWith("/api/v1/hostless-libraries/new-library/canvas?version=2.3.4&pkgId=library-package", expect.objectContaining({ cache: "no-store" }));
+  expect(fetchMock).toHaveBeenCalledWith("/api/v1/hostless-libraries/new-library/canvas?version=2.3.4&pkgId=library-package");
 });
 
 test("missing consumer releases fail instead of silently loading latest", async () => {
@@ -224,7 +232,7 @@ test("missing consumer releases fail instead of silently loading latest", async 
   const fetchMock = vi.fn();
   vi.stubGlobal("fetch", fetchMock);
   const win = targetWindow(); win.__CanvasPkgs = {};
-  await expect(bundles.getSortedHostLessPkgs(win, ["managed"], "-v2", { projectDependencies: [] } as any)).rejects.toThrow("Missing exact component library dependency");
+  await expect(bundles.getSortedHostLessPkgs(win, api, ["managed"], "-v2", { projectDependencies: [] } as any)).rejects.toThrow("Missing exact component library dependency");
   expect(fetchMock).not.toHaveBeenCalled();
 });
 
@@ -234,12 +242,12 @@ test("library authoring resolves latest again and then fetches each exact releas
   const fetchMock = vi.fn(async (url: string) => ({ ok: true, json: async () => ({ pkgId: "library-package", version: latest }), text: async () => url }));
   vi.stubGlobal("fetch", fetchMock);
   const win = targetWindow(); win.__CanvasPkgs = {};
-  expect(await bundles.getHostLessPkg(win, "managed", "-v2")).toContain("version=1.0.0&pkgId=library-package");
+  expect(await bundles.getHostLessPkg(win, api, "managed", "-v2")).toContain("version=1.0.0&pkgId=library-package");
   latest = "2.0.0";
-  expect(await bundles.getHostLessPkg(win, "managed", "-v2")).toContain("version=2.0.0&pkgId=library-package");
+  expect(await bundles.getHostLessPkg(win, api, "managed", "-v2")).toContain("version=2.0.0&pkgId=library-package");
   expect(fetchMock.mock.calls.filter(([url]) => url.endsWith("/release"))).toHaveLength(2);
   const site = { hostLessPackageInfo: { name: "managed" }, projectDependencies: [] } as any;
-  const modules = await bundles.getSortedHostLessPkgs(win, ["managed"], "-v2", site);
+  const modules = await bundles.getSortedHostLessPkgs(win, api, ["managed"], "-v2", site);
   expect(modules[0][0]).toBe(bundles.getHostLessPkgIdentity("managed", site));
   expect(modules[0][1]).toContain("version=2.0.0&pkgId=library-package");
 });
@@ -252,12 +260,12 @@ test.each([false, true])("retries a failed library download (managed: %s) withou
   fetchMock.mockResolvedValueOnce({ ok: false, status: 503, text: async () => "unavailable" });
   vi.stubGlobal("fetch", fetchMock);
   const win = targetWindow();
-  await expect(getHostLessPkg(win, "retry-library", "-v2", { pkgId: "library-package", version: "1.0.0" })).rejects.toThrow("503");
-  await expect(getHostLessPkg(win, "retry-library", "-v2", { pkgId: "library-package", version: "1.0.0" })).resolves.toContain("registration");
+  await expect(getHostLessPkg(win, api, "retry-library", "-v2", { pkgId: "library-package", version: "1.0.0" })).rejects.toThrow("503");
+  await expect(getHostLessPkg(win, api, "retry-library", "-v2", { pkgId: "library-package", version: "1.0.0" })).resolves.toContain("registration");
   expect(fetchMock.mock.calls.filter(([url]) => !url.endsWith("client.test.js"))).toHaveLength(2);
 });
 
-test("retries a failed shared runtime download and preserves successfully fetched library code", async () => {
+test("retries a failed shared runtime download through the Studio cache", async () => {
   vi.resetModules();
   const { getHostLessPkg } = await import("@/wab/client/components/studio/studio-bundles");
   flags.hostLessComponents = [{ codeName: "runtime-retry", hasCodeArtifacts: true }];
@@ -269,10 +277,10 @@ test("retries a failed shared runtime download and preserves successfully fetche
   }));
   vi.stubGlobal("fetch", fetchMock);
   const win = targetWindow();
-  await expect(getHostLessPkg(win, "runtime-retry", "-v2", { pkgId: "library-package", version: "1.0.0" })).rejects.toThrow("runtime: 503");
-  await expect(getHostLessPkg(win, "runtime-retry", "-v2", { pkgId: "library-package", version: "1.0.0" })).resolves.toContain("registration");
+  await expect(getHostLessPkg(win, api, "runtime-retry", "-v2", { pkgId: "library-package", version: "1.0.0" })).rejects.toThrow("runtime: 503");
+  await expect(getHostLessPkg(win, api, "runtime-retry", "-v2", { pkgId: "library-package", version: "1.0.0" })).resolves.toContain("registration");
   expect(runtimeCalls).toBe(2);
-  expect(fetchMock.mock.calls.filter(([url]) => url.includes("runtime-retry/canvas"))).toHaveLength(1);
+  expect(fetchMock.mock.calls.filter(([url]) => url.includes("runtime-retry/canvas"))).toHaveLength(2);
 });
 
 test("replaces every registry owned by an updated library, preserves other libraries, and rolls back a failed registration", async () => {
@@ -291,7 +299,7 @@ test("replaces every registry owned by an updated library, preserves other libra
       + (version === "broken" ? '\nthrow new Error("Registration failed");' : "");
   } })));
   const win = { document: {} } as unknown as Record<string, { name: string; version?: string }[]>;
-  const execute = async (pkg: string, version: string) => runInNewContext(await getHostLessPkg(win as unknown as Window, pkg, "-v2", { pkgId: "library-package", version }), { window: win });
+  const execute = async (pkg: string, version: string) => runInNewContext(await getHostLessPkg(win as unknown as Window, api, pkg, "-v2", { pkgId: "library-package", version }), { window: win });
   await execute("versioned-library", "1.0.0");
   await execute("unrelated-library", "1.0.0");
   await execute("versioned-library", "2.0.0");
@@ -304,4 +312,19 @@ test("replaces every registry owned by an updated library, preserves other libra
   }
   await execute("versioned-library", "3.0.0");
   expect(win.__PlasmicComponentRegistry.map(({ name, version }) => [name, version])).toEqual([["Other", "1.0.0"], ["Versioned", "3.0.0"]]);
+});
+
+test("a canvas host delegates managed releases to Studio and does not retain another account's source", async () => {
+  flags.hostLessComponents = [{ codeName: "managed", hasCodeArtifacts: true }];
+  const frameFetch = vi.fn(() => { throw new Error("Canvas origin has no API"); });
+  vi.stubGlobal("fetch", frameFetch);
+  const studio = {
+    getHostlessLibraryRelease: vi.fn(async () => ({pkgId:"library",version:"1.0.0"})),
+    getHostlessLibraryCanvas: vi.fn().mockResolvedValueOnce("firstAccount").mockResolvedValueOnce("secondAccount"),
+  };
+  const win = targetWindow(); win.__CanvasPkgs = {};
+  expect(await bundles.getHostLessPkg(win, studio, "managed", "-v2")).toContain("firstAccount");
+  expect(await bundles.getHostLessPkg(win, studio, "managed", "-v2")).toContain("secondAccount");
+  expect(studio.getHostlessLibraryCanvas).toHaveBeenCalledWith("managed", {pkgId:"library",version:"1.0.0"});
+  expect(frameFetch).not.toHaveBeenCalled();
 });

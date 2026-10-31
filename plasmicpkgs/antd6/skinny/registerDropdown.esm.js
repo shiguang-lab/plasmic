@@ -2,10 +2,11 @@ import { Dropdown } from 'antd';
 import React from 'react';
 import { u as useCanvasOverlay, p as previewOpenProp } from './canvas-overlay-Dan70Oxr.esm.js';
 import { AntdMenu, MENU_ITEM_TYPE } from './registerMenu.esm.js';
-import { r as registerComponentHelper } from './utils-Cmdig6Yl.esm.js';
+import { r as registerComponentHelper } from './utils-U416WEAa.esm.js';
 import '@plasmicapp/host';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
+import '@shiguang-lab/plasmic-antd6/thumbnails';
 
 function addKeysToUnkeyedMenuItems(unkeyedMenuItems, maybeGenKey) {
   const genKey = maybeGenKey ?? /* @__PURE__ */ (() => {

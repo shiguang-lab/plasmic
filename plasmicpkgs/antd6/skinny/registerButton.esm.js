@@ -1,9 +1,10 @@
 import { Button } from 'antd';
 import React from 'react';
-import { b as buttonComponentName } from './names-DKofLcnC.esm.js';
-import { r as registerComponentHelper } from './utils-Cmdig6Yl.esm.js';
+import { b as buttonComponentName } from './names-oKrrGg47.esm.js';
+import { r as registerComponentHelper } from './utils-U416WEAa.esm.js';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
+import '@shiguang-lab/plasmic-antd6/thumbnails';
 
 const AntdButton = React.forwardRef(
   function AntdButton2(props, ref) {

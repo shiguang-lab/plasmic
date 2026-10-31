@@ -8,6 +8,7 @@ import { promises as fs } from "fs";
 import path from "path";
 import stringify from "safe-stable-stringify";
 import { createRequire } from "module";
+import { libraryThumbnails } from "@/wab/server/loader/library-thumbnails";
 
 /** Immutable module graph and registrations for a library's declared exports. */
 export interface LibraryArtifact {
@@ -49,6 +50,7 @@ export function registrationEntry(site: Pick<Site, "hostLessPackageInfo">, expor
 export async function buildLibraryArtifact(site: Site, moduleRoot: string, canvasEntry = registrationEntry(site), serverEntry = registrationEntry(site, true)): Promise<LibraryArtifact> {
   moduleRoot = await fs.realpath(moduleRoot);
   const info = ensure(site.hostLessPackageInfo, "Expected component library");
+  const thumbnails = libraryThumbnails();
   const imports = Array.from(new Set([
     ...site.components.flatMap((c) => c.codeComponentMeta
       ? [c.codeComponentMeta.importPath, c.codeComponentMeta.helpers?.importPath] : []),
@@ -70,11 +72,14 @@ export async function buildLibraryArtifact(site: Site, moduleRoot: string, canva
     bundle: true, splitting: true, format: "esm", platform: "browser",
     external: libraryExternals, write: false, outdir: "library-build",
     loader: libraryAssetLoaders, minify: true, target: "es2020", metafile: true,
+    plugins: [thumbnails.plugin],
     define: { "process.env.NODE_ENV": '"production"' },
   });
   const meta = ensure(result.metafile, "Missing library module graph");
   const rawFiles = new Map(await Promise.all(Object.keys(meta.inputs).map(async (name) =>
-    [path.resolve(moduleRoot, name), await fs.readFile(path.resolve(moduleRoot, name))] as const,
+    [path.resolve(moduleRoot, name), thumbnails.files.has(path.resolve(moduleRoot, name))
+      ? Buffer.from(ensure(thumbnails.files.get(path.resolve(moduleRoot, name)), "Missing thumbnail manifest"))
+      : await fs.readFile(path.resolve(moduleRoot, name))] as const,
   )));
   const rawResolutions = new Map(Object.entries(meta.inputs).map(([name, input]) => [
     path.resolve(moduleRoot, name), Object.fromEntries(input.imports.filter((dep) => !dep.external).map((dep) => [
@@ -115,14 +120,14 @@ export async function buildLibraryArtifact(site: Site, moduleRoot: string, canva
   ]));
   const entryNames = Object.fromEntries(imports.map((specifier) => [specifier, ensure(ids.get(ensure(entries[specifier], `Missing export ${specifier}`)), "Missing export module ID")]));
   logger().info(`Library ${info.name}: building canvas registration`);
-  const canvas = await buildLibraryRegistration(canvasEntry, moduleRoot, "browser", info.cssImport);
+  const canvas = await buildLibraryRegistration(canvasEntry, moduleRoot, "browser", info.cssImport, thumbnails);
   logger().info(`Library ${info.name}: building server registration`);
-  const server = await buildLibraryRegistration(serverEntry, moduleRoot, "node");
+  const server = await buildLibraryRegistration(serverEntry, moduleRoot, "node", [], thumbnails);
   const content = { packages, imports: entryNames, files, resolutions, canvas, server };
   return { ...content, digest: createHash("sha256").update(ensure(stringify(content), "Missing artifact content")).digest("hex") };
 }
 
-export async function buildLibraryRegistration(entry: string, moduleRoot: string, target: "node" | "browser", cssImports: string[] = []) {
+export async function buildLibraryRegistration(entry: string, moduleRoot: string, target: "node" | "browser", cssImports: string[] = [], thumbnails = libraryThumbnails()) {
   const globals: Record<string, string> = {
     react: "__Sub.React", "react-dom": "__Sub.ReactDOM", "react-dom/client": "__Sub.ReactDOMClient",
     "react/jsx-runtime": "__Sub.jsxRuntime", "react/jsx-dev-runtime": "__Sub.jsxDevRuntime",
@@ -184,7 +189,7 @@ export async function buildLibraryRegistration(entry: string, moduleRoot: string
     stdin: { contents: entry, resolveDir: moduleRoot, loader: "js" },
     bundle: true, write: false, format: target === "browser" ? "iife" : "cjs",
     platform: target, loader: libraryAssetLoaders, minify: true,
-    plugins: [runtimePlugin],
+    plugins: [runtimePlugin, thumbnails.plugin],
     define: { "process.env.NODE_ENV": '"production"' },
     outfile: path.join(moduleRoot, "registration.js"),
     banner: target === "browser" ? { js: "var __Sub = window.__Sub;" } : undefined,

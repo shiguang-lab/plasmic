@@ -92,6 +92,7 @@ import {
 } from "@/wab/server/entities/Entities";
 import { isPaidTeam } from "@/wab/server/freeTrial";
 import { captureLibraryArtifact } from "@/wab/server/loader/library-artifacts";
+import { externalizeSiteThumbnails } from "@/wab/server/loader/library-thumbnails";
 import { logger } from "@/wab/server/observability";
 import { REAL_PLUME_VERSION } from "@/wab/server/pkg-mgr/plume-pkg-mgr";
 import { CompatRequest } from "@/wab/server/routes/util";
@@ -3405,6 +3406,9 @@ export class DbMgr implements MigrationDbMgr {
 
     const bundler = new Bundler();
     const publishedSite = await unbundleProjectFromData(this, bundler, rev);
+    if (publishedSite.hostLessPackageInfo && process.env.PREVIEW_ORIGIN) {
+      await externalizeSiteThumbnails(publishedSite);
+    }
     const libraryArtifact =
       publishedSite.hostLessPackageInfo && process.env.PREVIEW_ORIGIN
         ? await captureLibraryArtifact(publishedSite)

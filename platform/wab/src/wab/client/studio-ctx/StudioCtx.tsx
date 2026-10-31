@@ -128,6 +128,7 @@ import { trackEvent } from "@/wab/client/tracking";
 import { UndoLog, UndoRecord, ViewStateSnapshot } from "@/wab/client/undo-log";
 import {
   getHostUrl,
+  isImmutableHostPage,
   maybeToggleTrailingSlash,
 } from "@/wab/client/utils/app-hosting-utils";
 import { drainQueue } from "@/wab/commons/asyncutil";
@@ -1024,12 +1025,16 @@ export class StudioCtx extends WithDbCtx {
         this.getHostUrl({ fixHostOrigin: true }),
       );
 
+    const immutableHostPage = isImmutableHostPage(hostPageUrl(false));
     const fetchHostPageHtml = async () => {
       const fetchUrl = async (url: string) => {
         const res = await fetch(url, {
           redirect: "follow",
           headers: this.siteInfo.extraData?.customHostConfig?.headers,
         });
+        if (immutableHostPage && !res.ok) {
+          throw new Error(`Cannot load built-in Host HTML: ${res.status}`);
+        }
         return await res.text();
       };
 
@@ -1047,7 +1052,14 @@ export class StudioCtx extends WithDbCtx {
     prefetched.catch(() => undefined);
     this.fetchHostPageHtml = () => {
       const html = prefetched ?? fetchHostPageHtml();
-      prefetched = undefined;
+      prefetched = immutableHostPage ? html : undefined;
+      if (immutableHostPage) {
+        html.catch(() => {
+          if (prefetched === html) {
+            prefetched = undefined;
+          }
+        });
+      }
       return html;
     };
   }
@@ -1076,6 +1088,7 @@ export class StudioCtx extends WithDbCtx {
       .then(async () => {
         const pkgsData = await getSortedHostLessPkgs(
           ensure(this.hostLessPkgsFrame.contentWindow, "Missing hostless window"),
+          this.appCtx.api,
           pkgs,
           getVersionForCanvasPackages(this.hostLessPkgsFrame.contentWindow),
           this.site,

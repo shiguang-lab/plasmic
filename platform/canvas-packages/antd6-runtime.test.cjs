@@ -234,3 +234,14 @@ for (const suffix of ["", "-v2"]) {
     });
   }
 }
+
+test("shared canvas runtime excludes component registration metadata and thumbnail bodies", () => {
+  const runtime = fs.readFileSync(path.join(__dirname, "build/client.js"), "utf8");
+  assert.equal(runtime.includes("plasmic-antd6-table-expand-column"), false);
+  for (const library of ["antd6", "overseas"]) {
+    const thumbnails = JSON.parse(fs.readFileSync(path.join(__dirname, `../../plasmicpkgs/${library}/skinny/thumbnails.plasmic.json`), "utf8"));
+    for (const thumbnail of Object.values(thumbnails)) {
+      assert.equal(runtime.includes(thumbnail), false, `${library} preview must stay in its library publication`);
+    }
+  }
+});

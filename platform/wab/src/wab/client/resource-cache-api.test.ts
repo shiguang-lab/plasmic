@@ -1,4 +1,4 @@
-import { Api } from "@/wab/client/api";
+import { Api, filteredApi } from "@/wab/client/api";
 import { NetworkError } from "@/wab/shared/ApiErrors/ApiError";
 import { ForbiddenError } from "@/wab/shared/ApiErrors/errors";
 const calls = vi.hoisted(() => ({ fetch: vi.fn(), clear: vi.fn(), ajax: vi.fn() }));
@@ -44,4 +44,16 @@ it("sign-out waits for resource cleanup before completing", async () => {
   pending.resolve(); await logout;
   expect(finished).toHaveBeenCalledOnce();
   vi.unstubAllGlobals();
+});
+
+it("exposes only named library downloads through the Studio API bridge and retains cache/status handling", async () => {
+  const api = new Api();
+  const allowed = filteredApi("project", api as any, {} as any);
+  calls.fetch.mockResolvedValue(new Response("window.registration = true"));
+  const release = { pkgId: "library", version: "1.2.3" };
+  expect(await allowed.getHostlessLibraryCanvas("antd6", release)).toBe("window.registration = true");
+  expect(calls.fetch).toHaveBeenCalledWith("/api/v1/hostless-libraries/antd6/canvas?version=1.2.3&pkgId=library");
+  expect(calls.ajax).not.toHaveBeenCalled();
+  calls.fetch.mockResolvedValue(new Response("missing", {status:404}));
+  await expect(allowed.getHostlessLibraryCanvas("antd6", release)).rejects.toThrow("antd6@1.2.3: 404");
 });

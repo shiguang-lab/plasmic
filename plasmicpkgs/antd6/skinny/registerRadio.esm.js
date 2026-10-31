@@ -1,9 +1,10 @@
 import { Radio } from 'antd';
 import React from 'react';
-import { r as radioGroupComponentName, e as radioComponentName, g as radioButtonComponentName } from './names-DKofLcnC.esm.js';
-import { r as registerComponentHelper, t as traverseReactEltTree } from './utils-Cmdig6Yl.esm.js';
+import { r as radioGroupComponentName, e as radioComponentName, f as radioButtonComponentName } from './names-oKrrGg47.esm.js';
+import { r as registerComponentHelper, t as traverseReactEltTree } from './utils-U416WEAa.esm.js';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
+import '@shiguang-lab/plasmic-antd6/thumbnails';
 
 const RadioGroup = Radio.Group;
 const AntdRadio = Radio;

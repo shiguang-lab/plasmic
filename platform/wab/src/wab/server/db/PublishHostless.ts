@@ -23,6 +23,7 @@ import semver from "semver";
 import { EntityManager } from "typeorm";
 import { HostlessLibraryVersion } from "@/wab/server/entities/CustomEntities";
 import { captureLibraryArtifact } from "@/wab/server/loader/library-artifacts";
+import { externalizeSiteThumbnails } from "@/wab/server/loader/library-thumbnails";
 
 const { Command } = require("commander");
 
@@ -115,6 +116,7 @@ export async function publishHostlessProject(
     plumeSite,
   );
   const hasBreakingParamRemoval = Object.keys(removedParams).length > 0;
+  if (process.env.PREVIEW_ORIGIN) { await externalizeSiteThumbnails(site); }
   const newBundle = bundler.bundle(
     siteOrProjectDep,
     latestVersion.id,
@@ -135,6 +137,7 @@ export async function publishHostlessProject(
   logger().info("Saving new version and publishing...");
   // Make sure we're able to identify whether the project changed or not
   await updateHostlessPackage(site, project.name, plumeSite);
+  if (process.env.PREVIEW_ORIGIN) { await externalizeSiteThumbnails(site); }
   const newBundle2 = bundler.bundle(
     siteOrProjectDep,
     latestVersion.id,

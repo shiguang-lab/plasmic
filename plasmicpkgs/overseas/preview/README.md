@@ -11,7 +11,7 @@
 
 AppShell 已加入 Overseas 的 `registerAll()`，组件名为
 `plasmic-overseas-app-shell`，分组为 `Application layouts`。
-`section` 和内嵌 `thumbnailUrl` 让 Studio 插入面板显示静态预览卡片。
+`section` 和 `thumbnailUrl` 让 Studio 插入面板显示静态预览卡片。本地构建的 SVG 预览来自 `src/componentThumbnails.ts` 生成的清单；平台发布时上传为独立内容哈希资源，模型和注册代码使用同一绝对 URL。
 预览首页直接使用这份注册元数据；完整交互在交互预览页查看。
 
 布局参考 pen-antd-kit 的 `standards/patterns/admin-app-shell.md`：

@@ -67,6 +67,12 @@
       "types": "./dist/form/registerForm.d.ts",
       "require": "./skinny/registerForm.cjs.js",
       "import": "./skinny/registerForm.esm.js"
+    },
+    "./thumbnails": "./skinny/thumbnails.cjs",
+    "./native": {
+      "types": "./dist/native.d.ts",
+      "require": "./skinny/native.cjs.js",
+      "import": "./skinny/native.esm.js"
     }
   },
   "files": [

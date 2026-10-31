@@ -1,10 +1,11 @@
 import { Form } from 'antd';
 import equal from 'fast-deep-equal';
 import React from 'react';
-import { s as setFieldsToUndefined, u as usePrevious } from './utils-Cmdig6Yl.esm.js';
+import { s as setFieldsToUndefined, u as usePrevious } from './utils-U416WEAa.esm.js';
 import { I as InternalFormInstanceContext, F as FormLayoutContext } from './contexts-DtHxvgts.esm.js';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
+import '@shiguang-lab/plasmic-antd6/thumbnails';
 
 var InputType = /* @__PURE__ */ ((InputType2) => {
   InputType2["Text"] = "Text";

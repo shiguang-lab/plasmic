@@ -45,12 +45,13 @@ it("reloads the original registration when undo returns a library to a previousl
 });
 
 it("releases the canvas loading count after a failed registration and allows the next load", async () => {
+  const { studioCtx } = fakeStudioCtx();
   const canvas = new CanvasCtx({ $viewport: $(document.createElement("iframe")), name: "Audit" });
   canvas._win = window;
   const failure = new Error("Canvas registration unavailable");
   vi.spyOn(studioBundles, "getSortedHostLessPkgs").mockRejectedValueOnce(failure).mockResolvedValueOnce([]);
-  await expect(canvas["updateCcRegistry"](["react-ui"], createSite())).rejects.toBe(failure);
+  await expect(canvas["updateCcRegistry"](["react-ui"], createSite(), studioCtx)).rejects.toBe(failure);
   expect(canvas.isUpdatingCcRegistry()).toBe(false);
-  await expect(canvas["updateCcRegistry"](["react-ui"], createSite())).resolves.toBeUndefined();
+  await expect(canvas["updateCcRegistry"](["react-ui"], createSite(), studioCtx)).resolves.toBeUndefined();
   expect(canvas.isUpdatingCcRegistry()).toBe(false);
 });

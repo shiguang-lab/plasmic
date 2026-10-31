@@ -1,0 +1,3496 @@
+{
+  "measuredAt": "2026-10-31T04:32:52.089Z",
+  "project": {
+    "id": "tk89W1Akg2HjAjyHAYEro7",
+    "name": "客服平台 · GP评论查询",
+    "revision": 158
+  },
+  "builds": {
+    "app": {
+      "version": "0.5.29",
+      "kind": "release",
+      "revision": "70e4b457a24586468790bd4ee6522e3357daae1f",
+      "dirty": false,
+      "builtAt": "2026-10-31T03:00:55.934Z",
+      "rendererHash": "da5f46514233be78bae3091748fe3563bb5100a52eb134638df2aa82f9ef626c",
+      "desktopHash": "dd09bd4bd62ff86afb907b2cc21993d0e077bc6c4a4a307308753b481b508d7c"
+    },
+    "web": {
+      "version": "0.5.29 hotfix",
+      "sourceHash": "1ec61a77fb484cdbc6adc8f4fab62cbcd4fe0fe0c6b4c2c9361746ee0b79ae6a",
+      "artifactHash": "8c2f0aa7097a1f34bf22ee057723e49903e1da9e1ab97b1e15537e08124080cb"
+    }
+  },
+  "runtime": {
+    "electron": "44.5.1",
+    "chrome": "152.0.7977.130",
+    "node": "24.21.0"
+  },
+  "viewport": {
+    "width": 1512,
+    "height": 887,
+    "deviceScaleFactor": 2,
+    "preservedEditorView": true
+  },
+  "samples": [
+    {
+      "phase": "app-resource-cold",
+      "visibleMs": 3586,
+      "editableMs": 3599,
+      "revision": 158,
+      "changeCounter": 0,
+      "dependencies": [
+        {
+          "name": "antd6",
+          "pkgId": "b6f20329-89de-4bed-b63d-bba007ff3af5",
+          "version": "3.10.0"
+        },
+        {
+          "name": "overseas",
+          "pkgId": "8785f78a-be85-4369-893e-6f743d1d14b0",
+          "version": "1.12.0"
+        },
+        {
+          "name": "antd-icons",
+          "pkgId": "e5577195-30c1-4a54-ac98-5323a79ddaf6",
+          "version": "0.3.0"
+        },
+        {
+          "name": "react-ui",
+          "pkgId": "da2a82c5-8da6-41fb-a64a-2c823a8bdfec",
+          "version": "0.2.0"
+        },
+        {
+          "name": "Admin Templates",
+          "pkgId": "45f57c2c-38ef-4bb0-8351-8143f15d402d",
+          "version": "3.0.0"
+        }
+      ],
+      "timingStartFromNavigationMs": 1363.8,
+      "timings": {
+        "elapsedMs": 2276.0999999940395,
+        "entries": [
+          {
+            "durationMs": 130.59999999403954,
+            "phase": "studio-module-import",
+            "startMs": 0
+          },
+          {
+            "durationMs": 10.799999982118607,
+            "phase": "startup-preferences",
+            "startMs": 145.09999999403954
+          },
+          {
+            "durationMs": 321.5,
+            "phase": "project-fetch",
+            "startMs": 156
+          },
+          {
+            "durationMs": 66.09999999403954,
+            "phase": "model-unbundle",
+            "startMs": 477.5
+          },
+          {
+            "durationMs": 43.900000005960464,
+            "phase": "studio-context",
+            "startMs": 551.3999999761581
+          },
+          {
+            "durationMs": 77.19999998807907,
+            "phase": "initial-route",
+            "startMs": 556.0999999940395
+          },
+          {
+            "durationMs": 5.4000000059604645,
+            "phase": "code-component-sync",
+            "startMs": 844.7999999821186
+          },
+          {
+            "durationMs": 0,
+            "phase": "app-user-init",
+            "startMs": 850.1999999880791
+          },
+          {
+            "durationMs": 0,
+            "phase": "initializer-ready",
+            "startMs": 850.1999999880791
+          },
+          {
+            "durationMs": 0,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-load-start",
+            "startMs": 864.8999999761581
+          },
+          {
+            "durationMs": 152.90000000596046,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-host-document",
+            "startMs": 878.3999999761581
+          },
+          {
+            "durationMs": 8.5,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-host-ready",
+            "startMs": 1032.3999999761581
+          },
+          {
+            "durationMs": 46.099999994039536,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-runtime",
+            "startMs": 1041.0999999940395
+          },
+          {
+            "durationMs": 687.5,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-component-packages",
+            "startMs": 1087.2999999821186
+          },
+          {
+            "durationMs": 0,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-context-created",
+            "startMs": 1776.7999999821186
+          },
+          {
+            "durationMs": 0,
+            "phase": "all-frame-contexts-created",
+            "startMs": 1776.8999999761581
+          },
+          {
+            "durationMs": 917.9000000059605,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-initialization",
+            "startMs": 864.8999999761581
+          },
+          {
+            "durationMs": 1149.5999999940395,
+            "phase": "initial-target-wait",
+            "startMs": 633.2999999821186
+          },
+          {
+            "durationMs": 4.200000017881393,
+            "phase": "initial-viewport-layout",
+            "startMs": 1782.8999999761581
+          },
+          {
+            "durationMs": 4.699999988079071,
+            "phase": "initial-viewport-commit",
+            "startMs": 1787.0999999940395
+          },
+          {
+            "durationMs": 295.59999999403954,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-first-render",
+            "startMs": 1809.699999988079
+          },
+          {
+            "durationMs": 0,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-rendered",
+            "startMs": 2108.0999999940395
+          },
+          {
+            "durationMs": 0,
+            "phase": "all-frames-rendered",
+            "startMs": 2108.0999999940395
+          },
+          {
+            "durationMs": 316.5,
+            "phase": "initial-target-render-wait",
+            "startMs": 1791.7999999821186
+          },
+          {
+            "durationMs": 1554.199999988079,
+            "phase": "initial-viewport",
+            "startMs": 556.0999999940395
+          },
+          {
+            "durationMs": 0,
+            "phase": "canvas-revealed",
+            "startMs": 2111.399999976158
+          }
+        ],
+        "frameCount": 1
+      },
+      "serverResourceGetsBeforeEditable": {
+        "models": 5,
+        "code": 4
+      },
+      "projectRequests": [
+        {
+          "startMs": 150,
+          "durationMs": 798,
+          "serverTiming": null
+        }
+      ],
+      "httpErrorsBeforeEditable": [],
+      "documents": [
+        {
+          "url": "https://plasmic-studio.shiguanglab.com/projects/tk89W1Akg2HjAjyHAYEro7",
+          "durationMs": 4,
+          "fromCache": false,
+          "cacheControl": null
+        },
+        {
+          "url": "https://plasmic-canvas.shiguanglab.com/static/host.html",
+          "durationMs": 6,
+          "fromCache": false,
+          "cacheControl": null
+        }
+      ],
+      "frames": [
+        {
+          "path": "/projects/tk89W1Akg2HjAjyHAYEro7",
+          "scripts": [],
+          "timeOrigin": null,
+          "navigation": []
+        },
+        {
+          "path": "/static/host.html",
+          "scripts": [
+            {
+              "bytes": 2197911,
+              "duration": 44.599999994039536,
+              "kind": "canvas-runtime",
+              "start": 1212.0999999940395
+            }
+          ],
+          "timeOrigin": null,
+          "navigation": []
+        },
+        {
+          "path": "/static/host.html",
+          "scripts": [],
+          "timeOrigin": null,
+          "navigation": []
+        },
+        {
+          "path": "blank",
+          "scripts": [
+            {
+              "bytes": 2197911,
+              "duration": 42.599999994039536,
+              "kind": "canvas-runtime",
+              "start": 375
+            },
+            {
+              "bytes": 973902,
+              "duration": 23.900000005960464,
+              "kind": "library-registration",
+              "start": 1118
+            },
+            {
+              "bytes": 36854,
+              "duration": 0.800000011920929,
+              "kind": "library-registration",
+              "start": 1142
+            },
+            {
+              "bytes": 1077690,
+              "duration": 19.19999998807907,
+              "kind": "library-registration",
+              "start": 1142.9000000059605
+            },
+            {
+              "bytes": 133008,
+              "duration": 7.5,
+              "kind": "library-registration",
+              "start": 1162.2000000178814
+            }
+          ],
+          "timeOrigin": null,
+          "navigation": []
+        },
+        {
+          "path": "/static/host.html",
+          "scripts": [
+            {
+              "bytes": 2197911,
+              "duration": 40.80000001192093,
+              "kind": "canvas-runtime",
+              "start": 176.5
+            },
+            {
+              "bytes": 973902,
+              "duration": 19.19999998807907,
+              "kind": "library-registration",
+              "start": 859.3000000119209
+            },
+            {
+              "bytes": 36854,
+              "duration": 0.699999988079071,
+              "kind": "library-registration",
+              "start": 878.8000000119209
+            },
+            {
+              "bytes": 1077690,
+              "duration": 21.899999976158142,
+              "kind": "library-registration",
+              "start": 879.7000000178814
+            },
+            {
+              "bytes": 133008,
+              "duration": 7.0999999940395355,
+              "kind": "library-registration",
+              "start": 901.7000000178814
+            }
+          ],
+          "timeOrigin": null,
+          "navigation": []
+        }
+      ]
+    },
+    {
+      "phase": "app-warm-1",
+      "visibleMs": 2271,
+      "editableMs": 2283,
+      "revision": 158,
+      "changeCounter": 0,
+      "dependencies": [
+        {
+          "name": "antd6",
+          "pkgId": "b6f20329-89de-4bed-b63d-bba007ff3af5",
+          "version": "3.10.0"
+        },
+        {
+          "name": "overseas",
+          "pkgId": "8785f78a-be85-4369-893e-6f743d1d14b0",
+          "version": "1.12.0"
+        },
+        {
+          "name": "antd-icons",
+          "pkgId": "e5577195-30c1-4a54-ac98-5323a79ddaf6",
+          "version": "0.3.0"
+        },
+        {
+          "name": "react-ui",
+          "pkgId": "da2a82c5-8da6-41fb-a64a-2c823a8bdfec",
+          "version": "0.2.0"
+        },
+        {
+          "name": "Admin Templates",
+          "pkgId": "45f57c2c-38ef-4bb0-8351-8143f15d402d",
+          "version": "3.0.0"
+        }
+      ],
+      "timingStartFromNavigationMs": 1149,
+      "timings": {
+        "elapsedMs": 1184,
+        "entries": [
+          {
+            "durationMs": 103.40000000596046,
+            "phase": "studio-module-import",
+            "startMs": 0
+          },
+          {
+            "durationMs": 10.100000023841858,
+            "phase": "startup-preferences",
+            "startMs": 115.69999998807907
+          },
+          {
+            "durationMs": 126.09999999403954,
+            "phase": "project-fetch",
+            "startMs": 125.80000001192093
+          },
+          {
+            "durationMs": 64.09999999403954,
+            "phase": "model-unbundle",
+            "startMs": 251.90000000596046
+          },
+          {
+            "durationMs": 33.900000005960464,
+            "phase": "studio-context",
+            "startMs": 320.40000000596046
+          },
+          {
+            "durationMs": 62.400000005960464,
+            "phase": "initial-route",
+            "startMs": 322.40000000596046
+          },
+          {
+            "durationMs": 2.800000011920929,
+            "phase": "code-component-sync",
+            "startMs": 563.5
+          },
+          {
+            "durationMs": 0,
+            "phase": "app-user-init",
+            "startMs": 566.3000000119209
+          },
+          {
+            "durationMs": 0,
+            "phase": "initializer-ready",
+            "startMs": 566.3000000119209
+          },
+          {
+            "durationMs": 0,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-load-start",
+            "startMs": 578.0999999940395
+          },
+          {
+            "durationMs": 82.5,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-host-document",
+            "startMs": 590.6999999880791
+          },
+          {
+            "durationMs": 9.700000017881393,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-host-ready",
+            "startMs": 674.0999999940395
+          },
+          {
+            "durationMs": 8.699999988079071,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-runtime",
+            "startMs": 683.8000000119209
+          },
+          {
+            "durationMs": 39,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-component-packages",
+            "startMs": 692.5999999940395
+          },
+          {
+            "durationMs": 0,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-context-created",
+            "startMs": 732.6999999880791
+          },
+          {
+            "durationMs": 0,
+            "phase": "all-frame-contexts-created",
+            "startMs": 732.6999999880791
+          },
+          {
+            "durationMs": 159.5,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-initialization",
+            "startMs": 578.0999999940395
+          },
+          {
+            "durationMs": 352.7999999821186,
+            "phase": "initial-target-wait",
+            "startMs": 384.80000001192093
+          },
+          {
+            "durationMs": 4.0999999940395355,
+            "phase": "initial-viewport-layout",
+            "startMs": 737.5999999940395
+          },
+          {
+            "durationMs": 11,
+            "phase": "initial-viewport-commit",
+            "startMs": 741.6999999880791
+          },
+          {
+            "durationMs": 249.19999998807907,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-first-render",
+            "startMs": 751.8000000119209
+          },
+          {
+            "durationMs": 0,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-rendered",
+            "startMs": 1003.8000000119209
+          },
+          {
+            "durationMs": 0,
+            "phase": "all-frames-rendered",
+            "startMs": 1003.8000000119209
+          },
+          {
+            "durationMs": 251.30000001192093,
+            "phase": "initial-target-render-wait",
+            "startMs": 752.6999999880791
+          },
+          {
+            "durationMs": 688.4000000059605,
+            "phase": "initial-viewport",
+            "startMs": 322.40000000596046
+          },
+          {
+            "durationMs": 0,
+            "phase": "canvas-revealed",
+            "startMs": 1011.5
+          }
+        ],
+        "frameCount": 1
+      },
+      "serverResourceGetsBeforeEditable": {
+        "models": 0,
+        "code": 0
+      },
+      "projectRequests": [
+        {
+          "startMs": 126,
+          "durationMs": 654,
+          "serverTiming": null
+        }
+      ],
+      "httpErrorsBeforeEditable": [],
+      "documents": [
+        {
+          "url": "https://plasmic-studio.shiguanglab.com/projects/tk89W1Akg2HjAjyHAYEro7",
+          "durationMs": 3,
+          "fromCache": false,
+          "cacheControl": null
+        },
+        {
+          "url": "https://plasmic-canvas.shiguanglab.com/static/host.html",
+          "durationMs": 3,
+          "fromCache": false,
+          "cacheControl": null
+        }
+      ],
+      "frames": [
+        {
+          "path": "/projects/tk89W1Akg2HjAjyHAYEro7",
+          "scripts": [],
+          "timeOrigin": null,
+          "navigation": []
+        },
+        {
+          "path": "/static/host.html",
+          "scripts": [
+            {
+              "bytes": 2197911,
+              "duration": 7.0999999940395355,
+              "kind": "canvas-runtime",
+              "start": 856.0999999940395
+            }
+          ],
+          "timeOrigin": null,
+          "navigation": []
+        },
+        {
+          "path": "/static/host.html",
+          "scripts": [],
+          "timeOrigin": null,
+          "navigation": []
+        },
+        {
+          "path": "blank",
+          "scripts": [
+            {
+              "bytes": 2197911,
+              "duration": 7,
+              "kind": "canvas-runtime",
+              "start": 282.19999998807907
+            },
+            {
+              "bytes": 973902,
+              "duration": 3.300000011920929,
+              "kind": "library-registration",
+              "start": 374.69999998807907
+            },
+            {
+              "bytes": 36854,
+              "duration": 0.19999998807907104,
+              "kind": "library-registration",
+              "start": 378
+            },
+            {
+              "bytes": 1077690,
+              "duration": 8.299999982118607,
+              "kind": "library-registration",
+              "start": 378.30000001192093
+            },
+            {
+              "bytes": 133008,
+              "duration": 4.300000011920929,
+              "kind": "library-registration",
+              "start": 386.69999998807907
+            }
+          ],
+          "timeOrigin": null,
+          "navigation": []
+        },
+        {
+          "path": "/static/host.html",
+          "scripts": [
+            {
+              "bytes": 2197911,
+              "duration": 7,
+              "kind": "canvas-runtime",
+              "start": 106.40000000596046
+            },
+            {
+              "bytes": 973902,
+              "duration": 3.5,
+              "kind": "library-registration",
+              "start": 133.80000001192093
+            },
+            {
+              "bytes": 36854,
+              "duration": 0.09999999403953552,
+              "kind": "library-registration",
+              "start": 137.40000000596046
+            },
+            {
+              "bytes": 1077690,
+              "duration": 10.800000011920929,
+              "kind": "library-registration",
+              "start": 137.80000001192093
+            },
+            {
+              "bytes": 133008,
+              "duration": 4.0999999940395355,
+              "kind": "library-registration",
+              "start": 148.60000002384186
+            }
+          ],
+          "timeOrigin": null,
+          "navigation": []
+        }
+      ]
+    },
+    {
+      "phase": "app-warm-2",
+      "visibleMs": 2317,
+      "editableMs": 2330,
+      "revision": 158,
+      "changeCounter": 0,
+      "dependencies": [
+        {
+          "name": "antd6",
+          "pkgId": "b6f20329-89de-4bed-b63d-bba007ff3af5",
+          "version": "3.10.0"
+        },
+        {
+          "name": "overseas",
+          "pkgId": "8785f78a-be85-4369-893e-6f743d1d14b0",
+          "version": "1.12.0"
+        },
+        {
+          "name": "antd-icons",
+          "pkgId": "e5577195-30c1-4a54-ac98-5323a79ddaf6",
+          "version": "0.3.0"
+        },
+        {
+          "name": "react-ui",
+          "pkgId": "da2a82c5-8da6-41fb-a64a-2c823a8bdfec",
+          "version": "0.2.0"
+        },
+        {
+          "name": "Admin Templates",
+          "pkgId": "45f57c2c-38ef-4bb0-8351-8143f15d402d",
+          "version": "3.0.0"
+        }
+      ],
+      "timingStartFromNavigationMs": 1158.3,
+      "timings": {
+        "elapsedMs": 1219.9000000059605,
+        "entries": [
+          {
+            "durationMs": 105.7000000178814,
+            "phase": "studio-module-import",
+            "startMs": 0
+          },
+          {
+            "durationMs": 10.800000011920929,
+            "phase": "startup-preferences",
+            "startMs": 118.5
+          },
+          {
+            "durationMs": 156.90000000596046,
+            "phase": "project-fetch",
+            "startMs": 129.30000001192093
+          },
+          {
+            "durationMs": 64.2999999821186,
+            "phase": "model-unbundle",
+            "startMs": 286.2000000178814
+          },
+          {
+            "durationMs": 33.79999998211861,
+            "phase": "studio-context",
+            "startMs": 354.7000000178814
+          },
+          {
+            "durationMs": 54.30000001192093,
+            "phase": "initial-route",
+            "startMs": 357
+          },
+          {
+            "durationMs": 3,
+            "phase": "code-component-sync",
+            "startMs": 595.3000000119209
+          },
+          {
+            "durationMs": 0,
+            "phase": "app-user-init",
+            "startMs": 598.3000000119209
+          },
+          {
+            "durationMs": 0,
+            "phase": "initializer-ready",
+            "startMs": 598.3000000119209
+          },
+          {
+            "durationMs": 0,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-load-start",
+            "startMs": 608.2000000178814
+          },
+          {
+            "durationMs": 76.80000001192093,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-host-document",
+            "startMs": 620.4000000059605
+          },
+          {
+            "durationMs": 7.300000011920929,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-host-ready",
+            "startMs": 698.3000000119209
+          },
+          {
+            "durationMs": 9.299999982118607,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-runtime",
+            "startMs": 705.7000000178814
+          },
+          {
+            "durationMs": 38.599999994039536,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-component-packages",
+            "startMs": 715.1000000238419
+          },
+          {
+            "durationMs": 0,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-context-created",
+            "startMs": 754.9000000059605
+          },
+          {
+            "durationMs": 0,
+            "phase": "all-frame-contexts-created",
+            "startMs": 754.9000000059605
+          },
+          {
+            "durationMs": 154.90000000596046,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-initialization",
+            "startMs": 608.2000000178814
+          },
+          {
+            "durationMs": 351.80000001192093,
+            "phase": "initial-target-wait",
+            "startMs": 411.30000001192093
+          },
+          {
+            "durationMs": 4.199999988079071,
+            "phase": "initial-viewport-layout",
+            "startMs": 763.1000000238419
+          },
+          {
+            "durationMs": 11.900000005960464,
+            "phase": "initial-viewport-commit",
+            "startMs": 767.3000000119209
+          },
+          {
+            "durationMs": 255.7999999821186,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-first-render",
+            "startMs": 778.1000000238419
+          },
+          {
+            "durationMs": 0,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-rendered",
+            "startMs": 1036.7000000178814
+          },
+          {
+            "durationMs": 0,
+            "phase": "all-frames-rendered",
+            "startMs": 1036.7000000178814
+          },
+          {
+            "durationMs": 257.69999998807907,
+            "phase": "initial-target-render-wait",
+            "startMs": 779.2000000178814
+          },
+          {
+            "durationMs": 681.7000000178814,
+            "phase": "initial-viewport",
+            "startMs": 357
+          },
+          {
+            "durationMs": 0,
+            "phase": "canvas-revealed",
+            "startMs": 1039.4000000059605
+          }
+        ],
+        "frameCount": 1
+      },
+      "serverResourceGetsBeforeEditable": {
+        "models": 0,
+        "code": 0
+      },
+      "projectRequests": [
+        {
+          "startMs": 121,
+          "durationMs": 672,
+          "serverTiming": null
+        }
+      ],
+      "httpErrorsBeforeEditable": [],
+      "documents": [
+        {
+          "url": "https://plasmic-studio.shiguanglab.com/projects/tk89W1Akg2HjAjyHAYEro7",
+          "durationMs": 2,
+          "fromCache": false,
+          "cacheControl": null
+        },
+        {
+          "url": "https://plasmic-canvas.shiguanglab.com/static/host.html",
+          "durationMs": 5,
+          "fromCache": false,
+          "cacheControl": null
+        }
+      ],
+      "frames": [
+        {
+          "path": "/projects/tk89W1Akg2HjAjyHAYEro7",
+          "scripts": [],
+          "timeOrigin": null,
+          "navigation": []
+        },
+        {
+          "path": "/static/host.html",
+          "scripts": [
+            {
+              "bytes": 2197911,
+              "duration": 7.5,
+              "kind": "canvas-runtime",
+              "start": 891.2999999821186
+            }
+          ],
+          "timeOrigin": null,
+          "navigation": []
+        },
+        {
+          "path": "/static/host.html",
+          "scripts": [],
+          "timeOrigin": null,
+          "navigation": []
+        },
+        {
+          "path": "blank",
+          "scripts": [
+            {
+              "bytes": 2197911,
+              "duration": 10.100000023841858,
+              "kind": "canvas-runtime",
+              "start": 277.89999997615814
+            },
+            {
+              "bytes": 973902,
+              "duration": 3.5999999940395355,
+              "kind": "library-registration",
+              "start": 362.59999999403954
+            },
+            {
+              "bytes": 36854,
+              "duration": 0.30000001192092896,
+              "kind": "library-registration",
+              "start": 366.2999999821186
+            },
+            {
+              "bytes": 1077690,
+              "duration": 10.900000005960464,
+              "kind": "library-registration",
+              "start": 366.7999999821186
+            },
+            {
+              "bytes": 133008,
+              "duration": 4.300000011920929,
+              "kind": "library-registration",
+              "start": 377.7999999821186
+            }
+          ],
+          "timeOrigin": null,
+          "navigation": []
+        },
+        {
+          "path": "/static/host.html",
+          "scripts": [
+            {
+              "bytes": 2197911,
+              "duration": 7.299999982118607,
+              "kind": "canvas-runtime",
+              "start": 98.30000001192093
+            },
+            {
+              "bytes": 973902,
+              "duration": 3.399999976158142,
+              "kind": "library-registration",
+              "start": 129.2000000178814
+            },
+            {
+              "bytes": 36854,
+              "duration": 0.10000002384185791,
+              "kind": "library-registration",
+              "start": 132.59999999403954
+            },
+            {
+              "bytes": 1077690,
+              "duration": 7.699999988079071,
+              "kind": "library-registration",
+              "start": 132.90000000596046
+            },
+            {
+              "bytes": 133008,
+              "duration": 4,
+              "kind": "library-registration",
+              "start": 140.59999999403954
+            }
+          ],
+          "timeOrigin": null,
+          "navigation": []
+        }
+      ]
+    },
+    {
+      "phase": "app-warm-3",
+      "visibleMs": 2379,
+      "editableMs": 2394,
+      "revision": 158,
+      "changeCounter": 0,
+      "dependencies": [
+        {
+          "name": "antd6",
+          "pkgId": "b6f20329-89de-4bed-b63d-bba007ff3af5",
+          "version": "3.10.0"
+        },
+        {
+          "name": "overseas",
+          "pkgId": "8785f78a-be85-4369-893e-6f743d1d14b0",
+          "version": "1.12.0"
+        },
+        {
+          "name": "antd-icons",
+          "pkgId": "e5577195-30c1-4a54-ac98-5323a79ddaf6",
+          "version": "0.3.0"
+        },
+        {
+          "name": "react-ui",
+          "pkgId": "da2a82c5-8da6-41fb-a64a-2c823a8bdfec",
+          "version": "0.2.0"
+        },
+        {
+          "name": "Admin Templates",
+          "pkgId": "45f57c2c-38ef-4bb0-8351-8143f15d402d",
+          "version": "3.0.0"
+        }
+      ],
+      "timingStartFromNavigationMs": 1148.6,
+      "timings": {
+        "elapsedMs": 1290.800000011921,
+        "entries": [
+          {
+            "durationMs": 104.2000000178814,
+            "phase": "studio-module-import",
+            "startMs": 0
+          },
+          {
+            "durationMs": 10.099999994039536,
+            "phase": "startup-preferences",
+            "startMs": 116.5
+          },
+          {
+            "durationMs": 183.30000001192093,
+            "phase": "project-fetch",
+            "startMs": 126.59999999403954
+          },
+          {
+            "durationMs": 83.5,
+            "phase": "model-unbundle",
+            "startMs": 309.90000000596046
+          },
+          {
+            "durationMs": 49.30000001192093,
+            "phase": "studio-context",
+            "startMs": 399.90000000596046
+          },
+          {
+            "durationMs": 69.59999999403954,
+            "phase": "initial-route",
+            "startMs": 402.90000000596046
+          },
+          {
+            "durationMs": 2.9000000059604645,
+            "phase": "code-component-sync",
+            "startMs": 629.9000000059605
+          },
+          {
+            "durationMs": 0,
+            "phase": "app-user-init",
+            "startMs": 632.8000000119209
+          },
+          {
+            "durationMs": 0,
+            "phase": "initializer-ready",
+            "startMs": 632.8000000119209
+          },
+          {
+            "durationMs": 0,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-load-start",
+            "startMs": 642.8000000119209
+          },
+          {
+            "durationMs": 81.5,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-host-document",
+            "startMs": 655.4000000059605
+          },
+          {
+            "durationMs": 32.19999998807907,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-host-ready",
+            "startMs": 737.7000000178814
+          },
+          {
+            "durationMs": 8.199999988079071,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-runtime",
+            "startMs": 769.9000000059605
+          },
+          {
+            "durationMs": 19.700000017881393,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-component-packages",
+            "startMs": 778.0999999940395
+          },
+          {
+            "durationMs": 0,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-context-created",
+            "startMs": 798.9000000059605
+          },
+          {
+            "durationMs": 0,
+            "phase": "all-frame-contexts-created",
+            "startMs": 798.9000000059605
+          },
+          {
+            "durationMs": 160.90000000596046,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-initialization",
+            "startMs": 642.8000000119209
+          },
+          {
+            "durationMs": 331.2000000178814,
+            "phase": "initial-target-wait",
+            "startMs": 472.5
+          },
+          {
+            "durationMs": 10.099999994039536,
+            "phase": "initial-viewport-layout",
+            "startMs": 803.7000000178814
+          },
+          {
+            "durationMs": 7.5,
+            "phase": "initial-viewport-commit",
+            "startMs": 813.8000000119209
+          },
+          {
+            "durationMs": 269.7000000178814,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-first-render",
+            "startMs": 833.0999999940395
+          },
+          {
+            "durationMs": 0,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-rendered",
+            "startMs": 1112.5
+          },
+          {
+            "durationMs": 0,
+            "phase": "all-frames-rendered",
+            "startMs": 1112.5
+          },
+          {
+            "durationMs": 291.5,
+            "phase": "initial-target-render-wait",
+            "startMs": 821.3000000119209
+          },
+          {
+            "durationMs": 711.6999999880791,
+            "phase": "initial-viewport",
+            "startMs": 402.90000000596046
+          },
+          {
+            "durationMs": 0,
+            "phase": "canvas-revealed",
+            "startMs": 1115.300000011921
+          }
+        ],
+        "frameCount": 1
+      },
+      "serverResourceGetsBeforeEditable": {
+        "models": 0,
+        "code": 0
+      },
+      "projectRequests": [
+        {
+          "startMs": 128,
+          "durationMs": 652,
+          "serverTiming": null
+        }
+      ],
+      "httpErrorsBeforeEditable": [],
+      "documents": [
+        {
+          "url": "https://plasmic-studio.shiguanglab.com/projects/tk89W1Akg2HjAjyHAYEro7",
+          "durationMs": 1,
+          "fromCache": false,
+          "cacheControl": null
+        },
+        {
+          "url": "https://plasmic-canvas.shiguanglab.com/static/host.html",
+          "durationMs": 3,
+          "fromCache": false,
+          "cacheControl": null
+        }
+      ],
+      "frames": [
+        {
+          "path": "/projects/tk89W1Akg2HjAjyHAYEro7",
+          "scripts": [],
+          "timeOrigin": null,
+          "navigation": []
+        },
+        {
+          "path": "/static/host.html",
+          "scripts": [
+            {
+              "bytes": 2197911,
+              "duration": 10.300000011920929,
+              "kind": "canvas-runtime",
+              "start": 930.0999999940395
+            }
+          ],
+          "timeOrigin": null,
+          "navigation": []
+        },
+        {
+          "path": "/static/host.html",
+          "scripts": [],
+          "timeOrigin": null,
+          "navigation": []
+        },
+        {
+          "path": "blank",
+          "scripts": [
+            {
+              "bytes": 2197911,
+              "duration": 7,
+              "kind": "canvas-runtime",
+              "start": 270.5
+            },
+            {
+              "bytes": 973902,
+              "duration": 3.5999999940395355,
+              "kind": "library-registration",
+              "start": 348.69999998807907
+            },
+            {
+              "bytes": 36854,
+              "duration": 0.20000001788139343,
+              "kind": "library-registration",
+              "start": 352.39999997615814
+            },
+            {
+              "bytes": 1077690,
+              "duration": 11.099999994039536,
+              "kind": "library-registration",
+              "start": 352.7999999821186
+            },
+            {
+              "bytes": 133008,
+              "duration": 4.199999988079071,
+              "kind": "library-registration",
+              "start": 364.09999999403954
+            }
+          ],
+          "timeOrigin": null,
+          "navigation": []
+        },
+        {
+          "path": "/static/host.html",
+          "scripts": [
+            {
+              "bytes": 2197911,
+              "duration": 6.600000023841858,
+              "kind": "canvas-runtime",
+              "start": 127.5
+            },
+            {
+              "bytes": 973902,
+              "duration": 3.0999999940395355,
+              "kind": "library-registration",
+              "start": 135.2000000178814
+            },
+            {
+              "bytes": 36854,
+              "duration": 0.09999999403953552,
+              "kind": "library-registration",
+              "start": 138.40000000596046
+            },
+            {
+              "bytes": 1077690,
+              "duration": 7.9000000059604645,
+              "kind": "library-registration",
+              "start": 138.7000000178814
+            },
+            {
+              "bytes": 133008,
+              "duration": 7.5,
+              "kind": "library-registration",
+              "start": 146.60000002384186
+            }
+          ],
+          "timeOrigin": null,
+          "navigation": []
+        }
+      ]
+    },
+    {
+      "phase": "web-cold",
+      "visibleMs": 8275,
+      "editableMs": 8277,
+      "revision": 158,
+      "changeCounter": 0,
+      "dependencies": [
+        {
+          "name": "antd6",
+          "pkgId": "b6f20329-89de-4bed-b63d-bba007ff3af5",
+          "version": "3.10.0"
+        },
+        {
+          "name": "overseas",
+          "pkgId": "8785f78a-be85-4369-893e-6f743d1d14b0",
+          "version": "1.12.0"
+        },
+        {
+          "name": "antd-icons",
+          "pkgId": "e5577195-30c1-4a54-ac98-5323a79ddaf6",
+          "version": "0.3.0"
+        },
+        {
+          "name": "react-ui",
+          "pkgId": "da2a82c5-8da6-41fb-a64a-2c823a8bdfec",
+          "version": "0.2.0"
+        },
+        {
+          "name": "Admin Templates",
+          "pkgId": "45f57c2c-38ef-4bb0-8351-8143f15d402d",
+          "version": "3.0.0"
+        }
+      ],
+      "timingStartFromNavigationMs": 5344.3,
+      "timings": {
+        "elapsedMs": 2995.5,
+        "entries": [
+          {
+            "durationMs": 596.6000000238419,
+            "phase": "studio-module-import",
+            "startMs": 0
+          },
+          {
+            "durationMs": 3.5,
+            "phase": "startup-preferences",
+            "startMs": 620.1000000238419
+          },
+          {
+            "durationMs": 151.90000000596046,
+            "phase": "project-fetch",
+            "startMs": 623.8000000119209
+          },
+          {
+            "durationMs": 78.69999998807907,
+            "phase": "model-unbundle",
+            "startMs": 775.7000000178814
+          },
+          {
+            "durationMs": 40.099999994039536,
+            "phase": "studio-context",
+            "startMs": 860.3000000119209
+          },
+          {
+            "durationMs": 48.39999997615814,
+            "phase": "initial-route",
+            "startMs": 865.1000000238419
+          },
+          {
+            "durationMs": 48.39999997615814,
+            "phase": "initial-viewport",
+            "startMs": 865.1000000238419
+          },
+          {
+            "durationMs": 5.799999982118607,
+            "phase": "code-component-sync",
+            "startMs": 1011.6000000238419
+          },
+          {
+            "durationMs": 0,
+            "phase": "app-user-init",
+            "startMs": 1017.4000000059605
+          },
+          {
+            "durationMs": 0,
+            "phase": "initializer-ready",
+            "startMs": 1017.5
+          },
+          {
+            "durationMs": 0,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-load-start",
+            "startMs": 1031.9000000059605
+          },
+          {
+            "durationMs": 94.60000002384186,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-host-document",
+            "startMs": 1045.5
+          },
+          {
+            "durationMs": 4.600000023841858,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-host-ready",
+            "startMs": 1141.5
+          },
+          {
+            "durationMs": 597.1999999880791,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-runtime",
+            "startMs": 1146.2000000178814
+          },
+          {
+            "durationMs": 628.2000000178814,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-component-packages",
+            "startMs": 1743.5
+          },
+          {
+            "durationMs": 0,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-context-created",
+            "startMs": 2383.100000023842
+          },
+          {
+            "durationMs": 0,
+            "phase": "all-frame-contexts-created",
+            "startMs": 2383.100000023842
+          },
+          {
+            "durationMs": 1370.5999999940395,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-initialization",
+            "startMs": 1031.9000000059605
+          },
+          {
+            "durationMs": 337.10000002384186,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-first-render",
+            "startMs": 2383
+          },
+          {
+            "durationMs": 0,
+            "phase": "canvas-revealed",
+            "startMs": 2762.2000000178814
+          },
+          {
+            "durationMs": 0,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-rendered",
+            "startMs": 2786.2000000178814
+          },
+          {
+            "durationMs": 0,
+            "phase": "all-frames-rendered",
+            "startMs": 2786.2000000178814
+          }
+        ],
+        "frameCount": 1
+      },
+      "serverResourceGetsBeforeEditable": {
+        "models": 5,
+        "code": 4
+      },
+      "projectRequests": [
+        {
+          "startMs": 1892,
+          "durationMs": 679,
+          "serverTiming": null
+        }
+      ],
+      "httpErrorsBeforeEditable": [],
+      "documents": [
+        {
+          "url": "https://plasmic-studio.shiguanglab.com/projects/tk89W1Akg2HjAjyHAYEro7",
+          "durationMs": 479,
+          "fromCache": false,
+          "cacheControl": null
+        },
+        {
+          "url": "https://plasmic-canvas.shiguanglab.com/static/host.html",
+          "durationMs": 480,
+          "fromCache": false,
+          "cacheControl": null
+        }
+      ],
+      "frames": [
+        {
+          "path": "/projects/tk89W1Akg2HjAjyHAYEro7",
+          "scripts": [],
+          "timeOrigin": null,
+          "navigation": []
+        },
+        {
+          "path": "/static/host.html",
+          "scripts": [
+            {
+              "bytes": 2203168,
+              "duration": 54.599999994039536,
+              "kind": "canvas-runtime",
+              "start": 2883.5999999940395
+            }
+          ],
+          "timeOrigin": null,
+          "navigation": []
+        },
+        {
+          "path": "/static/host.html",
+          "scripts": [],
+          "timeOrigin": null,
+          "navigation": []
+        },
+        {
+          "path": "blank",
+          "scripts": [
+            {
+              "bytes": 2203168,
+              "duration": 49.80000001192093,
+              "kind": "canvas-runtime",
+              "start": 775.2999999821186
+            },
+            {
+              "bytes": 973902,
+              "duration": 19.30000001192093,
+              "kind": "library-registration",
+              "start": 1413.5999999940395
+            },
+            {
+              "bytes": 36854,
+              "duration": 0.699999988079071,
+              "kind": "library-registration",
+              "start": 1432.9000000059605
+            },
+            {
+              "bytes": 1077690,
+              "duration": 17.30000001192093,
+              "kind": "library-registration",
+              "start": 1433.699999988079
+            },
+            {
+              "bytes": 133008,
+              "duration": 7.299999982118607,
+              "kind": "library-registration",
+              "start": 1451
+            }
+          ],
+          "timeOrigin": null,
+          "navigation": []
+        },
+        {
+          "path": "/static/host.html",
+          "scripts": [
+            {
+              "bytes": 2203168,
+              "duration": 43.79999998211861,
+              "kind": "canvas-runtime",
+              "start": 657
+            },
+            {
+              "bytes": 973902,
+              "duration": 18.400000005960464,
+              "kind": "library-registration",
+              "start": 1292.0999999940395
+            },
+            {
+              "bytes": 36854,
+              "duration": 0.800000011920929,
+              "kind": "library-registration",
+              "start": 1310.5999999940395
+            },
+            {
+              "bytes": 1077690,
+              "duration": 20.299999982118607,
+              "kind": "library-registration",
+              "start": 1311.5
+            },
+            {
+              "bytes": 133008,
+              "duration": 7,
+              "kind": "library-registration",
+              "start": 1331.9000000059605
+            }
+          ],
+          "timeOrigin": null,
+          "navigation": []
+        }
+      ]
+    },
+    {
+      "phase": "web-warm-1",
+      "visibleMs": 2888,
+      "editableMs": 2889,
+      "revision": 158,
+      "changeCounter": 0,
+      "dependencies": [
+        {
+          "name": "antd6",
+          "pkgId": "b6f20329-89de-4bed-b63d-bba007ff3af5",
+          "version": "3.10.0"
+        },
+        {
+          "name": "overseas",
+          "pkgId": "8785f78a-be85-4369-893e-6f743d1d14b0",
+          "version": "1.12.0"
+        },
+        {
+          "name": "antd-icons",
+          "pkgId": "e5577195-30c1-4a54-ac98-5323a79ddaf6",
+          "version": "0.3.0"
+        },
+        {
+          "name": "react-ui",
+          "pkgId": "da2a82c5-8da6-41fb-a64a-2c823a8bdfec",
+          "version": "0.2.0"
+        },
+        {
+          "name": "Admin Templates",
+          "pkgId": "45f57c2c-38ef-4bb0-8351-8143f15d402d",
+          "version": "3.0.0"
+        }
+      ],
+      "timingStartFromNavigationMs": 1637.7,
+      "timings": {
+        "elapsedMs": 1309.699999988079,
+        "entries": [
+          {
+            "durationMs": 109.69999998807907,
+            "phase": "studio-module-import",
+            "startMs": 0
+          },
+          {
+            "durationMs": 9.700000017881393,
+            "phase": "startup-preferences",
+            "startMs": 123.69999998807907
+          },
+          {
+            "durationMs": 174,
+            "phase": "project-fetch",
+            "startMs": 133.40000000596046
+          },
+          {
+            "durationMs": 69.7999999821186,
+            "phase": "model-unbundle",
+            "startMs": 307.40000000596046
+          },
+          {
+            "durationMs": 38.400000005960464,
+            "phase": "studio-context",
+            "startMs": 382.19999998807907
+          },
+          {
+            "durationMs": 56.69999998807907,
+            "phase": "initial-route",
+            "startMs": 385.40000000596046
+          },
+          {
+            "durationMs": 56.69999998807907,
+            "phase": "initial-viewport",
+            "startMs": 385.40000000596046
+          },
+          {
+            "durationMs": 3.300000011920929,
+            "phase": "code-component-sync",
+            "startMs": 519.6999999880791
+          },
+          {
+            "durationMs": 0,
+            "phase": "app-user-init",
+            "startMs": 523
+          },
+          {
+            "durationMs": 0,
+            "phase": "initializer-ready",
+            "startMs": 523.0999999940395
+          },
+          {
+            "durationMs": 0,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-load-start",
+            "startMs": 534.0999999940395
+          },
+          {
+            "durationMs": 109.59999999403954,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-host-document",
+            "startMs": 548.0999999940395
+          },
+          {
+            "durationMs": 3.5999999940395355,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-host-ready",
+            "startMs": 658.5
+          },
+          {
+            "durationMs": 9.200000017881393,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-runtime",
+            "startMs": 662.1999999880791
+          },
+          {
+            "durationMs": 73.7999999821186,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-component-packages",
+            "startMs": 671.4000000059605
+          },
+          {
+            "durationMs": 0,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-context-created",
+            "startMs": 754.6999999880791
+          },
+          {
+            "durationMs": 0,
+            "phase": "all-frame-contexts-created",
+            "startMs": 754.6999999880791
+          },
+          {
+            "durationMs": 234.19999998807907,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-initialization",
+            "startMs": 534
+          },
+          {
+            "durationMs": 311.30000001192093,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-first-render",
+            "startMs": 754.6999999880791
+          },
+          {
+            "durationMs": 0,
+            "phase": "canvas-revealed",
+            "startMs": 1096.699999988079
+          },
+          {
+            "durationMs": 0,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-rendered",
+            "startMs": 1117.300000011921
+          },
+          {
+            "durationMs": 0,
+            "phase": "all-frames-rendered",
+            "startMs": 1117.300000011921
+          }
+        ],
+        "frameCount": 1
+      },
+      "serverResourceGetsBeforeEditable": {
+        "models": 0,
+        "code": 0
+      },
+      "projectRequests": [
+        {
+          "startMs": 324,
+          "durationMs": 691,
+          "serverTiming": null
+        }
+      ],
+      "httpErrorsBeforeEditable": [],
+      "documents": [
+        {
+          "url": "https://plasmic-studio.shiguanglab.com/projects/tk89W1Akg2HjAjyHAYEro7",
+          "durationMs": 220,
+          "fromCache": true,
+          "cacheControl": null
+        },
+        {
+          "url": "https://plasmic-canvas.shiguanglab.com/static/host.html",
+          "durationMs": 227,
+          "fromCache": true,
+          "cacheControl": null
+        }
+      ],
+      "frames": [
+        {
+          "path": "/projects/tk89W1Akg2HjAjyHAYEro7",
+          "scripts": [],
+          "timeOrigin": null,
+          "navigation": []
+        },
+        {
+          "path": "/static/host.html",
+          "scripts": [
+            {
+              "bytes": 2203168,
+              "duration": 10.900000005960464,
+              "kind": "canvas-runtime",
+              "start": 1062.0999999940395
+            }
+          ],
+          "timeOrigin": null,
+          "navigation": []
+        },
+        {
+          "path": "/static/host.html",
+          "scripts": [],
+          "timeOrigin": null,
+          "navigation": []
+        },
+        {
+          "path": "blank",
+          "scripts": [
+            {
+              "bytes": 2203168,
+              "duration": 8.400000005960464,
+              "kind": "canvas-runtime",
+              "start": 236.69999998807907
+            },
+            {
+              "bytes": 973902,
+              "duration": 3.800000011920929,
+              "kind": "library-registration",
+              "start": 290.7999999821186
+            },
+            {
+              "bytes": 36854,
+              "duration": 0.10000002384185791,
+              "kind": "library-registration",
+              "start": 294.7999999821186
+            },
+            {
+              "bytes": 1077690,
+              "duration": 13.5,
+              "kind": "library-registration",
+              "start": 295
+            },
+            {
+              "bytes": 133008,
+              "duration": 4.800000011920929,
+              "kind": "library-registration",
+              "start": 308.59999999403954
+            }
+          ],
+          "timeOrigin": null,
+          "navigation": []
+        },
+        {
+          "path": "/static/host.html",
+          "scripts": [
+            {
+              "bytes": 2203168,
+              "duration": 7.5,
+              "kind": "canvas-runtime",
+              "start": 128.5
+            },
+            {
+              "bytes": 973902,
+              "duration": 5.5,
+              "kind": "library-registration",
+              "start": 191.09999999403954
+            },
+            {
+              "bytes": 36854,
+              "duration": 0.19999998807907104,
+              "kind": "library-registration",
+              "start": 196.90000000596046
+            },
+            {
+              "bytes": 1077690,
+              "duration": 8.299999982118607,
+              "kind": "library-registration",
+              "start": 197.40000000596046
+            },
+            {
+              "bytes": 133008,
+              "duration": 4.300000011920929,
+              "kind": "library-registration",
+              "start": 205.7999999821186
+            }
+          ],
+          "timeOrigin": null,
+          "navigation": []
+        }
+      ]
+    },
+    {
+      "phase": "web-warm-2",
+      "visibleMs": 2727,
+      "editableMs": 2728,
+      "revision": 158,
+      "changeCounter": 0,
+      "dependencies": [
+        {
+          "name": "antd6",
+          "pkgId": "b6f20329-89de-4bed-b63d-bba007ff3af5",
+          "version": "3.10.0"
+        },
+        {
+          "name": "overseas",
+          "pkgId": "8785f78a-be85-4369-893e-6f743d1d14b0",
+          "version": "1.12.0"
+        },
+        {
+          "name": "antd-icons",
+          "pkgId": "e5577195-30c1-4a54-ac98-5323a79ddaf6",
+          "version": "0.3.0"
+        },
+        {
+          "name": "react-ui",
+          "pkgId": "da2a82c5-8da6-41fb-a64a-2c823a8bdfec",
+          "version": "0.2.0"
+        },
+        {
+          "name": "Admin Templates",
+          "pkgId": "45f57c2c-38ef-4bb0-8351-8143f15d402d",
+          "version": "3.0.0"
+        }
+      ],
+      "timingStartFromNavigationMs": 1549.9,
+      "timings": {
+        "elapsedMs": 1236.1000000238419,
+        "entries": [
+          {
+            "durationMs": 95.30000001192093,
+            "phase": "studio-module-import",
+            "startMs": 0
+          },
+          {
+            "durationMs": 10.399999976158142,
+            "phase": "startup-preferences",
+            "startMs": 109.60000002384186
+          },
+          {
+            "durationMs": 152.30000001192093,
+            "phase": "project-fetch",
+            "startMs": 120
+          },
+          {
+            "durationMs": 85.19999998807907,
+            "phase": "model-unbundle",
+            "startMs": 272.30000001192093
+          },
+          {
+            "durationMs": 27,
+            "phase": "studio-context",
+            "startMs": 362.10000002384186
+          },
+          {
+            "durationMs": 45.5,
+            "phase": "initial-route",
+            "startMs": 364.2000000178814
+          },
+          {
+            "durationMs": 45.5,
+            "phase": "initial-viewport",
+            "startMs": 364.2000000178814
+          },
+          {
+            "durationMs": 2.699999988079071,
+            "phase": "code-component-sync",
+            "startMs": 478.80000001192093
+          },
+          {
+            "durationMs": 0,
+            "phase": "app-user-init",
+            "startMs": 481.5
+          },
+          {
+            "durationMs": 0,
+            "phase": "initializer-ready",
+            "startMs": 481.5
+          },
+          {
+            "durationMs": 0,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-load-start",
+            "startMs": 493.90000000596046
+          },
+          {
+            "durationMs": 119.90000000596046,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-host-document",
+            "startMs": 509.5
+          },
+          {
+            "durationMs": 3.5,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-host-ready",
+            "startMs": 630.1000000238419
+          },
+          {
+            "durationMs": 8.5,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-runtime",
+            "startMs": 633.6000000238419
+          },
+          {
+            "durationMs": 66.59999999403954,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-component-packages",
+            "startMs": 642.1000000238419
+          },
+          {
+            "durationMs": 0,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-context-created",
+            "startMs": 717.8000000119209
+          },
+          {
+            "durationMs": 0,
+            "phase": "all-frame-contexts-created",
+            "startMs": 717.8000000119209
+          },
+          {
+            "durationMs": 233,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-initialization",
+            "startMs": 493.90000000596046
+          },
+          {
+            "durationMs": 280.40000000596046,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-first-render",
+            "startMs": 717.8000000119209
+          },
+          {
+            "durationMs": 0,
+            "phase": "canvas-revealed",
+            "startMs": 1028.2000000178814
+          },
+          {
+            "durationMs": 0,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-rendered",
+            "startMs": 1049.1000000238419
+          },
+          {
+            "durationMs": 0,
+            "phase": "all-frames-rendered",
+            "startMs": 1049.1000000238419
+          }
+        ],
+        "frameCount": 1
+      },
+      "serverResourceGetsBeforeEditable": {
+        "models": 0,
+        "code": 0
+      },
+      "projectRequests": [
+        {
+          "startMs": 317,
+          "durationMs": 686,
+          "serverTiming": null
+        }
+      ],
+      "httpErrorsBeforeEditable": [],
+      "documents": [
+        {
+          "url": "https://plasmic-studio.shiguanglab.com/projects/tk89W1Akg2HjAjyHAYEro7",
+          "durationMs": 229,
+          "fromCache": true,
+          "cacheControl": null
+        },
+        {
+          "url": "https://plasmic-canvas.shiguanglab.com/static/host.html",
+          "durationMs": 231,
+          "fromCache": true,
+          "cacheControl": null
+        }
+      ],
+      "frames": [
+        {
+          "path": "/projects/tk89W1Akg2HjAjyHAYEro7",
+          "scripts": [],
+          "timeOrigin": null,
+          "navigation": []
+        },
+        {
+          "path": "/static/host.html",
+          "scripts": [
+            {
+              "bytes": 2203168,
+              "duration": 7.4000000059604645,
+              "kind": "canvas-runtime",
+              "start": 1027.199999988079
+            }
+          ],
+          "timeOrigin": null,
+          "navigation": []
+        },
+        {
+          "path": "/static/host.html",
+          "scripts": [],
+          "timeOrigin": null,
+          "navigation": []
+        },
+        {
+          "path": "blank",
+          "scripts": [
+            {
+              "bytes": 2203168,
+              "duration": 7.5,
+              "kind": "canvas-runtime",
+              "start": 212.69999998807907
+            },
+            {
+              "bytes": 973902,
+              "duration": 6.4000000059604645,
+              "kind": "library-registration",
+              "start": 281
+            },
+            {
+              "bytes": 36854,
+              "duration": 0.09999999403953552,
+              "kind": "library-registration",
+              "start": 287.5
+            },
+            {
+              "bytes": 1077690,
+              "duration": 7.799999982118607,
+              "kind": "library-registration",
+              "start": 287.80000001192093
+            },
+            {
+              "bytes": 133008,
+              "duration": 4.300000011920929,
+              "kind": "library-registration",
+              "start": 295.69999998807907
+            }
+          ],
+          "timeOrigin": null,
+          "navigation": []
+        },
+        {
+          "path": "/static/host.html",
+          "scripts": [
+            {
+              "bytes": 2203168,
+              "duration": 6.9000000059604645,
+              "kind": "canvas-runtime",
+              "start": 139.90000000596046
+            },
+            {
+              "bytes": 973902,
+              "duration": 3.4000000059604645,
+              "kind": "library-registration",
+              "start": 194.5
+            },
+            {
+              "bytes": 36854,
+              "duration": 0.19999998807907104,
+              "kind": "library-registration",
+              "start": 198
+            },
+            {
+              "bytes": 1077690,
+              "duration": 8,
+              "kind": "library-registration",
+              "start": 198.30000001192093
+            },
+            {
+              "bytes": 133008,
+              "duration": 7.299999982118607,
+              "kind": "library-registration",
+              "start": 206.40000000596046
+            }
+          ],
+          "timeOrigin": null,
+          "navigation": []
+        }
+      ]
+    },
+    {
+      "phase": "web-warm-3",
+      "visibleMs": 2628,
+      "editableMs": 2630,
+      "revision": 158,
+      "changeCounter": 0,
+      "dependencies": [
+        {
+          "name": "antd6",
+          "pkgId": "b6f20329-89de-4bed-b63d-bba007ff3af5",
+          "version": "3.10.0"
+        },
+        {
+          "name": "overseas",
+          "pkgId": "8785f78a-be85-4369-893e-6f743d1d14b0",
+          "version": "1.12.0"
+        },
+        {
+          "name": "antd-icons",
+          "pkgId": "e5577195-30c1-4a54-ac98-5323a79ddaf6",
+          "version": "0.3.0"
+        },
+        {
+          "name": "react-ui",
+          "pkgId": "da2a82c5-8da6-41fb-a64a-2c823a8bdfec",
+          "version": "0.2.0"
+        },
+        {
+          "name": "Admin Templates",
+          "pkgId": "45f57c2c-38ef-4bb0-8351-8143f15d402d",
+          "version": "3.0.0"
+        }
+      ],
+      "timingStartFromNavigationMs": 1472.7,
+      "timings": {
+        "elapsedMs": 1217.699999988079,
+        "entries": [
+          {
+            "durationMs": 95.59999999403954,
+            "phase": "studio-module-import",
+            "startMs": 0
+          },
+          {
+            "durationMs": 9.699999988079071,
+            "phase": "startup-preferences",
+            "startMs": 109.40000000596046
+          },
+          {
+            "durationMs": 119.40000000596046,
+            "phase": "project-fetch",
+            "startMs": 119.09999999403954
+          },
+          {
+            "durationMs": 102.09999999403954,
+            "phase": "model-unbundle",
+            "startMs": 238.5
+          },
+          {
+            "durationMs": 29.5,
+            "phase": "studio-context",
+            "startMs": 344.69999998807907
+          },
+          {
+            "durationMs": 45.5,
+            "phase": "initial-route",
+            "startMs": 346.69999998807907
+          },
+          {
+            "durationMs": 45.5,
+            "phase": "initial-viewport",
+            "startMs": 346.69999998807907
+          },
+          {
+            "durationMs": 2.9000000059604645,
+            "phase": "code-component-sync",
+            "startMs": 465.19999998807907
+          },
+          {
+            "durationMs": 0,
+            "phase": "app-user-init",
+            "startMs": 468.09999999403954
+          },
+          {
+            "durationMs": 0,
+            "phase": "initializer-ready",
+            "startMs": 468.09999999403954
+          },
+          {
+            "durationMs": 0,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-load-start",
+            "startMs": 478.09999999403954
+          },
+          {
+            "durationMs": 107,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-host-document",
+            "startMs": 492.59999999403954
+          },
+          {
+            "durationMs": 2.399999976158142,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-host-ready",
+            "startMs": 600.3000000119209
+          },
+          {
+            "durationMs": 8.800000011920929,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-runtime",
+            "startMs": 602.6999999880791
+          },
+          {
+            "durationMs": 63.599999994039536,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-component-packages",
+            "startMs": 611.5999999940395
+          },
+          {
+            "durationMs": 0,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-context-created",
+            "startMs": 683.8000000119209
+          },
+          {
+            "durationMs": 0,
+            "phase": "all-frame-contexts-created",
+            "startMs": 683.8000000119209
+          },
+          {
+            "durationMs": 218.90000000596046,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-initialization",
+            "startMs": 478.09999999403954
+          },
+          {
+            "durationMs": 290.5,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-first-render",
+            "startMs": 683.8000000119209
+          },
+          {
+            "durationMs": 0,
+            "phase": "canvas-revealed",
+            "startMs": 1002.5
+          },
+          {
+            "durationMs": 0,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-rendered",
+            "startMs": 1022.5
+          },
+          {
+            "durationMs": 0,
+            "phase": "all-frames-rendered",
+            "startMs": 1022.5
+          }
+        ],
+        "frameCount": 1
+      },
+      "serverResourceGetsBeforeEditable": {
+        "models": 0,
+        "code": 0
+      },
+      "projectRequests": [
+        {
+          "startMs": 312,
+          "durationMs": 617,
+          "serverTiming": null
+        }
+      ],
+      "httpErrorsBeforeEditable": [],
+      "documents": [
+        {
+          "url": "https://plasmic-studio.shiguanglab.com/projects/tk89W1Akg2HjAjyHAYEro7",
+          "durationMs": 214,
+          "fromCache": true,
+          "cacheControl": null
+        },
+        {
+          "url": "https://plasmic-canvas.shiguanglab.com/static/host.html",
+          "durationMs": 231,
+          "fromCache": true,
+          "cacheControl": null
+        }
+      ],
+      "frames": [
+        {
+          "path": "/projects/tk89W1Akg2HjAjyHAYEro7",
+          "scripts": [],
+          "timeOrigin": null,
+          "navigation": []
+        },
+        {
+          "path": "/static/host.html",
+          "scripts": [
+            {
+              "bytes": 2203168,
+              "duration": 11.400000005960464,
+              "kind": "canvas-runtime",
+              "start": 1006.4000000059605
+            }
+          ],
+          "timeOrigin": null,
+          "navigation": []
+        },
+        {
+          "path": "/static/host.html",
+          "scripts": [],
+          "timeOrigin": null,
+          "navigation": []
+        },
+        {
+          "path": "blank",
+          "scripts": [
+            {
+              "bytes": 2203168,
+              "duration": 6.800000011920929,
+              "kind": "canvas-runtime",
+              "start": 217.09999999403954
+            },
+            {
+              "bytes": 973902,
+              "duration": 3.5999999940395355,
+              "kind": "library-registration",
+              "start": 272.90000000596046
+            },
+            {
+              "bytes": 36854,
+              "duration": 0.19999998807907104,
+              "kind": "library-registration",
+              "start": 276.59999999403954
+            },
+            {
+              "bytes": 1077690,
+              "duration": 11.5,
+              "kind": "library-registration",
+              "start": 276.7999999821186
+            },
+            {
+              "bytes": 133008,
+              "duration": 4.399999976158142,
+              "kind": "library-registration",
+              "start": 288.40000000596046
+            }
+          ],
+          "timeOrigin": null,
+          "navigation": []
+        },
+        {
+          "path": "/static/host.html",
+          "scripts": [
+            {
+              "bytes": 2203168,
+              "duration": 7.199999988079071,
+              "kind": "canvas-runtime",
+              "start": 125.09999999403954
+            },
+            {
+              "bytes": 973902,
+              "duration": 3.800000011920929,
+              "kind": "library-registration",
+              "start": 179.89999997615814
+            },
+            {
+              "bytes": 36854,
+              "duration": 0.30000001192092896,
+              "kind": "library-registration",
+              "start": 183.7999999821186
+            },
+            {
+              "bytes": 1077690,
+              "duration": 7.9000000059604645,
+              "kind": "library-registration",
+              "start": 184.2999999821186
+            },
+            {
+              "bytes": 133008,
+              "duration": 4.0999999940395355,
+              "kind": "library-registration",
+              "start": 192.19999998807907
+            }
+          ],
+          "timeOrigin": null,
+          "navigation": []
+        }
+      ]
+    },
+    {
+      "phase": "web-process-restart",
+      "visibleMs": 3697,
+      "editableMs": 3698,
+      "revision": 158,
+      "changeCounter": 0,
+      "dependencies": [
+        {
+          "name": "antd6",
+          "pkgId": "b6f20329-89de-4bed-b63d-bba007ff3af5",
+          "version": "3.10.0"
+        },
+        {
+          "name": "overseas",
+          "pkgId": "8785f78a-be85-4369-893e-6f743d1d14b0",
+          "version": "1.12.0"
+        },
+        {
+          "name": "antd-icons",
+          "pkgId": "e5577195-30c1-4a54-ac98-5323a79ddaf6",
+          "version": "0.3.0"
+        },
+        {
+          "name": "react-ui",
+          "pkgId": "da2a82c5-8da6-41fb-a64a-2c823a8bdfec",
+          "version": "0.2.0"
+        },
+        {
+          "name": "Admin Templates",
+          "pkgId": "45f57c2c-38ef-4bb0-8351-8143f15d402d",
+          "version": "3.0.0"
+        }
+      ],
+      "timingStartFromNavigationMs": 2322.2,
+      "timings": {
+        "elapsedMs": 1432.3999999761581,
+        "entries": [
+          {
+            "durationMs": 108.40000000596046,
+            "phase": "studio-module-import",
+            "startMs": 0.09999999403953552
+          },
+          {
+            "durationMs": 10,
+            "phase": "startup-preferences",
+            "startMs": 131.09999999403954
+          },
+          {
+            "durationMs": 107.09999999403954,
+            "phase": "project-fetch",
+            "startMs": 141.19999998807907
+          },
+          {
+            "durationMs": 64.80000001192093,
+            "phase": "model-unbundle",
+            "startMs": 248.2999999821186
+          },
+          {
+            "durationMs": 41,
+            "phase": "studio-context",
+            "startMs": 319
+          },
+          {
+            "durationMs": 54.20000001788139,
+            "phase": "initial-route",
+            "startMs": 323.7999999821186
+          },
+          {
+            "durationMs": 54.20000001788139,
+            "phase": "initial-viewport",
+            "startMs": 323.7999999821186
+          },
+          {
+            "durationMs": 5.800000011920929,
+            "phase": "code-component-sync",
+            "startMs": 469.2999999821186
+          },
+          {
+            "durationMs": 0,
+            "phase": "app-user-init",
+            "startMs": 475.19999998807907
+          },
+          {
+            "durationMs": 0,
+            "phase": "initializer-ready",
+            "startMs": 475.19999998807907
+          },
+          {
+            "durationMs": 0,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-load-start",
+            "startMs": 488.5
+          },
+          {
+            "durationMs": 162,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-host-document",
+            "startMs": 501.39999997615814
+          },
+          {
+            "durationMs": 5.9000000059604645,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-host-ready",
+            "startMs": 664.2999999821186
+          },
+          {
+            "durationMs": 44.599999994039536,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-runtime",
+            "startMs": 670.2999999821186
+          },
+          {
+            "durationMs": 116,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-component-packages",
+            "startMs": 715.0999999940395
+          },
+          {
+            "durationMs": 0,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-context-created",
+            "startMs": 841.5999999940395
+          },
+          {
+            "durationMs": 0,
+            "phase": "all-frame-contexts-created",
+            "startMs": 841.5999999940395
+          },
+          {
+            "durationMs": 370,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-initialization",
+            "startMs": 488.5
+          },
+          {
+            "durationMs": 332.40000000596046,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-first-render",
+            "startMs": 841.5999999940395
+          },
+          {
+            "durationMs": 0,
+            "phase": "canvas-revealed",
+            "startMs": 1213.199999988079
+          },
+          {
+            "durationMs": 0,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-rendered",
+            "startMs": 1238.2999999821186
+          },
+          {
+            "durationMs": 0,
+            "phase": "all-frames-rendered",
+            "startMs": 1238.2999999821186
+          }
+        ],
+        "frameCount": 1
+      },
+      "serverResourceGetsBeforeEditable": {
+        "models": 0,
+        "code": 0
+      },
+      "projectRequests": [
+        {
+          "startMs": 661,
+          "durationMs": 817,
+          "serverTiming": [
+            "owner;dur=14.0, revision;dur=32.9, permissions;dur=39.3, dependencies;dur=215.6"
+          ]
+        }
+      ],
+      "httpErrorsBeforeEditable": [],
+      "documents": [
+        {
+          "url": "https://plasmic-studio.shiguanglab.com/projects/tk89W1Akg2HjAjyHAYEro7",
+          "durationMs": 538,
+          "fromCache": true,
+          "cacheControl": [
+            "no-cache"
+          ]
+        },
+        {
+          "url": "https://plasmic-canvas.shiguanglab.com/static/host.html",
+          "durationMs": 488,
+          "fromCache": true,
+          "cacheControl": [
+            "no-cache"
+          ]
+        }
+      ],
+      "frames": [
+        {
+          "path": "/projects/tk89W1Akg2HjAjyHAYEro7",
+          "scripts": [],
+          "timeOrigin": 1793421472036.5,
+          "navigation": [
+            {
+              "duration": 681.5,
+              "requestStart": 240.40000000596046,
+              "responseStart": 534.3000000119209,
+              "responseEnd": 536.3000000119209,
+              "transferSize": 300,
+              "encodedBodySize": 8048
+            }
+          ]
+        },
+        {
+          "path": "/static/host.html",
+          "scripts": [
+            {
+              "bytes": 2203168,
+              "duration": 44,
+              "kind": "canvas-runtime",
+              "start": 1298.0999999940395
+            }
+          ],
+          "timeOrigin": 1793421473625.8,
+          "navigation": [
+            {
+              "duration": 515.5999999940395,
+              "requestStart": 245.59999999403954,
+              "responseStart": 484.59999999403954,
+              "responseEnd": 486.40000000596046,
+              "transferSize": 300,
+              "encodedBodySize": 4716
+            }
+          ]
+        },
+        {
+          "path": "/static/host.html",
+          "scripts": [],
+          "timeOrigin": 1793421474138.2,
+          "navigation": [
+            {
+              "duration": 1.2999999821186066,
+              "requestStart": 0,
+              "responseStart": 0,
+              "responseEnd": 1.2999999821186066,
+              "transferSize": 0,
+              "encodedBodySize": 0
+            }
+          ]
+        },
+        {
+          "path": "blank",
+          "scripts": [
+            {
+              "bytes": 2203168,
+              "duration": 43.20000001788139,
+              "kind": "canvas-runtime",
+              "start": 289.5
+            },
+            {
+              "bytes": 973902,
+              "duration": 18,
+              "kind": "library-registration",
+              "start": 407.90000000596046
+            },
+            {
+              "bytes": 36854,
+              "duration": 0.5,
+              "kind": "library-registration",
+              "start": 426
+            },
+            {
+              "bytes": 1077690,
+              "duration": 16.799999982118607,
+              "kind": "library-registration",
+              "start": 426.7000000178814
+            },
+            {
+              "bytes": 133008,
+              "duration": 7,
+              "kind": "library-registration",
+              "start": 443.59999999403954
+            }
+          ],
+          "timeOrigin": 1793421474679.4,
+          "navigation": [
+            {
+              "duration": 0.800000011920929,
+              "requestStart": 0,
+              "responseStart": 0,
+              "responseEnd": 0.7000000178813934,
+              "transferSize": 0,
+              "encodedBodySize": 0
+            }
+          ]
+        },
+        {
+          "path": "/static/host.html",
+          "scripts": [
+            {
+              "bytes": 2203168,
+              "duration": 40.5,
+              "kind": "canvas-runtime",
+              "start": 182.2000000178814
+            },
+            {
+              "bytes": 973902,
+              "duration": 21.30000001192093,
+              "kind": "library-registration",
+              "start": 295.90000000596046
+            },
+            {
+              "bytes": 36854,
+              "duration": 0.699999988079071,
+              "kind": "library-registration",
+              "start": 317.30000001192093
+            },
+            {
+              "bytes": 1077690,
+              "duration": 16.799999982118607,
+              "kind": "library-registration",
+              "start": 318.2000000178814
+            },
+            {
+              "bytes": 133008,
+              "duration": 6.700000017881393,
+              "kind": "library-registration",
+              "start": 335
+            }
+          ],
+          "timeOrigin": 1793421474846.4,
+          "navigation": [
+            {
+              "duration": 0.800000011920929,
+              "requestStart": 0,
+              "responseStart": 0,
+              "responseEnd": 0.800000011920929,
+              "transferSize": 0,
+              "encodedBodySize": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "web-detail-1",
+      "visibleMs": 2722,
+      "editableMs": 2724,
+      "revision": 158,
+      "changeCounter": 0,
+      "dependencies": [
+        {
+          "name": "antd6",
+          "pkgId": "b6f20329-89de-4bed-b63d-bba007ff3af5",
+          "version": "3.10.0"
+        },
+        {
+          "name": "overseas",
+          "pkgId": "8785f78a-be85-4369-893e-6f743d1d14b0",
+          "version": "1.12.0"
+        },
+        {
+          "name": "antd-icons",
+          "pkgId": "e5577195-30c1-4a54-ac98-5323a79ddaf6",
+          "version": "0.3.0"
+        },
+        {
+          "name": "react-ui",
+          "pkgId": "da2a82c5-8da6-41fb-a64a-2c823a8bdfec",
+          "version": "0.2.0"
+        },
+        {
+          "name": "Admin Templates",
+          "pkgId": "45f57c2c-38ef-4bb0-8351-8143f15d402d",
+          "version": "3.0.0"
+        }
+      ],
+      "timingStartFromNavigationMs": 1562.7,
+      "timings": {
+        "elapsedMs": 1224.2999999821186,
+        "entries": [
+          {
+            "durationMs": 101.69999998807907,
+            "phase": "studio-module-import",
+            "startMs": 0
+          },
+          {
+            "durationMs": 10.300000011920929,
+            "phase": "startup-preferences",
+            "startMs": 114.2999999821186
+          },
+          {
+            "durationMs": 141.09999999403954,
+            "phase": "project-fetch",
+            "startMs": 124.7999999821186
+          },
+          {
+            "durationMs": 67.30000001192093,
+            "phase": "model-unbundle",
+            "startMs": 265.89999997615814
+          },
+          {
+            "durationMs": 36.900000005960464,
+            "phase": "studio-context",
+            "startMs": 338.59999999403954
+          },
+          {
+            "durationMs": 53.900000005960464,
+            "phase": "initial-route",
+            "startMs": 342.59999999403954
+          },
+          {
+            "durationMs": 53.900000005960464,
+            "phase": "initial-viewport",
+            "startMs": 342.59999999403954
+          },
+          {
+            "durationMs": 3.7999999821186066,
+            "phase": "code-component-sync",
+            "startMs": 467.59999999403954
+          },
+          {
+            "durationMs": 0,
+            "phase": "app-user-init",
+            "startMs": 471.5
+          },
+          {
+            "durationMs": 0,
+            "phase": "initializer-ready",
+            "startMs": 471.5
+          },
+          {
+            "durationMs": 0,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-load-start",
+            "startMs": 482.59999999403954
+          },
+          {
+            "durationMs": 121.60000002384186,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-host-document",
+            "startMs": 497.39999997615814
+          },
+          {
+            "durationMs": 3.300000011920929,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-host-ready",
+            "startMs": 619.7999999821186
+          },
+          {
+            "durationMs": 8.699999988079071,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-runtime",
+            "startMs": 623.1999999880791
+          },
+          {
+            "durationMs": 40.20000001788139,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-component-packages",
+            "startMs": 631.8999999761581
+          },
+          {
+            "durationMs": 0,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-context-created",
+            "startMs": 682.2999999821186
+          },
+          {
+            "durationMs": 0,
+            "phase": "all-frame-contexts-created",
+            "startMs": 682.2999999821186
+          },
+          {
+            "durationMs": 212.40000000596046,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-initialization",
+            "startMs": 482.59999999403954
+          },
+          {
+            "durationMs": 289,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-first-render",
+            "startMs": 682.2999999821186
+          },
+          {
+            "durationMs": 0,
+            "phase": "canvas-revealed",
+            "startMs": 1005.1999999880791
+          },
+          {
+            "durationMs": 0,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-rendered",
+            "startMs": 1029
+          },
+          {
+            "durationMs": 0,
+            "phase": "all-frames-rendered",
+            "startMs": 1029
+          }
+        ],
+        "frameCount": 1
+      },
+      "serverResourceGetsBeforeEditable": {
+        "models": 0,
+        "code": 0
+      },
+      "projectRequests": [
+        {
+          "startMs": 333,
+          "durationMs": 674,
+          "serverTiming": [
+            "owner;dur=13.3, revision;dur=32.2, permissions;dur=36.7, dependencies;dur=175.3"
+          ]
+        }
+      ],
+      "httpErrorsBeforeEditable": [],
+      "documents": [
+        {
+          "url": "https://plasmic-studio.shiguanglab.com/projects/tk89W1Akg2HjAjyHAYEro7",
+          "durationMs": 221,
+          "fromCache": true,
+          "cacheControl": [
+            "no-cache"
+          ]
+        },
+        {
+          "url": "https://plasmic-canvas.shiguanglab.com/static/host.html",
+          "durationMs": 221,
+          "fromCache": true,
+          "cacheControl": [
+            "no-cache"
+          ]
+        }
+      ],
+      "frames": [
+        {
+          "path": "/projects/tk89W1Akg2HjAjyHAYEro7",
+          "scripts": [],
+          "timeOrigin": 1793421477388.1,
+          "navigation": [
+            {
+              "duration": 338.90000000596046,
+              "requestStart": 1.800000011920929,
+              "responseStart": 217.7000000178814,
+              "responseEnd": 219,
+              "transferSize": 300,
+              "encodedBodySize": 8048
+            }
+          ]
+        },
+        {
+          "path": "/static/host.html",
+          "scripts": [
+            {
+              "bytes": 2203168,
+              "duration": 7.199999988079071,
+              "kind": "canvas-runtime",
+              "start": 1007
+            }
+          ],
+          "timeOrigin": 1793421478492.8,
+          "navigation": [
+            {
+              "duration": 233.09999999403954,
+              "requestStart": 3.300000011920929,
+              "responseStart": 219.30000001192093,
+              "responseEnd": 219.90000000596046,
+              "transferSize": 300,
+              "encodedBodySize": 4716
+            }
+          ]
+        },
+        {
+          "path": "/static/host.html",
+          "scripts": [],
+          "timeOrigin": 1793421478721.9,
+          "navigation": [
+            {
+              "duration": 1.199999988079071,
+              "requestStart": 0,
+              "responseStart": 0,
+              "responseEnd": 1.199999988079071,
+              "transferSize": 0,
+              "encodedBodySize": 0
+            }
+          ]
+        },
+        {
+          "path": "blank",
+          "scripts": [
+            {
+              "bytes": 2203168,
+              "duration": 9.400000005960464,
+              "kind": "canvas-runtime",
+              "start": 217.5
+            },
+            {
+              "bytes": 973902,
+              "duration": 3.4000000059604645,
+              "kind": "library-registration",
+              "start": 256.90000000596046
+            },
+            {
+              "bytes": 36854,
+              "duration": 0.19999998807907104,
+              "kind": "library-registration",
+              "start": 260.30000001192093
+            },
+            {
+              "bytes": 1077690,
+              "duration": 7.699999988079071,
+              "kind": "library-registration",
+              "start": 260.60000002384186
+            },
+            {
+              "bytes": 133008,
+              "duration": 4.200000017881393,
+              "kind": "library-registration",
+              "start": 268.40000000596046
+            }
+          ],
+          "timeOrigin": 1793421479290.5,
+          "navigation": [
+            {
+              "duration": 1,
+              "requestStart": 0,
+              "responseStart": 0,
+              "responseEnd": 1,
+              "transferSize": 0,
+              "encodedBodySize": 0
+            }
+          ]
+        },
+        {
+          "path": "/static/host.html",
+          "scripts": [
+            {
+              "bytes": 2203168,
+              "duration": 7.100000023841858,
+              "kind": "canvas-runtime",
+              "start": 141.09999999403954
+            },
+            {
+              "bytes": 973902,
+              "duration": 3.5999999940395355,
+              "kind": "library-registration",
+              "start": 172.40000000596046
+            },
+            {
+              "bytes": 36854,
+              "duration": 0.30000001192092896,
+              "kind": "library-registration",
+              "start": 176.09999999403954
+            },
+            {
+              "bytes": 1077690,
+              "duration": 8,
+              "kind": "library-registration",
+              "start": 176.59999999403954
+            },
+            {
+              "bytes": 133008,
+              "duration": 4.200000017881393,
+              "kind": "library-registration",
+              "start": 184.59999999403954
+            }
+          ],
+          "timeOrigin": 1793421479433,
+          "navigation": [
+            {
+              "duration": 0.7000000178813934,
+              "requestStart": 0,
+              "responseStart": 0,
+              "responseEnd": 0.7000000178813934,
+              "transferSize": 0,
+              "encodedBodySize": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "web-detail-2",
+      "visibleMs": 2589,
+      "editableMs": 2591,
+      "revision": 158,
+      "changeCounter": 0,
+      "dependencies": [
+        {
+          "name": "antd6",
+          "pkgId": "b6f20329-89de-4bed-b63d-bba007ff3af5",
+          "version": "3.10.0"
+        },
+        {
+          "name": "overseas",
+          "pkgId": "8785f78a-be85-4369-893e-6f743d1d14b0",
+          "version": "1.12.0"
+        },
+        {
+          "name": "antd-icons",
+          "pkgId": "e5577195-30c1-4a54-ac98-5323a79ddaf6",
+          "version": "0.3.0"
+        },
+        {
+          "name": "react-ui",
+          "pkgId": "da2a82c5-8da6-41fb-a64a-2c823a8bdfec",
+          "version": "0.2.0"
+        },
+        {
+          "name": "Admin Templates",
+          "pkgId": "45f57c2c-38ef-4bb0-8351-8143f15d402d",
+          "version": "3.0.0"
+        }
+      ],
+      "timingStartFromNavigationMs": 1485.5,
+      "timings": {
+        "elapsedMs": 1160,
+        "entries": [
+          {
+            "durationMs": 92.60000002384186,
+            "phase": "studio-module-import",
+            "startMs": 0
+          },
+          {
+            "durationMs": 9.400000005960464,
+            "phase": "startup-preferences",
+            "startMs": 104.7000000178814
+          },
+          {
+            "durationMs": 120.69999998807907,
+            "phase": "project-fetch",
+            "startMs": 114.30000001192093
+          },
+          {
+            "durationMs": 65.10000002384186,
+            "phase": "model-unbundle",
+            "startMs": 235
+          },
+          {
+            "durationMs": 36.19999998807907,
+            "phase": "studio-context",
+            "startMs": 305.60000002384186
+          },
+          {
+            "durationMs": 53,
+            "phase": "initial-route",
+            "startMs": 309.40000000596046
+          },
+          {
+            "durationMs": 53,
+            "phase": "initial-viewport",
+            "startMs": 309.40000000596046
+          },
+          {
+            "durationMs": 4.199999988079071,
+            "phase": "code-component-sync",
+            "startMs": 439.7000000178814
+          },
+          {
+            "durationMs": 0,
+            "phase": "app-user-init",
+            "startMs": 444
+          },
+          {
+            "durationMs": 0,
+            "phase": "initializer-ready",
+            "startMs": 444
+          },
+          {
+            "durationMs": 0,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-load-start",
+            "startMs": 464.60000002384186
+          },
+          {
+            "durationMs": 91.7999999821186,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-host-document",
+            "startMs": 477.2000000178814
+          },
+          {
+            "durationMs": 2.5999999940395355,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-host-ready",
+            "startMs": 569.7000000178814
+          },
+          {
+            "durationMs": 11.400000005960464,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-runtime",
+            "startMs": 572.3000000119209
+          },
+          {
+            "durationMs": 63.900000005960464,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-component-packages",
+            "startMs": 583.8000000119209
+          },
+          {
+            "durationMs": 0,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-context-created",
+            "startMs": 657.8000000119209
+          },
+          {
+            "durationMs": 0,
+            "phase": "all-frame-contexts-created",
+            "startMs": 657.8000000119209
+          },
+          {
+            "durationMs": 202.89999997615814,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-initialization",
+            "startMs": 464.60000002384186
+          },
+          {
+            "durationMs": 264.5,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-first-render",
+            "startMs": 657.7000000178814
+          },
+          {
+            "durationMs": 0,
+            "phase": "canvas-revealed",
+            "startMs": 960.3000000119209
+          },
+          {
+            "durationMs": 0,
+            "frameUuid": "dO6gEmTQ80cE",
+            "phase": "frame-rendered",
+            "startMs": 981.3000000119209
+          },
+          {
+            "durationMs": 0,
+            "phase": "all-frames-rendered",
+            "startMs": 981.3000000119209
+          }
+        ],
+        "frameCount": 1
+      },
+      "serverResourceGetsBeforeEditable": {
+        "models": 0,
+        "code": 0
+      },
+      "projectRequests": [
+        {
+          "startMs": 326,
+          "durationMs": 632,
+          "serverTiming": [
+            "owner;dur=13.6, revision;dur=23.5, permissions;dur=26.8, dependencies;dur=152.6"
+          ]
+        }
+      ],
+      "httpErrorsBeforeEditable": [],
+      "documents": [
+        {
+          "url": "https://plasmic-studio.shiguanglab.com/projects/tk89W1Akg2HjAjyHAYEro7",
+          "durationMs": 224,
+          "fromCache": true,
+          "cacheControl": [
+            "no-cache"
+          ]
+        },
+        {
+          "url": "https://plasmic-canvas.shiguanglab.com/static/host.html",
+          "durationMs": 222,
+          "fromCache": true,
+          "cacheControl": [
+            "no-cache"
+          ]
+        }
+      ],
+      "frames": [
+        {
+          "path": "/projects/tk89W1Akg2HjAjyHAYEro7",
+          "scripts": [],
+          "timeOrigin": 1793421481761.9,
+          "navigation": [
+            {
+              "duration": 331.69999998807907,
+              "requestStart": 1.5,
+              "responseStart": 222.69999998807907,
+              "responseEnd": 223.40000000596046,
+              "transferSize": 300,
+              "encodedBodySize": 8048
+            }
+          ]
+        },
+        {
+          "path": "/static/host.html",
+          "scripts": [
+            {
+              "bytes": 2203168,
+              "duration": 7.300000011920929,
+              "kind": "canvas-runtime",
+              "start": 983.9000000059605
+            }
+          ],
+          "timeOrigin": 1793421482800,
+          "navigation": [
+            {
+              "duration": 234.80000001192093,
+              "requestStart": 3.0999999940395355,
+              "responseStart": 220.59999999403954,
+              "responseEnd": 221.2000000178814,
+              "transferSize": 300,
+              "encodedBodySize": 4716
+            }
+          ]
+        },
+        {
+          "path": "/static/host.html",
+          "scripts": [],
+          "timeOrigin": 1793421483030.5,
+          "navigation": [
+            {
+              "duration": 1.2000000178813934,
+              "requestStart": 0,
+              "responseStart": 0,
+              "responseEnd": 1.100000023841858,
+              "transferSize": 0,
+              "encodedBodySize": 0
+            }
+          ]
+        },
+        {
+          "path": "blank",
+          "scripts": [
+            {
+              "bytes": 2203168,
+              "duration": 7.0999999940395355,
+              "kind": "canvas-runtime",
+              "start": 239
+            },
+            {
+              "bytes": 973902,
+              "duration": 3.2999999821186066,
+              "kind": "library-registration",
+              "start": 291.90000000596046
+            },
+            {
+              "bytes": 36854,
+              "duration": 0.20000001788139343,
+              "kind": "library-registration",
+              "start": 295.19999998807907
+            },
+            {
+              "bytes": 1077690,
+              "duration": 7.9000000059604645,
+              "kind": "library-registration",
+              "start": 295.5
+            },
+            {
+              "bytes": 133008,
+              "duration": 4.5999999940395355,
+              "kind": "library-registration",
+              "start": 303.40000000596046
+            }
+          ],
+          "timeOrigin": 1793421483553.4,
+          "navigation": [
+            {
+              "duration": 0.9000000059604645,
+              "requestStart": 0,
+              "responseStart": 0,
+              "responseEnd": 0.9000000059604645,
+              "transferSize": 0,
+              "encodedBodySize": 0
+            }
+          ]
+        },
+        {
+          "path": "/static/host.html",
+          "scripts": [
+            {
+              "bytes": 2203168,
+              "duration": 9.599999994039536,
+              "kind": "canvas-runtime",
+              "start": 108.40000000596046
+            },
+            {
+              "bytes": 973902,
+              "duration": 3.699999988079071,
+              "kind": "library-registration",
+              "start": 162.40000000596046
+            },
+            {
+              "bytes": 36854,
+              "duration": 0.10000002384185791,
+              "kind": "library-registration",
+              "start": 166.19999998807907
+            },
+            {
+              "bytes": 1077690,
+              "duration": 7.9000000059604645,
+              "kind": "library-registration",
+              "start": 166.5
+            },
+            {
+              "bytes": 133008,
+              "duration": 7.800000011920929,
+              "kind": "library-registration",
+              "start": 174.5
+            }
+          ],
+          "timeOrigin": 1793421483710.8,
+          "navigation": [
+            {
+              "duration": 0.699999988079071,
+              "requestStart": 0,
+              "responseStart": 0,
+              "responseEnd": 0.699999988079071,
+              "transferSize": 0,
+              "encodedBodySize": 0
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "appWarm": {
+      "n": 3,
+      "samplesMs": [
+        2283,
+        2330,
+        2394
+      ],
+      "medianMs": 2330,
+      "minMs": 2283,
+      "maxMs": 2394
+    },
+    "webWarm": {
+      "n": 3,
+      "samplesMs": [
+        2889,
+        2728,
+        2630
+      ],
+      "medianMs": 2728,
+      "minMs": 2630,
+      "maxMs": 2889
+    }
+  },
+  "excludedAppProcessRestart": {
+    "reason": "Isolated profile session restoration encountered a project-check timeout and auth/self 502; returned to home, never reached the target editor. No valid end-to-end restart timing. Not attributed to resource caching.",
+    "observedHttpErrors": [
+      {
+        "url": "https://plasmic-studio.shiguanglab.com/api/v1/auth/self",
+        "status": 502
+      },
+      {
+        "url": "https://plasmic-studio.shiguanglab.com/api/v1/auth/self",
+        "status": 502
+      },
+      {
+        "url": "https://plasmic-studio.shiguanglab.com/api/v1/app-config",
+        "status": 502
+      },
+      {
+        "url": "https://plasmic-studio.shiguanglab.com/api/v1/app-ctx",
+        "status": 502
+      },
+      {
+        "url": "https://plasmic-studio.shiguanglab.com/api/v1/latest-bundle-version",
+        "status": 502
+      },
+      {
+        "url": "https://plasmic-studio.shiguanglab.com/api/v1/app-config",
+        "status": 502
+      },
+      {
+        "url": "https://plasmic-studio.shiguanglab.com/api/v1/app-ctx",
+        "status": 502
+      },
+      {
+        "url": "https://plasmic-studio.shiguanglab.com/api/v1/latest-bundle-version",
+        "status": 502
+      }
+    ]
+  },
+  "rendererErrors": {
+    "initial": [],
+    "webDetail": []
+  },
+  "blockedProjectWrites": {
+    "initial": [],
+    "webDetail": []
+  }
+}

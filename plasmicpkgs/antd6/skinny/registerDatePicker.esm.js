@@ -3,10 +3,11 @@ import cls from 'classnames';
 import dayjs from 'dayjs';
 import React from 'react';
 import { u as useCanvasOverlay, p as previewOpenProp } from './canvas-overlay-Dan70Oxr.esm.js';
-import { r as registerComponentHelper, c as capitalize } from './utils-Cmdig6Yl.esm.js';
+import { r as registerComponentHelper, c as capitalize } from './utils-U416WEAa.esm.js';
 import '@plasmicapp/host';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
+import '@shiguang-lab/plasmic-antd6/thumbnails';
 
 function AntdDatePicker(props) {
   const { props: canvasProps, open, isEditing } = useCanvasOverlay(props);

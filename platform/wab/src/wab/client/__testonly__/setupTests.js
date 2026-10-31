@@ -27,7 +27,7 @@ vi.mock(
     getReactWebBundle: async () => "",
     getLiveFrameClientJs: async () => "",
     getHostLessPkg: async () => "",
-    getSortedHostLessPkgs: async (_win, pkgs) => pkgs.map((pkg) => [pkg, ""]),
+    getSortedHostLessPkgs: async (_win, _api, pkgs) => pkgs.map((pkg) => [pkg, ""]),
   }),
 );
 

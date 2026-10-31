@@ -1,9 +1,10 @@
 import { Switch } from 'antd';
 import React from 'react';
-import { j as switchComponentName } from './names-DKofLcnC.esm.js';
-import { r as registerComponentHelper } from './utils-Cmdig6Yl.esm.js';
+import { h as switchComponentName } from './names-oKrrGg47.esm.js';
+import { r as registerComponentHelper } from './utils-U416WEAa.esm.js';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
+import '@shiguang-lab/plasmic-antd6/thumbnails';
 
 function AntdSwitch(props) {
   return /* @__PURE__ */ React.createElement(Switch, { ...props });

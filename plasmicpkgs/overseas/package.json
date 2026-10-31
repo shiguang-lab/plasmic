@@ -37,7 +37,8 @@
       "types": "./dist/*.d.ts",
       "require": "./skinny/*.cjs.js",
       "import": "./skinny/*.esm.js"
-    }
+    },
+    "./thumbnails": "./skinny/thumbnails.cjs"
   },
   "files": [
     "dist",

@@ -1,4 +1,4 @@
-import { fetchLibraryResource, resourceCacheIdentity } from "@/wab/client/resource-cache";
+import type { Api } from "@/wab/client/api";
 import { ENV } from "@/wab/client/env";
 import { scriptExec } from "@/wab/client/script-exec";
 import { assert, sortAs, withTimeout } from "@/wab/shared/common";
@@ -50,38 +50,27 @@ function isManagedLibrary(pkg: string) {
   return (DEVFLAGS.hostLessComponents ?? []).some((entry) => entry.codeName === pkg && entry.hasCodeArtifacts);
 }
 
-async function resolveLibraryRelease(pkg: string): Promise<LibraryRelease> {
-  const response = await fetch(`/api/v1/hostless-libraries/${encodeURIComponent(pkg)}/release`);
-  assert(response.ok, `Unable to resolve component library ${pkg}: ${response.status}`);
-  const release = await response.json();
-  assert(release.pkgId && release.version, `Missing component library release for ${pkg}`);
-  return release;
-}
+type LibraryApi = Pick<Api, "getHostlessLibraryRelease" | "getHostlessLibraryCanvas">;
 
-const libraryKey = (pkg: string, version: string, release?: LibraryRelease) =>
-  JSON.stringify([resourceCacheIdentity(), pkg, version, release?.pkgId, release?.version]);
-
-const fetchHostLessPkg = memoize(
-  async (pkg: string, version: string, release?: LibraryRelease) => {
-    const key = libraryKey(pkg, version, release);
-    try {
-      const managed = isManagedLibrary(pkg);
-      assert(!managed || release?.pkgId && release.version, `Missing exact component library release for ${pkg}`);
-      const url = managed && release
-        ? `/api/v1/hostless-libraries/${encodeURIComponent(pkg)}/canvas?${new URLSearchParams({ version: release.version, pkgId: release.pkgId })}`
-        : `${getStaticBaseUrl()}/canvas-packages/build/${pkg}${version}.${ENV.COMMITHASH}.js`;
-      const response = await fetchLibraryResource(url);
-      if (!response.ok) {
-        throw new Error(`Unable to load component library ${pkg}${release ? `@${release.version}` : ""}: ${response.status}`);
-      }
-      return withLibraryRegistrations(pkg, await response.text());
-    } catch (error) {
-      fetchHostLessPkg.cache.delete(key);
-      throw error;
+const fetchUnmanagedHostLessPkg = memoize(async (pkg: string, version: string) => {
+  try {
+    const response = await fetch(`${getStaticBaseUrl()}/canvas-packages/build/${pkg}${version}.${ENV.COMMITHASH}.js`);
+    if (!response.ok) {
+      throw new Error(`Unable to load component library ${pkg}: ${response.status}`);
     }
-  },
-  libraryKey,
-);
+    return withLibraryRegistrations(pkg, await response.text());
+  } catch (error) {
+    fetchUnmanagedHostLessPkg.cache.delete(JSON.stringify([pkg, version]));
+    throw error;
+  }
+}, (pkg, version) => JSON.stringify([pkg, version]));
+
+async function fetchHostLessPkg(api: LibraryApi, pkg: string, version: string, release?: LibraryRelease) {
+  if (!isManagedLibrary(pkg)) { return fetchUnmanagedHostLessPkg(pkg, version); }
+  assert(release?.pkgId && release.version, `Missing exact component library release for ${pkg}`);
+  // The Studio frame owns account fencing, deduplication and persistent caching.
+  return withLibraryRegistrations(pkg, await api.getHostlessLibraryCanvas(pkg, release));
+}
 
 export function getCanvasPkgs() {
   return fetchCanvasPkgs();
@@ -161,10 +150,10 @@ function withLibraryRegistrations(pkg: string, source: string) {
   })();`;
 }
 
-export async function getHostLessPkg(win: Window, pkg: string, version: string, release?: LibraryRelease) {
+export async function getHostLessPkg(win: Window, api: LibraryApi, pkg: string, version: string, release?: LibraryRelease) {
   const doc = win.document;
   const [source] = await Promise.all([
-    (async () => fetchHostLessPkg(pkg, version, release ?? (isManagedLibrary(pkg) ? await resolveLibraryRelease(pkg) : undefined)))(),
+    (async () => fetchHostLessPkg(api, pkg, version, release ?? (isManagedLibrary(pkg) ? await api.getHostlessLibraryRelease(pkg) : undefined)))(),
     needsCanvasRuntime(pkg) ? ensureCanvasRuntime(win) : undefined,
   ]);
   assert(win.document === doc, "Component library target navigated while loading");
@@ -187,6 +176,7 @@ function getDependencyRelease(pkg: string, site: Site): LibraryRelease | undefin
 
 export async function getSortedHostLessPkgs(
   win: Window,
+  api: LibraryApi,
   pkgs: string[],
   version: string,
   site?: Site,
@@ -197,8 +187,8 @@ export async function getSortedHostLessPkgs(
     Promise.all(
     sortedPkgs.map(async (pkg) => {
       const dependency = site ? getDependencyRelease(pkg, site) : undefined;
-      const release = dependency ?? (isManagedLibrary(pkg) ? await resolveLibraryRelease(pkg) : undefined);
-      return [site ? getHostLessPkgIdentity(pkg, site) : release ? `${pkg}@${release.pkgId}:${release.version}` : pkg, await fetchHostLessPkg(pkg, version, release)];
+      const release = dependency ?? (isManagedLibrary(pkg) ? await api.getHostlessLibraryRelease(pkg) : undefined);
+      return [site ? getHostLessPkgIdentity(pkg, site) : release ? `${pkg}@${release.pkgId}:${release.version}` : pkg, await fetchHostLessPkg(api, pkg, version, release)];
     }),
     ),
     sortedPkgs.some(needsCanvasRuntime)

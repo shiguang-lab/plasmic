@@ -1,9 +1,10 @@
 import { Checkbox } from 'antd';
 import React from 'react';
-import { c as checkboxComponentName, a as checkboxGroupComponentName } from './names-DKofLcnC.esm.js';
-import { r as registerComponentHelper, t as traverseReactEltTree } from './utils-Cmdig6Yl.esm.js';
+import { c as checkboxComponentName, a as checkboxGroupComponentName } from './names-oKrrGg47.esm.js';
+import { r as registerComponentHelper, t as traverseReactEltTree } from './utils-U416WEAa.esm.js';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
+import '@shiguang-lab/plasmic-antd6/thumbnails';
 
 function AntdCheckbox(props) {
   const { onChange, ...rest } = props;

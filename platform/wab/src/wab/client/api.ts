@@ -160,6 +160,20 @@ export class Api extends SharedApi {
     ensureIsTopFrame();
   }
 
+  // Downloads stay in the authenticated Studio frame. Canvas hosts expose static files only.
+  async getHostlessLibraryRelease(name: string): Promise<{ pkgId: string; version: string }> {
+    return this.get(`/hostless-libraries/${encodeURIComponent(name)}/release`, {});
+  }
+
+  async getHostlessLibraryCanvas(name: string, release: { pkgId: string; version: string }): Promise<string> {
+    const url = `/api/v1/hostless-libraries/${encodeURIComponent(name)}/canvas?${new URLSearchParams({ version: release.version, pkgId: release.pkgId })}`;
+    const response = await fetchLibraryResource(url);
+    if (!response.ok) {
+      throw new Error(`Unable to load component library ${name}@${release.version}: ${response.status}`);
+    }
+    return response.text();
+  }
+
   setUser = setUser;
 
   async clearUser() {
@@ -507,6 +521,8 @@ export function filteredApi(
     "revertProjectToRevision",
     "getPkgVersionMeta",
     "getLastBundleVersion",
+    "getHostlessLibraryRelease",
+    "getHostlessLibraryCanvas",
     "getAppConfig",
     "getClip",
     "readNavigatorClipboard",

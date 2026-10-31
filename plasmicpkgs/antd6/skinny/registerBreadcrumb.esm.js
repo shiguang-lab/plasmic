@@ -1,8 +1,9 @@
 import { Breadcrumb } from 'antd';
 import React from 'react';
-import { b as asArray, r as registerComponentHelper } from './utils-Cmdig6Yl.esm.js';
+import { a as asArray, r as registerComponentHelper } from './utils-U416WEAa.esm.js';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
+import '@shiguang-lab/plasmic-antd6/thumbnails';
 
 function AntdBreadcrumbItem(props) {
   return props.children;

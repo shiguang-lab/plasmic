@@ -1,9 +1,10 @@
 import { Input, InputNumber } from 'antd';
 import React from 'react';
-import { i as inputComponentName, t as textAreaComponentName, p as passwordComponentName, d as inputNumberComponentName } from './names-DKofLcnC.esm.js';
-import { r as registerComponentHelper } from './utils-Cmdig6Yl.esm.js';
+import { i as inputComponentName, t as textAreaComponentName, p as passwordComponentName, d as inputNumberComponentName } from './names-oKrrGg47.esm.js';
+import { r as registerComponentHelper } from './utils-U416WEAa.esm.js';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
+import '@shiguang-lab/plasmic-antd6/thumbnails';
 
 const AntdInput = Input;
 const AntdTextArea = React.forwardRef(function AntdTextArea2({ showCount, ...props }, ref) {

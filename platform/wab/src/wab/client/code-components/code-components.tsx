@@ -326,6 +326,7 @@ export async function maybeConvertToHostLessProject(studioCtx: StudioCtx) {
       // First, install the deps
       for (const [_depName, depModule] of await getSortedHostLessPkgs(
         window.parent,
+        studioCtx.appCtx.api,
         pkg.deps,
         getVersionForCanvasPackages(window.parent),
       )) {
@@ -358,6 +359,7 @@ export async function maybeConvertToHostLessProject(studioCtx: StudioCtx) {
         window.parent,
         await getHostLessPkg(
           window.parent,
+        studioCtx.appCtx.api,
           pkg.name,
           getVersionForCanvasPackages(window.parent),
         ),

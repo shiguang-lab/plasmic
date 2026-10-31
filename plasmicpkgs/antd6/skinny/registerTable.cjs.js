@@ -3,9 +3,10 @@
 var host = require('@plasmicapp/host');
 var Ant = require('antd');
 var React = require('react');
-var utils = require('./utils-DMWa5SeG.cjs.js');
+var utils = require('./utils-Diqr9Iet.cjs.js');
 require('@plasmicapp/host/registerComponent');
 require('@plasmicapp/host/registerGlobalContext');
+require('@shiguang-lab/plasmic-antd6/thumbnails');
 
 function _interopDefault (e) { return e && e.__esModule ? e : { default: e }; }
 
@@ -771,9 +772,6 @@ function registerTable(loader) {
   utils.registerComponentHelper(loader, AntdExpandColumn, {
     name: "plasmic-antd6-table-expand-column",
     displayName: "Table.ExpandColumn",
-    thumbnailUrl: "data:image/svg+xml;charset=utf-8," + encodeURIComponent(
-      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 80"><rect x="8" y="10" width="104" height="60" rx="4" fill="#fff" stroke="#d9d9d9"/><path d="M8 30h104M8 50h104M32 10v40" stroke="#d9d9d9"/><path d="m16 18 4 4 4-4M16 40h8m-4-4v8" fill="none" stroke="#1677ff" stroke-width="2"/><rect x="36" y="55" width="68" height="10" rx="2" fill="#e6f4ff"/></svg>'
-    ),
     description: "Place once directly in Table Columns to position the native expansion column. Configure visibility, title, width and fixed side in Table.expandable; put detail content in Table.expandedRowRender. Do not nest in ColumnGroup.",
     parentComponentName: "plasmic-antd6-table",
     styleSections: false,

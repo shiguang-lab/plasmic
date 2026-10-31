@@ -2,9 +2,10 @@ import { Menu } from 'antd';
 import { usePlasmicCanvasContext } from '@plasmicapp/host';
 import { r as renderCanvasSlot } from './canvas-overlay-Dan70Oxr.esm.js';
 import React from 'react';
-import { r as registerComponentHelper } from './utils-Cmdig6Yl.esm.js';
+import { r as registerComponentHelper } from './utils-U416WEAa.esm.js';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
+import '@shiguang-lab/plasmic-antd6/thumbnails';
 
 function AntdMenuItem(props) {
   return /* @__PURE__ */ React.createElement(React.Fragment, null, props.children);

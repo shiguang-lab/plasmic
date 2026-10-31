@@ -144,10 +144,11 @@ import 'dayjs/locale/vi';
 import 'dayjs/locale/zh-cn';
 import 'dayjs/locale/zh-tw';
 import { u as useIsMounted } from './react-utils-BpvCcwyE.esm.js';
-import { m as makeRegisterGlobalContext } from './utils-Cmdig6Yl.esm.js';
+import { m as makeRegisterGlobalContext } from './utils-U416WEAa.esm.js';
 import 'classnames';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
+import '@shiguang-lab/plasmic-antd6/thumbnails';
 
 const localePacks = {
   ar_EG,

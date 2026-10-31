@@ -104,7 +104,8 @@ try {
         if (/\.(html|js|css|json|template)$/.test(entry.name)) {
           let text = data
             .toString()
-            .replaceAll("http://plasmic-origin.invalid", config.studioOrigin);
+            .replaceAll("http://plasmic-origin.invalid", config.studioOrigin)
+            .replaceAll("http://canvas-origin.invalid", config.canvasOrigin);
           data = Buffer.from(text);
           await writeFile(file, data);
         }

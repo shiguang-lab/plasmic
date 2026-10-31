@@ -159,6 +159,9 @@ export function StudioFrame({
           );
         }
         const hostUrl = getHostUrl(proj, maybeBranch, appCtx.appConfig);
+        const configuredHostUrl = appCtx.appConfig.ccStubs
+          ? hostUrl
+          : DEVFLAGS.hostUrl || maybeBranch?.hostUrl || proj.hostUrl || appCtx.appConfig.defaultHostUrl;
         setBranch(maybeBranch);
         const urlsOrDomains = [
           ...trustedHosts.map((i) => i.hostUrl),
@@ -167,7 +170,7 @@ export function StudioFrame({
         ];
         if (
           (proj.hostUrl || DEVFLAGS.hostUrl) &&
-          !urlsOrDomains.includes(hostUrl) &&
+          !urlsOrDomains.includes(configuredHostUrl) &&
           !urlsOrDomains.includes(new URL(hostUrl).origin)
         ) {
           setUntrustedHost(true);

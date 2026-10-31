@@ -1,3 +1,4 @@
+import { Api } from "@/wab/client/api";
 import { overviewLayout } from "@/wab/client/components/dashboard/preview/layout";
 import {
   previewChannel,
@@ -232,6 +233,7 @@ export async function load(request: PreviewRequest) {
   });
   for (const [, module] of await getSortedHostLessPkgs(
     win,
+    new Api(),
     usedHostLessPkgs(payload.site),
     getVersionForCanvasPackages(win),
     payload.site,

@@ -1,3 +1,5 @@
+import { libraryThumbnails } from "../../scripts/library-thumbnails.mjs";
+import { fileURLToPath } from "node:url";
 import commonjs from "@rollup/plugin-commonjs";
 import json from "@rollup/plugin-json";
 import resolve from "@rollup/plugin-node-resolve";
@@ -5,9 +7,12 @@ import glob from "glob";
 import path from "path";
 import esbuild from "rollup-plugin-esbuild";
 
-const SKINNY_INPUTS = glob.sync(
-  "./src/{register*,form/Form*,form/registerForm,form/SchemaForm}.ts*",
-);
+const thumbnails = await libraryThumbnails(path.dirname(fileURLToPath(import.meta.url)), "@shiguang-lab/plasmic-antd6");
+
+const SKINNY_INPUTS = [
+  ...glob.sync("./src/{register*,form/Form*,form/registerForm,form/SchemaForm}.ts*"),
+  "./src/native.ts",
+];
 
 const configs = [
   {
@@ -34,6 +39,7 @@ const configs = [
       },
     ],
     plugins: [
+      thumbnails,
       resolve(),
       commonjs(),
       json(),
@@ -73,6 +79,7 @@ const configs = [
       },
     ],
     plugins: [
+      thumbnails,
       resolve(),
       commonjs(),
       json(),

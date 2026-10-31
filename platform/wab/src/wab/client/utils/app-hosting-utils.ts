@@ -11,11 +11,23 @@ export function getHostUrl(
   if (appConfig.ccStubs) {
     return appConfig.defaultHostUrl;
   }
-  const urlString =
+  let urlString =
     DEVFLAGS.hostUrl ||
     branch?.hostUrl ||
     project.hostUrl ||
     appConfig.defaultHostUrl;
+  const versionedPath = process.env.REACT_APP_VERSIONED_HOST_PATH;
+  if (
+    versionedPath &&
+    !navigator.userAgent.includes("PlasmicDesktop/") &&
+    urlString === appConfig.defaultHostUrl &&
+    appConfig.defaultHostUrl === DEVFLAGS.defaultHostUrl &&
+    new URL(urlString).pathname === "/static/host.html"
+  ) {
+    const builtInUrl = new URL(urlString);
+    builtInUrl.pathname = versionedPath;
+    urlString = builtInUrl.href;
+  }
   const url = new URL(urlString);
 
   // We need to avoid redirects to different origins to avoid CORS errors when
@@ -48,4 +60,14 @@ export function maybeToggleTrailingSlash(doToggle: boolean, hostUrl: string) {
   } else {
     return hostUrl + "/";
   }
+}
+
+/** Only the immutable file emitted for this deployment is reusable across artboards. */
+export function isImmutableHostPage(urlString: string) {
+  const url = new URL(urlString);
+  return (
+    !!process.env.REACT_APP_VERSIONED_HOST_PATH &&
+    url.origin === new URL(DEVFLAGS.defaultHostUrl).origin &&
+    url.pathname === process.env.REACT_APP_VERSIONED_HOST_PATH
+  );
 }

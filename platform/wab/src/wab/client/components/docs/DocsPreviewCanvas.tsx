@@ -143,6 +143,7 @@ export const DocsPreviewCanvas = observer(function DocsPreviewCanvas(props: {
 
             for (const [_pkg, pkgModule] of await getSortedHostLessPkgs(
               frameWindow,
+              studioCtx.appCtx.api,
               usedPkgs,
               getVersionForCanvasPackages(frameWindow),
               studioCtx.site,

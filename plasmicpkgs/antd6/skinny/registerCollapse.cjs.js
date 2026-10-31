@@ -4,9 +4,10 @@ var host = require('@plasmicapp/host');
 var canvasOverlay = require('./canvas-overlay-BCQmyJjQ.cjs.js');
 var Ant = require('antd');
 var React = require('react');
-var utils = require('./utils-DMWa5SeG.cjs.js');
+var utils = require('./utils-Diqr9Iet.cjs.js');
 require('@plasmicapp/host/registerComponent');
 require('@plasmicapp/host/registerGlobalContext');
+require('@shiguang-lab/plasmic-antd6/thumbnails');
 
 function _interopDefault (e) { return e && e.__esModule ? e : { default: e }; }
 

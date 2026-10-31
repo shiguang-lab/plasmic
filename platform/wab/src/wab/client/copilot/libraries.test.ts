@@ -218,6 +218,7 @@ it("installs and upgrades through the real dependency manager, reads new live co
     const meta = { name: "AuditIcon", importPath: "@example/audit-icons", props: { spin: { type: "boolean", description: `Spin ${version}` } } };
     return `window.__PlasmicComponentRegistry.push({component:function(){return null;},meta:${JSON.stringify(meta)}});`;
   } })));
+  api.getHostlessLibraryCanvas.mockImplementation(async (name, release) => (await fetch(`/api/v1/hostless-libraries/${name}/canvas?${new URLSearchParams({version:release.version,pkgId:release.pkgId})}`)).text());
   api.getAppAuthPubConfig.mockResolvedValue({ allowed: true, appName: "", authScreenProperties: null, isAuthEnabled: false });
   api.getPkgVersionMeta.mockImplementation(async (id) => ({ pkg: ensure(versions.get(id), "Missing publication metadata"), depPkgs: [] }));
   api.getPlumePkg.mockResolvedValue({ pkg: publication(dependency("plume", [])), depPkgs: [] });
@@ -237,8 +238,9 @@ it("installs and upgrades through the real dependency manager, reads new live co
   try {
     const provider = (await call("searchLibraryComponents", { query: "AuditIcon" })).components[0];
     expect(await call("installLibrary", { projectId: provider.projectId })).toMatchObject({ installed: true, version: "1.0.0" });
+    expect(api.getHostlessLibraryCanvas).toHaveBeenCalled();
     const contract = () => call("read", { fromProject: library.projectId, collection: "components", view: "contract" });
-    expect((await contract()).results[0].components[0].props[0].registration.description).toBe("Spin 1.0.0");
+    expect((await contract()).results[0].components[0].props[0].description).toBe("Spin 1.0.0");
     const page = (await call("createComponent", { name: "Icons", type: "page" })).created[0].uuid;
     await call("insertHtml", { componentUuid: page, html: `<plasmic-component data-plasmic-component="AuditIcon" data-plasmic-project="${provider.projectId}" data-plasmic-name="AccountIcon" data-props='{"spin":true}'></plasmic-component>` });
     const instance = ensure(flattenTpls(ensure(studioCtx.site.components.find((component) => component.uuid === page), "Missing page").tplTree).find(isKnownTplComponent), "Missing inserted icon");
@@ -249,7 +251,7 @@ it("installs and upgrades through the real dependency manager, reads new live co
     expect((await call("getLibrary", { projectId: library.projectId })).updateAvailable).toBe(true);
     expect(await call("upgradeLibrary", { projectId: library.projectId })).toMatchObject({ upgraded: true, version: "1.1.0" });
     expect(instance.component).toBe(studioCtx.site.projectDependencies[0].site.components[0]);
-    expect((await contract()).results[0].components[0].props[0].registration.description).toBe("Spin 1.1.0");
+    expect((await contract()).results[0].components[0].props[0].description).toBe("Spin 1.1.0");
     expect((await call("validate")).valid).toBe(true);
     const savedModel = studioCtx.bundleSite().site;
     expect(savedModel.deps).toEqual([publication(latest).id]);

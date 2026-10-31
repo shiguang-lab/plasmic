@@ -1,9 +1,13 @@
+import { libraryThumbnails } from "../../scripts/library-thumbnails.mjs";
+import { fileURLToPath } from "node:url";
 import commonjs from "@rollup/plugin-commonjs";
 import json from "@rollup/plugin-json";
 import resolve from "@rollup/plugin-node-resolve";
 import glob from "glob";
 import path from "path";
 import esbuild from "rollup-plugin-esbuild";
+
+const thumbnails = await libraryThumbnails(path.dirname(fileURLToPath(import.meta.url)), "@shiguang-lab/plasmic-overseas");
 
 const SKINNY_INPUTS = glob.sync(
   "./src/register*.ts*",
@@ -34,6 +38,7 @@ export default [
       },
     ],
     plugins: [
+      thumbnails,
       resolve(),
       commonjs(),
       json(),
@@ -73,6 +78,7 @@ export default [
       },
     ],
     plugins: [
+      thumbnails,
       resolve(),
       commonjs(),
       json(),

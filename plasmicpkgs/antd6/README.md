@@ -13,6 +13,8 @@ registerAll(); // Codegen / host API
 
 Run registrations before rendering the app host or Plasmic content. Generated
 pages import the same wrappers from the package's `skinny` entry points.
+The shared canvas runtime imports native Antd and locales through `./native`,
+which does not evaluate component registrations or their thumbnail manifest.
 
 ## Design behavior
 
@@ -21,9 +23,13 @@ pages import the same wrappers from the package's `skinny` entry points.
   structure (such as button labels and table columns). Optional headings,
   descriptions and decorations stay unset so native behavior applies until the
   consumer supplies content. Empty's description uses the native locale.
-- Visual registrations include self-contained SVG `thumbnailUrl` illustrations
-  for Insert. Add new component illustrations in `src/componentThumbnails.ts`;
-  static subcomponents use their own illustration or their parent's diagram.
+- Visual registrations use SVG `thumbnailUrl` illustrations for Insert. Add
+  illustrations in `src/componentThumbnails.ts`; static subcomponents use their
+  own illustration or their parent's diagram. Builds emit the dedicated
+  `skinny/thumbnails.plasmic.json` manifest and `./thumbnails` entry. Platform
+  publication uploads and verifies these SVGs, then replaces inline values with
+  absolute content-addressed URLs in both registration code and library models.
+  Local npm registrations retain self-contained previews.
 - ConfigProvider and App are supplied by the registered global context. Theme
   tokens use `--antd6-*` CSS variables and `antd6-*` registration names.
 - Set `locale` in Ant Design System Settings to any of the 73 locale identifiers
