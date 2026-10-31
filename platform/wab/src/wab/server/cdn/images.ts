@@ -35,7 +35,9 @@ export async function uploadDataUriToS3(
   }
   const parsed = parseDataUrl(dataUri);
   const contentType = parsed.contentType;
-  const fileBuffer = parsed.toBuffer();
+  const fileBuffer = parsed.base64
+    ? parsed.toBuffer()
+    : Buffer.from(decodeURIComponent(parsed.data), "utf8");
 
   return (await uploadFileToS3(fileBuffer, { ...opts, contentType })).map(
     (res) => res.url,
