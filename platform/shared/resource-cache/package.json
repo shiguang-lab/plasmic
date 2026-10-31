@@ -1,6 +1,6 @@
 {
   "name": "@plasmic-shared/resource-cache",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "private": true,
   "main": "src/index.cjs",
   "types": "src/index.d.cts",

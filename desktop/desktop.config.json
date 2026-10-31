@@ -1,6 +1,6 @@
 {
   "studioOrigin": "https://plasmic-studio.shiguanglab.com",
   "canvasOrigin": "https://plasmic-canvas.shiguanglab.com",
-  "webImage": "ghcr.io/shiguang-lab/plasmic-web:0.5.28",
+  "webImage": "ghcr.io/shiguang-lab/plasmic-web:0.5.29",
   "updateUrl": "https://plasmic-studio.shiguanglab.com/desktop-updates"
 }
