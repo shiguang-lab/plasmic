@@ -1,0 +1,7 @@
+{
+  "en": "- Cache versioned Web canvas host pages without repeated validation.\n- Load component-library resources through Studio to fix canvas-origin API failures.\n- Externalize Ant Design 6 and Overseas component previews as immutable SVG assets.",
+  "zh-CN": "- Web 画布 Host 页面按内容版本缓存，减少重复校验。\n- 组件库资源统一通过 Studio 加载，修复画布域名下的接口失败。\n- Ant Design 6 与 Overseas 组件预览图外置为可长期缓存的 SVG 资源。",
+  "zh-TW": "- Web 畫布 Host 頁面依內容版本快取，減少重複驗證。\n- 元件庫資源統一透過 Studio 載入，修正畫布網域的 API 錯誤。\n- Ant Design 6 與 Overseas 預覽圖改用可長期快取的 SVG 資源。",
+  "ja": "- Web キャンバスの Host ページを内容のバージョンごとにキャッシュ。\n- ライブラリを Studio 経由で取得し、キャンバスの API エラーを修正。\n- Ant Design 6 と Overseas のプレビューをキャッシュ可能な SVG に分離。",
+  "ko": "- Web 캔버스 Host 페이지를 콘텐츠 버전별로 캐시합니다.\n- Studio를 통해 라이브러리를 로드하여 캔버스 API 오류를 수정했습니다.\n- Ant Design 6 및 Overseas 미리보기를 캐시 가능한 SVG 리소스로 분리했습니다."
+}
