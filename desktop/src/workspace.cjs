@@ -2,7 +2,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { randomUUID } = require("node:crypto");
 
-// Local navigation and viewport state; no design data or component props.
+// Persist only navigation and viewport state. Opening responses are memory-only.
 class DesktopWorkspace {
   constructor(userData, studioOrigin) {
     this.file = path.join(userData, "workspace.json");
@@ -95,10 +95,11 @@ class DesktopWorkspace {
     if (!id) {
       return this.lastUrl;
     }
-    this.startupData = undefined;
-    const url = new URL("/api/v1/editor-bootstrap/" + id, this.origin);
+    this.clearStartupData();
+    const url = new URL("/api/v1/projects/" + id, this.origin);
     const branchName =
       new URL(this.lastUrl).searchParams.get("branch") || "main";
+    url.searchParams.set("includeStartup", "true");
     if (branchName) {
       url.searchParams.set("branchName", JSON.stringify(branchName));
     }
@@ -112,15 +113,14 @@ class DesktopWorkspace {
     try {
       const response = await session.fetch(url.toString(), options);
       if (response.ok) {
-        const bootstrap = await response.json();
-        const { projects } = bootstrap.projectData;
-        if (!Array.isArray(projects)) {
-          throw new Error("Invalid project response");
+        const opening = await response.json();
+        if (opening.project?.id !== id || opening.startup?.projectId !== id) {
+          throw new Error("Invalid project opening response");
         }
-        if (projects.some((project) => project.id === id)) {
-          this.startupData = { data: bootstrap, expiresAt: Date.now() + 30000 };
-          return this.lastUrl;
-        }
+        this.startupData = { data: opening, expiresAt: Date.now() + 30000 };
+        this.startupTimer = setTimeout(() => this.clearStartupData(), 30000);
+        this.startupTimer.unref();
+        return this.lastUrl;
       } else if (![401, 403, 404].includes(response.status)) {
         throw new Error(
           "Project access check failed (HTTP " + response.status + ")",
@@ -148,10 +148,15 @@ class DesktopWorkspace {
     }
     return home;
   }
-  consumeStartupData(projectId) {
-    const data = this.startupData;
+  clearStartupData() {
+    clearTimeout(this.startupTimer);
+    this.startupTimer = undefined;
     this.startupData = undefined;
-    return data?.data.projectId === projectId && Date.now() < data.expiresAt
+  }
+  consumeStartupData(projectId, branchName) {
+    const data = this.startupData;
+    this.clearStartupData();
+    return data?.data.project?.id === projectId && data.data.startup.branchName === branchName && Date.now() < data.expiresAt
       ? data.data
       : null;
   }

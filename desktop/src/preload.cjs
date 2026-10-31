@@ -62,8 +62,8 @@ if (window.top === window) {
       ipcRenderer.on("desktop:ui-locale", listener);
       return () => ipcRenderer.removeListener("desktop:ui-locale", listener);
     },
-    consumeStartupData: (projectId) =>
-      ipcRenderer.invoke("desktop:startup-data", projectId),
+    consumeStartupData: (projectId, branchName) =>
+      ipcRenderer.invoke("desktop:startup-data", projectId, branchName),
     getSavedEditorView: (projectId) =>
       ipcRenderer.invoke("desktop:saved-editor-view", projectId),
     systemLanguages: languageArg

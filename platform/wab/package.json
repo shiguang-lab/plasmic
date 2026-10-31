@@ -417,7 +417,8 @@
     "workerpool": "^6.5.1",
     "yargs": "16.2.0",
     "zod": "3.25.76",
-    "path": "0.12.7"
+    "path": "0.12.7",
+    "@plasmic-shared/resource-cache": "workspace:*"
   },
   "browserslist": [
     ">0.2%",

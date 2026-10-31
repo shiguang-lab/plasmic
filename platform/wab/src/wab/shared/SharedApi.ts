@@ -2,7 +2,7 @@ import type { PreviewPublication } from "@plasmic-shared/preview";
 import { toOpaque } from "@/wab/commons/types";
 import type { ProjectRevision } from "@/wab/server/entities/Entities";
 import {
-  EditorBootstrapResponse,
+  ProjectOpeningResponse,
   AddCommentReactionRequest,
   AddCommentReactionResponse,
   AddFeatureTierResponse,
@@ -282,7 +282,7 @@ export abstract class SharedApi {
   expectFailure = false;
 
   protected abstract setUser(user: ApiUser): void;
-  protected abstract clearUser(): void;
+  protected abstract clearUser(): void | Promise<void>;
   protected abstract req(
     method: LowerHttpMethod,
     url: string,
@@ -368,8 +368,13 @@ export abstract class SharedApi {
     await this.post("/settings/preferences", data);
   }
 
-  getEditorBootstrap(projectId: string, branchName?: string): Promise<EditorBootstrapResponse> {
-    return this.get(`/editor-bootstrap/${projectId}`, { branchName });
+  getProjectStartup(projectId: string, branchName?: string): Promise<ProjectOpeningResponse> {
+    return this.get(`/projects/${projectId}`, { includeStartup: true, branchName });
+  }
+
+  resolveProjectModel(opening: ProjectOpeningResponse): Promise<GetProjectResponse> {
+    const { startup: _startup, ...model } = opening;
+    return this.hydrateModelResponse(model);
   }
 
   getProjects(
@@ -385,6 +390,23 @@ export abstract class SharedApi {
   // Removes from project from dashboard
   removeSelfPerm(projectId: string) {
     return this.delete(`/projects/${projectId}/perm`);
+  }
+
+  private async getModelResponse(url: string, query?: object) {
+    return this.hydrateModelResponse(await this.get(url, query));
+  }
+
+  private async hydrateModelResponse(response: any) {
+    const reads = new Map<string, Promise<any>>();
+    await Promise.all([...(response.pkg ? [response.pkg] : []), ...(response.depPkgs ?? [])].map(async pkg => {
+      if (!pkg.modelResourceId) { return; }
+      const id = pkg.modelResourceId;
+      let read = reads.get(id);
+      if (!read) { read = this.get(`/dependency-models/${encodeURIComponent(id)}`); reads.set(id, read); }
+      pkg.model = await read;
+      delete pkg.modelResourceId;
+    }));
+    return response;
   }
 
   getModelUpdates(
@@ -404,7 +426,7 @@ export abstract class SharedApi {
     | { data?: never; needsReload: true }
     | { data: null; needsReload?: never }
   > {
-    return this.get(`/projects/${projectId}/updates`, {
+    return this.getModelResponse(`/projects/${projectId}/updates`, {
       revisionNum,
       installedDeps,
       ...(branchId ? { branchId } : {}),
@@ -425,7 +447,7 @@ export abstract class SharedApi {
       dontMigrateProject?: boolean;
     },
   ): Promise<GetProjectResponse> {
-    return this.get(
+    return this.getModelResponse(
       `/projects/${showProjectBranchId(toOpaque(siteId), opts?.branchId)}`,
       {
         ...(opts?.revisionId !== undefined
@@ -560,7 +582,7 @@ export abstract class SharedApi {
     if (!response.ok) {
       throw new Error("Shiguang sign-out failed");
     }
-    this.clearUser();
+    await this.clearUser();
   }
 
   fmtCode({ code, parser }: /*TWZ*/ { code: string; parser: string }) {
@@ -574,7 +596,7 @@ export abstract class SharedApi {
   }
 
   getPlumePkg(): Promise<{ pkg: PkgVersionInfo; depPkgs: PkgVersionInfo[] }> {
-    return this.get("/plume-pkg");
+    return this.getModelResponse("/plume-pkg");
   }
 
   getPkgByProjectId(projectId: string): Promise<{ pkg?: PkgInfo }> {
@@ -589,7 +611,7 @@ export abstract class SharedApi {
     projectId: string,
     version,
   ): Promise<{ pkg: PkgVersionInfo; depPkgs: PkgVersionInfo[]; etag: string }> {
-    return this.get(`/pkgs/projectId/${projectId}`, { version });
+    return this.getModelResponse(`/pkgs/projectId/${projectId}`, { version });
   }
 
   /**
@@ -603,7 +625,7 @@ export abstract class SharedApi {
     version?: string,
     branchId?: string,
   ): Promise<{ pkg: PkgVersionInfo; depPkgs: PkgVersionInfo[]; etag: string }> {
-    return this.get(`/pkgs/${pkgId}`, {
+    return this.getModelResponse(`/pkgs/${pkgId}`, {
       version: version ?? "latest",
       meta: false,
       ...(branchId ? { branchId } : {}),
@@ -629,7 +651,7 @@ export abstract class SharedApi {
     depPkgs: PkgVersionInfo[];
     etag: string;
   }> {
-    return this.get(`/projects/${projectId}/revs/${revisionId}`);
+    return this.getModelResponse(`/projects/${projectId}/revs/${revisionId}`);
   }
 
   revertProjectToRevision(

@@ -204,6 +204,7 @@ async function startDesktop() {
       fetchIdentity: () => controller.requestStudio("/api/v1/auth/self", undefined, AbortSignal.timeout(10_000)),
     });
     desktopLogin.on("session-changed", () => desktopIdentity.invalidate());
+    desktopIdentity.on("changed", () => workspace?.clearStartupData());
     app.once("will-quit", () => desktopIdentity.dispose());
     const proxy = process.env.HTTPS_PROXY || process.env.HTTP_PROXY;
     if (proxy) {
@@ -418,11 +419,11 @@ async function startDesktop() {
       desktopAppearance.set(value);
       return desktopAppearance.snapshot();
     });
-    ipcMain.handle("desktop:startup-data", (event, projectId) => {
+    ipcMain.handle("desktop:startup-data", (event, projectId, branchName) => {
       if (!trustedAuthSender(event) || workspace.projectId(event.senderFrame.url) !== projectId) {
         throw new Error("Invalid Studio page");
       }
-      return workspace.consumeStartupData(projectId);
+      return workspace.consumeStartupData(projectId, branchName);
     });
     ipcMain.handle("desktop:saved-editor-view", (event, projectId) => {
       if (
@@ -772,7 +773,9 @@ async function startDesktop() {
   await desktopLogin.noteActivity().catch((error) => {
     console.warn("Cannot restore desktop session:", error.message);
   });
+  const startupEpoch = desktopIdentity.epoch;
   const startupUrl = await workspace.startupUrl(desktopSession);
+  if (desktopIdentity.epoch !== startupEpoch) workspace.clearStartupData();
   buildMenu();
   const stopLocale = desktopI18n.subscribe(() => {
     buildMenu();

@@ -1,0 +1,1496 @@
+{
+  "scope": "Disposable PostgreSQL clone of current NAS data. Exact 0.5.27 two-request baseline vs current single-opening-GET source; both real disk caches and response reconstruction. No production schema or project changes. Simulated loopback transport excludes WAN/TLS and GUI rendering; ms includes gzip measurement, JSON, cache IO and checksums.",
+  "before": {
+    "projects": "89",
+    "revisions": "3442"
+  },
+  "projects": [
+    {
+      "id": "145nN6S5QQBwgjtNUwuiQZ",
+      "name": "Admin Templates",
+      "preparation": {
+        "ms": 564.5640569999996,
+        "serverWorkMs": 591.9852490000012,
+        "entryMs": 371.6402140000009,
+        "requests": 5,
+        "modelResourceRequests": 4,
+        "uploadBytes": 0,
+        "jsonBytes": 5084132,
+        "gzipBytes": 674821,
+        "revision": 113,
+        "dependencyCount": 4,
+        "createdResources": 4
+      },
+      "samples": {
+        "baselineCold": [
+          {
+            "ms": 505.9526110000006,
+            "serverWorkMs": 261.11211000000185,
+            "entryMs": 488.0611800000006,
+            "requests": 2,
+            "modelResourceRequests": 0,
+            "uploadBytes": 19,
+            "jsonBytes": 5084372,
+            "gzipBytes": 673762,
+            "revision": 113,
+            "dependencyCount": 4
+          },
+          {
+            "ms": 502.6661890000032,
+            "serverWorkMs": 245.3322380000027,
+            "entryMs": 451.85587000000305,
+            "requests": 2,
+            "modelResourceRequests": 0,
+            "uploadBytes": 19,
+            "jsonBytes": 5084372,
+            "gzipBytes": 673762,
+            "revision": 113,
+            "dependencyCount": 4
+          },
+          {
+            "ms": 713.7777639999986,
+            "serverWorkMs": 375.5305640000006,
+            "entryMs": 682.7503369999977,
+            "requests": 2,
+            "modelResourceRequests": 0,
+            "uploadBytes": 19,
+            "jsonBytes": 5084372,
+            "gzipBytes": 673762,
+            "revision": 113,
+            "dependencyCount": 4
+          },
+          {
+            "ms": 546.4916229999981,
+            "serverWorkMs": 306.116446,
+            "entryMs": 526.9138509999975,
+            "requests": 2,
+            "modelResourceRequests": 0,
+            "uploadBytes": 19,
+            "jsonBytes": 5084372,
+            "gzipBytes": 673762,
+            "revision": 113,
+            "dependencyCount": 4
+          },
+          {
+            "ms": 539.0845420000005,
+            "serverWorkMs": 260.06222400000115,
+            "entryMs": 491.6082520000018,
+            "requests": 2,
+            "modelResourceRequests": 0,
+            "uploadBytes": 19,
+            "jsonBytes": 5084372,
+            "gzipBytes": 673762,
+            "revision": 113,
+            "dependencyCount": 4
+          },
+          {
+            "ms": 514.3088729999981,
+            "serverWorkMs": 271.8378860000048,
+            "entryMs": 492.0143649999991,
+            "requests": 2,
+            "modelResourceRequests": 0,
+            "uploadBytes": 19,
+            "jsonBytes": 5084372,
+            "gzipBytes": 673762,
+            "revision": 113,
+            "dependencyCount": 4
+          },
+          {
+            "ms": 505.3988729999983,
+            "serverWorkMs": 283.924377000003,
+            "entryMs": 486.78381799999624,
+            "requests": 2,
+            "modelResourceRequests": 0,
+            "uploadBytes": 19,
+            "jsonBytes": 5084372,
+            "gzipBytes": 673762,
+            "revision": 113,
+            "dependencyCount": 4
+          }
+        ],
+        "baselineWarm": [
+          {
+            "ms": 472.10388800000146,
+            "serverWorkMs": 292.62082499999815,
+            "entryMs": 453.779518000003,
+            "requests": 2,
+            "modelResourceRequests": 0,
+            "uploadBytes": 286,
+            "jsonBytes": 1041857,
+            "gzipBytes": 159471,
+            "revision": 113,
+            "dependencyCount": 4
+          },
+          {
+            "ms": 528.7281000000003,
+            "serverWorkMs": 329.313266000001,
+            "entryMs": 508.83741999999984,
+            "requests": 2,
+            "modelResourceRequests": 0,
+            "uploadBytes": 286,
+            "jsonBytes": 1041857,
+            "gzipBytes": 159471,
+            "revision": 113,
+            "dependencyCount": 4
+          },
+          {
+            "ms": 571.2051189999984,
+            "serverWorkMs": 326.759062000001,
+            "entryMs": 538.6501179999977,
+            "requests": 2,
+            "modelResourceRequests": 0,
+            "uploadBytes": 286,
+            "jsonBytes": 1041857,
+            "gzipBytes": 159471,
+            "revision": 113,
+            "dependencyCount": 4
+          },
+          {
+            "ms": 414.36489900000015,
+            "serverWorkMs": 260.1912000000011,
+            "entryMs": 396.99276499999905,
+            "requests": 2,
+            "modelResourceRequests": 0,
+            "uploadBytes": 286,
+            "jsonBytes": 1041857,
+            "gzipBytes": 159471,
+            "revision": 113,
+            "dependencyCount": 4
+          },
+          {
+            "ms": 437.67017699999997,
+            "serverWorkMs": 284.16729399999895,
+            "entryMs": 417.07342699999936,
+            "requests": 2,
+            "modelResourceRequests": 0,
+            "uploadBytes": 286,
+            "jsonBytes": 1041857,
+            "gzipBytes": 159471,
+            "revision": 113,
+            "dependencyCount": 4
+          },
+          {
+            "ms": 400.37693800000125,
+            "serverWorkMs": 259.7836639999987,
+            "entryMs": 379.50793700000213,
+            "requests": 2,
+            "modelResourceRequests": 0,
+            "uploadBytes": 286,
+            "jsonBytes": 1041857,
+            "gzipBytes": 159471,
+            "revision": 113,
+            "dependencyCount": 4
+          },
+          {
+            "ms": 370.9314379999996,
+            "serverWorkMs": 233.71125899999606,
+            "entryMs": 352.9870880000017,
+            "requests": 2,
+            "modelResourceRequests": 0,
+            "uploadBytes": 286,
+            "jsonBytes": 1041857,
+            "gzipBytes": 159471,
+            "revision": 113,
+            "dependencyCount": 4
+          }
+        ],
+        "baselinePartial": [
+          {
+            "ms": 590.8452809999981,
+            "serverWorkMs": 335.6915590000026,
+            "entryMs": 572.743900999998,
+            "requests": 2,
+            "modelResourceRequests": 0,
+            "uploadBytes": 219,
+            "jsonBytes": 3755778,
+            "gzipBytes": 467876,
+            "revision": 113,
+            "dependencyCount": 4
+          },
+          {
+            "ms": 586.9190750000016,
+            "serverWorkMs": 349.2413239999951,
+            "entryMs": 567.0822990000015,
+            "requests": 2,
+            "modelResourceRequests": 0,
+            "uploadBytes": 219,
+            "jsonBytes": 3755778,
+            "gzipBytes": 467876,
+            "revision": 113,
+            "dependencyCount": 4
+          },
+          {
+            "ms": 565.0340069999984,
+            "serverWorkMs": 301.08141700000124,
+            "entryMs": 546.1588039999988,
+            "requests": 2,
+            "modelResourceRequests": 0,
+            "uploadBytes": 219,
+            "jsonBytes": 3755778,
+            "gzipBytes": 467876,
+            "revision": 113,
+            "dependencyCount": 4
+          },
+          {
+            "ms": 480.4627079999991,
+            "serverWorkMs": 271.08299599999737,
+            "entryMs": 449.43376799999896,
+            "requests": 2,
+            "modelResourceRequests": 0,
+            "uploadBytes": 219,
+            "jsonBytes": 3755778,
+            "gzipBytes": 467876,
+            "revision": 113,
+            "dependencyCount": 4
+          },
+          {
+            "ms": 483.4050329999991,
+            "serverWorkMs": 264.39861200000087,
+            "entryMs": 466.06274699999994,
+            "requests": 2,
+            "modelResourceRequests": 0,
+            "uploadBytes": 219,
+            "jsonBytes": 3755778,
+            "gzipBytes": 467876,
+            "revision": 113,
+            "dependencyCount": 4
+          },
+          {
+            "ms": 512.1265490000042,
+            "serverWorkMs": 293.348073000001,
+            "entryMs": 494.68300400000226,
+            "requests": 2,
+            "modelResourceRequests": 0,
+            "uploadBytes": 219,
+            "jsonBytes": 3755778,
+            "gzipBytes": 467876,
+            "revision": 113,
+            "dependencyCount": 4
+          },
+          {
+            "ms": 529.1423359999972,
+            "serverWorkMs": 304.0351720000035,
+            "entryMs": 511.8815029999969,
+            "requests": 2,
+            "modelResourceRequests": 0,
+            "uploadBytes": 219,
+            "jsonBytes": 3755778,
+            "gzipBytes": 467876,
+            "revision": 113,
+            "dependencyCount": 4
+          }
+        ],
+        "newCold": [
+          {
+            "ms": 461.7101470000016,
+            "serverWorkMs": 466.16825300000346,
+            "entryMs": 261.50385599999936,
+            "requests": 5,
+            "modelResourceRequests": 4,
+            "uploadBytes": 0,
+            "jsonBytes": 5084132,
+            "gzipBytes": 674821,
+            "revision": 113,
+            "dependencyCount": 4
+          },
+          {
+            "ms": 434.80070200000046,
+            "serverWorkMs": 398.09020800000144,
+            "entryMs": 236.3370950000026,
+            "requests": 5,
+            "modelResourceRequests": 4,
+            "uploadBytes": 0,
+            "jsonBytes": 5084132,
+            "gzipBytes": 674821,
+            "revision": 113,
+            "dependencyCount": 4
+          },
+          {
+            "ms": 535.2703060000022,
+            "serverWorkMs": 605.5304239999932,
+            "entryMs": 316.64439100000163,
+            "requests": 5,
+            "modelResourceRequests": 4,
+            "uploadBytes": 0,
+            "jsonBytes": 5084132,
+            "gzipBytes": 674821,
+            "revision": 113,
+            "dependencyCount": 4
+          },
+          {
+            "ms": 498.2076670000024,
+            "serverWorkMs": 369.5667360000007,
+            "entryMs": 268.00282100000186,
+            "requests": 5,
+            "modelResourceRequests": 4,
+            "uploadBytes": 0,
+            "jsonBytes": 5084132,
+            "gzipBytes": 674821,
+            "revision": 113,
+            "dependencyCount": 4
+          },
+          {
+            "ms": 502.35961399999724,
+            "serverWorkMs": 597.1446990000004,
+            "entryMs": 263.54068499999994,
+            "requests": 5,
+            "modelResourceRequests": 4,
+            "uploadBytes": 0,
+            "jsonBytes": 5084132,
+            "gzipBytes": 674821,
+            "revision": 113,
+            "dependencyCount": 4
+          },
+          {
+            "ms": 425.0395299999982,
+            "serverWorkMs": 407.844981000002,
+            "entryMs": 236.24830500000098,
+            "requests": 5,
+            "modelResourceRequests": 4,
+            "uploadBytes": 0,
+            "jsonBytes": 5084132,
+            "gzipBytes": 674821,
+            "revision": 113,
+            "dependencyCount": 4
+          },
+          {
+            "ms": 327.1092789999966,
+            "serverWorkMs": 305.2652450000023,
+            "entryMs": 183.96627199999784,
+            "requests": 5,
+            "modelResourceRequests": 4,
+            "uploadBytes": 0,
+            "jsonBytes": 5084132,
+            "gzipBytes": 674821,
+            "revision": 113,
+            "dependencyCount": 4
+          }
+        ],
+        "newWarm": [
+          {
+            "ms": 303.86845000000176,
+            "serverWorkMs": 225.6742379999996,
+            "entryMs": 246.8139450000017,
+            "requests": 1,
+            "modelResourceRequests": 0,
+            "uploadBytes": 0,
+            "jsonBytes": 1041653,
+            "gzipBytes": 159202,
+            "revision": 113,
+            "dependencyCount": 4
+          },
+          {
+            "ms": 297.2338749999981,
+            "serverWorkMs": 201.5740709999991,
+            "entryMs": 225.76382699999886,
+            "requests": 1,
+            "modelResourceRequests": 0,
+            "uploadBytes": 0,
+            "jsonBytes": 1041653,
+            "gzipBytes": 159202,
+            "revision": 113,
+            "dependencyCount": 4
+          },
+          {
+            "ms": 304.2606850000011,
+            "serverWorkMs": 229.04559700000027,
+            "entryMs": 248.01376600000003,
+            "requests": 1,
+            "modelResourceRequests": 0,
+            "uploadBytes": 0,
+            "jsonBytes": 1041653,
+            "gzipBytes": 159202,
+            "revision": 113,
+            "dependencyCount": 4
+          },
+          {
+            "ms": 303.8945019999992,
+            "serverWorkMs": 201.4848579999998,
+            "entryMs": 220.24567699999898,
+            "requests": 1,
+            "modelResourceRequests": 0,
+            "uploadBytes": 0,
+            "jsonBytes": 1041653,
+            "gzipBytes": 159202,
+            "revision": 113,
+            "dependencyCount": 4
+          },
+          {
+            "ms": 300.69355799999903,
+            "serverWorkMs": 215.7906320000002,
+            "entryMs": 241.9622049999998,
+            "requests": 1,
+            "modelResourceRequests": 0,
+            "uploadBytes": 0,
+            "jsonBytes": 1041653,
+            "gzipBytes": 159202,
+            "revision": 113,
+            "dependencyCount": 4
+          },
+          {
+            "ms": 290.36985300000015,
+            "serverWorkMs": 184.41276600000128,
+            "entryMs": 204.11755300000004,
+            "requests": 1,
+            "modelResourceRequests": 0,
+            "uploadBytes": 0,
+            "jsonBytes": 1041653,
+            "gzipBytes": 159202,
+            "revision": 113,
+            "dependencyCount": 4
+          },
+          {
+            "ms": 286.4763499999972,
+            "serverWorkMs": 208.10541200000443,
+            "entryMs": 227.33059199999843,
+            "requests": 1,
+            "modelResourceRequests": 0,
+            "uploadBytes": 0,
+            "jsonBytes": 1041653,
+            "gzipBytes": 159202,
+            "revision": 113,
+            "dependencyCount": 4
+          }
+        ],
+        "newPartial": [
+          {
+            "ms": 422.14180900000065,
+            "serverWorkMs": 256.2673560000003,
+            "entryMs": 262.4008509999985,
+            "requests": 2,
+            "modelResourceRequests": 1,
+            "uploadBytes": 0,
+            "jsonBytes": 3755565,
+            "gzipBytes": 467278,
+            "revision": 113,
+            "dependencyCount": 4
+          },
+          {
+            "ms": 399.47494500000175,
+            "serverWorkMs": 277.83176800000365,
+            "entryMs": 262.8527030000005,
+            "requests": 2,
+            "modelResourceRequests": 1,
+            "uploadBytes": 0,
+            "jsonBytes": 3755565,
+            "gzipBytes": 467278,
+            "revision": 113,
+            "dependencyCount": 4
+          },
+          {
+            "ms": 421.1561980000006,
+            "serverWorkMs": 264.8704599999983,
+            "entryMs": 242.66847000000053,
+            "requests": 2,
+            "modelResourceRequests": 1,
+            "uploadBytes": 0,
+            "jsonBytes": 3755565,
+            "gzipBytes": 467278,
+            "revision": 113,
+            "dependencyCount": 4
+          },
+          {
+            "ms": 335.98043300000063,
+            "serverWorkMs": 236.2699759999996,
+            "entryMs": 219.56908199999816,
+            "requests": 2,
+            "modelResourceRequests": 1,
+            "uploadBytes": 0,
+            "jsonBytes": 3755565,
+            "gzipBytes": 467278,
+            "revision": 113,
+            "dependencyCount": 4
+          },
+          {
+            "ms": 424.2865109999984,
+            "serverWorkMs": 283.46820399999706,
+            "entryMs": 262.9993549999999,
+            "requests": 2,
+            "modelResourceRequests": 1,
+            "uploadBytes": 0,
+            "jsonBytes": 3755565,
+            "gzipBytes": 467278,
+            "revision": 113,
+            "dependencyCount": 4
+          },
+          {
+            "ms": 352.0459010000013,
+            "serverWorkMs": 238.10973899999954,
+            "entryMs": 222.58793200000218,
+            "requests": 2,
+            "modelResourceRequests": 1,
+            "uploadBytes": 0,
+            "jsonBytes": 3755565,
+            "gzipBytes": 467278,
+            "revision": 113,
+            "dependencyCount": 4
+          },
+          {
+            "ms": 353.58752300000197,
+            "serverWorkMs": 227.6355599999879,
+            "entryMs": 213.87669900000037,
+            "requests": 2,
+            "modelResourceRequests": 1,
+            "uploadBytes": 0,
+            "jsonBytes": 3755565,
+            "gzipBytes": 467278,
+            "revision": 113,
+            "dependencyCount": 4
+          }
+        ]
+      },
+      "summary": {
+        "baselineCold": {
+          "ms": {
+            "median": 514.3088729999981,
+            "p95": 713.7777639999986
+          },
+          "serverWorkMs": {
+            "median": 271.8378860000048,
+            "p95": 375.5305640000006
+          },
+          "entryMs": {
+            "median": 491.6082520000018,
+            "p95": 682.7503369999977
+          },
+          "requests": {
+            "median": 2,
+            "p95": 2
+          },
+          "modelResourceRequests": {
+            "median": 0,
+            "p95": 0
+          },
+          "uploadBytes": {
+            "median": 19,
+            "p95": 19
+          },
+          "jsonBytes": {
+            "median": 5084372,
+            "p95": 5084372
+          },
+          "gzipBytes": {
+            "median": 673762,
+            "p95": 673762
+          }
+        },
+        "baselineWarm": {
+          "ms": {
+            "median": 437.67017699999997,
+            "p95": 571.2051189999984
+          },
+          "serverWorkMs": {
+            "median": 284.16729399999895,
+            "p95": 329.313266000001
+          },
+          "entryMs": {
+            "median": 417.07342699999936,
+            "p95": 538.6501179999977
+          },
+          "requests": {
+            "median": 2,
+            "p95": 2
+          },
+          "modelResourceRequests": {
+            "median": 0,
+            "p95": 0
+          },
+          "uploadBytes": {
+            "median": 286,
+            "p95": 286
+          },
+          "jsonBytes": {
+            "median": 1041857,
+            "p95": 1041857
+          },
+          "gzipBytes": {
+            "median": 159471,
+            "p95": 159471
+          }
+        },
+        "baselinePartial": {
+          "ms": {
+            "median": 529.1423359999972,
+            "p95": 590.8452809999981
+          },
+          "serverWorkMs": {
+            "median": 301.08141700000124,
+            "p95": 349.2413239999951
+          },
+          "entryMs": {
+            "median": 511.8815029999969,
+            "p95": 572.743900999998
+          },
+          "requests": {
+            "median": 2,
+            "p95": 2
+          },
+          "modelResourceRequests": {
+            "median": 0,
+            "p95": 0
+          },
+          "uploadBytes": {
+            "median": 219,
+            "p95": 219
+          },
+          "jsonBytes": {
+            "median": 3755778,
+            "p95": 3755778
+          },
+          "gzipBytes": {
+            "median": 467876,
+            "p95": 467876
+          }
+        },
+        "newCold": {
+          "ms": {
+            "median": 461.7101470000016,
+            "p95": 535.2703060000022
+          },
+          "serverWorkMs": {
+            "median": 407.844981000002,
+            "p95": 605.5304239999932
+          },
+          "entryMs": {
+            "median": 261.50385599999936,
+            "p95": 316.64439100000163
+          },
+          "requests": {
+            "median": 5,
+            "p95": 5
+          },
+          "modelResourceRequests": {
+            "median": 4,
+            "p95": 4
+          },
+          "uploadBytes": {
+            "median": 0,
+            "p95": 0
+          },
+          "jsonBytes": {
+            "median": 5084132,
+            "p95": 5084132
+          },
+          "gzipBytes": {
+            "median": 674821,
+            "p95": 674821
+          }
+        },
+        "newWarm": {
+          "ms": {
+            "median": 300.69355799999903,
+            "p95": 304.2606850000011
+          },
+          "serverWorkMs": {
+            "median": 208.10541200000443,
+            "p95": 229.04559700000027
+          },
+          "entryMs": {
+            "median": 227.33059199999843,
+            "p95": 248.01376600000003
+          },
+          "requests": {
+            "median": 1,
+            "p95": 1
+          },
+          "modelResourceRequests": {
+            "median": 0,
+            "p95": 0
+          },
+          "uploadBytes": {
+            "median": 0,
+            "p95": 0
+          },
+          "jsonBytes": {
+            "median": 1041653,
+            "p95": 1041653
+          },
+          "gzipBytes": {
+            "median": 159202,
+            "p95": 159202
+          }
+        },
+        "newPartial": {
+          "ms": {
+            "median": 399.47494500000175,
+            "p95": 424.2865109999984
+          },
+          "serverWorkMs": {
+            "median": 256.2673560000003,
+            "p95": 283.46820399999706
+          },
+          "entryMs": {
+            "median": 242.66847000000053,
+            "p95": 262.9993549999999
+          },
+          "requests": {
+            "median": 2,
+            "p95": 2
+          },
+          "modelResourceRequests": {
+            "median": 1,
+            "p95": 1
+          },
+          "uploadBytes": {
+            "median": 0,
+            "p95": 0
+          },
+          "jsonBytes": {
+            "median": 3755565,
+            "p95": 3755565
+          },
+          "gzipBytes": {
+            "median": 467278,
+            "p95": 467278
+          }
+        }
+      }
+    },
+    {
+      "id": "tk89W1Akg2HjAjyHAYEro7",
+      "name": "客服平台 · GP评论查询",
+      "preparation": {
+        "ms": 610.2830400000021,
+        "serverWorkMs": 715.0916499999948,
+        "entryMs": 333.2452229999981,
+        "requests": 6,
+        "modelResourceRequests": 5,
+        "uploadBytes": 0,
+        "jsonBytes": 5125751,
+        "gzipBytes": 698001,
+        "revision": 158,
+        "dependencyCount": 5,
+        "createdResources": 1
+      },
+      "samples": {
+        "baselineCold": [
+          {
+            "ms": 530.504746999999,
+            "serverWorkMs": 294.17010400000436,
+            "entryMs": 508.0976609999998,
+            "requests": 2,
+            "modelResourceRequests": 0,
+            "uploadBytes": 19,
+            "jsonBytes": 5126049,
+            "gzipBytes": 696757,
+            "revision": 158,
+            "dependencyCount": 5
+          },
+          {
+            "ms": 563.6833570000017,
+            "serverWorkMs": 300.42330100000254,
+            "entryMs": 529.5539140000037,
+            "requests": 2,
+            "modelResourceRequests": 0,
+            "uploadBytes": 19,
+            "jsonBytes": 5126049,
+            "gzipBytes": 696757,
+            "revision": 158,
+            "dependencyCount": 5
+          },
+          {
+            "ms": 654.3465920000017,
+            "serverWorkMs": 362.24295499999425,
+            "entryMs": 625.2246430000014,
+            "requests": 2,
+            "modelResourceRequests": 0,
+            "uploadBytes": 19,
+            "jsonBytes": 5126049,
+            "gzipBytes": 696757,
+            "revision": 158,
+            "dependencyCount": 5
+          },
+          {
+            "ms": 627.2701249999955,
+            "serverWorkMs": 284.61317899999267,
+            "entryMs": 604.6708809999982,
+            "requests": 2,
+            "modelResourceRequests": 0,
+            "uploadBytes": 19,
+            "jsonBytes": 5126049,
+            "gzipBytes": 696757,
+            "revision": 158,
+            "dependencyCount": 5
+          },
+          {
+            "ms": 561.399086999998,
+            "serverWorkMs": 304.37175299999944,
+            "entryMs": 538.7736119999972,
+            "requests": 2,
+            "modelResourceRequests": 0,
+            "uploadBytes": 19,
+            "jsonBytes": 5126049,
+            "gzipBytes": 696757,
+            "revision": 158,
+            "dependencyCount": 5
+          },
+          {
+            "ms": 532.778757,
+            "serverWorkMs": 269.66480800000136,
+            "entryMs": 510.8284960000019,
+            "requests": 2,
+            "modelResourceRequests": 0,
+            "uploadBytes": 19,
+            "jsonBytes": 5126049,
+            "gzipBytes": 696757,
+            "revision": 158,
+            "dependencyCount": 5
+          },
+          {
+            "ms": 605.1549579999992,
+            "serverWorkMs": 322.7168110000057,
+            "entryMs": 571.6339179999995,
+            "requests": 2,
+            "modelResourceRequests": 0,
+            "uploadBytes": 19,
+            "jsonBytes": 5126049,
+            "gzipBytes": 696757,
+            "revision": 158,
+            "dependencyCount": 5
+          }
+        ],
+        "baselineWarm": [
+          {
+            "ms": 530.8597680000021,
+            "serverWorkMs": 369.3169069999931,
+            "entryMs": 507.5544020000016,
+            "requests": 2,
+            "modelResourceRequests": 0,
+            "uploadBytes": 353,
+            "jsonBytes": 335596,
+            "gzipBytes": 57606,
+            "revision": 158,
+            "dependencyCount": 5
+          },
+          {
+            "ms": 475.4328469999964,
+            "serverWorkMs": 332.38418300000194,
+            "entryMs": 452.95392299999367,
+            "requests": 2,
+            "modelResourceRequests": 0,
+            "uploadBytes": 353,
+            "jsonBytes": 335596,
+            "gzipBytes": 57606,
+            "revision": 158,
+            "dependencyCount": 5
+          },
+          {
+            "ms": 470.2533709999989,
+            "serverWorkMs": 313.1727630000023,
+            "entryMs": 447.81895200000145,
+            "requests": 2,
+            "modelResourceRequests": 0,
+            "uploadBytes": 353,
+            "jsonBytes": 335596,
+            "gzipBytes": 57606,
+            "revision": 158,
+            "dependencyCount": 5
+          },
+          {
+            "ms": 517.2066730000006,
+            "serverWorkMs": 330.73697200000606,
+            "entryMs": 471.8647209999981,
+            "requests": 2,
+            "modelResourceRequests": 0,
+            "uploadBytes": 353,
+            "jsonBytes": 335596,
+            "gzipBytes": 57606,
+            "revision": 158,
+            "dependencyCount": 5
+          },
+          {
+            "ms": 535.6516100000008,
+            "serverWorkMs": 382.15282400000433,
+            "entryMs": 512.6924349999972,
+            "requests": 2,
+            "modelResourceRequests": 0,
+            "uploadBytes": 353,
+            "jsonBytes": 335596,
+            "gzipBytes": 57606,
+            "revision": 158,
+            "dependencyCount": 5
+          },
+          {
+            "ms": 505.13261700000294,
+            "serverWorkMs": 327.4212580000021,
+            "entryMs": 480.80246700000134,
+            "requests": 2,
+            "modelResourceRequests": 0,
+            "uploadBytes": 353,
+            "jsonBytes": 335596,
+            "gzipBytes": 57606,
+            "revision": 158,
+            "dependencyCount": 5
+          },
+          {
+            "ms": 573.9345880000037,
+            "serverWorkMs": 364.04815200000303,
+            "entryMs": 524.3850959999982,
+            "requests": 2,
+            "modelResourceRequests": 0,
+            "uploadBytes": 353,
+            "jsonBytes": 335596,
+            "gzipBytes": 57606,
+            "revision": 158,
+            "dependencyCount": 5
+          }
+        ],
+        "baselinePartial": [
+          {
+            "ms": 553.1811630000011,
+            "serverWorkMs": 321.8282320000071,
+            "entryMs": 529.8420889999979,
+            "requests": 2,
+            "modelResourceRequests": 0,
+            "uploadBytes": 286,
+            "jsonBytes": 3049517,
+            "gzipBytes": 365833,
+            "revision": 158,
+            "dependencyCount": 5
+          },
+          {
+            "ms": 571.4747019999995,
+            "serverWorkMs": 329.1117130000057,
+            "entryMs": 523.1101960000015,
+            "requests": 2,
+            "modelResourceRequests": 0,
+            "uploadBytes": 286,
+            "jsonBytes": 3049517,
+            "gzipBytes": 365833,
+            "revision": 158,
+            "dependencyCount": 5
+          },
+          {
+            "ms": 523.6495869999999,
+            "serverWorkMs": 280.7723569999944,
+            "entryMs": 468.71743699999934,
+            "requests": 2,
+            "modelResourceRequests": 0,
+            "uploadBytes": 286,
+            "jsonBytes": 3049517,
+            "gzipBytes": 365833,
+            "revision": 158,
+            "dependencyCount": 5
+          },
+          {
+            "ms": 607.0764380000037,
+            "serverWorkMs": 380.8949059999941,
+            "entryMs": 565.5118650000004,
+            "requests": 2,
+            "modelResourceRequests": 0,
+            "uploadBytes": 286,
+            "jsonBytes": 3049517,
+            "gzipBytes": 365833,
+            "revision": 158,
+            "dependencyCount": 5
+          },
+          {
+            "ms": 584.1964079999962,
+            "serverWorkMs": 336.0329919999931,
+            "entryMs": 543.406710999996,
+            "requests": 2,
+            "modelResourceRequests": 0,
+            "uploadBytes": 286,
+            "jsonBytes": 3049517,
+            "gzipBytes": 365833,
+            "revision": 158,
+            "dependencyCount": 5
+          },
+          {
+            "ms": 507.6288529999947,
+            "serverWorkMs": 299.4470669999937,
+            "entryMs": 468.2773229999948,
+            "requests": 2,
+            "modelResourceRequests": 0,
+            "uploadBytes": 286,
+            "jsonBytes": 3049517,
+            "gzipBytes": 365833,
+            "revision": 158,
+            "dependencyCount": 5
+          },
+          {
+            "ms": 652.2748129999964,
+            "serverWorkMs": 352.7567379999964,
+            "entryMs": 603.9973430000027,
+            "requests": 2,
+            "modelResourceRequests": 0,
+            "uploadBytes": 286,
+            "jsonBytes": 3049517,
+            "gzipBytes": 365833,
+            "revision": 158,
+            "dependencyCount": 5
+          }
+        ],
+        "newCold": [
+          {
+            "ms": 517.8757020000048,
+            "serverWorkMs": 591.9412000000011,
+            "entryMs": 304.91399300000194,
+            "requests": 6,
+            "modelResourceRequests": 5,
+            "uploadBytes": 0,
+            "jsonBytes": 5125751,
+            "gzipBytes": 698001,
+            "revision": 158,
+            "dependencyCount": 5
+          },
+          {
+            "ms": 505.2824990000008,
+            "serverWorkMs": 548.4963440000065,
+            "entryMs": 241.53347300000314,
+            "requests": 6,
+            "modelResourceRequests": 5,
+            "uploadBytes": 0,
+            "jsonBytes": 5125751,
+            "gzipBytes": 698001,
+            "revision": 158,
+            "dependencyCount": 5
+          },
+          {
+            "ms": 501.31444999999803,
+            "serverWorkMs": 517.391361000009,
+            "entryMs": 222.71563500000047,
+            "requests": 6,
+            "modelResourceRequests": 5,
+            "uploadBytes": 0,
+            "jsonBytes": 5125751,
+            "gzipBytes": 698001,
+            "revision": 158,
+            "dependencyCount": 5
+          },
+          {
+            "ms": 450.15173199999845,
+            "serverWorkMs": 511.34298999999737,
+            "entryMs": 206.0876270000008,
+            "requests": 6,
+            "modelResourceRequests": 5,
+            "uploadBytes": 0,
+            "jsonBytes": 5125751,
+            "gzipBytes": 698001,
+            "revision": 158,
+            "dependencyCount": 5
+          },
+          {
+            "ms": 574.754912999997,
+            "serverWorkMs": 549.2519579999935,
+            "entryMs": 277.9409220000016,
+            "requests": 6,
+            "modelResourceRequests": 5,
+            "uploadBytes": 0,
+            "jsonBytes": 5125751,
+            "gzipBytes": 698001,
+            "revision": 158,
+            "dependencyCount": 5
+          },
+          {
+            "ms": 440.432080999999,
+            "serverWorkMs": 448.91544400001294,
+            "entryMs": 204.00009999999747,
+            "requests": 6,
+            "modelResourceRequests": 5,
+            "uploadBytes": 0,
+            "jsonBytes": 5125751,
+            "gzipBytes": 698001,
+            "revision": 158,
+            "dependencyCount": 5
+          },
+          {
+            "ms": 559.3472669999974,
+            "serverWorkMs": 629.6338109999997,
+            "entryMs": 309.09601799999655,
+            "requests": 6,
+            "modelResourceRequests": 5,
+            "uploadBytes": 0,
+            "jsonBytes": 5125751,
+            "gzipBytes": 698001,
+            "revision": 158,
+            "dependencyCount": 5
+          }
+        ],
+        "newWarm": [
+          {
+            "ms": 316.7063099999941,
+            "serverWorkMs": 222.58366899999965,
+            "entryMs": 234.52366799999436,
+            "requests": 1,
+            "modelResourceRequests": 0,
+            "uploadBytes": 0,
+            "jsonBytes": 335343,
+            "gzipBytes": 57211,
+            "revision": 158,
+            "dependencyCount": 5
+          },
+          {
+            "ms": 284.8195130000022,
+            "serverWorkMs": 202.7768089999954,
+            "entryMs": 209.89226100000087,
+            "requests": 1,
+            "modelResourceRequests": 0,
+            "uploadBytes": 0,
+            "jsonBytes": 335343,
+            "gzipBytes": 57211,
+            "revision": 158,
+            "dependencyCount": 5
+          },
+          {
+            "ms": 305.4189770000012,
+            "serverWorkMs": 226.24433899999713,
+            "entryMs": 233.29357999999775,
+            "requests": 1,
+            "modelResourceRequests": 0,
+            "uploadBytes": 0,
+            "jsonBytes": 335343,
+            "gzipBytes": 57211,
+            "revision": 158,
+            "dependencyCount": 5
+          },
+          {
+            "ms": 270.832193000002,
+            "serverWorkMs": 192.23663799999485,
+            "entryMs": 199.26391799999692,
+            "requests": 1,
+            "modelResourceRequests": 0,
+            "uploadBytes": 0,
+            "jsonBytes": 335343,
+            "gzipBytes": 57211,
+            "revision": 158,
+            "dependencyCount": 5
+          },
+          {
+            "ms": 367.82823500000086,
+            "serverWorkMs": 287.7655119999981,
+            "entryMs": 294.60938299999543,
+            "requests": 1,
+            "modelResourceRequests": 0,
+            "uploadBytes": 0,
+            "jsonBytes": 335343,
+            "gzipBytes": 57211,
+            "revision": 158,
+            "dependencyCount": 5
+          },
+          {
+            "ms": 306.1336319999973,
+            "serverWorkMs": 225.9231360000049,
+            "entryMs": 233.26786100000027,
+            "requests": 1,
+            "modelResourceRequests": 0,
+            "uploadBytes": 0,
+            "jsonBytes": 335343,
+            "gzipBytes": 57211,
+            "revision": 158,
+            "dependencyCount": 5
+          },
+          {
+            "ms": 359.14606799999456,
+            "serverWorkMs": 254.81243499999982,
+            "entryMs": 267.2915279999943,
+            "requests": 1,
+            "modelResourceRequests": 0,
+            "uploadBytes": 0,
+            "jsonBytes": 335343,
+            "gzipBytes": 57211,
+            "revision": 158,
+            "dependencyCount": 5
+          }
+        ],
+        "newPartial": [
+          {
+            "ms": 374.4592410000041,
+            "serverWorkMs": 256.1762280000039,
+            "entryMs": 221.68860300000233,
+            "requests": 2,
+            "modelResourceRequests": 1,
+            "uploadBytes": 0,
+            "jsonBytes": 3049255,
+            "gzipBytes": 365287,
+            "revision": 158,
+            "dependencyCount": 5
+          },
+          {
+            "ms": 353.10151900000346,
+            "serverWorkMs": 253.2096420000089,
+            "entryMs": 216.76353300000483,
+            "requests": 2,
+            "modelResourceRequests": 1,
+            "uploadBytes": 0,
+            "jsonBytes": 3049255,
+            "gzipBytes": 365287,
+            "revision": 158,
+            "dependencyCount": 5
+          },
+          {
+            "ms": 412.0154210000037,
+            "serverWorkMs": 277.72238199999265,
+            "entryMs": 238.7204950000014,
+            "requests": 2,
+            "modelResourceRequests": 1,
+            "uploadBytes": 0,
+            "jsonBytes": 3049255,
+            "gzipBytes": 365287,
+            "revision": 158,
+            "dependencyCount": 5
+          },
+          {
+            "ms": 346.50385200000164,
+            "serverWorkMs": 247.03429300000425,
+            "entryMs": 209.4876430000004,
+            "requests": 2,
+            "modelResourceRequests": 1,
+            "uploadBytes": 0,
+            "jsonBytes": 3049255,
+            "gzipBytes": 365287,
+            "revision": 158,
+            "dependencyCount": 5
+          },
+          {
+            "ms": 440.35349999999744,
+            "serverWorkMs": 293.53391399999964,
+            "entryMs": 252.472302999995,
+            "requests": 2,
+            "modelResourceRequests": 1,
+            "uploadBytes": 0,
+            "jsonBytes": 3049255,
+            "gzipBytes": 365287,
+            "revision": 158,
+            "dependencyCount": 5
+          },
+          {
+            "ms": 399.994749999998,
+            "serverWorkMs": 280.6039200000014,
+            "entryMs": 248.58229699999356,
+            "requests": 2,
+            "modelResourceRequests": 1,
+            "uploadBytes": 0,
+            "jsonBytes": 3049255,
+            "gzipBytes": 365287,
+            "revision": 158,
+            "dependencyCount": 5
+          },
+          {
+            "ms": 494.5255399999951,
+            "serverWorkMs": 329.0379019999964,
+            "entryMs": 280.97649999999703,
+            "requests": 2,
+            "modelResourceRequests": 1,
+            "uploadBytes": 0,
+            "jsonBytes": 3049255,
+            "gzipBytes": 365287,
+            "revision": 158,
+            "dependencyCount": 5
+          }
+        ]
+      },
+      "summary": {
+        "baselineCold": {
+          "ms": {
+            "median": 563.6833570000017,
+            "p95": 654.3465920000017
+          },
+          "serverWorkMs": {
+            "median": 300.42330100000254,
+            "p95": 362.24295499999425
+          },
+          "entryMs": {
+            "median": 538.7736119999972,
+            "p95": 625.2246430000014
+          },
+          "requests": {
+            "median": 2,
+            "p95": 2
+          },
+          "modelResourceRequests": {
+            "median": 0,
+            "p95": 0
+          },
+          "uploadBytes": {
+            "median": 19,
+            "p95": 19
+          },
+          "jsonBytes": {
+            "median": 5126049,
+            "p95": 5126049
+          },
+          "gzipBytes": {
+            "median": 696757,
+            "p95": 696757
+          }
+        },
+        "baselineWarm": {
+          "ms": {
+            "median": 517.2066730000006,
+            "p95": 573.9345880000037
+          },
+          "serverWorkMs": {
+            "median": 332.38418300000194,
+            "p95": 382.15282400000433
+          },
+          "entryMs": {
+            "median": 480.80246700000134,
+            "p95": 524.3850959999982
+          },
+          "requests": {
+            "median": 2,
+            "p95": 2
+          },
+          "modelResourceRequests": {
+            "median": 0,
+            "p95": 0
+          },
+          "uploadBytes": {
+            "median": 353,
+            "p95": 353
+          },
+          "jsonBytes": {
+            "median": 335596,
+            "p95": 335596
+          },
+          "gzipBytes": {
+            "median": 57606,
+            "p95": 57606
+          }
+        },
+        "baselinePartial": {
+          "ms": {
+            "median": 571.4747019999995,
+            "p95": 652.2748129999964
+          },
+          "serverWorkMs": {
+            "median": 329.1117130000057,
+            "p95": 380.8949059999941
+          },
+          "entryMs": {
+            "median": 529.8420889999979,
+            "p95": 603.9973430000027
+          },
+          "requests": {
+            "median": 2,
+            "p95": 2
+          },
+          "modelResourceRequests": {
+            "median": 0,
+            "p95": 0
+          },
+          "uploadBytes": {
+            "median": 286,
+            "p95": 286
+          },
+          "jsonBytes": {
+            "median": 3049517,
+            "p95": 3049517
+          },
+          "gzipBytes": {
+            "median": 365833,
+            "p95": 365833
+          }
+        },
+        "newCold": {
+          "ms": {
+            "median": 505.2824990000008,
+            "p95": 574.754912999997
+          },
+          "serverWorkMs": {
+            "median": 548.4963440000065,
+            "p95": 629.6338109999997
+          },
+          "entryMs": {
+            "median": 241.53347300000314,
+            "p95": 309.09601799999655
+          },
+          "requests": {
+            "median": 6,
+            "p95": 6
+          },
+          "modelResourceRequests": {
+            "median": 5,
+            "p95": 5
+          },
+          "uploadBytes": {
+            "median": 0,
+            "p95": 0
+          },
+          "jsonBytes": {
+            "median": 5125751,
+            "p95": 5125751
+          },
+          "gzipBytes": {
+            "median": 698001,
+            "p95": 698001
+          }
+        },
+        "newWarm": {
+          "ms": {
+            "median": 306.1336319999973,
+            "p95": 367.82823500000086
+          },
+          "serverWorkMs": {
+            "median": 225.9231360000049,
+            "p95": 287.7655119999981
+          },
+          "entryMs": {
+            "median": 233.29357999999775,
+            "p95": 294.60938299999543
+          },
+          "requests": {
+            "median": 1,
+            "p95": 1
+          },
+          "modelResourceRequests": {
+            "median": 0,
+            "p95": 0
+          },
+          "uploadBytes": {
+            "median": 0,
+            "p95": 0
+          },
+          "jsonBytes": {
+            "median": 335343,
+            "p95": 335343
+          },
+          "gzipBytes": {
+            "median": 57211,
+            "p95": 57211
+          }
+        },
+        "newPartial": {
+          "ms": {
+            "median": 399.994749999998,
+            "p95": 494.5255399999951
+          },
+          "serverWorkMs": {
+            "median": 277.72238199999265,
+            "p95": 329.0379019999964
+          },
+          "entryMs": {
+            "median": 238.7204950000014,
+            "p95": 280.97649999999703
+          },
+          "requests": {
+            "median": 2,
+            "p95": 2
+          },
+          "modelResourceRequests": {
+            "median": 1,
+            "p95": 1
+          },
+          "uploadBytes": {
+            "median": 0,
+            "p95": 0
+          },
+          "jsonBytes": {
+            "median": 3049255,
+            "p95": 3049255
+          },
+          "gzipBytes": {
+            "median": 365287,
+            "p95": 365287
+          }
+        }
+      }
+    }
+  ],
+  "after": {
+    "projects": "89",
+    "revisions": "3442"
+  },
+  "completedAt": "2026-10-30T23:25:55.428Z"
+}

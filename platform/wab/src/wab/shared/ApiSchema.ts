@@ -2055,8 +2055,8 @@ export interface CmsRowData {
 
 export type CmsLocaleSpecificData = Dict<unknown>;
 
-/** Data used once while opening a project; model data is fetched separately. */
-export interface EditorBootstrapResponse {
+/** Context returned with the project model only when opening the editor. */
+export interface ProjectStartupInfo {
   selfInfo: SelfResponse | null;
   appConfig: AppConfigResponse;
   appCtx: AppCtxResponse;
@@ -2067,3 +2067,9 @@ export interface EditorBootstrapResponse {
   hosts: TrustedHostsListResponse;
   branches: ApiBranch[];
 }
+
+/** Initial project GET before the client resolves immutable dependency resources. */
+export type ProjectOpeningResponse = Omit<GetProjectResponse, "depPkgs"> & {
+  depPkgs: (Omit<PkgVersionInfo, "model"> & { modelResourceId: string })[];
+  startup: ProjectStartupInfo;
+};

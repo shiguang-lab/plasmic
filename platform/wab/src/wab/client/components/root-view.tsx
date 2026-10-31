@@ -538,12 +538,12 @@ export function Root() {
     const projectLocation = parseProjectLocation(history.location);
     if (!hostFrameCtx && projectLocation) {
       const desktop = (window as Window & { desktopEnvironment?: {
-        consumeStartupData?: (projectId: string) => Promise<import("@/wab/shared/ApiSchema").EditorBootstrapResponse | null>;
+        consumeStartupData?: (projectId: string, branchName?: string) => Promise<import("@/wab/shared/ApiSchema").ProjectOpeningResponse | null>;
       } }).desktopEnvironment;
-      const bootstrap = await (async () => {
+      const opening = await (async () => {
         try {
-          return await desktop?.consumeStartupData?.(projectLocation.projectId)
-            ?? await retryStartupRead(() => api.getEditorBootstrap(projectLocation.projectId, projectLocation.branchName));
+          return await desktop?.consumeStartupData?.(projectLocation.projectId, projectLocation.branchName)
+            ?? await retryStartupRead(() => api.getProjectStartup(projectLocation.projectId, projectLocation.branchName));
         } catch (error) {
           const status = asApiError(error)?.statusCode;
           // The combined request checks project access before the app knows
@@ -555,13 +555,14 @@ export function Root() {
           throw error;
         }
       })();
-      if (bootstrap) {
+      if (opening) {
+      const bootstrap = opening.startup;
       performance.mark("studio-bootstrap-ready");
       if (bootstrap.selfInfo) {setUser(bootstrap.selfInfo.user);}
       const branchId = bootstrap.branches.find((branch) => branch.name === bootstrap.branchName)?.id;
       const initialProjectModel = {
         projectId: projectLocation.projectId, branchId,
-        data: api.getSiteInfo(projectLocation.projectId, { branchId }),
+        data: api.resolveProjectModel(opening),
       };
       void initialProjectModel.data.catch(() => undefined);
       await Promise.all([

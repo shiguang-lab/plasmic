@@ -12,7 +12,7 @@ import { translate } from "@/wab/client/i18n/locales";
 import { retryStartupRead } from "@/wab/client/startup-request";
 import { PromisifyMethods } from "@/wab/commons/promisify-methods";
 import {
-  EditorBootstrapResponse,
+  ProjectStartupInfo,
   ApiPermission,
   ApiTeam,
   ApiUser,
@@ -51,7 +51,7 @@ export class NonAuthCtx {
   router: Router;
   change: (f: () => void) => void;
   bundler: FastBundler;
-  initialProjectInfo?: EditorBootstrapResponse;
+  initialProjectInfo?: ProjectStartupInfo;
   initialProjectModel?: { projectId: string; branchId?: import("@/wab/shared/ApiSchema").BranchId; data: ReturnType<Api["getSiteInfo"]> };
   readonly lastBundleVersion: string;
 
@@ -142,7 +142,7 @@ interface AppCtxArgs {
   reloadAppCtx: () => Promise<void>;
   ops: AppOps | null;
   appConfig: typeof DEVFLAGS;
-  initialProjectInfo?: EditorBootstrapResponse;
+  initialProjectInfo?: ProjectStartupInfo;
   initialProjectModel?: { projectId: string; branchId?: import("@/wab/shared/ApiSchema").BranchId; data: ReturnType<Api["getSiteInfo"]> };
   readonly lastBundleVersion: string;
 }
@@ -168,7 +168,7 @@ export class AppCtx {
   /** App config overrides only. */
   appConfigOverrides: Partial<typeof DEVFLAGS>;
 
-  initialProjectInfo?: EditorBootstrapResponse;
+  initialProjectInfo?: ProjectStartupInfo;
   initialProjectModel?: { projectId: string; branchId?: import("@/wab/shared/ApiSchema").BranchId; data: ReturnType<Api["getSiteInfo"]> };
   readonly lastBundleVersion: string;
 

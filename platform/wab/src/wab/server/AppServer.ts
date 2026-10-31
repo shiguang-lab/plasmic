@@ -1,5 +1,5 @@
+import { getDependencyModelResource, withDependencyModelResources } from "@/wab/server/routes/dependency-model-resources";
 import { createPresentation, getPresentation } from "@/wab/server/routes/presentations";
-import { getEditorBootstrap } from "@/wab/server/routes/editor-bootstrap";
 import { getPreviewPublication, publishPreviewPublication, unpublishPreviewPublication } from "@/wab/server/routes/preview-publications";
 import { getHostlessLibraryCanvas, getHostlessLibraryRelease } from "@/wab/server/routes/hostless-library-artifacts";
 import { localAiStatus } from "@/wab/server/routes/local-ai";
@@ -1284,19 +1284,19 @@ export function addMainAppServerRoutes(
   app.post("/api/v1/projects/:projectId/ai/chat/runs/:runId/undo", withNext(aiChatUndo));
   app.get("/api/v1/projects/:projectId/ai/chat/attachments/:attachmentId", withNext(aiChatAttachment));
   app.get("/api/v1/app-ctx", withNext(getAppCtx));
-  app.get("/api/v1/editor-bootstrap/:projectId", withNext(getEditorBootstrap));
   app.post("/api/v1/projects/:projectId/presentation", withNext(createPresentation));
   app.get("/api/v1/presentations/:code", withNext(getPresentation));
+
+  app.get("/api/v1/dependency-models/:resourceId", withNext(getDependencyModelResource));
 
   /**
    * Pkg routes
    */
   app.get("/api/v1/latest-bundle-version", getLatestBundleVersion);
-  app.get("/api/v1/plume-pkg", withNext(getPlumePkg));
+  app.get("/api/v1/plume-pkg", withDependencyModelResources(getPlumePkg));
   app.get("/api/v1/plume-pkg/versions", getPlumePkgVersionStrings);
   app.get("/api/v1/plume-pkg/latest", getLatestPlumePkg);
-  app.get("/api/v1/pkgs/:pkgId", withNext(getPkgVersion));
-  app.post("/api/v1/pkgs/:pkgId", withNext(getPkgVersion));
+  app.get("/api/v1/pkgs/:pkgId", withDependencyModelResources(getPkgVersion));
   app.post(
     "/api/v1/projects/:projectId/revert-to-revision",
     revertProjectToRevision,
@@ -1305,10 +1305,8 @@ export function addMainAppServerRoutes(
     "/api/v1/projects/:projectId/revs/unpublished",
     listUnpublishedProjectRevisions,
   );
-  app.get("/api/v1/projects/:projectId/revs/:revisionId", getProjectRevision);
-  app.post("/api/v1/projects/:projectId/revs/:revisionId", withNext(getProjectRevision));
-  app.get("/api/v1/pkgs/projectId/:projectId", getPkgVersionByProjectId);
-  app.post("/api/v1/pkgs/projectId/:projectId", withNext(getPkgVersionByProjectId));
+  app.get("/api/v1/projects/:projectId/revs/:revisionId", withDependencyModelResources(getProjectRevision));
+  app.get("/api/v1/pkgs/projectId/:projectId", withDependencyModelResources(getPkgVersionByProjectId));
   app.get(
     "/api/v1/pkgs/:pkgId/versions-without-data",
     listPkgVersionsWithoutData,
@@ -1371,8 +1369,7 @@ export function addMainAppServerRoutes(
     "/api/v1/projects/:projectId/main-branch-protection",
     withNext(setMainBranchProtection),
   );
-  app.get("/api/v1/projects/:projectBranchId", withNext(getProjectRev));
-  app.post("/api/v1/projects/:projectBranchId", withNext(getProjectRev));
+  app.get("/api/v1/projects/:projectBranchId", withDependencyModelResources(getProjectRev));
   app.get(
     "/api/v1/projects/:projectId/revision-without-data",
     getProjectRevWithoutData,
@@ -1387,8 +1384,7 @@ export function addMainAppServerRoutes(
   app.put("/api/v1/projects/:projectId/revert-to-version", revertToVersion);
   app.put("/api/v1/projects/:projectId/update-host", withNext(updateHostUrl));
   app.delete("/api/v1/projects/:projectId/perm", withNext(removeSelfPerm));
-  app.get("/api/v1/projects/:projectId/updates", getModelUpdates);
-  app.post("/api/v1/projects/:projectId/updates", withNext(getModelUpdates));
+  app.get("/api/v1/projects/:projectId/updates", withDependencyModelResources(getModelUpdates));
   app.post(
     "/api/v1/projects/:projectId/create-pkg",
     withNext(createPkgByProjectId),

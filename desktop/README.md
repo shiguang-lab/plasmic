@@ -15,29 +15,46 @@ backend used for acceptance; building the App does not replace server releases.
 Changing the bundled React/Antd runtime or editor registration protocol still
 requires an App update.
 
+The shared `@plasmic-shared/resource-cache` package owns resource matching, integrity
+checks, request deduplication and authentication fencing for both Web and App.
+Desktop supplies its native file store; Web supplies CacheStorage. The Studio
+resource loader delegates App requests to the native protocol, so the App never
+creates a second browser cache for these resources.
+
 Desktop stores immutable code and dependency-model contents in `library-cache/`
 under user data, isolated by Studio origin, account and actual renderer hash.
 Code hits read disk directly, without HEAD, ETag or expiry requests. The project
 and package APIs still authorize each load and select current revisions, migrations
-and automatic upgrades. Desktop uses read-only POST variants of those APIs with
-`X-Plasmic-Model-Cache: 1` and all cached hashes in the JSON `modelDigests` body;
-the inventory is not truncated or placed in HTTP headers. Current query parameters
-and the initiating Origin are retained. Desktop reconstructs the full model
-response before the editor receives it. Ordinary GET responses stay complete.
-Latest addresses, business project data and permission responses are not persisted
-by this cache.
+and automatic upgrades. Initial opening uses one project GET with `includeStartup=true`
+and the requested branch name. It returns startup context, project data and model
+resource IDs together; ordinary refreshes omit startup context. The dedicated
+bootstrap endpoint is removed. Project/package responses contain no dependency
+model bodies. SharedApi loads each exact
+`GET /api/v1/dependency-models/:resourceId` in parallel and reconstructs the
+complete model envelope for existing editor consumers.
+
+LibraryCache matches only versioned library code and exact model resource GET/HEAD
+addresses. Model hits read disk with zero server validation. Missing resources
+are fetched whole, authenticated and checksum-verified. Project, package, history,
+opening and write requests pass through unchanged. No cache inventory, digest
+list, POST negotiation, response cropping or empty-cache special branch exists.
+The cache is shared across projects within the same origin/account/renderer scope.
+Only immutable resource bodies are persisted; business project data and permission
+responses are never persisted here.
 
 Cache writes are atomic and checksummed, concurrent code misses within the same
 verified authentication generation share a download,
-and failed/mismatched releases remain retryable. Corrupt or evicted models trigger
-one fresh authorized response. The global disk budget is 256 MiB, with unused
+and failed/mismatched releases remain retryable. Corrupt or evicted resource files trigger
+a fresh GET of that exact resource. The global disk budget is 256 MiB, with unused
 entries evicted first; active reads/downloads are protected. Sign-out clears this resource cache across
 account/build namespaces, including prior-process entries. Previously downloaded private resources cannot be
 remotely recalled; opening a project continues to require server authorization.
 
 The matching backend routes must be deployed with this loader. Run
 `pnpm --dir desktop run test:library-cache` for isolated Chromium protocol and
-compressed-response verification.
+compressed-response verification, and `pnpm --dir desktop run test:resource-cache-web`
+for ordinary browser HTTP with real CacheStorage, persistent hits, cross-tab account
+revocation and logout cleanup. See [the shared cache contract](../docs/performance/2026-10-31/unified-resource-cache.md).
 
 ## Local drafts
 
@@ -51,7 +68,10 @@ remote saving remains available.
 Opening a project restores a single compatible draft only when its base revision
 matches the server. Matching remote content clears an already committed draft;
 divergent or incompatible drafts remain available for export, opening as a new
-project, or explicit deletion. Opening still requires the normal server bootstrap.
+project, or explicit deletion. Opening still requires a fresh project response from the server. Desktop may hand
+that opening response to its trusted main frame once within 30 seconds, scoped to
+the exact project and branch. This handoff is memory-only and is discarded when
+the account changes; it avoids a duplicate renderer request.
 If a live save encounters a newer server revision, Desktop keeps the current
 edits and pauses saving until the user resolves the draft; it does not replay
 potentially committed edits. Choosing the remote version keeps the local draft

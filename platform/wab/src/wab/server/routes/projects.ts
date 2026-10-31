@@ -41,7 +41,7 @@ import "@/wab/server/extensions";
 import { logger } from "@/wab/server/observability";
 import { REAL_PLUME_VERSION } from "@/wab/server/pkg-mgr/plume-pkg-mgr";
 import { getUser } from "@/wab/server/routes/util";
-import { sendWithDependencyModels } from "@/wab/server/routes/dependency-model-cache";
+import { loadProjectStartup } from "@/wab/server/routes/project-startup";
 import { aiReceiptSchema } from "@/wab/shared/copilot/ai-chat";
 import { SELF_HOSTED } from "@/wab/shared/deployment";
 
@@ -1273,7 +1273,7 @@ export async function getModelUpdates(req: Request, res: Response) {
     }
     const deps = await getDeps(data);
 
-    sendWithDependencyModels(req, res, {
+    res.json({
       data: JSON.stringify(data),
       revision: ensure(last(partialChanges), "Couldn't find last partialChange")
         .revision,
@@ -1637,6 +1637,29 @@ export async function setMainBranchProtection(req: Request, res: Response) {
 }
 
 export async function getProjectRev(req: Request, res: Response) {
+  const { projectId, branchId } = parseProjectBranchId(req.params.projectBranchId);
+  const startup = req.query.includeStartup === "true"
+    ? loadProjectStartup(req, toOpaque(projectId))
+    : undefined;
+  const projectRead = async () => {
+    const branches = startup ? await startup.branches : [];
+    const { branchName } = startup ? parseQueryParams(req) : {};
+    const namedBranch = branchName && branchName !== MainBranchId
+      ? branches.find(branch => branch.name === branchName)
+      : undefined;
+    if (branchName && branchName !== MainBranchId && !namedBranch) {
+      throw new BadRequestError("Branch not found");
+    }
+    return getProjectRevData(req, res, projectId, namedBranch?.id ?? branchId);
+  };
+  const [data, context] = await Promise.all([projectRead(), startup?.data]);
+  res.json({
+    ...data,
+    ...(context ? { startup: { ...context, projectData: { projects: [data.project], perms: data.perms } } } : {}),
+  });
+}
+
+async function getProjectRevData(req: Request, res: Response, projectId: string, branchId: BranchId | undefined) {
   const revisionId = req.query.revisionId
     ? JSON.parse(req.query.revisionId as string)
     : undefined;
@@ -1648,9 +1671,6 @@ export async function getProjectRev(req: Request, res: Response) {
     !!req.query.dontMigrateProject &&
     (JSON.parse(req.query.dontMigrateProject as string) as boolean);
   const mgr = userDbMgr(req);
-  const { projectId, branchId } = parseProjectBranchId(
-    req.params.projectBranchId,
-  );
   const branch = branchId ? await mgr.getBranchById(branchId) : undefined;
   const project = await mgr.getProjectById(projectId);
   req.promLabels.projectId = projectId;
@@ -1695,7 +1715,7 @@ export async function getProjectRev(req: Request, res: Response) {
     branchId,
     branchName: branch?.name,
   });
-  sendWithDependencyModels(req, res, {
+  return {
     rev,
     project: mkApiProject(project),
     perms,
@@ -1707,7 +1727,7 @@ export async function getProjectRev(req: Request, res: Response) {
     hasAppAuth,
     appAuthProvider,
     isMainBranchProtected: !!project.isMainBranchProtected,
-  });
+  };
 }
 
 export async function getProjectRevWithoutData(req: Request, res: Response) {
@@ -1965,7 +1985,7 @@ export async function getLatestPlumePkg(req: Request, res: Response) {
 export async function getPlumePkg(req: Request, res: Response) {
   const mgr = superDbMgr(req);
   const version = await getLastBundleVersion();
-  const etag = `W/"plume-pkg-${REAL_PLUME_VERSION}-${version}"`;
+  const etag = `W/"plume-pkg-model-resource-v1-${REAL_PLUME_VERSION}-${version}"`;
 
   if (checkEtagSkippable(req, res, etag)) {
     return;
@@ -2030,7 +2050,7 @@ async function getPkgVersionEtag(
   const mgr = superDbMgr(req);
   const bundleVersion = await getLastBundleVersion();
   const hostlessHash = await getHostlessDataVersionsHash(mgr);
-  return `W/"${req.devflags.eTagsVersionPrefix}-${pkgId}-${pkgVersion}-${bundleVersion}-${hostlessHash}"`;
+  return `W/"${req.devflags.eTagsVersionPrefix}-model-resource-v1-${pkgId}-${pkgVersion}-${bundleVersion}-${hostlessHash}"`;
 }
 
 export async function getPkgVersionByProjectId(req: Request, res: Response) {
@@ -2054,11 +2074,11 @@ export async function getPkgVersionByProjectId(req: Request, res: Response) {
 
   const etag = await getPkgVersionEtag(req, pkg.id, chosenVersion);
 
-  if (!req.get("X-Plasmic-Model-Cache") && checkEtagSkippable(req, res, etag)) {
+  if (checkEtagSkippable(req, res, etag)) {
     return;
   }
 
-  sendWithDependencyModels(req, res, {
+  res.json({
     ...(await getPkgWithDeps(mgr, pkgVersion, false)),
     etag,
   });
@@ -2087,11 +2107,11 @@ export async function getPkgVersion(req: Request, res: Response) {
 
   const etag = await getPkgVersionEtag(req, pkgId, pkg.version);
 
-  if (!req.get("X-Plasmic-Model-Cache") && checkEtagSkippable(req, res, etag)) {
+  if (checkEtagSkippable(req, res, etag)) {
     return;
   }
 
-  sendWithDependencyModels(req, res, {
+  res.json({
     ...(await getPkgWithDeps(mgr, pkg, meta, { dontMigrateProject })),
     etag,
   });
@@ -2142,7 +2162,7 @@ export async function getProjectRevision(req: Request, res: Response) {
   const bundle = parseBundle(projectRev);
   const depPkgs = await loadDepPackages(mgr, bundle);
 
-  sendWithDependencyModels(req, res, {
+  res.json({
     depPkgs,
     rev: projectRev,
   });

@@ -59,10 +59,10 @@ app
       if (url.pathname === "/api/auth/session") {
         return Response.json({ authenticated: true });
       }
-      assert.equal(url.pathname, "/api/v1/editor-bootstrap/unavailable");
+      assert.equal(url.pathname, "/api/v1/projects/unavailable");
       assert.equal(JSON.parse(url.searchParams.get("branchName")), "main");
       projectChecks++;
-      return Response.json({ projectData: { projects: [], perms: [] } }, { status: forbidden ? 403 : 200 });
+      return Response.json({ projectData: { projects: [], perms: [] } }, { status: forbidden ? 403 : 404 });
     };
     let win = await startDesktop();
     assert.equal(win.webContents.getURL(), config.studioOrigin + "/");

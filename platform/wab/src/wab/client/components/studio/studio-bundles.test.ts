@@ -216,7 +216,7 @@ test("loads a new library registration at the Project dependency version", async
   const loaded = await bundles.getSortedHostLessPkgs(targetWindow(), ["new-library"], "-v2", site);
   expect(loaded[0][0]).toBe("new-library@library-package:2.3.4");
   expect(loaded[0][1]).toContain("registration");
-  expect(fetchMock).toHaveBeenCalledWith("/api/v1/hostless-libraries/new-library/canvas?version=2.3.4&pkgId=library-package");
+  expect(fetchMock).toHaveBeenCalledWith("/api/v1/hostless-libraries/new-library/canvas?version=2.3.4&pkgId=library-package", expect.objectContaining({ cache: "no-store" }));
 });
 
 test("missing consumer releases fail instead of silently loading latest", async () => {

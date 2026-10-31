@@ -23,20 +23,21 @@ test("startup validates the exact saved project before restoring its route", asy
     fetch: async (url, options) => {
       const request = new URL(url);
       assert.equal(request.origin, origin);
-      assert.equal(request.pathname, "/api/v1/editor-bootstrap/saved");
+      assert.equal(request.pathname, "/api/v1/projects/saved");
       assert.equal(JSON.parse(request.searchParams.get("branchName")), "main");
+      assert.equal(request.searchParams.get("includeStartup"), "true");
       assert.equal(options.bypassCustomProtocolHandlers, true);
       assert.equal(options.credentials, "include");
       assert.equal(options.redirect, "manual");
-      return Response.json({ projectId: "saved", projectData: { projects: [{ id: "saved" }], perms: [] } });
+      return Response.json({ project: { id: "saved" }, startup: { projectId: "saved", branchName: "main" } });
     },
   };
   assert.equal(await workspace.startupUrl(session), savedUrl);
   assert.equal(workspace.recent.length, 2);
-  assert.equal(workspace.consumeStartupData("saved").projectId, "saved");
-  assert.equal(workspace.consumeStartupData("saved"), null);
+  assert.equal(workspace.consumeStartupData("saved", "main").project.id, "saved");
+  assert.equal(workspace.consumeStartupData("saved", "main"), null);
 });
-for (const status of [200, 401, 403, 404]) {
+for (const status of [401, 403, 404]) {
   test(`startup removes an unavailable project after confirming login (HTTP ${status})`, async (t) => {
     const { workspace, dir } = startupFixture(t);
     const checked = [];
@@ -49,7 +50,7 @@ for (const status of [200, 401, 403, 404]) {
         const id = request.pathname.split("/").at(-1);
         checked.push(id);
         return Response.json(
-          { projectData: { projects: id === "saved" ? [] : [{ id }], perms: [] } },
+          { project: id === "saved" ? null : { id }, startup: { projectId: id } },
           { status: id === "saved" ? status : 200 },
         );
       },
@@ -496,12 +497,40 @@ test("a stale recent menu item never opens a deleted project", async (t) => {
 
 test("startup data expires and is scoped to the restored project", async (t) => {
   const { workspace } = startupFixture(t);
-  const session = { fetch: async () => Response.json({ projectId: "saved", projectData: { projects: [{ id: "saved" }], perms: [] } }) };
+  const session = { fetch: async () => Response.json({ project: { id: "saved" }, startup: { projectId: "saved", branchName: "main" } }) };
   await workspace.startupUrl(session);
   assert.equal(workspace.consumeStartupData("other"), null);
   await workspace.startupUrl(session);
   const originalNow = Date.now;
   Date.now = () => originalNow() + 31000;
-  try { assert.equal(workspace.consumeStartupData("saved"), null); }
+  try { assert.equal(workspace.consumeStartupData("saved", "main"), null); }
   finally { Date.now = originalNow; }
+});
+
+test("startup handoff cannot supply a model from another branch", async (t) => {
+  const { workspace } = startupFixture(t);
+  await workspace.startupUrl({ fetch: async () => Response.json({ project: { id: "saved" }, startup: { projectId: "saved", branchName: "main" } }) });
+  assert.equal(workspace.consumeStartupData("saved", "feature"), null);
+});
+
+test("unconsumed project data is released from memory after 30 seconds", async (t) => {
+  t.mock.timers.enable({ apis: ["setTimeout"] });
+  const { workspace } = startupFixture(t);
+  await workspace.startupUrl({ fetch: async () => Response.json({ project: { id: "saved" }, startup: { projectId: "saved", branchName: "main" } }) });
+  assert.ok(workspace.startupData);
+  t.mock.timers.tick(30000);
+  assert.equal(workspace.startupData, undefined);
+});
+
+test("an invalid saved branch preserves the project instead of deleting it", async (t) => {
+  const { workspace, dir, savedUrl } = startupFixture(t);
+  workspace.rememberUrl(savedUrl.replace("branch=main", "branch=missing"));
+  const session = { fetch: async url => {
+    const request = new URL(url);
+    assert.equal(request.pathname, "/api/v1/projects/saved");
+    assert.equal(JSON.parse(request.searchParams.get("branchName")), "missing");
+    return Response.json({ error: "Branch not found" }, { status: 400 });
+  } };
+  assert.equal(await workspace.startupUrl(session), origin + "/");
+  assert.equal(new DesktopWorkspace(dir, origin).recent[0].url, savedUrl);
 });

@@ -8,8 +8,9 @@ import * as React from "react";
 
 const mocks = vi.hoisted(() => ({
   getLastBundleVersion: vi.fn(),
-  getEditorBootstrap: vi.fn(),
+  getProjectStartup: vi.fn(),
   getSiteInfo: vi.fn(),
+  resolveProjectModel: vi.fn(),
   loadAppCtx: vi.fn(),
   loadAppCtxData: vi.fn(),
   reportError: vi.fn(),
@@ -17,8 +18,9 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@/wab/client/api", () => ({
   setUser: vi.fn(),
   Api: class {
-    getEditorBootstrap = mocks.getEditorBootstrap;
+    getProjectStartup = mocks.getProjectStartup;
     getSiteInfo = mocks.getSiteInfo;
+    resolveProjectModel = mocks.resolveProjectModel;
     getLastBundleVersion = mocks.getLastBundleVersion;
   },
 }));
@@ -53,6 +55,7 @@ vi.mock("@/wab/client/components/pages/ShiguangSignIn", () => ({
 
 beforeEach(() => {
   mocks.getSiteInfo.mockResolvedValue({});
+  mocks.resolveProjectModel.mockResolvedValue({});
   mocks.getLastBundleVersion.mockResolvedValue({
     latestBundleVersion: "version",
   });
@@ -135,20 +138,24 @@ it("retries failed parallel app data without repeating the successful bundle fet
   );
 });
 
-it("uses the project bootstrap once and reuses its permission and host metadata", async () => {
+it("uses the project opening response once and reuses its permission and host metadata", async () => {
   const data = { selfInfo: null, appConfig: { config: {} }, appCtx: { teams: [], workspaces: [], perms: [] }, latestBundleVersion: "version", projectId: "project", branchName: "main", projectData: { projects: [], perms: [] }, hosts: { trustedHosts: [] }, branches: [] };
-  mocks.getEditorBootstrap.mockResolvedValue(data);
-  mocks.loadAppCtx.mockRejectedValue(new Error("Stop after bootstrap"));
+  const opening = { startup: data, rev: {}, depPkgs: [] };
+  mocks.getProjectStartup.mockResolvedValue(opening);
+  mocks.resolveProjectModel.mockReturnValue(new Promise(() => undefined));
+  mocks.loadAppCtx.mockRejectedValue(new Error("Stop after opening"));
   setup("/projects/project");
   await screen.findByRole("alert");
-  expect(mocks.getEditorBootstrap).toHaveBeenCalledExactlyOnceWith("project", "main");
+  expect(mocks.getProjectStartup).toHaveBeenCalledExactlyOnceWith("project", "main");
+  expect(mocks.getSiteInfo).not.toHaveBeenCalled();
+  expect(mocks.resolveProjectModel).toHaveBeenCalledExactlyOnceWith(opening);
   expect(mocks.getLastBundleVersion).not.toHaveBeenCalled();
   expect(mocks.loadAppCtxData).not.toHaveBeenCalled();
   expect(mocks.loadAppCtx).toHaveBeenCalledWith(expect.objectContaining({ initialProjectInfo: data, lastBundleVersion: "version" }), true, [undefined, data.appConfig, data.appCtx]);
 });
 
-it.each([401, 403])("initializes identity after a denied project bootstrap (%s) so project access can be handled", async (status) => {
-  mocks.getEditorBootstrap.mockRejectedValue(new HttpError(status, "Access denied"));
+it.each([401, 403])("initializes identity after a denied project opening response (%s) so project access can be handled", async (status) => {
+  mocks.getProjectStartup.mockRejectedValue(new HttpError(status, "Access denied"));
   mocks.loadAppCtx.mockRejectedValue(new Error("Stop after identity initialization"));
   setup("/d/0123456789?branch=main#/customer-groups");
   await screen.findByRole("alert");
@@ -162,7 +169,7 @@ it.each([401, 403])("initializes identity after a denied project bootstrap (%s) 
 });
 
 it("keeps a failed project service retryable without treating it as an access denial", async () => {
-  mocks.getEditorBootstrap.mockRejectedValueOnce(new HttpError(502, "Bad Gateway"));
+  mocks.getProjectStartup.mockRejectedValueOnce(new HttpError(502, "Bad Gateway"));
   setup("/projects/project");
   await screen.findByRole("alert");
   expect(mocks.loadAppCtxData).not.toHaveBeenCalled();
@@ -173,7 +180,7 @@ it.each(["bundle", "app-data", "app-context"])(
   "sends an expired %s startup session to sign-in with the full preview location",
   async (stage) => {
     const denied = new HttpError(401, "Unauthorized");
-    mocks.getEditorBootstrap.mockRejectedValue(denied);
+    mocks.getProjectStartup.mockRejectedValue(denied);
     if (stage === "bundle") {
       mocks.getLastBundleVersion.mockRejectedValue(denied);
     } else if (stage === "app-data") {
@@ -196,3 +203,21 @@ it("does not treat a forbidden startup request as an expired session", async () 
 });
 
 beforeEach(() => registerPresentationProject("0123456789", "project" as import("@/wab/shared/ApiSchema").ProjectId));
+
+it("consumes the desktop opening response without repeating the project GET", async () => {
+  const opening = { startup: { selfInfo: null, appConfig: { config: {} }, appCtx: { teams: [], workspaces: [], perms: [] }, latestBundleVersion: "version", projectId: "project", branchName: "feature", projectData: { projects: [], perms: [] }, hosts: { trustedHosts: [] }, branches: [{ id: "branch", name: "feature" }] }, depPkgs: [], rev: {} };
+  const consumeStartupData = vi.fn().mockResolvedValue(opening);
+  Object.defineProperty(window, "desktopEnvironment", { configurable: true, value: { consumeStartupData } });
+  try {
+    mocks.loadAppCtx.mockRejectedValue(new Error("Stop after opening"));
+    setup("/projects/project?branch=feature");
+    await screen.findByRole("alert");
+    expect(consumeStartupData).toHaveBeenCalledExactlyOnceWith("project", "feature");
+    expect(mocks.getProjectStartup).not.toHaveBeenCalled();
+    expect(mocks.getSiteInfo).not.toHaveBeenCalled();
+    expect(mocks.resolveProjectModel).toHaveBeenCalledExactlyOnceWith(opening);
+    expect(mocks.loadAppCtx.mock.calls[0][0].initialProjectModel.branchId).toBe("branch");
+  } finally {
+    Reflect.deleteProperty(window, "desktopEnvironment");
+  }
+});

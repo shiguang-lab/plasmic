@@ -22,3 +22,15 @@ export class HostlessLibraryVersion {
   @PrimaryColumn("text") pkgVersionId: string;
   @Column("jsonb") artifact: LibraryArtifact;
 }
+
+
+/** Immutable model bytes, including the result of schema/hostless migrations. */
+@Entity("dependency_model_resource")
+@Index(["pkgVersionId", "digest"], { unique: true })
+export class DependencyModelResource {
+  @PrimaryColumn("text") id: string;
+  @Column("text") pkgVersionId: string;
+  @Column("text") pkgId: string;
+  @Column("text") digest: string;
+  @Column("text") model: string;
+}

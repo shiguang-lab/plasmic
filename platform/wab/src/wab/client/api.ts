@@ -1,3 +1,4 @@
+import { clearResourceCache, fetchLibraryResource, setResourceCacheUser } from "@/wab/client/resource-cache";
 import {
   LocalStorageKey,
   codegenTypeKey,
@@ -15,7 +16,7 @@ import { LocalClipboardAction } from "@/wab/client/clipboard/local";
 import { analytics } from "@/wab/client/observability";
 import { PushPullQueue } from "@/wab/commons/asyncutil";
 import { PromisifyMethods } from "@/wab/commons/promisify-methods";
-import { ApiError, HttpError, UnknownApiError } from "@/wab/shared/ApiErrors/ApiError";
+import { ApiError, HttpError, NetworkError, UnknownApiError } from "@/wab/shared/ApiErrors/ApiError";
 import { deserializeApiError } from "@/wab/shared/ApiErrors/errors";
 import {
   ApiUser,
@@ -161,7 +162,8 @@ export class Api extends SharedApi {
 
   setUser = setUser;
 
-  clearUser() {
+  async clearUser() {
+    await clearResourceCache();
     analytics().setAnonymousUser();
     Sentry.configureScope((scope) => {
       scope.setUser({});
@@ -176,6 +178,22 @@ export class Api extends SharedApi {
     hideDataOnError?: boolean,
     noErrorTransform?: boolean,
   ) {
+    if (method === "get" && /^\/dependency-models\/[A-Za-z0-9_-]+$/.test(url)) {
+      const path = fullApiPath(url);
+      let response: Response;
+      try { response = await fetchLibraryResource(path, opts); }
+      catch (error) {
+        if (error instanceof TypeError) { throw new NetworkError({ method: "GET", url: path }, { cause: error }); }
+        throw error;
+      }
+      if (!response.ok) {
+        const body = await response.json().catch(() => undefined);
+        const error = deserializeApiError(body?.error, response.status);
+        error.request = { method: "GET", url: path };
+        throw error;
+      }
+      return response.json();
+    }
     return ajax(method, url, data, opts, hideDataOnError, noErrorTransform);
   }
 
@@ -675,6 +693,7 @@ export function filteredApi(
 }
 
 export function setUser(user: ApiUser) {
+  setResourceCacheUser(user.id);
   const { id, email, displayName } = user;
   const traits = omitNils({
     email,

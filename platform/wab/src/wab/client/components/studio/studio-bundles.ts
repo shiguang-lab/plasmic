@@ -1,3 +1,4 @@
+import { fetchLibraryResource, resourceCacheIdentity } from "@/wab/client/resource-cache";
 import { ENV } from "@/wab/client/env";
 import { scriptExec } from "@/wab/client/script-exec";
 import { assert, sortAs, withTimeout } from "@/wab/shared/common";
@@ -58,23 +59,24 @@ async function resolveLibraryRelease(pkg: string): Promise<LibraryRelease> {
 }
 
 const libraryKey = (pkg: string, version: string, release?: LibraryRelease) =>
-  JSON.stringify([pkg, version, release?.pkgId, release?.version]);
+  JSON.stringify([resourceCacheIdentity(), pkg, version, release?.pkgId, release?.version]);
 
 const fetchHostLessPkg = memoize(
   async (pkg: string, version: string, release?: LibraryRelease) => {
+    const key = libraryKey(pkg, version, release);
     try {
       const managed = isManagedLibrary(pkg);
       assert(!managed || release?.pkgId && release.version, `Missing exact component library release for ${pkg}`);
       const url = managed && release
         ? `/api/v1/hostless-libraries/${encodeURIComponent(pkg)}/canvas?${new URLSearchParams({ version: release.version, pkgId: release.pkgId })}`
         : `${getStaticBaseUrl()}/canvas-packages/build/${pkg}${version}.${ENV.COMMITHASH}.js`;
-      const response = await fetch(url);
+      const response = await fetchLibraryResource(url);
       if (!response.ok) {
         throw new Error(`Unable to load component library ${pkg}${release ? `@${release.version}` : ""}: ${response.status}`);
       }
       return withLibraryRegistrations(pkg, await response.text());
     } catch (error) {
-      fetchHostLessPkg.cache.delete(libraryKey(pkg, version, release));
+      fetchHostLessPkg.cache.delete(key);
       throw error;
     }
   },

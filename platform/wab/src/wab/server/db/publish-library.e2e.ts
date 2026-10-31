@@ -15,6 +15,7 @@ import { Bundler } from "@/wab/shared/bundler";
 import { PLUME_INSERTABLE_ID } from "@/wab/shared/insertables";
 import { assert, ensure } from "@/wab/shared/common";
 import { getHostlessLibraryCanvas, getHostlessLibraryRelease } from "@/wab/server/routes/hostless-library-artifacts";
+import { getDependencyModelResource, withDependencyModelResources } from "@/wab/server/routes/dependency-model-resources";
 import { getPkgVersionByProjectId } from "@/wab/server/routes/projects";
 import { DEVFLAGS } from "@/wab/shared/devflags";
 import express from "express";
@@ -102,8 +103,8 @@ async function main() {
     app.use((req, _res, next) => { req.body ??= {}; next(); });
     app.get("/api/v1/hostless-libraries/:name/canvas", (req, res, next) => getHostlessLibraryCanvas(req, res).catch(next));
     app.get("/api/v1/hostless-libraries/:name/release", (req, res, next) => getHostlessLibraryRelease(req, res).catch(next));
-    app.get("/api/v1/pkgs/projectId/:projectId", (req, res, next) => getPkgVersionByProjectId(req, res).catch(next));
-    app.post("/api/v1/pkgs/projectId/:projectId", (req, res, next) => getPkgVersionByProjectId(req, res).catch(next));
+    app.get("/api/v1/pkgs/projectId/:projectId", withDependencyModelResources(getPkgVersionByProjectId));
+    app.get("/api/v1/dependency-models/:resourceId", (req, res, next) => getDependencyModelResource(req, res).catch(next));
     const server = app.listen(0, "127.0.0.1");
     await new Promise<void>(resolve => server.once("listening", resolve));
     const address = server.address();
@@ -118,16 +119,36 @@ async function main() {
         const response = await fetch(request);
         const body = await response.clone().text();
         const json = response.headers.get("content-type")?.includes("application/json") ? JSON.parse(body) : undefined;
-        requests.push({ path: new URL(request.url).pathname, responseBytes: Buffer.byteLength(body), transferredModels: [json?.pkg, ...(json?.depPkgs ?? [])].filter(entry => entry?.model).length });
+        requests.push({ path: new URL(request.url).pathname, responseBytes: Buffer.byteLength(body), transferredModels: new URL(request.url).pathname.includes("/dependency-models/") ? 1 : [json?.pkg, ...(json?.depPkgs ?? [])].filter(entry => entry?.model).length });
         return response;
       },
     };
     try {
+      // Two real first reads must publish one committed resource identity.
+      const openingUrl = `${origin}/api/v1/pkgs/projectId/${pkg.projectId}?version=${encodeURIComponent(JSON.stringify(firstVersion.version))}`;
+      const openings = await Promise.all([fetch(openingUrl), fetch(openingUrl)]);
+      assert(openings.every(response => response.status === 200), "Concurrent first package reads failed");
+      const packets = await Promise.all(openings.map(response => response.json()));
+      assert(packets[0].pkg.modelResourceId === packets[1].pkg.modelResourceId, "Concurrent reads emitted different resource identities");
+      assert(packets.every(packet => packet.pkg.modelResourceId && !packet.pkg.model), "First responses must contain resource references");
+      const rows = await con.query('SELECT count(*)::int AS n FROM dependency_model_resource WHERE "pkgVersionId"=$1', [firstVersion.id]);
+      assert(rows[0].n === 1, "Concurrent first reads created duplicate model resources");
+      const firstResource = await fetch(`${origin}/api/v1/dependency-models/${packets[0].pkg.modelResourceId}`);
+      assert(firstResource.status === 200, "Resource must be downloadable immediately after its reference is returned");
+      await firstResource.arrayBuffer();
       const load = async (version: string, label: string, hasExtra: boolean) => {
         const cache = new LibraryCache(options); // Simulate a process restart.
         const response = await cache.fetch(new Request(`${origin}/api/v1/pkgs/projectId/${pkg.projectId}?version=${encodeURIComponent(JSON.stringify(version))}`));
         assert(response.ok, `Package HTTP ${response.status}`);
         const data = await response.json();
+        await Promise.all([data.pkg, ...data.depPkgs].map(async entry => {
+          if (entry.modelResourceId) {
+            const resource = await cache.fetch(new Request(`${origin}/api/v1/dependency-models/${entry.modelResourceId}`));
+            assert(resource.ok, `Model resource HTTP ${resource.status}`);
+            entry.model = await resource.json();
+            delete entry.modelResourceId;
+          }
+        }));
         const resolved = version === "latest" ? secondVersion.version : version;
         assert(data.pkg.version === resolved, "Model latest/exact release selection disagrees with code");
         const dependency = await unbundlePkgVersion(db, new Bundler(), { ...data.pkg, model: JSON.stringify(data.pkg.model) });
@@ -148,7 +169,16 @@ async function main() {
       const modelRequests = requests.filter(request => request.path.includes("/pkgs/"));
       assert(codeRequests.length === 2, "Each code release should download only once across restarts");
       assert(modelRequests.length === 4, "Current package permissions and version must still be checked");
-      assert(modelRequests[1].transferredModels === 0 && modelRequests[3].transferredModels === 0, "Warm/undo requests transferred cached definitions");
+      assert(modelRequests.every(request => request.transferredModels === 0), "Package responses should contain only model resource references");
+      assert(requests.filter(request => request.path.includes("/dependency-models/")).length === 2, "Only two distinct model resources should download across reopen and undo");
+      const metadataUrl = `${origin}/api/v1/pkgs/projectId/${pkg.projectId}?version=${encodeURIComponent(JSON.stringify(firstVersion.version))}`;
+      const metadata = await fetch(metadataUrl);
+      const etag = ensure(metadata.headers.get("etag"), "Missing metadata ETag");
+      assert(etag.includes("model-resource-v1-"), "Resource references need a distinct representation ETag");
+      const oldRepresentation = await fetch(metadataUrl, { headers: { "If-None-Match": etag.replace("model-resource-v1-", "") } });
+      assert(oldRepresentation.status === 200 && (await oldRepresentation.json()).pkg.modelResourceId, "Old inline-model ETags must not suppress resource references");
+      const unchanged = await fetch(metadataUrl, { headers: { "If-None-Match": etag } });
+      assert(unchanged.status === 304, "Current metadata ETags should retain normal conditional GET semantics");
       console.log(`CACHE HTTP EVIDENCE: ${JSON.stringify(requests)}`);
     } finally {
       await new Promise<void>((resolve, reject) => server.close(error => error ? reject(error) : resolve()));

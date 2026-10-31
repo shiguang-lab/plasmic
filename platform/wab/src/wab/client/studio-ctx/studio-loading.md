@@ -84,28 +84,31 @@ revision between runs.
 
 ## Top-frame startup contract
 
-Project routes fetch `/api/v1/editor-bootstrap/:projectId`, which reuses the
-existing user, configuration, app-context, project-permission, trusted-host and
-branch readers. The response is private and `no-store`; it contains metadata,
-not the project model. The full app-context collections retain their existing
-contract for project navigation, membership and billing controls.
+Project routes open with `GET /api/v1/projects/:projectId?includeStartup=true`
+and a JSON-encoded `branchName`. This returns the project model, dependency resource
+references and `startup` context together. The dedicated bootstrap endpoint is
+removed. The server reads context and project data concurrently, resolving a
+named branch before reading its revision. Project and permission metadata are
+reused from the model read. Ordinary model refreshes and history requests do not
+query startup context. Responses are private and `no-store`; app-context
+collections retain their existing navigation, membership and billing contract.
 
-Startup metadata reads retry an IAM HTTP 503 at most twice, after 250ms and
-500ms. Successful parallel reads are retained. Only an explicit HTTP 401 from
-the identity endpoint denotes an anonymous user; service failures remain
-retryable loading errors and must not redirect a signed-in user to login.
+Startup reads retry an IAM HTTP 503 at most twice, after 250ms and 500ms.
+Only an explicit HTTP 401 from the identity endpoint denotes an anonymous user;
+service failures remain retryable loading errors. A denied project opening falls
+back to identity initialization for the normal project sign-in/permission flow.
 
-Desktop validates its saved route through the same endpoint. Its trusted main
-frame may consume that response once for the same project within 30 seconds.
-Later opens and retries fetch fresh data. No model response is persisted in this
-startup cache.
+Desktop validates its saved route through the same project GET. Its trusted main
+frame may consume that complete response once for the same project and branch
+within 30 seconds. The handoff is memory-only, discarded on account changes, and
+never persists project models or permissions to the library cache.
 
-Root starts the model request after resolving the project and branch, while the
-editor chunk and host load. The top-frame bridge consumes that promise once for
-an exact project/branch/latest-model match; other projects, revisions and
-subsequent requests use the normal API. Host trust checks still precede editor
-execution in the host. Transient startup metadata and promises are cleared when
-consumed.
+Root uses the returned context immediately and resolves dependency model resource
+GETs concurrently with editor/host initialization. It does not issue another
+project GET. The top-frame bridge consumes the hydrated-model promise once for
+an exact project/branch/latest-model match; other projects, revisions and later
+requests use the normal API. Host trust checks still precede editor execution.
+Transient context and promises are cleared when consumed.
 
 Loading chrome imports lightweight contexts and disabled controls. It does not
 import `StudioCtx`, billing dialogs or dashboard screens. Context definitions and
