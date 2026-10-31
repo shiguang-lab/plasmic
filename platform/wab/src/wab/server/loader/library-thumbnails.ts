@@ -1,5 +1,5 @@
 import { uploadDataUriToS3 } from "@/wab/server/cdn/images";
-import { assert } from "@/wab/shared/common";
+import { assert, delay } from "@/wab/shared/common";
 import type { Site } from "@/wab/shared/model/classes";
 import type { Plugin } from "esbuild";
 import { promises as fs } from "fs";
@@ -13,9 +13,27 @@ async function uploadThumbnail(value: string) {
     /^https?:\/\//.test(result.value),
     "Thumbnail upload must return an absolute resource URL",
   );
-  const response = await fetch(result.value, { method: "HEAD" });
+  let response: Response | undefined;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      response = await fetch(result.value, {
+        method: "HEAD",
+        signal: AbortSignal.timeout(15_000),
+      });
+      if (response.status < 500) {
+        break;
+      }
+    } catch (error) {
+      if (attempt === 2) {
+        throw error;
+      }
+    }
+    if (attempt < 2) {
+      await delay(250);
+    }
+  }
   assert(
-    response.ok &&
+    response?.ok &&
       response.headers.get("content-type")?.includes("image/svg+xml"),
     "Uploaded thumbnail is not publicly readable",
   );

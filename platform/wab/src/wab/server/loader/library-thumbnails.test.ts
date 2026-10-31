@@ -41,6 +41,26 @@ it("rejects an uploaded asset that cannot be read through its public URL", async
   await expect(
     externalizeComponentThumbnails([{ meta: { thumbnailUrl: svg } }]),
   ).rejects.toThrow("not publicly readable");
+  expect(fetch).toHaveBeenCalledTimes(1);
+});
+
+it("retries transient public URL connection and gateway failures", async () => {
+  vi.mocked(fetch)
+    .mockRejectedValueOnce(new TypeError("fetch failed"))
+    .mockResolvedValueOnce(new Response(null, { status: 502 }));
+  const meta = { thumbnailUrl: svg };
+  await externalizeComponentThumbnails([{ meta }]);
+  expect(meta.thumbnailUrl).toBe(url(svg));
+  expect(fetch).toHaveBeenCalledTimes(3);
+  expect(vi.mocked(fetch).mock.calls[0][1]?.signal).toBeInstanceOf(AbortSignal);
+});
+
+it("still aborts publication after repeated connection failures", async () => {
+  vi.mocked(fetch).mockRejectedValue(new TypeError("fetch failed"));
+  const meta = { thumbnailUrl: svg };
+  await expect(externalizeComponentThumbnails([{ meta }])).rejects.toThrow("fetch failed");
+  expect(meta.thumbnailUrl).toBe(svg);
+  expect(fetch).toHaveBeenCalledTimes(3);
 });
 
 it("uploads identical SVGs once while retaining explicit URLs and component contracts", async () => {
