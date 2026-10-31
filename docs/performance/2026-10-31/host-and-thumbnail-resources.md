@@ -1,6 +1,6 @@
 # Web Host 强缓存与非图标预览图外置
 
-状态：Studio 0.5.31、Desktop 0.5.30 已发布，Server/Web 已部署；Antd6 3.11.0、Overseas 1.13.0 已发布并通过画布、自动升级和热缓存验收。部分 CDN 图片旧缓存头待清理，见 [生产验收](release-0.5.31-acceptance.md)。本地验证记录见 [JSON](host-and-thumbnail-resources.json)。
+状态：Studio 0.5.31、Desktop 0.5.30 已发布，Server/Web 已部署；Antd6 3.11.0、Overseas 1.13.0 已发布并通过画布、自动升级和热缓存验收。部分 CDN 图片旧缓存头按用户决定本次保留，见 [生产验收](release-0.5.31-acceptance.md)。本地验证记录见 [JSON](host-and-thumbnail-resources.json)。
 
 ## Web Host
 

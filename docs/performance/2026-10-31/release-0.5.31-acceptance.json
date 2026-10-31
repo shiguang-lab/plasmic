@@ -1,5 +1,5 @@
 {
-  "status": "PASS_WITH_CDN_FOLLOWUP",
+  "status": "PASS_WITH_CDN_PURGE_DEFERRED",
   "studioRelease": "0.5.31",
   "studioRevision": "f7bf66b40620d0f9dadcbee356ddbc6721d4ddbc",
   "desktopRelease": "0.5.30",
@@ -151,7 +151,6 @@
   "publicHostCacheControl": "public, max-age=31536000, immutable",
   "originPreviewCacheControl": "public, max-age=31536000, immutable",
   "cdnExistingPreviewCacheControl": "max-age=14400, s-maxage=31536000",
-  "cdnPurgePending": true,
   "cdnPurgeUrlCount": 123,
   "consoleNotices": {
     "ResizeObserver loop completed with undelivered notifications.": 3
@@ -174,5 +173,6 @@
       "app": 0,
       "web": 0
     }
-  }
+  },
+  "cdnPurgeStatus": "deferred_by_user"
 }
