@@ -2,6 +2,8 @@ import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import { PreviewCtx } from "@/wab/client/components/live/PreviewCtx";
 import { HostFrameCtx } from "@/wab/client/frame-ctx/host-frame-ctx";
 import { RightTabKey, StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { APP_ROUTES } from "@/wab/shared/route/app-routes";
+import { autorun, runInAction } from "mobx";
 import { mock } from "vitest-mock-extended";
 
 const leftPanels: Record<string, (ctx: StudioCtx) => void> = {
@@ -225,7 +227,7 @@ it.each(["ai", "tab", "insert", "inline insert", "group", "comments"])(
       if (panel === "comments") {
         studioCtx.toggleCommentsPanel();
       }
-      history.push(`/projects/${studioCtx.siteInfo.id}/preview/example`);
+      history.push(`${APP_ROUTES.projectPreview.fill({ projectId: studioCtx.siteInfo.id })}#/example`);
       expect(preview.isLive).toBe(true);
       expect(studioCtx.isCopilotChatOpen).toBe(false);
       expect(studioCtx.leftTabKey).toBeUndefined();
@@ -247,6 +249,65 @@ it.each(["ai", "tab", "insert", "inline insert", "group", "comments"])(
 const exclusivePanels = Object.entries(leftPanels).filter(
   ([name]) => name !== "menu",
 );
+it.each(exclusivePanels)(
+  "does not publish a new state when the %s panel is already open",
+  (_name, open) => {
+    const { studioCtx } = fakeStudioCtx();
+    runInAction(() => open(studioCtx));
+    const panel = studioCtx.leftPanel;
+    const update = vi.fn();
+    const dispose = autorun(() => update(studioCtx.leftPanel));
+    try {
+      update.mockClear();
+      runInAction(() => open(studioCtx));
+      runInAction(() => open(studioCtx));
+      expect(studioCtx.leftPanel).toBe(panel);
+      expect(update).not.toHaveBeenCalled();
+    } finally {
+      dispose();
+      studioCtx.dispose();
+    }
+  },
+);
+
+it("reveals and highlights an already open tab without replacing its panel state", () => {
+  const { studioCtx } = fakeStudioCtx();
+  const highlight = vi.fn();
+  studioCtx.leftPanelHighlightingRequested.add(highlight);
+  try {
+    studioCtx.switchLeftTab("outline");
+    const panel = studioCtx.leftPanel;
+    studioCtx.togglePanels();
+    studioCtx.setLeftTabGroup("more");
+    studioCtx.switchLeftTab("outline", { highlight: true });
+    expect(studioCtx.leftPanel).toBe(panel);
+    expect(studioCtx.panelsHidden).toBe(false);
+    expect(studioCtx.leftTabGroup).toBeUndefined();
+    expect(highlight).toHaveBeenCalledTimes(1);
+    studioCtx.switchLeftTab(undefined);
+    expect(studioCtx.leftPanel).toBeUndefined();
+  } finally {
+    studioCtx.dispose();
+  }
+});
+
+it("publishes a new AI request even if its prompt and mode repeat", () => {
+  const { studioCtx } = fakeStudioCtx();
+  const options = { prompt: "Edit this page", mode: "starter" as const };
+  try {
+    studioCtx.openCopilotChat(options);
+    const panel = studioCtx.leftPanel;
+    studioCtx.openCopilotChat(options);
+    expect(studioCtx.leftPanel).toBe(panel);
+    const next = { ...options };
+    studioCtx.openCopilotChat(next);
+    expect(studioCtx.leftPanel).not.toBe(panel);
+    expect(studioCtx.copilotChatOpenOpts).toBe(next);
+  } finally {
+    studioCtx.dispose();
+  }
+});
+
 it.each(
   exclusivePanels.flatMap((first) =>
     exclusivePanels.map(

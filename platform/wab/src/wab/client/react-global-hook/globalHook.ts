@@ -1032,10 +1032,12 @@ function createFrameState(
   hook: GlobalHook | undefined,
   { uid, objectPrototype }: { uid: number; objectPrototype: object },
 ): FrameState {
-  const frames = (hook?.plasmic ?? globalHookCtx).frames;
+  const ctx = hook?.plasmic ?? globalHookCtx;
+  const frames = ctx.frames;
   let isDisposed = false;
   const state: FrameState = {
     uid,
+    envIdToFullKey: new Map(),
     renderState: createRenderState(uid),
     valRoot: observable.box(null, { deep: false }),
     contextData: observable.map<string, any>(undefined, { deep: false }),
@@ -1057,6 +1059,13 @@ function createFrameState(
         }
       }
 
+      for (const [id, fullKey] of state.envIdToFullKey) {
+        ctx.envIdToEnvs.delete(id);
+        if (ctx.fullKeyToEnvId.get(fullKey) === id) {
+          ctx.fullKeyToEnvId.delete(fullKey);
+        }
+      }
+      state.envIdToFullKey.clear();
       state.renderState.dispose();
       state.contextData.clear();
       state.valRoot.set(null);

@@ -33,7 +33,7 @@ async function isListening(port) {
 (async () => {
   assert.equal(process.platform, "darwin", "Packaged runtime acceptance requires macOS");
   const temporary = await fs.mkdtemp(path.join(os.tmpdir(), "plasmic-runtime-security-"));
-  let child, client;
+  let child, client, stop;
   try {
     const project = path.join(temporary, "project");
     const profile = path.join(temporary, "profile");
@@ -80,6 +80,7 @@ async function isListening(port) {
       electronDist: path.join(desktop, "node_modules/electron/dist"), electronLanguages: ["en"],
       directories: { output: path.join(temporary, "out"), buildResources: path.join(desktop, "assets") },
       files: ["*.cjs", "package.json"], asar: true, npmRebuild: false,
+      extraResources: [{from:path.join(desktop,"mcp-bin",`${process.platform}-${process.arch}`,"plasmic-mcp"),to:"mcp/plasmic-mcp"}],
       electronFuses: productionFuses,
       afterPack: (context) => {
         // Production's packaged dependency check runs before fuses and signing.
@@ -120,6 +121,7 @@ async function isListening(port) {
     await assert.rejects(fs.access(injected), { code: "ENOENT" });
     await assert.rejects(fs.access(evaluated), { code: "ENOENT" });
     child.kill();
+    stop=await require("../src/local-rpc.cjs").startRpc(profile,async()=>({ready:true}));
     client = new Client({ name: "runtime-security-acceptance", version: "1.0.0" });
     await client.connect(new StdioClientTransport({ command: executable, args: ["--mcp"], env: {
       ...process.env, PLASMIC_DESKTOP_PROFILE: profile, PLASMIC_SECURITY_SOURCE_ENTRY: path.join(desktop, "src/entry.cjs"),
@@ -127,9 +129,23 @@ async function isListening(port) {
     const listing = await client.listTools();
     assert(listing.tools.some(tool => tool.name === "open_design"));
     assert(listing.tools.some(tool => tool.name === "execute"));
+    await client.close();
+    const helper=path.join(bundle,"Contents/Resources/mcp/plasmic-mcp");
+    execFileSync("/usr/bin/codesign",["--verify","--strict",helper]);
+    client=new Client({name:"standalone-security-acceptance",version:"1"},{capabilities:{}});
+    await client.connect(new StdioClientTransport({command:helper,args:[],env:{...process.env,
+      PLASMIC_DESKTOP_PROFILE:profile,NODE_OPTIONS:`--require=${preload}`,ELECTRON_RUN_AS_NODE:"1"},stderr:"pipe"}));
+    assert((await client.listTools()).tools.some(tool=>tool.name==="get_app_state"));
+    await assert.rejects(fs.access(injected),{code:"ENOENT"});
+    const helperPort=await unusedPort();
+    assert.throws(()=>execFileSync(helper,[`--inspect=${helperPort}`,"-e",`require('node:fs').writeFileSync(${JSON.stringify(evaluated)},'injected')`],{
+      env:{...process.env,PLASMIC_DESKTOP_PROFILE:profile},stdio:"pipe"}));
+    assert.equal(await isListening(helperPort),false);
+    await assert.rejects(fs.access(evaluated),{code:"ENOENT"});
     console.log("PASS: Packaged DevTools, remote debugging, Node inspector and environment injection disabled; MCP startup preserved");
   } finally {
     if (client) await client.close();
+    if (stop) await stop();
     if (child && child.exitCode === null) child.kill();
     await fs.rm(temporary, { recursive: true, force: true });
   }

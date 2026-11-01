@@ -51,7 +51,7 @@ export interface TopFrameApi {
   getSavedEditorView(projectId: string): Promise<SavedEditorView | null>;
   openDesktopDrafts(userId: string, projectId: string, branchId: string | null): Promise<DesktopDraftSession | null>;
   readDesktopDraft(handle: string, id: string): Promise<DesktopDraft | null>;
-  writeDesktopDraft(handle: string, draft: DesktopDraft): Promise<void>;
+  writeDesktopDraft(handle: string, draftJson: string): Promise<void>;
   removeDesktopDraft(handle: string, id: string, sequence: number): Promise<boolean>;
   copyDesktopDraft(handle: string, id: string): Promise<ProjectId>;
   setStudioReady(): Promise<void>;

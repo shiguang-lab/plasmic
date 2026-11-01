@@ -300,6 +300,10 @@
     feedbackKey = key;
   }
   function render(value) {
+    // State-only messages retain the last pixels; explicit null clears them.
+    if (value.image && !Object.hasOwn(value.image, "src")) {
+      value = { ...value, image: { ...value.image, src: state?.image?.src } };
+    }
     state = value;
     if (value.localization) {window.desktopUiI18n.setSnapshot(value.localization);}
     document.documentElement.dataset.uiAppearance = value.appearance;

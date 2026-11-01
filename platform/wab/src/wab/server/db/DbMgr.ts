@@ -755,13 +755,13 @@ export class DbMgr implements MigrationDbMgr {
   }
 
   private checkNotAnonUser() {
-    checkPermissions(
-      this.actor.type !== "AnonUser",
-      "Must not be anonymous user",
-    );
+    if (this.actor.type === "AnonUser") {
+      throw new UnauthorizedError("Authentication required");
+    }
   }
 
   private checkNormalUser() {
+    this.checkNotAnonUser();
     checkPermissions(this.actor.type === "NormalUser", "Must be a normal user");
     return this.actor.userId;
   }
@@ -775,11 +775,13 @@ export class DbMgr implements MigrationDbMgr {
   }
 
   private checkTeamApiUser() {
+    this.checkNotAnonUser();
     checkPermissions(this.actor.type === "TeamApiUser", "Must be a team user");
     return this.actor.teamId;
   }
 
   protected checkSuperUser() {
+    this.checkNotAnonUser();
     checkPermissions(this.actor.type === "SuperUser", `Must be Super User.`);
   }
 
@@ -1687,6 +1689,7 @@ export class DbMgr implements MigrationDbMgr {
           return;
         case "write":
         case "delete": {
+          this.checkNotAnonUser();
           const canEdit = async () => {
             if (this.actor.type === "SuperUser") {
               return true;
@@ -2286,6 +2289,7 @@ export class DbMgr implements MigrationDbMgr {
         );
       }
       if (!satisfied) {
+        this.checkNotAnonUser();
         checkPermissions(
           false,
           `${await this.describeActor()} tried to ${action} project ${projectId}, but their access level ${humanLevel(
@@ -2294,7 +2298,7 @@ export class DbMgr implements MigrationDbMgr {
         );
       }
     },
-    (projectId, requireLevel, _action, _suggestion, includeDeleted) =>
+    (projectId, requireLevel, _action, _suggestion, includeDeleted = false) =>
       JSON.stringify([projectId, requireLevel, includeDeleted]),
   );
 
@@ -3335,7 +3339,7 @@ export class DbMgr implements MigrationDbMgr {
     );
     const devflags = await getDevFlagsMergedWithOverrides(this);
     if (!devflags.serverPublishProjectIds.includes(projectId)) {
-      throw new UnauthorizedError("Access denied");
+      throw new ForbiddenError("Access denied");
     }
 
     const pkg = await this.getPkgByProjectId(projectId);
@@ -5475,6 +5479,7 @@ export class DbMgr implements MigrationDbMgr {
       ) {
         continue;
       }
+      this.checkNotAnonUser();
       checkPermissions(
         false,
         `${await this.describeActor()} tried to ${action} ${
@@ -6063,6 +6068,7 @@ export class DbMgr implements MigrationDbMgr {
   }
 
   checkUserIdIsSelf(userId?: UserId) {
+    this.checkNotAnonUser();
     if (this.actor.type === "NormalUser") {
       if (userId && userId !== this.actor.userId) {
         throw new ForbiddenError("Can only do this for self.");
@@ -6076,16 +6082,10 @@ export class DbMgr implements MigrationDbMgr {
   }
 
   isUserIdSelf(userId?: string) {
-    if (this.actor.type === "NormalUser") {
-      if (userId && userId !== this.actor.userId) {
-        return false;
-      }
-      userId = this.actor.userId;
-    }
-    if (this.actor.type === "SuperUser" && !userId) {
-      return false;
-    }
-    return userId != null;
+    return !!userId && (
+      this.actor.type === "SuperUser" ||
+      (this.actor.type === "NormalUser" && this.actor.userId === userId)
+    );
   }
 
   //
@@ -6576,6 +6576,7 @@ export class DbMgr implements MigrationDbMgr {
    * owner-level access), so this covers transferred org owners.
    */
   async checkDataSourceEditPerms(dataSource: DataSource) {
+    this.checkNotAnonUser();
     const level = await this.getActorAccessLevelToWorkspace(
       dataSource.workspaceId,
     );
@@ -9998,6 +9999,7 @@ export class DbMgr implements MigrationDbMgr {
   }
 
   async editCommentInProject(commentId: CommentId, body: string) {
+    this.checkNotAnonUser();
     const comment = await findExactlyOne(this.comments(), {
       id: commentId,
     });

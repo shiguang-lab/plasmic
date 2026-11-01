@@ -1,0 +1,638 @@
+{
+  "date": "2026-11-01",
+  "productionStatus": "Historical 100-step measurement; current production limit is 50 per latest user instruction. Measured 100-step metrics remain unchanged.",
+  "scope": "Fresh offline Electron processes; full production-mode Studio with matching resources; JS heap of renderer isolate, not app RSS/GPU. Revision storage/restore HTTP service is a diagnostic fixture; real client save/revert paths exercised.",
+  "policy": {
+    "undoSteps": 100,
+    "maxInternalRecords": 101,
+    "limitType": "logical steps, not RAM bytes",
+    "pendingSaveEventsUnchanged": true,
+    "gestureBoundariesUnchanged": true,
+    "saveDoesNotClearHistory": true
+  },
+  "competitorSources": [
+    {
+      "name": "Penpot",
+      "steps": 50,
+      "url": "https://github.com/penpot/penpot/blob/723267cfdd8a8f3f436be8f4acbab0c4fb8b16db/frontend/src/app/main/data/workspace/undo.cljs"
+    },
+    {
+      "name": "Adobe Photoshop performance documentation",
+      "default": 50,
+      "max": 1000,
+      "url": "https://helpx.adobe.com/photoshop/desktop/get-started/settings-and-preferences/configure-photoshop-performance-preferences.html",
+      "qualification": "Other Adobe history-panel pages list different defaults; not a claim about every version."
+    },
+    {
+      "name": "Figma",
+      "undoSteps": "not established by official sources checked",
+      "url": "https://help.figma.com/hc/en-us/articles/360038006754-View-a-file-s-version-history"
+    }
+  ],
+  "order": [
+    "before",
+    "after",
+    "after",
+    "before",
+    "before",
+    "after"
+  ],
+  "commandsPerProcess": 600,
+  "statistics": {
+    "before": {
+      "processes": 3,
+      "savedHeapMiBMedian": 372.0196228027344,
+      "savedHeapMiBRange": [
+        372.01828384399414,
+        374.71411895751953
+      ],
+      "unsavedHeapMiBMedian": 371.9076843261719,
+      "taskSecondsMedian": 11.759495999999999,
+      "taskSecondsRange": [
+        11.721983999999999,
+        11.963223
+      ],
+      "readyLatencyP95Ms": 107.86991699999999,
+      "readyLatencySampleCount": 120
+    },
+    "after": {
+      "processes": 3,
+      "savedHeapMiBMedian": 141.1009521484375,
+      "savedHeapMiBRange": [
+        141.02144241333008,
+        141.21157455444336
+      ],
+      "unsavedHeapMiBMedian": 371.4136657714844,
+      "taskSecondsMedian": 11.531049,
+      "taskSecondsRange": [
+        11.463413999999998,
+        11.935444
+      ],
+      "readyLatencyP95Ms": 103.55054100000052,
+      "readyLatencySampleCount": 120
+    }
+  },
+  "benefit": {
+    "savedHeapMiB": 230.91867065429688,
+    "savedHeapPercent": 62.07163722026106,
+    "cpuBenefitEstablished": false
+  },
+  "samples": [
+    {
+      "id": "undo-retain-after-ab-2",
+      "arm": "after",
+      "heapMiB": 141.02144241333008,
+      "targetHeapMiB": 371.33008193969727,
+      "records": 101,
+      "pendingBeforeSave": 600,
+      "pendingAfterSave": 0,
+      "taskSeconds": 11.463413999999998,
+      "wallMs": 11502.742708,
+      "latencyMs": [
+        115.7687909999986,
+        114.63379200000054,
+        101.3808339999996,
+        85.68120799999815,
+        93.39337499999965,
+        87.05829199999789,
+        93.93879200000083,
+        86.70733400000245,
+        92.53933300000062,
+        85.13108300000022,
+        92.07908400000088,
+        84.74533299999894,
+        91.79966700000296,
+        85.79966599999898,
+        93.84458300000188,
+        85.58558300000004,
+        93.80179200000202,
+        84.86979199999769,
+        93.78370899999936,
+        84.52862500000265,
+        92.48474999999962,
+        85.43945800000074,
+        91.45620800000324,
+        85.6083749999998,
+        91.43045900000288,
+        86.2601250000007,
+        91.33691700000054,
+        84.77100000000064,
+        90.21270799999911,
+        84.3000839999986,
+        90.77337499999703,
+        83.22925000000032,
+        90.74895800000013,
+        84.7641659999972,
+        92.46941700000025,
+        83.72120800000266,
+        90.17733299999963,
+        82.31154199999946,
+        89.22500000000218,
+        82.6675839999989
+      ],
+      "errors": []
+    },
+    {
+      "id": "undo-retain-after-ab-3",
+      "arm": "after",
+      "heapMiB": 141.21157455444336,
+      "targetHeapMiB": 371.52591705322266,
+      "records": 101,
+      "pendingBeforeSave": 600,
+      "pendingAfterSave": 0,
+      "taskSeconds": 11.935444,
+      "wallMs": 11973.504125000001,
+      "latencyMs": [
+        111.3179170000003,
+        115.35800000000017,
+        103.55054100000052,
+        90.51962500000081,
+        93.53108299999803,
+        86.87429200000042,
+        93.64212499999849,
+        86.40708399999858,
+        92.79779099999723,
+        84.82200000000012,
+        92.29583300000013,
+        87.3718340000014,
+        92.68562500000189,
+        85.0848330000008,
+        93.84916599999997,
+        86.75908400000117,
+        93.6775000000016,
+        87.14829200000167,
+        93.6864170000008,
+        84.65375000000131,
+        94.81595899999957,
+        85.09041699999943,
+        94.07099999999991,
+        85.48429100000067,
+        92.83070900000166,
+        85.54041700000016,
+        91.03383399999802,
+        81.93979200000103,
+        91.24483300000065,
+        84.13654200000019,
+        90.90149999999994,
+        85.13887500000055,
+        90.91204199999993,
+        88.21687500000189,
+        91.12287500000093,
+        84.18137500000012,
+        90.56825000000026,
+        84.31687500000044,
+        90.58545800000138,
+        84.43404200000077
+      ],
+      "errors": []
+    },
+    {
+      "id": "undo-retain-after-ab-6",
+      "arm": "after",
+      "heapMiB": 141.1009521484375,
+      "targetHeapMiB": 371.4136657714844,
+      "records": 101,
+      "pendingBeforeSave": 600,
+      "pendingAfterSave": 0,
+      "taskSeconds": 11.531049,
+      "wallMs": 11568.394375,
+      "latencyMs": [
+        113.23891699999876,
+        115.82754199999908,
+        100.08766699999978,
+        87.03008300000147,
+        92.18245799999931,
+        88.92995800000062,
+        95.36100000000079,
+        86.86787499999991,
+        92.25866699999824,
+        86.02000000000044,
+        90.91458399999829,
+        86.10962499999732,
+        93.77770800000144,
+        85.07312499999898,
+        95.61816700000054,
+        85.70287500000268,
+        93.48962500000198,
+        86.44625000000087,
+        93.24249999999665,
+        85.36104100000011,
+        93.34974999999758,
+        84.55412500000239,
+        91.8439580000013,
+        85.55437499999971,
+        90.97870799999873,
+        84.29854100000011,
+        89.663958000001,
+        83.40087499999936,
+        91.24954100000105,
+        84.31408399999782,
+        90.76866700000028,
+        84.07354199999827,
+        90.50787499999933,
+        84.61466700000165,
+        90.8774169999997,
+        83.94812499999898,
+        90.59695799999827,
+        83.68983300000036,
+        90.81587500000023,
+        82.93920799999978
+      ],
+      "errors": []
+    },
+    {
+      "id": "undo-retain-before-ab-1",
+      "arm": "before",
+      "heapMiB": 372.0196228027344,
+      "targetHeapMiB": 371.9037055969238,
+      "records": 601,
+      "pendingBeforeSave": 600,
+      "pendingAfterSave": 0,
+      "taskSeconds": 11.963223,
+      "wallMs": 12001.680791,
+      "latencyMs": [
+        120.08658300000025,
+        91.98366700000042,
+        93.53754200000185,
+        103.1944169999988,
+        100.14400000000023,
+        89.87620799999786,
+        98.29995899999994,
+        87.96254200000112,
+        96.29912499999773,
+        87.00733300000138,
+        93.29233399999794,
+        86.59324999999808,
+        92.78887499999837,
+        85.903833999997,
+        94.06804199999897,
+        85.1152089999996,
+        91.99033399999826,
+        85.61395900000207,
+        92.56479099999706,
+        86.19529200000034,
+        91.45454099999915,
+        86.15479200000118,
+        92.4652079999978,
+        84.79695899999933,
+        92.26266699999906,
+        85.2209589999984,
+        91.13958300000013,
+        84.90037500000108,
+        91.6162919999988,
+        86.61779200000092,
+        95.42095800000243,
+        87.81529199999932,
+        93.18295800000124,
+        87.83841599999869,
+        93.12270799999897,
+        83.71462500000052,
+        89.73570800000016,
+        83.42070800000147,
+        90.85779200000252,
+        84.01224999999977
+      ],
+      "errors": []
+    },
+    {
+      "id": "undo-retain-before-ab-4",
+      "arm": "before",
+      "heapMiB": 372.01828384399414,
+      "targetHeapMiB": 371.9076843261719,
+      "records": 601,
+      "pendingBeforeSave": 600,
+      "pendingAfterSave": 0,
+      "taskSeconds": 11.721983999999999,
+      "wallMs": 11760.583166,
+      "latencyMs": [
+        118.43908299999748,
+        90.9986659999995,
+        96.69825000000128,
+        102.17354100000011,
+        99.00129100000049,
+        90.18775000000096,
+        97.48995900000227,
+        89.4421250000014,
+        93.72112500000003,
+        87.1162919999988,
+        94.3662919999988,
+        87.22604200000205,
+        92.39395800000057,
+        86.76166599999851,
+        92.31479200000103,
+        85.23349999999846,
+        91.804583000001,
+        85.5592910000014,
+        90.89374999999927,
+        85.82195800000045,
+        91.63274999999703,
+        84.8793749999968,
+        90.70516700000007,
+        85.70387500000288,
+        90.88404100000116,
+        84.86449999999968,
+        92.29804100000183,
+        83.80304199999955,
+        92.11566700000185,
+        85.30066700000316,
+        94.56379199999719,
+        84.24508299999798,
+        90.24691600000006,
+        86.82474999999977,
+        93.33304199999839,
+        85.42804199999955,
+        93.14720800000214,
+        81.72479199999725,
+        91.1103750000002,
+        84.23983399999997
+      ],
+      "errors": []
+    },
+    {
+      "id": "undo-retain-before-ab-5",
+      "arm": "before",
+      "heapMiB": 374.71411895751953,
+      "targetHeapMiB": 374.5994873046875,
+      "records": 601,
+      "pendingBeforeSave": 600,
+      "pendingAfterSave": 0,
+      "taskSeconds": 11.759495999999999,
+      "wallMs": 11798.024833,
+      "latencyMs": [
+        134.6415420000012,
+        100.21754200000214,
+        107.86991699999999,
+        103.95187499999884,
+        109.33941599999889,
+        99.42916700000205,
+        104.44045800000094,
+        96.12979099999939,
+        103.40645900000163,
+        94.07787499999904,
+        108.90908299999865,
+        102.3159160000032,
+        103.84075000000303,
+        94.0769160000018,
+        102.794458999997,
+        94.4116670000003,
+        113.4174579999999,
+        92.78029199999946,
+        99.42433399999936,
+        92.6786659999998,
+        100.48999999999796,
+        92.23670800000036,
+        100.54670899999837,
+        92.3310829999973,
+        99.86862499999916,
+        93.77208299999984,
+        102.21383399999831,
+        91.9763329999987,
+        101.30737500000032,
+        91.65483300000051,
+        97.16154200000165,
+        88.99862500000017,
+        100.84662499999831,
+        93.34187500000189,
+        94.92137499999808,
+        87.61887500000012,
+        92.70791699999972,
+        90.16212499999892,
+        95.0379580000008,
+        92.52624999999898
+      ],
+      "errors": []
+    }
+  ],
+  "functionalChecks": {
+    "before": {
+      "caseGroups": [
+        "rollover-repeat",
+        "repeated-instance",
+        "rollover-slot",
+        "slot-owner-param",
+        "rollover-nested",
+        "nested-context-variants-default-slot",
+        "cold-nested-context",
+        "two-frame-style-proof",
+        "delete-undo-redo-selection",
+        "mcp-delete-undo-redo",
+        "second-frame-after-activation",
+        "frame-position-selection"
+      ],
+      "rolloverRecords": [
+        143,
+        264,
+        387
+      ],
+      "renderedStyles": {
+        "frames": [
+          {
+            "colors": [
+              "rgb(7, 13, 29)",
+              "rgb(7, 13, 29)"
+            ],
+            "instances": 2
+          },
+          {
+            "colors": [
+              "rgb(7, 13, 29)",
+              "rgb(7, 13, 29)"
+            ],
+            "instances": 2
+          }
+        ],
+        "passed": true
+      },
+      "saveReopen": {
+        "passed": true,
+        "save": {
+          "records": 389,
+          "revision": 159
+        },
+        "components": 3,
+        "arenas": 3,
+        "errors": []
+      },
+      "revisionRestore": {
+        "boundary": "Later24",
+        "editable": true,
+        "errors": [],
+        "laterEdits": 125,
+        "passed": true,
+        "recordsBeforeRestore": 127,
+        "restored": "SavedCheckpoint"
+      },
+      "studioErrors": 0,
+      "browserConsoleErrors": 0
+    },
+    "after": {
+      "caseGroups": [
+        "rollover-repeat",
+        "repeated-instance",
+        "rollover-slot",
+        "slot-owner-param",
+        "rollover-nested",
+        "nested-context-variants-default-slot",
+        "cold-nested-context",
+        "two-frame-style-proof",
+        "delete-undo-redo-selection",
+        "mcp-delete-undo-redo",
+        "second-frame-after-activation",
+        "frame-position-selection"
+      ],
+      "rolloverRecords": [
+        101,
+        101,
+        101
+      ],
+      "renderedStyles": {
+        "frames": [
+          {
+            "colors": [
+              "rgb(7, 13, 29)",
+              "rgb(7, 13, 29)"
+            ],
+            "instances": 2
+          },
+          {
+            "colors": [
+              "rgb(7, 13, 29)",
+              "rgb(7, 13, 29)"
+            ],
+            "instances": 2
+          }
+        ],
+        "passed": true
+      },
+      "saveReopen": {
+        "passed": true,
+        "save": {
+          "records": 101,
+          "revision": 159
+        },
+        "components": 3,
+        "arenas": 3,
+        "errors": []
+      },
+      "revisionRestore": {
+        "boundary": "Later24",
+        "editable": true,
+        "errors": [],
+        "laterEdits": 125,
+        "passed": true,
+        "recordsBeforeRestore": 101,
+        "restored": "SavedCheckpoint"
+      },
+      "studioErrors": 0,
+      "browserConsoleErrors": 0
+    }
+  },
+  "longRun": {
+    "commands": 1800,
+    "retainedSteps": 100,
+    "samples": [
+      {
+        "phase": "baseline",
+        "heapMiB": 91.35969161987305,
+        "records": 1,
+        "pending": 0,
+        "liveChildren": 120,
+        "cachedRules": 121,
+        "studioErrors": 0
+      },
+      {
+        "phase": "target",
+        "heapMiB": 925.7097663879395,
+        "records": 101,
+        "pending": 1800,
+        "liveChildren": 120,
+        "cachedRules": 121,
+        "studioErrors": 0
+      },
+      {
+        "phase": "saved",
+        "heapMiB": 141.45909118652344,
+        "records": 101,
+        "pending": 0,
+        "liveChildren": 120,
+        "cachedRules": 121,
+        "studioErrors": 0
+      },
+      {
+        "phase": "verified",
+        "heapMiB": 145.85974884033203,
+        "records": 101,
+        "pending": 0,
+        "liveChildren": 120,
+        "cachedRules": 121,
+        "studioErrors": 0
+      },
+      {
+        "phase": "history-released",
+        "heapMiB": 108.75459671020508,
+        "records": 0,
+        "pending": 0,
+        "liveChildren": 120,
+        "cachedRules": 121,
+        "studioErrors": 0
+      }
+    ],
+    "fullHistory": {
+      "records": 101,
+      "redo": 100,
+      "undo": 100
+    }
+  },
+  "sourceChecks": {
+    "vitestFiles": 11,
+    "vitestPassed": 167,
+    "typecheckExitCode": 0,
+    "diagnosticBuildBeforeExitCode": 0,
+    "diagnosticBuildAfterExitCode": 0,
+    "afterSourceOverride": false,
+    "syntaxChecksExitCode": 0,
+    "diffCheckExitCode": 0
+  },
+  "sourceSha256": {
+    "platform/wab/src/wab/client/undo-log.ts": {
+      "before": "66965ed5345009b2b22f12c13ee994ea6774791a51b444d6202e1d50b12d7aa1",
+      "after": "132c696c1549f875da5c032bfda9e724b970e66d3d5ae4bf455d45f959252ffd"
+    },
+    "platform/wab/src/wab/client/components/variants/VariantsController.ts": {
+      "before": "6d50c4007404d81956f27ce3edc19c147e3342efa0f4ed0ef0e79a0553133dbd",
+      "after": "6d50c4007404d81956f27ce3edc19c147e3342efa0f4ed0ef0e79a0553133dbd"
+    }
+  },
+  "buildDigests": {
+    "before": {
+      "javascriptFiles": 499,
+      "aggregateSha256": "db14e0e0c41760f8176d904f1293cdbe58ee91cceeb2634a5f80098de4c2bf3d"
+    },
+    "after": {
+      "javascriptFiles": 473,
+      "aggregateSha256": "54406039cdce71d4a0a2af3e79eca2f6f20f93144ccb1a19ce116e39516bc4f6"
+    }
+  },
+  "excludedPilots": [
+    "Version probe initially modified a nested component after reload without observing it; corrected to the real caller observation contract and asserted 125 recorded edits.",
+    "Both arms then reproduced an existing disposed ViewCtx variants controller error during revision restore; common factory lifecycle fix applied before qualification or performance runs.",
+    "Initial new test typecheck needed ensureKnownTplTag narrowing; final typecheck passed."
+  ],
+  "localArtifacts": {
+    "directory": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-undo-bound-jxhnd7qb",
+    "performanceReports": "undo-retain-{before|after}-ab-{1..6}.json",
+    "functionalReports": "frontend-{before|after}-qualified.json",
+    "stressReport": "undo-retain-after-stress.json",
+    "unitLog": "unit-all.log",
+    "typecheckLog": "typecheck-final.log"
+  },
+  "boundaries": [
+    "No hard RAM byte ceiling; one large operation can be large.",
+    "Unsaved events must remain; offline/save failure can still grow memory.",
+    "Three independent processes per arm; pooled latency operations not independent samples.",
+    "No measured first-load, main-process CPU, app RSS or GPU benefit.",
+    "No live business backend/authentication/database retention acceptance.",
+    "History release control runs after verification and is excluded from production benefits."
+  ],
+  "supersededBy": "undo-history-50.md"
+}

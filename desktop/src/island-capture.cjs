@@ -104,7 +104,7 @@ function createIslandCapture() {
       const stamps = [];
       for (const source of sources) {
         if (!source || source.isDestroyed?.()) return null;
-        stamps.push(await abortable(signal, () => source.executeJavaScript(`(${inspectVisualState.toString()})()`)));
+        stamps.push(await abortable(signal, () => source.executeJavaScript(`(${inspectVisualState.toString()})(${JSON.stringify({captureCanvasPixels:!!scene.boards})})`)));
       }
       const scope = JSON.stringify([url, context.projectId, context.branchId, context.sessionId, context.arenaId, context.mode, scene]);
       const key = JSON.stringify([scope, context.changeCounter, stamps.map(stamp => [stamp.id, stamp.revision])]);
@@ -126,7 +126,7 @@ function createIslandCapture() {
         for (const board of scene.boards) {
           const source = frame.frames[board.index];
           if (!source || source.isDestroyed?.()) return null;
-          const html = await abortable(signal, () => source.executeJavaScript(`(${snapshotDocument.toString()})({preserveContentEditor:true})`));
+          const html = await abortable(signal, () => source.executeJavaScript(`(${snapshotDocument.toString()})({preserveContentEditor:true,reuseCanvasPixels:true})`));
           boards.push({ ...board, html });
         }
         if (version !== epoch || win.isDestroyed() || url !== win.webContents.getURL()) return null;
@@ -190,6 +190,6 @@ function createIslandCapture() {
     }
     return null;
   }
-  return { capture, close: closeSurface };
+  return { capture, close: closeSurface, reset() { closeSurface(); cached = undefined; } };
 }
 module.exports = { createIslandCapture, inspectScene, sceneDocument, presentationRect };

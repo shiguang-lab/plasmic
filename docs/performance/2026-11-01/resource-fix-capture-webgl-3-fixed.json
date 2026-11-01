@@ -1,0 +1,122 @@
+{
+  "mode": "capture",
+  "implementation": "fixed",
+  "electron": "44.5.1",
+  "node": "24.21.0",
+  "platform": "darwin",
+  "arch": "arm64",
+  "scope": "isolated offline native diagnostic",
+  "canvasKind": "webgl",
+  "samples": [
+    {
+      "withCanvas": false,
+      "elapsedMs": 4524.480041999999,
+      "ticks": 9,
+      "cpuMs": 19.868000000000002,
+      "cpuOneCorePercent": 0.4391222817996465,
+      "rssSumMiBMean": 529.0086805555555,
+      "rssSumMiBPeak": 531.890625,
+      "processes": [
+        {
+          "pid": 56067,
+          "type": "Browser",
+          "cpu": 0.26455,
+          "rssKiB": 175376
+        },
+        {
+          "pid": 56068,
+          "type": "GPU",
+          "cpu": 0.108443,
+          "rssKiB": 86048
+        },
+        {
+          "pid": 56069,
+          "type": "Utility",
+          "cpu": 0.051009,
+          "rssKiB": 48496
+        },
+        {
+          "pid": 56070,
+          "type": "Tab",
+          "cpu": 0.103407,
+          "rssKiB": 120800
+        },
+        {
+          "pid": 56071,
+          "type": "Tab",
+          "cpu": 0.069653,
+          "rssKiB": 108816
+        }
+      ],
+      "idleSnapshots": 0,
+      "idleHtmlBytes": 0,
+      "idleCanvasReads": 0,
+      "inspectCalls": 10,
+      "tailFrameCalls": 0,
+      "captureMsMean": 0.4848423333332145,
+      "stableSame": true,
+      "domChangeDetected": true,
+      "canvasChangeDetected": null,
+      "continuousDomChangeDetected": null,
+      "animatedCanvasChangeDetected": null,
+      "lastPixelHash": "6184dfc47c3501749ed577566413dddb0122f569410c9655bd388a93adb09406"
+    },
+    {
+      "withCanvas": true,
+      "elapsedMs": 4533.759042000001,
+      "ticks": 9,
+      "cpuMs": 27.882000000000033,
+      "cpuOneCorePercent": 0.6149863665383571,
+      "rssSumMiBMean": 572.9392361111111,
+      "rssSumMiBPeak": 577.96875,
+      "processes": [
+        {
+          "pid": 56067,
+          "type": "Browser",
+          "cpu": 0.3427,
+          "rssKiB": 184096
+        },
+        {
+          "pid": 56068,
+          "type": "GPU",
+          "cpu": 0.153953,
+          "rssKiB": 92928
+        },
+        {
+          "pid": 56069,
+          "type": "Utility",
+          "cpu": 0.053182,
+          "rssKiB": 48656
+        },
+        {
+          "pid": 56070,
+          "type": "Tab",
+          "cpu": 0.168165,
+          "rssKiB": 146576
+        },
+        {
+          "pid": 56114,
+          "type": "Tab",
+          "cpu": 0.070129,
+          "rssKiB": 111696
+        }
+      ],
+      "idleSnapshots": 0,
+      "idleHtmlBytes": 0,
+      "idleCanvasReads": 9,
+      "inspectCalls": 15,
+      "tailFrameCalls": 0,
+      "captureMsMean": 1.7127036666667361,
+      "stableSame": true,
+      "domChangeDetected": true,
+      "canvasChangeDetected": true,
+      "continuousDomChangeDetected": true,
+      "animatedCanvasChangeDetected": true,
+      "lastPixelHash": "91c02f6e44a4e2d488efad553851e8897342c984daa039956a38083d54999ff1"
+    }
+  ],
+  "stage": {
+    "withCanvas": true,
+    "step": "canvas-animation"
+  }
+}

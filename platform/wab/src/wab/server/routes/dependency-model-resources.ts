@@ -1,4 +1,5 @@
 import { DependencyModelResource } from "@/wab/server/entities/CustomEntities";
+import { PkgVersion } from "@/wab/server/entities/Entities";
 import { userDbMgr, withNext } from "@/wab/server/routes/util";
 import { NotFoundError } from "@/wab/shared/ApiErrors/errors";
 import { ensure } from "@/wab/shared/common";
@@ -8,13 +9,16 @@ import type { NextFunction, Request, Response } from "express-serve-static-core"
 /** Replace dependency bodies with immutable resource identities, never client cache hints. */
 export async function dependencyModelResources<T extends { pkg?: unknown; depPkgs?: unknown[]; [key: string]: unknown }>(req: Request, payload: T) {
   const packages = [...(payload.pkg ? [payload.pkg] : []), ...(payload.depPkgs ?? [])];
-  const entries = new Map<string, { pkg: any; digest: string; model: string }>();
+  const entries = new Map<string, { pkg: any; digest: string; model: string; raw: boolean }>();
   for (const value of packages as any[]) {
     if (!value?.model) { continue; }
-    const pkg = typeof value.toJSON === "function" ? value.toJSON() : { ...value };
-    const model = JSON.stringify(typeof pkg.model === "string" ? JSON.parse(pkg.model) : pkg.model);
+    // An existing immutable resource can identify these exact serialized bytes.
+    // Normalize metadata without parsing the multi-MB model a second time.
+    const raw = value instanceof PkgVersion && typeof value.model === "string";
+    const pkg = raw ? value.toJSON.call({ ...value, model: null }) : typeof value.toJSON === "function" ? value.toJSON() : { ...value };
+    const model = raw ? value.model : JSON.stringify(typeof pkg.model === "string" ? JSON.parse(pkg.model) : pkg.model);
     const digest = createHash("sha256").update(model).digest("hex");
-    entries.set(pkg.id, { pkg, digest, model });
+    entries.set(pkg.id, { pkg, digest, model, raw });
   }
   if (!entries.size) { return payload; }
   // Cache artifacts must be committed before their URLs are sent to clients;
@@ -25,6 +29,22 @@ export async function dependencyModelResources<T extends { pkg?: unknown; depPkg
     where: [...entries.values()].map(({ pkg, digest }) => ({ pkgVersionId: pkg.id, digest })),
   });
   const resources = new Map(existing.map(value => [value.pkgVersionId, value.id]));
+  // Misses still use the original canonical representation, including legacy
+  // whitespace/escapes. Migration changes must produce their own resource ID.
+  const canonicalMisses: { pkgVersionId: string; digest: string }[] = [];
+  for (const [id, entry] of entries) {
+    if (!entry.raw || resources.has(id)) { continue; }
+    const model = JSON.stringify(JSON.parse(entry.model));
+    if (model !== entry.model) {
+      entry.model = model;
+      entry.digest = createHash("sha256").update(model).digest("hex");
+      canonicalMisses.push({ pkgVersionId: id, digest: entry.digest });
+    }
+  }
+  if (canonicalMisses.length) {
+    const canonical = await repository.find({ select: ["id", "pkgVersionId", "digest"], where: canonicalMisses });
+    canonical.forEach(value => resources.set(value.pkgVersionId, value.id));
+  }
   // Stable ordering also protects concurrent first reads of overlapping libraries.
   for (const [id, { pkg, digest, model }] of [...entries].sort(([a], [b]) => a.localeCompare(b))) {
     if (resources.has(id)) { continue; }

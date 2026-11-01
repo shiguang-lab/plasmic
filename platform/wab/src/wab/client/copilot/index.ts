@@ -444,8 +444,11 @@ async function change<T>(
       () => components,
       () => {
         assertCanEditPrototype(studio);
+        // Clear detached selections before model observers inspect the new tree.
+        const result = fn();
+        studio.pruneDetachedTpls();
         // Studio validates invariants after observing newly attached model nodes.
-        return ok(fn());
+        return ok(result);
       },
     ),
   );

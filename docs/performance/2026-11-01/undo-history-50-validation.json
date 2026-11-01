@@ -1,0 +1,148 @@
+{
+  "date": "2026-11-01",
+  "status": "Fixed 50-step policy retained in current production source; not committed or released",
+  "maxUndoSteps": 50,
+  "maxInternalRecords": 51,
+  "behavior": "After the 51st edit, discard the oldest undo step; do not clear the entire history, current model, pending save events, or persisted versions. Eligible objects are reclaimed by GC, not synchronously destroyed.",
+  "checks": {
+    "vitestFiles": 3,
+    "vitestPassed": 19,
+    "typecheckExitCode": 0,
+    "directProductionDiagnosticBuildExitCode": 0,
+    "syntaxCheckExitCode": 0,
+    "diffCheckExitCode": 0,
+    "commands": 600,
+    "fullHistory": {
+      "records": 51,
+      "redo": 50,
+      "undo": 50
+    },
+    "samples": [
+      {
+        "phase": "baseline",
+        "records": 1,
+        "pending": 0,
+        "errors": []
+      },
+      {
+        "phase": "target",
+        "records": 51,
+        "pending": 600,
+        "errors": []
+      },
+      {
+        "phase": "saved",
+        "records": 51,
+        "pending": 0,
+        "errors": []
+      },
+      {
+        "phase": "verified",
+        "records": 51,
+        "pending": 0,
+        "errors": []
+      },
+      {
+        "phase": "history-released",
+        "records": 0,
+        "pending": 0,
+        "errors": []
+      }
+    ],
+    "complexGroups": [
+      {
+        "case": "rollover-repeat",
+        "records": 51
+      },
+      {
+        "case": "repeated-instance",
+        "records": null
+      },
+      {
+        "case": "rollover-slot",
+        "records": 51
+      },
+      {
+        "case": "slot-owner-param",
+        "records": null
+      },
+      {
+        "case": "rollover-nested",
+        "records": 51
+      },
+      {
+        "case": "nested-context-variants-default-slot",
+        "records": null
+      },
+      {
+        "case": "cold-nested-context",
+        "records": null
+      },
+      {
+        "case": "two-frame-style-proof",
+        "records": null
+      },
+      {
+        "case": "delete-undo-redo-selection",
+        "records": null
+      },
+      {
+        "case": "mcp-delete-undo-redo",
+        "records": null
+      },
+      {
+        "case": "second-frame-after-activation",
+        "records": null
+      },
+      {
+        "case": "frame-position-selection",
+        "records": null
+      }
+    ],
+    "renderedStyles": {
+      "frames": [
+        {
+          "colors": [
+            "rgb(7, 13, 29)",
+            "rgb(7, 13, 29)"
+          ],
+          "instances": 2
+        },
+        {
+          "colors": [
+            "rgb(7, 13, 29)",
+            "rgb(7, 13, 29)"
+          ],
+          "instances": 2
+        }
+      ],
+      "passed": true
+    },
+    "saveReopen": {
+      "passed": true,
+      "save": {
+        "records": 51,
+        "revision": 162
+      },
+      "components": 3,
+      "arenas": 3,
+      "errors": []
+    },
+    "revisionRestore": {
+      "boundary": "Later74",
+      "editable": true,
+      "errors": [],
+      "laterEdits": 125,
+      "passed": true,
+      "recordsBeforeRestore": 51,
+      "replayedSteps": 50,
+      "restored": "SavedCheckpoint"
+    },
+    "studioErrors": 0,
+    "browserConsoleErrors": 0
+  },
+  "productionSourceSha256": "9ed2b3c6ee36426cca7be38b27480dd5f203dcbf7cbf520319c99baf939ec214",
+  "localArtifacts": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-undo-50-w91vgem0",
+  "measurementBoundary": "This round validates 50-step functionality only; no new 3-process-per-arm performance A/B. Prior 100-step memory/CPU results do not describe the 50-step policy. Offline save/revision protocol fixture, not live backend validation.",
+  "diagnosticControl": "history-released explicitly clears the disposable test history after full replay verification; production overflow only removes oldest records."
+}

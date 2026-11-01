@@ -71,7 +71,7 @@ it("uses the dashboard brand and dashboard navigation in both ready and loading 
     screen
       .getByRole("link", { name: "Back to dashboard" })
       .getAttribute("href"),
-  ).toBe("/");
+  ).toBe("/projects");
   expect(screen.getByText("Plasmic")).toBeTruthy();
   expect(screen.getByText("Audit CMS")).toBeTruthy();
   view.rerender(

@@ -44,24 +44,46 @@ test("the shipped entry applies production restrictions before importing the app
   assert.deepEqual(calls, ["restrict", "import", "bootstrap"]);
 });
 
-for (const event of ["stdin", "desktop"]) test(`MCP stays a prohibited background transport and exits on ${event} disconnect`, async () => {
+for (const event of ["stdin", "desktop"]) test(`standalone MCP releases its session on ${event} disconnect`, async () => {
   const calls = [], stdin = new (require("node:events").EventEmitter)();
-  const app = { setActivationPolicy: (policy) => calls.push(policy), dock: { hide: () => assert.fail("Do not replace the prohibited activation policy with accessory policy") },
-    quit: () => calls.push("quit"), exit: () => assert.fail("Unexpected startup failure") };
-  const server = { close: () => calls.push("close"), onclose: () => calls.push("release-session") };
-  vm.runInNewContext(fs.readFileSync(path.join(__dirname, "../src/entry.cjs"), "utf8"), {
-    process: { argv: ["--mcp"], env: { PLASMIC_DESKTOP_PROFILE: "/test-profile" }, stdin },
+  const server = { close: () => {calls.push("close");server.onclose();}, onclose: () => calls.push("release-session") };
+  await vm.runInNewContext(fs.readFileSync(path.join(__dirname, "../src/mcp-entry.cjs"), "utf8"), {
+    process: { argv: ["helper","helper"], env: { PLASMIC_DESKTOP_PROFILE: "/test-profile" }, stdin, exit:code=>calls.push("exit:"+code) },
     require: (name) => {
-      if (name === "electron") return { app };
-      if (name === "./runtime-security.cjs") return { configureProductionRuntime: () => calls.push("restrict") };
+      if (name.startsWith("node:")) return require(name);
       assert.equal(name, "./mcp.cjs");
       return { serveMcp: async (profile) => { assert.equal(profile, "/test-profile"); calls.push("serve"); return server; } };
     },
   });
-  await Promise.resolve();
   if (event === "stdin") stdin.emit("end");
   else server.onclose();
-  assert.deepEqual(calls, ["restrict", "prohibited", "serve", event === "stdin" ? "close" : "release-session", "quit"]);
+  assert.deepEqual(calls, ["serve", ...(event === "stdin" ? ["close"] : []), "release-session", "exit:0"]);
+});
+
+test("the public MCP command replaces Electron with the bundled helper before GUI initialization",()=>{
+  const calls=[],app={setActivationPolicy:()=>{},exit:()=>assert.fail("Unexpected startup failure")};
+  vm.runInNewContext(fs.readFileSync(path.join(__dirname,"../src/entry.cjs"),"utf8"),{
+    process:{argv:["--mcp"],platform:"darwin",env:{},execve:(command,args)=>{assert.equal(command,"/helper");assert.equal(args[0],command);calls.push("replace");}},
+    require:name=>{
+      if(name==="electron")return {app};
+      if(name==="./runtime-security.cjs")return {configureProductionRuntime:()=>calls.push("restrict")};
+      assert.equal(name,"./mcp-launch.cjs");return {mcpLaunch:()=>({command:"/helper",args:[]})};
+    },
+  });
+  assert.deepEqual(calls,["restrict","replace"]);
+});
+
+test("Windows application stdio keeps its process identity without starting a second runtime",()=>{
+  const calls=[],app={setActivationPolicy:()=>{},exit:()=>assert.fail("Unexpected startup failure")};
+  vm.runInNewContext(fs.readFileSync(path.join(__dirname,"../src/entry.cjs"),"utf8"),{
+    process:{argv:["--mcp"],platform:"win32",env:{}},require:name=>{
+      if(name==="electron")return {app};
+      if(name==="./runtime-security.cjs")return {configureProductionRuntime:()=>{}};
+      if(name==="./mcp-launch.cjs")return {mcpLaunch:()=>({command:"helper.exe",args:[]})};
+      assert.equal(name,"./mcp-entry.cjs");calls.push("serve");return {};
+    },
+  });
+  assert.deepEqual(calls,["serve"]);
 });
 
 test("the production View menu has no developer tools entry", () => {

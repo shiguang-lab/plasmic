@@ -70,6 +70,8 @@ class DeepMapEntry<T> {
       }
     }
     this.isDisposed = true;
+    this.args = [];
+    this.closest = this.root;
   }
 
   private assertNotDisposed() {

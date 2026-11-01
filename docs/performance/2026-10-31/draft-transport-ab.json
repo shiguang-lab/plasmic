@@ -1,0 +1,2090 @@
+{
+  "scope": "3 fresh isolated Electron processes per arm, 5 forced local draft writes per process; no contentTracing during these timing runs. Installed renderer 0.5.30, current Desktop decoder; after injects exactly the sender JSON serialization at the API boundary. Normal renderer build not replaced. All JSON timers and 1ms loop probes are diagnostic only.",
+  "before": [
+    {
+      "run": 0,
+      "build": {
+        "kind": "release",
+        "revision": "4be192c7af42e89cda0a5b182082fdf07a5905a7",
+        "dirty": false,
+        "builtAt": "2026-10-31T06:13:41.059Z",
+        "rendererHash": "756dad50e884bd24477b4c2c807d2fa54af4165b1c442032611558147e2ef9b2",
+        "desktopHash": "2b2c7c708eef866939a412ec908692d1c09dc6854958fe729131fca3cbc99e78"
+      },
+      "initial": {
+        "counter": 0,
+        "frames": 1,
+        "revision": 158
+      },
+      "final": {
+        "counter": 0,
+        "revision": 158
+      },
+      "writeMs": [
+        161,
+        134.69999998807907,
+        135.30000001192093,
+        139.5,
+        125.59999996423721
+      ],
+      "encodeMs": [],
+      "projectBundleMs": [
+        25.80000001192093,
+        6.800000011920929,
+        6.199999988079071,
+        6.5,
+        6
+      ],
+      "contentsMs": [
+        26.400000035762787,
+        6.800000011920929,
+        6.299999952316284,
+        6.699999988079071,
+        6
+      ],
+      "rendererLongTasksOverlappingWrites": [
+        {
+          "duration": 85,
+          "start": 1872.4000000357628
+        },
+        {
+          "duration": 59,
+          "start": 2118.199999988079
+        },
+        {
+          "duration": 63,
+          "start": 2342.400000035763
+        },
+        {
+          "duration": 59,
+          "start": 2568
+        },
+        {
+          "duration": 61,
+          "start": 2794.600000023842
+        }
+      ],
+      "mainStoreWrites": [
+        {
+          "phase": "draft-0",
+          "startMs": 15530.305625,
+          "durationMs": 33.18999999999869,
+          "dependencies": 5
+        },
+        {
+          "phase": "draft-1",
+          "startMs": 15741.59675,
+          "durationMs": 47.993790999998964,
+          "dependencies": 5
+        },
+        {
+          "phase": "draft-2",
+          "startMs": 15969.758166,
+          "durationMs": 44.33312500000102,
+          "dependencies": 5
+        },
+        {
+          "phase": "draft-3",
+          "startMs": 16198.80525,
+          "durationMs": 38.84891600000083,
+          "dependencies": 5
+        },
+        {
+          "phase": "draft-4",
+          "startMs": 16419.146458,
+          "durationMs": 38.07533300000068,
+          "dependencies": 5
+        }
+      ],
+      "samples": [
+        {
+          "phase": "warm-reopen-0",
+          "durationMs": 3111.676792,
+          "eventLoop": {
+            "p95Ms": 1.342463,
+            "p99Ms": 2.113535,
+            "maxMs": 7.774207
+          },
+          "metrics": [
+            {
+              "pid": 95280,
+              "type": "Browser",
+              "rssKiB": 378752
+            },
+            {
+              "pid": 95282,
+              "type": "GPU",
+              "rssKiB": 121232
+            },
+            {
+              "pid": 95283,
+              "type": "Utility",
+              "rssKiB": 57056
+            },
+            {
+              "pid": 95299,
+              "type": "Tab",
+              "rssKiB": 1070160
+            }
+          ]
+        },
+        {
+          "phase": "warm-reopen-1",
+          "durationMs": 3074.8962919999994,
+          "eventLoop": {
+            "p95Ms": 1.633279,
+            "p99Ms": 2.934783,
+            "maxMs": 9.723903
+          },
+          "metrics": [
+            {
+              "pid": 95280,
+              "type": "Browser",
+              "rssKiB": 400288
+            },
+            {
+              "pid": 95282,
+              "type": "GPU",
+              "rssKiB": 122512
+            },
+            {
+              "pid": 95283,
+              "type": "Utility",
+              "rssKiB": 57168
+            },
+            {
+              "pid": 95299,
+              "type": "Tab",
+              "rssKiB": 1207904
+            }
+          ]
+        },
+        {
+          "phase": "warm-reopen-2",
+          "durationMs": 2785.701165999999,
+          "eventLoop": {
+            "p95Ms": 1.348607,
+            "p99Ms": 2.621439,
+            "maxMs": 7.286783
+          },
+          "metrics": [
+            {
+              "pid": 95280,
+              "type": "Browser",
+              "rssKiB": 392768
+            },
+            {
+              "pid": 95282,
+              "type": "GPU",
+              "rssKiB": 122944
+            },
+            {
+              "pid": 95283,
+              "type": "Utility",
+              "rssKiB": 57232
+            },
+            {
+              "pid": 95299,
+              "type": "Tab",
+              "rssKiB": 1311936
+            }
+          ]
+        },
+        {
+          "phase": "draft-0",
+          "durationMs": 240.49875000000065,
+          "eventLoop": {
+            "p95Ms": 1.239039,
+            "p99Ms": 1.669119,
+            "maxMs": 36.077567
+          },
+          "metrics": [
+            {
+              "pid": 95280,
+              "type": "Browser",
+              "rssKiB": 417296
+            },
+            {
+              "pid": 95282,
+              "type": "GPU",
+              "rssKiB": 122944
+            },
+            {
+              "pid": 95283,
+              "type": "Utility",
+              "rssKiB": 57232
+            },
+            {
+              "pid": 95299,
+              "type": "Tab",
+              "rssKiB": 1319552
+            }
+          ]
+        },
+        {
+          "phase": "draft-1",
+          "durationMs": 194.50279200000114,
+          "eventLoop": {
+            "p95Ms": 1.276927,
+            "p99Ms": 9.330687,
+            "maxMs": 26.820607
+          },
+          "metrics": [
+            {
+              "pid": 95280,
+              "type": "Browser",
+              "rssKiB": 441776
+            },
+            {
+              "pid": 95282,
+              "type": "GPU",
+              "rssKiB": 122960
+            },
+            {
+              "pid": 95283,
+              "type": "Utility",
+              "rssKiB": 57232
+            },
+            {
+              "pid": 95299,
+              "type": "Tab",
+              "rssKiB": 1325584
+            }
+          ]
+        },
+        {
+          "phase": "draft-2",
+          "durationMs": 194.0215419999986,
+          "eventLoop": {
+            "p95Ms": 1.267711,
+            "p99Ms": 8.396799,
+            "maxMs": 29.179903
+          },
+          "metrics": [
+            {
+              "pid": 95280,
+              "type": "Browser",
+              "rssKiB": 437072
+            },
+            {
+              "pid": 95282,
+              "type": "GPU",
+              "rssKiB": 122944
+            },
+            {
+              "pid": 95283,
+              "type": "Utility",
+              "rssKiB": 57744
+            },
+            {
+              "pid": 95299,
+              "type": "Tab",
+              "rssKiB": 1330080
+            }
+          ]
+        },
+        {
+          "phase": "draft-3",
+          "durationMs": 198.4168750000008,
+          "eventLoop": {
+            "p95Ms": 1.486847,
+            "p99Ms": 8.347647,
+            "maxMs": 34.734079
+          },
+          "metrics": [
+            {
+              "pid": 95280,
+              "type": "Browser",
+              "rssKiB": 453280
+            },
+            {
+              "pid": 95282,
+              "type": "GPU",
+              "rssKiB": 122944
+            },
+            {
+              "pid": 95283,
+              "type": "Utility",
+              "rssKiB": 57232
+            },
+            {
+              "pid": 95299,
+              "type": "Tab",
+              "rssKiB": 1350304
+            }
+          ]
+        },
+        {
+          "phase": "draft-4",
+          "durationMs": 183.4930000000022,
+          "eventLoop": {
+            "p95Ms": 1.248255,
+            "p99Ms": 8.151039,
+            "maxMs": 25.280511
+          },
+          "metrics": [
+            {
+              "pid": 95280,
+              "type": "Browser",
+              "rssKiB": 467536
+            },
+            {
+              "pid": 95282,
+              "type": "GPU",
+              "rssKiB": 122944
+            },
+            {
+              "pid": 95283,
+              "type": "Utility",
+              "rssKiB": 57232
+            },
+            {
+              "pid": 95299,
+              "type": "Tab",
+              "rssKiB": 1356864
+            }
+          ]
+        }
+      ],
+      "contentIntegrity": {
+        "renderer": "4bb60f883c4ab51554219b538ba939abbbf6d34f7b1295f4f5ef9cadb07081d4",
+        "disk": "4bb60f883c4ab51554219b538ba939abbbf6d34f7b1295f4f5ef9cadb07081d4",
+        "dependencies": 5,
+        "checkpoints": 2
+      },
+      "errors": [],
+      "blockedWrites": []
+    },
+    {
+      "run": 1,
+      "build": {
+        "kind": "release",
+        "revision": "4be192c7af42e89cda0a5b182082fdf07a5905a7",
+        "dirty": false,
+        "builtAt": "2026-10-31T06:13:41.059Z",
+        "rendererHash": "756dad50e884bd24477b4c2c807d2fa54af4165b1c442032611558147e2ef9b2",
+        "desktopHash": "2b2c7c708eef866939a412ec908692d1c09dc6854958fe729131fca3cbc99e78"
+      },
+      "initial": {
+        "counter": 0,
+        "frames": 1,
+        "revision": 158
+      },
+      "final": {
+        "counter": 0,
+        "revision": 158
+      },
+      "writeMs": [
+        166.70000004768372,
+        145.39999997615814,
+        134.20000004768372,
+        131.60000002384186,
+        136.60000002384186
+      ],
+      "encodeMs": [],
+      "projectBundleMs": [
+        16.600000023841858,
+        10.5,
+        10.399999976158142,
+        10.699999988079071,
+        11.800000011920929
+      ],
+      "contentsMs": [
+        16.69999998807907,
+        10.599999964237213,
+        10.399999976158142,
+        10.699999988079071,
+        11.900000035762787
+      ],
+      "rendererLongTasksOverlappingWrites": [
+        {
+          "duration": 87,
+          "start": 1936.6000000238419
+        },
+        {
+          "duration": 67,
+          "start": 2192.600000023842
+        },
+        {
+          "duration": 67,
+          "start": 2430.600000023842
+        },
+        {
+          "duration": 62,
+          "start": 2658.400000035763
+        },
+        {
+          "duration": 62,
+          "start": 2887.600000023842
+        }
+      ],
+      "mainStoreWrites": [
+        {
+          "phase": "draft-0",
+          "startMs": 15632.062041,
+          "durationMs": 38.315292000001136,
+          "dependencies": 5
+        },
+        {
+          "phase": "draft-1",
+          "startMs": 15868.147416,
+          "durationMs": 40.43449999999939,
+          "dependencies": 5
+        },
+        {
+          "phase": "draft-2",
+          "startMs": 16096.557833,
+          "durationMs": 38.64300000000003,
+          "dependencies": 5
+        },
+        {
+          "phase": "draft-3",
+          "startMs": 16320.09025,
+          "durationMs": 41.5712910000002,
+          "dependencies": 5
+        },
+        {
+          "phase": "draft-4",
+          "startMs": 16556.344958,
+          "durationMs": 38.3481670000001,
+          "dependencies": 5
+        }
+      ],
+      "samples": [
+        {
+          "phase": "warm-reopen-0",
+          "durationMs": 3153.168667000001,
+          "eventLoop": {
+            "p95Ms": 1.319935,
+            "p99Ms": 2.398207,
+            "maxMs": 7.581695
+          },
+          "metrics": [
+            {
+              "pid": 95346,
+              "type": "Browser",
+              "rssKiB": 363392
+            },
+            {
+              "pid": 95347,
+              "type": "GPU",
+              "rssKiB": 119152
+            },
+            {
+              "pid": 95348,
+              "type": "Utility",
+              "rssKiB": 57136
+            },
+            {
+              "pid": 95371,
+              "type": "Tab",
+              "rssKiB": 1086240
+            }
+          ]
+        },
+        {
+          "phase": "warm-reopen-1",
+          "durationMs": 3203.285,
+          "eventLoop": {
+            "p95Ms": 1.383423,
+            "p99Ms": 2.748415,
+            "maxMs": 6.443007
+          },
+          "metrics": [
+            {
+              "pid": 95346,
+              "type": "Browser",
+              "rssKiB": 361072
+            },
+            {
+              "pid": 95347,
+              "type": "GPU",
+              "rssKiB": 120288
+            },
+            {
+              "pid": 95348,
+              "type": "Utility",
+              "rssKiB": 57216
+            },
+            {
+              "pid": 95371,
+              "type": "Tab",
+              "rssKiB": 1175040
+            }
+          ]
+        },
+        {
+          "phase": "warm-reopen-2",
+          "durationMs": 2931.7158340000005,
+          "eventLoop": {
+            "p95Ms": 1.344511,
+            "p99Ms": 2.379775,
+            "maxMs": 19.988479
+          },
+          "metrics": [
+            {
+              "pid": 95346,
+              "type": "Browser",
+              "rssKiB": 396528
+            },
+            {
+              "pid": 95347,
+              "type": "GPU",
+              "rssKiB": 121568
+            },
+            {
+              "pid": 95348,
+              "type": "Utility",
+              "rssKiB": 57248
+            },
+            {
+              "pid": 95371,
+              "type": "Tab",
+              "rssKiB": 1192992
+            }
+          ]
+        },
+        {
+          "phase": "draft-0",
+          "durationMs": 234.60879199999908,
+          "eventLoop": {
+            "p95Ms": 1.255423,
+            "p99Ms": 1.767423,
+            "maxMs": 38.338559
+          },
+          "metrics": [
+            {
+              "pid": 95346,
+              "type": "Browser",
+              "rssKiB": 404672
+            },
+            {
+              "pid": 95347,
+              "type": "GPU",
+              "rssKiB": 121568
+            },
+            {
+              "pid": 95348,
+              "type": "Utility",
+              "rssKiB": 57248
+            },
+            {
+              "pid": 95371,
+              "type": "Tab",
+              "rssKiB": 1200496
+            }
+          ]
+        },
+        {
+          "phase": "draft-1",
+          "durationMs": 208.2345839999998,
+          "eventLoop": {
+            "p95Ms": 1.236991,
+            "p99Ms": 8.241151,
+            "maxMs": 36.274175
+          },
+          "metrics": [
+            {
+              "pid": 95346,
+              "type": "Browser",
+              "rssKiB": 419232
+            },
+            {
+              "pid": 95347,
+              "type": "GPU",
+              "rssKiB": 121584
+            },
+            {
+              "pid": 95348,
+              "type": "Utility",
+              "rssKiB": 57248
+            },
+            {
+              "pid": 95371,
+              "type": "Tab",
+              "rssKiB": 1206688
+            }
+          ]
+        },
+        {
+          "phase": "draft-2",
+          "durationMs": 197.60833300000013,
+          "eventLoop": {
+            "p95Ms": 1.619967,
+            "p99Ms": 8.585215,
+            "maxMs": 26.591231
+          },
+          "metrics": [
+            {
+              "pid": 95346,
+              "type": "Browser",
+              "rssKiB": 445408
+            },
+            {
+              "pid": 95347,
+              "type": "GPU",
+              "rssKiB": 121568
+            },
+            {
+              "pid": 95348,
+              "type": "Utility",
+              "rssKiB": 57264
+            },
+            {
+              "pid": 95371,
+              "type": "Tab",
+              "rssKiB": 1240944
+            }
+          ]
+        },
+        {
+          "phase": "draft-3",
+          "durationMs": 195.86895800000093,
+          "eventLoop": {
+            "p95Ms": 1.211391,
+            "p99Ms": 8.495103,
+            "maxMs": 30.146559
+          },
+          "metrics": [
+            {
+              "pid": 95346,
+              "type": "Browser",
+              "rssKiB": 434544
+            },
+            {
+              "pid": 95347,
+              "type": "GPU",
+              "rssKiB": 121488
+            },
+            {
+              "pid": 95348,
+              "type": "Utility",
+              "rssKiB": 57264
+            },
+            {
+              "pid": 95371,
+              "type": "Tab",
+              "rssKiB": 1249520
+            }
+          ]
+        },
+        {
+          "phase": "draft-4",
+          "durationMs": 201.6737920000014,
+          "eventLoop": {
+            "p95Ms": 1.239039,
+            "p99Ms": 7.921663,
+            "maxMs": 33.472511
+          },
+          "metrics": [
+            {
+              "pid": 95346,
+              "type": "Browser",
+              "rssKiB": 448768
+            },
+            {
+              "pid": 95347,
+              "type": "GPU",
+              "rssKiB": 121520
+            },
+            {
+              "pid": 95348,
+              "type": "Utility",
+              "rssKiB": 57264
+            },
+            {
+              "pid": 95371,
+              "type": "Tab",
+              "rssKiB": 1265008
+            }
+          ]
+        }
+      ],
+      "contentIntegrity": {
+        "renderer": "4bb60f883c4ab51554219b538ba939abbbf6d34f7b1295f4f5ef9cadb07081d4",
+        "disk": "4bb60f883c4ab51554219b538ba939abbbf6d34f7b1295f4f5ef9cadb07081d4",
+        "dependencies": 5,
+        "checkpoints": 2
+      },
+      "errors": [],
+      "blockedWrites": []
+    },
+    {
+      "run": 2,
+      "build": {
+        "kind": "release",
+        "revision": "4be192c7af42e89cda0a5b182082fdf07a5905a7",
+        "dirty": false,
+        "builtAt": "2026-10-31T06:13:41.059Z",
+        "rendererHash": "756dad50e884bd24477b4c2c807d2fa54af4165b1c442032611558147e2ef9b2",
+        "desktopHash": "2b2c7c708eef866939a412ec908692d1c09dc6854958fe729131fca3cbc99e78"
+      },
+      "initial": {
+        "counter": 0,
+        "frames": 1,
+        "revision": 158
+      },
+      "final": {
+        "counter": 0,
+        "revision": 158
+      },
+      "writeMs": [
+        174.69999998807907,
+        158.39999997615814,
+        194.19999998807907,
+        155,
+        140.5999999642372
+      ],
+      "encodeMs": [],
+      "projectBundleMs": [
+        9.899999976158142,
+        9.400000035762787,
+        8.300000011920929,
+        12.199999988079071,
+        10.100000023841858
+      ],
+      "contentsMs": [
+        10.099999964237213,
+        9.5,
+        8.300000011920929,
+        12.199999988079071,
+        10.199999988079071
+      ],
+      "rendererLongTasksOverlappingWrites": [
+        {
+          "duration": 97,
+          "start": 2025.800000011921
+        },
+        {
+          "duration": 75,
+          "start": 2294.300000011921
+        },
+        {
+          "duration": 73,
+          "start": 2543
+        },
+        {
+          "duration": 51,
+          "start": 2672.199999988079
+        },
+        {
+          "duration": 73,
+          "start": 2834.899999976158
+        },
+        {
+          "duration": 72,
+          "start": 3084.099999964237
+        }
+      ],
+      "mainStoreWrites": [
+        {
+          "phase": "draft-0",
+          "startMs": 15194.225,
+          "durationMs": 35.80249999999978,
+          "dependencies": 5
+        },
+        {
+          "phase": "draft-1",
+          "startMs": 15429.8965,
+          "durationMs": 51.31608299999971,
+          "dependencies": 5
+        },
+        {
+          "phase": "draft-2",
+          "startMs": 15676.172916,
+          "durationMs": 54.83879200000047,
+          "dependencies": 5
+        },
+        {
+          "phase": "draft-3",
+          "startMs": 15976.093958,
+          "durationMs": 43.09575000000041,
+          "dependencies": 5
+        },
+        {
+          "phase": "draft-4",
+          "startMs": 16215.095416,
+          "durationMs": 39.617291999999,
+          "dependencies": 5
+        }
+      ],
+      "samples": [
+        {
+          "phase": "warm-reopen-0",
+          "durationMs": 3231.3172080000004,
+          "eventLoop": {
+            "p95Ms": 1.461247,
+            "p99Ms": 2.637823,
+            "maxMs": 9.994239
+          },
+          "metrics": [
+            {
+              "pid": 95470,
+              "type": "Browser",
+              "rssKiB": 367760
+            },
+            {
+              "pid": 95471,
+              "type": "GPU",
+              "rssKiB": 119232
+            },
+            {
+              "pid": 95472,
+              "type": "Utility",
+              "rssKiB": 57232
+            },
+            {
+              "pid": 95475,
+              "type": "Tab",
+              "rssKiB": 1084256
+            }
+          ]
+        },
+        {
+          "phase": "warm-reopen-1",
+          "durationMs": 2832.361000000001,
+          "eventLoop": {
+            "p95Ms": 1.516543,
+            "p99Ms": 2.715647,
+            "maxMs": 6.541311
+          },
+          "metrics": [
+            {
+              "pid": 95470,
+              "type": "Browser",
+              "rssKiB": 362528
+            },
+            {
+              "pid": 95471,
+              "type": "GPU",
+              "rssKiB": 121248
+            },
+            {
+              "pid": 95472,
+              "type": "Utility",
+              "rssKiB": 54752
+            },
+            {
+              "pid": 95475,
+              "type": "Tab",
+              "rssKiB": 1147088
+            }
+          ]
+        },
+        {
+          "phase": "warm-reopen-2",
+          "durationMs": 2955.8629579999997,
+          "eventLoop": {
+            "p95Ms": 1.645567,
+            "p99Ms": 3.450879,
+            "maxMs": 11.476991
+          },
+          "metrics": [
+            {
+              "pid": 95470,
+              "type": "Browser",
+              "rssKiB": 246448
+            },
+            {
+              "pid": 95471,
+              "type": "GPU",
+              "rssKiB": 96880
+            },
+            {
+              "pid": 95472,
+              "type": "Utility",
+              "rssKiB": 51248
+            },
+            {
+              "pid": 95475,
+              "type": "Tab",
+              "rssKiB": 1100464
+            }
+          ]
+        },
+        {
+          "phase": "draft-0",
+          "durationMs": 236.61941600000137,
+          "eventLoop": {
+            "p95Ms": 1.483775,
+            "p99Ms": 3.055615,
+            "maxMs": 39.944191
+          },
+          "metrics": [
+            {
+              "pid": 95470,
+              "type": "Browser",
+              "rssKiB": 273824
+            },
+            {
+              "pid": 95471,
+              "type": "GPU",
+              "rssKiB": 96864
+            },
+            {
+              "pid": 95472,
+              "type": "Utility",
+              "rssKiB": 51248
+            },
+            {
+              "pid": 95475,
+              "type": "Tab",
+              "rssKiB": 1108624
+            }
+          ]
+        },
+        {
+          "phase": "draft-1",
+          "durationMs": 221.1125000000011,
+          "eventLoop": {
+            "p95Ms": 1.538047,
+            "p99Ms": 9.338879,
+            "maxMs": 31.277055
+          },
+          "metrics": [
+            {
+              "pid": 95470,
+              "type": "Browser",
+              "rssKiB": 296624
+            },
+            {
+              "pid": 95471,
+              "type": "GPU",
+              "rssKiB": 96752
+            },
+            {
+              "pid": 95472,
+              "type": "Utility",
+              "rssKiB": 51200
+            },
+            {
+              "pid": 95475,
+              "type": "Tab",
+              "rssKiB": 1060336
+            }
+          ]
+        },
+        {
+          "phase": "draft-2",
+          "durationMs": 255.94275000000016,
+          "eventLoop": {
+            "p95Ms": 1.871871,
+            "p99Ms": 3.198975,
+            "maxMs": 35.979263
+          },
+          "metrics": [
+            {
+              "pid": 95470,
+              "type": "Browser",
+              "rssKiB": 297616
+            },
+            {
+              "pid": 95471,
+              "type": "GPU",
+              "rssKiB": 96736
+            },
+            {
+              "pid": 95472,
+              "type": "Utility",
+              "rssKiB": 51216
+            },
+            {
+              "pid": 95475,
+              "type": "Tab",
+              "rssKiB": 1103120
+            }
+          ]
+        },
+        {
+          "phase": "draft-3",
+          "durationMs": 220.8680830000012,
+          "eventLoop": {
+            "p95Ms": 1.898495,
+            "p99Ms": 8.536063,
+            "maxMs": 40.665087
+          },
+          "metrics": [
+            {
+              "pid": 95470,
+              "type": "Browser",
+              "rssKiB": 310384
+            },
+            {
+              "pid": 95471,
+              "type": "GPU",
+              "rssKiB": 96720
+            },
+            {
+              "pid": 95472,
+              "type": "Utility",
+              "rssKiB": 51216
+            },
+            {
+              "pid": 95475,
+              "type": "Tab",
+              "rssKiB": 1091440
+            }
+          ]
+        },
+        {
+          "phase": "draft-4",
+          "durationMs": 203.29650000000038,
+          "eventLoop": {
+            "p95Ms": 1.211391,
+            "p99Ms": 8.830975,
+            "maxMs": 27.197439
+          },
+          "metrics": [
+            {
+              "pid": 95470,
+              "type": "Browser",
+              "rssKiB": 324720
+            },
+            {
+              "pid": 95471,
+              "type": "GPU",
+              "rssKiB": 96720
+            },
+            {
+              "pid": 95472,
+              "type": "Utility",
+              "rssKiB": 51216
+            },
+            {
+              "pid": 95475,
+              "type": "Tab",
+              "rssKiB": 1098992
+            }
+          ]
+        }
+      ],
+      "contentIntegrity": {
+        "renderer": "4bb60f883c4ab51554219b538ba939abbbf6d34f7b1295f4f5ef9cadb07081d4",
+        "disk": "4bb60f883c4ab51554219b538ba939abbbf6d34f7b1295f4f5ef9cadb07081d4",
+        "dependencies": 5,
+        "checkpoints": 2
+      },
+      "errors": [],
+      "blockedWrites": []
+    }
+  ],
+  "after": [
+    {
+      "run": 0,
+      "build": {
+        "kind": "release",
+        "revision": "4be192c7af42e89cda0a5b182082fdf07a5905a7",
+        "dirty": false,
+        "builtAt": "2026-10-31T06:13:41.059Z",
+        "rendererHash": "756dad50e884bd24477b4c2c807d2fa54af4165b1c442032611558147e2ef9b2",
+        "desktopHash": "2b2c7c708eef866939a412ec908692d1c09dc6854958fe729131fca3cbc99e78"
+      },
+      "initial": {
+        "counter": 0,
+        "frames": 1,
+        "revision": 158
+      },
+      "final": {
+        "counter": 0,
+        "revision": 158
+      },
+      "writeMs": [
+        62.40000003576279,
+        71.5,
+        92.69999998807907,
+        64.80000001192093,
+        96
+      ],
+      "encodeMs": [
+        13.300000011920929,
+        14.300000011920929,
+        14.599999964237213,
+        13.399999976158142,
+        14.199999988079071
+      ],
+      "projectBundleMs": [
+        12.100000023841858,
+        10.099999964237213,
+        9.199999988079071,
+        9.400000035762787,
+        6.699999988079071
+      ],
+      "contentsMs": [
+        12.100000023841858,
+        10.099999964237213,
+        9.199999988079071,
+        9.5,
+        6.699999988079071
+      ],
+      "rendererLongTasksOverlappingWrites": [],
+      "mainStoreWrites": [
+        {
+          "phase": "draft-0",
+          "startMs": 14907.202,
+          "durationMs": 34.30537499999991,
+          "dependencies": 5
+        },
+        {
+          "phase": "draft-1",
+          "startMs": 15067.801875,
+          "durationMs": 40.129125000001295,
+          "dependencies": 5
+        },
+        {
+          "phase": "draft-2",
+          "startMs": 15232.146333,
+          "durationMs": 50.75658399999884,
+          "dependencies": 5
+        },
+        {
+          "phase": "draft-3",
+          "startMs": 15412.926375,
+          "durationMs": 37.86737500000163,
+          "dependencies": 5
+        },
+        {
+          "phase": "draft-4",
+          "startMs": 15577.434583,
+          "durationMs": 37.516750000000684,
+          "dependencies": 5
+        }
+      ],
+      "samples": [
+        {
+          "phase": "warm-reopen-0",
+          "durationMs": 3232.1638329999996,
+          "eventLoop": {
+            "p95Ms": 1.314815,
+            "p99Ms": 2.185215,
+            "maxMs": 5.566463
+          },
+          "metrics": [
+            {
+              "pid": 95323,
+              "type": "Browser",
+              "rssKiB": 375312
+            },
+            {
+              "pid": 95325,
+              "type": "GPU",
+              "rssKiB": 122144
+            },
+            {
+              "pid": 95326,
+              "type": "Utility",
+              "rssKiB": 57152
+            },
+            {
+              "pid": 95328,
+              "type": "Tab",
+              "rssKiB": 1083312
+            }
+          ]
+        },
+        {
+          "phase": "warm-reopen-1",
+          "durationMs": 2750.125583000001,
+          "eventLoop": {
+            "p95Ms": 1.343487,
+            "p99Ms": 2.666495,
+            "maxMs": 8.204287
+          },
+          "metrics": [
+            {
+              "pid": 95323,
+              "type": "Browser",
+              "rssKiB": 383360
+            },
+            {
+              "pid": 95325,
+              "type": "GPU",
+              "rssKiB": 124336
+            },
+            {
+              "pid": 95326,
+              "type": "Utility",
+              "rssKiB": 57168
+            },
+            {
+              "pid": 95328,
+              "type": "Tab",
+              "rssKiB": 1198016
+            }
+          ]
+        },
+        {
+          "phase": "warm-reopen-2",
+          "durationMs": 2676.449042,
+          "eventLoop": {
+            "p95Ms": 1.323007,
+            "p99Ms": 2.105343,
+            "maxMs": 5.967871
+          },
+          "metrics": [
+            {
+              "pid": 95323,
+              "type": "Browser",
+              "rssKiB": 394208
+            },
+            {
+              "pid": 95325,
+              "type": "GPU",
+              "rssKiB": 124080
+            },
+            {
+              "pid": 95326,
+              "type": "Utility",
+              "rssKiB": 57216
+            },
+            {
+              "pid": 95328,
+              "type": "Tab",
+              "rssKiB": 1597104
+            }
+          ]
+        },
+        {
+          "phase": "draft-0",
+          "durationMs": 126.92749999999978,
+          "eventLoop": {
+            "p95Ms": 1.547263,
+            "p99Ms": 8.024063,
+            "maxMs": 26.705919
+          },
+          "metrics": [
+            {
+              "pid": 95323,
+              "type": "Browser",
+              "rssKiB": 407616
+            },
+            {
+              "pid": 95325,
+              "type": "GPU",
+              "rssKiB": 124080
+            },
+            {
+              "pid": 95326,
+              "type": "Utility",
+              "rssKiB": 57216
+            },
+            {
+              "pid": 95328,
+              "type": "Tab",
+              "rssKiB": 1629136
+            }
+          ]
+        },
+        {
+          "phase": "draft-1",
+          "durationMs": 135.00466600000073,
+          "eventLoop": {
+            "p95Ms": 1.552383,
+            "p99Ms": 8.359935,
+            "maxMs": 24.657919
+          },
+          "metrics": [
+            {
+              "pid": 95323,
+              "type": "Browser",
+              "rssKiB": 431360
+            },
+            {
+              "pid": 95325,
+              "type": "GPU",
+              "rssKiB": 124080
+            },
+            {
+              "pid": 95326,
+              "type": "Utility",
+              "rssKiB": 57216
+            },
+            {
+              "pid": 95328,
+              "type": "Tab",
+              "rssKiB": 1653248
+            }
+          ]
+        },
+        {
+          "phase": "draft-2",
+          "durationMs": 155.04000000000087,
+          "eventLoop": {
+            "p95Ms": 1.436671,
+            "p99Ms": 14.753791,
+            "maxMs": 22.790143
+          },
+          "metrics": [
+            {
+              "pid": 95323,
+              "type": "Browser",
+              "rssKiB": 444864
+            },
+            {
+              "pid": 95325,
+              "type": "GPU",
+              "rssKiB": 124096
+            },
+            {
+              "pid": 95326,
+              "type": "Utility",
+              "rssKiB": 57216
+            },
+            {
+              "pid": 95328,
+              "type": "Tab",
+              "rssKiB": 1469616
+            }
+          ]
+        },
+        {
+          "phase": "draft-3",
+          "durationMs": 131.16649999999936,
+          "eventLoop": {
+            "p95Ms": 1.344511,
+            "p99Ms": 8.429567,
+            "maxMs": 24.248319
+          },
+          "metrics": [
+            {
+              "pid": 95323,
+              "type": "Browser",
+              "rssKiB": 474624
+            },
+            {
+              "pid": 95325,
+              "type": "GPU",
+              "rssKiB": 124080
+            },
+            {
+              "pid": 95326,
+              "type": "Utility",
+              "rssKiB": 57600
+            },
+            {
+              "pid": 95328,
+              "type": "Tab",
+              "rssKiB": 1498048
+            }
+          ]
+        },
+        {
+          "phase": "draft-4",
+          "durationMs": 155.68383299999914,
+          "eventLoop": {
+            "p95Ms": 1.279999,
+            "p99Ms": 8.667135,
+            "maxMs": 27.951103
+          },
+          "metrics": [
+            {
+              "pid": 95323,
+              "type": "Browser",
+              "rssKiB": 465920
+            },
+            {
+              "pid": 95325,
+              "type": "GPU",
+              "rssKiB": 124080
+            },
+            {
+              "pid": 95326,
+              "type": "Utility",
+              "rssKiB": 57216
+            },
+            {
+              "pid": 95328,
+              "type": "Tab",
+              "rssKiB": 1519984
+            }
+          ]
+        }
+      ],
+      "contentIntegrity": {
+        "renderer": "4bb60f883c4ab51554219b538ba939abbbf6d34f7b1295f4f5ef9cadb07081d4",
+        "disk": "4bb60f883c4ab51554219b538ba939abbbf6d34f7b1295f4f5ef9cadb07081d4",
+        "dependencies": 5,
+        "checkpoints": 2
+      },
+      "errors": [],
+      "blockedWrites": []
+    },
+    {
+      "run": 1,
+      "build": {
+        "kind": "release",
+        "revision": "4be192c7af42e89cda0a5b182082fdf07a5905a7",
+        "dirty": false,
+        "builtAt": "2026-10-31T06:13:41.059Z",
+        "rendererHash": "756dad50e884bd24477b4c2c807d2fa54af4165b1c442032611558147e2ef9b2",
+        "desktopHash": "2b2c7c708eef866939a412ec908692d1c09dc6854958fe729131fca3cbc99e78"
+      },
+      "initial": {
+        "counter": 0,
+        "frames": 1,
+        "revision": 158
+      },
+      "final": {
+        "counter": 0,
+        "revision": 158
+      },
+      "writeMs": [
+        68.09999996423721,
+        70.19999998807907,
+        77.10000002384186,
+        74.89999997615814,
+        74.60000002384186
+      ],
+      "encodeMs": [
+        15.699999988079071,
+        14.699999988079071,
+        15.600000023841858,
+        15.399999976158142,
+        16.5
+      ],
+      "projectBundleMs": [
+        9.699999988079071,
+        12.300000011920929,
+        9.100000023841858,
+        8.600000023841858,
+        12.5
+      ],
+      "contentsMs": [
+        9.899999976158142,
+        12.300000011920929,
+        9.100000023841858,
+        8.600000023841858,
+        12.699999988079071
+      ],
+      "rendererLongTasksOverlappingWrites": [],
+      "mainStoreWrites": [
+        {
+          "phase": "draft-0",
+          "startMs": 14943.008875,
+          "durationMs": 36.217249999999694,
+          "dependencies": 5
+        },
+        {
+          "phase": "draft-1",
+          "startMs": 15104.376292,
+          "durationMs": 40.839874999999665,
+          "dependencies": 5
+        },
+        {
+          "phase": "draft-2",
+          "startMs": 15271.913834,
+          "durationMs": 46.44537499999933,
+          "dependencies": 5
+        },
+        {
+          "phase": "draft-3",
+          "startMs": 15442.912375,
+          "durationMs": 41.80491699999948,
+          "dependencies": 5
+        },
+        {
+          "phase": "draft-4",
+          "startMs": 15617.530125,
+          "durationMs": 38.67912500000057,
+          "dependencies": 5
+        }
+      ],
+      "samples": [
+        {
+          "phase": "warm-reopen-0",
+          "durationMs": 2981.8704580000003,
+          "eventLoop": {
+            "p95Ms": 1.346559,
+            "p99Ms": 1.953791,
+            "maxMs": 7.954431
+          },
+          "metrics": [
+            {
+              "pid": 95430,
+              "type": "Browser",
+              "rssKiB": 361920
+            },
+            {
+              "pid": 95433,
+              "type": "GPU",
+              "rssKiB": 117840
+            },
+            {
+              "pid": 95434,
+              "type": "Utility",
+              "rssKiB": 57152
+            },
+            {
+              "pid": 95436,
+              "type": "Tab",
+              "rssKiB": 1078160
+            }
+          ]
+        },
+        {
+          "phase": "warm-reopen-1",
+          "durationMs": 2728.1995419999985,
+          "eventLoop": {
+            "p95Ms": 1.341439,
+            "p99Ms": 2.293759,
+            "maxMs": 9.175039
+          },
+          "metrics": [
+            {
+              "pid": 95430,
+              "type": "Browser",
+              "rssKiB": 375440
+            },
+            {
+              "pid": 95433,
+              "type": "GPU",
+              "rssKiB": 119712
+            },
+            {
+              "pid": 95434,
+              "type": "Utility",
+              "rssKiB": 57200
+            },
+            {
+              "pid": 95436,
+              "type": "Tab",
+              "rssKiB": 1159344
+            }
+          ]
+        },
+        {
+          "phase": "warm-reopen-2",
+          "durationMs": 2743.4581670000007,
+          "eventLoop": {
+            "p95Ms": 1.389567,
+            "p99Ms": 2.404351,
+            "maxMs": 9.076735
+          },
+          "metrics": [
+            {
+              "pid": 95430,
+              "type": "Browser",
+              "rssKiB": 407216
+            },
+            {
+              "pid": 95433,
+              "type": "GPU",
+              "rssKiB": 119392
+            },
+            {
+              "pid": 95434,
+              "type": "Utility",
+              "rssKiB": 57264
+            },
+            {
+              "pid": 95436,
+              "type": "Tab",
+              "rssKiB": 1240880
+            }
+          ]
+        },
+        {
+          "phase": "draft-0",
+          "durationMs": 129.3775000000005,
+          "eventLoop": {
+            "p95Ms": 1.399807,
+            "p99Ms": 10.797055,
+            "maxMs": 27.738111
+          },
+          "metrics": [
+            {
+              "pid": 95430,
+              "type": "Browser",
+              "rssKiB": 409232
+            },
+            {
+              "pid": 95433,
+              "type": "GPU",
+              "rssKiB": 119392
+            },
+            {
+              "pid": 95434,
+              "type": "Utility",
+              "rssKiB": 57280
+            },
+            {
+              "pid": 95436,
+              "type": "Tab",
+              "rssKiB": 1218496
+            }
+          ]
+        },
+        {
+          "phase": "draft-1",
+          "durationMs": 135.8939160000009,
+          "eventLoop": {
+            "p95Ms": 1.203199,
+            "p99Ms": 8.953855,
+            "maxMs": 23.920639
+          },
+          "metrics": [
+            {
+              "pid": 95430,
+              "type": "Browser",
+              "rssKiB": 433040
+            },
+            {
+              "pid": 95433,
+              "type": "GPU",
+              "rssKiB": 119392
+            },
+            {
+              "pid": 95434,
+              "type": "Utility",
+              "rssKiB": 57280
+            },
+            {
+              "pid": 95436,
+              "type": "Tab",
+              "rssKiB": 1237472
+            }
+          ]
+        },
+        {
+          "phase": "draft-2",
+          "durationMs": 141.3987500000003,
+          "eventLoop": {
+            "p95Ms": 1.283071,
+            "p99Ms": 8.445951,
+            "maxMs": 30.277631
+          },
+          "metrics": [
+            {
+              "pid": 95430,
+              "type": "Browser",
+              "rssKiB": 446880
+            },
+            {
+              "pid": 95433,
+              "type": "GPU",
+              "rssKiB": 119408
+            },
+            {
+              "pid": 95434,
+              "type": "Utility",
+              "rssKiB": 57536
+            },
+            {
+              "pid": 95436,
+              "type": "Tab",
+              "rssKiB": 1256432
+            }
+          ]
+        },
+        {
+          "phase": "draft-3",
+          "durationMs": 137.42799999999988,
+          "eventLoop": {
+            "p95Ms": 1.671167,
+            "p99Ms": 8.163327,
+            "maxMs": 25.985023
+          },
+          "metrics": [
+            {
+              "pid": 95430,
+              "type": "Browser",
+              "rssKiB": 478624
+            },
+            {
+              "pid": 95433,
+              "type": "GPU",
+              "rssKiB": 119392
+            },
+            {
+              "pid": 95434,
+              "type": "Utility",
+              "rssKiB": 57280
+            },
+            {
+              "pid": 95436,
+              "type": "Tab",
+              "rssKiB": 1290128
+            }
+          ]
+        },
+        {
+          "phase": "draft-4",
+          "durationMs": 146.41862500000025,
+          "eventLoop": {
+            "p95Ms": 1.286143,
+            "p99Ms": 8.650751,
+            "maxMs": 35.618815
+          },
+          "metrics": [
+            {
+              "pid": 95430,
+              "type": "Browser",
+              "rssKiB": 468640
+            },
+            {
+              "pid": 95433,
+              "type": "GPU",
+              "rssKiB": 119328
+            },
+            {
+              "pid": 95434,
+              "type": "Utility",
+              "rssKiB": 57280
+            },
+            {
+              "pid": 95436,
+              "type": "Tab",
+              "rssKiB": 1319120
+            }
+          ]
+        }
+      ],
+      "contentIntegrity": {
+        "renderer": "4bb60f883c4ab51554219b538ba939abbbf6d34f7b1295f4f5ef9cadb07081d4",
+        "disk": "4bb60f883c4ab51554219b538ba939abbbf6d34f7b1295f4f5ef9cadb07081d4",
+        "dependencies": 5,
+        "checkpoints": 2
+      },
+      "errors": [],
+      "blockedWrites": []
+    },
+    {
+      "run": 2,
+      "build": {
+        "kind": "release",
+        "revision": "4be192c7af42e89cda0a5b182082fdf07a5905a7",
+        "dirty": false,
+        "builtAt": "2026-10-31T06:13:41.059Z",
+        "rendererHash": "756dad50e884bd24477b4c2c807d2fa54af4165b1c442032611558147e2ef9b2",
+        "desktopHash": "2b2c7c708eef866939a412ec908692d1c09dc6854958fe729131fca3cbc99e78"
+      },
+      "initial": {
+        "counter": 0,
+        "frames": 1,
+        "revision": 158
+      },
+      "final": {
+        "counter": 0,
+        "revision": 158
+      },
+      "writeMs": [
+        62.5,
+        74.10000002384186,
+        71,
+        72.39999997615814,
+        75.19999998807907
+      ],
+      "encodeMs": [
+        14.5,
+        14.300000011920929,
+        15.399999976158142,
+        15.5,
+        16.69999998807907
+      ],
+      "projectBundleMs": [
+        7.899999976158142,
+        5.599999964237213,
+        5.299999952316284,
+        5.399999976158142,
+        5.600000023841858
+      ],
+      "contentsMs": [
+        8.099999964237213,
+        5.599999964237213,
+        5.299999952316284,
+        5.399999976158142,
+        5.600000023841858
+      ],
+      "rendererLongTasksOverlappingWrites": [],
+      "mainStoreWrites": [
+        {
+          "phase": "draft-0",
+          "startMs": 15467.348875,
+          "durationMs": 31.90887500000099,
+          "dependencies": 5
+        },
+        {
+          "phase": "draft-1",
+          "startMs": 15619.428875,
+          "durationMs": 42.835667000001195,
+          "dependencies": 5
+        },
+        {
+          "phase": "draft-2",
+          "startMs": 15782.187542,
+          "durationMs": 39.99537500000042,
+          "dependencies": 5
+        },
+        {
+          "phase": "draft-3",
+          "startMs": 15941.865959,
+          "durationMs": 41.66716599999927,
+          "dependencies": 5
+        },
+        {
+          "phase": "draft-4",
+          "startMs": 16136.644584,
+          "durationMs": 39.86004099999991,
+          "dependencies": 5
+        }
+      ],
+      "samples": [
+        {
+          "phase": "warm-reopen-0",
+          "durationMs": 3033.7412919999997,
+          "eventLoop": {
+            "p95Ms": 1.533951,
+            "p99Ms": 2.789375,
+            "maxMs": 14.827519
+          },
+          "metrics": [
+            {
+              "pid": 95498,
+              "type": "Browser",
+              "rssKiB": 360144
+            },
+            {
+              "pid": 95499,
+              "type": "GPU",
+              "rssKiB": 118016
+            },
+            {
+              "pid": 95500,
+              "type": "Utility",
+              "rssKiB": 57264
+            },
+            {
+              "pid": 95503,
+              "type": "Tab",
+              "rssKiB": 1064208
+            }
+          ]
+        },
+        {
+          "phase": "warm-reopen-1",
+          "durationMs": 2961.249040999999,
+          "eventLoop": {
+            "p95Ms": 1.738751,
+            "p99Ms": 3.155967,
+            "maxMs": 8.327167
+          },
+          "metrics": [
+            {
+              "pid": 95498,
+              "type": "Browser",
+              "rssKiB": 376288
+            },
+            {
+              "pid": 95499,
+              "type": "GPU",
+              "rssKiB": 119952
+            },
+            {
+              "pid": 95500,
+              "type": "Utility",
+              "rssKiB": 57344
+            },
+            {
+              "pid": 95503,
+              "type": "Tab",
+              "rssKiB": 1229904
+            }
+          ]
+        },
+        {
+          "phase": "warm-reopen-2",
+          "durationMs": 2729.15725,
+          "eventLoop": {
+            "p95Ms": 1.632255,
+            "p99Ms": 3.143679,
+            "maxMs": 12.353535
+          },
+          "metrics": [
+            {
+              "pid": 95498,
+              "type": "Browser",
+              "rssKiB": 380032
+            },
+            {
+              "pid": 95499,
+              "type": "GPU",
+              "rssKiB": 120336
+            },
+            {
+              "pid": 95500,
+              "type": "Utility",
+              "rssKiB": 57392
+            },
+            {
+              "pid": 95503,
+              "type": "Tab",
+              "rssKiB": 1316896
+            }
+          ]
+        },
+        {
+          "phase": "draft-0",
+          "durationMs": 121.85879199999908,
+          "eventLoop": {
+            "p95Ms": 1.325055,
+            "p99Ms": 8.437759,
+            "maxMs": 26.623999
+          },
+          "metrics": [
+            {
+              "pid": 95498,
+              "type": "Browser",
+              "rssKiB": 405968
+            },
+            {
+              "pid": 95499,
+              "type": "GPU",
+              "rssKiB": 120336
+            },
+            {
+              "pid": 95500,
+              "type": "Utility",
+              "rssKiB": 57392
+            },
+            {
+              "pid": 95503,
+              "type": "Tab",
+              "rssKiB": 1345360
+            }
+          ]
+        },
+        {
+          "phase": "draft-1",
+          "durationMs": 132.29704200000015,
+          "eventLoop": {
+            "p95Ms": 1.553407,
+            "p99Ms": 8.273919,
+            "maxMs": 30.212095
+          },
+          "metrics": [
+            {
+              "pid": 95498,
+              "type": "Browser",
+              "rssKiB": 411136
+            },
+            {
+              "pid": 95499,
+              "type": "GPU",
+              "rssKiB": 120336
+            },
+            {
+              "pid": 95500,
+              "type": "Utility",
+              "rssKiB": 57392
+            },
+            {
+              "pid": 95503,
+              "type": "Tab",
+              "rssKiB": 1364288
+            }
+          ]
+        },
+        {
+          "phase": "draft-2",
+          "durationMs": 129.43624999999884,
+          "eventLoop": {
+            "p95Ms": 1.358847,
+            "p99Ms": 8.413183,
+            "maxMs": 26.378239
+          },
+          "metrics": [
+            {
+              "pid": 95498,
+              "type": "Browser",
+              "rssKiB": 434800
+            },
+            {
+              "pid": 95499,
+              "type": "GPU",
+              "rssKiB": 120352
+            },
+            {
+              "pid": 95500,
+              "type": "Utility",
+              "rssKiB": 57392
+            },
+            {
+              "pid": 95503,
+              "type": "Tab",
+              "rssKiB": 1392720
+            }
+          ]
+        },
+        {
+          "phase": "draft-3",
+          "durationMs": 130.7715420000004,
+          "eventLoop": {
+            "p95Ms": 1.359871,
+            "p99Ms": 8.404991,
+            "maxMs": 28.753919
+          },
+          "metrics": [
+            {
+              "pid": 95498,
+              "type": "Browser",
+              "rssKiB": 431280
+            },
+            {
+              "pid": 95499,
+              "type": "GPU",
+              "rssKiB": 120336
+            },
+            {
+              "pid": 95500,
+              "type": "Utility",
+              "rssKiB": 57936
+            },
+            {
+              "pid": 95503,
+              "type": "Tab",
+              "rssKiB": 1411664
+            }
+          ]
+        },
+        {
+          "phase": "draft-4",
+          "durationMs": 162.43958300000122,
+          "eventLoop": {
+            "p95Ms": 1.388543,
+            "p99Ms": 8.368127,
+            "maxMs": 27.230207
+          },
+          "metrics": [
+            {
+              "pid": 95498,
+              "type": "Browser",
+              "rssKiB": 462224
+            },
+            {
+              "pid": 95499,
+              "type": "GPU",
+              "rssKiB": 120320
+            },
+            {
+              "pid": 95500,
+              "type": "Utility",
+              "rssKiB": 57264
+            },
+            {
+              "pid": 95503,
+              "type": "Tab",
+              "rssKiB": 1451760
+            }
+          ]
+        }
+      ],
+      "contentIntegrity": {
+        "renderer": "4bb60f883c4ab51554219b538ba939abbbf6d34f7b1295f4f5ef9cadb07081d4",
+        "disk": "4bb60f883c4ab51554219b538ba939abbbf6d34f7b1295f4f5ef9cadb07081d4",
+        "dependencies": 5,
+        "checkpoints": 2
+      },
+      "errors": [],
+      "blockedWrites": []
+    }
+  ]
+}

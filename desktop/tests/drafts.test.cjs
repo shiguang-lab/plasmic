@@ -78,9 +78,12 @@ test("the draft bridge authenticates opening, binds scope, and then writes witho
   await assert.rejects(handler.command(event, "open", { ...scope, userId: "other" }), /Invalid draft account/);
   const { handle } = await handler.command(event, "open", scope), a = draft();
   online = false;
-  await handler.command(event, "write", { handle, draft: a });
-  assert.equal((await handler.command(event, "read", { handle, id: a.id })).id, a.id);
-  await assert.rejects(handler.command(event, "write", { handle, draft: draft({ projectId: "other" }) }), /Invalid draft/);
+  await handler.command(event, "write", { handle, draftJson: JSON.stringify(a) });
+  assert.deepEqual(await handler.command(event, "read", { handle, id: a.id }), a);
+  await assert.rejects(handler.command(event, "write", { handle, draftJson: "{broken" }), SyntaxError);
+  await assert.rejects(handler.command(event, "write", { handle, draftJson: a }), /Invalid draft payload/);
+  await assert.rejects(handler.command({ ...event, senderFrame: { ...frame } }, "write", { handle, draftJson: "{broken" }), /Invalid draft session/);
+  await assert.rejects(handler.command(event, "write", { handle, draftJson: JSON.stringify(draft({ projectId: "other" })) }), /Invalid draft/);
   await assert.rejects(handler.command({ ...event, senderFrame: { ...frame } }, "read", { handle, id: a.id }), /Invalid draft session/);
   handler.reset();
   await assert.rejects(handler.command(event, "read", { handle, id: a.id }), /Invalid draft session/);
@@ -114,9 +117,9 @@ test("session rotation reauthorizes existing draft handles for the same account 
   const handler = createDraftHandler({ store, origin: scope.origin, trustedSender: () => true,
     projectId: url => new URL(url).pathname.split("/")[2], currentUser: async () => { reads++; return userId; } });
   const event = { senderFrame: frame }, { handle } = await handler.command(event, "open", scope), a = draft();
-  await handler.command(event, "write", { handle, draft: a }); assert.equal(reads, 1);
+  await handler.command(event, "write", { handle, draftJson: JSON.stringify(a) }); assert.equal(reads, 1);
   handler.invalidate();
-  await handler.command(event, "write", { handle, draft: { ...a, sequence: 2 } }); assert.equal(reads, 2);
+  await handler.command(event, "write", { handle, draftJson: JSON.stringify({ ...a, sequence: 2 }) }); assert.equal(reads, 2);
   assert.equal((await handler.command(event, "read", { handle, id: a.id })).sequence, 2); assert.equal(reads, 2);
   userId = "replacement"; handler.invalidate();
   await assert.rejects(handler.command(event, "read", { handle, id: a.id }), /Invalid draft session/);

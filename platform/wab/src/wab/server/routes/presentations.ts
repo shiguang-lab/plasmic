@@ -1,9 +1,7 @@
 import { Project } from "@/wab/server/entities/Entities";
 import { userDbMgr } from "@/wab/server/routes/util";
 import {
-  ForbiddenError,
   NotFoundError,
-  UnauthorizedError,
 } from "@/wab/shared/ApiErrors/errors";
 import { ensureString } from "@/wab/shared/common";
 import type { Request, Response } from "express";
@@ -36,14 +34,7 @@ export async function getPresentation(req: Request, res: Response) {
     throw new NotFoundError("Presentation not found");
   }
   // A short identifier grants no access; deleted/private projects retain normal checks.
-  try {
-    await mgr.getProjectById(project.id);
-  } catch (error) {
-    if (!req.user && error instanceof ForbiddenError) {
-      throw new UnauthorizedError();
-    }
-    throw error;
-  }
+  await mgr.getProjectById(project.id);
   res.setHeader("Cache-Control", "no-store");
   res.json({ code, projectId: project.id });
 }

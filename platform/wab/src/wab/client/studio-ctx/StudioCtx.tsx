@@ -227,6 +227,7 @@ import {
 import { arrayRemove, arrayReversed } from "@/wab/shared/collections";
 import {
   AsyncCallable,
+  arrayEq,
   arrayEqIgnoreOrder,
   asOne,
   assert,
@@ -425,7 +426,7 @@ import { ArgsProps } from "antd/lib/notification";
 import asynclib from "async";
 import cn from "classnames";
 import stringify from "fast-stringify";
-import { Location } from "history";
+import { Location, createPath } from "history";
 import $ from "jquery";
 import {
   debounce,
@@ -1086,15 +1087,21 @@ export class StudioCtx extends WithDbCtx {
       // A failed load rejects its caller, but must not poison later retries.
       .catch(() => undefined)
       .then(async () => {
+        const currentPackages = new Set(
+          pkgs.map((pkg) => getHostLessPkgIdentity(pkg, this.site)),
+        );
         const pkgsData = await getSortedHostLessPkgs(
           ensure(this.hostLessPkgsFrame.contentWindow, "Missing hostless window"),
           this.appCtx.api,
-          pkgs,
+          pkgs.filter(
+            (pkg) =>
+              this.site.hostLessPackageInfo?.name === pkg ||
+              !this.installedHostLessPkgs.has(getHostLessPkgIdentity(pkg, this.site)),
+          ),
           getVersionForCanvasPackages(this.hostLessPkgsFrame.contentWindow),
           this.site,
         );
         runInAction(() => {
-          const currentPackages = new Set(pkgsData.map(([pkg]) => pkg));
           for (const pkg of this.installedHostLessPkgs) {
             if (!currentPackages.has(pkg)) {
               this.installedHostLessPkgs.delete(pkg);
@@ -1401,17 +1408,36 @@ export class StudioCtx extends WithDbCtx {
       vc,
       context: vc.currentComponentCtx(),
       info: vc.getSpotlightAndVariantsInfo(),
+      selectables: vc.focusedSelectables().slice(),
+      tpls: vc.focusedTpls().slice(),
+      cloneKeys: vc.focusedCloneKeys().slice(),
     }));
-    if (this.selectionPaintFrame !== undefined) {
-      cancelAnimationFrame(this.selectionPaintFrame);
-    }
-    clearTimeout(this.selectionPaintTask);
+    const previousViewCtx = this.focusedViewCtx();
+    const previousFrames = this.focusedFrames();
+    let selectionChanged = false;
     runInAction(() => {
-      // Unsubscribe expensive inspector controls before publishing the new focus.
-      this.selectionPending.set(true);
       try {
         f();
         const vc = this.focusedViewCtx();
+        selectionChanged =
+          vc !== previousViewCtx ||
+          !arrayEq(previousFrames, this.focusedFrames()) ||
+          previous.some(({ vc: view, context, info, selectables, tpls, cloneKeys }) =>
+            context !== view.currentComponentCtx() ||
+            viewCtxInfoChanged(view.getSpotlightAndVariantsInfo(), info) ||
+            !arrayEq(selectables, view.focusedSelectables()) ||
+            !arrayEq(tpls, view.focusedTpls()) ||
+            !arrayEq(cloneKeys, view.focusedCloneKeys()),
+          );
+        if (!selectionChanged) {
+          return;
+        }
+        if (this.selectionPaintFrame !== undefined) {
+          cancelAnimationFrame(this.selectionPaintFrame);
+        }
+        clearTimeout(this.selectionPaintTask);
+        // The action publishes the new focus and pending state together.
+        this.selectionPending.set(true);
         const tpl = vc?.focusedTpl();
         if (
           vc &&
@@ -1426,6 +1452,9 @@ export class StudioCtx extends WithDbCtx {
         throw error;
       }
     });
+    if (!selectionChanged) {
+      return;
+    }
     for (const { vc, context, info } of previous) {
       if (
         context !== vc.currentComponentCtx() ||
@@ -2262,9 +2291,11 @@ export class StudioCtx extends WithDbCtx {
       return;
     }
 
-    this.changeArena(arena ?? null, {
-      noFocusedModeChange: opts?.noFocusedModeChange,
-    });
+    if (this.currentArena !== (arena ?? null) || this.watchPlayerId !== null) {
+      this.changeArena(arena ?? null, {
+        noFocusedModeChange: opts?.noFocusedModeChange,
+      });
+    }
     this.switchRoute({
       branch: this.dbCtx().branchInfo,
       pkgVersionInfoMeta: this.dbCtx().pkgVersionInfoMeta,
@@ -2383,6 +2414,9 @@ export class StudioCtx extends WithDbCtx {
       threadId,
     });
 
+    if (createPath(this.appCtx.history.location) === createPath(location)) {
+      return;
+    }
     if (replace) {
       this.appCtx.history.replace(location);
     } else {
@@ -2967,21 +3001,24 @@ export class StudioCtx extends WithDbCtx {
   // Manage currently-focused frame and element
   //
 
-  private _xFocusedFrames = observable.box<ArenaFrame[]>([], { deep: false });
+  private _xFocusedFrames = observable.box<ArenaFrame[]>([], {
+    deep: false,
+    equals: arrayEq,
+  });
   private _xFocusedViewCtx = observable.box<ViewCtx | undefined>();
 
   // This only sets the high level focus for the studio, i.e. viewCtx and frame.
   private setHighLevelFocusOnly(
     viewCtx: ViewCtx | undefined,
-    frame: ArenaFrame | undefined,
+    frames: ArenaFrame[],
   ) {
     const curFocusedViewCtx = this.focusedViewCtx();
-    if (curFocusedViewCtx && (viewCtx !== curFocusedViewCtx || frame)) {
+    if (curFocusedViewCtx && (viewCtx !== curFocusedViewCtx || frames.length)) {
       curFocusedViewCtx.clearViewCtxFocus();
     }
     this._xFocusedViewCtx.set(viewCtx);
 
-    this._xFocusedFrames.set(frame ? [frame] : []);
+    this._xFocusedFrames.set(frames);
   }
 
   focusedViewCtx() {
@@ -3016,7 +3053,7 @@ export class StudioCtx extends WithDbCtx {
           : [...selected, frame],
       );
     } else {
-      this.setHighLevelFocusOnly(this.tryGetViewCtxForFrame(frame), frame);
+      this.setHighLevelFocusOnly(this.tryGetViewCtxForFrame(frame), frame ? [frame] : []);
     }
 
     if (frame && autoZoom) {
@@ -3032,26 +3069,25 @@ export class StudioCtx extends WithDbCtx {
       arenaFrames.includes(frame),
     );
     const frame = selected[0];
-    this.setHighLevelFocusOnly(this.tryGetViewCtxForFrame(frame), frame);
-    this._xFocusedFrames.set(selected);
+    this.setHighLevelFocusOnly(this.tryGetViewCtxForFrame(frame), selected);
   }
 
   // Set the studio focus to focus only on the frame object, not on the root node.
   setStudioFocusOnlyOnFrame(frame: ArenaFrame | undefined) {
-    this.setHighLevelFocusOnly(this.tryGetViewCtxForFrame(frame), frame);
+    this.setHighLevelFocusOnly(this.tryGetViewCtxForFrame(frame), frame ? [frame] : []);
   }
 
   // In this case, the focus is inside a viewCtx. Set the viewCtx with the
   // focus.
   setStudioFocusOnViewCtxContent(viewCtx: ViewCtx) {
-    this.setHighLevelFocusOnly(viewCtx, undefined);
+    this.setHighLevelFocusOnly(viewCtx, []);
   }
 
   /**
    * Set studio focus on the frame contents (but not the frame itself).
    */
   setStudioFocusOnFrameContents(frame: ArenaFrame | undefined) {
-    this.setHighLevelFocusOnly(this.tryGetViewCtxForFrame(frame), undefined);
+    this.setHighLevelFocusOnly(this.tryGetViewCtxForFrame(frame), []);
   }
 
   /**
@@ -3461,6 +3497,10 @@ export class StudioCtx extends WithDbCtx {
 
   private _leftPanel = observable.box<LeftPanel | undefined>(undefined, {
     deep: false,
+    equals: (a, b) =>
+      a?.type === "ai" && b?.type === "ai"
+        ? a.opts === b.opts
+        : isEqual(a, b),
   });
 
   get leftPanel(): LeftPanel | undefined {
@@ -5702,6 +5742,7 @@ export class StudioCtx extends WithDbCtx {
         : undefined,
       nextFocusedTpl: nextFocusedTpl || undefined,
       vcFocusedCloneKey: vc?.focusedCloneKey(),
+      vcShowDefaultSlotContents: vc?.showDefaultSlotContents(),
     };
   }
 
@@ -7050,7 +7091,7 @@ export class StudioCtx extends WithDbCtx {
         // Disable saves while we load
         this.editMode = false;
         this.alertBannerState.set(editMode ? null : AlertSpec.ViewOld);
-        this.setHighLevelFocusOnly(undefined, undefined); // Hide the focused box
+        this.setHighLevelFocusOnly(undefined, []); // Hide the focused box
       });
       const {
         rev: _currRev,

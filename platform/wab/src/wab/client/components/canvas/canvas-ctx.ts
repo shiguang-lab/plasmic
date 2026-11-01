@@ -124,15 +124,21 @@ export class CanvasCtx {
     this._hostLessPkgsLock = previousFetch
       .catch(() => undefined)
       .then(async () => {
+        const currentPackages = new Set(
+          pkgs.map((pkg) => getHostLessPkgIdentity(pkg, site)),
+        );
         const pkgsData = await getSortedHostLessPkgs(
           this._win,
           sc.appCtx.api,
-          pkgs,
+          pkgs.filter(
+            (pkg) =>
+              site.hostLessPackageInfo?.name === pkg ||
+              !this.installedHostLessPkgs.has(getHostLessPkgIdentity(pkg, site)),
+          ),
           getVersionForCanvasPackages(this._win),
           site,
         );
         runInAction(() => {
-          const currentPackages = new Set(pkgsData.map(([pkg]) => pkg));
           for (const pkg of this.installedHostLessPkgs) {
             if (!currentPackages.has(pkg)) {
               this.installedHostLessPkgs.delete(pkg);

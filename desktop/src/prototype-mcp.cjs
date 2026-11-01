@@ -1,4 +1,4 @@
-const { REFERENCE_FIELDS } = require("./design-reference.cjs");
+const { REFERENCE_FIELDS } = require("./design-reference-contract.cjs");
 const object = (properties, required = []) => ({ type: "object", properties, required, additionalProperties: false });
 const string = { type: "string", minLength: 1 };
 const assertionSchema = { oneOf: [

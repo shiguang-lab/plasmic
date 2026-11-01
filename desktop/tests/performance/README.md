@@ -1,0 +1,50 @@
+# Desktop 定向性能诊断
+
+仅在开发用 Electron 和独立 profile 运行；不修改发布 fuses、manifest 或生产调试配置。完整结果与边界见 `docs/performance/2026-10-31/main-memory-draft-implementation.md`。
+
+- `main-import.cjs <desktopRoot> [output.json]`：新进程 require(main)，不 bootstrap。
+- `seven-issues.cjs reference|hidden|capture|lease <output.json>`（Electron）：隔离的原生资源与功能对照；`dashboard <output.json> <privateFixture>` 使用实际 bundled 引擎。`seven-processes.cjs fixed-mcp|images <output.json>`（Node）做独立新进程对照；`seven-studio.cjs <privateFixture> <output.json>`（Electron）复用匹配 `build-baseline` 的离线 Studio fixture，自动新建私有目录。只输出指标，不修改生产行为；边界及结果见[七项实测](../../../docs/performance/2026-11-01/seven-issues-analysis.md)。
+- 修复后的对照直接运行生产实现：`PLASMIC_PERF_DESKTOP=<beforeDesktopRoot>` 指向保留的基线源码，省略时使用当前实现；`PLASMIC_PERF_CANVAS=webgl` 验证 WebGL（默认 2D）。`seven-processes.cjs fixed-mcp <output.json>` 要求提供该基线路径，并比较旧 Electron transport 与 `build:mcp` 生成的实际 SEA helper。各性能场景串行执行，禁止同时运行构建或测试；结果见[修复收益](../../../docs/performance/2026-11-01/resource-fixes.md)。
+- `first-use.cjs <desktopRoot> <output.json> image`：首次/并发图片与循环延迟。
+- `reference-first-use.cjs <desktopRoot> <output.json> <absoluteNodeBinary>`：真实 SDK/stdio fixture，非真实 Pen 启动。
+- `retention-build.cjs current|<beforeSourceDirectory> <fixtureOutput>`：真实 DocsPortalEditor/Monaco、DeepMap 与抽取的 getEnvId；业务生成/RenderingCtx 为 fixture。
+- `retention.cjs <fixtureOutput> <reportDirectory> [--verify] [--summary-only]`：CDP 三快照和十次循环；verify 检查关闭一编辑器后另一编辑器输入/undo。快照交给 MemLab 离线分析。
+- `cache-pipeline.cjs <desktopRoot> <inventory.json> <reportDirectory>`：inventory 是 `{file,key,diskBytes}` 数组，指向正常 JSON/base64 缓存的只读副本。只处理真实正文，按原格式写入独立缓存，禁止远端补下载。
+- `studio-pipeline.cjs <extractedInstalledAppDirectory> <diagnosticProfile> <existingProjectId> <reportDirectory> [serialized]`：使用提取的匹配 renderer 和已独立登录的诊断 profile；阻止项目写入。先用 `PLASMIC_DESKTOP_PROFILE=<diagnosticProfile>` 启动开发 App，正常登录并打开目标项目，再退出 App 后运行诊断。脚本拒绝默认正常 App profile，并取得诊断 profile 的单实例锁；不读取其他 profile 的凭据，不在结束时删除诊断 profile。serialized 在旧 renderer 的草稿 API 边界注入当前源码的 JSON 字符串传输，使用当前实际 preload/主进程。普通新 renderer 无需此注入。
+- `skeleton-performance.cjs <privateOutputDirectory>`：生产 Ant Design Skeleton，12 个可见预览的动态/静态 2 秒窗口对照，另有单个动画的正向控制。测量主线程 TaskDuration，不是项目打开耗时。
+- `studio-optimization-fixture.cjs <privateFixtureDirectory> <buildVariant>`：从 `build-<buildVariant>` 运行生产 Studio，所有 HTTP(S) 使用离线响应、WebSocket 阻断；独立 profile。`PERF_FUNCTIONAL=1` 验证公开重命名操作及撤销/重做，`PERF_ENV_GC=1` 执行 20 轮编辑/撤销与诊断 GC；`PERF_KEEP_ALIVE=6|3|2` 比较六个内存画板的返回与进程 RSS。`PERF_RUN_ID` 为新 profile 添加区分，禁止指定正常 App 的 userData。完整边界见 [五项结果](../../../docs/performance/2026-10-31/five-optimizations-validation.md)。
+- `PERF_UNDO=1` 在同一离线 harness 中执行 `undo-studio.cjs`：使用独立项目 fixture，创建十个临时 arena、各做两次模型编辑，再执行 20 次 undo/redo。`PERF_UNDO_ROUNDS=0` 只做保留测量；`PERF_UNDO_SNAPSHOTS=1` 保存三快照；`PERF_UNDO_GC_CONTROL=1` 使用诊断专用 `--expose-gc` 并在场景前断开 CDP，不能与快照模式同时开启。`PERF_UNDO_FUNCTIONAL=1` 要求隔离构建入口提供 `__undoFunctional()`；不会给发布入口添加该能力。冷恢复失败、console error 或超时均不能算通过。结果与原型处置见[撤销快照验证](../../../docs/performance/2026-11-01/undo-snapshot-validation.md)。
+- `PERF_UNDO_GROWTH=small|text|subtree|grouped|drag` 执行 `undo-history-growth.cjs`，要求隔离入口提供 `__undoGrowth`。分别测 5,000 次独立小修改、1,000 次 16,384 字符整段替换、300 轮 121 节点子树添加/深删、5,000 次按每 50 次分组的输入更新；drag 使用已有 startUnlogged/stopUnlogged 边界，每 50 次边距更新是一手势。使用 `PERF_RUN_ID=r1` 区分新 profile 和结果。每点检查历史数、两轮 GC 后 JS 堆；最后验证一次 undo/redo，再移除诊断根做归因。待保存缓冲清理不等于真实保存，根移除不属于产品行为，分组对照也不能用于合并独立用户操作。不与 `PERF_UNDO` 等其他场景混跑。结果和可复现构建位置见[操作次数与内存](../../../docs/performance/2026-11-01/undo-history-growth.md)。
+- `PERF_UNDO_RETAIN=1` 执行 `undo-retention.cjs`：121 节点子树反复添加/深删，执行完整客户端保存并由离线 HTTP fixture 确认。`PERF_RETAIN_OPERATIONS=100|600` 控制正偶数命令数；`PERF_RETAIN_SNAPSHOTS=1` 取基线、目标及诊断历史释放后的三快照。`PERF_RETAIN_CPU=1` 记录原生 Performance 指标，`PERF_RETAIN_LATENCY=1` 做 20 组 undo/redo 就绪采样；`PERF_RETAIN_FULL_UNDO=1` 遍历所有历史再重做。快照、计时和并行构建分轮；不能将本地确认说成真实后端保存。原型、门槛及撤回处置见[候选验证](../../../docs/performance/2026-11-01/undo-candidates-validation.md)。
+- `PERF_UNDO_COLD_COST=1` 执行 `undo-cold-cost.cjs`，隔离入口须提供 `__undoColdEncode` / `__undoColdDecode`。仅测 300 棵已删除子树的 bundle/JSON、IPC 返回、gzip、临时写入、解析和反序列化成本；保留真实 UndoLog，仅在受保护诊断目录写压缩载荷。不实现冷历史回放、生产落盘或账号存储。载荷体积与临时持有态不是已实现的 App 内存收益。
+
+撤销功能验收使用 `undo-build.config.ts`，显式加入 `undo-functional-entry.ts` 和 `undo-growth-entry.ts`；必须提供私有的 `PERF_BUILD_OUT`。正式入口不引用这些文件。先用相同功能修复基线分别构建两侧，运行 `PERF_UNDO=1 PERF_UNDO_FUNCTIONAL=1 PERF_UNDO_ROUNDS=0`，通过后另起进程计时。功能脚本检查合法模型、冷恢复、真实 UI/MCP 删除及撤销选择、双画板样式和实际 DOM computed color；等待模型队列和相关 frame 同步，不能用活动 frame 的就绪替代所有异步工作完成。
+
+`PERF_UNDO_REOPEN=1` 在完整功能轮后执行一次全量客户端保存，再重新加载 Studio，核对组件、Slot/变体/节点身份和画板位置。仅此模式会把离线保存请求的完整 bundle 作为下一次启动数据；不写真实服务端或 fixture 源文件。与 `PERF_UNDO_RETAIN=1 PERF_RETAIN_FULL_UNDO=1` 合用可先遍历被测构建保留的全部撤销/重做步骤，再运行复杂功能场景、保存及重开。全历史轮和计时轮分开。归档的无限历史构建曾验收 600 次撤销及 600 次重做，结果见[功能通过后的对照](../../../docs/performance/2026-11-01/undo-functional-qualified-ab.md)。
+
+当前源码保留最近 50 个步骤。`undo-retention.cjs` 和 `undo-history-growth.cjs` 的期望上限默认是 50；`PERF_RETAIN_HISTORY_STEPS` 只声明被测构建的期望行为，不修改生产限制。复测旧无限历史构建的 600 命令场景时显式设置为 600。`PERF_RETAIN_FULL_UNDO=1` 遍历实际预期保留的全部步骤，并检查最旧边界和最终记录数；当前构建是 50 次 undo/50 次 redo，内部记录 51 条。旧冷历史载荷探针要求归档的无限历史构建和 300 个删除根，不能直接用当前 50 步构建复现。
+
+`PERF_UNDO_BOUND=1` 在复杂功能场景的重复实例、Slot 和嵌套上下文中分别追加 120 次编辑，再验证原有真实编辑的撤销恢复。`PERF_UNDO_VERSION_RESTORE=1` 与 `PERF_UNDO_REOPEN=1` 合用：离线服务暂存完整修订，实际客户端保存检查点后继续编辑 125 步，再通过修订列表及 `StudioCtx.revertTo` 恢复超出 50 步窗口的检查点。候选同时设置 `PERF_RETAIN_HISTORY_STEPS=50` 以断言边界；这不是线上数据库或权限验收。记录和测量边界见[50 步历史验收](../../../docs/performance/2026-11-01/undo-history-50.md)。
+
+离线项目 fixture 目录须私有，包含 `project-response.json`（正常所有者的项目启动 GET）、`model-resources.json` 与 `plume-resources.json`（路径映射至 `{body,headers}`）、`plume-opening.json`（真实 Plume 包响应）、`code-resources.json`（完整明确版本 URL 映射至缓存 `{key,body,headers,digest}`，body 为 base64）及对应生产构建。使用只读导出或一次性数据库副本生成，正文、凭据、缓存和生成 profile 不得提交。辅助评论/AI 状态/角色为空 fixture，依赖元信息固定在项目版本；该脚本不验收认证、自动升级、真实保存/发布或 Plume 插入 UI。报告原始文件也留在私有目录，仅将脱敏指标整理入仓库。
+
+`PLASMIC_PERF_DESKTOP` 可指定保存的 Desktop 基线源码；`PLASMIC_PERF_TRACE=0` 用于墙钟对照。trace 模式与计时分轮，禁止并行跑 A/B。脚本不会写业务项目，但本地草稿、认证和缓存均须使用真实账号的正常规则；报告不输出凭据或模型正文。
+
+准备离线 fixture 时使用已有授权的只读导出。不要复制或跨进程共用正常 App 的刷新凭据：重复兑换旧令牌会触发 IAM 重放检测，撤销整条设备授权及其 Cookie。在线诊断必须独立登录并使用自己的 profile。离线场景本身不需要刷新凭据。
+
+MemLab 为临时诊断工具，未加入 package.json。示例：
+
+```sh
+PUPPETEER_SKIP_DOWNLOAD=1 npm install --prefix /tmp/plasmic-memlab-diagnostic memlab@2.0.6 --no-audit --no-fund
+/tmp/plasmic-memlab-diagnostic/node_modules/.bin/memlab find-leaks \
+  --baseline /tmp/retention/baseline.heapsnapshot \
+  --target /tmp/retention/target.heapsnapshot \
+  --final /tmp/retention/final.heapsnapshot \
+  --work-dir /tmp/retention/memlab --trace-all-objects
+```
+
+MemLab 候选数不是已确认泄漏数。JS heap、原生/GPU 和 RSS 必须分别解释。保存的压缩 trace/快照仅在本机 `desktop/desktop-report/performance-2026-10-31/`，不纳入发布资源。
+
+从列表打开项目的候选对照使用 `real-project-open.cjs <privateFixtureDirectory> <runId>`。`PERF_BUILD_ROOT` 显式选择构建；使用 `PERF_OPENS=6`，前两次用于填充缓存及预热，其余四次计时。所有候选与基线必须串行执行，不能并行构建或分析。`open-build.config.ts` 要求提供独立的 `PERF_SOURCE_ROOT` 和 `PERF_BUILD_OUT`；从同一冻结源码建立基线和每个独立候选，并在冻结源码的 `platform/wab` 目录构建。`prepare-open-build.cjs <output> <matchingInstalledAssets> <frozenSourceRoot> <variant>` 仅补齐未生成且确认未变更的 runtime 资产，写入诊断构建身份与指纹；不能把它称为发布包。
+
+`PERF_OPEN_FUNCTIONAL=1 PERF_OPENS=1` 执行真实模型的编辑、撤销/重做、完整客户端保存和重新加载，保存仅由进程内 fixture 确认；`PERF_OPEN_COLD=1` 在复杂样本中额外检查销毁画板后的恢复。GP 样本另检查真实 Preview 表格分页。`PERF_OPEN_MEMORY=final` 在六次自然打开后返回列表，末尾才执行诊断 GC；RSS 为进程 working set 之和，不能视作实际物理内存。`PERF_OPEN_INPUT=1` 测 Layers 控件事件处理及两次 rAF 的往返时间，只是响应代理指标，不是操作系统输入延迟。功能、计时、响应代理和内存分轮运行。五项候选的保留/撤回及完整验收见 [画布打开候选结果](../../../docs/performance/2026-11-01/canvas-open-candidates.md)。

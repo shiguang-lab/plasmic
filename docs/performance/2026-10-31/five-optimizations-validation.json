@@ -1,0 +1,1456 @@
+{
+  "environment": {
+    "date": "2026-10-31",
+    "platform": "macOS arm64 M4 / 24GB",
+    "electron": "44.5.1",
+    "baseCommit": "390772252",
+    "dirtyWorkspacePreserved": true,
+    "projectRevision": 158,
+    "projectDependencies": 5,
+    "canvasCodeVersions": {
+      "antd6": "3.11.0",
+      "overseas": "1.13.0",
+      "antd-icons": "0.3.0",
+      "react-ui": "0.2.0"
+    },
+    "fixturePlumeVersion": "19.4.2",
+    "renderer": {
+      "dpr": 2,
+      "height": 855,
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Plasmicdiagnostic/44.5.1 Chrome/152.0.7977.130 Electron/44.5.1 Safari/537.36",
+      "width": 1512
+    }
+  },
+  "decisions": {
+    "startupResourceProcessing": "keep",
+    "queuedSkeletonAnimations": "keep",
+    "gestureBackgroundDelay": "revert",
+    "browserMobxReplacement": "revert",
+    "lowerArenaRetention": "revert",
+    "environmentCleanupRace": "fix"
+  },
+  "backend": {
+    "scope": "Exact 0.5.31 route with actual before/after resource-envelope source on a disposable database; actual project owner, normal actor without system-admin roles. Permission resolver default is normalized in a runtime wrapper equivalent to the tested source change. No public HTTP/GUI timing.",
+    "samples": [
+      {
+        "index": 0,
+        "mode": "before",
+        "sql": 133,
+        "resourceMs": 68.71290899999985,
+        "revision": 158,
+        "dependencies": 5,
+        "totalMs": 3109.721418000001,
+        "bytes": 313376,
+        "digest": "6b7365b403cf9fa7f5e98ffe70897eefc3730a9346ef0eacf9533a7d62b77ba3"
+      },
+      {
+        "index": 1,
+        "mode": "after",
+        "sql": 89,
+        "resourceMs": 7.778913000000102,
+        "revision": 158,
+        "dependencies": 5,
+        "totalMs": 241.94565499999953,
+        "bytes": 313376,
+        "digest": "6b7365b403cf9fa7f5e98ffe70897eefc3730a9346ef0eacf9533a7d62b77ba3"
+      },
+      {
+        "index": 2,
+        "mode": "after",
+        "sql": 89,
+        "resourceMs": 8.61501600000156,
+        "revision": 158,
+        "dependencies": 5,
+        "totalMs": 252.5247249999993,
+        "bytes": 313376,
+        "digest": "6b7365b403cf9fa7f5e98ffe70897eefc3730a9346ef0eacf9533a7d62b77ba3"
+      },
+      {
+        "index": 3,
+        "mode": "before",
+        "sql": 94,
+        "resourceMs": 113.67271999999866,
+        "revision": 158,
+        "dependencies": 5,
+        "totalMs": 393.9075329999996,
+        "bytes": 313376,
+        "digest": "6b7365b403cf9fa7f5e98ffe70897eefc3730a9346ef0eacf9533a7d62b77ba3"
+      },
+      {
+        "index": 4,
+        "mode": "before",
+        "sql": 94,
+        "resourceMs": 74.83639000000039,
+        "revision": 158,
+        "dependencies": 5,
+        "totalMs": 299.49146500000097,
+        "bytes": 313376,
+        "digest": "6b7365b403cf9fa7f5e98ffe70897eefc3730a9346ef0eacf9533a7d62b77ba3"
+      },
+      {
+        "index": 5,
+        "mode": "after",
+        "sql": 89,
+        "resourceMs": 11.09965100000045,
+        "revision": 158,
+        "dependencies": 5,
+        "totalMs": 220.95346900000004,
+        "bytes": 313376,
+        "digest": "6b7365b403cf9fa7f5e98ffe70897eefc3730a9346ef0eacf9533a7d62b77ba3"
+      },
+      {
+        "index": 6,
+        "mode": "after",
+        "sql": 89,
+        "resourceMs": 10.512022000000798,
+        "revision": 158,
+        "dependencies": 5,
+        "totalMs": 242.2170700000006,
+        "bytes": 313376,
+        "digest": "6b7365b403cf9fa7f5e98ffe70897eefc3730a9346ef0eacf9533a7d62b77ba3"
+      },
+      {
+        "index": 7,
+        "mode": "before",
+        "sql": 94,
+        "resourceMs": 103.33871399999953,
+        "revision": 158,
+        "dependencies": 5,
+        "totalMs": 331.1884399999999,
+        "bytes": 313376,
+        "digest": "6b7365b403cf9fa7f5e98ffe70897eefc3730a9346ef0eacf9533a7d62b77ba3"
+      },
+      {
+        "index": 8,
+        "mode": "before",
+        "sql": 94,
+        "resourceMs": 78.93904800000018,
+        "revision": 158,
+        "dependencies": 5,
+        "totalMs": 291.3574180000014,
+        "bytes": 313376,
+        "digest": "6b7365b403cf9fa7f5e98ffe70897eefc3730a9346ef0eacf9533a7d62b77ba3"
+      },
+      {
+        "index": 9,
+        "mode": "after",
+        "sql": 89,
+        "resourceMs": 10.65034100000048,
+        "revision": 158,
+        "dependencies": 5,
+        "totalMs": 225.81543500000043,
+        "bytes": 313376,
+        "digest": "6b7365b403cf9fa7f5e98ffe70897eefc3730a9346ef0eacf9533a7d62b77ba3"
+      },
+      {
+        "index": 10,
+        "mode": "after",
+        "sql": 89,
+        "resourceMs": 10.807756999998674,
+        "revision": 158,
+        "dependencies": 5,
+        "totalMs": 278.8110940000006,
+        "bytes": 313376,
+        "digest": "6b7365b403cf9fa7f5e98ffe70897eefc3730a9346ef0eacf9533a7d62b77ba3"
+      },
+      {
+        "index": 11,
+        "mode": "before",
+        "sql": 94,
+        "resourceMs": 78.27833900000041,
+        "revision": 158,
+        "dependencies": 5,
+        "totalMs": 353.3458899999987,
+        "bytes": 313376,
+        "digest": "6b7365b403cf9fa7f5e98ffe70897eefc3730a9346ef0eacf9533a7d62b77ba3"
+      },
+      {
+        "index": 12,
+        "mode": "before",
+        "sql": 94,
+        "resourceMs": 58.44627800000126,
+        "revision": 158,
+        "dependencies": 5,
+        "totalMs": 221.5262899999998,
+        "bytes": 313376,
+        "digest": "6b7365b403cf9fa7f5e98ffe70897eefc3730a9346ef0eacf9533a7d62b77ba3"
+      },
+      {
+        "index": 13,
+        "mode": "after",
+        "sql": 89,
+        "resourceMs": 13.475555999999415,
+        "revision": 158,
+        "dependencies": 5,
+        "totalMs": 187.73926699999902,
+        "bytes": 313376,
+        "digest": "6b7365b403cf9fa7f5e98ffe70897eefc3730a9346ef0eacf9533a7d62b77ba3"
+      },
+      {
+        "index": 14,
+        "mode": "after",
+        "sql": 89,
+        "resourceMs": 6.935292000000118,
+        "revision": 158,
+        "dependencies": 5,
+        "totalMs": 206.80642400000033,
+        "bytes": 313376,
+        "digest": "6b7365b403cf9fa7f5e98ffe70897eefc3730a9346ef0eacf9533a7d62b77ba3"
+      },
+      {
+        "index": 15,
+        "mode": "before",
+        "sql": 94,
+        "resourceMs": 101.11376999999993,
+        "revision": 158,
+        "dependencies": 5,
+        "totalMs": 318.8530150000006,
+        "bytes": 313376,
+        "digest": "6b7365b403cf9fa7f5e98ffe70897eefc3730a9346ef0eacf9533a7d62b77ba3"
+      },
+      {
+        "index": 16,
+        "mode": "before",
+        "sql": 94,
+        "resourceMs": 64.7363349999996,
+        "revision": 158,
+        "dependencies": 5,
+        "totalMs": 271.43367299999954,
+        "bytes": 313376,
+        "digest": "6b7365b403cf9fa7f5e98ffe70897eefc3730a9346ef0eacf9533a7d62b77ba3"
+      },
+      {
+        "index": 17,
+        "mode": "after",
+        "sql": 89,
+        "resourceMs": 15.838023000002067,
+        "revision": 158,
+        "dependencies": 5,
+        "totalMs": 208.53759100000025,
+        "bytes": 313376,
+        "digest": "6b7365b403cf9fa7f5e98ffe70897eefc3730a9346ef0eacf9533a7d62b77ba3"
+      },
+      {
+        "index": 18,
+        "mode": "after",
+        "sql": 89,
+        "resourceMs": 6.878726999999344,
+        "revision": 158,
+        "dependencies": 5,
+        "totalMs": 212.90316000000166,
+        "bytes": 313376,
+        "digest": "6b7365b403cf9fa7f5e98ffe70897eefc3730a9346ef0eacf9533a7d62b77ba3"
+      },
+      {
+        "index": 19,
+        "mode": "before",
+        "sql": 94,
+        "resourceMs": 47.41019900000174,
+        "revision": 158,
+        "dependencies": 5,
+        "totalMs": 288.2391580000003,
+        "bytes": 313376,
+        "digest": "6b7365b403cf9fa7f5e98ffe70897eefc3730a9346ef0eacf9533a7d62b77ba3"
+      },
+      {
+        "index": 20,
+        "mode": "before",
+        "sql": 94,
+        "resourceMs": 55.36629900000116,
+        "revision": 158,
+        "dependencies": 5,
+        "totalMs": 238.22295400000075,
+        "bytes": 313376,
+        "digest": "6b7365b403cf9fa7f5e98ffe70897eefc3730a9346ef0eacf9533a7d62b77ba3"
+      },
+      {
+        "index": 21,
+        "mode": "after",
+        "sql": 89,
+        "resourceMs": 10.626782000003004,
+        "revision": 158,
+        "dependencies": 5,
+        "totalMs": 195.92509399999835,
+        "bytes": 313376,
+        "digest": "6b7365b403cf9fa7f5e98ffe70897eefc3730a9346ef0eacf9533a7d62b77ba3"
+      },
+      {
+        "index": 22,
+        "mode": "after",
+        "sql": 89,
+        "resourceMs": 10.153980999999476,
+        "revision": 158,
+        "dependencies": 5,
+        "totalMs": 206.16037599999981,
+        "bytes": 313376,
+        "digest": "6b7365b403cf9fa7f5e98ffe70897eefc3730a9346ef0eacf9533a7d62b77ba3"
+      },
+      {
+        "index": 23,
+        "mode": "before",
+        "sql": 94,
+        "resourceMs": 76.55091899999752,
+        "revision": 158,
+        "dependencies": 5,
+        "totalMs": 297.87573300000076,
+        "bytes": 313376,
+        "digest": "6b7365b403cf9fa7f5e98ffe70897eefc3730a9346ef0eacf9533a7d62b77ba3"
+      },
+      {
+        "index": 24,
+        "mode": "before",
+        "sql": 94,
+        "resourceMs": 53.00300199999765,
+        "revision": 158,
+        "dependencies": 5,
+        "totalMs": 222.20185599999968,
+        "bytes": 313376,
+        "digest": "6b7365b403cf9fa7f5e98ffe70897eefc3730a9346ef0eacf9533a7d62b77ba3"
+      },
+      {
+        "index": 25,
+        "mode": "after",
+        "sql": 89,
+        "resourceMs": 6.691310000001977,
+        "revision": 158,
+        "dependencies": 5,
+        "totalMs": 184.94017999999778,
+        "bytes": 313376,
+        "digest": "6b7365b403cf9fa7f5e98ffe70897eefc3730a9346ef0eacf9533a7d62b77ba3"
+      }
+    ],
+    "before": {
+      "projects": "89",
+      "revisions": "3444"
+    },
+    "after": {
+      "projects": "89",
+      "revisions": "3444"
+    },
+    "identicalResponseBytes": true
+  },
+  "skeleton": {
+    "scope": "Real Ant Design Skeleton, 12 visible queued/loading previews, fixed 1512x887 window; diagnostic fixture, not project open timing",
+    "samples": [
+      {
+        "activeCount": 12,
+        "elapsedMs": 2002.381209,
+        "metrics": {
+          "LayoutCount": 0,
+          "RecalcStyleCount": 240,
+          "LayoutDuration": 0,
+          "RecalcStyleDuration": 0.174958,
+          "ScriptDuration": 0.000902,
+          "TaskDuration": 0.506325
+        }
+      },
+      {
+        "activeCount": 0,
+        "elapsedMs": 2002.0935000000004,
+        "metrics": {
+          "LayoutCount": 0,
+          "RecalcStyleCount": 0,
+          "LayoutDuration": 0,
+          "RecalcStyleDuration": 0,
+          "ScriptDuration": 0,
+          "TaskDuration": 0.00039400000000000546
+        }
+      },
+      {
+        "activeCount": 0,
+        "elapsedMs": 2002.3640420000002,
+        "metrics": {
+          "LayoutCount": 0,
+          "RecalcStyleCount": 0,
+          "LayoutDuration": 0,
+          "RecalcStyleDuration": 0,
+          "ScriptDuration": 0,
+          "TaskDuration": 0.00023100000000009224
+        }
+      },
+      {
+        "activeCount": 12,
+        "elapsedMs": 2002.1792500000001,
+        "metrics": {
+          "LayoutCount": 0,
+          "RecalcStyleCount": 240,
+          "LayoutDuration": 0,
+          "RecalcStyleDuration": 0.175511,
+          "ScriptDuration": 0.00043900000000000015,
+          "TaskDuration": 0.475251
+        }
+      },
+      {
+        "activeCount": 0,
+        "elapsedMs": 2001.6616250000006,
+        "metrics": {
+          "LayoutCount": 0,
+          "RecalcStyleCount": 0,
+          "LayoutDuration": 0,
+          "RecalcStyleDuration": 0,
+          "ScriptDuration": 0,
+          "TaskDuration": 0.0005159999999999609
+        }
+      },
+      {
+        "activeCount": 12,
+        "elapsedMs": 2001.7569170000006,
+        "metrics": {
+          "LayoutCount": 0,
+          "RecalcStyleCount": 240,
+          "LayoutDuration": 0,
+          "RecalcStyleDuration": 0.19489400000000007,
+          "ScriptDuration": 0.0004019999999999996,
+          "TaskDuration": 0.510148
+        }
+      },
+      {
+        "activeCount": 12,
+        "elapsedMs": 2001.6751250000016,
+        "metrics": {
+          "LayoutCount": 0,
+          "RecalcStyleCount": 240,
+          "LayoutDuration": 0,
+          "RecalcStyleDuration": 0.19636599999999993,
+          "ScriptDuration": 0.0008050000000000002,
+          "TaskDuration": 0.529652
+        }
+      },
+      {
+        "activeCount": 0,
+        "elapsedMs": 2002.0350830000025,
+        "metrics": {
+          "LayoutCount": 0,
+          "RecalcStyleCount": 0,
+          "LayoutDuration": 0,
+          "RecalcStyleDuration": 0,
+          "ScriptDuration": 0,
+          "TaskDuration": 0.0005359999999998699
+        }
+      },
+      {
+        "activeCount": 0,
+        "elapsedMs": 2002.0505420000009,
+        "metrics": {
+          "LayoutCount": 0,
+          "RecalcStyleCount": 0,
+          "LayoutDuration": 0,
+          "RecalcStyleDuration": 0,
+          "ScriptDuration": 0,
+          "TaskDuration": 0.0002510000000000012
+        }
+      },
+      {
+        "activeCount": 12,
+        "elapsedMs": 2002.340167000002,
+        "metrics": {
+          "LayoutCount": 0,
+          "RecalcStyleCount": 241,
+          "LayoutDuration": 0,
+          "RecalcStyleDuration": 0.21143099999999992,
+          "ScriptDuration": 0.00041300000000000017,
+          "TaskDuration": 0.5559180000000001
+        }
+      },
+      {
+        "activeCount": 1,
+        "elapsedMs": 2002.0604160000003,
+        "metrics": {
+          "LayoutCount": 0,
+          "RecalcStyleCount": 241,
+          "LayoutDuration": 0,
+          "RecalcStyleDuration": 0.03488000000000002,
+          "ScriptDuration": 0.0002030000000000018,
+          "TaskDuration": 0.18217000000000017
+        }
+      }
+    ]
+  },
+  "backgroundScheduling": {
+    "scope": "Real StudioCtx queue in jsdom, fixed 300ms gesture and three 40ms synchronous loads; interval lag is not native input latency",
+    "before": [
+      {
+        "completeMs": 124.76074999999946,
+        "gestureLagP95Ms": 25.765541999999186,
+        "starts": [
+          1.4339579999996204,
+          43.11512499999844,
+          84.61058299999968
+        ],
+        "loaded": 3
+      },
+      {
+        "completeMs": 124.75350000000071,
+        "gestureLagP95Ms": 25.723541999999725,
+        "starts": [
+          1.5046670000010636,
+          43.04525000000103,
+          84.62616700000035
+        ],
+        "loaded": 3
+      },
+      {
+        "completeMs": 124.41754200000105,
+        "gestureLagP95Ms": 25.66095800000039,
+        "starts": [
+          1.3939170000012382,
+          42.75933299999997,
+          84.28441700000076
+        ],
+        "loaded": 3
+      },
+      {
+        "completeMs": 124.58645799999977,
+        "gestureLagP95Ms": 25.611042000000452,
+        "starts": [
+          1.430000000000291,
+          42.92475000000013,
+          84.46025000000009
+        ],
+        "loaded": 3
+      },
+      {
+        "completeMs": 124.257834,
+        "gestureLagP95Ms": 25.516750000000684,
+        "starts": [
+          1.1392500000001746,
+          42.61216699999932,
+          84.1404169999987
+        ],
+        "loaded": 3
+      },
+      {
+        "completeMs": 124.4665419999983,
+        "gestureLagP95Ms": 25.51129199999923,
+        "starts": [
+          1.3637499999986176,
+          42.842249999999694,
+          84.36533399999826
+        ],
+        "loaded": 3
+      },
+      {
+        "completeMs": 122.90187500000138,
+        "gestureLagP95Ms": 25.47583300000042,
+        "starts": [
+          1.380458000001454,
+          41.48750000000109,
+          82.84508300000016
+        ],
+        "loaded": 3
+      }
+    ],
+    "after": [
+      {
+        "completeMs": 437.9186659999996,
+        "gestureLagP95Ms": 1.0778339999997115,
+        "starts": [
+          314.91470799999934,
+          356.40308300000015,
+          397.7098329999999
+        ],
+        "loaded": 3
+      },
+      {
+        "completeMs": 438.07824999999957,
+        "gestureLagP95Ms": 1.2219999999997526,
+        "starts": [
+          314.94587500000034,
+          356.4727919999996,
+          397.9255000000003
+        ],
+        "loaded": 3
+      },
+      {
+        "completeMs": 431.63845799999945,
+        "gestureLagP95Ms": 1.146708000000217,
+        "starts": [
+          308.8454579999998,
+          350.27866600000016,
+          391.59950000000026
+        ],
+        "loaded": 3
+      },
+      {
+        "completeMs": 434.92704199999935,
+        "gestureLagP95Ms": 1.2215830000004644,
+        "starts": [
+          312.3139169999995,
+          353.6724579999991,
+          394.89908300000025
+        ],
+        "loaded": 3
+      },
+      {
+        "completeMs": 437.84383400000115,
+        "gestureLagP95Ms": 1.2903329999990092,
+        "starts": [
+          315.16949999999997,
+          356.5643340000006,
+          397.80133399999977
+        ],
+        "loaded": 3
+      },
+      {
+        "completeMs": 434.0936249999995,
+        "gestureLagP95Ms": 1.097541999999521,
+        "starts": [
+          311.5145829999983,
+          352.7737079999988,
+          394.030166999999
+        ],
+        "loaded": 3
+      },
+      {
+        "completeMs": 436.3857919999991,
+        "gestureLagP95Ms": 6.27495799999997,
+        "starts": [
+          313.7574169999989,
+          355.08808399999907,
+          396.3553749999992
+        ],
+        "loaded": 3
+      }
+    ]
+  },
+  "mobxExperiment": {
+    "scope": "Browser-only build replacement; common environment cleanup fix on both sides. Offline actual project/Plume fixture, empty ancillary services; excludes WAN, authentication and real server saves. ABBA, four fresh processes per side, 100ms readiness polling. Ready timing is not precise first paint.",
+    "artifacts": {
+      "baseline-clean": {
+        "javascriptBytes": 33294646,
+        "gzipBytes": 9280344,
+        "mobxModules": [
+          "mobx.cjs.development.js",
+          "mobx.esm.js"
+        ]
+      },
+      "final": {
+        "javascriptBytes": 33218376,
+        "gzipBytes": 9259108,
+        "mobxModules": [
+          "mobx.esm.js"
+        ]
+      }
+    },
+    "startupSamples": [
+      {
+        "variant": "baseline-clean",
+        "readyMs": 2070.398667,
+        "errors": [],
+        "error": null,
+        "functional": {
+          "edit": true,
+          "redo": true,
+          "restored": true,
+          "revision": 158,
+          "undo": true,
+          "views": 1
+        },
+        "revision": 158,
+        "returncode": 0
+      },
+      {
+        "variant": "final",
+        "readyMs": 2159.357709,
+        "errors": [],
+        "error": null,
+        "functional": {
+          "edit": true,
+          "redo": true,
+          "restored": true,
+          "revision": 158,
+          "undo": true,
+          "views": 1
+        },
+        "revision": 158,
+        "returncode": 0
+      },
+      {
+        "variant": "final",
+        "readyMs": 2180.281833,
+        "errors": [],
+        "error": null,
+        "functional": {
+          "edit": true,
+          "redo": true,
+          "restored": true,
+          "revision": 158,
+          "undo": true,
+          "views": 1
+        },
+        "revision": 158,
+        "returncode": 0
+      },
+      {
+        "variant": "baseline-clean",
+        "readyMs": 2157.003083,
+        "errors": [],
+        "error": null,
+        "functional": {
+          "edit": true,
+          "redo": true,
+          "restored": true,
+          "revision": 158,
+          "undo": true,
+          "views": 1
+        },
+        "revision": 158,
+        "returncode": 0
+      },
+      {
+        "variant": "baseline-clean",
+        "readyMs": 2103.877083,
+        "errors": [],
+        "error": null,
+        "functional": {
+          "edit": true,
+          "redo": true,
+          "restored": true,
+          "revision": 158,
+          "undo": true,
+          "views": 1
+        },
+        "revision": 158,
+        "returncode": 0
+      },
+      {
+        "variant": "final",
+        "readyMs": 2156.021917,
+        "errors": [],
+        "error": null,
+        "functional": {
+          "edit": true,
+          "redo": true,
+          "restored": true,
+          "revision": 158,
+          "undo": true,
+          "views": 1
+        },
+        "revision": 158,
+        "returncode": 0
+      },
+      {
+        "variant": "final",
+        "readyMs": 2188.8515829999997,
+        "errors": [],
+        "error": null,
+        "functional": {
+          "edit": true,
+          "redo": true,
+          "restored": true,
+          "revision": 158,
+          "undo": true,
+          "views": 1
+        },
+        "revision": 158,
+        "returncode": 0
+      },
+      {
+        "variant": "baseline-clean",
+        "readyMs": 2116.2937909999996,
+        "errors": [],
+        "error": null,
+        "functional": {
+          "edit": true,
+          "redo": true,
+          "restored": true,
+          "revision": 158,
+          "undo": true,
+          "views": 1
+        },
+        "revision": 158,
+        "returncode": 0
+      }
+    ],
+    "variantMeaning": {
+      "baseline-clean": "Retained source without browser MobX replacement",
+      "final": "Discarded experimental MobX replacement build"
+    }
+  },
+  "arenaRetention": {
+    "scope": "Six in-memory mixed arenas displaying the same actual page. Same retained production build, six initial visits then twelve revisits. Each switch includes an explicit 100ms settle. Per-setting one process; RSS sums are not unique physical memory or a stable memory A/B. No project save.",
+    "variants": {
+      "6": {
+        "cohorts": 1,
+        "revisits": 12,
+        "errors": [],
+        "switches": [
+          {
+            "index": 0,
+            "ms": 685.6622090000001,
+            "live": 2,
+            "renderReady": true,
+            "status": "visible",
+            "views": 2
+          },
+          {
+            "index": 1,
+            "ms": 656.1144170000007,
+            "live": 3,
+            "renderReady": true,
+            "status": "visible",
+            "views": 3
+          },
+          {
+            "index": 2,
+            "ms": 673.1752090000009,
+            "live": 4,
+            "renderReady": true,
+            "status": "visible",
+            "views": 4
+          },
+          {
+            "index": 3,
+            "ms": 753.7400830000006,
+            "live": 5,
+            "renderReady": true,
+            "status": "visible",
+            "views": 5
+          },
+          {
+            "index": 4,
+            "ms": 707.7633750000005,
+            "live": 6,
+            "renderReady": true,
+            "status": "visible",
+            "views": 6
+          },
+          {
+            "index": 5,
+            "ms": 699.2526249999992,
+            "live": 6,
+            "renderReady": true,
+            "status": "visible",
+            "views": 6
+          },
+          {
+            "index": 0,
+            "ms": 215.15891600000032,
+            "live": 6,
+            "marker": "still-alive",
+            "renderReady": true,
+            "status": "visible",
+            "views": 6
+          },
+          {
+            "index": 1,
+            "ms": 172.71883400000115,
+            "live": 6,
+            "renderReady": true,
+            "status": "visible",
+            "views": 6
+          },
+          {
+            "index": 2,
+            "ms": 199.34345799999937,
+            "live": 6,
+            "renderReady": true,
+            "status": "visible",
+            "views": 6
+          },
+          {
+            "index": 3,
+            "ms": 166.86733400000048,
+            "live": 6,
+            "renderReady": true,
+            "status": "visible",
+            "views": 6
+          },
+          {
+            "index": 4,
+            "ms": 163.44116699999904,
+            "live": 6,
+            "renderReady": true,
+            "status": "visible",
+            "views": 6
+          },
+          {
+            "index": 5,
+            "ms": 159.89833299999918,
+            "live": 6,
+            "renderReady": true,
+            "status": "visible",
+            "views": 6
+          },
+          {
+            "index": 0,
+            "ms": 158.24966600000153,
+            "live": 6,
+            "marker": "still-alive",
+            "renderReady": true,
+            "status": "visible",
+            "views": 6
+          },
+          {
+            "index": 1,
+            "ms": 162.21608299999934,
+            "live": 6,
+            "renderReady": true,
+            "status": "visible",
+            "views": 6
+          },
+          {
+            "index": 2,
+            "ms": 161.4947090000005,
+            "live": 6,
+            "renderReady": true,
+            "status": "visible",
+            "views": 6
+          },
+          {
+            "index": 3,
+            "ms": 158.2412089999998,
+            "live": 6,
+            "renderReady": true,
+            "status": "visible",
+            "views": 6
+          },
+          {
+            "index": 4,
+            "ms": 158.1927909999995,
+            "live": 6,
+            "renderReady": true,
+            "status": "visible",
+            "views": 6
+          },
+          {
+            "index": 5,
+            "ms": 162.00816699999996,
+            "live": 6,
+            "renderReady": true,
+            "status": "visible",
+            "views": 6
+          }
+        ],
+        "memory": {
+          "metrics": [
+            {
+              "type": "Browser",
+              "rssKiB": 208560
+            },
+            {
+              "type": "GPU",
+              "rssKiB": 106672
+            },
+            {
+              "type": "Utility",
+              "rssKiB": 42048
+            },
+            {
+              "type": "Tab",
+              "rssKiB": 857424
+            }
+          ],
+          "state": {
+            "live": 6,
+            "views": 6
+          }
+        },
+        "frameMarkerPreservedOnReturn": true,
+        "finalErrors": []
+      },
+      "3": {
+        "cohorts": 1,
+        "revisits": 12,
+        "errors": [],
+        "switches": [
+          {
+            "index": 0,
+            "ms": 695.1506250000002,
+            "live": 2,
+            "renderReady": true,
+            "status": "visible",
+            "views": 2
+          },
+          {
+            "index": 1,
+            "ms": 672.9819589999997,
+            "live": 3,
+            "renderReady": true,
+            "status": "visible",
+            "views": 3
+          },
+          {
+            "index": 2,
+            "ms": 687.708584,
+            "live": 3,
+            "renderReady": true,
+            "status": "visible",
+            "views": 3
+          },
+          {
+            "index": 3,
+            "ms": 714.1505830000006,
+            "live": 3,
+            "renderReady": true,
+            "status": "visible",
+            "views": 3
+          },
+          {
+            "index": 4,
+            "ms": 689.3499170000014,
+            "live": 3,
+            "renderReady": true,
+            "status": "visible",
+            "views": 3
+          },
+          {
+            "index": 5,
+            "ms": 688.3514999999989,
+            "live": 3,
+            "renderReady": true,
+            "status": "visible",
+            "views": 3
+          },
+          {
+            "index": 0,
+            "ms": 886.9901659999996,
+            "live": 3,
+            "renderReady": true,
+            "status": "visible",
+            "views": 3
+          },
+          {
+            "index": 1,
+            "ms": 677.4313750000001,
+            "live": 3,
+            "renderReady": true,
+            "status": "visible",
+            "views": 3
+          },
+          {
+            "index": 2,
+            "ms": 677.9441669999997,
+            "live": 3,
+            "renderReady": true,
+            "status": "visible",
+            "views": 3
+          },
+          {
+            "index": 3,
+            "ms": 692.6598750000012,
+            "live": 3,
+            "renderReady": true,
+            "status": "visible",
+            "views": 3
+          },
+          {
+            "index": 4,
+            "ms": 699.6307500000003,
+            "live": 3,
+            "renderReady": true,
+            "status": "visible",
+            "views": 3
+          },
+          {
+            "index": 5,
+            "ms": 673.3289580000001,
+            "live": 3,
+            "renderReady": true,
+            "status": "visible",
+            "views": 3
+          },
+          {
+            "index": 0,
+            "ms": 675.2217500000006,
+            "live": 3,
+            "renderReady": true,
+            "status": "visible",
+            "views": 3
+          },
+          {
+            "index": 1,
+            "ms": 817.5092919999988,
+            "live": 3,
+            "renderReady": true,
+            "status": "visible",
+            "views": 3
+          },
+          {
+            "index": 2,
+            "ms": 702.6209170000002,
+            "live": 3,
+            "renderReady": true,
+            "status": "visible",
+            "views": 3
+          },
+          {
+            "index": 3,
+            "ms": 679.2293750000026,
+            "live": 3,
+            "renderReady": true,
+            "status": "visible",
+            "views": 3
+          },
+          {
+            "index": 4,
+            "ms": 680.7388749999991,
+            "live": 3,
+            "renderReady": true,
+            "status": "visible",
+            "views": 3
+          },
+          {
+            "index": 5,
+            "ms": 687.3737919999985,
+            "live": 3,
+            "renderReady": true,
+            "status": "visible",
+            "views": 3
+          }
+        ],
+        "memory": {
+          "metrics": [
+            {
+              "type": "Browser",
+              "rssKiB": 273008
+            },
+            {
+              "type": "GPU",
+              "rssKiB": 119840
+            },
+            {
+              "type": "Utility",
+              "rssKiB": 48416
+            },
+            {
+              "type": "Tab",
+              "rssKiB": 877408
+            }
+          ],
+          "state": {
+            "live": 3,
+            "views": 3
+          }
+        },
+        "frameMarkerPreservedOnReturn": false,
+        "finalErrors": []
+      },
+      "2": {
+        "cohorts": 1,
+        "revisits": 12,
+        "errors": [],
+        "switches": [
+          {
+            "index": 0,
+            "ms": 672.1014580000001,
+            "live": 2,
+            "renderReady": true,
+            "status": "visible",
+            "views": 2
+          },
+          {
+            "index": 1,
+            "ms": 678.3311659999999,
+            "live": 2,
+            "renderReady": true,
+            "status": "visible",
+            "views": 2
+          },
+          {
+            "index": 2,
+            "ms": 668.2577500000007,
+            "live": 2,
+            "renderReady": true,
+            "status": "visible",
+            "views": 2
+          },
+          {
+            "index": 3,
+            "ms": 744.5867500000004,
+            "live": 2,
+            "renderReady": true,
+            "status": "visible",
+            "views": 2
+          },
+          {
+            "index": 4,
+            "ms": 708.6882910000004,
+            "live": 2,
+            "renderReady": true,
+            "status": "visible",
+            "views": 2
+          },
+          {
+            "index": 5,
+            "ms": 682.6500410000008,
+            "live": 2,
+            "renderReady": true,
+            "status": "visible",
+            "views": 2
+          },
+          {
+            "index": 0,
+            "ms": 884.8942909999987,
+            "live": 2,
+            "renderReady": true,
+            "status": "visible",
+            "views": 2
+          },
+          {
+            "index": 1,
+            "ms": 698.2074580000008,
+            "live": 2,
+            "renderReady": true,
+            "status": "visible",
+            "views": 2
+          },
+          {
+            "index": 2,
+            "ms": 688.0204580000009,
+            "live": 2,
+            "renderReady": true,
+            "status": "visible",
+            "views": 2
+          },
+          {
+            "index": 3,
+            "ms": 707.9078329999993,
+            "live": 2,
+            "renderReady": true,
+            "status": "visible",
+            "views": 2
+          },
+          {
+            "index": 4,
+            "ms": 685.6790840000012,
+            "live": 2,
+            "renderReady": true,
+            "status": "visible",
+            "views": 2
+          },
+          {
+            "index": 5,
+            "ms": 690.1929170000003,
+            "live": 2,
+            "renderReady": true,
+            "status": "visible",
+            "views": 2
+          },
+          {
+            "index": 0,
+            "ms": 678.0875419999975,
+            "live": 2,
+            "renderReady": true,
+            "status": "visible",
+            "views": 2
+          },
+          {
+            "index": 1,
+            "ms": 822.0773750000008,
+            "live": 2,
+            "renderReady": true,
+            "status": "visible",
+            "views": 2
+          },
+          {
+            "index": 2,
+            "ms": 719.547042000002,
+            "live": 2,
+            "renderReady": true,
+            "status": "visible",
+            "views": 2
+          },
+          {
+            "index": 3,
+            "ms": 689.5660830000015,
+            "live": 2,
+            "renderReady": true,
+            "status": "visible",
+            "views": 2
+          },
+          {
+            "index": 4,
+            "ms": 673.7063750000016,
+            "live": 2,
+            "renderReady": true,
+            "status": "visible",
+            "views": 2
+          },
+          {
+            "index": 5,
+            "ms": 674.7913750000007,
+            "live": 2,
+            "renderReady": true,
+            "status": "visible",
+            "views": 2
+          }
+        ],
+        "memory": {
+          "metrics": [
+            {
+              "type": "Browser",
+              "rssKiB": 273280
+            },
+            {
+              "type": "GPU",
+              "rssKiB": 120368
+            },
+            {
+              "type": "Utility",
+              "rssKiB": 48496
+            },
+            {
+              "type": "Tab",
+              "rssKiB": 862832
+            }
+          ],
+          "state": {
+            "live": 2,
+            "views": 2
+          }
+        },
+        "frameMarkerPreservedOnReturn": false,
+        "finalErrors": []
+      }
+    }
+  },
+  "environmentCleanup": {
+    "scope": "Normal source build in isolated Electron; public arena rename, undo/redo and twenty rename/undo rounds with diagnostic GC every five rounds. No production forced GC.",
+    "negativeControl": {
+      "errors": [
+        "Couldn't find envs",
+        "While popping fake nodes, instanceKeyStack should have a respective fake node"
+      ],
+      "baselineAlsoFails": true,
+      "removingPrematureCleanupPassed": true
+    },
+    "positiveControl": {
+      "functional": {
+        "edit": true,
+        "redo": true,
+        "restored": true,
+        "revision": 158,
+        "undo": true,
+        "views": 1
+      },
+      "gc": {
+        "samples": [
+          {
+            "envs": 611,
+            "errors": 0,
+            "iteration": 5,
+            "keys": 131,
+            "owned": [
+              611
+            ]
+          },
+          {
+            "envs": 694,
+            "errors": 0,
+            "iteration": 10,
+            "keys": 131,
+            "owned": [
+              694
+            ]
+          },
+          {
+            "envs": 694,
+            "errors": 0,
+            "iteration": 15,
+            "keys": 131,
+            "owned": [
+              694
+            ]
+          },
+          {
+            "envs": 694,
+            "errors": 0,
+            "iteration": 20,
+            "keys": 131,
+            "owned": [
+              694
+            ]
+          }
+        ],
+        "errors": []
+      },
+      "errors": []
+    },
+    "portableHarness": {
+      "functional": {
+        "edit": true,
+        "redo": true,
+        "restored": true,
+        "revision": 158,
+        "undo": true,
+        "views": 1
+      },
+      "gc": {
+        "samples": [
+          {
+            "envs": 623,
+            "errors": 0,
+            "iteration": 5,
+            "keys": 131,
+            "owned": [
+              623
+            ]
+          },
+          {
+            "envs": 694,
+            "errors": 0,
+            "iteration": 10,
+            "keys": 131,
+            "owned": [
+              694
+            ]
+          },
+          {
+            "envs": 694,
+            "errors": 0,
+            "iteration": 15,
+            "keys": 131,
+            "owned": [
+              694
+            ]
+          },
+          {
+            "envs": 694,
+            "errors": 0,
+            "iteration": 20,
+            "keys": 131,
+            "owned": [
+              694
+            ]
+          }
+        ],
+        "errors": []
+      },
+      "errors": [],
+      "error": null
+    }
+  },
+  "restoredToTurnStart": {
+    "platform/wab/src/wab/client/studio-ctx/StudioCtx.tsx": true,
+    "platform/wab/src/wab/shared/devflags.ts": true,
+    "platform/wab/src/wab/shared/import-mobx.ts": true,
+    "platform/wab/rsbuild.config.ts": true,
+    "platform/wab/rsbuild.preview.config.ts": true,
+    "platform/wab/tools/webpack/sharedRsbuildConfig.ts": true
+  },
+  "verification": {
+    "vitest": {
+      "files": 10,
+      "passed": 52,
+      "exitCode": 0
+    },
+    "wabTypecheck": {
+      "exitCode": 0
+    },
+    "productionStudioBuild": {
+      "exitCode": 0,
+      "variant": "baseline-clean; final retained source"
+    },
+    "productionPreviewBuild": {
+      "exitCode": 0
+    },
+    "nasDisposableDatabaseRemoved": true,
+    "productionDeploymentChanged": false,
+    "installedApplicationChanged": false,
+    "privateFixturesAndProfilesRemoved": true,
+    "diffCheck": {
+      "exitCode": 0
+    }
+  }
+}

@@ -1,0 +1,159 @@
+{
+  "mode": "fixed-mcp",
+  "node": "v24.20.0",
+  "platform": "darwin",
+  "arch": "arm64",
+  "samples": [
+    {
+      "runtime": "before",
+      "startupMs": 213.94129200000003,
+      "toolCount": 41,
+      "toolHash": "ea73957ac22cbf0c6c1199f77425e7a451825be8b1c6a863096ce5cffa4da85c",
+      "rssSumMiBMean": 236.90234375,
+      "processes": [
+        {
+          "pid": 57439,
+          "parent": 57438,
+          "rssKiB": 141376,
+          "cpuPercent": 0,
+          "name": "Electron"
+        },
+        {
+          "pid": 57440,
+          "parent": 57439,
+          "rssKiB": 58208,
+          "cpuPercent": 0,
+          "name": "Electron Helper"
+        },
+        {
+          "pid": 57441,
+          "parent": 57439,
+          "rssKiB": 43104,
+          "cpuPercent": 0,
+          "name": "Electron Helper"
+        }
+      ],
+      "functional": {
+        "initialize": true,
+        "listTools": true,
+        "rpc": true,
+        "largeResultPaging": true,
+        "mutationExactlyOnce": true,
+        "error": true,
+        "image": true,
+        "bundledStyle": true,
+        "bundledSkill": true
+      },
+      "stderrBytes": 0
+    },
+    {
+      "runtime": "fixed",
+      "startupMs": 97.01112499999999,
+      "toolCount": 41,
+      "toolHash": "ea73957ac22cbf0c6c1199f77425e7a451825be8b1c6a863096ce5cffa4da85c",
+      "rssSumMiBMean": 86.96875,
+      "processes": [
+        {
+          "pid": 57518,
+          "parent": 57438,
+          "rssKiB": 89056,
+          "cpuPercent": 0,
+          "name": "plasmic-mcp"
+        }
+      ],
+      "functional": {
+        "initialize": true,
+        "listTools": true,
+        "rpc": true,
+        "largeResultPaging": true,
+        "mutationExactlyOnce": true,
+        "error": true,
+        "image": true,
+        "bundledStyle": true,
+        "bundledSkill": true
+      },
+      "stderrBytes": 0
+    },
+    {
+      "runtime": "fixed",
+      "startupMs": 115.3227079999997,
+      "toolCount": 41,
+      "toolHash": "ea73957ac22cbf0c6c1199f77425e7a451825be8b1c6a863096ce5cffa4da85c",
+      "rssSumMiBMean": 87.71875,
+      "processes": [
+        {
+          "pid": 57592,
+          "parent": 57438,
+          "rssKiB": 89824,
+          "cpuPercent": 0,
+          "name": "plasmic-mcp"
+        }
+      ],
+      "functional": {
+        "initialize": true,
+        "listTools": true,
+        "rpc": true,
+        "largeResultPaging": true,
+        "mutationExactlyOnce": true,
+        "error": true,
+        "image": true,
+        "bundledStyle": true,
+        "bundledSkill": true
+      },
+      "stderrBytes": 0
+    },
+    {
+      "runtime": "before",
+      "startupMs": 196.31808300000012,
+      "toolCount": 41,
+      "toolHash": "ea73957ac22cbf0c6c1199f77425e7a451825be8b1c6a863096ce5cffa4da85c",
+      "rssSumMiBMean": 236.80078125,
+      "processes": [
+        {
+          "pid": 57667,
+          "parent": 57438,
+          "rssKiB": 141232,
+          "cpuPercent": 0.1,
+          "name": "Electron"
+        },
+        {
+          "pid": 57670,
+          "parent": 57667,
+          "rssKiB": 58224,
+          "cpuPercent": 0,
+          "name": "Electron Helper"
+        },
+        {
+          "pid": 57671,
+          "parent": 57667,
+          "rssKiB": 43120,
+          "cpuPercent": 0,
+          "name": "Electron Helper"
+        }
+      ],
+      "functional": {
+        "initialize": true,
+        "listTools": true,
+        "rpc": true,
+        "largeResultPaging": true,
+        "mutationExactlyOnce": true,
+        "error": true,
+        "image": true,
+        "bundledStyle": true,
+        "bundledSkill": true
+      },
+      "stderrBytes": 0
+    }
+  ],
+  "hostDisconnectExits": [
+    {
+      "runtime": "before",
+      "passed": true
+    },
+    {
+      "runtime": "fixed",
+      "passed": true
+    }
+  ],
+  "limitation": "Actual SEA helper vs saved Electron baseline. RSS sums include shared pages; macOS native runtime only."
+}

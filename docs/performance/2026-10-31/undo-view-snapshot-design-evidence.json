@@ -1,0 +1,49 @@
+{
+  "date": "2026-10-31",
+  "scope": "Read-only source analysis and temporary existing-API feasibility probes. Production source unchanged in this analysis; no post-optimization acceptance or memory benefit measured.",
+  "baseline": {
+    "files": 5,
+    "passed": 37,
+    "command": "pnpm --dir platform/wab exec vitest run src/wab/client/studio-ctx/selection-change.test.ts src/wab/client/studio-ctx/frame-selection.test.ts src/wab/client/studio-ctx/view-ctx.test.ts src/wab/shared/core/selection.test.ts src/wab/client/components/canvas/undo-batching.test.ts",
+    "durationSeconds": 7.8
+  },
+  "probes": {
+    "scope": "Existing API feasibility probes only; no production snapshot implementation or heap measurement",
+    "passed": 7,
+    "probes": [
+      "repeated-full-key",
+      "slot-owner-and-param",
+      "replacement-runtime-context",
+      "deferred-runtime-registration",
+      "frame-local-registry",
+      "nested-stack-needs-runtime-owners",
+      "variant-clone-isolation"
+    ]
+  },
+  "probeCorrections": [
+    "Fixture initially attempted to assign a getter; corrected injection through frameState without changing business code.",
+    "An initial assertion that replacement registration creates a different cached Val failed. Actual cache reuse was confirmed; final test checks current replacement props."
+  ],
+  "unmeasured": [
+    "Whole-Studio Undo exclusive retained bytes",
+    "After-change functional integration",
+    "Common and cold undo/redo latency A/B",
+    "JS/native/GPU/RSS benefit",
+    "Nested context cold-restore prototype"
+  ],
+  "sourceSha256": {
+    "platform/wab/src/wab/client/undo-log.ts": "796c5f87895982eac8763f6263f7dc992cb3475f136942456386210a801847e7",
+    "platform/wab/src/wab/client/studio-ctx/StudioCtx.tsx": "2ed2d91e45c1ead4ecae7d33df1c1e87fe5dab79d2500081ebd7e9a0b9ac2b98",
+    "platform/wab/src/wab/client/studio-ctx/view-ctx.ts": "186b17e3ab5e3bec17a1ef303ad1e0fe2ff9cdda02deb5c9611c9ed3c305c7d1",
+    "platform/wab/src/wab/client/studio-ctx/component-ctx.ts": "1c8ec8122d8ef2c729d06987ca28bdfd7e47740e4ebe4f478a39ec6e7361578e",
+    "platform/wab/src/wab/client/studio-ctx/renderState.ts": "86e4685b8427201870b58b6183446b4ef3d9bde44cf5878d0532fed9b613ddc5",
+    "platform/wab/src/wab/client/cseval.ts": "8bae019ae4b9301dc2fae8847991817b11393bfede015a3885e219c9f66db5cf",
+    "platform/wab/src/wab/shared/core/val-nodes.ts": "3554a6405a3e70d569f8d03f615ba42df45b34c476468e119b046cb72055dbc8",
+    "platform/wab/src/wab/shared/component-frame.ts": "0e3fd2fdf03037dc7a10928f3bdea9fba75d99f111ab972b624ca18e068cb7e5"
+  },
+  "localReproduction": {
+    "runner": "/Users/yanxianliang/shiguang/plasmic/desktop/desktop-report/performance-2026-10-31/plasmic-undo-design-probes.py",
+    "baselineLog": "/Users/yanxianliang/shiguang/plasmic/desktop/desktop-report/performance-2026-10-31/plasmic-undo-design-baseline.log",
+    "probeLog": "/Users/yanxianliang/shiguang/plasmic/desktop/desktop-report/performance-2026-10-31/plasmic-undo-design-probes.log"
+  }
+}

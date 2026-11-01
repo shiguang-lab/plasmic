@@ -181,18 +181,18 @@ if (!process.versions.electron) {
       assert.equal(Menu.getApplicationMenu().getMenuItemById("close-action-island").checked, true);
       const menu=await islandMenu();
       menu.getMenuItemById("island-show-main").click();
-      await until(()=>main.isVisible() && !island().isVisible(),"show main hides island");
+      await until(()=>main.isVisible() && !island(),"show main releases island");
       await main.webContents.executeJavaScript("desktopUpdates.onOpen(status=>{window.updateOpened=status});true");
       Menu.getApplicationMenu().getMenuItemById("check-for-updates").click();
       await until(async()=>await main.webContents.executeJavaScript("!!window.updateOpened"),"visible main routes to its own update dialog");
-      assert.equal(await island().webContents.executeJavaScript("document.getElementById('update-panel').hidden"),true);
+      assert.equal(island(),undefined,"returning to main releases the island update panel");
       assert.equal(preference().mode,"window");assert.equal(preference().closeAction,"island");
       app.emit("activate");await pause(150);
       assert.equal(main.isVisible(),true,"Dock keeps an explicitly opened main window visible");
-      assert.equal(island().isVisible(),false,"Dock cannot reopen island beside main");
+      assert.equal(island(),undefined,"Dock cannot reopen island beside main");
       app.emit("second-instance",{},["Plasmic"]);await pause(150);
       assert.equal(main.isVisible(),true,"reopening keeps an explicitly opened main window visible");
-      assert.equal(island().isVisible(),false,"relaunch cannot reopen island beside main");
+      assert.equal(island(),undefined,"relaunch cannot reopen island beside main");
       main.close();await waitIsland();assert.equal(prompts,0,"main closes back to island without a dialog");
       await until(async()=>await island().webContents.executeJavaScript("!document.getElementById('capsule-sign-in').hidden"),"signed-out island offers sign-in");
       const shownBeforeLogin = shown;
@@ -222,7 +222,7 @@ if (!process.versions.electron) {
       await waitIsland();
       const menu=await islandMenu();
       menu.getMenuItemById("island-exit").click();
-      await until(()=>main.isVisible() && !island().isVisible(),"exit restores standard window");
+      await until(()=>main.isVisible() && !island(),"exit restores standard window");
       await until(()=>preference().mode === "window" && preference().closeAction === "ask","exit clears remembered island mode");
       pass();app.quit();
     } else {

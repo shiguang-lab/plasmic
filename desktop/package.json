@@ -1,6 +1,6 @@
 {
   "name": "@shiguang-lab/plasmic-desktop",
-  "version": "0.5.30",
+  "version": "0.5.32",
   "private": true,
   "description": "Locally bundled Plasmic Studio with the NAS backend",
   "main": "src/entry.cjs",
@@ -9,6 +9,8 @@
   },
   "scripts": {
     "assets": "node scripts/prepare-assets.mjs",
+    "build:mcp": "node scripts/build-mcp.mjs",
+    "prestart": "npm run build:mcp",
     "start": "electron .",
     "test": "node --test tests/*.test.cjs",
     "test:smoke": "electron tests/smoke.cjs",
@@ -43,7 +45,8 @@
     "electron": "44.5.1",
     "electron-builder": "26.15.3",
     "jsdom": "26.1.0",
-    "esbuild": "0.28.2"
+    "esbuild": "0.28.2",
+    "postject": "1.0.0-alpha.6"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.32.0",

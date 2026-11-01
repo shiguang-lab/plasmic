@@ -79,7 +79,7 @@ export class DesktopDraftController {
       for (const summary of this.drafts) {
         const draft = await this.read(summary);
         if (draft && !draft.needsAttention) {
-          await this.api.writeDesktopDraft(session.handle, { ...draft, needsAttention: true });
+          await this.api.writeDesktopDraft(session.handle, JSON.stringify({ ...draft, needsAttention: true }));
           runInAction(() => { summary.needsAttention = true; });
         }
       }
@@ -117,7 +117,9 @@ export class DesktopDraftController {
     runInAction(() => { this.writing = true; });
     this.pending = this.pending.then(async () => {
       try {
-        await this.api.writeDesktopDraft(session.handle, draft);
+        // A string avoids cloning the full model graph through both Comlink
+        // and Electron IPC. The main process still parses and validates it.
+        await this.api.writeDesktopDraft(session.handle, JSON.stringify(draft));
         runInAction(() => {
           if (draft.id === this.id) {
             this.savedSequence = draft.sequence; this.savedAt = draft.savedAt; this.error = undefined;
@@ -154,7 +156,7 @@ export class DesktopDraftController {
     await this.pending;
     const checkpoint = ensure(this.checkpoint, "Local draft backup unavailable");
     const { projectId, projectName, branchId, baseRevision, sequence } = checkpoint;
-    await this.api.writeDesktopDraft(ensure(this.session, "Missing draft session").handle, { ...checkpoint, needsAttention: true });
+    await this.api.writeDesktopDraft(ensure(this.session, "Missing draft session").handle, JSON.stringify({ ...checkpoint, needsAttention: true }));
     runInAction(() => {
       this.drafts = [...this.drafts.filter(draft => draft.id !== this.id), { projectId, projectName, branchId, baseRevision, sequence, id: this.id, savedAt: checkpoint.savedAt, needsAttention: true }];
       this.dialogOpen = true;

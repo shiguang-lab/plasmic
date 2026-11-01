@@ -1,0 +1,196 @@
+{
+  "measuredAt": "2026-10-31T07:58:06.852Z",
+  "studioRelease": "0.5.31",
+  "studioRevision": "f7bf66b40620d0f9dadcbee356ddbc6721d4ddbc",
+  "projectId": "tk89W1Akg2HjAjyHAYEro7",
+  "projectRevision": 158,
+  "productionBusinessCodeChanged": false,
+  "publicHttp": {
+    "firstRequestMs": 1810.6160839999998,
+    "warm": {
+      "samples": 6,
+      "medianMs": 680.41,
+      "minMs": 635.929,
+      "maxMs": 1018.428
+    },
+    "logicalJsonBytes": 335435,
+    "samples": [
+      {
+        "index": 0,
+        "status": 200,
+        "headersMs": 1697.1145840000004,
+        "bodyMs": 1810.6160839999998,
+        "parseMs": 1.689792000000125,
+        "bytes": 335435,
+        "serverTiming": "owner;dur=11.0, revision;dur=513.4, permissions;dur=577.4, dependencies;dur=1161.6, cfCacheStatus;desc=\"DYNAMIC\", cfEdge;dur=3,cfOrigin;dur=1618",
+        "revision": 158,
+        "dependencyCount": 5
+      },
+      {
+        "index": 1,
+        "status": 200,
+        "headersMs": 666.8294159999996,
+        "bodyMs": 715.4733329999999,
+        "parseMs": 1.0702500000006694,
+        "bytes": 335435,
+        "serverTiming": "owner;dur=26.2, revision;dur=82.3, permissions;dur=85.0, dependencies;dur=184.2, cfCacheStatus;desc=\"DYNAMIC\", cfEdge;dur=26,cfOrigin;dur=534",
+        "revision": 158,
+        "dependencyCount": 5
+      },
+      {
+        "index": 2,
+        "status": 200,
+        "headersMs": 644.0205000000005,
+        "bodyMs": 645.3462500000005,
+        "parseMs": 0.4851249999992433,
+        "bytes": 335435,
+        "serverTiming": "owner;dur=12.4, revision;dur=23.4, permissions;dur=27.0, dependencies;dur=155.7, cfCacheStatus;desc=\"DYNAMIC\", cfEdge;dur=2,cfOrigin;dur=484",
+        "revision": 158,
+        "dependencyCount": 5
+      },
+      {
+        "index": 3,
+        "status": 200,
+        "headersMs": 562.7765410000002,
+        "bodyMs": 635.9292500000001,
+        "parseMs": 0.4743749999997817,
+        "bytes": 335435,
+        "serverTiming": "owner;dur=27.5, revision;dur=37.3, permissions;dur=41.8, dependencies;dur=138.9, cfCacheStatus;desc=\"DYNAMIC\", cfEdge;dur=2,cfOrigin;dur=488",
+        "revision": 158,
+        "dependencyCount": 5
+      },
+      {
+        "index": 4,
+        "status": 200,
+        "headersMs": 1012.6555830000016,
+        "bodyMs": 1018.4283329999998,
+        "parseMs": 0.8221249999987776,
+        "bytes": 335435,
+        "serverTiming": "owner;dur=21.5, revision;dur=36.4, permissions;dur=42.5, dependencies;dur=240.1, cfCacheStatus;desc=\"DYNAMIC\", cfEdge;dur=5,cfOrigin;dur=630",
+        "revision": 158,
+        "dependencyCount": 5
+      },
+      {
+        "index": 5,
+        "status": 200,
+        "headersMs": 642.6007500000014,
+        "bodyMs": 644.2894160000014,
+        "parseMs": 1.5406669999993028,
+        "bytes": 335435,
+        "serverTiming": "owner;dur=15.2, revision;dur=23.8, permissions;dur=26.8, dependencies;dur=134.2, cfCacheStatus;desc=\"DYNAMIC\", cfEdge;dur=2,cfOrigin;dur=480",
+        "revision": 158,
+        "dependencyCount": 5
+      },
+      {
+        "index": 6,
+        "status": 200,
+        "headersMs": 726.853916,
+        "bodyMs": 728.6857500000006,
+        "parseMs": 1.2653749999990396,
+        "bytes": 335435,
+        "serverTiming": "owner;dur=15.9, revision;dur=33.4, permissions;dur=39.0, dependencies;dur=195.9, cfCacheStatus;desc=\"DYNAMIC\", cfEdge;dur=12,cfOrigin;dur=541",
+        "revision": 158,
+        "dependencyCount": 5
+      }
+    ]
+  },
+  "backendIsolatedBasic": {
+    "scope": "Exact 0.5.31 route and transaction/resource envelope against a disposable live-data clone. Actual account and IAM directory, no public HTTP transport, middleware JWT verification, Nginx gzip or GUI. All writes target the clone; no business logic changes.",
+    "warm": {
+      "samples": 7,
+      "medianMs": 287.154,
+      "minMs": 270.395,
+      "maxMs": 313.444
+    },
+    "sqlCommandCounts": [
+      94
+    ],
+    "jsonParseMedianMs": 60.395,
+    "jsonStringifyMedianMs": 20.344,
+    "jsonParseCallsPerRequest": 18,
+    "jsonParsedCharsPerRequest": 9444249,
+    "before": {
+      "projects": "89",
+      "revisions": "3444"
+    },
+    "after": {
+      "projects": "89",
+      "revisions": "3444"
+    }
+  },
+  "workspaceDedupeExperiment": {
+    "scope": "Request-scoped pending-task sharing inside the same clone transaction. Counterbalanced order, first pair excluded. No production changes.",
+    "cohorts": {
+      "baseline": {
+        "samples": 10,
+        "medianMs": 312.411,
+        "minMs": 259.735,
+        "maxMs": 360.755,
+        "sqlCommandCounts": [
+          94
+        ]
+      },
+      "dedupe-workspace": {
+        "samples": 10,
+        "medianMs": 313.102,
+        "minMs": 245.497,
+        "maxMs": 360.832,
+        "sqlCommandCounts": [
+          91
+        ]
+      }
+    },
+    "responseByteHashesEqual": true
+  },
+  "permissionDefaultExperiment": {
+    "scope": "In the clone only, normalize omitted includeDeleted to false before the existing memoized permission check. Counterbalanced order, first pair excluded. This is not a production implementation.",
+    "cohorts": {
+      "baseline": {
+        "samples": 10,
+        "medianMs": 326.448,
+        "minMs": 270.599,
+        "maxMs": 348.464,
+        "sqlCommandCounts": [
+          94
+        ]
+      },
+      "normalize-permission-default": {
+        "samples": 10,
+        "medianMs": 309.491,
+        "minMs": 260.036,
+        "maxMs": 329.626,
+        "sqlCommandCounts": [
+          89
+        ]
+      }
+    },
+    "responseByteHashesEqual": true
+  },
+  "modelReferenceCpuMicrobenchmark": {
+    "scope": "CPU-only serialization microbenchmark on the exact five current library models from the disposable clone; excludes route/network/permission/migration time.",
+    "libraryCount": 5,
+    "modelBytes": 4616187,
+    "cohorts": {
+      "current": {
+        "samples": 10,
+        "medianMs": 50.942,
+        "minMs": 48.565,
+        "maxMs": 70.756
+      },
+      "raw-existing-json": {
+        "samples": 10,
+        "medianMs": 5.615,
+        "minMs": 5.362,
+        "maxMs": 9.032
+      }
+    },
+    "modelAndMetadataHashesEqual": true
+  },
+  "interpretation": "Backend helper excludes normal HTTP JWT middleware, public network, Nginx/gzip and renderer. SQL includes BEGIN/COMMIT. Method wall times overlap. CPU microbenchmark is not an end-to-end latency reduction. No improvement claim from workspace dedupe; permission samples overlap.",
+  "cleanup": {
+    "cloneDatabase": "startup_get_investigation_20261031",
+    "pending": false,
+    "databaseAndSnapshotRemoved": true,
+    "accountFlagsAndIsolatedProfileRemoved": true
+  }
+}

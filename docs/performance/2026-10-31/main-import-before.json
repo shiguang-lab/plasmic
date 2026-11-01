@@ -1,0 +1,686 @@
+[
+  {
+    "electron": "44.5.1",
+    "totalMs": 216.980209,
+    "loadedModuleCount": 458,
+    "heavyModules": [
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/@modelcontextprotocol/sdk/dist/cjs/server/index.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/@modelcontextprotocol/sdk/dist/cjs/shared/protocol.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/@modelcontextprotocol/sdk/dist/cjs/server/zod-compat.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/@modelcontextprotocol/sdk/dist/cjs/types.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/@modelcontextprotocol/sdk/dist/cjs/experimental/tasks/interfaces.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/@modelcontextprotocol/sdk/dist/cjs/server/zod-json-schema-compat.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/@modelcontextprotocol/sdk/dist/cjs/validation/ajv-provider.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/ajv.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/core.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/compile/validate/index.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/compile/validate/boolSchema.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/compile/errors.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/compile/codegen/index.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/compile/codegen/code.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/compile/codegen/scope.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/compile/util.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/compile/names.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/compile/validate/dataType.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/compile/rules.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/compile/validate/applicability.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/compile/validate/defaults.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/compile/validate/keyword.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/code.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/compile/validate/subschema.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/compile/resolve.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/runtime/validation_error.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/compile/ref_error.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/compile/index.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/refs/data.json",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/runtime/uri.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/draft7.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/core/index.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/core/id.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/core/ref.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/validation/index.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/validation/limitNumber.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/validation/multipleOf.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/validation/limitLength.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/runtime/ucs2length.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/validation/pattern.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/validation/limitProperties.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/validation/required.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/validation/limitItems.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/validation/uniqueItems.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/runtime/equal.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/validation/const.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/validation/enum.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/applicator/index.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/applicator/additionalItems.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/applicator/prefixItems.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/applicator/items.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/applicator/items2020.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/applicator/contains.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/applicator/dependencies.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/applicator/propertyNames.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/applicator/additionalProperties.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/applicator/properties.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/applicator/patternProperties.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/applicator/not.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/applicator/anyOf.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/applicator/oneOf.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/applicator/allOf.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/applicator/if.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/applicator/thenElse.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/format/index.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/format/format.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/metadata.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/discriminator/index.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/discriminator/types.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/refs/json-schema-draft-07.json",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv-formats/dist/index.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv-formats/dist/formats.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv-formats/dist/limit.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/@modelcontextprotocol/sdk/dist/cjs/experimental/tasks/server.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/@modelcontextprotocol/sdk/dist/cjs/experimental/tasks/helpers.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/@modelcontextprotocol/sdk/dist/cjs/server/stdio.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/@modelcontextprotocol/sdk/dist/cjs/shared/stdio.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/@modelcontextprotocol/sdk/dist/cjs/client/index.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/@modelcontextprotocol/sdk/dist/cjs/experimental/tasks/client.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/@modelcontextprotocol/sdk/dist/cjs/client/stdio.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/sharp/lib/index.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/sharp/lib/constructor.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/sharp/lib/is.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/sharp/lib/sharp.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/sharp/lib/libvips.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/sharp/package.json",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/sharp/lib/input.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/sharp/lib/resize.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/sharp/lib/composite.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/sharp/lib/operation.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/sharp/lib/colour.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/sharp/lib/channel.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/sharp/lib/output.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/sharp/lib/utility.js"
+    ],
+    "topInclusive": [
+      {
+        "request": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-performance-hyrWh1/src/main.cjs",
+        "ms": 216.941459,
+        "selfMs": 1.1273740000002306
+      },
+      {
+        "request": "./controller.cjs",
+        "ms": 163.007916,
+        "selfMs": 0.6753320000000258
+      },
+      {
+        "request": "./mcp.cjs",
+        "ms": 161.422667,
+        "selfMs": 16.489084000000105
+      },
+      {
+        "request": "@modelcontextprotocol/sdk/server/index.js",
+        "ms": 96.18874999999997,
+        "selfMs": 2.398914999999988
+      },
+      {
+        "request": "../shared/protocol.js",
+        "ms": 69.599334,
+        "selfMs": 1.1158350000000894
+      },
+      {
+        "request": "./prototype-mcp.cjs",
+        "ms": 47.78812499999998,
+        "selfMs": 0.11108399999994845
+      },
+      {
+        "request": "./design-reference.cjs",
+        "ms": 47.67704100000003,
+        "selfMs": 0.10166500000002543
+      },
+      {
+        "request": "../server/zod-compat.js",
+        "ms": 42.630874999999975,
+        "selfMs": 0.4304580000000158
+      },
+      {
+        "request": "./image-preview.cjs",
+        "ms": 40.831208000000004,
+        "selfMs": 0.05595800000003237
+      },
+      {
+        "request": "sharp",
+        "ms": 40.77524999999997,
+        "selfMs": 0.6879579999999237
+      },
+      {
+        "request": "zod/v4-mini",
+        "ms": 35.92549999999997,
+        "selfMs": 0.5897079999999733
+      },
+      {
+        "request": "../v4/mini/external.cjs",
+        "ms": 35.33541699999998,
+        "selfMs": 1.1673769999999593
+      },
+      {
+        "request": "../core/index.cjs",
+        "ms": 31.272041,
+        "selfMs": 0.852372000000031
+      },
+      {
+        "request": "./constructor",
+        "ms": 30.62979100000001,
+        "selfMs": 0.5494570000000181
+      },
+      {
+        "request": "./sharp",
+        "ms": 29.594416999999964,
+        "selfMs": 0.6713330000000042
+      },
+      {
+        "request": "@img/sharp-darwin-arm64/sharp.node",
+        "ms": 26.827458999999976,
+        "selfMs": 26.827458999999976
+      },
+      {
+        "request": "./mcp-integrations.cjs",
+        "ms": 24.167624999999987,
+        "selfMs": 0.1668350000000487
+      },
+      {
+        "request": "../validation/ajv-provider.js",
+        "ms": 23.682124999999985,
+        "selfMs": 0.3470419999999308
+      },
+      {
+        "request": "ajv",
+        "ms": 21.991542000000038,
+        "selfMs": 0.7070430000000556
+      },
+      {
+        "request": "../locales/index.cjs",
+        "ms": 20.29008399999998,
+        "selfMs": 0.8223739999998827
+      },
+      {
+        "request": "./library-cache.cjs",
+        "ms": 20.045292000000018,
+        "selfMs": 0.2540000000000191
+      },
+      {
+        "request": "@plasmic-shared/resource-cache",
+        "ms": 19.787499999999994,
+        "selfMs": 1.028207999999978
+      },
+      {
+        "request": "yaml",
+        "ms": 19.695290999999997,
+        "selfMs": 0.8195890000001782
+      },
+      {
+        "request": "semver",
+        "ms": 18.759292000000016,
+        "selfMs": 1.3725410000000409
+      },
+      {
+        "request": "./compose/composer.js",
+        "ms": 16.249166000000002,
+        "selfMs": 0.36304000000012593
+      }
+    ]
+  },
+  {
+    "electron": "44.5.1",
+    "totalMs": 78.93733300000001,
+    "loadedModuleCount": 458,
+    "heavyModules": [
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/@modelcontextprotocol/sdk/dist/cjs/server/index.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/@modelcontextprotocol/sdk/dist/cjs/shared/protocol.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/@modelcontextprotocol/sdk/dist/cjs/server/zod-compat.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/@modelcontextprotocol/sdk/dist/cjs/types.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/@modelcontextprotocol/sdk/dist/cjs/experimental/tasks/interfaces.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/@modelcontextprotocol/sdk/dist/cjs/server/zod-json-schema-compat.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/@modelcontextprotocol/sdk/dist/cjs/validation/ajv-provider.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/ajv.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/core.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/compile/validate/index.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/compile/validate/boolSchema.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/compile/errors.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/compile/codegen/index.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/compile/codegen/code.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/compile/codegen/scope.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/compile/util.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/compile/names.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/compile/validate/dataType.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/compile/rules.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/compile/validate/applicability.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/compile/validate/defaults.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/compile/validate/keyword.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/code.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/compile/validate/subschema.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/compile/resolve.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/runtime/validation_error.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/compile/ref_error.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/compile/index.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/refs/data.json",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/runtime/uri.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/draft7.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/core/index.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/core/id.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/core/ref.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/validation/index.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/validation/limitNumber.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/validation/multipleOf.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/validation/limitLength.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/runtime/ucs2length.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/validation/pattern.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/validation/limitProperties.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/validation/required.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/validation/limitItems.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/validation/uniqueItems.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/runtime/equal.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/validation/const.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/validation/enum.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/applicator/index.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/applicator/additionalItems.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/applicator/prefixItems.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/applicator/items.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/applicator/items2020.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/applicator/contains.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/applicator/dependencies.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/applicator/propertyNames.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/applicator/additionalProperties.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/applicator/properties.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/applicator/patternProperties.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/applicator/not.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/applicator/anyOf.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/applicator/oneOf.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/applicator/allOf.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/applicator/if.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/applicator/thenElse.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/format/index.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/format/format.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/metadata.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/discriminator/index.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/discriminator/types.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/refs/json-schema-draft-07.json",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv-formats/dist/index.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv-formats/dist/formats.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv-formats/dist/limit.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/@modelcontextprotocol/sdk/dist/cjs/experimental/tasks/server.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/@modelcontextprotocol/sdk/dist/cjs/experimental/tasks/helpers.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/@modelcontextprotocol/sdk/dist/cjs/server/stdio.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/@modelcontextprotocol/sdk/dist/cjs/shared/stdio.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/@modelcontextprotocol/sdk/dist/cjs/client/index.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/@modelcontextprotocol/sdk/dist/cjs/experimental/tasks/client.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/@modelcontextprotocol/sdk/dist/cjs/client/stdio.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/sharp/lib/index.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/sharp/lib/constructor.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/sharp/lib/is.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/sharp/lib/sharp.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/sharp/lib/libvips.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/sharp/package.json",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/sharp/lib/input.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/sharp/lib/resize.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/sharp/lib/composite.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/sharp/lib/operation.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/sharp/lib/colour.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/sharp/lib/channel.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/sharp/lib/output.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/sharp/lib/utility.js"
+    ],
+    "topInclusive": [
+      {
+        "request": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-performance-hyrWh1/src/main.cjs",
+        "ms": 78.90562500000001,
+        "selfMs": 0.5257490000000047
+      },
+      {
+        "request": "./controller.cjs",
+        "ms": 63.247417,
+        "selfMs": 0.4177099999999996
+      },
+      {
+        "request": "./mcp.cjs",
+        "ms": 61.86387500000001,
+        "selfMs": 17.822043999999984
+      },
+      {
+        "request": "@modelcontextprotocol/sdk/server/index.js",
+        "ms": 33.762375,
+        "selfMs": 0.49766700000000696
+      },
+      {
+        "request": "../shared/protocol.js",
+        "ms": 26.886000000000003,
+        "selfMs": 0.28116799999999387
+      },
+      {
+        "request": "../server/zod-compat.js",
+        "ms": 15.121916000000006,
+        "selfMs": 0.13191600000000392
+      },
+      {
+        "request": "zod/v4-mini",
+        "ms": 12.980125000000001,
+        "selfMs": 0.37333399999999983
+      },
+      {
+        "request": "../v4/mini/external.cjs",
+        "ms": 12.606375,
+        "selfMs": 0.45854099999999676
+      },
+      {
+        "request": "../core/index.cjs",
+        "ms": 10.641542000000001,
+        "selfMs": 0.4661260000000098
+      },
+      {
+        "request": "./prototype-mcp.cjs",
+        "ms": 9.667165999999995,
+        "selfMs": 0.12854099999999846
+      },
+      {
+        "request": "./design-reference.cjs",
+        "ms": 9.538624999999996,
+        "selfMs": 0.1004169999999931
+      },
+      {
+        "request": "../types.js",
+        "ms": 8.743791000000002,
+        "selfMs": 5.474625000000003
+      },
+      {
+        "request": "./image-preview.cjs",
+        "ms": 7.9097909999999985,
+        "selfMs": 0.04579099999999414
+      },
+      {
+        "request": "sharp",
+        "ms": 7.864000000000004,
+        "selfMs": 0.24487400000001003
+      },
+      {
+        "request": "./mcp-integrations.cjs",
+        "ms": 6.295957999999985,
+        "selfMs": 0.12470900000000995
+      },
+      {
+        "request": "../validation/ajv-provider.js",
+        "ms": 6.224874999999997,
+        "selfMs": 0.06654100000000085
+      },
+      {
+        "request": "../locales/index.cjs",
+        "ms": 5.855665999999999,
+        "selfMs": 0.3539590000000885
+      },
+      {
+        "request": "ajv",
+        "ms": 5.7061669999999935,
+        "selfMs": 0.12104200000000276
+      },
+      {
+        "request": "yaml",
+        "ms": 4.783167000000006,
+        "selfMs": 0.12399900000002617
+      },
+      {
+        "request": "./library-cache.cjs",
+        "ms": 4.197958,
+        "selfMs": 0.09566700000001305
+      },
+      {
+        "request": "@plasmic-shared/resource-cache",
+        "ms": 4.099665999999999,
+        "selfMs": 0.23004099999999994
+      },
+      {
+        "request": "./compose/composer.js",
+        "ms": 3.9024160000000023,
+        "selfMs": 0.09775100000000236
+      },
+      {
+        "request": "semver",
+        "ms": 3.869624999999999,
+        "selfMs": 0.2244609999999767
+      },
+      {
+        "request": "./constructor",
+        "ms": 3.792041999999995,
+        "selfMs": 0.10008299999999792
+      },
+      {
+        "request": "./sharp",
+        "ms": 3.633250000000004,
+        "selfMs": 0.1329990000000123
+      }
+    ]
+  },
+  {
+    "electron": "44.5.1",
+    "totalMs": 78.92708300000001,
+    "loadedModuleCount": 458,
+    "heavyModules": [
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/@modelcontextprotocol/sdk/dist/cjs/server/index.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/@modelcontextprotocol/sdk/dist/cjs/shared/protocol.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/@modelcontextprotocol/sdk/dist/cjs/server/zod-compat.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/@modelcontextprotocol/sdk/dist/cjs/types.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/@modelcontextprotocol/sdk/dist/cjs/experimental/tasks/interfaces.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/@modelcontextprotocol/sdk/dist/cjs/server/zod-json-schema-compat.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/@modelcontextprotocol/sdk/dist/cjs/validation/ajv-provider.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/ajv.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/core.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/compile/validate/index.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/compile/validate/boolSchema.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/compile/errors.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/compile/codegen/index.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/compile/codegen/code.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/compile/codegen/scope.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/compile/util.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/compile/names.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/compile/validate/dataType.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/compile/rules.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/compile/validate/applicability.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/compile/validate/defaults.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/compile/validate/keyword.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/code.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/compile/validate/subschema.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/compile/resolve.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/runtime/validation_error.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/compile/ref_error.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/compile/index.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/refs/data.json",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/runtime/uri.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/draft7.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/core/index.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/core/id.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/core/ref.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/validation/index.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/validation/limitNumber.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/validation/multipleOf.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/validation/limitLength.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/runtime/ucs2length.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/validation/pattern.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/validation/limitProperties.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/validation/required.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/validation/limitItems.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/validation/uniqueItems.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/runtime/equal.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/validation/const.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/validation/enum.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/applicator/index.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/applicator/additionalItems.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/applicator/prefixItems.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/applicator/items.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/applicator/items2020.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/applicator/contains.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/applicator/dependencies.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/applicator/propertyNames.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/applicator/additionalProperties.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/applicator/properties.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/applicator/patternProperties.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/applicator/not.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/applicator/anyOf.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/applicator/oneOf.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/applicator/allOf.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/applicator/if.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/applicator/thenElse.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/format/index.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/format/format.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/metadata.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/discriminator/index.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/vocabularies/discriminator/types.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv/dist/refs/json-schema-draft-07.json",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv-formats/dist/index.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv-formats/dist/formats.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/ajv-formats/dist/limit.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/@modelcontextprotocol/sdk/dist/cjs/experimental/tasks/server.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/@modelcontextprotocol/sdk/dist/cjs/experimental/tasks/helpers.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/@modelcontextprotocol/sdk/dist/cjs/server/stdio.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/@modelcontextprotocol/sdk/dist/cjs/shared/stdio.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/@modelcontextprotocol/sdk/dist/cjs/client/index.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/@modelcontextprotocol/sdk/dist/cjs/experimental/tasks/client.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/@modelcontextprotocol/sdk/dist/cjs/client/stdio.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/sharp/lib/index.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/sharp/lib/constructor.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/sharp/lib/is.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/sharp/lib/sharp.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/sharp/lib/libvips.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/sharp/package.json",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/sharp/lib/input.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/sharp/lib/resize.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/sharp/lib/composite.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/sharp/lib/operation.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/sharp/lib/colour.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/sharp/lib/channel.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/sharp/lib/output.js",
+      "/Users/yanxianliang/shiguang/plasmic/desktop/node_modules/sharp/lib/utility.js"
+    ],
+    "topInclusive": [
+      {
+        "request": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-performance-hyrWh1/src/main.cjs",
+        "ms": 78.90145799999999,
+        "selfMs": 0.5455030000000107
+      },
+      {
+        "request": "./controller.cjs",
+        "ms": 62.78741599999999,
+        "selfMs": 0.44629400000000885
+      },
+      {
+        "request": "./mcp.cjs",
+        "ms": 61.394666,
+        "selfMs": 16.66812499999999
+      },
+      {
+        "request": "@modelcontextprotocol/sdk/server/index.js",
+        "ms": 34.567707999999996,
+        "selfMs": 0.5921669999999892
+      },
+      {
+        "request": "../shared/protocol.js",
+        "ms": 27.571540999999996,
+        "selfMs": 0.30670700000000295
+      },
+      {
+        "request": "../server/zod-compat.js",
+        "ms": 15.602083000000007,
+        "selfMs": 0.1395000000000124
+      },
+      {
+        "request": "zod/v4-mini",
+        "ms": 13.281290999999996,
+        "selfMs": 0.38162499999999966
+      },
+      {
+        "request": "../v4/mini/external.cjs",
+        "ms": 12.899332999999999,
+        "selfMs": 0.46416499999999417
+      },
+      {
+        "request": "../core/index.cjs",
+        "ms": 11.181041000000008,
+        "selfMs": 0.3343340000000268
+      },
+      {
+        "request": "./prototype-mcp.cjs",
+        "ms": 9.565292,
+        "selfMs": 0.11404199999999776
+      },
+      {
+        "request": "./design-reference.cjs",
+        "ms": 9.451250000000002,
+        "selfMs": 0.11616699999999014
+      },
+      {
+        "request": "../types.js",
+        "ms": 8.422166999999988,
+        "selfMs": 5.185874999999982
+      },
+      {
+        "request": "./image-preview.cjs",
+        "ms": 7.886583000000002,
+        "selfMs": 0.04104100000000699
+      },
+      {
+        "request": "sharp",
+        "ms": 7.845541999999995,
+        "selfMs": 0.23329399999997236
+      },
+      {
+        "request": "./mcp-integrations.cjs",
+        "ms": 6.708457999999979,
+        "selfMs": 0.12974899999994705
+      },
+      {
+        "request": "../validation/ajv-provider.js",
+        "ms": 6.253957999999997,
+        "selfMs": 0.08312399999999798
+      },
+      {
+        "request": "../locales/index.cjs",
+        "ms": 6.046875,
+        "selfMs": 0.38616500000003384
+      },
+      {
+        "request": "ajv",
+        "ms": 5.720708999999999,
+        "selfMs": 0.1304179999999917
+      },
+      {
+        "request": "yaml",
+        "ms": 5.073625000000021,
+        "selfMs": 0.12691499999993994
+      },
+      {
+        "request": "./library-cache.cjs",
+        "ms": 4.407416000000005,
+        "selfMs": 0.11437300000001471
+      },
+      {
+        "request": "@plasmic-shared/resource-cache",
+        "ms": 4.289416999999993,
+        "selfMs": 0.2444579999999945
+      },
+      {
+        "request": "./compose/composer.js",
+        "ms": 4.193916999999999,
+        "selfMs": 0.09945899999999597
+      },
+      {
+        "request": "semver",
+        "ms": 4.044958999999999,
+        "selfMs": 0.21750300000000067
+      },
+      {
+        "request": "./constructor",
+        "ms": 3.8168750000000102,
+        "selfMs": 0.0983760000000018
+      },
+      {
+        "request": "./sharp",
+        "ms": 3.6625000000000085,
+        "selfMs": 0.13108200000000636
+      }
+    ]
+  }
+]

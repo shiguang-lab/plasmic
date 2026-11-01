@@ -3644,6 +3644,21 @@ function computeFullKey(ctx: RenderingCtx) {
 // We want to store the `env` for this node in the props. However, `tplSlots`
 // might render React fragments, which store all the data in the fragment key.
 // Since we can't stringify the envs, we need to create an ID for them.
+// MobX can stop observing an environment before React finishes committing the
+// fiber that still references its id. Remove the weak index only after GC (or
+// frame disposal), rather than onBecomeUnobserved.
+const envCleanup = new FinalizationRegistry<{
+  id: string;
+  frameUid: number;
+  fullKey: string;
+}>(({ id, frameUid, fullKey }) => {
+  globalHookCtx.frames.get(frameUid)?.envIdToFullKey.delete(id);
+  globalHookCtx.envIdToEnvs.delete(id);
+  if (globalHookCtx.fullKeyToEnvId.get(fullKey) === id) {
+    globalHookCtx.fullKeyToEnvId.delete(fullKey);
+  }
+});
+
 let envIdCount = 1;
 export function getEnvId(ctx: RenderingCtx) {
   const envs = { env: ctx.env, wrappingEnv: ctx.wrappingEnv };
@@ -3652,7 +3667,11 @@ export function getEnvId(ctx: RenderingCtx) {
   // We create a mobx observable and then subscribe to changes, so we ensure it
   // will only be garbage collected when we're no longer reading from it.
   const box = observable.box(envs, { deep: false });
-  const fullKey = computeFullKey(ctx);
+  const frameUid = ctx.viewCtx.arenaFrame().uid;
+  const frame = ensure(globalHookCtx.frames.get(frameUid), "Missing canvas frame state");
+  const fullKey = `${frameUid}:${computeFullKey(ctx)}`;
+  frame.envIdToFullKey.set(id, fullKey);
+  envCleanup.register(envs, { id, frameUid, fullKey });
   globalHookCtx.envIdToEnvs.set(id, new WeakRef(box.get()));
   globalHookCtx.fullKeyToEnvId.set(fullKey, id);
   return id;

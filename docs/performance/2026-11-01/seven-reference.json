@@ -1,0 +1,159 @@
+{
+  "mode": "reference",
+  "electron": "44.5.1",
+  "node": "24.21.0",
+  "platform": "darwin",
+  "arch": "arm64",
+  "scope": "isolated offline native diagnostic",
+  "open": {
+    "elapsedMs": 3009.912291,
+    "ticks": 6,
+    "cpuMs": 30.777999999999988,
+    "cpuOneCorePercent": 1.0225547133725428,
+    "rssSumMiBMean": 578.0052083333334,
+    "rssSumMiBPeak": 617.953125,
+    "processes": [
+      {
+        "pid": 49694,
+        "type": "Browser",
+        "cpu": 0.336267,
+        "rssKiB": 146256
+      },
+      {
+        "pid": 49698,
+        "type": "GPU",
+        "cpu": 0.111437,
+        "rssKiB": 66496
+      },
+      {
+        "pid": 49699,
+        "type": "Utility",
+        "cpu": 0.056951,
+        "rssKiB": 41552
+      },
+      {
+        "pid": 49702,
+        "type": "Tab",
+        "cpu": 0.072679,
+        "rssKiB": 78544
+      },
+      {
+        "pid": 49703,
+        "type": "Tab",
+        "cpu": 0.175364,
+        "rssKiB": 93328
+      },
+      {
+        "pid": 49710,
+        "type": "Tab",
+        "cpu": 0.083493,
+        "rssKiB": 88080
+      }
+    ],
+    "calls": 16
+  },
+  "hiddenOriginal": {
+    "elapsedMs": 3019.4510410000003,
+    "ticks": 6,
+    "cpuMs": 61.92699999999998,
+    "cpuOneCorePercent": 2.0509357217294246,
+    "rssSumMiBMean": 518.8958333333334,
+    "rssSumMiBPeak": 521.421875,
+    "processes": [
+      {
+        "pid": 49694,
+        "type": "Browser",
+        "cpu": 0.363328,
+        "rssKiB": 132816
+      },
+      {
+        "pid": 49698,
+        "type": "GPU",
+        "cpu": 0.126734,
+        "rssKiB": 64144
+      },
+      {
+        "pid": 49699,
+        "type": "Utility",
+        "cpu": 0.057149,
+        "rssKiB": 38896
+      },
+      {
+        "pid": 49702,
+        "type": "Tab",
+        "cpu": 0.075267,
+        "rssKiB": 75472
+      },
+      {
+        "pid": 49703,
+        "type": "Tab",
+        "cpu": 0.184652,
+        "rssKiB": 88032
+      },
+      {
+        "pid": 49710,
+        "type": "Tab",
+        "cpu": 0.09955,
+        "rssKiB": 86016
+      }
+    ],
+    "calls": 16
+  },
+  "hiddenPollingPaused": {
+    "elapsedMs": 3012.5352080000002,
+    "ticks": 6,
+    "cpuMs": 24.931000000000026,
+    "cpuOneCorePercent": 0.8275753901164041,
+    "rssSumMiBMean": 461.9140625,
+    "rssSumMiBPeak": 487.15625,
+    "processes": [
+      {
+        "pid": 49694,
+        "type": "Browser",
+        "cpu": 0.381294,
+        "rssKiB": 127872
+      },
+      {
+        "pid": 49698,
+        "type": "GPU",
+        "cpu": 0.128977,
+        "rssKiB": 61600
+      },
+      {
+        "pid": 49699,
+        "type": "Utility",
+        "cpu": 0.05818,
+        "rssKiB": 39840
+      },
+      {
+        "pid": 49702,
+        "type": "Tab",
+        "cpu": 0.076636,
+        "rssKiB": 75376
+      },
+      {
+        "pid": 49703,
+        "type": "Tab",
+        "cpu": 0.202624,
+        "rssKiB": 86448
+      },
+      {
+        "pid": 49710,
+        "type": "Tab",
+        "cpu": 0.100947,
+        "rssKiB": 78016
+      }
+    ],
+    "calls": 0
+  },
+  "functional": {
+    "samePage": true,
+    "unsavedInputPreserved": true,
+    "buttonStatePreserved": true,
+    "selectionPreserved": true,
+    "screenshot": true,
+    "inFlightCloseAndReopen": true,
+    "sameRendererPid": 49710,
+    "visible": true
+  }
+}

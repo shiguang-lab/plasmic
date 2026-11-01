@@ -1,0 +1,124 @@
+{
+  "mode": "hidden",
+  "electron": "44.5.1",
+  "node": "24.21.0",
+  "platform": "darwin",
+  "arch": "arm64",
+  "scope": "isolated offline native diagnostic",
+  "samples": [
+    {
+      "backgroundThrottling": false,
+      "elapsedMs": 3007.9568329999997,
+      "ticks": 6,
+      "cpuMs": 344.24,
+      "cpuOneCorePercent": 11.444313170434386,
+      "rssSumMiBMean": 362.8932291666667,
+      "rssSumMiBPeak": 364.046875,
+      "processes": [
+        {
+          "pid": 49250,
+          "type": "Browser",
+          "cpu": 0.231924,
+          "rssKiB": 156560
+        },
+        {
+          "pid": 49251,
+          "type": "GPU",
+          "cpu": 0.438474,
+          "rssKiB": 77056
+        },
+        {
+          "pid": 49252,
+          "type": "Utility",
+          "cpu": 0.052775,
+          "rssKiB": 47904
+        },
+        {
+          "pid": 49253,
+          "type": "Tab",
+          "cpu": 0.258844,
+          "rssKiB": 91328
+        }
+      ],
+      "rafCount": 361,
+      "visibility": "visible",
+      "twoRafOperationCompleted": true
+    },
+    {
+      "backgroundThrottling": true,
+      "elapsedMs": 3008.459833,
+      "ticks": 6,
+      "cpuMs": 3.6740000000000106,
+      "cpuOneCorePercent": 0.12212228861092495,
+      "rssSumMiBMean": 364.5208333333333,
+      "rssSumMiBPeak": 364.53125,
+      "processes": [
+        {
+          "pid": 49250,
+          "type": "Browser",
+          "cpu": 0.24671,
+          "rssKiB": 156512
+        },
+        {
+          "pid": 49251,
+          "type": "GPU",
+          "cpu": 0.450524,
+          "rssKiB": 76944
+        },
+        {
+          "pid": 49252,
+          "type": "Utility",
+          "cpu": 0.052838,
+          "rssKiB": 47872
+        },
+        {
+          "pid": 49253,
+          "type": "Tab",
+          "cpu": 0.270524,
+          "rssKiB": 91952
+        }
+      ],
+      "rafCount": 0,
+      "visibility": "hidden",
+      "twoRafOperationCompleted": false
+    },
+    {
+      "backgroundThrottling": false,
+      "elapsedMs": 3009.8917090000014,
+      "ticks": 6,
+      "cpuMs": 489.529,
+      "cpuOneCorePercent": 16.264007058334997,
+      "rssSumMiBMean": 365.0234375,
+      "rssSumMiBPeak": 365.203125,
+      "processes": [
+        {
+          "pid": 49250,
+          "type": "Browser",
+          "cpu": 0.262517,
+          "rssKiB": 156512
+        },
+        {
+          "pid": 49251,
+          "type": "GPU",
+          "cpu": 0.841718,
+          "rssKiB": 77152
+        },
+        {
+          "pid": 49252,
+          "type": "Utility",
+          "cpu": 0.05392,
+          "rssKiB": 47936
+        },
+        {
+          "pid": 49253,
+          "type": "Tab",
+          "cpu": 0.510043,
+          "rssKiB": 92416
+        }
+      ],
+      "rafCount": 361,
+      "visibility": "visible",
+      "twoRafOperationCompleted": true
+    }
+  ]
+}

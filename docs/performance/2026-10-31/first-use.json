@@ -1,0 +1,108 @@
+{
+  "before": [
+    {
+      "feature": "image",
+      "serverSetupMs": 0.0008330000000000837,
+      "firstConcurrentImageMs": 4.239167000000009,
+      "warmImageMs": 0.4716250000000173,
+      "eventLoopMaxMs": 1.981439,
+      "imageSizes": [
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          1
+        ]
+      ]
+    },
+    {
+      "feature": "image",
+      "serverSetupMs": 0.0007499999999822649,
+      "firstConcurrentImageMs": 1.817292000000009,
+      "warmImageMs": 0.49133299999999736,
+      "eventLoopMaxMs": 1.944575,
+      "imageSizes": [
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          1
+        ]
+      ]
+    },
+    {
+      "feature": "image",
+      "serverSetupMs": 0.0007090000000005148,
+      "firstConcurrentImageMs": 1.973792000000003,
+      "warmImageMs": 0.5493749999999977,
+      "eventLoopMaxMs": 2.011135,
+      "imageSizes": [
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          1
+        ]
+      ]
+    }
+  ],
+  "after": [
+    {
+      "feature": "image",
+      "serverSetupMs": 0.0006660000000096034,
+      "firstConcurrentImageMs": 10.731833999999992,
+      "warmImageMs": 0.5113749999999868,
+      "eventLoopMaxMs": 10.797055,
+      "imageSizes": [
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          1
+        ]
+      ]
+    },
+    {
+      "feature": "image",
+      "serverSetupMs": 0.0006669999999928677,
+      "firstConcurrentImageMs": 11.242041999999998,
+      "warmImageMs": 0.6526660000000106,
+      "eventLoopMaxMs": 10.362879,
+      "imageSizes": [
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          1
+        ]
+      ]
+    },
+    {
+      "feature": "image",
+      "serverSetupMs": 0.0017500000000012506,
+      "firstConcurrentImageMs": 10.814207999999994,
+      "warmImageMs": 0.5502919999999847,
+      "eventLoopMaxMs": 10.698751,
+      "imageSizes": [
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          1
+        ]
+      ]
+    }
+  ]
+}

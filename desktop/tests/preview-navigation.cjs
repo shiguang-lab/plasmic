@@ -6,6 +6,7 @@ const fs = require("node:fs/promises");
 const os = require("node:os");
 const path = require("node:path");
 const { DesktopController } = require("../src/controller.cjs");
+const { sendCdp } = require("../src/cdp.cjs");
 
 const profile = require("node:fs").mkdtempSync(path.join(os.tmpdir(), "plasmic-preview-navigation-"));
 app.setPath("userData", profile);
@@ -17,7 +18,13 @@ app.whenReady().then(async () => {
   server = http.createServer((req, res) => {
     res.setHeader("Content-Type", "text/html; charset=utf-8");
     if (req.url.startsWith("/projects/p/preview")) return res.end('<iframe style="border:0;width:800px;height:600px" src="/runtime' + (req.url.includes("hung") ? "?hung" : "") + '#live=true"></iframe>');
-    if (req.url.startsWith("/runtime")) return res.end('<div class="live-root-container" data-plasmic-preview-component="page"><input aria-label="Missing route" oninput="location.href=\'/missing\'"></div>' + (req.url.includes("hung") ? '<script>Object.defineProperty(document.fonts,"ready",{value:new Promise(()=>{})});window.setTimeout=()=>0;window.requestAnimationFrame=()=>0;</script>' : ""));
+    if (req.url.startsWith("/runtime")) return res.end('<div class="live-root-container" data-plasmic-preview-component="page"><input aria-label="Missing route" oninput="location.href=\'/missing\'"></div>' + (req.url.includes("hung") ? `<script>
+      Object.defineProperty(document.fonts, "ready", {value: new Promise(() => {})});
+      // Root the callbacks so Chromium cannot collect the pending inspection
+      // Promise and reject executeJavaScript before the controller deadline.
+      window.pendingCallbacks = [];
+      window.setTimeout = window.requestAnimationFrame = callback => window.pendingCallbacks.push(callback);
+    </script>` : ""));
     if (req.url === "/missing") { res.statusCode = 404; return res.end("Bundled asset not found"); }
     res.end("Editor restored");
   });
@@ -60,13 +67,29 @@ app.whenReady().then(async () => {
   report.push({ case: "missing-route", elapsedMs: Date.now() - start, error: error.message, queueReleased: true });
 
   mode = "preview";
-  await win.loadURL(origin + "/projects/p/preview#/page?hung");
+  // HTTP fixtures receive the query, not the fragment.
+  await win.loadURL(origin + "/projects/p/preview?hung#/page");
   const hungStart = Date.now();
-  const failed = assert.rejects(controller.dispatch("preview", { action: "state" }), /runtime timed out after 30 seconds/);
+  const failed = assert.rejects(controller.dispatch("preview", { action: "state" }), error => {
+    assert.match(error.message, /runtime timed out after 30 seconds/);
+    assert.equal(error.context.code, "PREVIEW_TIMEOUT");
+    return true;
+  });
   // Queue recovery immediately behind the real, non-settling renderer Promise.
   const recovered = recover();
-  await failed;
-  await recovered;
+  const collectWhilePending = async () => {
+    const frame = win.webContents.mainFrame.framesInSubtree.find(frame => frame.url === origin + "/runtime?hung#live=true");
+    assert(frame, "The hung runtime fixture must be loaded");
+    const end = Date.now() + 2000;
+    while (await frame.executeJavaScript("pendingCallbacks.length") < 2) {
+      assert(Date.now() < end, "Preview inspection did not reach the suspended renderer wait");
+      await new Promise(resolve => setTimeout(resolve, 20));
+    }
+    // Exercise the GC that previously destroyed the unrooted pending Promise.
+    await sendCdp(win.webContents, "HeapProfiler.collectGarbage");
+  };
+  // Observe both rejections immediately, including on an assertion failure.
+  await Promise.all([failed, recovered, collectWhilePending()]);
   const elapsedMs = Date.now() - hungStart;
   assert(elapsedMs >= 29000 && elapsedMs < 35000, `Unexpected runtime deadline: ${elapsedMs}`);
   report.push({ case: "non-settling-renderer-promise", elapsedMs, queueReleased: true });

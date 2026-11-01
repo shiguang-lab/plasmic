@@ -89,3 +89,21 @@ test("local RPC cannot interpolate code through pagination or request a mutation
     await assert.rejects(reader.read({ ...base, ...input }), /bounded|Unsupported|native Pen/);
   }
 });
+
+test("cold reference connection retries configuration failure and shares concurrent initialization", async (t) => {
+  const profile = await fs.mkdtemp(path.join(require('node:os').tmpdir(), 'reference-lazy-'));
+  const reader = new DesignReference(profile);
+  t.after(async () => { await reader.close(); await fs.rm(profile, { recursive: true, force: true }); });
+  await fs.writeFile(path.join(profile, 'design-reference.json'), '{}');
+  await assert.rejects(reader.connect(), /Configure the installed Pen/);
+  assert.equal(reader.connection, undefined);
+  await fs.writeFile(path.join(profile, 'design-reference.json'), JSON.stringify({
+    command: process.execPath, args: [path.join(__dirname, 'fixtures/design-reference-server.cjs')],
+  }));
+  const started = performance.now();
+  const [a, b] = await Promise.all([reader.connect(), reader.connect()]);
+  assert.equal(a, b);
+  const results = await Promise.all([reader.read({action:'index',filePath:'/tmp/a.pen'}), reader.read({action:'index',filePath:'/tmp/b.pen'})]);
+  assert.deepEqual(results.map(r => r.total), [0, 0]);
+  t.diagnostic(`cold SDK/stdio initialization + concurrent read: ${(performance.now() - started).toFixed(2)}ms (includes child startup)`);
+});

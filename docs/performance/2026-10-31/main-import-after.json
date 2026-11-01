@@ -1,0 +1,401 @@
+[
+  {
+    "electron": "44.5.1",
+    "totalMs": 20.266042,
+    "loadedModuleCount": 184,
+    "heavyModules": [],
+    "topInclusive": [
+      {
+        "request": "/Users/yanxianliang/shiguang/plasmic/desktop/src/main.cjs",
+        "ms": 20.239666,
+        "selfMs": 0.5592910000000018
+      },
+      {
+        "request": "./mcp-integrations.cjs",
+        "ms": 7.952624999999998,
+        "selfMs": 0.1254989999999765
+      },
+      {
+        "request": "yaml",
+        "ms": 6.116084000000001,
+        "selfMs": 0.1799170000000032
+      },
+      {
+        "request": "./compose/composer.js",
+        "ms": 5.0816250000000025,
+        "selfMs": 0.14383500000003835
+      },
+      {
+        "request": "./library-cache.cjs",
+        "ms": 4.4404579999999925,
+        "selfMs": 0.12866699999997877
+      },
+      {
+        "request": "@plasmic-shared/resource-cache",
+        "ms": 4.308958000000004,
+        "selfMs": 0.2207080000000161
+      },
+      {
+        "request": "semver",
+        "ms": 4.088249999999988,
+        "selfMs": 0.1937109999999933
+      },
+      {
+        "request": "../doc/Document.js",
+        "ms": 3.500582999999992,
+        "selfMs": 0.11570799999999792
+      },
+      {
+        "request": "./controller.cjs",
+        "ms": 2.106874999999988,
+        "selfMs": 0.42762500000000614
+      },
+      {
+        "request": "../schema/Schema.js",
+        "ms": 2.035540999999995,
+        "selfMs": 0.06929099999999266
+      },
+      {
+        "request": "./tags.js",
+        "ms": 1.5082919999999973,
+        "selfMs": 0.10837399999996933
+      },
+      {
+        "request": "./updates.cjs",
+        "ms": 1.3333340000000078,
+        "selfMs": 0.07341900000000123
+      },
+      {
+        "request": "./mac-updater.cjs",
+        "ms": 1.1957080000000104,
+        "selfMs": 0.24220900000001677
+      },
+      {
+        "request": "./compose-doc.js",
+        "ms": 1.0485829999999936,
+        "selfMs": 0.061666999999985705
+      },
+      {
+        "request": "jsonc-parser",
+        "ms": 1.0371250000000032,
+        "selfMs": 0.21308299999999747
+      },
+      {
+        "request": "./compose-node.js",
+        "ms": 0.9855830000000054,
+        "selfMs": 0.07575000000001353
+      },
+      {
+        "request": "../nodes/Pair.js",
+        "ms": 0.7515000000000072,
+        "selfMs": 0.05025100000001714
+      },
+      {
+        "request": "smol-toml",
+        "ms": 0.6710419999999999,
+        "selfMs": 0.6710419999999999
+      },
+      {
+        "request": "./island.cjs",
+        "ms": 0.6510420000000039,
+        "selfMs": 0.23916599999999733
+      },
+      {
+        "request": "./update-download.cjs",
+        "ms": 0.6194579999999945,
+        "selfMs": 0.1413739999999848
+      },
+      {
+        "request": "./compose-collection.js",
+        "ms": 0.5897080000000017,
+        "selfMs": 0.0676650000000194
+      },
+      {
+        "request": "./drafts.cjs",
+        "ms": 0.5801249999999953,
+        "selfMs": 0.5725840000000062
+      },
+      {
+        "request": "./internal/re",
+        "ms": 0.5605000000000047,
+        "selfMs": 0.4318330000000117
+      },
+      {
+        "request": "./impl/format",
+        "ms": 0.49408400000000086,
+        "selfMs": 0.11945899999999199
+      },
+      {
+        "request": "./mcp-contract.cjs",
+        "ms": 0.4756660000000039,
+        "selfMs": 0.31387400000001264
+      }
+    ]
+  },
+  {
+    "electron": "44.5.1",
+    "totalMs": 18.996459,
+    "loadedModuleCount": 184,
+    "heavyModules": [],
+    "topInclusive": [
+      {
+        "request": "/Users/yanxianliang/shiguang/plasmic/desktop/src/main.cjs",
+        "ms": 18.966624999999993,
+        "selfMs": 0.47820399999997676
+      },
+      {
+        "request": "./mcp-integrations.cjs",
+        "ms": 7.694500000000005,
+        "selfMs": 0.1281670000000119
+      },
+      {
+        "request": "yaml",
+        "ms": 5.787958999999994,
+        "selfMs": 0.13579499999998035
+      },
+      {
+        "request": "./compose/composer.js",
+        "ms": 4.805833000000007,
+        "selfMs": 0.10883300000002549
+      },
+      {
+        "request": "./library-cache.cjs",
+        "ms": 4.123125000000002,
+        "selfMs": 0.09208199999999778
+      },
+      {
+        "request": "@plasmic-shared/resource-cache",
+        "ms": 4.028625000000005,
+        "selfMs": 0.19600000000000506
+      },
+      {
+        "request": "semver",
+        "ms": 3.832625,
+        "selfMs": 0.18433499999999725
+      },
+      {
+        "request": "../doc/Document.js",
+        "ms": 3.193499999999993,
+        "selfMs": 0.10516799999999193
+      },
+      {
+        "request": "./controller.cjs",
+        "ms": 1.9969579999999993,
+        "selfMs": 0.4235390000000194
+      },
+      {
+        "request": "../schema/Schema.js",
+        "ms": 1.8610829999999936,
+        "selfMs": 0.06904199999999605
+      },
+      {
+        "request": "./tags.js",
+        "ms": 1.3769159999999943,
+        "selfMs": 0.10591699999997672
+      },
+      {
+        "request": "./updates.cjs",
+        "ms": 1.3582499999999982,
+        "selfMs": 0.0669589999999829
+      },
+      {
+        "request": "./mac-updater.cjs",
+        "ms": 1.2310840000000098,
+        "selfMs": 0.25246100000002514
+      },
+      {
+        "request": "./compose-doc.js",
+        "ms": 1.1489169999999973,
+        "selfMs": 0.06870999999998162
+      },
+      {
+        "request": "jsonc-parser",
+        "ms": 1.1449169999999995,
+        "selfMs": 0.2995429999999999
+      },
+      {
+        "request": "./compose-node.js",
+        "ms": 1.0788340000000005,
+        "selfMs": 0.08037500000001785
+      },
+      {
+        "request": "../nodes/Pair.js",
+        "ms": 0.6716670000000065,
+        "selfMs": 0.04358400000001694
+      },
+      {
+        "request": "./compose-collection.js",
+        "ms": 0.6673749999999927,
+        "selfMs": 0.06508499999999628
+      },
+      {
+        "request": "./update-download.cjs",
+        "ms": 0.6337500000000063,
+        "selfMs": 0.14075000000001125
+      },
+      {
+        "request": "smol-toml",
+        "ms": 0.6303330000000003,
+        "selfMs": 0.6303330000000003
+      },
+      {
+        "request": "./island.cjs",
+        "ms": 0.6131670000000042,
+        "selfMs": 0.22179100000001029
+      },
+      {
+        "request": "./drafts.cjs",
+        "ms": 0.5703749999999985,
+        "selfMs": 0.5615839999999963
+      },
+      {
+        "request": "./internal/re",
+        "ms": 0.5558750000000003,
+        "selfMs": 0.4287909999999968
+      },
+      {
+        "request": "./impl/format",
+        "ms": 0.5124160000000018,
+        "selfMs": 0.11920700000000295
+      },
+      {
+        "request": "./reference-browser.cjs",
+        "ms": 0.46058400000001143,
+        "selfMs": 0.25458400000002257
+      }
+    ]
+  },
+  {
+    "electron": "44.5.1",
+    "totalMs": 19.282875000000004,
+    "loadedModuleCount": 184,
+    "heavyModules": [],
+    "topInclusive": [
+      {
+        "request": "/Users/yanxianliang/shiguang/plasmic/desktop/src/main.cjs",
+        "ms": 19.256750000000004,
+        "selfMs": 0.4917090000000215
+      },
+      {
+        "request": "./mcp-integrations.cjs",
+        "ms": 7.593457999999998,
+        "selfMs": 0.12429000000000201
+      },
+      {
+        "request": "yaml",
+        "ms": 5.80883399999999,
+        "selfMs": 0.1304150000000135
+      },
+      {
+        "request": "./compose/composer.js",
+        "ms": 4.699667000000005,
+        "selfMs": 0.10341799999996226
+      },
+      {
+        "request": "./library-cache.cjs",
+        "ms": 4.2706249999999955,
+        "selfMs": 0.09745799999998894
+      },
+      {
+        "request": "@plasmic-shared/resource-cache",
+        "ms": 4.170833000000002,
+        "selfMs": 0.1950000000000074
+      },
+      {
+        "request": "semver",
+        "ms": 3.9758329999999944,
+        "selfMs": 0.47733299999997314
+      },
+      {
+        "request": "../doc/Document.js",
+        "ms": 3.2232090000000113,
+        "selfMs": 0.10212500000001512
+      },
+      {
+        "request": "./controller.cjs",
+        "ms": 2.0401669999999967,
+        "selfMs": 0.42029100000000597
+      },
+      {
+        "request": "../schema/Schema.js",
+        "ms": 1.901916,
+        "selfMs": 0.06012399999998763
+      },
+      {
+        "request": "./tags.js",
+        "ms": 1.4241250000000036,
+        "selfMs": 0.32750200000000973
+      },
+      {
+        "request": "./updates.cjs",
+        "ms": 1.3280830000000066,
+        "selfMs": 0.05716700000000685
+      },
+      {
+        "request": "./mac-updater.cjs",
+        "ms": 1.210374999999999,
+        "selfMs": 0.24533300000000224
+      },
+      {
+        "request": "jsonc-parser",
+        "ms": 1.073666000000003,
+        "selfMs": 0.22524900000000514
+      },
+      {
+        "request": "./compose-doc.js",
+        "ms": 1.0245409999999993,
+        "selfMs": 0.06608199999999442
+      },
+      {
+        "request": "./compose-node.js",
+        "ms": 0.9571250000000049,
+        "selfMs": 0.07974799999999505
+      },
+      {
+        "request": "../nodes/Pair.js",
+        "ms": 0.6631249999999937,
+        "selfMs": 0.04162500000001046
+      },
+      {
+        "request": "./island.cjs",
+        "ms": 0.6331670000000003,
+        "selfMs": 0.2260000000000133
+      },
+      {
+        "request": "./update-download.cjs",
+        "ms": 0.6305830000000014,
+        "selfMs": 0.13758199999998055
+      },
+      {
+        "request": "smol-toml",
+        "ms": 0.583833999999996,
+        "selfMs": 0.583833999999996
+      },
+      {
+        "request": "./compose-collection.js",
+        "ms": 0.5601249999999993,
+        "selfMs": 0.06537500000001728
+      },
+      {
+        "request": "./internal/re",
+        "ms": 0.5519159999999914,
+        "selfMs": 0.4404569999999808
+      },
+      {
+        "request": "./impl/format",
+        "ms": 0.5288330000000059,
+        "selfMs": 0.12083300000000463
+      },
+      {
+        "request": "./mcp-contract.cjs",
+        "ms": 0.5104579999999999,
+        "selfMs": 0.30895799999998985
+      },
+      {
+        "request": "./drafts.cjs",
+        "ms": 0.4962499999999963,
+        "selfMs": 0.49083399999999955
+      }
+    ]
+  }
+]

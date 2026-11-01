@@ -205,7 +205,10 @@ function createDraftHandler({ store, origin, trustedSender, projectId, currentUs
         if (version !== epoch || sessions.get(input.handle) !== session) {throw new Error("Invalid draft session");}
         return draft;
       }
-      if (command === "write") {return store.write(session.scope, input.draft);}
+      if (command === "write") {
+        if (typeof input.draftJson !== "string") {throw new Error("Invalid draft payload");}
+        return store.write(session.scope, JSON.parse(input.draftJson));
+      }
       if (command === "remove") {return store.remove(session.scope, input.id, input.sequence);}
       throw new Error("Invalid draft command");
     },

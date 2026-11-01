@@ -280,11 +280,8 @@ export function summarizeChanges(
       maybeMergeMap(updatedRuleSets, vs, { tpl });
     }
   });
-  [...removedTrees.keys()].forEach((tpl) => {
-    if (!tplMgr.isOwnedBySite(tpl)) {
-      removedTrees.delete(tpl);
-    }
-  });
+  // Detached trees no longer have an owning component. Their removedInsts
+  // still identify the variant settings whose cached styles must be removed.
 
   for (const change of changes) {
     if (change.type === "array-splice") {

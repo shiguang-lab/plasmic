@@ -279,7 +279,9 @@ export function buildViewCtxPinMaps(vc: ViewCtx) {
     // will even have ValNodes with keys.  The exception is for the root ValNode,
     // which always has the key of "".
     strictZip(
-      vc.componentStackFrames(),
+      vc.valState().maybeValSysRoot()
+        ? vc.componentStackFrames()
+        : [vc.componentStackFrames()[0]],
       vc.valState().maybeValSysRoot() ? vc.valComponentStack() : [null],
     ).flatMap(([frame, owner]) => {
       const ownerKey = !owner

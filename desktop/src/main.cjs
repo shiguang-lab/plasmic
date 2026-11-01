@@ -32,6 +32,7 @@ const { createDashboardPreviews } = require("./dashboard-preview.cjs");
 const { DesktopController } = require("./controller.cjs");
 const { startRpc } = require("./local-rpc.cjs");
 const { McpIntegrations } = require("./mcp-integrations.cjs");
+const { mcpLaunch } = require("./mcp-launch.cjs");
 const { createMcpSettings } = require("./mcp-settings.cjs");
 const { createDesktopAppearance } = require("./ui-appearance.cjs");
 const { createIsland, MODES, CLOSE_ACTIONS } = require("./island.cjs");
@@ -402,8 +403,7 @@ async function startDesktop() {
   if (!controller) {
     const integrations = new McpIntegrations({
       userData: app.getPath("userData"),
-      command: process.execPath,
-      args: app.isPackaged ? ["--mcp"] : [app.getAppPath(), "--mcp"],
+      ...mcpLaunch(app),
     });
     integrations.restore();
     openMcpSettings = createMcpSettings(

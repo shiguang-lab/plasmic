@@ -7,9 +7,10 @@ import { ComponentType, mkComponent } from "@/wab/shared/core/components";
 import { createSite } from "@/wab/shared/core/sites";
 import { mkTplTagX } from "@/wab/shared/core/tpls";
 import { ValTag } from "@/wab/shared/core/val-nodes";
-import { TplTag } from "@/wab/shared/model/classes";
+import { TplTag, ensureKnownTplTag } from "@/wab/shared/model/classes";
 import { waitFor } from "@testing-library/react";
 import $ from "jquery";
+import { autorun, runInAction } from "mobx";
 
 afterEach(() => vi.restoreAllMocks());
 
@@ -96,12 +97,149 @@ it("keeps real edits undoable across transient selection changes and preserves r
   }
 });
 
+it("does not refresh the inspector or restart a pending paint for repeated node selection", async () => {
+  const { sc, vc, sync } = await setup();
+  const inspector = vi.fn();
+  const disposeInspector = autorun(() => {
+    inspector(sc.isSelectionPending, sc.focusedFrame(), vc.focusedTpls());
+  });
+  vi.useFakeTimers();
+  try {
+    const select = () => sc.changeSelection(() => vc.setStudioFocusByTpl(vc.component.tplTree));
+    select();
+    expect(sc.isSelectionPending).toBe(true);
+    const record = vi.spyOn(sc, "createViewStateUndoRecord");
+    const paint = vi.spyOn(window, "requestAnimationFrame");
+    inspector.mockClear();
+    select();
+    expect(inspector).not.toHaveBeenCalled();
+    expect(record).not.toHaveBeenCalled();
+    expect(paint).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(100);
+    expect(sc.isSelectionPending).toBe(false);
+    inspector.mockClear();
+    select();
+    select();
+    expect(inspector).not.toHaveBeenCalled();
+    expect(sc.isSelectionPending).toBe(false);
+    expect(record).not.toHaveBeenCalled();
+    expect(paint).not.toHaveBeenCalled();
+    expect(sync).not.toHaveBeenCalled();
+  } finally {
+    disposeInspector();
+    sc.dispose();
+    vi.useRealTimers();
+  }
+});
+
+it.each(["canvas", "artboard"])(
+  "does not refresh the inspector for repeated %s background selection",
+  async (background) => {
+    const { sc, vc, sync } = await setup();
+    vi.useFakeTimers();
+    const inspector = vi.fn();
+    const disposeInspector = autorun(() => {
+      inspector(sc.isSelectionPending, sc.focusedFrames(), vc.focusedTpls());
+    });
+    try {
+      const clear = () => sc.changeSelection(() => sc.setStudioFocusOnFrame({
+        frame: background === "artboard" ? vc.arenaFrame() : undefined,
+        autoZoom: false,
+      }));
+      sc.changeSelection(() => vc.setStudioFocusByTpl(vc.component.tplTree));
+      clear();
+      await vi.advanceTimersByTimeAsync(100);
+      inspector.mockClear();
+      const record = vi.spyOn(sc, "createViewStateUndoRecord");
+      const paint = vi.spyOn(window, "requestAnimationFrame");
+      clear();
+      clear();
+      expect(inspector).not.toHaveBeenCalled();
+      expect(sc.isSelectionPending).toBe(false);
+      expect(record).not.toHaveBeenCalled();
+      expect(paint).not.toHaveBeenCalled();
+      expect(sync).not.toHaveBeenCalled();
+    } finally {
+      disposeInspector();
+      sc.dispose();
+      vi.useRealTimers();
+    }
+  },
+);
+
+it("updates the inspector when switching clones or collapsing a multiselection", async () => {
+  const { sc, vc } = await setup();
+  vi.useFakeTimers();
+  try {
+    const tpl = vc.component.tplTree;
+    sc.changeSelection(() => vc.setStudioFocusByTpl(tpl, "first"));
+    await vi.advanceTimersByTimeAsync(100);
+    sc.changeSelection(() => vc.setStudioFocusByTpl(tpl, "second"));
+    expect(vc.focusedCloneKeys()).toEqual(["second"]);
+    expect(sc.isSelectionPending).toBe(true);
+    await vi.advanceTimersByTimeAsync(100);
+    sc.changeSelection(() => vc.setStudioFocusByTpl(tpl, "first", { appendToMultiSelection: true }));
+    expect(vc.focusedTpls()).toHaveLength(2);
+    await vi.advanceTimersByTimeAsync(100);
+    sc.changeSelection(() => vc.setStudioFocusByTpl(tpl, "second"));
+    expect(vc.focusedTpls()).toEqual([tpl]);
+    expect(sc.isSelectionPending).toBe(true);
+  } finally {
+    sc.dispose();
+    vi.useRealTimers();
+  }
+});
+
+it("keeps rendered node selection stable while still tracking replacement DOM", async () => {
+  const { sc, vc } = await setup();
+  const tpl = ensureKnownTplTag(vc.component.tplTree);
+  const val = new ValTag({
+    tpl,
+    children: [],
+    className: "",
+    key: "root",
+    fullKey: "root",
+    frameUid: 1,
+    fibers: [],
+    parent: undefined,
+    valOwner: undefined,
+    slotInfo: undefined,
+  });
+  const dom = document.createElement("div");
+  const lookup = vi.spyOn(vc, "selectionDom").mockReturnValue($(dom));
+  vi.spyOn(vc, "sel2cloneKey").mockReturnValue("root");
+  vi.useFakeTimers();
+  try {
+    const select = () => sc.changeSelection(() => vc.setStudioFocusBySelectable(val));
+    select();
+    await vi.advanceTimersByTimeAsync(100);
+    const selectables = vc.focusedSelectables();
+    const tpls = vc.focusedTpls();
+    const doms = vc.focusedDomElts();
+    select();
+    expect(vc.focusedSelectables()).toBe(selectables);
+    expect(vc.focusedTpls()).toBe(tpls);
+    expect(vc.focusedDomElts()).toBe(doms);
+    expect(sc.isSelectionPending).toBe(false);
+    const replacement = document.createElement("div");
+    lookup.mockReturnValue($(replacement));
+    select();
+    expect(vc.focusedDomElt()?.[0]).toBe(replacement);
+    expect(vc.focusedSelectables()).toBe(selectables);
+    expect(sc.isSelectionPending).toBe(false);
+  } finally {
+    sc.dispose();
+    vi.useRealTimers();
+  }
+});
+
 it("coalesces canvas observers and refreshes selection DOM without an evaluation", () => {
   vi.useFakeTimers();
   const render = vi.fn();
   const update = vi.fn();
   const view: ViewCtx = Object.assign(Object.create(ViewCtx.prototype), {
     _canvasRerenderQueue: new Set(),
+    canvasErrorObservers: new Set(),
     studioCtx: { hasPendingModelChanges: () => false },
     syncQueue: { idle: () => true },
     canvasCtx: {
@@ -126,6 +264,7 @@ it("leaves queued observers to an in-progress evaluation instead of polling paus
   const render = vi.fn();
   const view: ViewCtx = Object.assign(Object.create(ViewCtx.prototype), {
     _canvasRerenderQueue: new Set(),
+    canvasErrorObservers: new Set(),
     studioCtx: { hasPendingModelChanges: () => false },
     syncQueue: { idle: () => false },
     canvasCtx: {
@@ -174,6 +313,52 @@ it("resolves a selected tpl to its ValNode and DOM when hidden content mounts la
     expect(vc.focusedDomElt()?.[0]).toBe(dom);
     expect(sync).not.toHaveBeenCalled();
   } finally {
+    sc.dispose();
+  }
+});
+
+it("deduplicates hover DOM notifications while keeping clone, target and DOM changes reactive", async () => {
+  const { sc, vc } = await setup();
+  const tpl = ensureKnownTplTag(vc.component.tplTree);
+  const val = new ValTag({
+    tpl, children: [], className: "", key: "root", fullKey: "root",
+    frameUid: 1, fibers: [], parent: undefined, valOwner: undefined,
+    slotInfo: undefined,
+  });
+  const first = document.createElement("div");
+  const second = document.createElement("div");
+  const replacement = document.createElement("div");
+  let firstDom = first;
+  // Return fresh wrappers, just as selectionDom does for every pointer event.
+  vi.spyOn(vc, "selectionDom").mockImplementation((_val, clone) =>
+    $(clone === "second" ? second : firstDom),
+  );
+  vi.spyOn(vc, "sel2cloneKey").mockReturnValue("root");
+  const update = vi.fn();
+  const disposeObserver = autorun(() => update(vc.hoveredSelectable(), vc.$hoveredDomElt()));
+  try {
+    runInAction(() => vc.setViewCtxHoverBySelectable(val, "first"));
+    const doms = vc.$hoveredDomElt();
+    update.mockClear();
+    runInAction(() => vc.setViewCtxHoverBySelectable(val, "first"));
+    runInAction(() => vc.setViewCtxHoverBySelectable(val, "first"));
+    expect(update).not.toHaveBeenCalled();
+    expect(vc.$hoveredDomElt()).toBe(doms);
+
+    runInAction(() => vc.setViewCtxHoverBySelectable(val, "second"));
+    expect(vc.$hoveredDomElt()?.[0]).toBe(second);
+    expect(update).toHaveBeenCalledTimes(1);
+    firstDom = replacement;
+    runInAction(() => vc.setViewCtxHoverBySelectable(val, "first"));
+    expect(vc.$hoveredDomElt()?.[0]).toBe(replacement);
+    expect(update).toHaveBeenCalledTimes(2);
+    runInAction(() => vc.setViewCtxHoverBySelectable(null));
+    expect(vc.$hoveredDomElt()).toBeNull();
+    expect(update).toHaveBeenCalledTimes(3);
+    runInAction(() => vc.setViewCtxHoverBySelectable(null));
+    expect(update).toHaveBeenCalledTimes(3);
+  } finally {
+    disposeObserver();
     sc.dispose();
   }
 });

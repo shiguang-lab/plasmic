@@ -217,6 +217,8 @@ function timingDbMgr(dbMgr: DbMgr) {
 export function adminOnly(req: Request, _res: Response, next: NextFunction) {
   if (req.shiguangIdentity?.roles.includes("system-admin")) {
     next();
+  } else if (!req.user && !req.apiTeam) {
+    next(new UnauthorizedError("Authentication required"));
   } else {
     next(new ForbiddenError());
   }

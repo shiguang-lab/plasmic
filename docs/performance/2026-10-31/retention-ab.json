@@ -1,0 +1,2051 @@
+{
+  "before": {
+    "scope": "Focused real-source lifecycle fixture, not full Studio. GC/snapshots separate from timing. RSS includes native allocations.",
+    "activeEditorRegression": null,
+    "samples": [
+      {
+        "label": "baseline",
+        "envIds": 100,
+        "fullKeys": 50,
+        "models": 7,
+        "modelCharacters": 30583,
+        "deletedArgumentCount": 1,
+        "jsHeapBytes": 7974224,
+        "processMetrics": [
+          {
+            "pid": 91181,
+            "type": "Browser",
+            "rssKiB": 154528
+          },
+          {
+            "pid": 91182,
+            "type": "GPU",
+            "rssKiB": 95840
+          },
+          {
+            "pid": 91183,
+            "type": "Utility",
+            "rssKiB": 47632
+          },
+          {
+            "pid": 91184,
+            "type": "Tab",
+            "rssKiB": 141072
+          }
+        ]
+      },
+      {
+        "label": "target",
+        "envIds": 200,
+        "fullKeys": 50,
+        "models": 14,
+        "modelCharacters": 61166,
+        "deletedArgumentCount": 1,
+        "jsHeapBytes": 8947964,
+        "processMetrics": [
+          {
+            "pid": 91181,
+            "type": "Browser",
+            "rssKiB": 159424
+          },
+          {
+            "pid": 91182,
+            "type": "GPU",
+            "rssKiB": 96048
+          },
+          {
+            "pid": 91183,
+            "type": "Utility",
+            "rssKiB": 47872
+          },
+          {
+            "pid": 91184,
+            "type": "Tab",
+            "rssKiB": 586896
+          }
+        ]
+      },
+      {
+        "label": "final",
+        "envIds": 200,
+        "fullKeys": 50,
+        "models": 14,
+        "modelCharacters": 61166,
+        "deletedArgumentCount": 1,
+        "jsHeapBytes": 8660828,
+        "processMetrics": [
+          {
+            "pid": 91181,
+            "type": "Browser",
+            "rssKiB": 161552
+          },
+          {
+            "pid": 91182,
+            "type": "GPU",
+            "rssKiB": 96048
+          },
+          {
+            "pid": 91183,
+            "type": "Utility",
+            "rssKiB": 47872
+          },
+          {
+            "pid": 91184,
+            "type": "Tab",
+            "rssKiB": 593392
+          }
+        ]
+      },
+      {
+        "label": "cycle-1",
+        "envIds": 300,
+        "fullKeys": 50,
+        "models": 21,
+        "modelCharacters": 91749,
+        "deletedArgumentCount": 1,
+        "jsHeapBytes": 9413904,
+        "processMetrics": [
+          {
+            "pid": 91181,
+            "type": "Browser",
+            "rssKiB": 164592
+          },
+          {
+            "pid": 91182,
+            "type": "GPU",
+            "rssKiB": 96096
+          },
+          {
+            "pid": 91183,
+            "type": "Utility",
+            "rssKiB": 47872
+          },
+          {
+            "pid": 91184,
+            "type": "Tab",
+            "rssKiB": 595088
+          }
+        ]
+      },
+      {
+        "label": "cycle-2",
+        "envIds": 400,
+        "fullKeys": 50,
+        "models": 28,
+        "modelCharacters": 122332,
+        "deletedArgumentCount": 1,
+        "jsHeapBytes": 9572140,
+        "processMetrics": [
+          {
+            "pid": 91181,
+            "type": "Browser",
+            "rssKiB": 164624
+          },
+          {
+            "pid": 91182,
+            "type": "GPU",
+            "rssKiB": 96096
+          },
+          {
+            "pid": 91183,
+            "type": "Utility",
+            "rssKiB": 47872
+          },
+          {
+            "pid": 91184,
+            "type": "Tab",
+            "rssKiB": 595648
+          }
+        ]
+      },
+      {
+        "label": "cycle-3",
+        "envIds": 500,
+        "fullKeys": 50,
+        "models": 35,
+        "modelCharacters": 152915,
+        "deletedArgumentCount": 1,
+        "jsHeapBytes": 10071220,
+        "processMetrics": [
+          {
+            "pid": 91181,
+            "type": "Browser",
+            "rssKiB": 164624
+          },
+          {
+            "pid": 91182,
+            "type": "GPU",
+            "rssKiB": 96352
+          },
+          {
+            "pid": 91183,
+            "type": "Utility",
+            "rssKiB": 47872
+          },
+          {
+            "pid": 91184,
+            "type": "Tab",
+            "rssKiB": 596288
+          }
+        ]
+      },
+      {
+        "label": "cycle-4",
+        "envIds": 600,
+        "fullKeys": 50,
+        "models": 42,
+        "modelCharacters": 183498,
+        "deletedArgumentCount": 1,
+        "jsHeapBytes": 10770424,
+        "processMetrics": [
+          {
+            "pid": 91181,
+            "type": "Browser",
+            "rssKiB": 164624
+          },
+          {
+            "pid": 91182,
+            "type": "GPU",
+            "rssKiB": 96384
+          },
+          {
+            "pid": 91183,
+            "type": "Utility",
+            "rssKiB": 47872
+          },
+          {
+            "pid": 91184,
+            "type": "Tab",
+            "rssKiB": 597440
+          }
+        ]
+      },
+      {
+        "label": "cycle-5",
+        "envIds": 700,
+        "fullKeys": 50,
+        "models": 49,
+        "modelCharacters": 214081,
+        "deletedArgumentCount": 1,
+        "jsHeapBytes": 10903156,
+        "processMetrics": [
+          {
+            "pid": 91181,
+            "type": "Browser",
+            "rssKiB": 164640
+          },
+          {
+            "pid": 91182,
+            "type": "GPU",
+            "rssKiB": 96384
+          },
+          {
+            "pid": 91183,
+            "type": "Utility",
+            "rssKiB": 47872
+          },
+          {
+            "pid": 91184,
+            "type": "Tab",
+            "rssKiB": 598000
+          }
+        ]
+      },
+      {
+        "label": "cycle-6",
+        "envIds": 800,
+        "fullKeys": 50,
+        "models": 56,
+        "modelCharacters": 244664,
+        "deletedArgumentCount": 1,
+        "jsHeapBytes": 11043360,
+        "processMetrics": [
+          {
+            "pid": 91181,
+            "type": "Browser",
+            "rssKiB": 164656
+          },
+          {
+            "pid": 91182,
+            "type": "GPU",
+            "rssKiB": 96592
+          },
+          {
+            "pid": 91183,
+            "type": "Utility",
+            "rssKiB": 47872
+          },
+          {
+            "pid": 91184,
+            "type": "Tab",
+            "rssKiB": 598144
+          }
+        ]
+      },
+      {
+        "label": "cycle-7",
+        "envIds": 900,
+        "fullKeys": 50,
+        "models": 63,
+        "modelCharacters": 275247,
+        "deletedArgumentCount": 1,
+        "jsHeapBytes": 11243420,
+        "processMetrics": [
+          {
+            "pid": 91181,
+            "type": "Browser",
+            "rssKiB": 164656
+          },
+          {
+            "pid": 91182,
+            "type": "GPU",
+            "rssKiB": 96960
+          },
+          {
+            "pid": 91183,
+            "type": "Utility",
+            "rssKiB": 47872
+          },
+          {
+            "pid": 91184,
+            "type": "Tab",
+            "rssKiB": 598544
+          }
+        ]
+      },
+      {
+        "label": "cycle-8",
+        "envIds": 1000,
+        "fullKeys": 50,
+        "models": 70,
+        "modelCharacters": 305833,
+        "deletedArgumentCount": 1,
+        "jsHeapBytes": 11285788,
+        "processMetrics": [
+          {
+            "pid": 91181,
+            "type": "Browser",
+            "rssKiB": 164672
+          },
+          {
+            "pid": 91182,
+            "type": "GPU",
+            "rssKiB": 96960
+          },
+          {
+            "pid": 91183,
+            "type": "Utility",
+            "rssKiB": 47872
+          },
+          {
+            "pid": 91184,
+            "type": "Tab",
+            "rssKiB": 598704
+          }
+        ]
+      },
+      {
+        "label": "cycle-9",
+        "envIds": 1100,
+        "fullKeys": 50,
+        "models": 77,
+        "modelCharacters": 336419,
+        "deletedArgumentCount": 1,
+        "jsHeapBytes": 11699828,
+        "processMetrics": [
+          {
+            "pid": 91181,
+            "type": "Browser",
+            "rssKiB": 164672
+          },
+          {
+            "pid": 91182,
+            "type": "GPU",
+            "rssKiB": 96976
+          },
+          {
+            "pid": 91183,
+            "type": "Utility",
+            "rssKiB": 47872
+          },
+          {
+            "pid": 91184,
+            "type": "Tab",
+            "rssKiB": 599184
+          }
+        ]
+      },
+      {
+        "label": "cycle-10",
+        "envIds": 1200,
+        "fullKeys": 50,
+        "models": 84,
+        "modelCharacters": 367005,
+        "deletedArgumentCount": 1,
+        "jsHeapBytes": 11596364,
+        "processMetrics": [
+          {
+            "pid": 91181,
+            "type": "Browser",
+            "rssKiB": 164672
+          },
+          {
+            "pid": 91182,
+            "type": "GPU",
+            "rssKiB": 96976
+          },
+          {
+            "pid": 91183,
+            "type": "Utility",
+            "rssKiB": 47872
+          },
+          {
+            "pid": 91184,
+            "type": "Tab",
+            "rssKiB": 599552
+          }
+        ]
+      }
+    ]
+  },
+  "envOnly": {
+    "scope": "Focused real-source lifecycle fixture, not full Studio. GC/snapshots separate from timing. RSS includes native allocations.",
+    "activeEditorRegression": null,
+    "samples": [
+      {
+        "label": "baseline",
+        "envIds": 0,
+        "fullKeys": 0,
+        "models": 7,
+        "modelCharacters": 30583,
+        "deletedArgumentCount": 1,
+        "jsHeapBytes": 7983148,
+        "processMetrics": [
+          {
+            "pid": 93221,
+            "type": "Browser",
+            "rssKiB": 154544
+          },
+          {
+            "pid": 93222,
+            "type": "GPU",
+            "rssKiB": 92432
+          },
+          {
+            "pid": 93223,
+            "type": "Utility",
+            "rssKiB": 47696
+          },
+          {
+            "pid": 93224,
+            "type": "Tab",
+            "rssKiB": 140880
+          }
+        ]
+      },
+      {
+        "label": "target",
+        "envIds": 100,
+        "fullKeys": 100,
+        "models": 14,
+        "modelCharacters": 61166,
+        "deletedArgumentCount": 1,
+        "jsHeapBytes": 8980640,
+        "processMetrics": [
+          {
+            "pid": 93221,
+            "type": "Browser",
+            "rssKiB": 154736
+          },
+          {
+            "pid": 93222,
+            "type": "GPU",
+            "rssKiB": 93968
+          },
+          {
+            "pid": 93223,
+            "type": "Utility",
+            "rssKiB": 47952
+          },
+          {
+            "pid": 93224,
+            "type": "Tab",
+            "rssKiB": 142640
+          }
+        ]
+      },
+      {
+        "label": "final",
+        "envIds": 0,
+        "fullKeys": 0,
+        "models": 14,
+        "modelCharacters": 61166,
+        "deletedArgumentCount": 1,
+        "jsHeapBytes": 8680008,
+        "processMetrics": [
+          {
+            "pid": 93221,
+            "type": "Browser",
+            "rssKiB": 154768
+          },
+          {
+            "pid": 93222,
+            "type": "GPU",
+            "rssKiB": 93968
+          },
+          {
+            "pid": 93223,
+            "type": "Utility",
+            "rssKiB": 47952
+          },
+          {
+            "pid": 93224,
+            "type": "Tab",
+            "rssKiB": 142432
+          }
+        ]
+      },
+      {
+        "label": "cycle-1",
+        "envIds": 0,
+        "fullKeys": 0,
+        "models": 21,
+        "modelCharacters": 91749,
+        "deletedArgumentCount": 1,
+        "jsHeapBytes": 9421480,
+        "processMetrics": [
+          {
+            "pid": 93221,
+            "type": "Browser",
+            "rssKiB": 154800
+          },
+          {
+            "pid": 93222,
+            "type": "GPU",
+            "rssKiB": 93984
+          },
+          {
+            "pid": 93223,
+            "type": "Utility",
+            "rssKiB": 47952
+          },
+          {
+            "pid": 93224,
+            "type": "Tab",
+            "rssKiB": 144304
+          }
+        ]
+      },
+      {
+        "label": "cycle-2",
+        "envIds": 0,
+        "fullKeys": 0,
+        "models": 28,
+        "modelCharacters": 122332,
+        "deletedArgumentCount": 1,
+        "jsHeapBytes": 9563752,
+        "processMetrics": [
+          {
+            "pid": 93221,
+            "type": "Browser",
+            "rssKiB": 154832
+          },
+          {
+            "pid": 93222,
+            "type": "GPU",
+            "rssKiB": 94528
+          },
+          {
+            "pid": 93223,
+            "type": "Utility",
+            "rssKiB": 47952
+          },
+          {
+            "pid": 93224,
+            "type": "Tab",
+            "rssKiB": 144544
+          }
+        ]
+      },
+      {
+        "label": "cycle-3",
+        "envIds": 0,
+        "fullKeys": 0,
+        "models": 35,
+        "modelCharacters": 152915,
+        "deletedArgumentCount": 1,
+        "jsHeapBytes": 10064788,
+        "processMetrics": [
+          {
+            "pid": 93221,
+            "type": "Browser",
+            "rssKiB": 154912
+          },
+          {
+            "pid": 93222,
+            "type": "GPU",
+            "rssKiB": 95056
+          },
+          {
+            "pid": 93223,
+            "type": "Utility",
+            "rssKiB": 47952
+          },
+          {
+            "pid": 93224,
+            "type": "Tab",
+            "rssKiB": 145680
+          }
+        ]
+      },
+      {
+        "label": "cycle-4",
+        "envIds": 0,
+        "fullKeys": 0,
+        "models": 42,
+        "modelCharacters": 183498,
+        "deletedArgumentCount": 1,
+        "jsHeapBytes": 10753896,
+        "processMetrics": [
+          {
+            "pid": 93221,
+            "type": "Browser",
+            "rssKiB": 154960
+          },
+          {
+            "pid": 93222,
+            "type": "GPU",
+            "rssKiB": 95168
+          },
+          {
+            "pid": 93223,
+            "type": "Utility",
+            "rssKiB": 47952
+          },
+          {
+            "pid": 93224,
+            "type": "Tab",
+            "rssKiB": 146944
+          }
+        ]
+      },
+      {
+        "label": "cycle-5",
+        "envIds": 0,
+        "fullKeys": 0,
+        "models": 49,
+        "modelCharacters": 214081,
+        "deletedArgumentCount": 1,
+        "jsHeapBytes": 10883488,
+        "processMetrics": [
+          {
+            "pid": 93221,
+            "type": "Browser",
+            "rssKiB": 154976
+          },
+          {
+            "pid": 93222,
+            "type": "GPU",
+            "rssKiB": 95680
+          },
+          {
+            "pid": 93223,
+            "type": "Utility",
+            "rssKiB": 47952
+          },
+          {
+            "pid": 93224,
+            "type": "Tab",
+            "rssKiB": 147392
+          }
+        ]
+      },
+      {
+        "label": "cycle-6",
+        "envIds": 0,
+        "fullKeys": 0,
+        "models": 56,
+        "modelCharacters": 244664,
+        "deletedArgumentCount": 1,
+        "jsHeapBytes": 11019092,
+        "processMetrics": [
+          {
+            "pid": 93221,
+            "type": "Browser",
+            "rssKiB": 155008
+          },
+          {
+            "pid": 93222,
+            "type": "GPU",
+            "rssKiB": 95744
+          },
+          {
+            "pid": 93223,
+            "type": "Utility",
+            "rssKiB": 47952
+          },
+          {
+            "pid": 93224,
+            "type": "Tab",
+            "rssKiB": 147552
+          }
+        ]
+      },
+      {
+        "label": "cycle-7",
+        "envIds": 0,
+        "fullKeys": 0,
+        "models": 63,
+        "modelCharacters": 275247,
+        "deletedArgumentCount": 1,
+        "jsHeapBytes": 11134228,
+        "processMetrics": [
+          {
+            "pid": 93221,
+            "type": "Browser",
+            "rssKiB": 155024
+          },
+          {
+            "pid": 93222,
+            "type": "GPU",
+            "rssKiB": 95968
+          },
+          {
+            "pid": 93223,
+            "type": "Utility",
+            "rssKiB": 47952
+          },
+          {
+            "pid": 93224,
+            "type": "Tab",
+            "rssKiB": 147952
+          }
+        ]
+      },
+      {
+        "label": "cycle-8",
+        "envIds": 0,
+        "fullKeys": 0,
+        "models": 70,
+        "modelCharacters": 305833,
+        "deletedArgumentCount": 1,
+        "jsHeapBytes": 11253744,
+        "processMetrics": [
+          {
+            "pid": 93221,
+            "type": "Browser",
+            "rssKiB": 155040
+          },
+          {
+            "pid": 93222,
+            "type": "GPU",
+            "rssKiB": 97968
+          },
+          {
+            "pid": 93223,
+            "type": "Utility",
+            "rssKiB": 47952
+          },
+          {
+            "pid": 93224,
+            "type": "Tab",
+            "rssKiB": 148320
+          }
+        ]
+      },
+      {
+        "label": "cycle-9",
+        "envIds": 0,
+        "fullKeys": 0,
+        "models": 77,
+        "modelCharacters": 336419,
+        "deletedArgumentCount": 1,
+        "jsHeapBytes": 11435888,
+        "processMetrics": [
+          {
+            "pid": 93221,
+            "type": "Browser",
+            "rssKiB": 155552
+          },
+          {
+            "pid": 93222,
+            "type": "GPU",
+            "rssKiB": 97968
+          },
+          {
+            "pid": 93223,
+            "type": "Utility",
+            "rssKiB": 47952
+          },
+          {
+            "pid": 93224,
+            "type": "Tab",
+            "rssKiB": 148592
+          }
+        ]
+      },
+      {
+        "label": "cycle-10",
+        "envIds": 0,
+        "fullKeys": 0,
+        "models": 84,
+        "modelCharacters": 367005,
+        "deletedArgumentCount": 1,
+        "jsHeapBytes": 11474244,
+        "processMetrics": [
+          {
+            "pid": 93221,
+            "type": "Browser",
+            "rssKiB": 155552
+          },
+          {
+            "pid": 93222,
+            "type": "GPU",
+            "rssKiB": 97984
+          },
+          {
+            "pid": 93223,
+            "type": "Utility",
+            "rssKiB": 47952
+          },
+          {
+            "pid": 93224,
+            "type": "Tab",
+            "rssKiB": 149008
+          }
+        ]
+      }
+    ]
+  },
+  "deepOnly": {
+    "scope": "Focused real-source lifecycle fixture, not full Studio. GC/snapshots separate from timing. RSS includes native allocations.",
+    "activeEditorRegression": null,
+    "samples": [
+      {
+        "label": "baseline",
+        "envIds": 100,
+        "fullKeys": 50,
+        "models": 7,
+        "modelCharacters": 30583,
+        "deletedArgumentCount": 0,
+        "jsHeapBytes": 7900668,
+        "processMetrics": [
+          {
+            "pid": 93287,
+            "type": "Browser",
+            "rssKiB": 154688
+          },
+          {
+            "pid": 93288,
+            "type": "GPU",
+            "rssKiB": 95248
+          },
+          {
+            "pid": 93289,
+            "type": "Utility",
+            "rssKiB": 47776
+          },
+          {
+            "pid": 93296,
+            "type": "Tab",
+            "rssKiB": 141344
+          }
+        ]
+      },
+      {
+        "label": "target",
+        "envIds": 200,
+        "fullKeys": 50,
+        "models": 14,
+        "modelCharacters": 61166,
+        "deletedArgumentCount": 1,
+        "jsHeapBytes": 8859280,
+        "processMetrics": [
+          {
+            "pid": 93287,
+            "type": "Browser",
+            "rssKiB": 154848
+          },
+          {
+            "pid": 93288,
+            "type": "GPU",
+            "rssKiB": 95568
+          },
+          {
+            "pid": 93289,
+            "type": "Utility",
+            "rssKiB": 48000
+          },
+          {
+            "pid": 93296,
+            "type": "Tab",
+            "rssKiB": 143184
+          }
+        ]
+      },
+      {
+        "label": "final",
+        "envIds": 200,
+        "fullKeys": 50,
+        "models": 14,
+        "modelCharacters": 61166,
+        "deletedArgumentCount": 0,
+        "jsHeapBytes": 8621472,
+        "processMetrics": [
+          {
+            "pid": 93287,
+            "type": "Browser",
+            "rssKiB": 154896
+          },
+          {
+            "pid": 93288,
+            "type": "GPU",
+            "rssKiB": 95568
+          },
+          {
+            "pid": 93289,
+            "type": "Utility",
+            "rssKiB": 48000
+          },
+          {
+            "pid": 93296,
+            "type": "Tab",
+            "rssKiB": 143040
+          }
+        ]
+      },
+      {
+        "label": "cycle-1",
+        "envIds": 300,
+        "fullKeys": 50,
+        "models": 21,
+        "modelCharacters": 91749,
+        "deletedArgumentCount": 0,
+        "jsHeapBytes": 9387652,
+        "processMetrics": [
+          {
+            "pid": 93287,
+            "type": "Browser",
+            "rssKiB": 154928
+          },
+          {
+            "pid": 93288,
+            "type": "GPU",
+            "rssKiB": 95584
+          },
+          {
+            "pid": 93289,
+            "type": "Utility",
+            "rssKiB": 48000
+          },
+          {
+            "pid": 93296,
+            "type": "Tab",
+            "rssKiB": 144592
+          }
+        ]
+      },
+      {
+        "label": "cycle-2",
+        "envIds": 400,
+        "fullKeys": 50,
+        "models": 28,
+        "modelCharacters": 122332,
+        "deletedArgumentCount": 0,
+        "jsHeapBytes": 9534012,
+        "processMetrics": [
+          {
+            "pid": 93287,
+            "type": "Browser",
+            "rssKiB": 154960
+          },
+          {
+            "pid": 93288,
+            "type": "GPU",
+            "rssKiB": 95680
+          },
+          {
+            "pid": 93289,
+            "type": "Utility",
+            "rssKiB": 48000
+          },
+          {
+            "pid": 93296,
+            "type": "Tab",
+            "rssKiB": 144912
+          }
+        ]
+      },
+      {
+        "label": "cycle-3",
+        "envIds": 500,
+        "fullKeys": 50,
+        "models": 35,
+        "modelCharacters": 152915,
+        "deletedArgumentCount": 0,
+        "jsHeapBytes": 10032404,
+        "processMetrics": [
+          {
+            "pid": 93287,
+            "type": "Browser",
+            "rssKiB": 154976
+          },
+          {
+            "pid": 93288,
+            "type": "GPU",
+            "rssKiB": 96576
+          },
+          {
+            "pid": 93289,
+            "type": "Utility",
+            "rssKiB": 48000
+          },
+          {
+            "pid": 93296,
+            "type": "Tab",
+            "rssKiB": 145872
+          }
+        ]
+      },
+      {
+        "label": "cycle-4",
+        "envIds": 600,
+        "fullKeys": 50,
+        "models": 42,
+        "modelCharacters": 183498,
+        "deletedArgumentCount": 0,
+        "jsHeapBytes": 10731784,
+        "processMetrics": [
+          {
+            "pid": 93287,
+            "type": "Browser",
+            "rssKiB": 155008
+          },
+          {
+            "pid": 93288,
+            "type": "GPU",
+            "rssKiB": 96576
+          },
+          {
+            "pid": 93289,
+            "type": "Utility",
+            "rssKiB": 48000
+          },
+          {
+            "pid": 93296,
+            "type": "Tab",
+            "rssKiB": 147008
+          }
+        ]
+      },
+      {
+        "label": "cycle-5",
+        "envIds": 700,
+        "fullKeys": 50,
+        "models": 49,
+        "modelCharacters": 214081,
+        "deletedArgumentCount": 0,
+        "jsHeapBytes": 10865160,
+        "processMetrics": [
+          {
+            "pid": 93287,
+            "type": "Browser",
+            "rssKiB": 155024
+          },
+          {
+            "pid": 93288,
+            "type": "GPU",
+            "rssKiB": 96800
+          },
+          {
+            "pid": 93289,
+            "type": "Utility",
+            "rssKiB": 48000
+          },
+          {
+            "pid": 93296,
+            "type": "Tab",
+            "rssKiB": 147504
+          }
+        ]
+      },
+      {
+        "label": "cycle-6",
+        "envIds": 800,
+        "fullKeys": 50,
+        "models": 56,
+        "modelCharacters": 244664,
+        "deletedArgumentCount": 0,
+        "jsHeapBytes": 11006336,
+        "processMetrics": [
+          {
+            "pid": 93287,
+            "type": "Browser",
+            "rssKiB": 155040
+          },
+          {
+            "pid": 93288,
+            "type": "GPU",
+            "rssKiB": 96832
+          },
+          {
+            "pid": 93289,
+            "type": "Utility",
+            "rssKiB": 48000
+          },
+          {
+            "pid": 93296,
+            "type": "Tab",
+            "rssKiB": 147760
+          }
+        ]
+      },
+      {
+        "label": "cycle-7",
+        "envIds": 900,
+        "fullKeys": 50,
+        "models": 63,
+        "modelCharacters": 275247,
+        "deletedArgumentCount": 0,
+        "jsHeapBytes": 11125000,
+        "processMetrics": [
+          {
+            "pid": 93287,
+            "type": "Browser",
+            "rssKiB": 155056
+          },
+          {
+            "pid": 93288,
+            "type": "GPU",
+            "rssKiB": 96960
+          },
+          {
+            "pid": 93289,
+            "type": "Utility",
+            "rssKiB": 48000
+          },
+          {
+            "pid": 93296,
+            "type": "Tab",
+            "rssKiB": 148016
+          }
+        ]
+      },
+      {
+        "label": "cycle-8",
+        "envIds": 1000,
+        "fullKeys": 50,
+        "models": 70,
+        "modelCharacters": 305833,
+        "deletedArgumentCount": 0,
+        "jsHeapBytes": 11247676,
+        "processMetrics": [
+          {
+            "pid": 93287,
+            "type": "Browser",
+            "rssKiB": 155088
+          },
+          {
+            "pid": 93288,
+            "type": "GPU",
+            "rssKiB": 96960
+          },
+          {
+            "pid": 93289,
+            "type": "Utility",
+            "rssKiB": 48000
+          },
+          {
+            "pid": 93296,
+            "type": "Tab",
+            "rssKiB": 148384
+          }
+        ]
+      },
+      {
+        "label": "cycle-9",
+        "envIds": 1100,
+        "fullKeys": 50,
+        "models": 77,
+        "modelCharacters": 336419,
+        "deletedArgumentCount": 0,
+        "jsHeapBytes": 11451064,
+        "processMetrics": [
+          {
+            "pid": 93287,
+            "type": "Browser",
+            "rssKiB": 155136
+          },
+          {
+            "pid": 93288,
+            "type": "GPU",
+            "rssKiB": 97424
+          },
+          {
+            "pid": 93289,
+            "type": "Utility",
+            "rssKiB": 48000
+          },
+          {
+            "pid": 93296,
+            "type": "Tab",
+            "rssKiB": 148880
+          }
+        ]
+      },
+      {
+        "label": "cycle-10",
+        "envIds": 1200,
+        "fullKeys": 50,
+        "models": 84,
+        "modelCharacters": 367005,
+        "deletedArgumentCount": 0,
+        "jsHeapBytes": 11493168,
+        "processMetrics": [
+          {
+            "pid": 93287,
+            "type": "Browser",
+            "rssKiB": 155152
+          },
+          {
+            "pid": 93288,
+            "type": "GPU",
+            "rssKiB": 97440
+          },
+          {
+            "pid": 93289,
+            "type": "Utility",
+            "rssKiB": 48000
+          },
+          {
+            "pid": 93296,
+            "type": "Tab",
+            "rssKiB": 149024
+          }
+        ]
+      }
+    ]
+  },
+  "docsOnly": {
+    "scope": "Focused real-source lifecycle fixture, not full Studio. GC/snapshots separate from timing. RSS includes native allocations.",
+    "activeEditorRegression": null,
+    "samples": [
+      {
+        "label": "baseline",
+        "envIds": 100,
+        "fullKeys": 50,
+        "models": 0,
+        "modelCharacters": 0,
+        "deletedArgumentCount": 1,
+        "jsHeapBytes": 7964792,
+        "processMetrics": [
+          {
+            "pid": 93313,
+            "type": "Browser",
+            "rssKiB": 154624
+          },
+          {
+            "pid": 93314,
+            "type": "GPU",
+            "rssKiB": 92912
+          },
+          {
+            "pid": 93315,
+            "type": "Utility",
+            "rssKiB": 47664
+          },
+          {
+            "pid": 93316,
+            "type": "Tab",
+            "rssKiB": 141360
+          }
+        ]
+      },
+      {
+        "label": "target",
+        "envIds": 200,
+        "fullKeys": 50,
+        "models": 10,
+        "modelCharacters": 60664,
+        "deletedArgumentCount": 1,
+        "jsHeapBytes": 8913852,
+        "processMetrics": [
+          {
+            "pid": 93313,
+            "type": "Browser",
+            "rssKiB": 154768
+          },
+          {
+            "pid": 93314,
+            "type": "GPU",
+            "rssKiB": 94160
+          },
+          {
+            "pid": 93315,
+            "type": "Utility",
+            "rssKiB": 47904
+          },
+          {
+            "pid": 93316,
+            "type": "Tab",
+            "rssKiB": 143152
+          }
+        ]
+      },
+      {
+        "label": "final",
+        "envIds": 200,
+        "fullKeys": 50,
+        "models": 0,
+        "modelCharacters": 0,
+        "deletedArgumentCount": 1,
+        "jsHeapBytes": 8502916,
+        "processMetrics": [
+          {
+            "pid": 93313,
+            "type": "Browser",
+            "rssKiB": 154800
+          },
+          {
+            "pid": 93314,
+            "type": "GPU",
+            "rssKiB": 94160
+          },
+          {
+            "pid": 93315,
+            "type": "Utility",
+            "rssKiB": 47904
+          },
+          {
+            "pid": 93316,
+            "type": "Tab",
+            "rssKiB": 142768
+          }
+        ]
+      },
+      {
+        "label": "cycle-1",
+        "envIds": 300,
+        "fullKeys": 50,
+        "models": 0,
+        "modelCharacters": 0,
+        "deletedArgumentCount": 1,
+        "jsHeapBytes": 9141888,
+        "processMetrics": [
+          {
+            "pid": 93313,
+            "type": "Browser",
+            "rssKiB": 154848
+          },
+          {
+            "pid": 93314,
+            "type": "GPU",
+            "rssKiB": 94752
+          },
+          {
+            "pid": 93315,
+            "type": "Utility",
+            "rssKiB": 47904
+          },
+          {
+            "pid": 93316,
+            "type": "Tab",
+            "rssKiB": 144304
+          }
+        ]
+      },
+      {
+        "label": "cycle-2",
+        "envIds": 400,
+        "fullKeys": 50,
+        "models": 0,
+        "modelCharacters": 0,
+        "deletedArgumentCount": 1,
+        "jsHeapBytes": 9190444,
+        "processMetrics": [
+          {
+            "pid": 93313,
+            "type": "Browser",
+            "rssKiB": 154880
+          },
+          {
+            "pid": 93314,
+            "type": "GPU",
+            "rssKiB": 95664
+          },
+          {
+            "pid": 93315,
+            "type": "Utility",
+            "rssKiB": 47904
+          },
+          {
+            "pid": 93316,
+            "type": "Tab",
+            "rssKiB": 144912
+          }
+        ]
+      },
+      {
+        "label": "cycle-3",
+        "envIds": 500,
+        "fullKeys": 50,
+        "models": 0,
+        "modelCharacters": 0,
+        "deletedArgumentCount": 1,
+        "jsHeapBytes": 9583464,
+        "processMetrics": [
+          {
+            "pid": 93313,
+            "type": "Browser",
+            "rssKiB": 154880
+          },
+          {
+            "pid": 93314,
+            "type": "GPU",
+            "rssKiB": 96624
+          },
+          {
+            "pid": 93315,
+            "type": "Utility",
+            "rssKiB": 47904
+          },
+          {
+            "pid": 93316,
+            "type": "Tab",
+            "rssKiB": 145360
+          }
+        ]
+      },
+      {
+        "label": "cycle-4",
+        "envIds": 600,
+        "fullKeys": 50,
+        "models": 0,
+        "modelCharacters": 0,
+        "deletedArgumentCount": 1,
+        "jsHeapBytes": 9620188,
+        "processMetrics": [
+          {
+            "pid": 93313,
+            "type": "Browser",
+            "rssKiB": 154912
+          },
+          {
+            "pid": 93314,
+            "type": "GPU",
+            "rssKiB": 96656
+          },
+          {
+            "pid": 93315,
+            "type": "Utility",
+            "rssKiB": 47904
+          },
+          {
+            "pid": 93316,
+            "type": "Tab",
+            "rssKiB": 145776
+          }
+        ]
+      },
+      {
+        "label": "cycle-5",
+        "envIds": 700,
+        "fullKeys": 50,
+        "models": 0,
+        "modelCharacters": 0,
+        "deletedArgumentCount": 1,
+        "jsHeapBytes": 9639788,
+        "processMetrics": [
+          {
+            "pid": 93313,
+            "type": "Browser",
+            "rssKiB": 154912
+          },
+          {
+            "pid": 93314,
+            "type": "GPU",
+            "rssKiB": 96672
+          },
+          {
+            "pid": 93315,
+            "type": "Utility",
+            "rssKiB": 47904
+          },
+          {
+            "pid": 93316,
+            "type": "Tab",
+            "rssKiB": 145840
+          }
+        ]
+      },
+      {
+        "label": "cycle-6",
+        "envIds": 800,
+        "fullKeys": 50,
+        "models": 0,
+        "modelCharacters": 0,
+        "deletedArgumentCount": 1,
+        "jsHeapBytes": 9651432,
+        "processMetrics": [
+          {
+            "pid": 93313,
+            "type": "Browser",
+            "rssKiB": 154928
+          },
+          {
+            "pid": 93314,
+            "type": "GPU",
+            "rssKiB": 96672
+          },
+          {
+            "pid": 93315,
+            "type": "Utility",
+            "rssKiB": 47904
+          },
+          {
+            "pid": 93316,
+            "type": "Tab",
+            "rssKiB": 145808
+          }
+        ]
+      },
+      {
+        "label": "cycle-7",
+        "envIds": 900,
+        "fullKeys": 50,
+        "models": 0,
+        "modelCharacters": 0,
+        "deletedArgumentCount": 1,
+        "jsHeapBytes": 9665752,
+        "processMetrics": [
+          {
+            "pid": 93313,
+            "type": "Browser",
+            "rssKiB": 154944
+          },
+          {
+            "pid": 93314,
+            "type": "GPU",
+            "rssKiB": 96704
+          },
+          {
+            "pid": 93315,
+            "type": "Utility",
+            "rssKiB": 47904
+          },
+          {
+            "pid": 93316,
+            "type": "Tab",
+            "rssKiB": 146016
+          }
+        ]
+      },
+      {
+        "label": "cycle-8",
+        "envIds": 1000,
+        "fullKeys": 50,
+        "models": 0,
+        "modelCharacters": 0,
+        "deletedArgumentCount": 1,
+        "jsHeapBytes": 9675292,
+        "processMetrics": [
+          {
+            "pid": 93313,
+            "type": "Browser",
+            "rssKiB": 154944
+          },
+          {
+            "pid": 93314,
+            "type": "GPU",
+            "rssKiB": 96736
+          },
+          {
+            "pid": 93315,
+            "type": "Utility",
+            "rssKiB": 47904
+          },
+          {
+            "pid": 93316,
+            "type": "Tab",
+            "rssKiB": 146208
+          }
+        ]
+      },
+      {
+        "label": "cycle-9",
+        "envIds": 1100,
+        "fullKeys": 50,
+        "models": 0,
+        "modelCharacters": 0,
+        "deletedArgumentCount": 1,
+        "jsHeapBytes": 9693868,
+        "processMetrics": [
+          {
+            "pid": 93313,
+            "type": "Browser",
+            "rssKiB": 154976
+          },
+          {
+            "pid": 93314,
+            "type": "GPU",
+            "rssKiB": 96736
+          },
+          {
+            "pid": 93315,
+            "type": "Utility",
+            "rssKiB": 47904
+          },
+          {
+            "pid": 93316,
+            "type": "Tab",
+            "rssKiB": 146160
+          }
+        ]
+      },
+      {
+        "label": "cycle-10",
+        "envIds": 1200,
+        "fullKeys": 50,
+        "models": 0,
+        "modelCharacters": 0,
+        "deletedArgumentCount": 1,
+        "jsHeapBytes": 9697620,
+        "processMetrics": [
+          {
+            "pid": 93313,
+            "type": "Browser",
+            "rssKiB": 154976
+          },
+          {
+            "pid": 93314,
+            "type": "GPU",
+            "rssKiB": 96752
+          },
+          {
+            "pid": 93315,
+            "type": "Utility",
+            "rssKiB": 47904
+          },
+          {
+            "pid": 93316,
+            "type": "Tab",
+            "rssKiB": 146176
+          }
+        ]
+      }
+    ]
+  },
+  "after": {
+    "scope": "Focused real-source lifecycle fixture, not full Studio. GC/snapshots separate from timing. RSS includes native allocations.",
+    "activeEditorRegression": {
+      "models": 5,
+      "extraLibs": 3,
+      "undo": true
+    },
+    "samples": [
+      {
+        "label": "baseline",
+        "envIds": 0,
+        "fullKeys": 0,
+        "models": 0,
+        "modelCharacters": 0,
+        "deletedArgumentCount": 0,
+        "jsHeapBytes": 7922420,
+        "processMetrics": [
+          {
+            "pid": 93024,
+            "type": "Browser",
+            "rssKiB": 154560
+          },
+          {
+            "pid": 93025,
+            "type": "GPU",
+            "rssKiB": 92976
+          },
+          {
+            "pid": 93026,
+            "type": "Utility",
+            "rssKiB": 47712
+          },
+          {
+            "pid": 93027,
+            "type": "Tab",
+            "rssKiB": 141408
+          }
+        ]
+      },
+      {
+        "label": "target",
+        "envIds": 100,
+        "fullKeys": 100,
+        "models": 10,
+        "modelCharacters": 60664,
+        "deletedArgumentCount": 1,
+        "jsHeapBytes": 8945124,
+        "processMetrics": [
+          {
+            "pid": 93024,
+            "type": "Browser",
+            "rssKiB": 158112
+          },
+          {
+            "pid": 93025,
+            "type": "GPU",
+            "rssKiB": 94208
+          },
+          {
+            "pid": 93026,
+            "type": "Utility",
+            "rssKiB": 47952
+          },
+          {
+            "pid": 93027,
+            "type": "Tab",
+            "rssKiB": 587072
+          }
+        ]
+      },
+      {
+        "label": "final",
+        "envIds": 0,
+        "fullKeys": 0,
+        "models": 0,
+        "modelCharacters": 0,
+        "deletedArgumentCount": 0,
+        "jsHeapBytes": 8463068,
+        "processMetrics": [
+          {
+            "pid": 93024,
+            "type": "Browser",
+            "rssKiB": 159968
+          },
+          {
+            "pid": 93025,
+            "type": "GPU",
+            "rssKiB": 94192
+          },
+          {
+            "pid": 93026,
+            "type": "Utility",
+            "rssKiB": 47952
+          },
+          {
+            "pid": 93027,
+            "type": "Tab",
+            "rssKiB": 594640
+          }
+        ]
+      },
+      {
+        "label": "cycle-1",
+        "envIds": 0,
+        "fullKeys": 0,
+        "models": 0,
+        "modelCharacters": 0,
+        "deletedArgumentCount": 0,
+        "jsHeapBytes": 9102272,
+        "processMetrics": [
+          {
+            "pid": 93024,
+            "type": "Browser",
+            "rssKiB": 161952
+          },
+          {
+            "pid": 93025,
+            "type": "GPU",
+            "rssKiB": 94208
+          },
+          {
+            "pid": 93026,
+            "type": "Utility",
+            "rssKiB": 47952
+          },
+          {
+            "pid": 93027,
+            "type": "Tab",
+            "rssKiB": 595408
+          }
+        ]
+      },
+      {
+        "label": "cycle-2",
+        "envIds": 0,
+        "fullKeys": 0,
+        "models": 0,
+        "modelCharacters": 0,
+        "deletedArgumentCount": 0,
+        "jsHeapBytes": 9139436,
+        "processMetrics": [
+          {
+            "pid": 93024,
+            "type": "Browser",
+            "rssKiB": 161984
+          },
+          {
+            "pid": 93025,
+            "type": "GPU",
+            "rssKiB": 94592
+          },
+          {
+            "pid": 93026,
+            "type": "Utility",
+            "rssKiB": 47952
+          },
+          {
+            "pid": 93027,
+            "type": "Tab",
+            "rssKiB": 595648
+          }
+        ]
+      },
+      {
+        "label": "cycle-3",
+        "envIds": 0,
+        "fullKeys": 0,
+        "models": 0,
+        "modelCharacters": 0,
+        "deletedArgumentCount": 0,
+        "jsHeapBytes": 9534892,
+        "processMetrics": [
+          {
+            "pid": 93024,
+            "type": "Browser",
+            "rssKiB": 161984
+          },
+          {
+            "pid": 93025,
+            "type": "GPU",
+            "rssKiB": 94656
+          },
+          {
+            "pid": 93026,
+            "type": "Utility",
+            "rssKiB": 47952
+          },
+          {
+            "pid": 93027,
+            "type": "Tab",
+            "rssKiB": 596272
+          }
+        ]
+      },
+      {
+        "label": "cycle-4",
+        "envIds": 0,
+        "fullKeys": 0,
+        "models": 0,
+        "modelCharacters": 0,
+        "deletedArgumentCount": 0,
+        "jsHeapBytes": 9561084,
+        "processMetrics": [
+          {
+            "pid": 93024,
+            "type": "Browser",
+            "rssKiB": 161984
+          },
+          {
+            "pid": 93025,
+            "type": "GPU",
+            "rssKiB": 95056
+          },
+          {
+            "pid": 93026,
+            "type": "Utility",
+            "rssKiB": 47952
+          },
+          {
+            "pid": 93027,
+            "type": "Tab",
+            "rssKiB": 596752
+          }
+        ]
+      },
+      {
+        "label": "cycle-5",
+        "envIds": 0,
+        "fullKeys": 0,
+        "models": 0,
+        "modelCharacters": 0,
+        "deletedArgumentCount": 0,
+        "jsHeapBytes": 9577176,
+        "processMetrics": [
+          {
+            "pid": 93024,
+            "type": "Browser",
+            "rssKiB": 161984
+          },
+          {
+            "pid": 93025,
+            "type": "GPU",
+            "rssKiB": 95616
+          },
+          {
+            "pid": 93026,
+            "type": "Utility",
+            "rssKiB": 47952
+          },
+          {
+            "pid": 93027,
+            "type": "Tab",
+            "rssKiB": 596880
+          }
+        ]
+      },
+      {
+        "label": "cycle-6",
+        "envIds": 0,
+        "fullKeys": 0,
+        "models": 0,
+        "modelCharacters": 0,
+        "deletedArgumentCount": 0,
+        "jsHeapBytes": 9585636,
+        "processMetrics": [
+          {
+            "pid": 93024,
+            "type": "Browser",
+            "rssKiB": 161984
+          },
+          {
+            "pid": 93025,
+            "type": "GPU",
+            "rssKiB": 96192
+          },
+          {
+            "pid": 93026,
+            "type": "Utility",
+            "rssKiB": 47952
+          },
+          {
+            "pid": 93027,
+            "type": "Tab",
+            "rssKiB": 597040
+          }
+        ]
+      },
+      {
+        "label": "cycle-7",
+        "envIds": 0,
+        "fullKeys": 0,
+        "models": 0,
+        "modelCharacters": 0,
+        "deletedArgumentCount": 0,
+        "jsHeapBytes": 9597080,
+        "processMetrics": [
+          {
+            "pid": 93024,
+            "type": "Browser",
+            "rssKiB": 161984
+          },
+          {
+            "pid": 93025,
+            "type": "GPU",
+            "rssKiB": 96288
+          },
+          {
+            "pid": 93026,
+            "type": "Utility",
+            "rssKiB": 47952
+          },
+          {
+            "pid": 93027,
+            "type": "Tab",
+            "rssKiB": 597088
+          }
+        ]
+      },
+      {
+        "label": "cycle-8",
+        "envIds": 0,
+        "fullKeys": 0,
+        "models": 0,
+        "modelCharacters": 0,
+        "deletedArgumentCount": 0,
+        "jsHeapBytes": 9603668,
+        "processMetrics": [
+          {
+            "pid": 93024,
+            "type": "Browser",
+            "rssKiB": 161984
+          },
+          {
+            "pid": 93025,
+            "type": "GPU",
+            "rssKiB": 96288
+          },
+          {
+            "pid": 93026,
+            "type": "Utility",
+            "rssKiB": 47952
+          },
+          {
+            "pid": 93027,
+            "type": "Tab",
+            "rssKiB": 597216
+          }
+        ]
+      },
+      {
+        "label": "cycle-9",
+        "envIds": 0,
+        "fullKeys": 0,
+        "models": 0,
+        "modelCharacters": 0,
+        "deletedArgumentCount": 0,
+        "jsHeapBytes": 9604464,
+        "processMetrics": [
+          {
+            "pid": 93024,
+            "type": "Browser",
+            "rssKiB": 161984
+          },
+          {
+            "pid": 93025,
+            "type": "GPU",
+            "rssKiB": 96288
+          },
+          {
+            "pid": 93026,
+            "type": "Utility",
+            "rssKiB": 47952
+          },
+          {
+            "pid": 93027,
+            "type": "Tab",
+            "rssKiB": 597264
+          }
+        ]
+      },
+      {
+        "label": "cycle-10",
+        "envIds": 0,
+        "fullKeys": 0,
+        "models": 0,
+        "modelCharacters": 0,
+        "deletedArgumentCount": 0,
+        "jsHeapBytes": 9605020,
+        "processMetrics": [
+          {
+            "pid": 93024,
+            "type": "Browser",
+            "rssKiB": 161984
+          },
+          {
+            "pid": 93025,
+            "type": "GPU",
+            "rssKiB": 96288
+          },
+          {
+            "pid": 93026,
+            "type": "Utility",
+            "rssKiB": 47952
+          },
+          {
+            "pid": 93027,
+            "type": "Tab",
+            "rssKiB": 597328
+          }
+        ]
+      }
+    ]
+  }
+}

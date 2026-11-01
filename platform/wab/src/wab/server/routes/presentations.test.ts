@@ -65,8 +65,8 @@ it("a known short code cannot bypass project permissions or read a deleted proje
   );
   expect(res.json).not.toHaveBeenCalled();
 });
-it("prompts anonymous private-project visitors to sign in", async () => {
-  mocks.getProject.mockRejectedValue(new ForbiddenError());
+it("propagates authentication failures for anonymous private-project visitors", async () => {
+  mocks.getProject.mockRejectedValue(new UnauthorizedError());
   const { req, res } = fixture(false);
   await expect(getPresentation(req, res)).rejects.toBeInstanceOf(
     UnauthorizedError,

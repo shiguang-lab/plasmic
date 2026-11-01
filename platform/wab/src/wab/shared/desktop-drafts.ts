@@ -28,7 +28,7 @@ export interface DesktopDraftBridge {
   open(userId: string, projectId: string, branchId: string | null): Promise<DesktopDraftSession>;
   list(userId: string): Promise<DesktopDraftSummary[]>;
   read(handle: string, id: string): Promise<DesktopDraft | null>;
-  write(handle: string, draft: DesktopDraft): Promise<void>;
+  write(handle: string, draftJson: string): Promise<void>;
   remove(handle: string, id: string, sequence: number): Promise<boolean>;
 }
 

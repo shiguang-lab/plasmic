@@ -20,7 +20,10 @@ export const Link = React.forwardRef<HTMLAnchorElement, LinkProps>(
         !isModifiedEvent(event) // let the browser open new tabs/windows
       ) {
         event.preventDefault();
-        if (replace ?? isSameLocation(history.location, to)) {
+        if (isSameLocation(history.location, to)) {
+          return;
+        }
+        if (replace) {
           history.replace(to);
         } else {
           history.push(to);

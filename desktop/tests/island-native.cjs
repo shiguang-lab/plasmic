@@ -27,6 +27,18 @@ const root = path.resolve(__dirname, "..");
 const reportDir = process.env.PLASMIC_ISLAND_REPORT_DIR || path.join(os.tmpdir(), "plasmic-island-native-report");
 fs.mkdirSync(reportDir, { recursive: true });
 let main, island, controller, presentation, identity, stopRpc, client;
+let summaryRequests = 0;
+const transmissions = [];
+app.on("browser-window-created", (_event, win) => {
+  const send = win.webContents.send.bind(win.webContents);
+  win.webContents.send = (channel, ...args) => {
+    if (channel === "desktop:island-state") {
+      const value = args[0];
+      transmissions.push({ bytes: Buffer.byteLength(JSON.stringify(value)), pixels: !!value.image && Object.hasOwn(value.image, "src") });
+    }
+    return send(channel, ...args);
+  };
+});
 const passed = [];
 // Advance only the monotonic presentation clock; real IPC and animation keep running.
 const realNow = performance.now.bind(performance);
@@ -111,6 +123,7 @@ app.whenReady().then(async () => {
   let identityReads = 0, releaseInitialIdentity;
   const initialIdentity = new Promise(resolve => { releaseInitialIdentity = resolve; });
   controller.requestStudio = async (url, input, signal) => {
+    if (["/api/v1/app-ctx", '/api/v1/projects?query=%22all%22', "/api/v1/workspaces/w"].includes(url)) {summaryRequests++;}
     if (url === "/api/v1/auth/self") { identityReads++; await initialIdentity; return {user:accountData.user}; }
     if (url === "/api/v1/app-ctx") return {teams:accountData.teams,workspaces:accountData.workspaces};
     if (url === '/api/v1/projects?query=%22all%22') return {projects:accountData.projects};
@@ -123,6 +136,8 @@ app.whenReady().then(async () => {
   presentation = createIsland({ identity, signIn: () => { signInCalls++; }, isQuitting: () => false, getWindow: () => main, controller, config: { studioOrigin: origin }, i18n, appearance });
   presentation.attach(main);
   await main.loadURL(origin + "/projects/p");
+  assert.equal(identityReads, 0, "normal window navigation does not load the island account");
+  await presentation.setMode("island");
   await main.webContents.executeJavaScript("history.replaceState({},'', '/projects/p?navigation=1');history.replaceState({},'', '/projects/p?navigation=2');history.replaceState({},'', '/projects/p');true");
   await delay(80);
   assert.equal(identityReads, 1, "real navigation events share the pending account check");
@@ -146,6 +161,10 @@ app.whenReady().then(async () => {
   assert.equal(main.webContents.getBackgroundThrottling(), false);
   await until(async () => await inspect("document.getElementById('shell').dataset.expanded==='false'"), "initial idle editor capsule");
   assert.equal(presentation.snapshot().image, null, "idle startup does not capture a hidden card");
+  await delay(600);
+  const idleTransmissions = transmissions.length;
+  await delay(1100);
+  assert.equal(transmissions.length,idleTransmissions,"unchanged real Electron idle polling sends no state IPC");
   const initialState = await controller.dispatch("get_app_state", {});
   assert.equal(initialState.operations, undefined, "metadata calls must not report themselves as business operations");
   await until(async () => await inspect("document.getElementById('shell').dataset.expanded==='true'"), "external metadata call expands card");
@@ -598,33 +617,46 @@ app.whenReady().then(async () => {
     await until(() => contextMenu, "island native context menu");
     assert.deepEqual(contextMenu.items.filter(item=>item.type!=="separator").map(item=>item.label), ["Show main window","Check for Updates…","Exit Dynamic Island mode","Quit application"]);
     assert.ok(contextMenu.items.every(item=>item.type!=="radio"), "context actions are not display-mode radio choices");
+    const exitingRead = call("execute",{name:"read",input:{collection:"components"}});
+    await until(()=>controller.activity.operations.size>0,"read running before island exit");
     presentation.setCloseAction("island");
     contextMenu.getMenuItemById("island-show-main").click();
-    await until(() => main.isVisible() && !island.isVisible(), "show main hides the island");
+    await until(() => main.isVisible() && island.isDestroyed(), "show main releases the island");
     assert.equal(presentation.mode,"window"); assert.equal(presentation.closeAction,"island");
     assert.equal(JSON.parse(fs.readFileSync(path.join(profile,"presentation.json"))).mode,"window");
     assert.equal((await controller.state()).editorContext.mode,"preview");
+    const stoppedSends=transmissions.length, stoppedRequests=summaryRequests;
+    await main.webContents.executeJavaScript("history.replaceState({},'',location.pathname+'?island-exited=1');true");
+    controller.activity.notify();
+    await exitingRead; await delay(600);
+    assert.equal(transmissions.length,stoppedSends,"exited island receives no state IPC, including task completion");
+    assert.equal(summaryRequests,stoppedRequests,"normal-window navigation does not restart island summaries");
+    assert.equal(BrowserWindow.getAllWindows().some(win=>win.webContents.getURL().endsWith('/island.html')),false);
     main.minimize();
     contextMenu.getMenuItemById("island-show-main").click();
-    await until(() => main.isVisible() && !main.isMinimized() && !island.isVisible(), "show main restores minimized window without the island");
+    await until(() => main.isVisible() && !main.isMinimized() && island.isDestroyed(), "show main restores minimized window without the island");
     contextMenu.getMenuItemById("island-exit").click();
-    await until(() => presentation.mode === "window" && presentation.closeAction === "ask" && main.isVisible() && !island.isVisible(), "explicit exit clears island preference");
+    await until(() => presentation.mode === "window" && presentation.closeAction === "ask" && main.isVisible() && island.isDestroyed(), "explicit exit clears island preference");
     assert.deepEqual(JSON.parse(fs.readFileSync(path.join(profile,"presentation.json"))).closeAction,"ask");
   } finally { Menu.prototype.popup = originalPopup; }
   await presentation.setMode("fullscreen");
   assert.equal(main.isFullScreen(), true);
   if (process.platform === "darwin") assert.equal(app.dock.isVisible(), true, "fullscreen restores the Dock icon");
   await presentation.setMode("island");
+  island = BrowserWindow.getAllWindows().find((win) => win.webContents.getURL().endsWith("/island.html"));
   assert.equal(main.isFullScreen(), false); assert.equal(main.isVisible(), false);
   if (process.platform === "darwin") assert.equal(app.dock.isVisible(), false, "leaving fullscreen for island hides the Dock icon");
   const returnedAt = Date.now();
   await until(() => presentation.snapshot().context.allowed, "context after mode return");
   await until(() => presentation.snapshot().image?.capturedAt > returnedAt, "mirroring resumes after mode return");
   await Promise.all([presentation.setMode("fullscreen"), presentation.setMode("window"), presentation.setMode("island")]);
+  island = BrowserWindow.getAllWindows().find((win) => win.webContents.getURL().endsWith("/island.html"));
   assert.equal(presentation.mode, "island"); assert.equal(main.isFullScreen(), false); assert.equal(main.isVisible(), false);
   if (process.platform === "darwin") assert.equal(app.dock.isVisible(), false, "rapid mode changes leave the Dock hidden in island mode");
   assert.equal(JSON.parse(fs.readFileSync(path.join(profile, "presentation.json"))).mode, "island");
   passed.push("right-click actions distinguish showing main from exiting island, remove floating icons, retain Preview; real fullscreen transitions and rapid mode changes serialize correctly; local preference persists");
+  assert.ok(transmissions.some(message=>message.pixels),"native image delivery carries pixels");
+  assert.ok(transmissions.some(message=>!message.pixels),"state-only delivery omits pixels");
   // Both surfaces share a real UpdateManager; only the network and final OS restart are fixtures.
   const updater = new EventEmitter();
   let checks=0, downloads=0, installs=0, finishDownload;
@@ -704,6 +736,7 @@ app.whenReady().then(async () => {
   assert.equal(await main.webContents.executeJavaScript("sharedUpdate.version"),"0.2.9");
   assert.equal(checks,1);assert.equal(downloads,1,"switching surfaces must not start another download");
   await presentation.setMode("island");
+  island = BrowserWindow.getAllWindows().find((win) => win.webContents.getURL().endsWith("/island.html"));
   presentation.openUpdates();
   await until(async()=>await inspect("!document.getElementById('update-panel').hidden"),"ready update returns to island");
   const pendingRead=call("execute",{name:"read",input:{collection:"components"}});
@@ -725,6 +758,7 @@ app.whenReady().then(async () => {
   await presentation.setMode("window");
   await main.loadURL(origin + "/login");
   await presentation.setMode("island");
+  island = BrowserWindow.getAllWindows().find((win) => win.webContents.getURL().endsWith("/island.html"));
   await until(async()=>await inspect("!document.getElementById('capsule-sign-in').hidden && document.getElementById('shell').dataset.expanded==='false'"),"login capsule stays compact");
   await delay(600);
   const [loginX,loginY] = island.getPosition();

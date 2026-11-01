@@ -24,6 +24,7 @@ export interface GlobalHookCtx {
 /** Frame state that lives on the global hook. */
 export interface FrameState {
   readonly uid: number;
+  readonly envIdToFullKey: Map<string, string>;
   readonly renderState: RenderState;
   /** The frame's root ValComponent, set by the hook on each commit. */
   readonly valRoot: IObservableValue<ValComponent | null>;

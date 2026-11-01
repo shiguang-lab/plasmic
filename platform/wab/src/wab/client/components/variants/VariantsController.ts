@@ -76,6 +76,10 @@ export function makeVariantsController(
   studioCtx: StudioCtx,
   viewCtx?: ViewCtx,
 ): VariantsController | undefined {
+  // Panels can retain their previous view prop until React unmounts them.
+  if (viewCtx?.isDisposed) {
+    return undefined;
+  }
   if (studioCtx.focusedMode) {
     // In focus mode, there's guaranteed to be only one visible ViewCtx, so always use that.
     const vc = viewCtx || studioCtx.focusedOrFirstViewCtx();

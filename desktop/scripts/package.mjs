@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 import { desktopSources, hashFiles, sourceIdentity } from "../../scripts/build-identity.mjs";
 import { macSigningCertificate, verifyMacSignature } from "./local-signing.mjs";
 import runtimeSecurity from "../src/runtime-security.cjs";
+import { buildMcp } from "./build-mcp.mjs";
 import { buildBlockMap } from "app-builder-lib/out/targets/blockmap/blockmap.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -46,6 +47,7 @@ if (platform === "darwin" && process.env.GITHUB_ACTIONS !== "true" && !signingCe
 }
 const notesIndex = process.argv.indexOf("--notes");
 const releaseNotes = notesIndex < 0 ? undefined : await readFile(process.argv[notesIndex + 1], "utf8");
+const mcpDirectory = await buildMcp(platform, arch);
 const outputs = await build({
   projectDir: root,
   targets: platforms[platform].createTarget(undefined, Arch[arch]),
@@ -57,6 +59,10 @@ const outputs = await build({
     directories: { output: `dist/${metadata.version}/${platform}-${arch}`, buildResources: "assets" },
     files: ["src/**/*", "renderer/**/*", "assets/**/*", "desktop.config.json", "package.json"],
     asar: true,
+    extraResources: [
+      { from: path.join(mcpDirectory, platform === "win32" ? "plasmic-mcp.exe" : "plasmic-mcp"), to: "mcp/" + (platform === "win32" ? "plasmic-mcp.exe" : "plasmic-mcp") },
+      { from: path.join(mcpDirectory, "LICENSE.node"), to: "mcp/LICENSE.node" },
+    ],
     npmRebuild: false,
     electronFuses: runtimeSecurity.productionFuses,
     forceCodeSigning: platform === "darwin",

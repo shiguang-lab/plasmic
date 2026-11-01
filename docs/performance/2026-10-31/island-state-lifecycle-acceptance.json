@@ -1,0 +1,63 @@
+{
+  "status": "passed-local-not-released",
+  "electron": "44.5.1",
+  "platform": "darwin",
+  "unitTests": {
+    "command": "node --test tests/island-*.test.cjs",
+    "passed": 57,
+    "failed": 0
+  },
+  "native": {
+    "passed": true,
+    "fixture": "Deterministic editor + real Electron + stdio MCP",
+    "checks": [
+      "real main-frame navigation events share one pending identity read",
+      "native island starts compact; all dispatched calls expand and mirror without throttling; bridge restrictions and rounded hit geometry",
+      "stdio MCP read scans; idle and completed calls retain the current canvas without extra model reads or inferred progress",
+      "complete artboards fit independently of editor pan/zoom; structure trees, floating tools and editor-only overlays never enter the image or change source UI",
+      "overview opens complete; single-page calls fit their full viewport; completion and metadata retain focus; new page targets switch focus and whole-canvas reads restore overview",
+      "multi-artboard layout/spacing is preserved; editor loading clears stale pixels and never collapses the card",
+      "collapse/reopen reuses cached pixels and preserves scope/context without a renderer; async content refreshes and save metadata does not",
+      "scroll-content editing keeps isolated expanded content without tools, preserves live DOM/model/context and refreshes on exit",
+      "task stages, explicit plan, blocker persistence, actual write/result/error and continuously updating hidden mirror",
+      "account overview uses API totals without a canvas; creation refreshes totals; logout clears old identities; verified replacement restores account data; localized labels and sign-in action fit; MCP subject, queue, persistent error and recovery remain visible",
+      "native Preview real DOM snapshot/click, actual route, current view capture, shared theme/language, stale labeling and recovery",
+      "monotonic ten-minute expiry; native hover/leave grace overrides running calls and idle leases; completion stays collapsed and the next call reopens",
+      "right-click actions distinguish showing main from exiting island, remove floating icons, retain Preview; real fullscreen transitions and rapid mode changes serialize correctly; local preference persists",
+      "shared update manager across standard/island modes; background ring, fixed-size confirmation/progress, Later and no main-window reveal; install drains MCP, closes Preview and saves before restart",
+      "signed-out capsule keeps the Plasmic brand and localized login link; native hover stays compact; login invokes sign-in while the main window stays hidden",
+      "closing the main window during fullscreen transition releases the mode queue"
+    ]
+  },
+  "nativeExitChecks": {
+    "stableIdleObservationMs": 1100,
+    "stateIpcDelta": 0,
+    "afterExitStateIpcDelta": 0,
+    "afterExitSummaryRequestDelta": 0,
+    "islandWindowDestroyed": true,
+    "inFlightMcpReadCompleted": true
+  },
+  "closeMode": {
+    "passed": true,
+    "stages": [
+      "choose",
+      "window-reopen",
+      "reopen",
+      "exit",
+      "quit"
+    ],
+    "environment": "official 0.5.30 renderer with current Desktop sources/tests in a temporary isolated App copy"
+  },
+  "sourceSha256": {
+    "desktop/src/island.cjs": "bd1effb320ab4b8e6956a92924ace060cfa80254242b850e326440a68deb7322",
+    "desktop/src/island-account.cjs": "f289aa108f94be5cc400ed0525cfb63bc2b10df25f31e88f3b2b3b0a9ff0b3ed",
+    "desktop/src/island-capture.cjs": "25fcdf5373ee250a40e69412b360726ebbca3951a5e36b53192223e3bde003ad",
+    "desktop/src/island-renderer.js": "fa68420b949ff3c464a6e857ce0bd373423de35d3f51d36a29ef139dc30e4810"
+  },
+  "limits": [
+    "Native editor and network are deterministic fixtures.",
+    "No real-project CPU/RAM or startup speed comparison.",
+    "Windows/Linux not executed.",
+    "No user App installation or deployment."
+  ]
+}

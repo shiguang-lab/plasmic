@@ -3,6 +3,7 @@ import {
   isShiguangOrigin,
   verifyShiguangIdentity,
 } from "@/wab/server/auth/shiguang";
+import { UnauthorizedError } from "@/wab/shared/ApiErrors/errors";
 import { Config, loadConfig } from "@/wab/server/config";
 import { getLastBundleVersion } from "@/wab/server/db/BundleMigrator";
 import {
@@ -426,7 +427,7 @@ async function verifyProjectPermissions(
       );
       return true;
     } catch (err) {
-      if (err instanceof ForbiddenError || err instanceof NotFoundError) {
+      if (err instanceof ForbiddenError || err instanceof UnauthorizedError || err instanceof NotFoundError) {
         return false;
       } else {
         throw err;

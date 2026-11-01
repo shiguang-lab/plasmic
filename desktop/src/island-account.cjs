@@ -13,6 +13,8 @@ class IslandAccount {
   snapshot() { return this.value; }
   invalidate(clear = true) {
     this.epoch++;
+    this.controller?.abort();
+    this.controller = null;
     this.pending = null;
     this.until = 0;
     if (clear) { this.value = { status: "loading" }; this.changed(); }
@@ -31,6 +33,8 @@ class IslandAccount {
     if (this.pending) return this.pending;
     if (!force && this.now() < this.until) return Promise.resolve();
     const epoch = this.epoch;
+    const controller = new AbortController();
+    this.controller = controller;
     this.until = this.now() + 30_000;
     const commit = value => {
       if (epoch !== this.epoch) return;
@@ -46,9 +50,10 @@ class IslandAccount {
           name: self.user.displayName || [self.user.firstName, self.user.lastName].filter(Boolean).join(" ").trim() || self.user.loginName || "" };
         if (user.id !== this.value.user?.id) commit({ status: "loading", user });
         const [app, projects] = await Promise.all([
-          this.request("/api/v1/app-ctx"),
-          this.request('/api/v1/projects?query=%22all%22'),
+          this.request("/api/v1/app-ctx", controller.signal),
+          this.request('/api/v1/projects?query=%22all%22', controller.signal),
         ]);
+        if (epoch !== this.epoch) return;
         if (![app.teams, app.workspaces, projects.projects].every(Array.isArray)) throw new Error("Invalid account summary");
         const teams = app.teams.map(({ id, name }) => ({ id, name }));
         const workspaces = app.workspaces.map(({ id, name, team }) => ({ id, name, teamId: team?.id,
@@ -56,7 +61,7 @@ class IslandAccount {
         const selected = workspaces.find(workspace => workspace.id === workspaceId);
         if (selected) {
           try {
-            const detail = await this.request(`/api/v1/workspaces/${encodeURIComponent(workspaceId)}`);
+            const detail = await this.request(`/api/v1/workspaces/${encodeURIComponent(workspaceId)}`, controller.signal);
             // Direct workspace access may omit inherited organization grants. In that
             // case the API cannot provide a complete effective user count.
             const teamIds = [detail.workspace?.team?.id, detail.workspace?.team?.parentTeamId].filter(Boolean);
@@ -73,7 +78,7 @@ class IslandAccount {
       } catch (error) {
         const signedOut = /\bHTTP (401|30\d)\b/.test(error.message);
         commit(signedOut ? { status: "signed-out" } : { status: "error", user: this.value.user });
-      } finally { if (epoch === this.epoch) this.pending = null; }
+      } finally { if (epoch === this.epoch) {this.pending = null; this.controller = null;} }
     };
     this.pending = load();
     return this.pending;

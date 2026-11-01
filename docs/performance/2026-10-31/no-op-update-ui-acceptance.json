@@ -1,0 +1,177 @@
+{
+  "status": "PASS",
+  "verifiedAt": "2026-10-31T12:55:26.396635+00:00",
+  "environment": {
+    "runtime": "Electron 44.5.1 / macOS",
+    "build": "Fresh production renderer build, launched in isolated Plasmic Acceptance.app",
+    "originalInstalledApp": "Not replaced; it still uses its pre-fix renderer",
+    "testData": "Existing Admin Templates project; selection/navigation only",
+    "input": "Native CUA clicks and keyboard; hover uses real renderer ViewOps.tryHoverDomElt against rendered DOM",
+    "measurement": "MobX subscription notifications, inspector pending state and DOM removals, history writes, viewport restore calls, animation stops and framesChanged signals",
+    "positiveControls": [
+      "First node selection entered inspector pending once",
+      "Switching from overview to another component wrote history and stopped animation preview once"
+    ],
+    "limitations": [
+      "Hover was exercised through the real renderer entry point, not physical mouse-move events",
+      "No installer replacement or production deployment was performed"
+    ]
+  },
+  "sourceProof": {
+    "/components/BrandLink.tsx": {
+      "source": "platform/wab/src/wab/client/components/BrandLink.tsx",
+      "includedInBuild": true,
+      "matchesWorkspace": true,
+      "sha256": "b73c0a3ba86b1aeb23c692873469754a0067d8265a967a9c26d8acf714ae348a"
+    },
+    "/route/Link.tsx": {
+      "source": "platform/wab/src/wab/client/route/Link.tsx",
+      "includedInBuild": true,
+      "matchesWorkspace": true,
+      "sha256": "b8606d9f0edbacd2a9445dd663fedf10a80f6cdab63ebe06b3f59d81e70d227e"
+    },
+    "/studio-ctx/StudioCtx.tsx": {
+      "source": "platform/wab/src/wab/client/studio-ctx/StudioCtx.tsx",
+      "includedInBuild": true,
+      "matchesWorkspace": true,
+      "sha256": "2ed2d91e45c1ead4ecae7d33df1c1e87fe5dab79d2500081ebd7e9a0b9ac2b98"
+    },
+    "/studio-ctx/view-ctx.ts": {
+      "source": "platform/wab/src/wab/client/studio-ctx/view-ctx.ts",
+      "includedInBuild": true,
+      "matchesWorkspace": true,
+      "sha256": "186b17e3ab5e3bec17a1ef303ad1e0fe2ff9cdda02deb5c9611c9ed3c305c7d1"
+    }
+  },
+  "cases": [
+    {
+      "case": "dashboard-logo-three-clicks",
+      "deltas": {
+        "historyWrites": 0,
+        "selectionNotifications": 0,
+        "frameNotifications": 0,
+        "leftPanelNotifications": 0,
+        "inspectorPending": 0,
+        "inspectorRemovals": 0,
+        "hoverNotifications": 0,
+        "viewportRestores": 0,
+        "animationStops": 0,
+        "framesChanged": 0,
+        "hoverRequests": 0,
+        "pointerMoves": 0
+      },
+      "documentUnchanged": true,
+      "routeUnchanged": true,
+      "status": "PASS"
+    },
+    {
+      "case": "same-node-three-clicks",
+      "deltas": {
+        "historyWrites": 0,
+        "selectionNotifications": 0,
+        "frameNotifications": 0,
+        "leftPanelNotifications": 0,
+        "inspectorPending": 0,
+        "inspectorRemovals": 0,
+        "hoverNotifications": 0,
+        "viewportRestores": 0,
+        "animationStops": 0,
+        "framesChanged": 0
+      },
+      "selectionUnchanged": true,
+      "viewportUnchanged": true,
+      "status": "PASS"
+    },
+    {
+      "case": "same-blank-three-clicks",
+      "deltas": {
+        "historyWrites": 0,
+        "selectionNotifications": 0,
+        "frameNotifications": 0,
+        "leftPanelNotifications": 0,
+        "inspectorPending": 0,
+        "inspectorRemovals": 0,
+        "hoverNotifications": 0,
+        "viewportRestores": 0,
+        "animationStops": 0,
+        "framesChanged": 0
+      },
+      "viewportUnchanged": true,
+      "status": "PASS"
+    },
+    {
+      "case": "repeat-select-all-ten-artboards",
+      "deltas": {
+        "historyWrites": 0,
+        "selectionNotifications": 0,
+        "frameNotifications": 0,
+        "leftPanelNotifications": 0,
+        "inspectorPending": 0,
+        "inspectorRemovals": 0,
+        "hoverNotifications": 0,
+        "viewportRestores": 0,
+        "animationStops": 0,
+        "framesChanged": 0
+      },
+      "selectionUnchanged": true,
+      "viewportUnchanged": true,
+      "status": "PASS"
+    },
+    {
+      "case": "reopen-current-component-three-times",
+      "deltas": {
+        "historyWrites": 0,
+        "selectionNotifications": 0,
+        "frameNotifications": 0,
+        "leftPanelNotifications": 0,
+        "inspectorPending": 0,
+        "inspectorRemovals": 0,
+        "hoverNotifications": 0,
+        "viewportRestores": 0,
+        "animationStops": 0,
+        "framesChanged": 0
+      },
+      "selectionUnchanged": true,
+      "viewportUnchanged": true,
+      "status": "PASS"
+    },
+    {
+      "case": "reopen-current-left-panel-three-times",
+      "deltas": {
+        "historyWrites": 0,
+        "selectionNotifications": 0,
+        "frameNotifications": 0,
+        "leftPanelNotifications": 0,
+        "inspectorPending": 0,
+        "inspectorRemovals": 0,
+        "hoverNotifications": 0,
+        "viewportRestores": 0,
+        "animationStops": 0,
+        "framesChanged": 0
+      },
+      "panelUnchanged": true,
+      "status": "PASS"
+    },
+    {
+      "case": "twenty-real-dom-hover-requests-in-running-electron",
+      "method": "Renderer console invoked ViewOps.tryHoverDomElt on the currently rendered selected DOM, with a separate MobX action for each request",
+      "deltas": {
+        "historyWrites": 0,
+        "selectionNotifications": 0,
+        "frameNotifications": 0,
+        "leftPanelNotifications": 0,
+        "inspectorPending": 0,
+        "inspectorRemovals": 0,
+        "hoverNotifications": 0,
+        "viewportRestores": 0,
+        "animationStops": 0,
+        "framesChanged": 0,
+        "hoverRequests": 20,
+        "pointerMoves": 0
+      },
+      "selectionUnchanged": true,
+      "viewportUnchanged": true,
+      "status": "PASS"
+    }
+  ]
+}

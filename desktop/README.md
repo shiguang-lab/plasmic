@@ -711,10 +711,19 @@ after changing its configuration. Other servers are preserved, and conflicting
 entries are reported without being overwritten. Claude Code, Codex, Gemini,
 Antigravity 2.0, OpenCode, Kiro, DeepSeek Harness, and Claude Desktop are supported (Claude Desktop
 on macOS and Windows). The dialog also provides a copyable JSON configuration
-for other MCP clients. Start the desktop and sign in before using editor tools. The packaged
-application itself runs with `--mcp` as a dedicated stdio process; the normal GUI
-process owns the editor. The configuration uses an absolute executable path, so
-copy it again after moving the application.
+for other MCP clients. Start the desktop and sign in before using editor tools.
+Registered clients launch the bundled `plasmic-mcp` executable directly; it runs
+the stdio transport without Electron or a system Node installation. The GUI owns
+the editor and authenticates the transport over local RPC. Selected managed
+configurations are refreshed on application startup. The application `--mcp`
+command also remains available; on Windows that command retains its Electron
+process, so use the generated helper configuration for the smaller runtime.
+The configuration uses an absolute executable path, so copy it again after
+moving the application. Development `npm start` builds the helper automatically;
+run `npm run build:mcp` before launching native MCP tests directly. Packaging
+builds the target helper, verifies the pinned Node download checksum, and ships
+its Node license. The helper ignores `NODE_OPTIONS` and does not expose Node
+evaluation or inspector launch arguments.
 
 Failed tool calls set `isError:true`; the JSON in `content[0].text` is
 `{ "msg": "Tool call failed.", "detail": { "message": "Original exception" } }`.

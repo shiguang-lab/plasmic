@@ -1,0 +1,516 @@
+{
+  "scope": "Fresh Electron processes; require(main.cjs) only; no bootstrap, windows, auth, project load or process-launch timing. Nested module timers overlap. Local source, not a packaged cold-start comparison.",
+  "electron": "44.5.1",
+  "totalImportMs": {
+    "samples": [
+      132.07233300000001,
+      74.234708,
+      73.33545899999999
+    ],
+    "median": 74.234708,
+    "min": 73.33545899999999,
+    "max": 132.07233300000001
+  },
+  "sourceSha256": {
+    "main.cjs": "635223303889e2118650f9a9ab1094f258a01eb548df5b6b3147577454fb2701",
+    "controller.cjs": "5cf6381312b389b3bebace9d41f8d04e88caabcf08efd9b24002d357ce5bb4d0",
+    "mcp.cjs": "eddaedffa93d20908ba6c05ec5ea973b449b27f716804b579e9b8aecce4fcec2",
+    "prototype-mcp.cjs": "cc1c3cd1d26bcc741c8449b87dfba3383bb4709167cb605698adc5e83606ec24",
+    "design-reference.cjs": "42323b1e1ae13b5a317e53fb2b80e936a700547dfd3243c8ed6e6f86f33033e6",
+    "image-preview.cjs": "6ba97e92fd039842291696846f17517ec09eb0be804e69d8670889680f1a29b9"
+  },
+  "runs": [
+    {
+      "electron": "44.5.1",
+      "totalMs": 132.07233300000001,
+      "topInclusive": [
+        {
+          "request": "/Users/yanxianliang/shiguang/plasmic/desktop/src/main.cjs",
+          "ms": 132.049208,
+          "selfMs": 0.8622080000000096
+        },
+        {
+          "request": "./controller.cjs",
+          "ms": 96.83895799999999,
+          "selfMs": 0.7116670000000198
+        },
+        {
+          "request": "./mcp.cjs",
+          "ms": 94.11833299999999,
+          "selfMs": 15.956668000000022
+        },
+        {
+          "request": "@modelcontextprotocol/sdk/server/index.js",
+          "ms": 61.370125,
+          "selfMs": 1.026291999999998
+        },
+        {
+          "request": "../shared/protocol.js",
+          "ms": 45.982375000000005,
+          "selfMs": 0.5317510000000141
+        },
+        {
+          "request": "../server/zod-compat.js",
+          "ms": 28.537875,
+          "selfMs": 0.27991699999999753
+        },
+        {
+          "request": "zod/v4-mini",
+          "ms": 24.567750000000004,
+          "selfMs": 0.41916600000000415
+        },
+        {
+          "request": "../v4/mini/external.cjs",
+          "ms": 24.148208999999994,
+          "selfMs": 0.6894999999999953
+        },
+        {
+          "request": "../core/index.cjs",
+          "ms": 20.988375000000005,
+          "selfMs": 0.5397909999999797
+        },
+        {
+          "request": "./mcp-integrations.cjs",
+          "ms": 15.66708300000002,
+          "selfMs": 0.23237500000001887
+        },
+        {
+          "request": "./prototype-mcp.cjs",
+          "ms": 15.616208,
+          "selfMs": 0.20300000000000296
+        },
+        {
+          "request": "./design-reference.cjs",
+          "ms": 15.413207999999997,
+          "selfMs": 0.1942070000000058
+        },
+        {
+          "request": "../validation/ajv-provider.js",
+          "ms": 14.052875000000014,
+          "selfMs": 0.1705000000000183
+        },
+        {
+          "request": "ajv",
+          "ms": 13.129290999999995,
+          "selfMs": 0.31703999999997734
+        },
+        {
+          "request": "../locales/index.cjs",
+          "ms": 12.984915999999998,
+          "selfMs": 0.4843789999999615
+        },
+        {
+          "request": "yaml",
+          "ms": 12.479208,
+          "selfMs": 0.3532920000000388
+        },
+        {
+          "request": "./image-preview.cjs",
+          "ms": 11.436499999999995,
+          "selfMs": 0.15141599999998334
+        },
+        {
+          "request": "sharp",
+          "ms": 11.285084000000012,
+          "selfMs": 0.4379180000000247
+        },
+        {
+          "request": "./compose/composer.js",
+          "ms": 10.196458000000007,
+          "selfMs": 0.2730820000000165
+        },
+        {
+          "request": "../types.js",
+          "ms": 10.127874999999989,
+          "selfMs": 5.181083999999984
+        },
+        {
+          "request": "./library-cache.cjs",
+          "ms": 8.838166999999991,
+          "selfMs": 0.20770799999998957
+        },
+        {
+          "request": "@plasmic-shared/resource-cache",
+          "ms": 8.627333999999998,
+          "selfMs": 0.39495900000000717
+        },
+        {
+          "request": "semver",
+          "ms": 8.23237499999999,
+          "selfMs": 0.3735009999999761
+        },
+        {
+          "request": "./core",
+          "ms": 6.625666999999993,
+          "selfMs": 0.44966499999996756
+        },
+        {
+          "request": "../server/zod-json-schema-compat.js",
+          "ms": 6.543458000000001,
+          "selfMs": 0.18858300000000838
+        }
+      ],
+      "heavy": [
+        {
+          "request": "./image-preview.cjs",
+          "ms": 11.436499999999995,
+          "selfMs": 0.15141599999998334
+        },
+        {
+          "request": "sharp",
+          "ms": 11.285084000000012,
+          "selfMs": 0.4379180000000247
+        },
+        {
+          "request": "./image-preview.cjs",
+          "ms": 0.0008750000000077307,
+          "selfMs": 0.0008750000000077307
+        },
+        {
+          "request": "./image-preview.cjs",
+          "ms": 0.0006669999999928677,
+          "selfMs": 0.0006669999999928677
+        },
+        {
+          "request": "./image-preview.cjs",
+          "ms": 0.00020799999998644125,
+          "selfMs": 0.00020799999998644125
+        },
+        {
+          "request": "./image-preview.cjs",
+          "ms": 0.00020799999998644125,
+          "selfMs": 0.00020799999998644125
+        }
+      ],
+      "loadedModuleCount": 458
+    },
+    {
+      "electron": "44.5.1",
+      "totalMs": 74.234708,
+      "topInclusive": [
+        {
+          "request": "/Users/yanxianliang/shiguang/plasmic/desktop/src/main.cjs",
+          "ms": 74.209916,
+          "selfMs": 0.5318730000000187
+        },
+        {
+          "request": "./controller.cjs",
+          "ms": 59.325124999999986,
+          "selfMs": 0.40983500000000106
+        },
+        {
+          "request": "./mcp.cjs",
+          "ms": 58.02483400000001,
+          "selfMs": 15.934043000000031
+        },
+        {
+          "request": "@modelcontextprotocol/sdk/server/index.js",
+          "ms": 32.403458,
+          "selfMs": 0.5168319999999653
+        },
+        {
+          "request": "../shared/protocol.js",
+          "ms": 25.713707999999997,
+          "selfMs": 0.309416000000013
+        },
+        {
+          "request": "../server/zod-compat.js",
+          "ms": 14.763499999999993,
+          "selfMs": 0.12970699999998203
+        },
+        {
+          "request": "zod/v4-mini",
+          "ms": 12.701334000000003,
+          "selfMs": 0.3655420000000049
+        },
+        {
+          "request": "../v4/mini/external.cjs",
+          "ms": 12.335416999999993,
+          "selfMs": 0.4459160000000253
+        },
+        {
+          "request": "../core/index.cjs",
+          "ms": 10.692624999999992,
+          "selfMs": 0.3094589999999755
+        },
+        {
+          "request": "./prototype-mcp.cjs",
+          "ms": 9.124416999999994,
+          "selfMs": 0.11008400000000051
+        },
+        {
+          "request": "./design-reference.cjs",
+          "ms": 9.014332999999993,
+          "selfMs": 0.12649899999998127
+        },
+        {
+          "request": "../types.js",
+          "ms": 8.082999999999998,
+          "selfMs": 4.925416999999996
+        },
+        {
+          "request": "./image-preview.cjs",
+          "ms": 7.349958999999998,
+          "selfMs": 0.04808399999998869
+        },
+        {
+          "request": "sharp",
+          "ms": 7.30187500000001,
+          "selfMs": 0.21304200000001572
+        },
+        {
+          "request": "../validation/ajv-provider.js",
+          "ms": 6.04079200000001,
+          "selfMs": 0.06904200000001026
+        },
+        {
+          "request": "../locales/index.cjs",
+          "ms": 6.017499999999998,
+          "selfMs": 0.3486270000000644
+        },
+        {
+          "request": "./mcp-integrations.cjs",
+          "ms": 5.9662090000000205,
+          "selfMs": 0.13329200000006836
+        },
+        {
+          "request": "ajv",
+          "ms": 5.539999999999992,
+          "selfMs": 0.11054099999998357
+        },
+        {
+          "request": "yaml",
+          "ms": 4.523791999999986,
+          "selfMs": 0.10803899999990563
+        },
+        {
+          "request": "./library-cache.cjs",
+          "ms": 3.9864999999999924,
+          "selfMs": 0.09158399999996902
+        },
+        {
+          "request": "@plasmic-shared/resource-cache",
+          "ms": 3.892583000000002,
+          "selfMs": 0.19366600000000744
+        },
+        {
+          "request": "semver",
+          "ms": 3.6989169999999945,
+          "selfMs": 0.18091599999992525
+        },
+        {
+          "request": "./compose/composer.js",
+          "ms": 3.6920419999999865,
+          "selfMs": 0.09508299999998826
+        },
+        {
+          "request": "./constructor",
+          "ms": 3.5250409999999874,
+          "selfMs": 0.09604199999999707
+        },
+        {
+          "request": "./sharp",
+          "ms": 3.370790999999997,
+          "selfMs": 0.14033299999999826
+        }
+      ],
+      "heavy": [
+        {
+          "request": "./image-preview.cjs",
+          "ms": 7.349958999999998,
+          "selfMs": 0.04808399999998869
+        },
+        {
+          "request": "sharp",
+          "ms": 7.30187500000001,
+          "selfMs": 0.21304200000001572
+        },
+        {
+          "request": "./image-preview.cjs",
+          "ms": 0.0007920000000183336,
+          "selfMs": 0.0007920000000183336
+        },
+        {
+          "request": "./image-preview.cjs",
+          "ms": 0.0005830000000059954,
+          "selfMs": 0.0005830000000059954
+        },
+        {
+          "request": "./image-preview.cjs",
+          "ms": 0.0002920000000017353,
+          "selfMs": 0.0002920000000017353
+        },
+        {
+          "request": "./image-preview.cjs",
+          "ms": 0.00012499999999704414,
+          "selfMs": 0.00012499999999704414
+        }
+      ],
+      "loadedModuleCount": 458
+    },
+    {
+      "electron": "44.5.1",
+      "totalMs": 73.33545899999999,
+      "topInclusive": [
+        {
+          "request": "/Users/yanxianliang/shiguang/plasmic/desktop/src/main.cjs",
+          "ms": 73.304458,
+          "selfMs": 0.46420999999998
+        },
+        {
+          "request": "./controller.cjs",
+          "ms": 58.84974999999999,
+          "selfMs": 0.3723759999999743
+        },
+        {
+          "request": "./mcp.cjs",
+          "ms": 57.652458,
+          "selfMs": 15.82787599999999
+        },
+        {
+          "request": "@modelcontextprotocol/sdk/server/index.js",
+          "ms": 31.887458000000002,
+          "selfMs": 0.4352090000000146
+        },
+        {
+          "request": "../shared/protocol.js",
+          "ms": 25.435750000000006,
+          "selfMs": 0.27950100000001754
+        },
+        {
+          "request": "../server/zod-compat.js",
+          "ms": 14.367833000000005,
+          "selfMs": 0.11333300000000435
+        },
+        {
+          "request": "zod/v4-mini",
+          "ms": 12.328374999999994,
+          "selfMs": 0.35533299999999457
+        },
+        {
+          "request": "../v4/mini/external.cjs",
+          "ms": 11.972625,
+          "selfMs": 0.43950000000000244
+        },
+        {
+          "request": "../core/index.cjs",
+          "ms": 10.386875000000003,
+          "selfMs": 0.31125000000003666
+        },
+        {
+          "request": "./prototype-mcp.cjs",
+          "ms": 9.411665999999997,
+          "selfMs": 0.10591599999999346
+        },
+        {
+          "request": "./design-reference.cjs",
+          "ms": 9.305750000000003,
+          "selfMs": 0.10683199999999715
+        },
+        {
+          "request": "./image-preview.cjs",
+          "ms": 8.183334000000002,
+          "selfMs": 0.04054299999999955
+        },
+        {
+          "request": "sharp",
+          "ms": 8.142791000000003,
+          "selfMs": 0.2052500000000066
+        },
+        {
+          "request": "../types.js",
+          "ms": 8.051290999999992,
+          "selfMs": 4.992706999999996
+        },
+        {
+          "request": "../validation/ajv-provider.js",
+          "ms": 5.895375000000001,
+          "selfMs": 0.06854200000000787
+        },
+        {
+          "request": "./mcp-integrations.cjs",
+          "ms": 5.8183329999999955,
+          "selfMs": 0.11666699999999253
+        },
+        {
+          "request": "../locales/index.cjs",
+          "ms": 5.7025839999999945,
+          "selfMs": 0.3457079999999664
+        },
+        {
+          "request": "ajv",
+          "ms": 5.419249999999991,
+          "selfMs": 0.11362499999998477
+        },
+        {
+          "request": "yaml",
+          "ms": 4.412666999999999,
+          "selfMs": 0.10183599999997739
+        },
+        {
+          "request": "./constructor",
+          "ms": 4.155332999999999,
+          "selfMs": 0.48120999999999015
+        },
+        {
+          "request": "./library-cache.cjs",
+          "ms": 4.042999999999999,
+          "selfMs": 0.10387599999999964
+        },
+        {
+          "request": "@plasmic-shared/resource-cache",
+          "ms": 3.9359579999999994,
+          "selfMs": 0.2067909999999955
+        },
+        {
+          "request": "semver",
+          "ms": 3.729167000000004,
+          "selfMs": 0.175296000000003
+        },
+        {
+          "request": "./compose/composer.js",
+          "ms": 3.6161670000000044,
+          "selfMs": 0.10454200000002345
+        },
+        {
+          "request": "./sharp",
+          "ms": 3.5945410000000066,
+          "selfMs": 0.14649800000002244
+        }
+      ],
+      "heavy": [
+        {
+          "request": "./image-preview.cjs",
+          "ms": 8.183334000000002,
+          "selfMs": 0.04054299999999955
+        },
+        {
+          "request": "sharp",
+          "ms": 8.142791000000003,
+          "selfMs": 0.2052500000000066
+        },
+        {
+          "request": "./image-preview.cjs",
+          "ms": 0.0007909999999924366,
+          "selfMs": 0.0007909999999924366
+        },
+        {
+          "request": "./image-preview.cjs",
+          "ms": 0.0004579999999947404,
+          "selfMs": 0.0004579999999947404
+        },
+        {
+          "request": "./image-preview.cjs",
+          "ms": 0.0002080000000006521,
+          "selfMs": 0.0002080000000006521
+        },
+        {
+          "request": "./image-preview.cjs",
+          "ms": 0.0002080000000006521,
+          "selfMs": 0.0002080000000006521
+        }
+      ],
+      "loadedModuleCount": 458
+    }
+  ]
+}

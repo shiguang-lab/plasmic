@@ -1,0 +1,4309 @@
+{
+  "date": "2026-11-01",
+  "method": {
+    "renderer": "Unmodified installed Plasmic Desktop 0.5.30 renderer, revision 4be192c7af42e89cda0a5b182082fdf07a5905a7",
+    "execution": "Native Electron, real dashboard ProjectListItem click via its actual handler; return via browser history; first open separate, then three warm reopens. Dataset processes run sequentially. No CPU profiler in reported latency batch. Native immutable resource cache performs its checksum checks. Native preview process enabled.",
+    "offline": "API responses and exact dependency bodies replayed locally. Identity fixed to fixture account, no live authentication, sockets, project writes or native draft bridge. Default fit-all camera; does not replay normal App saved camera. These numbers are not live end-to-end durations.",
+    "boundaries": "canvas-revealed and all-frames-rendered are program markers. detectedReadyMs is a polling upper bound, not precise visual/interaction readiness. Trace demonstrates paint can occur after reveal. Overlapping phase durations must not be added.",
+    "discarded": "Browser-UA trial was not a Desktop-cache measurement. Concurrent verified trials were excluded because their workloads overlapped. Earlier native trials and CPU-profiled runs are supporting evidence, not pooled into the final sequential batch."
+  },
+  "datasets": {
+    "gp": {
+      "dataset": {
+        "kind": "saved-project",
+        "revision": 158
+      },
+      "project": {
+        "id": "tk89W1Akg2HjAjyHAYEro7",
+        "name": "客服平台 · GP评论查询",
+        "revision": 158,
+        "objects": 1407,
+        "sha256": "e420dfbc049a0aa9597f50dbfc089791a2611edb8eea04eeaac4dacf083f9c97",
+        "dependencies": [
+          {
+            "id": "919fe75b-bb33-4c5c-9ec9-1cc4bf9e7014",
+            "version": "3.11.0",
+            "resource": "/api/v1/dependency-models/55f63066-ebd1-4ddf-9b50-99dbf44b20f0",
+            "sha256": "d60474154047d485dfc30147e5b63793242782756e979528f9bdc10af0ad6343"
+          },
+          {
+            "id": "7587bf89-8651-4174-be6a-c8ddef6cfed9",
+            "version": "1.13.0",
+            "resource": "/api/v1/dependency-models/f11641a0-f888-44b8-8f19-048fe8e73957",
+            "sha256": "fe4b59ca2d997c30d1c3d0e257d848f8ff35190b030cc42390be126a97821c65"
+          },
+          {
+            "id": "8c4a282f-7c00-4289-b662-ce126567b6a0",
+            "version": "0.3.0",
+            "resource": "/api/v1/dependency-models/1bad2fef-b627-4906-b9ff-5e0bfc9879e4",
+            "sha256": "b497784309c4c5081b67a5dd576d755f1932b2f81afdc4cfed2bce090dbc6b42"
+          },
+          {
+            "id": "198a369c-926b-4462-9cd0-15350299ab5e",
+            "version": "0.2.0",
+            "resource": "/api/v1/dependency-models/c945b8b4-e2ae-4c86-8f11-bb34c93ff4a2",
+            "sha256": "4b37faf0b36a10b319272d468a6a124e424d46d3a33c7cf558ff7f80cbf833ec"
+          },
+          {
+            "id": "4c33e21f-19be-41c2-908c-c503f8c358f8",
+            "version": "3.0.0",
+            "resource": "/api/v1/dependency-models/27fcc468-ca51-4dca-8026-56e8d3dcf023",
+            "sha256": "1ce4db29bc3e264c045b1aba47701aed2d61c386e38c56174d1f5b1ed9868c6e"
+          }
+        ]
+      },
+      "rawReport": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-real-list-7zi8ML/list-open-final.json",
+      "rawReportSha256": "1defc897454f52da2cc9850a148c269ca312ded16cb5c243ead95580516ca2b5",
+      "rendererHash": "756dad50e884bd24477b4c2c807d2fa54af4165b1c442032611558147e2ef9b2",
+      "samples": [
+        {
+          "phase": "first-list-open",
+          "revealMs": 2260.5,
+          "allFramesRenderedMs": 2294.8,
+          "detectedReadyMs": 2472.84,
+          "atFirstReady": {
+            "initialFrames": 1,
+            "rendered": 1,
+            "views": 1
+          },
+          "frames": [
+            {
+              "frameUuid": "dO6gEmTQ80cE",
+              "loadStartMs": 1306.9,
+              "renderedMs": 2294.8
+            }
+          ],
+          "phaseTimings": [
+            {
+              "phase": "studio-module-import",
+              "frameUuid": null,
+              "startMs": 583.6,
+              "durationMs": 153.9,
+              "endMs": 737.5
+            },
+            {
+              "phase": "startup-preferences",
+              "frameUuid": null,
+              "startMs": 756.8,
+              "durationMs": 14.1,
+              "endMs": 770.9
+            },
+            {
+              "phase": "project-fetch",
+              "frameUuid": null,
+              "startMs": 771.1,
+              "durationMs": 201.1,
+              "endMs": 972.2
+            },
+            {
+              "phase": "model-unbundle",
+              "frameUuid": null,
+              "startMs": 972.2,
+              "durationMs": 85.1,
+              "endMs": 1057.3
+            },
+            {
+              "phase": "studio-context",
+              "frameUuid": null,
+              "startMs": 1065.6,
+              "durationMs": 48,
+              "endMs": 1113.6
+            },
+            {
+              "phase": "initial-route",
+              "frameUuid": null,
+              "startMs": 1071.7,
+              "durationMs": 67.7,
+              "endMs": 1139.4
+            },
+            {
+              "phase": "initial-viewport",
+              "frameUuid": null,
+              "startMs": 1071.7,
+              "durationMs": 67.9,
+              "endMs": 1139.6
+            },
+            {
+              "phase": "code-component-sync",
+              "frameUuid": null,
+              "startMs": 1276.9,
+              "durationMs": 7.3,
+              "endMs": 1284.2
+            },
+            {
+              "phase": "app-user-init",
+              "frameUuid": null,
+              "startMs": 1284.3,
+              "durationMs": 0,
+              "endMs": 1284.3
+            },
+            {
+              "phase": "initializer-ready",
+              "frameUuid": null,
+              "startMs": 1284.4,
+              "durationMs": 0,
+              "endMs": 1284.4
+            },
+            {
+              "phase": "frame-load-start",
+              "frameUuid": "dO6gEmTQ80cE",
+              "startMs": 1306.9,
+              "durationMs": 0,
+              "endMs": 1306.9
+            },
+            {
+              "phase": "frame-host-document",
+              "frameUuid": "dO6gEmTQ80cE",
+              "startMs": 1323.8,
+              "durationMs": 211.9,
+              "endMs": 1535.7
+            },
+            {
+              "phase": "frame-host-ready",
+              "frameUuid": "dO6gEmTQ80cE",
+              "startMs": 1537.1,
+              "durationMs": 13.6,
+              "endMs": 1550.7
+            },
+            {
+              "phase": "frame-runtime",
+              "frameUuid": "dO6gEmTQ80cE",
+              "startMs": 1550.8,
+              "durationMs": 40.6,
+              "endMs": 1591.4
+            },
+            {
+              "phase": "frame-component-packages",
+              "frameUuid": "dO6gEmTQ80cE",
+              "startMs": 1591.6,
+              "durationMs": 151.6,
+              "endMs": 1743.2
+            },
+            {
+              "phase": "frame-context-created",
+              "frameUuid": "dO6gEmTQ80cE",
+              "startMs": 1757.9,
+              "durationMs": 0,
+              "endMs": 1757.9
+            },
+            {
+              "phase": "all-frame-contexts-created",
+              "frameUuid": null,
+              "startMs": 1757.9,
+              "durationMs": 0,
+              "endMs": 1757.9
+            },
+            {
+              "phase": "frame-initialization",
+              "frameUuid": "dO6gEmTQ80cE",
+              "startMs": 1306.9,
+              "durationMs": 473.2,
+              "endMs": 1780.1
+            },
+            {
+              "phase": "frame-first-render",
+              "frameUuid": "dO6gEmTQ80cE",
+              "startMs": 1757.8,
+              "durationMs": 444.7,
+              "endMs": 2202.5
+            },
+            {
+              "phase": "canvas-revealed",
+              "frameUuid": null,
+              "startMs": 2260.5,
+              "durationMs": 0,
+              "endMs": 2260.5
+            },
+            {
+              "phase": "frame-rendered",
+              "frameUuid": "dO6gEmTQ80cE",
+              "startMs": 2294.8,
+              "durationMs": 0,
+              "endMs": 2294.8
+            },
+            {
+              "phase": "all-frames-rendered",
+              "frameUuid": null,
+              "startMs": 2294.8,
+              "durationMs": 0,
+              "endMs": 2294.8
+            }
+          ],
+          "cache": {
+            "hit": 8,
+            "miss": 10,
+            "modelRequests": 6,
+            "codeRequests": 12,
+            "maxHandlerMs": 48.1
+          },
+          "mutableRequests": [
+            {
+              "path": "/api/v1/projects?projectIds=%5B%22tk89W1Akg2HjAjyHAYEro7%22%5D&query=%22byIds%22",
+              "startMs": 131.13,
+              "durationMs": 0.28
+            },
+            {
+              "path": "/api/v1/hosts",
+              "startMs": 131.96,
+              "durationMs": 0.06
+            },
+            {
+              "path": "/api/v1/projects/tk89W1Akg2HjAjyHAYEro7",
+              "startMs": 156.44,
+              "durationMs": 1.67
+            }
+          ],
+          "revisionCounter": 0
+        },
+        {
+          "phase": "warm-list-open-1",
+          "revealMs": 1790.7,
+          "allFramesRenderedMs": 1821.4,
+          "detectedReadyMs": 2023.57,
+          "atFirstReady": {
+            "initialFrames": 1,
+            "rendered": 1,
+            "views": 1
+          },
+          "frames": [
+            {
+              "frameUuid": "dO6gEmTQ80cE",
+              "loadStartMs": 1063.3,
+              "renderedMs": 1821.3
+            }
+          ],
+          "phaseTimings": [
+            {
+              "phase": "studio-module-import",
+              "frameUuid": null,
+              "startMs": 409.3,
+              "durationMs": 130.8,
+              "endMs": 540.1
+            },
+            {
+              "phase": "startup-preferences",
+              "frameUuid": null,
+              "startMs": 561.2,
+              "durationMs": 19.5,
+              "endMs": 580.7
+            },
+            {
+              "phase": "project-fetch",
+              "frameUuid": null,
+              "startMs": 580.8,
+              "durationMs": 182.9,
+              "endMs": 763.7
+            },
+            {
+              "phase": "model-unbundle",
+              "frameUuid": null,
+              "startMs": 763.7,
+              "durationMs": 91.9,
+              "endMs": 855.6
+            },
+            {
+              "phase": "studio-context",
+              "frameUuid": null,
+              "startMs": 862.0,
+              "durationMs": 41.9,
+              "endMs": 903.9
+            },
+            {
+              "phase": "initial-route",
+              "frameUuid": null,
+              "startMs": 864.7,
+              "durationMs": 70,
+              "endMs": 934.7
+            },
+            {
+              "phase": "initial-viewport",
+              "frameUuid": null,
+              "startMs": 864.7,
+              "durationMs": 70.1,
+              "endMs": 934.8
+            },
+            {
+              "phase": "code-component-sync",
+              "frameUuid": null,
+              "startMs": 1038.9,
+              "durationMs": 5.7,
+              "endMs": 1044.6
+            },
+            {
+              "phase": "app-user-init",
+              "frameUuid": null,
+              "startMs": 1044.6,
+              "durationMs": 0,
+              "endMs": 1044.6
+            },
+            {
+              "phase": "initializer-ready",
+              "frameUuid": null,
+              "startMs": 1044.6,
+              "durationMs": 0,
+              "endMs": 1044.6
+            },
+            {
+              "phase": "frame-load-start",
+              "frameUuid": "dO6gEmTQ80cE",
+              "startMs": 1063.3,
+              "durationMs": 0,
+              "endMs": 1063.3
+            },
+            {
+              "phase": "frame-host-document",
+              "frameUuid": "dO6gEmTQ80cE",
+              "startMs": 1080.6,
+              "durationMs": 138.7,
+              "endMs": 1219.3
+            },
+            {
+              "phase": "frame-host-ready",
+              "frameUuid": "dO6gEmTQ80cE",
+              "startMs": 1220.6,
+              "durationMs": 11.7,
+              "endMs": 1232.3
+            },
+            {
+              "phase": "frame-runtime",
+              "frameUuid": "dO6gEmTQ80cE",
+              "startMs": 1232.5,
+              "durationMs": 11.3,
+              "endMs": 1243.8
+            },
+            {
+              "phase": "frame-component-packages",
+              "frameUuid": "dO6gEmTQ80cE",
+              "startMs": 1244.0,
+              "durationMs": 71.1,
+              "endMs": 1315.1
+            },
+            {
+              "phase": "frame-context-created",
+              "frameUuid": "dO6gEmTQ80cE",
+              "startMs": 1329.0,
+              "durationMs": 0,
+              "endMs": 1329.0
+            },
+            {
+              "phase": "all-frame-contexts-created",
+              "frameUuid": null,
+              "startMs": 1329.0,
+              "durationMs": 0,
+              "endMs": 1329.0
+            },
+            {
+              "phase": "frame-initialization",
+              "frameUuid": "dO6gEmTQ80cE",
+              "startMs": 1063.3,
+              "durationMs": 278,
+              "endMs": 1341.3
+            },
+            {
+              "phase": "frame-first-render",
+              "frameUuid": "dO6gEmTQ80cE",
+              "startMs": 1328.9,
+              "durationMs": 418.7,
+              "endMs": 1747.6
+            },
+            {
+              "phase": "canvas-revealed",
+              "frameUuid": null,
+              "startMs": 1790.7,
+              "durationMs": 0,
+              "endMs": 1790.7
+            },
+            {
+              "phase": "frame-rendered",
+              "frameUuid": "dO6gEmTQ80cE",
+              "startMs": 1821.3,
+              "durationMs": 0,
+              "endMs": 1821.3
+            },
+            {
+              "phase": "all-frames-rendered",
+              "frameUuid": null,
+              "startMs": 1821.4,
+              "durationMs": 0,
+              "endMs": 1821.4
+            }
+          ],
+          "cache": {
+            "hit": 18,
+            "miss": 0,
+            "modelRequests": 6,
+            "codeRequests": 12,
+            "maxHandlerMs": 16.68
+          },
+          "mutableRequests": [
+            {
+              "path": "/api/v1/projects?projectIds=%5B%22tk89W1Akg2HjAjyHAYEro7%22%5D&query=%22byIds%22",
+              "startMs": 29.51,
+              "durationMs": 0.15
+            },
+            {
+              "path": "/api/v1/hosts",
+              "startMs": 30.03,
+              "durationMs": 0.05
+            },
+            {
+              "path": "/api/v1/projects/tk89W1Akg2HjAjyHAYEro7",
+              "startMs": 42.84,
+              "durationMs": 1.01
+            }
+          ],
+          "revisionCounter": 0
+        },
+        {
+          "phase": "warm-list-open-2",
+          "revealMs": 1673.9,
+          "allFramesRenderedMs": 1702.7,
+          "detectedReadyMs": 1907.3,
+          "atFirstReady": {
+            "initialFrames": 1,
+            "rendered": 1,
+            "views": 1
+          },
+          "frames": [
+            {
+              "frameUuid": "dO6gEmTQ80cE",
+              "loadStartMs": 978.1,
+              "renderedMs": 1702.7
+            }
+          ],
+          "phaseTimings": [
+            {
+              "phase": "studio-module-import",
+              "frameUuid": null,
+              "startMs": 384.2,
+              "durationMs": 119.7,
+              "endMs": 503.9
+            },
+            {
+              "phase": "startup-preferences",
+              "frameUuid": null,
+              "startMs": 518.9,
+              "durationMs": 14,
+              "endMs": 532.9
+            },
+            {
+              "phase": "project-fetch",
+              "frameUuid": null,
+              "startMs": 533.0,
+              "durationMs": 166,
+              "endMs": 699.0
+            },
+            {
+              "phase": "model-unbundle",
+              "frameUuid": null,
+              "startMs": 699.1,
+              "durationMs": 87.3,
+              "endMs": 786.4
+            },
+            {
+              "phase": "studio-context",
+              "frameUuid": null,
+              "startMs": 792.8,
+              "durationMs": 44.5,
+              "endMs": 837.3
+            },
+            {
+              "phase": "initial-route",
+              "frameUuid": null,
+              "startMs": 796.3,
+              "durationMs": 64.3,
+              "endMs": 860.6
+            },
+            {
+              "phase": "initial-viewport",
+              "frameUuid": null,
+              "startMs": 796.3,
+              "durationMs": 64.3,
+              "endMs": 860.6
+            },
+            {
+              "phase": "code-component-sync",
+              "frameUuid": null,
+              "startMs": 959.4,
+              "durationMs": 4.2,
+              "endMs": 963.6
+            },
+            {
+              "phase": "app-user-init",
+              "frameUuid": null,
+              "startMs": 963.6,
+              "durationMs": 0,
+              "endMs": 963.6
+            },
+            {
+              "phase": "initializer-ready",
+              "frameUuid": null,
+              "startMs": 963.6,
+              "durationMs": 0,
+              "endMs": 963.6
+            },
+            {
+              "phase": "frame-load-start",
+              "frameUuid": "dO6gEmTQ80cE",
+              "startMs": 978.1,
+              "durationMs": 0,
+              "endMs": 978.1
+            },
+            {
+              "phase": "frame-host-document",
+              "frameUuid": "dO6gEmTQ80cE",
+              "startMs": 993.3,
+              "durationMs": 118.1,
+              "endMs": 1111.4
+            },
+            {
+              "phase": "frame-host-ready",
+              "frameUuid": "dO6gEmTQ80cE",
+              "startMs": 1112.5,
+              "durationMs": 10.3,
+              "endMs": 1122.8
+            },
+            {
+              "phase": "frame-runtime",
+              "frameUuid": "dO6gEmTQ80cE",
+              "startMs": 1122.8,
+              "durationMs": 6.7,
+              "endMs": 1129.5
+            },
+            {
+              "phase": "frame-component-packages",
+              "frameUuid": "dO6gEmTQ80cE",
+              "startMs": 1129.6,
+              "durationMs": 67.3,
+              "endMs": 1196.9
+            },
+            {
+              "phase": "frame-context-created",
+              "frameUuid": "dO6gEmTQ80cE",
+              "startMs": 1207.7,
+              "durationMs": 0,
+              "endMs": 1207.7
+            },
+            {
+              "phase": "all-frame-contexts-created",
+              "frameUuid": null,
+              "startMs": 1207.7,
+              "durationMs": 0,
+              "endMs": 1207.7
+            },
+            {
+              "phase": "frame-initialization",
+              "frameUuid": "dO6gEmTQ80cE",
+              "startMs": 978.1,
+              "durationMs": 249.5,
+              "endMs": 1227.6
+            },
+            {
+              "phase": "frame-first-render",
+              "frameUuid": "dO6gEmTQ80cE",
+              "startMs": 1207.7,
+              "durationMs": 398.2,
+              "endMs": 1605.9
+            },
+            {
+              "phase": "canvas-revealed",
+              "frameUuid": null,
+              "startMs": 1673.9,
+              "durationMs": 0,
+              "endMs": 1673.9
+            },
+            {
+              "phase": "frame-rendered",
+              "frameUuid": "dO6gEmTQ80cE",
+              "startMs": 1702.7,
+              "durationMs": 0,
+              "endMs": 1702.7
+            },
+            {
+              "phase": "all-frames-rendered",
+              "frameUuid": null,
+              "startMs": 1702.7,
+              "durationMs": 0,
+              "endMs": 1702.7
+            }
+          ],
+          "cache": {
+            "hit": 18,
+            "miss": 0,
+            "modelRequests": 6,
+            "codeRequests": 12,
+            "maxHandlerMs": 19.72
+          },
+          "mutableRequests": [
+            {
+              "path": "/api/v1/projects?projectIds=%5B%22tk89W1Akg2HjAjyHAYEro7%22%5D&query=%22byIds%22",
+              "startMs": 36.8,
+              "durationMs": 0.15
+            },
+            {
+              "path": "/api/v1/hosts",
+              "startMs": 37.25,
+              "durationMs": 0.04
+            },
+            {
+              "path": "/api/v1/projects/tk89W1Akg2HjAjyHAYEro7",
+              "startMs": 56.48,
+              "durationMs": 1.07
+            }
+          ],
+          "revisionCounter": 0
+        },
+        {
+          "phase": "warm-list-open-3",
+          "revealMs": 1605.2,
+          "allFramesRenderedMs": 1630.5,
+          "detectedReadyMs": 1811.89,
+          "atFirstReady": {
+            "initialFrames": 1,
+            "rendered": 1,
+            "views": 1
+          },
+          "frames": [
+            {
+              "frameUuid": "dO6gEmTQ80cE",
+              "loadStartMs": 981.9,
+              "renderedMs": 1630.5
+            }
+          ],
+          "phaseTimings": [
+            {
+              "phase": "studio-module-import",
+              "frameUuid": null,
+              "startMs": 376.2,
+              "durationMs": 128.3,
+              "endMs": 504.5
+            },
+            {
+              "phase": "startup-preferences",
+              "frameUuid": null,
+              "startMs": 520.4,
+              "durationMs": 13.2,
+              "endMs": 533.6
+            },
+            {
+              "phase": "project-fetch",
+              "frameUuid": null,
+              "startMs": 533.6,
+              "durationMs": 166.7,
+              "endMs": 700.3
+            },
+            {
+              "phase": "model-unbundle",
+              "frameUuid": null,
+              "startMs": 700.3,
+              "durationMs": 88.9,
+              "endMs": 789.2
+            },
+            {
+              "phase": "studio-context",
+              "frameUuid": null,
+              "startMs": 794.2,
+              "durationMs": 42,
+              "endMs": 836.2
+            },
+            {
+              "phase": "initial-route",
+              "frameUuid": null,
+              "startMs": 797.1,
+              "durationMs": 68.7,
+              "endMs": 865.8
+            },
+            {
+              "phase": "initial-viewport",
+              "frameUuid": null,
+              "startMs": 797.1,
+              "durationMs": 68.7,
+              "endMs": 865.8
+            },
+            {
+              "phase": "code-component-sync",
+              "frameUuid": null,
+              "startMs": 960.5,
+              "durationMs": 3.9,
+              "endMs": 964.4
+            },
+            {
+              "phase": "app-user-init",
+              "frameUuid": null,
+              "startMs": 964.5,
+              "durationMs": 0,
+              "endMs": 964.5
+            },
+            {
+              "phase": "initializer-ready",
+              "frameUuid": null,
+              "startMs": 964.5,
+              "durationMs": 0,
+              "endMs": 964.5
+            },
+            {
+              "phase": "frame-load-start",
+              "frameUuid": "dO6gEmTQ80cE",
+              "startMs": 981.9,
+              "durationMs": 0,
+              "endMs": 981.9
+            },
+            {
+              "phase": "frame-host-document",
+              "frameUuid": "dO6gEmTQ80cE",
+              "startMs": 998.9,
+              "durationMs": 114.3,
+              "endMs": 1113.2
+            },
+            {
+              "phase": "frame-host-ready",
+              "frameUuid": "dO6gEmTQ80cE",
+              "startMs": 1114.2,
+              "durationMs": 6.1,
+              "endMs": 1120.3
+            },
+            {
+              "phase": "frame-runtime",
+              "frameUuid": "dO6gEmTQ80cE",
+              "startMs": 1120.3,
+              "durationMs": 9.9,
+              "endMs": 1130.2
+            },
+            {
+              "phase": "frame-component-packages",
+              "frameUuid": "dO6gEmTQ80cE",
+              "startMs": 1130.4,
+              "durationMs": 63.8,
+              "endMs": 1194.2
+            },
+            {
+              "phase": "frame-context-created",
+              "frameUuid": "dO6gEmTQ80cE",
+              "startMs": 1207.0,
+              "durationMs": 0,
+              "endMs": 1207.0
+            },
+            {
+              "phase": "all-frame-contexts-created",
+              "frameUuid": null,
+              "startMs": 1207.0,
+              "durationMs": 0,
+              "endMs": 1207.0
+            },
+            {
+              "phase": "frame-initialization",
+              "frameUuid": "dO6gEmTQ80cE",
+              "startMs": 981.9,
+              "durationMs": 237.1,
+              "endMs": 1219.0
+            },
+            {
+              "phase": "frame-first-render",
+              "frameUuid": "dO6gEmTQ80cE",
+              "startMs": 1206.9,
+              "durationMs": 358.3,
+              "endMs": 1565.2
+            },
+            {
+              "phase": "canvas-revealed",
+              "frameUuid": null,
+              "startMs": 1605.2,
+              "durationMs": 0,
+              "endMs": 1605.2
+            },
+            {
+              "phase": "frame-rendered",
+              "frameUuid": "dO6gEmTQ80cE",
+              "startMs": 1630.5,
+              "durationMs": 0,
+              "endMs": 1630.5
+            },
+            {
+              "phase": "all-frames-rendered",
+              "frameUuid": null,
+              "startMs": 1630.5,
+              "durationMs": 0,
+              "endMs": 1630.5
+            }
+          ],
+          "cache": {
+            "hit": 18,
+            "miss": 0,
+            "modelRequests": 6,
+            "codeRequests": 12,
+            "maxHandlerMs": 11.94
+          },
+          "mutableRequests": [
+            {
+              "path": "/api/v1/projects?projectIds=%5B%22tk89W1Akg2HjAjyHAYEro7%22%5D&query=%22byIds%22",
+              "startMs": 35.36,
+              "durationMs": 0.15
+            },
+            {
+              "path": "/api/v1/hosts",
+              "startMs": 35.8,
+              "durationMs": 0.03
+            },
+            {
+              "path": "/api/v1/projects/tk89W1Akg2HjAjyHAYEro7",
+              "startMs": 52.24,
+              "durationMs": 0.99
+            }
+          ],
+          "revisionCounter": 0
+        }
+      ],
+      "editorErrors": [],
+      "unknownFixtureRoutes": [],
+      "blockedWrites": [],
+      "previewErrors": [
+        {
+          "phase": "dashboard-bootstrap",
+          "message": "TypeError: Cannot read properties of undefined (reading 'map')"
+        },
+        {
+          "phase": "return-list-0",
+          "message": "TypeError: Cannot read properties of undefined (reading 'map')"
+        },
+        {
+          "phase": "return-list-1",
+          "message": "TypeError: Cannot read properties of undefined (reading 'map')"
+        },
+        {
+          "phase": "return-list-2",
+          "message": "TypeError: Cannot read properties of undefined (reading 'map')"
+        },
+        {
+          "phase": "return-list-3",
+          "message": "TypeError: Cannot read properties of undefined (reading 'map')"
+        }
+      ],
+      "warmSummary": {
+        "revealMs": {
+          "median": 1673.9,
+          "min": 1605.2,
+          "max": 1790.7
+        },
+        "allFramesRenderedMs": {
+          "median": 1702.7,
+          "min": 1630.5,
+          "max": 1821.4
+        },
+        "detectedReadyMs": {
+          "median": 1907.3,
+          "min": 1811.89,
+          "max": 2023.57
+        }
+      }
+    },
+    "adminTemplates": {
+      "dataset": {
+        "kind": "published-site-replay",
+        "name": "Admin Templates",
+        "version": "3.0.0",
+        "revision": null,
+        "sourceModelResource": "27fcc468-ca51-4dca-8026-56e8d3dcf023",
+        "sha256": "1ce4db29bc3e264c045b1aba47701aed2d61c386e38c56174d1f5b1ed9868c6e",
+        "transportMetadata": "Diagnostic project response, revision 0 is a placeholder; not a recording of live revision 113.",
+        "siteContent": "Unchanged published Site and reachable objects. Only unwrap ProjectDependency envelope to make Site the bundle root.",
+        "objects": 4644,
+        "frames": 22
+      },
+      "project": {
+        "id": "145nN6S5QQBwgjtNUwuiQZ",
+        "name": "Admin Templates",
+        "revision": null,
+        "objects": 4644,
+        "sha256": "10281222e847d69dcec1f7f019e5608ebb2a70ccb7324fd9e4b9105427423517",
+        "dependencies": [
+          {
+            "id": "919fe75b-bb33-4c5c-9ec9-1cc4bf9e7014",
+            "version": "3.11.0",
+            "resource": "/api/v1/dependency-models/55f63066-ebd1-4ddf-9b50-99dbf44b20f0",
+            "sha256": "d60474154047d485dfc30147e5b63793242782756e979528f9bdc10af0ad6343"
+          },
+          {
+            "id": "7587bf89-8651-4174-be6a-c8ddef6cfed9",
+            "version": "1.13.0",
+            "resource": "/api/v1/dependency-models/f11641a0-f888-44b8-8f19-048fe8e73957",
+            "sha256": "fe4b59ca2d997c30d1c3d0e257d848f8ff35190b030cc42390be126a97821c65"
+          },
+          {
+            "id": "8c4a282f-7c00-4289-b662-ce126567b6a0",
+            "version": "0.3.0",
+            "resource": "/api/v1/dependency-models/1bad2fef-b627-4906-b9ff-5e0bfc9879e4",
+            "sha256": "b497784309c4c5081b67a5dd576d755f1932b2f81afdc4cfed2bce090dbc6b42"
+          },
+          {
+            "id": "198a369c-926b-4462-9cd0-15350299ab5e",
+            "version": "0.2.0",
+            "resource": "/api/v1/dependency-models/c945b8b4-e2ae-4c86-8f11-bb34c93ff4a2",
+            "sha256": "4b37faf0b36a10b319272d468a6a124e424d46d3a33c7cf558ff7f80cbf833ec"
+          }
+        ]
+      },
+      "rawReport": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-real-multiframe-iTgETL/list-open-final.json",
+      "rawReportSha256": "6603da0a07dd0bff819efb50aab3d8077a475d3128a2710aa5627da5e1571b73",
+      "rendererHash": "756dad50e884bd24477b4c2c807d2fa54af4165b1c442032611558147e2ef9b2",
+      "samples": [
+        {
+          "phase": "first-list-open",
+          "revealMs": 2060.3,
+          "allFramesRenderedMs": 6119.5,
+          "detectedReadyMs": 2276.71,
+          "atFirstReady": {
+            "initialFrames": 10,
+            "rendered": 1,
+            "views": 1
+          },
+          "frames": [
+            {
+              "frameUuid": "g6iKNJJfK8J6",
+              "loadStartMs": 1310.1,
+              "renderedMs": 2077.9
+            },
+            {
+              "frameUuid": "44U1arRy8od3",
+              "loadStartMs": 2278.8,
+              "renderedMs": 2669.3
+            },
+            {
+              "frameUuid": "5hdOhZbIMFun",
+              "loadStartMs": 2850.4,
+              "renderedMs": 3152.9
+            },
+            {
+              "frameUuid": "7tSIbRM6op14",
+              "loadStartMs": 3280.4,
+              "renderedMs": 3577.5
+            },
+            {
+              "frameUuid": "86t6qc4OnetH",
+              "loadStartMs": 3621.8,
+              "renderedMs": 4008.5
+            },
+            {
+              "frameUuid": "yqGY4RQZ5MAn",
+              "loadStartMs": 4028.3,
+              "renderedMs": 4361.2
+            },
+            {
+              "frameUuid": "oLy7QVaOvDxJ",
+              "loadStartMs": 4689.1,
+              "renderedMs": 5117.1
+            },
+            {
+              "frameUuid": "hy40_EK6rdX3",
+              "loadStartMs": 5193.3,
+              "renderedMs": 5566.2
+            },
+            {
+              "frameUuid": "VUCiMskxqdJw",
+              "loadStartMs": 5583.0,
+              "renderedMs": 5829.3
+            },
+            {
+              "frameUuid": "58rcnoga5nrA",
+              "loadStartMs": 5848.4,
+              "renderedMs": 6119.5
+            }
+          ],
+          "phaseTimings": [
+            {
+              "phase": "studio-module-import",
+              "frameUuid": null,
+              "startMs": 557.1,
+              "durationMs": 156.4,
+              "endMs": 713.5
+            },
+            {
+              "phase": "startup-preferences",
+              "frameUuid": null,
+              "startMs": 730.8,
+              "durationMs": 13.3,
+              "endMs": 744.1
+            },
+            {
+              "phase": "project-fetch",
+              "frameUuid": null,
+              "startMs": 744.2,
+              "durationMs": 201,
+              "endMs": 945.2
+            },
+            {
+              "phase": "model-unbundle",
+              "frameUuid": null,
+              "startMs": 945.2,
+              "durationMs": 86.4,
+              "endMs": 1031.6
+            },
+            {
+              "phase": "studio-context",
+              "frameUuid": null,
+              "startMs": 1048.6,
+              "durationMs": 35.1,
+              "endMs": 1083.7
+            },
+            {
+              "phase": "initial-route",
+              "frameUuid": null,
+              "startMs": 1055.3,
+              "durationMs": 66.6,
+              "endMs": 1121.9
+            },
+            {
+              "phase": "initial-viewport",
+              "frameUuid": null,
+              "startMs": 1055.3,
+              "durationMs": 66.7,
+              "endMs": 1122.0
+            },
+            {
+              "phase": "code-component-sync",
+              "frameUuid": null,
+              "startMs": 1255.3,
+              "durationMs": 10.5,
+              "endMs": 1265.8
+            },
+            {
+              "phase": "app-user-init",
+              "frameUuid": null,
+              "startMs": 1265.8,
+              "durationMs": 0,
+              "endMs": 1265.8
+            },
+            {
+              "phase": "initializer-ready",
+              "frameUuid": null,
+              "startMs": 1265.8,
+              "durationMs": 0,
+              "endMs": 1265.8
+            },
+            {
+              "phase": "frame-load-start",
+              "frameUuid": "g6iKNJJfK8J6",
+              "startMs": 1310.1,
+              "durationMs": 0,
+              "endMs": 1310.1
+            },
+            {
+              "phase": "frame-host-document",
+              "frameUuid": "g6iKNJJfK8J6",
+              "startMs": 1334.1,
+              "durationMs": 144.4,
+              "endMs": 1478.5
+            },
+            {
+              "phase": "frame-host-ready",
+              "frameUuid": "g6iKNJJfK8J6",
+              "startMs": 1480.1,
+              "durationMs": 90.2,
+              "endMs": 1570.3
+            },
+            {
+              "phase": "frame-runtime",
+              "frameUuid": "g6iKNJJfK8J6",
+              "startMs": 1570.3,
+              "durationMs": 43.9,
+              "endMs": 1614.2
+            },
+            {
+              "phase": "frame-component-packages",
+              "frameUuid": "g6iKNJJfK8J6",
+              "startMs": 1614.5,
+              "durationMs": 158.5,
+              "endMs": 1773.0
+            },
+            {
+              "phase": "frame-context-created",
+              "frameUuid": "g6iKNJJfK8J6",
+              "startMs": 1786.7,
+              "durationMs": 0,
+              "endMs": 1786.7
+            },
+            {
+              "phase": "frame-initialization",
+              "frameUuid": "g6iKNJJfK8J6",
+              "startMs": 1310.1,
+              "durationMs": 502.9,
+              "endMs": 1813.0
+            },
+            {
+              "phase": "frame-first-render",
+              "frameUuid": "g6iKNJJfK8J6",
+              "startMs": 1786.7,
+              "durationMs": 246.5,
+              "endMs": 2033.2
+            },
+            {
+              "phase": "canvas-revealed",
+              "frameUuid": null,
+              "startMs": 2060.3,
+              "durationMs": 0,
+              "endMs": 2060.3
+            },
+            {
+              "phase": "frame-rendered",
+              "frameUuid": "g6iKNJJfK8J6",
+              "startMs": 2077.9,
+              "durationMs": 0,
+              "endMs": 2077.9
+            },
+            {
+              "phase": "background-canvas-wait",
+              "frameUuid": null,
+              "startMs": 1813.1,
+              "durationMs": 268.4,
+              "endMs": 2081.5
+            },
+            {
+              "phase": "frame-load-start",
+              "frameUuid": "44U1arRy8od3",
+              "startMs": 2278.8,
+              "durationMs": 0,
+              "endMs": 2278.8
+            },
+            {
+              "phase": "frame-host-document",
+              "frameUuid": "44U1arRy8od3",
+              "startMs": 2281.8,
+              "durationMs": 57.6,
+              "endMs": 2339.4
+            },
+            {
+              "phase": "frame-host-ready",
+              "frameUuid": "44U1arRy8od3",
+              "startMs": 2340.3,
+              "durationMs": 1.2,
+              "endMs": 2341.5
+            },
+            {
+              "phase": "frame-runtime",
+              "frameUuid": "44U1arRy8od3",
+              "startMs": 2341.6,
+              "durationMs": 40,
+              "endMs": 2381.6
+            },
+            {
+              "phase": "frame-component-packages",
+              "frameUuid": "44U1arRy8od3",
+              "startMs": 2381.6,
+              "durationMs": 72.2,
+              "endMs": 2453.8
+            },
+            {
+              "phase": "frame-context-created",
+              "frameUuid": "44U1arRy8od3",
+              "startMs": 2455.3,
+              "durationMs": 0,
+              "endMs": 2455.3
+            },
+            {
+              "phase": "frame-initialization",
+              "frameUuid": "44U1arRy8od3",
+              "startMs": 2278.8,
+              "durationMs": 184.9,
+              "endMs": 2463.7
+            },
+            {
+              "phase": "frame-first-render",
+              "frameUuid": "44U1arRy8od3",
+              "startMs": 2484.3,
+              "durationMs": 184.3,
+              "endMs": 2668.6
+            },
+            {
+              "phase": "frame-rendered",
+              "frameUuid": "44U1arRy8od3",
+              "startMs": 2669.3,
+              "durationMs": 0,
+              "endMs": 2669.3
+            },
+            {
+              "phase": "frame-load-start",
+              "frameUuid": "5hdOhZbIMFun",
+              "startMs": 2850.4,
+              "durationMs": 0,
+              "endMs": 2850.4
+            },
+            {
+              "phase": "frame-host-document",
+              "frameUuid": "5hdOhZbIMFun",
+              "startMs": 2854.6,
+              "durationMs": 40,
+              "endMs": 2894.6
+            },
+            {
+              "phase": "frame-host-ready",
+              "frameUuid": "5hdOhZbIMFun",
+              "startMs": 2895.6,
+              "durationMs": 1.6,
+              "endMs": 2897.2
+            },
+            {
+              "phase": "frame-runtime",
+              "frameUuid": "5hdOhZbIMFun",
+              "startMs": 2897.3,
+              "durationMs": 41.9,
+              "endMs": 2939.2
+            },
+            {
+              "phase": "frame-component-packages",
+              "frameUuid": "5hdOhZbIMFun",
+              "startMs": 2939.3,
+              "durationMs": 78.4,
+              "endMs": 3017.7
+            },
+            {
+              "phase": "frame-context-created",
+              "frameUuid": "5hdOhZbIMFun",
+              "startMs": 3019.3,
+              "durationMs": 0,
+              "endMs": 3019.3
+            },
+            {
+              "phase": "frame-initialization",
+              "frameUuid": "5hdOhZbIMFun",
+              "startMs": 2850.3,
+              "durationMs": 177.7,
+              "endMs": 3028.0
+            },
+            {
+              "phase": "frame-first-render",
+              "frameUuid": "5hdOhZbIMFun",
+              "startMs": 3046.0,
+              "durationMs": 106.5,
+              "endMs": 3152.5
+            },
+            {
+              "phase": "frame-rendered",
+              "frameUuid": "5hdOhZbIMFun",
+              "startMs": 3152.9,
+              "durationMs": 0,
+              "endMs": 3152.9
+            },
+            {
+              "phase": "frame-load-start",
+              "frameUuid": "7tSIbRM6op14",
+              "startMs": 3280.4,
+              "durationMs": 0,
+              "endMs": 3280.4
+            },
+            {
+              "phase": "frame-host-document",
+              "frameUuid": "7tSIbRM6op14",
+              "startMs": 3284.3,
+              "durationMs": 39.7,
+              "endMs": 3324.0
+            },
+            {
+              "phase": "frame-host-ready",
+              "frameUuid": "7tSIbRM6op14",
+              "startMs": 3325.0,
+              "durationMs": 1.1,
+              "endMs": 3326.1
+            },
+            {
+              "phase": "frame-runtime",
+              "frameUuid": "7tSIbRM6op14",
+              "startMs": 3326.2,
+              "durationMs": 42.3,
+              "endMs": 3368.5
+            },
+            {
+              "phase": "frame-component-packages",
+              "frameUuid": "7tSIbRM6op14",
+              "startMs": 3368.6,
+              "durationMs": 75.9,
+              "endMs": 3444.5
+            },
+            {
+              "phase": "frame-context-created",
+              "frameUuid": "7tSIbRM6op14",
+              "startMs": 3446.3,
+              "durationMs": 0,
+              "endMs": 3446.3
+            },
+            {
+              "phase": "frame-initialization",
+              "frameUuid": "7tSIbRM6op14",
+              "startMs": 3280.3,
+              "durationMs": 174.5,
+              "endMs": 3454.8
+            },
+            {
+              "phase": "frame-first-render",
+              "frameUuid": "7tSIbRM6op14",
+              "startMs": 3468.7,
+              "durationMs": 108.3,
+              "endMs": 3577.0
+            },
+            {
+              "phase": "frame-rendered",
+              "frameUuid": "7tSIbRM6op14",
+              "startMs": 3577.5,
+              "durationMs": 0,
+              "endMs": 3577.5
+            },
+            {
+              "phase": "frame-load-start",
+              "frameUuid": "86t6qc4OnetH",
+              "startMs": 3621.8,
+              "durationMs": 0,
+              "endMs": 3621.8
+            },
+            {
+              "phase": "frame-host-document",
+              "frameUuid": "86t6qc4OnetH",
+              "startMs": 3625.5,
+              "durationMs": 43.7,
+              "endMs": 3669.2
+            },
+            {
+              "phase": "frame-host-ready",
+              "frameUuid": "86t6qc4OnetH",
+              "startMs": 3670.2,
+              "durationMs": 1.1,
+              "endMs": 3671.3
+            },
+            {
+              "phase": "frame-runtime",
+              "frameUuid": "86t6qc4OnetH",
+              "startMs": 3671.4,
+              "durationMs": 42.8,
+              "endMs": 3714.2
+            },
+            {
+              "phase": "frame-component-packages",
+              "frameUuid": "86t6qc4OnetH",
+              "startMs": 3714.3,
+              "durationMs": 81.8,
+              "endMs": 3796.1
+            },
+            {
+              "phase": "frame-context-created",
+              "frameUuid": "86t6qc4OnetH",
+              "startMs": 3797.3,
+              "durationMs": 0,
+              "endMs": 3797.3
+            },
+            {
+              "phase": "frame-initialization",
+              "frameUuid": "86t6qc4OnetH",
+              "startMs": 3621.7,
+              "durationMs": 183.7,
+              "endMs": 3805.4
+            },
+            {
+              "phase": "frame-first-render",
+              "frameUuid": "86t6qc4OnetH",
+              "startMs": 3818.3,
+              "durationMs": 189.9,
+              "endMs": 4008.2
+            },
+            {
+              "phase": "frame-rendered",
+              "frameUuid": "86t6qc4OnetH",
+              "startMs": 4008.5,
+              "durationMs": 0,
+              "endMs": 4008.5
+            },
+            {
+              "phase": "frame-load-start",
+              "frameUuid": "yqGY4RQZ5MAn",
+              "startMs": 4028.3,
+              "durationMs": 0,
+              "endMs": 4028.3
+            },
+            {
+              "phase": "frame-host-document",
+              "frameUuid": "yqGY4RQZ5MAn",
+              "startMs": 4032.0,
+              "durationMs": 50.4,
+              "endMs": 4082.4
+            },
+            {
+              "phase": "frame-host-ready",
+              "frameUuid": "yqGY4RQZ5MAn",
+              "startMs": 4083.5,
+              "durationMs": 4.6,
+              "endMs": 4088.1
+            },
+            {
+              "phase": "frame-runtime",
+              "frameUuid": "yqGY4RQZ5MAn",
+              "startMs": 4088.1,
+              "durationMs": 42.3,
+              "endMs": 4130.4
+            },
+            {
+              "phase": "frame-component-packages",
+              "frameUuid": "yqGY4RQZ5MAn",
+              "startMs": 4130.5,
+              "durationMs": 82.2,
+              "endMs": 4212.7
+            },
+            {
+              "phase": "frame-context-created",
+              "frameUuid": "yqGY4RQZ5MAn",
+              "startMs": 4214.0,
+              "durationMs": 0,
+              "endMs": 4214.0
+            },
+            {
+              "phase": "frame-initialization",
+              "frameUuid": "yqGY4RQZ5MAn",
+              "startMs": 4028.2,
+              "durationMs": 194.2,
+              "endMs": 4222.4
+            },
+            {
+              "phase": "frame-first-render",
+              "frameUuid": "yqGY4RQZ5MAn",
+              "startMs": 4240.2,
+              "durationMs": 120.5,
+              "endMs": 4360.7
+            },
+            {
+              "phase": "frame-rendered",
+              "frameUuid": "yqGY4RQZ5MAn",
+              "startMs": 4361.2,
+              "durationMs": 0,
+              "endMs": 4361.2
+            },
+            {
+              "phase": "frame-load-start",
+              "frameUuid": "oLy7QVaOvDxJ",
+              "startMs": 4689.1,
+              "durationMs": 0,
+              "endMs": 4689.1
+            },
+            {
+              "phase": "frame-host-document",
+              "frameUuid": "oLy7QVaOvDxJ",
+              "startMs": 4692.8,
+              "durationMs": 47.2,
+              "endMs": 4740.0
+            },
+            {
+              "phase": "frame-host-ready",
+              "frameUuid": "oLy7QVaOvDxJ",
+              "startMs": 4741.2,
+              "durationMs": 1.7,
+              "endMs": 4742.9
+            },
+            {
+              "phase": "frame-runtime",
+              "frameUuid": "oLy7QVaOvDxJ",
+              "startMs": 4742.9,
+              "durationMs": 43.1,
+              "endMs": 4786.0
+            },
+            {
+              "phase": "frame-component-packages",
+              "frameUuid": "oLy7QVaOvDxJ",
+              "startMs": 4786.1,
+              "durationMs": 82.2,
+              "endMs": 4868.3
+            },
+            {
+              "phase": "frame-context-created",
+              "frameUuid": "oLy7QVaOvDxJ",
+              "startMs": 4869.4,
+              "durationMs": 0,
+              "endMs": 4869.4
+            },
+            {
+              "phase": "frame-initialization",
+              "frameUuid": "oLy7QVaOvDxJ",
+              "startMs": 4689.1,
+              "durationMs": 187.7,
+              "endMs": 4876.8
+            },
+            {
+              "phase": "frame-first-render",
+              "frameUuid": "oLy7QVaOvDxJ",
+              "startMs": 4887.3,
+              "durationMs": 229.5,
+              "endMs": 5116.8
+            },
+            {
+              "phase": "frame-rendered",
+              "frameUuid": "oLy7QVaOvDxJ",
+              "startMs": 5117.1,
+              "durationMs": 0,
+              "endMs": 5117.1
+            },
+            {
+              "phase": "frame-load-start",
+              "frameUuid": "hy40_EK6rdX3",
+              "startMs": 5193.3,
+              "durationMs": 0,
+              "endMs": 5193.3
+            },
+            {
+              "phase": "frame-host-document",
+              "frameUuid": "hy40_EK6rdX3",
+              "startMs": 5197.7,
+              "durationMs": 68.4,
+              "endMs": 5266.1
+            },
+            {
+              "phase": "frame-host-ready",
+              "frameUuid": "hy40_EK6rdX3",
+              "startMs": 5267.1,
+              "durationMs": 10.6,
+              "endMs": 5277.7
+            },
+            {
+              "phase": "frame-runtime",
+              "frameUuid": "hy40_EK6rdX3",
+              "startMs": 5277.7,
+              "durationMs": 43.8,
+              "endMs": 5321.5
+            },
+            {
+              "phase": "frame-component-packages",
+              "frameUuid": "hy40_EK6rdX3",
+              "startMs": 5321.6,
+              "durationMs": 116.2,
+              "endMs": 5437.8
+            },
+            {
+              "phase": "frame-context-created",
+              "frameUuid": "hy40_EK6rdX3",
+              "startMs": 5439.1,
+              "durationMs": 0,
+              "endMs": 5439.1
+            },
+            {
+              "phase": "frame-initialization",
+              "frameUuid": "hy40_EK6rdX3",
+              "startMs": 5193.3,
+              "durationMs": 253.5,
+              "endMs": 5446.8
+            },
+            {
+              "phase": "frame-first-render",
+              "frameUuid": "hy40_EK6rdX3",
+              "startMs": 5469.5,
+              "durationMs": 96.3,
+              "endMs": 5565.8
+            },
+            {
+              "phase": "frame-rendered",
+              "frameUuid": "hy40_EK6rdX3",
+              "startMs": 5566.2,
+              "durationMs": 0,
+              "endMs": 5566.2
+            },
+            {
+              "phase": "frame-load-start",
+              "frameUuid": "VUCiMskxqdJw",
+              "startMs": 5583.0,
+              "durationMs": 0,
+              "endMs": 5583.0
+            },
+            {
+              "phase": "frame-host-document",
+              "frameUuid": "VUCiMskxqdJw",
+              "startMs": 5586.3,
+              "durationMs": 41.9,
+              "endMs": 5628.2
+            },
+            {
+              "phase": "frame-host-ready",
+              "frameUuid": "VUCiMskxqdJw",
+              "startMs": 5629.1,
+              "durationMs": 1.7,
+              "endMs": 5630.8
+            },
+            {
+              "phase": "frame-runtime",
+              "frameUuid": "VUCiMskxqdJw",
+              "startMs": 5630.9,
+              "durationMs": 42.6,
+              "endMs": 5673.5
+            },
+            {
+              "phase": "frame-component-packages",
+              "frameUuid": "VUCiMskxqdJw",
+              "startMs": 5673.5,
+              "durationMs": 82.4,
+              "endMs": 5755.9
+            },
+            {
+              "phase": "frame-context-created",
+              "frameUuid": "VUCiMskxqdJw",
+              "startMs": 5757.2,
+              "durationMs": 0,
+              "endMs": 5757.2
+            },
+            {
+              "phase": "frame-initialization",
+              "frameUuid": "VUCiMskxqdJw",
+              "startMs": 5583.0,
+              "durationMs": 182.3,
+              "endMs": 5765.3
+            },
+            {
+              "phase": "frame-first-render",
+              "frameUuid": "VUCiMskxqdJw",
+              "startMs": 5784.9,
+              "durationMs": 43.9,
+              "endMs": 5828.8
+            },
+            {
+              "phase": "frame-rendered",
+              "frameUuid": "VUCiMskxqdJw",
+              "startMs": 5829.3,
+              "durationMs": 0,
+              "endMs": 5829.3
+            },
+            {
+              "phase": "frame-load-start",
+              "frameUuid": "58rcnoga5nrA",
+              "startMs": 5848.4,
+              "durationMs": 0,
+              "endMs": 5848.4
+            },
+            {
+              "phase": "frame-host-document",
+              "frameUuid": "58rcnoga5nrA",
+              "startMs": 5852.2,
+              "durationMs": 50.4,
+              "endMs": 5902.6
+            },
+            {
+              "phase": "frame-host-ready",
+              "frameUuid": "58rcnoga5nrA",
+              "startMs": 5903.4,
+              "durationMs": 1.3,
+              "endMs": 5904.7
+            },
+            {
+              "phase": "frame-runtime",
+              "frameUuid": "58rcnoga5nrA",
+              "startMs": 5904.7,
+              "durationMs": 43,
+              "endMs": 5947.7
+            },
+            {
+              "phase": "frame-component-packages",
+              "frameUuid": "58rcnoga5nrA",
+              "startMs": 5947.8,
+              "durationMs": 81.6,
+              "endMs": 6029.4
+            },
+            {
+              "phase": "frame-context-created",
+              "frameUuid": "58rcnoga5nrA",
+              "startMs": 6031.0,
+              "durationMs": 0,
+              "endMs": 6031.0
+            },
+            {
+              "phase": "all-frame-contexts-created",
+              "frameUuid": null,
+              "startMs": 6031.0,
+              "durationMs": 0,
+              "endMs": 6031.0
+            },
+            {
+              "phase": "frame-initialization",
+              "frameUuid": "58rcnoga5nrA",
+              "startMs": 5848.3,
+              "durationMs": 190.1,
+              "endMs": 6038.4
+            },
+            {
+              "phase": "frame-first-render",
+              "frameUuid": "58rcnoga5nrA",
+              "startMs": 6059.0,
+              "durationMs": 59.9,
+              "endMs": 6118.9
+            },
+            {
+              "phase": "frame-rendered",
+              "frameUuid": "58rcnoga5nrA",
+              "startMs": 6119.5,
+              "durationMs": 0,
+              "endMs": 6119.5
+            },
+            {
+              "phase": "all-frames-rendered",
+              "frameUuid": null,
+              "startMs": 6119.5,
+              "durationMs": 0,
+              "endMs": 6119.5
+            }
+          ],
+          "cache": {
+            "hit": 44,
+            "miss": 9,
+            "modelRequests": 5,
+            "codeRequests": 48,
+            "maxHandlerMs": 35.25
+          },
+          "mutableRequests": [
+            {
+              "path": "/api/v1/projects?projectIds=%5B%22145nN6S5QQBwgjtNUwuiQZ%22%5D&query=%22byIds%22",
+              "startMs": 76.79,
+              "durationMs": 0.34
+            },
+            {
+              "path": "/api/v1/hosts",
+              "startMs": 78.14,
+              "durationMs": 0.16
+            },
+            {
+              "path": "/api/v1/projects/145nN6S5QQBwgjtNUwuiQZ",
+              "startMs": 93.78,
+              "durationMs": 3.16
+            }
+          ],
+          "revisionCounter": 0
+        },
+        {
+          "phase": "warm-list-open-1",
+          "revealMs": 1487.9,
+          "allFramesRenderedMs": 4555.3,
+          "detectedReadyMs": 1756.58,
+          "atFirstReady": {
+            "initialFrames": 10,
+            "rendered": 1,
+            "views": 1
+          },
+          "frames": [
+            {
+              "frameUuid": "g6iKNJJfK8J6",
+              "loadStartMs": 984.5,
+              "renderedMs": 1502.9
+            },
+            {
+              "frameUuid": "44U1arRy8od3",
+              "loadStartMs": 1843.5,
+              "renderedMs": 2222.2
+            },
+            {
+              "frameUuid": "5hdOhZbIMFun",
+              "loadStartMs": 2244.0,
+              "renderedMs": 2462.0
+            },
+            {
+              "frameUuid": "7tSIbRM6op14",
+              "loadStartMs": 2484.2,
+              "renderedMs": 2726.1
+            },
+            {
+              "frameUuid": "86t6qc4OnetH",
+              "loadStartMs": 2740.9,
+              "renderedMs": 3028.0
+            },
+            {
+              "frameUuid": "yqGY4RQZ5MAn",
+              "loadStartMs": 3045.6,
+              "renderedMs": 3281.0
+            },
+            {
+              "frameUuid": "oLy7QVaOvDxJ",
+              "loadStartMs": 3345.6,
+              "renderedMs": 3738.4
+            },
+            {
+              "frameUuid": "hy40_EK6rdX3",
+              "loadStartMs": 3838.2,
+              "renderedMs": 4153.2
+            },
+            {
+              "frameUuid": "VUCiMskxqdJw",
+              "loadStartMs": 4168.3,
+              "renderedMs": 4332.9
+            },
+            {
+              "frameUuid": "58rcnoga5nrA",
+              "loadStartMs": 4352.3,
+              "renderedMs": 4555.3
+            }
+          ],
+          "phaseTimings": [
+            {
+              "phase": "studio-module-import",
+              "frameUuid": null,
+              "startMs": 363.8,
+              "durationMs": 128.7,
+              "endMs": 492.5
+            },
+            {
+              "phase": "startup-preferences",
+              "frameUuid": null,
+              "startMs": 508.0,
+              "durationMs": 14.1,
+              "endMs": 522.1
+            },
+            {
+              "phase": "project-fetch",
+              "frameUuid": null,
+              "startMs": 522.1,
+              "durationMs": 143.1,
+              "endMs": 665.2
+            },
+            {
+              "phase": "model-unbundle",
+              "frameUuid": null,
+              "startMs": 665.2,
+              "durationMs": 87.8,
+              "endMs": 753.0
+            },
+            {
+              "phase": "studio-context",
+              "frameUuid": null,
+              "startMs": 768.7,
+              "durationMs": 27.4,
+              "endMs": 796.1
+            },
+            {
+              "phase": "initial-route",
+              "frameUuid": null,
+              "startMs": 771.5,
+              "durationMs": 67.2,
+              "endMs": 838.7
+            },
+            {
+              "phase": "initial-viewport",
+              "frameUuid": null,
+              "startMs": 771.5,
+              "durationMs": 67.3,
+              "endMs": 838.8
+            },
+            {
+              "phase": "code-component-sync",
+              "frameUuid": null,
+              "startMs": 938.5,
+              "durationMs": 5.6,
+              "endMs": 944.1
+            },
+            {
+              "phase": "app-user-init",
+              "frameUuid": null,
+              "startMs": 944.2,
+              "durationMs": 0,
+              "endMs": 944.2
+            },
+            {
+              "phase": "initializer-ready",
+              "frameUuid": null,
+              "startMs": 944.2,
+              "durationMs": 0,
+              "endMs": 944.2
+            },
+            {
+              "phase": "frame-load-start",
+              "frameUuid": "g6iKNJJfK8J6",
+              "startMs": 984.5,
+              "durationMs": 0,
+              "endMs": 984.5
+            },
+            {
+              "phase": "frame-host-document",
+              "frameUuid": "g6iKNJJfK8J6",
+              "startMs": 1007.8,
+              "durationMs": 135.7,
+              "endMs": 1143.5
+            },
+            {
+              "phase": "frame-host-ready",
+              "frameUuid": "g6iKNJJfK8J6",
+              "startMs": 1144.8,
+              "durationMs": 9,
+              "endMs": 1153.8
+            },
+            {
+              "phase": "frame-runtime",
+              "frameUuid": "g6iKNJJfK8J6",
+              "startMs": 1153.8,
+              "durationMs": 11.4,
+              "endMs": 1165.2
+            },
+            {
+              "phase": "frame-component-packages",
+              "frameUuid": "g6iKNJJfK8J6",
+              "startMs": 1165.4,
+              "durationMs": 75.5,
+              "endMs": 1240.9
+            },
+            {
+              "phase": "frame-context-created",
+              "frameUuid": "g6iKNJJfK8J6",
+              "startMs": 1251.1,
+              "durationMs": 0,
+              "endMs": 1251.1
+            },
+            {
+              "phase": "frame-initialization",
+              "frameUuid": "g6iKNJJfK8J6",
+              "startMs": 984.5,
+              "durationMs": 284.4,
+              "endMs": 1268.9
+            },
+            {
+              "phase": "frame-first-render",
+              "frameUuid": "g6iKNJJfK8J6",
+              "startMs": 1251.0,
+              "durationMs": 217.4,
+              "endMs": 1468.4
+            },
+            {
+              "phase": "canvas-revealed",
+              "frameUuid": null,
+              "startMs": 1487.9,
+              "durationMs": 0,
+              "endMs": 1487.9
+            },
+            {
+              "phase": "frame-rendered",
+              "frameUuid": "g6iKNJJfK8J6",
+              "startMs": 1502.9,
+              "durationMs": 0,
+              "endMs": 1502.9
+            },
+            {
+              "phase": "background-canvas-wait",
+              "frameUuid": null,
+              "startMs": 1269.0,
+              "durationMs": 298.7,
+              "endMs": 1567.7
+            },
+            {
+              "phase": "frame-load-start",
+              "frameUuid": "44U1arRy8od3",
+              "startMs": 1843.5,
+              "durationMs": 0,
+              "endMs": 1843.5
+            },
+            {
+              "phase": "frame-host-document",
+              "frameUuid": "44U1arRy8od3",
+              "startMs": 1847.4,
+              "durationMs": 47.3,
+              "endMs": 1894.7
+            },
+            {
+              "phase": "frame-host-ready",
+              "frameUuid": "44U1arRy8od3",
+              "startMs": 1895.7,
+              "durationMs": 4.5,
+              "endMs": 1900.2
+            },
+            {
+              "phase": "frame-runtime",
+              "frameUuid": "44U1arRy8od3",
+              "startMs": 1900.3,
+              "durationMs": 7.7,
+              "endMs": 1908.0
+            },
+            {
+              "phase": "frame-component-packages",
+              "frameUuid": "44U1arRy8od3",
+              "startMs": 1908.1,
+              "durationMs": 35.4,
+              "endMs": 1943.5
+            },
+            {
+              "phase": "frame-context-created",
+              "frameUuid": "44U1arRy8od3",
+              "startMs": 1944.8,
+              "durationMs": 0,
+              "endMs": 1944.8
+            },
+            {
+              "phase": "frame-initialization",
+              "frameUuid": "44U1arRy8od3",
+              "startMs": 1843.5,
+              "durationMs": 112.5,
+              "endMs": 1956.0
+            },
+            {
+              "phase": "frame-first-render",
+              "frameUuid": "44U1arRy8od3",
+              "startMs": 1981.5,
+              "durationMs": 240.2,
+              "endMs": 2221.7
+            },
+            {
+              "phase": "frame-rendered",
+              "frameUuid": "44U1arRy8od3",
+              "startMs": 2222.2,
+              "durationMs": 0,
+              "endMs": 2222.2
+            },
+            {
+              "phase": "frame-load-start",
+              "frameUuid": "5hdOhZbIMFun",
+              "startMs": 2244.0,
+              "durationMs": 0,
+              "endMs": 2244.0
+            },
+            {
+              "phase": "frame-host-document",
+              "frameUuid": "5hdOhZbIMFun",
+              "startMs": 2247.1,
+              "durationMs": 47.7,
+              "endMs": 2294.8
+            },
+            {
+              "phase": "frame-host-ready",
+              "frameUuid": "5hdOhZbIMFun",
+              "startMs": 2295.6,
+              "durationMs": 5.7,
+              "endMs": 2301.3
+            },
+            {
+              "phase": "frame-runtime",
+              "frameUuid": "5hdOhZbIMFun",
+              "startMs": 2301.3,
+              "durationMs": 7.2,
+              "endMs": 2308.5
+            },
+            {
+              "phase": "frame-component-packages",
+              "frameUuid": "5hdOhZbIMFun",
+              "startMs": 2308.6,
+              "durationMs": 36.6,
+              "endMs": 2345.2
+            },
+            {
+              "phase": "frame-context-created",
+              "frameUuid": "5hdOhZbIMFun",
+              "startMs": 2346.3,
+              "durationMs": 0,
+              "endMs": 2346.3
+            },
+            {
+              "phase": "frame-initialization",
+              "frameUuid": "5hdOhZbIMFun",
+              "startMs": 2244.0,
+              "durationMs": 110.9,
+              "endMs": 2354.9
+            },
+            {
+              "phase": "frame-first-render",
+              "frameUuid": "5hdOhZbIMFun",
+              "startMs": 2371.1,
+              "durationMs": 90.3,
+              "endMs": 2461.4
+            },
+            {
+              "phase": "frame-rendered",
+              "frameUuid": "5hdOhZbIMFun",
+              "startMs": 2462.0,
+              "durationMs": 0,
+              "endMs": 2462.0
+            },
+            {
+              "phase": "frame-load-start",
+              "frameUuid": "7tSIbRM6op14",
+              "startMs": 2484.2,
+              "durationMs": 0,
+              "endMs": 2484.2
+            },
+            {
+              "phase": "frame-host-document",
+              "frameUuid": "7tSIbRM6op14",
+              "startMs": 2486.9,
+              "durationMs": 39.7,
+              "endMs": 2526.6
+            },
+            {
+              "phase": "frame-host-ready",
+              "frameUuid": "7tSIbRM6op14",
+              "startMs": 2527.6,
+              "durationMs": 1.1,
+              "endMs": 2528.7
+            },
+            {
+              "phase": "frame-runtime",
+              "frameUuid": "7tSIbRM6op14",
+              "startMs": 2528.7,
+              "durationMs": 6.7,
+              "endMs": 2535.4
+            },
+            {
+              "phase": "frame-component-packages",
+              "frameUuid": "7tSIbRM6op14",
+              "startMs": 2535.5,
+              "durationMs": 39.7,
+              "endMs": 2575.2
+            },
+            {
+              "phase": "frame-context-created",
+              "frameUuid": "7tSIbRM6op14",
+              "startMs": 2576.3,
+              "durationMs": 0,
+              "endMs": 2576.3
+            },
+            {
+              "phase": "frame-initialization",
+              "frameUuid": "7tSIbRM6op14",
+              "startMs": 2484.1,
+              "durationMs": 98.9,
+              "endMs": 2583.0
+            },
+            {
+              "phase": "frame-first-render",
+              "frameUuid": "7tSIbRM6op14",
+              "startMs": 2599.9,
+              "durationMs": 125.9,
+              "endMs": 2725.8
+            },
+            {
+              "phase": "frame-rendered",
+              "frameUuid": "7tSIbRM6op14",
+              "startMs": 2726.1,
+              "durationMs": 0,
+              "endMs": 2726.1
+            },
+            {
+              "phase": "frame-load-start",
+              "frameUuid": "86t6qc4OnetH",
+              "startMs": 2740.9,
+              "durationMs": 0,
+              "endMs": 2740.9
+            },
+            {
+              "phase": "frame-host-document",
+              "frameUuid": "86t6qc4OnetH",
+              "startMs": 2744.2,
+              "durationMs": 36.6,
+              "endMs": 2780.8
+            },
+            {
+              "phase": "frame-host-ready",
+              "frameUuid": "86t6qc4OnetH",
+              "startMs": 2781.7,
+              "durationMs": 1.2,
+              "endMs": 2782.9
+            },
+            {
+              "phase": "frame-runtime",
+              "frameUuid": "86t6qc4OnetH",
+              "startMs": 2782.9,
+              "durationMs": 7.4,
+              "endMs": 2790.3
+            },
+            {
+              "phase": "frame-component-packages",
+              "frameUuid": "86t6qc4OnetH",
+              "startMs": 2790.5,
+              "durationMs": 42.6,
+              "endMs": 2833.1
+            },
+            {
+              "phase": "frame-context-created",
+              "frameUuid": "86t6qc4OnetH",
+              "startMs": 2834.6,
+              "durationMs": 0,
+              "endMs": 2834.6
+            },
+            {
+              "phase": "frame-initialization",
+              "frameUuid": "86t6qc4OnetH",
+              "startMs": 2740.9,
+              "durationMs": 101.3,
+              "endMs": 2842.2
+            },
+            {
+              "phase": "frame-first-render",
+              "frameUuid": "86t6qc4OnetH",
+              "startMs": 2854.8,
+              "durationMs": 172.8,
+              "endMs": 3027.6
+            },
+            {
+              "phase": "frame-rendered",
+              "frameUuid": "86t6qc4OnetH",
+              "startMs": 3028.0,
+              "durationMs": 0,
+              "endMs": 3028.0
+            },
+            {
+              "phase": "frame-load-start",
+              "frameUuid": "yqGY4RQZ5MAn",
+              "startMs": 3045.6,
+              "durationMs": 0,
+              "endMs": 3045.6
+            },
+            {
+              "phase": "frame-host-document",
+              "frameUuid": "yqGY4RQZ5MAn",
+              "startMs": 3048.8,
+              "durationMs": 48,
+              "endMs": 3096.8
+            },
+            {
+              "phase": "frame-host-ready",
+              "frameUuid": "yqGY4RQZ5MAn",
+              "startMs": 3097.7,
+              "durationMs": 1.1,
+              "endMs": 3098.8
+            },
+            {
+              "phase": "frame-runtime",
+              "frameUuid": "yqGY4RQZ5MAn",
+              "startMs": 3098.8,
+              "durationMs": 7.2,
+              "endMs": 3106.0
+            },
+            {
+              "phase": "frame-component-packages",
+              "frameUuid": "yqGY4RQZ5MAn",
+              "startMs": 3106.0,
+              "durationMs": 39.9,
+              "endMs": 3145.9
+            },
+            {
+              "phase": "frame-context-created",
+              "frameUuid": "yqGY4RQZ5MAn",
+              "startMs": 3147.1,
+              "durationMs": 0,
+              "endMs": 3147.1
+            },
+            {
+              "phase": "frame-initialization",
+              "frameUuid": "yqGY4RQZ5MAn",
+              "startMs": 3045.6,
+              "durationMs": 108.3,
+              "endMs": 3153.9
+            },
+            {
+              "phase": "frame-first-render",
+              "frameUuid": "yqGY4RQZ5MAn",
+              "startMs": 3169.7,
+              "durationMs": 110.9,
+              "endMs": 3280.6
+            },
+            {
+              "phase": "frame-rendered",
+              "frameUuid": "yqGY4RQZ5MAn",
+              "startMs": 3281.0,
+              "durationMs": 0,
+              "endMs": 3281.0
+            },
+            {
+              "phase": "frame-load-start",
+              "frameUuid": "oLy7QVaOvDxJ",
+              "startMs": 3345.6,
+              "durationMs": 0,
+              "endMs": 3345.6
+            },
+            {
+              "phase": "frame-host-document",
+              "frameUuid": "oLy7QVaOvDxJ",
+              "startMs": 3355.4,
+              "durationMs": 54.8,
+              "endMs": 3410.2
+            },
+            {
+              "phase": "frame-host-ready",
+              "frameUuid": "oLy7QVaOvDxJ",
+              "startMs": 3411.0,
+              "durationMs": 0.9,
+              "endMs": 3411.9
+            },
+            {
+              "phase": "frame-runtime",
+              "frameUuid": "oLy7QVaOvDxJ",
+              "startMs": 3412.0,
+              "durationMs": 7.4,
+              "endMs": 3419.4
+            },
+            {
+              "phase": "frame-component-packages",
+              "frameUuid": "oLy7QVaOvDxJ",
+              "startMs": 3419.5,
+              "durationMs": 53.1,
+              "endMs": 3472.6
+            },
+            {
+              "phase": "frame-context-created",
+              "frameUuid": "oLy7QVaOvDxJ",
+              "startMs": 3473.9,
+              "durationMs": 0,
+              "endMs": 3473.9
+            },
+            {
+              "phase": "frame-initialization",
+              "frameUuid": "oLy7QVaOvDxJ",
+              "startMs": 3345.6,
+              "durationMs": 134.9,
+              "endMs": 3480.5
+            },
+            {
+              "phase": "frame-first-render",
+              "frameUuid": "oLy7QVaOvDxJ",
+              "startMs": 3522.5,
+              "durationMs": 215.6,
+              "endMs": 3738.1
+            },
+            {
+              "phase": "frame-rendered",
+              "frameUuid": "oLy7QVaOvDxJ",
+              "startMs": 3738.4,
+              "durationMs": 0,
+              "endMs": 3738.4
+            },
+            {
+              "phase": "frame-load-start",
+              "frameUuid": "hy40_EK6rdX3",
+              "startMs": 3838.2,
+              "durationMs": 0,
+              "endMs": 3838.2
+            },
+            {
+              "phase": "frame-host-document",
+              "frameUuid": "hy40_EK6rdX3",
+              "startMs": 3841.3,
+              "durationMs": 49.8,
+              "endMs": 3891.1
+            },
+            {
+              "phase": "frame-host-ready",
+              "frameUuid": "hy40_EK6rdX3",
+              "startMs": 3892.1,
+              "durationMs": 1.7,
+              "endMs": 3893.8
+            },
+            {
+              "phase": "frame-runtime",
+              "frameUuid": "hy40_EK6rdX3",
+              "startMs": 3893.9,
+              "durationMs": 7.2,
+              "endMs": 3901.1
+            },
+            {
+              "phase": "frame-component-packages",
+              "frameUuid": "hy40_EK6rdX3",
+              "startMs": 3901.1,
+              "durationMs": 80.4,
+              "endMs": 3981.5
+            },
+            {
+              "phase": "frame-context-created",
+              "frameUuid": "hy40_EK6rdX3",
+              "startMs": 3983.0,
+              "durationMs": 0,
+              "endMs": 3983.0
+            },
+            {
+              "phase": "frame-initialization",
+              "frameUuid": "hy40_EK6rdX3",
+              "startMs": 3838.2,
+              "durationMs": 152,
+              "endMs": 3990.2
+            },
+            {
+              "phase": "frame-first-render",
+              "frameUuid": "hy40_EK6rdX3",
+              "startMs": 4063.6,
+              "durationMs": 89.3,
+              "endMs": 4152.9
+            },
+            {
+              "phase": "frame-rendered",
+              "frameUuid": "hy40_EK6rdX3",
+              "startMs": 4153.2,
+              "durationMs": 0,
+              "endMs": 4153.2
+            },
+            {
+              "phase": "frame-load-start",
+              "frameUuid": "VUCiMskxqdJw",
+              "startMs": 4168.3,
+              "durationMs": 0,
+              "endMs": 4168.3
+            },
+            {
+              "phase": "frame-host-document",
+              "frameUuid": "VUCiMskxqdJw",
+              "startMs": 4171.2,
+              "durationMs": 40.6,
+              "endMs": 4211.8
+            },
+            {
+              "phase": "frame-host-ready",
+              "frameUuid": "VUCiMskxqdJw",
+              "startMs": 4212.6,
+              "durationMs": 4.6,
+              "endMs": 4217.2
+            },
+            {
+              "phase": "frame-runtime",
+              "frameUuid": "VUCiMskxqdJw",
+              "startMs": 4217.2,
+              "durationMs": 7.3,
+              "endMs": 4224.5
+            },
+            {
+              "phase": "frame-component-packages",
+              "frameUuid": "VUCiMskxqdJw",
+              "startMs": 4224.5,
+              "durationMs": 43.1,
+              "endMs": 4267.6
+            },
+            {
+              "phase": "frame-context-created",
+              "frameUuid": "VUCiMskxqdJw",
+              "startMs": 4269.4,
+              "durationMs": 0,
+              "endMs": 4269.4
+            },
+            {
+              "phase": "frame-initialization",
+              "frameUuid": "VUCiMskxqdJw",
+              "startMs": 4168.3,
+              "durationMs": 108.4,
+              "endMs": 4276.7
+            },
+            {
+              "phase": "frame-first-render",
+              "frameUuid": "VUCiMskxqdJw",
+              "startMs": 4294.3,
+              "durationMs": 38.3,
+              "endMs": 4332.6
+            },
+            {
+              "phase": "frame-rendered",
+              "frameUuid": "VUCiMskxqdJw",
+              "startMs": 4332.9,
+              "durationMs": 0,
+              "endMs": 4332.9
+            },
+            {
+              "phase": "frame-load-start",
+              "frameUuid": "58rcnoga5nrA",
+              "startMs": 4352.3,
+              "durationMs": 0,
+              "endMs": 4352.3
+            },
+            {
+              "phase": "frame-host-document",
+              "frameUuid": "58rcnoga5nrA",
+              "startMs": 4355.5,
+              "durationMs": 48.9,
+              "endMs": 4404.4
+            },
+            {
+              "phase": "frame-host-ready",
+              "frameUuid": "58rcnoga5nrA",
+              "startMs": 4405.2,
+              "durationMs": 1.1,
+              "endMs": 4406.3
+            },
+            {
+              "phase": "frame-runtime",
+              "frameUuid": "58rcnoga5nrA",
+              "startMs": 4406.3,
+              "durationMs": 7.5,
+              "endMs": 4413.8
+            },
+            {
+              "phase": "frame-component-packages",
+              "frameUuid": "58rcnoga5nrA",
+              "startMs": 4414.0,
+              "durationMs": 45.1,
+              "endMs": 4459.1
+            },
+            {
+              "phase": "frame-context-created",
+              "frameUuid": "58rcnoga5nrA",
+              "startMs": 4460.5,
+              "durationMs": 0,
+              "endMs": 4460.5
+            },
+            {
+              "phase": "all-frame-contexts-created",
+              "frameUuid": null,
+              "startMs": 4460.5,
+              "durationMs": 0,
+              "endMs": 4460.5
+            },
+            {
+              "phase": "frame-initialization",
+              "frameUuid": "58rcnoga5nrA",
+              "startMs": 4352.3,
+              "durationMs": 115,
+              "endMs": 4467.3
+            },
+            {
+              "phase": "frame-first-render",
+              "frameUuid": "58rcnoga5nrA",
+              "startMs": 4483.8,
+              "durationMs": 70.6,
+              "endMs": 4554.4
+            },
+            {
+              "phase": "frame-rendered",
+              "frameUuid": "58rcnoga5nrA",
+              "startMs": 4555.3,
+              "durationMs": 0,
+              "endMs": 4555.3
+            },
+            {
+              "phase": "all-frames-rendered",
+              "frameUuid": null,
+              "startMs": 4555.3,
+              "durationMs": 0,
+              "endMs": 4555.3
+            }
+          ],
+          "cache": {
+            "hit": 53,
+            "miss": 0,
+            "modelRequests": 5,
+            "codeRequests": 48,
+            "maxHandlerMs": 12.0
+          },
+          "mutableRequests": [
+            {
+              "path": "/api/v1/projects?projectIds=%5B%22145nN6S5QQBwgjtNUwuiQZ%22%5D&query=%22byIds%22",
+              "startMs": 30.97,
+              "durationMs": 0.14
+            },
+            {
+              "path": "/api/v1/hosts",
+              "startMs": 31.54,
+              "durationMs": 0.1
+            },
+            {
+              "path": "/api/v1/projects/145nN6S5QQBwgjtNUwuiQZ",
+              "startMs": 43.04,
+              "durationMs": 3.13
+            }
+          ],
+          "revisionCounter": 0
+        },
+        {
+          "phase": "warm-list-open-2",
+          "revealMs": 1574.0,
+          "allFramesRenderedMs": 4487.6,
+          "detectedReadyMs": 1803.32,
+          "atFirstReady": {
+            "initialFrames": 10,
+            "rendered": 1,
+            "views": 1
+          },
+          "frames": [
+            {
+              "frameUuid": "g6iKNJJfK8J6",
+              "loadStartMs": 1007.6,
+              "renderedMs": 1589.9
+            },
+            {
+              "frameUuid": "44U1arRy8od3",
+              "loadStartMs": 1804.7,
+              "renderedMs": 2163.8
+            },
+            {
+              "frameUuid": "5hdOhZbIMFun",
+              "loadStartMs": 2191.4,
+              "renderedMs": 2408.6
+            },
+            {
+              "frameUuid": "7tSIbRM6op14",
+              "loadStartMs": 2429.1,
+              "renderedMs": 2679.3
+            },
+            {
+              "frameUuid": "86t6qc4OnetH",
+              "loadStartMs": 2692.4,
+              "renderedMs": 2986.0
+            },
+            {
+              "frameUuid": "yqGY4RQZ5MAn",
+              "loadStartMs": 3006.0,
+              "renderedMs": 3274.9
+            },
+            {
+              "frameUuid": "oLy7QVaOvDxJ",
+              "loadStartMs": 3314.7,
+              "renderedMs": 3659.7
+            },
+            {
+              "frameUuid": "hy40_EK6rdX3",
+              "loadStartMs": 3734.9,
+              "renderedMs": 4069.5
+            },
+            {
+              "frameUuid": "VUCiMskxqdJw",
+              "loadStartMs": 4086.9,
+              "renderedMs": 4249.5
+            },
+            {
+              "frameUuid": "58rcnoga5nrA",
+              "loadStartMs": 4292.3,
+              "renderedMs": 4487.6
+            }
+          ],
+          "phaseTimings": [
+            {
+              "phase": "studio-module-import",
+              "frameUuid": null,
+              "startMs": 376.0,
+              "durationMs": 133.1,
+              "endMs": 509.1
+            },
+            {
+              "phase": "startup-preferences",
+              "frameUuid": null,
+              "startMs": 526.6,
+              "durationMs": 13.3,
+              "endMs": 539.9
+            },
+            {
+              "phase": "project-fetch",
+              "frameUuid": null,
+              "startMs": 539.9,
+              "durationMs": 122.5,
+              "endMs": 662.4
+            },
+            {
+              "phase": "model-unbundle",
+              "frameUuid": null,
+              "startMs": 662.5,
+              "durationMs": 96.2,
+              "endMs": 758.7
+            },
+            {
+              "phase": "studio-context",
+              "frameUuid": null,
+              "startMs": 774.7,
+              "durationMs": 27.4,
+              "endMs": 802.1
+            },
+            {
+              "phase": "initial-route",
+              "frameUuid": null,
+              "startMs": 777.2,
+              "durationMs": 69.1,
+              "endMs": 846.3
+            },
+            {
+              "phase": "initial-viewport",
+              "frameUuid": null,
+              "startMs": 777.2,
+              "durationMs": 69.1,
+              "endMs": 846.3
+            },
+            {
+              "phase": "code-component-sync",
+              "frameUuid": null,
+              "startMs": 954.6,
+              "durationMs": 7.6,
+              "endMs": 962.2
+            },
+            {
+              "phase": "app-user-init",
+              "frameUuid": null,
+              "startMs": 962.2,
+              "durationMs": 0,
+              "endMs": 962.2
+            },
+            {
+              "phase": "initializer-ready",
+              "frameUuid": null,
+              "startMs": 962.2,
+              "durationMs": 0,
+              "endMs": 962.2
+            },
+            {
+              "phase": "frame-load-start",
+              "frameUuid": "g6iKNJJfK8J6",
+              "startMs": 1007.6,
+              "durationMs": 0,
+              "endMs": 1007.6
+            },
+            {
+              "phase": "frame-host-document",
+              "frameUuid": "g6iKNJJfK8J6",
+              "startMs": 1034.0,
+              "durationMs": 160.3,
+              "endMs": 1194.3
+            },
+            {
+              "phase": "frame-host-ready",
+              "frameUuid": "g6iKNJJfK8J6",
+              "startMs": 1196.3,
+              "durationMs": 10.7,
+              "endMs": 1207.0
+            },
+            {
+              "phase": "frame-runtime",
+              "frameUuid": "g6iKNJJfK8J6",
+              "startMs": 1207.1,
+              "durationMs": 27.6,
+              "endMs": 1234.7
+            },
+            {
+              "phase": "frame-component-packages",
+              "frameUuid": "g6iKNJJfK8J6",
+              "startMs": 1234.9,
+              "durationMs": 76.3,
+              "endMs": 1311.2
+            },
+            {
+              "phase": "frame-context-created",
+              "frameUuid": "g6iKNJJfK8J6",
+              "startMs": 1322.0,
+              "durationMs": 0,
+              "endMs": 1322.0
+            },
+            {
+              "phase": "frame-initialization",
+              "frameUuid": "g6iKNJJfK8J6",
+              "startMs": 1007.6,
+              "durationMs": 344.1,
+              "endMs": 1351.7
+            },
+            {
+              "phase": "frame-first-render",
+              "frameUuid": "g6iKNJJfK8J6",
+              "startMs": 1321.9,
+              "durationMs": 224.5,
+              "endMs": 1546.4
+            },
+            {
+              "phase": "canvas-revealed",
+              "frameUuid": null,
+              "startMs": 1574.0,
+              "durationMs": 0,
+              "endMs": 1574.0
+            },
+            {
+              "phase": "frame-rendered",
+              "frameUuid": "g6iKNJJfK8J6",
+              "startMs": 1589.9,
+              "durationMs": 0,
+              "endMs": 1589.9
+            },
+            {
+              "phase": "background-canvas-wait",
+              "frameUuid": null,
+              "startMs": 1351.8,
+              "durationMs": 295.3,
+              "endMs": 1647.1
+            },
+            {
+              "phase": "frame-load-start",
+              "frameUuid": "44U1arRy8od3",
+              "startMs": 1804.7,
+              "durationMs": 0,
+              "endMs": 1804.7
+            },
+            {
+              "phase": "frame-host-document",
+              "frameUuid": "44U1arRy8od3",
+              "startMs": 1808.3,
+              "durationMs": 49.2,
+              "endMs": 1857.5
+            },
+            {
+              "phase": "frame-host-ready",
+              "frameUuid": "44U1arRy8od3",
+              "startMs": 1858.3,
+              "durationMs": 1,
+              "endMs": 1859.3
+            },
+            {
+              "phase": "frame-runtime",
+              "frameUuid": "44U1arRy8od3",
+              "startMs": 1859.3,
+              "durationMs": 15.3,
+              "endMs": 1874.6
+            },
+            {
+              "phase": "frame-component-packages",
+              "frameUuid": "44U1arRy8od3",
+              "startMs": 1874.8,
+              "durationMs": 37.4,
+              "endMs": 1912.2
+            },
+            {
+              "phase": "frame-context-created",
+              "frameUuid": "44U1arRy8od3",
+              "startMs": 1913.6,
+              "durationMs": 0,
+              "endMs": 1913.6
+            },
+            {
+              "phase": "frame-initialization",
+              "frameUuid": "44U1arRy8od3",
+              "startMs": 1804.7,
+              "durationMs": 117.6,
+              "endMs": 1922.3
+            },
+            {
+              "phase": "frame-first-render",
+              "frameUuid": "44U1arRy8od3",
+              "startMs": 1939.1,
+              "durationMs": 224.2,
+              "endMs": 2163.3
+            },
+            {
+              "phase": "frame-rendered",
+              "frameUuid": "44U1arRy8od3",
+              "startMs": 2163.8,
+              "durationMs": 0,
+              "endMs": 2163.8
+            },
+            {
+              "phase": "frame-load-start",
+              "frameUuid": "5hdOhZbIMFun",
+              "startMs": 2191.4,
+              "durationMs": 0,
+              "endMs": 2191.4
+            },
+            {
+              "phase": "frame-host-document",
+              "frameUuid": "5hdOhZbIMFun",
+              "startMs": 2195.0,
+              "durationMs": 39.2,
+              "endMs": 2234.2
+            },
+            {
+              "phase": "frame-host-ready",
+              "frameUuid": "5hdOhZbIMFun",
+              "startMs": 2235.2,
+              "durationMs": 11.2,
+              "endMs": 2246.4
+            },
+            {
+              "phase": "frame-runtime",
+              "frameUuid": "5hdOhZbIMFun",
+              "startMs": 2246.5,
+              "durationMs": 6.8,
+              "endMs": 2253.3
+            },
+            {
+              "phase": "frame-component-packages",
+              "frameUuid": "5hdOhZbIMFun",
+              "startMs": 2253.4,
+              "durationMs": 38.3,
+              "endMs": 2291.7
+            },
+            {
+              "phase": "frame-context-created",
+              "frameUuid": "5hdOhZbIMFun",
+              "startMs": 2293.1,
+              "durationMs": 0,
+              "endMs": 2293.1
+            },
+            {
+              "phase": "frame-initialization",
+              "frameUuid": "5hdOhZbIMFun",
+              "startMs": 2191.4,
+              "durationMs": 109.7,
+              "endMs": 2301.1
+            },
+            {
+              "phase": "frame-first-render",
+              "frameUuid": "5hdOhZbIMFun",
+              "startMs": 2317.4,
+              "durationMs": 90.9,
+              "endMs": 2408.3
+            },
+            {
+              "phase": "frame-rendered",
+              "frameUuid": "5hdOhZbIMFun",
+              "startMs": 2408.6,
+              "durationMs": 0,
+              "endMs": 2408.6
+            },
+            {
+              "phase": "frame-load-start",
+              "frameUuid": "7tSIbRM6op14",
+              "startMs": 2429.1,
+              "durationMs": 0,
+              "endMs": 2429.1
+            },
+            {
+              "phase": "frame-host-document",
+              "frameUuid": "7tSIbRM6op14",
+              "startMs": 2432.4,
+              "durationMs": 45.6,
+              "endMs": 2478.0
+            },
+            {
+              "phase": "frame-host-ready",
+              "frameUuid": "7tSIbRM6op14",
+              "startMs": 2478.7,
+              "durationMs": 0.9,
+              "endMs": 2479.6
+            },
+            {
+              "phase": "frame-runtime",
+              "frameUuid": "7tSIbRM6op14",
+              "startMs": 2479.6,
+              "durationMs": 6.9,
+              "endMs": 2486.5
+            },
+            {
+              "phase": "frame-component-packages",
+              "frameUuid": "7tSIbRM6op14",
+              "startMs": 2486.6,
+              "durationMs": 36.6,
+              "endMs": 2523.2
+            },
+            {
+              "phase": "frame-context-created",
+              "frameUuid": "7tSIbRM6op14",
+              "startMs": 2524.5,
+              "durationMs": 0,
+              "endMs": 2524.5
+            },
+            {
+              "phase": "frame-initialization",
+              "frameUuid": "7tSIbRM6op14",
+              "startMs": 2429.1,
+              "durationMs": 103.4,
+              "endMs": 2532.5
+            },
+            {
+              "phase": "frame-first-render",
+              "frameUuid": "7tSIbRM6op14",
+              "startMs": 2549.2,
+              "durationMs": 129.6,
+              "endMs": 2678.8
+            },
+            {
+              "phase": "frame-rendered",
+              "frameUuid": "7tSIbRM6op14",
+              "startMs": 2679.3,
+              "durationMs": 0,
+              "endMs": 2679.3
+            },
+            {
+              "phase": "frame-load-start",
+              "frameUuid": "86t6qc4OnetH",
+              "startMs": 2692.4,
+              "durationMs": 0,
+              "endMs": 2692.4
+            },
+            {
+              "phase": "frame-host-document",
+              "frameUuid": "86t6qc4OnetH",
+              "startMs": 2696.5,
+              "durationMs": 42.7,
+              "endMs": 2739.2
+            },
+            {
+              "phase": "frame-host-ready",
+              "frameUuid": "86t6qc4OnetH",
+              "startMs": 2740.1,
+              "durationMs": 4.5,
+              "endMs": 2744.6
+            },
+            {
+              "phase": "frame-runtime",
+              "frameUuid": "86t6qc4OnetH",
+              "startMs": 2744.6,
+              "durationMs": 6.7,
+              "endMs": 2751.3
+            },
+            {
+              "phase": "frame-component-packages",
+              "frameUuid": "86t6qc4OnetH",
+              "startMs": 2751.4,
+              "durationMs": 39,
+              "endMs": 2790.4
+            },
+            {
+              "phase": "frame-context-created",
+              "frameUuid": "86t6qc4OnetH",
+              "startMs": 2792.0,
+              "durationMs": 0,
+              "endMs": 2792.0
+            },
+            {
+              "phase": "frame-initialization",
+              "frameUuid": "86t6qc4OnetH",
+              "startMs": 2692.4,
+              "durationMs": 107.4,
+              "endMs": 2799.8
+            },
+            {
+              "phase": "frame-first-render",
+              "frameUuid": "86t6qc4OnetH",
+              "startMs": 2807.5,
+              "durationMs": 178.3,
+              "endMs": 2985.8
+            },
+            {
+              "phase": "frame-rendered",
+              "frameUuid": "86t6qc4OnetH",
+              "startMs": 2986.0,
+              "durationMs": 0,
+              "endMs": 2986.0
+            },
+            {
+              "phase": "frame-load-start",
+              "frameUuid": "yqGY4RQZ5MAn",
+              "startMs": 3006.0,
+              "durationMs": 0,
+              "endMs": 3006.0
+            },
+            {
+              "phase": "frame-host-document",
+              "frameUuid": "yqGY4RQZ5MAn",
+              "startMs": 3009.1,
+              "durationMs": 41.3,
+              "endMs": 3050.4
+            },
+            {
+              "phase": "frame-host-ready",
+              "frameUuid": "yqGY4RQZ5MAn",
+              "startMs": 3051.5,
+              "durationMs": 1.6,
+              "endMs": 3053.1
+            },
+            {
+              "phase": "frame-runtime",
+              "frameUuid": "yqGY4RQZ5MAn",
+              "startMs": 3053.1,
+              "durationMs": 6.7,
+              "endMs": 3059.8
+            },
+            {
+              "phase": "frame-component-packages",
+              "frameUuid": "yqGY4RQZ5MAn",
+              "startMs": 3059.9,
+              "durationMs": 39.6,
+              "endMs": 3099.5
+            },
+            {
+              "phase": "frame-context-created",
+              "frameUuid": "yqGY4RQZ5MAn",
+              "startMs": 3100.8,
+              "durationMs": 0,
+              "endMs": 3100.8
+            },
+            {
+              "phase": "frame-initialization",
+              "frameUuid": "yqGY4RQZ5MAn",
+              "startMs": 3005.9,
+              "durationMs": 101.8,
+              "endMs": 3107.7
+            },
+            {
+              "phase": "frame-first-render",
+              "frameUuid": "yqGY4RQZ5MAn",
+              "startMs": 3125.6,
+              "durationMs": 148.8,
+              "endMs": 3274.4
+            },
+            {
+              "phase": "frame-rendered",
+              "frameUuid": "yqGY4RQZ5MAn",
+              "startMs": 3274.9,
+              "durationMs": 0,
+              "endMs": 3274.9
+            },
+            {
+              "phase": "frame-load-start",
+              "frameUuid": "oLy7QVaOvDxJ",
+              "startMs": 3314.7,
+              "durationMs": 0,
+              "endMs": 3314.7
+            },
+            {
+              "phase": "frame-host-document",
+              "frameUuid": "oLy7QVaOvDxJ",
+              "startMs": 3318.3,
+              "durationMs": 45.7,
+              "endMs": 3364.0
+            },
+            {
+              "phase": "frame-host-ready",
+              "frameUuid": "oLy7QVaOvDxJ",
+              "startMs": 3364.9,
+              "durationMs": 1.1,
+              "endMs": 3366.0
+            },
+            {
+              "phase": "frame-runtime",
+              "frameUuid": "oLy7QVaOvDxJ",
+              "startMs": 3366.0,
+              "durationMs": 6.7,
+              "endMs": 3372.7
+            },
+            {
+              "phase": "frame-component-packages",
+              "frameUuid": "oLy7QVaOvDxJ",
+              "startMs": 3372.8,
+              "durationMs": 41.8,
+              "endMs": 3414.6
+            },
+            {
+              "phase": "frame-context-created",
+              "frameUuid": "oLy7QVaOvDxJ",
+              "startMs": 3416.2,
+              "durationMs": 0,
+              "endMs": 3416.2
+            },
+            {
+              "phase": "frame-initialization",
+              "frameUuid": "oLy7QVaOvDxJ",
+              "startMs": 3314.7,
+              "durationMs": 109.4,
+              "endMs": 3424.1
+            },
+            {
+              "phase": "frame-first-render",
+              "frameUuid": "oLy7QVaOvDxJ",
+              "startMs": 3443.3,
+              "durationMs": 216.2,
+              "endMs": 3659.5
+            },
+            {
+              "phase": "frame-rendered",
+              "frameUuid": "oLy7QVaOvDxJ",
+              "startMs": 3659.7,
+              "durationMs": 0,
+              "endMs": 3659.7
+            },
+            {
+              "phase": "frame-load-start",
+              "frameUuid": "hy40_EK6rdX3",
+              "startMs": 3734.9,
+              "durationMs": 0,
+              "endMs": 3734.9
+            },
+            {
+              "phase": "frame-host-document",
+              "frameUuid": "hy40_EK6rdX3",
+              "startMs": 3738.2,
+              "durationMs": 54,
+              "endMs": 3792.2
+            },
+            {
+              "phase": "frame-host-ready",
+              "frameUuid": "hy40_EK6rdX3",
+              "startMs": 3793.1,
+              "durationMs": 8.9,
+              "endMs": 3802.0
+            },
+            {
+              "phase": "frame-runtime",
+              "frameUuid": "hy40_EK6rdX3",
+              "startMs": 3802.1,
+              "durationMs": 7.8,
+              "endMs": 3809.9
+            },
+            {
+              "phase": "frame-component-packages",
+              "frameUuid": "hy40_EK6rdX3",
+              "startMs": 3810.0,
+              "durationMs": 89.6,
+              "endMs": 3899.6
+            },
+            {
+              "phase": "frame-context-created",
+              "frameUuid": "hy40_EK6rdX3",
+              "startMs": 3900.9,
+              "durationMs": 0,
+              "endMs": 3900.9
+            },
+            {
+              "phase": "frame-initialization",
+              "frameUuid": "hy40_EK6rdX3",
+              "startMs": 3734.9,
+              "durationMs": 173.1,
+              "endMs": 3908.0
+            },
+            {
+              "phase": "frame-first-render",
+              "frameUuid": "hy40_EK6rdX3",
+              "startMs": 3974.2,
+              "durationMs": 95,
+              "endMs": 4069.2
+            },
+            {
+              "phase": "frame-rendered",
+              "frameUuid": "hy40_EK6rdX3",
+              "startMs": 4069.5,
+              "durationMs": 0,
+              "endMs": 4069.5
+            },
+            {
+              "phase": "frame-load-start",
+              "frameUuid": "VUCiMskxqdJw",
+              "startMs": 4086.9,
+              "durationMs": 0,
+              "endMs": 4086.9
+            },
+            {
+              "phase": "frame-host-document",
+              "frameUuid": "VUCiMskxqdJw",
+              "startMs": 4090.4,
+              "durationMs": 47.2,
+              "endMs": 4137.6
+            },
+            {
+              "phase": "frame-host-ready",
+              "frameUuid": "VUCiMskxqdJw",
+              "startMs": 4138.5,
+              "durationMs": 9.8,
+              "endMs": 4148.3
+            },
+            {
+              "phase": "frame-runtime",
+              "frameUuid": "VUCiMskxqdJw",
+              "startMs": 4148.4,
+              "durationMs": 7.6,
+              "endMs": 4156.0
+            },
+            {
+              "phase": "frame-component-packages",
+              "frameUuid": "VUCiMskxqdJw",
+              "startMs": 4156.1,
+              "durationMs": 40.4,
+              "endMs": 4196.5
+            },
+            {
+              "phase": "frame-context-created",
+              "frameUuid": "VUCiMskxqdJw",
+              "startMs": 4198.5,
+              "durationMs": 0,
+              "endMs": 4198.5
+            },
+            {
+              "phase": "frame-initialization",
+              "frameUuid": "VUCiMskxqdJw",
+              "startMs": 4086.9,
+              "durationMs": 119.3,
+              "endMs": 4206.2
+            },
+            {
+              "phase": "frame-first-render",
+              "frameUuid": "VUCiMskxqdJw",
+              "startMs": 4223.8,
+              "durationMs": 25.4,
+              "endMs": 4249.2
+            },
+            {
+              "phase": "frame-rendered",
+              "frameUuid": "VUCiMskxqdJw",
+              "startMs": 4249.5,
+              "durationMs": 0,
+              "endMs": 4249.5
+            },
+            {
+              "phase": "frame-load-start",
+              "frameUuid": "58rcnoga5nrA",
+              "startMs": 4292.3,
+              "durationMs": 0,
+              "endMs": 4292.3
+            },
+            {
+              "phase": "frame-host-document",
+              "frameUuid": "58rcnoga5nrA",
+              "startMs": 4295.3,
+              "durationMs": 51.5,
+              "endMs": 4346.8
+            },
+            {
+              "phase": "frame-host-ready",
+              "frameUuid": "58rcnoga5nrA",
+              "startMs": 4347.6,
+              "durationMs": 1.1,
+              "endMs": 4348.7
+            },
+            {
+              "phase": "frame-runtime",
+              "frameUuid": "58rcnoga5nrA",
+              "startMs": 4348.7,
+              "durationMs": 8.1,
+              "endMs": 4356.8
+            },
+            {
+              "phase": "frame-component-packages",
+              "frameUuid": "58rcnoga5nrA",
+              "startMs": 4356.9,
+              "durationMs": 47.1,
+              "endMs": 4404.0
+            },
+            {
+              "phase": "frame-context-created",
+              "frameUuid": "58rcnoga5nrA",
+              "startMs": 4405.3,
+              "durationMs": 0,
+              "endMs": 4405.3
+            },
+            {
+              "phase": "all-frame-contexts-created",
+              "frameUuid": null,
+              "startMs": 4405.3,
+              "durationMs": 0,
+              "endMs": 4405.3
+            },
+            {
+              "phase": "frame-initialization",
+              "frameUuid": "58rcnoga5nrA",
+              "startMs": 4292.3,
+              "durationMs": 119.9,
+              "endMs": 4412.2
+            },
+            {
+              "phase": "frame-first-render",
+              "frameUuid": "58rcnoga5nrA",
+              "startMs": 4431.8,
+              "durationMs": 55.3,
+              "endMs": 4487.1
+            },
+            {
+              "phase": "frame-rendered",
+              "frameUuid": "58rcnoga5nrA",
+              "startMs": 4487.6,
+              "durationMs": 0,
+              "endMs": 4487.6
+            },
+            {
+              "phase": "all-frames-rendered",
+              "frameUuid": null,
+              "startMs": 4487.6,
+              "durationMs": 0,
+              "endMs": 4487.6
+            }
+          ],
+          "cache": {
+            "hit": 53,
+            "miss": 0,
+            "modelRequests": 5,
+            "codeRequests": 48,
+            "maxHandlerMs": 12.42
+          },
+          "mutableRequests": [
+            {
+              "path": "/api/v1/projects?projectIds=%5B%22145nN6S5QQBwgjtNUwuiQZ%22%5D&query=%22byIds%22",
+              "startMs": 30.01,
+              "durationMs": 0.11
+            },
+            {
+              "path": "/api/v1/hosts",
+              "startMs": 30.41,
+              "durationMs": 0.03
+            },
+            {
+              "path": "/api/v1/projects/145nN6S5QQBwgjtNUwuiQZ",
+              "startMs": 51.51,
+              "durationMs": 3.52
+            }
+          ],
+          "revisionCounter": 0
+        },
+        {
+          "phase": "warm-list-open-3",
+          "revealMs": 1783.3,
+          "allFramesRenderedMs": 5198.2,
+          "detectedReadyMs": 2012.45,
+          "atFirstReady": {
+            "initialFrames": 10,
+            "rendered": 1,
+            "views": 1
+          },
+          "frames": [
+            {
+              "frameUuid": "g6iKNJJfK8J6",
+              "loadStartMs": 1208.6,
+              "renderedMs": 1803.2
+            },
+            {
+              "frameUuid": "44U1arRy8od3",
+              "loadStartMs": 1961.1,
+              "renderedMs": 2395.9
+            },
+            {
+              "frameUuid": "5hdOhZbIMFun",
+              "loadStartMs": 2417.3,
+              "renderedMs": 2649.6
+            },
+            {
+              "frameUuid": "7tSIbRM6op14",
+              "loadStartMs": 2668.6,
+              "renderedMs": 2941.1
+            },
+            {
+              "frameUuid": "86t6qc4OnetH",
+              "loadStartMs": 2953.3,
+              "renderedMs": 3246.3
+            },
+            {
+              "frameUuid": "yqGY4RQZ5MAn",
+              "loadStartMs": 3272.6,
+              "renderedMs": 3519.3
+            },
+            {
+              "frameUuid": "oLy7QVaOvDxJ",
+              "loadStartMs": 3594.9,
+              "renderedMs": 3991.1
+            },
+            {
+              "frameUuid": "hy40_EK6rdX3",
+              "loadStartMs": 4324.2,
+              "renderedMs": 4652.6
+            },
+            {
+              "frameUuid": "VUCiMskxqdJw",
+              "loadStartMs": 4674.9,
+              "renderedMs": 4919.6
+            },
+            {
+              "frameUuid": "58rcnoga5nrA",
+              "loadStartMs": 4941.2,
+              "renderedMs": 5198.2
+            }
+          ],
+          "phaseTimings": [
+            {
+              "phase": "studio-module-import",
+              "frameUuid": null,
+              "startMs": 390.8,
+              "durationMs": 143.3,
+              "endMs": 534.1
+            },
+            {
+              "phase": "startup-preferences",
+              "frameUuid": null,
+              "startMs": 552.3,
+              "durationMs": 15.3,
+              "endMs": 567.6
+            },
+            {
+              "phase": "project-fetch",
+              "frameUuid": null,
+              "startMs": 567.7,
+              "durationMs": 181.5,
+              "endMs": 749.2
+            },
+            {
+              "phase": "model-unbundle",
+              "frameUuid": null,
+              "startMs": 749.2,
+              "durationMs": 195.5,
+              "endMs": 944.7
+            },
+            {
+              "phase": "studio-context",
+              "frameUuid": null,
+              "startMs": 958.3,
+              "durationMs": 30.6,
+              "endMs": 988.9
+            },
+            {
+              "phase": "initial-route",
+              "frameUuid": null,
+              "startMs": 961.8,
+              "durationMs": 66.8,
+              "endMs": 1028.6
+            },
+            {
+              "phase": "initial-viewport",
+              "frameUuid": null,
+              "startMs": 961.8,
+              "durationMs": 66.8,
+              "endMs": 1028.6
+            },
+            {
+              "phase": "code-component-sync",
+              "frameUuid": null,
+              "startMs": 1149.3,
+              "durationMs": 7.9,
+              "endMs": 1157.2
+            },
+            {
+              "phase": "app-user-init",
+              "frameUuid": null,
+              "startMs": 1157.2,
+              "durationMs": 0,
+              "endMs": 1157.2
+            },
+            {
+              "phase": "initializer-ready",
+              "frameUuid": null,
+              "startMs": 1157.2,
+              "durationMs": 0,
+              "endMs": 1157.2
+            },
+            {
+              "phase": "frame-load-start",
+              "frameUuid": "g6iKNJJfK8J6",
+              "startMs": 1208.6,
+              "durationMs": 0,
+              "endMs": 1208.6
+            },
+            {
+              "phase": "frame-host-document",
+              "frameUuid": "g6iKNJJfK8J6",
+              "startMs": 1233.1,
+              "durationMs": 174.6,
+              "endMs": 1407.7
+            },
+            {
+              "phase": "frame-host-ready",
+              "frameUuid": "g6iKNJJfK8J6",
+              "startMs": 1408.8,
+              "durationMs": 14.4,
+              "endMs": 1423.2
+            },
+            {
+              "phase": "frame-runtime",
+              "frameUuid": "g6iKNJJfK8J6",
+              "startMs": 1423.3,
+              "durationMs": 8.6,
+              "endMs": 1431.9
+            },
+            {
+              "phase": "frame-component-packages",
+              "frameUuid": "g6iKNJJfK8J6",
+              "startMs": 1432.1,
+              "durationMs": 102.3,
+              "endMs": 1534.4
+            },
+            {
+              "phase": "frame-context-created",
+              "frameUuid": "g6iKNJJfK8J6",
+              "startMs": 1544.5,
+              "durationMs": 0,
+              "endMs": 1544.5
+            },
+            {
+              "phase": "frame-initialization",
+              "frameUuid": "g6iKNJJfK8J6",
+              "startMs": 1208.6,
+              "durationMs": 365.6,
+              "endMs": 1574.2
+            },
+            {
+              "phase": "frame-first-render",
+              "frameUuid": "g6iKNJJfK8J6",
+              "startMs": 1544.4,
+              "durationMs": 218.8,
+              "endMs": 1763.2
+            },
+            {
+              "phase": "canvas-revealed",
+              "frameUuid": null,
+              "startMs": 1783.3,
+              "durationMs": 0,
+              "endMs": 1783.3
+            },
+            {
+              "phase": "frame-rendered",
+              "frameUuid": "g6iKNJJfK8J6",
+              "startMs": 1803.2,
+              "durationMs": 0,
+              "endMs": 1803.2
+            },
+            {
+              "phase": "background-canvas-wait",
+              "frameUuid": null,
+              "startMs": 1574.2,
+              "durationMs": 279.3,
+              "endMs": 1853.5
+            },
+            {
+              "phase": "frame-load-start",
+              "frameUuid": "44U1arRy8od3",
+              "startMs": 1961.1,
+              "durationMs": 0,
+              "endMs": 1961.1
+            },
+            {
+              "phase": "frame-host-document",
+              "frameUuid": "44U1arRy8od3",
+              "startMs": 1963.9,
+              "durationMs": 85.4,
+              "endMs": 2049.3
+            },
+            {
+              "phase": "frame-host-ready",
+              "frameUuid": "44U1arRy8od3",
+              "startMs": 2050.1,
+              "durationMs": 1.4,
+              "endMs": 2051.5
+            },
+            {
+              "phase": "frame-runtime",
+              "frameUuid": "44U1arRy8od3",
+              "startMs": 2051.5,
+              "durationMs": 6.8,
+              "endMs": 2058.3
+            },
+            {
+              "phase": "frame-component-packages",
+              "frameUuid": "44U1arRy8od3",
+              "startMs": 2058.3,
+              "durationMs": 46.2,
+              "endMs": 2104.5
+            },
+            {
+              "phase": "frame-context-created",
+              "frameUuid": "44U1arRy8od3",
+              "startMs": 2106.0,
+              "durationMs": 0,
+              "endMs": 2106.0
+            },
+            {
+              "phase": "frame-initialization",
+              "frameUuid": "44U1arRy8od3",
+              "startMs": 1961.0,
+              "durationMs": 154.7,
+              "endMs": 2115.7
+            },
+            {
+              "phase": "frame-first-render",
+              "frameUuid": "44U1arRy8od3",
+              "startMs": 2140.6,
+              "durationMs": 255,
+              "endMs": 2395.6
+            },
+            {
+              "phase": "frame-rendered",
+              "frameUuid": "44U1arRy8od3",
+              "startMs": 2395.9,
+              "durationMs": 0,
+              "endMs": 2395.9
+            },
+            {
+              "phase": "frame-load-start",
+              "frameUuid": "5hdOhZbIMFun",
+              "startMs": 2417.3,
+              "durationMs": 0,
+              "endMs": 2417.3
+            },
+            {
+              "phase": "frame-host-document",
+              "frameUuid": "5hdOhZbIMFun",
+              "startMs": 2424.2,
+              "durationMs": 42.8,
+              "endMs": 2467.0
+            },
+            {
+              "phase": "frame-host-ready",
+              "frameUuid": "5hdOhZbIMFun",
+              "startMs": 2468.1,
+              "durationMs": 10.6,
+              "endMs": 2478.7
+            },
+            {
+              "phase": "frame-runtime",
+              "frameUuid": "5hdOhZbIMFun",
+              "startMs": 2478.8,
+              "durationMs": 7.4,
+              "endMs": 2486.2
+            },
+            {
+              "phase": "frame-component-packages",
+              "frameUuid": "5hdOhZbIMFun",
+              "startMs": 2486.2,
+              "durationMs": 38.6,
+              "endMs": 2524.8
+            },
+            {
+              "phase": "frame-context-created",
+              "frameUuid": "5hdOhZbIMFun",
+              "startMs": 2526.3,
+              "durationMs": 0,
+              "endMs": 2526.3
+            },
+            {
+              "phase": "frame-initialization",
+              "frameUuid": "5hdOhZbIMFun",
+              "startMs": 2417.3,
+              "durationMs": 116.5,
+              "endMs": 2533.8
+            },
+            {
+              "phase": "frame-first-render",
+              "frameUuid": "5hdOhZbIMFun",
+              "startMs": 2551.8,
+              "durationMs": 97.6,
+              "endMs": 2649.4
+            },
+            {
+              "phase": "frame-rendered",
+              "frameUuid": "5hdOhZbIMFun",
+              "startMs": 2649.6,
+              "durationMs": 0,
+              "endMs": 2649.6
+            },
+            {
+              "phase": "frame-load-start",
+              "frameUuid": "7tSIbRM6op14",
+              "startMs": 2668.6,
+              "durationMs": 0,
+              "endMs": 2668.6
+            },
+            {
+              "phase": "frame-host-document",
+              "frameUuid": "7tSIbRM6op14",
+              "startMs": 2671.5,
+              "durationMs": 44.3,
+              "endMs": 2715.8
+            },
+            {
+              "phase": "frame-host-ready",
+              "frameUuid": "7tSIbRM6op14",
+              "startMs": 2716.5,
+              "durationMs": 0.9,
+              "endMs": 2717.4
+            },
+            {
+              "phase": "frame-runtime",
+              "frameUuid": "7tSIbRM6op14",
+              "startMs": 2717.5,
+              "durationMs": 9.6,
+              "endMs": 2727.1
+            },
+            {
+              "phase": "frame-component-packages",
+              "frameUuid": "7tSIbRM6op14",
+              "startMs": 2727.2,
+              "durationMs": 42,
+              "endMs": 2769.2
+            },
+            {
+              "phase": "frame-context-created",
+              "frameUuid": "7tSIbRM6op14",
+              "startMs": 2771.5,
+              "durationMs": 0,
+              "endMs": 2771.5
+            },
+            {
+              "phase": "frame-initialization",
+              "frameUuid": "7tSIbRM6op14",
+              "startMs": 2668.6,
+              "durationMs": 111.7,
+              "endMs": 2780.3
+            },
+            {
+              "phase": "frame-first-render",
+              "frameUuid": "7tSIbRM6op14",
+              "startMs": 2798.8,
+              "durationMs": 142,
+              "endMs": 2940.8
+            },
+            {
+              "phase": "frame-rendered",
+              "frameUuid": "7tSIbRM6op14",
+              "startMs": 2941.1,
+              "durationMs": 0,
+              "endMs": 2941.1
+            },
+            {
+              "phase": "frame-load-start",
+              "frameUuid": "86t6qc4OnetH",
+              "startMs": 2953.3,
+              "durationMs": 0,
+              "endMs": 2953.3
+            },
+            {
+              "phase": "frame-host-document",
+              "frameUuid": "86t6qc4OnetH",
+              "startMs": 2956.1,
+              "durationMs": 38.5,
+              "endMs": 2994.6
+            },
+            {
+              "phase": "frame-host-ready",
+              "frameUuid": "86t6qc4OnetH",
+              "startMs": 2995.6,
+              "durationMs": 4.5,
+              "endMs": 3000.1
+            },
+            {
+              "phase": "frame-runtime",
+              "frameUuid": "86t6qc4OnetH",
+              "startMs": 3000.2,
+              "durationMs": 12.8,
+              "endMs": 3013.0
+            },
+            {
+              "phase": "frame-component-packages",
+              "frameUuid": "86t6qc4OnetH",
+              "startMs": 3013.1,
+              "durationMs": 33.8,
+              "endMs": 3046.9
+            },
+            {
+              "phase": "frame-context-created",
+              "frameUuid": "86t6qc4OnetH",
+              "startMs": 3048.5,
+              "durationMs": 0,
+              "endMs": 3048.5
+            },
+            {
+              "phase": "frame-initialization",
+              "frameUuid": "86t6qc4OnetH",
+              "startMs": 2953.2,
+              "durationMs": 102.3,
+              "endMs": 3055.5
+            },
+            {
+              "phase": "frame-first-render",
+              "frameUuid": "86t6qc4OnetH",
+              "startMs": 3070.8,
+              "durationMs": 175.3,
+              "endMs": 3246.1
+            },
+            {
+              "phase": "frame-rendered",
+              "frameUuid": "86t6qc4OnetH",
+              "startMs": 3246.3,
+              "durationMs": 0,
+              "endMs": 3246.3
+            },
+            {
+              "phase": "frame-load-start",
+              "frameUuid": "yqGY4RQZ5MAn",
+              "startMs": 3272.6,
+              "durationMs": 0,
+              "endMs": 3272.6
+            },
+            {
+              "phase": "frame-host-document",
+              "frameUuid": "yqGY4RQZ5MAn",
+              "startMs": 3276.2,
+              "durationMs": 44.9,
+              "endMs": 3321.1
+            },
+            {
+              "phase": "frame-host-ready",
+              "frameUuid": "yqGY4RQZ5MAn",
+              "startMs": 3321.8,
+              "durationMs": 0.8,
+              "endMs": 3322.6
+            },
+            {
+              "phase": "frame-runtime",
+              "frameUuid": "yqGY4RQZ5MAn",
+              "startMs": 3322.7,
+              "durationMs": 7.2,
+              "endMs": 3329.9
+            },
+            {
+              "phase": "frame-component-packages",
+              "frameUuid": "yqGY4RQZ5MAn",
+              "startMs": 3330.0,
+              "durationMs": 43,
+              "endMs": 3373.0
+            },
+            {
+              "phase": "frame-context-created",
+              "frameUuid": "yqGY4RQZ5MAn",
+              "startMs": 3374.4,
+              "durationMs": 0,
+              "endMs": 3374.4
+            },
+            {
+              "phase": "frame-initialization",
+              "frameUuid": "yqGY4RQZ5MAn",
+              "startMs": 3272.6,
+              "durationMs": 110.1,
+              "endMs": 3382.7
+            },
+            {
+              "phase": "frame-first-render",
+              "frameUuid": "yqGY4RQZ5MAn",
+              "startMs": 3400.1,
+              "durationMs": 119,
+              "endMs": 3519.1
+            },
+            {
+              "phase": "frame-rendered",
+              "frameUuid": "yqGY4RQZ5MAn",
+              "startMs": 3519.3,
+              "durationMs": 0,
+              "endMs": 3519.3
+            },
+            {
+              "phase": "frame-load-start",
+              "frameUuid": "oLy7QVaOvDxJ",
+              "startMs": 3594.9,
+              "durationMs": 0,
+              "endMs": 3594.9
+            },
+            {
+              "phase": "frame-host-document",
+              "frameUuid": "oLy7QVaOvDxJ",
+              "startMs": 3604.9,
+              "durationMs": 52.8,
+              "endMs": 3657.7
+            },
+            {
+              "phase": "frame-host-ready",
+              "frameUuid": "oLy7QVaOvDxJ",
+              "startMs": 3658.9,
+              "durationMs": 8.4,
+              "endMs": 3667.3
+            },
+            {
+              "phase": "frame-runtime",
+              "frameUuid": "oLy7QVaOvDxJ",
+              "startMs": 3667.3,
+              "durationMs": 15,
+              "endMs": 3682.3
+            },
+            {
+              "phase": "frame-component-packages",
+              "frameUuid": "oLy7QVaOvDxJ",
+              "startMs": 3682.4,
+              "durationMs": 45.7,
+              "endMs": 3728.1
+            },
+            {
+              "phase": "frame-context-created",
+              "frameUuid": "oLy7QVaOvDxJ",
+              "startMs": 3729.9,
+              "durationMs": 0,
+              "endMs": 3729.9
+            },
+            {
+              "phase": "frame-initialization",
+              "frameUuid": "oLy7QVaOvDxJ",
+              "startMs": 3594.9,
+              "durationMs": 142.9,
+              "endMs": 3737.8
+            },
+            {
+              "phase": "frame-first-render",
+              "frameUuid": "oLy7QVaOvDxJ",
+              "startMs": 3750.6,
+              "durationMs": 240.2,
+              "endMs": 3990.8
+            },
+            {
+              "phase": "frame-rendered",
+              "frameUuid": "oLy7QVaOvDxJ",
+              "startMs": 3991.1,
+              "durationMs": 0,
+              "endMs": 3991.1
+            },
+            {
+              "phase": "frame-load-start",
+              "frameUuid": "hy40_EK6rdX3",
+              "startMs": 4324.2,
+              "durationMs": 0,
+              "endMs": 4324.2
+            },
+            {
+              "phase": "frame-host-document",
+              "frameUuid": "hy40_EK6rdX3",
+              "startMs": 4329.8,
+              "durationMs": 74.3,
+              "endMs": 4404.1
+            },
+            {
+              "phase": "frame-host-ready",
+              "frameUuid": "hy40_EK6rdX3",
+              "startMs": 4404.9,
+              "durationMs": 1.2,
+              "endMs": 4406.1
+            },
+            {
+              "phase": "frame-runtime",
+              "frameUuid": "hy40_EK6rdX3",
+              "startMs": 4406.1,
+              "durationMs": 9.4,
+              "endMs": 4415.5
+            },
+            {
+              "phase": "frame-component-packages",
+              "frameUuid": "hy40_EK6rdX3",
+              "startMs": 4415.6,
+              "durationMs": 69.4,
+              "endMs": 4485.0
+            },
+            {
+              "phase": "frame-context-created",
+              "frameUuid": "hy40_EK6rdX3",
+              "startMs": 4487.0,
+              "durationMs": 0,
+              "endMs": 4487.0
+            },
+            {
+              "phase": "frame-initialization",
+              "frameUuid": "hy40_EK6rdX3",
+              "startMs": 4324.2,
+              "durationMs": 173.5,
+              "endMs": 4497.7
+            },
+            {
+              "phase": "frame-first-render",
+              "frameUuid": "hy40_EK6rdX3",
+              "startMs": 4519.0,
+              "durationMs": 133.2,
+              "endMs": 4652.2
+            },
+            {
+              "phase": "frame-rendered",
+              "frameUuid": "hy40_EK6rdX3",
+              "startMs": 4652.6,
+              "durationMs": 0,
+              "endMs": 4652.6
+            },
+            {
+              "phase": "frame-load-start",
+              "frameUuid": "VUCiMskxqdJw",
+              "startMs": 4674.9,
+              "durationMs": 0,
+              "endMs": 4674.9
+            },
+            {
+              "phase": "frame-host-document",
+              "frameUuid": "VUCiMskxqdJw",
+              "startMs": 4691.8,
+              "durationMs": 66.3,
+              "endMs": 4758.1
+            },
+            {
+              "phase": "frame-host-ready",
+              "frameUuid": "VUCiMskxqdJw",
+              "startMs": 4761.5,
+              "durationMs": 3.1,
+              "endMs": 4764.6
+            },
+            {
+              "phase": "frame-runtime",
+              "frameUuid": "VUCiMskxqdJw",
+              "startMs": 4764.6,
+              "durationMs": 10.6,
+              "endMs": 4775.2
+            },
+            {
+              "phase": "frame-component-packages",
+              "frameUuid": "VUCiMskxqdJw",
+              "startMs": 4775.5,
+              "durationMs": 68.2,
+              "endMs": 4843.7
+            },
+            {
+              "phase": "frame-context-created",
+              "frameUuid": "VUCiMskxqdJw",
+              "startMs": 4845.1,
+              "durationMs": 0,
+              "endMs": 4845.1
+            },
+            {
+              "phase": "frame-initialization",
+              "frameUuid": "VUCiMskxqdJw",
+              "startMs": 4674.9,
+              "durationMs": 178.4,
+              "endMs": 4853.3
+            },
+            {
+              "phase": "frame-first-render",
+              "frameUuid": "VUCiMskxqdJw",
+              "startMs": 4873.0,
+              "durationMs": 46,
+              "endMs": 4919.0
+            },
+            {
+              "phase": "frame-rendered",
+              "frameUuid": "VUCiMskxqdJw",
+              "startMs": 4919.6,
+              "durationMs": 0,
+              "endMs": 4919.6
+            },
+            {
+              "phase": "frame-load-start",
+              "frameUuid": "58rcnoga5nrA",
+              "startMs": 4941.2,
+              "durationMs": 0,
+              "endMs": 4941.2
+            },
+            {
+              "phase": "frame-host-document",
+              "frameUuid": "58rcnoga5nrA",
+              "startMs": 4945.2,
+              "durationMs": 69,
+              "endMs": 5014.2
+            },
+            {
+              "phase": "frame-host-ready",
+              "frameUuid": "58rcnoga5nrA",
+              "startMs": 5015.3,
+              "durationMs": 10.5,
+              "endMs": 5025.8
+            },
+            {
+              "phase": "frame-runtime",
+              "frameUuid": "58rcnoga5nrA",
+              "startMs": 5025.8,
+              "durationMs": 8.4,
+              "endMs": 5034.2
+            },
+            {
+              "phase": "frame-component-packages",
+              "frameUuid": "58rcnoga5nrA",
+              "startMs": 5034.4,
+              "durationMs": 46.6,
+              "endMs": 5081.0
+            },
+            {
+              "phase": "frame-context-created",
+              "frameUuid": "58rcnoga5nrA",
+              "startMs": 5082.4,
+              "durationMs": 0,
+              "endMs": 5082.4
+            },
+            {
+              "phase": "all-frame-contexts-created",
+              "frameUuid": null,
+              "startMs": 5082.4,
+              "durationMs": 0,
+              "endMs": 5082.4
+            },
+            {
+              "phase": "frame-initialization",
+              "frameUuid": "58rcnoga5nrA",
+              "startMs": 4941.2,
+              "durationMs": 149.1,
+              "endMs": 5090.3
+            },
+            {
+              "phase": "frame-first-render",
+              "frameUuid": "58rcnoga5nrA",
+              "startMs": 5112.1,
+              "durationMs": 85.6,
+              "endMs": 5197.7
+            },
+            {
+              "phase": "frame-rendered",
+              "frameUuid": "58rcnoga5nrA",
+              "startMs": 5198.2,
+              "durationMs": 0,
+              "endMs": 5198.2
+            },
+            {
+              "phase": "all-frames-rendered",
+              "frameUuid": null,
+              "startMs": 5198.2,
+              "durationMs": 0,
+              "endMs": 5198.2
+            }
+          ],
+          "cache": {
+            "hit": 53,
+            "miss": 0,
+            "modelRequests": 5,
+            "codeRequests": 48,
+            "maxHandlerMs": 12.78
+          },
+          "mutableRequests": [
+            {
+              "path": "/api/v1/projects?projectIds=%5B%22145nN6S5QQBwgjtNUwuiQZ%22%5D&query=%22byIds%22",
+              "startMs": 27.81,
+              "durationMs": 0.23
+            },
+            {
+              "path": "/api/v1/hosts",
+              "startMs": 28.38,
+              "durationMs": 0.03
+            },
+            {
+              "path": "/api/v1/projects/145nN6S5QQBwgjtNUwuiQZ",
+              "startMs": 42.83,
+              "durationMs": 3.05
+            }
+          ],
+          "revisionCounter": 0
+        }
+      ],
+      "editorErrors": [],
+      "unknownFixtureRoutes": [],
+      "blockedWrites": [],
+      "previewErrors": [
+        {
+          "phase": "dashboard-bootstrap",
+          "message": "TypeError: Cannot read properties of undefined (reading 'map')"
+        },
+        {
+          "phase": "return-list-0",
+          "message": "TypeError: Cannot read properties of undefined (reading 'map')"
+        },
+        {
+          "phase": "return-list-1",
+          "message": "TypeError: Cannot read properties of undefined (reading 'map')"
+        },
+        {
+          "phase": "return-list-2",
+          "message": "TypeError: Cannot read properties of undefined (reading 'map')"
+        },
+        {
+          "phase": "return-list-3",
+          "message": "TypeError: Cannot read properties of undefined (reading 'map')"
+        }
+      ],
+      "warmSummary": {
+        "revealMs": {
+          "median": 1574.0,
+          "min": 1487.9,
+          "max": 1783.3
+        },
+        "allFramesRenderedMs": {
+          "median": 4555.3,
+          "min": 4487.6,
+          "max": 5198.2
+        },
+        "detectedReadyMs": {
+          "median": 1803.32,
+          "min": 1756.58,
+          "max": 2012.45
+        }
+      }
+    }
+  },
+  "onlineChecks": {
+    "appVersion": "0.5.30",
+    "gp": {
+      "projectId": "tk89W1Akg2HjAjyHAYEro7",
+      "revision": 158,
+      "fromList": true,
+      "businessTableVisible": true,
+      "layersPanelOpened": true,
+      "preciseElapsedMeasured": false
+    },
+    "adminTemplates": {
+      "projectId": "145nN6S5QQBwgjtNUwuiQZ",
+      "revision": 113,
+      "fromList": true,
+      "artboardsInGroup": 10,
+      "offscreenLoadingBeforeFit": 6,
+      "loadingAfterFitAll": 0,
+      "viewRestored": true,
+      "changeCounterAfter": 0,
+      "preciseElapsedMeasured": false
+    }
+  },
+  "traceFindings": {
+    "source": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-real-list-7zi8ML/list-open.trace.json",
+    "mode": "separate CPU-profiled GP run; supports stage ordering, not used for final latency statistics",
+    "representativeWarmSample": "warm-list-open-2",
+    "revealMs": 1479.5,
+    "firstSubsequentTopPaintMs": 1628.5,
+    "comlinkMessageTask": {
+      "startMs": 471.1,
+      "durationMs": 140.0,
+      "sampledSelfMs": 131.1,
+      "attribution": "Comlink receive-message handler. Bulk message decoding/handling; exact share of native structured-clone cost not independently isolated."
+    },
+    "firstRenderTask": {
+      "startMs": 1138.5,
+      "durationMs": 301.3
+    },
+    "afterRevealTask": {
+      "startMs": 1504.4,
+      "durationMs": 120.1
+    }
+  }
+}

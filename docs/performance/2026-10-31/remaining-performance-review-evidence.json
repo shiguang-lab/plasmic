@@ -1,0 +1,46 @@
+{
+  "scope": "Read-only source review plus two temporary Vitest probes of real source methods and offline analysis of an existing 0.5.30 diagnostic trace. No production behavior changed. No new end-to-end performance A/B or whole-Studio retained-size measurement.",
+  "probes": [
+    {
+      "probe": "inactive-frame-refresh",
+      "active": false,
+      "queuePaused": true,
+      "renderUpdates": 1,
+      "postChangeUpdates": 1
+    },
+    {
+      "probe": "preview-codegen-old-config",
+      "differentProjectNames": 13,
+      "originalObjectStillCached": true
+    }
+  ],
+  "probeTests": {
+    "passed": 2,
+    "total": 2,
+    "log": "/tmp/plasmic-review-probes.log"
+  },
+  "sourceSha256": {
+    "platform/wab/src/wab/client/studio-ctx/view-ctx.ts": "186b17e3ab5e3bec17a1ef303ad1e0fe2ff9cdda02deb5c9611c9ed3c305c7d1",
+    "platform/wab/src/wab/client/components/live/preview-codegen.ts": "ed017bbd42c53c1bead00c0ef75799bab9004cc44ed7df79436a94b55c831ca6",
+    "platform/wab/src/wab/shared/mobx-util.ts": "51209b56aa99148f6e3f2ade6a07a04d4b9e9ee49e21f12fc0b3bc1b97b1e87a",
+    "platform/wab/src/wab/client/undo-log.ts": "796c5f87895982eac8763f6263f7dc992cb3475f136942456386210a801847e7",
+    "platform/wab/src/wab/client/studio-ctx/StudioCtx.tsx": "2ed2d91e45c1ead4ecae7d33df1c1e87fe5dab79d2500081ebd7e9a0b9ac2b98",
+    "platform/wab/src/wab/client/components/studio/studio-bundles.ts": "9ecc8997ffba6d44602489766b39f5eccddb9fd70331cc6c0ed3428be188e93a",
+    "desktop/src/update-ui.js": "ecaa3c344d22602506644f3869325f2cebabff6aa358ea1a2872e3c8c35f7227",
+    "desktop/src/dashboard-preview.cjs": "6089105245a35f0c078dc002bb6339e9714601edd2a87a68419bb5c2770f9c8e"
+  },
+  "trace": {
+    "path": "desktop/desktop-report/performance-2026-10-31/after.trace.json.gz",
+    "build": "installed 0.5.30 renderer plus current-at-capture Desktop draft transport decoder",
+    "scenario": "3 warm project reopens + 5 forced local draft writes, revision 158",
+    "method": "Profile/CPU ProfileChunk joined by process id and profile id; event processor thread differs from sampled main thread. Time deltas attributed to leaf samples; not OS CPU utilization or a new wall-clock benchmark.",
+    "rendererGCSampleMs": 525.904,
+    "updateButtonCheckVisibilitySampleMs": 139.149,
+    "checkVisibilityStack": [
+      "native checkVisibility",
+      "static/desktop/update-ui.js:229",
+      "place at update-ui.js:211",
+      "requestAnimationFrame callback at update-ui.js:261"
+    ]
+  }
+}

@@ -1116,15 +1116,13 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
       // Make sure that the onBlur events are called before resetting
       // the focus.
       maybeInstance(document.activeElement, HTMLElement, (ae) => ae.blur());
-      spawn(
-        this.props.studioCtx.changeUnsafe(() => {
-          // A click that visually outside the frame. Clear focus
-          this.props.studioCtx.setStudioFocusOnFrame({
-            frame: undefined,
-            autoZoom: false,
-          });
-        }),
-      );
+      this.props.studioCtx.changeSelection(() => {
+        // A click that visually outside the frame. Clear focus
+        this.props.studioCtx.setStudioFocusOnFrame({
+          frame: undefined,
+          autoZoom: false,
+        });
+      });
       return;
     }
 
@@ -1164,7 +1162,6 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
       // Clicked on the empty space between root and frame
       this.startMarquee(e, targetVc, () =>
         targetVc.changeSelection(() => {
-          targetVc.setStudioFocusByTpl(null);
           targetVc.canvasCtx.clearRange();
           targetVc.studioCtx.setStudioFocusOnFrame({
             frame: targetVc.arenaFrame(),

@@ -1,4 +1,5 @@
 import { dependencyModelResources, getDependencyModelResource } from "@/wab/server/routes/dependency-model-resources";
+import { PkgVersion } from "@/wab/server/entities/Entities";
 import { createHash } from "crypto";
 import type { Request, Response } from "express";
 import { mock } from "vitest-mock-extended";
@@ -60,4 +61,35 @@ it("rejects missing resources and leaves metadata-only envelopes untouched", asy
   expect(await dependencyModelResources(request(), payload)).toBe(payload);
   expect(db.find).not.toHaveBeenCalled();
   await expect(getDependencyModelResource({ params: { resourceId: "missing" } } as any, mock<Response>())).rejects.toThrow("Dependency model resource not found");
+});
+it("reuses exact entity bytes without parsing a materialized model and preserves metadata", async () => {
+  const pkg = Object.assign(new PkgVersion(), { id: "release", pkgId: "pkg", version: "1.0.0", createdAt: new Date("2026-01-01T00:00:00Z"), model: JSON.stringify(model) });
+  const { model: _model, ...meta } = pkg.toJSON();
+  const first = await dependencyModelResources(request(), { pkg });
+  const parse = vi.spyOn(JSON, "parse");
+  const current = await dependencyModelResources(request(), { pkg });
+  expect(parse.mock.calls.filter(([text]) => text === pkg.model)).toHaveLength(0);
+  expect(current.pkg).toEqual({ ...meta, modelResourceId: (first.pkg as any).modelResourceId });
+  expect(db.find).toHaveBeenCalledTimes(2);
+  expect(pkg.model).toBe(JSON.stringify(model));
+});
+it("retains canonical identity for legacy whitespace, escaped strings and number formatting", async () => {
+  const raw = '{ "version":"schema", "map":{"root":{"name":"\\u0042utton", "number":1.00}} }';
+  const canonical = JSON.stringify(JSON.parse(raw));
+  const first = await dependencyModelResources(request(), { pkg: { id: "release", pkgId: "pkg", model: JSON.parse(raw) } });
+  const pkg = Object.assign(new PkgVersion(), { id: "release", pkgId: "pkg", model: raw });
+  const current = await dependencyModelResources(request(), { pkg });
+  expect((current.pkg as any).modelResourceId).toBe((first.pkg as any).modelResourceId);
+  expect(db.rows.size).toBe(1);
+  expect([...db.rows.values()][0].model).toBe(canonical);
+  expect(pkg.model).toBe(raw);
+});
+it("canonicalizes a new entity and creates a new resource after its migrated bytes change", async () => {
+  const pkg = Object.assign(new PkgVersion(), { id: "release", pkgId: "pkg", model: JSON.stringify(model, null, 2) });
+  const first = await dependencyModelResources(request(), { pkg });
+  expect([...db.rows.values()][0].model).toBe(JSON.stringify(model));
+  pkg.model = JSON.stringify({ ...model, version: "schema-2" });
+  const changed = await dependencyModelResources(request(), { pkg });
+  expect((changed.pkg as any).modelResourceId).not.toBe((first.pkg as any).modelResourceId);
+  expect(db.rows.size).toBe(2);
 });

@@ -1,0 +1,89 @@
+{
+  "desktopUnit": {
+    "passed": 519,
+    "total": 519,
+    "log": "/tmp/plasmic-desktop-final.log"
+  },
+  "wabFocused": {
+    "passed": 45,
+    "total": 45,
+    "log": "/tmp/plasmic-wab-final.log"
+  },
+  "canvasLifecycle": {
+    "passed": 3,
+    "total": 3,
+    "log": "/tmp/plasmic-canvas-lifecycle-fixed.log"
+  },
+  "referenceBrowserNative": {
+    "passedGroups": 25,
+    "log": "/tmp/plasmic-reference-native-fixed.log"
+  },
+  "previewErrorsNative": {
+    "passed": true,
+    "log": "/tmp/plasmic-preview-errors-final.log"
+  },
+  "previewNavigationNative": {
+    "passed": true,
+    "cases": [
+      {
+        "case": "missing-route",
+        "elapsedMs": 30022,
+        "error": "Native Preview runtime timed out after 30 seconds",
+        "queueReleased": true
+      },
+      {
+        "case": "non-settling-renderer-promise",
+        "elapsedMs": 30024,
+        "queueReleased": true
+      }
+    ],
+    "gcWhilePending": true,
+    "log": "/tmp/plasmic-followup-preview-gc.log",
+    "productionRuntimeUnchanged": true
+  },
+  "mcpLifecycle": {
+    "passed": true,
+    "cases": [
+      {
+        "kind": "quit",
+        "clientsExited": 3,
+        "offlineRefused": true
+      },
+      {
+        "kind": "crash",
+        "clientsExited": 3,
+        "offlineRefused": true
+      },
+      {
+        "kind": "reopen",
+        "clientsExited": 3,
+        "offlineRefused": true
+      }
+    ]
+  },
+  "mcpBackground": {
+    "passed": true,
+    "log": "/tmp/plasmic-mcp-background.log"
+  },
+  "libraryCacheNative": {
+    "passed": true,
+    "log": "/tmp/plasmic-library-cache-native.log"
+  },
+  "syntaxCheckCount": 22,
+  "diffCheck": true,
+  "typecheck": {
+    "passed": true,
+    "log": "/tmp/plasmic-followup-typecheck-after.log",
+    "errors": []
+  },
+  "arenaNavigation": {
+    "passed": 4,
+    "total": 4,
+    "log": "/tmp/plasmic-followup-arena-after.log"
+  },
+  "previewRegressionUnit": {
+    "passed": 50,
+    "total": 50,
+    "log": "/tmp/plasmic-followup-preview-unit.log"
+  }
+}

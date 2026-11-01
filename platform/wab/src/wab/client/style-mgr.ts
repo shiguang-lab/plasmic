@@ -172,6 +172,9 @@ export class StyleMgr {
     { vs: VariantSetting; rules: string[] }[]
   > = new WeakMap();
 
+  // A deleted tpl no longer has an owning component in the model tree.
+  private vsToComponent = new WeakMap<VariantSetting, Component>();
+
   /**
    * Mapping from Mixin to the tpl node and VariantSettings that reference it.
    * If a mixin gets updated, the corresponding VariantSettings will have their
@@ -248,6 +251,7 @@ export class StyleMgr {
     this.updateCssVarsRule();
     this.componentToStyleText = new WeakMap();
     this.componentToVsRules = new WeakMap();
+    this.vsToComponent = new WeakMap();
 
     if (opts.resetDeps) {
       for (const dep of this.studioCtx.site.projectDependencies) {
@@ -438,6 +442,7 @@ export class StyleMgr {
         true,
       )) {
         this.updateMixinToRs(tpl, vs);
+        this.vsToComponent.set(vs, component);
         vsRules.push({
           vs,
           rules: genCanvasRules(compGenHelper, tpl, vs),
@@ -569,17 +574,9 @@ export class StyleMgr {
   }
 
   private deleteRuleSet(tpl: TplNode, vs: VariantSetting) {
-    const site = this.studioCtx.site;
-    if (!isTplAttachedToSite(site, tpl)) {
-      return;
-    }
-    const component = $$$(tpl).tryGetOwningComponent();
+    const component = this.vsToComponent.get(vs);
     if (!component) {
-      assert(
-        isFrameRootTplComponent(site, tpl) ||
-          (isTplComponent(tpl) && isContextCodeComponent(tpl.component)),
-        () => `No owningComponent found for Tpl ${tpl.uuid}`,
-      );
+      // This variant setting never had cached rules.
       return;
     }
 
@@ -589,6 +586,7 @@ export class StyleMgr {
     if (index >= 0) {
       vsRules.splice(index, 1);
     }
+    this.vsToComponent.delete(vs);
 
     // Clean up any active animation preview for this tpl
     // to prevent race conditions when elements are deleted during animation playback
@@ -668,6 +666,7 @@ export class StyleMgr {
       );
       const rules = genCanvasRules(compGenHelper, tpl, vs);
       const vsRules = xSetDefault(this.componentToVsRules, component, () => []);
+      this.vsToComponent.set(vs, component);
 
       const findVsIndex = (vss: VariantSetting) =>
         vsRules.findIndex((x) => x.vs === vss);

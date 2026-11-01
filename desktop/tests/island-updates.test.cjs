@@ -16,6 +16,19 @@ async function fixture(t){
  window.eval(source('renderer-i18n.js'));window.eval(source('island-renderer.js'));await flush();
  return {window,commands,el:id=>window.document.getElementById(id),send(value){state={...state,...value};listener(state)}};
 }
+test('state-only image updates retain pixels, update feedback, and explicit null clears them',async t=>{
+ const ui=await fixture(t);
+ ui.window.Image=class {set src(value){this.value=value;queueMicrotask(()=>this.onload?.());}};
+ const context={allowed:true,loading:false,identity:'current',viewName:'Page'};
+ const pixels='data:image/jpeg;base64,cGl4ZWxz';
+ ui.send({context,expanded:true,image:{src:pixels,identity:'current',width:400,height:300,feedback:null}});await flush();
+ assert.equal(ui.el('mirror').src,pixels);assert.equal(ui.el('mirror').hidden,false);
+ const feedback={id:'read',regions:[{x:0,y:0,width:1,height:1}]};
+ ui.send({image:{identity:'current',width:400,height:300,feedback},activity:{operation:{id:'read',phase:'running'}}});await flush();
+ assert.equal(ui.el('mirror').src,pixels);assert.equal(ui.el('mirror').hidden,false);assert.equal(ui.el('feedback').hidden,false);
+ assert.equal(ui.el('feedback').children.length,1);
+ ui.send({image:null});assert.equal(ui.el('mirror').hasAttribute('src'),false);assert.equal(ui.el('feedback').hidden,true);
+});
 test('island update badges never expand on background progress; an explicit panel keeps the canvas structure intact',async(t)=>{
  const ui=await fixture(t);
  assert.equal(ui.el('capsule-update').hidden,true);

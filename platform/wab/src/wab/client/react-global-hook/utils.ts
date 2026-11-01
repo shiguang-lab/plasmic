@@ -160,8 +160,9 @@ export function tryGetNodeCanvasEnvs(
 export function tryGetEnvFromFullKey(
   globalHookCtx: GlobalHookCtx,
   fullKey: string,
+  frameUid: number,
 ) {
-  const id = globalHookCtx.fullKeyToEnvId.get(fullKey);
+  const id = globalHookCtx.fullKeyToEnvId.get(`${frameUid}:${fullKey}`);
   return tryGetEnvFromId(globalHookCtx, id);
 }
 
@@ -263,7 +264,7 @@ export function createValNode(opts: {
     .result();
 
   const envs = opts.useFullKeyForEnv
-    ? tryGetEnvFromFullKey(globalHookCtx, fullKey)
+    ? tryGetEnvFromFullKey(globalHookCtx, fullKey, frameUid)
     : tryGetNodeCanvasEnvs(globalHookCtx, node);
 
   if (envs) {

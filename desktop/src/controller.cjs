@@ -1,6 +1,6 @@
 const { app, ipcMain, nativeImage } = require("electron");
 const { randomUUID, createHash } = require("node:crypto");
-const { EDITOR_METHODS, assertToolRouting } = require("./mcp.cjs");
+const { EDITOR_METHODS, assertToolRouting } = require("./mcp-contract.cjs");
 const { canvasFrames, renderCanvas, exportCanvas } = require("./canvas.cjs");
 const { encodeImagePreview } = require("./image-preview.cjs");
 const { managementResult } = require("./management-result.cjs");

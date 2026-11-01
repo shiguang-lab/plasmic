@@ -47,7 +47,7 @@ function desktopEditors() {
   const topFrameApi = mock<TopFrameApi>();
   topFrameApi.openDesktopDrafts.mockImplementation(async () => ({ handle: "handle", drafts: [...files.values()] }));
   topFrameApi.readDesktopDraft.mockImplementation(async (_handle, id) => files.get(id) ?? null);
-  topFrameApi.writeDesktopDraft.mockImplementation(async (_handle, draft) => { files.set(draft.id, draft); });
+  topFrameApi.writeDesktopDraft.mockImplementation(async (_handle, draftJson) => { const draft: DesktopDraft = JSON.parse(draftJson); files.set(draft.id, draft); });
   topFrameApi.removeDesktopDraft.mockImplementation(async (_handle, id, sequence) => {
     const draft = files.get(id);
     if (draft && draft.sequence <= sequence) { files.delete(id); return true; }

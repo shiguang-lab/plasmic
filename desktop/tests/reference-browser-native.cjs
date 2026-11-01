@@ -413,7 +413,7 @@ app
         'document.querySelectorAll("#inspector button")[0].click()',
       );
       await waitChrome(
-        'document.getElementById("copy-status").textContent.includes("fixture clipboard denied")',
+        `document.getElementById("copy-status").textContent === ${JSON.stringify(browser.i18n.t("Copy failed. Please try again."))}`,
       );
       assert.equal(
         await chromeEval(

@@ -89,6 +89,7 @@ it("shows a bounded local skeleton until first render, preserves component-regis
     );
     expect(screen.getByRole("status").getAttribute("aria-busy")).toBe("true");
     expect(container.querySelectorAll(".ant-skeleton")).toHaveLength(1);
+    expect(container.querySelector(".ant-skeleton-active")).toBeNull();
     expect(container.querySelector("iframe")?.getAttribute("data-plasmic-frame-uuid")).toBe(frame.uuid);
     expect(container.querySelector("iframe")?.getAttribute("data-plasmic-component-uuid")).toBe(component.uuid);
     expect(queue).toHaveBeenCalledWith(
@@ -98,6 +99,7 @@ it("shows a bounded local skeleton until first render, preserves component-regis
     expect(screen.queryByRole("status")).toBeNull();
     act(() => updatingRegistry.set(true));
     expect(screen.getByRole("status")).toBeTruthy();
+    expect(container.querySelector(".ant-skeleton-active")).not.toBeNull();
     act(() => updatingRegistry.set(false));
     expect(screen.queryByRole("status")).toBeNull();
     act(() => vc.contentEditor.size.set({ width: 1600, height: 2400 }));

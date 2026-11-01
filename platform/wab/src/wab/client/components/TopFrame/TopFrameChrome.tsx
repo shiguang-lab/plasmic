@@ -677,7 +677,7 @@ export function useTopFrameState({
         return desktopDraftBridge()?.open(userId, projectId, branchId) ?? null;
       },
       readDesktopDraft: async (handle, id) => ensure(desktopDraftBridge(), "Desktop drafts unavailable").read(handle, id),
-      writeDesktopDraft: async (handle, draft) => ensure(desktopDraftBridge(), "Desktop drafts unavailable").write(handle, draft),
+      writeDesktopDraft: async (handle, draftJson) => ensure(desktopDraftBridge(), "Desktop drafts unavailable").write(handle, draftJson),
       removeDesktopDraft: async (handle, id, sequence) => ensure(desktopDraftBridge(), "Desktop drafts unavailable").remove(handle, id, sequence),
       copyDesktopDraft: async (handle, id) => {
         const draft = ensure(await ensure(desktopDraftBridge(), "Desktop drafts unavailable").read(handle, id), "Local draft not found");

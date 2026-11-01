@@ -1,0 +1,4377 @@
+{
+  "serializedTransport": true,
+  "scope": "Current desktop source with unmodified installed renderer; renderer fixes are not included. Automatic server save disabled; project writes blocked.",
+  "build": {
+    "kind": "release",
+    "revision": "4be192c7af42e89cda0a5b182082fdf07a5905a7",
+    "dirty": false,
+    "builtAt": "2026-10-31T06:13:41.059Z",
+    "rendererHash": "756dad50e884bd24477b4c2c807d2fa54af4165b1c442032611558147e2ef9b2",
+    "desktopHash": "2b2c7c708eef866939a412ec908692d1c09dc6854958fe729131fca3cbc99e78"
+  },
+  "resources": [
+    {
+      "phase": "warm-reopen-0",
+      "url": "https://plasmic-studio.shiguanglab.com/api/v1/dependency-models/f11641a0-f888-44b8-8f19-048fe8e73957",
+      "startMs": 9564.63625,
+      "durationMs": 251.91833299999962,
+      "hit": "hit"
+    },
+    {
+      "phase": "warm-reopen-0",
+      "url": "https://plasmic-studio.shiguanglab.com/api/v1/dependency-models/c945b8b4-e2ae-4c86-8f11-bb34c93ff4a2",
+      "startMs": 9565.176708,
+      "durationMs": 251.64458399999967,
+      "hit": "hit"
+    },
+    {
+      "phase": "warm-reopen-0",
+      "url": "https://plasmic-studio.shiguanglab.com/api/v1/dependency-models/27fcc468-ca51-4dca-8026-56e8d3dcf023",
+      "startMs": 9565.200042,
+      "durationMs": 257.0504579999997,
+      "hit": "hit"
+    },
+    {
+      "phase": "warm-reopen-0",
+      "url": "https://plasmic-studio.shiguanglab.com/api/v1/dependency-models/55f63066-ebd1-4ddf-9b50-99dbf44b20f0",
+      "startMs": 9563.981292,
+      "durationMs": 259.08616599999914,
+      "hit": "hit"
+    },
+    {
+      "phase": "warm-reopen-0",
+      "url": "https://plasmic-studio.shiguanglab.com/api/v1/dependency-models/1bad2fef-b627-4906-b9ff-5e0bfc9879e4",
+      "startMs": 9565.138625,
+      "durationMs": 267.07545800000116,
+      "hit": "hit"
+    },
+    {
+      "phase": "warm-reopen-0",
+      "url": "https://plasmic-studio.shiguanglab.com/api/v1/hostless-libraries/overseas/canvas?version=1.13.0&pkgId=8785f78a-be85-4369-893e-6f743d1d14b0",
+      "startMs": 10489.192375,
+      "durationMs": 1.6896249999990687,
+      "hit": "hit"
+    },
+    {
+      "phase": "warm-reopen-0",
+      "url": "https://plasmic-studio.shiguanglab.com/api/v1/hostless-libraries/react-ui/canvas?version=0.2.0&pkgId=da2a82c5-8da6-41fb-a64a-2c823a8bdfec",
+      "startMs": 10489.315333,
+      "durationMs": 2.024666999999681,
+      "hit": "hit"
+    },
+    {
+      "phase": "warm-reopen-0",
+      "url": "https://plasmic-studio.shiguanglab.com/api/v1/hostless-libraries/antd6/canvas?version=3.11.0&pkgId=b6f20329-89de-4bed-b63d-bba007ff3af5",
+      "startMs": 10489.028333,
+      "durationMs": 8.8612090000006,
+      "hit": "hit"
+    },
+    {
+      "phase": "warm-reopen-0",
+      "url": "https://plasmic-studio.shiguanglab.com/api/v1/hostless-libraries/antd-icons/canvas?version=0.3.0&pkgId=e5577195-30c1-4a54-ac98-5323a79ddaf6",
+      "startMs": 10489.268792,
+      "durationMs": 9.54820799999834,
+      "hit": "hit"
+    },
+    {
+      "phase": "warm-reopen-0",
+      "url": "https://plasmic-studio.shiguanglab.com/api/v1/hostless-libraries/overseas/canvas?version=1.13.0&pkgId=8785f78a-be85-4369-893e-6f743d1d14b0",
+      "startMs": 10951.524958,
+      "durationMs": 3.9630840000008902,
+      "hit": "hit"
+    },
+    {
+      "phase": "warm-reopen-0",
+      "url": "https://plasmic-studio.shiguanglab.com/api/v1/hostless-libraries/react-ui/canvas?version=0.2.0&pkgId=da2a82c5-8da6-41fb-a64a-2c823a8bdfec",
+      "startMs": 10951.733833,
+      "durationMs": 4.261333999998897,
+      "hit": "hit"
+    },
+    {
+      "phase": "warm-reopen-0",
+      "url": "https://plasmic-studio.shiguanglab.com/api/v1/hostless-libraries/antd6/canvas?version=3.11.0&pkgId=b6f20329-89de-4bed-b63d-bba007ff3af5",
+      "startMs": 10951.146625,
+      "durationMs": 8.880542000000787,
+      "hit": "hit"
+    },
+    {
+      "phase": "warm-reopen-0",
+      "url": "https://plasmic-studio.shiguanglab.com/api/v1/hostless-libraries/antd-icons/canvas?version=0.3.0&pkgId=e5577195-30c1-4a54-ac98-5323a79ddaf6",
+      "startMs": 10951.6575,
+      "durationMs": 12.822041999999783,
+      "hit": "hit"
+    },
+    {
+      "phase": "warm-reopen-0",
+      "url": "https://plasmic-studio.shiguanglab.com/api/v1/hostless-libraries/overseas/canvas?version=1.13.0&pkgId=8785f78a-be85-4369-893e-6f743d1d14b0",
+      "startMs": 10998.508167,
+      "durationMs": 7.265583000000333,
+      "hit": "hit"
+    },
+    {
+      "phase": "warm-reopen-0",
+      "url": "https://plasmic-studio.shiguanglab.com/api/v1/hostless-libraries/react-ui/canvas?version=0.2.0&pkgId=da2a82c5-8da6-41fb-a64a-2c823a8bdfec",
+      "startMs": 10998.698875,
+      "durationMs": 9.983749999999418,
+      "hit": "hit"
+    },
+    {
+      "phase": "warm-reopen-0",
+      "url": "https://plasmic-studio.shiguanglab.com/api/v1/hostless-libraries/antd6/canvas?version=3.11.0&pkgId=b6f20329-89de-4bed-b63d-bba007ff3af5",
+      "startMs": 10998.223875,
+      "durationMs": 14.183167000001049,
+      "hit": "hit"
+    },
+    {
+      "phase": "warm-reopen-0",
+      "url": "https://plasmic-studio.shiguanglab.com/api/v1/hostless-libraries/antd-icons/canvas?version=0.3.0&pkgId=e5577195-30c1-4a54-ac98-5323a79ddaf6",
+      "startMs": 10998.638833,
+      "durationMs": 14.870458999999755,
+      "hit": "hit"
+    },
+    {
+      "phase": "warm-reopen-1",
+      "url": "https://plasmic-studio.shiguanglab.com/api/v1/dependency-models/f11641a0-f888-44b8-8f19-048fe8e73957",
+      "startMs": 12799.544333,
+      "durationMs": 255.5579170000001,
+      "hit": "hit"
+    },
+    {
+      "phase": "warm-reopen-1",
+      "url": "https://plasmic-studio.shiguanglab.com/api/v1/dependency-models/c945b8b4-e2ae-4c86-8f11-bb34c93ff4a2",
+      "startMs": 12799.826292,
+      "durationMs": 256.29591600000094,
+      "hit": "hit"
+    },
+    {
+      "phase": "warm-reopen-1",
+      "url": "https://plasmic-studio.shiguanglab.com/api/v1/dependency-models/27fcc468-ca51-4dca-8026-56e8d3dcf023",
+      "startMs": 12799.846875,
+      "durationMs": 261.1556670000009,
+      "hit": "hit"
+    },
+    {
+      "phase": "warm-reopen-1",
+      "url": "https://plasmic-studio.shiguanglab.com/api/v1/dependency-models/55f63066-ebd1-4ddf-9b50-99dbf44b20f0",
+      "startMs": 12798.805833,
+      "durationMs": 263.3374590000003,
+      "hit": "hit"
+    },
+    {
+      "phase": "warm-reopen-1",
+      "url": "https://plasmic-studio.shiguanglab.com/api/v1/dependency-models/1bad2fef-b627-4906-b9ff-5e0bfc9879e4",
+      "startMs": 12799.802708,
+      "durationMs": 276.78241700000035,
+      "hit": "hit"
+    },
+    {
+      "phase": "warm-reopen-1",
+      "url": "https://plasmic-studio.shiguanglab.com/api/v1/hostless-libraries/overseas/canvas?version=1.13.0&pkgId=8785f78a-be85-4369-893e-6f743d1d14b0",
+      "startMs": 13906.091208,
+      "durationMs": 4.422334000000774,
+      "hit": "hit"
+    },
+    {
+      "phase": "warm-reopen-1",
+      "url": "https://plasmic-studio.shiguanglab.com/api/v1/hostless-libraries/react-ui/canvas?version=0.2.0&pkgId=da2a82c5-8da6-41fb-a64a-2c823a8bdfec",
+      "startMs": 13906.250208,
+      "durationMs": 5.657750000000306,
+      "hit": "hit"
+    },
+    {
+      "phase": "warm-reopen-1",
+      "url": "https://plasmic-studio.shiguanglab.com/api/v1/hostless-libraries/antd6/canvas?version=3.11.0&pkgId=b6f20329-89de-4bed-b63d-bba007ff3af5",
+      "startMs": 13905.889958,
+      "durationMs": 14.663958999999522,
+      "hit": "hit"
+    },
+    {
+      "phase": "warm-reopen-1",
+      "url": "https://plasmic-studio.shiguanglab.com/api/v1/hostless-libraries/antd-icons/canvas?version=0.3.0&pkgId=e5577195-30c1-4a54-ac98-5323a79ddaf6",
+      "startMs": 13906.165625,
+      "durationMs": 15.2952920000007,
+      "hit": "hit"
+    },
+    {
+      "phase": "warm-reopen-1",
+      "url": "https://plasmic-studio.shiguanglab.com/api/v1/hostless-libraries/react-ui/canvas?version=0.2.0&pkgId=da2a82c5-8da6-41fb-a64a-2c823a8bdfec",
+      "startMs": 14475.329125,
+      "durationMs": 13.081458000000566,
+      "hit": "hit"
+    },
+    {
+      "phase": "warm-reopen-1",
+      "url": "https://plasmic-studio.shiguanglab.com/api/v1/hostless-libraries/overseas/canvas?version=1.13.0&pkgId=8785f78a-be85-4369-893e-6f743d1d14b0",
+      "startMs": 14475.007917,
+      "durationMs": 15.357833000000028,
+      "hit": "hit"
+    },
+    {
+      "phase": "warm-reopen-1",
+      "url": "https://plasmic-studio.shiguanglab.com/api/v1/hostless-libraries/antd6/canvas?version=3.11.0&pkgId=b6f20329-89de-4bed-b63d-bba007ff3af5",
+      "startMs": 14473.753417,
+      "durationMs": 23.735875000000306,
+      "hit": "hit"
+    },
+    {
+      "phase": "warm-reopen-1",
+      "url": "https://plasmic-studio.shiguanglab.com/api/v1/hostless-libraries/antd-icons/canvas?version=0.3.0&pkgId=e5577195-30c1-4a54-ac98-5323a79ddaf6",
+      "startMs": 14475.23575,
+      "durationMs": 25.00104199999987,
+      "hit": "hit"
+    },
+    {
+      "phase": "warm-reopen-1",
+      "url": "https://plasmic-studio.shiguanglab.com/api/v1/hostless-libraries/overseas/canvas?version=1.13.0&pkgId=8785f78a-be85-4369-893e-6f743d1d14b0",
+      "startMs": 14529.326333,
+      "durationMs": 2.7517089999983,
+      "hit": "hit"
+    },
+    {
+      "phase": "warm-reopen-1",
+      "url": "https://plasmic-studio.shiguanglab.com/api/v1/hostless-libraries/react-ui/canvas?version=0.2.0&pkgId=da2a82c5-8da6-41fb-a64a-2c823a8bdfec",
+      "startMs": 14529.451125,
+      "durationMs": 2.943750000000364,
+      "hit": "hit"
+    },
+    {
+      "phase": "warm-reopen-1",
+      "url": "https://plasmic-studio.shiguanglab.com/api/v1/hostless-libraries/antd-icons/canvas?version=0.3.0&pkgId=e5577195-30c1-4a54-ac98-5323a79ddaf6",
+      "startMs": 14529.401208,
+      "durationMs": 12.82508400000006,
+      "hit": "hit"
+    },
+    {
+      "phase": "warm-reopen-1",
+      "url": "https://plasmic-studio.shiguanglab.com/api/v1/hostless-libraries/antd6/canvas?version=3.11.0&pkgId=b6f20329-89de-4bed-b63d-bba007ff3af5",
+      "startMs": 14529.050667,
+      "durationMs": 14.515833000001294,
+      "hit": "hit"
+    },
+    {
+      "phase": "warm-reopen-2",
+      "url": "https://plasmic-studio.shiguanglab.com/api/v1/dependency-models/c945b8b4-e2ae-4c86-8f11-bb34c93ff4a2",
+      "startMs": 16453.022042,
+      "durationMs": 249.6992910000008,
+      "hit": "hit"
+    },
+    {
+      "phase": "warm-reopen-2",
+      "url": "https://plasmic-studio.shiguanglab.com/api/v1/dependency-models/f11641a0-f888-44b8-8f19-048fe8e73957",
+      "startMs": 16452.68225,
+      "durationMs": 257.50324999999793,
+      "hit": "hit"
+    },
+    {
+      "phase": "warm-reopen-2",
+      "url": "https://plasmic-studio.shiguanglab.com/api/v1/dependency-models/27fcc468-ca51-4dca-8026-56e8d3dcf023",
+      "startMs": 16453.040792,
+      "durationMs": 260.04929099999936,
+      "hit": "hit"
+    },
+    {
+      "phase": "warm-reopen-2",
+      "url": "https://plasmic-studio.shiguanglab.com/api/v1/dependency-models/55f63066-ebd1-4ddf-9b50-99dbf44b20f0",
+      "startMs": 16451.752333,
+      "durationMs": 263.55966700000135,
+      "hit": "hit"
+    },
+    {
+      "phase": "warm-reopen-2",
+      "url": "https://plasmic-studio.shiguanglab.com/api/v1/dependency-models/1bad2fef-b627-4906-b9ff-5e0bfc9879e4",
+      "startMs": 16452.76275,
+      "durationMs": 275.3324169999978,
+      "hit": "hit"
+    },
+    {
+      "phase": "warm-reopen-2",
+      "url": "https://plasmic-studio.shiguanglab.com/api/v1/hostless-libraries/overseas/canvas?version=1.13.0&pkgId=8785f78a-be85-4369-893e-6f743d1d14b0",
+      "startMs": 17659.354833,
+      "durationMs": 5.790541999998823,
+      "hit": "hit"
+    },
+    {
+      "phase": "warm-reopen-2",
+      "url": "https://plasmic-studio.shiguanglab.com/api/v1/hostless-libraries/react-ui/canvas?version=0.2.0&pkgId=da2a82c5-8da6-41fb-a64a-2c823a8bdfec",
+      "startMs": 17660.010375,
+      "durationMs": 6.273332999997365,
+      "hit": "hit"
+    },
+    {
+      "phase": "warm-reopen-2",
+      "url": "https://plasmic-studio.shiguanglab.com/api/v1/hostless-libraries/antd6/canvas?version=3.11.0&pkgId=b6f20329-89de-4bed-b63d-bba007ff3af5",
+      "startMs": 17658.311167,
+      "durationMs": 13.751832999998442,
+      "hit": "hit"
+    },
+    {
+      "phase": "warm-reopen-2",
+      "url": "https://plasmic-studio.shiguanglab.com/api/v1/hostless-libraries/antd-icons/canvas?version=0.3.0&pkgId=e5577195-30c1-4a54-ac98-5323a79ddaf6",
+      "startMs": 17659.692333,
+      "durationMs": 20.981667000000016,
+      "hit": "hit"
+    },
+    {
+      "phase": "warm-reopen-2",
+      "url": "https://plasmic-studio.shiguanglab.com/api/v1/hostless-libraries/overseas/canvas?version=1.13.0&pkgId=8785f78a-be85-4369-893e-6f743d1d14b0",
+      "startMs": 18099.561708,
+      "durationMs": 5.808208999998897,
+      "hit": "hit"
+    },
+    {
+      "phase": "warm-reopen-2",
+      "url": "https://plasmic-studio.shiguanglab.com/api/v1/hostless-libraries/react-ui/canvas?version=0.2.0&pkgId=da2a82c5-8da6-41fb-a64a-2c823a8bdfec",
+      "startMs": 18100.199708,
+      "durationMs": 5.521250000001601,
+      "hit": "hit"
+    },
+    {
+      "phase": "warm-reopen-2",
+      "url": "https://plasmic-studio.shiguanglab.com/api/v1/hostless-libraries/antd6/canvas?version=3.11.0&pkgId=b6f20329-89de-4bed-b63d-bba007ff3af5",
+      "startMs": 18099.093833,
+      "durationMs": 14.562874999999622,
+      "hit": "hit"
+    },
+    {
+      "phase": "warm-reopen-2",
+      "url": "https://plasmic-studio.shiguanglab.com/api/v1/hostless-libraries/antd-icons/canvas?version=0.3.0&pkgId=e5577195-30c1-4a54-ac98-5323a79ddaf6",
+      "startMs": 18099.774208,
+      "durationMs": 14.912749999999505,
+      "hit": "hit"
+    },
+    {
+      "phase": "warm-reopen-2",
+      "url": "https://plasmic-studio.shiguanglab.com/api/v1/hostless-libraries/overseas/canvas?version=1.13.0&pkgId=8785f78a-be85-4369-893e-6f743d1d14b0",
+      "startMs": 18166.657958,
+      "durationMs": 2.8968339999992168,
+      "hit": "hit"
+    },
+    {
+      "phase": "warm-reopen-2",
+      "url": "https://plasmic-studio.shiguanglab.com/api/v1/hostless-libraries/react-ui/canvas?version=0.2.0&pkgId=da2a82c5-8da6-41fb-a64a-2c823a8bdfec",
+      "startMs": 18166.814,
+      "durationMs": 3.1249580000003334,
+      "hit": "hit"
+    },
+    {
+      "phase": "warm-reopen-2",
+      "url": "https://plasmic-studio.shiguanglab.com/api/v1/hostless-libraries/antd6/canvas?version=3.11.0&pkgId=b6f20329-89de-4bed-b63d-bba007ff3af5",
+      "startMs": 18166.385667,
+      "durationMs": 12.44158299999981,
+      "hit": "hit"
+    },
+    {
+      "phase": "warm-reopen-2",
+      "url": "https://plasmic-studio.shiguanglab.com/api/v1/hostless-libraries/antd-icons/canvas?version=0.3.0&pkgId=e5577195-30c1-4a54-ac98-5323a79ddaf6",
+      "startMs": 18166.751875,
+      "durationMs": 13.425541999997222,
+      "hit": "hit"
+    },
+    {
+      "phase": "draft-3",
+      "url": "https://plasmic-studio.shiguanglab.com/api/v1/dependency-models/f81059a5-f917-4d02-b28e-988d63075087",
+      "startMs": 19440.803917,
+      "durationMs": 545.4879579999979,
+      "hit": "miss"
+    }
+  ],
+  "drafts": [
+    {
+      "phase": "draft-0",
+      "startMs": 19343.678708,
+      "durationMs": 41.56495899999936,
+      "dependencies": 5
+    },
+    {
+      "phase": "draft-1",
+      "startMs": 19525.917125,
+      "durationMs": 56.02183299999888,
+      "dependencies": 5
+    },
+    {
+      "phase": "draft-2",
+      "startMs": 19717.003292,
+      "durationMs": 87.32854099999895,
+      "dependencies": 5
+    },
+    {
+      "phase": "draft-3",
+      "startMs": 19938.949125,
+      "durationMs": 60.588292000000365,
+      "dependencies": 5
+    },
+    {
+      "phase": "draft-4",
+      "startMs": 20196.437,
+      "durationMs": 54.49024999999892,
+      "dependencies": 5
+    }
+  ],
+  "blockedWrites": [],
+  "errors": [],
+  "samples": [
+    {
+      "phase": "warm-reopen-0",
+      "durationMs": 4326.7935,
+      "eventLoop": {
+        "p95Ms": 2.580479,
+        "p99Ms": 4.747263,
+        "maxMs": 20.938751
+      },
+      "metrics": [
+        {
+          "pid": 95058,
+          "type": "Browser",
+          "rssKiB": 199072
+        },
+        {
+          "pid": 95060,
+          "type": "GPU",
+          "rssKiB": 91040
+        },
+        {
+          "pid": 95061,
+          "type": "Utility",
+          "rssKiB": 50688
+        },
+        {
+          "pid": 95106,
+          "type": "Tab",
+          "rssKiB": 781680
+        },
+        {
+          "pid": 95112,
+          "type": "Utility",
+          "rssKiB": 39248
+        }
+      ]
+    },
+    {
+      "phase": "warm-reopen-1",
+      "durationMs": 3648.6645000000008,
+      "eventLoop": {
+        "p95Ms": 4.411391,
+        "p99Ms": 6.963199,
+        "maxMs": 13.303807
+      },
+      "metrics": [
+        {
+          "pid": 95058,
+          "type": "Browser",
+          "rssKiB": 163632
+        },
+        {
+          "pid": 95060,
+          "type": "GPU",
+          "rssKiB": 88128
+        },
+        {
+          "pid": 95061,
+          "type": "Utility",
+          "rssKiB": 50848
+        },
+        {
+          "pid": 95106,
+          "type": "Tab",
+          "rssKiB": 513024
+        },
+        {
+          "pid": 95112,
+          "type": "Utility",
+          "rssKiB": 34512
+        }
+      ]
+    },
+    {
+      "phase": "warm-reopen-2",
+      "durationMs": 3584.157333000001,
+      "eventLoop": {
+        "p95Ms": 3.371007,
+        "p99Ms": 6.361087,
+        "maxMs": 28.295167
+      },
+      "metrics": [
+        {
+          "pid": 95058,
+          "type": "Browser",
+          "rssKiB": 214896
+        },
+        {
+          "pid": 95060,
+          "type": "GPU",
+          "rssKiB": 90864
+        },
+        {
+          "pid": 95061,
+          "type": "Utility",
+          "rssKiB": 51184
+        },
+        {
+          "pid": 95106,
+          "type": "Tab",
+          "rssKiB": 1046112
+        },
+        {
+          "pid": 95112,
+          "type": "Utility",
+          "rssKiB": 37680
+        }
+      ]
+    },
+    {
+      "phase": "draft-0",
+      "durationMs": 158.4721669999999,
+      "eventLoop": {
+        "p95Ms": 1.835007,
+        "p99Ms": 8.454143,
+        "maxMs": 47.054847
+      },
+      "metrics": [
+        {
+          "pid": 95058,
+          "type": "Browser",
+          "rssKiB": 249808
+        },
+        {
+          "pid": 95060,
+          "type": "GPU",
+          "rssKiB": 90736
+        },
+        {
+          "pid": 95061,
+          "type": "Utility",
+          "rssKiB": 51184
+        },
+        {
+          "pid": 95106,
+          "type": "Tab",
+          "rssKiB": 706976
+        },
+        {
+          "pid": 95112,
+          "type": "Utility",
+          "rssKiB": 36976
+        }
+      ]
+    },
+    {
+      "phase": "draft-1",
+      "durationMs": 164.51166699999885,
+      "eventLoop": {
+        "p95Ms": 1.775615,
+        "p99Ms": 9.281535,
+        "maxMs": 32.702463
+      },
+      "metrics": [
+        {
+          "pid": 95058,
+          "type": "Browser",
+          "rssKiB": 267664
+        },
+        {
+          "pid": 95060,
+          "type": "GPU",
+          "rssKiB": 87648
+        },
+        {
+          "pid": 95061,
+          "type": "Utility",
+          "rssKiB": 51216
+        },
+        {
+          "pid": 95106,
+          "type": "Tab",
+          "rssKiB": 617536
+        },
+        {
+          "pid": 95112,
+          "type": "Utility",
+          "rssKiB": 37104
+        }
+      ]
+    },
+    {
+      "phase": "draft-2",
+      "durationMs": 192.9771249999976,
+      "eventLoop": {
+        "p95Ms": 3.557375,
+        "p99Ms": 9.207807,
+        "maxMs": 44.957695
+      },
+      "metrics": [
+        {
+          "pid": 95058,
+          "type": "Browser",
+          "rssKiB": 251936
+        },
+        {
+          "pid": 95060,
+          "type": "GPU",
+          "rssKiB": 86192
+        },
+        {
+          "pid": 95061,
+          "type": "Utility",
+          "rssKiB": 51296
+        },
+        {
+          "pid": 95106,
+          "type": "Tab",
+          "rssKiB": 566880
+        },
+        {
+          "pid": 95112,
+          "type": "Utility",
+          "rssKiB": 35824
+        }
+      ]
+    },
+    {
+      "phase": "draft-3",
+      "durationMs": 227.15912500000195,
+      "eventLoop": {
+        "p95Ms": 1.695743,
+        "p99Ms": 5.169151,
+        "maxMs": 29.016063
+      },
+      "metrics": [
+        {
+          "pid": 95058,
+          "type": "Browser",
+          "rssKiB": 261088
+        },
+        {
+          "pid": 95060,
+          "type": "GPU",
+          "rssKiB": 84288
+        },
+        {
+          "pid": 95061,
+          "type": "Utility",
+          "rssKiB": 50960
+        },
+        {
+          "pid": 95106,
+          "type": "Tab",
+          "rssKiB": 565216
+        },
+        {
+          "pid": 95112,
+          "type": "Utility",
+          "rssKiB": 35648
+        }
+      ]
+    },
+    {
+      "phase": "draft-4",
+      "durationMs": 159.9057079999984,
+      "eventLoop": {
+        "p95Ms": 1.893375,
+        "p99Ms": 8.658943,
+        "maxMs": 37.126143
+      },
+      "metrics": [
+        {
+          "pid": 95058,
+          "type": "Browser",
+          "rssKiB": 263232
+        },
+        {
+          "pid": 95060,
+          "type": "GPU",
+          "rssKiB": 79472
+        },
+        {
+          "pid": 95061,
+          "type": "Utility",
+          "rssKiB": 50976
+        },
+        {
+          "pid": 95106,
+          "type": "Tab",
+          "rssKiB": 557040
+        },
+        {
+          "pid": 95112,
+          "type": "Utility",
+          "rssKiB": 35008
+        }
+      ]
+    }
+  ],
+  "initial": {
+    "counter": 0,
+    "frames": 1,
+    "revision": 158
+  },
+  "frameProbes": [
+    {
+      "path": "/projects/tk89W1Akg2HjAjyHAYEro7",
+      "probe": {
+        "bundles": [],
+        "contents": [],
+        "encodes": [],
+        "longTasks": [
+          {
+            "duration": 65,
+            "start": 92.89999997615814
+          },
+          {
+            "duration": 77,
+            "start": 839.3999999761581
+          },
+          {
+            "duration": 76,
+            "start": 1100.0999999642372
+          },
+          {
+            "duration": 55,
+            "start": 1284.3999999761581
+          },
+          {
+            "duration": 120,
+            "start": 1367.5
+          },
+          {
+            "duration": 451,
+            "start": 1526.699999988079
+          },
+          {
+            "duration": 237,
+            "start": 2005.300000011921
+          },
+          {
+            "duration": 384,
+            "start": 2655.699999988079
+          },
+          {
+            "duration": 132,
+            "start": 3059.099999964237
+          },
+          {
+            "duration": 66,
+            "start": 4323.399999976158
+          }
+        ],
+        "timeOrigin": 1793449817439.1,
+        "writes": []
+      }
+    },
+    {
+      "path": "/static/host.html",
+      "probe": {
+        "bundles": [],
+        "contents": [],
+        "encodes": [],
+        "longTasks": [
+          {
+            "duration": 76,
+            "start": 215.79999995231628
+          },
+          {
+            "duration": 55,
+            "start": 400.0999999642372
+          },
+          {
+            "duration": 120,
+            "start": 483.19999998807907
+          },
+          {
+            "duration": 451,
+            "start": 642.3999999761581
+          },
+          {
+            "duration": 237,
+            "start": 1121
+          },
+          {
+            "duration": 384,
+            "start": 1771.3999999761581
+          },
+          {
+            "duration": 132,
+            "start": 2174.7999999523163
+          },
+          {
+            "duration": 66,
+            "start": 3439.099999964237
+          }
+        ],
+        "timeOrigin": 1793449818323.4,
+        "writes": []
+      }
+    },
+    {
+      "path": "/static/host.html",
+      "probe": {
+        "bundles": [
+          {
+            "duration": 12.199999988079071,
+            "project": true,
+            "start": 2624.899999976158
+          },
+          {
+            "duration": 7.400000035762787,
+            "project": true,
+            "start": 2814.099999964237
+          },
+          {
+            "duration": 10.300000011920929,
+            "project": true,
+            "start": 3008.7999999523163
+          },
+          {
+            "duration": 12,
+            "project": true,
+            "start": 3232.2999999523163
+          },
+          {
+            "duration": 7.800000011920929,
+            "project": true,
+            "start": 3488.899999976158
+          }
+        ],
+        "contents": [
+          {
+            "duration": 12.5,
+            "start": 2624.599999964237
+          },
+          {
+            "duration": 7.400000035762787,
+            "start": 2814.099999964237
+          },
+          {
+            "duration": 10.300000011920929,
+            "start": 3008.7999999523163
+          },
+          {
+            "duration": 12,
+            "start": 3232.2999999523163
+          },
+          {
+            "duration": 7.900000035762787,
+            "start": 3488.7999999523163
+          }
+        ],
+        "encodes": [
+          {
+            "chars": 4833662,
+            "duration": 18.69999998807907
+          },
+          {
+            "chars": 4833662,
+            "duration": 17.30000001192093
+          },
+          {
+            "chars": 4833662,
+            "duration": 17
+          },
+          {
+            "chars": 4833662,
+            "duration": 18.700000047683716
+          },
+          {
+            "chars": 4833662,
+            "duration": 17
+          }
+        ],
+        "longTasks": [
+          {
+            "duration": 76,
+            "start": 116.29999995231628
+          },
+          {
+            "duration": 55,
+            "start": 300.5999999642372
+          },
+          {
+            "duration": 120,
+            "start": 383.69999998807907
+          },
+          {
+            "duration": 451,
+            "start": 542.8999999761581
+          },
+          {
+            "duration": 237,
+            "start": 1021.5
+          },
+          {
+            "duration": 384,
+            "start": 1671.8999999761581
+          },
+          {
+            "duration": 132,
+            "start": 2075.2999999523163
+          },
+          {
+            "duration": 66,
+            "start": 3339.599999964237
+          }
+        ],
+        "timeOrigin": 1793449818423,
+        "writes": [
+          {
+            "duration": 93.10000002384186,
+            "start": 2637.399999976158
+          },
+          {
+            "duration": 104.5,
+            "start": 2822.599999964237
+          },
+          {
+            "duration": 129.39999997615814,
+            "start": 3020.199999988079
+          },
+          {
+            "duration": 160.4000000357628,
+            "start": 3246.2999999523163
+          },
+          {
+            "duration": 98.5,
+            "start": 3497.699999988079
+          }
+        ]
+      }
+    },
+    {
+      "path": "blank",
+      "probe": {
+        "bundles": [],
+        "contents": [],
+        "encodes": [],
+        "longTasks": [
+          {
+            "duration": 82,
+            "start": 0
+          },
+          {
+            "duration": 237,
+            "start": 109.90000003576279
+          },
+          {
+            "duration": 384,
+            "start": 760.3000000119209
+          },
+          {
+            "duration": 132,
+            "start": 1163.699999988079
+          },
+          {
+            "duration": 66,
+            "start": 2428
+          }
+        ],
+        "timeOrigin": 1793449819334.6,
+        "writes": []
+      }
+    },
+    {
+      "path": "/static/host.html",
+      "probe": {
+        "bundles": [],
+        "contents": [],
+        "encodes": [],
+        "longTasks": [
+          {
+            "duration": 1,
+            "start": 0
+          },
+          {
+            "duration": 384,
+            "start": 415
+          },
+          {
+            "duration": 132,
+            "start": 818.3999999761581
+          },
+          {
+            "duration": 66,
+            "start": 2082.699999988079
+          }
+        ],
+        "timeOrigin": 1793449819680,
+        "writes": []
+      }
+    }
+  ],
+  "renderer": {
+    "counter": 0,
+    "probe": {
+      "bundles": [
+        {
+          "duration": 12.199999988079071,
+          "project": true,
+          "start": 2624.899999976158
+        },
+        {
+          "duration": 7.400000035762787,
+          "project": true,
+          "start": 2814.099999964237
+        },
+        {
+          "duration": 10.300000011920929,
+          "project": true,
+          "start": 3008.7999999523163
+        },
+        {
+          "duration": 12,
+          "project": true,
+          "start": 3232.2999999523163
+        },
+        {
+          "duration": 7.800000011920929,
+          "project": true,
+          "start": 3488.899999976158
+        }
+      ],
+      "contents": [
+        {
+          "duration": 12.5,
+          "start": 2624.599999964237
+        },
+        {
+          "duration": 7.400000035762787,
+          "start": 2814.099999964237
+        },
+        {
+          "duration": 10.300000011920929,
+          "start": 3008.7999999523163
+        },
+        {
+          "duration": 12,
+          "start": 3232.2999999523163
+        },
+        {
+          "duration": 7.900000035762787,
+          "start": 3488.7999999523163
+        }
+      ],
+      "encodes": [
+        {
+          "chars": 4833662,
+          "duration": 18.69999998807907
+        },
+        {
+          "chars": 4833662,
+          "duration": 17.30000001192093
+        },
+        {
+          "chars": 4833662,
+          "duration": 17
+        },
+        {
+          "chars": 4833662,
+          "duration": 18.700000047683716
+        },
+        {
+          "chars": 4833662,
+          "duration": 17
+        }
+      ],
+      "longTasks": [
+        {
+          "duration": 76,
+          "start": 116.29999995231628
+        },
+        {
+          "duration": 55,
+          "start": 300.5999999642372
+        },
+        {
+          "duration": 120,
+          "start": 383.69999998807907
+        },
+        {
+          "duration": 451,
+          "start": 542.8999999761581
+        },
+        {
+          "duration": 237,
+          "start": 1021.5
+        },
+        {
+          "duration": 384,
+          "start": 1671.8999999761581
+        },
+        {
+          "duration": 132,
+          "start": 2075.2999999523163
+        },
+        {
+          "duration": 66,
+          "start": 3339.599999964237
+        }
+      ],
+      "timeOrigin": 1793449818423,
+      "writes": [
+        {
+          "duration": 93.10000002384186,
+          "start": 2637.399999976158
+        },
+        {
+          "duration": 104.5,
+          "start": 2822.599999964237
+        },
+        {
+          "duration": 129.39999997615814,
+          "start": 3020.199999988079
+        },
+        {
+          "duration": 160.4000000357628,
+          "start": 3246.2999999523163
+        },
+        {
+          "duration": 98.5,
+          "start": 3497.699999988079
+        }
+      ]
+    },
+    "revision": 158
+  },
+  "spans": [
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.parse",
+      "startMs": 9814.003958,
+      "durationMs": 0.02254200000061246,
+      "chars": 294
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 9814.05375,
+      "durationMs": 0.009250000000974978,
+      "chars": 197
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 9814.065333,
+      "durationMs": 0.001209000000017113,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 9814.093583,
+      "durationMs": 0.0012499999993451638,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 9814.12275,
+      "durationMs": 0.001624999998966814,
+      "chars": 197
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 9814.125083,
+      "durationMs": 0.0009589999990566866,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 9814.133417,
+      "durationMs": 0.0009160000008705538,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 9814.145417,
+      "durationMs": 0.0014580000006390037,
+      "chars": 197
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 9814.147375,
+      "durationMs": 0.0007499999992433004,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 9814.159292,
+      "durationMs": 0.012375000000247383,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 9814.179792,
+      "durationMs": 0.002915999999459018,
+      "chars": 197
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 9814.183667,
+      "durationMs": 0.0023330000003625173,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 9814.190208,
+      "durationMs": 0.0012499999993451638,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 9814.201458,
+      "durationMs": 0.0012500000011641532,
+      "chars": 197
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 9814.203167,
+      "durationMs": 0.0007500000010622898,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 9814.207917,
+      "durationMs": 0.0008330000000569271,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.parse",
+      "startMs": 9815.5195,
+      "durationMs": 0.03600000000005821,
+      "chars": 70878
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 9815.577208,
+      "durationMs": 0.17229199999928824,
+      "chars": 70779
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.parse",
+      "startMs": 9815.82375,
+      "durationMs": 0.014457999999649473,
+      "chars": 46486
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 9815.848417,
+      "durationMs": 0.0522080000009737,
+      "chars": 46387
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "cache.diskReadValidate",
+      "startMs": 9814.133083,
+      "durationMs": 2.28308399999878,
+      "kind": "model-resource",
+      "bytes": 52828
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.parse",
+      "startMs": 9816.441333,
+      "durationMs": 0.003833999999187654,
+      "chars": 121
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 9816.47125,
+      "durationMs": 0.0012079999996785773,
+      "chars": 121
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "cache.diskReadValidate",
+      "startMs": 9814.19,
+      "durationMs": 2.54833299999882,
+      "kind": "model-resource",
+      "bytes": 34535
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.parse",
+      "startMs": 9816.742583,
+      "durationMs": 0.0014590000009775395,
+      "chars": 121
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 9816.768083,
+      "durationMs": 0.0011249999988649506,
+      "chars": 121
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.parse",
+      "startMs": 9817.189667,
+      "durationMs": 0.4465829999990092,
+      "chars": 997679
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 9817.757583,
+      "durationMs": 0.3869169999998121,
+      "chars": 997580
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.parse",
+      "startMs": 9818.623625,
+      "durationMs": 1.572582999999213,
+      "chars": 1423084
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 9820.368667,
+      "durationMs": 0.5546249999988504,
+      "chars": 1422985
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "cache.diskReadValidate",
+      "startMs": 9814.207792,
+      "durationMs": 7.541833000001134,
+      "kind": "model-resource",
+      "bytes": 747929
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.parse",
+      "startMs": 9821.764458,
+      "durationMs": 0.005333999999493244,
+      "chars": 121
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 9822.069458,
+      "durationMs": 0.0024169999996956903,
+      "chars": 121
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "cache.diskReadValidate",
+      "startMs": 9814.092625,
+      "durationMs": 8.342416999999841,
+      "kind": "model-resource",
+      "bytes": 1066983
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.parse",
+      "startMs": 9822.440417,
+      "durationMs": 0.002749999999650754,
+      "chars": 121
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 9822.8635,
+      "durationMs": 0.001374999999825377,
+      "chars": 121
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.parse",
+      "startMs": 9824.212917,
+      "durationMs": 2.8490829999991547,
+      "chars": 3618992
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 9827.510417,
+      "durationMs": 0.9151250000013533,
+      "chars": 3618893
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "cache.diskReadValidate",
+      "startMs": 9814.152083,
+      "durationMs": 16.39024999999856,
+      "kind": "model-resource",
+      "bytes": 2713912
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.parse",
+      "startMs": 9830.564167,
+      "durationMs": 0.007458000000042375,
+      "chars": 121
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 9831.666542,
+      "durationMs": 0.0024999999986903276,
+      "chars": 121
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 10488.655,
+      "durationMs": 0.004207999998470768,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 10489.077083,
+      "durationMs": 0.004249999999956344,
+      "chars": 232
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 10489.083125,
+      "durationMs": 0.0010000000002037268,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 10489.095958,
+      "durationMs": 0.0008749999997235136,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 10489.203333,
+      "durationMs": 0.0015839999996387633,
+      "chars": 235
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 10489.205542,
+      "durationMs": 0.0003749999996216502,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 10489.211042,
+      "durationMs": 0.0003329999999550637,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 10489.2765,
+      "durationMs": 0.0010419999998703133,
+      "chars": 236
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 10489.278167,
+      "durationMs": 0.0003749999996216502,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 10489.282917,
+      "durationMs": 0.0003749999996216502,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 10489.323667,
+      "durationMs": 0.0008330000000569271,
+      "chars": 234
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 10489.325125,
+      "durationMs": 0.0003750000014406396,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 10489.329625,
+      "durationMs": 0.0003749999996216502,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.parse",
+      "startMs": 10490.019708,
+      "durationMs": 0.0321669999993901,
+      "chars": 46937
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 10490.076333,
+      "durationMs": 0.06091699999888078,
+      "chars": 46838
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.parse",
+      "startMs": 10490.3435,
+      "durationMs": 0.0540419999997539,
+      "chars": 176616
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 10490.424792,
+      "durationMs": 0.15600000000085856,
+      "chars": 176517
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "cache.diskReadValidate",
+      "startMs": 10489.210875,
+      "durationMs": 1.5233749999988504,
+      "kind": "code",
+      "bytes": 34820
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.parse",
+      "startMs": 10490.7585,
+      "durationMs": 0.005583000000115135,
+      "chars": 143
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 10490.785333,
+      "durationMs": 0.001209000000017113,
+      "chars": 143
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "cache.diskReadValidate",
+      "startMs": 10489.329458,
+      "durationMs": 1.9067089999989548,
+      "kind": "code",
+      "bytes": 132079
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.parse",
+      "startMs": 10491.240833,
+      "durationMs": 0.0016250000007858034,
+      "chars": 142
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 10491.290417,
+      "durationMs": 0.0011660000000119908,
+      "chars": 142
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.parse",
+      "startMs": 10491.4105,
+      "durationMs": 1.0022919999992155,
+      "chars": 1293879
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 10492.580125,
+      "durationMs": 0.3172919999997248,
+      "chars": 1293780
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.parse",
+      "startMs": 10493.561417,
+      "durationMs": 1.694499999999607,
+      "chars": 1436187
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 10495.478375,
+      "durationMs": 0.5815000000002328,
+      "chars": 1436088
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "cache.diskReadValidate",
+      "startMs": 10489.095292,
+      "durationMs": 8.079125000000204,
+      "kind": "code",
+      "bytes": 970028
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.parse",
+      "startMs": 10497.191375,
+      "durationMs": 0.0043750000004365575,
+      "chars": 143
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 10497.599125,
+      "durationMs": 0.005374999998821295,
+      "chars": 143
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "cache.diskReadValidate",
+      "startMs": 10489.28275,
+      "durationMs": 8.791541999999026,
+      "kind": "code",
+      "bytes": 1076757
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.parse",
+      "startMs": 10498.088375,
+      "durationMs": 0.003042000000277767,
+      "chars": 142
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 10498.568875,
+      "durationMs": 0.0015419999999721767,
+      "chars": 142
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 10951.199542,
+      "durationMs": 0.021957999999358435,
+      "chars": 232
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 10951.224125,
+      "durationMs": 0.0014579999988200143,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 10951.257583,
+      "durationMs": 0.0010000000002037268,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 10951.5575,
+      "durationMs": 0.0028329999986453913,
+      "chars": 235
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 10951.562042,
+      "durationMs": 0.0007910000003903406,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 10951.579833,
+      "durationMs": 0.0007500000010622898,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 10951.673,
+      "durationMs": 0.0012499999993451638,
+      "chars": 236
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 10951.675333,
+      "durationMs": 0.0005420000015874393,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 10951.681875,
+      "durationMs": 0.0004580000004352769,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 10951.743083,
+      "durationMs": 0.0015419999999721767,
+      "chars": 234
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 10951.745292,
+      "durationMs": 0.0010830000010173535,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 10951.751375,
+      "durationMs": 0.0008749999997235136,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.parse",
+      "startMs": 10954.730125,
+      "durationMs": 0.03254200000083074,
+      "chars": 46937
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 10954.788042,
+      "durationMs": 0.026916000000710483,
+      "chars": 46838
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.parse",
+      "startMs": 10955.095875,
+      "durationMs": 0.033832999999503954,
+      "chars": 176616
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 10955.204458,
+      "durationMs": 0.058584000000337255,
+      "chars": 176517
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "cache.diskReadValidate",
+      "startMs": 10951.5795,
+      "durationMs": 3.79779199999939,
+      "kind": "code",
+      "bytes": 34820
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.parse",
+      "startMs": 10955.397792,
+      "durationMs": 0.003040999999939231,
+      "chars": 143
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 10955.418833,
+      "durationMs": 0.0020000000004074536,
+      "chars": 143
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "cache.diskReadValidate",
+      "startMs": 10951.751167,
+      "durationMs": 4.134082999999009,
+      "kind": "code",
+      "bytes": 132079
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.parse",
+      "startMs": 10955.890542,
+      "durationMs": 0.001833000000260654,
+      "chars": 142
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 10955.945792,
+      "durationMs": 0.0012499999993451638,
+      "chars": 142
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.parse",
+      "startMs": 10956.079458,
+      "durationMs": 0.647584000000279,
+      "chars": 1293879
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 10956.891958,
+      "durationMs": 0.39516700000058336,
+      "chars": 1293780
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "cache.diskReadValidate",
+      "startMs": 10951.256417,
+      "durationMs": 8.141707999999198,
+      "kind": "code",
+      "bytes": 970028
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.parse",
+      "startMs": 10959.422583,
+      "durationMs": 0.008334000000104425,
+      "chars": 143
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 10959.770542,
+      "durationMs": 0.005624999999781721,
+      "chars": 143
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.parse",
+      "startMs": 10961.784625,
+      "durationMs": 0.3744169999990845,
+      "chars": 1436187
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 10962.352,
+      "durationMs": 0.39424999999937427,
+      "chars": 1436088
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "cache.diskReadValidate",
+      "startMs": 10951.681667,
+      "durationMs": 12.020415999999386,
+      "kind": "code",
+      "bytes": 1076757
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.parse",
+      "startMs": 10963.727583,
+      "durationMs": 0.007041999999273685,
+      "chars": 142
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 10964.177083,
+      "durationMs": 0.002833999998983927,
+      "chars": 142
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 10998.264375,
+      "durationMs": 0.007166999999753898,
+      "chars": 232
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 10998.27375,
+      "durationMs": 0.0008749999997235136,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 10998.36575,
+      "durationMs": 0.0018329999984416645,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 10998.526583,
+      "durationMs": 0.0023339999988820637,
+      "chars": 235
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 10998.529792,
+      "durationMs": 0.007458000000042375,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 10998.545083,
+      "durationMs": 0.0005419999997684499,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 10998.655042,
+      "durationMs": 0.001291000000492204,
+      "chars": 236
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 10998.657583,
+      "durationMs": 0.0004169999992882367,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 10998.663458,
+      "durationMs": 0.000499999998282874,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 10998.707167,
+      "durationMs": 0.0034999999988940544,
+      "chars": 234
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 10998.711292,
+      "durationMs": 0.00041600000076869037,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 10998.716042,
+      "durationMs": 0.0003749999996216502,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.parse",
+      "startMs": 11003.092375,
+      "durationMs": 0.13504199999988487,
+      "chars": 46937
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 11003.247792,
+      "durationMs": 0.057124999999359716,
+      "chars": 46838
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.parse",
+      "startMs": 11003.666417,
+      "durationMs": 0.14099999999962165,
+      "chars": 176616
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 11003.84325,
+      "durationMs": 0.3123749999995198,
+      "chars": 176517
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "cache.diskReadValidate",
+      "startMs": 10998.544833,
+      "durationMs": 7.0746670000007725,
+      "kind": "code",
+      "bytes": 34820
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.parse",
+      "startMs": 11005.644625,
+      "durationMs": 0.006999999999607098,
+      "chars": 143
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 11005.685167,
+      "durationMs": 0.002915999999459018,
+      "chars": 143
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.parse",
+      "startMs": 11005.976417,
+      "durationMs": 0.809332999999242,
+      "chars": 1293879
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 11007.115542,
+      "durationMs": 0.42754100000092876,
+      "chars": 1293780
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "cache.diskReadValidate",
+      "startMs": 10998.715875,
+      "durationMs": 9.784041999999317,
+      "kind": "code",
+      "bytes": 132079
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.parse",
+      "startMs": 11008.517125,
+      "durationMs": 0.006166999999550171,
+      "chars": 142
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 11008.587292,
+      "durationMs": 0.003666000000521308,
+      "chars": 142
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.parse",
+      "startMs": 11009.878708,
+      "durationMs": 0.5416669999995065,
+      "chars": 1436187
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 11010.660542,
+      "durationMs": 0.3554579999999987,
+      "chars": 1436088
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "cache.diskReadValidate",
+      "startMs": 10998.364125,
+      "durationMs": 13.357625000000553,
+      "kind": "code",
+      "bytes": 970028
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.parse",
+      "startMs": 11011.745792,
+      "durationMs": 0.004582999999911408,
+      "chars": 143
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 11012.093792,
+      "durationMs": 0.0032910000008996576,
+      "chars": 143
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "cache.diskReadValidate",
+      "startMs": 10998.663333,
+      "durationMs": 14.191791999999623,
+      "kind": "code",
+      "bytes": 1076757
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.parse",
+      "startMs": 11012.87375,
+      "durationMs": 0.004791999999724794,
+      "chars": 142
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 11013.270792,
+      "durationMs": 0.006166000001030625,
+      "chars": 142
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 11617.924,
+      "durationMs": 0.012291999999433756,
+      "chars": 329
+    },
+    {
+      "phase": "warm-reopen-0",
+      "name": "JSON.stringify",
+      "startMs": 11617.938167,
+      "durationMs": 0.0016660000001138542,
+      "chars": 329
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.parse",
+      "startMs": 13050.932292,
+      "durationMs": 0.013666000000739587,
+      "chars": 294
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 13050.955958,
+      "durationMs": 0.006292000000030384,
+      "chars": 197
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 13050.965292,
+      "durationMs": 0.0009999999983847374,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 13050.997542,
+      "durationMs": 0.0012080000014975667,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 13051.029583,
+      "durationMs": 0.0017920000009326031,
+      "chars": 197
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 13051.037167,
+      "durationMs": 0.005083000000013271,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 13051.047875,
+      "durationMs": 0.0008330000000569271,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 13051.056583,
+      "durationMs": 0.0012500000011641532,
+      "chars": 197
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 13051.05825,
+      "durationMs": 0.0005829999990965007,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 13051.062958,
+      "durationMs": 0.0005419999997684499,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 13051.069333,
+      "durationMs": 0.0010840000013558893,
+      "chars": 197
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 13051.070792,
+      "durationMs": 0.0005409999994299142,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 13051.077417,
+      "durationMs": 0.0007079999995767139,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 13051.083792,
+      "durationMs": 0.0009580000005371403,
+      "chars": 197
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 13051.085833,
+      "durationMs": 0.000875000001542503,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 13051.090583,
+      "durationMs": 0.0008340000003954628,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.parse",
+      "startMs": 13053.1765,
+      "durationMs": 0.017083000000639004,
+      "chars": 70878
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 13053.213667,
+      "durationMs": 0.07062500000029104,
+      "chars": 70779
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.parse",
+      "startMs": 13054.427667,
+      "durationMs": 0.009707999999591266,
+      "chars": 46486
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 13054.456083,
+      "durationMs": 0.014625000001615263,
+      "chars": 46387
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "cache.diskReadValidate",
+      "startMs": 13051.04775,
+      "durationMs": 3.924750000000131,
+      "kind": "model-resource",
+      "bytes": 52828
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.parse",
+      "startMs": 13054.989625,
+      "durationMs": 0.004499999999097781,
+      "chars": 121
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 13055.023583,
+      "durationMs": 0.002291999999215477,
+      "chars": 121
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "cache.diskReadValidate",
+      "startMs": 13051.07725,
+      "durationMs": 4.983582999999271,
+      "kind": "model-resource",
+      "bytes": 34535
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.parse",
+      "startMs": 13056.067667,
+      "durationMs": 0.002500000000509317,
+      "chars": 121
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 13056.088708,
+      "durationMs": 0.00204200000007404,
+      "chars": 121
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.parse",
+      "startMs": 13056.574208,
+      "durationMs": 0.5750000000007276,
+      "chars": 997679
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 13057.272792,
+      "durationMs": 0.44141599999966274,
+      "chars": 997580
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.parse",
+      "startMs": 13058.367708,
+      "durationMs": 0.6354169999995065,
+      "chars": 1423084
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 13059.173708,
+      "durationMs": 0.4915839999994205,
+      "chars": 1422985
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "cache.diskReadValidate",
+      "startMs": 13051.090417,
+      "durationMs": 9.470041000000492,
+      "kind": "model-resource",
+      "bytes": 747929
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.parse",
+      "startMs": 13060.574042,
+      "durationMs": 0.0027079999999841675,
+      "chars": 121
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 13060.839625,
+      "durationMs": 0.0018749999999272404,
+      "chars": 121
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "cache.diskReadValidate",
+      "startMs": 13050.996792,
+      "durationMs": 10.538540999999896,
+      "kind": "model-resource",
+      "bytes": 1066983
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.parse",
+      "startMs": 13061.5445,
+      "durationMs": 0.002291999999215477,
+      "chars": 121
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 13061.915,
+      "durationMs": 0.0024999999986903276,
+      "chars": 121
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.parse",
+      "startMs": 13063.468375,
+      "durationMs": 3.4930420000000595,
+      "chars": 3618992
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 13067.505792,
+      "durationMs": 4.509040999999343,
+      "chars": 3618893
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "cache.diskReadValidate",
+      "startMs": 13051.062833,
+      "durationMs": 23.782499999999345,
+      "kind": "model-resource",
+      "bytes": 2713912
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.parse",
+      "startMs": 13074.859042,
+      "durationMs": 0.005083000000013271,
+      "chars": 121
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 13076.019917,
+      "durationMs": 0.007541000000856002,
+      "chars": 121
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 13904.612333,
+      "durationMs": 0.005667000001267297,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 13905.939708,
+      "durationMs": 0.005375000000640284,
+      "chars": 232
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 13905.947833,
+      "durationMs": 0.0007920000007288763,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 13905.966333,
+      "durationMs": 0.0017499999994470272,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 13906.104458,
+      "durationMs": 0.0015000000003055902,
+      "chars": 235
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 13906.106875,
+      "durationMs": 0.0003749999996216502,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 13906.137625,
+      "durationMs": 0.0007080000013957033,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 13906.174917,
+      "durationMs": 0.0009580000005371403,
+      "chars": 236
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 13906.199167,
+      "durationMs": 0.00041599999894970097,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 13906.222583,
+      "durationMs": 0.0005000000001018634,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 13906.300292,
+      "durationMs": 0.0028330000004643807,
+      "chars": 234
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 13906.304667,
+      "durationMs": 0.0007079999995767139,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 13906.659417,
+      "durationMs": 0.0005409999994299142,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.parse",
+      "startMs": 13908.824792,
+      "durationMs": 0.07400000000052387,
+      "chars": 46937
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 13908.926417,
+      "durationMs": 0.19637499999953434,
+      "chars": 46838
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.parse",
+      "startMs": 13910.148708,
+      "durationMs": 0.019416999999521067,
+      "chars": 176616
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 13910.204125,
+      "durationMs": 0.05345800000031886,
+      "chars": 176517
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "cache.diskReadValidate",
+      "startMs": 13906.112708,
+      "durationMs": 4.2820839999985765,
+      "kind": "code",
+      "bytes": 34820
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.parse",
+      "startMs": 13910.414083,
+      "durationMs": 0.00466700000106357,
+      "chars": 143
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 13910.438,
+      "durationMs": 0.001833000000260654,
+      "chars": 143
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "cache.diskReadValidate",
+      "startMs": 13906.659208,
+      "durationMs": 5.089209000001574,
+      "kind": "code",
+      "bytes": 132079
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.parse",
+      "startMs": 13911.76675,
+      "durationMs": 0.004999999999199645,
+      "chars": 142
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 13911.830708,
+      "durationMs": 0.0033750000002328306,
+      "chars": 142
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.parse",
+      "startMs": 13912.047625,
+      "durationMs": 0.1726250000010623,
+      "chars": 1293879
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 13912.403625,
+      "durationMs": 0.27866699999867706,
+      "chars": 1293780
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.parse",
+      "startMs": 13918.007083,
+      "durationMs": 0.6118339999993623,
+      "chars": 1436187
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 13918.788708,
+      "durationMs": 0.2994170000001759,
+      "chars": 1436088
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "cache.diskReadValidate",
+      "startMs": 13905.965792,
+      "durationMs": 13.933499999999185,
+      "kind": "code",
+      "bytes": 970028
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.parse",
+      "startMs": 13919.918292,
+      "durationMs": 0.003666000000521308,
+      "chars": 143
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 13920.26225,
+      "durationMs": 0.0033750000002328306,
+      "chars": 143
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "cache.diskReadValidate",
+      "startMs": 13906.222375,
+      "durationMs": 14.587250000000495,
+      "kind": "code",
+      "bytes": 1076757
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.parse",
+      "startMs": 13920.815625,
+      "durationMs": 0.002917000001616543,
+      "chars": 142
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 13921.263917,
+      "durationMs": 0.0015829999993002275,
+      "chars": 142
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 14474.579833,
+      "durationMs": 0.011167000000568805,
+      "chars": 232
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 14474.59725,
+      "durationMs": 0.005416999998487881,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 14474.676708,
+      "durationMs": 0.001916999999593827,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 14475.04025,
+      "durationMs": 0.004666999999244581,
+      "chars": 235
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 14475.04725,
+      "durationMs": 0.0009170000012090895,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 14475.082042,
+      "durationMs": 0.053040999999211635,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 14475.253125,
+      "durationMs": 0.0023330000003625173,
+      "chars": 236
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 14475.256958,
+      "durationMs": 0.0005419999997684499,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 14475.289708,
+      "durationMs": 0.0006670000002486631,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 14475.339667,
+      "durationMs": 0.04016600000068138,
+      "chars": 234
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 14475.444292,
+      "durationMs": 0.0005409999994299142,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 14475.450292,
+      "durationMs": 0.0004580000004352769,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.parse",
+      "startMs": 14484.188417,
+      "durationMs": 0.5470409999998083,
+      "chars": 176616
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 14484.816333,
+      "durationMs": 0.5477089999985765,
+      "chars": 176517
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.parse",
+      "startMs": 14487.403083,
+      "durationMs": 0.043333999999958905,
+      "chars": 46937
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 14487.483333,
+      "durationMs": 0.2772499999991851,
+      "chars": 46838
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "cache.diskReadValidate",
+      "startMs": 14475.450167,
+      "durationMs": 12.727540999998382,
+      "kind": "code",
+      "bytes": 132079
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.parse",
+      "startMs": 14488.224292,
+      "durationMs": 0.002915999999459018,
+      "chars": 142
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 14488.2975,
+      "durationMs": 0.0025420000001759036,
+      "chars": 142
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "cache.diskReadValidate",
+      "startMs": 14475.081667,
+      "durationMs": 15.045915999999124,
+      "kind": "code",
+      "bytes": 34820
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.parse",
+      "startMs": 14490.148875,
+      "durationMs": 0.006874999999126885,
+      "chars": 143
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 14490.187792,
+      "durationMs": 0.004165999998804182,
+      "chars": 143
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.parse",
+      "startMs": 14490.742583,
+      "durationMs": 1.4972090000010212,
+      "chars": 1293879
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 14492.419583,
+      "durationMs": 0.8959999999988213,
+      "chars": 1293780
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.parse",
+      "startMs": 14494.379333,
+      "durationMs": 0.9293339999985619,
+      "chars": 1436187
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 14495.521875,
+      "durationMs": 0.6336250000003929,
+      "chars": 1436088
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "cache.diskReadValidate",
+      "startMs": 14474.65525,
+      "durationMs": 22.237999999999374,
+      "kind": "code",
+      "bytes": 970028
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.parse",
+      "startMs": 14496.915583,
+      "durationMs": 0.004124999999476131,
+      "chars": 143
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 14497.251208,
+      "durationMs": 0.0029169999997975538,
+      "chars": 143
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "cache.diskReadValidate",
+      "startMs": 14475.289375,
+      "durationMs": 23.95941700000003,
+      "kind": "code",
+      "bytes": 1076757
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.parse",
+      "startMs": 14499.263042,
+      "durationMs": 0.005415999999968335,
+      "chars": 142
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 14499.686458,
+      "durationMs": 0.008041999999477412,
+      "chars": 142
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 14529.119375,
+      "durationMs": 0.007750000000669388,
+      "chars": 232
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 14529.130208,
+      "durationMs": 0.001209000000017113,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 14529.161792,
+      "durationMs": 0.0009999999983847374,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 14529.34,
+      "durationMs": 0.0017079999997804407,
+      "chars": 235
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 14529.343292,
+      "durationMs": 0.0003749999996216502,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 14529.350333,
+      "durationMs": 0.00045899999895482324,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 14529.409958,
+      "durationMs": 0.00112500000068394,
+      "chars": 236
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 14529.41225,
+      "durationMs": 0.0005419999997684499,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 14529.417417,
+      "durationMs": 0.0004579999986162875,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 14529.457958,
+      "durationMs": 0.0008749999997235136,
+      "chars": 234
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 14529.459625,
+      "durationMs": 0.0003749999996216502,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 14529.464208,
+      "durationMs": 0.00033400000029359944,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.parse",
+      "startMs": 14530.899417,
+      "durationMs": 0.024290999999720952,
+      "chars": 46937
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 14530.950458,
+      "durationMs": 0.03012500000113505,
+      "chars": 46838
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.parse",
+      "startMs": 14531.0395,
+      "durationMs": 0.06354199999987031,
+      "chars": 176616
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 14531.13225,
+      "durationMs": 0.10945799999899464,
+      "chars": 176517
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "cache.diskReadValidate",
+      "startMs": 14529.350208,
+      "durationMs": 2.605959000000439,
+      "kind": "code",
+      "bytes": 34820
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.parse",
+      "startMs": 14531.974583,
+      "durationMs": 0.0036670000008598436,
+      "chars": 143
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 14531.999875,
+      "durationMs": 0.003500000000713044,
+      "chars": 143
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "cache.diskReadValidate",
+      "startMs": 14529.464,
+      "durationMs": 2.8036670000001322,
+      "kind": "code",
+      "bytes": 132079
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.parse",
+      "startMs": 14532.280583,
+      "durationMs": 0.0014590000009775395,
+      "chars": 142
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 14532.330417,
+      "durationMs": 0.0023330000003625173,
+      "chars": 142
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.parse",
+      "startMs": 14533.384375,
+      "durationMs": 1.3672500000011496,
+      "chars": 1436187
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 14534.93575,
+      "durationMs": 0.6942499999986467,
+      "chars": 1436088
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.parse",
+      "startMs": 14537.163208,
+      "durationMs": 2.2181670000009035,
+      "chars": 1293879
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 14539.5625,
+      "durationMs": 1.1335830000007263,
+      "chars": 1293780
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "cache.diskReadValidate",
+      "startMs": 14529.41725,
+      "durationMs": 11.942999999999302,
+      "kind": "code",
+      "bytes": 1076757
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.parse",
+      "startMs": 14541.381708,
+      "durationMs": 0.004916999998386018,
+      "chars": 142
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 14541.8915,
+      "durationMs": 0.0233330000010028,
+      "chars": 142
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "cache.diskReadValidate",
+      "startMs": 14529.160792,
+      "durationMs": 13.733415999999124,
+      "kind": "code",
+      "bytes": 970028
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.parse",
+      "startMs": 14542.902458,
+      "durationMs": 0.004166999999142718,
+      "chars": 143
+    },
+    {
+      "phase": "warm-reopen-1",
+      "name": "JSON.stringify",
+      "startMs": 14543.241208,
+      "durationMs": 0.00258399999984249,
+      "chars": 143
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.parse",
+      "startMs": 16698.494167,
+      "durationMs": 0.011374999998224666,
+      "chars": 294
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 16698.516167,
+      "durationMs": 0.005582999998296145,
+      "chars": 197
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 16698.523958,
+      "durationMs": 0.0010419999998703133,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 16698.553583,
+      "durationMs": 0.0009169999975711107,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 16698.582042,
+      "durationMs": 0.0013750000034633558,
+      "chars": 197
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 16698.584042,
+      "durationMs": 0.0005830000009154901,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 16698.596375,
+      "durationMs": 0.0009169999975711107,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 16698.604875,
+      "durationMs": 0.0011669999985315371,
+      "chars": 197
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 16698.606458,
+      "durationMs": 0.0006670000002486631,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 16698.610917,
+      "durationMs": 0.0007079999995767139,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 16698.617,
+      "durationMs": 0.0009170000012090895,
+      "chars": 197
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 16698.61825,
+      "durationMs": 0.0008330000018759165,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 16698.626667,
+      "durationMs": 0.0007909999985713512,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 16698.634292,
+      "durationMs": 0.0008330000018759165,
+      "chars": 197
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 16698.635625,
+      "durationMs": 0.0007499999992433004,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 16698.642083,
+      "durationMs": 0.009916999999404652,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.parse",
+      "startMs": 16701.45725,
+      "durationMs": 0.03387500000098953,
+      "chars": 46486
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 16701.511167,
+      "durationMs": 0.033250000000407454,
+      "chars": 46387
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.parse",
+      "startMs": 16702.029583,
+      "durationMs": 0.02329200000167475,
+      "chars": 70878
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 16702.068833,
+      "durationMs": 0.05308399999921676,
+      "chars": 70779
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "cache.diskReadValidate",
+      "startMs": 16698.626542,
+      "durationMs": 3.976582999999664,
+      "kind": "model-resource",
+      "bytes": 34535
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.parse",
+      "startMs": 16702.62375,
+      "durationMs": 0.004791999999724794,
+      "chars": 121
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 16702.65125,
+      "durationMs": 0.00204200000007404,
+      "chars": 121
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.parse",
+      "startMs": 16702.949125,
+      "durationMs": 1.6653750000004948,
+      "chars": 997679
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 16704.739417,
+      "durationMs": 0.41212499999892316,
+      "chars": 997580
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "cache.diskReadValidate",
+      "startMs": 16698.596167,
+      "durationMs": 11.434916000001976,
+      "kind": "model-resource",
+      "bytes": 52828
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.parse",
+      "startMs": 16710.050833,
+      "durationMs": 0.004166999999142718,
+      "chars": 121
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 16710.097292,
+      "durationMs": 0.0037080000001878943,
+      "chars": 121
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.parse",
+      "startMs": 16710.521958,
+      "durationMs": 0.7286249999997381,
+      "chars": 1423084
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 16711.425375,
+      "durationMs": 0.5919170000015583,
+      "chars": 1422985
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "cache.diskReadValidate",
+      "startMs": 16698.641917,
+      "durationMs": 14.020457999999053,
+      "kind": "model-resource",
+      "bytes": 747929
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.parse",
+      "startMs": 16712.673917,
+      "durationMs": 0.0024999999986903276,
+      "chars": 121
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 16712.935,
+      "durationMs": 0.0023330000003625173,
+      "chars": 121
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "cache.diskReadValidate",
+      "startMs": 16698.552708,
+      "durationMs": 16.05816699999923,
+      "kind": "model-resource",
+      "bytes": 1066983
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.parse",
+      "startMs": 16714.630208,
+      "durationMs": 0.005292000001645647,
+      "chars": 121
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 16715.083375,
+      "durationMs": 0.00283300000228337,
+      "chars": 121
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.parse",
+      "startMs": 16718.070917,
+      "durationMs": 2.858249999997497,
+      "chars": 3618992
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 16721.410375,
+      "durationMs": 3.0298750000001746,
+      "chars": 3618893
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "cache.diskReadValidate",
+      "startMs": 16698.610792,
+      "durationMs": 27.827540999998746,
+      "kind": "model-resource",
+      "bytes": 2713912
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.parse",
+      "startMs": 16726.463042,
+      "durationMs": 0.005583000001934124,
+      "chars": 121
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 16727.583,
+      "durationMs": 0.004124999999476131,
+      "chars": 121
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 17657.72775,
+      "durationMs": 0.006042000000888947,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 17658.719542,
+      "durationMs": 0.010041000001365319,
+      "chars": 232
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 17658.739875,
+      "durationMs": 0.00204200000007404,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 17658.820208,
+      "durationMs": 0.002749999999650754,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 17659.440792,
+      "durationMs": 0.006999999997788109,
+      "chars": 235
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 17659.452208,
+      "durationMs": 0.0015420000017911661,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 17659.479,
+      "durationMs": 0.0018750000017462298,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 17659.72425,
+      "durationMs": 0.005583000001934124,
+      "chars": 236
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 17659.732208,
+      "durationMs": 0.0010000000002037268,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 17659.747542,
+      "durationMs": 0.000915999997232575,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 17660.023292,
+      "durationMs": 0.0016660000001138542,
+      "chars": 234
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 17660.030875,
+      "durationMs": 0.0007919999989098869,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 17660.040333,
+      "durationMs": 0.00204200000007404,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.parse",
+      "startMs": 17662.512458,
+      "durationMs": 0.026249999998981366,
+      "chars": 46937
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 17662.5575,
+      "durationMs": 0.060124999999970896,
+      "chars": 46838
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.parse",
+      "startMs": 17664.030375,
+      "durationMs": 0.08954200000152923,
+      "chars": 176616
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 17664.154458,
+      "durationMs": 0.1549169999998412,
+      "chars": 176517
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "cache.diskReadValidate",
+      "startMs": 17659.478125,
+      "durationMs": 5.322457999998733,
+      "kind": "code",
+      "bytes": 34820
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.parse",
+      "startMs": 17664.868583,
+      "durationMs": 0.01616700000158744,
+      "chars": 143
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 17664.940167,
+      "durationMs": 0.0075409999990370125,
+      "chars": 143
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "cache.diskReadValidate",
+      "startMs": 17660.040083,
+      "durationMs": 6.080874999999651,
+      "kind": "code",
+      "bytes": 132079
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.parse",
+      "startMs": 17666.139375,
+      "durationMs": 0.0037080000001878943,
+      "chars": 142
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 17666.200667,
+      "durationMs": 0.002957999997306615,
+      "chars": 142
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.parse",
+      "startMs": 17666.392292,
+      "durationMs": 2.1590829999986454,
+      "chars": 1293879
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 17668.72225,
+      "durationMs": 1.2815000000009604,
+      "chars": 1293780
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "cache.diskReadValidate",
+      "startMs": 17658.798792,
+      "durationMs": 12.595790999999736,
+      "kind": "code",
+      "bytes": 970028
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.parse",
+      "startMs": 17671.414333,
+      "durationMs": 0.010583999999653315,
+      "chars": 143
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 17671.827875,
+      "durationMs": 0.004250000001775334,
+      "chars": 143
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.parse",
+      "startMs": 17672.225167,
+      "durationMs": 1.9650409999994736,
+      "chars": 1436187
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 17674.378917,
+      "durationMs": 2.278291000002355,
+      "chars": 1436088
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "cache.diskReadValidate",
+      "startMs": 17659.746958,
+      "durationMs": 20.130292000001646,
+      "kind": "code",
+      "bytes": 1076757
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.parse",
+      "startMs": 17679.906458,
+      "durationMs": 0.0072089999994204845,
+      "chars": 142
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 17680.386792,
+      "durationMs": 0.005124999999679858,
+      "chars": 142
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 18099.186417,
+      "durationMs": 0.010500000000320142,
+      "chars": 232
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 18099.210042,
+      "durationMs": 0.0028750000019499566,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 18099.258583,
+      "durationMs": 0.0017090000001189765,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 18099.6105,
+      "durationMs": 0.008917000002838904,
+      "chars": 235
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 18099.622958,
+      "durationMs": 0.0017090000001189765,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 18099.648708,
+      "durationMs": 0.0009169999975711107,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 18099.843,
+      "durationMs": 0.011957999999140156,
+      "chars": 236
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 18099.863833,
+      "durationMs": 0.0022090000020398293,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 18099.900583,
+      "durationMs": 0.0030839999999443535,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 18100.252625,
+      "durationMs": 0.007166999999753898,
+      "chars": 234
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 18100.263167,
+      "durationMs": 0.001582999997481238,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 18100.288792,
+      "durationMs": 0.001583000001119217,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.parse",
+      "startMs": 18104.091167,
+      "durationMs": 0.16525000000183354,
+      "chars": 176616
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 18104.298375,
+      "durationMs": 0.20945800000117742,
+      "chars": 176517
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.parse",
+      "startMs": 18104.614125,
+      "durationMs": 0.03216700000120909,
+      "chars": 46937
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 18104.657958,
+      "durationMs": 0.027750000001105946,
+      "chars": 46838
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "cache.diskReadValidate",
+      "startMs": 18099.648042,
+      "durationMs": 5.606082999998762,
+      "kind": "code",
+      "bytes": 34820
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.parse",
+      "startMs": 18105.280208,
+      "durationMs": 0.0022089999984018505,
+      "chars": 143
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 18105.30025,
+      "durationMs": 0.002166999998735264,
+      "chars": 143
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "cache.diskReadValidate",
+      "startMs": 18100.287542,
+      "durationMs": 5.275958000001992,
+      "kind": "code",
+      "bytes": 132079
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.parse",
+      "startMs": 18105.56775,
+      "durationMs": 0.0010000000002037268,
+      "chars": 142
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 18105.616458,
+      "durationMs": 0.0012089999981981236,
+      "chars": 142
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.parse",
+      "startMs": 18106.186458,
+      "durationMs": 0.7822919999998703,
+      "chars": 1293879
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 18107.128417,
+      "durationMs": 0.5393330000006245,
+      "chars": 1293780
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.parse",
+      "startMs": 18108.772583,
+      "durationMs": 0.9536249999982829,
+      "chars": 1436187
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 18109.914542,
+      "durationMs": 0.8548330000012356,
+      "chars": 1436088
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "cache.diskReadValidate",
+      "startMs": 18099.256958,
+      "durationMs": 13.44866699999693,
+      "kind": "code",
+      "bytes": 970028
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.parse",
+      "startMs": 18112.742917,
+      "durationMs": 0.008499999999912689,
+      "chars": 143
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 18113.232458,
+      "durationMs": 0.009541999999783002,
+      "chars": 143
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "cache.diskReadValidate",
+      "startMs": 18099.899667,
+      "durationMs": 14.156749999998283,
+      "kind": "code",
+      "bytes": 1076757
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.parse",
+      "startMs": 18114.070125,
+      "durationMs": 0.003792000003159046,
+      "chars": 142
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 18114.444708,
+      "durationMs": 0.003209000002243556,
+      "chars": 142
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 18166.46525,
+      "durationMs": 0.008458000000246102,
+      "chars": 232
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 18166.476958,
+      "durationMs": 0.00166700000045239,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 18166.505708,
+      "durationMs": 0.0010839999995368998,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 18166.676042,
+      "durationMs": 0.0016660000001138542,
+      "chars": 235
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 18166.679583,
+      "durationMs": 0.0007089999999152496,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 18166.693375,
+      "durationMs": 0.0005420000015874393,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 18166.760667,
+      "durationMs": 0.001083000002836343,
+      "chars": 236
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 18166.7625,
+      "durationMs": 0.0003749999996216502,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 18166.767417,
+      "durationMs": 0.0003329999999550637,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 18166.820708,
+      "durationMs": 0.0007499999992433004,
+      "chars": 234
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 18166.826875,
+      "durationMs": 0.00041700000292621553,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 18166.836958,
+      "durationMs": 0.00045899999895482324,
+      "chars": 63
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.parse",
+      "startMs": 18168.224292,
+      "durationMs": 0.029708000001846813,
+      "chars": 46937
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 18168.2765,
+      "durationMs": 0.05266699999992852,
+      "chars": 46838
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.parse",
+      "startMs": 18168.380125,
+      "durationMs": 0.09141699999963748,
+      "chars": 176616
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 18168.496917,
+      "durationMs": 0.18845800000053714,
+      "chars": 176517
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "cache.diskReadValidate",
+      "startMs": 18166.693167,
+      "durationMs": 2.671457999997074,
+      "kind": "code",
+      "bytes": 34820
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.parse",
+      "startMs": 18169.396,
+      "durationMs": 0.008083000000624452,
+      "chars": 143
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 18169.442667,
+      "durationMs": 0.005625000001600711,
+      "chars": 143
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "cache.diskReadValidate",
+      "startMs": 18166.83675,
+      "durationMs": 2.9540000000015425,
+      "kind": "code",
+      "bytes": 132079
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.parse",
+      "startMs": 18169.806625,
+      "durationMs": 0.0030000000006111804,
+      "chars": 142
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 18169.861333,
+      "durationMs": 0.001874999998108251,
+      "chars": 142
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.parse",
+      "startMs": 18170.597042,
+      "durationMs": 0.25158299999748124,
+      "chars": 1293879
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 18171.02,
+      "durationMs": 1.4188749999993888,
+      "chars": 1293780
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.parse",
+      "startMs": 18173.210167,
+      "durationMs": 2.2265409999999974,
+      "chars": 1436187
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 18175.628458,
+      "durationMs": 1.313417000001209,
+      "chars": 1436088
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "cache.diskReadValidate",
+      "startMs": 18166.50475,
+      "durationMs": 11.383874999999534,
+      "kind": "code",
+      "bytes": 970028
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.parse",
+      "startMs": 18177.911333,
+      "durationMs": 0.0053340000013122335,
+      "chars": 143
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 18178.455417,
+      "durationMs": 0.009582999999111053,
+      "chars": 143
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "cache.diskReadValidate",
+      "startMs": 18166.767292,
+      "durationMs": 12.31658299999981,
+      "kind": "code",
+      "bytes": 1076757
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.parse",
+      "startMs": 18179.090083,
+      "durationMs": 0.0038750000021536835,
+      "chars": 142
+    },
+    {
+      "phase": "warm-reopen-2",
+      "name": "JSON.stringify",
+      "startMs": 18179.510833,
+      "durationMs": 0.002874999998311978,
+      "chars": 142
+    },
+    {
+      "phase": "draft-0",
+      "name": "JSON.parse",
+      "startMs": 19328.617792,
+      "durationMs": 14.977665999998862,
+      "chars": 4833662
+    },
+    {
+      "phase": "draft-0",
+      "name": "JSON.stringify",
+      "startMs": 19343.95925,
+      "durationMs": 0.0057500000002619345,
+      "chars": 63
+    },
+    {
+      "phase": "draft-0",
+      "name": "JSON.stringify",
+      "startMs": 19343.977917,
+      "durationMs": 0.0006250000005820766,
+      "chars": 31
+    },
+    {
+      "phase": "draft-0",
+      "name": "JSON.stringify",
+      "startMs": 19344.3725,
+      "durationMs": 14.338999999999942,
+      "chars": 4833662
+    },
+    {
+      "phase": "draft-0",
+      "name": "JSON.stringify",
+      "startMs": 19385.210958,
+      "durationMs": 0.007334000001719687,
+      "chars": 184
+    },
+    {
+      "phase": "draft-0",
+      "name": "JSON.parse",
+      "startMs": 19385.220458,
+      "durationMs": 0.007334000001719687,
+      "chars": 184
+    },
+    {
+      "phase": "draft-1",
+      "name": "JSON.stringify",
+      "startMs": 19440.835042,
+      "durationMs": 0.007165999999415362,
+      "chars": 197
+    },
+    {
+      "phase": "draft-1",
+      "name": "JSON.stringify",
+      "startMs": 19440.846375,
+      "durationMs": 0.0010419999998703133,
+      "chars": 63
+    },
+    {
+      "phase": "draft-1",
+      "name": "JSON.stringify",
+      "startMs": 19440.871375,
+      "durationMs": 0.0012500000011641532,
+      "chars": 63
+    },
+    {
+      "phase": "draft-1",
+      "name": "cache.diskReadValidate",
+      "startMs": 19440.8705,
+      "durationMs": 0.23708299999998417,
+      "kind": "model-resource",
+      "bytes": 0
+    },
+    {
+      "phase": "draft-1",
+      "name": "JSON.parse",
+      "startMs": 19511.828333,
+      "durationMs": 14.08087499999965,
+      "chars": 4833662
+    },
+    {
+      "phase": "draft-1",
+      "name": "JSON.stringify",
+      "startMs": 19525.955167,
+      "durationMs": 0.004499999999097781,
+      "chars": 63
+    },
+    {
+      "phase": "draft-1",
+      "name": "JSON.stringify",
+      "startMs": 19525.970625,
+      "durationMs": 0.0007079999995767139,
+      "chars": 31
+    },
+    {
+      "phase": "draft-1",
+      "name": "JSON.stringify",
+      "startMs": 19526.269042,
+      "durationMs": 14.398207999998704,
+      "chars": 4833662
+    },
+    {
+      "phase": "draft-1",
+      "name": "JSON.stringify",
+      "startMs": 19581.908583,
+      "durationMs": 0.007709000001341337,
+      "chars": 184
+    },
+    {
+      "phase": "draft-1",
+      "name": "JSON.parse",
+      "startMs": 19581.917625,
+      "durationMs": 0.007167000003391877,
+      "chars": 184
+    },
+    {
+      "phase": "draft-2",
+      "name": "JSON.parse",
+      "startMs": 19701.466042,
+      "durationMs": 15.525708000001032,
+      "chars": 4833662
+    },
+    {
+      "phase": "draft-2",
+      "name": "JSON.stringify",
+      "startMs": 19717.053542,
+      "durationMs": 0.006540999998833286,
+      "chars": 63
+    },
+    {
+      "phase": "draft-2",
+      "name": "JSON.stringify",
+      "startMs": 19717.07725,
+      "durationMs": 0.0008330000018759165,
+      "chars": 31
+    },
+    {
+      "phase": "draft-2",
+      "name": "JSON.stringify",
+      "startMs": 19717.454083,
+      "durationMs": 25.34637500000099,
+      "chars": 4833662
+    },
+    {
+      "phase": "draft-2",
+      "name": "JSON.stringify",
+      "startMs": 19804.29325,
+      "durationMs": 0.008250000002590241,
+      "chars": 184
+    },
+    {
+      "phase": "draft-2",
+      "name": "JSON.parse",
+      "startMs": 19804.304167,
+      "durationMs": 0.010333000001992332,
+      "chars": 184
+    },
+    {
+      "phase": "draft-3",
+      "name": "JSON.parse",
+      "startMs": 19927.650917,
+      "durationMs": 11.289082999999664,
+      "chars": 4833662
+    },
+    {
+      "phase": "draft-3",
+      "name": "JSON.stringify",
+      "startMs": 19938.9975,
+      "durationMs": 0.004249999998137355,
+      "chars": 63
+    },
+    {
+      "phase": "draft-3",
+      "name": "JSON.stringify",
+      "startMs": 19939.01675,
+      "durationMs": 0.0007079999995767139,
+      "chars": 31
+    },
+    {
+      "phase": "draft-3",
+      "name": "JSON.stringify",
+      "startMs": 19939.338208,
+      "durationMs": 13.459458999997878,
+      "chars": 4833662
+    },
+    {
+      "phase": "draft-3",
+      "name": "JSON.parse",
+      "startMs": 19977.09525,
+      "durationMs": 0.007292000002053101,
+      "chars": 121
+    },
+    {
+      "phase": "draft-3",
+      "name": "JSON.stringify",
+      "startMs": 19977.399292,
+      "durationMs": 0.0035830000015266705,
+      "chars": 121
+    },
+    {
+      "phase": "draft-3",
+      "name": "JSON.stringify",
+      "startMs": 19977.413125,
+      "durationMs": 0.0012500000011641532,
+      "chars": 63
+    },
+    {
+      "phase": "draft-3",
+      "name": "JSON.stringify",
+      "startMs": 19977.608583,
+      "durationMs": 1.0326249999998254,
+      "chars": 1100632
+    },
+    {
+      "phase": "draft-3",
+      "name": "JSON.stringify",
+      "startMs": 19979.180792,
+      "durationMs": 2.3259580000012647,
+      "chars": 1100731
+    },
+    {
+      "phase": "draft-3",
+      "name": "JSON.stringify",
+      "startMs": 19999.510083,
+      "durationMs": 0.007750000000669388,
+      "chars": 184
+    },
+    {
+      "phase": "draft-3",
+      "name": "JSON.parse",
+      "startMs": 19999.519625,
+      "durationMs": 0.006999999997788109,
+      "chars": 184
+    },
+    {
+      "phase": "draft-4",
+      "name": "JSON.parse",
+      "startMs": 20184.196208,
+      "durationMs": 12.22716699999728,
+      "chars": 4833662
+    },
+    {
+      "phase": "draft-4",
+      "name": "JSON.stringify",
+      "startMs": 20196.470625,
+      "durationMs": 0.0048749999987194315,
+      "chars": 63
+    },
+    {
+      "phase": "draft-4",
+      "name": "JSON.stringify",
+      "startMs": 20196.486125,
+      "durationMs": 0.0006250000005820766,
+      "chars": 31
+    },
+    {
+      "phase": "draft-4",
+      "name": "JSON.stringify",
+      "startMs": 20196.849375,
+      "durationMs": 20.491833000000042,
+      "chars": 4833662
+    },
+    {
+      "phase": "draft-4",
+      "name": "JSON.stringify",
+      "startMs": 20250.886333,
+      "durationMs": 0.00787500000296859,
+      "chars": 184
+    },
+    {
+      "phase": "draft-4",
+      "name": "JSON.parse",
+      "startMs": 20250.895917,
+      "durationMs": 0.007207999999081949,
+      "chars": 184
+    }
+  ],
+  "contentIntegrity": {
+    "renderer": "4bb60f883c4ab51554219b538ba939abbbf6d34f7b1295f4f5ef9cadb07081d4",
+    "disk": "4bb60f883c4ab51554219b538ba939abbbf6d34f7b1295f4f5ef9cadb07081d4",
+    "dependencies": 5,
+    "checkpoints": 2
+  }
+}

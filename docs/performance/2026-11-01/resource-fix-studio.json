@@ -1,0 +1,40 @@
+{
+  "scope": "offline production Studio renderer; synthetic 120-node project; current Desktop capture source",
+  "electron": "44.5.1",
+  "privateArtifacts": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-seven-studio-rNUpB1",
+  "samples": [
+    {
+      "backgroundThrottling": false,
+      "rafCompleted": true,
+      "visibility": "visible"
+    },
+    {
+      "backgroundThrottling": true,
+      "rafCompleted": false,
+      "visibility": "hidden"
+    },
+    {
+      "backgroundThrottling": false,
+      "rafCompleted": true,
+      "visibility": "visible"
+    }
+  ],
+  "staticCapture": {
+    "durationMs": 5022.862583,
+    "ticks": 10,
+    "snapshots": 0,
+    "htmlBytes": 0,
+    "sceneInspections": 30,
+    "meanMs": 0.6968751000000338,
+    "cpuOneCorePercent": 0.5977268839010992,
+    "cachedPixelsSame": true,
+    "frameCount": 4
+  },
+  "functional": {
+    "hidden": "visible",
+    "redo": true,
+    "rename": true,
+    "restored": true,
+    "undo": true
+  }
+}

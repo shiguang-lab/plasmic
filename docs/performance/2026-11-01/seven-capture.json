@@ -1,0 +1,285 @@
+{
+  "mode": "capture",
+  "electron": "44.5.1",
+  "node": "24.21.0",
+  "platform": "darwin",
+  "arch": "arm64",
+  "scope": "isolated offline native diagnostic",
+  "samples": [
+    {
+      "withCanvas": false,
+      "candidate": false,
+      "elapsedMs": 4516.154792,
+      "ticks": 9,
+      "cpuMs": 17.368999999999968,
+      "cpuOneCorePercent": 0.38459709199444925,
+      "rssSumMiBMean": 527.9270833333334,
+      "rssSumMiBPeak": 530.84375,
+      "processes": [
+        {
+          "pid": 50401,
+          "type": "Browser",
+          "cpu": 0.316563,
+          "rssKiB": 174624
+        },
+        {
+          "pid": 50403,
+          "type": "GPU",
+          "cpu": 0.108048,
+          "rssKiB": 85744
+        },
+        {
+          "pid": 50404,
+          "type": "Utility",
+          "cpu": 0.059919,
+          "rssKiB": 48512
+        },
+        {
+          "pid": 50405,
+          "type": "Tab",
+          "cpu": 0.098038,
+          "rssKiB": 120752
+        },
+        {
+          "pid": 50413,
+          "type": "Tab",
+          "cpu": 0.067216,
+          "rssKiB": 108816
+        }
+      ],
+      "idleSnapshots": 0,
+      "idleHtmlBytes": 0,
+      "snapshotsIncludingFunctionalChecks": 1,
+      "htmlBytesIncludingFunctionalChecks": 271577,
+      "inspectCalls": 10,
+      "tailFrameCalls": 0,
+      "captureMsMean": 0.4905324444445114,
+      "stableSame": true,
+      "domChangeDetected": true,
+      "canvasChangeDetected": null,
+      "continuousDomChangeDetected": null,
+      "lastPixelHash": "6184dfc47c3501749ed577566413dddb0122f569410c9655bd388a93adb09406"
+    },
+    {
+      "withCanvas": true,
+      "candidate": false,
+      "elapsedMs": 4668.320624999999,
+      "ticks": 8,
+      "cpuMs": 262.20399999999995,
+      "cpuOneCorePercent": 5.616666485927153,
+      "rssSumMiBMean": 635.095703125,
+      "rssSumMiBPeak": 680.984375,
+      "processes": [
+        {
+          "pid": 50401,
+          "type": "Browser",
+          "cpu": 0.495439,
+          "rssKiB": 208240
+        },
+        {
+          "pid": 50403,
+          "type": "GPU",
+          "cpu": 0.171561,
+          "rssKiB": 99168
+        },
+        {
+          "pid": 50404,
+          "type": "Utility",
+          "cpu": 0.063302,
+          "rssKiB": 48688
+        },
+        {
+          "pid": 50405,
+          "type": "Tab",
+          "cpu": 0.234492,
+          "rssKiB": 168624
+        },
+        {
+          "pid": 50454,
+          "type": "Tab",
+          "cpu": 0.201676,
+          "rssKiB": 172624
+        }
+      ],
+      "idleSnapshots": 8,
+      "idleHtmlBytes": 2226768,
+      "snapshotsIncludingFunctionalChecks": 12,
+      "htmlBytesIncludingFunctionalChecks": 3340144,
+      "inspectCalls": 12,
+      "tailFrameCalls": 0,
+      "captureMsMean": 81.59804150000025,
+      "stableSame": true,
+      "domChangeDetected": true,
+      "canvasChangeDetected": true,
+      "continuousDomChangeDetected": true,
+      "lastPixelHash": "91c02f6e44a4e2d488efad553851e8897342c984daa039956a38083d54999ff1"
+    },
+    {
+      "withCanvas": true,
+      "candidate": true,
+      "elapsedMs": 4529.097291,
+      "ticks": 9,
+      "cpuMs": 23.51000000000006,
+      "cpuOneCorePercent": 0.5190879879466925,
+      "rssSumMiBMean": 640.4496527777778,
+      "rssSumMiBPeak": 644.765625,
+      "processes": [
+        {
+          "pid": 50401,
+          "type": "Browser",
+          "cpu": 0.557359,
+          "rssKiB": 218592
+        },
+        {
+          "pid": 50403,
+          "type": "GPU",
+          "cpu": 0.217157,
+          "rssKiB": 91616
+        },
+        {
+          "pid": 50404,
+          "type": "Utility",
+          "cpu": 0.064329,
+          "rssKiB": 48688
+        },
+        {
+          "pid": 50405,
+          "type": "Tab",
+          "cpu": 0.295452,
+          "rssKiB": 181760
+        },
+        {
+          "pid": 50467,
+          "type": "Tab",
+          "cpu": 0.068918,
+          "rssKiB": 111696
+        }
+      ],
+      "idleSnapshots": 0,
+      "idleHtmlBytes": 0,
+      "snapshotsIncludingFunctionalChecks": 4,
+      "htmlBytesIncludingFunctionalChecks": 1113376,
+      "inspectCalls": 13,
+      "tailFrameCalls": 0,
+      "captureMsMean": 1.7805601111118046,
+      "stableSame": true,
+      "domChangeDetected": true,
+      "canvasChangeDetected": true,
+      "continuousDomChangeDetected": true,
+      "lastPixelHash": "91c02f6e44a4e2d488efad553851e8897342c984daa039956a38083d54999ff1"
+    },
+    {
+      "withCanvas": true,
+      "candidate": true,
+      "elapsedMs": 4532.953249999999,
+      "ticks": 9,
+      "cpuMs": 20.75400000000008,
+      "cpuOneCorePercent": 0.4578472103148226,
+      "rssSumMiBMean": 637.0677083333334,
+      "rssSumMiBPeak": 642.0625,
+      "processes": [
+        {
+          "pid": 50401,
+          "type": "Browser",
+          "cpu": 0.657236,
+          "rssKiB": 208672
+        },
+        {
+          "pid": 50403,
+          "type": "GPU",
+          "cpu": 0.262883,
+          "rssKiB": 91664
+        },
+        {
+          "pid": 50404,
+          "type": "Utility",
+          "cpu": 0.065669,
+          "rssKiB": 48688
+        },
+        {
+          "pid": 50405,
+          "type": "Tab",
+          "cpu": 0.380074,
+          "rssKiB": 188816
+        },
+        {
+          "pid": 50473,
+          "type": "Tab",
+          "cpu": 0.066506,
+          "rssKiB": 111712
+        }
+      ],
+      "idleSnapshots": 0,
+      "idleHtmlBytes": 0,
+      "snapshotsIncludingFunctionalChecks": 4,
+      "htmlBytesIncludingFunctionalChecks": 1113376,
+      "inspectCalls": 13,
+      "tailFrameCalls": 0,
+      "captureMsMean": 1.5980740000005527,
+      "stableSame": true,
+      "domChangeDetected": true,
+      "canvasChangeDetected": true,
+      "continuousDomChangeDetected": true,
+      "lastPixelHash": "91c02f6e44a4e2d488efad553851e8897342c984daa039956a38083d54999ff1"
+    },
+    {
+      "withCanvas": true,
+      "candidate": false,
+      "elapsedMs": 4668.5793330000015,
+      "ticks": 8,
+      "cpuMs": 302.381,
+      "cpuOneCorePercent": 6.47693823820472,
+      "rssSumMiBMean": 681.556640625,
+      "rssSumMiBPeak": 707.546875,
+      "processes": [
+        {
+          "pid": 50401,
+          "type": "Browser",
+          "cpu": 0.818669,
+          "rssKiB": 212448
+        },
+        {
+          "pid": 50403,
+          "type": "GPU",
+          "cpu": 0.323338,
+          "rssKiB": 100144
+        },
+        {
+          "pid": 50404,
+          "type": "Utility",
+          "cpu": 0.068007,
+          "rssKiB": 48720
+        },
+        {
+          "pid": 50405,
+          "type": "Tab",
+          "cpu": 0.534496,
+          "rssKiB": 190720
+        },
+        {
+          "pid": 50478,
+          "type": "Tab",
+          "cpu": 0.162683,
+          "rssKiB": 172496
+        }
+      ],
+      "idleSnapshots": 8,
+      "idleHtmlBytes": 2226768,
+      "snapshotsIncludingFunctionalChecks": 12,
+      "htmlBytesIncludingFunctionalChecks": 3340144,
+      "inspectCalls": 12,
+      "tailFrameCalls": 0,
+      "captureMsMean": 81.3165622499987,
+      "stableSame": true,
+      "domChangeDetected": true,
+      "canvasChangeDetected": true,
+      "continuousDomChangeDetected": true,
+      "lastPixelHash": "91c02f6e44a4e2d488efad553851e8897342c984daa039956a38083d54999ff1"
+    }
+  ],
+  "stage": {
+    "withCanvas": true,
+    "candidate": false,
+    "step": "canvas-change"
+  }
+}

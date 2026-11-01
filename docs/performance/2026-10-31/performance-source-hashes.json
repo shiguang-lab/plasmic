@@ -1,0 +1,21 @@
+{
+  "desktop/src/controller.cjs": "5e2c9d38ec4fe458bffab0996d84333a8f6eb6e8aa2fd7d403376149a9e85644",
+  "desktop/src/mcp.cjs": "47deae3974b7ae9d0b0eb084fa5408b4ac2e8d1ad798c7bc9b5af59cc316a742",
+  "desktop/src/mcp-contract.cjs": "29c56765419202692dfcb7fdcc566cdc1a643b92dbd2188e6061709fb0e3f08b",
+  "desktop/src/prototype-mcp.cjs": "d007f7b49f6f75b183097805e2f2090a15d68ad63d216526a2cf99a2a15c2fe0",
+  "desktop/src/design-reference.cjs": "32e4030d53e585995646f09e64d96176429cd6a2efc4c7cdb71174c9d6717b64",
+  "desktop/src/design-reference-contract.cjs": "846a8f5107447f23978bec7de1dbab271dd006a7bd9e179b335cca5598a2ea01",
+  "desktop/src/image-preview.cjs": "953245d36c45e9fa16b9e47a842748656e97cfdb871275496542a1a23f7c3046",
+  "desktop/src/drafts.cjs": "d63e91d22dd6e0b824123155a30151abfa7bb7f5059924e4708df4109b6d7aaa",
+  "desktop/src/preload.cjs": "101e6364535e0cccdd8a1e75902cf8f41036e17e95b052ac620634fc4a7d9298",
+  "platform/wab/src/wab/client/components/docs/DocsPortalEditor.tsx": "f800d57292bcf53cfdf12d76944d77a947ac74a58109cb459a459f45aef8983f",
+  "platform/wab/src/wab/client/components/canvas/canvas-rendering.ts": "d7319f6d130d56c0508ee13f84b2b831e6cfc9a63ac09fccf4819d7cb6462ca2",
+  "platform/wab/src/wab/client/react-global-hook/globalHook.ts": "e4a38270748b0edf1ebf2a0d44088339b3827db07098399f371208bf78d4c395",
+  "platform/wab/src/wab/client/react-global-hook/types.ts": "7b639fac45acbd23b4944e8517f9eb498b39d0ea95f36d791c0d12bbe3f9bb3c",
+  "platform/wab/src/wab/client/react-global-hook/utils.ts": "614d494c42f0e31e5ace04e9dd27922d08a41ca356582b8b03642ff65c3b1505",
+  "platform/wab/src/wab/commons/deep-map.ts": "7c2b65490d89854d134daa866d6c6cf9af93323809999ca92647df42812e64fb",
+  "platform/wab/src/wab/client/studio-ctx/desktop-drafts.ts": "e4eb7508c084c194444e0270f1aac52702999ca02ecda9c0221b706994c7e620",
+  "platform/wab/src/wab/client/frame-ctx/top-frame-api.ts": "699055919b362be0a6292f4bfd126a1b719046374c49f7eedd569001bbac342a",
+  "platform/wab/src/wab/shared/desktop-drafts.ts": "7c1f9f62dc9708a2a154186bd57f78f296ba0a526e0c5c3309b986950fc57465",
+  "platform/wab/src/wab/client/components/TopFrame/TopFrameChrome.tsx": "15668cc7b9ce3b3b00c5ecbf3422dad3e97c1b2fd280c09c8b16d856dc37a4f8"
+}

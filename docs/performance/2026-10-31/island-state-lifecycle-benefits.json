@@ -1,0 +1,1080 @@
+{
+  "baselineCommit": "390772252",
+  "scope": "Real Electron 44.5.1 on macOS, fixed preview fixture and simulated account APIs; not a production-project benchmark",
+  "order": [
+    "before-1",
+    "after-1",
+    "after-2",
+    "before-2",
+    "before-3",
+    "after-3"
+  ],
+  "nPerMode": 3,
+  "units": {
+    "rssSumMiB": "Sum of app.getAppMetrics workingSetSize across app processes, converted from KiB to MiB; shared pages may be counted more than once",
+    "cpuOneCorePercent": "Delta cumulative CPU seconds for surviving app processes / wall seconds * 100; 100 means one core",
+    "jsonEquivalentBytes": "UTF-8 JSON-equivalent payload size, computed after measurement; not IPC wire bytes",
+    "reopenWindowMs": "setMode(island) completion time",
+    "reopenImageMs": "Time until recreated/reused island shows a decoded preview image"
+  },
+  "summary": {
+    "before": {
+      "collapsed": {
+        "messages": {
+          "median": 6,
+          "min": 6,
+          "max": 6
+        },
+        "jsonEquivalentBytes": {
+          "median": 2193120,
+          "min": 2193120,
+          "max": 2193120
+        },
+        "pixelBytes": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "cpuOneCorePercent": {
+          "median": 3.791674654362915,
+          "min": 3.741187862494345,
+          "max": 3.9027312756865737
+        },
+        "rssSumMiB": {
+          "median": 523.75,
+          "min": 522.8489583333334,
+          "max": 524.2864583333334
+        },
+        "summaryRequests": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        }
+      },
+      "expanded": {
+        "messages": {
+          "median": 12,
+          "min": 12,
+          "max": 12
+        },
+        "jsonEquivalentBytes": {
+          "median": 4484148,
+          "min": 4484148,
+          "max": 4484148
+        },
+        "pixelBytes": {
+          "median": 92484,
+          "min": 92484,
+          "max": 92484
+        },
+        "cpuOneCorePercent": {
+          "median": 15.743654897951098,
+          "min": 11.676458793576227,
+          "max": 16.476000833191172
+        },
+        "rssSumMiB": {
+          "median": 575.2526041666666,
+          "min": 568.7317708333334,
+          "max": 576.2708333333334
+        },
+        "summaryRequests": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        }
+      },
+      "exited": {
+        "messages": {
+          "median": 12,
+          "min": 12,
+          "max": 12
+        },
+        "jsonEquivalentBytes": {
+          "median": 4385584,
+          "min": 4385584,
+          "max": 4385584
+        },
+        "pixelBytes": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "cpuOneCorePercent": {
+          "median": 5.111322728377728,
+          "min": 4.951378640013112,
+          "max": 5.73557206491335
+        },
+        "rssSumMiB": {
+          "median": 590.671875,
+          "min": 556.7421875,
+          "max": 592.9296875
+        },
+        "summaryRequests": {
+          "median": 12,
+          "min": 12,
+          "max": 12
+        }
+      },
+      "exitMs": {
+        "median": 16.325291999999536,
+        "min": 11.906624999999622,
+        "max": 16.40099999999984
+      },
+      "reopenWindowMs": {
+        "median": 20.064167000000452,
+        "min": 19.44695900000079,
+        "max": 22.868625000000975
+      },
+      "reopenImageMs": {
+        "median": 535.7077919999992,
+        "min": 529.9647089999999,
+        "max": 545.5906670000004
+      }
+    },
+    "after": {
+      "collapsed": {
+        "messages": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "jsonEquivalentBytes": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "pixelBytes": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "cpuOneCorePercent": {
+          "median": 2.131767929696614,
+          "min": 2.0901052443553914,
+          "max": 2.19211123904766
+        },
+        "rssSumMiB": {
+          "median": 520.9947916666666,
+          "min": 520.2421875,
+          "max": 521.859375
+        },
+        "summaryRequests": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        }
+      },
+      "expanded": {
+        "messages": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "jsonEquivalentBytes": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "pixelBytes": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "cpuOneCorePercent": {
+          "median": 14.257899139454222,
+          "min": 13.979655913382757,
+          "max": 14.62881867174903
+        },
+        "rssSumMiB": {
+          "median": 562.6796875,
+          "min": 562.0546875,
+          "max": 562.875
+        },
+        "summaryRequests": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        }
+      },
+      "exited": {
+        "messages": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "jsonEquivalentBytes": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "pixelBytes": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "cpuOneCorePercent": {
+          "median": 0.7138017168161999,
+          "min": 0.41243639073734295,
+          "max": 0.7835434299444036
+        },
+        "rssSumMiB": {
+          "median": 439.1927083333333,
+          "min": 438.375,
+          "max": 439.34375
+        },
+        "summaryRequests": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        }
+      },
+      "exitMs": {
+        "median": 16.35833300000013,
+        "min": 13.94816599999831,
+        "max": 16.759165999999823
+      },
+      "reopenWindowMs": {
+        "median": 163.35383400000137,
+        "min": 126.11425000000054,
+        "max": 164.61162499999955
+      },
+      "reopenImageMs": {
+        "median": 681.7357500000016,
+        "min": 652.6570420000007,
+        "max": 692.4411660000005
+      }
+    }
+  },
+  "sourceSha256": {
+    "before": {
+      "island.cjs": "669fad7e7800ecc9adc578bebba7be3d27008cce5f8b6816e8bd976efe371de0",
+      "island-account.cjs": "b220fb4e5deb3d481c59c1067cdbff87ee4964c311604d5a3116e3b096c33372",
+      "island-capture.cjs": "259e6c1afe9be7b21dc6075a9134515cc899f290e23929bb924782bf3b8846b7",
+      "island-renderer.js": "b27311b5a4fb7de90ea4aad38f6ae8badc136392c846016ed6e8105155141107"
+    },
+    "after": {
+      "island.cjs": "bd1effb320ab4b8e6956a92924ace060cfa80254242b850e326440a68deb7322",
+      "island-account.cjs": "f289aa108f94be5cc400ed0525cfb63bc2b10df25f31e88f3b2b3b0a9ff0b3ed",
+      "island-capture.cjs": "25fcdf5373ee250a40e69412b360726ebbca3951a5e36b53192223e3bde003ad",
+      "island-renderer.js": "fa68420b949ff3c464a6e857ce0bd373423de35d3f51d36a29ef139dc30e4810"
+    }
+  },
+  "samples": [
+    {
+      "mode": "before",
+      "electron": "44.5.1",
+      "platform": "darwin",
+      "collapsed": {
+        "label": "collapsed-idle",
+        "durationMs": 3006.099875,
+        "messages": 6,
+        "jsonEquivalentBytes": 2193120,
+        "pixelMessages": 0,
+        "pixelBytes": 0,
+        "summaryRequests": 0,
+        "cpuOneCorePercent": 3.9027312756865737,
+        "rssSumMiB": 522.8489583333334,
+        "processes": [
+          {
+            "pid": 84587,
+            "type": "Browser",
+            "cpuSeconds": 0.395624,
+            "rssKiB": 175696
+          },
+          {
+            "pid": 84588,
+            "type": "GPU",
+            "cpuSeconds": 0.199301,
+            "rssKiB": 90960
+          },
+          {
+            "pid": 84589,
+            "type": "Utility",
+            "cpuSeconds": 0.051137,
+            "rssKiB": 48400
+          },
+          {
+            "pid": 84590,
+            "type": "Tab",
+            "cpuSeconds": 0.068415,
+            "rssKiB": 94352
+          },
+          {
+            "pid": 84591,
+            "type": "Tab",
+            "cpuSeconds": 0.175618,
+            "rssKiB": 125984
+          }
+        ]
+      },
+      "expanded": {
+        "label": "expanded-static",
+        "durationMs": 3012.086165999999,
+        "messages": 12,
+        "jsonEquivalentBytes": 4484148,
+        "pixelMessages": 12,
+        "pixelBytes": 92484,
+        "summaryRequests": 0,
+        "cpuOneCorePercent": 11.676458793576227,
+        "rssSumMiB": 568.7317708333334,
+        "processes": [
+          {
+            "pid": 84587,
+            "type": "Browser",
+            "cpuSeconds": 0.49922,
+            "rssKiB": 193680
+          },
+          {
+            "pid": 84588,
+            "type": "GPU",
+            "cpuSeconds": 0.537658,
+            "rssKiB": 98048
+          },
+          {
+            "pid": 84589,
+            "type": "Utility",
+            "cpuSeconds": 0.05145,
+            "rssKiB": 44160
+          },
+          {
+            "pid": 84590,
+            "type": "Tab",
+            "cpuSeconds": 0.072432,
+            "rssKiB": 95632
+          },
+          {
+            "pid": 84591,
+            "type": "Tab",
+            "cpuSeconds": 0.432197,
+            "rssKiB": 145040
+          }
+        ]
+      },
+      "exited": {
+        "label": "exited-with-three-navigations",
+        "durationMs": 3339.6759170000005,
+        "messages": 12,
+        "jsonEquivalentBytes": 4385584,
+        "pixelMessages": 0,
+        "pixelBytes": 0,
+        "summaryRequests": 12,
+        "cpuOneCorePercent": 4.951378640013112,
+        "rssSumMiB": 556.7421875,
+        "processes": [
+          {
+            "pid": 84587,
+            "type": "Browser",
+            "cpuSeconds": 0.61065,
+            "rssKiB": 189008
+          },
+          {
+            "pid": 84588,
+            "type": "GPU",
+            "cpuSeconds": 0.694049,
+            "rssKiB": 96336
+          },
+          {
+            "pid": 84589,
+            "type": "Utility",
+            "cpuSeconds": 0.052493,
+            "rssKiB": 43296
+          },
+          {
+            "pid": 84590,
+            "type": "Tab",
+            "cpuSeconds": 0.077221,
+            "rssKiB": 88256
+          },
+          {
+            "pid": 84591,
+            "type": "Tab",
+            "cpuSeconds": 0.56849,
+            "rssKiB": 150912
+          }
+        ]
+      },
+      "islandPid": 84591,
+      "islandDestroyedAfterExit": false,
+      "exitMs": 11.906624999999622,
+      "reopenWindowMs": 20.064167000000452,
+      "reopenImageMs": 545.5906670000004
+    },
+    {
+      "mode": "after",
+      "electron": "44.5.1",
+      "platform": "darwin",
+      "collapsed": {
+        "label": "collapsed-idle",
+        "durationMs": 3011.3794589999998,
+        "messages": 0,
+        "jsonEquivalentBytes": 0,
+        "pixelMessages": 0,
+        "pixelBytes": 0,
+        "summaryRequests": 0,
+        "cpuOneCorePercent": 2.0901052443553914,
+        "rssSumMiB": 520.2421875,
+        "processes": [
+          {
+            "pid": 84627,
+            "type": "Browser",
+            "cpuSeconds": 0.35458,
+            "rssKiB": 182624
+          },
+          {
+            "pid": 84628,
+            "type": "GPU",
+            "cpuSeconds": 0.169171,
+            "rssKiB": 89088
+          },
+          {
+            "pid": 84629,
+            "type": "Utility",
+            "cpuSeconds": 0.049896,
+            "rssKiB": 48480
+          },
+          {
+            "pid": 84630,
+            "type": "Tab",
+            "cpuSeconds": 0.06129,
+            "rssKiB": 94352
+          },
+          {
+            "pid": 84631,
+            "type": "Tab",
+            "cpuSeconds": 0.102557,
+            "rssKiB": 117952
+          }
+        ]
+      },
+      "expanded": {
+        "label": "expanded-static",
+        "durationMs": 3008.3814999999995,
+        "messages": 0,
+        "jsonEquivalentBytes": 0,
+        "pixelMessages": 0,
+        "pixelBytes": 0,
+        "summaryRequests": 0,
+        "cpuOneCorePercent": 14.257899139454222,
+        "rssSumMiB": 562.875,
+        "processes": [
+          {
+            "pid": 84627,
+            "type": "Browser",
+            "cpuSeconds": 0.47877,
+            "rssKiB": 198880
+          },
+          {
+            "pid": 84628,
+            "type": "GPU",
+            "cpuSeconds": 0.622431,
+            "rssKiB": 101440
+          },
+          {
+            "pid": 84629,
+            "type": "Utility",
+            "cpuSeconds": 0.049984,
+            "rssKiB": 48480
+          },
+          {
+            "pid": 84630,
+            "type": "Tab",
+            "cpuSeconds": 0.065886,
+            "rssKiB": 95600
+          },
+          {
+            "pid": 84631,
+            "type": "Tab",
+            "cpuSeconds": 0.349187,
+            "rssKiB": 129360
+          }
+        ]
+      },
+      "exited": {
+        "label": "exited-with-three-navigations",
+        "durationMs": 3320.811458,
+        "messages": 0,
+        "jsonEquivalentBytes": 0,
+        "pixelMessages": 0,
+        "pixelBytes": 0,
+        "summaryRequests": 0,
+        "cpuOneCorePercent": 0.7835434299444036,
+        "rssSumMiB": 439.34375,
+        "processes": [
+          {
+            "pid": 84627,
+            "type": "Browser",
+            "cpuSeconds": 0.555848,
+            "rssKiB": 202432
+          },
+          {
+            "pid": 84628,
+            "type": "GPU",
+            "cpuSeconds": 0.630822,
+            "rssKiB": 101504
+          },
+          {
+            "pid": 84629,
+            "type": "Utility",
+            "cpuSeconds": 0.051601,
+            "rssKiB": 48544
+          },
+          {
+            "pid": 84630,
+            "type": "Tab",
+            "cpuSeconds": 0.071212,
+            "rssKiB": 97392
+          }
+        ]
+      },
+      "islandPid": 84631,
+      "islandDestroyedAfterExit": true,
+      "exitMs": 16.759165999999823,
+      "reopenWindowMs": 163.35383400000137,
+      "reopenImageMs": 681.7357500000016
+    },
+    {
+      "mode": "after",
+      "electron": "44.5.1",
+      "platform": "darwin",
+      "collapsed": {
+        "label": "collapsed-idle",
+        "durationMs": 3011.960125,
+        "messages": 0,
+        "jsonEquivalentBytes": 0,
+        "pixelMessages": 0,
+        "pixelBytes": 0,
+        "summaryRequests": 0,
+        "cpuOneCorePercent": 2.131767929696614,
+        "rssSumMiB": 520.9947916666666,
+        "processes": [
+          {
+            "pid": 84645,
+            "type": "Browser",
+            "cpuSeconds": 0.344621,
+            "rssKiB": 182880
+          },
+          {
+            "pid": 84646,
+            "type": "GPU",
+            "cpuSeconds": 0.170411,
+            "rssKiB": 89488
+          },
+          {
+            "pid": 84647,
+            "type": "Utility",
+            "cpuSeconds": 0.049897,
+            "rssKiB": 48496
+          },
+          {
+            "pid": 84648,
+            "type": "Tab",
+            "cpuSeconds": 0.058471,
+            "rssKiB": 94336
+          },
+          {
+            "pid": 84649,
+            "type": "Tab",
+            "cpuSeconds": 0.102486,
+            "rssKiB": 118032
+          }
+        ]
+      },
+      "expanded": {
+        "label": "expanded-static",
+        "durationMs": 3005.2098749999996,
+        "messages": 0,
+        "jsonEquivalentBytes": 0,
+        "pixelMessages": 0,
+        "pixelBytes": 0,
+        "summaryRequests": 0,
+        "cpuOneCorePercent": 13.979655913382757,
+        "rssSumMiB": 562.0546875,
+        "processes": [
+          {
+            "pid": 84645,
+            "type": "Browser",
+            "cpuSeconds": 0.471923,
+            "rssKiB": 199040
+          },
+          {
+            "pid": 84646,
+            "type": "GPU",
+            "cpuSeconds": 0.640146,
+            "rssKiB": 100208
+          },
+          {
+            "pid": 84647,
+            "type": "Utility",
+            "cpuSeconds": 0.050153,
+            "rssKiB": 48496
+          },
+          {
+            "pid": 84648,
+            "type": "Tab",
+            "cpuSeconds": 0.062317,
+            "rssKiB": 95616
+          },
+          {
+            "pid": 84649,
+            "type": "Tab",
+            "cpuSeconds": 0.35804,
+            "rssKiB": 129568
+          }
+        ]
+      },
+      "exited": {
+        "label": "exited-with-three-navigations",
+        "durationMs": 3319.2691250000007,
+        "messages": 0,
+        "jsonEquivalentBytes": 0,
+        "pixelMessages": 0,
+        "pixelBytes": 0,
+        "summaryRequests": 0,
+        "cpuOneCorePercent": 0.7138017168161999,
+        "rssSumMiB": 438.375,
+        "processes": [
+          {
+            "pid": 84645,
+            "type": "Browser",
+            "cpuSeconds": 0.546951,
+            "rssKiB": 202592
+          },
+          {
+            "pid": 84646,
+            "type": "GPU",
+            "cpuSeconds": 0.647364,
+            "rssKiB": 100336
+          },
+          {
+            "pid": 84647,
+            "type": "Utility",
+            "cpuSeconds": 0.051831,
+            "rssKiB": 48560
+          },
+          {
+            "pid": 84648,
+            "type": "Tab",
+            "cpuSeconds": 0.067013,
+            "rssKiB": 97408
+          }
+        ]
+      },
+      "islandPid": 84649,
+      "islandDestroyedAfterExit": true,
+      "exitMs": 13.94816599999831,
+      "reopenWindowMs": 126.11425000000054,
+      "reopenImageMs": 652.6570420000007
+    },
+    {
+      "mode": "before",
+      "electron": "44.5.1",
+      "platform": "darwin",
+      "collapsed": {
+        "label": "collapsed-idle",
+        "durationMs": 3009.461792,
+        "messages": 6,
+        "jsonEquivalentBytes": 2193120,
+        "pixelMessages": 0,
+        "pixelBytes": 0,
+        "summaryRequests": 0,
+        "cpuOneCorePercent": 3.791674654362915,
+        "rssSumMiB": 524.2864583333334,
+        "processes": [
+          {
+            "pid": 84661,
+            "type": "Browser",
+            "cpuSeconds": 0.32268,
+            "rssKiB": 177984
+          },
+          {
+            "pid": 84662,
+            "type": "GPU",
+            "cpuSeconds": 0.182813,
+            "rssKiB": 90112
+          },
+          {
+            "pid": 84663,
+            "type": "Utility",
+            "cpuSeconds": 0.049621,
+            "rssKiB": 48560
+          },
+          {
+            "pid": 84664,
+            "type": "Tab",
+            "cpuSeconds": 0.059492,
+            "rssKiB": 94320
+          },
+          {
+            "pid": 84665,
+            "type": "Tab",
+            "cpuSeconds": 0.163246,
+            "rssKiB": 125888
+          }
+        ]
+      },
+      "expanded": {
+        "label": "expanded-static",
+        "durationMs": 3008.903708,
+        "messages": 12,
+        "jsonEquivalentBytes": 4484148,
+        "pixelMessages": 12,
+        "pixelBytes": 92484,
+        "summaryRequests": 0,
+        "cpuOneCorePercent": 16.476000833191172,
+        "rssSumMiB": 576.2708333333334,
+        "processes": [
+          {
+            "pid": 84661,
+            "type": "Browser",
+            "cpuSeconds": 0.450381,
+            "rssKiB": 198080
+          },
+          {
+            "pid": 84662,
+            "type": "GPU",
+            "cpuSeconds": 0.64342,
+            "rssKiB": 101888
+          },
+          {
+            "pid": 84663,
+            "type": "Utility",
+            "cpuSeconds": 0.04971,
+            "rssKiB": 48608
+          },
+          {
+            "pid": 84664,
+            "type": "Tab",
+            "cpuSeconds": 0.063695,
+            "rssKiB": 95584
+          },
+          {
+            "pid": 84665,
+            "type": "Tab",
+            "cpuSeconds": 0.514437,
+            "rssKiB": 144896
+          }
+        ]
+      },
+      "exited": {
+        "label": "exited-with-three-navigations",
+        "durationMs": 3335.555375,
+        "messages": 12,
+        "jsonEquivalentBytes": 4385584,
+        "pixelMessages": 0,
+        "pixelBytes": 0,
+        "summaryRequests": 12,
+        "cpuOneCorePercent": 5.111322728377728,
+        "rssSumMiB": 592.9296875,
+        "processes": [
+          {
+            "pid": 84661,
+            "type": "Browser",
+            "cpuSeconds": 0.556627,
+            "rssKiB": 204688
+          },
+          {
+            "pid": 84662,
+            "type": "GPU",
+            "cpuSeconds": 0.812904,
+            "rssKiB": 103264
+          },
+          {
+            "pid": 84663,
+            "type": "Utility",
+            "cpuSeconds": 0.050839,
+            "rssKiB": 48640
+          },
+          {
+            "pid": 84664,
+            "type": "Tab",
+            "cpuSeconds": 0.066871,
+            "rssKiB": 97392
+          },
+          {
+            "pid": 84665,
+            "type": "Tab",
+            "cpuSeconds": 0.661044,
+            "rssKiB": 150928
+          }
+        ]
+      },
+      "islandPid": 84665,
+      "islandDestroyedAfterExit": false,
+      "exitMs": 16.325291999999536,
+      "reopenWindowMs": 19.44695900000079,
+      "reopenImageMs": 529.9647089999999
+    },
+    {
+      "mode": "before",
+      "electron": "44.5.1",
+      "platform": "darwin",
+      "collapsed": {
+        "label": "collapsed-idle",
+        "durationMs": 3010.3540409999996,
+        "messages": 6,
+        "jsonEquivalentBytes": 2193120,
+        "pixelMessages": 0,
+        "pixelBytes": 0,
+        "summaryRequests": 0,
+        "cpuOneCorePercent": 3.741187862494345,
+        "rssSumMiB": 523.75,
+        "processes": [
+          {
+            "pid": 84677,
+            "type": "Browser",
+            "cpuSeconds": 0.329754,
+            "rssKiB": 177888
+          },
+          {
+            "pid": 84678,
+            "type": "GPU",
+            "cpuSeconds": 0.181091,
+            "rssKiB": 89664
+          },
+          {
+            "pid": 84679,
+            "type": "Utility",
+            "cpuSeconds": 0.048792,
+            "rssKiB": 48400
+          },
+          {
+            "pid": 84680,
+            "type": "Tab",
+            "cpuSeconds": 0.058766,
+            "rssKiB": 94272
+          },
+          {
+            "pid": 84682,
+            "type": "Tab",
+            "cpuSeconds": 0.17091,
+            "rssKiB": 126080
+          }
+        ]
+      },
+      "expanded": {
+        "label": "expanded-static",
+        "durationMs": 3006.538209000001,
+        "messages": 12,
+        "jsonEquivalentBytes": 4484148,
+        "pixelMessages": 12,
+        "pixelBytes": 92484,
+        "summaryRequests": 0,
+        "cpuOneCorePercent": 15.743654897951098,
+        "rssSumMiB": 575.2526041666666,
+        "processes": [
+          {
+            "pid": 84677,
+            "type": "Browser",
+            "cpuSeconds": 0.451826,
+            "rssKiB": 198336
+          },
+          {
+            "pid": 84678,
+            "type": "GPU",
+            "cpuSeconds": 0.604146,
+            "rssKiB": 100736
+          },
+          {
+            "pid": 84679,
+            "type": "Utility",
+            "cpuSeconds": 0.048955,
+            "rssKiB": 48400
+          },
+          {
+            "pid": 84680,
+            "type": "Tab",
+            "cpuSeconds": 0.062841,
+            "rssKiB": 95552
+          },
+          {
+            "pid": 84682,
+            "type": "Tab",
+            "cpuSeconds": 0.49427,
+            "rssKiB": 144896
+          }
+        ]
+      },
+      "exited": {
+        "label": "exited-with-three-navigations",
+        "durationMs": 3340.660667,
+        "messages": 12,
+        "jsonEquivalentBytes": 4385584,
+        "pixelMessages": 0,
+        "pixelBytes": 0,
+        "summaryRequests": 12,
+        "cpuOneCorePercent": 5.73557206491335,
+        "rssSumMiB": 590.671875,
+        "processes": [
+          {
+            "pid": 84677,
+            "type": "Browser",
+            "cpuSeconds": 0.571081,
+            "rssKiB": 204512
+          },
+          {
+            "pid": 84678,
+            "type": "GPU",
+            "cpuSeconds": 0.761596,
+            "rssKiB": 101408
+          },
+          {
+            "pid": 84679,
+            "type": "Utility",
+            "cpuSeconds": 0.050422,
+            "rssKiB": 48464
+          },
+          {
+            "pid": 84680,
+            "type": "Tab",
+            "cpuSeconds": 0.066943,
+            "rssKiB": 97344
+          },
+          {
+            "pid": 84682,
+            "type": "Tab",
+            "cpuSeconds": 0.643176,
+            "rssKiB": 150880
+          }
+        ]
+      },
+      "islandPid": 84682,
+      "islandDestroyedAfterExit": false,
+      "exitMs": 16.40099999999984,
+      "reopenWindowMs": 22.868625000000975,
+      "reopenImageMs": 535.7077919999992
+    },
+    {
+      "mode": "after",
+      "electron": "44.5.1",
+      "platform": "darwin",
+      "collapsed": {
+        "label": "collapsed-idle",
+        "durationMs": 3013.7612919999997,
+        "messages": 0,
+        "jsonEquivalentBytes": 0,
+        "pixelMessages": 0,
+        "pixelBytes": 0,
+        "summaryRequests": 0,
+        "cpuOneCorePercent": 2.19211123904766,
+        "rssSumMiB": 521.859375,
+        "processes": [
+          {
+            "pid": 84696,
+            "type": "Browser",
+            "cpuSeconds": 0.347402,
+            "rssKiB": 183184
+          },
+          {
+            "pid": 84697,
+            "type": "GPU",
+            "cpuSeconds": 0.169764,
+            "rssKiB": 90160
+          },
+          {
+            "pid": 84698,
+            "type": "Utility",
+            "cpuSeconds": 0.049037,
+            "rssKiB": 48464
+          },
+          {
+            "pid": 84699,
+            "type": "Tab",
+            "cpuSeconds": 0.059128,
+            "rssKiB": 94320
+          },
+          {
+            "pid": 84700,
+            "type": "Tab",
+            "cpuSeconds": 0.10027,
+            "rssKiB": 118000
+          }
+        ]
+      },
+      "expanded": {
+        "label": "expanded-static",
+        "durationMs": 3010.858292,
+        "messages": 0,
+        "jsonEquivalentBytes": 0,
+        "pixelMessages": 0,
+        "pixelBytes": 0,
+        "summaryRequests": 0,
+        "cpuOneCorePercent": 14.62881867174903,
+        "rssSumMiB": 562.6796875,
+        "processes": [
+          {
+            "pid": 84696,
+            "type": "Browser",
+            "cpuSeconds": 0.479781,
+            "rssKiB": 199328
+          },
+          {
+            "pid": 84697,
+            "type": "GPU",
+            "cpuSeconds": 0.641053,
+            "rssKiB": 100736
+          },
+          {
+            "pid": 84698,
+            "type": "Utility",
+            "cpuSeconds": 0.049173,
+            "rssKiB": 48464
+          },
+          {
+            "pid": 84699,
+            "type": "Tab",
+            "cpuSeconds": 0.06355,
+            "rssKiB": 95568
+          },
+          {
+            "pid": 84700,
+            "type": "Tab",
+            "cpuSeconds": 0.353571,
+            "rssKiB": 129456
+          }
+        ]
+      },
+      "exited": {
+        "label": "exited-with-three-navigations",
+        "durationMs": 3314.6929579999996,
+        "messages": 0,
+        "jsonEquivalentBytes": 0,
+        "pixelMessages": 0,
+        "pixelBytes": 0,
+        "summaryRequests": 0,
+        "cpuOneCorePercent": 0.41243639073734295,
+        "rssSumMiB": 439.1927083333333,
+        "processes": [
+          {
+            "pid": 84696,
+            "type": "Browser",
+            "cpuSeconds": 0.547405,
+            "rssKiB": 203008
+          },
+          {
+            "pid": 84697,
+            "type": "GPU",
+            "cpuSeconds": 0.647926,
+            "rssKiB": 100800
+          },
+          {
+            "pid": 84698,
+            "type": "Utility",
+            "cpuSeconds": 0.05066,
+            "rssKiB": 48560
+          },
+          {
+            "pid": 84699,
+            "type": "Tab",
+            "cpuSeconds": 0.066209,
+            "rssKiB": 97360
+          }
+        ]
+      },
+      "islandPid": 84700,
+      "islandDestroyedAfterExit": true,
+      "exitMs": 16.35833300000013,
+      "reopenWindowMs": 164.61162499999955,
+      "reopenImageMs": 692.4411660000005
+    }
+  ]
+}

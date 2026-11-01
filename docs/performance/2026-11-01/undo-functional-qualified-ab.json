@@ -1,0 +1,667 @@
+{
+  "date": "2026-11-01",
+  "status": "Style cache lifecycle fix retained in production source after functional qualification and CPU gate; snapshot sharing, scalar compression, cold history not enabled",
+  "scope": "Isolated offline production-mode Studio, fresh Electron processes. Shared renderer isolate JS heap; not app RSS/GPU or main-process CPU. Full client save acknowledged by local fixture; not business backend validation.",
+  "hardware": {
+    "model": "Mac16,1",
+    "memoryBytes": 25769803776
+  },
+  "electron": "44.5.1",
+  "order": [
+    "baseline",
+    "candidate",
+    "candidate",
+    "baseline",
+    "baseline",
+    "candidate"
+  ],
+  "operationsPerProcess": 600,
+  "statistics": {
+    "baseline": {
+      "independentProcesses": 3,
+      "savedHeapMiBMedian": 390.879638671875,
+      "savedHeapMiBRange": [
+        390.8447265625,
+        390.93754959106445
+      ],
+      "heapGrowthMiBMedian": 296.29127502441406,
+      "taskDurationSecondsMedian": 22.940357,
+      "taskDurationSecondsRange": [
+        22.669124999999998,
+        23.067773
+      ],
+      "readyLatencyP95Ms": 196.01320799999667,
+      "readyLatencyOperations": 120,
+      "cachedRules": 37026,
+      "styleCharacters": 3014099
+    },
+    "candidate": {
+      "independentProcesses": 3,
+      "savedHeapMiBMedian": 372.013484954834,
+      "savedHeapMiBRange": [
+        372.0097312927246,
+        372.0258560180664
+      ],
+      "heapGrowthMiBMedian": 280.80115509033203,
+      "taskDurationSecondsMedian": 11.554622,
+      "taskDurationSecondsRange": [
+        11.451144,
+        11.6163
+      ],
+      "readyLatencyP95Ms": 101.91225000000122,
+      "readyLatencyOperations": 120,
+      "cachedRules": 121,
+      "styleCharacters": 9849
+    }
+  },
+  "samples": [
+    {
+      "arm": "baseline",
+      "id": "undo-retain-baseline-ab-1",
+      "heapMiB": 390.93754959106445,
+      "growthMiB": 296.29127502441406,
+      "cpuSeconds": {
+        "LayoutDuration": 0.000118,
+        "RecalcStyleDuration": 0.003085,
+        "ScriptDuration": 1.196281,
+        "TaskDuration": 22.940357
+      },
+      "wallMs": 22984.604625,
+      "records": 601,
+      "pending": 0,
+      "latencyMs": [
+        214.65875000000233,
+        174.307417,
+        223.32445800000278,
+        171.5877079999991,
+        174.7710830000069,
+        178.46487499999785,
+        188.99783300000126,
+        179.7846669999999,
+        175.4945000000007,
+        168.53083299999707,
+        176.13408399999753,
+        164.62458299999707,
+        173.67599999999948,
+        168.78262499999983,
+        175.14737500000047,
+        165.99087499999587,
+        171.14633300000423,
+        164.28241700000217,
+        181.97437500000524,
+        167.36824999999953,
+        171.76720899999782,
+        164.76395900000352,
+        182.55416700000205,
+        172.528707999998,
+        176.31683299999713,
+        165.10687500000495,
+        178.60800000000017,
+        167.11779100000422,
+        175.8910410000026,
+        165.69958300000144,
+        172.62770900000032,
+        166.79170799999702,
+        175.58699999999953,
+        165.70237500000076,
+        173.8541669999977,
+        163.44716699999844,
+        173.15812500000175,
+        166.4328749999986,
+        174.49687500000437,
+        165.15366599999834
+      ],
+      "rootChildren": 120,
+      "cachedRules": 37026,
+      "styleCharacters": 3014099,
+      "studioErrors": 0
+    },
+    {
+      "arm": "baseline",
+      "id": "undo-retain-baseline-ab-4",
+      "heapMiB": 390.8447265625,
+      "growthMiB": 296.2848777770996,
+      "cpuSeconds": {
+        "LayoutDuration": 0.000121,
+        "RecalcStyleDuration": 0.003031,
+        "ScriptDuration": 1.204129,
+        "TaskDuration": 22.669124999999998
+      },
+      "wallMs": 22712.486042,
+      "records": 601,
+      "pending": 0,
+      "latencyMs": [
+        215.4091249999983,
+        173.28608299999905,
+        225.57533400000102,
+        172.82545799999934,
+        178.2711249999993,
+        171.00395800000115,
+        178.48500000000058,
+        167.3954589999994,
+        175.84337500000402,
+        170.9271249999947,
+        175.57695799999783,
+        169.0893750000032,
+        178.12041699999827,
+        167.34279199999582,
+        175.4674159999995,
+        166.4247499999983,
+        174.75291699999798,
+        169.2986249999958,
+        178.32912500000384,
+        169.24320799999987,
+        175.80116599999747,
+        167.98154200000135,
+        172.81212500000402,
+        165.84658399999898,
+        169.99262499999895,
+        167.11541600000055,
+        173.31641600000148,
+        167.8622499999983,
+        172.21908400000393,
+        167.17341699999815,
+        172.48912500000006,
+        167.36683400000038,
+        171.7889159999977,
+        167.42750000000524,
+        171.9698750000025,
+        166.20129100000486,
+        172.6887080000015,
+        167.53270899999916,
+        173.8837080000012,
+        167.9908329999962
+      ],
+      "rootChildren": 120,
+      "cachedRules": 37026,
+      "styleCharacters": 3014099,
+      "studioErrors": 0
+    },
+    {
+      "arm": "baseline",
+      "id": "undo-retain-baseline-ab-5",
+      "heapMiB": 390.879638671875,
+      "growthMiB": 296.3030128479004,
+      "cpuSeconds": {
+        "LayoutDuration": 0.000125,
+        "RecalcStyleDuration": 0.003072,
+        "ScriptDuration": 1.19878,
+        "TaskDuration": 23.067773
+      },
+      "wallMs": 23112.433,
+      "records": 601,
+      "pending": 0,
+      "latencyMs": [
+        215.4658750000017,
+        175.97816700000112,
+        224.92662500000006,
+        172.64429199999722,
+        179.9236249999958,
+        174.7479170000006,
+        177.3159999999989,
+        167.14187500000116,
+        174.93866600000183,
+        167.8983339999977,
+        173.0575420000023,
+        164.3610420000041,
+        174.88483299999643,
+        166.68866700000217,
+        175.6705409999995,
+        166.31004100000428,
+        171.05599999999686,
+        165.32650000000285,
+        173.24287500000355,
+        167.49524999999994,
+        173.00266700000066,
+        167.09074999999575,
+        174.2385839999988,
+        167.4302500000049,
+        174.955750000001,
+        168.3502909999952,
+        179.39083299999766,
+        168.25587500000256,
+        174.74708300000202,
+        164.71458300000086,
+        174.25020799999766,
+        163.15829099999974,
+        170.7437080000018,
+        169.7948749999996,
+        186.29408300000068,
+        174.7755840000027,
+        178.77158299999428,
+        166.60499999999593,
+        196.01320799999667,
+        165.31566700000258
+      ],
+      "rootChildren": 120,
+      "cachedRules": 37026,
+      "styleCharacters": 3014099,
+      "studioErrors": 0
+    },
+    {
+      "arm": "candidate",
+      "id": "undo-retain-candidate-ab-2",
+      "heapMiB": 372.013484954834,
+      "growthMiB": 280.80115509033203,
+      "cpuSeconds": {
+        "LayoutDuration": 0.00012,
+        "RecalcStyleDuration": 0.003118,
+        "ScriptDuration": 1.202025,
+        "TaskDuration": 11.554622
+      },
+      "wallMs": 11593.472666,
+      "records": 601,
+      "pending": 0,
+      "latencyMs": [
+        118.71933300000092,
+        90.51008300000103,
+        94.453125,
+        103.42579200000182,
+        101.04854100000011,
+        88.96629200000098,
+        97.46812500000306,
+        88.49258299999929,
+        96.80225000000064,
+        86.88412499999686,
+        93.0224589999998,
+        85.92283400000088,
+        93.41737499999726,
+        87.45270800000071,
+        93.6560419999987,
+        87.83783399999811,
+        93.19625000000087,
+        84.88004200000069,
+        93.71845799999937,
+        88.11425000000236,
+        95.13775000000169,
+        89.19124999999985,
+        92.75279200000296,
+        87.83379200000127,
+        90.86250000000291,
+        84.69574999999895,
+        90.2107079999987,
+        82.55004100000224,
+        91.87158400000044,
+        85.35070799999812,
+        92.51045800000065,
+        84.03470799999923,
+        91.02512500000012,
+        85.30774999999994,
+        91.16720799999894,
+        84.25279200000296,
+        90.44612499999857,
+        84.67020899999989,
+        91.36141700000007,
+        84.58308399999805
+      ],
+      "rootChildren": 120,
+      "cachedRules": 121,
+      "styleCharacters": 9849,
+      "studioErrors": 0
+    },
+    {
+      "arm": "candidate",
+      "id": "undo-retain-candidate-ab-3",
+      "heapMiB": 372.0258560180664,
+      "growthMiB": 280.7939109802246,
+      "cpuSeconds": {
+        "LayoutDuration": 0.000131,
+        "RecalcStyleDuration": 0.003047,
+        "ScriptDuration": 1.203623,
+        "TaskDuration": 11.6163
+      },
+      "wallMs": 11652.934459,
+      "records": 601,
+      "pending": 0,
+      "latencyMs": [
+        119.09516600000279,
+        91.23604200000045,
+        94.19362499999988,
+        101.91225000000122,
+        100.6865420000031,
+        90.15216700000019,
+        97.09245800000281,
+        89.25458300000173,
+        95.61966700000266,
+        86.53600000000006,
+        97.36029199999757,
+        85.98050000000148,
+        91.55075000000215,
+        84.58908299999894,
+        93.86062500000116,
+        86.88895799999955,
+        92.32258300000103,
+        87.69279200000165,
+        93.08991700000115,
+        86.45912500000122,
+        91.14483300000211,
+        86.14695800000118,
+        92.54970900000262,
+        86.01479199999812,
+        92.53458300000057,
+        85.10904200000004,
+        91.60954199999833,
+        83.63766699999906,
+        91.40829200000007,
+        85.09141699999964,
+        93.38183299999946,
+        85.29562499999884,
+        92.82645799999955,
+        84.75095800000054,
+        92.51674999999886,
+        84.52549999999974,
+        89.62354199999754,
+        83.62754199999836,
+        91.01587500000096,
+        85.27391700000226
+      ],
+      "rootChildren": 120,
+      "cachedRules": 121,
+      "styleCharacters": 9849,
+      "studioErrors": 0
+    },
+    {
+      "arm": "candidate",
+      "id": "undo-retain-candidate-ab-6",
+      "heapMiB": 372.0097312927246,
+      "growthMiB": 280.8039436340332,
+      "cpuSeconds": {
+        "LayoutDuration": 0.000121,
+        "RecalcStyleDuration": 0.003016,
+        "ScriptDuration": 1.185178,
+        "TaskDuration": 11.451144
+      },
+      "wallMs": 11490.064583,
+      "records": 601,
+      "pending": 0,
+      "latencyMs": [
+        117.73279199999888,
+        91.59520800000246,
+        95.03074999999808,
+        104.06829099999959,
+        102.31825000000026,
+        91.01958400000149,
+        98.41787499999919,
+        90.4262920000001,
+        98.92820800000118,
+        90.60741699999926,
+        97.98412499999904,
+        88.0164999999979,
+        96.40745799999786,
+        88.98933300000135,
+        97.60087500000009,
+        88.58099999999831,
+        97.28470799999923,
+        91.12154199999713,
+        95.79795800000284,
+        87.92445800000132,
+        95.32979200000045,
+        88.47937500000262,
+        96.25495900000169,
+        88.3816250000018,
+        94.90070900000137,
+        88.7445000000007,
+        92.38779200000135,
+        87.45650000000023,
+        95.57816699999967,
+        87.36933299999873,
+        94.03741699999955,
+        87.81175000000076,
+        93.57916700000351,
+        93.39300000000003,
+        101.11466599999767,
+        92.29187499999898,
+        89.06662499999948,
+        87.40900000000329,
+        92.76291600000332,
+        87.71137500000259
+      ],
+      "rootChildren": 120,
+      "cachedRules": 121,
+      "styleCharacters": 9849,
+      "studioErrors": 0
+    }
+  ],
+  "checks": {
+    "baseline": {
+      "functionalGroups": [
+        "repeated-instance",
+        "slot-owner-param",
+        "nested-context-variants-default-slot",
+        "cold-nested-context",
+        "two-frame-style-proof",
+        "delete-undo-redo-selection",
+        "mcp-delete-undo-redo",
+        "second-frame-after-activation",
+        "frame-position-selection"
+      ],
+      "fullUndo": 600,
+      "fullRedo": 600,
+      "reopen": {
+        "passed": true,
+        "save": {
+          "records": 28,
+          "revision": 162
+        },
+        "components": 3,
+        "arenas": 3,
+        "errors": []
+      },
+      "studioErrors": 0,
+      "browserConsoleErrors": 0
+    },
+    "candidate": {
+      "functionalGroups": [
+        "repeated-instance",
+        "slot-owner-param",
+        "nested-context-variants-default-slot",
+        "cold-nested-context",
+        "two-frame-style-proof",
+        "delete-undo-redo-selection",
+        "mcp-delete-undo-redo",
+        "second-frame-after-activation",
+        "frame-position-selection"
+      ],
+      "fullUndo": 600,
+      "fullRedo": 600,
+      "reopen": {
+        "passed": true,
+        "save": {
+          "records": 28,
+          "revision": 162
+        },
+        "components": 3,
+        "arenas": 3,
+        "errors": []
+      },
+      "studioErrors": 0,
+      "browserConsoleErrors": 0
+    },
+    "baselineRenderedAndReopened": {
+      "renderedStyles": {
+        "frames": [
+          {
+            "colors": [
+              "rgb(7, 13, 29)",
+              "rgb(7, 13, 29)"
+            ],
+            "instances": 2
+          },
+          {
+            "colors": [
+              "rgb(7, 13, 29)",
+              "rgb(7, 13, 29)"
+            ],
+            "instances": 2
+          }
+        ],
+        "passed": true
+      },
+      "reopen": {
+        "passed": true,
+        "save": {
+          "records": 29,
+          "revision": 159
+        },
+        "components": 3,
+        "arenas": 3,
+        "errors": []
+      },
+      "studioErrors": 0,
+      "browserConsoleErrors": 0
+    },
+    "productionRenderedAndReopened": {
+      "renderedStyles": {
+        "frames": [
+          {
+            "colors": [
+              "rgb(7, 13, 29)",
+              "rgb(7, 13, 29)"
+            ],
+            "instances": 2
+          },
+          {
+            "colors": [
+              "rgb(7, 13, 29)",
+              "rgb(7, 13, 29)"
+            ],
+            "instances": 2
+          }
+        ],
+        "passed": true
+      },
+      "reopen": {
+        "passed": true,
+        "save": {
+          "records": 29,
+          "revision": 159
+        },
+        "components": 3,
+        "arenas": 3,
+        "errors": []
+      },
+      "studioErrors": 0,
+      "browserConsoleErrors": 0
+    }
+  },
+  "tests": {
+    "preFixColdRegressions": {
+      "expectedFailures": 2,
+      "log": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-undo-verified-mm_x2qmj/unit-before.log"
+    },
+    "currentSourceVitest": {
+      "files": 9,
+      "passed": 160,
+      "exitCode": 0
+    },
+    "typecheck": {
+      "command": "pnpm --dir platform/wab typecheck",
+      "exitCode": 0
+    },
+    "productionDiagnosticBuild": {
+      "config": "desktop/tests/performance/undo-build.config.ts",
+      "exitCode": 0,
+      "sourceOverrides": false
+    },
+    "syntaxChecks": [
+      "undo-reopen.cjs",
+      "undo-studio.cjs",
+      "studio-optimization-fixture.cjs"
+    ],
+    "diffCheck": {
+      "exitCode": 0
+    },
+    "syntaxCheckExitCode": 0
+  },
+  "gates": {
+    "memory": {
+      "minimumMiB": 10,
+      "minimumPercent": 5,
+      "met": false
+    },
+    "cpu": {
+      "minimumPercent": 20,
+      "met": true
+    },
+    "functional": {
+      "met": true
+    }
+  },
+  "rendererSourceSha256": {
+    "platform/wab/src/wab/client/cseval.ts": {
+      "baseline": "ab61b51f90118fe92472d86cd599c31619d6a6bad42eb54ea43aa14cd9795c9c",
+      "candidate": "ab61b51f90118fe92472d86cd599c31619d6a6bad42eb54ea43aa14cd9795c9c",
+      "currentProduction": "ab61b51f90118fe92472d86cd599c31619d6a6bad42eb54ea43aa14cd9795c9c"
+    },
+    "platform/wab/src/wab/client/undo-log.ts": {
+      "baseline": "66965ed5345009b2b22f12c13ee994ea6774791a51b444d6202e1d50b12d7aa1",
+      "candidate": "66965ed5345009b2b22f12c13ee994ea6774791a51b444d6202e1d50b12d7aa1",
+      "currentProduction": "66965ed5345009b2b22f12c13ee994ea6774791a51b444d6202e1d50b12d7aa1"
+    },
+    "platform/wab/src/wab/client/studio-ctx/view-ctx.ts": {
+      "baseline": "e12421c75eeafc342fe19d671c1fccfdd59779e4c950c89c5e661a4eab255c8f",
+      "candidate": "e12421c75eeafc342fe19d671c1fccfdd59779e4c950c89c5e661a4eab255c8f",
+      "currentProduction": "e12421c75eeafc342fe19d671c1fccfdd59779e4c950c89c5e661a4eab255c8f"
+    },
+    "platform/wab/src/wab/client/copilot/index.ts": {
+      "baseline": "b6ed9b2b2eecb13b775d46c41af74897982656661faa48f3c159f90829590498",
+      "candidate": "b6ed9b2b2eecb13b775d46c41af74897982656661faa48f3c159f90829590498",
+      "currentProduction": "b6ed9b2b2eecb13b775d46c41af74897982656661faa48f3c159f90829590498"
+    },
+    "platform/wab/src/wab/client/studio-ctx/StudioCtx.tsx": {
+      "baseline": "7f9ad8ef4dc356903cee3c00fb388e0cf2953727455b4ba52b8b8e438f18e8d7",
+      "candidate": "7f9ad8ef4dc356903cee3c00fb388e0cf2953727455b4ba52b8b8e438f18e8d7",
+      "currentProduction": "7f9ad8ef4dc356903cee3c00fb388e0cf2953727455b4ba52b8b8e438f18e8d7"
+    },
+    "platform/wab/src/wab/client/components/canvas/Spotlight.tsx": {
+      "baseline": "35774222e652f7e25646e308ea502fc10f859fd756cdd9f28ffb24c8681a853b",
+      "candidate": "35774222e652f7e25646e308ea502fc10f859fd756cdd9f28ffb24c8681a853b",
+      "currentProduction": "35774222e652f7e25646e308ea502fc10f859fd756cdd9f28ffb24c8681a853b"
+    },
+    "platform/wab/src/wab/shared/model/model-change-util.ts": {
+      "baseline": "41ba7697af53266b7404642d2981674cc4e1a701369cb0ecb01e639015baf628",
+      "candidate": "b6b203ad74865be71e7d216afd5af4434d838d4b970120b31bbfad2994c7ce9d",
+      "currentProduction": "b6b203ad74865be71e7d216afd5af4434d838d4b970120b31bbfad2994c7ce9d"
+    },
+    "platform/wab/src/wab/client/style-mgr.ts": {
+      "baseline": "f943ba87dc619c1fd5787ac471d1e330ff6d916ae1d094338e9a4af0699fe52c",
+      "candidate": "8d4f4c7c523c64b3e285c2736dbad02a1f5be033240730eeac05c59ca31ec211",
+      "currentProduction": "8d4f4c7c523c64b3e285c2736dbad02a1f5be033240730eeac05c59ca31ec211"
+    }
+  },
+  "buildDigests": {
+    "baseline": {
+      "javascriptFiles": 605,
+      "aggregateSha256": "f2337efa2cc23a6bb64898c3b57d36ff581a8a96ac0a11ebb2880896de9bb319"
+    },
+    "candidate": {
+      "javascriptFiles": 480,
+      "aggregateSha256": "dcf969d3dc11feb162ec13e217c0d8df023b618ce28b0e53f7ab286fcf2fd3d8"
+    },
+    "production": {
+      "javascriptFiles": 472,
+      "aggregateSha256": "10f660fc01b7a6d2912d48c93f01c755d3cd8d605b9500865caa8cd3224d290b"
+    }
+  },
+  "localArtifacts": {
+    "privateDirectory": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-undo-verified-mm_x2qmj",
+    "timedReports": "undo-retain-{baseline|candidate}-ab-{1..6}.json",
+    "fullHistoryReports": "frontend-{baseline|candidate}-full-qualified.json",
+    "currentSourceReport": "frontend-production-qualified.json",
+    "priorSlotRaceTrace": "undo-candidate-slot-trace.json",
+    "firstColdFailure": "undo-baseline-valid-cold.json"
+  },
+  "boundaries": [
+    "No measured benefit for first canvas load, app RSS/GPU or main-process event loop",
+    "No live authentication, business backend save, publishing or updater acceptance",
+    "Forced GC and heap snapshots excluded from CPU window; natural GC included",
+    "Full-history and extended function rounds excluded from performance medians",
+    "p95 uses nearest rank from 120 operations per arm, with only 3 independent processes",
+    "History released only after measurements and complete full-history checks for diagnostic reference; production history depth unchanged"
+  ],
+  "benefits": {
+    "savedHeapMiB": 18.866153717041016,
+    "savedHeapPercent": 4.826589018845839,
+    "taskDurationPercent": 49.63189979999003
+  }
+}

@@ -3,6 +3,7 @@ import {
   TEST_GLOBAL_VARIANT,
 } from "@/wab/__testonly__/tpls";
 import { ViewOps } from "@/wab/client/components/canvas/view-ops";
+import { CanvasContentEditor } from "@/wab/client/studio-ctx/canvas-content-editor";
 import { ComponentCtx } from "@/wab/client/studio-ctx/component-ctx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { mkStyleToken, mkTokenRef } from "@/wab/commons/StyleToken";
@@ -362,6 +363,7 @@ test("deep hover leaves the editing stack unchanged and direct selection creates
     },
     setStudioFocusBySelectable: setFocus,
   });
+  Object.defineProperty(viewCtx, "contentEditor", { value: new CanvasContentEditor(viewCtx) });
   const viewOps = new ViewOps({ viewCtx });
   viewOps.tryFocusObj(leaf, { exact: false, deepSelect: true });
   expect(setFocus).toHaveBeenCalledWith(leaf, undefined, {
@@ -438,6 +440,7 @@ test("canvas hover and click share authored layout levels; Enter and parent navi
         flattenVals(root).find((val) => val.tpl === tpl),
     },
   });
+  Object.defineProperty(viewCtx, "contentEditor", { value: new CanvasContentEditor(viewCtx) });
   const viewOps = new ViewOps({ viewCtx });
   vi.spyOn(viewOps, "isSelectableVisible").mockReturnValue(true);
   viewOps.tryHoverObj(leaf, { exact: false });

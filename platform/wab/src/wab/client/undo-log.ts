@@ -6,6 +6,7 @@ import { ComponentVariantFrame } from "@/wab/shared/component-frame";
 import {
   IChangeRecorder,
   RecordedChanges,
+  emptyRecordedChanges,
   mergeRecordedChanges,
 } from "@/wab/shared/core/observable-model";
 import { Selectable } from "@/wab/shared/core/selection";
@@ -20,6 +21,8 @@ import {
 import L from "lodash";
 import { observable } from "mobx";
 
+export const MAX_UNDO_STEPS = 50;
+
 export interface ViewStateSnapshot {
   focusedArena?: AnyArena | null;
   focusedFrame?: ArenaFrame;
@@ -30,6 +33,7 @@ export interface ViewStateSnapshot {
   vcComponentStack?: ComponentVariantFrame[];
   currentComponentCtx?: ComponentCtx;
   vcFocusedCloneKey?: string;
+  vcShowDefaultSlotContents?: boolean;
 }
 
 export interface UndoRecord {
@@ -179,7 +183,8 @@ export class UndoLog {
         prev.focusedArena !== next.focusedArena ||
         prev.focusedFrame !== next.focusedFrame ||
         !L.isEqual(prev.focusedFrames ?? [], next.focusedFrames ?? []) ||
-        prev.focusedOnFrame !== next.focusedOnFrame
+        prev.focusedOnFrame !== next.focusedOnFrame ||
+        prev.vcShowDefaultSlotContents !== next.vcShowDefaultSlotContents
       ) {
         return false;
       }
@@ -277,6 +282,16 @@ export class UndoLog {
       record,
     );
     this._nextInsertPos += 1;
+    // Keep one view-only anchor before the retained undoable changes.
+    const overflow = this._log.length - (MAX_UNDO_STEPS + 1);
+    if (overflow > 0) {
+      this._log.splice(0, overflow);
+      this._nextInsertPos -= overflow;
+      this._log[0] = {
+        view: this._log[0].view,
+        changes: emptyRecordedChanges(),
+      };
+    }
   }
   undo() {
     assert(this.canUndo(), () => "Can't undo");

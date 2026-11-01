@@ -19,7 +19,7 @@ export function BrandLink({
       <PublicLink
         {...props}
         className={`${className ?? ""} ${styles.brandLink}`}
-        href={brand.logoHref ?? props.href ?? APP_ROUTES.dashboard.fill({})}
+        href={brand.logoHref ?? props.href ?? APP_ROUTES.allProjects.fill({})}
         aria-label={label}
       >
         <span

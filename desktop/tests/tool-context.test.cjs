@@ -250,7 +250,7 @@ test("the page height view runs on read-only canvases as a view operation", asyn
   context.canEdit = false;
   await controller.dispatch("execute", { name: "setCanvasPageHeight", input: { mode: "full" } });
   assert.deepEqual(calls.at(-1), { name: "setCanvasPageHeight", input: { mode: "full" } });
-  const { EDITOR_METHODS } = require("../src/mcp.cjs");
+  const { EDITOR_METHODS } = require("../src/mcp-contract.cjs");
   assert.ok(EDITOR_METHODS.includes("setCanvasPageHeight"));
   await assert.rejects(
     controller.dispatch("execute", { name: "changeElement", input: { componentUuid: "page" } }),

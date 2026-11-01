@@ -92,6 +92,7 @@ class ReferenceBrowser {
       /* Missing or invalid history starts empty. */
     }
     this.generation = 0;
+    this.pollGeneration = 0;
     this.onCommand = async (event, input) => {
       if (
         !this.chrome ||
@@ -260,11 +261,14 @@ class ReferenceBrowser {
     this.publish();
     parent.show();
     this.chrome.webContents.focus();
+    void this.poll();
     return this.snapshot();
   }
   hide() {
     void this.picker("clearRead").catch(() => {});
     this.visible = false;
+    this.pollGeneration++;
+    clearTimeout(this.pollTimer);
     this.overlay = false;
     this.background?.setVisible(false);
     this.chrome?.setVisible(false);
@@ -316,6 +320,7 @@ class ReferenceBrowser {
     this.editorViewport = { width, height };
   }
   releaseViews() {
+    this.pollGeneration++;
     clearTimeout(this.pollTimer);
     this.resizeEditor();
     if (this.editorExpanded && this.window && !this.window.isDestroyed())
@@ -564,11 +569,14 @@ class ReferenceBrowser {
       { method, value },
     );
   }
-  async poll() {
-    clearTimeout(this.pollTimer);
-    if (!this.view || this.view.webContents.isDestroyed()) return;
+  async poll({ once = false } = {}) {
+    if (!once) clearTimeout(this.pollTimer);
+    if ((!this.visible && !once) || !this.view || this.view.webContents.isDestroyed()) return;
+    const view = this.view;
+    const generation = this.pollGeneration;
     try {
       const selected = await this.picker("snapshot");
+      if ((!this.visible && !once) || generation !== this.pollGeneration || this.view !== view || view.webContents.isDestroyed()) return;
       if (selected) {
         const previous = JSON.stringify([
           this.state.selection,
@@ -585,6 +593,8 @@ class ReferenceBrowser {
     } catch {
       /* A navigation can replace the isolated world between polls. */
     }
+    if (once || !this.visible || generation !== this.pollGeneration || this.view !== view || view.webContents.isDestroyed()) return;
+    clearTimeout(this.pollTimer);
     this.pollTimer = setTimeout(() => this.poll(), 180);
     this.pollTimer.unref();
   }
@@ -601,7 +611,7 @@ class ReferenceBrowser {
       return this.snapshot();
     }
     if (input.action === "get_state") {
-      await this.poll();
+      await this.poll({ once: true });
       return this.snapshot();
     }
     if (input.action === "close") {
@@ -648,6 +658,7 @@ class ReferenceBrowser {
         await this.view.webContents.loadURL("about:blank");
         this.view.webContents.navigationHistory.clear();
       }
+      this.pollGeneration++;
       clearTimeout(this.pollTimer);
       this.publish();
       return this.snapshot();

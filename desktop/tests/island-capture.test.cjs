@@ -21,6 +21,17 @@ const { inspectScene, sceneDocument, presentationRect, createIslandCapture } = r
 const { snapshotDocument } = require("../src/canvas.cjs");
 Module._load = originalLoad;
 
+test("only the island mirror reuses inspected canvas pixels; normal exports read fresh pixels",t=>{
+  const dom=new JSDOM('<html><head></head><body><canvas width="10" height="10"></canvas></body></html>',{runScripts:"outside-only"});
+  t.after(()=>dom.window.close());
+  const canvas=dom.window.document.querySelector("canvas");let reads=0;
+  canvas.toDataURL=()=>{reads++;return "data:image/png;base64,fresh";};
+  dom.window.__plasmicIslandVisualState={canvasPixels:new WeakMap([[canvas,"data:image/png;base64,inspected"]])};
+  const snapshot=input=>dom.window.eval(`(${snapshotDocument.toString()})(${JSON.stringify(input)})`);
+  assert.match(snapshot({reuseCanvasPixels:true}),/data:image\/png;base64,inspected/);assert.equal(reads,0);
+  assert.match(snapshot({}),/data:image\/png;base64,fresh/);assert.equal(reads,1);
+});
+
 function fixture(t) {
   const dom = new JSDOM('<div class="canvas-editor__canvas-clipper"><iframe class="canvas-editor__viewport"></iframe><iframe class="canvas-editor__viewport"></iframe><iframe class="canvas-editor__viewport" hidden></iframe></div><aside class="canvas-editor__left-pane">Structure tree</aside><div class="floating-toolbar">Tools</div>', {runScripts:"outside-only"});
   t.after(()=>dom.window.close());
@@ -108,6 +119,10 @@ test("clean compositor is reused, never captures editor chrome, and is released 
   assert.equal((renderer.document.match(/<iframe /g)||[]).length,2);
   assert.equal(renderer.webContents.listenerCount("will-navigate"),1,"repeated refreshes do not accumulate handlers");
   mirror.close(); assert.equal(renderer.destroyed,true);
+  mirror.reset();
+  await mirror.capture(win,context,undefined,[]);
+  assert.equal(surfaces.length,before+2,"mode exit clears cached pixels; reopening creates a fresh compositor");
+  mirror.reset();
 });
 
 test("releasing capture resources preserves the displayed page after operation completion and expiry",async()=>{

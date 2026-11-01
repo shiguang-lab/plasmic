@@ -4,7 +4,7 @@ if (window.top === window) {
     open: (userId, projectId, branchId) => ipcRenderer.invoke("desktop:drafts", "open", { userId, projectId, branchId }),
     list: (userId) => ipcRenderer.invoke("desktop:drafts", "list", { userId }),
     read: (handle, id) => ipcRenderer.invoke("desktop:drafts", "read", { handle, id }),
-    write: (handle, draft) => ipcRenderer.invoke("desktop:drafts", "write", { handle, draft }),
+    write: (handle, draftJson) => ipcRenderer.invoke("desktop:drafts", "write", { handle, draftJson }),
     remove: (handle, id, sequence) => ipcRenderer.invoke("desktop:drafts", "remove", { handle, id, sequence }),
   });
   let browserExpanded = false;

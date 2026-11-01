@@ -79,6 +79,16 @@ test('navigation to a different workspace does not share the previous workspace 
  oldIdentity.resolve({user:{id:'old-account'}});await old;
  assert.equal(f.account.snapshot().user.id,'a');assert.equal(f.reads.length,3);
 });
+test('stopping a summary aborts its requests and cannot start late workspace reads',async()=>{
+ const f=fixture(),pending=deferred();let signal;const reads=[];
+ f.account.request=(path,requestSignal)=>{reads.push(path);if(path.includes('auth/self'))return Promise.resolve(f.data.self);signal=requestSignal;return pending.promise;};
+ const load=f.account.refresh('w');await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(signal.aborted,false);f.account.invalidate();assert.equal(signal.aborted,true);
+ pending.resolve({...f.data.app,...f.data.projects});await load;
+ assert.equal(reads.length,3);assert.equal(f.account.snapshot().status,'loading');
+ f.account.request=async path=>path.includes('auth/self')?{user:{id:'new'}}:path.includes('app-ctx')?f.data.app:f.data.projects;
+ await f.account.refresh();assert.equal(f.account.snapshot().user.id,'new');
+});
 test('workspace statistics map nested teams and deduplicate effective users without counting invitations or blocked users',async()=>{
  const f=fixture();f.data.self.user.displayName='Displayed name';f.data.app.workspaces=[{id:'w',name:'Work',team:{id:'t'}}];f.data.projects.projects=[{id:'p',workspaceId:'w'},{id:'other',workspaceId:'another'}];
  const original=f.account.request;

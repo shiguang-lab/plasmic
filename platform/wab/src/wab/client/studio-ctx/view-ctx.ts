@@ -281,6 +281,10 @@ export class ViewCtx extends WithDbCtx {
     return this._$hoveredDomElt.get();
   }
   private setHoveredDomElt($domElt: JQuery | null | undefined) {
+    const current = this._$hoveredDomElt.get();
+    if (current && $domElt && arrayEq(current.get(), $domElt.get())) {
+      return;
+    }
     this._$hoveredDomElt.set($domElt);
   }
 
@@ -1260,6 +1264,7 @@ export class ViewCtx extends WithDbCtx {
           `View must have component stack if view included a focused view ctx`,
       ),
     );
+    this._showDefaultSlotContents = view.vcShowDefaultSlotContents ?? false;
     if (!view.focusedOnFrame) {
       if (
         view.focusedSelectable &&

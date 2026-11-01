@@ -24,7 +24,8 @@ function createIsland({ getWindow, controller, identity, i18n, appearance, confi
   let closeAction = CLOSE_ACTIONS.includes(saved.closeAction) ? saved.closeAction : "ask";
   let mode = MODES.includes(saved.mode) ? saved.mode : "window";
   let window, context = { allowed: false }, image = null, stale = false, epoch = 0;
-  let disposed = false, expanded = false, reading = false, capturing = false, drag, hit, inside = false;
+  let disposed = false, expanded = false, reading, capturing, drag, hit, inside = false;
+  let publishedState, publishedImage;
   let hoverUntil = 0;
   let updates, updateOpen = false;
   let transitions = Promise.resolve();
@@ -33,7 +34,7 @@ function createIsland({ getWindow, controller, identity, i18n, appearance, confi
   let lastResource, lastCanvasOperation;
   const mirror = createIslandCapture();
   const framingOperations = () => [...controller.activity.operations.values(), ...(lastCanvasOperation ? [lastCanvasOperation] : [])];
-  const account = new IslandAccount(() => identity.read(), requestPath => controller.requestStudio(requestPath, undefined, AbortSignal.timeout(10_000)), publish);
+  const account = new IslandAccount(() => identity.read(), (requestPath, signal) => controller.requestStudio(requestPath, undefined, AbortSignal.any([signal, AbortSignal.timeout(10_000)])), publish);
   const identityChanged = () => {
     account.invalidate();
     publish(); void refresh();
@@ -52,18 +53,31 @@ function createIsland({ getWindow, controller, identity, i18n, appearance, confi
       activity: controller.activity.snapshot(context.projectId, context.sessionId) };
   }
   function publish() {
+    if (disposed || mode !== "island" || !window || window.isDestroyed()) {return;}
     const wasExpanded = expanded;
     const signedOut = !context.allowed && account.snapshot().status === "signed-out";
     expanded = mode === "island" && (updateOpen || !signedOut && (controller.activity.keepExpanded() || inside || performance.now() < hoverUntil));
     if (wasExpanded && !expanded) {
       mirror.close();
     }
-    if (window && !window.isDestroyed()) {window.webContents.send("desktop:island-state", snapshot());}
+    const value = snapshot();
+    const source = value.image?.src;
+    if (value.image) {
+      const { src, ...details } = value.image;
+      value.image = details;
+    }
+    const key = JSON.stringify(value);
+    if (key === publishedState && source === publishedImage) {return;}
+    if (value.image && source !== publishedImage) {value.image.src = source;}
+    window.webContents.send("desktop:island-state", value);
+    publishedState = key;
+    publishedImage = source;
   }
   async function refresh() {
     if (reading || disposed || mode !== "island") {return;}
     if (navigationUrl) { updateContext({url:navigationUrl,ready:false}); publish(); return; }
-    reading = true;
+    const task = {};
+    reading = task;
     const version = epoch;
     try {
       const state = await controller.state();
@@ -75,7 +89,7 @@ function createIsland({ getWindow, controller, identity, i18n, appearance, confi
         updateContext({ url: getWindow()?.webContents?.getURL?.(), ready: false });
         publish();
       }
-    } finally { reading = false; }
+    } finally { if (reading === task) {reading = undefined;} }
   }
   function updateContext(state, forceAccountRefresh = false) {
     const pathname = state.url ? new URL(state.url).pathname : "";
@@ -106,7 +120,8 @@ function createIsland({ getWindow, controller, identity, i18n, appearance, confi
   async function capture() {
     const win = getWindow();
     if (capturing || disposed || mode !== "island" || !expanded || updateOpen || !context.allowed || context.loading || !win || win.isDestroyed()) {return;}
-    capturing = true;
+    const task = {};
+    capturing = task;
     const version = epoch;
     try {
       const result = await mirror.capture(win, context, controller.activity.snapshot(context.projectId, context.sessionId).operation, framingOperations());
@@ -115,7 +130,7 @@ function createIsland({ getWindow, controller, identity, i18n, appearance, confi
       else {stale = true;}
       publish();
     } catch (error) { if (error?.name !== "AbortError" && expanded && version === epoch) { stale = true; publish(); } }
-    finally { capturing = false; }
+    finally { if (capturing === task) {capturing = undefined;} }
   }
   function updateHit() {
     if (!window || window.isDestroyed() || mode !== "island") {return;}
@@ -155,7 +170,12 @@ function createIsland({ getWindow, controller, identity, i18n, appearance, confi
     window.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
     window.webContents.on("will-navigate", (event) => event.preventDefault());
     window.webContents.on("will-attach-webview", (event) => event.preventDefault());
-    window.on("closed", () => { window = undefined; if (!disposed && !isQuitting() && mode === "island") {void setMode("window");} });
+    const created = window;
+    window.on("closed", () => {
+      if (window !== created) {return;}
+      window = undefined;
+      if (!disposed && !isQuitting() && mode === "island") {void setMode("window");}
+    });
     placeWindow();
     await window.loadURL(page);
     publish();
@@ -171,8 +191,19 @@ function createIsland({ getWindow, controller, identity, i18n, appearance, confi
   function stop() {
     for (const timer of [refreshTimer, captureTimer, hitTimer]) {clearInterval(timer);}
     refreshTimer = captureTimer = hitTimer = undefined;
-    mirror.close();
+    mirror.reset();
     epoch++; image = null; expanded = false; updateOpen = false; drag = undefined; inside = false; hoverUntil = 0;
+    reading = capturing = undefined;
+    context = { allowed: false };
+    lastCanvasOperation = undefined;
+    publishedState = publishedImage = undefined;
+    account.invalidate();
+    if (window && !window.isDestroyed()) {
+      saved.position = window.getPosition();
+      const previous = window;
+      window = undefined;
+      previous.destroy();
+    }
   }
   function setMode(value) {
     if (!MODES.includes(value)) {throw new Error("Invalid display mode");}
@@ -197,7 +228,12 @@ function createIsland({ getWindow, controller, identity, i18n, appearance, confi
     if (value !== "fullscreen") {await fullscreen(win, false);}
     if (disposed || win.isDestroyed()) {return;}
     if (value === "island") {
-      if (mode !== "island") {mirror.close();}
+      if (mode !== "island" || !window) {
+        mode = value;
+        const latest = controller.activity.latest;
+        lastCanvasOperation = latest && ["read", "write", "view"].includes(latest.kind) ? latest : undefined;
+        updateContext({url: navigationUrl || win.webContents.getURL(), ready: false}, true);
+      }
       await ensureWindow();
       if (disposed || win.isDestroyed()) {return;}
       mode = value;
@@ -211,8 +247,7 @@ function createIsland({ getWindow, controller, identity, i18n, appearance, confi
       window.showInactive();
       start(); publish();
     } else {
-      mode = value; stop(); window?.hide();
-      publish();
+      mode = value; stop();
       // Restoring a window does not restore the macOS foreground app identity.
       if (process.platform === "darwin") {
         app.setActivationPolicy("regular");
@@ -311,6 +346,7 @@ function createIsland({ getWindow, controller, identity, i18n, appearance, confi
   function placeWindowAfterDrag() { saved.position = window.getPosition(); placeWindow(); }
   ipcMain.handle("desktop:presentation", handler);
   const unsubscribe = controller.activity.subscribe(() => {
+    if (disposed || mode !== "island") {return;}
     const latest = controller.activity.latest;
     if (latest && ["read", "write", "view"].includes(latest.kind)) {lastCanvasOperation = latest;}
     if (latest?.id !== lastResource && latest?.phase === "completed" && ["create_project", "create_workspace", "create_org", "rename_project", "move_project", "clone_project"].includes(latest.method)) {
@@ -329,6 +365,7 @@ function createIsland({ getWindow, controller, identity, i18n, appearance, confi
     },
     attach(win) {
       const invalidate = (url) => {
+        if (disposed || mode !== "island") {return;}
         // Navigation refreshes the summary, but does not change the account.
         // Keep its in-flight read; cookie changes still invalidate that read.
         updateContext({ url: typeof url === "string" ? url : win.webContents.getURL(), ready: false }, true);
@@ -346,9 +383,9 @@ function createIsland({ getWindow, controller, identity, i18n, appearance, confi
       };
       win.on("enter-full-screen", () => nativeMode("fullscreen"));
       win.on("leave-full-screen", () => nativeMode("window"));
-      win.once("closed", () => { if (fullscreenWait?.win === win) {fullscreenWait.finish();} stop(); window?.hide(); });
+      win.once("closed", () => { if (fullscreenWait?.win === win) {fullscreenWait.finish();} stop(); });
     },
-    dispose() { disposed = true; account.dispose(); identity.removeListener("changed", identityChanged); fullscreenWait?.finish(); stop(); unsubscribe(); stopLocale(); stopAppearance(); updates?.removeListener("status", publish); ipcMain.removeHandler("desktop:presentation"); window?.destroy(); },
+    dispose() { disposed = true; identity.removeListener("changed", identityChanged); fullscreenWait?.finish(); stop(); unsubscribe(); stopLocale(); stopAppearance(); updates?.removeListener("status", publish); ipcMain.removeHandler("desktop:presentation"); },
   };
 }
 module.exports = { createIsland, containsPoint, MODES, CLOSE_ACTIONS };

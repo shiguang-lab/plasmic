@@ -695,7 +695,10 @@ export const CanvasFrame = observer(function CanvasFrame({
             aria-label={studioUiT("Loading project…")}
             aria-busy="true"
           >
-            <Skeleton active paragraph={{ rows: 5 }} />
+            <Skeleton
+              active={loadState === "ready-to-load" || loadState === "loading" || !!maybeViewCtx()?.canvasCtx.isUpdatingCcRegistry()}
+              paragraph={{ rows: 5 }}
+            />
           </div>
         )}
         <iframe

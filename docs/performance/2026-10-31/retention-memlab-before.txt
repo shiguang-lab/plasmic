@@ -1,0 +1,853 @@
+lightweight parsing /tmp/plasmic-retention/before-results/baseline.heapsnapshot ...
+lightweight parsing /tmp/plasmic-retention/before-results/target.heapsnapshot ...
+parsing /tmp/plasmic-retention/before-results/final.heapsnapshot ...
+calculating basic meta info...
+building reference index...
+building referrers index...
+propagating detachedness state...
+building node index...
+building location index...
+building extra meta info...
+identifying snapshot engine...
+annotating shortest path for all nodes
+calculating dominators and retained sizes .
+calculating dominators and retained sizes ..
+calculating dominators and retained sizes ...
+marking all detached Fiber nodes...
+marking alternate Fiber nodes...
+summarizing snapshot diff...
+Alive objects allocated in target page:
+┌─────────┬───────────────────────────────────┬────────────────┬───────┬──────────────┐
+│ (index) │ name                              │ type           │ count │ retainedSize │
+├─────────┼───────────────────────────────────┼────────────────┼───────┼──────────────┤
+│ 0       │ 'Array'                           │ 'object'       │ 81    │ '84.1KB'     │
+│ 1       │ 'TextModel2'                      │ 'object'       │ 7     │ '49.5KB'     │
+│ 2       │ 'system / Map'                    │ 'object shape' │ 168   │ '42.1KB'     │
+│ 3       │ 'DeepMapEntry'                    │ 'object'       │ 1     │ '40.5KB'     │
+│ 4       │ ''                                │ 'closure'      │ 528   │ '40.5KB'     │
+│ 5       │ 'RetainedCanvasArgument'          │ 'object'       │ 1     │ '40.1KB'     │
+│ 6       │ 'Object'                          │ 'object'       │ 194   │ '37.3KB'     │
+│ 7       │ '_PieceTreeTextBuffer'            │ 'object'       │ 7     │ '35.1KB'     │
+│ 8       │ 'PieceTreeBase'                   │ 'object'       │ 7     │ '33.9KB'     │
+│ 9       │ '_DisposableStore'                │ 'object'       │ 85    │ '25KB'       │
+│ 10      │ 'Set'                             │ 'object'       │ 92    │ '23.8KB'     │
+│ 11      │ 'system / Context / scope @91903' │ 'object'       │ 95    │ '13.6KB'     │
+│ 12      │ 'BracketPairsTextModelPart'       │ 'object'       │ 7     │ '8.5KB'      │
+│ 13      │ 'MutableDisposable'               │ 'object'       │ 28    │ '7.9KB'      │
+│ 14      │ 'system / Context / scope @91943' │ 'object'       │ 95    │ '7.5KB'      │
+│ 15      │ 'Emitter'                         │ 'object'       │ 123   │ '7.3KB'      │
+│ 16      │ '_TokenizationTextModelPart'      │ 'object'       │ 7     │ '7.1KB'      │
+│ 17      │ 'Map'                             │ 'object'       │ 33    │ '6.6KB'      │
+│ 18      │ 'GrammarTokens'                   │ 'object'       │ 7     │ '5.6KB'      │
+│ 19      │ 'UniqueContainer'                 │ 'object'       │ 88    │ '4.2KB'      │
+└─────────┴───────────────────────────────────┴────────────────┴───────┴──────────────┘
+progress: 0 / 2473 (0%)
+progress: 771 / 2473 (31.18%)
+progress: 1542 / 2473 (62.35%)
+progress: 2313 / 2473 (93.53%)
+Clustering leak traces
+clustering trace: 0 / 2473
+clustering trace: 17 / 2473
+clustering trace: 34 / 2473
+clustering trace: 51 / 2473
+clustering trace: 68 / 2473
+clustering trace: 85 / 2473
+clustering trace: 102 / 2473
+clustering trace: 119 / 2473
+clustering trace: 136 / 2473
+clustering trace: 153 / 2473
+clustering trace: 170 / 2473
+clustering trace: 187 / 2473
+clustering trace: 204 / 2473
+clustering trace: 221 / 2473
+clustering trace: 238 / 2473
+clustering trace: 255 / 2473
+clustering trace: 272 / 2473
+clustering trace: 289 / 2473
+clustering trace: 306 / 2473
+clustering trace: 323 / 2473
+clustering trace: 340 / 2473
+clustering trace: 357 / 2473
+clustering trace: 374 / 2473
+clustering trace: 391 / 2473
+clustering trace: 408 / 2473
+clustering trace: 425 / 2473
+clustering trace: 442 / 2473
+clustering trace: 459 / 2473
+clustering trace: 476 / 2473
+clustering trace: 493 / 2473
+clustering trace: 510 / 2473
+clustering trace: 527 / 2473
+clustering trace: 544 / 2473
+clustering trace: 561 / 2473
+clustering trace: 578 / 2473
+clustering trace: 595 / 2473
+clustering trace: 612 / 2473
+clustering trace: 629 / 2473
+clustering trace: 646 / 2473
+clustering trace: 663 / 2473
+clustering trace: 680 / 2473
+clustering trace: 697 / 2473
+clustering trace: 714 / 2473
+clustering trace: 731 / 2473
+clustering trace: 748 / 2473
+clustering trace: 765 / 2473
+clustering trace: 782 / 2473
+clustering trace: 799 / 2473
+clustering trace: 816 / 2473
+clustering trace: 833 / 2473
+clustering trace: 850 / 2473
+clustering trace: 867 / 2473
+clustering trace: 884 / 2473
+clustering trace: 901 / 2473
+clustering trace: 918 / 2473
+clustering trace: 935 / 2473
+clustering trace: 952 / 2473
+clustering trace: 969 / 2473
+clustering trace: 986 / 2473
+clustering trace: 1003 / 2473
+clustering trace: 1020 / 2473
+clustering trace: 1037 / 2473
+clustering trace: 1054 / 2473
+clustering trace: 1071 / 2473
+clustering trace: 1088 / 2473
+clustering trace: 1105 / 2473
+clustering trace: 1122 / 2473
+clustering trace: 1139 / 2473
+clustering trace: 1156 / 2473
+clustering trace: 1173 / 2473
+clustering trace: 1190 / 2473
+clustering trace: 1207 / 2473
+clustering trace: 1224 / 2473
+clustering trace: 1241 / 2473
+clustering trace: 1258 / 2473
+clustering trace: 1275 / 2473
+clustering trace: 1292 / 2473
+clustering trace: 1309 / 2473
+clustering trace: 1326 / 2473
+clustering trace: 1343 / 2473
+clustering trace: 1360 / 2473
+clustering trace: 1377 / 2473
+clustering trace: 1394 / 2473
+clustering trace: 1411 / 2473
+clustering trace: 1428 / 2473
+clustering trace: 1445 / 2473
+clustering trace: 1462 / 2473
+clustering trace: 1479 / 2473
+clustering trace: 1496 / 2473
+clustering trace: 1513 / 2473
+clustering trace: 1530 / 2473
+clustering trace: 1547 / 2473
+clustering trace: 1564 / 2473
+clustering trace: 1581 / 2473
+clustering trace: 1598 / 2473
+clustering trace: 1615 / 2473
+clustering trace: 1632 / 2473
+clustering trace: 1649 / 2473
+clustering trace: 1666 / 2473
+clustering trace: 1683 / 2473
+clustering trace: 1700 / 2473
+clustering trace: 1717 / 2473
+clustering trace: 1734 / 2473
+clustering trace: 1751 / 2473
+clustering trace: 1768 / 2473
+clustering trace: 1785 / 2473
+clustering trace: 1802 / 2473
+clustering trace: 1819 / 2473
+clustering trace: 1836 / 2473
+clustering trace: 1853 / 2473
+clustering trace: 1870 / 2473
+clustering trace: 1887 / 2473
+clustering trace: 1904 / 2473
+clustering trace: 1921 / 2473
+clustering trace: 1938 / 2473
+clustering trace: 1955 / 2473
+clustering trace: 1972 / 2473
+clustering trace: 1989 / 2473
+clustering trace: 2006 / 2473
+clustering trace: 2023 / 2473
+clustering trace: 2040 / 2473
+clustering trace: 2057 / 2473
+clustering trace: 2074 / 2473
+clustering trace: 2091 / 2473
+clustering trace: 2108 / 2473
+clustering trace: 2125 / 2473
+clustering trace: 2142 / 2473
+clustering trace: 2159 / 2473
+clustering trace: 2176 / 2473
+clustering trace: 2193 / 2473
+clustering trace: 2210 / 2473
+clustering trace: 2227 / 2473
+clustering trace: 2244 / 2473
+clustering trace: 2261 / 2473
+clustering trace: 2278 / 2473
+clustering trace: 2295 / 2473
+clustering trace: 2312 / 2473
+clustering trace: 2329 / 2473
+clustering trace: 2346 / 2473
+clustering trace: 2363 / 2473
+clustering trace: 2380 / 2473
+clustering trace: 2397 / 2473
+clustering trace: 2414 / 2473
+clustering trace: 2431 / 2473
+clustering trace: 2448 / 2473
+clustering trace: 2465 / 2473
+
+MemLab found 41 leak(s)
+Number of clusters loaded: 0
+Diffing clusters
+clustering trace: 0 / 41
+clustering trace: 17 / 41
+clustering trace: 34 / 41
+
+
+--Similar leaks in this run: 661--
+--Retained size of leaked objects: 81.2KB--
+[Window / file://] (native) @75317 [10.9KB]
+  --global_object (shortcut)--->  [Window [JSGlobalObject] / file://] (object) @75761 [54.6KB]
+  --__retention (property)--->  [Object] (object) @199783 [9.7KB]
+  --stats (property)--->  [stats] (closure) @199789 [1.7KB]
+  --context (internal)--->  [system / Context / scope (object) @91909 [5MB]
+  --TokenizationRegistry2 (variable)--->  [TokenizationRegistry] (object) @196815 [648 bytes]
+  --_onDidChange (property)--->  [Emitter] (object) @183737 [296 bytes]
+  --_listeners (property)--->  [Array] (object) @185121 [212 bytes]
+  --21 (element)--->  [UniqueContainer] (object) @643177 [44 bytes]
+  --value (property)--->  [<closure>] (closure) @697065 [28 bytes]
+  --context (internal)--->  [system / Context / scope (object) @682985 [20 bytes]
+  --this (variable)--->  [GrammarTokens] (object) @685645 [812 bytes]
+  --_textModel (property)--->  [TextModel2] (object) @641739 [3.2KB]
+  --map (internal)--->  [system / Map] (object shape) @149579 [2.4KB]
+  --back_pointer (internal)--->  [system / Map] (object shape) @423917 [1.7KB]
+  --back_pointer (internal)--->  [system / Map] (object shape) @423915 [1.7KB]
+  --back_pointer (internal)--->  [system / Map] (object shape) @423909 [1.6KB]
+  --back_pointer (internal)--->  [system / Map] (object shape) @400713 [1.6KB]
+  --back_pointer (internal)--->  [system / Map] (object shape) @423893 [1.6KB]
+  --back_pointer (internal)--->  [system / Map] (object shape) @423891 [1.5KB]
+  --back_pointer (internal)--->  [system / Map] (object shape) @423873 [1.5KB]
+  --back_pointer (internal)--->  [system / Map] (object shape) @423871 [1.4KB]
+  --back_pointer (internal)--->  [system / Map] (object shape) @423869 [1.4KB]
+  --back_pointer (internal)--->  [system / Map] (object shape) @423867 [1.3KB]
+  --back_pointer (internal)--->  [system / Map] (object shape) @423865 [1.3KB]
+  --back_pointer (internal)--->  [system / Map] (object shape) @423863 [1.3KB]
+  --back_pointer (internal)--->  [system / Map] (object shape) @423861 [1.2KB]
+  --back_pointer (internal)--->  [system / Map] (object shape) @423859 [1.2KB]
+  --back_pointer (internal)--->  [system / Map] (object shape) @423839 [1.1KB]
+  --back_pointer (internal)--->  [system / Map] (object shape) @423301 [1.1KB]
+  --back_pointer (internal)--->  [system / Map] (object shape) @395793 [1.1KB]
+  --back_pointer (internal)--->  [system / Map] (object shape) @154027 [1KB]
+  --back_pointer (internal)--->  [system / Map] (object shape) @400701 [1KB]
+  --back_pointer (internal)--->  [system / Map] (object shape) @400685 [988 bytes]
+  --back_pointer (internal)--->  [system / Map] (object shape) @422959 [948 bytes]
+  --back_pointer (internal)--->  [system / Map] (object shape) @422615 [908 bytes]
+  --back_pointer (internal)--->  [system / Map] (object shape) @422613 [868 bytes]
+  --back_pointer (internal)--->  [system / Map] (object shape) @422499 [828 bytes]
+  --dependent_code (internal)--->  [system / WeakArrayList] (native) @650005 [28 bytes]
+
+
+--Similar leaks in this run: 6--
+--Retained size of leaked objects: 40.5KB--
+[Window / file://] (native) @75317 [10.9KB]
+  --global_object (shortcut)--->  [Window [JSGlobalObject] / file://] (object) @75761 [54.6KB]
+  --__retention (property)--->  [Object] (object) @199783 [9.7KB]
+  --stats (property)--->  [stats] (closure) @199789 [1.7KB]
+  --context (internal)--->  [system / Context / scope (object) @91909 [5MB]
+  --deep (variable)--->  [DeepMap] (object) @248179 [42.3KB]
+  --last (property)--->  [DeepMapEntry] (object) @642925 [40.5KB]
+  --args (property)--->  [Array] (object) @642927 [40.1KB]
+  --0 (element)--->  [RetainedCanvasArgument] (object) @608017 [40.1KB]
+  --data (property)--->  [Array] (object) @642517 [40KB]
+  --elements (internal)--->  [(object elements)] (array) @697325 [40KB]
+
+
+--Similar leaks in this run: 854--
+--Retained size of leaked objects: 33.3KB--
+[Window / file://] (native) @75317 [10.9KB]
+  --global_object (shortcut)--->  [Window [JSGlobalObject] / file://] (object) @75761 [54.6KB]
+  --__retention (property)--->  [Object] (object) @199783 [9.7KB]
+  --stats (property)--->  [stats] (closure) @199789 [1.7KB]
+  --context (internal)--->  [system / Context / scope (object) @91909 [5MB]
+  --TokenizationRegistry2 (variable)--->  [TokenizationRegistry] (object) @196815 [648 bytes]
+  --_onDidChange (property)--->  [Emitter] (object) @183737 [296 bytes]
+  --_listeners (property)--->  [Array] (object) @185121 [212 bytes]
+  --21 (element)--->  [UniqueContainer] (object) @643177 [44 bytes]
+  --value (property)--->  [<closure>] (closure) @697065 [28 bytes]
+  --context (internal)--->  [system / Context / scope (object) @682985 [20 bytes]
+  --this (variable)--->  [GrammarTokens] (object) @685645 [812 bytes]
+  --_textModel (property)--->  [TextModel2] (object) @641739 [3.2KB]
+  --_store (property)--->  [_DisposableStore] (object) @642005 [408 bytes]
+  --_toDispose (property)--->  [Set] (object) @698483 [388 bytes]
+  --table (internal)--->  [<array>] (array) @700401 [372 bytes]
+  --31 (internal)--->  [Object] (object) @700473 [192 bytes]
+  --dispose (property)--->  [<closure>] (closure) @700765 [176 bytes]
+  --context (internal)--->  [system / Context / scope (object) @700797 [144 bytes]
+  --fn (variable)--->  [<closure>] (closure) @700937 [108 bytes]
+  --context (internal)--->  [system / Context / scope (object) @700951 [80 bytes]
+  --fn (variable)--->  [<closure>] (closure) @701031 [56 bytes]
+  --context (internal)--->  [system / Context / scope (object) @701037 [28 bytes]
+
+
+--Similar leaks in this run: 393--
+--Retained size of leaked objects: 20.4KB--
+[Window / file://] (native) @75317 [10.9KB]
+  --global_object (shortcut)--->  [Window [JSGlobalObject] / file://] (object) @75761 [54.6KB]
+  --__retention (property)--->  [Object] (object) @199783 [9.7KB]
+  --stats (property)--->  [stats] (closure) @199789 [1.7KB]
+  --context (internal)--->  [system / Context / scope (object) @91909 [5MB]
+  --hoverDelegateFactory (variable)--->  [<closure>] (closure) @576193 [48 bytes]
+  --context (internal)--->  [system / Context / scope (object) @645321 [20 bytes]
+  --instantiationService (variable)--->  [_InstantiationService] (object) @92915 [232 bytes]
+  --_servicesToMaybeDispose (property)--->  [Set] (object) @92907 [356 bytes]
+  --table (internal)--->  [<array>] (array) @153883 [340 bytes]
+  --65 (internal)--->  [UndoRedoService2] (object) @92565 [3.3KB]
+  --_editStacks (property)--->  [Map] (object) @92937 [3KB]
+  --table (internal)--->  [<array>] (array) @153209 [2.9KB]
+  --11 (internal)--->  "inmemory://model/8" (string) @513739 [82 bytes]
+  --1 / backing_store (internal)--->  [system / ExternalStringData] (native) @679715 [30 bytes]
+
+
+--Similar leaks in this run: 101--
+--Retained size of leaked objects: 7.6KB--
+[Window / file://] (native) @75317 [10.9KB]
+  --global_object (shortcut)--->  [Window [JSGlobalObject] / file://] (object) @75761 [54.6KB]
+  --__retention (property)--->  [Object] (object) @199783 [9.7KB]
+  --stats (property)--->  [stats] (closure) @199789 [1.7KB]
+  --context (internal)--->  [system / Context / scope (object) @91909 [5MB]
+  --globalHookCtx (variable)--->  [Object] (object) @250037 [10.6KB]
+  --envIdToEnvs (property)--->  [Map] (object) @95093 [7.6KB]
+  --table (internal)--->  [<array>] (array) @522667 [7.6KB]
+  --729 (internal)--->  [WeakRef] (object) @645725 [16 bytes]
+
+
+--Similar leaks in this run: 105--
+--Retained size of leaked objects: 4.8KB--
+[Window / file://] (native) @75317 [10.9KB]
+  --global_object (shortcut)--->  [Window [JSGlobalObject] / file://] (object) @75761 [54.6KB]
+  --__retention (property)--->  [Object] (object) @199783 [9.7KB]
+  --stats (property)--->  [stats] (closure) @199789 [1.7KB]
+  --context (internal)--->  [system / Context / scope (object) @91909 [5MB]
+  --TokenizationRegistry2 (variable)--->  [TokenizationRegistry] (object) @196815 [648 bytes]
+  --_onDidChange (property)--->  [Emitter] (object) @183737 [296 bytes]
+  --_listeners (property)--->  [Array] (object) @185121 [212 bytes]
+  --14 (element)--->  [UniqueContainer] (object) @642933 [44 bytes]
+  --value (property)--->  [<closure>] (closure) @642935 [28 bytes]
+  --context (internal)--->  [system / Context / scope (object) @687985 [20 bytes]
+  --this (variable)--->  [GrammarTokens] (object) @686577 [812 bytes]
+  --_store (property)--->  [_DisposableStore] (object) @686927 [520 bytes]
+  --_toDispose (property)--->  [Set] (object) @687261 [500 bytes]
+  --table (internal)--->  [<array>] (array) @687769 [484 bytes]
+  --17 (internal)--->  [Object] (object) @687993 [192 bytes]
+  --dispose (property)--->  [<closure>] (closure) @696317 [176 bytes]
+  --context (internal)--->  [system / Context / scope (object) @696469 [144 bytes]
+  --fn (variable)--->  [<closure>] (closure) @696871 [108 bytes]
+  --context (internal)--->  [system / Context / scope (object) @696993 [80 bytes]
+  --fn (variable)--->  [<closure>] (closure) @697107 [56 bytes]
+  --context (internal)--->  [system / Context / scope (object) @697139 [28 bytes]
+
+
+--Similar leaks in this run: 88--
+--Retained size of leaked objects: 2.8KB--
+[Window / file://] (native) @75317 [10.9KB]
+  --global_object (shortcut)--->  [Window [JSGlobalObject] / file://] (object) @75761 [54.6KB]
+  --__retention (property)--->  [Object] (object) @199783 [9.7KB]
+  --stats (property)--->  [stats] (closure) @199789 [1.7KB]
+  --context (internal)--->  [system / Context / scope (object) @91909 [5MB]
+  --TokenizationRegistry2 (variable)--->  [TokenizationRegistry] (object) @196815 [648 bytes]
+  --_onDidChange (property)--->  [Emitter] (object) @183737 [296 bytes]
+  --_listeners (property)--->  [Array] (object) @185121 [212 bytes]
+  --14 (element)--->  [UniqueContainer] (object) @642933 [44 bytes]
+  --value (property)--->  [<closure>] (closure) @642935 [28 bytes]
+  --context (internal)--->  [system / Context / scope (object) @687985 [20 bytes]
+  --this (variable)--->  [GrammarTokens] (object) @686577 [812 bytes]
+  --_textModel (property)--->  [TextModel2] (object) @684473 [3.2KB]
+  --_bracketPairs (property)--->  [BracketPairsTextModelPart] (object) @685703 [1.8KB]
+  --bracketPairsTree (property)--->  [MutableDisposable] (object) @685907 [1.5KB]
+  --_value (property)--->  [Object] (object) @686205 [1.4KB]
+  --dispose (property)--->  [dispose] (closure) @686513 [336 bytes]
+  --context (internal)--->  [system / Context / scope (object) @687007 [308 bytes]
+  --disposable (variable)--->  [_DisposableStore] (object) @687215 [288 bytes]
+  --_toDispose (property)--->  [Set] (object) @687811 [268 bytes]
+  --table (internal)--->  [<array>] (array) @687957 [252 bytes]
+  --7 (internal)--->  [Object] (object) @696341 [192 bytes]
+  --dispose (property)--->  [<closure>] (closure) @696445 [176 bytes]
+  --context (internal)--->  [system / Context / scope (object) @696901 [144 bytes]
+  --fn (variable)--->  [<closure>] (closure) @696963 [108 bytes]
+  --context (internal)--->  [system / Context / scope (object) @697117 [80 bytes]
+  --fn (variable)--->  [<closure>] (closure) @697127 [56 bytes]
+  --context (internal)--->  [system / Context / scope (object) @697197 [28 bytes]
+
+
+--Similar leaks in this run: 2--
+--Retained size of leaked objects: 2.3KB--
+[(GC roots)] (synthetic) @3 [22.1MB]
+  --29 (element)--->  [C++ Persistent roots] (synthetic) @864869 [219.7KB]
+  --T *blink::ThreadSpecific<cppgc::internal::BasicPersistent<blink::FontGlobalContext, cppgc::internal::StrongPersistentPolicy>>::operator cppgc::internal::BasicPersistent<blink::FontGlobalContext, cppgc::internal::StrongPersistentPolicy> *() [T = cppgc::internal::BasicPersistent<blink::FontGlobalContext, cppgc::internal::StrongPersistentPolicy>]@../../third_party/blink/renderer/platform/wtf/thread_specific.h:137 (internal)--->  [blink::FontGlobalContext] (native) @124 [4.6KB]
+  --5 (element)--->  [blink::HeapVectorBacking<blink::VectorBackedLinkedListNode<cppgc::internal::BasicMember<const blink::SimpleFontData, cppgc::internal::StrongMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>, blink::HeapAllocator>>] (native) @18482 [144 bytes]
+  --9 (element)--->  [blink::SimpleFontData] (native) @14806 [1.6KB]
+  --2 (element)--->  [blink::NGShapeCache] (native) @14868 [1.2KB]
+  --1 (element)--->  [blink::HeapHashTableBacking<blink::HashTable<blink::ShapeCacheKey, blink::KeyValuePair<blink::ShapeCacheKey, cppgc::internal::BasicMember<const blink::ShapeResult, cppgc::internal::WeakMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>, blink::KeyValuePairExtractor, blink::HashMapValueTraits<blink::HashTraits<ShapeCacheKey>, blink::HashTraits<cppgc::internal::BasicMember<const blink::ShapeResult, cppgc::internal::WeakMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>>, blink::HashTraits<ShapeCacheKey>, blink::HeapAllocator>>] (native) @31260 [1.1KB]
+
+
+--Similar leaks in this run: 1--
+--Retained size of leaked objects: 2.3KB--
+[(GC roots)] (synthetic) @3 [22.1MB]
+  --29 (element)--->  [C++ Persistent roots] (synthetic) @864869 [219.7KB]
+  --blink::ThreadState::ThreadState(v8::Platform *, std::optional<cppgc::StackStartMarker>)@../../third_party/blink/renderer/platform/heap/thread_state.cc:185 (internal)--->  [Pending activities] (native) @102 [2.3KB]
+  --1 (element)--->  [blink::HeapVectorBacking<std::pair<cppgc::internal::BasicMember<const blink::ActiveScriptWrappableBase, cppgc::internal::UntracedMemberTag, cppgc::internal::NoWriteBarrierPolicy>, cppgc::internal::BasicMember<const blink::ActiveScriptWrappableBase, cppgc::internal::StrongMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>>] (native) @29268 [2.3KB]
+
+
+--Similar leaks in this run: 1--
+--Retained size of leaked objects: 2KB--
+[(GC roots)] (synthetic) @3 [22.1MB]
+  --29 (element)--->  [C++ Persistent roots] (synthetic) @864869 [219.7KB]
+  --T *blink::ThreadSpecific<cppgc::internal::BasicPersistent<blink::DisallowNewWrapper<blink::BasicHeapHashMap<blink::internal::HeapCollectionType::kDisallowNew, blink::AtomicString, cppgc::internal::BasicMember<blink::SpaceSplitString::Data, cppgc::internal::WeakMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>>, cppgc::internal::StrongPersistentPolicy>>::operator cppgc::internal::BasicPersistent<blink::DisallowNewWrapper<blink::BasicHeapHashMap<blink::internal::HeapCollectionType::kDisallowNew, blink::AtomicString, cppgc::internal::BasicMember<blink::SpaceSplitString::Data, cppgc::internal::WeakMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>>, cppgc::internal::StrongPersistentPolicy> *() [T = cppgc::internal::BasicPersistent<blink::DisallowNewWrapper<blink::BasicHeapHashMap<blink::internal::HeapCollectionType::kDisallowNew, blink::AtomicString, cppgc::internal::BasicMember<blink::SpaceSplitString::Data, cppgc::internal::WeakMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>>, cppgc::internal::StrongPersistentPolicy>]@../../third_party/blink/renderer/platform/wtf/thread_specific.h:137 (internal)--->  [blink::DisallowNewWrapper<blink::BasicHeapHashMap<blink::internal::HeapCollectionType::kDisallowNew, blink::AtomicString, cppgc::internal::BasicMember<blink::SpaceSplitString::Data, cppgc::internal::WeakMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>>] (native) @40 [2KB]
+  --1 (element)--->  [blink::HeapHashTableBacking<blink::HashTable<blink::AtomicString, blink::KeyValuePair<blink::AtomicString, cppgc::internal::BasicMember<blink::SpaceSplitString::Data, cppgc::internal::WeakMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>, blink::KeyValuePairExtractor, blink::HashMapValueTraits<blink::HashTraits<blink::AtomicString>, blink::HashTraits<cppgc::internal::BasicMember<blink::SpaceSplitString::Data, cppgc::internal::WeakMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>>, blink::HashTraits<blink::AtomicString>, blink::HeapAllocator>>] (native) @29274 [2KB]
+
+
+--Similar leaks in this run: 70--
+--Retained size of leaked objects: 1.9KB--
+[Window / file://] (native) @75317 [10.9KB]
+  --global_object (shortcut)--->  [Window [JSGlobalObject] / file://] (object) @75761 [54.6KB]
+  --__retention (property)--->  [Object] (object) @199783 [9.7KB]
+  --stats (property)--->  [stats] (closure) @199789 [1.7KB]
+  --context (internal)--->  [system / Context / scope (object) @91909 [5MB]
+  --TokenizationRegistry2 (variable)--->  [TokenizationRegistry] (object) @196815 [648 bytes]
+  --_onDidChange (property)--->  [Emitter] (object) @183737 [296 bytes]
+  --_listeners (property)--->  [Array] (object) @185121 [212 bytes]
+  --14 (element)--->  [UniqueContainer] (object) @642933 [44 bytes]
+  --value (property)--->  [<closure>] (closure) @642935 [28 bytes]
+  --context (internal)--->  [system / Context / scope (object) @687985 [20 bytes]
+  --this (variable)--->  [GrammarTokens] (object) @686577 [812 bytes]
+  --_textModel (property)--->  [TextModel2] (object) @684473 [3.2KB]
+  --_decorationProvider (property)--->  [ColorizedBracketPairsDecorationProvider] (object) @686195 [340 bytes]
+  --_store (property)--->  [_DisposableStore] (object) @686561 [288 bytes]
+  --_toDispose (property)--->  [Set] (object) @686943 [268 bytes]
+  --table (internal)--->  [<array>] (array) @687259 [252 bytes]
+  --5 (internal)--->  [Object] (object) @687771 [192 bytes]
+  --dispose (property)--->  [<closure>] (closure) @687991 [176 bytes]
+  --context (internal)--->  [system / Context / scope (object) @696321 [144 bytes]
+  --fn (variable)--->  [<closure>] (closure) @696465 [108 bytes]
+  --context (internal)--->  [system / Context / scope (object) @696875 [80 bytes]
+  --fn (variable)--->  [<closure>] (closure) @696989 [56 bytes]
+  --context (internal)--->  [system / Context / scope (object) @697111 [28 bytes]
+
+
+--Similar leaks in this run: 18--
+--Retained size of leaked objects: 1.3KB--
+[Window / file://] (native) @75317 [10.9KB]
+  --global_object (shortcut)--->  [Window [JSGlobalObject] / file://] (object) @75761 [54.6KB]
+  --__retention (property)--->  [Object] (object) @199783 [9.7KB]
+  --stats (property)--->  [stats] (closure) @199789 [1.7KB]
+  --context (internal)--->  [system / Context / scope (object) @91909 [5MB]
+  --LineStarts (variable)--->  [LineStarts] (closure) @128227 [1KB]
+  --initial_map (internal)--->  [system / Map] (object shape) @360217 [68 bytes]
+  --dependent_code (internal)--->  [system / WeakArrayList] (native) @645425 [28 bytes]
+
+
+--Similar leaks in this run: 2--
+--Retained size of leaked objects: 1.2KB--
+[Window / file://] (native) @75317 [10.9KB]
+  --global_object (shortcut)--->  [Window [JSGlobalObject] / file://] (object) @75761 [54.6KB]
+  --__retention (property)--->  [Object] (object) @199783 [9.7KB]
+  --stats (property)--->  [stats] (closure) @199789 [1.7KB]
+  --context (internal)--->  [system / Context / scope (object) @91909 [5MB]
+  --import_react_dom2 (variable)--->  [Object] (object) @249491 [1.4KB]
+  --default (property)--->  [Object] (object) @251063 [1.3KB]
+  --unstable_renderSubtreeIntoContainer (property)--->  [<closure>] (closure) @251083 [32 bytes]
+  --context (internal)--->  [system / Context / scope (object) @316747 [74KB]
+  --id (variable)--->  [$k] (object) @591285 [1.2KB]
+  --ref (property)--->  [Object] (object) @685351 [16 bytes]
+
+
+--Similar leaks in this run: 42--
+--Retained size of leaked objects: 1.1KB--
+[Window / file://] (native) @75317 [10.9KB]
+  --global_object (shortcut)--->  [Window [JSGlobalObject] / file://] (object) @75761 [54.6KB]
+  --__retention (property)--->  [Object] (object) @199783 [9.7KB]
+  --stats (property)--->  [stats] (closure) @199789 [1.7KB]
+  --context (internal)--->  [system / Context / scope (object) @91909 [5MB]
+  --hoverDelegateFactory (variable)--->  [<closure>] (closure) @576193 [48 bytes]
+  --context (internal)--->  [system / Context / scope (object) @645321 [20 bytes]
+  --instantiationService (variable)--->  [_InstantiationService] (object) @92915 [232 bytes]
+  --_servicesToMaybeDispose (property)--->  [Set] (object) @92907 [356 bytes]
+  --table (internal)--->  [<array>] (array) @153883 [340 bytes]
+  --61 (internal)--->  [MarkerDecorationsService2] (object) @153899 [9KB]
+  --_markerDecorations (property)--->  [_ResourceMap] (object) @399591 [8KB]
+  --map (property)--->  [Map] (object) @399623 [8KB]
+  --table (internal)--->  [<array>] (array) @691183 [8KB]
+  --51 (internal)--->  [ResourceMapEntry] (object) @643353 [528 bytes]
+  --value (property)--->  [MarkerDecorations] (object) @643355 [508 bytes]
+  --_store (property)--->  [_DisposableStore] (object) @697237 [280 bytes]
+  --_toDispose (property)--->  [Set] (object) @698947 [260 bytes]
+  --table (internal)--->  [<array>] (array) @698957 [244 bytes]
+  --5 (internal)--->  [Object] (object) @699063 [184 bytes]
+  --dispose (property)--->  [<closure>] (closure) @699065 [168 bytes]
+  --context (internal)--->  [system / Context / scope (object) @699363 [136 bytes]
+  --fn (variable)--->  [<closure>] (closure) @699365 [100 bytes]
+  --context (internal)--->  [system / Context / scope (object) @700251 [72 bytes]
+  --fn (variable)--->  [<closure>] (closure) @700253 [48 bytes]
+  --context (internal)--->  [system / Context / scope (object) @700335 [20 bytes]
+
+
+--Similar leaks in this run: 42--
+--Retained size of leaked objects: 1.1KB--
+[Window / file://] (native) @75317 [10.9KB]
+  --global_object (shortcut)--->  [Window [JSGlobalObject] / file://] (object) @75761 [54.6KB]
+  --__retention (property)--->  [Object] (object) @199783 [9.7KB]
+  --stats (property)--->  [stats] (closure) @199789 [1.7KB]
+  --context (internal)--->  [system / Context / scope (object) @91909 [5MB]
+  --hoverDelegateFactory (variable)--->  [<closure>] (closure) @576193 [48 bytes]
+  --context (internal)--->  [system / Context / scope (object) @645321 [20 bytes]
+  --instantiationService (variable)--->  [_InstantiationService] (object) @92915 [232 bytes]
+  --_servicesToMaybeDispose (property)--->  [Set] (object) @92907 [356 bytes]
+  --table (internal)--->  [<array>] (array) @153883 [340 bytes]
+  --31 (internal)--->  [ModelService2] (object) @91931 [11.1KB]
+  --_models (property)--->  [Object] (object) @368849 [8.1KB]
+  --inmemory://model/8 (property)--->  [ModelData2] (object) @642619 [500 bytes]
+  --_modelEventListeners (property)--->  [_DisposableStore] (object) @697299 [480 bytes]
+  --_toDispose (property)--->  [Set] (object) @698893 [460 bytes]
+  --table (internal)--->  [<array>] (array) @698997 [444 bytes]
+  --5 (internal)--->  [Object] (object) @699047 [192 bytes]
+  --dispose (property)--->  [<closure>] (closure) @699079 [176 bytes]
+  --context (internal)--->  [system / Context / scope (object) @699349 [144 bytes]
+  --fn (variable)--->  [<closure>] (closure) @699379 [108 bytes]
+  --context (internal)--->  [system / Context / scope (object) @700237 [80 bytes]
+  --fn (variable)--->  [<closure>] (closure) @700267 [56 bytes]
+  --context (internal)--->  [system / Context / scope (object) @700321 [28 bytes]
+
+
+--Similar leaks in this run: 30--
+--Retained size of leaked objects: 812 bytes--
+[Window / file://] (native) @75317 [10.9KB]
+  --global_object (shortcut)--->  [Window [JSGlobalObject] / file://] (object) @75761 [54.6KB]
+  --__retention (property)--->  [Object] (object) @199783 [9.7KB]
+  --stats (property)--->  [stats] (closure) @199789 [1.7KB]
+  --context (internal)--->  [system / Context / scope (object) @91909 [5MB]
+  --hoverDelegateFactory (variable)--->  [<closure>] (closure) @576193 [48 bytes]
+  --context (internal)--->  [system / Context / scope (object) @645321 [20 bytes]
+  --instantiationService (variable)--->  [_InstantiationService] (object) @92915 [232 bytes]
+  --_servicesToMaybeDispose (property)--->  [Set] (object) @92907 [356 bytes]
+  --table (internal)--->  [<array>] (array) @153883 [340 bytes]
+  --19 (internal)--->  [StandaloneLanguageService] (object) @149529 [2.2KB]
+  --_onDidChange (property)--->  [Emitter] (object) @92533 [572 bytes]
+  --_listeners (property)--->  [Array] (object) @92549 [104 bytes]
+  --10 (element)--->  [UniqueContainer] (object) @522347 [44 bytes]
+  --value (property)--->  [<closure>] (closure) @645167 [28 bytes]
+  --context (internal)--->  [system / Context / scope (object) @696457 [20 bytes]
+  --this (variable)--->  [LanguageSelection] (object) @687231 [276 bytes]
+  --_listener (property)--->  [Object] (object) @687799 [192 bytes]
+  --dispose (property)--->  [<closure>] (closure) @687969 [176 bytes]
+  --context (internal)--->  [system / Context / scope (object) @696333 [144 bytes]
+  --fn (variable)--->  [<closure>] (closure) @696455 [108 bytes]
+  --context (internal)--->  [system / Context / scope (object) @696883 [80 bytes]
+  --fn (variable)--->  [<closure>] (closure) @696979 [56 bytes]
+  --context (internal)--->  [system / Context / scope (object) @697115 [28 bytes]
+
+
+--Similar leaks in this run: 6--
+--Retained size of leaked objects: 624 bytes--
+[Window / file://] (native) @75317 [10.9KB]
+  --5 (element)--->  [HTMLDocument] (native) @95943 [108.8KB]
+  --22 (element)--->  [StyleEngine] (native) @19576 [91.2KB]
+  --9 (element)--->  [blink::OrderedScopeTree<LayoutQuote>] (native) @6942 [728 bytes]
+  --1 (element)--->  [blink::OrderedScope<LayoutQuote>] (native) @6940 [544 bytes]
+  --1 (element)--->  [blink::HeapVectorBacking<cppgc::internal::BasicMember<blink::OrderedScope<LayoutQuote>, cppgc::internal::StrongMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>] (native) @29272 [488 bytes]
+
+
+--Similar leaks in this run: 1--
+--Retained size of leaked objects: 596 bytes--
+[Window / file://] (native) @75317 [10.9KB]
+  --native_context (shortcut)--->  [system / NativeContext / file://] (native) @7555 [59.2KB]
+  --iterator_result_map (internal)--->  [system / Map] (object shape) @75013 [204 bytes]
+  --back_pointer (internal)--->  [system / Map] (object shape) @75017 [96 bytes]
+  --back_pointer (internal)--->  [system / Map] (object shape) @75023 [636 bytes]
+  --transitions (internal)--->  [system / TransitionArray] (object shape) @519491 [596 bytes]
+
+
+--Similar leaks in this run: 1--
+--Retained size of leaked objects: 520 bytes--
+[(GC roots)] (synthetic) @3 [22.1MB]
+  --29 (element)--->  [C++ Persistent roots] (synthetic) @864869 [219.7KB]
+  --blink::WebViewImpl::WebViewImpl(WebViewClient *, mojom::blink::PageVisibilityState, blink::mojom::PrerenderParamPtr, std::optional<blink::FencedFrame::DeprecatedFencedFrameMode>, bool, bool, WebViewImpl *, mojo::PendingAssociatedReceiver<mojom::blink::PageBroadcast>, blink::scheduler::WebAgentGroupScheduler &, const SessionStorageNamespaceId &, std::optional<SkColor>, const base::UnguessableToken &, const ColorProviderColorMaps *, int32_t, int32_t)@../../third_party/blink/renderer/core/exported/web_view_impl.cc:564 (internal)--->  [blink::Page] (native) @86 [3.7KB]
+  --9 (element)--->  [blink::HeapHashTableBacking<blink::HashTable<cppgc::internal::BasicMember<blink::PageVisibilityObserver, cppgc::internal::WeakMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>, blink::KeyValuePair<cppgc::internal::BasicMember<blink::PageVisibilityObserver, cppgc::internal::WeakMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>, unsigned int>, blink::KeyValuePairExtractor, blink::HashMapValueTraits<blink::HashTraits<cppgc::internal::BasicMember<blink::PageVisibilityObserver, cppgc::internal::WeakMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>, blink::HashTraits<unsigned int>>, blink::HashTraits<cppgc::internal::BasicMember<blink::PageVisibilityObserver, cppgc::internal::WeakMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>, blink::HeapAllocator>>] (native) @31662 [520 bytes]
+
+
+--Similar leaks in this run: 1--
+--Retained size of leaked objects: 504 bytes--
+[Window / file://] (native) @75317 [10.9KB]
+  --native_context (shortcut)--->  [system / NativeContext / file://] (native) @7555 [59.2KB]
+  --retained_maps (internal)--->  [system / WeakArrayList] (native) @592939 [504 bytes]
+
+
+--Similar leaks in this run: 5--
+--Retained size of leaked objects: 404 bytes--
+[Window / file://] (native) @75317 [10.9KB]
+  --global_object (shortcut)--->  [Window [JSGlobalObject] / file://] (object) @75761 [54.6KB]
+  --__retention (property)--->  [Object] (object) @199783 [9.7KB]
+  --stats (property)--->  [stats] (closure) @199789 [1.7KB]
+  --context (internal)--->  [system / Context / scope (object) @91909 [5MB]
+  --typescriptDefaults (variable)--->  [LanguageServiceDefaultsImpl] (object) @247657 [1.6KB]
+  --_compilerOptions (property)--->  [Object] (object) @582779 [604 bytes]
+  --typeRoots (property)--->  [Array] (object) @645329 [16 bytes]
+
+
+--Similar leaks in this run: 12--
+--Retained size of leaked objects: 356 bytes--
+[Window / file://] (native) @75317 [10.9KB]
+  --global_object (shortcut)--->  [Window [JSGlobalObject] / file://] (object) @75761 [54.6KB]
+  --__retention (property)--->  [Object] (object) @199783 [9.7KB]
+  --stats (property)--->  [stats] (closure) @199789 [1.7KB]
+  --context (internal)--->  [system / Context / scope (object) @91909 [5MB]
+  --ListAstNode (variable)--->  [ListAstNode] (closure) @122305 [872 bytes]
+  --prototype (property)--->  [BaseAstNode] (object) @122343 [1.4KB]
+  --map (internal)--->  [system / Map] (object shape) @362085 [260 bytes]
+  --dependent_code (internal)--->  [system / WeakArrayList] (native) @642553 [28 bytes]
+
+
+--Similar leaks in this run: 1--
+--Retained size of leaked objects: 332 bytes--
+[Window / file://] (native) @75317 [10.9KB]
+  --native_context (shortcut)--->  [system / NativeContext / file://] (native) @7555 [59.2KB]
+  --promise_withresolvers_result_map (internal)--->  [system / Map] (object shape) @75063 [172 bytes]
+  --back_pointer (internal)--->  [system / Map] (object shape) @75067 [80 bytes]
+  --back_pointer (internal)--->  [system / Map] (object shape) @75069 [40 bytes]
+  --back_pointer (internal)--->  [system / Map] (object shape) @75071 [372 bytes]
+  --transitions (internal)--->  [system / TransitionArray] (object shape) @519511 [332 bytes]
+
+
+--Similar leaks in this run: 5--
+--Retained size of leaked objects: 308 bytes--
+[Window / file://] (native) @75317 [10.9KB]
+  --global_object (shortcut)--->  [Window [JSGlobalObject] / file://] (object) @75761 [54.6KB]
+  --__retention (property)--->  [Object] (object) @199783 [9.7KB]
+  --stats (property)--->  [stats] (closure) @199789 [1.7KB]
+  --context (internal)--->  [system / Context / scope (object) @91909 [5MB]
+  --MobXProviderContext (variable)--->  [Object] (object) @95485 [644 bytes]
+  --map (internal)--->  [system / Map] (object shape) @398453 [432 bytes]
+  --back_pointer (internal)--->  [system / Map] (object shape) @455315 [280 bytes]
+  --back_pointer (internal)--->  [system / Map] (object shape) @455313 [240 bytes]
+  --back_pointer (internal)--->  [system / Map] (object shape) @455311 [200 bytes]
+  --back_pointer (internal)--->  [system / Map] (object shape) @455309 [160 bytes]
+  --back_pointer (internal)--->  [system / Map] (object shape) @455307 [120 bytes]
+  --back_pointer (internal)--->  [system / Map] (object shape) @455305 [80 bytes]
+  --back_pointer (internal)--->  [system / Map] (object shape) @138353 [40 bytes]
+  --back_pointer (internal)--->  [system / Map] (object shape) @75167 [124 bytes]
+  --transitions (internal)--->  [system / TransitionArray] (object shape) @633711 [84 bytes]
+
+
+--Similar leaks in this run: 1--
+--Retained size of leaked objects: 264 bytes--
+[(GC roots)] (synthetic) @3 [22.1MB]
+  --29 (element)--->  [C++ Persistent roots] (synthetic) @864869 [219.7KB]
+  --std::array<cppgc::internal::BasicPersistent<blink::V8PerIsolateData::UserData, cppgc::internal::StrongPersistentPolicy>, 2>::array() [_Tp = cppgc::internal::BasicPersistent<blink::V8PerIsolateData::UserData, cppgc::internal::StrongPersistentPolicy>, _Size = 2]@../../third_party/libc++/src/include/array:175 (internal)--->  [blink::CanvasResourceTracker] (native) @12 [304 bytes]
+  --1 (element)--->  [blink::HeapHashTableBacking<blink::HashTable<cppgc::internal::BasicMember<blink::CanvasRenderingContextHost, cppgc::internal::WeakMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>, blink::KeyValuePair<cppgc::internal::BasicMember<blink::CanvasRenderingContextHost, cppgc::internal::WeakMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>, cppgc::internal::BasicMember<blink::ExecutionContext, cppgc::internal::WeakMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>, blink::KeyValuePairExtractor, blink::HashMapValueTraits<blink::HashTraits<cppgc::internal::BasicMember<blink::CanvasRenderingContextHost, cppgc::internal::WeakMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>, blink::HashTraits<cppgc::internal::BasicMember<blink::ExecutionContext, cppgc::internal::WeakMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>>, blink::HashTraits<cppgc::internal::BasicMember<blink::CanvasRenderingContextHost, cppgc::internal::WeakMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>, blink::HeapAllocator>>] (native) @29280 [264 bytes]
+
+
+--Similar leaks in this run: 3--
+--Retained size of leaked objects: 228 bytes--
+[Window / file://] (native) @75317 [10.9KB]
+  --native_context (shortcut)--->  [system / NativeContext / file://] (native) @7555 [59.2KB]
+  --string_function_prototype_map (internal)--->  [system / Map] (object shape) @325171 [804 bytes]
+  --dependent_code (internal)--->  [system / WeakArrayList] (native) @594537 [72 bytes]
+
+
+--Similar leaks in this run: 1--
+--Retained size of leaked objects: 160 bytes--
+[Window / file://] (native) @75317 [10.9KB]
+  --native_context (shortcut)--->  [system / NativeContext / file://] (native) @7555 [59.2KB]
+  --sloppy_function_map (internal)--->  [system / Map] (object shape) @75745 [252 bytes]
+  --transitions (internal)--->  [system / TransitionArray] (object shape) @592959 [160 bytes]
+
+
+--Similar leaks in this run: 1--
+--Retained size of leaked objects: 136 bytes--
+[Window / file://] (native) @75317 [10.9KB]
+  --19 (element)--->  [blink::SoftNavigationHeuristics] (native) @19524 [208 bytes]
+  --2 (element)--->  [blink::SoftNavigationPaintAttributionTracker] (native) @16696 [80 bytes]
+  --1 (element)--->  [blink::TextPaintTimingDetector] (native) @8944 [280 bytes]
+  --1 (element)--->  [blink::HeapHashTableBacking<blink::HashTable<cppgc::internal::BasicMember<const blink::LayoutObject, cppgc::internal::WeakMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>, blink::KeyValuePair<cppgc::internal::BasicMember<const blink::LayoutObject, cppgc::internal::WeakMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>, blink::TextPaintTimingDetector::TextPaintStatus>, blink::KeyValuePairExtractor, blink::HashMapValueTraits<blink::HashTraits<cppgc::internal::BasicMember<const blink::LayoutObject, cppgc::internal::WeakMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>, blink::HashTraits<blink::TextPaintTimingDetector::TextPaintStatus>>, blink::HashTraits<cppgc::internal::BasicMember<const blink::LayoutObject, cppgc::internal::WeakMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>, blink::HeapAllocator>>] (native) @31504 [136 bytes]
+
+
+--Similar leaks in this run: 1--
+--Retained size of leaked objects: 136 bytes--
+[(GC roots)] (synthetic) @3 [22.1MB]
+  --29 (element)--->  [C++ Persistent roots] (synthetic) @864869 [219.7KB]
+  --auto blink::(anonymous namespace)::IdToNodeMap()::(lambda)::operator()(void *) const@../../third_party/blink/renderer/core/dom/dom_node_ids.cc:31 (internal)--->  [blink::BasicHeapHashMap<blink::internal::HeapCollectionType::kGCed, int, cppgc::internal::BasicMember<blink::Node, cppgc::internal::WeakMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>] (native) @24 [168 bytes]
+  --1 (element)--->  [blink::HeapHashTableBacking<blink::HashTable<int, blink::KeyValuePair<int, cppgc::internal::BasicMember<blink::Node, cppgc::internal::WeakMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>, blink::KeyValuePairExtractor, blink::HashMapValueTraits<blink::HashTraits<int>, blink::HashTraits<cppgc::internal::BasicMember<blink::Node, cppgc::internal::WeakMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>>, blink::HashTraits<int>, blink::HeapAllocator>>] (native) @29276 [136 bytes]
+
+
+--Similar leaks in this run: 1--
+--Retained size of leaked objects: 108 bytes--
+[Window / file://] (native) @75317 [10.9KB]
+  --native_context (shortcut)--->  [system / NativeContext / file://] (native) @7555 [59.2KB]
+  --initial_array_prototype (internal)--->  [Array] (object) @7671 [1.7KB]
+  --map (internal)--->  [system / Map] (object shape) @325335 [708 bytes]
+  --dependent_code (internal)--->  [system / WeakArrayList] (native) @592973 [108 bytes]
+
+
+--Similar leaks in this run: 3--
+--Retained size of leaked objects: 84 bytes--
+[Window / file://] (native) @75317 [10.9KB]
+  --global_object (shortcut)--->  [Window [JSGlobalObject] / file://] (object) @75761 [54.6KB]
+  --__retention (property)--->  [Object] (object) @199783 [9.7KB]
+  --stats (property)--->  [stats] (closure) @199789 [1.7KB]
+  --context (internal)--->  [system / Context / scope (object) @91909 [5MB]
+  --TokenizationRegistry2 (variable)--->  [TokenizationRegistry] (object) @196815 [648 bytes]
+  --_onDidChange (property)--->  [Emitter] (object) @183737 [296 bytes]
+  --_listeners (property)--->  [Array] (object) @185121 [212 bytes]
+  --0 (element)--->  [UniqueContainer] (object) @94825 [44 bytes]
+  --value (property)--->  [<closure>] (closure) @199281 [28 bytes]
+  --context (internal)--->  [system / Context / scope (object) @92977 [20 bytes]
+  --this (variable)--->  [GrammarTokens] (object) @92395 [812 bytes]
+  --_textModel (property)--->  [TextModel2] (object) @92429 [2.5KB]
+  --_bracketPairs (property)--->  [BracketPairsTextModelPart] (object) @92325 [1.9KB]
+  --bracketPairsTree (property)--->  [MutableDisposable] (object) @92421 [1.5KB]
+  --_value (property)--->  [Object] (object) @150359 [1.5KB]
+  --object (property)--->  [BracketPairsTree] (object) @92425 [1KB]
+  --brackets (property)--->  [LanguageAgnosticBracketTokens] (object) @92435 [624 bytes]
+  --languageIdToBracketTokens (property)--->  [Map] (object) @93011 [600 bytes]
+  --table (internal)--->  [<array>] (array) @153183 [584 bytes]
+  --6 (internal)--->  [_BracketTokens] (object) @153337 [508 bytes]
+  --map (property)--->  [Map] (object) @153381 [484 bytes]
+  --table (internal)--->  [<array>] (array) @153517 [468 bytes]
+  --23 (internal)--->  [Token2] (object) @153575 [56 bytes]
+  --map (internal)--->  [system / Map] (object shape) @94957 [416 bytes]
+  --back_pointer (internal)--->  [system / Map] (object shape) @361737 [272 bytes]
+  --back_pointer (internal)--->  [system / Map] (object shape) @361735 [204 bytes]
+  --back_pointer (internal)--->  [system / Map] (object shape) @361731 [136 bytes]
+  --dependent_code (internal)--->  [system / WeakArrayList] (native) @642537 [28 bytes]
+
+
+--Similar leaks in this run: 1--
+--Retained size of leaked objects: 76 bytes--
+[Window / file://] (native) @75317 [10.9KB]
+  --global_object (shortcut)--->  [Window [JSGlobalObject] / file://] (object) @75761 [54.6KB]
+  --__retention (property)--->  [Object] (object) @199783 [9.7KB]
+  --stats (property)--->  [stats] (closure) @199789 [1.7KB]
+  --context (internal)--->  [system / Context / scope (object) @91909 [5MB]
+  --EditorRenderingCoordinator (variable)--->  [EditorRenderingCoordinator] (closure) @113769 [16.6KB]
+  --INSTANCE (property)--->  [EditorRenderingCoordinator] (object) @226019 [280 bytes]
+  --_animationFrameRunners (property)--->  [Map] (object) @226149 [92 bytes]
+  --table (internal)--->  [<array>] (array) @565679 [76 bytes]
+
+
+--Similar leaks in this run: 1--
+--Retained size of leaked objects: 72 bytes--
+[Window / file://] (native) @75317 [10.9KB]
+  --33 (element)--->  [blink::HeapHashTableBacking<blink::HashTable<const char *, blink::KeyValuePair<const char *, cppgc::internal::BasicMember<blink::Supplement<blink::ExecutionContext>, cppgc::internal::StrongMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>, blink::KeyValuePairExtractor, blink::HashMapValueTraits<blink::HashTraits<const char *>, blink::HashTraits<cppgc::internal::BasicMember<blink::Supplement<blink::ExecutionContext>, cppgc::internal::StrongMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>>, blink::HashTraits<const char *>, blink::HeapAllocator>>] (native) @19532 [1.9KB]
+  --2 (element)--->  [ScriptedIdleTaskController] (native) @20670 [200 bytes]
+  --1 (element)--->  [blink::HeapHashTableBacking<blink::HashTable<int, blink::KeyValuePair<int, cppgc::internal::BasicMember<blink::IdleTask, cppgc::internal::StrongMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>, blink::KeyValuePairExtractor, blink::HashMapValueTraits<blink::HashTraits<int>, blink::HashTraits<cppgc::internal::BasicMember<blink::IdleTask, cppgc::internal::StrongMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>>, blink::HashTraits<int>, blink::HeapAllocator>>] (native) @31706 [72 bytes]
+
+
+--Similar leaks in this run: 1--
+--Retained size of leaked objects: 72 bytes--
+[Window / file://] (native) @75317 [10.9KB]
+  --33 (element)--->  [blink::HeapHashTableBacking<blink::HashTable<const char *, blink::KeyValuePair<const char *, cppgc::internal::BasicMember<blink::Supplement<blink::ExecutionContext>, cppgc::internal::StrongMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>, blink::KeyValuePairExtractor, blink::HashMapValueTraits<blink::HashTraits<const char *>, blink::HashTraits<cppgc::internal::BasicMember<blink::Supplement<blink::ExecutionContext>, cppgc::internal::StrongMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>>, blink::HashTraits<const char *>, blink::HeapAllocator>>] (native) @19532 [1.9KB]
+  --5 (element)--->  [blink::(anonymous namespace)::DOMTimerCoordinator] (native) @9422 [128 bytes]
+  --1 (element)--->  [blink::HeapHashTableBacking<blink::HashTable<int, blink::KeyValuePair<int, cppgc::internal::BasicMember<blink::DOMTimer, cppgc::internal::StrongMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>, blink::KeyValuePairExtractor, blink::HashMapValueTraits<blink::HashTraits<int>, blink::HashTraits<cppgc::internal::BasicMember<blink::DOMTimer, cppgc::internal::StrongMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>>, blink::HashTraits<int>, blink::HeapAllocator>>] (native) @29278 [72 bytes]
+
+
+--Similar leaks in this run: 1--
+--Retained size of leaked objects: 68 bytes--
+[Window / file://] (native) @75317 [10.9KB]
+  --global_object (shortcut)--->  [Window [JSGlobalObject] / file://] (object) @75761 [54.6KB]
+  --__retention (property)--->  [Object] (object) @199783 [9.7KB]
+  --stats (property)--->  [stats] (closure) @199789 [1.7KB]
+  --context (internal)--->  [system / Context / scope (object) @91909 [5MB]
+  --nonUserRegisteredAssociations (variable)--->  [Array] (object) @250329 [92 bytes]
+  --0 (element)--->  [Object] (object) @95757 [656 bytes]
+  --map (internal)--->  [system / Map] (object shape) @152941 [600 bytes]
+  --back_pointer (internal)--->  [system / Map] (object shape) @420673 [400 bytes]
+  --back_pointer (internal)--->  [system / Map] (object shape) @420671 [360 bytes]
+  --back_pointer (internal)--->  [system / Map] (object shape) @420669 [320 bytes]
+  --back_pointer (internal)--->  [system / Map] (object shape) @420667 [280 bytes]
+  --back_pointer (internal)--->  [system / Map] (object shape) @420665 [240 bytes]
+  --back_pointer (internal)--->  [system / Map] (object shape) @420663 [200 bytes]
+  --back_pointer (internal)--->  [system / Map] (object shape) @420661 [160 bytes]
+  --back_pointer (internal)--->  [system / Map] (object shape) @420659 [120 bytes]
+  --back_pointer (internal)--->  [system / Map] (object shape) @420653 [80 bytes]
+  --back_pointer (internal)--->  [system / Map] (object shape) @420651 [40 bytes]
+  --back_pointer (internal)--->  [system / Map] (object shape) @75173 [108 bytes]
+  --transitions (internal)--->  [system / TransitionArray] (object shape) @588027 [68 bytes]
+
+
+--Similar leaks in this run: 2--
+--Retained size of leaked objects: 64 bytes--
+[Window / file://] (native) @75317 [10.9KB]
+  --20 (element)--->  [blink::LocalFrame] (native) @690 [8.8KB]
+  --9 (element)--->  [blink::LocalFrameView] (native) @19468 [8KB]
+  --10 (element)--->  [blink::HeapVectorBacking<blink::VectorBackedLinkedListNode<cppgc::internal::BasicMember<blink::ScrollableArea, cppgc::internal::WeakMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>, blink::HeapAllocator>>] (native) @31698 [24 bytes]
+
+
+--Similar leaks in this run: 1--
+--Retained size of leaked objects: 48 bytes--
+[Window / file://] (native) @75317 [10.9KB]
+  --global_object (shortcut)--->  [Window [JSGlobalObject] / file://] (object) @75761 [54.6KB]
+  --__retention (property)--->  [Object] (object) @199783 [9.7KB]
+  --stats (property)--->  [stats] (closure) @199789 [1.7KB]
+  --context (internal)--->  [system / Context / scope (object) @91909 [5MB]
+  --FontMeasurements (variable)--->  [FontMeasurementsImpl] (object) @248065 [3KB]
+  --_store (property)--->  [_DisposableStore] (object) @358001 [96 bytes]
+  --map (internal)--->  [system / Map] (object shape) @92999 [216 bytes]
+  --back_pointer (internal)--->  [system / Map] (object shape) @103901 [88 bytes]
+  --dependent_code (internal)--->  [system / WeakArrayList] (native) @609117 [48 bytes]
+
+
+--Similar leaks in this run: 2--
+--Retained size of leaked objects: 32 bytes--
+[Window / file://] (native) @75317 [10.9KB]
+  --global_object (shortcut)--->  [Window [JSGlobalObject] / file://] (object) @75761 [54.6KB]
+  --__retention (property)--->  [Object] (object) @199783 [9.7KB]
+  --stats (property)--->  [stats] (closure) @199789 [1.7KB]
+  --context (internal)--->  [system / Context / scope (object) @91909 [5MB]
+  --scheduleAtNextAnimationFrame (variable)--->  [scheduleAtNextAnimationFrame] (closure) @248859 [2.2KB]
+  --context (internal)--->  [system / Context / scope (object) @357961 [2.6KB]
+  --NEXT_QUEUE (variable)--->  [Map] (object) @411019 [108 bytes]
+  --table (internal)--->  [<array>] (array) @411053 [92 bytes]
+  --6 (internal)--->  [Array] (object) @646217 [16 bytes]
+
+
+--Similar leaks in this run: 1--
+--Retained size of leaked objects: 28 bytes--
+[Window / file://] (native) @75317 [10.9KB]
+  --native_context (shortcut)--->  [system / NativeContext / file://] (native) @7555 [59.2KB]
+  --fast_template_instantiations_cache (internal)--->  [<array>] (array) @325111 [41.8KB]
+  --541 (internal)--->  [HTMLDivElement (internal cache) / file://] (object) @313867 [16 bytes]
+  --map (internal)--->  [system / Map] (object shape) @138845 [84 bytes]
+  --transitions (internal)--->  [system / TransitionArray] (object shape) @679595 [28 bytes]
+
+
+--Similar leaks in this run: 1--
+--Retained size of leaked objects: 28 bytes--
+[Window / file://] (native) @75317 [10.9KB]
+  --global_object (shortcut)--->  [Window [JSGlobalObject] / file://] (object) @75761 [54.6KB]
+  --__retention (property)--->  [Object] (object) @199783 [9.7KB]
+  --stats (property)--->  [stats] (closure) @199789 [1.7KB]
+  --context (internal)--->  [system / Context / scope (object) @91909 [5MB]
+  --EditorOptions (variable)--->  [Object] (object) @246833 [3.2KB]
+  --minimap (property)--->  [EditorMinimap] (object) @439543 [1.8KB]
+  --defaultValue (property)--->  [Object] (object) @450413 [728 bytes]
+  --map (internal)--->  [system / Map] (object shape) @304389 [668 bytes]
+  --back_pointer (internal)--->  [system / Map] (object shape) @304387 [468 bytes]
+  --back_pointer (internal)--->  [system / Map] (object shape) @304385 [428 bytes]
+  --back_pointer (internal)--->  [system / Map] (object shape) @304383 [388 bytes]
+  --back_pointer (internal)--->  [system / Map] (object shape) @304381 [348 bytes]
+  --back_pointer (internal)--->  [system / Map] (object shape) @304379 [308 bytes]
+  --back_pointer (internal)--->  [system / Map] (object shape) @304377 [268 bytes]
+  --back_pointer (internal)--->  [system / Map] (object shape) @304375 [228 bytes]
+  --back_pointer (internal)--->  [system / Map] (object shape) @304373 [188 bytes]
+  --back_pointer (internal)--->  [system / Map] (object shape) @304371 [148 bytes]
+  --back_pointer (internal)--->  [system / Map] (object shape) @136789 [108 bytes]
+  --back_pointer (internal)--->  [system / Map] (object shape) @304367 [68 bytes]
+  --transitions (internal)--->  [system / TransitionArray] (object shape) @588081 [28 bytes]
+
+
+--Similar leaks in this run: 3--
+--Retained size of leaked objects: 24 bytes--
+[Window / file://] (native) @75317 [10.9KB]
+  --native_context (shortcut)--->  [system / NativeContext / file://] (native) @7555 [59.2KB]
+  --fast_template_instantiations_cache (internal)--->  [<array>] (array) @325111 [41.8KB]
+  --878 (internal)--->  [Event (internal cache) / file://] (object) @153997 [16 bytes]
+  --__proto__ (property)--->  [Event (prototype) / file://] (object) @154003 [608 bytes]
+  --map (internal)--->  [system / Map] (object shape) @195499 [400 bytes]
+  --0 (hidden)--->  [system / Cell] (object shape) @665787 [8 bytes]
+

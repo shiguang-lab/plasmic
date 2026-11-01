@@ -194,6 +194,6 @@ it("keeps dashboard navigation available without constructing a project context"
   ).toBe(true);
   expect(screen.queryByRole("button", { name: "Share project" })).toBeNull();
   fireEvent.click(screen.getByRole("link", { name: "Back to dashboard" }));
-  expect(appCtx.history.location.pathname).toBe(APP_ROUTES.dashboard.fill({}));
+  expect(appCtx.history.location.pathname).toBe(APP_ROUTES.allProjects.fill({}));
   expect(api.getProjects).not.toHaveBeenCalled();
 });

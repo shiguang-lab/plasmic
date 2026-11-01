@@ -1,0 +1,97 @@
+{
+  "date": "2026-11-01",
+  "machine": {
+    "os": "26.6.2",
+    "cpu": "Apple M4",
+    "arch": "arm64"
+  },
+  "head": "39077225209cd03cd4154356f3eb241bd7f406fb",
+  "scope": "Current Desktop source; production-mode prebuilt offline Studio fixture and bundled Dashboard engine. No production behavior changed. RSS sums include shared pages; CPU percent is percent of one core.",
+  "artifacts": {
+    "reference": "seven-reference.json",
+    "hidden": "seven-hidden.json",
+    "capture": "seven-capture.json",
+    "mcp": "seven-mcp.json",
+    "images": "seven-images.json",
+    "dashboard": "seven-dashboard.json",
+    "lease": "seven-lease.json",
+    "studio": "seven-studio.json"
+  },
+  "sourceSha256": {
+    "desktop/src/entry.cjs": "a7cd9e8db2e32118577db51627527786efcdb47462069df50acf0584c740885f",
+    "desktop/src/main.cjs": "635223303889e2118650f9a9ab1094f258a01eb548df5b6b3147577454fb2701",
+    "desktop/src/island.cjs": "bd1effb320ab4b8e6956a92924ace060cfa80254242b850e326440a68deb7322",
+    "desktop/src/island-capture.cjs": "25fcdf5373ee250a40e69412b360726ebbca3951a5e36b53192223e3bde003ad",
+    "desktop/src/island-visual-state.cjs": "a571c4763215e9386526817516a62fea429b504e44b8e531f184ad7841fa5f7f",
+    "desktop/src/island-activity.cjs": "c3107422cfbb253c80d665b1ec1bffb2a06907d495d3c92ba0c1365ac87a0100",
+    "desktop/src/reference-browser.cjs": "37d75278f00529dcc6b667d4f78387bda850839eb4e13a0fd7712b3548f5a6f9",
+    "desktop/src/mcp.cjs": "47deae3974b7ae9d0b0eb084fa5408b4ac2e8d1ad798c7bc9b5af59cc316a742",
+    "desktop/src/mcp-contract.cjs": "29c56765419202692dfcb7fdcc566cdc1a643b92dbd2188e6061709fb0e3f08b",
+    "desktop/src/mcp-results.cjs": "6b4bc156115ec06886c3f42e7d5a8c0fd558269ea09c4b7cd5f20650a89cc341",
+    "desktop/src/image-preview.cjs": "953245d36c45e9fa16b9e47a842748656e97cfdb871275496542a1a23f7c3046",
+    "desktop/src/dashboard-preview.cjs": "6089105245a35f0c078dc002bb6339e9714601edd2a87a68419bb5c2770f9c8e"
+  },
+  "diagnosticSha256": {
+    "desktop/tests/performance/seven-issues.cjs": "4c9c1ca04bb0f8a89b6d1f76e5f63a90d750c019df7deb4fde92bd81c52fcec0",
+    "desktop/tests/performance/seven-processes.cjs": "ef887ac675776bbb669baafeaae587680baa2a118b457186c6b15a8c7f477d14",
+    "desktop/tests/performance/seven-studio.cjs": "2f4bde05b12d8a01dcd1cfaa8a4460db972b8b692b7112eff1a09cdbb4b4612c",
+    "desktop/tests/performance/studio-optimization-fixture.cjs": "fa70669c8a2afaa85f50b81ed78f03ed78b5a3f8004ef172fa597b38594d3531"
+  },
+  "verification": {
+    "unitTests": 30,
+    "unitCommand": "node --test --test-reporter=dot desktop/tests/island-activity.test.cjs desktop/tests/island-capture.test.cjs desktop/tests/island-visual-state.test.cjs desktop/tests/mcp-results.test.cjs desktop/tests/image-preview.test.cjs"
+  },
+  "decisions": {
+    "pendingFix": [
+      {
+        "originalIssue": 2,
+        "scope": "Repeated full DOM serialization/composition for unchanged canvas pixels only"
+      },
+      {
+        "originalIssue": 4,
+        "scope": "Host polling continues while browser panel is closed; retained webpage itself is excluded"
+      },
+      {
+        "originalIssue": 5,
+        "scope": "Electron process tree for a Node-only MCP transport; shipping controlled helper still requires packaging/security/platform verification"
+      }
+    ],
+    "excluded": [
+      {
+        "originalIssue": 1,
+        "reason": "Blanket background throttling breaks hidden rAF-dependent operations; no complete function-preserving replacement verified"
+      },
+      {
+        "originalIssue": 3,
+        "reason": "Ten-minute display lease is intentional; static pixels are cached; no equivalent interaction replacement established"
+      },
+      {
+        "originalIssue": 6,
+        "reason": "50MB is a cache limit, no fixed allocation or stable A/B gain demonstrated"
+      },
+      {
+        "originalIssue": 7,
+        "reason": "12 renders dispose their preview processes; retained RSS declines; no equivalent lower-cost solution verified"
+      }
+    ]
+  },
+  "bundledRenderer": {
+    "studioOrigin": "https://plasmic-studio.shiguanglab.com",
+    "canvasOrigin": "https://plasmic-canvas.shiguanglab.com",
+    "webImage": "ghcr.io/shiguang-lab/plasmic-web:0.5.27",
+    "updateUrl": "https://plasmic-studio.shiguanglab.com/desktop-updates",
+    "revision": "a0e520631c46da0c1a3c31228683992d4d6e271b",
+    "build": {
+      "kind": "local",
+      "revision": "a0e520631c46da0c1a3c31228683992d4d6e271b",
+      "dirty": true,
+      "builtAt": "2026-10-31T00:31:14.827Z",
+      "sourceHash": "a1285e5dd0e6e49958a396db7557c1af8042f033a025cb94cacacb9181d08b9b",
+      "rendererHash": "56bd59b2aa7078a139f3183caca8f5194a226f97f5a8e70a4ccbe59151cbe81b",
+      "desktopHash": "ab1fa351dc832e32480c710891eb33212b1bd09f124e5592ab89bf00a802283f"
+    },
+    "files": 1277,
+    "bytes": 99635029
+  },
+  "diagnosticCheck": "All eight reports passed; same source hashes; static canvas pixel hashes identical across paired runs; DOM and pixel updates passed."
+}

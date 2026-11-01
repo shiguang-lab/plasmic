@@ -44,7 +44,7 @@ it("marks a view disposed before reentrant cleanup and keeps its render-state ha
   const states: boolean[] = [];
   const uncommittedCanvasObservers = new Map();
   const view: ViewCtx = Object.assign(Object.create(ViewCtx.prototype), {
-    frameState: frame,
+    frameState: frame, contentEditor: { exit: vi.fn() },
     canvasCtx: { dispose: canvas }, csEvaluator: { dispose: evaluator },
     canvasObservers: new Set(), uncommittedCanvasObservers, canvasErrorObservers: new Set(), disposals: [],
   });

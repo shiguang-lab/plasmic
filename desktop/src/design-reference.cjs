@@ -1,11 +1,9 @@
 const fs = require("node:fs/promises");
 const path = require("node:path");
 const os = require("node:os");
-const { Client } = require("@modelcontextprotocol/sdk/client/index.js");
-const { StdioClientTransport } = require("@modelcontextprotocol/sdk/client/stdio.js");
 const { encodeImagePreview } = require("./image-preview.cjs");
 
-const REFERENCE_FIELDS = ["id", "name", "type", "layout", "width", "height", "padding", "gap", "justifyContent", "alignItems", "layoutPosition", "fill", "stroke", "cornerRadius", "fontFamily", "fontSize", "fontWeight", "lineHeight", "content"];
+const { REFERENCE_FIELDS } = require("./design-reference-contract.cjs");
 class DesignReference {
   constructor(profile) { this.profile = profile; }
   async connect() {
@@ -20,6 +18,8 @@ class DesignReference {
         config = { command, args: ["--app", "desktop", "--agent", "plasmic-reference"] };
       }
       if (!config || typeof config.command !== "string" || !path.isAbsolute(config.command) || !Array.isArray(config.args) || config.args.some((a) => typeof a !== "string")) throw new Error("Configure the installed Pen MCP command/args in Desktop user-data/design-reference.json");
+      const { Client } = require("@modelcontextprotocol/sdk/client/index.js");
+      const { StdioClientTransport } = require("@modelcontextprotocol/sdk/client/stdio.js");
       const transport = new StdioClientTransport({ command: config.command, args: config.args, stderr: "pipe" });
       transport.stderr?.on("data", () => {});
       const client = new Client({ name: "plasmic-reference-reader", version: "1.0.0" });
@@ -90,4 +90,4 @@ class DesignReference {
   }
   async close() { await this.client?.close(); this.connection = undefined; this.client = undefined; }
 }
-module.exports = { DesignReference, REFERENCE_FIELDS };
+module.exports = { DesignReference };

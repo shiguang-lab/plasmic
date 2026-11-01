@@ -1,0 +1,114 @@
+{
+  "mode": "reference",
+  "implementation": "fixed",
+  "electron": "44.5.1",
+  "node": "24.21.0",
+  "platform": "darwin",
+  "arch": "arm64",
+  "scope": "isolated offline native diagnostic",
+  "open": {
+    "elapsedMs": 3013.333708,
+    "ticks": 6,
+    "cpuMs": 27.603000000000016,
+    "cpuOneCorePercent": 0.9160286471663501,
+    "rssSumMiBMean": 618.8177083333334,
+    "rssSumMiBPeak": 620.921875,
+    "processes": [
+      {
+        "pid": 55499,
+        "type": "Browser",
+        "cpu": 0.289407,
+        "rssKiB": 174256
+      },
+      {
+        "pid": 55500,
+        "type": "GPU",
+        "cpu": 0.1062,
+        "rssKiB": 83280
+      },
+      {
+        "pid": 55501,
+        "type": "Utility",
+        "cpu": 0.048838,
+        "rssKiB": 48512
+      },
+      {
+        "pid": 55502,
+        "type": "Tab",
+        "cpu": 0.054874,
+        "rssKiB": 91664
+      },
+      {
+        "pid": 55503,
+        "type": "Tab",
+        "cpu": 0.168792,
+        "rssKiB": 129584
+      },
+      {
+        "pid": 55504,
+        "type": "Tab",
+        "cpu": 0.087392,
+        "rssKiB": 105424
+      }
+    ],
+    "calls": 16
+  },
+  "hidden": {
+    "elapsedMs": 3010.6589160000003,
+    "ticks": 6,
+    "cpuMs": 17.43199999999998,
+    "cpuOneCorePercent": 0.5790094622595228,
+    "rssSumMiBMean": 620.3307291666666,
+    "rssSumMiBPeak": 622.59375,
+    "processes": [
+      {
+        "pid": 55499,
+        "type": "Browser",
+        "cpu": 0.297555,
+        "rssKiB": 174256
+      },
+      {
+        "pid": 55500,
+        "type": "GPU",
+        "cpu": 0.114743,
+        "rssKiB": 83392
+      },
+      {
+        "pid": 55501,
+        "type": "Utility",
+        "cpu": 0.048899,
+        "rssKiB": 48512
+      },
+      {
+        "pid": 55502,
+        "type": "Tab",
+        "cpu": 0.056153,
+        "rssKiB": 91792
+      },
+      {
+        "pid": 55503,
+        "type": "Tab",
+        "cpu": 0.172062,
+        "rssKiB": 129616
+      },
+      {
+        "pid": 55504,
+        "type": "Tab",
+        "cpu": 0.087929,
+        "rssKiB": 105424
+      }
+    ],
+    "calls": 0
+  },
+  "hiddenAfterRaceCalls": 0,
+  "functional": {
+    "samePage": true,
+    "unsavedInputPreserved": true,
+    "buttonStatePreserved": true,
+    "selectionPreserved": true,
+    "screenshot": true,
+    "inFlightCloseAndReopen": true,
+    "sameRendererPid": 55504,
+    "visible": true
+  }
+}

@@ -1,0 +1,94 @@
+{
+  "mode": "lease",
+  "electron": "44.5.1",
+  "node": "24.21.0",
+  "platform": "darwin",
+  "arch": "arm64",
+  "scope": "isolated offline native diagnostic",
+  "postOperationIdle": {
+    "elapsedMs": 6017.937875,
+    "ticks": 12,
+    "cpuMs": 95.807,
+    "cpuOneCorePercent": 1.5920237461740168,
+    "rssSumMiBMean": 560.4661458333334,
+    "rssSumMiBPeak": 575.734375,
+    "processes": [
+      {
+        "pid": 50039,
+        "type": "Browser",
+        "cpu": 0.588747,
+        "rssKiB": 200064
+      },
+      {
+        "pid": 50040,
+        "type": "GPU",
+        "cpu": 0.423586,
+        "rssKiB": 98752
+      },
+      {
+        "pid": 50041,
+        "type": "Utility",
+        "cpu": 0.069542,
+        "rssKiB": 48480
+      },
+      {
+        "pid": 50042,
+        "type": "Tab",
+        "cpu": 0.084403,
+        "rssKiB": 94688
+      },
+      {
+        "pid": 50043,
+        "type": "Tab",
+        "cpu": 0.234196,
+        "rssKiB": 130144
+      }
+    ],
+    "refreshes": 12,
+    "newPixelCaptures": 0,
+    "activeOperations": 0,
+    "expanded": true,
+    "leaseRemainingMs": 593176.871542
+  },
+  "dismissed": {
+    "elapsedMs": 3004.963125,
+    "ticks": 6,
+    "cpuMs": 127.24799999999998,
+    "cpuOneCorePercent": 4.234594392901243,
+    "rssSumMiBMean": 566.0390625,
+    "rssSumMiBPeak": 567.578125,
+    "processes": [
+      {
+        "pid": 50039,
+        "type": "Browser",
+        "cpu": 0.623606,
+        "rssKiB": 200208
+      },
+      {
+        "pid": 50040,
+        "type": "GPU",
+        "cpu": 0.519587,
+        "rssKiB": 100416
+      },
+      {
+        "pid": 50041,
+        "type": "Utility",
+        "cpu": 0.070218,
+        "rssKiB": 48560
+      },
+      {
+        "pid": 50042,
+        "type": "Tab",
+        "cpu": 0.08447,
+        "rssKiB": 94704
+      },
+      {
+        "pid": 50043,
+        "type": "Tab",
+        "cpu": 0.290089,
+        "rssKiB": 133056
+      }
+    ],
+    "newPixelCaptures": 0
+  }
+}

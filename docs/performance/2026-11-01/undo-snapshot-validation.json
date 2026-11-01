@@ -1,0 +1,2967 @@
+{
+  "date": "2026-11-01",
+  "decision": "Do not retain this standalone prototype: no confirmed memory benefit in this fixture; full cold-restore acceptance incomplete. Production source restored to pre-experiment bytes.",
+  "scope": {
+    "fixture": "Standalone generated project in full production Studio runtime, 120 text children and 10 mixed arenas; not the original production project or installed release acceptance",
+    "processesPerArm": 3,
+    "operationsPerProcess": 40,
+    "sequence": "20 undo then 20 redo; same model, history count and final state",
+    "timing": "Renderer operation start through undo/redo and awaitStudioReady; includes 50/100ms ready polling. Not pure execution time, input latency or CPU percent.",
+    "memory": "GC forced through CDP in the shared Studio/canvas JS isolate; not private heap per iframe. Snapshot rounds separate from timing.",
+    "excludedRun": {
+      "run": "ab5",
+      "reason": "Overlapped a typecheck; replaced with ab8-clean"
+    },
+    "gcControl": "Separate processes detach CDP before scenarios and use diagnostic-only --expose-gc. performance.memory size is coarse and is not compared to CDP heap bytes.",
+    "buildMode": "NODE_ENV=production, PLASMIC_SELF_HOSTED=1, isolated BrowserWindow, current source; no release fuse/manifest change"
+  },
+  "arms": {
+    "before": {
+      "runs": [
+        {
+          "id": "ab0",
+          "processMedianMs": 112.64999997615814,
+          "samples": [
+            {
+              "label": "baseline",
+              "jsHeapUsedBytes": 71501896,
+              "records": 1,
+              "views": 0,
+              "closedFrames": 0,
+              "closedValsAlive": 0,
+              "closedViewsAlive": 0,
+              "closedDocumentsAlive": 0,
+              "confirmedDisposedFlags": [],
+              "rssKiBByProcess": [
+                {
+                  "type": "Browser",
+                  "rssKiB": 281184
+                },
+                {
+                  "type": "GPU",
+                  "rssKiB": 100880
+                },
+                {
+                  "type": "Utility",
+                  "rssKiB": 48400
+                },
+                {
+                  "type": "Tab",
+                  "rssKiB": 413408
+                }
+              ]
+            },
+            {
+              "label": "target",
+              "jsHeapUsedBytes": 163520832,
+              "records": 22,
+              "views": 6,
+              "closedFrames": 4,
+              "closedValsAlive": 4,
+              "closedViewsAlive": 4,
+              "closedDocumentsAlive": 4,
+              "confirmedDisposedFlags": [
+                null,
+                null,
+                null,
+                null
+              ],
+              "rssKiBByProcess": [
+                {
+                  "type": "Browser",
+                  "rssKiB": 273808
+                },
+                {
+                  "type": "GPU",
+                  "rssKiB": 117040
+                },
+                {
+                  "type": "Utility",
+                  "rssKiB": 48384
+                },
+                {
+                  "type": "Tab",
+                  "rssKiB": 664528
+                }
+              ]
+            },
+            {
+              "label": "final",
+              "jsHeapUsedBytes": 175237460,
+              "records": 22,
+              "views": 7,
+              "closedFrames": 5,
+              "closedValsAlive": 5,
+              "closedViewsAlive": 5,
+              "closedDocumentsAlive": 5,
+              "confirmedDisposedFlags": [
+                null,
+                null,
+                null,
+                null,
+                null
+              ],
+              "rssKiBByProcess": [
+                {
+                  "type": "Browser",
+                  "rssKiB": 283248
+                },
+                {
+                  "type": "GPU",
+                  "rssKiB": 117824
+                },
+                {
+                  "type": "Utility",
+                  "rssKiB": 48384
+                },
+                {
+                  "type": "Tab",
+                  "rssKiB": 650608
+                }
+              ]
+            }
+          ],
+          "latency": [
+            {
+              "arena": "UndoArena9",
+              "focused": "Edited9_0",
+              "ms": 282.9000000357628,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena9",
+              "focused": "Edited8_1",
+              "ms": 131.39999997615814,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena8",
+              "focused": "Edited8_0",
+              "ms": 117.29999995231628,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena8",
+              "focused": "Edited7_1",
+              "ms": 81.39999997615814,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena7",
+              "focused": "Edited7_0",
+              "ms": 117.89999997615814,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena7",
+              "focused": "Edited6_1",
+              "ms": 82.5,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena6",
+              "focused": "Edited6_0",
+              "ms": 117.10000002384186,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena6",
+              "focused": "Edited5_1",
+              "ms": 83.80000001192093,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena5",
+              "focused": "Edited5_0",
+              "ms": 116.90000003576279,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena5",
+              "focused": "Edited4_1",
+              "ms": 84.59999996423721,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena4",
+              "focused": "Edited4_0",
+              "ms": 273.19999998807907,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena4",
+              "focused": "Edited3_1",
+              "ms": 84.80000001192093,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena3",
+              "focused": "Edited3_0",
+              "ms": 268.30000001192093,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena3",
+              "focused": "Edited2_1",
+              "ms": 84.69999998807907,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena2",
+              "focused": "Edited2_0",
+              "ms": 264.89999997615814,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena2",
+              "focused": "Edited1_1",
+              "ms": 82.39999997615814,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena1",
+              "focused": "Edited1_0",
+              "ms": 263,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena1",
+              "focused": "Edited0_1",
+              "ms": 81.5,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena0",
+              "focused": "Edited0_0",
+              "ms": 259.30000001192093,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena0",
+              "focused": "DiagnosticRoot",
+              "ms": 118.70000004768372,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena0",
+              "focused": "Edited0_0",
+              "ms": 103.19999998807907,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena1",
+              "focused": "Edited0_1",
+              "ms": 115.19999998807907,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena1",
+              "focused": "Edited1_0",
+              "ms": 79.90000003576279,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena2",
+              "focused": "Edited1_1",
+              "ms": 112.39999997615814,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena2",
+              "focused": "Edited2_0",
+              "ms": 82.30000001192093,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena3",
+              "focused": "Edited2_1",
+              "ms": 112.59999996423721,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena3",
+              "focused": "Edited3_0",
+              "ms": 81.80000001192093,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena4",
+              "focused": "Edited3_1",
+              "ms": 117.59999996423721,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena4",
+              "focused": "Edited4_0",
+              "ms": 80.40000003576279,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena5",
+              "focused": "Edited4_1",
+              "ms": 112.69999998807907,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena5",
+              "focused": "Edited5_0",
+              "ms": 96.10000002384186,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena6",
+              "focused": "Edited5_1",
+              "ms": 285.7999999523163,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena6",
+              "focused": "Edited6_0",
+              "ms": 90.20000004768372,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena7",
+              "focused": "Edited6_1",
+              "ms": 273.60000002384186,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena7",
+              "focused": "Edited7_0",
+              "ms": 90.5,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena8",
+              "focused": "Edited7_1",
+              "ms": 269,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena8",
+              "focused": "Edited8_0",
+              "ms": 83.5,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena9",
+              "focused": "Edited8_1",
+              "ms": 260.4000000357628,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena9",
+              "focused": "Edited9_0",
+              "ms": 85.89999997615814,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "ms": 206.19999998807907,
+              "operation": "redo",
+              "records": 22,
+              "selection": false
+            }
+          ],
+          "finalModelName": "Edited9_1",
+          "finalHistoryLength": 22,
+          "errors": []
+        },
+        {
+          "id": "ab3",
+          "processMedianMs": 109.59999996423721,
+          "samples": [
+            {
+              "label": "baseline",
+              "jsHeapUsedBytes": 71540668,
+              "records": 1,
+              "views": 0,
+              "closedFrames": 0,
+              "closedValsAlive": 0,
+              "closedViewsAlive": 0,
+              "closedDocumentsAlive": 0,
+              "confirmedDisposedFlags": [],
+              "rssKiBByProcess": [
+                {
+                  "type": "Browser",
+                  "rssKiB": 280624
+                },
+                {
+                  "type": "GPU",
+                  "rssKiB": 100928
+                },
+                {
+                  "type": "Utility",
+                  "rssKiB": 48512
+                },
+                {
+                  "type": "Tab",
+                  "rssKiB": 413280
+                }
+              ]
+            },
+            {
+              "label": "target",
+              "jsHeapUsedBytes": 163653692,
+              "records": 22,
+              "views": 6,
+              "closedFrames": 4,
+              "closedValsAlive": 4,
+              "closedViewsAlive": 4,
+              "closedDocumentsAlive": 4,
+              "confirmedDisposedFlags": [
+                null,
+                null,
+                null,
+                null
+              ],
+              "rssKiBByProcess": [
+                {
+                  "type": "Browser",
+                  "rssKiB": 272976
+                },
+                {
+                  "type": "GPU",
+                  "rssKiB": 116128
+                },
+                {
+                  "type": "Utility",
+                  "rssKiB": 48528
+                },
+                {
+                  "type": "Tab",
+                  "rssKiB": 699664
+                }
+              ]
+            },
+            {
+              "label": "final",
+              "jsHeapUsedBytes": 170814672,
+              "records": 22,
+              "views": 7,
+              "closedFrames": 5,
+              "closedValsAlive": 5,
+              "closedViewsAlive": 5,
+              "closedDocumentsAlive": 5,
+              "confirmedDisposedFlags": [
+                null,
+                null,
+                null,
+                null,
+                null
+              ],
+              "rssKiBByProcess": [
+                {
+                  "type": "Browser",
+                  "rssKiB": 282448
+                },
+                {
+                  "type": "GPU",
+                  "rssKiB": 117376
+                },
+                {
+                  "type": "Utility",
+                  "rssKiB": 48528
+                },
+                {
+                  "type": "Tab",
+                  "rssKiB": 682400
+                }
+              ]
+            }
+          ],
+          "latency": [
+            {
+              "arena": "UndoArena9",
+              "focused": "Edited9_0",
+              "ms": 268.10000002384186,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena9",
+              "focused": "Edited8_1",
+              "ms": 89.10000002384186,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena8",
+              "focused": "Edited8_0",
+              "ms": 119.80000001192093,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena8",
+              "focused": "Edited7_1",
+              "ms": 109.29999995231628,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena7",
+              "focused": "Edited7_0",
+              "ms": 113.80000001192093,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena7",
+              "focused": "Edited6_1",
+              "ms": 80,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena6",
+              "focused": "Edited6_0",
+              "ms": 111.59999996423721,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena6",
+              "focused": "Edited5_1",
+              "ms": 83,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena5",
+              "focused": "Edited5_0",
+              "ms": 109.90000003576279,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena5",
+              "focused": "Edited4_1",
+              "ms": 81.69999998807907,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena4",
+              "focused": "Edited4_0",
+              "ms": 268.39999997615814,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena4",
+              "focused": "Edited3_1",
+              "ms": 86.80000001192093,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena3",
+              "focused": "Edited3_0",
+              "ms": 262.5,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena3",
+              "focused": "Edited2_1",
+              "ms": 88.5,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena2",
+              "focused": "Edited2_0",
+              "ms": 262,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena2",
+              "focused": "Edited1_1",
+              "ms": 86,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena1",
+              "focused": "Edited1_0",
+              "ms": 258.30000001192093,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena1",
+              "focused": "Edited0_1",
+              "ms": 83.40000003576279,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena0",
+              "focused": "Edited0_0",
+              "ms": 265.10000002384186,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena0",
+              "focused": "DiagnosticRoot",
+              "ms": 117.40000003576279,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena0",
+              "focused": "Edited0_0",
+              "ms": 107.60000002384186,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena1",
+              "focused": "Edited0_1",
+              "ms": 117.80000001192093,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena1",
+              "focused": "Edited1_0",
+              "ms": 81.40000003576279,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena2",
+              "focused": "Edited1_1",
+              "ms": 108,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena2",
+              "focused": "Edited2_0",
+              "ms": 81.80000001192093,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena3",
+              "focused": "Edited2_1",
+              "ms": 109.89999997615814,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena3",
+              "focused": "Edited3_0",
+              "ms": 80.89999997615814,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena4",
+              "focused": "Edited3_1",
+              "ms": 113.19999998807907,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena4",
+              "focused": "Edited4_0",
+              "ms": 78.39999997615814,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena5",
+              "focused": "Edited4_1",
+              "ms": 173.5,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena5",
+              "focused": "Edited5_0",
+              "ms": 80,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena6",
+              "focused": "Edited5_1",
+              "ms": 276.69999998807907,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena6",
+              "focused": "Edited6_0",
+              "ms": 90.10000002384186,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena7",
+              "focused": "Edited6_1",
+              "ms": 262.30000001192093,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena7",
+              "focused": "Edited7_0",
+              "ms": 83.90000003576279,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena8",
+              "focused": "Edited7_1",
+              "ms": 265.10000002384186,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena8",
+              "focused": "Edited8_0",
+              "ms": 89.69999998807907,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena9",
+              "focused": "Edited8_1",
+              "ms": 258.5999999642372,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena9",
+              "focused": "Edited9_0",
+              "ms": 85,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "ms": 208,
+              "operation": "redo",
+              "records": 22,
+              "selection": false
+            }
+          ],
+          "finalModelName": "Edited9_1",
+          "finalHistoryLength": 22,
+          "errors": []
+        },
+        {
+          "id": "ab4",
+          "processMedianMs": 110.60000002384186,
+          "samples": [
+            {
+              "label": "baseline",
+              "jsHeapUsedBytes": 71561080,
+              "records": 1,
+              "views": 0,
+              "closedFrames": 0,
+              "closedValsAlive": 0,
+              "closedViewsAlive": 0,
+              "closedDocumentsAlive": 0,
+              "confirmedDisposedFlags": [],
+              "rssKiBByProcess": [
+                {
+                  "type": "Browser",
+                  "rssKiB": 280416
+                },
+                {
+                  "type": "GPU",
+                  "rssKiB": 104496
+                },
+                {
+                  "type": "Utility",
+                  "rssKiB": 48416
+                },
+                {
+                  "type": "Tab",
+                  "rssKiB": 406736
+                }
+              ]
+            },
+            {
+              "label": "target",
+              "jsHeapUsedBytes": 163548612,
+              "records": 22,
+              "views": 6,
+              "closedFrames": 4,
+              "closedValsAlive": 4,
+              "closedViewsAlive": 4,
+              "closedDocumentsAlive": 4,
+              "confirmedDisposedFlags": [
+                null,
+                null,
+                null,
+                null
+              ],
+              "rssKiBByProcess": [
+                {
+                  "type": "Browser",
+                  "rssKiB": 277664
+                },
+                {
+                  "type": "GPU",
+                  "rssKiB": 112928
+                },
+                {
+                  "type": "Utility",
+                  "rssKiB": 48416
+                },
+                {
+                  "type": "Tab",
+                  "rssKiB": 665376
+                }
+              ]
+            },
+            {
+              "label": "final",
+              "jsHeapUsedBytes": 170788748,
+              "records": 22,
+              "views": 7,
+              "closedFrames": 5,
+              "closedValsAlive": 5,
+              "closedViewsAlive": 5,
+              "closedDocumentsAlive": 5,
+              "confirmedDisposedFlags": [
+                null,
+                null,
+                null,
+                null,
+                null
+              ],
+              "rssKiBByProcess": [
+                {
+                  "type": "Browser",
+                  "rssKiB": 287120
+                },
+                {
+                  "type": "GPU",
+                  "rssKiB": 113760
+                },
+                {
+                  "type": "Utility",
+                  "rssKiB": 48416
+                },
+                {
+                  "type": "Tab",
+                  "rssKiB": 646944
+                }
+              ]
+            }
+          ],
+          "latency": [
+            {
+              "arena": "UndoArena9",
+              "focused": "Edited9_0",
+              "ms": 261.2000000476837,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena9",
+              "focused": "Edited8_1",
+              "ms": 84.30000001192093,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena8",
+              "focused": "Edited8_0",
+              "ms": 178.0999999642372,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena8",
+              "focused": "Edited7_1",
+              "ms": 80.80000001192093,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena7",
+              "focused": "Edited7_0",
+              "ms": 110.80000001192093,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena7",
+              "focused": "Edited6_1",
+              "ms": 82.10000002384186,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena6",
+              "focused": "Edited6_0",
+              "ms": 110.60000002384186,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena6",
+              "focused": "Edited5_1",
+              "ms": 82.19999998807907,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena5",
+              "focused": "Edited5_0",
+              "ms": 108.80000001192093,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena5",
+              "focused": "Edited4_1",
+              "ms": 79.80000001192093,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena4",
+              "focused": "Edited4_0",
+              "ms": 270,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena4",
+              "focused": "Edited3_1",
+              "ms": 92.79999995231628,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena3",
+              "focused": "Edited3_0",
+              "ms": 278.89999997615814,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena3",
+              "focused": "Edited2_1",
+              "ms": 86.80000001192093,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena2",
+              "focused": "Edited2_0",
+              "ms": 265.89999997615814,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena2",
+              "focused": "Edited1_1",
+              "ms": 85.30000001192093,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena1",
+              "focused": "Edited1_0",
+              "ms": 262.69999998807907,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena1",
+              "focused": "Edited0_1",
+              "ms": 84.5,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena0",
+              "focused": "Edited0_0",
+              "ms": 259.89999997615814,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena0",
+              "focused": "DiagnosticRoot",
+              "ms": 123.69999998807907,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena0",
+              "focused": "Edited0_0",
+              "ms": 110.60000002384186,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena1",
+              "focused": "Edited0_1",
+              "ms": 118.10000002384186,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena1",
+              "focused": "Edited1_0",
+              "ms": 82.80000001192093,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena2",
+              "focused": "Edited1_1",
+              "ms": 112,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena2",
+              "focused": "Edited2_0",
+              "ms": 80.30000001192093,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena3",
+              "focused": "Edited2_1",
+              "ms": 115.10000002384186,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena3",
+              "focused": "Edited3_0",
+              "ms": 83.90000003576279,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena4",
+              "focused": "Edited3_1",
+              "ms": 125.60000002384186,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena4",
+              "focused": "Edited4_0",
+              "ms": 81.5,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena5",
+              "focused": "Edited4_1",
+              "ms": 214.60000002384186,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena5",
+              "focused": "Edited5_0",
+              "ms": 91.90000003576279,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena6",
+              "focused": "Edited5_1",
+              "ms": 280.10000002384186,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena6",
+              "focused": "Edited6_0",
+              "ms": 87.60000002384186,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena7",
+              "focused": "Edited6_1",
+              "ms": 269.5,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena7",
+              "focused": "Edited7_0",
+              "ms": 84.80000001192093,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena8",
+              "focused": "Edited7_1",
+              "ms": 268.4000000357628,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena8",
+              "focused": "Edited8_0",
+              "ms": 82.69999998807907,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena9",
+              "focused": "Edited8_1",
+              "ms": 263.5,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena9",
+              "focused": "Edited9_0",
+              "ms": 83.19999998807907,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "ms": 210.89999997615814,
+              "operation": "redo",
+              "records": 22,
+              "selection": false
+            }
+          ],
+          "finalModelName": "Edited9_1",
+          "finalHistoryLength": 22,
+          "errors": []
+        }
+      ],
+      "medianOfProcessMediansMs": 110.60000002384186,
+      "processMedianRangeMs": [
+        109.59999996423721,
+        112.64999997615814
+      ],
+      "pooledP95Ms": 273.19999998807907,
+      "heapMedianBytes": 170814672,
+      "heapRangeBytes": [
+        170788748,
+        175237460
+      ],
+      "byOperation": {
+        "undo": {
+          "n": 60,
+          "medianMs": 111.19999998807907,
+          "p95Ms": 270
+        },
+        "redo": {
+          "n": 60,
+          "medianMs": 108.94999998807907,
+          "p95Ms": 273.60000002384186
+        }
+      },
+      "detachedCdpControl": [
+        {
+          "label": "baseline",
+          "jsHeapUsedBytes": 99723801,
+          "records": 1,
+          "views": 0,
+          "closedFrames": 0,
+          "closedValsAlive": 0,
+          "closedViewsAlive": 0,
+          "closedDocumentsAlive": 0,
+          "confirmedDisposedFlags": [],
+          "rssKiBByProcess": [
+            {
+              "type": "Browser",
+              "rssKiB": 280384
+            },
+            {
+              "type": "GPU",
+              "rssKiB": 105488
+            },
+            {
+              "type": "Utility",
+              "rssKiB": 48560
+            },
+            {
+              "type": "Tab",
+              "rssKiB": 505728
+            }
+          ]
+        },
+        {
+          "label": "target",
+          "jsHeapUsedBytes": 194200769,
+          "records": 22,
+          "views": 6,
+          "closedFrames": 4,
+          "closedValsAlive": 4,
+          "closedViewsAlive": 4,
+          "closedDocumentsAlive": 4,
+          "confirmedDisposedFlags": [
+            null,
+            null,
+            null,
+            null
+          ],
+          "rssKiBByProcess": [
+            {
+              "type": "Browser",
+              "rssKiB": 192160
+            },
+            {
+              "type": "GPU",
+              "rssKiB": 96544
+            },
+            {
+              "type": "Utility",
+              "rssKiB": 41840
+            },
+            {
+              "type": "Tab",
+              "rssKiB": 788896
+            }
+          ]
+        },
+        {
+          "label": "final",
+          "jsHeapUsedBytes": 198778747,
+          "records": 22,
+          "views": 7,
+          "closedFrames": 5,
+          "closedValsAlive": 5,
+          "closedViewsAlive": 5,
+          "closedDocumentsAlive": 5,
+          "confirmedDisposedFlags": [
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "rssKiBByProcess": [
+            {
+              "type": "Browser",
+              "rssKiB": 201536
+            },
+            {
+              "type": "GPU",
+              "rssKiB": 98560
+            },
+            {
+              "type": "Utility",
+              "rssKiB": 41840
+            },
+            {
+              "type": "Tab",
+              "rssKiB": 796032
+            }
+          ]
+        }
+      ]
+    },
+    "after": {
+      "runs": [
+        {
+          "id": "ab1",
+          "processMedianMs": 109.30000001192093,
+          "samples": [
+            {
+              "label": "baseline",
+              "jsHeapUsedBytes": 71506472,
+              "records": 1,
+              "views": 0,
+              "closedFrames": 0,
+              "closedValsAlive": 0,
+              "closedViewsAlive": 0,
+              "closedDocumentsAlive": 0,
+              "confirmedDisposedFlags": [],
+              "rssKiBByProcess": [
+                {
+                  "type": "Browser",
+                  "rssKiB": 279520
+                },
+                {
+                  "type": "GPU",
+                  "rssKiB": 100912
+                },
+                {
+                  "type": "Utility",
+                  "rssKiB": 48464
+                },
+                {
+                  "type": "Tab",
+                  "rssKiB": 405552
+                }
+              ]
+            },
+            {
+              "label": "target",
+              "jsHeapUsedBytes": 163667956,
+              "records": 22,
+              "views": 6,
+              "closedFrames": 4,
+              "closedValsAlive": 4,
+              "closedViewsAlive": 4,
+              "closedDocumentsAlive": 4,
+              "confirmedDisposedFlags": [
+                null,
+                null,
+                null,
+                null
+              ],
+              "rssKiBByProcess": [
+                {
+                  "type": "Browser",
+                  "rssKiB": 276816
+                },
+                {
+                  "type": "GPU",
+                  "rssKiB": 116864
+                },
+                {
+                  "type": "Utility",
+                  "rssKiB": 48448
+                },
+                {
+                  "type": "Tab",
+                  "rssKiB": 700384
+                }
+              ]
+            },
+            {
+              "label": "final",
+              "jsHeapUsedBytes": 170658444,
+              "records": 22,
+              "views": 7,
+              "closedFrames": 5,
+              "closedValsAlive": 5,
+              "closedViewsAlive": 5,
+              "closedDocumentsAlive": 5,
+              "confirmedDisposedFlags": [
+                null,
+                null,
+                null,
+                null,
+                null
+              ],
+              "rssKiBByProcess": [
+                {
+                  "type": "Browser",
+                  "rssKiB": 286272
+                },
+                {
+                  "type": "GPU",
+                  "rssKiB": 117728
+                },
+                {
+                  "type": "Utility",
+                  "rssKiB": 48448
+                },
+                {
+                  "type": "Tab",
+                  "rssKiB": 682832
+                }
+              ]
+            }
+          ],
+          "latency": [
+            {
+              "arena": "UndoArena9",
+              "focused": "Edited9_0",
+              "ms": 263.10000002384186,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena9",
+              "focused": "Edited8_1",
+              "ms": 86.89999997615814,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena8",
+              "focused": "Edited8_0",
+              "ms": 179.5999999642372,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena8",
+              "focused": "Edited7_1",
+              "ms": 78.80000001192093,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena7",
+              "focused": "Edited7_0",
+              "ms": 109.60000002384186,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena7",
+              "focused": "Edited6_1",
+              "ms": 83,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena6",
+              "focused": "Edited6_0",
+              "ms": 116.40000003576279,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena6",
+              "focused": "Edited5_1",
+              "ms": 81.79999995231628,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena5",
+              "focused": "Edited5_0",
+              "ms": 107.59999996423721,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena5",
+              "focused": "Edited4_1",
+              "ms": 80.70000004768372,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena4",
+              "focused": "Edited4_0",
+              "ms": 271.9000000357628,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena4",
+              "focused": "Edited3_1",
+              "ms": 85.5,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena3",
+              "focused": "Edited3_0",
+              "ms": 264.7999999523163,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena3",
+              "focused": "Edited2_1",
+              "ms": 86.90000003576279,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena2",
+              "focused": "Edited2_0",
+              "ms": 269.5,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena2",
+              "focused": "Edited1_1",
+              "ms": 90.69999998807907,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena1",
+              "focused": "Edited1_0",
+              "ms": 272,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena1",
+              "focused": "Edited0_1",
+              "ms": 86.70000004768372,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena0",
+              "focused": "Edited0_0",
+              "ms": 279.69999998807907,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena0",
+              "focused": "DiagnosticRoot",
+              "ms": 120.10000002384186,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena0",
+              "focused": "Edited0_0",
+              "ms": 109,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena1",
+              "focused": "Edited0_1",
+              "ms": 118.10000002384186,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena1",
+              "focused": "Edited1_0",
+              "ms": 81.89999997615814,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena2",
+              "focused": "Edited1_1",
+              "ms": 110.30000001192093,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena2",
+              "focused": "Edited2_0",
+              "ms": 78.30000001192093,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena3",
+              "focused": "Edited2_1",
+              "ms": 111.59999996423721,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena3",
+              "focused": "Edited3_0",
+              "ms": 87.29999995231628,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena4",
+              "focused": "Edited3_1",
+              "ms": 115.5,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena4",
+              "focused": "Edited4_0",
+              "ms": 78.69999998807907,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena5",
+              "focused": "Edited4_1",
+              "ms": 195.5,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena5",
+              "focused": "Edited5_0",
+              "ms": 91.89999997615814,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena6",
+              "focused": "Edited5_1",
+              "ms": 272.60000002384186,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena6",
+              "focused": "Edited6_0",
+              "ms": 91,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena7",
+              "focused": "Edited6_1",
+              "ms": 267.19999998807907,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena7",
+              "focused": "Edited7_0",
+              "ms": 85.30000001192093,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena8",
+              "focused": "Edited7_1",
+              "ms": 263.5,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena8",
+              "focused": "Edited8_0",
+              "ms": 85.5,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena9",
+              "focused": "Edited8_1",
+              "ms": 261.10000002384186,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena9",
+              "focused": "Edited9_0",
+              "ms": 85.5,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "ms": 204.89999997615814,
+              "operation": "redo",
+              "records": 22,
+              "selection": false
+            }
+          ],
+          "finalModelName": "Edited9_1",
+          "finalHistoryLength": 22,
+          "errors": []
+        },
+        {
+          "id": "ab2",
+          "processMedianMs": 108.7999999821186,
+          "samples": [
+            {
+              "label": "baseline",
+              "jsHeapUsedBytes": 71546364,
+              "records": 1,
+              "views": 0,
+              "closedFrames": 0,
+              "closedValsAlive": 0,
+              "closedViewsAlive": 0,
+              "closedDocumentsAlive": 0,
+              "confirmedDisposedFlags": [],
+              "rssKiBByProcess": [
+                {
+                  "type": "Browser",
+                  "rssKiB": 279152
+                },
+                {
+                  "type": "GPU",
+                  "rssKiB": 100320
+                },
+                {
+                  "type": "Utility",
+                  "rssKiB": 48384
+                },
+                {
+                  "type": "Tab",
+                  "rssKiB": 407088
+                }
+              ]
+            },
+            {
+              "label": "target",
+              "jsHeapUsedBytes": 163564760,
+              "records": 22,
+              "views": 6,
+              "closedFrames": 4,
+              "closedValsAlive": 4,
+              "closedViewsAlive": 4,
+              "closedDocumentsAlive": 4,
+              "confirmedDisposedFlags": [
+                null,
+                null,
+                null,
+                null
+              ],
+              "rssKiBByProcess": [
+                {
+                  "type": "Browser",
+                  "rssKiB": 271936
+                },
+                {
+                  "type": "GPU",
+                  "rssKiB": 112768
+                },
+                {
+                  "type": "Utility",
+                  "rssKiB": 48400
+                },
+                {
+                  "type": "Tab",
+                  "rssKiB": 664256
+                }
+              ]
+            },
+            {
+              "label": "final",
+              "jsHeapUsedBytes": 170127020,
+              "records": 22,
+              "views": 7,
+              "closedFrames": 5,
+              "closedValsAlive": 5,
+              "closedViewsAlive": 5,
+              "closedDocumentsAlive": 5,
+              "confirmedDisposedFlags": [
+                null,
+                null,
+                null,
+                null,
+                null
+              ],
+              "rssKiBByProcess": [
+                {
+                  "type": "Browser",
+                  "rssKiB": 281392
+                },
+                {
+                  "type": "GPU",
+                  "rssKiB": 113456
+                },
+                {
+                  "type": "Utility",
+                  "rssKiB": 48400
+                },
+                {
+                  "type": "Tab",
+                  "rssKiB": 653760
+                }
+              ]
+            }
+          ],
+          "latency": [
+            {
+              "arena": "UndoArena9",
+              "focused": "Edited9_0",
+              "ms": 257.39999997615814,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena9",
+              "focused": "Edited8_1",
+              "ms": 83.5,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena8",
+              "focused": "Edited8_0",
+              "ms": 123.30000001192093,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena8",
+              "focused": "Edited7_1",
+              "ms": 86.70000004768372,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena7",
+              "focused": "Edited7_0",
+              "ms": 110.59999996423721,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena7",
+              "focused": "Edited6_1",
+              "ms": 82.19999998807907,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena6",
+              "focused": "Edited6_0",
+              "ms": 111.39999997615814,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena6",
+              "focused": "Edited5_1",
+              "ms": 79.60000002384186,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena5",
+              "focused": "Edited5_0",
+              "ms": 107.09999996423721,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena5",
+              "focused": "Edited4_1",
+              "ms": 80.90000003576279,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena4",
+              "focused": "Edited4_0",
+              "ms": 271.80000001192093,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena4",
+              "focused": "Edited3_1",
+              "ms": 88.70000004768372,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena3",
+              "focused": "Edited3_0",
+              "ms": 267.60000002384186,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena3",
+              "focused": "Edited2_1",
+              "ms": 83,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena2",
+              "focused": "Edited2_0",
+              "ms": 277.7999999523163,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena2",
+              "focused": "Edited1_1",
+              "ms": 92.10000002384186,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena1",
+              "focused": "Edited1_0",
+              "ms": 262.39999997615814,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena1",
+              "focused": "Edited0_1",
+              "ms": 85.10000002384186,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena0",
+              "focused": "Edited0_0",
+              "ms": 263.5,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena0",
+              "focused": "DiagnosticRoot",
+              "ms": 118.90000003576279,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena0",
+              "focused": "Edited0_0",
+              "ms": 110.80000001192093,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena1",
+              "focused": "Edited0_1",
+              "ms": 117.30000001192093,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena1",
+              "focused": "Edited1_0",
+              "ms": 82.89999997615814,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena2",
+              "focused": "Edited1_1",
+              "ms": 107.39999997615814,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena2",
+              "focused": "Edited2_0",
+              "ms": 81.29999995231628,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena3",
+              "focused": "Edited2_1",
+              "ms": 110.19999998807907,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena3",
+              "focused": "Edited3_0",
+              "ms": 82.5,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena4",
+              "focused": "Edited3_1",
+              "ms": 114.10000002384186,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena4",
+              "focused": "Edited4_0",
+              "ms": 77.30000001192093,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena5",
+              "focused": "Edited4_1",
+              "ms": 192.30000001192093,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena5",
+              "focused": "Edited5_0",
+              "ms": 86.70000004768372,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena6",
+              "focused": "Edited5_1",
+              "ms": 268.80000001192093,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena6",
+              "focused": "Edited6_0",
+              "ms": 94.69999998807907,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena7",
+              "focused": "Edited6_1",
+              "ms": 267.10000002384186,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena7",
+              "focused": "Edited7_0",
+              "ms": 95.30000001192093,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena8",
+              "focused": "Edited7_1",
+              "ms": 261.9000000357628,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena8",
+              "focused": "Edited8_0",
+              "ms": 84.59999996423721,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena9",
+              "focused": "Edited8_1",
+              "ms": 258.89999997615814,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena9",
+              "focused": "Edited9_0",
+              "ms": 85.39999997615814,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "ms": 206.69999998807907,
+              "operation": "redo",
+              "records": 22,
+              "selection": false
+            }
+          ],
+          "finalModelName": "Edited9_1",
+          "finalHistoryLength": 22,
+          "errors": []
+        },
+        {
+          "id": "ab8-clean",
+          "processMedianMs": 110.5499999821186,
+          "samples": [
+            {
+              "label": "baseline",
+              "jsHeapUsedBytes": 71589936,
+              "records": 1,
+              "views": 0,
+              "closedFrames": 0,
+              "closedValsAlive": 0,
+              "closedViewsAlive": 0,
+              "closedDocumentsAlive": 0,
+              "confirmedDisposedFlags": [],
+              "rssKiBByProcess": [
+                {
+                  "type": "Browser",
+                  "rssKiB": 280496
+                },
+                {
+                  "type": "GPU",
+                  "rssKiB": 100912
+                },
+                {
+                  "type": "Utility",
+                  "rssKiB": 48448
+                },
+                {
+                  "type": "Tab",
+                  "rssKiB": 405904
+                }
+              ]
+            },
+            {
+              "label": "target",
+              "jsHeapUsedBytes": 163623444,
+              "records": 22,
+              "views": 6,
+              "closedFrames": 4,
+              "closedValsAlive": 4,
+              "closedViewsAlive": 4,
+              "closedDocumentsAlive": 4,
+              "confirmedDisposedFlags": [
+                true,
+                true,
+                true,
+                true
+              ],
+              "rssKiBByProcess": [
+                {
+                  "type": "Browser",
+                  "rssKiB": 273024
+                },
+                {
+                  "type": "GPU",
+                  "rssKiB": 113072
+                },
+                {
+                  "type": "Utility",
+                  "rssKiB": 48464
+                },
+                {
+                  "type": "Tab",
+                  "rssKiB": 666000
+                }
+              ]
+            },
+            {
+              "label": "final",
+              "jsHeapUsedBytes": 170703764,
+              "records": 22,
+              "views": 7,
+              "closedFrames": 5,
+              "closedValsAlive": 5,
+              "closedViewsAlive": 5,
+              "closedDocumentsAlive": 5,
+              "confirmedDisposedFlags": [
+                true,
+                true,
+                true,
+                true,
+                true
+              ],
+              "rssKiBByProcess": [
+                {
+                  "type": "Browser",
+                  "rssKiB": 282464
+                },
+                {
+                  "type": "GPU",
+                  "rssKiB": 113632
+                },
+                {
+                  "type": "Utility",
+                  "rssKiB": 48464
+                },
+                {
+                  "type": "Tab",
+                  "rssKiB": 653872
+                }
+              ]
+            }
+          ],
+          "latency": [
+            {
+              "arena": "UndoArena9",
+              "focused": "Edited9_0",
+              "ms": 257.0999999642372,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena9",
+              "focused": "Edited8_1",
+              "ms": 145.5999999642372,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena8",
+              "focused": "Edited8_0",
+              "ms": 121,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena8",
+              "focused": "Edited7_1",
+              "ms": 81.90000003576279,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena7",
+              "focused": "Edited7_0",
+              "ms": 110.90000003576279,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena7",
+              "focused": "Edited6_1",
+              "ms": 82.09999996423721,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena6",
+              "focused": "Edited6_0",
+              "ms": 110.59999996423721,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena6",
+              "focused": "Edited5_1",
+              "ms": 81.19999998807907,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena5",
+              "focused": "Edited5_0",
+              "ms": 108.69999998807907,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena5",
+              "focused": "Edited4_1",
+              "ms": 79.20000004768372,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena4",
+              "focused": "Edited4_0",
+              "ms": 271.69999998807907,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena4",
+              "focused": "Edited3_1",
+              "ms": 85.5,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena3",
+              "focused": "Edited3_0",
+              "ms": 279.9000000357628,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena3",
+              "focused": "Edited2_1",
+              "ms": 91,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena2",
+              "focused": "Edited2_0",
+              "ms": 282.30000001192093,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena2",
+              "focused": "Edited1_1",
+              "ms": 91.90000003576279,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena1",
+              "focused": "Edited1_0",
+              "ms": 262.60000002384186,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena1",
+              "focused": "Edited0_1",
+              "ms": 84.19999998807907,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena0",
+              "focused": "Edited0_0",
+              "ms": 264.69999998807907,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena0",
+              "focused": "DiagnosticRoot",
+              "ms": 114.90000003576279,
+              "operation": "undo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena0",
+              "focused": "Edited0_0",
+              "ms": 116.80000001192093,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena1",
+              "focused": "Edited0_1",
+              "ms": 114.90000003576279,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena1",
+              "focused": "Edited1_0",
+              "ms": 81.30000001192093,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena2",
+              "focused": "Edited1_1",
+              "ms": 110.5,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena2",
+              "focused": "Edited2_0",
+              "ms": 81.69999998807907,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena3",
+              "focused": "Edited2_1",
+              "ms": 109.40000003576279,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena3",
+              "focused": "Edited3_0",
+              "ms": 81.59999996423721,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena4",
+              "focused": "Edited3_1",
+              "ms": 114.59999996423721,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena4",
+              "focused": "Edited4_0",
+              "ms": 79.19999998807907,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena5",
+              "focused": "Edited4_1",
+              "ms": 210.30000001192093,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena5",
+              "focused": "Edited5_0",
+              "ms": 89.19999998807907,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena6",
+              "focused": "Edited5_1",
+              "ms": 286.9000000357628,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena6",
+              "focused": "Edited6_0",
+              "ms": 85,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena7",
+              "focused": "Edited6_1",
+              "ms": 267.5,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena7",
+              "focused": "Edited7_0",
+              "ms": 89.39999997615814,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena8",
+              "focused": "Edited7_1",
+              "ms": 266.60000002384186,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena8",
+              "focused": "Edited8_0",
+              "ms": 86.10000002384186,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena9",
+              "focused": "Edited8_1",
+              "ms": 263.5999999642372,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "arena": "UndoArena9",
+              "focused": "Edited9_0",
+              "ms": 85.89999997615814,
+              "operation": "redo",
+              "records": 22,
+              "selection": true
+            },
+            {
+              "ms": 213.30000001192093,
+              "operation": "redo",
+              "records": 22,
+              "selection": false
+            }
+          ],
+          "finalModelName": "Edited9_1",
+          "finalHistoryLength": 22,
+          "errors": []
+        }
+      ],
+      "medianOfProcessMediansMs": 109.30000001192093,
+      "processMedianRangeMs": [
+        108.7999999821186,
+        110.5499999821186
+      ],
+      "pooledP95Ms": 272,
+      "heapMedianBytes": 170658444,
+      "heapRangeBytes": [
+        170127020,
+        170703764
+      ],
+      "byOperation": {
+        "undo": {
+          "n": 60,
+          "medianMs": 110.09999999403954,
+          "p95Ms": 277.7999999523163
+        },
+        "redo": {
+          "n": 60,
+          "medianMs": 109.80000001192093,
+          "p95Ms": 267.5
+        }
+      },
+      "detachedCdpControl": [
+        {
+          "label": "baseline",
+          "jsHeapUsedBytes": 99777851,
+          "records": 1,
+          "views": 0,
+          "closedFrames": 0,
+          "closedValsAlive": 0,
+          "closedViewsAlive": 0,
+          "closedDocumentsAlive": 0,
+          "confirmedDisposedFlags": [],
+          "rssKiBByProcess": [
+            {
+              "type": "Browser",
+              "rssKiB": 278560
+            },
+            {
+              "type": "GPU",
+              "rssKiB": 100928
+            },
+            {
+              "type": "Utility",
+              "rssKiB": 48416
+            },
+            {
+              "type": "Tab",
+              "rssKiB": 509840
+            }
+          ]
+        },
+        {
+          "label": "target",
+          "jsHeapUsedBytes": 193572563,
+          "records": 22,
+          "views": 6,
+          "closedFrames": 4,
+          "closedValsAlive": 4,
+          "closedViewsAlive": 4,
+          "closedDocumentsAlive": 4,
+          "confirmedDisposedFlags": [
+            null,
+            null,
+            null,
+            null
+          ],
+          "rssKiBByProcess": [
+            {
+              "type": "Browser",
+              "rssKiB": 270080
+            },
+            {
+              "type": "GPU",
+              "rssKiB": 113712
+            },
+            {
+              "type": "Utility",
+              "rssKiB": 48400
+            },
+            {
+              "type": "Tab",
+              "rssKiB": 888368
+            }
+          ]
+        },
+        {
+          "label": "final",
+          "jsHeapUsedBytes": 198195942,
+          "records": 22,
+          "views": 7,
+          "closedFrames": 5,
+          "closedValsAlive": 5,
+          "closedViewsAlive": 5,
+          "closedDocumentsAlive": 5,
+          "confirmedDisposedFlags": [
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "rssKiBByProcess": [
+            {
+              "type": "Browser",
+              "rssKiB": 279488
+            },
+            {
+              "type": "GPU",
+              "rssKiB": 114400
+            },
+            {
+              "type": "Utility",
+              "rssKiB": 48400
+            },
+            {
+              "type": "Tab",
+              "rssKiB": 888000
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "memlab": {
+    "before": {
+      "candidateClusters": 1,
+      "similarMarkedValues": 5,
+      "retainedSizeDisplay": "3.9KB",
+      "trace": "--Similar leaks in this run: 5--\n--Retained size of leaked objects: 3.9KB--\n[Window / https://plasmic-canvas.shiguanglab.com] (native) @468613 [126.3KB]\n  --global_object (shortcut)--->  [Window [JSGlobalObject] / https://plasmic-canvas.shiguanglab.com] (object) @3153565 [142.8KB]\n  --dbg (property)--->  [Object] (object) @1362131 [22.5KB]\n  --studioCtx (property)--->  [t7] (object) @881381 [2.1MB]\n  --undoLog (property)--->  [e9] (object) @2595079 [23KB]\n  --_log (property)--->  [system / JSProxy] (native) @2848293 [22.7KB]\n  --1 (hidden)--->  [Array] (object) @2848743 [22.7KB]\n  --3 (element)--->  [Object] (object) @4803777 [1.1KB]\n  --view (property)--->  [Object] (object) @7181007 [996 bytes]\n  --focusedSelectable (property)--->  [w] (object) @6545949 [796 bytes]",
+      "caveat": "Marked object candidates only, not total Studio leak count. WeakMap paths require key-liveness analysis and do not alone prove that the map is a leak."
+    },
+    "after": {
+      "candidateClusters": 1,
+      "similarMarkedValues": 5,
+      "retainedSizeDisplay": "3.9KB",
+      "trace": "--Similar leaks in this run: 5--\n--Retained size of leaked objects: 3.9KB--\n[Window / https://plasmic-canvas.shiguanglab.com] (native) @1829355 [126.9KB]\n  --global_object (shortcut)--->  [Window [JSGlobalObject] / https://plasmic-canvas.shiguanglab.com] (object) @2135133 [142.6KB]\n  --__REACT_DEVTOOLS_GLOBAL_HOOK__ (property)--->  [Object] (object) @542419 [13.3KB]\n  --onCommitFiberUnmount (property)--->  [onCommitFiberUnmount] (closure) @2202817 [2.7KB]\n  --context (internal)--->  [system / Context / scope (object) @555857 [813.2KB]\n  --1 (hidden)--->  [WeakMap] (object) @542423 [262.1KB]\n  --table (internal)--->  [<array>] (array) @4955479 [262.1KB]\n  --10725 / part of key (iq @7141073) -> value (Array @8123501) pair in WeakMap (table @4955479) (internal)--->  [Array] (object) @8123501 [92 bytes]\n  --0 (element)--->  [Object] (object) @8123377 [772 bytes]\n  --cached (property)--->  [w] (object) @5985673 [796 bytes]",
+      "caveat": "Marked object candidates only, not total Studio leak count. WeakMap paths require key-liveness analysis and do not alone prove that the map is a leak."
+    }
+  },
+  "functional": {
+    "before": {
+      "functionalError": "Undo functional scenario timed out",
+      "functionalProgress": {
+        "action": "switch:UndoCases",
+        "arena": "UndoCases",
+        "cases": [
+          {
+            "case": "repeated-instance",
+            "instances": 2,
+            "passed": true
+          },
+          {
+            "case": "slot-owner-param",
+            "passed": true
+          },
+          {
+            "case": "nested-context-variants-default-slot",
+            "passed": true
+          }
+        ],
+        "position": 27,
+        "stack": [
+          "UndoHost"
+        ],
+        "stage": "cold"
+      }
+    },
+    "after": {
+      "functionalError": "Undo functional scenario timed out",
+      "functionalProgress": {
+        "action": "switch:UndoCases",
+        "arena": "UndoCases",
+        "cases": [
+          {
+            "case": "repeated-instance",
+            "instances": 2,
+            "passed": true
+          },
+          {
+            "case": "slot-owner-param",
+            "passed": true
+          },
+          {
+            "case": "nested-context-variants-default-slot",
+            "passed": true
+          }
+        ],
+        "focus": "NestedOne",
+        "position": 0,
+        "stack": [
+          "UndoHost"
+        ],
+        "stage": "cold"
+      }
+    }
+  },
+  "validation": {
+    "prototypeUnitTests": {
+      "files": 6,
+      "passed": 44
+    },
+    "restoredBaselineUnitTests": {
+      "files": 5,
+      "passed": 37
+    },
+    "prototypeInitialTypecheck": "Failed at DbMgr.ts:5611, TS2345 AnonUser not assignable to never; that file was not changed by this experiment. Not a passing prototype typecheck.",
+    "restoredBaselineTypecheck": "Passed pnpm --dir platform/wab typecheck",
+    "diagnosticSyntax": "node --check passed for undo-studio.cjs and studio-optimization-fixture.cjs"
+  },
+  "normalAppReadback": {
+    "tool": "Plasmic get_app_state",
+    "version": "0.5.30",
+    "ready": true,
+    "editable": true,
+    "normalApiRecovered": true,
+    "originalProjectRestored": true,
+    "revisionBefore": 113,
+    "revisionAfter": 113,
+    "changeCounterAfter": 0,
+    "authIncident": "Diagnostic refresh-credential copy was used, subsequent refresh and normal API access failed. Removed diagnostic copy and export script; completed the normal same-account sign-in flow and restored the original project. Account API then succeeded. No credentials stored in report."
+  },
+  "unverified": [
+    "Production-project retained bytes (one exact dependency missing; subsequent isolated auth refresh failed)",
+    "Native/GPU memory benefit",
+    "CPU utilization or main-process event loop benefit",
+    "Installed release integration, account renewal and save/publish/automatic library upgrade",
+    "Full cold-context acceptance if functional report still fails"
+  ],
+  "localArtifacts": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-undo-ab-zw9qqsi_",
+  "difference": {
+    "heapBytes": -156228,
+    "heapPercent": -0.09146052746569211,
+    "readinessMedianMs": -1.300000011920929,
+    "readinessPercent": -1.1754068821344443,
+    "interpretation": "Small differences are within observed process variation; no stable benefit established."
+  },
+  "sourceRestoration": {
+    "client/undo-log.ts": {
+      "beforeSha256": "796c5f87895982eac8763f6263f7dc992cb3475f136942456386210a801847e7",
+      "currentSha256": "796c5f87895982eac8763f6263f7dc992cb3475f136942456386210a801847e7",
+      "equal": true
+    },
+    "client/studio-ctx/StudioCtx.tsx": {
+      "beforeSha256": "2ed2d91e45c1ead4ecae7d33df1c1e87fe5dab79d2500081ebd7e9a0b9ac2b98",
+      "currentSha256": "2ed2d91e45c1ead4ecae7d33df1c1e87fe5dab79d2500081ebd7e9a0b9ac2b98",
+      "equal": true
+    },
+    "client/studio-ctx/view-ctx.ts": {
+      "beforeSha256": "186b17e3ab5e3bec17a1ef303ad1e0fe2ff9cdda02deb5c9611c9ed3c305c7d1",
+      "currentSha256": "186b17e3ab5e3bec17a1ef303ad1e0fe2ff9cdda02deb5c9611c9ed3c305c7d1",
+      "equal": true
+    }
+  },
+  "prototypePatchSha256": "1d4daf802ef2d929b74ab05d64757fc3bfca6aa2c71ca24043f01641cb73eb73"
+}

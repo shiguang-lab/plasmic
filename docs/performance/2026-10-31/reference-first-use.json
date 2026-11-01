@@ -1,0 +1,60 @@
+{
+  "before": [
+    {
+      "firstConcurrentReadMs": 79.264208,
+      "warmReadMs": 0.2055000000000291,
+      "eventLoopMaxMs": 3.278847,
+      "totals": [
+        0,
+        0
+      ]
+    },
+    {
+      "firstConcurrentReadMs": 82.097375,
+      "warmReadMs": 0.24041699999997945,
+      "eventLoopMaxMs": 3.297279,
+      "totals": [
+        0,
+        0
+      ]
+    },
+    {
+      "firstConcurrentReadMs": 87.71162499999997,
+      "warmReadMs": 0.26037500000001046,
+      "eventLoopMaxMs": 3.991551,
+      "totals": [
+        0,
+        0
+      ]
+    }
+  ],
+  "after": [
+    {
+      "firstConcurrentReadMs": 116.266166,
+      "warmReadMs": 0.2494999999999834,
+      "eventLoopMaxMs": 3.016703,
+      "totals": [
+        0,
+        0
+      ]
+    },
+    {
+      "firstConcurrentReadMs": 111.952833,
+      "warmReadMs": 0.20383300000000304,
+      "eventLoopMaxMs": 2.717695,
+      "totals": [
+        0,
+        0
+      ]
+    },
+    {
+      "firstConcurrentReadMs": 112.70004100000001,
+      "warmReadMs": 0.20912500000000023,
+      "eventLoopMaxMs": 39.190527,
+      "totals": [
+        0,
+        0
+      ]
+    }
+  ]
+}

@@ -1,0 +1,345 @@
+{
+  "date": "2026-11-01",
+  "machine": {
+    "os": "macOS 26.6.2",
+    "cpu": "Apple M4",
+    "arch": "arm64",
+    "electron": "44.5.1",
+    "helperNode": "24.21.0"
+  },
+  "privateBaseline": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-resource-fix-qmv3u2aj/before",
+  "experiments": {
+    "reference": {
+      "files": [
+        "resource-fix-reference-2d-1-before.json",
+        "resource-fix-reference-2d-2-fixed.json",
+        "resource-fix-reference-2d-3-fixed.json",
+        "resource-fix-reference-2d-4-before.json"
+      ],
+      "before": {
+        "hiddenCalls": [
+          17,
+          17
+        ],
+        "cpuOneCorePercent": [
+          1.1881086338365774,
+          1.2168814816710445
+        ],
+        "raceCalls": [
+          2,
+          2
+        ]
+      },
+      "fixed": {
+        "hiddenCalls": [
+          0,
+          0
+        ],
+        "cpuOneCorePercent": [
+          0.5790094622595228,
+          0.6235782796638689
+        ],
+        "raceCalls": [
+          0,
+          0
+        ]
+      }
+    },
+    "capture-2d": {
+      "files": [
+        "resource-fix-capture-2d-1-before.json",
+        "resource-fix-capture-2d-2-fixed.json",
+        "resource-fix-capture-2d-3-fixed.json",
+        "resource-fix-capture-2d-4-before.json"
+      ],
+      "before": {
+        "meanCaptureMs": [
+          81.75920312499989,
+          81.42877600000008
+        ],
+        "idleSnapshots": [
+          8,
+          8
+        ],
+        "idleHtmlBytes": [
+          2226768,
+          2226768
+        ],
+        "idleCanvasReads": [
+          8,
+          8
+        ],
+        "cpuOneCorePercent": [
+          5.757864163088209,
+          5.684811085098498
+        ],
+        "pixelHashes": [
+          "91c02f6e44a4e2d488efad553851e8897342c984daa039956a38083d54999ff1",
+          "91c02f6e44a4e2d488efad553851e8897342c984daa039956a38083d54999ff1"
+        ]
+      },
+      "fixed": {
+        "meanCaptureMs": [
+          1.6916991111112212,
+          1.9880601111113316
+        ],
+        "idleSnapshots": [
+          0,
+          0
+        ],
+        "idleHtmlBytes": [
+          0,
+          0
+        ],
+        "idleCanvasReads": [
+          9,
+          9
+        ],
+        "cpuOneCorePercent": [
+          0.6046458837522012,
+          0.6368698692266199
+        ],
+        "pixelHashes": [
+          "91c02f6e44a4e2d488efad553851e8897342c984daa039956a38083d54999ff1",
+          "91c02f6e44a4e2d488efad553851e8897342c984daa039956a38083d54999ff1"
+        ]
+      },
+      "gain": {
+        "beforeMs": 81.59398956249998,
+        "fixedMs": 1.8398796111112765,
+        "reductionPercent": 97.74507948321126
+      }
+    },
+    "capture-webgl": {
+      "files": [
+        "resource-fix-capture-webgl-1-before.json",
+        "resource-fix-capture-webgl-2-fixed.json",
+        "resource-fix-capture-webgl-3-fixed.json",
+        "resource-fix-capture-webgl-4-before.json"
+      ],
+      "before": {
+        "meanCaptureMs": [
+          81.65129162499989,
+          89.97379699999976
+        ],
+        "idleSnapshots": [
+          8,
+          8
+        ],
+        "idleHtmlBytes": [
+          2226768,
+          2226768
+        ],
+        "idleCanvasReads": [
+          8,
+          8
+        ],
+        "cpuOneCorePercent": [
+          5.596559098929119,
+          8.285550891533637
+        ],
+        "pixelHashes": [
+          "91c02f6e44a4e2d488efad553851e8897342c984daa039956a38083d54999ff1",
+          "91c02f6e44a4e2d488efad553851e8897342c984daa039956a38083d54999ff1"
+        ]
+      },
+      "fixed": {
+        "meanCaptureMs": [
+          1.6984492222223304,
+          1.7127036666667361
+        ],
+        "idleSnapshots": [
+          0,
+          0
+        ],
+        "idleHtmlBytes": [
+          0,
+          0
+        ],
+        "idleCanvasReads": [
+          9,
+          9
+        ],
+        "cpuOneCorePercent": [
+          0.6124248142624023,
+          0.6149863665383571
+        ],
+        "pixelHashes": [
+          "91c02f6e44a4e2d488efad553851e8897342c984daa039956a38083d54999ff1",
+          "91c02f6e44a4e2d488efad553851e8897342c984daa039956a38083d54999ff1"
+        ]
+      },
+      "gain": {
+        "beforeMs": 85.81254431249982,
+        "fixedMs": 1.7055764444445334,
+        "reductionPercent": 98.01243925569506
+      }
+    },
+    "mcp": {
+      "file": "resource-fix-mcp.json",
+      "before": {
+        "rssSumMiB": [
+          236.90234375,
+          236.80078125
+        ],
+        "startupMs": [
+          213.94129200000003,
+          196.31808300000012
+        ],
+        "processCounts": [
+          3,
+          3
+        ]
+      },
+      "fixed": {
+        "rssSumMiB": [
+          86.96875,
+          87.71875
+        ],
+        "startupMs": [
+          97.01112499999999,
+          115.3227079999997
+        ],
+        "processCounts": [
+          1,
+          1
+        ]
+      },
+      "gain": {
+        "beforeRssSumMiB": 236.8515625,
+        "fixedRssSumMiB": 87.34375,
+        "reductionMiB": 149.5078125,
+        "reductionPercent": 63.123000296863154,
+        "beforeStartupMs": 205.12968750000007,
+        "fixedStartupMs": 106.16691649999984,
+        "startupReductionPercent": 48.244002224202774
+      }
+    },
+    "studio": {
+      "file": "resource-fix-studio.json",
+      "functional": {
+        "hidden": "visible",
+        "redo": true,
+        "rename": true,
+        "restored": true,
+        "undo": true
+      },
+      "staticCapture": {
+        "durationMs": 5022.862583,
+        "ticks": 10,
+        "snapshots": 0,
+        "htmlBytes": 0,
+        "sceneInspections": 30,
+        "meanMs": 0.6968751000000338,
+        "cpuOneCorePercent": 0.5977268839010992,
+        "cachedPixelsSame": true,
+        "frameCount": 4
+      }
+    }
+  },
+  "sourceSha256": {
+    "desktop/src/canvas.cjs": "25a63ba70265c3d563d2287eca2707d3c6a62660329663919b416d1d79b11ea8",
+    "desktop/src/island-capture.cjs": "52d95b42652291c02f2adb11b2b3e4463e2819d2985291112c673f335df97672",
+    "desktop/src/island-visual-state.cjs": "dbff57e2dbeec4e78d73c261564041aca5182904a71b3931321cae4875d283e5",
+    "desktop/src/reference-browser.cjs": "89cff16af0679df1c77f783b48d0e3efb8757c90dea981546c2599f8c64f7ea0",
+    "desktop/src/entry.cjs": "b11a59ba2fc5d3144338a86ce12d5eb5ac426a7b25c1067f46d2c8713ac8e1c3",
+    "desktop/src/main.cjs": "81444fa38c4affc8edf93a699e35fe9053742e412c3a6e22fd4e5cc80eec121a",
+    "desktop/src/mcp-entry.cjs": "7d8701fa05ed8bdb14e77562d7df9d244b3f830fba111e4c08f75c39aa985ece",
+    "desktop/src/mcp-launch.cjs": "d22b5d2db9e9ba47b3fc5adccc4338fdf09fc8edec7a3d51e0764affb7eabace",
+    "desktop/src/mcp.cjs": "47deae3974b7ae9d0b0eb084fa5408b4ac2e8d1ad798c7bc9b5af59cc316a742"
+  },
+  "baselineSha256": {
+    "canvas.cjs": "316a8aac1e61390f22d02c69b4d351ade217ef6b7606936402ddbe3dd07162ab",
+    "island-capture.cjs": "25fcdf5373ee250a40e69412b360726ebbca3951a5e36b53192223e3bde003ad",
+    "island-visual-state.cjs": "a571c4763215e9386526817516a62fea429b504e44b8e531f184ad7841fa5f7f",
+    "reference-browser.cjs": "37d75278f00529dcc6b667d4f78387bda850839eb4e13a0fd7712b3548f5a6f9",
+    "entry.cjs": "a7cd9e8db2e32118577db51627527786efcdb47462069df50acf0584c740885f",
+    "main.cjs": "635223303889e2118650f9a9ab1094f258a01eb548df5b6b3147577454fb2701",
+    "mcp.cjs": "47deae3974b7ae9d0b0eb084fa5408b4ac2e8d1ad798c7bc9b5af59cc316a742"
+  },
+  "verification": {
+    "unitTests": 530,
+    "reference": {
+      "checks": 25,
+      "passed": true,
+      "log": "/tmp/plasmic-resource-fix-reference.log"
+    },
+    "island": {
+      "checks": 16,
+      "passed": true,
+      "log": "/tmp/plasmic-resource-fix-island.log"
+    },
+    "lifecycle": {
+      "passed": true,
+      "cases": [
+        {
+          "kind": "quit",
+          "clientsExited": 3,
+          "offlineRefused": true
+        },
+        {
+          "kind": "crash",
+          "clientsExited": 3,
+          "offlineRefused": true
+        },
+        {
+          "kind": "reopen",
+          "clientsExited": 3,
+          "offlineRefused": true
+        }
+      ]
+    },
+    "background": {
+      "passed": true,
+      "transport": "standalone",
+      "children": 0
+    },
+    "packagedSecurity": {
+      "passed": true,
+      "log": "/tmp/plasmic-resource-fix-security.log",
+      "covers": [
+        "Signed helper resource",
+        "Public --mcp entry",
+        "Standalone helper",
+        "GUI fuses",
+        "NODE_OPTIONS injection",
+        "Node eval and inspector arguments"
+      ]
+    },
+    "diagnosticReplay": {
+      "passed": true,
+      "file": "/tmp/plasmic-resource-fix-final-verification.json",
+      "purpose": "Verify the cleaned diagnostic entry; primary quantitative series remains the preplanned saved ABBA series."
+    }
+  },
+  "limits": [
+    "Offline independent profiles and synthetic business fixtures; no normal-project save/publish acceptance.",
+    "RSS sums include shared pages and are not exclusive physical memory.",
+    "Native execution and signing accepted on macOS arm64; Windows/Linux native execution was not run.",
+    "Canvas timing uses a 500ms sleep after each operation, not an exact 2Hz load schedule.",
+    "Each canvas kind and reference case uses before/fixed/fixed/before fresh processes; each side has two independent samples."
+  ],
+  "helper": {
+    "sha256": "7a54a57d0644a809d2be22c1eefac2b21b651696ae042b020a2b57091518136d",
+    "bytes": 122149584,
+    "seaConfig": {
+      "main": "/Users/yanxianliang/shiguang/plasmic/desktop/mcp-bin/darwin-arm64/bundle.cjs",
+      "output": "/Users/yanxianliang/shiguang/plasmic/desktop/mcp-bin/darwin-arm64/sea.blob",
+      "disableExperimentalSEAWarning": true,
+      "useSnapshot": false,
+      "useCodeCache": false,
+      "execArgvExtension": "none"
+    },
+    "version": {
+      "version": "0.5.30",
+      "node": "24.21.0",
+      "platform": "darwin",
+      "arch": "arm64"
+    }
+  },
+  "diagnosticSha256": {
+    "desktop/tests/performance/seven-issues.cjs": "9d333ca85c0593d0f1420e5c086f4d28e9b17fd975e0d1a96cfb35b01f82453f",
+    "desktop/tests/performance/seven-processes.cjs": "4c54138492ddfc3dd2a1c930e9d230e304db2929d096d38e67108173ba588131",
+    "desktop/tests/performance/seven-studio.cjs": "2f4bde05b12d8a01dcd1cfaa8a4460db972b8b692b7112eff1a09cdbb4b4612c"
+  }
+}

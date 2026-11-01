@@ -59,10 +59,10 @@ function Spotlight_(props: { viewCtx: ViewCtx }) {
   }, [viewCtx]);
 
   React.useEffect(() => {
-    if (!shouldRender) {
+    if (!shouldRender && showDefaultSlotContents) {
       viewCtx.setShowDefaultSlotContents(false);
     }
-  }, [shouldRender]);
+  }, [shouldRender, showDefaultSlotContents, viewCtx]);
 
   React.useEffect(() => {
     adjustSpotLightDueToZoom(viewCtx.studioCtx.zoom);

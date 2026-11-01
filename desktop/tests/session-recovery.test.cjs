@@ -57,7 +57,16 @@ test("concurrent expired-session errors open one sign-in page and preserve the p
         finish = resolve;
       }),
   );
-  const responses = ["latest-bundle-version", "projects", "pkgs/example"].map(
+  const responses = [
+    "comments/example",
+    "projects/example",
+    "projects/example/revs/unpublished",
+    "pkgs/example",
+    "dependency-models/example",
+    "hostless-libraries/example/canvas?version=1.0.0",
+    "workspaces/example",
+    "teams/example",
+  ].map(
     (path) =>
       f.recover(
         new Response(null, { status: 401 }),

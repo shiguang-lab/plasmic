@@ -11,7 +11,7 @@ function fixture(drafts: DesktopDraft[] = []) {
   const api = {
     openDesktopDrafts: vi.fn(async (): Promise<DesktopDraftSession | null> => ({ handle: "handle", drafts })),
     readDesktopDraft: vi.fn(async (_handle: string, id: string) => files.get(id) ?? null),
-    writeDesktopDraft: vi.fn(async (_handle: string, draft: DesktopDraft) => { files.set(draft.id, draft); }),
+    writeDesktopDraft: vi.fn(async (_handle: string, draftJson: string) => { const draft: DesktopDraft = JSON.parse(draftJson); files.set(draft.id, draft); }),
     removeDesktopDraft: vi.fn(async (_handle: string, id: string, sequence: number) => {
       if ((files.get(id)?.sequence ?? Infinity) > sequence) {return false;}
       files.delete(id); return true;
@@ -149,7 +149,8 @@ it("does not report a safe close when a new edit arrives during the disk write",
   await f.controller.initialize("user", "project", null);
   let finish: () => void = () => { throw new Error("Disk write has not started"); };
   const writing = new Promise<void>(resolve => { finish = resolve; });
-  f.api.writeDesktopDraft.mockImplementationOnce(async (_handle, draft) => {
+  f.api.writeDesktopDraft.mockImplementationOnce(async (_handle, draftJson) => {
+    const draft: DesktopDraft = JSON.parse(draftJson);
     await writing;
     f.files.set(draft.id, draft);
   });

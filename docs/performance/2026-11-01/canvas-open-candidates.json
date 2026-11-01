@@ -1,0 +1,5947 @@
+{
+  "date": "2026-11-01",
+  "machine": "Apple M4",
+  "protocol": {
+    "opensPerLatencyProcess": 6,
+    "warmupOpens": 2,
+    "timedOpens": 4,
+    "clockOrigin": "actual dashboard card click handler",
+    "offlineReplay": true,
+    "liveNetworkTimeIncluded": false,
+    "nativeDraftBridgeIncluded": false,
+    "physicalPaintOrOsInputMeasured": false,
+    "memoryUnit": "RSS sum includes shared pages; top isolate heap after diagnostic GC is not all renderer heaps",
+    "sourceBase": "39077225209cd03cd4154356f3eb241bd7f406fb plus frozen working diff",
+    "frozenWorkingDiffSha256": "fb5002dc757c158179a15954a9a46369f9d12cc43253fd34c7a68bbf71a3eb4a"
+  },
+  "decisions": {
+    "transport-resource": "reject: reproducible higher working-set peaks in rapid reopen stress, despite latency benefit",
+    "registration-v2": "retain for reduced code-body reads, no stable isolated wall-clock gain",
+    "noop-eval": "reject: no stable end-to-end gain",
+    "host-preload": "reject: no stable end-to-end gain",
+    "idle-deadline": "reject: no stable end-to-end gain"
+  },
+  "verification": {
+    "mainUnitFiles": 8,
+    "mainUnitTestsPassed": 47,
+    "typecheckExitCode": 0,
+    "discardedCandidatesUnitTestsPassed": 9,
+    "clientSave": "full save acknowledged only by in-process fixture; reopened exact bundled model matched",
+    "knownBaselineIssue": "native dashboard thumbnail prepare fails on unresolved modelResourceId; no successful thumbnail claim"
+  },
+  "results": {
+    "complex:ab-baseline-a1": {
+      "build": {
+        "kind": "diagnostic",
+        "variant": "baseline",
+        "sourceRoot": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-open-ab-nwrao9vg/source",
+        "runtimeRevision": "4be192c7af42e89cda0a5b182082fdf07a5905a7",
+        "rendererHash": "6eab7b885330cc841aad08dc902b0f80e659bdc93c9c567bdbd52bc39f4009d0"
+      },
+      "error": null,
+      "rendererErrors": [],
+      "thumbnailErrors": 7,
+      "samples": [
+        {
+          "phase": "first-list-open",
+          "timingMs": {
+            "canvas-revealed": 1846.5,
+            "all-frames-rendered": 5456.5
+          },
+          "resources": {
+            "reads": 49,
+            "hits": 40,
+            "codeReads": 44,
+            "codeReadBytes": 22136840
+          },
+          "rssSumMiB": 1205.0625,
+          "topHeapMiB": 312.4496726989746,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-1",
+          "timingMs": {
+            "canvas-revealed": 1905.199951171875,
+            "all-frames-rendered": 4690.0
+          },
+          "resources": {
+            "reads": 49,
+            "hits": 49,
+            "codeReads": 44,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 1323.5625,
+          "topHeapMiB": 337.7066192626953,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-2",
+          "timingMs": {
+            "canvas-revealed": 1241.900146484375,
+            "all-frames-rendered": 3671.300048828125
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1675.390625,
+          "topHeapMiB": 326.9284553527832,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-3",
+          "timingMs": {
+            "canvas-revealed": 1168.39990234375,
+            "all-frames-rendered": 3548.699951171875
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1733.21875,
+          "topHeapMiB": 330.7423324584961,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-4",
+          "timingMs": {
+            "canvas-revealed": 1184.7998046875,
+            "all-frames-rendered": 3519.2998046875
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1648.5,
+          "topHeapMiB": 353.57128143310547,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-5",
+          "timingMs": {
+            "canvas-revealed": 1150.800048828125,
+            "all-frames-rendered": 3475.5
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1753.90625,
+          "topHeapMiB": 349.4503860473633,
+          "changes": 0,
+          "views": 10
+        }
+      ],
+      "warmMediansMs": {
+        "canvas-revealed": 1176.599853515625,
+        "all-frames-rendered": 3533.9998779296875
+      },
+      "memoryProbe": null,
+      "functional": null,
+      "inputProbes": null
+    },
+    "complex:ab-baseline-a2": {
+      "build": {
+        "kind": "diagnostic",
+        "variant": "baseline",
+        "sourceRoot": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-open-ab-nwrao9vg/source",
+        "runtimeRevision": "4be192c7af42e89cda0a5b182082fdf07a5905a7",
+        "rendererHash": "6eab7b885330cc841aad08dc902b0f80e659bdc93c9c567bdbd52bc39f4009d0"
+      },
+      "error": null,
+      "rendererErrors": [],
+      "thumbnailErrors": 7,
+      "samples": [
+        {
+          "phase": "first-list-open",
+          "timingMs": {
+            "canvas-revealed": 1543.7998046875,
+            "all-frames-rendered": 4246.89990234375
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 44,
+            "codeReads": 48,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 1408.90625,
+          "topHeapMiB": 320.3821792602539,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-1",
+          "timingMs": {
+            "canvas-revealed": 1141.099853515625,
+            "all-frames-rendered": 3319.199951171875
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1782.609375,
+          "topHeapMiB": 341.3734931945801,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-2",
+          "timingMs": {
+            "canvas-revealed": 1153.0,
+            "all-frames-rendered": 3256.300048828125
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1707.4375,
+          "topHeapMiB": 373.1601028442383,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-3",
+          "timingMs": {
+            "canvas-revealed": 1179.000244140625,
+            "all-frames-rendered": 3375.800048828125
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 2002.125,
+          "topHeapMiB": 618.8187866210938,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-4",
+          "timingMs": {
+            "canvas-revealed": 1154.10009765625,
+            "all-frames-rendered": 3503.0
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 2281.21875,
+          "topHeapMiB": 300.68060302734375,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-5",
+          "timingMs": {
+            "canvas-revealed": 1113.199951171875,
+            "all-frames-rendered": 3426.39990234375
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 2274.5625,
+          "topHeapMiB": 282.4457321166992,
+          "changes": 0,
+          "views": 10
+        }
+      ],
+      "warmMediansMs": {
+        "canvas-revealed": 1153.550048828125,
+        "all-frames-rendered": 3401.0999755859375
+      },
+      "memoryProbe": null,
+      "functional": null,
+      "inputProbes": null
+    },
+    "complex:ab-baseline-discovery": {
+      "build": {
+        "kind": "diagnostic",
+        "variant": "baseline",
+        "sourceRoot": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-open-ab-nwrao9vg/source",
+        "runtimeRevision": "4be192c7af42e89cda0a5b182082fdf07a5905a7",
+        "rendererHash": "6eab7b885330cc841aad08dc902b0f80e659bdc93c9c567bdbd52bc39f4009d0"
+      },
+      "error": null,
+      "rendererErrors": [],
+      "thumbnailErrors": 7,
+      "samples": [
+        {
+          "phase": "first-list-open",
+          "timingMs": {
+            "canvas-revealed": 1514.400146484375,
+            "all-frames-rendered": 4207.80029296875
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 44,
+            "codeReads": 48,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 1440.609375,
+          "topHeapMiB": 327.0462226867676,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-1",
+          "timingMs": {
+            "canvas-revealed": 1151.39990234375,
+            "all-frames-rendered": 3244.699951171875
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1726.84375,
+          "topHeapMiB": 371.66614532470703,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-2",
+          "timingMs": {
+            "canvas-revealed": 1199.0,
+            "all-frames-rendered": 3324.2998046875
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1953.34375,
+          "topHeapMiB": 581.4051055908203,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-3",
+          "timingMs": {
+            "canvas-revealed": 1111.80029296875,
+            "all-frames-rendered": 3322.900146484375
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 2730.59375,
+          "topHeapMiB": 974.2698593139648,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-4",
+          "timingMs": {
+            "canvas-revealed": 1296.099853515625,
+            "all-frames-rendered": 3544.39990234375
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 2827.53125,
+          "topHeapMiB": 1082.9676132202148,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-5",
+          "timingMs": {
+            "canvas-revealed": 1194.7001953125,
+            "all-frames-rendered": 3509.7001953125
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 3502.21875,
+          "topHeapMiB": 1474.2312545776367,
+          "changes": 0,
+          "views": 10
+        }
+      ],
+      "warmMediansMs": {
+        "canvas-revealed": 1196.85009765625,
+        "all-frames-rendered": 3417.0
+      },
+      "memoryProbe": null,
+      "functional": null,
+      "inputProbes": null
+    },
+    "complex:ab-baseline-a4": {
+      "build": {
+        "kind": "diagnostic",
+        "variant": "baseline",
+        "sourceRoot": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-open-ab-nwrao9vg/source",
+        "runtimeRevision": "4be192c7af42e89cda0a5b182082fdf07a5905a7",
+        "rendererHash": "6eab7b885330cc841aad08dc902b0f80e659bdc93c9c567bdbd52bc39f4009d0"
+      },
+      "error": null,
+      "rendererErrors": [],
+      "thumbnailErrors": 7,
+      "samples": [
+        {
+          "phase": "first-list-open",
+          "timingMs": {
+            "canvas-revealed": 1492.7998046875,
+            "all-frames-rendered": 4223.7998046875
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 44,
+            "codeReads": 48,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 1386.875,
+          "topHeapMiB": 312.52635192871094,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-1",
+          "timingMs": {
+            "canvas-revealed": 1132.300048828125,
+            "all-frames-rendered": 3351.0
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1778.515625,
+          "topHeapMiB": 337.2159194946289,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-2",
+          "timingMs": {
+            "canvas-revealed": 1097.399658203125,
+            "all-frames-rendered": 3303.69970703125
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1815.4375,
+          "topHeapMiB": 326.6686820983887,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-3",
+          "timingMs": {
+            "canvas-revealed": 1111.0,
+            "all-frames-rendered": 3328.2998046875
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1845.0,
+          "topHeapMiB": 331.7335548400879,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-4",
+          "timingMs": {
+            "canvas-revealed": 1123.599853515625,
+            "all-frames-rendered": 3303.39990234375
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1847.21875,
+          "topHeapMiB": 345.55521392822266,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-5",
+          "timingMs": {
+            "canvas-revealed": 1150.900146484375,
+            "all-frames-rendered": 3319.7001953125
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1861.703125,
+          "topHeapMiB": 363.6943550109863,
+          "changes": 0,
+          "views": 10
+        }
+      ],
+      "warmMediansMs": {
+        "canvas-revealed": 1117.2999267578125,
+        "all-frames-rendered": 3311.699951171875
+      },
+      "memoryProbe": null,
+      "functional": null,
+      "inputProbes": null
+    },
+    "complex:ab-baseline-a5": {
+      "build": {
+        "kind": "diagnostic",
+        "variant": "baseline",
+        "sourceRoot": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-open-ab-nwrao9vg/source",
+        "runtimeRevision": "4be192c7af42e89cda0a5b182082fdf07a5905a7",
+        "rendererHash": "6eab7b885330cc841aad08dc902b0f80e659bdc93c9c567bdbd52bc39f4009d0"
+      },
+      "error": null,
+      "rendererErrors": [],
+      "thumbnailErrors": 7,
+      "samples": [
+        {
+          "phase": "first-list-open",
+          "timingMs": {
+            "canvas-revealed": 1549.30029296875,
+            "all-frames-rendered": 4281.000244140625
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 44,
+            "codeReads": 48,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 1417.546875,
+          "topHeapMiB": 320.28009033203125,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-1",
+          "timingMs": {
+            "canvas-revealed": 1132.400146484375,
+            "all-frames-rendered": 3312.199951171875
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1749.890625,
+          "topHeapMiB": 341.525936126709,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-2",
+          "timingMs": {
+            "canvas-revealed": 1136.400146484375,
+            "all-frames-rendered": 3261.0
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1690.96875,
+          "topHeapMiB": 372.9478454589844,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-3",
+          "timingMs": {
+            "canvas-revealed": 1170.800048828125,
+            "all-frames-rendered": 3339.60009765625
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 2001.3125,
+          "topHeapMiB": 612.6570930480957,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-4",
+          "timingMs": {
+            "canvas-revealed": 1159.60009765625,
+            "all-frames-rendered": 3527.900146484375
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 2313.5625,
+          "topHeapMiB": 288.4740447998047,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-5",
+          "timingMs": {
+            "canvas-revealed": 1136.199951171875,
+            "all-frames-rendered": 3302.699951171875
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 2542.234375,
+          "topHeapMiB": 681.3946189880371,
+          "changes": 0,
+          "views": 10
+        }
+      ],
+      "warmMediansMs": {
+        "canvas-revealed": 1148.0001220703125,
+        "all-frames-rendered": 3321.1500244140625
+      },
+      "memoryProbe": null,
+      "functional": null,
+      "inputProbes": null
+    },
+    "complex:ab-baseline-a6": {
+      "build": {
+        "kind": "diagnostic",
+        "variant": "baseline",
+        "sourceRoot": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-open-ab-nwrao9vg/source",
+        "runtimeRevision": "4be192c7af42e89cda0a5b182082fdf07a5905a7",
+        "rendererHash": "6eab7b885330cc841aad08dc902b0f80e659bdc93c9c567bdbd52bc39f4009d0"
+      },
+      "error": null,
+      "rendererErrors": [],
+      "thumbnailErrors": 7,
+      "samples": [
+        {
+          "phase": "first-list-open",
+          "timingMs": {
+            "canvas-revealed": 1537.300048828125,
+            "all-frames-rendered": 4211.800048828125
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 44,
+            "codeReads": 48,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 1380.6875,
+          "topHeapMiB": 312.62077713012695,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-1",
+          "timingMs": {
+            "canvas-revealed": 1134.800048828125,
+            "all-frames-rendered": 3370.699951171875
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1781.140625,
+          "topHeapMiB": 337.0797309875488,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-2",
+          "timingMs": {
+            "canvas-revealed": 1138.499755859375,
+            "all-frames-rendered": 3316.599853515625
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1825.71875,
+          "topHeapMiB": 326.4294853210449,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-3",
+          "timingMs": {
+            "canvas-revealed": 1126.599853515625,
+            "all-frames-rendered": 3319.2998046875
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1839.65625,
+          "topHeapMiB": 331.56696701049805,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-4",
+          "timingMs": {
+            "canvas-revealed": 1119.39990234375,
+            "all-frames-rendered": 3281.0
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1850.53125,
+          "topHeapMiB": 341.7872543334961,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-5",
+          "timingMs": {
+            "canvas-revealed": 1146.999755859375,
+            "all-frames-rendered": 3263.7998046875
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1805.46875,
+          "topHeapMiB": 366.3481750488281,
+          "changes": 0,
+          "views": 10
+        }
+      ],
+      "warmMediansMs": {
+        "canvas-revealed": 1132.5498046875,
+        "all-frames-rendered": 3298.7999267578125
+      },
+      "memoryProbe": null,
+      "functional": null,
+      "inputProbes": null
+    },
+    "complex:ab-transport-b1": {
+      "build": {
+        "kind": "diagnostic",
+        "variant": "transport",
+        "sourceRoot": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-open-ab-nwrao9vg/source",
+        "runtimeRevision": "4be192c7af42e89cda0a5b182082fdf07a5905a7",
+        "rendererHash": "5c523e8875dc8c04832ba90c3b18eb77cea92d54a779d323a88eb27f2dac5c43"
+      },
+      "error": null,
+      "rendererErrors": [],
+      "thumbnailErrors": 7,
+      "samples": [
+        {
+          "phase": "first-list-open",
+          "timingMs": {
+            "canvas-revealed": 1438.800048828125,
+            "all-frames-rendered": 4121.599853515625
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 44,
+            "codeReads": 48,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 1418.8125,
+          "topHeapMiB": 327.045108795166,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-1",
+          "timingMs": {
+            "canvas-revealed": 1094.89990234375,
+            "all-frames-rendered": 3230.89990234375
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1883.71875,
+          "topHeapMiB": 575.0200157165527,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-2",
+          "timingMs": {
+            "canvas-revealed": 1066.2998046875,
+            "all-frames-rendered": 3300.7998046875
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 2663.71875,
+          "topHeapMiB": 942.6770668029785,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-3",
+          "timingMs": {
+            "canvas-revealed": 1083.2998046875,
+            "all-frames-rendered": 3222.099853515625
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 2567.234375,
+          "topHeapMiB": 376.38092041015625,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-4",
+          "timingMs": {
+            "canvas-revealed": 1027.7001953125,
+            "all-frames-rendered": 3177.60009765625
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 2566.796875,
+          "topHeapMiB": 361.4148406982422,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-5",
+          "timingMs": {
+            "canvas-revealed": 1032.800048828125,
+            "all-frames-rendered": 3195.89990234375
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 2058.78125,
+          "topHeapMiB": 361.4410171508789,
+          "changes": 0,
+          "views": 10
+        }
+      ],
+      "warmMediansMs": {
+        "canvas-revealed": 1049.5499267578125,
+        "all-frames-rendered": 3208.9998779296875
+      },
+      "memoryProbe": null,
+      "functional": null,
+      "inputProbes": null
+    },
+    "complex:ab-transport-b2": {
+      "build": {
+        "kind": "diagnostic",
+        "variant": "transport",
+        "sourceRoot": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-open-ab-nwrao9vg/source",
+        "runtimeRevision": "4be192c7af42e89cda0a5b182082fdf07a5905a7",
+        "rendererHash": "5c523e8875dc8c04832ba90c3b18eb77cea92d54a779d323a88eb27f2dac5c43"
+      },
+      "error": null,
+      "rendererErrors": [],
+      "thumbnailErrors": 7,
+      "samples": [
+        {
+          "phase": "first-list-open",
+          "timingMs": {
+            "canvas-revealed": 1415.900146484375,
+            "all-frames-rendered": 4137.199951171875
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 44,
+            "codeReads": 48,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 1464.21875,
+          "topHeapMiB": 327.21490478515625,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-1",
+          "timingMs": {
+            "canvas-revealed": 1086.199951171875,
+            "all-frames-rendered": 3249.400146484375
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1900.375,
+          "topHeapMiB": 575.2575569152832,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-2",
+          "timingMs": {
+            "canvas-revealed": 1052.5,
+            "all-frames-rendered": 3279.900146484375
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 2650.3125,
+          "topHeapMiB": 942.518367767334,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-3",
+          "timingMs": {
+            "canvas-revealed": 1142.300048828125,
+            "all-frames-rendered": 3303.39990234375
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 2633.046875,
+          "topHeapMiB": 559.1072273254395,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-4",
+          "timingMs": {
+            "canvas-revealed": 1064.39990234375,
+            "all-frames-rendered": 3254.60009765625
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 2891.515625,
+          "topHeapMiB": 926.1169586181641,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-5",
+          "timingMs": {
+            "canvas-revealed": 1157.300048828125,
+            "all-frames-rendered": 3296.0
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 2534.8125,
+          "topHeapMiB": 563.7822570800781,
+          "changes": 0,
+          "views": 10
+        }
+      ],
+      "warmMediansMs": {
+        "canvas-revealed": 1103.3499755859375,
+        "all-frames-rendered": 3287.9500732421875
+      },
+      "memoryProbe": null,
+      "functional": null,
+      "inputProbes": null
+    },
+    "complex:ab-transport-string-b1": {
+      "build": {
+        "kind": "diagnostic",
+        "variant": "transport-string",
+        "sourceRoot": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-open-ab-nwrao9vg/source",
+        "runtimeRevision": "4be192c7af42e89cda0a5b182082fdf07a5905a7",
+        "rendererHash": "3bf4d44578afd36dd619fedfae23e6008f8f0c097dd8ce9be15186e40a8c5f59"
+      },
+      "error": null,
+      "rendererErrors": [],
+      "thumbnailErrors": 7,
+      "samples": [
+        {
+          "phase": "first-list-open",
+          "timingMs": {
+            "canvas-revealed": 1438.5,
+            "all-frames-rendered": 4359.199951171875
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 44,
+            "codeReads": 48,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 1465.015625,
+          "topHeapMiB": 327.2336959838867,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-1",
+          "timingMs": {
+            "canvas-revealed": 1100.699951171875,
+            "all-frames-rendered": 3468.89990234375
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1717.71875,
+          "topHeapMiB": 347.75423431396484,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-2",
+          "timingMs": {
+            "canvas-revealed": 1180.0,
+            "all-frames-rendered": 3895.39990234375
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1909.015625,
+          "topHeapMiB": 558.3821411132812,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-3",
+          "timingMs": {
+            "canvas-revealed": 1145.900146484375,
+            "all-frames-rendered": 3568.10009765625
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 2685.796875,
+          "topHeapMiB": 935.4138450622559,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-4",
+          "timingMs": {
+            "canvas-revealed": 1247.60009765625,
+            "all-frames-rendered": 3537.199951171875
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 2755.828125,
+          "topHeapMiB": 1015.7614936828613,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-5",
+          "timingMs": {
+            "canvas-revealed": 1106.5,
+            "all-frames-rendered": 3596.0
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 3383.125,
+          "topHeapMiB": 1391.3749160766602,
+          "changes": 0,
+          "views": 10
+        }
+      ],
+      "warmMediansMs": {
+        "canvas-revealed": 1162.9500732421875,
+        "all-frames-rendered": 3582.050048828125
+      },
+      "memoryProbe": null,
+      "functional": null,
+      "inputProbes": null
+    },
+    "complex:ab-transport-resource-b1": {
+      "build": {
+        "kind": "diagnostic",
+        "variant": "transport-resource",
+        "sourceRoot": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-open-ab-nwrao9vg/source",
+        "runtimeRevision": "4be192c7af42e89cda0a5b182082fdf07a5905a7",
+        "rendererHash": "473a6847545957e59c59ef65692da822a801d15bdb0830531c31ee1e0074544e"
+      },
+      "error": null,
+      "rendererErrors": [],
+      "thumbnailErrors": 7,
+      "samples": [
+        {
+          "phase": "first-list-open",
+          "timingMs": {
+            "canvas-revealed": 1398.10009765625,
+            "all-frames-rendered": 4088.000244140625
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 44,
+            "codeReads": 48,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 1453.3125,
+          "topHeapMiB": 326.82521057128906,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-1",
+          "timingMs": {
+            "canvas-revealed": 1056.599853515625,
+            "all-frames-rendered": 3181.89990234375
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1676.09375,
+          "topHeapMiB": 373.27865982055664,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-2",
+          "timingMs": {
+            "canvas-revealed": 1025.199951171875,
+            "all-frames-rendered": 3150.7998046875
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1712.859375,
+          "topHeapMiB": 369.65911865234375,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-3",
+          "timingMs": {
+            "canvas-revealed": 1020.7998046875,
+            "all-frames-rendered": 3135.39990234375
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1773.453125,
+          "topHeapMiB": 373.78487396240234,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-4",
+          "timingMs": {
+            "canvas-revealed": 1057.10009765625,
+            "all-frames-rendered": 3204.300048828125
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1785.375,
+          "topHeapMiB": 376.15670013427734,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-5",
+          "timingMs": {
+            "canvas-revealed": 1021.400146484375,
+            "all-frames-rendered": 3132.7001953125
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1733.71875,
+          "topHeapMiB": 375.80673599243164,
+          "changes": 0,
+          "views": 10
+        }
+      ],
+      "warmMediansMs": {
+        "canvas-revealed": 1023.300048828125,
+        "all-frames-rendered": 3143.099853515625
+      },
+      "memoryProbe": null,
+      "functional": null,
+      "inputProbes": null
+    },
+    "complex:ab-transport-resource-b2": {
+      "build": {
+        "kind": "diagnostic",
+        "variant": "transport-resource",
+        "sourceRoot": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-open-ab-nwrao9vg/source",
+        "runtimeRevision": "4be192c7af42e89cda0a5b182082fdf07a5905a7",
+        "rendererHash": "473a6847545957e59c59ef65692da822a801d15bdb0830531c31ee1e0074544e"
+      },
+      "error": null,
+      "rendererErrors": [],
+      "thumbnailErrors": 7,
+      "samples": [
+        {
+          "phase": "first-list-open",
+          "timingMs": {
+            "canvas-revealed": 1558.699951171875,
+            "all-frames-rendered": 4514.199951171875
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 44,
+            "codeReads": 48,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 1399.546875,
+          "topHeapMiB": 264.83346939086914,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-1",
+          "timingMs": {
+            "canvas-revealed": 1075.60009765625,
+            "all-frames-rendered": 3418.5
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 2018.84375,
+          "topHeapMiB": 638.9109802246094,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-2",
+          "timingMs": {
+            "canvas-revealed": 1080.199951171875,
+            "all-frames-rendered": 3404.39990234375
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 2062.234375,
+          "topHeapMiB": 364.1656265258789,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-3",
+          "timingMs": {
+            "canvas-revealed": 1027.599853515625,
+            "all-frames-rendered": 3299.5
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 2062.6875,
+          "topHeapMiB": 349.2205581665039,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-4",
+          "timingMs": {
+            "canvas-revealed": 1029.7998046875,
+            "all-frames-rendered": 3144.0
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 2080.140625,
+          "topHeapMiB": 374.1782684326172,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-5",
+          "timingMs": {
+            "canvas-revealed": 1038.999755859375,
+            "all-frames-rendered": 3165.89990234375
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1827.59375,
+          "topHeapMiB": 374.60466384887695,
+          "changes": 0,
+          "views": 10
+        }
+      ],
+      "warmMediansMs": {
+        "canvas-revealed": 1034.3997802734375,
+        "all-frames-rendered": 3232.699951171875
+      },
+      "memoryProbe": null,
+      "functional": null,
+      "inputProbes": null
+    },
+    "complex:ab-registration-discovery": {
+      "build": {
+        "kind": "diagnostic",
+        "variant": "registration",
+        "sourceRoot": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-open-ab-nwrao9vg/source",
+        "runtimeRevision": "4be192c7af42e89cda0a5b182082fdf07a5905a7",
+        "rendererHash": "c26d15104e09a99d9f5c31e239cbc7fedd822f06d10fc4aa03f3a9cf53922b82"
+      },
+      "error": null,
+      "rendererErrors": [],
+      "thumbnailErrors": 7,
+      "samples": [
+        {
+          "phase": "first-list-open",
+          "timingMs": {
+            "canvas-revealed": 1512.599853515625,
+            "all-frames-rendered": 4175.89990234375
+          },
+          "resources": {
+            "reads": 49,
+            "hits": 40,
+            "codeReads": 44,
+            "codeReadBytes": 22136840
+          },
+          "rssSumMiB": 1424.609375,
+          "topHeapMiB": 329.3484344482422,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-1",
+          "timingMs": {
+            "canvas-revealed": 1130.599853515625,
+            "all-frames-rendered": 3246.2998046875
+          },
+          "resources": {
+            "reads": 49,
+            "hits": 49,
+            "codeReads": 44,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 1726.328125,
+          "topHeapMiB": 364.3857955932617,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-2",
+          "timingMs": {
+            "canvas-revealed": 1150.2001953125,
+            "all-frames-rendered": 3279.800048828125
+          },
+          "resources": {
+            "reads": 49,
+            "hits": 49,
+            "codeReads": 44,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 1924.53125,
+          "topHeapMiB": 553.4963188171387,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-3",
+          "timingMs": {
+            "canvas-revealed": 1124.89990234375,
+            "all-frames-rendered": 3365.599853515625
+          },
+          "resources": {
+            "reads": 49,
+            "hits": 49,
+            "codeReads": 44,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 2640.953125,
+          "topHeapMiB": 943.3523406982422,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-4",
+          "timingMs": {
+            "canvas-revealed": 1248.999755859375,
+            "all-frames-rendered": 3457.2998046875
+          },
+          "resources": {
+            "reads": 49,
+            "hits": 49,
+            "codeReads": 44,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 2864.359375,
+          "topHeapMiB": 1000.608642578125,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-5",
+          "timingMs": {
+            "canvas-revealed": 1170.89990234375,
+            "all-frames-rendered": 3503.39990234375
+          },
+          "resources": {
+            "reads": 49,
+            "hits": 49,
+            "codeReads": 44,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 3352.984375,
+          "topHeapMiB": 1390.7301940917969,
+          "changes": 0,
+          "views": 10
+        }
+      ],
+      "warmMediansMs": {
+        "canvas-revealed": 1160.550048828125,
+        "all-frames-rendered": 3411.4498291015625
+      },
+      "memoryProbe": null,
+      "functional": null,
+      "inputProbes": null
+    },
+    "complex:ab-registration-confirm": {
+      "build": {
+        "kind": "diagnostic",
+        "variant": "registration",
+        "sourceRoot": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-open-ab-nwrao9vg/source",
+        "runtimeRevision": "4be192c7af42e89cda0a5b182082fdf07a5905a7",
+        "rendererHash": "c26d15104e09a99d9f5c31e239cbc7fedd822f06d10fc4aa03f3a9cf53922b82"
+      },
+      "error": null,
+      "rendererErrors": [],
+      "thumbnailErrors": 7,
+      "samples": [
+        {
+          "phase": "first-list-open",
+          "timingMs": {
+            "canvas-revealed": 1489.400146484375,
+            "all-frames-rendered": 4152.400146484375
+          },
+          "resources": {
+            "reads": 49,
+            "hits": 40,
+            "codeReads": 44,
+            "codeReadBytes": 22136840
+          },
+          "rssSumMiB": 1426.5,
+          "topHeapMiB": 328.3218994140625,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-1",
+          "timingMs": {
+            "canvas-revealed": 1145.699951171875,
+            "all-frames-rendered": 3327.0
+          },
+          "resources": {
+            "reads": 49,
+            "hits": 49,
+            "codeReads": 44,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 1754.171875,
+          "topHeapMiB": 348.0005760192871,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-2",
+          "timingMs": {
+            "canvas-revealed": 1158.800048828125,
+            "all-frames-rendered": 3257.39990234375
+          },
+          "resources": {
+            "reads": 49,
+            "hits": 49,
+            "codeReads": 44,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 1712.1875,
+          "topHeapMiB": 370.19467544555664,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-3",
+          "timingMs": {
+            "canvas-revealed": 1169.60009765625,
+            "all-frames-rendered": 3257.10009765625
+          },
+          "resources": {
+            "reads": 49,
+            "hits": 49,
+            "codeReads": 44,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 1953.421875,
+          "topHeapMiB": 582.9321937561035,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-4",
+          "timingMs": {
+            "canvas-revealed": 1149.0,
+            "all-frames-rendered": 3365.400146484375
+          },
+          "resources": {
+            "reads": 49,
+            "hits": 49,
+            "codeReads": 44,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 2722.046875,
+          "topHeapMiB": 972.3840026855469,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-5",
+          "timingMs": {
+            "canvas-revealed": 1323.5,
+            "all-frames-rendered": 3580.10009765625
+          },
+          "resources": {
+            "reads": 49,
+            "hits": 49,
+            "codeReads": 44,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 2813.46875,
+          "topHeapMiB": 1066.8648223876953,
+          "changes": 0,
+          "views": 10
+        }
+      ],
+      "warmMediansMs": {
+        "canvas-revealed": 1164.2000732421875,
+        "all-frames-rendered": 3311.4000244140625
+      },
+      "memoryProbe": null,
+      "functional": null,
+      "inputProbes": null
+    },
+    "complex:ab-registration-v2": {
+      "build": {
+        "kind": "diagnostic",
+        "variant": "registration-v2",
+        "sourceRoot": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-open-ab-nwrao9vg/source",
+        "runtimeRevision": "4be192c7af42e89cda0a5b182082fdf07a5905a7",
+        "rendererHash": "904292849570e52bc7eca80cee6a7612d7484d69cd03b535e79765683a2f7aa2"
+      },
+      "error": null,
+      "rendererErrors": [],
+      "thumbnailErrors": 7,
+      "samples": [
+        {
+          "phase": "first-list-open",
+          "timingMs": {
+            "canvas-revealed": 1530.0,
+            "all-frames-rendered": 4286.300048828125
+          },
+          "resources": {
+            "reads": 49,
+            "hits": 40,
+            "codeReads": 44,
+            "codeReadBytes": 22136840
+          },
+          "rssSumMiB": 1424.84375,
+          "topHeapMiB": 320.43809509277344,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-1",
+          "timingMs": {
+            "canvas-revealed": 1121.10009765625,
+            "all-frames-rendered": 3296.000244140625
+          },
+          "resources": {
+            "reads": 49,
+            "hits": 49,
+            "codeReads": 44,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 1747.703125,
+          "topHeapMiB": 348.40078353881836,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-2",
+          "timingMs": {
+            "canvas-revealed": 1144.60009765625,
+            "all-frames-rendered": 3195.5
+          },
+          "resources": {
+            "reads": 49,
+            "hits": 49,
+            "codeReads": 44,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 1707.375,
+          "topHeapMiB": 371.88265228271484,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-3",
+          "timingMs": {
+            "canvas-revealed": 1192.5,
+            "all-frames-rendered": 3326.39990234375
+          },
+          "resources": {
+            "reads": 49,
+            "hits": 49,
+            "codeReads": 44,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 1954.609375,
+          "topHeapMiB": 585.1671371459961,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-4",
+          "timingMs": {
+            "canvas-revealed": 1130.89990234375,
+            "all-frames-rendered": 3368.5
+          },
+          "resources": {
+            "reads": 49,
+            "hits": 49,
+            "codeReads": 44,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 2733.578125,
+          "topHeapMiB": 974.7640914916992,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-5",
+          "timingMs": {
+            "canvas-revealed": 1255.300048828125,
+            "all-frames-rendered": 3376.699951171875
+          },
+          "resources": {
+            "reads": 49,
+            "hits": 49,
+            "codeReads": 44,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 2488.84375,
+          "topHeapMiB": 656.6889038085938,
+          "changes": 0,
+          "views": 10
+        }
+      ],
+      "warmMediansMs": {
+        "canvas-revealed": 1168.550048828125,
+        "all-frames-rendered": 3347.449951171875
+      },
+      "memoryProbe": null,
+      "functional": null,
+      "inputProbes": null
+    },
+    "complex:ab-noop-eval-discovery": {
+      "build": {
+        "kind": "diagnostic",
+        "variant": "noop-eval",
+        "sourceRoot": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-open-ab-nwrao9vg/source",
+        "runtimeRevision": "4be192c7af42e89cda0a5b182082fdf07a5905a7",
+        "rendererHash": "d50f83d533d7ac617430022fac14b97611bb9b680f38257775cc3985a1dd2b92"
+      },
+      "error": null,
+      "rendererErrors": [],
+      "thumbnailErrors": 7,
+      "samples": [
+        {
+          "phase": "first-list-open",
+          "timingMs": {
+            "canvas-revealed": 1521.000244140625,
+            "all-frames-rendered": 4169.300048828125
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 44,
+            "codeReads": 48,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 1429.90625,
+          "topHeapMiB": 328.9800910949707,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-1",
+          "timingMs": {
+            "canvas-revealed": 1164.800048828125,
+            "all-frames-rendered": 3305.900146484375
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1743.6875,
+          "topHeapMiB": 359.9901809692383,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-2",
+          "timingMs": {
+            "canvas-revealed": 1145.7001953125,
+            "all-frames-rendered": 3270.60009765625
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1713.109375,
+          "topHeapMiB": 375.85434341430664,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-3",
+          "timingMs": {
+            "canvas-revealed": 1133.400146484375,
+            "all-frames-rendered": 3254.400146484375
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1818.046875,
+          "topHeapMiB": 373.7004089355469,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-4",
+          "timingMs": {
+            "canvas-revealed": 1192.0,
+            "all-frames-rendered": 3336.10009765625
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1998.5625,
+          "topHeapMiB": 601.8958129882812,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-5",
+          "timingMs": {
+            "canvas-revealed": 1182.60009765625,
+            "all-frames-rendered": 3477.10009765625
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 2758.375,
+          "topHeapMiB": 994.5903816223145,
+          "changes": 0,
+          "views": 10
+        }
+      ],
+      "warmMediansMs": {
+        "canvas-revealed": 1164.150146484375,
+        "all-frames-rendered": 3303.35009765625
+      },
+      "memoryProbe": null,
+      "functional": null,
+      "inputProbes": null
+    },
+    "complex:ab-noop-eval-confirm": {
+      "build": {
+        "kind": "diagnostic",
+        "variant": "noop-eval",
+        "sourceRoot": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-open-ab-nwrao9vg/source",
+        "runtimeRevision": "4be192c7af42e89cda0a5b182082fdf07a5905a7",
+        "rendererHash": "d50f83d533d7ac617430022fac14b97611bb9b680f38257775cc3985a1dd2b92"
+      },
+      "error": null,
+      "rendererErrors": [],
+      "thumbnailErrors": 7,
+      "samples": [
+        {
+          "phase": "first-list-open",
+          "timingMs": {
+            "canvas-revealed": 1549.800048828125,
+            "all-frames-rendered": 4292.199951171875
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 44,
+            "codeReads": 48,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 1403.140625,
+          "topHeapMiB": 312.24341201782227,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-1",
+          "timingMs": {
+            "canvas-revealed": 1139.099853515625,
+            "all-frames-rendered": 3309.39990234375
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1776.546875,
+          "topHeapMiB": 336.9066390991211,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-2",
+          "timingMs": {
+            "canvas-revealed": 1115.199951171875,
+            "all-frames-rendered": 3330.800048828125
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1813.234375,
+          "topHeapMiB": 326.52671813964844,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-3",
+          "timingMs": {
+            "canvas-revealed": 1140.5,
+            "all-frames-rendered": 3364.400146484375
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1836.765625,
+          "topHeapMiB": 331.5136070251465,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-4",
+          "timingMs": {
+            "canvas-revealed": 1124.699951171875,
+            "all-frames-rendered": 3296.800048828125
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1852.921875,
+          "topHeapMiB": 345.1733818054199,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-5",
+          "timingMs": {
+            "canvas-revealed": 1140.10009765625,
+            "all-frames-rendered": 3263.0
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1821.234375,
+          "topHeapMiB": 363.7991714477539,
+          "changes": 0,
+          "views": 10
+        }
+      ],
+      "warmMediansMs": {
+        "canvas-revealed": 1132.4000244140625,
+        "all-frames-rendered": 3313.800048828125
+      },
+      "memoryProbe": null,
+      "functional": null,
+      "inputProbes": null
+    },
+    "complex:ab-host-preload-discovery": {
+      "build": {
+        "kind": "diagnostic",
+        "variant": "host-preload",
+        "sourceRoot": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-open-ab-nwrao9vg/source",
+        "runtimeRevision": "4be192c7af42e89cda0a5b182082fdf07a5905a7",
+        "rendererHash": "f3585b0f491e490f1e74d3792ca4ce0ad9cf3ead5da2ba8717e85b45d8f0000a"
+      },
+      "error": null,
+      "rendererErrors": [],
+      "thumbnailErrors": 7,
+      "samples": [
+        {
+          "phase": "first-list-open",
+          "timingMs": {
+            "canvas-revealed": 1463.60009765625,
+            "all-frames-rendered": 4107.400146484375
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 44,
+            "codeReads": 48,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 1425.46875,
+          "topHeapMiB": 327.45244216918945,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-1",
+          "timingMs": {
+            "canvas-revealed": 1152.400146484375,
+            "all-frames-rendered": 3255.30029296875
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1733.046875,
+          "topHeapMiB": 370.78406524658203,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-2",
+          "timingMs": {
+            "canvas-revealed": 1114.800048828125,
+            "all-frames-rendered": 3224.300048828125
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1754.703125,
+          "topHeapMiB": 401.0515441894531,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-3",
+          "timingMs": {
+            "canvas-revealed": 1137.39990234375,
+            "all-frames-rendered": 3291.10009765625
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1994.75,
+          "topHeapMiB": 596.0614776611328,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-4",
+          "timingMs": {
+            "canvas-revealed": 1133.699951171875,
+            "all-frames-rendered": 3367.199951171875
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 2778.71875,
+          "topHeapMiB": 989.4677314758301,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-5",
+          "timingMs": {
+            "canvas-revealed": 1108.699951171875,
+            "all-frames-rendered": 3304.60009765625
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 2392.015625,
+          "topHeapMiB": 663.361156463623,
+          "changes": 0,
+          "views": 10
+        }
+      ],
+      "warmMediansMs": {
+        "canvas-revealed": 1124.25,
+        "all-frames-rendered": 3297.85009765625
+      },
+      "memoryProbe": null,
+      "functional": null,
+      "inputProbes": null
+    },
+    "complex:ab-host-preload-confirm": {
+      "build": {
+        "kind": "diagnostic",
+        "variant": "host-preload",
+        "sourceRoot": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-open-ab-nwrao9vg/source",
+        "runtimeRevision": "4be192c7af42e89cda0a5b182082fdf07a5905a7",
+        "rendererHash": "f3585b0f491e490f1e74d3792ca4ce0ad9cf3ead5da2ba8717e85b45d8f0000a"
+      },
+      "error": null,
+      "rendererErrors": [],
+      "thumbnailErrors": 7,
+      "samples": [
+        {
+          "phase": "first-list-open",
+          "timingMs": {
+            "canvas-revealed": 1524.10009765625,
+            "all-frames-rendered": 4216.10009765625
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 44,
+            "codeReads": 48,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 1432.375,
+          "topHeapMiB": 327.4684524536133,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-1",
+          "timingMs": {
+            "canvas-revealed": 1118.400146484375,
+            "all-frames-rendered": 3222.800048828125
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1733.28125,
+          "topHeapMiB": 368.1779594421387,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-2",
+          "timingMs": {
+            "canvas-revealed": 1158.500244140625,
+            "all-frames-rendered": 3344.800048828125
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1965.265625,
+          "topHeapMiB": 596.474723815918,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-3",
+          "timingMs": {
+            "canvas-revealed": 1102.900146484375,
+            "all-frames-rendered": 3359.400146484375
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 2732.640625,
+          "topHeapMiB": 989.9018707275391,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-4",
+          "timingMs": {
+            "canvas-revealed": 1205.2001953125,
+            "all-frames-rendered": 3355.100341796875
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 2647.5625,
+          "topHeapMiB": 619.2070350646973,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-5",
+          "timingMs": {
+            "canvas-revealed": 1107.5,
+            "all-frames-rendered": 3461.900146484375
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 2391.4375,
+          "topHeapMiB": 301.3620414733887,
+          "changes": 0,
+          "views": 10
+        }
+      ],
+      "warmMediansMs": {
+        "canvas-revealed": 1133.0001220703125,
+        "all-frames-rendered": 3357.250244140625
+      },
+      "memoryProbe": null,
+      "functional": null,
+      "inputProbes": null
+    },
+    "complex:ab-idle-deadline-discovery": {
+      "build": {
+        "kind": "diagnostic",
+        "variant": "idle-deadline",
+        "sourceRoot": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-open-ab-nwrao9vg/source",
+        "runtimeRevision": "4be192c7af42e89cda0a5b182082fdf07a5905a7",
+        "rendererHash": "620becbc94bf6213325a273cccedf9ec34334d3bb7105b50001416cb0ee5a4b3"
+      },
+      "error": null,
+      "rendererErrors": [],
+      "thumbnailErrors": 7,
+      "samples": [
+        {
+          "phase": "first-list-open",
+          "timingMs": {
+            "canvas-revealed": 1492.900146484375,
+            "all-frames-rendered": 4133.7001953125
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 44,
+            "codeReads": 48,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 1443.171875,
+          "topHeapMiB": 326.8119583129883,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-1",
+          "timingMs": {
+            "canvas-revealed": 1149.2001953125,
+            "all-frames-rendered": 3231.0
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1727.234375,
+          "topHeapMiB": 368.9957695007324,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-2",
+          "timingMs": {
+            "canvas-revealed": 1149.5,
+            "all-frames-rendered": 3245.300048828125
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1971.640625,
+          "topHeapMiB": 586.108325958252,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-3",
+          "timingMs": {
+            "canvas-revealed": 1154.699951171875,
+            "all-frames-rendered": 3349.900146484375
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 2718.078125,
+          "topHeapMiB": 978.6140365600586,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-4",
+          "timingMs": {
+            "canvas-revealed": 1289.7001953125,
+            "all-frames-rendered": 3516.0
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 2712.703125,
+          "topHeapMiB": 849.6438636779785,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-5",
+          "timingMs": {
+            "canvas-revealed": 1123.699951171875,
+            "all-frames-rendered": 3328.5
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 3146.5625,
+          "topHeapMiB": 1241.4678077697754,
+          "changes": 0,
+          "views": 10
+        }
+      ],
+      "warmMediansMs": {
+        "canvas-revealed": 1152.0999755859375,
+        "all-frames-rendered": 3339.2000732421875
+      },
+      "memoryProbe": null,
+      "functional": null,
+      "inputProbes": null
+    },
+    "complex:ab-idle-deadline-confirm": {
+      "build": {
+        "kind": "diagnostic",
+        "variant": "idle-deadline",
+        "sourceRoot": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-open-ab-nwrao9vg/source",
+        "runtimeRevision": "4be192c7af42e89cda0a5b182082fdf07a5905a7",
+        "rendererHash": "620becbc94bf6213325a273cccedf9ec34334d3bb7105b50001416cb0ee5a4b3"
+      },
+      "error": null,
+      "rendererErrors": [],
+      "thumbnailErrors": 7,
+      "samples": [
+        {
+          "phase": "first-list-open",
+          "timingMs": {
+            "canvas-revealed": 1515.699951171875,
+            "all-frames-rendered": 4160.699951171875
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 44,
+            "codeReads": 48,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 1394.03125,
+          "topHeapMiB": 316.4027786254883,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-1",
+          "timingMs": {
+            "canvas-revealed": 1140.10009765625,
+            "all-frames-rendered": 3264.300048828125
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1737.828125,
+          "topHeapMiB": 338.7780570983887,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-2",
+          "timingMs": {
+            "canvas-revealed": 1114.300048828125,
+            "all-frames-rendered": 3238.699951171875
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1699.078125,
+          "topHeapMiB": 348.62928009033203,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-3",
+          "timingMs": {
+            "canvas-revealed": 1152.5,
+            "all-frames-rendered": 3244.89990234375
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1784.859375,
+          "topHeapMiB": 374.4917793273926,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-4",
+          "timingMs": {
+            "canvas-revealed": 1154.800048828125,
+            "all-frames-rendered": 3248.900146484375
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1833.21875,
+          "topHeapMiB": 373.8706283569336,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-5",
+          "timingMs": {
+            "canvas-revealed": 1192.199951171875,
+            "all-frames-rendered": 3250.0
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1992.59375,
+          "topHeapMiB": 592.2395706176758,
+          "changes": 0,
+          "views": 10
+        }
+      ],
+      "warmMediansMs": {
+        "canvas-revealed": 1153.6500244140625,
+        "all-frames-rendered": 3246.9000244140625
+      },
+      "memoryProbe": null,
+      "functional": null,
+      "inputProbes": null
+    },
+    "complex:final-baseline-complex": {
+      "build": {
+        "kind": "diagnostic",
+        "variant": "baseline",
+        "sourceRoot": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-open-ab-nwrao9vg/source",
+        "runtimeRevision": "4be192c7af42e89cda0a5b182082fdf07a5905a7",
+        "rendererHash": "6eab7b885330cc841aad08dc902b0f80e659bdc93c9c567bdbd52bc39f4009d0"
+      },
+      "error": null,
+      "rendererErrors": [],
+      "thumbnailErrors": 7,
+      "samples": [
+        {
+          "phase": "first-list-open",
+          "timingMs": {
+            "canvas-revealed": 1519.999755859375,
+            "all-frames-rendered": 4167.499755859375
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 44,
+            "codeReads": 48,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 1432.390625,
+          "topHeapMiB": 326.9772834777832,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-1",
+          "timingMs": {
+            "canvas-revealed": 1134.099853515625,
+            "all-frames-rendered": 3230.2998046875
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1723.609375,
+          "topHeapMiB": 372.0524559020996,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-2",
+          "timingMs": {
+            "canvas-revealed": 1192.099853515625,
+            "all-frames-rendered": 3275.599853515625
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1949.390625,
+          "topHeapMiB": 583.9478950500488,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-3",
+          "timingMs": {
+            "canvas-revealed": 1116.39990234375,
+            "all-frames-rendered": 3342.199951171875
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 2747.8125,
+          "topHeapMiB": 976.3683547973633,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-4",
+          "timingMs": {
+            "canvas-revealed": 1324.599853515625,
+            "all-frames-rendered": 3613.89990234375
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 2817.671875,
+          "topHeapMiB": 1070.4392356872559,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-5",
+          "timingMs": {
+            "canvas-revealed": 1180.69970703125,
+            "all-frames-rendered": 3476.099609375
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 3481.015625,
+          "topHeapMiB": 1461.334545135498,
+          "changes": 0,
+          "views": 10
+        }
+      ],
+      "warmMediansMs": {
+        "canvas-revealed": 1186.3997802734375,
+        "all-frames-rendered": 3409.1497802734375
+      },
+      "memoryProbe": null,
+      "functional": null,
+      "inputProbes": null
+    },
+    "complex:final-combined-complex": {
+      "build": {
+        "kind": "diagnostic",
+        "variant": "combined",
+        "sourceRoot": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-open-ab-nwrao9vg/source",
+        "runtimeRevision": "4be192c7af42e89cda0a5b182082fdf07a5905a7",
+        "rendererHash": "68531de6163e1ab11daccad4fb825f1f019738b301e03cd52d2f66ececeb6019"
+      },
+      "error": null,
+      "rendererErrors": [],
+      "thumbnailErrors": 7,
+      "samples": [
+        {
+          "phase": "first-list-open",
+          "timingMs": {
+            "canvas-revealed": 1396.300048828125,
+            "all-frames-rendered": 4084.0
+          },
+          "resources": {
+            "reads": 49,
+            "hits": 40,
+            "codeReads": 44,
+            "codeReadBytes": 22136840
+          },
+          "rssSumMiB": 1472.296875,
+          "topHeapMiB": 344.1651420593262,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-1",
+          "timingMs": {
+            "canvas-revealed": 1067.10009765625,
+            "all-frames-rendered": 3232.400146484375
+          },
+          "resources": {
+            "reads": 49,
+            "hits": 49,
+            "codeReads": 44,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 1986.40625,
+          "topHeapMiB": 615.791374206543,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-2",
+          "timingMs": {
+            "canvas-revealed": 1021.2001953125,
+            "all-frames-rendered": 3396.7001953125
+          },
+          "resources": {
+            "reads": 49,
+            "hits": 49,
+            "codeReads": 44,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 2231.984375,
+          "topHeapMiB": 295.9463005065918,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-3",
+          "timingMs": {
+            "canvas-revealed": 1018.500244140625,
+            "all-frames-rendered": 3203.500244140625
+          },
+          "resources": {
+            "reads": 49,
+            "hits": 49,
+            "codeReads": 44,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 2475.640625,
+          "topHeapMiB": 663.5178756713867,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-4",
+          "timingMs": {
+            "canvas-revealed": 1035.5,
+            "all-frames-rendered": 3219.300048828125
+          },
+          "resources": {
+            "reads": 49,
+            "hits": 49,
+            "codeReads": 44,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 2447.234375,
+          "topHeapMiB": 637.4986419677734,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-5",
+          "timingMs": {
+            "canvas-revealed": 1048.300048828125,
+            "all-frames-rendered": 3209.800048828125
+          },
+          "resources": {
+            "reads": 49,
+            "hits": 49,
+            "codeReads": 44,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 2004.890625,
+          "topHeapMiB": 364.60739517211914,
+          "changes": 0,
+          "views": 10
+        }
+      ],
+      "warmMediansMs": {
+        "canvas-revealed": 1028.35009765625,
+        "all-frames-rendered": 3214.550048828125
+      },
+      "memoryProbe": null,
+      "functional": null,
+      "inputProbes": null
+    },
+    "complex:memory-baseline": {
+      "build": {
+        "kind": "diagnostic",
+        "variant": "baseline",
+        "sourceRoot": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-open-ab-nwrao9vg/source",
+        "runtimeRevision": "4be192c7af42e89cda0a5b182082fdf07a5905a7",
+        "rendererHash": "6eab7b885330cc841aad08dc902b0f80e659bdc93c9c567bdbd52bc39f4009d0"
+      },
+      "error": null,
+      "rendererErrors": [],
+      "thumbnailErrors": 7,
+      "samples": [
+        {
+          "phase": "first-list-open",
+          "timingMs": {
+            "canvas-revealed": 1501.39990234375,
+            "all-frames-rendered": 4190.5
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 44,
+            "codeReads": 48,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 1384.015625,
+          "topHeapMiB": 312.38539123535156,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-1",
+          "timingMs": {
+            "canvas-revealed": 1114.099853515625,
+            "all-frames-rendered": 3281.2998046875
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1770.328125,
+          "topHeapMiB": 337.2278861999512,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-2",
+          "timingMs": {
+            "canvas-revealed": 1118.19970703125,
+            "all-frames-rendered": 3343.39990234375
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1826.953125,
+          "topHeapMiB": 326.7665710449219,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-3",
+          "timingMs": {
+            "canvas-revealed": 1121.89990234375,
+            "all-frames-rendered": 3333.699951171875
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1838.78125,
+          "topHeapMiB": 331.3139839172363,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-4",
+          "timingMs": {
+            "canvas-revealed": 1132.89990234375,
+            "all-frames-rendered": 3325.2998046875
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1847.34375,
+          "topHeapMiB": 345.91988372802734,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-5",
+          "timingMs": {
+            "canvas-revealed": 1199.5,
+            "all-frames-rendered": 3371.89990234375
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1926.125,
+          "topHeapMiB": 552.0057830810547,
+          "changes": 0,
+          "views": 10
+        }
+      ],
+      "warmMediansMs": {
+        "canvas-revealed": 1127.39990234375,
+        "all-frames-rendered": 3338.5499267578125
+      },
+      "memoryProbe": {
+        "peakRssKiB": 2198272,
+        "afterReturn": [
+          {
+            "iteration": 5,
+            "heap": {
+              "backingStorageSize": 73777299,
+              "embedderHeapUsedSize": 29497144,
+              "totalSize": 363954176,
+              "usedSize": 268100252
+            },
+            "rssKiB": 1584688
+          }
+        ]
+      },
+      "functional": null,
+      "inputProbes": null
+    },
+    "complex:memory-baseline-2": {
+      "build": {
+        "kind": "diagnostic",
+        "variant": "baseline",
+        "sourceRoot": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-open-ab-nwrao9vg/source",
+        "runtimeRevision": "4be192c7af42e89cda0a5b182082fdf07a5905a7",
+        "rendererHash": "6eab7b885330cc841aad08dc902b0f80e659bdc93c9c567bdbd52bc39f4009d0"
+      },
+      "error": null,
+      "rendererErrors": [],
+      "thumbnailErrors": 7,
+      "samples": [
+        {
+          "phase": "first-list-open",
+          "timingMs": {
+            "canvas-revealed": 1491.300048828125,
+            "all-frames-rendered": 4164.400146484375
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 44,
+            "codeReads": 48,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 1430.609375,
+          "topHeapMiB": 326.6786193847656,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-1",
+          "timingMs": {
+            "canvas-revealed": 1166.5,
+            "all-frames-rendered": 3270.89990234375
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1737.765625,
+          "topHeapMiB": 368.1954345703125,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-2",
+          "timingMs": {
+            "canvas-revealed": 1161.900146484375,
+            "all-frames-rendered": 3293.5
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1968.796875,
+          "topHeapMiB": 589.6992034912109,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-3",
+          "timingMs": {
+            "canvas-revealed": 1137.39990234375,
+            "all-frames-rendered": 3353.2998046875
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 2742.6875,
+          "topHeapMiB": 982.6213150024414,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-4",
+          "timingMs": {
+            "canvas-revealed": 1253.5,
+            "all-frames-rendered": 3448.400146484375
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 2613.625,
+          "topHeapMiB": 662.8876800537109,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-5",
+          "timingMs": {
+            "canvas-revealed": 1115.7001953125,
+            "all-frames-rendered": 3374.000244140625
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 2426.40625,
+          "topHeapMiB": 310.35489654541016,
+          "changes": 0,
+          "views": 10
+        }
+      ],
+      "warmMediansMs": {
+        "canvas-revealed": 1149.6500244140625,
+        "all-frames-rendered": 3363.6500244140625
+      },
+      "memoryProbe": {
+        "peakRssKiB": 3003920,
+        "afterReturn": [
+          {
+            "iteration": 5,
+            "heap": {
+              "backingStorageSize": 73776557,
+              "embedderHeapUsedSize": 29471056,
+              "totalSize": 282951680,
+              "usedSize": 268838796
+            },
+            "rssKiB": 1606032
+          }
+        ]
+      },
+      "functional": null,
+      "inputProbes": null
+    },
+    "complex:memory-transport": {
+      "build": {
+        "kind": "diagnostic",
+        "variant": "transport",
+        "sourceRoot": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-open-ab-nwrao9vg/source",
+        "runtimeRevision": "4be192c7af42e89cda0a5b182082fdf07a5905a7",
+        "rendererHash": "5c523e8875dc8c04832ba90c3b18eb77cea92d54a779d323a88eb27f2dac5c43"
+      },
+      "error": null,
+      "rendererErrors": [],
+      "thumbnailErrors": 7,
+      "samples": [
+        {
+          "phase": "first-list-open",
+          "timingMs": {
+            "canvas-revealed": 1416.39990234375,
+            "all-frames-rendered": 4095.2998046875
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 44,
+            "codeReads": 48,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 1420.28125,
+          "topHeapMiB": 327.1985168457031,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-1",
+          "timingMs": {
+            "canvas-revealed": 1082.7998046875,
+            "all-frames-rendered": 3248.0
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1912.484375,
+          "topHeapMiB": 575.7256965637207,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-2",
+          "timingMs": {
+            "canvas-revealed": 1033.2998046875,
+            "all-frames-rendered": 3237.0
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 2652.03125,
+          "topHeapMiB": 942.5547409057617,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-3",
+          "timingMs": {
+            "canvas-revealed": 1088.60009765625,
+            "all-frames-rendered": 3219.400146484375
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 2564.625,
+          "topHeapMiB": 374.8859405517578,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-4",
+          "timingMs": {
+            "canvas-revealed": 1053.5,
+            "all-frames-rendered": 3217.2001953125
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 2564.390625,
+          "topHeapMiB": 363.10760498046875,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-5",
+          "timingMs": {
+            "canvas-revealed": 1043.300048828125,
+            "all-frames-rendered": 3232.300048828125
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 2099.609375,
+          "topHeapMiB": 362.5992660522461,
+          "changes": 0,
+          "views": 10
+        }
+      ],
+      "warmMediansMs": {
+        "canvas-revealed": 1048.4000244140625,
+        "all-frames-rendered": 3225.85009765625
+      },
+      "memoryProbe": {
+        "peakRssKiB": 2977664,
+        "afterReturn": [
+          {
+            "iteration": 5,
+            "heap": {
+              "backingStorageSize": 73789054,
+              "embedderHeapUsedSize": 29578576,
+              "totalSize": 298942464,
+              "usedSize": 268179548
+            },
+            "rssKiB": 1631312
+          }
+        ]
+      },
+      "functional": null,
+      "inputProbes": null
+    },
+    "complex:memory-transport-string": {
+      "build": {
+        "kind": "diagnostic",
+        "variant": "transport-string",
+        "sourceRoot": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-open-ab-nwrao9vg/source",
+        "runtimeRevision": "4be192c7af42e89cda0a5b182082fdf07a5905a7",
+        "rendererHash": "3bf4d44578afd36dd619fedfae23e6008f8f0c097dd8ce9be15186e40a8c5f59"
+      },
+      "error": null,
+      "rendererErrors": [],
+      "thumbnailErrors": 7,
+      "samples": [
+        {
+          "phase": "first-list-open",
+          "timingMs": {
+            "canvas-revealed": 1442.60009765625,
+            "all-frames-rendered": 4093.800048828125
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 44,
+            "codeReads": 48,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 1424.09375,
+          "topHeapMiB": 328.5793228149414,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-1",
+          "timingMs": {
+            "canvas-revealed": 1046.699951171875,
+            "all-frames-rendered": 3219.0
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1732.90625,
+          "topHeapMiB": 340.95653533935547,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-2",
+          "timingMs": {
+            "canvas-revealed": 1050.60009765625,
+            "all-frames-rendered": 3126.60009765625
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1681.0,
+          "topHeapMiB": 373.494441986084,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-3",
+          "timingMs": {
+            "canvas-revealed": 1099.699951171875,
+            "all-frames-rendered": 3202.300048828125
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1953.03125,
+          "topHeapMiB": 585.7488822937012,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-4",
+          "timingMs": {
+            "canvas-revealed": 1042.0,
+            "all-frames-rendered": 3269.099853515625
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 2729.859375,
+          "topHeapMiB": 961.7655601501465,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-5",
+          "timingMs": {
+            "canvas-revealed": 1154.60009765625,
+            "all-frames-rendered": 3340.400146484375
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 2459.015625,
+          "topHeapMiB": 642.6711082458496,
+          "changes": 0,
+          "views": 10
+        }
+      ],
+      "warmMediansMs": {
+        "canvas-revealed": 1075.1500244140625,
+        "all-frames-rendered": 3235.699951171875
+      },
+      "memoryProbe": {
+        "peakRssKiB": 3006816,
+        "afterReturn": [
+          {
+            "iteration": 5,
+            "heap": {
+              "backingStorageSize": 73776824,
+              "embedderHeapUsedSize": 29629328,
+              "totalSize": 366313472,
+              "usedSize": 269143508
+            },
+            "rssKiB": 1696192
+          }
+        ]
+      },
+      "functional": null,
+      "inputProbes": null
+    },
+    "complex:memory-transport-resource": {
+      "build": {
+        "kind": "diagnostic",
+        "variant": "transport-resource",
+        "sourceRoot": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-open-ab-nwrao9vg/source",
+        "runtimeRevision": "4be192c7af42e89cda0a5b182082fdf07a5905a7",
+        "rendererHash": "473a6847545957e59c59ef65692da822a801d15bdb0830531c31ee1e0074544e"
+      },
+      "error": null,
+      "rendererErrors": [],
+      "thumbnailErrors": 7,
+      "samples": [
+        {
+          "phase": "first-list-open",
+          "timingMs": {
+            "canvas-revealed": 1436.800048828125,
+            "all-frames-rendered": 4109.39990234375
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 44,
+            "codeReads": 48,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 1353.296875,
+          "topHeapMiB": 294.876220703125,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-1",
+          "timingMs": {
+            "canvas-revealed": 1038.199951171875,
+            "all-frames-rendered": 3335.199951171875
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1834.015625,
+          "topHeapMiB": 286.41838455200195,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-2",
+          "timingMs": {
+            "canvas-revealed": 1028.60009765625,
+            "all-frames-rendered": 3227.7001953125
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 2172.703125,
+          "topHeapMiB": 657.6006011962891,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-3",
+          "timingMs": {
+            "canvas-revealed": 1142.699951171875,
+            "all-frames-rendered": 3337.300048828125
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 2363.390625,
+          "topHeapMiB": 806.8939476013184,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-4",
+          "timingMs": {
+            "canvas-revealed": 1055.699951171875,
+            "all-frames-rendered": 3323.39990234375
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 3051.734375,
+          "topHeapMiB": 1177.886734008789,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-5",
+          "timingMs": {
+            "canvas-revealed": 1063.39990234375,
+            "all-frames-rendered": 3544.099853515625
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 3093.265625,
+          "topHeapMiB": 288.90693283081055,
+          "changes": 0,
+          "views": 10
+        }
+      ],
+      "warmMediansMs": {
+        "canvas-revealed": 1059.5499267578125,
+        "all-frames-rendered": 3330.3499755859375
+      },
+      "memoryProbe": {
+        "peakRssKiB": 3794272,
+        "afterReturn": [
+          {
+            "iteration": 5,
+            "heap": {
+              "backingStorageSize": 73777220,
+              "embedderHeapUsedSize": 29411864,
+              "totalSize": 293699584,
+              "usedSize": 269112512
+            },
+            "rssKiB": 1673952
+          }
+        ]
+      },
+      "functional": null,
+      "inputProbes": null
+    },
+    "complex:memory-transport-resource-2": {
+      "build": {
+        "kind": "diagnostic",
+        "variant": "transport-resource",
+        "sourceRoot": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-open-ab-nwrao9vg/source",
+        "runtimeRevision": "4be192c7af42e89cda0a5b182082fdf07a5905a7",
+        "rendererHash": "473a6847545957e59c59ef65692da822a801d15bdb0830531c31ee1e0074544e"
+      },
+      "error": null,
+      "rendererErrors": [],
+      "thumbnailErrors": 7,
+      "samples": [
+        {
+          "phase": "first-list-open",
+          "timingMs": {
+            "canvas-revealed": 1428.699951171875,
+            "all-frames-rendered": 4088.199951171875
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 44,
+            "codeReads": 48,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 1428.328125,
+          "topHeapMiB": 329.23405838012695,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-1",
+          "timingMs": {
+            "canvas-revealed": 1031.699951171875,
+            "all-frames-rendered": 3248.60009765625
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1869.0625,
+          "topHeapMiB": 534.712646484375,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-2",
+          "timingMs": {
+            "canvas-revealed": 1022.099853515625,
+            "all-frames-rendered": 3253.599853515625
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 2586.9375,
+          "topHeapMiB": 905.2552108764648,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-3",
+          "timingMs": {
+            "canvas-revealed": 1166.89990234375,
+            "all-frames-rendered": 3341.599853515625
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 2711.140625,
+          "topHeapMiB": 997.0621147155762,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-4",
+          "timingMs": {
+            "canvas-revealed": 1058.5,
+            "all-frames-rendered": 3351.60009765625
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 3339.328125,
+          "topHeapMiB": 1367.8736038208008,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-5",
+          "timingMs": {
+            "canvas-revealed": 1078.2998046875,
+            "all-frames-rendered": 3387.099853515625
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 4115.75,
+          "topHeapMiB": 1737.1631622314453,
+          "changes": 0,
+          "views": 10
+        }
+      ],
+      "warmMediansMs": {
+        "canvas-revealed": 1068.39990234375,
+        "all-frames-rendered": 3346.5999755859375
+      },
+      "memoryProbe": {
+        "peakRssKiB": 4394320,
+        "afterReturn": [
+          {
+            "iteration": 5,
+            "heap": {
+              "backingStorageSize": 73777235,
+              "embedderHeapUsedSize": 29994008,
+              "totalSize": 325943296,
+              "usedSize": 269264048
+            },
+            "rssKiB": 1770032
+          }
+        ]
+      },
+      "functional": null,
+      "inputProbes": null
+    },
+    "complex:memory-combined": {
+      "build": {
+        "kind": "diagnostic",
+        "variant": "combined",
+        "sourceRoot": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-open-ab-nwrao9vg/source",
+        "runtimeRevision": "4be192c7af42e89cda0a5b182082fdf07a5905a7",
+        "rendererHash": "68531de6163e1ab11daccad4fb825f1f019738b301e03cd52d2f66ececeb6019"
+      },
+      "error": null,
+      "rendererErrors": [],
+      "thumbnailErrors": 7,
+      "samples": [
+        {
+          "phase": "first-list-open",
+          "timingMs": {
+            "canvas-revealed": 1395.60009765625,
+            "all-frames-rendered": 4100.2001953125
+          },
+          "resources": {
+            "reads": 49,
+            "hits": 40,
+            "codeReads": 44,
+            "codeReadBytes": 22136840
+          },
+          "rssSumMiB": 1409.828125,
+          "topHeapMiB": 326.7170219421387,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-1",
+          "timingMs": {
+            "canvas-revealed": 1099.10009765625,
+            "all-frames-rendered": 3256.10009765625
+          },
+          "resources": {
+            "reads": 49,
+            "hits": 49,
+            "codeReads": 44,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 1872.8125,
+          "topHeapMiB": 556.2383346557617,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-2",
+          "timingMs": {
+            "canvas-revealed": 1026.39990234375,
+            "all-frames-rendered": 3246.39990234375
+          },
+          "resources": {
+            "reads": 49,
+            "hits": 49,
+            "codeReads": 44,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 2618.234375,
+          "topHeapMiB": 925.0677032470703,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-3",
+          "timingMs": {
+            "canvas-revealed": 1197.10009765625,
+            "all-frames-rendered": 3400.39990234375
+          },
+          "resources": {
+            "reads": 49,
+            "hits": 49,
+            "codeReads": 44,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 2736.453125,
+          "topHeapMiB": 991.2066078186035,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-4",
+          "timingMs": {
+            "canvas-revealed": 1047.300048828125,
+            "all-frames-rendered": 3325.900146484375
+          },
+          "resources": {
+            "reads": 49,
+            "hits": 49,
+            "codeReads": 44,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 3304.46875,
+          "topHeapMiB": 1359.1772079467773,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-5",
+          "timingMs": {
+            "canvas-revealed": 1058.2998046875,
+            "all-frames-rendered": 3360.5
+          },
+          "resources": {
+            "reads": 49,
+            "hits": 49,
+            "codeReads": 44,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 4057.8125,
+          "topHeapMiB": 1725.799015045166,
+          "changes": 0,
+          "views": 10
+        }
+      ],
+      "warmMediansMs": {
+        "canvas-revealed": 1052.7999267578125,
+        "all-frames-rendered": 3343.2000732421875
+      },
+      "memoryProbe": {
+        "peakRssKiB": 4355968,
+        "afterReturn": [
+          {
+            "iteration": 5,
+            "heap": {
+              "backingStorageSize": 73777639,
+              "embedderHeapUsedSize": 29697216,
+              "totalSize": 329089024,
+              "usedSize": 269327924
+            },
+            "rssKiB": 1766800
+          }
+        ]
+      },
+      "functional": null,
+      "inputProbes": null
+    },
+    "complex:input-baseline": {
+      "build": {
+        "kind": "diagnostic",
+        "variant": "baseline",
+        "sourceRoot": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-open-ab-nwrao9vg/source",
+        "runtimeRevision": "4be192c7af42e89cda0a5b182082fdf07a5905a7",
+        "rendererHash": "6eab7b885330cc841aad08dc902b0f80e659bdc93c9c567bdbd52bc39f4009d0"
+      },
+      "error": null,
+      "rendererErrors": [],
+      "thumbnailErrors": 2,
+      "samples": [
+        {
+          "phase": "first-list-open",
+          "timingMs": {
+            "canvas-revealed": 1500.800048828125,
+            "all-frames-rendered": 4536.199951171875
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 44,
+            "codeReads": 48,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 1435.421875,
+          "topHeapMiB": 330.9175033569336,
+          "changes": 0,
+          "views": 10
+        }
+      ],
+      "warmMediansMs": null,
+      "memoryProbe": null,
+      "functional": null,
+      "inputProbes": [
+        {
+          "durationMs": 48.775390625,
+          "after": "outline",
+          "rendered": 1
+        },
+        {
+          "durationMs": 66.645751953125,
+          "before": "outline",
+          "rendered": 1
+        },
+        {
+          "durationMs": 166.999267578125,
+          "after": "outline",
+          "rendered": 2
+        },
+        {
+          "durationMs": 51.7255859375,
+          "before": "outline",
+          "rendered": 2
+        },
+        {
+          "durationMs": 22.882568359375,
+          "after": "outline",
+          "rendered": 2
+        },
+        {
+          "durationMs": 24.809326171875,
+          "before": "outline",
+          "rendered": 2
+        },
+        {
+          "durationMs": 44.899658203125,
+          "after": "outline",
+          "rendered": 3
+        },
+        {
+          "durationMs": 41.248779296875,
+          "before": "outline",
+          "rendered": 3
+        }
+      ]
+    },
+    "complex:input-idle-deadline": {
+      "build": {
+        "kind": "diagnostic",
+        "variant": "idle-deadline",
+        "sourceRoot": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-open-ab-nwrao9vg/source",
+        "runtimeRevision": "4be192c7af42e89cda0a5b182082fdf07a5905a7",
+        "rendererHash": "620becbc94bf6213325a273cccedf9ec34334d3bb7105b50001416cb0ee5a4b3"
+      },
+      "error": null,
+      "rendererErrors": [],
+      "thumbnailErrors": 2,
+      "samples": [
+        {
+          "phase": "first-list-open",
+          "timingMs": {
+            "canvas-revealed": 1526.499755859375,
+            "all-frames-rendered": 4366.7998046875
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 44,
+            "codeReads": 48,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 1408.375,
+          "topHeapMiB": 322.24877548217773,
+          "changes": 0,
+          "views": 10
+        }
+      ],
+      "warmMediansMs": null,
+      "memoryProbe": null,
+      "functional": null,
+      "inputProbes": [
+        {
+          "durationMs": 43.97900390625,
+          "after": "outline",
+          "rendered": 1
+        },
+        {
+          "durationMs": 62.072998046875,
+          "before": "outline",
+          "rendered": 1
+        },
+        {
+          "durationMs": 210.146728515625,
+          "after": "outline",
+          "rendered": 2
+        },
+        {
+          "durationMs": 39.041748046875,
+          "before": "outline",
+          "rendered": 2
+        },
+        {
+          "durationMs": 40.55859375,
+          "after": "outline",
+          "rendered": 3
+        },
+        {
+          "durationMs": 31.744140625,
+          "before": "outline",
+          "rendered": 3
+        },
+        {
+          "durationMs": 17.474609375,
+          "after": "outline",
+          "rendered": 3
+        },
+        {
+          "durationMs": 27.401123046875,
+          "before": "outline",
+          "rendered": 3
+        }
+      ]
+    },
+    "complex:final-retained-complex": {
+      "build": {
+        "kind": "diagnostic",
+        "variant": "registration-v2",
+        "sourceRoot": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-open-ab-nwrao9vg/source",
+        "runtimeRevision": "4be192c7af42e89cda0a5b182082fdf07a5905a7",
+        "rendererHash": "904292849570e52bc7eca80cee6a7612d7484d69cd03b535e79765683a2f7aa2"
+      },
+      "error": null,
+      "rendererErrors": [],
+      "thumbnailErrors": 7,
+      "samples": [
+        {
+          "phase": "first-list-open",
+          "timingMs": {
+            "canvas-revealed": 1496.19970703125,
+            "all-frames-rendered": 4159.19970703125
+          },
+          "resources": {
+            "reads": 49,
+            "hits": 40,
+            "codeReads": 44,
+            "codeReadBytes": 22136840
+          },
+          "rssSumMiB": 1400.765625,
+          "topHeapMiB": 320.3271598815918,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-1",
+          "timingMs": {
+            "canvas-revealed": 1113.2998046875,
+            "all-frames-rendered": 3248.999755859375
+          },
+          "resources": {
+            "reads": 49,
+            "hits": 49,
+            "codeReads": 44,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 1749.671875,
+          "topHeapMiB": 348.48827743530273,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-2",
+          "timingMs": {
+            "canvas-revealed": 1156.89990234375,
+            "all-frames-rendered": 3254.199951171875
+          },
+          "resources": {
+            "reads": 49,
+            "hits": 49,
+            "codeReads": 44,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 1683.828125,
+          "topHeapMiB": 370.2318305969238,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-3",
+          "timingMs": {
+            "canvas-revealed": 1191.60009765625,
+            "all-frames-rendered": 3280.89990234375
+          },
+          "resources": {
+            "reads": 49,
+            "hits": 49,
+            "codeReads": 44,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 1979.875,
+          "topHeapMiB": 583.1434860229492,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-4",
+          "timingMs": {
+            "canvas-revealed": 1127.199951171875,
+            "all-frames-rendered": 3362.10009765625
+          },
+          "resources": {
+            "reads": 49,
+            "hits": 49,
+            "codeReads": 44,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 2704.640625,
+          "topHeapMiB": 972.795581817627,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-5",
+          "timingMs": {
+            "canvas-revealed": 1239.899658203125,
+            "all-frames-rendered": 3422.399658203125
+          },
+          "resources": {
+            "reads": 49,
+            "hits": 49,
+            "codeReads": 44,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 2441.90625,
+          "topHeapMiB": 659.4825592041016,
+          "changes": 0,
+          "views": 10
+        }
+      ],
+      "warmMediansMs": {
+        "canvas-revealed": 1174.25,
+        "all-frames-rendered": 3321.5
+      },
+      "memoryProbe": null,
+      "functional": null,
+      "inputProbes": null
+    },
+    "complex:memory-baseline-3": {
+      "build": {
+        "kind": "diagnostic",
+        "variant": "baseline",
+        "sourceRoot": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-open-ab-nwrao9vg/source",
+        "runtimeRevision": "4be192c7af42e89cda0a5b182082fdf07a5905a7",
+        "rendererHash": "6eab7b885330cc841aad08dc902b0f80e659bdc93c9c567bdbd52bc39f4009d0"
+      },
+      "error": null,
+      "rendererErrors": [],
+      "thumbnailErrors": 7,
+      "samples": [
+        {
+          "phase": "first-list-open",
+          "timingMs": {
+            "canvas-revealed": 1532.300048828125,
+            "all-frames-rendered": 4216.699951171875
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 44,
+            "codeReads": 48,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 1424.890625,
+          "topHeapMiB": 326.94002532958984,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-1",
+          "timingMs": {
+            "canvas-revealed": 1165.800048828125,
+            "all-frames-rendered": 3295.10009765625
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1718.015625,
+          "topHeapMiB": 372.6788139343262,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-2",
+          "timingMs": {
+            "canvas-revealed": 1194.2001953125,
+            "all-frames-rendered": 3297.60009765625
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1962.40625,
+          "topHeapMiB": 587.3471260070801,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-3",
+          "timingMs": {
+            "canvas-revealed": 1117.10009765625,
+            "all-frames-rendered": 3431.0
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 2746.078125,
+          "topHeapMiB": 980.7780342102051,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-4",
+          "timingMs": {
+            "canvas-revealed": 1297.500244140625,
+            "all-frames-rendered": 3561.000244140625
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 2828.40625,
+          "topHeapMiB": 1066.93843460083,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-5",
+          "timingMs": {
+            "canvas-revealed": 1138.800048828125,
+            "all-frames-rendered": 3443.89990234375
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 3479.6875,
+          "topHeapMiB": 1458.529972076416,
+          "changes": 0,
+          "views": 10
+        }
+      ],
+      "warmMediansMs": {
+        "canvas-revealed": 1166.5001220703125,
+        "all-frames-rendered": 3437.449951171875
+      },
+      "memoryProbe": {
+        "peakRssKiB": 3792144,
+        "afterReturn": [
+          {
+            "iteration": 5,
+            "heap": {
+              "backingStorageSize": 73776552,
+              "embedderHeapUsedSize": 29971936,
+              "totalSize": 329613312,
+              "usedSize": 269407152
+            },
+            "rssKiB": 1788944
+          }
+        ]
+      },
+      "functional": null,
+      "inputProbes": null
+    },
+    "complex:memory-baseline-4": {
+      "build": {
+        "kind": "diagnostic",
+        "variant": "baseline",
+        "sourceRoot": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-open-ab-nwrao9vg/source",
+        "runtimeRevision": "4be192c7af42e89cda0a5b182082fdf07a5905a7",
+        "rendererHash": "6eab7b885330cc841aad08dc902b0f80e659bdc93c9c567bdbd52bc39f4009d0"
+      },
+      "error": null,
+      "rendererErrors": [],
+      "thumbnailErrors": 7,
+      "samples": [
+        {
+          "phase": "first-list-open",
+          "timingMs": {
+            "canvas-revealed": 1556.999755859375,
+            "all-frames-rendered": 4267.19970703125
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 44,
+            "codeReads": 48,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 1421.296875,
+          "topHeapMiB": 320.42596435546875,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-1",
+          "timingMs": {
+            "canvas-revealed": 1149.599853515625,
+            "all-frames-rendered": 3351.7998046875
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1741.5,
+          "topHeapMiB": 341.26482009887695,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-2",
+          "timingMs": {
+            "canvas-revealed": 1153.39990234375,
+            "all-frames-rendered": 3268.499755859375
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1689.640625,
+          "topHeapMiB": 372.50500106811523,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-3",
+          "timingMs": {
+            "canvas-revealed": 1163.39990234375,
+            "all-frames-rendered": 3332.699951171875
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 1994.453125,
+          "topHeapMiB": 617.6770515441895,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-4",
+          "timingMs": {
+            "canvas-revealed": 1141.89990234375,
+            "all-frames-rendered": 3471.39990234375
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 2279.109375,
+          "topHeapMiB": 300.8247528076172,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-5",
+          "timingMs": {
+            "canvas-revealed": 1165.900146484375,
+            "all-frames-rendered": 3432.900146484375
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 53,
+            "codeReads": 48,
+            "codeReadBytes": 26564208
+          },
+          "rssSumMiB": 2085.359375,
+          "topHeapMiB": 282.97179794311523,
+          "changes": 0,
+          "views": 10
+        }
+      ],
+      "warmMediansMs": {
+        "canvas-revealed": 1158.39990234375,
+        "all-frames-rendered": 3382.800048828125
+      },
+      "memoryProbe": {
+        "peakRssKiB": 2686560,
+        "afterReturn": [
+          {
+            "iteration": 5,
+            "heap": {
+              "backingStorageSize": 73776489,
+              "embedderHeapUsedSize": 29408280,
+              "totalSize": 322273280,
+              "usedSize": 269181772
+            },
+            "rssKiB": 1666912
+          }
+        ]
+      },
+      "functional": null,
+      "inputProbes": null
+    },
+    "complex:memory-registration-v2-1": {
+      "build": {
+        "kind": "diagnostic",
+        "variant": "registration-v2",
+        "sourceRoot": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-open-ab-nwrao9vg/source",
+        "runtimeRevision": "4be192c7af42e89cda0a5b182082fdf07a5905a7",
+        "rendererHash": "904292849570e52bc7eca80cee6a7612d7484d69cd03b535e79765683a2f7aa2"
+      },
+      "error": null,
+      "rendererErrors": [],
+      "thumbnailErrors": 7,
+      "samples": [
+        {
+          "phase": "first-list-open",
+          "timingMs": {
+            "canvas-revealed": 1511.800048828125,
+            "all-frames-rendered": 4171.39990234375
+          },
+          "resources": {
+            "reads": 49,
+            "hits": 40,
+            "codeReads": 44,
+            "codeReadBytes": 22136840
+          },
+          "rssSumMiB": 1423.921875,
+          "topHeapMiB": 329.39737701416016,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-1",
+          "timingMs": {
+            "canvas-revealed": 1155.2001953125,
+            "all-frames-rendered": 3322.800048828125
+          },
+          "resources": {
+            "reads": 49,
+            "hits": 49,
+            "codeReads": 44,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 1863.90625,
+          "topHeapMiB": 556.3154106140137,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-2",
+          "timingMs": {
+            "canvas-revealed": 1134.400146484375,
+            "all-frames-rendered": 3371.0
+          },
+          "resources": {
+            "reads": 49,
+            "hits": 49,
+            "codeReads": 44,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 2638.1875,
+          "topHeapMiB": 947.2470321655273,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-3",
+          "timingMs": {
+            "canvas-revealed": 1233.80029296875,
+            "all-frames-rendered": 3411.900146484375
+          },
+          "resources": {
+            "reads": 49,
+            "hits": 49,
+            "codeReads": 44,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 2849.53125,
+          "topHeapMiB": 996.5743751525879,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-4",
+          "timingMs": {
+            "canvas-revealed": 1174.099853515625,
+            "all-frames-rendered": 3495.39990234375
+          },
+          "resources": {
+            "reads": 49,
+            "hits": 49,
+            "codeReads": 44,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 3336.296875,
+          "topHeapMiB": 1386.2373123168945,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-5",
+          "timingMs": {
+            "canvas-revealed": 1187.7001953125,
+            "all-frames-rendered": 3541.5
+          },
+          "resources": {
+            "reads": 49,
+            "hits": 49,
+            "codeReads": 44,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 4125.421875,
+          "topHeapMiB": 1774.40620803833,
+          "changes": 0,
+          "views": 10
+        }
+      ],
+      "warmMediansMs": {
+        "canvas-revealed": 1180.9000244140625,
+        "all-frames-rendered": 3453.6500244140625
+      },
+      "memoryProbe": {
+        "peakRssKiB": 4417456,
+        "afterReturn": [
+          {
+            "iteration": 5,
+            "heap": {
+              "backingStorageSize": 73776955,
+              "embedderHeapUsedSize": 30073088,
+              "totalSize": 331448320,
+              "usedSize": 269531364
+            },
+            "rssKiB": 1779056
+          }
+        ]
+      },
+      "functional": null,
+      "inputProbes": null
+    },
+    "complex:memory-registration-v2-2": {
+      "build": {
+        "kind": "diagnostic",
+        "variant": "registration-v2",
+        "sourceRoot": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-open-ab-nwrao9vg/source",
+        "runtimeRevision": "4be192c7af42e89cda0a5b182082fdf07a5905a7",
+        "rendererHash": "904292849570e52bc7eca80cee6a7612d7484d69cd03b535e79765683a2f7aa2"
+      },
+      "error": null,
+      "rendererErrors": [],
+      "thumbnailErrors": 7,
+      "samples": [
+        {
+          "phase": "first-list-open",
+          "timingMs": {
+            "canvas-revealed": 1564.199951171875,
+            "all-frames-rendered": 4235.2998046875
+          },
+          "resources": {
+            "reads": 49,
+            "hits": 40,
+            "codeReads": 44,
+            "codeReadBytes": 22136840
+          },
+          "rssSumMiB": 1415.9375,
+          "topHeapMiB": 312.6740913391113,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-1",
+          "timingMs": {
+            "canvas-revealed": 1116.69970703125,
+            "all-frames-rendered": 3351.69970703125
+          },
+          "resources": {
+            "reads": 49,
+            "hits": 49,
+            "codeReads": 44,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 1786.15625,
+          "topHeapMiB": 325.4995536804199,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-2",
+          "timingMs": {
+            "canvas-revealed": 1115.900146484375,
+            "all-frames-rendered": 3327.7001953125
+          },
+          "resources": {
+            "reads": 49,
+            "hits": 49,
+            "codeReads": 44,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 1814.09375,
+          "topHeapMiB": 331.47795486450195,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-3",
+          "timingMs": {
+            "canvas-revealed": 1088.60009765625,
+            "all-frames-rendered": 3357.5
+          },
+          "resources": {
+            "reads": 49,
+            "hits": 49,
+            "codeReads": 44,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 1904.28125,
+          "topHeapMiB": 534.7763900756836,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-4",
+          "timingMs": {
+            "canvas-revealed": 1124.7998046875,
+            "all-frames-rendered": 3322.0
+          },
+          "resources": {
+            "reads": 49,
+            "hits": 49,
+            "codeReads": 44,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 2629.40625,
+          "topHeapMiB": 924.6482887268066,
+          "changes": 0,
+          "views": 10
+        },
+        {
+          "phase": "warm-list-open-5",
+          "timingMs": {
+            "canvas-revealed": 1168.0,
+            "all-frames-rendered": 3321.39990234375
+          },
+          "resources": {
+            "reads": 49,
+            "hits": 49,
+            "codeReads": 44,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 2570.9375,
+          "topHeapMiB": 371.4872055053711,
+          "changes": 0,
+          "views": 10
+        }
+      ],
+      "warmMediansMs": {
+        "canvas-revealed": 1120.3499755859375,
+        "all-frames-rendered": 3324.85009765625
+      },
+      "memoryProbe": {
+        "peakRssKiB": 2970048,
+        "afterReturn": [
+          {
+            "iteration": 5,
+            "heap": {
+              "backingStorageSize": 73776937,
+              "embedderHeapUsedSize": 29446728,
+              "totalSize": 304185344,
+              "usedSize": 268299928
+            },
+            "rssKiB": 1621552
+          }
+        ]
+      },
+      "functional": null,
+      "inputProbes": null
+    },
+    "complex:accept-registration-v2-complex": {
+      "build": {
+        "kind": "diagnostic",
+        "variant": "registration-v2",
+        "sourceRoot": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-open-ab-nwrao9vg/source",
+        "runtimeRevision": "4be192c7af42e89cda0a5b182082fdf07a5905a7",
+        "rendererHash": "904292849570e52bc7eca80cee6a7612d7484d69cd03b535e79765683a2f7aa2"
+      },
+      "error": null,
+      "rendererErrors": [],
+      "thumbnailErrors": 1,
+      "samples": [
+        {
+          "phase": "first-list-open",
+          "timingMs": {
+            "canvas-revealed": 1533.5,
+            "all-frames-rendered": 4208.199951171875
+          },
+          "resources": {
+            "reads": 49,
+            "hits": 40,
+            "codeReads": 44,
+            "codeReadBytes": 22136840
+          },
+          "rssSumMiB": 1411.40625,
+          "topHeapMiB": 312.6800537109375,
+          "changes": 0,
+          "views": 10
+        }
+      ],
+      "warmMediansMs": null,
+      "memoryProbe": null,
+      "functional": {
+        "cases": [
+          {
+            "case": "switch-artboard",
+            "frame": "g6iKNJJfK8J6",
+            "rendered": true
+          },
+          {
+            "case": "switch-artboard",
+            "frame": "58rcnoga5nrA",
+            "rendered": true
+          },
+          {
+            "case": "switch-artboard",
+            "frame": "yqGY4RQZ5MAn",
+            "rendered": true
+          },
+          {
+            "case": "rename-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "rendered-style-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "frame-position-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "cold-frame-undo-selection-style",
+            "passed": true
+          }
+        ],
+        "revision": 1,
+        "reopen": true
+      },
+      "inputProbes": null
+    },
+    "complex:accept-baseline-complex": {
+      "build": {
+        "kind": "diagnostic",
+        "variant": "baseline",
+        "sourceRoot": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-open-ab-nwrao9vg/source",
+        "runtimeRevision": "4be192c7af42e89cda0a5b182082fdf07a5905a7",
+        "rendererHash": "6eab7b885330cc841aad08dc902b0f80e659bdc93c9c567bdbd52bc39f4009d0"
+      },
+      "error": null,
+      "rendererErrors": [],
+      "thumbnailErrors": 1,
+      "samples": [
+        {
+          "phase": "first-list-open",
+          "timingMs": {
+            "canvas-revealed": 1481.800048828125,
+            "all-frames-rendered": 4153.39990234375
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 44,
+            "codeReads": 48,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 1401.125,
+          "topHeapMiB": 312.55794525146484,
+          "changes": 0,
+          "views": 10
+        }
+      ],
+      "warmMediansMs": null,
+      "memoryProbe": null,
+      "functional": {
+        "cases": [
+          {
+            "case": "switch-artboard",
+            "frame": "g6iKNJJfK8J6",
+            "rendered": true
+          },
+          {
+            "case": "switch-artboard",
+            "frame": "58rcnoga5nrA",
+            "rendered": true
+          },
+          {
+            "case": "switch-artboard",
+            "frame": "yqGY4RQZ5MAn",
+            "rendered": true
+          },
+          {
+            "case": "rename-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "rendered-style-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "frame-position-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "cold-frame-undo-selection-style",
+            "passed": true
+          }
+        ],
+        "revision": 1,
+        "reopen": true
+      },
+      "inputProbes": null
+    },
+    "complex:accept-transport-resource-complex": {
+      "build": {
+        "kind": "diagnostic",
+        "variant": "transport-resource",
+        "sourceRoot": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-open-ab-nwrao9vg/source",
+        "runtimeRevision": "4be192c7af42e89cda0a5b182082fdf07a5905a7",
+        "rendererHash": "473a6847545957e59c59ef65692da822a801d15bdb0830531c31ee1e0074544e"
+      },
+      "error": null,
+      "rendererErrors": [],
+      "thumbnailErrors": 1,
+      "samples": [
+        {
+          "phase": "first-list-open",
+          "timingMs": {
+            "canvas-revealed": 1408.400146484375,
+            "all-frames-rendered": 4099.300048828125
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 44,
+            "codeReads": 48,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 1421.15625,
+          "topHeapMiB": 322.99108123779297,
+          "changes": 0,
+          "views": 10
+        }
+      ],
+      "warmMediansMs": null,
+      "memoryProbe": null,
+      "functional": {
+        "cases": [
+          {
+            "case": "switch-artboard",
+            "frame": "g6iKNJJfK8J6",
+            "rendered": true
+          },
+          {
+            "case": "switch-artboard",
+            "frame": "58rcnoga5nrA",
+            "rendered": true
+          },
+          {
+            "case": "switch-artboard",
+            "frame": "yqGY4RQZ5MAn",
+            "rendered": true
+          },
+          {
+            "case": "rename-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "rendered-style-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "frame-position-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "cold-frame-undo-selection-style",
+            "passed": true
+          }
+        ],
+        "revision": 1,
+        "reopen": true
+      },
+      "inputProbes": null
+    },
+    "complex:accept-registration-complex": {
+      "build": {
+        "kind": "diagnostic",
+        "variant": "registration",
+        "sourceRoot": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-open-ab-nwrao9vg/source",
+        "runtimeRevision": "4be192c7af42e89cda0a5b182082fdf07a5905a7",
+        "rendererHash": "c26d15104e09a99d9f5c31e239cbc7fedd822f06d10fc4aa03f3a9cf53922b82"
+      },
+      "error": null,
+      "rendererErrors": [],
+      "thumbnailErrors": 1,
+      "samples": [
+        {
+          "phase": "first-list-open",
+          "timingMs": {
+            "canvas-revealed": 1519.60009765625,
+            "all-frames-rendered": 4175.699951171875
+          },
+          "resources": {
+            "reads": 49,
+            "hits": 40,
+            "codeReads": 44,
+            "codeReadBytes": 22136840
+          },
+          "rssSumMiB": 1439.265625,
+          "topHeapMiB": 326.8597412109375,
+          "changes": 0,
+          "views": 10
+        }
+      ],
+      "warmMediansMs": null,
+      "memoryProbe": null,
+      "functional": {
+        "cases": [
+          {
+            "case": "switch-artboard",
+            "frame": "g6iKNJJfK8J6",
+            "rendered": true
+          },
+          {
+            "case": "switch-artboard",
+            "frame": "58rcnoga5nrA",
+            "rendered": true
+          },
+          {
+            "case": "switch-artboard",
+            "frame": "yqGY4RQZ5MAn",
+            "rendered": true
+          },
+          {
+            "case": "rename-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "rendered-style-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "frame-position-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "cold-frame-undo-selection-style",
+            "passed": true
+          }
+        ],
+        "revision": 1,
+        "reopen": true
+      },
+      "inputProbes": null
+    },
+    "complex:accept-noop-eval-complex": {
+      "build": {
+        "kind": "diagnostic",
+        "variant": "noop-eval",
+        "sourceRoot": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-open-ab-nwrao9vg/source",
+        "runtimeRevision": "4be192c7af42e89cda0a5b182082fdf07a5905a7",
+        "rendererHash": "d50f83d533d7ac617430022fac14b97611bb9b680f38257775cc3985a1dd2b92"
+      },
+      "error": null,
+      "rendererErrors": [],
+      "thumbnailErrors": 1,
+      "samples": [
+        {
+          "phase": "first-list-open",
+          "timingMs": {
+            "canvas-revealed": 1557.7001953125,
+            "all-frames-rendered": 4252.400146484375
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 44,
+            "codeReads": 48,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 1389.515625,
+          "topHeapMiB": 316.29756927490234,
+          "changes": 0,
+          "views": 10
+        }
+      ],
+      "warmMediansMs": null,
+      "memoryProbe": null,
+      "functional": {
+        "cases": [
+          {
+            "case": "switch-artboard",
+            "frame": "g6iKNJJfK8J6",
+            "rendered": true
+          },
+          {
+            "case": "switch-artboard",
+            "frame": "58rcnoga5nrA",
+            "rendered": true
+          },
+          {
+            "case": "switch-artboard",
+            "frame": "yqGY4RQZ5MAn",
+            "rendered": true
+          },
+          {
+            "case": "rename-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "rendered-style-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "frame-position-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "cold-frame-undo-selection-style",
+            "passed": true
+          }
+        ],
+        "revision": 1,
+        "reopen": true
+      },
+      "inputProbes": null
+    },
+    "complex:accept-host-preload-complex": {
+      "build": {
+        "kind": "diagnostic",
+        "variant": "host-preload",
+        "sourceRoot": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-open-ab-nwrao9vg/source",
+        "runtimeRevision": "4be192c7af42e89cda0a5b182082fdf07a5905a7",
+        "rendererHash": "f3585b0f491e490f1e74d3792ca4ce0ad9cf3ead5da2ba8717e85b45d8f0000a"
+      },
+      "error": null,
+      "rendererErrors": [],
+      "thumbnailErrors": 1,
+      "samples": [
+        {
+          "phase": "first-list-open",
+          "timingMs": {
+            "canvas-revealed": 1481.699951171875,
+            "all-frames-rendered": 4181.39990234375
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 44,
+            "codeReads": 48,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 1427.03125,
+          "topHeapMiB": 327.06045150756836,
+          "changes": 0,
+          "views": 10
+        }
+      ],
+      "warmMediansMs": null,
+      "memoryProbe": null,
+      "functional": {
+        "cases": [
+          {
+            "case": "switch-artboard",
+            "frame": "g6iKNJJfK8J6",
+            "rendered": true
+          },
+          {
+            "case": "switch-artboard",
+            "frame": "58rcnoga5nrA",
+            "rendered": true
+          },
+          {
+            "case": "switch-artboard",
+            "frame": "yqGY4RQZ5MAn",
+            "rendered": true
+          },
+          {
+            "case": "rename-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "rendered-style-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "frame-position-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "cold-frame-undo-selection-style",
+            "passed": true
+          }
+        ],
+        "revision": 1,
+        "reopen": true
+      },
+      "inputProbes": null
+    },
+    "complex:accept-idle-deadline-complex": {
+      "build": {
+        "kind": "diagnostic",
+        "variant": "idle-deadline",
+        "sourceRoot": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-open-ab-nwrao9vg/source",
+        "runtimeRevision": "4be192c7af42e89cda0a5b182082fdf07a5905a7",
+        "rendererHash": "620becbc94bf6213325a273cccedf9ec34334d3bb7105b50001416cb0ee5a4b3"
+      },
+      "error": null,
+      "rendererErrors": [],
+      "thumbnailErrors": 1,
+      "samples": [
+        {
+          "phase": "first-list-open",
+          "timingMs": {
+            "canvas-revealed": 1498.900146484375,
+            "all-frames-rendered": 4159.699951171875
+          },
+          "resources": {
+            "reads": 53,
+            "hits": 44,
+            "codeReads": 48,
+            "codeReadBytes": 24350524
+          },
+          "rssSumMiB": 1402.203125,
+          "topHeapMiB": 320.31856536865234,
+          "changes": 0,
+          "views": 10
+        }
+      ],
+      "warmMediansMs": null,
+      "memoryProbe": null,
+      "functional": {
+        "cases": [
+          {
+            "case": "switch-artboard",
+            "frame": "g6iKNJJfK8J6",
+            "rendered": true
+          },
+          {
+            "case": "switch-artboard",
+            "frame": "58rcnoga5nrA",
+            "rendered": true
+          },
+          {
+            "case": "switch-artboard",
+            "frame": "yqGY4RQZ5MAn",
+            "rendered": true
+          },
+          {
+            "case": "rename-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "rendered-style-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "frame-position-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "cold-frame-undo-selection-style",
+            "passed": true
+          }
+        ],
+        "revision": 1,
+        "reopen": true
+      },
+      "inputProbes": null
+    },
+    "complex:accept-combined-complex": {
+      "build": {
+        "kind": "diagnostic",
+        "variant": "combined",
+        "sourceRoot": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-open-ab-nwrao9vg/source",
+        "runtimeRevision": "4be192c7af42e89cda0a5b182082fdf07a5905a7",
+        "rendererHash": "68531de6163e1ab11daccad4fb825f1f019738b301e03cd52d2f66ececeb6019"
+      },
+      "error": null,
+      "rendererErrors": [],
+      "thumbnailErrors": 1,
+      "samples": [
+        {
+          "phase": "first-list-open",
+          "timingMs": {
+            "canvas-revealed": 1384.800048828125,
+            "all-frames-rendered": 4041.699951171875
+          },
+          "resources": {
+            "reads": 49,
+            "hits": 40,
+            "codeReads": 44,
+            "codeReadBytes": 22136840
+          },
+          "rssSumMiB": 1417.765625,
+          "topHeapMiB": 326.81128311157227,
+          "changes": 0,
+          "views": 10
+        }
+      ],
+      "warmMediansMs": null,
+      "memoryProbe": null,
+      "functional": {
+        "cases": [
+          {
+            "case": "switch-artboard",
+            "frame": "g6iKNJJfK8J6",
+            "rendered": true
+          },
+          {
+            "case": "switch-artboard",
+            "frame": "58rcnoga5nrA",
+            "rendered": true
+          },
+          {
+            "case": "switch-artboard",
+            "frame": "yqGY4RQZ5MAn",
+            "rendered": true
+          },
+          {
+            "case": "rename-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "rendered-style-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "frame-position-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "cold-frame-undo-selection-style",
+            "passed": true
+          }
+        ],
+        "revision": 1,
+        "reopen": true
+      },
+      "inputProbes": null
+    },
+    "gp:final-baseline-gp": {
+      "build": {
+        "kind": "diagnostic",
+        "variant": "baseline",
+        "sourceRoot": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-open-ab-nwrao9vg/source",
+        "runtimeRevision": "4be192c7af42e89cda0a5b182082fdf07a5905a7",
+        "rendererHash": "6eab7b885330cc841aad08dc902b0f80e659bdc93c9c567bdbd52bc39f4009d0"
+      },
+      "error": null,
+      "rendererErrors": [],
+      "thumbnailErrors": 7,
+      "samples": [
+        {
+          "phase": "first-list-open",
+          "timingMs": {
+            "canvas-revealed": 1710.0,
+            "all-frames-rendered": 1733.0
+          },
+          "resources": {
+            "reads": 18,
+            "hits": 8,
+            "codeReads": 12,
+            "codeReadBytes": 4427368
+          },
+          "rssSumMiB": 1217.21875,
+          "topHeapMiB": 268.32130432128906,
+          "changes": 0,
+          "views": 1
+        },
+        {
+          "phase": "warm-list-open-1",
+          "timingMs": {
+            "canvas-revealed": 1270.699951171875,
+            "all-frames-rendered": 1290.199951171875
+          },
+          "resources": {
+            "reads": 18,
+            "hits": 18,
+            "codeReads": 12,
+            "codeReadBytes": 6641052
+          },
+          "rssSumMiB": 1426.828125,
+          "topHeapMiB": 327.5092658996582,
+          "changes": 0,
+          "views": 1
+        },
+        {
+          "phase": "warm-list-open-2",
+          "timingMs": {
+            "canvas-revealed": 1288.199951171875,
+            "all-frames-rendered": 1311.900146484375
+          },
+          "resources": {
+            "reads": 18,
+            "hits": 18,
+            "codeReads": 12,
+            "codeReadBytes": 6641052
+          },
+          "rssSumMiB": 1758.484375,
+          "topHeapMiB": 549.5670509338379,
+          "changes": 0,
+          "views": 1
+        },
+        {
+          "phase": "warm-list-open-3",
+          "timingMs": {
+            "canvas-revealed": 1298.10009765625,
+            "all-frames-rendered": 1317.800048828125
+          },
+          "resources": {
+            "reads": 18,
+            "hits": 18,
+            "codeReads": 12,
+            "codeReadBytes": 6641052
+          },
+          "rssSumMiB": 1841.140625,
+          "topHeapMiB": 322.53177642822266,
+          "changes": 0,
+          "views": 1
+        },
+        {
+          "phase": "warm-list-open-4",
+          "timingMs": {
+            "canvas-revealed": 1241.099853515625,
+            "all-frames-rendered": 1264.199951171875
+          },
+          "resources": {
+            "reads": 18,
+            "hits": 18,
+            "codeReads": 12,
+            "codeReadBytes": 6641052
+          },
+          "rssSumMiB": 1833.109375,
+          "topHeapMiB": 559.1911315917969,
+          "changes": 0,
+          "views": 1
+        },
+        {
+          "phase": "warm-list-open-5",
+          "timingMs": {
+            "canvas-revealed": 1264.39990234375,
+            "all-frames-rendered": 1287.599853515625
+          },
+          "resources": {
+            "reads": 18,
+            "hits": 18,
+            "codeReads": 12,
+            "codeReadBytes": 6641052
+          },
+          "rssSumMiB": 1786.9375,
+          "topHeapMiB": 331.6935386657715,
+          "changes": 0,
+          "views": 1
+        }
+      ],
+      "warmMediansMs": {
+        "canvas-revealed": 1276.2999267578125,
+        "all-frames-rendered": 1299.75
+      },
+      "memoryProbe": null,
+      "functional": null,
+      "inputProbes": null
+    },
+    "gp:final-combined-gp": {
+      "build": {
+        "kind": "diagnostic",
+        "variant": "combined",
+        "sourceRoot": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-open-ab-nwrao9vg/source",
+        "runtimeRevision": "4be192c7af42e89cda0a5b182082fdf07a5905a7",
+        "rendererHash": "68531de6163e1ab11daccad4fb825f1f019738b301e03cd52d2f66ececeb6019"
+      },
+      "error": null,
+      "rendererErrors": [],
+      "thumbnailErrors": 7,
+      "samples": [
+        {
+          "phase": "first-list-open",
+          "timingMs": {
+            "canvas-revealed": 1544.60009765625,
+            "all-frames-rendered": 1568.900146484375
+          },
+          "resources": {
+            "reads": 14,
+            "hits": 4,
+            "codeReads": 8,
+            "codeReadBytes": 2213684
+          },
+          "rssSumMiB": 1164.890625,
+          "topHeapMiB": 227.58302688598633,
+          "changes": 0,
+          "views": 1
+        },
+        {
+          "phase": "warm-list-open-1",
+          "timingMs": {
+            "canvas-revealed": 1161.600341796875,
+            "all-frames-rendered": 1184.7001953125
+          },
+          "resources": {
+            "reads": 14,
+            "hits": 14,
+            "codeReads": 8,
+            "codeReadBytes": 4427368
+          },
+          "rssSumMiB": 1413.71875,
+          "topHeapMiB": 342.2114677429199,
+          "changes": 0,
+          "views": 1
+        },
+        {
+          "phase": "warm-list-open-2",
+          "timingMs": {
+            "canvas-revealed": 1114.2001953125,
+            "all-frames-rendered": 1134.10009765625
+          },
+          "resources": {
+            "reads": 14,
+            "hits": 14,
+            "codeReads": 8,
+            "codeReadBytes": 4427368
+          },
+          "rssSumMiB": 1630.890625,
+          "topHeapMiB": 139.69546127319336,
+          "changes": 0,
+          "views": 1
+        },
+        {
+          "phase": "warm-list-open-3",
+          "timingMs": {
+            "canvas-revealed": 1100.5,
+            "all-frames-rendered": 1123.099853515625
+          },
+          "resources": {
+            "reads": 14,
+            "hits": 14,
+            "codeReads": 8,
+            "codeReadBytes": 4427368
+          },
+          "rssSumMiB": 1707.65625,
+          "topHeapMiB": 343.61584091186523,
+          "changes": 0,
+          "views": 1
+        },
+        {
+          "phase": "warm-list-open-4",
+          "timingMs": {
+            "canvas-revealed": 1112.599853515625,
+            "all-frames-rendered": 1133.199951171875
+          },
+          "resources": {
+            "reads": 14,
+            "hits": 14,
+            "codeReads": 8,
+            "codeReadBytes": 4427368
+          },
+          "rssSumMiB": 1637.171875,
+          "topHeapMiB": 196.4445571899414,
+          "changes": 0,
+          "views": 1
+        },
+        {
+          "phase": "warm-list-open-5",
+          "timingMs": {
+            "canvas-revealed": 1102.89990234375,
+            "all-frames-rendered": 1122.89990234375
+          },
+          "resources": {
+            "reads": 14,
+            "hits": 14,
+            "codeReads": 8,
+            "codeReadBytes": 4427368
+          },
+          "rssSumMiB": 1616.890625,
+          "topHeapMiB": 380.7814521789551,
+          "changes": 0,
+          "views": 1
+        }
+      ],
+      "warmMediansMs": {
+        "canvas-revealed": 1107.7498779296875,
+        "all-frames-rendered": 1128.14990234375
+      },
+      "memoryProbe": null,
+      "functional": null,
+      "inputProbes": null
+    },
+    "gp:final-retained-gp": {
+      "build": {
+        "kind": "diagnostic",
+        "variant": "registration-v2",
+        "sourceRoot": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-open-ab-nwrao9vg/source",
+        "runtimeRevision": "4be192c7af42e89cda0a5b182082fdf07a5905a7",
+        "rendererHash": "904292849570e52bc7eca80cee6a7612d7484d69cd03b535e79765683a2f7aa2"
+      },
+      "error": null,
+      "rendererErrors": [],
+      "thumbnailErrors": 7,
+      "samples": [
+        {
+          "phase": "first-list-open",
+          "timingMs": {
+            "canvas-revealed": 1657.800048828125,
+            "all-frames-rendered": 1680.699951171875
+          },
+          "resources": {
+            "reads": 14,
+            "hits": 4,
+            "codeReads": 8,
+            "codeReadBytes": 2213684
+          },
+          "rssSumMiB": 1174.21875,
+          "topHeapMiB": 235.82281494140625,
+          "changes": 0,
+          "views": 1
+        },
+        {
+          "phase": "warm-list-open-1",
+          "timingMs": {
+            "canvas-revealed": 1347.800048828125,
+            "all-frames-rendered": 1367.699951171875
+          },
+          "resources": {
+            "reads": 14,
+            "hits": 14,
+            "codeReads": 8,
+            "codeReadBytes": 4427368
+          },
+          "rssSumMiB": 1388.75,
+          "topHeapMiB": 361.49109268188477,
+          "changes": 0,
+          "views": 1
+        },
+        {
+          "phase": "warm-list-open-2",
+          "timingMs": {
+            "canvas-revealed": 1275.2001953125,
+            "all-frames-rendered": 1295.500244140625
+          },
+          "resources": {
+            "reads": 14,
+            "hits": 14,
+            "codeReads": 8,
+            "codeReadBytes": 4427368
+          },
+          "rssSumMiB": 1634.0625,
+          "topHeapMiB": 180.68385696411133,
+          "changes": 0,
+          "views": 1
+        },
+        {
+          "phase": "warm-list-open-3",
+          "timingMs": {
+            "canvas-revealed": 1232.89990234375,
+            "all-frames-rendered": 1252.699951171875
+          },
+          "resources": {
+            "reads": 14,
+            "hits": 14,
+            "codeReads": 8,
+            "codeReadBytes": 4427368
+          },
+          "rssSumMiB": 1720.96875,
+          "topHeapMiB": 391.4120407104492,
+          "changes": 0,
+          "views": 1
+        },
+        {
+          "phase": "warm-list-open-4",
+          "timingMs": {
+            "canvas-revealed": 1244.7998046875,
+            "all-frames-rendered": 1264.7998046875
+          },
+          "resources": {
+            "reads": 14,
+            "hits": 14,
+            "codeReads": 8,
+            "codeReadBytes": 4427368
+          },
+          "rssSumMiB": 1739.796875,
+          "topHeapMiB": 390.40686798095703,
+          "changes": 0,
+          "views": 1
+        },
+        {
+          "phase": "warm-list-open-5",
+          "timingMs": {
+            "canvas-revealed": 1310.300048828125,
+            "all-frames-rendered": 1334.0
+          },
+          "resources": {
+            "reads": 14,
+            "hits": 14,
+            "codeReads": 8,
+            "codeReadBytes": 4427368
+          },
+          "rssSumMiB": 1908.140625,
+          "topHeapMiB": 606.529182434082,
+          "changes": 0,
+          "views": 1
+        }
+      ],
+      "warmMediansMs": {
+        "canvas-revealed": 1260.0,
+        "all-frames-rendered": 1280.1500244140625
+      },
+      "memoryProbe": null,
+      "functional": null,
+      "inputProbes": null
+    },
+    "gp:accept-registration-v2-gp": {
+      "build": {
+        "kind": "diagnostic",
+        "variant": "registration-v2",
+        "sourceRoot": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-open-ab-nwrao9vg/source",
+        "runtimeRevision": "4be192c7af42e89cda0a5b182082fdf07a5905a7",
+        "rendererHash": "904292849570e52bc7eca80cee6a7612d7484d69cd03b535e79765683a2f7aa2"
+      },
+      "error": null,
+      "rendererErrors": [],
+      "thumbnailErrors": 1,
+      "samples": [
+        {
+          "phase": "first-list-open",
+          "timingMs": {
+            "canvas-revealed": 1692.199951171875,
+            "all-frames-rendered": 1715.400146484375
+          },
+          "resources": {
+            "reads": 14,
+            "hits": 4,
+            "codeReads": 8,
+            "codeReadBytes": 2213684
+          },
+          "rssSumMiB": 1174.328125,
+          "topHeapMiB": 239.0558853149414,
+          "changes": 0,
+          "views": 1
+        }
+      ],
+      "warmMediansMs": null,
+      "memoryProbe": null,
+      "functional": {
+        "cases": [
+          {
+            "case": "switch-artboard",
+            "frame": "dO6gEmTQ80cE",
+            "rendered": true
+          },
+          {
+            "case": "rename-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "rendered-style-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "frame-position-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "preview-business-pagination-return",
+            "passed": true
+          }
+        ],
+        "revision": 159,
+        "reopen": true
+      },
+      "inputProbes": null
+    },
+    "gp:accept-baseline-gp": {
+      "build": {
+        "kind": "diagnostic",
+        "variant": "baseline",
+        "sourceRoot": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-open-ab-nwrao9vg/source",
+        "runtimeRevision": "4be192c7af42e89cda0a5b182082fdf07a5905a7",
+        "rendererHash": "6eab7b885330cc841aad08dc902b0f80e659bdc93c9c567bdbd52bc39f4009d0"
+      },
+      "error": null,
+      "rendererErrors": [],
+      "thumbnailErrors": 1,
+      "samples": [
+        {
+          "phase": "first-list-open",
+          "timingMs": {
+            "canvas-revealed": 1698.900146484375,
+            "all-frames-rendered": 1722.60009765625
+          },
+          "resources": {
+            "reads": 18,
+            "hits": 8,
+            "codeReads": 12,
+            "codeReadBytes": 4427368
+          },
+          "rssSumMiB": 1225.640625,
+          "topHeapMiB": 285.62979888916016,
+          "changes": 0,
+          "views": 1
+        }
+      ],
+      "warmMediansMs": null,
+      "memoryProbe": null,
+      "functional": {
+        "cases": [
+          {
+            "case": "switch-artboard",
+            "frame": "dO6gEmTQ80cE",
+            "rendered": true
+          },
+          {
+            "case": "rename-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "rendered-style-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "frame-position-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "preview-business-pagination-return",
+            "passed": true
+          }
+        ],
+        "revision": 159,
+        "reopen": true
+      },
+      "inputProbes": null
+    },
+    "gp:accept-transport-resource-gp": {
+      "build": {
+        "kind": "diagnostic",
+        "variant": "transport-resource",
+        "sourceRoot": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-open-ab-nwrao9vg/source",
+        "runtimeRevision": "4be192c7af42e89cda0a5b182082fdf07a5905a7",
+        "rendererHash": "473a6847545957e59c59ef65692da822a801d15bdb0830531c31ee1e0074544e"
+      },
+      "error": null,
+      "rendererErrors": [],
+      "thumbnailErrors": 1,
+      "samples": [
+        {
+          "phase": "first-list-open",
+          "timingMs": {
+            "canvas-revealed": 1536.5,
+            "all-frames-rendered": 1559.7001953125
+          },
+          "resources": {
+            "reads": 18,
+            "hits": 8,
+            "codeReads": 12,
+            "codeReadBytes": 4427368
+          },
+          "rssSumMiB": 1192.359375,
+          "topHeapMiB": 246.66779327392578,
+          "changes": 0,
+          "views": 1
+        }
+      ],
+      "warmMediansMs": null,
+      "memoryProbe": null,
+      "functional": {
+        "cases": [
+          {
+            "case": "switch-artboard",
+            "frame": "dO6gEmTQ80cE",
+            "rendered": true
+          },
+          {
+            "case": "rename-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "rendered-style-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "frame-position-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "preview-business-pagination-return",
+            "passed": true
+          }
+        ],
+        "revision": 159,
+        "reopen": true
+      },
+      "inputProbes": null
+    },
+    "gp:accept-registration-gp": {
+      "build": {
+        "kind": "diagnostic",
+        "variant": "registration",
+        "sourceRoot": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-open-ab-nwrao9vg/source",
+        "runtimeRevision": "4be192c7af42e89cda0a5b182082fdf07a5905a7",
+        "rendererHash": "c26d15104e09a99d9f5c31e239cbc7fedd822f06d10fc4aa03f3a9cf53922b82"
+      },
+      "error": null,
+      "rendererErrors": [],
+      "thumbnailErrors": 1,
+      "samples": [
+        {
+          "phase": "first-list-open",
+          "timingMs": {
+            "canvas-revealed": 1700.10009765625,
+            "all-frames-rendered": 1723.199951171875
+          },
+          "resources": {
+            "reads": 14,
+            "hits": 4,
+            "codeReads": 8,
+            "codeReadBytes": 2213684
+          },
+          "rssSumMiB": 1188.671875,
+          "topHeapMiB": 235.88361358642578,
+          "changes": 0,
+          "views": 1
+        }
+      ],
+      "warmMediansMs": null,
+      "memoryProbe": null,
+      "functional": {
+        "cases": [
+          {
+            "case": "switch-artboard",
+            "frame": "dO6gEmTQ80cE",
+            "rendered": true
+          },
+          {
+            "case": "rename-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "rendered-style-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "frame-position-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "preview-business-pagination-return",
+            "passed": true
+          }
+        ],
+        "revision": 159,
+        "reopen": true
+      },
+      "inputProbes": null
+    },
+    "gp:accept-noop-eval-gp": {
+      "build": {
+        "kind": "diagnostic",
+        "variant": "noop-eval",
+        "sourceRoot": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-open-ab-nwrao9vg/source",
+        "runtimeRevision": "4be192c7af42e89cda0a5b182082fdf07a5905a7",
+        "rendererHash": "d50f83d533d7ac617430022fac14b97611bb9b680f38257775cc3985a1dd2b92"
+      },
+      "error": null,
+      "rendererErrors": [],
+      "thumbnailErrors": 1,
+      "samples": [
+        {
+          "phase": "first-list-open",
+          "timingMs": {
+            "canvas-revealed": 1674.2998046875,
+            "all-frames-rendered": 1697.39990234375
+          },
+          "resources": {
+            "reads": 18,
+            "hits": 8,
+            "codeReads": 12,
+            "codeReadBytes": 4427368
+          },
+          "rssSumMiB": 1195.03125,
+          "topHeapMiB": 243.02212142944336,
+          "changes": 0,
+          "views": 1
+        }
+      ],
+      "warmMediansMs": null,
+      "memoryProbe": null,
+      "functional": {
+        "cases": [
+          {
+            "case": "switch-artboard",
+            "frame": "dO6gEmTQ80cE",
+            "rendered": true
+          },
+          {
+            "case": "rename-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "rendered-style-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "frame-position-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "preview-business-pagination-return",
+            "passed": true
+          }
+        ],
+        "revision": 159,
+        "reopen": true
+      },
+      "inputProbes": null
+    },
+    "gp:accept-host-preload-gp": {
+      "build": {
+        "kind": "diagnostic",
+        "variant": "host-preload",
+        "sourceRoot": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-open-ab-nwrao9vg/source",
+        "runtimeRevision": "4be192c7af42e89cda0a5b182082fdf07a5905a7",
+        "rendererHash": "f3585b0f491e490f1e74d3792ca4ce0ad9cf3ead5da2ba8717e85b45d8f0000a"
+      },
+      "error": null,
+      "rendererErrors": [],
+      "thumbnailErrors": 1,
+      "samples": [
+        {
+          "phase": "first-list-open",
+          "timingMs": {
+            "canvas-revealed": 1678.39990234375,
+            "all-frames-rendered": 1702.199951171875
+          },
+          "resources": {
+            "reads": 18,
+            "hits": 8,
+            "codeReads": 12,
+            "codeReadBytes": 4427368
+          },
+          "rssSumMiB": 1208.421875,
+          "topHeapMiB": 253.49679946899414,
+          "changes": 0,
+          "views": 1
+        }
+      ],
+      "warmMediansMs": null,
+      "memoryProbe": null,
+      "functional": {
+        "cases": [
+          {
+            "case": "switch-artboard",
+            "frame": "dO6gEmTQ80cE",
+            "rendered": true
+          },
+          {
+            "case": "rename-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "rendered-style-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "frame-position-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "preview-business-pagination-return",
+            "passed": true
+          }
+        ],
+        "revision": 159,
+        "reopen": true
+      },
+      "inputProbes": null
+    },
+    "gp:accept-idle-deadline-gp": {
+      "build": {
+        "kind": "diagnostic",
+        "variant": "idle-deadline",
+        "sourceRoot": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-open-ab-nwrao9vg/source",
+        "runtimeRevision": "4be192c7af42e89cda0a5b182082fdf07a5905a7",
+        "rendererHash": "620becbc94bf6213325a273cccedf9ec34334d3bb7105b50001416cb0ee5a4b3"
+      },
+      "error": null,
+      "rendererErrors": [],
+      "thumbnailErrors": 1,
+      "samples": [
+        {
+          "phase": "first-list-open",
+          "timingMs": {
+            "canvas-revealed": 1673.5,
+            "all-frames-rendered": 1697.0
+          },
+          "resources": {
+            "reads": 18,
+            "hits": 8,
+            "codeReads": 12,
+            "codeReadBytes": 4427368
+          },
+          "rssSumMiB": 1197.1875,
+          "topHeapMiB": 242.0698585510254,
+          "changes": 0,
+          "views": 1
+        }
+      ],
+      "warmMediansMs": null,
+      "memoryProbe": null,
+      "functional": {
+        "cases": [
+          {
+            "case": "switch-artboard",
+            "frame": "dO6gEmTQ80cE",
+            "rendered": true
+          },
+          {
+            "case": "rename-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "rendered-style-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "frame-position-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "preview-business-pagination-return",
+            "passed": true
+          }
+        ],
+        "revision": 159,
+        "reopen": true
+      },
+      "inputProbes": null
+    },
+    "gp:accept-combined-gp": {
+      "build": {
+        "kind": "diagnostic",
+        "variant": "combined",
+        "sourceRoot": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/plasmic-open-ab-nwrao9vg/source",
+        "runtimeRevision": "4be192c7af42e89cda0a5b182082fdf07a5905a7",
+        "rendererHash": "68531de6163e1ab11daccad4fb825f1f019738b301e03cd52d2f66ececeb6019"
+      },
+      "error": null,
+      "rendererErrors": [],
+      "thumbnailErrors": 1,
+      "samples": [
+        {
+          "phase": "first-list-open",
+          "timingMs": {
+            "canvas-revealed": 1553.10009765625,
+            "all-frames-rendered": 1577.30029296875
+          },
+          "resources": {
+            "reads": 14,
+            "hits": 4,
+            "codeReads": 8,
+            "codeReadBytes": 2213684
+          },
+          "rssSumMiB": 1073.25,
+          "topHeapMiB": 175.9985580444336,
+          "changes": 0,
+          "views": 1
+        }
+      ],
+      "warmMediansMs": null,
+      "memoryProbe": null,
+      "functional": {
+        "cases": [
+          {
+            "case": "switch-artboard",
+            "frame": "dO6gEmTQ80cE",
+            "rendered": true
+          },
+          {
+            "case": "rename-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "rendered-style-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "frame-position-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "preview-business-pagination-return",
+            "passed": true
+          }
+        ],
+        "revision": 159,
+        "reopen": true
+      },
+      "inputProbes": null
+    }
+  }
+}

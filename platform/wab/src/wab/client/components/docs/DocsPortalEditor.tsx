@@ -16,7 +16,7 @@ import {
   getExportedComponentName,
   makePlasmicComponentName,
 } from "@/wab/shared/codegen/react-p/serialize-utils";
-import { ensure } from "@/wab/shared/common";
+import { ensure, mkUuid } from "@/wab/shared/common";
 import {
   isCodeComponent,
   isPlumeComponent,
@@ -51,6 +51,10 @@ export const DocsPortalEditor = observer(function DocsPortalEditor(props: {
     editor?: monacoEditor.editor.IStandaloneCodeEditor;
   }>({ monaco: undefined, editor: undefined });
 
+  const [modelDirectory] = React.useState(() => `file:///docs_${mkUuid()}/`);
+  const models = React.useRef(new Map<string, monacoEditor.editor.ITextModel>());
+  const extraLibs = React.useRef<monacoEditor.IDisposable[]>([]);
+
   fixWorkerUrl();
 
   React.useEffect(() => {
@@ -63,11 +67,11 @@ export const DocsPortalEditor = observer(function DocsPortalEditor(props: {
     // If there's no model for the component/icon we're targeting yet,
     // create one
     const targetUri = monaco.Uri.parse(
-      `file:///script_${component?.uuid || icon?.uuid}_${
+      `${modelDirectory}script_${component?.uuid || icon?.uuid}_${
         codePreviewCtx?.uuid
       }.tsx`,
     );
-    const model = upsertModel(monaco, targetUri, "");
+    const model = upsertModel(monaco, models.current, targetUri, "");
     if (editor.getModel() !== model) {
       editor.setModel(model);
 
@@ -105,9 +109,9 @@ export const DocsPortalEditor = observer(function DocsPortalEditor(props: {
         for (const dep of modules) {
           if (dep.lang === "tsx") {
             const depUri = monaco.Uri.parse(
-              `file:///${ensure(dep.name, "has name")}`,
+              `${modelDirectory}${ensure(dep.name, "has name")}`,
             );
-            upsertModel(monaco, depUri, dep.source);
+            upsertModel(monaco, models.current, depUri, dep.source);
           }
         }
 
@@ -168,7 +172,7 @@ ${codePreviewCtx?.getCode() ?? docsCtxCode}
       dispose();
       disposeModel.dispose();
     };
-  }, [component, icon, docsCtx, codePreviewCtx, monaco, editor]);
+  }, [component, icon, docsCtx, codePreviewCtx, monaco, editor, modelDirectory]);
 
   if (!component && !icon) {
     return null;
@@ -196,8 +200,19 @@ ${codePreviewCtx?.getCode() ?? docsCtxCode}
       width="100%"
       height="100%"
       editorDidMount={(editor_, monaco_) => {
+        const initialModel = editor_.getModel();
+        if (initialModel) {
+          models.current.set(initialModel.uri.toString(), initialModel);
+        }
         // set state to trigger re-render
         setMonaco({ editor: editor_, monaco: monaco_ });
+      }}
+      editorWillUnmount={(editor_) => {
+        editor_.setModel(null);
+        models.current.forEach((model) => model.dispose());
+        models.current.clear();
+        extraLibs.current.forEach((lib) => lib.dispose());
+        extraLibs.current = [];
       }}
       editorWillMount={(monaco_) => {
         // Upon initialization, set up monaco configurations to make sure
@@ -227,19 +242,20 @@ ${codePreviewCtx?.getCode() ?? docsCtxCode}
         // which are the minimum necessary for typing to work when working with
         // Plasmic* components.
         // See https://github.com/microsoft/monaco-editor/issues/264#issuecomment-654578687
-        monaco_.languages.typescript.typescriptDefaults.addExtraLib(
+        extraLibs.current.push(monaco_.languages.typescript.typescriptDefaults.addExtraLib(
           REACT_TYPES as any,
-          `file:///node_modules/@types/react/index.d.ts`,
-        );
-        monaco_.languages.typescript.typescriptDefaults.addExtraLib(
+          `${modelDirectory}node_modules/@types/react/index.d.ts`,
+        ));
+        extraLibs.current.push(monaco_.languages.typescript.typescriptDefaults.addExtraLib(
           REACT_WEB_TYPES as any,
-          `file:///node_modules/@plasmicapp/react-web/index.d.ts`,
-        );
-        monaco_.languages.typescript.typescriptDefaults.addExtraLib(
+          `${modelDirectory}node_modules/@plasmicapp/react-web/index.d.ts`,
+        ));
+        extraLibs.current.push(monaco_.languages.typescript.typescriptDefaults.addExtraLib(
           `function PlasmicComponent(props: {component: string, componentProps?: Record<string, any>}) {
             return <div />;
           }`,
-        );
+          `${modelDirectory}globals.d.ts`,
+        ));
       }}
     />
   );
@@ -251,12 +267,11 @@ ${codePreviewCtx?.getCode() ?? docsCtxCode}
  */
 function upsertModel(
   monaco: MonacoType,
+  models: Map<string, monacoEditor.editor.ITextModel>,
   uri: monacoEditor.Uri,
   content: string,
 ) {
-  const existing = monaco.editor
-    .getModels()
-    .find((m) => m.uri.toString() === uri.toString());
+  const existing = models.get(uri.toString());
   if (existing) {
     if (existing.getValue() !== content) {
       existing.setValue(content);
@@ -264,6 +279,7 @@ function upsertModel(
     return existing;
   } else {
     const model = monaco.editor.createModel(content, "typescript", uri);
+    models.set(uri.toString(), model);
     return model;
   }
 }

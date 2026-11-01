@@ -1,0 +1,151 @@
+{
+  "mode": "mcp",
+  "node": "v24.20.0",
+  "platform": "darwin",
+  "arch": "arm64",
+  "samples": [
+    {
+      "runtime": "electron",
+      "startupMs": 217.33108299999998,
+      "toolCount": 41,
+      "toolHash": "ea73957ac22cbf0c6c1199f77425e7a451825be8b1c6a863096ce5cffa4da85c",
+      "rssSumMiBMean": 236.3671875,
+      "processes": [
+        {
+          "pid": 48879,
+          "parent": 48876,
+          "rssKiB": 140832,
+          "cpuPercent": 0,
+          "name": "Electron"
+        },
+        {
+          "pid": 48880,
+          "parent": 48879,
+          "rssKiB": 58192,
+          "cpuPercent": 0,
+          "name": "Electron Helper"
+        },
+        {
+          "pid": 48881,
+          "parent": 48879,
+          "rssKiB": 43120,
+          "cpuPercent": 0,
+          "name": "Electron Helper"
+        }
+      ],
+      "functional": {
+        "initialize": true,
+        "listTools": true,
+        "rpc": true,
+        "largeResultPaging": true,
+        "mutationExactlyOnce": true,
+        "error": true,
+        "image": true
+      },
+      "stderrBytes": 0
+    },
+    {
+      "runtime": "node",
+      "startupMs": 105.36395800000037,
+      "toolCount": 41,
+      "toolHash": "ea73957ac22cbf0c6c1199f77425e7a451825be8b1c6a863096ce5cffa4da85c",
+      "rssSumMiBMean": 86.421875,
+      "processes": [
+        {
+          "pid": 48955,
+          "parent": 48876,
+          "rssKiB": 88496,
+          "cpuPercent": 0,
+          "name": "node"
+        }
+      ],
+      "functional": {
+        "initialize": true,
+        "listTools": true,
+        "rpc": true,
+        "largeResultPaging": true,
+        "mutationExactlyOnce": true,
+        "error": true,
+        "image": true
+      },
+      "stderrBytes": 0
+    },
+    {
+      "runtime": "node",
+      "startupMs": 122.91191700000036,
+      "toolCount": 41,
+      "toolHash": "ea73957ac22cbf0c6c1199f77425e7a451825be8b1c6a863096ce5cffa4da85c",
+      "rssSumMiBMean": 86.578125,
+      "processes": [
+        {
+          "pid": 49033,
+          "parent": 48876,
+          "rssKiB": 88656,
+          "cpuPercent": 0,
+          "name": "node"
+        }
+      ],
+      "functional": {
+        "initialize": true,
+        "listTools": true,
+        "rpc": true,
+        "largeResultPaging": true,
+        "mutationExactlyOnce": true,
+        "error": true,
+        "image": true
+      },
+      "stderrBytes": 0
+    },
+    {
+      "runtime": "electron",
+      "startupMs": 232.28354200000012,
+      "toolCount": 41,
+      "toolHash": "ea73957ac22cbf0c6c1199f77425e7a451825be8b1c6a863096ce5cffa4da85c",
+      "rssSumMiBMean": 240.09375,
+      "processes": [
+        {
+          "pid": 49114,
+          "parent": 48876,
+          "rssKiB": 144656,
+          "cpuPercent": 0,
+          "name": "Electron"
+        },
+        {
+          "pid": 49115,
+          "parent": 49114,
+          "rssKiB": 58160,
+          "cpuPercent": 0,
+          "name": "Electron Helper"
+        },
+        {
+          "pid": 49116,
+          "parent": 49114,
+          "rssKiB": 43136,
+          "cpuPercent": 0,
+          "name": "Electron Helper"
+        }
+      ],
+      "functional": {
+        "initialize": true,
+        "listTools": true,
+        "rpc": true,
+        "largeResultPaging": true,
+        "mutationExactlyOnce": true,
+        "error": true,
+        "image": true
+      },
+      "stderrBytes": 0
+    }
+  ],
+  "hostDisconnectExits": [
+    {
+      "runtime": "electron",
+      "passed": true
+    },
+    {
+      "runtime": "node",
+      "passed": true
+    }
+  ],
+  "limitation": "Node executable is this host's Node; shipping/security/other platforms are not validated. RSS sums include shared pages."
+}

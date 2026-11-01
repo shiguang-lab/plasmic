@@ -151,6 +151,19 @@ it("follows project routes and restores the selected navigation with back", () =
   ).toBeTruthy();
 });
 
+it("keeps the projects dashboard mounted when its brand is clicked repeatedly", () => {
+  const { history } = setup({ navigation: "allProjects" });
+  const listener = vi.fn();
+  history.listen(listener);
+  const location = history.location;
+  const brand = screen.getByRole("link", { name: "Back to dashboard" });
+  expect(brand.getAttribute("href")).toBe(APP_ROUTES.allProjects.fill({}));
+  fireEvent.click(brand);
+  fireEvent.click(brand);
+  expect(history.location).toBe(location);
+  expect(listener).not.toHaveBeenCalled();
+});
+
 it("opens the organizations page from the header and restores navigation with back", () => {
   const { container, history } = setup({}, true);
   fireEvent.click(screen.getByRole("radio", { name: "Spaces" }));

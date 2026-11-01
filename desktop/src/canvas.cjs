@@ -159,7 +159,7 @@ function snapshotDocument(input) {
     } else if (el instanceof HTMLCanvasElement && el.width && el.height) {
       const image = document.createElement("img");
       for (const attr of copy.attributes) image.setAttribute(attr.name, attr.value);
-      image.src = el.toDataURL();
+      image.src = (input?.reuseCanvasPixels && globalThis.__plasmicIslandVisualState?.canvasPixels.get(el)) || el.toDataURL();
       copy.replaceWith(image);
       copies[index] = image;
     }
