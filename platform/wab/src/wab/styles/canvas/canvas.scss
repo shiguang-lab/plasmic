@@ -281,6 +281,21 @@ $placeholder-hue: black;
   display: inline-block;
 }
 
+// Native column ellipsis must cross the extra text boxes used for canvas editing.
+// Keep Slate's active editor and text inside other cell widgets untouched.
+:where(
+  td.ant-table-cell-ellipsis[data-plasmic-canvas-part="column"]
+    > .__wab_text:not(.__wab_editing)
+) {
+  &,
+  > :where(.__wab_rich_text) {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: inherit;
+    white-space: inherit;
+  }
+}
+
 .__wab_expr_html_text {
   white-space: normal;
 }

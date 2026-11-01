@@ -181,6 +181,11 @@ function registerSelect(loader) {
         defaultValueHint: "single",
         description: "Whether to allow single or multiple selection. Tags mode additionally allows selecting options outside the specified set of options."
       },
+      maxTagCount: {
+        type: "object",
+        description: 'Maximum number of displayed tags, or "responsive" to automatically collapse tags to fit the available width.',
+        hidden: (ps) => ps.mode !== "multiple" && ps.mode !== "tags"
+      },
       size: {
         type: "choice",
         options: ["small", "medium", "large"]

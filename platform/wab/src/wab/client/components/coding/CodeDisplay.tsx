@@ -1,48 +1,38 @@
 import sty from "@/wab/client/components/coding/CodeDisplay.module.css";
-import { useUiAppearance } from "@/wab/client/ui-theme";
+import { Loadable } from "@/wab/client/components/widgets";
 import { cx } from "@/wab/shared/common";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
-import Highlight, { defaultProps, Language } from "prism-react-renderer";
-import lightTheme from "prism-react-renderer/themes/github";
-import darkTheme from "prism-react-renderer/themes/vsDark";
-import React from "react";
+import type { Language } from "prism-react-renderer";
+import * as React from "react";
 
-export function CodeDisplay(props: {
+export interface CodeDisplayProps {
   children: string;
   language: Language;
   className?: string;
   style?: React.CSSProperties;
-}) {
-  const { children, language } = props;
-  const { appearance } = useUiAppearance();
+}
+
+const loadCodeDisplay = () =>
+  import("./CodeDisplayContent").then((module) => module.CodeDisplayContent);
+
+export function CodeDisplay(props: CodeDisplayProps) {
   return (
-    <Highlight
-      {...defaultProps}
-      code={children.trim()}
-      language={language}
-      theme={appearance === "dark" ? darkTheme : lightTheme}
-    >
-      {({ className, style, tokens, getLineProps, getTokenProps }) => (
+    <Loadable
+      loader={loadCodeDisplay}
+      contents={(Content) => <Content {...props} />}
+      loadingContents={() => (
         <Scrollbar
           className={cx(sty.root, props.className)}
-          style={{ ...style, ...props.style }}
+          style={props.style}
         >
-          <pre className={className} style={style}>
-            {tokens.map((line, i) => (
-              <div {...getLineProps({ line, key: i })}>
-                {line.map((token, key) => (
-                  <span {...getTokenProps({ token, key })} />
-                ))}
-              </div>
-            ))}
-          </pre>
+          <pre aria-busy="true">{props.children.trim()}</pre>
         </Scrollbar>
       )}
-    </Highlight>
+    />
   );
 }
 
-export function CodeSnippet(props: React.ComponentProps<typeof CodeDisplay>) {
+export function CodeSnippet(props: CodeDisplayProps) {
   return (
     <CodeDisplay {...props} className={cx(props.className, sty.snippet)} />
   );

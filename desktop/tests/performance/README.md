@@ -54,4 +54,10 @@ MemLab 候选数不是已确认泄漏数。JS heap、原生/GPU 和 RSS 必须�
 
 `PERF_OPEN_COUNT_STYLES=1` 仅诊断轮统计各 Document 的计算样式调用，不与无采样计时混用。`PERF_OPEN_NATIVE=empty|restore|conflict PERF_OPENS=2` 启用 `open-native-bridge.cjs`，经原生 Electron IPC 执行生产草稿/工作区实现并恢复非默认视口；身份使用 fixture，仍不验收真实 IAM。恢复/冲突场景完整 reload 文档；加 `PERF_OPEN_FUNCTIONAL=1` 可在恢复后再执行原有编辑、Preview 和保存重开。`PERF_OPEN_NATIVE_OTHER=12` 在私有目录准备其他项目草稿；`PERF_DESKTOP_ROOT=<baselineDesktopSrc>` 可选择冻结的 Desktop 基线，省略时使用当前源码。
 
+Markdown/代码高亮的启动与首次使用对照使用 `lazy-renderers-build.config.ts`，沿用 `PERF_SOURCE_ROOT`、`PERF_BUILD_OUT` 的私有冻结源码约束。额外诊断入口只安装一个动态导入函数，不在启动时导入消息渲染器。`PERF_OPEN_RENDERERS=1 PERF_OPENS=1` 在画布就绪后挂载真实 AiMarkdown、CodeDisplay 和 CodeSnippet，验证表格、公式、不执行原始 HTML、不加载外部图片、代码高亮、节点定位、复制选区、全屏、流式更新、主题、共享 Scrollbar 及重开，并记录首次/暖使用耗时。复制命令在该隔离 Document 中拦截，不写系统剪贴板；验证结束卸载探针并恢复主题。共享 Scrollbar 默认延迟初始化，脚本等待真实滚动组件就绪，不以 token 出现作为其就绪条件。
+
+首次使用与无采样打开计时分轮。`PERF_OPEN_MEMORY=final PERF_OPENS=6 PERF_OPEN_RENDERERS=1` 在六次自然打开的最后一次显示消息和代码，返回列表后才做诊断 GC；工作集总和包含共享页重复计数，不能当作系统实际物理内存。`trace` 模式与对应 source map 可用于检查启动实际请求/执行的 chunk 是否包含高亮语言注册；不能把开启 trace 的墙钟时间作为正式 A/B 成绩。
+
+`PERF_OPEN_MEMORY_SETTLE=1` 在回收后再等待一秒和五秒记录工作集，并在第二次诊断 GC 后再次记录，用于区分存活堆与工作集释放时机。结果见[语法高亮验收](../../../docs/performance/2026-11-01/lazy-renderers-validation.md)；最终产品仅保留代码展示按需加载。
+
 `node desktop/tests/performance/draft-directory.cjs <baselineDesktopSrc> <privateFixture> <privateOutput>` 用真实项目/依赖载荷构造分项目草稿并独立比较目录读取。各次摘要缓存为空，系统文件缓存未受控；方法耗时不能当作画布端到端收益。候选对照和最终保留边界见[逐项优化验收](../../../docs/performance/2026-11-01/canvas-display-optimization-validation.md)。

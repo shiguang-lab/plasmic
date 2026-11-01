@@ -215,6 +215,10 @@ app.whenReady().then(async () => {
     console.log(JSON.stringify({phase,detectedReadyMs:sample.detectedReadyMs,studio:probes.find(p=>p.studio)?.studio}));
     if (nativeBridge) await nativeBridge.afterOpen(frame, i);
     if (i===opens-1) fs.writeFileSync(path.join(task,"real-project-"+mode+".png"),await win.webContents.capturePage().then(i=>i.toPNG()));
+    if (i===opens-1 && process.env.PERF_OPEN_RENDERERS==='1') {
+      phase = 'renderer-first-use';
+      report.renderers = await require('./lazy-renderers-first-use.cjs').run(frame);
+    }
     if (i===opens-1 && process.env.PERF_OPEN_FUNCTIONAL==='1') {
       phase='functional';report.functional=(await require('./open-functional.cjs').run({frame,win,ready,preview:startup.projectId==='tk89W1Akg2HjAjyHAYEro7'})).result;
       break;
@@ -228,9 +232,19 @@ app.whenReady().then(async () => {
       await win.webContents.debugger.sendCommand('HeapProfiler.collectGarbage');
       await sleep(100);
       report.memoryProbe.afterReturn.push({iteration:i,heap:await win.webContents.debugger.sendCommand('Runtime.getHeapUsage'),rssKiB:app.getAppMetrics().reduce((sum,p)=>sum+p.memory.workingSetSize,0)});
+      if (process.env.PERF_OPEN_MEMORY_SETTLE==='1') {
+        report.memoryProbe.settled = [];
+        for (const delayMs of [1000, 5000]) {
+          await sleep(delayMs);
+          report.memoryProbe.settled.push({delayMs,heap:await win.webContents.debugger.sendCommand('Runtime.getHeapUsage'),processes:app.getAppMetrics().map(p=>({type:p.type,rssKiB:p.memory.workingSetSize}))});
+        }
+        await win.webContents.debugger.sendCommand('HeapProfiler.collectGarbage');
+        await sleep(100);
+        report.memoryProbe.afterSecondGc = {heap:await win.webContents.debugger.sendCommand('Runtime.getHeapUsage'),processes:app.getAppMetrics().map(p=>({type:p.type,rssKiB:p.memory.workingSetSize}))};
+      }
     }
   }
-}).catch(e => {report.error=e.stack;console.error(e);process.exitCode=1;}).finally(async () => {
+}).catch(e => {report.error=e?.stack ?? String(e);console.error(e);process.exitCode=1;}).finally(async () => {
   if (tracing) await contentTracing.stopRecording(path.join(task,"list-open.trace.json"));
   clearInterval(memoryTimer);
   previews?.dispose();

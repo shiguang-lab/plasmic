@@ -1,0 +1,7 @@
+{
+  "en": "- Fix long-text ellipsis on the editing canvas.\n- Add responsive selected-tag overflow for multi-select controls.\n- Standardize native date-range presets and single-row search controls.\n- Load code highlighting on demand while preserving editing, copying and scrolling.",
+  "zh-CN": "- 修复编辑画布长文本省略显示。\n- 为多选控件补充响应式标签折叠。\n- 统一原生日期范围预设及搜索控件单行规范。\n- 代码高亮按需加载，保留编辑、复制和滚动行为。",
+  "zh-TW": "- 修正編輯畫布長文字省略顯示。\n- 為多選控制項補充響應式標籤摺疊。\n- 統一原生日期範圍預設與搜尋控制項單行規範。\n- 程式碼高亮按需載入，保留編輯、複製與捲動行為。",
+  "ja": "- 編集キャンバスの長いテキストの省略表示を修正。\n- 複数選択のタグを幅に応じて折りたたむ設定を追加。\n- 日付範囲プリセットと検索フォームの単一行表示を標準化。\n- 編集、コピー、スクロールを維持してコード強調表示を遅延読み込み。",
+  "ko": "- 편집 캔버스의 긴 텍스트 말줄임 표시를 수정했습니다.\n- 다중 선택 태그의 반응형 접기 설정을 추가했습니다.\n- 기본 날짜 범위 프리셋과 검색 컨트롤의 한 줄 표시 규칙을 정리했습니다.\n- 편집, 복사, 스크롤 동작을 유지하며 코드 강조 표시를 필요할 때 불러옵니다."
+}

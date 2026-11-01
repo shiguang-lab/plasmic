@@ -1,0 +1,868 @@
+{
+  "date": "2026-11-01",
+  "scope": "Offline Electron replay, production-config diagnostic builds. Not deployed NAS timings, physical presentation, IAM, real backend saves, or actual physical memory.",
+  "decision": {
+    "kept": "CodeDisplay/CodeSnippet syntax highlighting on use",
+    "rejected": [
+      "AI Markdown deferred rendering",
+      "combined Markdown and CodeDisplay deferral"
+    ],
+    "reason": "Markdown variants repeatedly had higher post-return working sets and several larger natural peaks. Code-only eliminates unused Prism initialization, passes feature checks and shows no consistent post-return growth; its peak working set remains variable and is not proven unchanged."
+  },
+  "method": {
+    "opensPerTimingProcess": 6,
+    "warmupOpens": 2,
+    "timingProcessesPerSidePerDataset": 2,
+    "order": "A/B/B/A, serial; no profiler or build during timing",
+    "counterCaveat": "Four warm opens in one process are not four independent process samples."
+  },
+  "keptSources": [
+    {
+      "path": "platform/wab/src/wab/client/components/coding/CodeDisplay.tsx",
+      "sha256": "592ec1b42d134dfab42a1d0068bcc59ddd169b339548e4b32ddfcfe3e8d3c966"
+    },
+    {
+      "path": "platform/wab/src/wab/client/components/coding/CodeDisplayContent.tsx",
+      "sha256": "60af433635c5e0947094bc739edf85001c3b26a50385120677c9e567ab009df6"
+    }
+  ],
+  "artifacts": {
+    "baseline": {
+      "kind": "diagnostic",
+      "rendererHash": "ded88b765ad11ff7b74920668ca369ac6ea16351da1718cafce01aa0b017f08d",
+      "runtimeRevision": "4be192c7af42e89cda0a5b182082fdf07a5905a7"
+    },
+    "candidate": {
+      "kind": "diagnostic",
+      "rendererHash": "31b4a95ec9f3a0b75b910045730e66b1f7bf4b42c4d2c44b188625071e22796e",
+      "runtimeRevision": "4be192c7af42e89cda0a5b182082fdf07a5905a7"
+    },
+    "code": {
+      "kind": "diagnostic",
+      "rendererHash": "d3e8510d2481f0b12a6e1c4e41a2fd161cd6de987a93edd544da6f2648ee9ad6",
+      "runtimeRevision": "4be192c7af42e89cda0a5b182082fdf07a5905a7"
+    },
+    "markdown": {
+      "kind": "diagnostic",
+      "rendererHash": "c501d48fdfd1452cfa1e08b53aea116eb5290e91f7e23259700c612f4118148b",
+      "runtimeRevision": "4be192c7af42e89cda0a5b182082fdf07a5905a7"
+    }
+  },
+  "keptTiming": {
+    "gp": [
+      {
+        "variant": "baseline",
+        "opens": 6,
+        "warmSamples": {
+          "clickToRevealMs": [
+            1338.4,
+            1339.5,
+            1308.8,
+            1339.8
+          ],
+          "clickToAllRenderedMs": [
+            1358.3,
+            1362.3,
+            1329.2,
+            1360.1
+          ],
+          "studioImportMs": [
+            107.80000001192093,
+            103.5,
+            107.70000004768372,
+            105.80000001192093
+          ]
+        },
+        "medians": {
+          "clickToRevealMs": 1338.95,
+          "clickToAllRenderedMs": 1359.2,
+          "studioImportMs": 106.75
+        },
+        "rendererErrors": 0,
+        "knownPreviewErrors": 7
+      },
+      {
+        "variant": "code",
+        "opens": 6,
+        "warmSamples": {
+          "clickToRevealMs": [
+            1312.2,
+            1324.1,
+            1310.2,
+            1346.8
+          ],
+          "clickToAllRenderedMs": [
+            1332.5,
+            1347.2,
+            1331.2,
+            1367.3
+          ],
+          "studioImportMs": [
+            97.10000002384186,
+            94.90000003576279,
+            94.39999997615814,
+            96.29999995231628
+          ]
+        },
+        "medians": {
+          "clickToRevealMs": 1318.15,
+          "clickToAllRenderedMs": 1339.85,
+          "studioImportMs": 95.6
+        },
+        "rendererErrors": 0,
+        "knownPreviewErrors": 7
+      },
+      {
+        "variant": "code",
+        "opens": 6,
+        "warmSamples": {
+          "clickToRevealMs": [
+            1284.1,
+            1285.4,
+            1325.2,
+            1330.4
+          ],
+          "clickToAllRenderedMs": [
+            1305.5,
+            1305.5,
+            1345.3,
+            1350.3
+          ],
+          "studioImportMs": [
+            97.90000003576279,
+            103.09999996423721,
+            96.80000001192093,
+            105.30000001192093
+          ]
+        },
+        "medians": {
+          "clickToRevealMs": 1305.3,
+          "clickToAllRenderedMs": 1325.4,
+          "studioImportMs": 100.5
+        },
+        "rendererErrors": 0,
+        "knownPreviewErrors": 7
+      },
+      {
+        "variant": "baseline",
+        "opens": 6,
+        "warmSamples": {
+          "clickToRevealMs": [
+            1273.2,
+            1330.7,
+            1336.5,
+            1340.7
+          ],
+          "clickToAllRenderedMs": [
+            1294.3,
+            1350.9,
+            1356.4,
+            1360.3
+          ],
+          "studioImportMs": [
+            104.30000001192093,
+            104.90000003576279,
+            102.80000001192093,
+            104.90000003576279
+          ]
+        },
+        "medians": {
+          "clickToRevealMs": 1333.6,
+          "clickToAllRenderedMs": 1353.65,
+          "studioImportMs": 104.6
+        },
+        "rendererErrors": 0,
+        "knownPreviewErrors": 7
+      }
+    ],
+    "complex": [
+      {
+        "variant": "baseline",
+        "opens": 6,
+        "warmSamples": {
+          "clickToRevealMs": [
+            1202.5,
+            1256.9,
+            1245.1,
+            1280.2
+          ],
+          "clickToAllRenderedMs": [
+            3335.6,
+            3414.1,
+            3506.4,
+            3548.0
+          ],
+          "studioImportMs": [
+            105.30000001192093,
+            105.5,
+            104.39999997615814,
+            106.80000001192093
+          ]
+        },
+        "medians": {
+          "clickToRevealMs": 1251.0,
+          "clickToAllRenderedMs": 3460.25,
+          "studioImportMs": 105.4
+        },
+        "rendererErrors": 0,
+        "knownPreviewErrors": 7
+      },
+      {
+        "variant": "code",
+        "opens": 6,
+        "warmSamples": {
+          "clickToRevealMs": [
+            1171.2,
+            1170.6,
+            1280.8,
+            1188.9
+          ],
+          "clickToAllRenderedMs": [
+            3475.2,
+            3444.0,
+            3540.1,
+            3497.8
+          ],
+          "studioImportMs": [
+            96.69999998807907,
+            97.79999995231628,
+            104.80000001192093,
+            98.40000003576279
+          ]
+        },
+        "medians": {
+          "clickToRevealMs": 1180.05,
+          "clickToAllRenderedMs": 3486.5,
+          "studioImportMs": 98.1
+        },
+        "rendererErrors": 0,
+        "knownPreviewErrors": 7
+      },
+      {
+        "variant": "code",
+        "opens": 6,
+        "warmSamples": {
+          "clickToRevealMs": [
+            1206.5,
+            1228.7,
+            1162.2,
+            1207.6
+          ],
+          "clickToAllRenderedMs": [
+            3323.7,
+            3494.3,
+            3583.6,
+            3431.1
+          ],
+          "studioImportMs": [
+            97.10000002384186,
+            95.39999997615814,
+            97.09999996423721,
+            96.69999998807907
+          ]
+        },
+        "medians": {
+          "clickToRevealMs": 1207.05,
+          "clickToAllRenderedMs": 3462.7,
+          "studioImportMs": 96.9
+        },
+        "rendererErrors": 0,
+        "knownPreviewErrors": 7
+      },
+      {
+        "variant": "baseline",
+        "opens": 6,
+        "warmSamples": {
+          "clickToRevealMs": [
+            1188.8,
+            1148.6,
+            1209.0,
+            1231.3
+          ],
+          "clickToAllRenderedMs": [
+            3524.8,
+            3417.5,
+            3583.6,
+            3481.8
+          ],
+          "studioImportMs": [
+            102.80000001192093,
+            103.69999998807907,
+            103.30000001192093,
+            104.80000001192093
+          ]
+        },
+        "medians": {
+          "clickToRevealMs": 1198.9,
+          "clickToAllRenderedMs": 3503.3,
+          "studioImportMs": 103.5
+        },
+        "rendererErrors": 0,
+        "knownPreviewErrors": 7
+      }
+    ]
+  },
+  "rejectedCombinedTiming": {
+    "gp": [
+      {
+        "variant": "baseline",
+        "opens": 6,
+        "warmSamples": {
+          "clickToRevealMs": [
+            1404.9,
+            1679.9,
+            1578.4,
+            1612.3
+          ],
+          "clickToAllRenderedMs": [
+            1427.6,
+            1705.9,
+            1601.9,
+            1637.0
+          ],
+          "studioImportMs": [
+            111.59999996423721,
+            108.5,
+            125.69999998807907,
+            182
+          ]
+        },
+        "medians": {
+          "clickToRevealMs": 1595.35,
+          "clickToAllRenderedMs": 1619.45,
+          "studioImportMs": 118.65
+        },
+        "rendererErrors": 0,
+        "knownPreviewErrors": 7
+      },
+      {
+        "variant": "combined",
+        "opens": 6,
+        "warmSamples": {
+          "clickToRevealMs": [
+            1199.6,
+            1232.8,
+            1198.3,
+            1257.5
+          ],
+          "clickToAllRenderedMs": [
+            1223.1,
+            1255.9,
+            1219.2,
+            1277.7
+          ],
+          "studioImportMs": [
+            20.700000047683716,
+            26.69999998807907,
+            19.099999964237213,
+            20.899999976158142
+          ]
+        },
+        "medians": {
+          "clickToRevealMs": 1216.2,
+          "clickToAllRenderedMs": 1239.5,
+          "studioImportMs": 20.8
+        },
+        "rendererErrors": 0,
+        "knownPreviewErrors": 7
+      },
+      {
+        "variant": "combined",
+        "opens": 6,
+        "warmSamples": {
+          "clickToRevealMs": [
+            1174.9,
+            1173.8,
+            1258.3,
+            1529.0
+          ],
+          "clickToAllRenderedMs": [
+            1198.7,
+            1197.4,
+            1282.3,
+            1556.8
+          ],
+          "studioImportMs": [
+            19.80000001192093,
+            19.599999964237213,
+            20.399999976158142,
+            26
+          ]
+        },
+        "medians": {
+          "clickToRevealMs": 1216.6,
+          "clickToAllRenderedMs": 1240.5,
+          "studioImportMs": 20.1
+        },
+        "rendererErrors": 0,
+        "knownPreviewErrors": 7
+      },
+      {
+        "variant": "baseline",
+        "opens": 6,
+        "warmSamples": {
+          "clickToRevealMs": [
+            1329.0,
+            1335.5,
+            1294.7,
+            1317.1
+          ],
+          "clickToAllRenderedMs": [
+            1348.8,
+            1376.8,
+            1315.8,
+            1338.7
+          ],
+          "studioImportMs": [
+            104.30000001192093,
+            104.60000002384186,
+            101.19999998807907,
+            104.59999996423721
+          ]
+        },
+        "medians": {
+          "clickToRevealMs": 1323.05,
+          "clickToAllRenderedMs": 1343.75,
+          "studioImportMs": 104.45
+        },
+        "rendererErrors": 0,
+        "knownPreviewErrors": 7
+      }
+    ],
+    "complex": [
+      {
+        "variant": "baseline",
+        "opens": 6,
+        "warmSamples": {
+          "clickToRevealMs": [
+            1174.0,
+            1206.7,
+            1200.7,
+            1261.8
+          ],
+          "clickToAllRenderedMs": [
+            3649.3,
+            3693.2,
+            3439.7,
+            3426.8
+          ],
+          "studioImportMs": [
+            104.30000001192093,
+            106.19999998807907,
+            106.69999998807907,
+            103.89999997615814
+          ]
+        },
+        "medians": {
+          "clickToRevealMs": 1203.7,
+          "clickToAllRenderedMs": 3544.5,
+          "studioImportMs": 105.25
+        },
+        "rendererErrors": 0,
+        "knownPreviewErrors": 7
+      },
+      {
+        "variant": "combined",
+        "opens": 6,
+        "warmSamples": {
+          "clickToRevealMs": [
+            1248.0,
+            1044.0,
+            1057.7,
+            1057.6
+          ],
+          "clickToAllRenderedMs": [
+            3394.3,
+            3144.0,
+            3227.6,
+            3183.7
+          ],
+          "studioImportMs": [
+            24.19999998807907,
+            19.19999998807907,
+            20.80000001192093,
+            19.899999976158142
+          ]
+        },
+        "medians": {
+          "clickToRevealMs": 1057.65,
+          "clickToAllRenderedMs": 3205.65,
+          "studioImportMs": 20.35
+        },
+        "rendererErrors": 0,
+        "knownPreviewErrors": 7
+      },
+      {
+        "variant": "combined",
+        "opens": 6,
+        "warmSamples": {
+          "clickToRevealMs": [
+            1182.0,
+            1216.4,
+            1340.3,
+            1227.1
+          ],
+          "clickToAllRenderedMs": [
+            3622.3,
+            3661.1,
+            3770.7,
+            3560.1
+          ],
+          "studioImportMs": [
+            21.600000023841858,
+            25.69999998807907,
+            22.599999964237213,
+            20
+          ]
+        },
+        "medians": {
+          "clickToRevealMs": 1221.75,
+          "clickToAllRenderedMs": 3641.7,
+          "studioImportMs": 22.1
+        },
+        "rendererErrors": 0,
+        "knownPreviewErrors": 7
+      },
+      {
+        "variant": "baseline",
+        "opens": 6,
+        "warmSamples": {
+          "clickToRevealMs": [
+            1290.6,
+            1237.8,
+            1263.4,
+            1234.3
+          ],
+          "clickToAllRenderedMs": [
+            3731.7,
+            3555.5,
+            3568.7,
+            3413.7
+          ],
+          "studioImportMs": [
+            115.09999996423721,
+            113.29999995231628,
+            104.60000002384186,
+            111.89999997615814
+          ]
+        },
+        "medians": {
+          "clickToRevealMs": 1250.6,
+          "clickToAllRenderedMs": 3562.1,
+          "studioImportMs": 112.6
+        },
+        "rendererErrors": 0,
+        "knownPreviewErrors": 7
+      }
+    ]
+  },
+  "memory": {
+    "memory2-0-baseline": {
+      "peakWorkingSetSumMiB": 2415.391,
+      "afterReturnWorkingSetSumMiB": 1573.219,
+      "afterReturnJsHeapMiB": 260.669,
+      "rendererErrors": 0,
+      "knownPreviewErrors": 7,
+      "firstUse": {
+        "cases": [
+          "markdown-table-math-safety-locate-copy-fullscreen",
+          "streaming-finalization",
+          "code-theme-content-scrollbar",
+          "warm-reopen-and-snippet"
+        ],
+        "codeFirstUseMs": 18.399999976158142,
+        "markdownFirstUseMs": 116.20000004768372,
+        "markdownWarmUseMs": 45.700000047683716,
+        "probeModuleMs": 2.599999964237213
+      }
+    },
+    "memory2-1-candidate": {
+      "peakWorkingSetSumMiB": 3375.5,
+      "afterReturnWorkingSetSumMiB": 1656.5,
+      "afterReturnJsHeapMiB": 260.006,
+      "rendererErrors": 0,
+      "knownPreviewErrors": 7,
+      "firstUse": {
+        "cases": [
+          "markdown-table-math-safety-locate-copy-fullscreen",
+          "streaming-finalization",
+          "code-theme-content-scrollbar",
+          "warm-reopen-and-snippet"
+        ],
+        "codeFirstUseMs": 29.5,
+        "markdownFirstUseMs": 228.80000001192093,
+        "markdownWarmUseMs": 52,
+        "probeModuleMs": 3
+      }
+    },
+    "memory3-0-candidate": {
+      "peakWorkingSetSumMiB": 2440.672,
+      "afterReturnWorkingSetSumMiB": 1632.406,
+      "afterReturnJsHeapMiB": 259.767,
+      "rendererErrors": 0,
+      "knownPreviewErrors": 7,
+      "firstUse": {
+        "cases": [
+          "markdown-table-math-safety-locate-copy-fullscreen",
+          "streaming-finalization",
+          "code-theme-content-scrollbar",
+          "warm-reopen-and-snippet"
+        ],
+        "codeFirstUseMs": 41.30000001192093,
+        "markdownFirstUseMs": 296.89999997615814,
+        "markdownWarmUseMs": 43.80000001192093,
+        "probeModuleMs": 2.400000035762787
+      }
+    },
+    "memory3-1-baseline": {
+      "peakWorkingSetSumMiB": 2409.156,
+      "afterReturnWorkingSetSumMiB": 1546.016,
+      "afterReturnJsHeapMiB": 260.607,
+      "rendererErrors": 0,
+      "knownPreviewErrors": 7,
+      "firstUse": {
+        "cases": [
+          "markdown-table-math-safety-locate-copy-fullscreen",
+          "streaming-finalization",
+          "code-theme-content-scrollbar",
+          "warm-reopen-and-snippet"
+        ],
+        "codeFirstUseMs": 16.5,
+        "markdownFirstUseMs": 107.09999996423721,
+        "markdownWarmUseMs": 44.59999996423721,
+        "probeModuleMs": 2.399999976158142
+      }
+    },
+    "memory-settle-0-baseline": {
+      "peakWorkingSetSumMiB": 2371.016,
+      "afterReturnWorkingSetSumMiB": 1457.703,
+      "afterReturnJsHeapMiB": 259.797,
+      "rendererErrors": 0,
+      "knownPreviewErrors": 7,
+      "firstUse": {
+        "cases": [
+          "markdown-table-math-safety-locate-copy-fullscreen",
+          "streaming-finalization",
+          "code-theme-content-scrollbar",
+          "warm-reopen-and-snippet"
+        ],
+        "codeFirstUseMs": 18.80000001192093,
+        "markdownFirstUseMs": 95.20000004768372,
+        "markdownWarmUseMs": 36.40000003576279,
+        "probeModuleMs": 1.600000023841858
+      },
+      "afterSixSecondsAndSecondGc": {
+        "workingSetSumMiB": 1324.953,
+        "jsHeapMiB": 259.73
+      }
+    },
+    "memory-settle-1-candidate": {
+      "peakWorkingSetSumMiB": 3378.672,
+      "afterReturnWorkingSetSumMiB": 1682.125,
+      "afterReturnJsHeapMiB": 259.773,
+      "rendererErrors": 0,
+      "knownPreviewErrors": 7,
+      "firstUse": {
+        "cases": [
+          "markdown-table-math-safety-locate-copy-fullscreen",
+          "streaming-finalization",
+          "code-theme-content-scrollbar",
+          "warm-reopen-and-snippet"
+        ],
+        "codeFirstUseMs": 27.599999964237213,
+        "markdownFirstUseMs": 185.80000001192093,
+        "markdownWarmUseMs": 35.80000001192093,
+        "probeModuleMs": 2.900000035762787
+      },
+      "afterSixSecondsAndSecondGc": {
+        "workingSetSumMiB": 1508.312,
+        "jsHeapMiB": 259.701
+      }
+    },
+    "isolate-memory-0-code": {
+      "peakWorkingSetSumMiB": 2250.484,
+      "afterReturnWorkingSetSumMiB": 1594.656,
+      "afterReturnJsHeapMiB": 259.713,
+      "rendererErrors": 0,
+      "knownPreviewErrors": 7,
+      "firstUse": {
+        "cases": [
+          "markdown-table-math-safety-locate-copy-fullscreen",
+          "streaming-finalization",
+          "code-theme-content-scrollbar",
+          "warm-reopen-and-snippet"
+        ],
+        "codeFirstUseMs": 31.599999964237213,
+        "markdownFirstUseMs": 99.09999996423721,
+        "markdownWarmUseMs": 40.80000001192093,
+        "probeModuleMs": 1.699999988079071
+      }
+    },
+    "isolate-memory-1-markdown": {
+      "peakWorkingSetSumMiB": 2943.422,
+      "afterReturnWorkingSetSumMiB": 1740.344,
+      "afterReturnJsHeapMiB": 260.698,
+      "rendererErrors": 0,
+      "knownPreviewErrors": 7,
+      "firstUse": {
+        "cases": [
+          "markdown-table-math-safety-locate-copy-fullscreen",
+          "streaming-finalization",
+          "code-theme-content-scrollbar",
+          "warm-reopen-and-snippet"
+        ],
+        "codeFirstUseMs": 16.80000001192093,
+        "markdownFirstUseMs": 184.20000004768372,
+        "markdownWarmUseMs": 38.30000001192093,
+        "probeModuleMs": 5.699999988079071
+      }
+    },
+    "isolate-memory-2-baseline": {
+      "peakWorkingSetSumMiB": 2426.938,
+      "afterReturnWorkingSetSumMiB": 1575.547,
+      "afterReturnJsHeapMiB": 260.671,
+      "rendererErrors": 0,
+      "knownPreviewErrors": 7,
+      "firstUse": {
+        "cases": [
+          "markdown-table-math-safety-locate-copy-fullscreen",
+          "streaming-finalization",
+          "code-theme-content-scrollbar",
+          "warm-reopen-and-snippet"
+        ],
+        "codeFirstUseMs": 16.5,
+        "markdownFirstUseMs": 85.59999996423721,
+        "markdownWarmUseMs": 39.10000002384186,
+        "probeModuleMs": 2.199999988079071
+      }
+    },
+    "keep-memory-0-baseline": {
+      "peakWorkingSetSumMiB": 2426.312,
+      "afterReturnWorkingSetSumMiB": 1578.875,
+      "afterReturnJsHeapMiB": 260.448,
+      "rendererErrors": 0,
+      "knownPreviewErrors": 7,
+      "firstUse": {
+        "cases": [
+          "markdown-table-math-safety-locate-copy-fullscreen",
+          "streaming-finalization",
+          "code-theme-content-scrollbar",
+          "warm-reopen-and-snippet"
+        ],
+        "codeFirstUseMs": 17.5,
+        "markdownFirstUseMs": 86.40000003576279,
+        "markdownWarmUseMs": 35.30000001192093,
+        "probeModuleMs": 2.199999988079071
+      },
+      "afterSixSecondsAndSecondGc": {
+        "workingSetSumMiB": 1454.359,
+        "jsHeapMiB": 260.406
+      }
+    },
+    "keep-memory-1-code": {
+      "peakWorkingSetSumMiB": 3414.203,
+      "afterReturnWorkingSetSumMiB": 1478.672,
+      "afterReturnJsHeapMiB": 260.875,
+      "rendererErrors": 0,
+      "knownPreviewErrors": 7,
+      "firstUse": {
+        "cases": [
+          "markdown-table-math-safety-locate-copy-fullscreen",
+          "streaming-finalization",
+          "code-theme-content-scrollbar",
+          "warm-reopen-and-snippet"
+        ],
+        "codeFirstUseMs": 32.19999998807907,
+        "markdownFirstUseMs": 124.59999996423721,
+        "markdownWarmUseMs": 41.69999998807907,
+        "probeModuleMs": 3
+      },
+      "afterSixSecondsAndSecondGc": {
+        "workingSetSumMiB": 1351.953,
+        "jsHeapMiB": 260.788
+      }
+    }
+  },
+  "functional": {
+    "gp": {
+      "cases": [
+        "switch-artboard",
+        "rename-undo-redo",
+        "rendered-style-undo-redo",
+        "frame-position-undo-redo",
+        "preview-business-pagination-return"
+      ],
+      "saveReopen": true,
+      "renderers": {
+        "cases": [
+          "markdown-table-math-safety-locate-copy-fullscreen",
+          "streaming-finalization",
+          "code-theme-content-scrollbar",
+          "warm-reopen-and-snippet"
+        ],
+        "codeFirstUseMs": 26.80000001192093,
+        "markdownFirstUseMs": 120,
+        "markdownWarmUseMs": 35.5,
+        "probeModuleMs": 2.399999976158142
+      },
+      "rendererErrors": 0,
+      "knownPreviewErrors": 1
+    },
+    "complex": {
+      "cases": [
+        "switch-artboard",
+        "switch-artboard",
+        "switch-artboard",
+        "rename-undo-redo",
+        "rendered-style-undo-redo",
+        "frame-position-undo-redo",
+        "cold-frame-undo-selection-style"
+      ],
+      "saveReopen": true,
+      "renderers": {
+        "cases": [
+          "markdown-table-math-safety-locate-copy-fullscreen",
+          "streaming-finalization",
+          "code-theme-content-scrollbar",
+          "warm-reopen-and-snippet"
+        ],
+        "codeFirstUseMs": 41.80000001192093,
+        "markdownFirstUseMs": 127.40000003576279,
+        "markdownWarmUseMs": 50.39999997615814,
+        "probeModuleMs": 2
+      },
+      "rendererErrors": 0,
+      "knownPreviewErrors": 1
+    }
+  },
+  "startupGrammarChunks": {
+    "baseline": [
+      {
+        "urlPath": "/static/js/async/9493.69290744.js",
+        "grammarSources": [
+          "refractor/lib/prism-core.js",
+          "prism-react-renderer/prism/index.js"
+        ]
+      }
+    ],
+    "candidate": [],
+    "code": [
+      {
+        "urlPath": "/static/js/async/4636.cc33e65a.js",
+        "grammarSources": [
+          "refractor/lib/prism-core.js"
+        ]
+      }
+    ]
+  },
+  "checks": {
+    "studioUnitTests": 56,
+    "studioTestFiles": 9,
+    "fullTypecheck": "passed",
+    "changedProductionFilesEslint": "passed"
+  },
+  "invalidRun": {
+    "label": "memory-1-candidate",
+    "reason": "Probe asserted deferred Scrollbar initialization before it was ready. Six opens completed with zero renderer errors, but no post-return memory snapshot. Not used as an accepted memory comparison."
+  }
+}

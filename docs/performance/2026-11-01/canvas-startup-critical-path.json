@@ -1,0 +1,1224 @@
+{
+  "date": "2026-11-01",
+  "scope": "Offline startup CPU diagnosis on previously validated retained-small diagnostic build; not production 0.5.33 or live NAS measurements; no production implementation changed.",
+  "method": {
+    "datasets": 2,
+    "opensPerProcess": 3,
+    "processesPerDataset": 1,
+    "selectedOpen": "last warm open",
+    "serial": true,
+    "tracing": true,
+    "warning": "Profiling changes timings; samples are not independent A/B speedup evidence. Inclusive call stacks overlap.",
+    "sourceMapPositions": "function entry positions, not per-sample instruction positions"
+  },
+  "build": {
+    "rendererSha256": "9270d0f34d207503b54e441f62d38b4294dd02f56266ae6942b6b6837c2a9075",
+    "variant": "retained-small"
+  },
+  "sources": [
+    {
+      "path": "platform/wab/src/wab/client/components/copilot/AiMarkdown.tsx",
+      "sha256": "383a7cad914a142edf3e152722ad96ea11316122415787b45dd1e20d758b244c",
+      "matchesDiagnosticSource": true
+    },
+    {
+      "path": "platform/wab/src/wab/client/components/coding/CodeDisplay.tsx",
+      "sha256": "3c584a70265c871443409bb0b51fce488b9cc1955f003bdbdecc231de4d5d593",
+      "matchesDiagnosticSource": true
+    },
+    {
+      "path": "platform/wab/src/wab/client/components/canvas/CanvasFrame/CanvasFrame.tsx",
+      "sha256": "59ad50b4b8f230e8b1c7845b3c912b2d5e04499845553233dcb8e99cd2a2f991",
+      "matchesDiagnosticSource": true
+    },
+    {
+      "path": "platform/wab/src/wab/client/components/studio/studio-bundles.ts",
+      "sha256": "eb5ea34e98d9b2dd85ea5754500b2287f60c72de291b47c7dc73f37866cf2a89",
+      "matchesDiagnosticSource": true
+    }
+  ],
+  "datasets": {
+    "gp": {
+      "samples": 3,
+      "rendererErrors": 0,
+      "blockedWrites": 0,
+      "knownDashboardPreviewErrors": 4,
+      "phases": {
+        "project-fetch": {
+          "profiledDurationMs": 184.1,
+          "topSelfSamples": [
+            {
+              "function": "",
+              "selfCpuSampleMs": 155.98,
+              "source": "platform/node_modules/.pnpm/comlink@4.4.2/node_modules/comlink/dist/esm/comlink.mjs",
+              "line": 169
+            },
+            {
+              "function": "postMessage",
+              "selfCpuSampleMs": 12.63,
+              "source": "platform/node_modules/.pnpm/comlink@4.4.2/node_modules/comlink/dist/esm/comlink.mjs",
+              "line": 305
+            },
+            {
+              "function": "(garbage collector)",
+              "selfCpuSampleMs": 10.68
+            },
+            {
+              "function": "(program)",
+              "selfCpuSampleMs": 4.43
+            },
+            {
+              "function": "postMessage",
+              "selfCpuSampleMs": 0.28
+            },
+            {
+              "function": "mark",
+              "selfCpuSampleMs": 0.18
+            },
+            {
+              "function": "i",
+              "selfCpuSampleMs": 0.05,
+              "source": "platform/wab/src/wab/shared/bundles.ts",
+              "line": 44
+            },
+            {
+              "function": "canHandle",
+              "selfCpuSampleMs": 0.05,
+              "source": "platform/node_modules/.pnpm/comlink@4.4.2/node_modules/comlink/dist/esm/comlink.mjs",
+              "line": 16
+            },
+            {
+              "function": "n",
+              "selfCpuSampleMs": 0.01,
+              "source": "platform/node_modules/.pnpm/comlink@4.4.2/node_modules/comlink/dist/esm/comlink.mjs",
+              "line": 75
+            }
+          ],
+          "mainThreadEvents": [
+            {
+              "name": "FunctionCall",
+              "durationMs": 166.81,
+              "offsetMs": 17.25
+            }
+          ]
+        },
+        "model-unbundle": {
+          "profiledDurationMs": 100.6,
+          "topSelfSamples": [
+            {
+              "function": "unbundleInternal",
+              "selfCpuSampleMs": 16.94,
+              "source": "platform/wab/src/wab/shared/bundler.ts",
+              "line": 696
+            },
+            {
+              "function": "u",
+              "selfCpuSampleMs": 10.91,
+              "source": "platform/wab/src/wab/shared/bundler.ts",
+              "line": 769
+            },
+            {
+              "function": "",
+              "selfCpuSampleMs": 8.49,
+              "source": "platform/wab/src/wab/shared/bundler.ts",
+              "line": 733
+            },
+            {
+              "function": "(garbage collector)",
+              "selfCpuSampleMs": 8.25
+            },
+            {
+              "function": "",
+              "selfCpuSampleMs": 7.16,
+              "source": "platform/wab/src/wab/shared/model/model-meta.ts",
+              "line": 153
+            },
+            {
+              "function": "n",
+              "selfCpuSampleMs": 6.37,
+              "source": "platform/node_modules/.pnpm/@swc+helpers@0.5.23/node_modules/@swc/helpers/esm/_define_property.js",
+              "line": 1
+            },
+            {
+              "function": "mark",
+              "selfCpuSampleMs": 5.45
+            },
+            {
+              "function": "a",
+              "selfCpuSampleMs": 4.59,
+              "source": "platform/wab/src/wab/shared/bundler.ts",
+              "line": 702
+            },
+            {
+              "function": "allFields",
+              "selfCpuSampleMs": 3.74,
+              "source": "platform/wab/src/wab/shared/model/model-meta.ts",
+              "line": 189
+            },
+            {
+              "function": "unbundle",
+              "selfCpuSampleMs": 3.55,
+              "source": "platform/wab/src/wab/shared/bundler.ts",
+              "line": 880
+            },
+            {
+              "function": "C",
+              "selfCpuSampleMs": 3.4,
+              "source": "platform/wab/src/wab/shared/model/model-meta.ts",
+              "line": 271
+            },
+            {
+              "function": "b",
+              "selfCpuSampleMs": 1.84,
+              "source": "platform/wab/src/wab/shared/bundler.ts",
+              "line": 62
+            },
+            {
+              "function": "",
+              "selfCpuSampleMs": 1.61,
+              "source": "platform/wab/src/wab/shared/bundler.ts",
+              "line": 865
+            },
+            {
+              "function": "cv",
+              "selfCpuSampleMs": 1.52,
+              "source": "platform/wab/src/wab/shared/model/classes.ts",
+              "line": 5617
+            },
+            {
+              "function": "v",
+              "selfCpuSampleMs": 1.37,
+              "source": "platform/wab/src/wab/shared/bundler.ts",
+              "line": 52
+            }
+          ],
+          "mainThreadEvents": []
+        },
+        "studio-module-import": {
+          "profiledDurationMs": 132,
+          "topSelfSamples": [
+            {
+              "function": "e",
+              "selfCpuSampleMs": 57.19,
+              "source": "platform/node_modules/.pnpm/refractor@5.0.0/node_modules/refractor/lib/prism-core.js",
+              "line": 277
+            },
+            {
+              "function": "(program)",
+              "selfCpuSampleMs": 30.59
+            },
+            {
+              "function": "type",
+              "selfCpuSampleMs": 4.82,
+              "source": "platform/node_modules/.pnpm/refractor@5.0.0/node_modules/refractor/lib/prism-core.js",
+              "line": 40
+            },
+            {
+              "function": "(garbage collector)",
+              "selfCpuSampleMs": 4.79
+            },
+            {
+              "function": "DFS",
+              "selfCpuSampleMs": 4.41,
+              "source": "platform/node_modules/.pnpm/prism-react-renderer@1.1.1_react@18.3.1/node_modules/prism-react-renderer/prism/index.js",
+              "line": 143
+            },
+            {
+              "function": "insertBefore",
+              "selfCpuSampleMs": 3.08,
+              "source": "platform/node_modules/.pnpm/refractor@5.0.0/node_modules/refractor/lib/prism-core.js",
+              "line": 240
+            },
+            {
+              "function": "type",
+              "selfCpuSampleMs": 1.63,
+              "source": "platform/node_modules/.pnpm/prism-react-renderer@1.1.1_react@18.3.1/node_modules/prism-react-renderer/prism/index.js",
+              "line": 30
+            },
+            {
+              "function": "8988",
+              "selfCpuSampleMs": 1.55,
+              "source": "platform/node_modules/.pnpm/@shiguang2+components@0.1.7_@types+react@18.3.27_date-fns@2.30.0_moment@2.30.1_react-do_726d616931119c57295bf7cf9eec9305/node_modules/@shiguang2/components/esm/x-markdown/components/Highlighter/index.js",
+              "line": 60
+            },
+            {
+              "function": "e",
+              "selfCpuSampleMs": 1.23,
+              "source": "platform/node_modules/.pnpm/refractor@5.0.0/node_modules/refractor/lib/prism-core.js",
+              "line": 67
+            },
+            {
+              "function": "objId",
+              "selfCpuSampleMs": 1.02,
+              "source": "platform/node_modules/.pnpm/refractor@5.0.0/node_modules/refractor/lib/prism-core.js",
+              "line": 50
+            },
+            {
+              "function": "22578",
+              "selfCpuSampleMs": 1.02,
+              "source": "platform/node_modules/.pnpm/style-to-object@1.0.14/node_modules/style-to-object/cjs/index.js",
+              "line": 7
+            },
+            {
+              "function": "RegExp: \\[object (\\w+)\\]",
+              "selfCpuSampleMs": 0.97
+            },
+            {
+              "function": "",
+              "selfCpuSampleMs": 0.92,
+              "source": "platform/node_modules/.pnpm/refractor@5.0.0/node_modules/refractor/lib/prism-core.js",
+              "line": 267
+            },
+            {
+              "function": "68786",
+              "selfCpuSampleMs": 0.9
+            },
+            {
+              "function": "76559",
+              "selfCpuSampleMs": 0.8,
+              "source": "platform/node_modules/.pnpm/domhandler@5.0.3/node_modules/domhandler/lib/node.js",
+              "line": 466
+            }
+          ],
+          "mainThreadEvents": [
+            {
+              "name": "EvaluateScript",
+              "durationMs": 121.92,
+              "offsetMs": 28.7
+            },
+            {
+              "name": "UpdateLayoutTree",
+              "durationMs": 8.66,
+              "offsetMs": 1.33
+            },
+            {
+              "name": "UpdateLayoutTree",
+              "durationMs": 6.94,
+              "offsetMs": 14.15
+            },
+            {
+              "name": "Layout",
+              "durationMs": 0.87,
+              "offsetMs": 21.1
+            },
+            {
+              "name": "Layout",
+              "durationMs": 0.73,
+              "offsetMs": 10
+            }
+          ]
+        },
+        "frame-host-document": {
+          "profiledDurationMs": 174.4,
+          "topSelfSamples": [
+            {
+              "function": "(program)",
+              "selfCpuSampleMs": 43.73
+            },
+            {
+              "function": "(garbage collector)",
+              "selfCpuSampleMs": 8.71
+            },
+            {
+              "function": "n",
+              "selfCpuSampleMs": 8.65,
+              "source": "platform/node_modules/.pnpm/@babel+runtime@7.29.7/node_modules/@babel/runtime/helpers/esm/objectWithoutPropertiesLoose.js",
+              "line": 1
+            },
+            {
+              "function": "",
+              "selfCpuSampleMs": 7.06,
+              "source": "platform/node_modules/.pnpm/comlink@4.4.2/node_modules/comlink/dist/esm/comlink.mjs",
+              "line": 169
+            },
+            {
+              "function": "i",
+              "selfCpuSampleMs": 4.69,
+              "source": "platform/node_modules/.pnpm/@babel+runtime@7.29.7/node_modules/@babel/runtime/helpers/esm/defineProperty.js",
+              "line": 2
+            },
+            {
+              "function": "",
+              "selfCpuSampleMs": 4.66
+            },
+            {
+              "function": "v11",
+              "selfCpuSampleMs": 3.47
+            },
+            {
+              "function": "w",
+              "selfCpuSampleMs": 3.44,
+              "source": "platform/node_modules/.pnpm/antd-style@4.1.0_@types+react@18.3.27_antd@6.6.5_date-fns@2.30.0_moment@2.30.1_react-do_80d8547f6a6eb343cd84a747d7f62e90/node_modules/antd-style/es/factories/createUseTheme.js",
+              "line": 8
+            },
+            {
+              "function": "",
+              "selfCpuSampleMs": 3.32
+            },
+            {
+              "function": "eV",
+              "selfCpuSampleMs": 2.42,
+              "source": "platform/node_modules/.pnpm/overlayscrollbars@2.16.0/node_modules/overlayscrollbars/overlayscrollbars.mjs",
+              "line": 536
+            },
+            {
+              "function": "",
+              "selfCpuSampleMs": 2.18,
+              "source": "platform/node_modules/.pnpm/antd-style@4.1.0_@types+react@18.3.27_antd@6.6.5_date-fns@2.30.0_moment@2.30.1_react-do_80d8547f6a6eb343cd84a747d7f62e90/node_modules/antd-style/es/factories/createUseTheme.js",
+              "line": 25
+            },
+            {
+              "function": "n11",
+              "selfCpuSampleMs": 2.05
+            },
+            {
+              "function": "A",
+              "selfCpuSampleMs": 2.04,
+              "source": "platform/node_modules/.pnpm/@babel+runtime@7.29.7/node_modules/@babel/runtime/helpers/esm/createClass.js",
+              "line": 12
+            },
+            {
+              "function": "ld",
+              "selfCpuSampleMs": 1.7,
+              "source": "platform/node_modules/.pnpm/react-dom@18.3.1_react@18.3.1/node_modules/react-dom/cjs/react-dom.production.min.js",
+              "line": 160
+            },
+            {
+              "function": "h11",
+              "selfCpuSampleMs": 1.55
+            }
+          ],
+          "mainThreadEvents": [
+            {
+              "name": "FunctionCall",
+              "durationMs": 25.07,
+              "offsetMs": 60.63
+            },
+            {
+              "name": "FunctionCall",
+              "durationMs": 16.48,
+              "offsetMs": 3.23
+            },
+            {
+              "name": "EvaluateScript",
+              "durationMs": 9.47,
+              "offsetMs": 155.56
+            },
+            {
+              "name": "FunctionCall",
+              "durationMs": 8.37,
+              "offsetMs": 33.12
+            },
+            {
+              "name": "FunctionCall",
+              "durationMs": 7.81,
+              "offsetMs": 43.79
+            }
+          ]
+        },
+        "frame-component-packages": {
+          "profiledDurationMs": 45.8,
+          "topSelfSamples": [
+            {
+              "function": "(program)",
+              "selfCpuSampleMs": 11.99
+            },
+            {
+              "function": "",
+              "selfCpuSampleMs": 6.02,
+              "source": "platform/node_modules/.pnpm/comlink@4.4.2/node_modules/comlink/dist/esm/comlink.mjs",
+              "line": 169
+            },
+            {
+              "function": "(garbage collector)",
+              "selfCpuSampleMs": 5.36
+            },
+            {
+              "function": "v11",
+              "selfCpuSampleMs": 2.82
+            },
+            {
+              "function": "h11",
+              "selfCpuSampleMs": 1.54
+            },
+            {
+              "function": "",
+              "selfCpuSampleMs": 1.39
+            },
+            {
+              "function": "n11",
+              "selfCpuSampleMs": 1.33
+            },
+            {
+              "function": "",
+              "selfCpuSampleMs": 0.91
+            },
+            {
+              "function": "i",
+              "selfCpuSampleMs": 0.8,
+              "source": "platform/wab/src/wab/client/script-exec.ts",
+              "line": 5
+            },
+            {
+              "function": "lU",
+              "selfCpuSampleMs": 0.77
+            },
+            {
+              "function": "Vj",
+              "selfCpuSampleMs": 0.73
+            },
+            {
+              "function": "",
+              "selfCpuSampleMs": 0.65
+            },
+            {
+              "function": "appendChild",
+              "selfCpuSampleMs": 0.63
+            },
+            {
+              "function": "JA1",
+              "selfCpuSampleMs": 0.52
+            },
+            {
+              "function": "lK",
+              "selfCpuSampleMs": 0.52
+            }
+          ],
+          "mainThreadEvents": [
+            {
+              "name": "EvaluateScript",
+              "durationMs": 9.47,
+              "offsetMs": 29.94
+            },
+            {
+              "name": "EvaluateScript",
+              "durationMs": 6.01,
+              "offsetMs": 39.55
+            },
+            {
+              "name": "EvaluateScript",
+              "durationMs": 4.81,
+              "offsetMs": 24.45
+            },
+            {
+              "name": "FunctionCall",
+              "durationMs": 2.16,
+              "offsetMs": 21.87
+            },
+            {
+              "name": "FunctionCall",
+              "durationMs": 1.98,
+              "offsetMs": 17.62
+            }
+          ]
+        },
+        "frame-first-render": {
+          "profiledDurationMs": 420.4,
+          "topSelfSamples": [
+            {
+              "function": "(garbage collector)",
+              "selfCpuSampleMs": 29.3
+            },
+            {
+              "function": "(program)",
+              "selfCpuSampleMs": 16.15
+            },
+            {
+              "function": "E",
+              "selfCpuSampleMs": 11.25,
+              "source": "platform/wab/src/wab/client/studio-ctx/renderState.ts",
+              "line": 463
+            },
+            {
+              "function": "",
+              "selfCpuSampleMs": 11
+            },
+            {
+              "function": "n",
+              "selfCpuSampleMs": 10.89,
+              "source": "platform/node_modules/.pnpm/@swc+helpers@0.5.23/node_modules/@swc/helpers/esm/_define_property.js",
+              "line": 1
+            },
+            {
+              "function": "",
+              "selfCpuSampleMs": 10.46,
+              "source": "platform/node_modules/.pnpm/mobx@6.13.6/node_modules/mobx/dist/mobx.esm.js",
+              "line": 1930
+            },
+            {
+              "function": "n",
+              "selfCpuSampleMs": 9.31,
+              "source": "platform/node_modules/.pnpm/@swc+helpers@0.5.23/node_modules/@swc/helpers/esm/_object_spread_props.js",
+              "line": 16
+            },
+            {
+              "function": "",
+              "selfCpuSampleMs": 7.69,
+              "source": "platform/wab/src/wab/client/components/canvas/canvas-cache.ts",
+              "line": 181
+            },
+            {
+              "function": "e",
+              "selfCpuSampleMs": 6.13
+            },
+            {
+              "function": "oV",
+              "selfCpuSampleMs": 6.09
+            },
+            {
+              "function": "insertBefore",
+              "selfCpuSampleMs": 6
+            },
+            {
+              "function": "k",
+              "selfCpuSampleMs": 5.15
+            },
+            {
+              "function": "i",
+              "selfCpuSampleMs": 5.03,
+              "source": "platform/node_modules/.pnpm/@swc+helpers@0.5.23/node_modules/@swc/helpers/esm/_object_spread.js",
+              "line": 3
+            },
+            {
+              "function": "U",
+              "selfCpuSampleMs": 4.85,
+              "source": "platform/wab/src/wab/client/react-global-hook/globalHook.ts",
+              "line": 681
+            },
+            {
+              "function": "",
+              "selfCpuSampleMs": 4.57,
+              "source": "platform/wab/src/wab/client/components/canvas/canvas-cache.ts",
+              "line": 207
+            }
+          ],
+          "mainThreadEvents": [
+            {
+              "name": "FunctionCall",
+              "durationMs": 364.1,
+              "offsetMs": 30.55
+            },
+            {
+              "name": "FunctionCall",
+              "durationMs": 16.37,
+              "offsetMs": 401.54
+            },
+            {
+              "name": "UpdateLayoutTree",
+              "durationMs": 9.17,
+              "offsetMs": 186.69
+            },
+            {
+              "name": "FunctionCall",
+              "durationMs": 5.26,
+              "offsetMs": 25.14
+            },
+            {
+              "name": "UpdateLayoutTree",
+              "durationMs": 2.14,
+              "offsetMs": 346.84
+            }
+          ]
+        }
+      }
+    },
+    "complex": {
+      "samples": 3,
+      "rendererErrors": 0,
+      "blockedWrites": 0,
+      "knownDashboardPreviewErrors": 4,
+      "phases": {
+        "project-fetch": {
+          "profiledDurationMs": 157.6,
+          "topSelfSamples": [
+            {
+              "function": "",
+              "selfCpuSampleMs": 137.34,
+              "source": "platform/node_modules/.pnpm/comlink@4.4.2/node_modules/comlink/dist/esm/comlink.mjs",
+              "line": 169
+            },
+            {
+              "function": "postMessage",
+              "selfCpuSampleMs": 10.51,
+              "source": "platform/node_modules/.pnpm/comlink@4.4.2/node_modules/comlink/dist/esm/comlink.mjs",
+              "line": 305
+            },
+            {
+              "function": "(garbage collector)",
+              "selfCpuSampleMs": 7.73
+            },
+            {
+              "function": "(program)",
+              "selfCpuSampleMs": 1.83
+            },
+            {
+              "function": "mark",
+              "selfCpuSampleMs": 0.22
+            },
+            {
+              "function": "postMessage",
+              "selfCpuSampleMs": 0.13
+            },
+            {
+              "function": "i",
+              "selfCpuSampleMs": 0.04,
+              "source": "platform/wab/src/wab/shared/bundles.ts",
+              "line": 44
+            },
+            {
+              "function": "",
+              "selfCpuSampleMs": 0.01,
+              "source": "platform/wab/src/wab/client/studio-ctx/studio-load-timings.ts",
+              "line": 21
+            }
+          ],
+          "mainThreadEvents": [
+            {
+              "name": "FunctionCall",
+              "durationMs": 145.12,
+              "offsetMs": 12.46
+            }
+          ]
+        },
+        "model-unbundle": {
+          "profiledDurationMs": 84.9,
+          "topSelfSamples": [
+            {
+              "function": "unbundleInternal",
+              "selfCpuSampleMs": 10.84,
+              "source": "platform/wab/src/wab/shared/bundler.ts",
+              "line": 696
+            },
+            {
+              "function": "",
+              "selfCpuSampleMs": 7.4,
+              "source": "platform/wab/src/wab/shared/model/model-meta.ts",
+              "line": 153
+            },
+            {
+              "function": "",
+              "selfCpuSampleMs": 7.06,
+              "source": "platform/wab/src/wab/shared/bundler.ts",
+              "line": 733
+            },
+            {
+              "function": "(garbage collector)",
+              "selfCpuSampleMs": 6.05
+            },
+            {
+              "function": "a",
+              "selfCpuSampleMs": 5.37,
+              "source": "platform/wab/src/wab/shared/bundler.ts",
+              "line": 702
+            },
+            {
+              "function": "unbundle",
+              "selfCpuSampleMs": 4.63,
+              "source": "platform/wab/src/wab/shared/bundler.ts",
+              "line": 880
+            },
+            {
+              "function": "n",
+              "selfCpuSampleMs": 4.34,
+              "source": "platform/node_modules/.pnpm/@swc+helpers@0.5.23/node_modules/@swc/helpers/esm/_define_property.js",
+              "line": 1
+            },
+            {
+              "function": "u",
+              "selfCpuSampleMs": 4.26,
+              "source": "platform/wab/src/wab/shared/bundler.ts",
+              "line": 769
+            },
+            {
+              "function": "i",
+              "selfCpuSampleMs": 2.96,
+              "source": "platform/wab/src/wab/shared/bundles.ts",
+              "line": 44
+            },
+            {
+              "function": "allTransientFieldKeys",
+              "selfCpuSampleMs": 2.54,
+              "source": "platform/wab/src/wab/shared/model/model-meta.ts",
+              "line": 222
+            },
+            {
+              "function": "allFields",
+              "selfCpuSampleMs": 2.06,
+              "source": "platform/wab/src/wab/shared/model/model-meta.ts",
+              "line": 189
+            },
+            {
+              "function": "allFieldKeys",
+              "selfCpuSampleMs": 1.8,
+              "source": "platform/wab/src/wab/shared/model/model-meta.ts",
+              "line": 208
+            },
+            {
+              "function": "C",
+              "selfCpuSampleMs": 1.55,
+              "source": "platform/wab/src/wab/shared/model/model-meta.ts",
+              "line": 271
+            },
+            {
+              "function": "k",
+              "selfCpuSampleMs": 1.35,
+              "source": "platform/wab/src/wab/shared/bundler.ts",
+              "line": 891
+            },
+            {
+              "function": "recomputeParents",
+              "selfCpuSampleMs": 1.33,
+              "source": "platform/wab/src/wab/shared/bundler.ts",
+              "line": 1201
+            }
+          ],
+          "mainThreadEvents": []
+        },
+        "studio-module-import": {
+          "profiledDurationMs": 123.9,
+          "topSelfSamples": [
+            {
+              "function": "e",
+              "selfCpuSampleMs": 59.37,
+              "source": "platform/node_modules/.pnpm/refractor@5.0.0/node_modules/refractor/lib/prism-core.js",
+              "line": 277
+            },
+            {
+              "function": "(program)",
+              "selfCpuSampleMs": 24.01
+            },
+            {
+              "function": "type",
+              "selfCpuSampleMs": 7.05,
+              "source": "platform/node_modules/.pnpm/refractor@5.0.0/node_modules/refractor/lib/prism-core.js",
+              "line": 40
+            },
+            {
+              "function": "DFS",
+              "selfCpuSampleMs": 4.55,
+              "source": "platform/node_modules/.pnpm/prism-react-renderer@1.1.1_react@18.3.1/node_modules/prism-react-renderer/prism/index.js",
+              "line": 143
+            },
+            {
+              "function": "insertBefore",
+              "selfCpuSampleMs": 3.41,
+              "source": "platform/node_modules/.pnpm/refractor@5.0.0/node_modules/refractor/lib/prism-core.js",
+              "line": 240
+            },
+            {
+              "function": "(garbage collector)",
+              "selfCpuSampleMs": 2.55
+            },
+            {
+              "function": "",
+              "selfCpuSampleMs": 1.51,
+              "source": "platform/node_modules/.pnpm/refractor@5.0.0/node_modules/refractor/lib/prism-core.js",
+              "line": 267
+            },
+            {
+              "function": "type",
+              "selfCpuSampleMs": 1.42,
+              "source": "platform/node_modules/.pnpm/prism-react-renderer@1.1.1_react@18.3.1/node_modules/prism-react-renderer/prism/index.js",
+              "line": 30
+            },
+            {
+              "function": "RegExp: \\[object (\\w+)\\]",
+              "selfCpuSampleMs": 1.3
+            },
+            {
+              "function": "76559",
+              "selfCpuSampleMs": 1.14,
+              "source": "platform/node_modules/.pnpm/domhandler@5.0.3/node_modules/domhandler/lib/node.js",
+              "line": 466
+            },
+            {
+              "function": "e",
+              "selfCpuSampleMs": 1,
+              "source": "platform/node_modules/.pnpm/refractor@5.0.0/node_modules/refractor/lib/prism-core.js",
+              "line": 67
+            },
+            {
+              "function": "objId",
+              "selfCpuSampleMs": 0.78,
+              "source": "platform/node_modules/.pnpm/refractor@5.0.0/node_modules/refractor/lib/prism-core.js",
+              "line": 50
+            },
+            {
+              "function": "clone",
+              "selfCpuSampleMs": 0.66,
+              "source": "platform/node_modules/.pnpm/prism-react-renderer@1.1.1_react@18.3.1/node_modules/prism-react-renderer/prism/index.js",
+              "line": 43
+            },
+            {
+              "function": "22578",
+              "selfCpuSampleMs": 0.64,
+              "source": "platform/node_modules/.pnpm/style-to-object@1.0.14/node_modules/style-to-object/cjs/index.js",
+              "line": 7
+            },
+            {
+              "function": "68786",
+              "selfCpuSampleMs": 0.54
+            }
+          ],
+          "mainThreadEvents": [
+            {
+              "name": "EvaluateScript",
+              "durationMs": 119.24,
+              "offsetMs": 22.81
+            },
+            {
+              "name": "UpdateLayoutTree",
+              "durationMs": 7.1,
+              "offsetMs": 0.82
+            },
+            {
+              "name": "UpdateLayoutTree",
+              "durationMs": 5.26,
+              "offsetMs": 13.42
+            },
+            {
+              "name": "Layout",
+              "durationMs": 0.63,
+              "offsetMs": 7.93
+            },
+            {
+              "name": "Layout",
+              "durationMs": 0.62,
+              "offsetMs": 18.68
+            }
+          ]
+        },
+        "frame-host-document": {
+          "profiledDurationMs": 120.1,
+          "topSelfSamples": [
+            {
+              "function": "(program)",
+              "selfCpuSampleMs": 21.09
+            },
+            {
+              "function": "n",
+              "selfCpuSampleMs": 8.35,
+              "source": "platform/node_modules/.pnpm/@babel+runtime@7.29.7/node_modules/@babel/runtime/helpers/esm/objectWithoutPropertiesLoose.js",
+              "line": 1
+            },
+            {
+              "function": "(garbage collector)",
+              "selfCpuSampleMs": 5.99
+            },
+            {
+              "function": "ek",
+              "selfCpuSampleMs": 5.26,
+              "source": "platform/node_modules/.pnpm/overlayscrollbars@2.16.0/node_modules/overlayscrollbars/overlayscrollbars.mjs",
+              "line": 471
+            },
+            {
+              "function": "i",
+              "selfCpuSampleMs": 5.11,
+              "source": "platform/node_modules/.pnpm/@babel+runtime@7.29.7/node_modules/@babel/runtime/helpers/esm/defineProperty.js",
+              "line": 2
+            },
+            {
+              "function": "",
+              "selfCpuSampleMs": 4.57
+            },
+            {
+              "function": "w",
+              "selfCpuSampleMs": 4.01,
+              "source": "platform/node_modules/.pnpm/antd-style@4.1.0_@types+react@18.3.27_antd@6.6.5_date-fns@2.30.0_moment@2.30.1_react-do_80d8547f6a6eb343cd84a747d7f62e90/node_modules/antd-style/es/factories/createUseTheme.js",
+              "line": 8
+            },
+            {
+              "function": "",
+              "selfCpuSampleMs": 3.1,
+              "source": "platform/node_modules/.pnpm/antd-style@4.1.0_@types+react@18.3.27_antd@6.6.5_date-fns@2.30.0_moment@2.30.1_react-do_80d8547f6a6eb343cd84a747d7f62e90/node_modules/antd-style/es/factories/createUseTheme.js",
+              "line": 25
+            },
+            {
+              "function": "",
+              "selfCpuSampleMs": 2.83
+            },
+            {
+              "function": "eV",
+              "selfCpuSampleMs": 2.32,
+              "source": "platform/node_modules/.pnpm/overlayscrollbars@2.16.0/node_modules/overlayscrollbars/overlayscrollbars.mjs",
+              "line": 536
+            },
+            {
+              "function": "",
+              "selfCpuSampleMs": 1.27,
+              "source": "platform/node_modules/.pnpm/antd@6.6.5_date-fns@2.30.0_moment@2.30.1_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/antd/es/button/Button.js",
+              "line": 42
+            },
+            {
+              "function": "",
+              "selfCpuSampleMs": 1.18,
+              "source": "platform/node_modules/.pnpm/@rc-component+trigger@3.10.1_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/@rc-component/trigger/es/index.js",
+              "line": 26
+            },
+            {
+              "function": "A",
+              "selfCpuSampleMs": 1.14,
+              "source": "platform/node_modules/.pnpm/@babel+runtime@7.29.7/node_modules/@babel/runtime/helpers/esm/createClass.js",
+              "line": 12
+            },
+            {
+              "function": "",
+              "selfCpuSampleMs": 1.11
+            },
+            {
+              "function": "getPropertyValue",
+              "selfCpuSampleMs": 1.08
+            }
+          ],
+          "mainThreadEvents": [
+            {
+              "name": "FunctionCall",
+              "durationMs": 30.11,
+              "offsetMs": 62.12
+            },
+            {
+              "name": "FunctionCall",
+              "durationMs": 14.44,
+              "offsetMs": 4.15
+            },
+            {
+              "name": "FunctionCall",
+              "durationMs": 11.12,
+              "offsetMs": 18.87
+            },
+            {
+              "name": "EvaluateScript",
+              "durationMs": 9.02,
+              "offsetMs": 101.53
+            },
+            {
+              "name": "EvaluateScript",
+              "durationMs": 6.42,
+              "offsetMs": 110.71
+            }
+          ]
+        },
+        "frame-component-packages": {
+          "profiledDurationMs": 68.5,
+          "topSelfSamples": [
+            {
+              "function": "(program)",
+              "selfCpuSampleMs": 15.72
+            },
+            {
+              "function": "",
+              "selfCpuSampleMs": 8.92,
+              "source": "platform/node_modules/.pnpm/comlink@4.4.2/node_modules/comlink/dist/esm/comlink.mjs",
+              "line": 169
+            },
+            {
+              "function": "v11",
+              "selfCpuSampleMs": 4.61
+            },
+            {
+              "function": "v11",
+              "selfCpuSampleMs": 3.51
+            },
+            {
+              "function": "(garbage collector)",
+              "selfCpuSampleMs": 3.46
+            },
+            {
+              "function": "n11",
+              "selfCpuSampleMs": 1.84
+            },
+            {
+              "function": "h11",
+              "selfCpuSampleMs": 1.6
+            },
+            {
+              "function": "n11",
+              "selfCpuSampleMs": 1.58
+            },
+            {
+              "function": "h11",
+              "selfCpuSampleMs": 1.46
+            },
+            {
+              "function": "",
+              "selfCpuSampleMs": 1.03
+            },
+            {
+              "function": "aa",
+              "selfCpuSampleMs": 0.79
+            },
+            {
+              "function": "lU",
+              "selfCpuSampleMs": 0.78
+            },
+            {
+              "function": "i",
+              "selfCpuSampleMs": 0.78,
+              "source": "platform/wab/src/wab/client/script-exec.ts",
+              "line": 5
+            },
+            {
+              "function": "o9",
+              "selfCpuSampleMs": 0.77
+            },
+            {
+              "function": "",
+              "selfCpuSampleMs": 0.67,
+              "source": "platform/node_modules/.pnpm/react-joyride@2.9.3_@types+react@18.3.27_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/react-joyride/dist/index.mjs",
+              "line": 493
+            }
+          ],
+          "mainThreadEvents": [
+            {
+              "name": "EvaluateScript",
+              "durationMs": 13.58,
+              "offsetMs": 16.57
+            },
+            {
+              "name": "EvaluateScript",
+              "durationMs": 8.76,
+              "offsetMs": 54.01
+            },
+            {
+              "name": "EvaluateScript",
+              "durationMs": 5.46,
+              "offsetMs": 62.85
+            },
+            {
+              "name": "EvaluateScript",
+              "durationMs": 5.01,
+              "offsetMs": 30.21
+            },
+            {
+              "name": "EvaluateScript",
+              "durationMs": 3.62,
+              "offsetMs": 49.86
+            }
+          ]
+        },
+        "frame-first-render": {
+          "profiledDurationMs": 176.3,
+          "topSelfSamples": [
+            {
+              "function": "(program)",
+              "selfCpuSampleMs": 9.99
+            },
+            {
+              "function": "E",
+              "selfCpuSampleMs": 6.49,
+              "source": "platform/wab/src/wab/client/studio-ctx/renderState.ts",
+              "line": 463
+            },
+            {
+              "function": "",
+              "selfCpuSampleMs": 6.39
+            },
+            {
+              "function": "(garbage collector)",
+              "selfCpuSampleMs": 5.5
+            },
+            {
+              "function": "e",
+              "selfCpuSampleMs": 5.38
+            },
+            {
+              "function": "oV",
+              "selfCpuSampleMs": 4.03
+            },
+            {
+              "function": "insertBefore",
+              "selfCpuSampleMs": 3.6
+            },
+            {
+              "function": "n",
+              "selfCpuSampleMs": 3.15,
+              "source": "platform/node_modules/.pnpm/@swc+helpers@0.5.23/node_modules/@swc/helpers/esm/_define_property.js",
+              "line": 1
+            },
+            {
+              "function": "n",
+              "selfCpuSampleMs": 2.66,
+              "source": "platform/node_modules/.pnpm/@swc+helpers@0.5.23/node_modules/@swc/helpers/esm/_object_spread_props.js",
+              "line": 16
+            },
+            {
+              "function": "n",
+              "selfCpuSampleMs": 2.3,
+              "source": "platform/node_modules/.pnpm/@babel+runtime@7.29.7/node_modules/@babel/runtime/helpers/esm/objectWithoutPropertiesLoose.js",
+              "line": 1
+            },
+            {
+              "function": "c",
+              "selfCpuSampleMs": 1.92
+            },
+            {
+              "function": "rd",
+              "selfCpuSampleMs": 1.82
+            },
+            {
+              "function": "k",
+              "selfCpuSampleMs": 1.75
+            },
+            {
+              "function": "r1",
+              "selfCpuSampleMs": 1.7
+            },
+            {
+              "function": "nd",
+              "selfCpuSampleMs": 1.68
+            }
+          ],
+          "mainThreadEvents": [
+            {
+              "name": "FunctionCall",
+              "durationMs": 141.35,
+              "offsetMs": 22.24
+            },
+            {
+              "name": "FunctionCall",
+              "durationMs": 6.75,
+              "offsetMs": 167.58
+            },
+            {
+              "name": "UpdateLayoutTree",
+              "durationMs": 5.66,
+              "offsetMs": 98.78
+            },
+            {
+              "name": "FunctionCall",
+              "durationMs": 3.69,
+              "offsetMs": 18.48
+            },
+            {
+              "name": "FunctionCall",
+              "durationMs": 1.07,
+              "offsetMs": 14.35
+            }
+          ]
+        }
+      }
+    }
+  },
+  "directions": [
+    {
+      "priority": 1,
+      "direction": "Defer AI Markdown and code syntax-highlighting modules until their UI is rendered; retain eager composer",
+      "status": "Supported by source and CPU samples in both datasets; implementation A/B and feature regression still required"
+    },
+    {
+      "priority": 2,
+      "direction": "Deduplicate repeated computations within first-render evaluation/commit",
+      "status": "Hotspot identified; no new semantically safe change established yet"
+    },
+    {
+      "priority": 3,
+      "direction": "Reduce model cross-frame copying and temporary allocation",
+      "status": "Prior speedup prototype rejected for memory pressure; requires allocation attribution and new memory acceptance"
+    }
+  ],
+  "implementationResult": {
+    "report": "lazy-renderers-validation.md",
+    "kept": "CodeDisplay/CodeSnippet on-use loading",
+    "rejected": "AI Markdown on-use loading, including combined deferral; resource pressure in repeated-open validation"
+  }
+}

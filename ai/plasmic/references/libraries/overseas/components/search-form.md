@@ -15,6 +15,8 @@ Initial collapse configuration must remain interactive in Preview after saving a
 - `minRows=1` and initially collapsed at runtime; use the verified initial-state mapping or an event-backed controlled state. Never freeze runtime `collapsed` to a literal to specify an initial state. Items inherit the column span except a recorded [measured or source span exception](#layout-and-state).
 - Every filter field is a real SearchForm.Item, declared in `components` and owned by the SearchForm `children` Slot; never drop or merge fields to fill a row.
 - Query and submission stay separate: submitted business fields use Form. SearchForm owns its card surface; never wrap it in a Card. Inside the content root Flex (gap 16) set `marginBottom` 0.
+- Select controls in multiple/tags mode must explicitly use `maxTagCount:"responsive"` and remain one native control row. Selected tags must not wrap, increase the filter row height or displace other fields and actions; preserve the full selection and configured grid.
+- Date-range shortcuts belong inside the date control's native `presets` popup. Do not place an independent quick-range choice group beside the picker; presets and manual dates share one range and the same query/reset behavior.
 
 ## Plan decisions
 
@@ -60,6 +62,10 @@ Choose before generation, in this order, and use the same basis for later adjust
 Record the selected `props.colSpan` and its source in `components` before generation; three columns is a supported regular mode and needs no fabricated requirement exception. The static script checks the mode and saved value; it cannot prove that the image really shows multiple three-column rows, so keep the image evidence for independent review. Other native grid values are reserved for explicit requirement exceptions, never a model's own choice.
 
 Both modes use `minRows=1` and start collapsed at runtime under the initial-state contract below; Items do not override span and inherit the selected column width. Three columns does not mean initially expanded or several permanent rows; those initial states need an explicit requirement. Actions use the remaining grid of the last row and wrap when it is full. Beyond minRows the form collapses and always keeps at least the first field. Small screens keep the component's responsive grid xs=24, sm=12, md=selected span.
+
+Multi-select/tag controls follow [Select selected-tag overflow](../../antd_v6/components/select.md#selected-tag-overflow): set `maxTagCount:"responsive"` on each control so additional selections collapse into the native `+N` summary without growing the control or filter row. Keep the required initial values and grid spans; selected-tag count is not a reason to widen an Item or reduce its defaults. Verify the actual installed prop contract before composition.
+
+Date-range fields follow [RangePicker quick-range presets](../../antd_v6/components/date-picker.md#quick-range-presets). Configure shortcuts inside the native popup, preserve one start/end range, and keep preset/manual changes as drafts until Query. Do not add a neighboring Segmented, Radio or button group for recent-day choices. Reset must restore both displayed endpoints and the applied date filter.
 
 `Item.span` takes precedence over `Form.colSpan`, so check every field's effective span and never mix the three- and four-column modes. A wider field has two accepted bases, declared before generation as the Item's `props.span` plus `overrides.span`:
 
@@ -136,6 +142,10 @@ When the editor forces expansion it shows "收起", an upward indicator and `ari
 Verify omitted and explicit initial values remain interactive, and controlled state follows its owner. After save/reopen, check that initial props export through `defaultCollapsed` rather than a fixed controlled value; click expand then collapse and check both the button/ARIA state and actual hidden fields. A passing uncontrolled component test alone does not establish that Studio's registered initial-value path works.
 
 Check real Item/control Slot ownership, unique field keys and span overrides in the editor, Preview and saved/reopened readback, and verify initial/reset/clear values, validation and collapsed fields.
+
+For each multiple/tags Select, inspect the saved responsive overflow prop and exercise selections that exceed the control width. In the editor and Preview, measure that the control stays at its configured single-row height and does not move neighboring labels/actions or add a filter row; verify native `+N`, all selected values, all dropdown options and reset defaults. Recheck the overflow effect after save/reopen.
+
+For each date range with shortcuts, open the native popup and choose each preset, then test a manual range and reset. Verify the visible field/control ownership, absence of an external quick-choice group, unchanged results before Query and correctly dated results afterward. Repeat a preset and reset after save/reopen; the displayed and submitted ranges must agree.
 
 Inventory every generated SearchForm per Page/Tab, including initially inactive Tabs. Record the expected grid, effective Item spans, shared labelWidth and collapse state independently of the generated output. Check the overall colSpan and `Item.span ?? Form.colSpan` field by field; fields without a declared exception inherit the expected column width, including hidden fields. At the target viewport check the editor and real Preview: measure column widths/row positions, complete labels and punctuation and usable control space; exercise query/reset. With a collapsed region verify hidden field values and both directions of expand/collapse; without one, confirm that no extra toggle appears. Record model, geometry, screenshot and interaction results separately; unvisited Tabs and unmeasured conditions stay unverified. Correct the generation input and delivered model together on failure.
 
