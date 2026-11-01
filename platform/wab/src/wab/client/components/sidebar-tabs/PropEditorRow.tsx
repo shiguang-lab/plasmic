@@ -1768,6 +1768,10 @@ function PropEditorRow_(
   },
 ) {
   const { tpl, viewCtx, ...rest } = props;
+  // Model replacement can dispose the canvas before React unmounts its panel.
+  if (viewCtx.isDisposed) {
+    return null;
+  }
   const getCurrentComponentEvalContext = () => {
     if (
       "componentPropValues" in props ||

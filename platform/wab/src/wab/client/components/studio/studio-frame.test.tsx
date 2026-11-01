@@ -8,7 +8,7 @@ import { HistoryProvider } from "@/wab/client/route/HistoryProvider";
 import { getHostUrl } from "@/wab/client/utils/app-hosting-utils";
 import { ForbiddenError } from "@/wab/shared/ApiErrors/errors";
 import { ApiProject, ApiTrustedHost, ProjectId } from "@/wab/shared/ApiSchema";
-import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import * as React from "react";
 import { mock } from "vitest-mock-extended";
 
@@ -16,6 +16,7 @@ const frame = vi.hoisted(() => ({
   hostFrameApiReady: false,
   studioReady: false,
   studioModalOpen: false,
+  status: vi.fn(() => ({ data: undefined })),
 }));
 vi.mock("@/wab/client/frame-ctx/top-frame-ctx", () => ({
   TopFrameCtxProvider: ({ children }: { children: React.ReactNode }) =>
@@ -25,6 +26,7 @@ vi.mock("@/wab/client/frame-ctx/top-frame-ctx", () => ({
 }));
 vi.mock("@/wab/client/components/TopFrame/TopFrameChrome", () => ({
   TopFrameChrome: () => null,
+  useProjectAiSession: () => undefined,
   useTopFrameState: () => ({
     topFrameApi: {},
     studioReady: frame.studioReady,
@@ -41,7 +43,16 @@ vi.mock("@/wab/client/utils/useBrowserNotification", () => ({
   useBrowserNotification: () => undefined,
 }));
 
+vi.mock("@/wab/client/copilot/use-local-ai-status", () => ({
+  useLocalAiStatus: frame.status,
+}));
 afterEach(cleanup);
+beforeEach(() => {
+  frame.hostFrameApiReady = false;
+  frame.studioReady = false;
+  frame.studioModalOpen = false;
+  frame.status.mockClear();
+});
 
 it("sends an anonymous private-project visitor to sign in with the original preview route", async () => {
   const { appCtx, api } = fakeAppCtx();
@@ -73,12 +84,13 @@ it("sends an anonymous private-project visitor to sign in with the original prev
 it("preserves the visible skeleton through metadata, host registration and dialogs until the canvas is ready", async () => {
   const { appCtx, api } = fakeAppCtx();
   appCtx.appConfigOverrides = {};
+  appCtx.appConfig.enableLocalAiEditing = true;
   appCtx.history.replace("/projects/project?branch=feature");
   api.listBranchesForProject.mockResolvedValue({ branches: [] });
   const project = mock<ApiProject>({
     id: "project" as ProjectId,
     name: "Project",
-    defaultAccessLevel: "viewer",
+    defaultAccessLevel: "content",
   });
   let releaseProject!: () => void;
   api.getProjects.mockReturnValue(
@@ -109,10 +121,18 @@ it("preserves the visible skeleton through metadata, host registration and dialo
   const rendered = render(view());
   // Branch lookup starts while the project metadata request is still pending.
   expect(api.listBranchesForProject).toHaveBeenCalledWith(project.id);
+  const input = screen.getByRole("textbox");
+  expect(rendered.container.querySelector("iframe")).toBeNull();
+  expect(frame.status).toHaveBeenCalledWith("project", true);
+  expect((screen.getByRole("button", { name: "Switch conversation" }) as HTMLButtonElement).disabled).toBe(true);
+  fireEvent.input(input, { target: { innerText: "Keep this prompt while the canvas loads" } });
+  expect(input.innerText).toContain("Keep this prompt while the canvas loads");
+  expect((screen.getByRole("button", { name: "Send AI request" }) as HTMLButtonElement).disabled).toBe(true);
   const skeleton = screen.getByRole("status");
   const firstInput = skeleton.querySelector(".ant-skeleton-input");
   await act(async () => releaseProject());
   expect(rendered.container.querySelector("iframe")).toBeTruthy();
+  expect(screen.getByRole("textbox")).toBe(input);
   expect(screen.getByRole("status")).toBe(skeleton);
   expect(skeleton.querySelector(".ant-skeleton-input")).toBe(firstInput);
   frame.hostFrameApiReady = true;
@@ -128,6 +148,8 @@ it("preserves the visible skeleton through metadata, host registration and dialo
   frame.studioReady = true;
   rendered.rerender(view());
   expect(screen.queryByRole("status")).toBeNull();
+  expect(screen.getByRole("textbox")).toBe(input);
+  expect(input.innerText).toContain("Keep this prompt while the canvas loads");
 });
 
 beforeEach(() => registerPresentationProject("0123456789", "project" as import("@/wab/shared/ApiSchema").ProjectId));

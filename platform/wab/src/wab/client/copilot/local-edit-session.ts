@@ -28,7 +28,7 @@ export type PageGenerationOptions = { name: string; path: string };
 
 export async function localAiFetch<T>(
   projectId: string,
-  action: "status",
+  action: "status" | "models",
 ): Promise<T> {
   return aiChatRequest<T>(
     `/api/v1/projects/${encodeURIComponent(projectId)}/ai/edit/${action}`,
@@ -223,9 +223,10 @@ export class LocalEditSession {
     if (this.branchReady && branchId === this.branchId) {
       return;
     }
+    const initialBranch = !this.branchReady;
     this.branchReady = true;
     this.branchId = branchId;
-    this.createThread(false);
+    this.createThread(false, initialBranch ? this.activeThreadId : undefined);
     if (!this.connected || !this.viewers) {
       return;
     }

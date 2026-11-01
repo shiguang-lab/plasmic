@@ -28,6 +28,7 @@ export interface CopilotChatDialogProps {
   project: ApiProject;
   session: AiSessionView;
   fetchStatus: () => Promise<LocalAiStatus>;
+  fetchModels: () => Promise<string[]>;
   onDownloadAttachment: (file: AiTask["files"][number]) => Promise<void>;
   chatOpenOpts?: CopilotChatOpenOpts;
   onClose: () => void;
@@ -117,6 +118,7 @@ export function CopilotChatDialog({
   context,
   session,
   fetchStatus,
+  fetchModels,
   onDownloadAttachment,
   chatOpenOpts,
   onClose,
@@ -140,10 +142,11 @@ export function CopilotChatDialog({
     attachments => session.setThreadAttachments(threadId, attachments),
     threadId,
   );
-  const { data: status, error } = useLocalAiStatus(
+  const { data: status, error, modelsLoaded } = useLocalAiStatus(
     project.id,
     enabled,
     fetchStatus,
+    fetchModels,
   );
   useErrorMessage(error);
   useErrorMessage(session.error);
@@ -151,12 +154,11 @@ export function CopilotChatDialog({
   React.useEffect(() => {
     if (status) {
       const selected = session.selectedModel;
-      session.selectedModel =
-        selected && status.models.includes(selected)
-          ? selected
-          : (status.model ?? undefined);
+      if (!selected || (modelsLoaded && !status.models.includes(selected))) {
+        session.selectedModel = status.model ?? undefined;
+      }
     }
-  }, [status, session]);
+  }, [status, modelsLoaded, session]);
   React.useEffect(() => {
     if (chatOpenOpts?.prompt && consumed.current !== chatOpenOpts) {
       session.draft = {

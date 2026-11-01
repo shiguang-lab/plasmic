@@ -50,6 +50,7 @@ export class DesktopDraftController {
       const session = await this.api.openDesktopDrafts(userId, projectId, branchId);
       if (!session) {return;}
       runInAction(() => { this.session = session; this.enabled = true; });
+      if (session.drafts.length === 0) {return;}
       const remote = this.content();
       const drafts: DesktopDraftSummary[] = [];
       for (const summary of session.drafts) {

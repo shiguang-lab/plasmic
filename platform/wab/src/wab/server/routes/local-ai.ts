@@ -28,8 +28,13 @@ export async function localAiStatus(req: Request, res: Response) {
     localAiStatusSchema.parse({
       configured: !!config,
       model: config?.model ?? null,
-      models: await getLocalAiModels(),
+      models: config ? [...new Set([config.model, ...(config.models ?? [])])] : [],
       pageGenerationEnabled: !!req.devflags.enableLocalAiPageGeneration,
     }),
   );
+}
+
+export async function localAiModels(req: Request, res: Response) {
+  await authorize(req);
+  res.json(await getLocalAiModels());
 }

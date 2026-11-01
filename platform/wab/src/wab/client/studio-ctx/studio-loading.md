@@ -47,6 +47,11 @@ measures the completed stage. Milestones have zero duration. These timings do
 not include top-frame navigation, permission lookup or host-frame bootstrapping
 before the Studio module import. Overlapping stages must not be summed.
 
+Desktop draft initialization completes before the editor mounts. An empty draft
+directory enables local backups without constructing a project/dependency
+snapshot. Existing drafts still use the normal comparison and recovery path;
+the first edited backup constructs its snapshot when it is actually needed.
+
 - Startup: `studio-module-import`, `startup-preferences`, `project-fetch`
   (including branch resolution), `model-unbundle`, `studio-context`,
   `code-component-sync`, `app-user-init`, `initializer-ready`.
@@ -126,8 +131,11 @@ Dependency-update checks, imported-host warnings and release summaries wait for
 the initial route, viewport and active target readiness. Ordinary comments wait
 for the same gate; comment-thread deep links load immediately so route resolution
 can consume them. Same-branch comment requests share an in-flight promise.
-Disposal cancels pending readiness work. Local AI capability discovery waits for
-Studio readiness. AI chat history, conversation directories and event subscriptions
+Disposal cancels pending readiness work. The canvas AI composer mounts on entry to
+the editor route, before project metadata, the host bridge or canvas readiness.
+AI configuration loads independently; model discovery loads separately without
+blocking the configured default model. Draft input survives initial branch setup.
+AI chat history, conversation directories and event subscriptions
 start when the assistant or conversation picker opens, or before sending a request.
 Closing these views releases the connection once running tasks, tool execution and
 pending receipts have finished. Reopening refreshes the project snapshot and event

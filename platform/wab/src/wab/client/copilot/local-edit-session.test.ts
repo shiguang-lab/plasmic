@@ -831,3 +831,17 @@ it.each(["run", "retry", "locate"] as const)(
     }
   },
 );
+
+it("preserves an early prompt and attachments when the initial branch arrives", async () => {
+  const session = new LocalEditSession("early-draft");
+  const threadId = session.activeThreadId;
+  const draft = { prompt: "Build this page", attachments: [{ type: "text" as const, name: "requirements.md", text: "Use a table" }] };
+  session.draft = draft;
+  await session.setBranch("feature");
+  expect(session.activeThreadId).toBe(threadId);
+  expect(session.draft).toEqual(draft);
+  expect(session.activeThread?.branchId).toBe("feature");
+  await session.setBranch("other");
+  expect(session.activeThreadId).not.toBe(threadId);
+  expect(session.draft.prompt).toBe("");
+});

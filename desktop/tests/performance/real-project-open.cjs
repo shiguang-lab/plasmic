@@ -37,15 +37,20 @@ const report = {
   requests: [], resources: [], samples: [], errors: [], blocked: [], previewErrors: []
 };
 const now = () => performance.timeOrigin + performance.now();
-let phase = "dashboard-bootstrap", win, tracing = false, previews, memoryTimer;
+let phase = "dashboard-bootstrap", win, tracing = false, previews, memoryTimer, nativeBridge;
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 app.setName("Plasmic real-project diagnostic");
 app.userAgentFallback = `${app.userAgentFallback} PlasmicDesktop/${process.platform}`;
 app.setPath("userData", path.join(task, "profile-" + mode));
 app.on("window-all-closed", () => {});
 ipcMain.on("desktop:preview-host-error", (_event,message) => report.previewErrors.push({phase,message:String(message)}));
-function bootstrap() {
+function bootstrap(countStyles) {
   window.__openProbe = { longTasks: [] };
+  if (countStyles) {
+    const getStyle = window.getComputedStyle;
+    __openProbe.computedStyles = 0;
+    window.getComputedStyle = function (...args) { __openProbe.computedStyles++; return getStyle.apply(this, args); };
+  }
   new PerformanceObserver(list => __openProbe.longTasks.push(...list.getEntries().map(e => ({ start:e.startTime, duration:e.duration })))).observe({type:"longtask",buffered:true});
 }
 app.on("web-contents-created", (_, contents) => {
@@ -53,7 +58,7 @@ app.on("web-contents-created", (_, contents) => {
   debug.attach("1.3");
   const setup = async id => {
     await debug.sendCommand("Page.enable", {}, id);
-    await debug.sendCommand("Page.addScriptToEvaluateOnNewDocument", {source:`(${bootstrap.toString()})()`}, id);
+    await debug.sendCommand("Page.addScriptToEvaluateOnNewDocument", {source:`(${bootstrap.toString()})(${process.env.PERF_OPEN_COUNT_STYLES === '1'})`}, id);
     await debug.sendCommand("Target.setAutoAttach", {autoAttach:true,waitForDebuggerOnStart:true,flatten:true}, id);
   };
   debug.on("message", (_, method, params) => {
@@ -163,7 +168,8 @@ app.whenReady().then(async () => {
   ses.protocol.handle("http", remoteFetch);
   ses.protocol.handle("https",createAssetHandler({root:buildRoot,studioOrigin:origin,canvasOrigin,remoteFetch,previewHostPath:path.resolve(__dirname,"../../src/preview-host.html")}));
   const preload = path.join(task,"preview-only-preload.cjs");
-  fs.writeFileSync(preload,`const {contextBridge,ipcRenderer}=require('electron');contextBridge.exposeInMainWorld('desktopPreview',{render:(...args)=>ipcRenderer.invoke('desktop:dashboard-preview',...args),cancel:id=>ipcRenderer.send('desktop:dashboard-preview-cancel',id)});`);
+  if (process.env.PERF_OPEN_NATIVE) nativeBridge = await require('./open-native-bridge.cjs').install({task,mode,origin,startup,ipcMain,getWindow:()=>win,report});
+  fs.writeFileSync(preload,`const {contextBridge,ipcRenderer}=require('electron');contextBridge.exposeInMainWorld('desktopPreview',{render:(...args)=>ipcRenderer.invoke('desktop:dashboard-preview',...args),cancel:id=>ipcRenderer.send('desktop:dashboard-preview-cancel',id)});${nativeBridge?.preload || ''}`);
   win = new BrowserWindow({width:1512,height:887,show:true,webPreferences:{session:ses,preload,contextIsolation:true,nodeIntegration:false,backgroundThrottling:false}});
   previews = createDashboardPreviews({session:ses,studioOrigin:origin,trustedSender:event=>event.sender===win.webContents});
   await win.loadURL(origin+"/projects");
@@ -175,7 +181,16 @@ app.whenReady().then(async () => {
   }
   for (let i=0;i<opens;i++) {
     phase = i===0 ? "first-list-open" : "warm-list-open-"+i;
-    const click = await win.webContents.executeJavaScript(`(()=>{performance.clearMarks();const e=[...document.querySelectorAll('[role="link"][aria-label]')].find(e=>e.getAttribute('aria-label').endsWith(${JSON.stringify(": " + opening.project.name)}));if(!e)throw Error('Missing card');const at=performance.timeOrigin+performance.now();e.click();return {at,timeOrigin:performance.timeOrigin}})()`);
+    let click;
+    if (nativeBridge?.reload && i > 0) {
+      phase = "native-document-reload-" + i;
+      click = { at: now(), source: "native-document-reload" };
+      const loaded = new Promise(resolve => win.webContents.once('did-finish-load', resolve));
+      win.webContents.reload();
+      await loaded;
+    } else {
+      click = await win.webContents.executeJavaScript(`(()=>{performance.clearMarks();const e=[...document.querySelectorAll('[role="link"][aria-label]')].find(e=>e.getAttribute('aria-label').endsWith(${JSON.stringify(": " + opening.project.name)}));if(!e)throw Error('Missing card');const at=performance.timeOrigin+performance.now();e.click();return {at,timeOrigin:performance.timeOrigin}})()`);
+    }
     const frame = await ready();
     const detectedReady = now();
     const atFirstReady = await frame.executeJavaScript("({views:studioCtx.viewCtxs.length,initialFrames:studioCtx.loadTimings.snapshot().frameCount,rendered:studioCtx.viewCtxs.filter(v=>v.initialRenderReady).length})");
@@ -192,17 +207,19 @@ app.whenReady().then(async () => {
     await sleep(300);
     const probes = [];
     for (const f of win.webContents.mainFrame.framesInSubtree) {
-      try { probes.push(await f.executeJavaScript(`({url:location.href,timeOrigin:performance.timeOrigin,marks:performance.getEntriesByType('mark').map(e=>({name:e.name,start:e.startTime})),longTasks:window.__openProbe?.longTasks,studio:window.studioCtx?{ready:studioCtx.activeCanvasReady,viewportReady:studioCtx.initialViewportReady,timings:studioCtx.loadTimings.snapshot(),project:studioCtx.site.name,revision:studioCtx.dbCtx().revisionNum,changes:studioCtx._changeCounter,components:studioCtx.site.components.length,views:studioCtx.viewCtxs.length,arenas:studioCtx.site.arenas.map(a=>({name:a.name,frames:a.children.length})),pageArenas:studioCtx.site.pageArenas.length,componentArenas:studioCtx.site.componentArenas.length}:null})`)); } catch {}
+      try { probes.push(await f.executeJavaScript(`({url:location.href,timeOrigin:performance.timeOrigin,marks:performance.getEntriesByType('mark').map(e=>({name:e.name,start:e.startTime})),longTasks:window.__openProbe?.longTasks,computedStyles:window.__openProbe?.computedStyles,studio:window.studioCtx?{ready:studioCtx.activeCanvasReady,viewportReady:studioCtx.initialViewportReady,timings:studioCtx.loadTimings.snapshot(),project:studioCtx.site.name,revision:studioCtx.dbCtx().revisionNum,changes:studioCtx._changeCounter,components:studioCtx.site.components.length,views:studioCtx.viewCtxs.length,arenas:studioCtx.site.arenas.map(a=>({name:a.name,frames:a.children.length})),pageArenas:studioCtx.site.pageArenas.length,componentArenas:studioCtx.site.componentArenas.length}:null})`)); } catch {}
     }
     const sample = {phase,click,detectedReadyMs:detectedReady-click.at,atFirstReady,probes,
       memory:{processes:app.getAppMetrics().map(p=>({type:p.type,rssKiB:p.memory.workingSetSize})),heap:await win.webContents.debugger.sendCommand("Runtime.getHeapUsage")}};
     report.samples.push(sample);
     console.log(JSON.stringify({phase,detectedReadyMs:sample.detectedReadyMs,studio:probes.find(p=>p.studio)?.studio}));
+    if (nativeBridge) await nativeBridge.afterOpen(frame, i);
     if (i===opens-1) fs.writeFileSync(path.join(task,"real-project-"+mode+".png"),await win.webContents.capturePage().then(i=>i.toPNG()));
     if (i===opens-1 && process.env.PERF_OPEN_FUNCTIONAL==='1') {
       phase='functional';report.functional=(await require('./open-functional.cjs').run({frame,win,ready,preview:startup.projectId==='tk89W1Akg2HjAjyHAYEro7'})).result;
       break;
     }
+    if (nativeBridge?.reload) continue;
     phase = "return-list-"+i;
     await win.webContents.executeJavaScript("history.back()");
     await dashboard();

@@ -39,6 +39,7 @@ const plume = JSON.parse(
   fs.readFileSync(path.join(task, "plume-opening.json")),
 );
 const savedFullRevisions = new Map();
+const revisionDiagnostics = process.env.PERF_UNDO_VERSION_RESTORE === "1" || process.env.PERF_PREVIEW_CACHE === "1";
 const report = {
   keepAlive,
   variant,
@@ -154,7 +155,7 @@ app
             "Access-Control-Allow-Headers": "*",
           },
         });
-      if ((process.env.PERF_UNDO_RETAIN === "1" || process.env.PERF_UNDO_REOPEN === "1" || process.env.PERF_UNDO_VERSION_RESTORE === "1") && req.method === "POST" &&
+      if ((process.env.PERF_UNDO_RETAIN === "1" || process.env.PERF_UNDO_REOPEN === "1" || revisionDiagnostics) && req.method === "POST" &&
           s.startsWith(`/api/v1/projects/${startup.projectId}/revisions/`)) {
         const body = await req.json();
         const bundle = JSON.parse(body.data);
@@ -164,18 +165,18 @@ app
         report.saveAcknowledgements.push({ revision: Number(s.split("/").at(-1)),
           incremental: body.incremental, objects: Object.keys(bundle.map).length,
           deleted: body.toDeleteIids.length, bytes: body.data.length });
-        if ((process.env.PERF_UNDO_REOPEN === "1" || process.env.PERF_UNDO_VERSION_RESTORE === "1") && !body.incremental) {
+        if ((process.env.PERF_UNDO_REOPEN === "1" || revisionDiagnostics) && !body.incremental) {
           opening.rev.data = body.data;
           opening.rev.revision = Number(s.split("/").at(-1));
           opening.latestRevisionSynced = opening.rev.revision;
-          if (process.env.PERF_UNDO_VERSION_RESTORE === "1") {
+          if (revisionDiagnostics) {
             opening.rev.id = `diagnostic-revision-${opening.rev.revision}`;
             savedFullRevisions.set(opening.rev.id, {...opening.rev});
           }
         }
         return json({});
       }
-      if (process.env.PERF_UNDO_VERSION_RESTORE === "1") {
+      if (revisionDiagnostics) {
         if (req.method === "GET" && s.endsWith('/revs/unpublished'))
           return json({revisions:[...savedFullRevisions.values()].sort((a,b)=>b.revision-a.revision).map(({data,...metadata})=>metadata)});
         if (req.method === "POST" && s.endsWith('/revert-to-revision')) {
@@ -307,6 +308,9 @@ app
     );
     await frame.executeJavaScript("studioCtx.awaitStudioReady()");
     await sleep(1000);
+    if (process.env.PERF_PREVIEW_CACHE === "1") {
+      report.previewCache = await require('./preview-cache.cjs').run({frame,win,task,variant});
+    }
     if (process.env.PERF_UNDO_RETAIN === "1") {
       report.undoRetain = await require("./undo-retention.cjs").run({ frame, win, task, variant });
     }
@@ -326,6 +330,9 @@ app
     }
     if (process.env.PERF_UNDO_VERSION_RESTORE === "1") {
       report.versionRestore = await require('./undo-version-restore.cjs').run({frame,expectedSteps:Number(process.env.PERF_RETAIN_HISTORY_STEPS||0)});
+    }
+    if (process.env.PERF_FRAME_INTERACTIONS === "1") {
+      report.frameInteractions = await require('./frame-interaction-lifecycle.cjs').run({frame});
     }
     if (process.env.PERF_FUNCTIONAL === "1")
       report.functional = await frame.executeJavaScript(
@@ -430,4 +437,4 @@ setTimeout(() => {
   );
   console.error("Timeout");
   app.exit(2);
-}, process.env.PERF_UNDO === "1" || process.env.PERF_UNDO_GROWTH || process.env.PERF_UNDO_RETAIN === "1" || process.env.PERF_UNDO_COLD_COST === "1" ? 600000 : 75000);
+}, process.env.PERF_UNDO === "1" || process.env.PERF_UNDO_GROWTH || process.env.PERF_UNDO_RETAIN === "1" || process.env.PERF_UNDO_COLD_COST === "1" || process.env.PERF_PREVIEW_CACHE === "1" ? 600000 : 75000);

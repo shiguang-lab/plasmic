@@ -10,7 +10,6 @@ import { showRegenerateSecretTokenModal } from "@/wab/client/components/TopFrame
 import ShareModal from "@/wab/client/components/TopFrame/TopBar/ShareModal";
 import UpsellModal from "@/wab/client/components/TopFrame/TopBar/UpsellModal";
 import { AppAuthSettingsModal } from "@/wab/client/components/app-auth/AppAuthSettings";
-import { CanvasAiComposer } from "@/wab/client/components/copilot/CanvasAiComposer";
 import { isAnonymousQuotaReached } from "@/wab/client/components/copilot/anonymous-chat";
 import { MergeModalWrapper } from "@/wab/client/components/merge/MergeFlow";
 import { ContentEditorConfigModal } from "@/wab/client/components/modals/ContentEditorConfigModal";
@@ -109,9 +108,6 @@ export interface TopFrameChromeProps {
   showUpsellForm: TopBarPromptBillingArgs | undefined;
   setShowUpsellForm: (_: undefined) => void;
   showAppAuthModal: boolean;
-  studioModalOpen: boolean;
-  aiPanelOpen: boolean;
-  localAiContext: LocalAiContext | undefined;
   activatedBranch: ApiBranch | undefined;
   dataSourcePicker:
     | {
@@ -174,13 +170,6 @@ export function TopFrameChrome({
 }: TopFrameChromeProps) {
   const { t: studioUiT } = useI18n();
 
-  useProjectAiSession({
-    projectId: project.id,
-    userId: appCtx.selfInfo?.id,
-    branchId: rest.activatedBranch?.id ?? null,
-    enabled: appCtx.appConfig.enableLocalAiEditing,
-    panelOpen: rest.aiPanelOpen,
-  });
   const { hostFrameApi, hostFrameApiReady } = useTopFrameCtx();
   React.useEffect(() => {
     if (!desktopDraftBridge()) {return;}
@@ -194,9 +183,6 @@ export function TopFrameChrome({
     return () => { delete target.desktopDraftAction; };
   }, [hostFrameApi, hostFrameApiReady]);
   const location = useLocation();
-  const preview =
-    !!APP_ROUTES.projectPreview.parse(location.pathname, false) ||
-    !!APP_ROUTES.projectPresentation.parse(location.pathname, false);
   const fullPreview = !!APP_ROUTES.projectPresentation.parse(
     location.pathname,
     false,
@@ -439,19 +425,6 @@ export function TopFrameChrome({
                 onCancel={() => topFrameApi.setShowAppAuthModal(false)}
               />
             )}
-            {hostFrameApiReady &&
-              editorPerm &&
-              rest.localAiContext &&
-              !rest.aiPanelOpen &&
-              !preview && (
-                <CanvasAiComposer
-                  appCtx={appCtx}
-                  projectId={project.id}
-                  context={rest.localAiContext}
-                  onOpen={() => hostFrameApi.openCopilotChat()}
-                  hiddenByModal={rest.studioModalOpen}
-                />
-              )}
             <React.Suspense fallback={null}>
               <TopFrameTours
                 appCtx={appCtx}
@@ -777,6 +750,10 @@ export function useTopFrameState({
           "AI session belongs to the current project",
         );
         return localAiFetch(projectId, "status");
+      },
+      getLocalAiModels: async (projectId) => {
+        assert(projectId === project?.id, "AI session belongs to the current project");
+        return localAiFetch(projectId, "models");
       },
       setLocalAiContext: asyncWrapper(setLocalAiContext),
       onFrameInteraction: asyncWrapper((event) =>

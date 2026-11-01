@@ -67,7 +67,7 @@ export function CanvasAiComposer({
 }: {
   appCtx: AppCtx;
   projectId: string;
-  context: LocalAiContext;
+  context?: LocalAiContext;
   onOpen: () => Promise<void>;
   hiddenByModal: boolean;
 }) {
@@ -104,7 +104,7 @@ export function CanvasAiComposer({
       session.historyLoading ||
       session.syncError ||
       archived ||
-      !context.binding ||
+      !context?.binding ||
       !session.draft.prompt.trim() ||
       attachmentState.reading
     ) {
@@ -133,7 +133,7 @@ export function CanvasAiComposer({
         <div className={styles.threadPicker}>
           <AiThreadPicker
             session={session}
-            disabled={!enabled}
+            disabled={!enabled || !context}
             placement="topRight"
             onOpenChange={setPickerOpen}
           />
@@ -151,7 +151,7 @@ export function CanvasAiComposer({
           }}
           onSubmit={open}
           attachmentState={attachmentState}
-          scope={context.scope ?? t("Current canvas")}
+          scope={context?.scope ?? t("Current canvas")}
           models={status?.models}
           model={session.selectedModel ?? status?.model}
           onModelChange={(model) => {
@@ -165,7 +165,7 @@ export function CanvasAiComposer({
           stopDisabled={!activeTask || !session.canStop(activeTask)}
           canSubmit={
             enabled &&
-            !!context.binding &&
+            !!context?.binding &&
             !!status?.configured &&
             !session.running &&
             !session.historyLoading &&
@@ -173,7 +173,7 @@ export function CanvasAiComposer({
             !archived
           }
           placeholder={t(
-            !context.binding
+            !context?.binding
               ? "Open a page or canvas before using AI."
               : "Describe what you want to change…",
           )}
@@ -193,7 +193,7 @@ export function CanvasAiComposer({
                     : session.running &&
                         activeTask?.threadId !== session.activeThreadId
                       ? t("A task is running in another conversation.")
-                      : !context.binding
+                      : !context?.binding
                         ? t("Open a page or canvas before using AI.")
                         : undefined
           }

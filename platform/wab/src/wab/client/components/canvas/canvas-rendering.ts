@@ -1897,18 +1897,17 @@ function computeRenderedArg(
   const elements = withoutNils(
     tpls
       .flatMap((child) => {
-        const elt = renderTplNode(child, {
-          ...ctx,
-          env: {
-            ...ctx.env,
-            ...envOverrides,
-          },
-          wrappingEnv: {
-            ...ctx.wrappingEnv,
-            ...envOverrides,
-          },
-          valKey: ctx.valKey + "." + child.uuid,
-        });
+        const childCtx = Object.assign({}, ctx);
+        childCtx.env = {
+          ...ctx.env,
+          ...envOverrides,
+        };
+        childCtx.wrappingEnv = {
+          ...ctx.wrappingEnv,
+          ...envOverrides,
+        };
+        childCtx.valKey = ctx.valKey + "." + child.uuid;
+        const elt = renderTplNode(child, childCtx);
         // When passing args to code components, code components
         // can be picky about what they receive. Specifically, components
         // like react-slick will create slides based on each element in

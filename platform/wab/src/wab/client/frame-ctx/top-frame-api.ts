@@ -115,6 +115,7 @@ export interface TopFrameApi {
     name: string,
   ): Promise<void>;
   getLocalAiStatus(projectId: string): Promise<LocalAiStatus>;
+  getLocalAiModels(projectId: string): Promise<string[]>;
   setLocalAiContext(
     context:
       import("@/wab/shared/copilot/local-edit").LocalAiContext | undefined,

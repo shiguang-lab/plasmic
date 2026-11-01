@@ -5,6 +5,7 @@ import React from "react";
 const frame = vi.hoisted(() => ({
   hostFrameApiReady: true,
   hostFrameApi: {
+    openCopilotChat: vi.fn(async () => {}),
     cancelCopilotToolCall: vi.fn(async (_requestId: string) => {}),
     clearCopilotCallerActivity: vi.fn(async (_callerId: string) => {}),
     waitForStudioReady: vi.fn(async () => {}),
@@ -27,6 +28,20 @@ afterEach(() => {
 });
 
 describe("prototype browser bridge", () => {
+  it("connects the early composer to the host panel and releases the callback on navigation", async () => {
+    const onOpenChatChange = vi.fn();
+    frame.hostFrameApiReady = false;
+    const rendered = render(<TopFrameCopilotToolsBridge onOpenChatChange={onOpenChatChange} />);
+    expect(onOpenChatChange).toHaveBeenLastCalledWith(undefined);
+    frame.hostFrameApiReady = true;
+    rendered.rerender(<TopFrameCopilotToolsBridge onOpenChatChange={onOpenChatChange} />);
+    const open = onOpenChatChange.mock.calls.at(-1)?.[0];
+    expect(open).toEqual(expect.any(Function));
+    await open();
+    expect(frame.hostFrameApi.openCopilotChat).toHaveBeenCalledOnce();
+    rendered.unmount();
+    expect(onOpenChatChange).toHaveBeenLastCalledWith(undefined);
+  });
   it("forwards active cancellation by request id without releasing the edit queue", async () => {
     let release = () => {};
     frame.hostFrameApi.executeCopilotToolCall.mockImplementationOnce(async () => {

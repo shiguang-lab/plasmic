@@ -310,6 +310,7 @@ const AiPanelContent = observer(function AiPanelContent({
     <CopilotChatDialog
       session={session}
       fetchStatus={fetchStatus}
+      fetchModels={() => api.getLocalAiModels(studioCtx.siteInfo.id)}
       onDownloadAttachment={(file) =>
         api.downloadAiAttachment(studioCtx.siteInfo.id, file.id, file.name)
       }

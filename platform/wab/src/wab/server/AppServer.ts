@@ -2,7 +2,7 @@ import { getDependencyModelResource, withDependencyModelResources } from "@/wab/
 import { createPresentation, getPresentation } from "@/wab/server/routes/presentations";
 import { getPreviewPublication, publishPreviewPublication, unpublishPreviewPublication } from "@/wab/server/routes/preview-publications";
 import { getHostlessLibraryCanvas, getHostlessLibraryRelease } from "@/wab/server/routes/hostless-library-artifacts";
-import { localAiStatus } from "@/wab/server/routes/local-ai";
+import { localAiModels, localAiStatus } from "@/wab/server/routes/local-ai";
 import { aiChatHistory, aiChatEvents, aiChatSend, aiChatClaim, aiChatReceipt, aiChatStop, aiChatAttachment, aiChatHeartbeat, aiChatReconcile, aiChatRunSnapshot, aiChatUndo, aiChatThreads, aiChatThread, aiChatPatchThread } from "@/wab/server/routes/ai-chat";
 import * as Sentry from "@sentry/node";
 import * as bodyParser from "body-parser";
@@ -1269,6 +1269,7 @@ export function addMainAppServerRoutes(
    */
   app.get("/api/v1/app-config", getAppConfig);
   app.get("/api/v1/projects/:projectId/ai/edit/status", withNext(localAiStatus));
+  app.get("/api/v1/projects/:projectId/ai/edit/models", withNext(localAiModels));
   app.get("/api/v1/projects/:projectId/ai/chat", withNext(aiChatHistory));
   app.get("/api/v1/projects/:projectId/ai/chat/threads", withNext(aiChatThreads));
   app.get("/api/v1/projects/:projectId/ai/chat/threads/:threadId", withNext(aiChatThread));

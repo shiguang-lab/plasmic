@@ -65,7 +65,8 @@ class DesktopDraftStore {
     let names;
     try { names = await fs.readdir(directory); }
     catch (error) { if (error.code === "ENOENT") {return [];} throw error; }
-    const entries = await Promise.all(names.filter(name => name.endsWith(".json")).map(async name => {
+    const prefix = hash([scope.projectId, scope.branchId]) + "-";
+    const entries = await Promise.all(names.filter(name => name.endsWith(".json") && (allProjects || name.startsWith(prefix))).map(async name => {
       const draft = (await this.readSummary(path.join(directory, name)))?.summary;
       if (!draft || (!allProjects && (draft.projectId !== scope.projectId || draft.branchId !== scope.branchId))) {return null;}
       return { ...draft };

@@ -134,13 +134,15 @@ function withLibraryRegistrations(pkg: string, source: string) {
     var before = {};
     keys.forEach(function(key){
       before[key] = (window[key] || []).slice();
-      window[key] = before[key].filter(function(entry){ return !(previous[key] || []).includes(entry); });
+      var previousEntries = new Set(previous[key] || []);
+      window[key] = before[key].filter(function(entry){ return !previousEntries.has(entry); });
     });
     try {
       (function(){ ${source}\n })();
       var current = {};
       keys.forEach(function(key){
-        current[key] = (window[key] || []).filter(function(entry){ return !before[key].includes(entry); });
+        var originalEntries = new Set(before[key]);
+        current[key] = (window[key] || []).filter(function(entry){ return !originalEntries.has(entry); });
       });
       owned[${JSON.stringify(pkg)}] = current;
     } catch (error) {

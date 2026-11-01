@@ -28,8 +28,14 @@ declare global {
 }
 
 /** Expose only the validated editor tools, through the existing cross-frame RPC. */
-export function TopFrameCopilotToolsBridge() {
+export function TopFrameCopilotToolsBridge({ onOpenChatChange }: {
+  onOpenChatChange?: (open: (() => Promise<void>) | undefined) => void;
+}) {
   const { hostFrameApi, hostFrameApiReady } = useTopFrameCtx();
+  useEffect(() => {
+    onOpenChatChange?.(hostFrameApiReady ? () => hostFrameApi.openCopilotChat() : undefined);
+    return () => onOpenChatChange?.(undefined);
+  }, [hostFrameApi, hostFrameApiReady, onOpenChatChange]);
   useEffect(() => {
     if (!hostFrameApiReady) {
       return;

@@ -2066,12 +2066,6 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
       const vc = studioCtx.createViewCtx(frame, canvasCtx);
       const doc = canvasCtx.$doc().get(0);
 
-      this.releaseFrameInteractions.push(
-        trackFrameInteractions(doc, (interaction) =>
-          dispatchFrameInteraction(document, interaction),
-        ),
-      );
-
       // Select before user components can respond to a pointer press.
       doc.addEventListener(
         "pointerdown",

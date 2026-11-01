@@ -1,0 +1,2516 @@
+{
+  "date": "2026-11-01",
+  "machine": "Apple M4",
+  "electron": "44.5.1",
+  "protocol": {
+    "frozenSource": true,
+    "nativeOfflineProjects": true,
+    "opensPerTimingProcess": 6,
+    "warmupOpens": 2,
+    "timedOpens": 4,
+    "independentProcessesPerVariantPerDataset": 2,
+    "performanceAndFunctionalRunsSeparated": true,
+    "physicalPaintAndOsInputMeasured": false,
+    "liveNetworkAuthOrServerPersistenceMeasured": false
+  },
+  "decisions": {
+    "render-context": "retain: small equivalent native context copy; child environments and evaluation order preserved; no stable end-to-end gain claimed",
+    "registration-set": "retain: transient membership Sets preserve registry order and rollback; no stable end-to-end gain claimed",
+    "dom-ancestors": "reject: fewer style reads but no stable latency benefit; some process medians slower",
+    "draft-scope-filter": "retain: eliminates unrelated draft payload reads, all-projects directory and native recovery preserved"
+  },
+  "builds": {
+    "baseline": {
+      "kind": "diagnostic",
+      "variant": "baseline",
+      "rendererHash": "3e797d17b21589b95a150ea78a3307bc5e5c6bca059de64fa6c2380a57ab479f",
+      "runtimeRevision": "4be192c7af42e89cda0a5b182082fdf07a5905a7"
+    },
+    "render-context": {
+      "kind": "diagnostic",
+      "variant": "render-context",
+      "rendererHash": "f84c5312e67774dd8f9539f323ce6ac9403fcdfdf163a879a60c210df5b736c6",
+      "runtimeRevision": "4be192c7af42e89cda0a5b182082fdf07a5905a7"
+    },
+    "registration-set": {
+      "kind": "diagnostic",
+      "variant": "registration-set",
+      "rendererHash": "70310a2ee061bfaedb7f55fd68f7de46e6da89acbe62eb53b4a5b2f8fb4f3e85",
+      "runtimeRevision": "4be192c7af42e89cda0a5b182082fdf07a5905a7"
+    },
+    "dom-ancestors": {
+      "kind": "diagnostic",
+      "variant": "dom-ancestors",
+      "rendererHash": "8857017a3914626b8a5503aa29bf4a75ecf311a2f35382699d15dba1bf713021",
+      "runtimeRevision": "4be192c7af42e89cda0a5b182082fdf07a5905a7"
+    }
+  },
+  "timing": [
+    {
+      "dataset": "gp",
+      "mode": "timing-gp-0-baseline",
+      "rendererErrors": [],
+      "fixtureThumbnailErrors": 7,
+      "samplesMs": [
+        {
+          "frame-first-render": 321.6,
+          "frame-component-packages": 112.7,
+          "canvas-revealed": 1705.9,
+          "all-frames-rendered": 1729.6
+        },
+        {
+          "frame-first-render": 261.2,
+          "frame-component-packages": 57.1,
+          "canvas-revealed": 1319.0,
+          "all-frames-rendered": 1341.4
+        },
+        {
+          "frame-first-render": 267.8,
+          "frame-component-packages": 51.4,
+          "canvas-revealed": 1248.7,
+          "all-frames-rendered": 1268.5
+        },
+        {
+          "frame-first-render": 299.2,
+          "frame-component-packages": 71.6,
+          "canvas-revealed": 1354.1,
+          "all-frames-rendered": 1375.1
+        },
+        {
+          "frame-first-render": 287.5,
+          "frame-component-packages": 53,
+          "canvas-revealed": 1316.6,
+          "all-frames-rendered": 1340.3
+        },
+        {
+          "frame-first-render": 289,
+          "frame-component-packages": 55.4,
+          "canvas-revealed": 1315.1,
+          "all-frames-rendered": 1338.9
+        }
+      ],
+      "warmMediansMs": {
+        "frame-first-render": 288.25,
+        "frame-component-packages": 54.2,
+        "canvas-revealed": 1315.85,
+        "all-frames-rendered": 1339.6
+      },
+      "memoryProbe": null,
+      "inputProbes": null
+    },
+    {
+      "dataset": "gp",
+      "mode": "timing-gp-1-render-context",
+      "rendererErrors": [],
+      "fixtureThumbnailErrors": 7,
+      "samplesMs": [
+        {
+          "frame-first-render": 324.1,
+          "frame-component-packages": 116.6,
+          "canvas-revealed": 1721.7,
+          "all-frames-rendered": 1745.3
+        },
+        {
+          "frame-first-render": 260.2,
+          "frame-component-packages": 55.3,
+          "canvas-revealed": 1280.5,
+          "all-frames-rendered": 1303.1
+        },
+        {
+          "frame-first-render": 272.1,
+          "frame-component-packages": 52,
+          "canvas-revealed": 1260.7,
+          "all-frames-rendered": 1280.8
+        },
+        {
+          "frame-first-render": 256.2,
+          "frame-component-packages": 53.4,
+          "canvas-revealed": 1267.6,
+          "all-frames-rendered": 1287.6
+        },
+        {
+          "frame-first-render": 267.6,
+          "frame-component-packages": 53.6,
+          "canvas-revealed": 1290.2,
+          "all-frames-rendered": 1309.8
+        },
+        {
+          "frame-first-render": 293.1,
+          "frame-component-packages": 56.5,
+          "canvas-revealed": 1345.2,
+          "all-frames-rendered": 1365.1
+        }
+      ],
+      "warmMediansMs": {
+        "frame-first-render": 269.85,
+        "frame-component-packages": 53.5,
+        "canvas-revealed": 1278.9,
+        "all-frames-rendered": 1298.7
+      },
+      "memoryProbe": null,
+      "inputProbes": null
+    },
+    {
+      "dataset": "gp",
+      "mode": "timing-gp-2-registration-set",
+      "rendererErrors": [],
+      "fixtureThumbnailErrors": 7,
+      "samplesMs": [
+        {
+          "frame-first-render": 322.9,
+          "frame-component-packages": 115.1,
+          "canvas-revealed": 1719.0,
+          "all-frames-rendered": 1743.8
+        },
+        {
+          "frame-first-render": 258.6,
+          "frame-component-packages": 55.1,
+          "canvas-revealed": 1276.6,
+          "all-frames-rendered": 1299.7
+        },
+        {
+          "frame-first-render": 270.6,
+          "frame-component-packages": 53.2,
+          "canvas-revealed": 1265.5,
+          "all-frames-rendered": 1285.8
+        },
+        {
+          "frame-first-render": 262.1,
+          "frame-component-packages": 53.4,
+          "canvas-revealed": 1317.8,
+          "all-frames-rendered": 1337.2
+        },
+        {
+          "frame-first-render": 271.1,
+          "frame-component-packages": 59,
+          "canvas-revealed": 1255.8,
+          "all-frames-rendered": 1283.3
+        },
+        {
+          "frame-first-render": 272.3,
+          "frame-component-packages": 55.3,
+          "canvas-revealed": 1296.2,
+          "all-frames-rendered": 1317.2
+        }
+      ],
+      "warmMediansMs": {
+        "frame-first-render": 270.85,
+        "frame-component-packages": 54.35,
+        "canvas-revealed": 1280.85,
+        "all-frames-rendered": 1301.5
+      },
+      "memoryProbe": null,
+      "inputProbes": null
+    },
+    {
+      "dataset": "gp",
+      "mode": "timing-gp-3-registration-set",
+      "rendererErrors": [],
+      "fixtureThumbnailErrors": 7,
+      "samplesMs": [
+        {
+          "frame-first-render": 329.9,
+          "frame-component-packages": 120.8,
+          "canvas-revealed": 1789.5,
+          "all-frames-rendered": 1812.9
+        },
+        {
+          "frame-first-render": 260.6,
+          "frame-component-packages": 56.1,
+          "canvas-revealed": 1288.8,
+          "all-frames-rendered": 1311.8
+        },
+        {
+          "frame-first-render": 266.5,
+          "frame-component-packages": 53.2,
+          "canvas-revealed": 1291.5,
+          "all-frames-rendered": 1311.1
+        },
+        {
+          "frame-first-render": 254.8,
+          "frame-component-packages": 58,
+          "canvas-revealed": 1267.5,
+          "all-frames-rendered": 1287.0
+        },
+        {
+          "frame-first-render": 268,
+          "frame-component-packages": 57.1,
+          "canvas-revealed": 1265.5,
+          "all-frames-rendered": 1285.3
+        },
+        {
+          "frame-first-render": 275.8,
+          "frame-component-packages": 51.6,
+          "canvas-revealed": 1278.9,
+          "all-frames-rendered": 1298.6
+        }
+      ],
+      "warmMediansMs": {
+        "frame-first-render": 267.25,
+        "frame-component-packages": 55.15,
+        "canvas-revealed": 1273.2,
+        "all-frames-rendered": 1292.8
+      },
+      "memoryProbe": null,
+      "inputProbes": null
+    },
+    {
+      "dataset": "gp",
+      "mode": "timing-gp-4-render-context",
+      "rendererErrors": [],
+      "fixtureThumbnailErrors": 7,
+      "samplesMs": [
+        {
+          "frame-first-render": 324.5,
+          "frame-component-packages": 117.9,
+          "canvas-revealed": 1715.3,
+          "all-frames-rendered": 1738.4
+        },
+        {
+          "frame-first-render": 262.7,
+          "frame-component-packages": 58.3,
+          "canvas-revealed": 1335.1,
+          "all-frames-rendered": 1354.9
+        },
+        {
+          "frame-first-render": 270.2,
+          "frame-component-packages": 50.5,
+          "canvas-revealed": 1317.2,
+          "all-frames-rendered": 1337.4
+        },
+        {
+          "frame-first-render": 256.7,
+          "frame-component-packages": 55.6,
+          "canvas-revealed": 1286.1,
+          "all-frames-rendered": 1306.9
+        },
+        {
+          "frame-first-render": 268.4,
+          "frame-component-packages": 55,
+          "canvas-revealed": 1265.3,
+          "all-frames-rendered": 1285.4
+        },
+        {
+          "frame-first-render": 272.1,
+          "frame-component-packages": 52.3,
+          "canvas-revealed": 1314.7,
+          "all-frames-rendered": 1334.8
+        }
+      ],
+      "warmMediansMs": {
+        "frame-first-render": 269.3,
+        "frame-component-packages": 53.65,
+        "canvas-revealed": 1300.4,
+        "all-frames-rendered": 1320.85
+      },
+      "memoryProbe": null,
+      "inputProbes": null
+    },
+    {
+      "dataset": "gp",
+      "mode": "timing-gp-5-baseline",
+      "rendererErrors": [],
+      "fixtureThumbnailErrors": 7,
+      "samplesMs": [
+        {
+          "frame-first-render": 324.1,
+          "frame-component-packages": 119.1,
+          "canvas-revealed": 1700.7,
+          "all-frames-rendered": 1723.7
+        },
+        {
+          "frame-first-render": 261.8,
+          "frame-component-packages": 56.8,
+          "canvas-revealed": 1294.9,
+          "all-frames-rendered": 1318.0
+        },
+        {
+          "frame-first-render": 268.6,
+          "frame-component-packages": 54.7,
+          "canvas-revealed": 1261.8,
+          "all-frames-rendered": 1281.4
+        },
+        {
+          "frame-first-render": 254.2,
+          "frame-component-packages": 63.5,
+          "canvas-revealed": 1272.2,
+          "all-frames-rendered": 1292.1
+        },
+        {
+          "frame-first-render": 267.6,
+          "frame-component-packages": 55.8,
+          "canvas-revealed": 1281.1,
+          "all-frames-rendered": 1301.1
+        },
+        {
+          "frame-first-render": 270.2,
+          "frame-component-packages": 52,
+          "canvas-revealed": 1288.4,
+          "all-frames-rendered": 1308.2
+        }
+      ],
+      "warmMediansMs": {
+        "frame-first-render": 268.1,
+        "frame-component-packages": 55.25,
+        "canvas-revealed": 1276.65,
+        "all-frames-rendered": 1296.6
+      },
+      "memoryProbe": null,
+      "inputProbes": null
+    },
+    {
+      "dataset": "gp",
+      "mode": "final-time-gp-0-baseline",
+      "rendererErrors": [],
+      "fixtureThumbnailErrors": 7,
+      "samplesMs": [
+        {
+          "frame-first-render": 318.9,
+          "frame-component-packages": 115.9,
+          "canvas-revealed": 1707.7,
+          "all-frames-rendered": 1730.8
+        },
+        {
+          "frame-first-render": 284.1,
+          "frame-component-packages": 56,
+          "canvas-revealed": 1346.7,
+          "all-frames-rendered": 1366.8
+        },
+        {
+          "frame-first-render": 267.6,
+          "frame-component-packages": 52.1,
+          "canvas-revealed": 1246.1,
+          "all-frames-rendered": 1265.8
+        },
+        {
+          "frame-first-render": 252.1,
+          "frame-component-packages": 63.9,
+          "canvas-revealed": 1321.3,
+          "all-frames-rendered": 1341.0
+        },
+        {
+          "frame-first-render": 277.6,
+          "frame-component-packages": 54.9,
+          "canvas-revealed": 1272.7,
+          "all-frames-rendered": 1292.4
+        },
+        {
+          "frame-first-render": 272,
+          "frame-component-packages": 57.3,
+          "canvas-revealed": 1260.6,
+          "all-frames-rendered": 1280.2
+        }
+      ],
+      "warmMediansMs": {
+        "frame-first-render": 269.8,
+        "frame-component-packages": 56.1,
+        "canvas-revealed": 1266.65,
+        "all-frames-rendered": 1286.3
+      },
+      "memoryProbe": null,
+      "inputProbes": null
+    },
+    {
+      "dataset": "gp",
+      "mode": "final-time-gp-1-dom-ancestors",
+      "rendererErrors": [],
+      "fixtureThumbnailErrors": 7,
+      "samplesMs": [
+        {
+          "frame-first-render": 321.8,
+          "frame-component-packages": 116.2,
+          "canvas-revealed": 1716.5,
+          "all-frames-rendered": 1740.0
+        },
+        {
+          "frame-first-render": 289.4,
+          "frame-component-packages": 56.2,
+          "canvas-revealed": 1358.0,
+          "all-frames-rendered": 1378.5
+        },
+        {
+          "frame-first-render": 270.4,
+          "frame-component-packages": 56.3,
+          "canvas-revealed": 1286.6,
+          "all-frames-rendered": 1306.5
+        },
+        {
+          "frame-first-render": 252.7,
+          "frame-component-packages": 72.2,
+          "canvas-revealed": 1341.2,
+          "all-frames-rendered": 1364.2
+        },
+        {
+          "frame-first-render": 273.8,
+          "frame-component-packages": 56.5,
+          "canvas-revealed": 1308.6,
+          "all-frames-rendered": 1329.0
+        },
+        {
+          "frame-first-render": 277.9,
+          "frame-component-packages": 54.7,
+          "canvas-revealed": 1297.9,
+          "all-frames-rendered": 1318.2
+        }
+      ],
+      "warmMediansMs": {
+        "frame-first-render": 272.1,
+        "frame-component-packages": 56.4,
+        "canvas-revealed": 1303.25,
+        "all-frames-rendered": 1323.6
+      },
+      "memoryProbe": null,
+      "inputProbes": null
+    },
+    {
+      "dataset": "gp",
+      "mode": "final-time-gp-2-dom-ancestors",
+      "rendererErrors": [],
+      "fixtureThumbnailErrors": 7,
+      "samplesMs": [
+        {
+          "frame-first-render": 323.3,
+          "frame-component-packages": 115.1,
+          "canvas-revealed": 1714.5,
+          "all-frames-rendered": 1738.3
+        },
+        {
+          "frame-first-render": 260.5,
+          "frame-component-packages": 56.2,
+          "canvas-revealed": 1295.8,
+          "all-frames-rendered": 1319.2
+        },
+        {
+          "frame-first-render": 268,
+          "frame-component-packages": 52.8,
+          "canvas-revealed": 1263.7,
+          "all-frames-rendered": 1284.1
+        },
+        {
+          "frame-first-render": 255,
+          "frame-component-packages": 50.9,
+          "canvas-revealed": 1335.0,
+          "all-frames-rendered": 1354.6
+        },
+        {
+          "frame-first-render": 265,
+          "frame-component-packages": 53.2,
+          "canvas-revealed": 1263.0,
+          "all-frames-rendered": 1282.5
+        },
+        {
+          "frame-first-render": 274.6,
+          "frame-component-packages": 52.7,
+          "canvas-revealed": 1322.5,
+          "all-frames-rendered": 1343.3
+        }
+      ],
+      "warmMediansMs": {
+        "frame-first-render": 266.5,
+        "frame-component-packages": 52.75,
+        "canvas-revealed": 1293.1,
+        "all-frames-rendered": 1313.7
+      },
+      "memoryProbe": null,
+      "inputProbes": null
+    },
+    {
+      "dataset": "gp",
+      "mode": "final-time-gp-3-baseline",
+      "rendererErrors": [],
+      "fixtureThumbnailErrors": 7,
+      "samplesMs": [
+        {
+          "frame-first-render": 325.5,
+          "frame-component-packages": 116.7,
+          "canvas-revealed": 1738.0,
+          "all-frames-rendered": 1763.5
+        },
+        {
+          "frame-first-render": 254.6,
+          "frame-component-packages": 57.2,
+          "canvas-revealed": 1315.9,
+          "all-frames-rendered": 1335.2
+        },
+        {
+          "frame-first-render": 271.4,
+          "frame-component-packages": 52.9,
+          "canvas-revealed": 1305.6,
+          "all-frames-rendered": 1325.9
+        },
+        {
+          "frame-first-render": 258.6,
+          "frame-component-packages": 75,
+          "canvas-revealed": 1287.5,
+          "all-frames-rendered": 1310.3
+        },
+        {
+          "frame-first-render": 268.7,
+          "frame-component-packages": 54.1,
+          "canvas-revealed": 1238.9,
+          "all-frames-rendered": 1258.4
+        },
+        {
+          "frame-first-render": 272.9,
+          "frame-component-packages": 51.6,
+          "canvas-revealed": 1283.5,
+          "all-frames-rendered": 1303.4
+        }
+      ],
+      "warmMediansMs": {
+        "frame-first-render": 270.05,
+        "frame-component-packages": 53.5,
+        "canvas-revealed": 1285.5,
+        "all-frames-rendered": 1306.85
+      },
+      "memoryProbe": null,
+      "inputProbes": null
+    },
+    {
+      "dataset": "complex",
+      "mode": "timing-complex-0-baseline",
+      "rendererErrors": [],
+      "fixtureThumbnailErrors": 7,
+      "samplesMs": [
+        {
+          "frame-first-render": 181.6,
+          "frame-component-packages": 118.3,
+          "canvas-revealed": 1582.2,
+          "all-frames-rendered": 4307.4
+        },
+        {
+          "frame-first-render": 134.2,
+          "frame-component-packages": 59.6,
+          "canvas-revealed": 1164.7,
+          "all-frames-rendered": 3351.2
+        },
+        {
+          "frame-first-render": 135.4,
+          "frame-component-packages": 56.1,
+          "canvas-revealed": 1166.9,
+          "all-frames-rendered": 3313.0
+        },
+        {
+          "frame-first-render": 139.6,
+          "frame-component-packages": 62.1,
+          "canvas-revealed": 1173.3,
+          "all-frames-rendered": 3433.8
+        },
+        {
+          "frame-first-render": 134.7,
+          "frame-component-packages": 55.3,
+          "canvas-revealed": 1141.5,
+          "all-frames-rendered": 3450.0
+        },
+        {
+          "frame-first-render": 137.8,
+          "frame-component-packages": 57,
+          "canvas-revealed": 1137.0,
+          "all-frames-rendered": 3353.7
+        }
+      ],
+      "warmMediansMs": {
+        "frame-first-render": 136.6,
+        "frame-component-packages": 56.55,
+        "canvas-revealed": 1154.2,
+        "all-frames-rendered": 3393.75
+      },
+      "memoryProbe": null,
+      "inputProbes": null
+    },
+    {
+      "dataset": "complex",
+      "mode": "timing-complex-1-render-context",
+      "rendererErrors": [],
+      "fixtureThumbnailErrors": 7,
+      "samplesMs": [
+        {
+          "frame-first-render": 181.7,
+          "frame-component-packages": 109.4,
+          "canvas-revealed": 1565.0,
+          "all-frames-rendered": 4273.2
+        },
+        {
+          "frame-first-render": 134.8,
+          "frame-component-packages": 58.5,
+          "canvas-revealed": 1173.4,
+          "all-frames-rendered": 3409.4
+        },
+        {
+          "frame-first-render": 135.6,
+          "frame-component-packages": 64.1,
+          "canvas-revealed": 1160.2,
+          "all-frames-rendered": 3377.9
+        },
+        {
+          "frame-first-render": 136.1,
+          "frame-component-packages": 59.5,
+          "canvas-revealed": 1147.9,
+          "all-frames-rendered": 3382.1
+        },
+        {
+          "frame-first-render": 136.3,
+          "frame-component-packages": 62.8,
+          "canvas-revealed": 1202.5,
+          "all-frames-rendered": 3459.3
+        },
+        {
+          "frame-first-render": 136.4,
+          "frame-component-packages": 56.2,
+          "canvas-revealed": 1179.4,
+          "all-frames-rendered": 3346.6
+        }
+      ],
+      "warmMediansMs": {
+        "frame-first-render": 136.2,
+        "frame-component-packages": 61.15,
+        "canvas-revealed": 1169.8,
+        "all-frames-rendered": 3380.0
+      },
+      "memoryProbe": null,
+      "inputProbes": null
+    },
+    {
+      "dataset": "complex",
+      "mode": "timing-complex-2-registration-set",
+      "rendererErrors": [],
+      "fixtureThumbnailErrors": 7,
+      "samplesMs": [
+        {
+          "frame-first-render": 182.5,
+          "frame-component-packages": 114.3,
+          "canvas-revealed": 1608.2,
+          "all-frames-rendered": 4274.6
+        },
+        {
+          "frame-first-render": 135.6,
+          "frame-component-packages": 62.9,
+          "canvas-revealed": 1183.8,
+          "all-frames-rendered": 3353.4
+        },
+        {
+          "frame-first-render": 136.7,
+          "frame-component-packages": 58.1,
+          "canvas-revealed": 1142.7,
+          "all-frames-rendered": 3426.9
+        },
+        {
+          "frame-first-render": 135.6,
+          "frame-component-packages": 58.8,
+          "canvas-revealed": 1171.3,
+          "all-frames-rendered": 3310.5
+        },
+        {
+          "frame-first-render": 142.2,
+          "frame-component-packages": 54.4,
+          "canvas-revealed": 1263.3,
+          "all-frames-rendered": 3485.0
+        },
+        {
+          "frame-first-render": 139.2,
+          "frame-component-packages": 62.2,
+          "canvas-revealed": 1216.5,
+          "all-frames-rendered": 3465.3
+        }
+      ],
+      "warmMediansMs": {
+        "frame-first-render": 137.95,
+        "frame-component-packages": 58.45,
+        "canvas-revealed": 1193.9,
+        "all-frames-rendered": 3446.1
+      },
+      "memoryProbe": null,
+      "inputProbes": null
+    },
+    {
+      "dataset": "complex",
+      "mode": "timing-complex-3-registration-set",
+      "rendererErrors": [],
+      "fixtureThumbnailErrors": 7,
+      "samplesMs": [
+        {
+          "frame-first-render": 182.4,
+          "frame-component-packages": 121.9,
+          "canvas-revealed": 1595.4,
+          "all-frames-rendered": 4328.7
+        },
+        {
+          "frame-first-render": 134.5,
+          "frame-component-packages": 64.1,
+          "canvas-revealed": 1183.9,
+          "all-frames-rendered": 3322.8
+        },
+        {
+          "frame-first-render": 144.5,
+          "frame-component-packages": 59.1,
+          "canvas-revealed": 1172.6,
+          "all-frames-rendered": 3352.7
+        },
+        {
+          "frame-first-render": 136.9,
+          "frame-component-packages": 57,
+          "canvas-revealed": 1206.0,
+          "all-frames-rendered": 3415.0
+        },
+        {
+          "frame-first-render": 137.5,
+          "frame-component-packages": 64.4,
+          "canvas-revealed": 1162.3,
+          "all-frames-rendered": 3356.7
+        },
+        {
+          "frame-first-render": 133.5,
+          "frame-component-packages": 57.6,
+          "canvas-revealed": 1129.0,
+          "all-frames-rendered": 3303.2
+        }
+      ],
+      "warmMediansMs": {
+        "frame-first-render": 137.2,
+        "frame-component-packages": 58.35,
+        "canvas-revealed": 1167.45,
+        "all-frames-rendered": 3354.7
+      },
+      "memoryProbe": null,
+      "inputProbes": null
+    },
+    {
+      "dataset": "complex",
+      "mode": "timing-complex-4-render-context",
+      "rendererErrors": [],
+      "fixtureThumbnailErrors": 7,
+      "samplesMs": [
+        {
+          "frame-first-render": 182.5,
+          "frame-component-packages": 119.4,
+          "canvas-revealed": 1576.1,
+          "all-frames-rendered": 4268.3
+        },
+        {
+          "frame-first-render": 132.9,
+          "frame-component-packages": 60.9,
+          "canvas-revealed": 1165.0,
+          "all-frames-rendered": 3419.4
+        },
+        {
+          "frame-first-render": 135.6,
+          "frame-component-packages": 54.7,
+          "canvas-revealed": 1135.6,
+          "all-frames-rendered": 3322.7
+        },
+        {
+          "frame-first-render": 136.1,
+          "frame-component-packages": 55.8,
+          "canvas-revealed": 1150.3,
+          "all-frames-rendered": 3369.2
+        },
+        {
+          "frame-first-render": 134.5,
+          "frame-component-packages": 61.3,
+          "canvas-revealed": 1161.3,
+          "all-frames-rendered": 3453.9
+        },
+        {
+          "frame-first-render": 136.4,
+          "frame-component-packages": 54.1,
+          "canvas-revealed": 1158.9,
+          "all-frames-rendered": 3360.7
+        }
+      ],
+      "warmMediansMs": {
+        "frame-first-render": 135.85,
+        "frame-component-packages": 55.25,
+        "canvas-revealed": 1154.6,
+        "all-frames-rendered": 3364.95
+      },
+      "memoryProbe": null,
+      "inputProbes": null
+    },
+    {
+      "dataset": "complex",
+      "mode": "timing-complex-5-baseline",
+      "rendererErrors": [],
+      "fixtureThumbnailErrors": 7,
+      "samplesMs": [
+        {
+          "frame-first-render": 182.4,
+          "frame-component-packages": 117.9,
+          "canvas-revealed": 1591.0,
+          "all-frames-rendered": 4223.0
+        },
+        {
+          "frame-first-render": 136.2,
+          "frame-component-packages": 60.2,
+          "canvas-revealed": 1169.4,
+          "all-frames-rendered": 3372.4
+        },
+        {
+          "frame-first-render": 141,
+          "frame-component-packages": 58.8,
+          "canvas-revealed": 1183.3,
+          "all-frames-rendered": 3451.4
+        },
+        {
+          "frame-first-render": 135.3,
+          "frame-component-packages": 59.1,
+          "canvas-revealed": 1172.5,
+          "all-frames-rendered": 3422.3
+        },
+        {
+          "frame-first-render": 135.6,
+          "frame-component-packages": 61.8,
+          "canvas-revealed": 1150.8,
+          "all-frames-rendered": 3440.8
+        },
+        {
+          "frame-first-render": 140.4,
+          "frame-component-packages": 66.5,
+          "canvas-revealed": 1247.7,
+          "all-frames-rendered": 3458.9
+        }
+      ],
+      "warmMediansMs": {
+        "frame-first-render": 138.0,
+        "frame-component-packages": 60.45,
+        "canvas-revealed": 1177.9,
+        "all-frames-rendered": 3446.1
+      },
+      "memoryProbe": null,
+      "inputProbes": null
+    },
+    {
+      "dataset": "complex",
+      "mode": "final-time-complex-0-baseline",
+      "rendererErrors": [],
+      "fixtureThumbnailErrors": 7,
+      "samplesMs": [
+        {
+          "frame-first-render": 181.9,
+          "frame-component-packages": 113.8,
+          "canvas-revealed": 1581.9,
+          "all-frames-rendered": 4258.4
+        },
+        {
+          "frame-first-render": 135.1,
+          "frame-component-packages": 64,
+          "canvas-revealed": 1188.9,
+          "all-frames-rendered": 3387.1
+        },
+        {
+          "frame-first-render": 134.2,
+          "frame-component-packages": 59.5,
+          "canvas-revealed": 1164.9,
+          "all-frames-rendered": 3376.3
+        },
+        {
+          "frame-first-render": 134.6,
+          "frame-component-packages": 55.4,
+          "canvas-revealed": 1164.4,
+          "all-frames-rendered": 3450.1
+        },
+        {
+          "frame-first-render": 136.6,
+          "frame-component-packages": 58.4,
+          "canvas-revealed": 1165.0,
+          "all-frames-rendered": 3335.5
+        },
+        {
+          "frame-first-render": 143.3,
+          "frame-component-packages": 89.1,
+          "canvas-revealed": 1299.2,
+          "all-frames-rendered": 3454.0
+        }
+      ],
+      "warmMediansMs": {
+        "frame-first-render": 135.6,
+        "frame-component-packages": 58.95,
+        "canvas-revealed": 1164.95,
+        "all-frames-rendered": 3413.2
+      },
+      "memoryProbe": null,
+      "inputProbes": null
+    },
+    {
+      "dataset": "complex",
+      "mode": "final-time-complex-1-dom-ancestors",
+      "rendererErrors": [],
+      "fixtureThumbnailErrors": 7,
+      "samplesMs": [
+        {
+          "frame-first-render": 179.8,
+          "frame-component-packages": 117.5,
+          "canvas-revealed": 1575.1,
+          "all-frames-rendered": 4224.0
+        },
+        {
+          "frame-first-render": 134.6,
+          "frame-component-packages": 62.5,
+          "canvas-revealed": 1192.7,
+          "all-frames-rendered": 3355.2
+        },
+        {
+          "frame-first-render": 134.2,
+          "frame-component-packages": 53.5,
+          "canvas-revealed": 1181.4,
+          "all-frames-rendered": 3436.7
+        },
+        {
+          "frame-first-render": 135.5,
+          "frame-component-packages": 59.1,
+          "canvas-revealed": 1178.3,
+          "all-frames-rendered": 3334.8
+        },
+        {
+          "frame-first-render": 135.1,
+          "frame-component-packages": 61.4,
+          "canvas-revealed": 1172.1,
+          "all-frames-rendered": 3304.7
+        },
+        {
+          "frame-first-render": 135.4,
+          "frame-component-packages": 59.8,
+          "canvas-revealed": 1154.2,
+          "all-frames-rendered": 3459.2
+        }
+      ],
+      "warmMediansMs": {
+        "frame-first-render": 135.25,
+        "frame-component-packages": 59.45,
+        "canvas-revealed": 1175.2,
+        "all-frames-rendered": 3385.75
+      },
+      "memoryProbe": null,
+      "inputProbes": null
+    },
+    {
+      "dataset": "complex",
+      "mode": "final-time-complex-2-dom-ancestors",
+      "rendererErrors": [],
+      "fixtureThumbnailErrors": 7,
+      "samplesMs": [
+        {
+          "frame-first-render": 177.3,
+          "frame-component-packages": 115.6,
+          "canvas-revealed": 1550.7,
+          "all-frames-rendered": 4205.8
+        },
+        {
+          "frame-first-render": 135,
+          "frame-component-packages": 57.4,
+          "canvas-revealed": 1168.7,
+          "all-frames-rendered": 3298.4
+        },
+        {
+          "frame-first-render": 133.3,
+          "frame-component-packages": 59.5,
+          "canvas-revealed": 1129.6,
+          "all-frames-rendered": 3287.6
+        },
+        {
+          "frame-first-render": 201.3,
+          "frame-component-packages": 59.1,
+          "canvas-revealed": 1235.4,
+          "all-frames-rendered": 3357.6
+        },
+        {
+          "frame-first-render": 135.5,
+          "frame-component-packages": 60.5,
+          "canvas-revealed": 1174.1,
+          "all-frames-rendered": 3377.7
+        },
+        {
+          "frame-first-render": 146,
+          "frame-component-packages": 76.5,
+          "canvas-revealed": 1359.3,
+          "all-frames-rendered": 3595.9
+        }
+      ],
+      "warmMediansMs": {
+        "frame-first-render": 140.75,
+        "frame-component-packages": 60.0,
+        "canvas-revealed": 1204.75,
+        "all-frames-rendered": 3367.65
+      },
+      "memoryProbe": null,
+      "inputProbes": null
+    },
+    {
+      "dataset": "complex",
+      "mode": "final-time-complex-3-baseline",
+      "rendererErrors": [],
+      "fixtureThumbnailErrors": 7,
+      "samplesMs": [
+        {
+          "frame-first-render": 178.9,
+          "frame-component-packages": 117.6,
+          "canvas-revealed": 1587.1,
+          "all-frames-rendered": 4266.5
+        },
+        {
+          "frame-first-render": 140.8,
+          "frame-component-packages": 62.1,
+          "canvas-revealed": 1197.5,
+          "all-frames-rendered": 3405.7
+        },
+        {
+          "frame-first-render": 135.2,
+          "frame-component-packages": 54.4,
+          "canvas-revealed": 1145.7,
+          "all-frames-rendered": 3358.1
+        },
+        {
+          "frame-first-render": 134.8,
+          "frame-component-packages": 58.3,
+          "canvas-revealed": 1137.2,
+          "all-frames-rendered": 3345.3
+        },
+        {
+          "frame-first-render": 135.5,
+          "frame-component-packages": 60.9,
+          "canvas-revealed": 1148.7,
+          "all-frames-rendered": 3414.2
+        },
+        {
+          "frame-first-render": 136.7,
+          "frame-component-packages": 57.8,
+          "canvas-revealed": 1165.7,
+          "all-frames-rendered": 3365.6
+        }
+      ],
+      "warmMediansMs": {
+        "frame-first-render": 135.35,
+        "frame-component-packages": 58.05,
+        "canvas-revealed": 1147.2,
+        "all-frames-rendered": 3361.85
+      },
+      "memoryProbe": null,
+      "inputProbes": null
+    }
+  ],
+  "styleCalls": {
+    "gp": {
+      "baseline": {
+        "calls": 5006,
+        "functional": {
+          "cases": [
+            {
+              "case": "switch-artboard",
+              "frame": "dO6gEmTQ80cE",
+              "rendered": true
+            },
+            {
+              "case": "rename-undo-redo",
+              "passed": true
+            },
+            {
+              "case": "rendered-style-undo-redo",
+              "passed": true
+            },
+            {
+              "case": "frame-position-undo-redo",
+              "passed": true
+            },
+            {
+              "case": "preview-business-pagination-return",
+              "passed": true
+            }
+          ],
+          "revision": 159,
+          "reopen": true
+        },
+        "rendererErrors": []
+      },
+      "dom-ancestors": {
+        "calls": 546,
+        "functional": {
+          "cases": [
+            {
+              "case": "switch-artboard",
+              "frame": "dO6gEmTQ80cE",
+              "rendered": true
+            },
+            {
+              "case": "rename-undo-redo",
+              "passed": true
+            },
+            {
+              "case": "rendered-style-undo-redo",
+              "passed": true
+            },
+            {
+              "case": "frame-position-undo-redo",
+              "passed": true
+            },
+            {
+              "case": "preview-business-pagination-return",
+              "passed": true
+            }
+          ],
+          "revision": 159,
+          "reopen": true
+        },
+        "rendererErrors": []
+      }
+    },
+    "complex": {
+      "baseline": {
+        "calls": 24203,
+        "functional": {
+          "cases": [
+            {
+              "case": "switch-artboard",
+              "frame": "g6iKNJJfK8J6",
+              "rendered": true
+            },
+            {
+              "case": "switch-artboard",
+              "frame": "58rcnoga5nrA",
+              "rendered": true
+            },
+            {
+              "case": "switch-artboard",
+              "frame": "yqGY4RQZ5MAn",
+              "rendered": true
+            },
+            {
+              "case": "rename-undo-redo",
+              "passed": true
+            },
+            {
+              "case": "rendered-style-undo-redo",
+              "passed": true
+            },
+            {
+              "case": "frame-position-undo-redo",
+              "passed": true
+            },
+            {
+              "case": "cold-frame-undo-selection-style",
+              "passed": true
+            }
+          ],
+          "revision": 1,
+          "reopen": true
+        },
+        "rendererErrors": []
+      },
+      "dom-ancestors": {
+        "calls": 2343,
+        "functional": {
+          "cases": [
+            {
+              "case": "switch-artboard",
+              "frame": "g6iKNJJfK8J6",
+              "rendered": true
+            },
+            {
+              "case": "switch-artboard",
+              "frame": "58rcnoga5nrA",
+              "rendered": true
+            },
+            {
+              "case": "switch-artboard",
+              "frame": "yqGY4RQZ5MAn",
+              "rendered": true
+            },
+            {
+              "case": "rename-undo-redo",
+              "passed": true
+            },
+            {
+              "case": "rendered-style-undo-redo",
+              "passed": true
+            },
+            {
+              "case": "frame-position-undo-redo",
+              "passed": true
+            },
+            {
+              "case": "cold-frame-undo-selection-style",
+              "passed": true
+            }
+          ],
+          "revision": 1,
+          "reopen": true
+        },
+        "rendererErrors": []
+      }
+    }
+  },
+  "native": {
+    "empty": {
+      "metrics": {
+        "scenario": "empty",
+        "calls": [
+          {
+            "command": "open",
+            "ms": 0.5041249999999309,
+            "payloadReads": 0,
+            "drafts": 0
+          },
+          {
+            "command": "open",
+            "ms": 0.33849999999983993,
+            "payloadReads": 0,
+            "drafts": 0
+          }
+        ],
+        "checks": [
+          {
+            "iteration": 1,
+            "recovered": false,
+            "conflict": false,
+            "viewportDelta": 0
+          }
+        ],
+        "unrelatedProjects": 12
+      },
+      "functional": null,
+      "rendererErrors": [],
+      "fixtureThumbnailErrors": 3
+    },
+    "restore": {
+      "metrics": {
+        "scenario": "restore",
+        "calls": [
+          {
+            "command": "open",
+            "ms": 0.6860830000000533,
+            "payloadReads": 0,
+            "drafts": 0
+          },
+          {
+            "command": "write",
+            "ms": 60.12983299999996,
+            "payloadReads": 0
+          },
+          {
+            "command": "open",
+            "ms": 0.5556249999999636,
+            "payloadReads": 0,
+            "drafts": 1
+          },
+          {
+            "command": "read",
+            "ms": 14.342125000000124,
+            "payloadReads": 1
+          },
+          {
+            "command": "read",
+            "ms": 15.414084000000003,
+            "payloadReads": 1
+          },
+          {
+            "command": "write",
+            "ms": 69.54308399999991,
+            "payloadReads": 0
+          },
+          {
+            "command": "remove",
+            "ms": 0.7368750000005093,
+            "payloadReads": 0
+          },
+          {
+            "command": "write",
+            "ms": 46.93120799999997,
+            "payloadReads": 0
+          },
+          {
+            "command": "write",
+            "ms": 52.27662500000042,
+            "payloadReads": 0
+          },
+          {
+            "command": "remove",
+            "ms": 2.6359579999989364,
+            "payloadReads": 0
+          },
+          {
+            "command": "open",
+            "ms": 0.2958329999983107,
+            "payloadReads": 0,
+            "drafts": 0
+          }
+        ],
+        "checks": [
+          {
+            "iteration": 1,
+            "recovered": true,
+            "conflict": false,
+            "viewportDelta": 0
+          }
+        ],
+        "unrelatedProjects": 12
+      },
+      "functional": {
+        "cases": [
+          {
+            "case": "switch-artboard",
+            "frame": "dO6gEmTQ80cE",
+            "rendered": true
+          },
+          {
+            "case": "rename-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "rendered-style-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "frame-position-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "preview-business-pagination-return",
+            "passed": true
+          }
+        ],
+        "revision": 160,
+        "reopen": true
+      },
+      "rendererErrors": [],
+      "fixtureThumbnailErrors": 1
+    },
+    "conflict": {
+      "metrics": {
+        "scenario": "conflict",
+        "calls": [
+          {
+            "command": "open",
+            "ms": 0.5182079999999587,
+            "payloadReads": 0,
+            "drafts": 0
+          },
+          {
+            "command": "write",
+            "ms": 50.26979200000005,
+            "payloadReads": 0
+          },
+          {
+            "command": "open",
+            "ms": 0.4928330000002461,
+            "payloadReads": 0,
+            "drafts": 1
+          },
+          {
+            "command": "read",
+            "ms": 14.996624999999767,
+            "payloadReads": 1
+          },
+          {
+            "command": "read",
+            "ms": 14.416290999999546,
+            "payloadReads": 1
+          },
+          {
+            "command": "read",
+            "ms": 13.623499999999694,
+            "payloadReads": 1
+          },
+          {
+            "command": "write",
+            "ms": 48.48808399999962,
+            "payloadReads": 0
+          },
+          {
+            "command": "write",
+            "ms": 43.47558299999946,
+            "payloadReads": 0
+          },
+          {
+            "command": "write",
+            "ms": 56.93833300000006,
+            "payloadReads": 0
+          },
+          {
+            "command": "remove",
+            "ms": 2.1340000000000146,
+            "payloadReads": 0
+          },
+          {
+            "command": "open",
+            "ms": 0.5736669999987498,
+            "payloadReads": 0,
+            "drafts": 1
+          },
+          {
+            "command": "read",
+            "ms": 13.044458000000304,
+            "payloadReads": 1
+          },
+          {
+            "command": "read",
+            "ms": 13.724291999998968,
+            "payloadReads": 1
+          },
+          {
+            "command": "read",
+            "ms": 13.198500000000422,
+            "payloadReads": 1
+          }
+        ],
+        "checks": [
+          {
+            "iteration": 1,
+            "recovered": false,
+            "conflict": true,
+            "viewportDelta": 0
+          }
+        ],
+        "unrelatedProjects": 12
+      },
+      "functional": {
+        "cases": [
+          {
+            "case": "switch-artboard",
+            "frame": "dO6gEmTQ80cE",
+            "rendered": true
+          },
+          {
+            "case": "rename-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "rendered-style-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "frame-position-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "preview-business-pagination-return",
+            "passed": true
+          }
+        ],
+        "revision": 159,
+        "reopen": true
+      },
+      "rendererErrors": [],
+      "fixtureThumbnailErrors": 1
+    }
+  },
+  "verification": {
+    "wabFiles": 7,
+    "wabTests": 54,
+    "desktopTests": 55,
+    "typecheckExitCode": 0,
+    "lintExitCode": 0,
+    "productionBuilds": 5,
+    "finalNativeCases": [
+      "empty",
+      "restore",
+      "conflict"
+    ]
+  },
+  "resourceAndInputProbes": [
+    {
+      "dataset": "complex",
+      "mode": "memory-baseline",
+      "rendererErrors": [],
+      "fixtureThumbnailErrors": 7,
+      "samplesMs": [
+        {
+          "frame-first-render": 180.9,
+          "frame-component-packages": 117.8,
+          "canvas-revealed": 1536.9,
+          "all-frames-rendered": 4189.2
+        },
+        {
+          "frame-first-render": 134.9,
+          "frame-component-packages": 61.7,
+          "canvas-revealed": 1152.0,
+          "all-frames-rendered": 3313.8
+        },
+        {
+          "frame-first-render": 137.3,
+          "frame-component-packages": 58.6,
+          "canvas-revealed": 1197.3,
+          "all-frames-rendered": 3512.9
+        },
+        {
+          "frame-first-render": 155.2,
+          "frame-component-packages": 66.3,
+          "canvas-revealed": 1324.2,
+          "all-frames-rendered": 3507.6
+        },
+        {
+          "frame-first-render": 139.8,
+          "frame-component-packages": 63.4,
+          "canvas-revealed": 1219.2,
+          "all-frames-rendered": 3555.0
+        },
+        {
+          "frame-first-render": 147.5,
+          "frame-component-packages": 58.2,
+          "canvas-revealed": 1282.4,
+          "all-frames-rendered": 3632.8
+        }
+      ],
+      "warmMediansMs": {
+        "frame-first-render": 143.65,
+        "frame-component-packages": 61.0,
+        "canvas-revealed": 1250.8,
+        "all-frames-rendered": 3533.95
+      },
+      "memoryProbe": {
+        "peakRssKiB": 3637152,
+        "afterReturn": [
+          {
+            "iteration": 5,
+            "heap": {
+              "backingStorageSize": 73779307,
+              "embedderHeapUsedSize": 29666272,
+              "totalSize": 327516160,
+              "usedSize": 269553712
+            },
+            "rssKiB": 1685056
+          }
+        ]
+      },
+      "inputProbes": null
+    },
+    {
+      "dataset": "complex",
+      "mode": "input-baseline",
+      "rendererErrors": [],
+      "fixtureThumbnailErrors": 2,
+      "samplesMs": [
+        {
+          "frame-first-render": 182.3,
+          "frame-component-packages": 120.5,
+          "canvas-revealed": 1546.8,
+          "all-frames-rendered": 4488.7
+        }
+      ],
+      "warmMediansMs": {},
+      "memoryProbe": null,
+      "inputProbes": [
+        {
+          "durationMs": 44.10498046875,
+          "after": "outline",
+          "rendered": 1
+        },
+        {
+          "durationMs": 64.4560546875,
+          "before": "outline",
+          "rendered": 1
+        },
+        {
+          "durationMs": 157.280517578125,
+          "after": "outline",
+          "rendered": 2
+        },
+        {
+          "durationMs": 50.093994140625,
+          "before": "outline",
+          "rendered": 2
+        },
+        {
+          "durationMs": 26.79345703125,
+          "after": "outline",
+          "rendered": 2
+        },
+        {
+          "durationMs": 46.0859375,
+          "before": "outline",
+          "rendered": 3
+        },
+        {
+          "durationMs": 35.933837890625,
+          "after": "outline",
+          "rendered": 3
+        },
+        {
+          "durationMs": 23.428955078125,
+          "before": "outline",
+          "rendered": 3
+        }
+      ]
+    },
+    {
+      "dataset": "complex",
+      "mode": "memory-dom-ancestors",
+      "rendererErrors": [],
+      "fixtureThumbnailErrors": 7,
+      "samplesMs": [
+        {
+          "frame-first-render": 179.7,
+          "frame-component-packages": 120.1,
+          "canvas-revealed": 1588.4,
+          "all-frames-rendered": 4306.6
+        },
+        {
+          "frame-first-render": 132.6,
+          "frame-component-packages": 61.6,
+          "canvas-revealed": 1145.7,
+          "all-frames-rendered": 3328.4
+        },
+        {
+          "frame-first-render": 132.5,
+          "frame-component-packages": 57.2,
+          "canvas-revealed": 1173.4,
+          "all-frames-rendered": 3402.0
+        },
+        {
+          "frame-first-render": 133.2,
+          "frame-component-packages": 55.7,
+          "canvas-revealed": 1164.6,
+          "all-frames-rendered": 3341.6
+        },
+        {
+          "frame-first-render": 134.9,
+          "frame-component-packages": 54.3,
+          "canvas-revealed": 1151.6,
+          "all-frames-rendered": 3384.1
+        },
+        {
+          "frame-first-render": 139.9,
+          "frame-component-packages": 60.7,
+          "canvas-revealed": 1169.5,
+          "all-frames-rendered": 3364.3
+        }
+      ],
+      "warmMediansMs": {
+        "frame-first-render": 134.05,
+        "frame-component-packages": 56.45,
+        "canvas-revealed": 1167.05,
+        "all-frames-rendered": 3374.2
+      },
+      "memoryProbe": {
+        "peakRssKiB": 2469952,
+        "afterReturn": [
+          {
+            "iteration": 5,
+            "heap": {
+              "backingStorageSize": 73779395,
+              "embedderHeapUsedSize": 29706424,
+              "totalSize": 350846976,
+              "usedSize": 269358172
+            },
+            "rssKiB": 1628048
+          }
+        ]
+      },
+      "inputProbes": null
+    },
+    {
+      "dataset": "complex",
+      "mode": "input-dom-ancestors",
+      "rendererErrors": [],
+      "fixtureThumbnailErrors": 2,
+      "samplesMs": [
+        {
+          "frame-first-render": 178.6,
+          "frame-component-packages": 116.7,
+          "canvas-revealed": 1552.9,
+          "all-frames-rendered": 4501.0
+        }
+      ],
+      "warmMediansMs": {},
+      "memoryProbe": null,
+      "inputProbes": [
+        {
+          "durationMs": 84.9736328125,
+          "after": "outline",
+          "rendered": 1
+        },
+        {
+          "durationMs": 79.722900390625,
+          "before": "outline",
+          "rendered": 1
+        },
+        {
+          "durationMs": 156.816650390625,
+          "after": "outline",
+          "rendered": 2
+        },
+        {
+          "durationMs": 53.308837890625,
+          "before": "outline",
+          "rendered": 2
+        },
+        {
+          "durationMs": 20.485107421875,
+          "after": "outline",
+          "rendered": 2
+        },
+        {
+          "durationMs": 45.9365234375,
+          "before": "outline",
+          "rendered": 3
+        },
+        {
+          "durationMs": 35.509033203125,
+          "after": "outline",
+          "rendered": 3
+        },
+        {
+          "durationMs": 22.521484375,
+          "before": "outline",
+          "rendered": 3
+        }
+      ]
+    }
+  ],
+  "nativeComparison": {
+    "baseline": {
+      "scenario": "empty",
+      "calls": [
+        {
+          "command": "open",
+          "ms": 174.2436670000002,
+          "payloadReads": 12,
+          "drafts": 0
+        },
+        {
+          "command": "open",
+          "ms": 0.5483750000003056,
+          "payloadReads": 0,
+          "drafts": 0
+        }
+      ],
+      "checks": [
+        {
+          "iteration": 1,
+          "recovered": false,
+          "conflict": false,
+          "viewportDelta": 0
+        }
+      ],
+      "unrelatedProjects": 12
+    },
+    "dom-ancestors": {
+      "scenario": "empty",
+      "calls": [
+        {
+          "command": "open",
+          "ms": 0.5356249999999818,
+          "payloadReads": 0,
+          "drafts": 0
+        },
+        {
+          "command": "open",
+          "ms": 0.3319579999997586,
+          "payloadReads": 0,
+          "drafts": 0
+        }
+      ],
+      "checks": [
+        {
+          "iteration": 1,
+          "recovered": false,
+          "conflict": false,
+          "viewportDelta": 0
+        }
+      ],
+      "unrelatedProjects": 12
+    }
+  },
+  "draftDirectory": {
+    "scope": "In-process draft directory; empty summary cache, OS filesystem cache uncontrolled; not editor startup timing",
+    "fileCount": 17,
+    "samples": [
+      {
+        "variant": "before",
+        "scenario": "empty-project",
+        "ms": 297.00800000000004,
+        "coldReads": 17,
+        "warmMs": 0.5671659999999292,
+        "warmReads": 0
+      },
+      {
+        "variant": "before",
+        "scenario": "one-project",
+        "ms": 290.107125,
+        "coldReads": 17,
+        "warmMs": 6.980166999999938,
+        "warmReads": 0
+      },
+      {
+        "variant": "before",
+        "scenario": "all-projects",
+        "ms": 256.3314580000001,
+        "coldReads": 17,
+        "warmMs": 5.0128330000000005,
+        "warmReads": 0
+      },
+      {
+        "variant": "after",
+        "scenario": "empty-project",
+        "ms": 0.19104199999992488,
+        "coldReads": 0,
+        "warmMs": 0.07087499999988722,
+        "warmReads": 0
+      },
+      {
+        "variant": "after",
+        "scenario": "one-project",
+        "ms": 14.840208000000075,
+        "coldReads": 1,
+        "warmMs": 0.13949999999999818,
+        "warmReads": 0
+      },
+      {
+        "variant": "after",
+        "scenario": "all-projects",
+        "ms": 262.1627910000002,
+        "coldReads": 17,
+        "warmMs": 0.29987500000015643,
+        "warmReads": 0
+      },
+      {
+        "variant": "after",
+        "scenario": "empty-project",
+        "ms": 0.05604200000016135,
+        "coldReads": 0,
+        "warmMs": 0.04570800000010422,
+        "warmReads": 0
+      },
+      {
+        "variant": "after",
+        "scenario": "one-project",
+        "ms": 14.76891599999999,
+        "coldReads": 1,
+        "warmMs": 0.1987500000000182,
+        "warmReads": 0
+      },
+      {
+        "variant": "after",
+        "scenario": "all-projects",
+        "ms": 267.11745799999994,
+        "coldReads": 17,
+        "warmMs": 9.549999999999955,
+        "warmReads": 0
+      },
+      {
+        "variant": "before",
+        "scenario": "empty-project",
+        "ms": 258.00587500000006,
+        "coldReads": 17,
+        "warmMs": 18.198374999999942,
+        "warmReads": 0
+      },
+      {
+        "variant": "before",
+        "scenario": "one-project",
+        "ms": 266.04233299999987,
+        "coldReads": 17,
+        "warmMs": 0.3302080000003116,
+        "warmReads": 0
+      },
+      {
+        "variant": "before",
+        "scenario": "all-projects",
+        "ms": 285.5006669999998,
+        "coldReads": 17,
+        "warmMs": 0.6714579999998023,
+        "warmReads": 0
+      }
+    ],
+    "bytes": 82291935,
+    "productionSourceSha256": "e4684ee1fdebe633cc6d683df86188a1b737f792c00ac03ed606d177b78605c6"
+  },
+  "retainedCombined": {
+    "criterion": "Retain small equivalent local improvements with verified functionality; measurable end-to-end improvement is not required. DOM candidate remains excluded because slower observations were unresolved.",
+    "verification": {
+      "wabFiles": 5,
+      "wabTests": 53,
+      "typecheckExitCode": 0,
+      "eslintErrors": 0,
+      "eslintExistingWarnings": 4
+    },
+    "build": {
+      "kind": "diagnostic",
+      "variant": "retained-small",
+      "runtimeRevision": "4be192c7af42e89cda0a5b182082fdf07a5905a7",
+      "rendererHash": "9270d0f34d207503b54e441f62d38b4294dd02f56266ae6942b6b6837c2a9075"
+    },
+    "sources": {
+      "platform/wab/src/wab/client/components/canvas/canvas-rendering.ts": "b2d3423c15f98a5f5c3188350406ca839b3f67cfdace92874c72fd8d0b11bc1b",
+      "platform/wab/src/wab/client/components/studio/studio-bundles.ts": "eb5ea34e98d9b2dd85ea5754500b2287f60c72de291b47c7dc73f37866cf2a89"
+    },
+    "functional": {
+      "retained-accept-gp": {
+        "functional": {
+          "cases": [
+            {
+              "case": "switch-artboard",
+              "frame": "dO6gEmTQ80cE",
+              "rendered": true
+            },
+            {
+              "case": "rename-undo-redo",
+              "passed": true
+            },
+            {
+              "case": "rendered-style-undo-redo",
+              "passed": true
+            },
+            {
+              "case": "frame-position-undo-redo",
+              "passed": true
+            },
+            {
+              "case": "preview-business-pagination-return",
+              "passed": true
+            }
+          ],
+          "revision": 159,
+          "reopen": true
+        },
+        "native": null,
+        "rendererErrors": [],
+        "fixtureThumbnailErrors": 1
+      },
+      "retained-accept-complex": {
+        "functional": {
+          "cases": [
+            {
+              "case": "switch-artboard",
+              "frame": "g6iKNJJfK8J6",
+              "rendered": true
+            },
+            {
+              "case": "switch-artboard",
+              "frame": "58rcnoga5nrA",
+              "rendered": true
+            },
+            {
+              "case": "switch-artboard",
+              "frame": "yqGY4RQZ5MAn",
+              "rendered": true
+            },
+            {
+              "case": "rename-undo-redo",
+              "passed": true
+            },
+            {
+              "case": "rendered-style-undo-redo",
+              "passed": true
+            },
+            {
+              "case": "frame-position-undo-redo",
+              "passed": true
+            },
+            {
+              "case": "cold-frame-undo-selection-style",
+              "passed": true
+            }
+          ],
+          "revision": 1,
+          "reopen": true
+        },
+        "native": null,
+        "rendererErrors": [],
+        "fixtureThumbnailErrors": 1
+      },
+      "retained-native-restore": {
+        "functional": {
+          "cases": [
+            {
+              "case": "switch-artboard",
+              "frame": "dO6gEmTQ80cE",
+              "rendered": true
+            },
+            {
+              "case": "rename-undo-redo",
+              "passed": true
+            },
+            {
+              "case": "rendered-style-undo-redo",
+              "passed": true
+            },
+            {
+              "case": "frame-position-undo-redo",
+              "passed": true
+            },
+            {
+              "case": "preview-business-pagination-return",
+              "passed": true
+            }
+          ],
+          "revision": 160,
+          "reopen": true
+        },
+        "native": {
+          "scenario": "restore",
+          "calls": [
+            {
+              "command": "open",
+              "ms": 0.5164589999999407,
+              "payloadReads": 0,
+              "drafts": 0
+            },
+            {
+              "command": "write",
+              "ms": 46.03645800000049,
+              "payloadReads": 0
+            },
+            {
+              "command": "open",
+              "ms": 0.5202909999998155,
+              "payloadReads": 0,
+              "drafts": 1
+            },
+            {
+              "command": "read",
+              "ms": 13.125915999999961,
+              "payloadReads": 1
+            },
+            {
+              "command": "read",
+              "ms": 14.855249999999614,
+              "payloadReads": 1
+            },
+            {
+              "command": "write",
+              "ms": 51.828167000000576,
+              "payloadReads": 0
+            },
+            {
+              "command": "remove",
+              "ms": 0.8074579999993148,
+              "payloadReads": 0
+            },
+            {
+              "command": "write",
+              "ms": 41.158957999999984,
+              "payloadReads": 0
+            },
+            {
+              "command": "write",
+              "ms": 53.33525000000009,
+              "payloadReads": 0
+            },
+            {
+              "command": "remove",
+              "ms": 1.819166999999652,
+              "payloadReads": 0
+            },
+            {
+              "command": "open",
+              "ms": 0.335958000001483,
+              "payloadReads": 0,
+              "drafts": 0
+            }
+          ],
+          "checks": [
+            {
+              "iteration": 1,
+              "recovered": true,
+              "conflict": false,
+              "viewportDelta": 0
+            }
+          ],
+          "unrelatedProjects": 12
+        },
+        "rendererErrors": [],
+        "fixtureThumbnailErrors": 1
+      }
+    },
+    "timing": [
+      {
+        "dataset": "gp",
+        "variant": "baseline",
+        "samplesMs": [
+          {
+            "frame-first-render": 323.7,
+            "frame-component-packages": 115.6,
+            "canvas-revealed": 1741.8,
+            "all-frames-rendered": 1765.3
+          },
+          {
+            "frame-first-render": 259.6,
+            "frame-component-packages": 57.3,
+            "canvas-revealed": 1308.7,
+            "all-frames-rendered": 1331.7
+          },
+          {
+            "frame-first-render": 270.5,
+            "frame-component-packages": 53.3,
+            "canvas-revealed": 1294.1,
+            "all-frames-rendered": 1314.2
+          },
+          {
+            "frame-first-render": 254.6,
+            "frame-component-packages": 58,
+            "canvas-revealed": 1268.0,
+            "all-frames-rendered": 1288.5
+          },
+          {
+            "frame-first-render": 272.1,
+            "frame-component-packages": 54.7,
+            "canvas-revealed": 1270.7,
+            "all-frames-rendered": 1290.8
+          },
+          {
+            "frame-first-render": 274.4,
+            "frame-component-packages": 55.7,
+            "canvas-revealed": 1245.5,
+            "all-frames-rendered": 1265.5
+          }
+        ],
+        "warmMediansMs": {
+          "frame-first-render": 271.3,
+          "frame-component-packages": 55.2,
+          "canvas-revealed": 1269.35,
+          "all-frames-rendered": 1289.65
+        },
+        "rendererErrors": [],
+        "fixtureThumbnailErrors": 7
+      },
+      {
+        "dataset": "gp",
+        "variant": "retained-small",
+        "samplesMs": [
+          {
+            "frame-first-render": 328.4,
+            "frame-component-packages": 115.5,
+            "canvas-revealed": 1713.7,
+            "all-frames-rendered": 1737.5
+          },
+          {
+            "frame-first-render": 279.4,
+            "frame-component-packages": 53.2,
+            "canvas-revealed": 1328.7,
+            "all-frames-rendered": 1353.1
+          },
+          {
+            "frame-first-render": 273.1,
+            "frame-component-packages": 50.8,
+            "canvas-revealed": 1301.2,
+            "all-frames-rendered": 1321.8
+          },
+          {
+            "frame-first-render": 252.5,
+            "frame-component-packages": 53,
+            "canvas-revealed": 1321.3,
+            "all-frames-rendered": 1341.2
+          },
+          {
+            "frame-first-render": 269.8,
+            "frame-component-packages": 51.6,
+            "canvas-revealed": 1291.6,
+            "all-frames-rendered": 1312.3
+          },
+          {
+            "frame-first-render": 309.7,
+            "frame-component-packages": 53.2,
+            "canvas-revealed": 1323.4,
+            "all-frames-rendered": 1344.1
+          }
+        ],
+        "warmMediansMs": {
+          "frame-first-render": 271.45,
+          "frame-component-packages": 52.3,
+          "canvas-revealed": 1311.25,
+          "all-frames-rendered": 1331.5
+        },
+        "rendererErrors": [],
+        "fixtureThumbnailErrors": 7
+      },
+      {
+        "dataset": "gp",
+        "variant": "retained-small",
+        "samplesMs": [
+          {
+            "frame-first-render": 325.9,
+            "frame-component-packages": 116.9,
+            "canvas-revealed": 1734.9,
+            "all-frames-rendered": 1759.0
+          },
+          {
+            "frame-first-render": 260.1,
+            "frame-component-packages": 55.8,
+            "canvas-revealed": 1309.5,
+            "all-frames-rendered": 1332.5
+          },
+          {
+            "frame-first-render": 273.2,
+            "frame-component-packages": 52.4,
+            "canvas-revealed": 1276.6,
+            "all-frames-rendered": 1296.7
+          },
+          {
+            "frame-first-render": 272.7,
+            "frame-component-packages": 71.9,
+            "canvas-revealed": 1325.8,
+            "all-frames-rendered": 1346.4
+          },
+          {
+            "frame-first-render": 266.1,
+            "frame-component-packages": 55.3,
+            "canvas-revealed": 1260.8,
+            "all-frames-rendered": 1280.9
+          },
+          {
+            "frame-first-render": 273.9,
+            "frame-component-packages": 53.9,
+            "canvas-revealed": 1262.4,
+            "all-frames-rendered": 1283.8
+          }
+        ],
+        "warmMediansMs": {
+          "frame-first-render": 272.95,
+          "frame-component-packages": 54.6,
+          "canvas-revealed": 1269.5,
+          "all-frames-rendered": 1290.25
+        },
+        "rendererErrors": [],
+        "fixtureThumbnailErrors": 7
+      },
+      {
+        "dataset": "gp",
+        "variant": "baseline",
+        "samplesMs": [
+          {
+            "frame-first-render": 325.1,
+            "frame-component-packages": 116.2,
+            "canvas-revealed": 1716.6,
+            "all-frames-rendered": 1740.2
+          },
+          {
+            "frame-first-render": 253.6,
+            "frame-component-packages": 57.2,
+            "canvas-revealed": 1275.8,
+            "all-frames-rendered": 1296.1
+          },
+          {
+            "frame-first-render": 269.7,
+            "frame-component-packages": 56.1,
+            "canvas-revealed": 1272.8,
+            "all-frames-rendered": 1292.7
+          },
+          {
+            "frame-first-render": 256.8,
+            "frame-component-packages": 66.4,
+            "canvas-revealed": 1312.8,
+            "all-frames-rendered": 1333.6
+          },
+          {
+            "frame-first-render": 267.1,
+            "frame-component-packages": 52.1,
+            "canvas-revealed": 1241.6,
+            "all-frames-rendered": 1262.0
+          },
+          {
+            "frame-first-render": 286.7,
+            "frame-component-packages": 56.2,
+            "canvas-revealed": 1282.5,
+            "all-frames-rendered": 1303.1
+          }
+        ],
+        "warmMediansMs": {
+          "frame-first-render": 268.4,
+          "frame-component-packages": 56.15,
+          "canvas-revealed": 1277.65,
+          "all-frames-rendered": 1297.9
+        },
+        "rendererErrors": [],
+        "fixtureThumbnailErrors": 7
+      },
+      {
+        "dataset": "complex",
+        "variant": "baseline",
+        "samplesMs": [
+          {
+            "frame-first-render": 177,
+            "frame-component-packages": 115,
+            "canvas-revealed": 1553.0,
+            "all-frames-rendered": 4222.8
+          },
+          {
+            "frame-first-render": 136,
+            "frame-component-packages": 62.4,
+            "canvas-revealed": 1145.4,
+            "all-frames-rendered": 3330.8
+          },
+          {
+            "frame-first-render": 137.4,
+            "frame-component-packages": 58.1,
+            "canvas-revealed": 1171.2,
+            "all-frames-rendered": 3384.3
+          },
+          {
+            "frame-first-render": 155.1,
+            "frame-component-packages": 55.8,
+            "canvas-revealed": 1285.9,
+            "all-frames-rendered": 3464.3
+          },
+          {
+            "frame-first-render": 140.4,
+            "frame-component-packages": 61,
+            "canvas-revealed": 1184.0,
+            "all-frames-rendered": 3511.0
+          },
+          {
+            "frame-first-render": 139.6,
+            "frame-component-packages": 61.7,
+            "canvas-revealed": 1227.3,
+            "all-frames-rendered": 3529.8
+          }
+        ],
+        "warmMediansMs": {
+          "frame-first-render": 140.0,
+          "frame-component-packages": 59.55,
+          "canvas-revealed": 1205.65,
+          "all-frames-rendered": 3487.65
+        },
+        "rendererErrors": [],
+        "fixtureThumbnailErrors": 7
+      },
+      {
+        "dataset": "complex",
+        "variant": "retained-small",
+        "samplesMs": [
+          {
+            "frame-first-render": 182.3,
+            "frame-component-packages": 113.7,
+            "canvas-revealed": 1542.9,
+            "all-frames-rendered": 4185.5
+          },
+          {
+            "frame-first-render": 134.4,
+            "frame-component-packages": 65.1,
+            "canvas-revealed": 1172.2,
+            "all-frames-rendered": 3352.9
+          },
+          {
+            "frame-first-render": 143.2,
+            "frame-component-packages": 65.6,
+            "canvas-revealed": 1178.6,
+            "all-frames-rendered": 3508.8
+          },
+          {
+            "frame-first-render": 142.6,
+            "frame-component-packages": 57.7,
+            "canvas-revealed": 1167.3,
+            "all-frames-rendered": 3502.2
+          },
+          {
+            "frame-first-render": 137,
+            "frame-component-packages": 56.1,
+            "canvas-revealed": 1237.9,
+            "all-frames-rendered": 3450.6
+          },
+          {
+            "frame-first-render": 164.5,
+            "frame-component-packages": 63.3,
+            "canvas-revealed": 1251.6,
+            "all-frames-rendered": 3388.4
+          }
+        ],
+        "warmMediansMs": {
+          "frame-first-render": 142.9,
+          "frame-component-packages": 60.5,
+          "canvas-revealed": 1208.25,
+          "all-frames-rendered": 3476.4
+        },
+        "rendererErrors": [],
+        "fixtureThumbnailErrors": 7
+      },
+      {
+        "dataset": "complex",
+        "variant": "retained-small",
+        "samplesMs": [
+          {
+            "frame-first-render": 179.8,
+            "frame-component-packages": 116.4,
+            "canvas-revealed": 1587.6,
+            "all-frames-rendered": 4274.4
+          },
+          {
+            "frame-first-render": 134.1,
+            "frame-component-packages": 60.6,
+            "canvas-revealed": 1168.1,
+            "all-frames-rendered": 3306.7
+          },
+          {
+            "frame-first-render": 133.7,
+            "frame-component-packages": 60.5,
+            "canvas-revealed": 1150.7,
+            "all-frames-rendered": 3377.7
+          },
+          {
+            "frame-first-render": 135.8,
+            "frame-component-packages": 58.3,
+            "canvas-revealed": 1164.2,
+            "all-frames-rendered": 3444.1
+          },
+          {
+            "frame-first-render": 136.7,
+            "frame-component-packages": 55.7,
+            "canvas-revealed": 1174.0,
+            "all-frames-rendered": 3364.9
+          },
+          {
+            "frame-first-render": 164.6,
+            "frame-component-packages": 58.8,
+            "canvas-revealed": 1189.2,
+            "all-frames-rendered": 3335.8
+          }
+        ],
+        "warmMediansMs": {
+          "frame-first-render": 136.25,
+          "frame-component-packages": 58.55,
+          "canvas-revealed": 1169.1,
+          "all-frames-rendered": 3371.3
+        },
+        "rendererErrors": [],
+        "fixtureThumbnailErrors": 7
+      },
+      {
+        "dataset": "complex",
+        "variant": "baseline",
+        "samplesMs": [
+          {
+            "frame-first-render": 179.9,
+            "frame-component-packages": 117,
+            "canvas-revealed": 1553.2,
+            "all-frames-rendered": 4231.3
+          },
+          {
+            "frame-first-render": 140.6,
+            "frame-component-packages": 64.7,
+            "canvas-revealed": 1197.1,
+            "all-frames-rendered": 3386.2
+          },
+          {
+            "frame-first-render": 136.6,
+            "frame-component-packages": 57.3,
+            "canvas-revealed": 1158.1,
+            "all-frames-rendered": 3427.8
+          },
+          {
+            "frame-first-render": 137.1,
+            "frame-component-packages": 59.1,
+            "canvas-revealed": 1155.1,
+            "all-frames-rendered": 3449.8
+          },
+          {
+            "frame-first-render": 139,
+            "frame-component-packages": 57.4,
+            "canvas-revealed": 1201.4,
+            "all-frames-rendered": 3395.1
+          },
+          {
+            "frame-first-render": 163.4,
+            "frame-component-packages": 61,
+            "canvas-revealed": 1191.3,
+            "all-frames-rendered": 3301.4
+          }
+        ],
+        "warmMediansMs": {
+          "frame-first-render": 138.05,
+          "frame-component-packages": 58.25,
+          "canvas-revealed": 1174.7,
+          "all-frames-rendered": 3411.45
+        },
+        "rendererErrors": [],
+        "fixtureThumbnailErrors": 7
+      }
+    ]
+  }
+}

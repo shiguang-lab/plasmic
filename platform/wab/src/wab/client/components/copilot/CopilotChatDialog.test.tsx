@@ -49,7 +49,7 @@ vi.mock("@/wab/client/copilot/local-edit-session", async (original) => {
   return {
     ...actual,
     getLocalEditSession: () => state.session,
-    localAiFetch: async () => ({
+    localAiFetch: async (_project: string, action: string) => action === "models" ? ["fixture-model", "alternate-model"] : ({
       configured: state.configured,
       model: "fixture-model",
       ...(state.missingModels
@@ -85,6 +85,7 @@ function mount(chatOpenOpts?: CopilotChatOpenOpts) {
             onDownloadAttachment={vi.fn().mockResolvedValue(undefined)}
             session={state.session as LocalEditSession}
             fetchStatus={() => localAiFetch<LocalAiStatus>("project", "status")}
+            fetchModels={() => localAiFetch<string[]>("project", "models")}
             hiddenByModal={false}
             onClose={onClose}
           />
@@ -403,6 +404,7 @@ function AiModes({ context = selection }: { context?: LocalAiContext }) {
             onDownloadAttachment={vi.fn().mockResolvedValue(undefined)}
             session={state.session as LocalEditSession}
             fetchStatus={() => localAiFetch<LocalAiStatus>("project", "status")}
+            fetchModels={() => localAiFetch<string[]>("project", "models")}
             hiddenByModal={false}
             onClose={() => {
               setPanel(false);

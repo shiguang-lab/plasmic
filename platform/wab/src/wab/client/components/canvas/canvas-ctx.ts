@@ -1,3 +1,7 @@
+import {
+  dispatchFrameInteraction,
+  trackFrameInteractions,
+} from "@/wab/client/frame-ctx/frame-interactions";
 import { getUiLocale } from "@/wab/client/i18n";
 import { translate } from "@/wab/client/i18n/locales";
 import type { Site } from "@/wab/shared/model/classes";
@@ -259,6 +263,12 @@ export class CanvasCtx {
     );
     const doc = this._win.document;
     const $doc = (this._$doc = $(doc) as JQuery<HTMLDocument>);
+    // This document can end before the owning Studio editor unmounts.
+    this.disposals.push(
+      trackFrameInteractions(doc, (interaction) =>
+        dispatchFrameInteraction(document, interaction),
+      ),
+    );
 
     this._$html = $doc.find("html");
     this._$head = this._$html.find("head");

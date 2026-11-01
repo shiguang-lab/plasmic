@@ -25,7 +25,7 @@ const status: LocalAiStatus = {
 afterEach(cleanup);
 beforeEach(() => {
   request.mockReset();
-  request.mockResolvedValue(status);
+  request.mockImplementation(async (_project: string, action: string) => action === "models" ? status.models : status);
 });
 function View({
   project,
@@ -92,9 +92,10 @@ it("prefetches before opening AI, coalesces pending consumers and reuses data af
   fireEvent.click(screen.getByRole("button", { name: "Toggle AI" }));
   fireEvent.click(screen.getByRole("button", { name: "Toggle AI" }));
   expect(screen.getByText("Panel: model")).toBeTruthy();
-  expect(request).toHaveBeenCalledTimes(1);
+  expect(request).toHaveBeenCalledTimes(2);
+  expect(request).toHaveBeenLastCalledWith("project", "models");
 });
-it("waits for feature/permission enablement and fetches a separate catalog when switching projects", async () => {
+it("respects feature enablement and fetches a separate catalog when switching projects", async () => {
   const cache = new Map();
   const ui = (project: string, enabled: boolean) => (
     <SWRConfig value={{ provider: () => cache }}>
@@ -105,16 +106,21 @@ it("waits for feature/permission enablement and fetches a separate catalog when 
   expect(request).not.toHaveBeenCalled();
   rerender(ui("first", true));
   await screen.findByText("Page: model");
-  expect(request).toHaveBeenCalledExactlyOnceWith("first", "status");
+  expect(request).toHaveBeenCalledWith("first", "status");
+  await waitFor(() => expect(request).toHaveBeenCalledWith("first", "models"));
   rerender(ui("second", true));
-  await waitFor(() => expect(request).toHaveBeenCalledTimes(2));
-  expect(request).toHaveBeenLastCalledWith("second", "status");
+  await waitFor(() => expect(request).toHaveBeenCalledWith("second", "models"));
+  expect(request).toHaveBeenCalledWith("second", "status");
+  expect(request).toHaveBeenCalledTimes(4);
 });
 
 it.each(["focus", "online"])(
   "refreshes a fallback model catalog on %s",
   async (event) => {
-    request.mockResolvedValueOnce({ ...status, models: [status.model] });
+    let attempts = 0;
+    request.mockImplementation(async (_project: string, action: string) =>
+      action === "status" ? { ...status, models: [status.model] } : ++attempts === 1 ? [status.model] : status.models,
+    );
     const cache = new Map();
     const { result } = renderHook(() => useLocalAiStatus("project", true), {
       wrapper: ({ children }) => (
@@ -130,3 +136,33 @@ it.each(["focus", "online"])(
     await waitFor(() => expect(result.current.data?.models).toEqual(status.models));
   },
 );
+
+it("makes the default model available while discovery is pending, then updates the catalog", async () => {
+  let finish: (models: string[]) => void = () => { throw new Error("Missing model request"); };
+  request.mockImplementation(async (_project: string, action: string) =>
+    action === "status" ? { ...status, models: [status.model] } : new Promise<string[]>(resolve => { finish = resolve; }),
+  );
+  const { result } = renderHook(() => useLocalAiStatus("slow-models", true), {
+    wrapper: ({ children }) => <SWRConfig value={{ provider: () => new Map() }}>{children}</SWRConfig>,
+  });
+  await waitFor(() => expect(request).toHaveBeenCalledWith("slow-models", "models"));
+  expect(result.current.data).toMatchObject({ configured: true, model: "model", models: ["model"] });
+  expect(result.current.modelsLoaded).toBe(false);
+  expect(result.current.isLoading).toBe(false);
+  await act(async () => finish(status.models));
+  expect(result.current.data?.models).toEqual(status.models);
+  expect(result.current.modelsLoaded).toBe(true);
+});
+it("keeps configured editing available if model discovery fails", async () => {
+  request.mockImplementation(async (_project: string, action: string) => {
+    if (action === "models") { throw new Error("Discovery unavailable"); }
+    return { ...status, models: [status.model] };
+  });
+  const { result } = renderHook(() => useLocalAiStatus("failed-models", true), {
+    wrapper: ({ children }) => <SWRConfig value={{ provider: () => new Map() }}>{children}</SWRConfig>,
+  });
+  await waitFor(() => expect(request).toHaveBeenCalledWith("failed-models", "models"));
+  expect(result.current.data?.configured).toBe(true);
+  expect(result.current.data?.model).toBe("model");
+  expect(result.current.error).toBeUndefined();
+});

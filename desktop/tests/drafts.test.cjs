@@ -55,6 +55,25 @@ test("storage limits preserve unsynced drafts and allow cleanup", async t => {
   assert.equal((await store.list(scope)).length, 1);
 });
 
+test("opening a project reads only its own branch while the directory still lists every project", async t => {
+  const store = await fixture(t), a = draft();
+  await store.write(scope, a);
+  const otherProject = { ...scope, projectId: "other" };
+  const otherBranch = { ...scope, branchId: "feature" };
+  const b = draft({ projectId: "other" }), c = draft({ branchId: "feature" });
+  await store.write(otherProject, b);
+  await store.write(otherBranch, c);
+  const reopened = new DesktopDraftStore(store.directory);
+  const files = [];
+  const readSummary = reopened.readSummary.bind(reopened);
+  reopened.readSummary = async file => { files.push(file); return readSummary(file); };
+  assert.deepEqual((await reopened.list(scope)).map(item => item.id), [a.id]);
+  assert.deepEqual(files, [store.file(scope, a.id)]);
+  files.length = 0;
+  assert.deepEqual(new Set((await reopened.list(scope, true)).map(item => item.id)), new Set([a.id, b.id, c.id]));
+  assert.equal(files.length, 3);
+});
+
 test("interrupted writes preserve the last valid checkpoint and corrupted JSON recovers the previous one", async t => {
   const store = await fixture(t), a = draft();
   await store.write(scope, a);

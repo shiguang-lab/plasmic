@@ -3,6 +3,7 @@ import {
   LocalAiStatus,
   localAiStatusSchema,
 } from "@/wab/shared/copilot/local-edit";
+import { useMemo } from "react";
 import useSWR from "swr";
 
 /** Project-scoped service metadata, prefetched by Studio and shared by AI views. */
@@ -10,8 +11,9 @@ export function useLocalAiStatus(
   projectId: string | undefined,
   enabled: boolean,
   fetchStatus?: () => Promise<LocalAiStatus>,
+  fetchModels?: () => Promise<string[]>,
 ) {
-  return useSWR<LocalAiStatus, Error>(
+  const status = useSWR<LocalAiStatus, Error>(
     enabled && projectId ? ["local-ai-status", projectId] : null,
     async ([, id]: [string, string]) => {
       const response = fetchStatus
@@ -29,4 +31,21 @@ export function useLocalAiStatus(
       shouldRetryOnError: false,
     },
   );
+  const models = useSWR<string[], Error>(
+    enabled && projectId && status.data?.configured
+      ? ["local-ai-models", projectId]
+      : null,
+    async ([, id]: [string, string]) =>
+      localAiStatusSchema.shape.models.parse(fetchModels ? await fetchModels() : await localAiFetch<unknown>(id, "models")),
+    { shouldRetryOnError: false },
+  );
+  const data = useMemo(
+    () => status.data && models.data ? { ...status.data, models: models.data } : status.data,
+    [status.data, models.data],
+  );
+  return {
+    ...status,
+    modelsLoaded: !!models.data,
+    data,
+  };
 }

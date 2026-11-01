@@ -9,7 +9,9 @@ import { HostLoadTimeoutPrompt } from "@/wab/client/components/TopFrame/HostLoad
 import {
   TopFrameChrome,
   useTopFrameState,
+  useProjectAiSession,
 } from "@/wab/client/components/TopFrame/TopFrameChrome";
+import { CanvasAiComposer } from "@/wab/client/components/copilot/CanvasAiComposer";
 import { useStudioStartup } from "@/wab/client/components/studio/StudioChrome";
 import { TopFrameCopilotToolsBridge } from "@/wab/client/components/studio/TopFrameCopilotToolsBridge";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
@@ -231,10 +233,23 @@ export function StudioFrame({
     },
   );
 
-  useLocalAiStatus(
+  const projectLocation = parseProjectLocation(appCtx.history.location);
+  const editorRoute = !projectLocation?.isPreview &&
+    !APP_ROUTES.projectDocs.parse(appCtx.history.location.pathname, false);
+  const showComposer = editorRoute && (!project || editorPerm) &&
+    !topFrameChromeProps.aiPanelOpen;
+  const openAiChat = React.useRef<(() => Promise<void>) | undefined>(undefined);
+  const onOpenChatChange = React.useCallback((open: (() => Promise<void>) | undefined) => {
+    openAiChat.current = open;
+  }, []);
+  useProjectAiSession({
     projectId,
-    studioReady && editorPerm && appCtx.appConfig.enableLocalAiEditing,
-  );
+    userId: appCtx.selfInfo?.id,
+    branchId: topFrameChromeProps.activatedBranch?.id ?? branch?.id ?? null,
+    enabled: !!project && appCtx.appConfig.enableLocalAiEditing,
+    panelOpen: topFrameChromeProps.aiPanelOpen,
+  });
+  useLocalAiStatus(projectId, editorRoute && appCtx.appConfig.enableLocalAiEditing);
 
   const updateStartup = useStudioStartup();
   React.useLayoutEffect(() => {
@@ -309,12 +324,19 @@ export function StudioFrame({
     src.hash = studioArgsHash;
   }
 
-  if (!project || !src) {
-    return null;
-  }
-
   return (
-    <TopFrameCtxProvider
+    <>
+      {showComposer && (
+        <CanvasAiComposer
+          key={projectId}
+          appCtx={appCtx}
+          projectId={projectId}
+          context={editorPerm ? topFrameChromeProps.localAiContext : undefined}
+          onOpen={() => openAiChat.current?.() ?? Promise.resolve()}
+          hiddenByModal={topFrameChromeProps.studioModalOpen}
+        />
+      )}
+      {project && src && <TopFrameCtxProvider
       key={projectId}
       projectId={projectId}
       topFrameApi={topFrameApi}
@@ -341,7 +363,7 @@ export function StudioFrame({
           refreshBranchData={refreshBranchData}
           {...topFrameChromeProps}
         />
-        <TopFrameCopilotToolsBridge />
+        <TopFrameCopilotToolsBridge onOpenChatChange={onOpenChatChange} />
         <iframe
           className={"studio-frame"}
           src={src.toString()}
@@ -349,6 +371,7 @@ export function StudioFrame({
           onLoad={handleIframeLoad}
         />
       </>
-    </TopFrameCtxProvider>
+    </TopFrameCtxProvider>}
+    </>
   );
 }

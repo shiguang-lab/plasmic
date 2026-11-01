@@ -42,6 +42,22 @@ it("does no snapshotting or persistence on Web", async () => {
   f.controller.dispose();
 });
 
+it("skips startup snapshotting without saved drafts and backs up the first edit", async () => {
+  const f = fixture();
+  await f.controller.initialize("user", "project", null);
+  expect(f.controller.enabled).toBe(true);
+  expect(f.controller.initializing).toBe(false);
+  expect(f.content).not.toHaveBeenCalled();
+  expect(f.api.readDesktopDraft).not.toHaveBeenCalled();
+  expect(f.api.writeDesktopDraft).not.toHaveBeenCalled();
+  f.edit();
+  expect(await f.controller.flush()).toBe(true);
+  expect(f.content).toHaveBeenCalledOnce();
+  expect(f.api.writeDesktopDraft).toHaveBeenCalledOnce();
+  expect(f.controller.hasCurrentBackup).toBe(true);
+  f.controller.dispose();
+});
+
 it("reuses the recovered draft with increasing sequence numbers across repeated reopenings", async () => {
   const first = fixture([pendingDraft()]);
   await first.controller.initialize("user", "project", null);

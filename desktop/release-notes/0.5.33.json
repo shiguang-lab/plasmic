@@ -1,0 +1,7 @@
+{
+  "en": "- Show the canvas AI assistant immediately and load service configuration and models independently.\n- Reduce unnecessary draft snapshots and unrelated draft reads during editor startup.\n- Streamline canvas context copying and component registration while preserving editing and recovery behavior.\n- Fix canvas interaction cleanup and add native startup and recovery validation.",
+  "zh-CN": "- 进入编辑页即显示画布 AI 助手，服务配置和模型列表独立加载。\n- 减少编辑器启动时不必要的草稿快照及无关草稿读取。\n- 优化画布上下文复制和组件注册，保持编辑及恢复行为。\n- 修正画布事件清理，补充原生启动、草稿恢复和视口验收。",
+  "zh-TW": "- 進入編輯頁即顯示畫布 AI 助手，服務設定與模型清單獨立載入。\n- 減少編輯器啟動時不必要的草稿快照及無關草稿讀取。\n- 優化畫布內容複製與元件註冊，保持編輯及復原行為。\n- 修正畫布事件清理，補充原生啟動與復原驗證。",
+  "ja": "- 編集画面で AI アシスタントをすぐに表示し、設定とモデル一覧を個別に読み込みます。\n- 起動時の不要な下書きスナップショットと他プロジェクトの読み込みを削減します。\n- 編集と復元の動作を維持し、キャンバスのコンテキスト複製とコンポーネント登録を改善します。\n- キャンバスイベントの解放を修正し、起動と復元の検証を追加します。",
+  "ko": "- 편집 화면에서 AI 도우미를 즉시 표시하고 설정과 모델 목록을 개별적으로 불러옵니다.\n- 시작 시 불필요한 초안 스냅샷과 다른 프로젝트의 초안 읽기를 줄입니다.\n- 편집 및 복구 동작을 유지하면서 캔버스 컨텍스트 복사와 구성 요소 등록을 개선합니다.\n- 캔버스 이벤트 정리를 수정하고 시작 및 복구 검증을 추가합니다."
+}
