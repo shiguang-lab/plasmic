@@ -1,0 +1,7 @@
+{
+  "en": "- Fix component library references when opening local drafts as copies.\n- Restore automatic upgrades for imported platform libraries.\n- Show loading errors and retry instead of an endless loading screen.",
+  "zh-CN": "- 修复本机草稿打开副本时的组件库引用。\n- 恢复导入平台组件库的自动升级。\n- 加载失败显示错误及重试入口，避免持续加载。",
+  "zh-TW": "- 修復本機草稿開啟副本時的元件庫引用。\n- 恢復匯入平台元件庫的自動升級。\n- 載入失敗顯示錯誤與重試入口。",
+  "ja": "- ローカル下書きのコピーでコンポーネントライブラリ参照を修正。\n- インポートしたライブラリの自動更新を修復。\n- 読み込みエラーと再試行を表示。",
+  "ko": "- 로컬 초안 복사본의 컴포넌트 라이브러리 참조 수정.\n- 가져온 라이브러리 자동 업그레이드 복구.\n- 로딩 실패 시 오류 및 재시도 표시."
+}
