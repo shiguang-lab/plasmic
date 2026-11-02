@@ -60,7 +60,7 @@ export async function bundleHasStaleHostlessDeps(
     // For dev bundle migrations, we handle hostless upgrades specially
     return true;
   }
-  const hostlessData = await getHostlessData(db);
+  const hostlessData = await getHostlessDataForBundle(bundle, db);
   if (!hostlessData) {
     return false;
   }
@@ -80,7 +80,7 @@ export async function upgradeHostlessProject(
     // For dev bundle migrations, we handle hostless upgrades specially
     return upgradeHostlessProjectForDev(bundle, entity, db);
   }
-  const hostlessData = await getHostlessData(db);
+  const hostlessData = await getHostlessDataForBundle(bundle, db);
   if (!hostlessData) {
     return;
   }
@@ -114,7 +114,7 @@ export async function upgradeHostlessProject(
         );
         const pkgId = latestPkgVersion.pkgId;
         const oldDep = ensure(
-          site.projectDependencies.find((d) => d.pkgId === pkgId),
+          site.projectDependencies.find((d) => (d as any).__bundleId === dep),
           () =>
             `Expected to find project dependency (pkgId: ${pkgId}, dep: ${dep})`,
         );
@@ -184,6 +184,7 @@ export const getHostlessData = (() => {
     );
     const versionIdToLatestVersion = new Map<string, PkgVersion>();
     const latestVersions = new Set<string>();
+    const librariesByName = new Map<string, PkgVersion>();
     await Promise.all(
       hostlessProjects.map(async (p) => {
         const pkg = await db.getPkgByProjectId(p.id);
@@ -194,6 +195,11 @@ export const getHostlessData = (() => {
           return;
         }
         const latestVersion = await db.getPkgVersion(pkg.id);
+        const latestBundle = JSON.parse(latestVersion.model);
+        const root = latestBundle.map[latestBundle.root];
+        const site = latestBundle.map[root.site?.__ref];
+        const name = latestBundle.map[site?.hostLessPackageInfo?.__ref]?.name;
+        if (name) { librariesByName.set(name, latestVersion); }
         const allVersions = await db.listPkgVersions(pkg.id);
         allVersions.forEach((v) =>
           versionIdToLatestVersion.set(v.id, latestVersion),
@@ -204,6 +210,7 @@ export const getHostlessData = (() => {
     return {
       versionIdToLatestVersion,
       latestVersions,
+      librariesByName,
       hostlessVersionCount: (await db.getHostlessVersion()).versionCount,
     };
   };
@@ -232,6 +239,23 @@ export const getHostlessData = (() => {
     return result;
   };
 })();
+
+/** Imported library copies retain component UUIDs but have different package IDs. */
+async function getHostlessDataForBundle(bundle: UnsafeBundle, db: MigrationDbMgr) {
+  const data = await getHostlessData(db);
+  if (!data) { return undefined; }
+  const versionIdToLatestVersion = new Map(data.versionIdToLatestVersion);
+  for (const id of bundle.deps) {
+    if (versionIdToLatestVersion.has(id)) { continue; }
+    const dep = JSON.parse((await db.getPkgVersionById(id)).model);
+    const root = dep.map[dep.root];
+    const site = dep.map[root.site?.__ref];
+    const name = dep.map[site?.hostLessPackageInfo?.__ref]?.name;
+    const latest = data.librariesByName.get(name);
+    if (latest) { versionIdToLatestVersion.set(id, latest); }
+  }
+  return { ...data, versionIdToLatestVersion };
+}
 
 export async function getHostlessDataVersionsHash(mgr: DbMgr) {
   const hostlessData = await getHostlessData(mgr);

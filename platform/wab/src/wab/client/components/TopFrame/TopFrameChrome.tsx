@@ -546,6 +546,7 @@ export function useTopFrameState({
   const history = useHistory();
 
   const [studioReady, setStudioReady] = React.useState(false);
+  const [studioError, setStudioError] = React.useState<string>();
   const [latestPublishedVersionData, setLatestPublishedVersionData] =
     React.useState<{ revisionId: string; version: string }>();
   const [revisionNum, setRevisionNum] = React.useState(0);
@@ -645,6 +646,7 @@ export function useTopFrameState({
       },
 
       setStudioReady: asyncWrapper(() => setStudioReady(true)),
+      setStudioError: asyncWrapper((error: string) => setStudioError(error)),
       openDesktopDrafts: async (userId, projectId, branchId) => {
         assert(projectId === project?.id && userId === appCtx.selfInfo?.id, "Invalid draft scope");
         return desktopDraftBridge()?.open(userId, projectId, branchId) ?? null;
@@ -801,6 +803,7 @@ export function useTopFrameState({
 
   return {
     studioReady,
+    studioError,
     topFrameApi,
     latestPublishedVersionData,
     revisionNum,

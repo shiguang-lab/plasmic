@@ -166,6 +166,7 @@ it.each([
   const vc = mockDeep<ViewCtx>();
   vc.arenaFrame.mockReturnValue(target);
   vc.isStale.mockReturnValue(true);
+  vc.focusedTpls.mockReturnValue([]);
   let finishSync: () => void = () => undefined;
   vc.awaitSync.mockReturnValue(new Promise<void>((resolve) => { finishSync = resolve; }));
   Object.defineProperty(vc, "isDisposed", { value: false });
@@ -436,4 +437,38 @@ it("reveals the target before remaining contexts, comparing with the previous al
   } finally {
     studioCtx.dispose();
   }
+});
+
+it("ends canvas initialization on a library failure and stops pending frames instead of leaving a blocked serial queue", async () => {
+  const { site, arena } = canvasFixture(2);
+  const { studioCtx } = fakeStudioCtx({ site, initialUrl: "/projects/test?arena_type=custom&arena=Overview" });
+  try {
+    await waitFor(() => expect(studioCtx.initialRouteReady).toBe(true));
+    vi.spyOn(studioCtx, "focusedFrame").mockReturnValue(arena.children[0]);
+    const load = vi.fn().mockRejectedValue(new Error("Unable to load component library antd6: 404"));
+    studioCtx.queueCanvasFrame({ arena, frame: arena.children[0], name: "Customers", load });
+    await waitFor(() => expect(studioCtx.canvasLoadError.get()).toBe("Unable to load component library antd6: 404"));
+    expect(load).toHaveBeenCalledTimes(1);
+    const next = vi.fn().mockResolvedValue(undefined);
+    studioCtx.queueCanvasFrame({ arena, frame: arena.children[1], name: "Details", load: next });
+    await new Promise(resolve => setTimeout(resolve, 30));
+    expect(next).not.toHaveBeenCalled();
+  } finally { studioCtx.dispose(); }
+});
+
+it("times out a host that never finishes initialization instead of waiting indefinitely", async () => {
+  const { site, arena } = canvasFixture(1);
+  const { studioCtx } = fakeStudioCtx({ site, initialUrl: "/projects/test?arena_type=custom&arena=Overview" });
+  let finish = () => undefined as void;
+  try {
+    await waitFor(() => expect(studioCtx.initialRouteReady).toBe(true));
+    vi.spyOn(studioCtx, "focusedFrame").mockReturnValue(arena.children[0]);
+    vi.useFakeTimers();
+    const load = vi.fn(() => new Promise<void>(resolve => { finish = resolve; }));
+    studioCtx.queueCanvasFrame({ arena, frame: arena.children[0], name: "Customers", load });
+    await vi.advanceTimersByTimeAsync(1);
+    expect(load).toHaveBeenCalledOnce();
+    await vi.advanceTimersByTimeAsync(180_000);
+    expect(studioCtx.canvasLoadError.get()).toContain("Unable to load artboard: Customers");
+  } finally { finish(); studioCtx.dispose(); }
 });

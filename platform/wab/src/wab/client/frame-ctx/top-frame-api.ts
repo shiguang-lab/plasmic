@@ -55,6 +55,7 @@ export interface TopFrameApi {
   removeDesktopDraft(handle: string, id: string, sequence: number): Promise<boolean>;
   copyDesktopDraft(handle: string, id: string): Promise<ProjectId>;
   setStudioReady(): Promise<void>;
+  setStudioError(error: string): Promise<void>;
   pushLocation(path?: string, query?: string, hash?: string): void;
   replaceLocation(path?: string, query?: string, hash?: string): void;
   registerLocationListener(listener: Listener): () => void;

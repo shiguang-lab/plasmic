@@ -90,16 +90,18 @@ export const CanvasFrame = observer(function CanvasFrame({
     AsyncGeneratorReturnType<CanvasCtx["initViewPort"]> | undefined
   >(undefined);
   const loadedResolveRef = useRef<(() => void) | null>(null);
+  const loadedRejectRef = useRef<((error: unknown) => void) | null>(null);
   const disposeRef = useRef(() => {});
   useEffect(() => {
     if (loadState === "unloaded") {
       studioCtx.queueCanvasFrame({
         load: () =>
-          new Promise<void>((resolve) => {
+          new Promise<void>((resolve, reject) => {
             if (isMounted()) {
               setLoadState("ready-to-load");
               // We save the resolve for later, at the end of onLoad()
               loadedResolveRef.current = resolve;
+              loadedRejectRef.current = reject;
             } else {
               // This canvas frame has been unmounted in the mean time,
               // so just forget about it and resolve immediately.
@@ -165,7 +167,9 @@ export const CanvasFrame = observer(function CanvasFrame({
           setToggleTrailingSlash(true);
           return;
         }
-        throw e;
+        loadedRejectRef.current?.(e);
+        studioCtx.reportCanvasLoadError(e);
+        return;
       }
 
       const onFocus = () => {
@@ -594,7 +598,10 @@ export const CanvasFrame = observer(function CanvasFrame({
             });
             doc.addEventListener("readystatechange", listener);
           }
-        })(),
+        })().catch(error => {
+          loadedRejectRef.current?.(error);
+          studioCtx.reportCanvasLoadError(error);
+        }),
       );
     }
   }, [loadState]);

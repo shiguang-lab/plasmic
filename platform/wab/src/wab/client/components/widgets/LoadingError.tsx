@@ -7,10 +7,12 @@ import * as React from "react";
 export function LoadingError({
   onRetry,
   loading = false,
+  detail,
   title = "Unable to load this page",
 }: {
   onRetry: () => void;
   loading?: boolean;
+  detail?: string;
   title?: MessageKey;
 }) {
   const { t } = useI18n();
@@ -39,6 +41,7 @@ export function LoadingError({
       <Typography.Text type="secondary" style={{ maxWidth: 400 }}>
         {t("Please try again. If the problem persists, try again later.")}
       </Typography.Text>
+      {detail && <Typography.Text style={{ maxWidth: 600, overflowWrap: "anywhere" }}>{detail}</Typography.Text>}
       <Button type="primary" loading={loading} onClick={onRetry}>
         {t("Retry")}
       </Button>

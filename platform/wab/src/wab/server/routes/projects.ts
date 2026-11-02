@@ -1,3 +1,4 @@
+import { resolveImportedHostlessDeps } from "@/wab/server/db/imported-hostless-deps";
 import { addOrUpsertTokens } from "@/wab/commons/StyleToken";
 import * as semver from "@/wab/commons/semver";
 import { toOpaque } from "@/wab/commons/types";
@@ -154,7 +155,7 @@ import {
   isPageComponent,
   isPlasmicComponent,
 } from "@/wab/shared/core/components";
-import { syncGlobalContexts } from "@/wab/shared/core/project-deps";
+import { syncGlobalContexts, upgradeProjectDeps } from "@/wab/shared/core/project-deps";
 import {
   createSite,
   fixDataTokenProjectRefs,
@@ -517,8 +518,16 @@ export async function doImportProject(
     "Couldn't find last bundle",
   );
   const oldToNewUuid = new Map<string, string>();
-  const newPkgVersionById = new Map<string, PkgVersion>();
+  const newPkgVersionById = new Map<string, { id: string; model: string }>();
   const oldToNewProjectId = new Map<ProjectId, ProjectId>();
+
+  const managedDeps = opts?.keepProjectIdsAndNames
+    ? new Map<string, ProjectDependency>()
+    : await resolveImportedHostlessDeps(depBundles, mgr, bundler);
+  const replacements: { oldDep: ProjectDependency; newDep: ProjectDependency }[] = [];
+  const upgradeImportedDeps = (site: Site) => {
+    upgradeProjectDeps(site, replacements.filter(({ oldDep }) => site.projectDependencies.includes(oldDep)));
+  };
 
   const migrateBundle = async (bundle: Bundle) => {
     const migrations = await getMigrationsToExecute(bundle.version);
@@ -623,6 +632,7 @@ export async function doImportProject(
   // the complete oldToNewProjectId mapping before fixing data token refs.
   if (!opts?.keepProjectIdsAndNames) {
     for (const [i, [id, dep]] of depBundles.entries()) {
+      if (managedDeps.has(id)) { continue; }
       // Extract projectId directly from the bundle structure to avoid unbundling
       const rootObj = dep.map[dep.root];
       if (rootObj.__type !== "ProjectDependency") {
@@ -658,6 +668,15 @@ export async function doImportProject(
     const projectDep = ensureKnownProjectDependency(
       bundler.unbundle(dep, tmpUuid),
     );
+
+    upgradeImportedDeps(projectDep.site);
+    const managedDep = managedDeps.get(id);
+    if (managedDep) {
+      replacements.push({ oldDep: projectDep, newDep: managedDep });
+      oldToNewUuid.set(id, tmpUuid);
+      newPkgVersionById.set(tmpUuid, { id: tmpUuid, model: JSON.stringify(dep) });
+      continue;
+    }
 
     // Store the old project ID before it gets changed
     const oldDepProjectId = projectDep.projectId as ProjectId;
@@ -787,6 +806,8 @@ export async function doImportProject(
   const unbundledSite = ensureKnownSite(
     bundler.unbundle(siteBundle, project.id),
   );
+
+  upgradeImportedDeps(unbundledSite);
 
   // Update data token references for ALL project ID mappings
   if (!opts?.keepProjectIdsAndNames) {

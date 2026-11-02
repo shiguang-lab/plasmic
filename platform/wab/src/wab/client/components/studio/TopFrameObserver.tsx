@@ -333,6 +333,11 @@ export const TopFrameObserver = observer(function _TopFrameObserver({
     hostFrameCtx.onHostFrameApiReady(hostFrameApi);
   }, [hostFrameApi]);
 
+  const canvasError = studioCtx.canvasLoadError.get();
+  React.useEffect(() => {
+    if (canvasError) { spawn(topFrameApi.setStudioError(canvasError)); }
+  }, [canvasError, topFrameApi]);
+
   React.useEffect(() => {
     if (studioReady) {
       studioCtx.loadTimings.report("canvas-revealed");

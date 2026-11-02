@@ -15,6 +15,7 @@ import { mock } from "vitest-mock-extended";
 const frame = vi.hoisted(() => ({
   hostFrameApiReady: false,
   studioReady: false,
+  studioError: undefined as string | undefined,
   studioModalOpen: false,
   status: vi.fn(() => ({ data: undefined })),
 }));
@@ -30,6 +31,7 @@ vi.mock("@/wab/client/components/TopFrame/TopFrameChrome", () => ({
   useTopFrameState: () => ({
     topFrameApi: {},
     studioReady: frame.studioReady,
+    studioError: frame.studioError,
     studioModalOpen: frame.studioModalOpen,
   }),
 }));
@@ -50,6 +52,7 @@ afterEach(cleanup);
 beforeEach(() => {
   frame.hostFrameApiReady = false;
   frame.studioReady = false;
+  frame.studioError = undefined;
   frame.studioModalOpen = false;
   frame.status.mockClear();
 });
@@ -193,4 +196,23 @@ it.each([
   await act(() => appCtx.history.back());
   expect(screen.getByRole("group", { name: "AI canvas editing" })).toBeTruthy();
   expect(frame.status).toHaveBeenLastCalledWith("project", true);
+});
+
+it("replaces the startup mask with an actionable library failure even when the canvas never becomes ready", async () => {
+  const { appCtx, api } = fakeAppCtx();
+  appCtx.appConfigOverrides = {};
+  appCtx.history.replace("/projects/project");
+  api.listBranchesForProject.mockResolvedValue({ branches: [] });
+  const project = mock<ApiProject>({ id: "project" as ProjectId, name: "Project", defaultAccessLevel: "content" });
+  api.getProjects.mockResolvedValue({ projects: [project], perms: [] });
+  api.getTrustedHostsList.mockResolvedValue({ trustedHosts: [mock<ApiTrustedHost>({ hostUrl: getHostUrl(project, undefined, appCtx.appConfig) })] });
+  const view = () => providesAppCtx(appCtx)(<HistoryProvider history={appCtx.history}><AntdConfigProvider productUI><StudioStartupBoundary><StudioFrame projectId={project.id} refreshStudio={async () => undefined} /></StudioStartupBoundary></AntdConfigProvider></HistoryProvider>);
+  const rendered = render(view());
+  await waitFor(() => expect(rendered.container.querySelector("iframe")).not.toBeNull());
+  frame.studioError = "Unable to load component library antd6: 404";
+  rendered.rerender(view());
+  expect(await screen.findByRole("alert")).toBeTruthy();
+  expect(screen.getByText(frame.studioError)).toBeTruthy();
+  expect(screen.getByRole("button", { name: "Retry" })).toBeTruthy();
+  expect(screen.queryByRole("status")).toBeNull();
 });

@@ -795,6 +795,14 @@ export class StudioCtx extends WithDbCtx {
     this.disposals.push(this.fontManager.observeHostFonts(window.parent));
 
     this.isDocs = !!APP_ROUTES.projectDocs.parse(location.pathname, false);
+    const initialLoadTimer = setTimeout(() => {
+      if (!this.activeCanvasReady || !this.initialViewportReady) {
+        this.reportCanvasLoadError(new Error("Timed out waiting for the initial artboard to render"));
+      }
+    }, 180_000);
+    this.disposals.push(() => clearTimeout(initialLoadTimer));
+    this.runAfterInitialCanvasReady(async () => { clearTimeout(initialLoadTimer); });
+
 
     this.runAfterInitialCanvasReady(() =>
       this.getProjectReleases().then((releases) =>
@@ -8499,6 +8507,12 @@ export class StudioCtx extends WithDbCtx {
    * the queue just as a mechanism to call our canvas-loading callback whenever a
    * frame needs to be loaded.
    */
+  readonly canvasLoadError = observable.box<string | undefined>(undefined);
+
+  reportCanvasLoadError(error: unknown) {
+    runInAction(() => this.canvasLoadError.set(error instanceof Error ? error.message : String(error)));
+  }
+
   private canvasLoadRequests: CanvasLoadRequest[] = [];
   private canvasLoadingDisposed = false;
 
@@ -8508,6 +8522,7 @@ export class StudioCtx extends WithDbCtx {
       let waitDone: (() => void) | undefined;
       while (
         !this.canvasLoadingDisposed &&
+        !this.canvasLoadError.get() &&
         this.initialRouteReady &&
         (!this.activeCanvasReady || !this.initialViewportReady) &&
         !this.canvasLoadRequests.some(
@@ -8520,7 +8535,7 @@ export class StudioCtx extends WithDbCtx {
         await asyncTimeout(16);
       }
       waitDone?.();
-      if (this.canvasLoadingDisposed) {
+      if (this.canvasLoadingDisposed || this.canvasLoadError.get()) {
         return;
       }
       const loadNext = async () => {
@@ -8559,8 +8574,9 @@ export class StudioCtx extends WithDbCtx {
         // we have switched arena since loading, and we should just bail on this request.
         let done = false;
         await Promise.race([
-          nextRequest.load().then(() => {
+          withTimeout(nextRequest.load(), `Unable to load artboard: ${nextRequest.name}`, 180_000).finally(() => {
             done = true;
+          }).then(() => {
             loadDone();
           }),
           (async () => {
@@ -8585,15 +8601,19 @@ export class StudioCtx extends WithDbCtx {
           })(),
         ]);
       };
-      const targetFrame = this.activeCanvasFrame;
-      if (
-        this.canvasLoadRequests.some(
-          (r) => r.arena === this.currentArena && r.frame === targetFrame,
-        )
-      ) {
-        await loadNext();
-      } else {
-        await requestIdleCallbackAsync(loadNext);
+      try {
+        const targetFrame = this.activeCanvasFrame;
+        if (
+          this.canvasLoadRequests.some(
+            (r) => r.arena === this.currentArena && r.frame === targetFrame,
+          )
+        ) {
+          await loadNext();
+        } else {
+          await requestIdleCallbackAsync(loadNext);
+        }
+      } catch (error) {
+        this.reportCanvasLoadError(error);
       }
     }),
     1,

@@ -76,6 +76,13 @@ If a live save encounters a newer server revision, Desktop keeps the current
 edits and pauses saving until the user resolves the draft; it does not replay
 potentially committed edits. Choosing the remote version keeps the local draft
 available for export or opening as a copy.
+Opening a draft as a copy creates a new business project and reuses published
+platform component libraries. Enabled libraries resolve to their current release
+with component and property references upgraded together; they are not imported
+as private library copies. Loading also reconnects imported library copies to
+platform releases before rendering. Missing libraries or failed upgrades display
+an error with a retry action instead of leaving the startup mask active.
+
 The project list, editor save indicator, and Dynamic Island show local draft
 status with hover explanations. Web retains its existing remote-save behavior.
 

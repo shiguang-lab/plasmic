@@ -1,3 +1,4 @@
+import { LoadingError } from "@/wab/client/components/widgets/LoadingError";
 import { reportError } from "@/wab/client/ErrorNotifications";
 import {
   getLoginRouteWithContinuation,
@@ -227,7 +228,7 @@ export function StudioFrame({
     spawn(fetchProject());
   }, [projectId, setProject, fetchProjectCount]);
 
-  const { topFrameApi, studioReady, ...topFrameChromeProps } = useTopFrameState(
+  const { topFrameApi, studioReady, studioError, ...topFrameChromeProps } = useTopFrameState(
     {
       appCtx,
       project,
@@ -257,13 +258,15 @@ export function StudioFrame({
   React.useLayoutEffect(() => {
     updateStartup({
       projectName: project?.name,
-      ready: studioReady,
+      ready: studioReady && !studioError,
+      failure: studioError ? <LoadingError detail={studioError} onRetry={() => location.reload()} /> : undefined,
       hidden: untrustedHost || topFrameChromeProps.studioModalOpen,
     });
   }, [
     updateStartup,
     project?.name,
     studioReady,
+    studioError,
     untrustedHost,
     topFrameChromeProps.studioModalOpen,
   ]);
