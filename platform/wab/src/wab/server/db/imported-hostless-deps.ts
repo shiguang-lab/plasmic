@@ -6,7 +6,10 @@ import { Bundler, Bundle } from "@/wab/shared/bundler";
 import { ensure, ensureArray } from "@/wab/shared/common";
 import { ProjectDependency } from "@/wab/shared/model/classes";
 
-/** Resolve published libraries before importing any business projects. */
+/** Resolve and authorize published libraries before creating business projects.
+ * Library copies retain their component UUIDs; consumers are rebound with
+ * upgradeProjectDeps rather than copying package identities or substituting code.
+ */
 export async function resolveImportedHostlessDeps(depBundles: [string, Bundle][], mgr: DbMgr, bundler: Bundler) {
   const flags = await getDevFlagsMergedWithOverrides(mgr);
   const managedDeps = new Map<string, ProjectDependency>();
