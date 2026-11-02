@@ -4,6 +4,7 @@ import { $$$ } from "@/wab/shared/TplQuery";
 import { VariantCombo, tryGetBaseVariantSetting } from "@/wab/shared/Variants";
 import { flattenComponent } from "@/wab/shared/cached-selectors";
 import { elementSchemaToTpl } from "@/wab/shared/code-components/code-components";
+import { codeLit } from "@/wab/shared/core/exprs";
 import { toVarName } from "@/wab/shared/codegen/util";
 import { assert, ensureArray, maybe } from "@/wab/shared/common";
 import {
@@ -526,7 +527,9 @@ export function fillCodeComponentDefaultSlotContent(
   if (ownerSite) {
     const defaultContent =
       component.codeComponentMeta.defaultSlotContents[prop];
-    if (defaultContent) {
+    if (typeof defaultContent === "string") {
+      $$$(tpl).setSlotArg(prop, codeLit(defaultContent));
+    } else if (defaultContent) {
       const contents = ensureArray(defaultContent);
       const tplContentsResults = Result.combine(
         contents.map((elt) =>

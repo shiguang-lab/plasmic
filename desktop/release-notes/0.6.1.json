@@ -1,0 +1,7 @@
+{
+  "en": "- Improve canvas selection responsiveness and property panel stability.\n- Edit button text and native modal buttons directly on the canvas.\n- Fix overlay selection bounds, content editing and comment loading.",
+  "zh-CN": "- 提升画布选择响应速度和属性面板稳定性。\n- 支持直接在画布编辑按钮文字和弹窗原生按钮。\n- 修复弹层选择边界、内容编辑及评论加载。",
+  "zh-TW": "- 提升畫布選取回應速度與屬性面板穩定性。\n- 支援直接在畫布編輯按鈕文字與彈窗原生按鈕。\n- 修正浮層選取邊界、內容編輯與評論載入。",
+  "ja": "- キャンバス選択の応答速度とプロパティパネルの安定性を改善。\n- ボタンのテキストとモーダルの標準ボタンをキャンバス上で直接編集。\n- オーバーレイの選択範囲、コンテンツ編集、コメント読み込みを修正。",
+  "ko": "- 캔버스 선택 응답 속도와 속성 패널 안정성을 개선했습니다.\n- 캔버스에서 버튼 텍스트와 모달 기본 버튼을 직접 편집할 수 있습니다.\n- 오버레이 선택 영역, 콘텐츠 편집 및 댓글 로딩을 수정했습니다."
+}

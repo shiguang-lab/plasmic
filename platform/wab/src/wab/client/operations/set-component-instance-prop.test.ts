@@ -187,13 +187,20 @@ describe("setComponentInstanceProp", () => {
     expect(result.error.message).toContain(`Invalid prop "nope"`);
   });
 
-  it("errors on a slot prop", () => {
+  it("keeps string slot content directly on the instance", () => {
+    const { instance, getArg, opts } = setupComponentWithInstance();
+    const result = setComponentInstanceProp(instance, "children", "content", opts);
+    expect(result.isOk()).toBe(true);
+    expect(tryExtractJson(getArg(instance, "children")!.expr)).toBe("content");
+  });
+
+  it("requires structured slot content to use child nodes", () => {
     const { instance, opts } = setupComponentWithInstance();
 
     const result = setComponentInstanceProp(
       instance,
       "children",
-      "content",
+      { type: "text", value: "content" },
       opts,
     );
 

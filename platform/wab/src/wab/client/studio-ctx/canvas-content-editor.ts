@@ -42,7 +42,13 @@ export function findClippedContent(
   root: HTMLElement,
   boundaries = new Set<HTMLElement>(),
 ): ClippedContentRegion[] {
-  const regions: ClippedContentRegion[] = [];
+  return Array.from(iterateClippedContent(root, boundaries));
+}
+
+function* iterateClippedContent(
+  root: HTMLElement,
+  boundaries: Set<HTMLElement>,
+): Generator<ClippedContentRegion> {
   const pending = [root];
   const win = root.ownerDocument.defaultView;
   while (pending.length) {
@@ -68,7 +74,7 @@ export function findClippedContent(
       ) &&
       element.scrollHeight > element.clientHeight + 1;
     if (horizontal || vertical) {
-      regions.push({ element, horizontal, vertical });
+      yield { element, horizontal, vertical };
     }
     pending.push(
       ...(Array.from(element.children).filter(
@@ -77,7 +83,6 @@ export function findClippedContent(
       ) as HTMLElement[]),
     );
   }
-  return regions;
 }
 
 function contentRegions(
@@ -94,7 +99,7 @@ function contentRegions(
         .flatMap((val) => contentElements(vc, val)),
     ),
   );
-  return findClippedContent(element, boundaries);
+  return iterateClippedContent(element, boundaries);
 }
 
 export function getContentEditorTarget(
@@ -122,7 +127,7 @@ export function getContentEditorTarget(
       targets.find(({ element }) =>
         selected.some((el) => element.contains(el)),
       ) ?? (targets.length === 1 ? targets[0] : undefined);
-    if (target && contentRegions(vc, tpl, target.element).length) {
+    if (target && !contentRegions(vc, tpl, target.element).next().done) {
       return target;
     }
   }
@@ -376,7 +381,7 @@ export class CanvasContentEditor {
     let undo = isolateContentElement(
       element,
       originalWidth,
-      contentRegions(this.vc, target.tpl, element),
+      Array.from(contentRegions(this.vc, target.tpl, element)),
     );
     const measure = () => {
       const width =
@@ -421,7 +426,7 @@ export class CanvasContentEditor {
           undo = isolateContentElement(
             element,
             originalWidth,
-            contentRegions(this.vc, target.tpl, element),
+            Array.from(contentRegions(this.vc, target.tpl, element)),
           );
           resize.observe(element);
         }

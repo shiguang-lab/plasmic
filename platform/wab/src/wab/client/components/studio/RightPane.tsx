@@ -41,11 +41,12 @@ export const RightPane = observer(function RightPane({
         selectedTpl.name) ||
       summarizeTpl(selectedTpl)
     : focusedOrFirstViewCtx?.component.name;
+  const partTitle = focusedViewCtx?.focusedComponentPart?.displayName;
 
   const inspectorTitle =
     studioCtx.rightTabKey === RightTabKey.component
       ? focusedOrFirstViewCtx?.component.name
-      : selectionTitle;
+      : partTitle ? `${selectionTitle} › ${partTitle}` : selectionTitle;
 
   const tabs: widgets.Tab[] = [];
 
@@ -149,6 +150,14 @@ export const RightPane = observer(function RightPane({
               <Tabs
                 className="editor-inspector-tabs"
                 activeKey={studioCtx.rightTabKey}
+                // Selection can change the tab order without changing the active key.
+                // Reset only the header so its indicator cannot reuse the old layout.
+                renderTabBar={(tabBarProps, DefaultTabBar) => (
+                  <DefaultTabBar
+                    {...tabBarProps}
+                    key={tabs.map((tab) => tab.key).join(",")}
+                  />
+                )}
                 onChange={(tabKey) =>
                   studioCtx.switchRightTab(tabKey as RightTabKey)
                 }

@@ -50,7 +50,7 @@ import {
 } from "@/wab/shared/eval/expression-parser";
 import { Component, Interaction } from "@/wab/shared/model/classes";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
-import { head, mapValues, partition } from "lodash";
+import { mapValues, partition } from "lodash";
 import * as React from "react";
 import { useUpdateEffect } from "react-use";
 
@@ -166,10 +166,9 @@ function DataPicker_(props: DataPickerProps, ref: HTMLElementRefOf<"div">) {
         ? pathToString(displayValue)
         : undefined,
   );
-  const focusedTpl =
-    viewCtx?.focusedTpls().length === 1
-      ? head(viewCtx.focusedTpls())
-      : undefined;
+  const focusedTpl = viewCtx?.studioCtx.inspectorSelection?.tplCount === 1
+    ? viewCtx.inspectorTpl() ?? undefined
+    : undefined;
   const fixedData = React.useMemo(
     // If schema is given, then include schema, mapped to undefined, in the
     // data env, even if it's not present in `data`

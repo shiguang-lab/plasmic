@@ -1,4 +1,5 @@
 import { CanvasOverlayToolbar } from "@/wab/client/components/canvas/CanvasOverlayToolbar";
+import { getActiveCanvasModal } from "@/wab/client/components/canvas/canvas-modal-scope";
 import { EditableNodeLabel } from "@/wab/client/components/canvas/EditableNodeLabel";
 import { ClippedEdgeIndicators } from "@/wab/client/components/canvas/HoverBox/ClippedEdgeIndicator";
 import {
@@ -284,6 +285,9 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
   };
 
   const startMove = (e: XDraggableEvent) => {
+    if (viewProps.displayProps?.isComponentPart) {
+      return;
+    }
     if (studioCtx.showStackOfParents) {
       studioCtx.showStackOfParents = false;
     }
@@ -359,7 +363,7 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
   const controlledTpl =
     controlledObj instanceof ValNode ? controlledObj.tpl : undefined;
   const nameableItem =
-    controlledObj &&
+    state?.isComponentPart ? undefined : controlledObj &&
     (isKnownArenaFrame(controlledObj)
       ? controlledObj
       : controlledTpl && isTplNodeNamable(controlledTpl)
@@ -518,7 +522,7 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
           <div
             className="hoverbox"
             onContextMenu={(e) => {
-              if (viewCtx && commentCtx) {
+              if (viewCtx && commentCtx && !state?.isComponentPart) {
                 viewCtx.tryBlurEditingText();
                 const menu = getContextMenuForFocusedTpl(viewCtx);
                 maybeShowContextMenu(e.nativeEvent, menu);
@@ -1033,7 +1037,7 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
                   )}
               </>
             }
-            {viewCtx && state && !isMultiSelection && shouldShowHoverTag && (
+            {viewCtx && state && !state.isComponentPart && !isMultiSelection && shouldShowHoverTag && (
               <div
                 className={styles.elementActions}
                 style={{
@@ -1051,7 +1055,7 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
                 <CanvasOverlayToolbar viewCtx={viewCtx} />
               </div>
             )}
-            {!isMultiSelection && (
+            {!isMultiSelection && !state?.isComponentPart && (
               <InlineAddButton
                 // The button sits on the drawn box, so check space against it.
                 elementWidth={visibleBox?.width}
@@ -1079,6 +1083,12 @@ function HoverBox_({
 
   const focusedElt = !isKnownArenaFrame(target) ? target.node : undefined;
   const viewProps = computeHoverBoxViewState(viewCtx, target);
+  const partElement =
+    viewProps.displayProps &&
+    "isComponentPart" in viewProps.displayProps &&
+    viewProps.displayProps.isComponentPart
+      ? viewProps.focusedElt?.[0]
+      : undefined;
 
   React.useEffect(() => {
     const doc = viewCtx.canvasCtx.$doc()[0];
@@ -1101,7 +1111,7 @@ function HoverBox_({
   React.useEffect(() => {
     if (focusedElt && focusedElt.length > 0) {
       const focusedEltParentObserver = new ResizeObserver(forceUpdate);
-      const elts = focusedElt.toArray();
+      const elts = partElement ? [partElement] : focusedElt.toArray();
       elts.forEach((elt) => focusedEltParentObserver.observe(elt));
 
       // Observes if the element gets disconnected from the DOM
@@ -1128,7 +1138,7 @@ function HoverBox_({
     } else {
       return undefined;
     }
-  }, [focusedElt]);
+  }, [focusedElt, partElement, viewCtx]);
 
   return <HoverBoxInner viewProps={viewProps} />;
 }
@@ -1155,7 +1165,13 @@ function HoverBoxes_(props: { studioCtx: StudioCtx }) {
       return;
     }
 
-    const userBodyObserver = new MutationObserver((_mutations) => {
+    let modal = getActiveCanvasModal(canvasBody.ownerDocument);
+    const userBodyObserver = new MutationObserver((mutations) => {
+      const currentModal = getActiveCanvasModal(canvasBody.ownerDocument);
+      if (currentModal === modal && !mutations.some((mutation) => mutation.type === "childList")) {
+        return;
+      }
+      modal = currentModal;
       // Because the selected element may now be present, we try to recompute
       // focus on it
       const updated = viewCtx.recomputeFocusedDomElts();
@@ -1173,6 +1189,8 @@ function HoverBoxes_(props: { studioCtx: StudioCtx }) {
     userBodyObserver.observe(canvasBody, {
       subtree: true,
       childList: true,
+      attributes: true,
+      attributeFilter: ["class", "style", "aria-modal"],
     });
     return () => userBodyObserver.disconnect();
   }, [viewCtx, canvasBody]);

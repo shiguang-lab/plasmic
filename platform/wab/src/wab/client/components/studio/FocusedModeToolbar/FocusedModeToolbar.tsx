@@ -3,9 +3,7 @@ import { VariantsBar } from "@/wab/client/components/canvas/VariantsBar";
 import S from "@/wab/client/components/studio/FocusedModeToolbar/FocusedModeToolbar.module.scss";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import IconButton from "@/wab/client/components/widgets/IconButton";
-import Switch from "@/wab/client/components/widgets/Switch";
 import { useI18n } from "@/wab/client/i18n";
-import { UiText } from "@/wab/client/i18n/UiText";
 import RefreshsvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__RefreshSvg";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { observer } from "mobx-react";
@@ -15,12 +13,6 @@ import React from "react";
 export const FocusedModeToolbar = observer(
   ({ studioCtx }: { studioCtx: StudioCtx }) => {
     const { t: uiT } = useI18n();
-    const onChange = (val) =>
-      studioCtx.change(() => {
-        studioCtx.isInteractiveMode = val;
-        return ok();
-      });
-
     const onClick = async () => {
       await studioCtx.change(() => {
         studioCtx.refreshFocusedFrameArena();
@@ -37,27 +29,13 @@ export const FocusedModeToolbar = observer(
           <VariantsBar contained />
         </div>
         <div className={"flex flex-vcenter"}>
-          <div
-            id="interactive-canvas-switch"
-            className={S.interactiveCanvasSwitchContainer}
+          <IconButton
+            tooltip={uiT("Refresh arena")}
+            id={"refresh-canvas-btn"}
+            onClick={onClick}
           >
-            <label>
-              <Switch
-                isChecked={studioCtx.isInteractiveMode}
-                onChange={onChange}
-                style={{ marginRight: 6 }}
-                data-test-id={"interactive-switch"}
-              />
-              <UiText message={"Interactive"} />
-            </label>
-            <IconButton
-              tooltip={uiT("Refresh arena")}
-              id={"refresh-canvas-btn"}
-              onClick={onClick}
-            >
-              <Icon icon={RefreshsvgIcon} />
-            </IconButton>
-          </div>
+            <Icon icon={RefreshsvgIcon} />
+          </IconButton>
           {currentFrame && (
             <CanvasConfigButton
               contained

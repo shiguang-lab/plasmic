@@ -124,6 +124,20 @@ class ActionAnalysis {
       case "IfStatement": {
         const condition = this.value(node.test);
         if (condition === UNKNOWN) {
+          const guarded =
+            node.consequent.type === "BlockStatement" && node.consequent.body.length === 1
+              ? node.consequent.body[0]
+              : node.consequent;
+          if (
+            !node.alternate &&
+            guarded.type === "ReturnStatement" &&
+            !guarded.argument
+          ) {
+            // Discover the explicit opening on the path past a permission
+            // guard. This reveals content for editing; it does not run or
+            // bypass the guard in the actual interaction.
+            return true;
+          }
           // Unknown branches cannot establish a definite overlay association.
           this.writes.clear();
           return false;

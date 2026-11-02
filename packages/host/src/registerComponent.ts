@@ -239,6 +239,19 @@ export interface CodeComponentMeta<P> {
    * of its trigger slot. Other slots are content, not overlay triggers.
    */
   canvasOverlay?: { triggerSlot?: string };
+  /** Existing prop or primitive slot content edited directly on the component. */
+  canvasText?: { prop: string; selector: string };
+  /**
+   * Native DOM parts whose existing component props can be edited by clicking
+   * them on the canvas. Parts are temporary editing targets, not child nodes.
+   */
+  canvasParts?: Record<string, {
+    selector: string;
+    displayName: string;
+    props: string[];
+    /** Existing string prop and label DOM to edit in place on double-click. */
+    text?: { prop: string; selector: string };
+  }>;
   /**
    * Whether style sections should be shown in Studio. For styles to work, the
    * component must accept a `className` prop. If unset, defaults to all styles.

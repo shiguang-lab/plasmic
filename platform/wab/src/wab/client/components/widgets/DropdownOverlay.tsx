@@ -4,27 +4,35 @@ import {
   DefaultDropdownOverlayProps,
   PlasmicDropdownOverlay,
 } from "@/wab/client/plasmic/plasmic_kit_design_system/PlasmicDropdownOverlay";
+import { useProductThemeStyles } from "@/wab/client/product-ui-theme.styles";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
+import { theme } from "antd";
 import * as React from "react";
 
 interface DropdownOverlayProps extends DefaultDropdownOverlayProps {
   style?: React.CSSProperties;
+  scrollable?: boolean;
 }
 
 const DropdownOverlay = React.forwardRef(function DropdownOverlay(
   props: DropdownOverlayProps,
   ref: React.Ref<HTMLDivElement>,
 ) {
+  const { scrollable = true, ...rest } = props;
+  const { token } = theme.useToken();
+  const { styles, cx } = useProductThemeStyles(token);
   return (
     <PlasmicDropdownOverlay
       root={{
-        as: Scrollbar,
-        ref,
-        className: "dropdown-overlay",
-        style: { maxHeight: "80vh", overflow: "hidden" },
-        props: { scrollX: false, defer: false },
+        as: scrollable ? Scrollbar : "div",
+        props: {
+          ref,
+          className: cx("dropdown-overlay", styles.root),
+          style: { maxHeight: "80vh", overflow: "hidden" },
+          ...(scrollable ? { scrollX: false, defer: false } : {}),
+        },
       }}
-      {...props}
+      {...rest}
     />
   );
 });

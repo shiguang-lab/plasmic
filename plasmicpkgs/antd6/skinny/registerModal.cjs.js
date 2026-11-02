@@ -3,8 +3,11 @@
 var Ant = require('antd');
 var cls = require('classnames');
 var React = require('react');
+var lodash = require('lodash');
+var registerButton = require('./registerButton.cjs.js');
 var canvasOverlay$1 = require('./canvas-overlay-BCQmyJjQ.cjs.js');
 var utils = require('./utils-Diqr9Iet.cjs.js');
+require('./names-DbJduus8.cjs.js');
 require('@plasmicapp/host');
 require('@plasmicapp/host/registerComponent');
 require('@plasmicapp/host/registerGlobalContext');
@@ -47,6 +50,8 @@ function AntdModal(props) {
     trigger,
     mask,
     closeOnOutsideClick,
+    okButtonProps,
+    cancelButtonProps,
     defaultStylesClassName,
     ...rest
   } = canvasProps;
@@ -70,6 +75,8 @@ function AntdModal(props) {
     Ant.Modal,
     {
       ...rest,
+      okButtonProps: isEditing ? { ...okButtonProps, "data-plasmic-modal-part": "ok" } : okButtonProps,
+      cancelButtonProps: isEditing ? { ...cancelButtonProps, "data-plasmic-modal-part": "cancel" } : cancelButtonProps,
       mask: closeOnOutsideClick === void 0 || mask === false ? mask : {
         ...typeof mask === "object" ? mask : {},
         closable: closeOnOutsideClick
@@ -97,6 +104,10 @@ function registerModal(loader) {
   utils.registerComponentHelper(loader, AntdModal, {
     name: "plasmic-antd6-modal",
     canvasOverlay,
+    canvasParts: {
+      ok: { selector: '[data-plasmic-modal-part="ok"]', displayName: "Confirm button", props: ["okText", "okButtonProps", "confirmLoading", "onOk"], text: { prop: "okText", selector: ":scope > span:not(.ant-btn-icon)" } },
+      cancel: { selector: '[data-plasmic-modal-part="cancel"]', displayName: "Cancel button", props: ["cancelText", "cancelButtonProps", "onCancel"], text: { prop: "cancelText", selector: ":scope > span:not(.ant-btn-icon)" } }
+    },
     displayName: "Modal",
     styleSections,
     description: "[See tutorial video](https://www.youtube.com/watch?v=TkjxNJIFun8)",
@@ -181,11 +192,15 @@ function registerModal(loader) {
       },
       okButtonProps: {
         type: "object",
+        fields: { ...lodash.omit(registerButton.getButtonProps(), ["children", "icon", "onClick", "submitsForm", "target"]), style: { type: "object" } },
+        display: "inline",
         advanced: true,
         description: "Native Button props for the default OK button."
       },
       cancelButtonProps: {
         type: "object",
+        fields: { ...lodash.omit(registerButton.getButtonProps(), ["children", "icon", "onClick", "submitsForm", "target"]), style: { type: "object" } },
+        display: "inline",
         advanced: true,
         description: "Native Button props for the default Cancel button."
       },

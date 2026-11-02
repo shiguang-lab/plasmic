@@ -269,8 +269,14 @@ export const ComponentPropsSection = observer(
     }
 
     const { componentPropValues, ccContextData } =
-      viewCtx.getComponentEvalContext(tpl);
+      viewCtx.getInspectorComponentEvalContext(tpl);
     const propTypes = getComponentPropTypes(viewCtx, component);
+
+    // Primitive slot content is edited on its owning component, without a Tpl node.
+    params.push(...getSlotParams(component).filter((param) => {
+      const expr = expsProvider.effectiveVs().args.find((arg) => arg.param === param)?.expr;
+      return tab === "settings" && expr && !isKnownRenderExpr(expr);
+    }));
 
     if (isCodeComponent(component) || isPlumeComponent(component)) {
       params = params.filter((param) => {

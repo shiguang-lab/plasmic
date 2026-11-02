@@ -452,9 +452,9 @@ export function mkTplComponentX(obj: MkTplComponentParams) {
         tuple(p.variable.name, p) as [string, Param],
     ),
   );
-  const processRenderables = (contents: RenderExpr | ChildSet) => {
+  const processRenderables = (contents: Expr | ChildSet) => {
     return switchType(contents)
-      .when(RenderExpr, (_contents) => _contents)
+      .when(Expr, (_contents) => _contents)
       .elseUnsafe(() => {
         return new RenderExpr({
           tpl: ensureArray(contents).map((child) => {
@@ -483,7 +483,7 @@ export function mkTplComponentX(obj: MkTplComponentParams) {
                 "Checked before",
               )),
               expr: isRenderableType(param.type)
-                ? processRenderables(expr as RenderExpr | ChildSet)
+                ? processRenderables(expr)
                 : switchType(expr)
                     .when(Expr, (_expr) => _expr)
                     // We always assume an array is meant to be a renderable. Not

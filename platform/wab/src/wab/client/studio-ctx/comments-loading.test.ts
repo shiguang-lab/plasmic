@@ -1,4 +1,5 @@
 import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
+import { reportError, showError } from "@/wab/client/ErrorNotifications";
 vi.mock("@/wab/client/ErrorNotifications", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/wab/client/ErrorNotifications")>()),
   reportError: vi.fn(),
@@ -24,11 +25,14 @@ it("keeps failed comment loading distinct from a loaded empty list and recovers 
   const request = ctx.fetchComments();
   expect(ctx.isLoading).toBe(true);
   expect(ctx.hasLoaded).toBe(false);
-  rejectRequest(new Error("Offline"));
+  const error = new Error("Bad Gateway");
+  rejectRequest(error);
   await request;
   expect(ctx.loadFailed).toBe(true);
   expect(ctx.isLoading).toBe(false);
   expect(ctx.hasLoaded).toBe(false);
+  expect(reportError).toHaveBeenCalledWith(error);
+  expect(showError).not.toHaveBeenCalled();
   api.getComments.mockResolvedValueOnce({
     threads: [],
     users: [],

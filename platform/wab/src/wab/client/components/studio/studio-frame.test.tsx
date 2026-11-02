@@ -153,3 +153,44 @@ it("preserves the visible skeleton through metadata, host registration and dialo
 });
 
 beforeEach(() => registerPresentationProject("0123456789", "project" as import("@/wab/shared/ApiSchema").ProjectId));
+
+it.each([
+  "/projects/project/preview#/coupons",
+  "/d/0123456789#/coupons",
+  "/projects/project/docs",
+])("removes editor AI controls when navigating to %s without remounting the project", async (destination) => {
+  const { appCtx, api } = fakeAppCtx();
+  appCtx.appConfigOverrides = {};
+  appCtx.appConfig.enableLocalAiEditing = true;
+  appCtx.history.replace("/projects/project");
+  frame.studioReady = true;
+  const project = mock<ApiProject>({
+    id: "project" as ProjectId,
+    name: "Project",
+    defaultAccessLevel: "content",
+  });
+  api.listBranchesForProject.mockResolvedValue({ branches: [] });
+  api.getProjects.mockResolvedValue({ projects: [project], perms: [] });
+  api.getTrustedHostsList.mockResolvedValue({ trustedHosts: [
+    mock<ApiTrustedHost>({ hostUrl: getHostUrl(project, undefined, appCtx.appConfig) }),
+  ] });
+  const rendered = render(providesAppCtx(appCtx)(
+    <HistoryProvider history={appCtx.history}>
+      <AntdConfigProvider productUI>
+        <StudioStartupBoundary>
+          <StudioFrame projectId={project.id} refreshStudio={async () => undefined} />
+        </StudioStartupBoundary>
+      </AntdConfigProvider>
+    </HistoryProvider>,
+  ));
+  await waitFor(() => expect(rendered.container.querySelector("iframe")).toBeTruthy());
+  expect(screen.getByRole("group", { name: "AI canvas editing" })).toBeTruthy();
+
+  await act(() => appCtx.history.push(destination));
+  expect(screen.queryByRole("group", { name: "AI canvas editing" })).toBeNull();
+  expect(frame.status).toHaveBeenLastCalledWith("project", false);
+
+  await act(() => appCtx.history.back());
+  expect(screen.getByRole("group", { name: "AI canvas editing" })).toBeTruthy();
+  expect(frame.status).toHaveBeenLastCalledWith("project", true);
+});

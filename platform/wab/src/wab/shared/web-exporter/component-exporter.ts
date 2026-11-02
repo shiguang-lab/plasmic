@@ -479,7 +479,7 @@ function buildTplComponent(tpl: TplComponent, site: Site, depth: number): XmlEle
   if (vs.args) {
     for (const arg of vs.args) {
       const param = arg.param;
-      if (isSlot(param)) {
+      if (isSlot(param) && isKnownRenderExpr(arg.expr)) {
         continue;
       }
       const propName = paramToVarName(component, param);

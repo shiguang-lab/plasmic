@@ -1,3 +1,4 @@
+import type { CodeComponentMeta } from "@plasmicapp/host/registerComponent";
 import { Button } from "antd";
 import React from "react";
 import { buttonComponentName } from "./names";
@@ -38,7 +39,15 @@ export function registerButton(loader?: Registerable) {
   registerComponentHelper(loader, AntdButton, {
     name: buttonComponentName,
     displayName: "Button",
-    props: {
+    canvasText: { prop: "children", selector: ":scope > span:not(.ant-btn-icon)" },
+    props: getButtonProps(),
+    importPath: "@shiguang-lab/plasmic-antd6/skinny/registerButton",
+    importName: "AntdButton",
+  });
+}
+
+export function getButtonProps(): CodeComponentMeta<AntdButtonProps>["props"] {
+  return {
       "aria-label": {
         type: "string",
         displayName: "Accessible name",
@@ -139,13 +148,8 @@ export function registerButton(loader?: Registerable) {
       children: {
         type: "slot",
         hidePlaceholder: true,
-        defaultValue: [
-          {
-            type: "text",
-            value: "Button",
-          },
-        ],
-        ...({ mergeWithParent: true } as any),
+        defaultValue: "Button",
+        mergeWithParent: true,
       },
       icon: {
         type: "slot",
@@ -155,8 +159,5 @@ export function registerButton(loader?: Registerable) {
         type: "eventHandler",
         argTypes: [],
       },
-    },
-    importPath: "@shiguang-lab/plasmic-antd6/skinny/registerButton",
-    importName: "AntdButton",
-  });
+    };
 }

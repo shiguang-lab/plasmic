@@ -1,4 +1,5 @@
 import { PublicLink } from "@/wab/client/components/PublicLink";
+import { getActiveCanvasModal, getCanvasModalSelectionRoot } from "@/wab/client/components/canvas/canvas-modal-scope";
 import { getComponentByPath } from "@/wab/client/components/live/PreviewCtx";
 import { LinkButton } from "@/wab/client/components/widgets";
 import * as domMod from "@/wab/client/dom";
@@ -77,6 +78,8 @@ export function closestTaggedNonTextDomElt(
   opts = opts || {};
   const dir = opts.dir || "up";
   const excludeNonSelectable = opts.excludeNonSelectable || false;
+  const modal = getActiveCanvasModal(start[0]?.ownerDocument);
+  const modalRoot = modal && getCanvasModalSelectionRoot(viewCtx, modal);
   const gen = (() => {
     switch (dir) {
       case "up":
@@ -88,6 +91,9 @@ export function closestTaggedNonTextDomElt(
     }
   })();
   for (const x of gen) {
+    if (modal && !modal.contains(x[0]) && (!modalRoot || viewCtx.dom2focusObj(x) !== modalRoot)) {
+      continue;
+    }
     if (
       hasLinkedSelectable(x, viewCtx) &&
       (!excludeNonSelectable || !isNonSelectable(x))

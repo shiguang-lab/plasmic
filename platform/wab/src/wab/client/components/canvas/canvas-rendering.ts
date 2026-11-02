@@ -9,6 +9,7 @@ import {
   reactHookSpecsToKey,
 } from "@/wab/client/components/canvas/canvas-cache";
 import { CanvasCtx } from "@/wab/client/components/canvas/canvas-ctx";
+import { wrapCanvasEventHandler } from "@/wab/client/components/canvas/canvas-interactions";
 import {
   CanvasErrorBoundaryProps,
   mkCanvasErrorBoundary,
@@ -31,7 +32,6 @@ import {
 } from "@/wab/client/components/canvas/studio-canvas-util";
 import { getRealClassNames } from "@/wab/client/components/canvas/styles-name";
 import { SubDeps } from "@/wab/client/components/canvas/subdeps";
-import { makeVariantsController } from "@/wab/client/components/variants/VariantsController";
 import { buildViewCtxPinMaps } from "@/wab/client/cseval";
 import { globalHookCtx } from "@/wab/client/react-global-hook/globalHook";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
@@ -581,16 +581,13 @@ function mkInitFuncExpr(
   ).get();
 
   if (!state.tplNode && state.variableType === "variant") {
-    // Unless we are in interactive mode, we don't want to use variant
-    // default exprs. That is to avoid activating variants in all
-    // artboards.
+    // The root starts from this artboard's variant props in either mode.
+    // Nested instances continue to use their registered variant defaults.
     return code(
       `${
         state.param.previewExpr && viewCtx.component === exprCtx.component
           ? getRawCode(state.param.previewExpr, exprCtx)
-          : state.param.defaultExpr &&
-              (viewCtx.component !== exprCtx.component ||
-                viewCtx.studioCtx.isInteractiveMode)
+          : state.param.defaultExpr && viewCtx.component !== exprCtx.component
             ? getRawCode(state.param.defaultExpr, exprCtx)
             : `$props["${getStateValuePropName(state)}"]`
       }`,
@@ -1046,9 +1043,8 @@ function useCtxFromInternalComponentProps(
     renderingCtx,
   );
   if (viewCtx.studioCtx.isInteractiveMode && viewCtx.component === component) {
-    const variantsController = makeVariantsController(viewCtx.studioCtx);
     viewCtx.change(() => {
-      variantsController?.setVariantsFrom$State($state);
+      viewCtx.syncInteractiveVariants($state);
     });
   }
 
@@ -2099,10 +2095,13 @@ function computeTplComponentArgs(
         ),
       )
       .when(EventHandler, (_expr) => {
-        return evalCodeWithEnv(
-          getRawCode(expr, exprCtx),
-          mkEventHandlerEnvFromRenderingCtx(ctx),
-          ctx.viewCtx.canvasCtx.win(),
+        return wrapCanvasEventHandler(
+          ctx.viewCtx,
+          evalCodeWithEnv(
+            getRawCode(expr, exprCtx),
+            mkEventHandlerEnvFromRenderingCtx(ctx),
+            ctx.viewCtx.canvasCtx.win(),
+          ),
         );
       })
       .when(FunctionArg, (functionArg) => evalArgExpr(param, functionArg.expr))
@@ -2188,19 +2187,23 @@ function computeTplComponentArgs(
   };
 
   for (const arg of effectiveVs.args) {
-    // Do not add event handlers if studio is not in interactive mode.
+    // Keep click handlers available for explicit modifier clicks. Other events
+    // remain absent in edit mode, including mount/onChange callbacks.
     if (
       !ctx.viewCtx.studioCtx.isInteractiveMode &&
-      isKnownEventHandler(arg.expr)
+      isKnownEventHandler(arg.expr) &&
+      canvasParamToVarName(tpl.component, arg.param) !== "onClick"
     ) {
       continue;
     }
     addToEnv(arg.param, evalArgExpr(arg.param, arg.expr));
   }
 
-  if (ctx.viewCtx.studioCtx.isInteractiveMode) {
-    // Add event handler props to env.
-    for (const [name, expr] of Object.entries(effectiveVs.attrs)) {
+  for (const [name, expr] of Object.entries(effectiveVs.attrs)) {
+    if (
+      ctx.viewCtx.studioCtx.isInteractiveMode ||
+      (name === "onClick" && isKnownEventHandler(expr))
+    ) {
       const tempParam = mkParam({
         name,
         type: typeFactory.any(),
@@ -2575,18 +2578,26 @@ function computeActiveVariantsForMaybeDisabledTag(
   effectiveVs: EffectiveVariantSetting,
 ) {
   const evaledAttrs = Object.fromEntries(
-    Object.entries(effectiveVs.attrs).map(([attr, expr]) =>
-      tuple(
+    Object.entries(effectiveVs.attrs).map(([attr, expr]) => {
+      if (
+        !ctx.viewCtx.studioCtx.isInteractiveMode &&
+        isKnownEventHandler(expr) &&
+        attr !== "onClick"
+      ) {
+        return tuple(attr, null);
+      }
+      const value = evalCodeWithEnv(
+        evalTagAttrExprToString(node, attr, expr, ctx),
+        mkEventHandlerEnvFromRenderingCtx(ctx),
+        ctx.viewCtx.canvasCtx.win(),
+      );
+      return tuple(
         attr,
-        !ctx.viewCtx.studioCtx.isInteractiveMode && isKnownEventHandler(expr)
-          ? null
-          : evalCodeWithEnv(
-              evalTagAttrExprToString(node, attr, expr, ctx),
-              mkEventHandlerEnvFromRenderingCtx(ctx),
-              ctx.viewCtx.canvasCtx.win(),
-            ),
-      ),
-    ),
+        isKnownEventHandler(expr)
+          ? wrapCanvasEventHandler(ctx.viewCtx, value)
+          : value,
+      );
+    }),
   );
 
   if (node.tag === "input") {
@@ -4068,6 +4079,9 @@ function pinMapEquals(map1: PinMap, map2: PinMap) {
 }
 
 export const _testOnlyUtils = {
+  mkInitFunc,
+  mkInitFuncHash,
+  computeActiveVariantsForMaybeDisabledTag,
   computeTplComponentArgs,
   getQueryFetcherHookCounts,
   useComponentLevelQueries,

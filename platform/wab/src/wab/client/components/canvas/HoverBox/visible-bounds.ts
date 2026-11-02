@@ -1,4 +1,5 @@
 import { recomputeBounds } from "@/wab/client/components/canvas/HoverBox/recomputeBounds";
+import { filterCanvasModalElements } from "@/wab/client/components/canvas/canvas-modal-scope";
 import { frameToScalerRect } from "@/wab/client/coords";
 import { hasLayoutBox } from "@/wab/client/dom";
 import type { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
@@ -432,7 +433,7 @@ export function computeElementVisibility(
   $node: JQuery,
   geometry: Box,
 ): ElementVisibility {
-  const visibleParts = ($node.toArray() as HTMLElement[])
+  const visibleParts = (filterCanvasModalElements($node).toArray() as HTMLElement[])
     .filter(hasLayoutBox)
     // `visibility` is not clipping: a `visibility: hidden` element keeps its
     // box (and may show visible descendants), so it keeps its outline. While

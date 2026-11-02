@@ -1,3 +1,4 @@
+import { canEditInspectorSelection } from "@/wab/client/studio-ctx/inspector-selection";
 import ContextMenuIndicator from "@/wab/client/components/ContextMenuIndicator/ContextMenuIndicator";
 import { ComponentPropModal } from "@/wab/client/components/modals/ComponentPropModal";
 import { DataPickerEditor } from "@/wab/client/components/sidebar-tabs/ComponentProps/DataPickerEditor";
@@ -303,7 +304,7 @@ export function updateOrCreateExpr(
   owningTpl?: TplTag | TplComponent,
   viewCtx?: ViewCtx,
 ) {
-  if (owningTpl && isRenderableType(type)) {
+  if (owningTpl && isRenderableType(type) && isKnownRenderExpr(expr)) {
     assert(isString(val), "Used to create a tpl with inlined text");
     assert(viewCtx, "ViewCtx is required to update a renderableType");
     const vtm = viewCtx.variantTplMgr();
@@ -488,6 +489,9 @@ function PropEditorRowWrapper_(props: {
   );
   const onDeleteArg = () =>
     viewCtx.change(() => {
+      if (!expsProvider.canEdit()) {
+        return;
+      }
       vtm.delArg(tpl, param.variable);
     });
   const origExpr = maybe(arg, (x) => x.expr) || param.defaultExpr || undefined;
@@ -499,7 +503,7 @@ function PropEditorRowWrapper_(props: {
     param,
   );
   const { componentPropValues, ccContextData, invalidArgs } =
-    viewCtx.getComponentEvalContext(tpl, param);
+    viewCtx.getInspectorComponentEvalContext(tpl, param);
   const controlExtras: ControlExtras = { path: [param.variable.name] };
   if (
     isPlainObjectPropType(propType) &&
@@ -546,6 +550,9 @@ function PropEditorRowWrapper_(props: {
       onChange={(expr) => {
         assert(!isDisabled, "Trying to override an invariantable prop");
         viewCtx.change(() => {
+          if (!expsProvider.canEdit()) {
+            return;
+          }
           if (expr) {
             if (isKnownVarRef(expr)) {
               const baseArg = getTplComponentArg(
@@ -1768,6 +1775,7 @@ function PropEditorRow_(
   },
 ) {
   const { tpl, viewCtx, ...rest } = props;
+  const selection = viewCtx.studioCtx.inspectorSelection;
   // Model replacement can dispose the canvas before React unmounts its panel.
   if (viewCtx.isDisposed) {
     return null;
@@ -1781,7 +1789,7 @@ function PropEditorRow_(
       return props;
     }
     const { componentPropValues, ccContextData, invalidArgs } =
-      viewCtx.getComponentEvalContext(tpl);
+      viewCtx.getInspectorComponentEvalContext(tpl);
     return {
       componentPropValues,
       ccContextData,
@@ -1790,7 +1798,7 @@ function PropEditorRow_(
   };
   const { componentPropValues, ccContextData, invalidArgs } =
     getCurrentComponentEvalContext();
-  const env = !props.env ? viewCtx.getCanvasEnvForTpl(tpl) : props.env;
+  const env = !props.env ? viewCtx.getInspectorCanvasEnvForTpl(tpl) : props.env;
   const schema = !props.schema ? viewCtx.customFunctionsSchema() : props.schema;
   const owningComponent = $$$(tpl).tryGetOwningComponent();
 
@@ -1815,7 +1823,18 @@ function PropEditorRow_(
         schema,
       }}
     >
-      <InnerPropEditorRow {...rest} />
+      <InnerPropEditorRow {...rest}
+        onChange={(value) => {
+          if (canEditInspectorSelection(viewCtx.studioCtx, selection)) {
+            rest.onChange(value);
+          }
+        }}
+        onDelete={rest.onDelete ? () => {
+          if (canEditInspectorSelection(viewCtx.studioCtx, selection)) {
+            rest.onDelete?.();
+          }
+        } : undefined}
+      />
     </PropValueEditorContext.Provider>
   );
 }

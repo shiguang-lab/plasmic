@@ -1,4 +1,4 @@
-import { b as buttonComponentName, j as formComponentName } from './names-oKrrGg47.esm.js';
+import { d as buttonComponentName, j as formComponentName } from './names-DQIzgrvq.esm.js';
 import { b as arrayEq, r as registerComponentHelper } from './utils-U416WEAa.esm.js';
 import { InputType, formHelpers } from './Form.esm.js';
 import { FormWrapper as SchemaForm } from './SchemaForm.esm.js';

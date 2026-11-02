@@ -1207,8 +1207,11 @@ export function getComponentArgFromHtmlProp(
   }
 
   if (isSlot(param)) {
+    if (typeof value === "string") {
+      return ok([param, isDynamicValue(value) ? interpolatedStringToExpr(value) : codeLit(value)]);
+    }
     return fail(
-      "it is a slot — pass slot content as children, not as a data-prop attribute",
+      "it is a slot — pass a string value or structured slot content as children",
     );
   }
 

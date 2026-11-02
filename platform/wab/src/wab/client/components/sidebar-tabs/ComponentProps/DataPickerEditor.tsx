@@ -81,7 +81,7 @@ export const InternalDataPickerEditor = observer(
         return;
       }
       firstRenderRef.current = false;
-    }, [viewCtx?.focusedTpl(), viewCtx?.focusedCloneKey()]);
+    }, [viewCtx?.inspectorTpl(), viewCtx?.inspectorCloneKey()]);
     const autoFocusCallback = React.useCallback(
       (divElement: HTMLDivElement) => {
         if (divElement) {

@@ -369,7 +369,7 @@ function VisibilitySection_(props: {
                   _setTplVisibility(TplVisibility.NotRendered);
                 }
               }}
-              data={viewCtx.getCanvasEnvForTpl(tpl, {
+              data={viewCtx.getInspectorCanvasEnvForTpl(tpl, {
                 forDataRepCollection: true,
               })}
               schema={viewCtx.customFunctionsSchema()}

@@ -278,7 +278,7 @@ export interface RichSlotType<P> {
    */
   unstable__isMainContentSlot?: boolean;
 
-  defaultValue?: PlasmicElement | PlasmicElement[];
+  defaultValue?: string | PlasmicElement | PlasmicElement[];
 
   /**
    * When true, when you click for the first time in this slot and the component was not selected, the component itself

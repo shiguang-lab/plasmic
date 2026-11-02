@@ -8,7 +8,11 @@ import { RunFn } from "@/wab/client/components/canvas/CanvasText";
 import { CanvasCtx } from "@/wab/client/components/canvas/canvas-ctx";
 import "@/wab/client/components/canvas/slate";
 import { ViewOps } from "@/wab/client/components/canvas/view-ops";
-import { makeClientPinManager } from "@/wab/client/components/variants/ClientPinManager";
+import {
+  ClientPinManager,
+  makeClientPinManager,
+  makeVariantEvalState,
+} from "@/wab/client/components/variants/ClientPinManager";
 import { DevCliSvrEvaluator } from "@/wab/client/cseval";
 import { WithDbCtx } from "@/wab/client/db";
 import { Fiber } from "@/wab/client/react-global-hook/fiber";
@@ -130,6 +134,7 @@ import {
 } from "@/wab/shared/model/classes";
 import { isTplResizable } from "@/wab/shared/sizingutils";
 import {
+  $State,
   generateStateOnChangeProp,
   generateStateValueProp,
   useDollarState,
@@ -202,6 +207,8 @@ export class ViewCtx extends WithDbCtx {
 
   private disposals: (() => void)[] = [];
   private _initialRenderReady = observable.box(false);
+  private canvasDomRevision = observable.box(0);
+  get canvasDomVersion() { return this.canvasDomRevision.get(); }
   private _canvasMirrorTarget = observable.box<string | undefined>(undefined);
   get initialRenderReady() {
     return this._initialRenderReady.get();
@@ -222,6 +229,22 @@ export class ViewCtx extends WithDbCtx {
       }
     | undefined
   >(undefined);
+  private _focusedComponentPart = observable.box<CanvasComponentPart | undefined>(undefined, { deep: false });
+  editingComponentPartText?: CanvasPartTextEditor;
+  get focusedComponentPart() {
+    const part = this._focusedComponentPart.get();
+    if (!part || this.focusedTpl() !== part.tpl) {
+      return undefined;
+    }
+    const element = this.focusedDomElt()?.toArray().flatMap((root) =>
+      root.matches(part.selector) ? [root] : Array.from(root.querySelectorAll<HTMLElement>(part.selector)),
+    ).find((elt) => elt.isConnected);
+    return element ? { ...part, element } : undefined;
+  }
+  setFocusedComponentPart(part: CanvasComponentPart | undefined) {
+    this.editingComponentPartText?.finish();
+    this._focusedComponentPart.set(part);
+  }
   private _highlightParamsDispose: (() => void) | undefined;
   get highlightParams() {
     return this._highlightParams.get();
@@ -317,6 +340,41 @@ export class ViewCtx extends WithDbCtx {
    */
   focusedCloneKey() {
     return head(this._focusedCloneKeys);
+  }
+
+  inspectorCloneKey() {
+    const selection = this.studioCtx.inspectorSelection;
+    return selection?.viewCtx === this ? selection.cloneKey : undefined;
+  }
+
+  inspectorTpl(includeSlots = false): TplNode | null {
+    const selection = this.studioCtx.inspectorSelection;
+    return selection?.viewCtx === this ? (includeSlots ? selection.slotTpl : selection.tpl) : null;
+  }
+
+  inspectorSelectable() {
+    const selection = this.studioCtx.inspectorSelection;
+    return selection?.viewCtx === this ? selection.selectable : undefined;
+  }
+
+  inspectorComponentPart() {
+    const selection = this.studioCtx.inspectorSelection;
+    return selection?.viewCtx === this ? selection.componentPart : undefined;
+  }
+
+  inspectorDomElt() {
+    const selection = this.studioCtx.inspectorSelection;
+    return selection?.viewCtx === this ? selection.dom : null;
+  }
+
+  getInspectorComponentEvalContext(tpl: TplTag | TplComponent, param?: Param) {
+    const selection = this.studioCtx.inspectorSelection;
+    return selection?.viewCtx === this ? selection.getComponentEvalContext(tpl, param) : this.getComponentEvalContext(tpl, param);
+  }
+
+  getInspectorCanvasEnvForTpl(tpl: TplNode, options?: { forDataRepCollection?: boolean; keep$StateRef?: boolean }) {
+    const selection = this.studioCtx.inspectorSelection;
+    return selection?.viewCtx === this ? selection.getCanvasEnvForTpl(tpl, options) : this.getCanvasEnvForTpl(tpl, options);
   }
   focusedCloneKeys() {
     return this._focusedCloneKeys;
@@ -486,7 +544,11 @@ export class ViewCtx extends WithDbCtx {
   // next selection update may change it; business props are never modified.
   private _canvasOverlayStates = observable.map<
     string,
-    { open: boolean; source: "selection" | "toolbar"; nativeOpen: boolean }
+    {
+      open: boolean;
+      source: "selection" | "toolbar" | "runtime";
+      nativeOpen: boolean;
+    }
   >();
 
   canvasOverlayOpen(fullKey: string) {
@@ -499,7 +561,18 @@ export class ViewCtx extends WithDbCtx {
     nativeOpen: boolean,
   ) {
     const current = this._canvasOverlayStates.get(fullKey);
-    const open = current?.source === "toolbar" ? current.open : selectionOpen;
+    // An explicit runtime open/close takes over the previous editing reveal.
+    // Keep following it across renders until the eye is used again.
+    const source =
+      current && current.nativeOpen !== nativeOpen
+        ? "runtime"
+        : current?.source ?? "selection";
+    const open =
+      source === "runtime"
+        ? nativeOpen
+        : source === "toolbar"
+          ? current?.open ?? selectionOpen
+          : selectionOpen;
     if (
       !current ||
       current.open !== open ||
@@ -507,7 +580,7 @@ export class ViewCtx extends WithDbCtx {
     ) {
       this._canvasOverlayStates.set(fullKey, {
         open,
-        source: current?.source ?? "selection",
+        source,
         nativeOpen,
       });
     }
@@ -852,6 +925,7 @@ export class ViewCtx extends WithDbCtx {
    * as possible.
    */
   dispose() {
+    this.editingComponentPartText?.finish(true);
     this.contentEditor.exit(false);
     if (this._isDisposed) {
       return;
@@ -923,6 +997,7 @@ export class ViewCtx extends WithDbCtx {
   }
 
   tryBlurEditingText() {
+    this.editingComponentPartText?.finish();
     const ctx = this.editingTextContext();
     if (!ctx) {
       return;
@@ -958,6 +1033,7 @@ export class ViewCtx extends WithDbCtx {
       noRestoreRightTab?: boolean;
     } = {},
   ) {
+    this.setFocusedComponentPart(undefined);
     opts.appendToMultiSelection = !!opts.appendToMultiSelection;
 
     mobx.runInAction(() => {
@@ -1333,6 +1409,10 @@ export class ViewCtx extends WithDbCtx {
       noRestoreRightTab?: boolean;
     } = {},
   ) {
+    if (!val || tplFromSelectable(val) !== this.focusedTpl() ||
+        anchorCloneKey !== this.focusedCloneKey() || opts.appendToMultiSelection) {
+      this.setFocusedComponentPart(undefined);
+    }
     opts.appendToMultiSelection = !!opts.appendToMultiSelection;
 
     mobx.runInAction(() => {
@@ -1635,6 +1715,8 @@ export class ViewCtx extends WithDbCtx {
     opts?: {
       forDataRepCollection?: boolean;
       keep$StateRef?: boolean;
+      anchorCloneKey?: string;
+      ignoreFocusedCloneKey?: boolean;
     },
   ) => {
     const closestEnv = computed(
@@ -1645,7 +1727,7 @@ export class ViewCtx extends WithDbCtx {
         // which causes upstream recomputation for every tpl every time
         // selection changes
         let bestTpl = tpl;
-        let vals = this.maybeTpl2ValsInContext(bestTpl);
+        let vals = this.maybeTpl2ValsInContext(bestTpl, opts);
         while (
           (!vals ||
             vals.length === 0 ||
@@ -1654,7 +1736,7 @@ export class ViewCtx extends WithDbCtx {
           bestTpl.parent
         ) {
           bestTpl = bestTpl.parent;
-          vals = this.maybeTpl2ValsInContext(bestTpl);
+          vals = this.maybeTpl2ValsInContext(bestTpl, opts);
         }
         if (!vals || vals.length === 0) {
           return undefined;
@@ -1722,6 +1804,7 @@ export class ViewCtx extends WithDbCtx {
   getComponentEvalContext(
     tpl: TplTag | TplComponent,
     param?: Param,
+    options?: { anchorCloneKey?: string; ignoreFocusedCloneKey?: boolean },
   ): ComponentEvalContext {
     const linkedProps = isKnownTplComponent(tpl)
       ? getLinkedCodeProps(tpl.component)
@@ -1732,6 +1815,7 @@ export class ViewCtx extends WithDbCtx {
     const actualTpl = maybeLinkedProp ? maybeLinkedProp[0] : tpl;
     const valComps = this.maybeTpl2ValsInContext(actualTpl, {
       allowAnyContext: true,
+      ...options,
     });
     if (valComps && valComps[0] instanceof ValComponent) {
       const valComp = valComps[0];
@@ -1744,7 +1828,7 @@ export class ViewCtx extends WithDbCtx {
     return {
       componentPropValues:
         isKnownTplComponent(tpl) && isKnownTplComponent(actualTpl)
-          ? evalUnrenderedCodeProps(this, tpl, actualTpl)
+          ? evalUnrenderedCodeProps(this, tpl, actualTpl, options?.anchorCloneKey, !!options?.ignoreFocusedCloneKey)
           : {},
       invalidArgs: [],
       ccContextData: undefined,
@@ -2067,6 +2151,27 @@ export class ViewCtx extends WithDbCtx {
 
   currentComponentStackFrame() {
     return last(this.componentStackFrames());
+  }
+
+  /** Keep each artboard's interactive variants in its canvas-only root frame. */
+  syncInteractiveVariants($state: $State) {
+    if (!this.component.variantGroups.some((group) => group.linkedState)) {
+      return;
+    }
+    let root = this._componentStackFrames[0];
+    if (root instanceof RootComponentVariantFrame) {
+      const transient = new TransientComponentVariantFrame(root.tplComponent);
+      transient.setTargetVariants(root.getTargetVariants());
+      transient.setPinnedVariants(new Map(root.getPinnedVariants()));
+      this._componentStackFrames.splice(0, 1, transient);
+      root = transient;
+    }
+    const valRoot = this.valState().maybeValSysRoot();
+    new ClientPinManager(
+      root,
+      this.globalFrame,
+      valRoot ? makeVariantEvalState(this, valRoot) : new Map(),
+    ).setVariantsFrom$State($state);
   }
 
   currentComponent() {
@@ -2495,6 +2600,7 @@ export class ViewCtx extends WithDbCtx {
    * stage, the valState() has the new valnodes.
    */
   updateCtxPostChange() {
+    this.canvasDomRevision.set(this.canvasDomRevision.get() + 1);
     // Helper function that tries to return the new ValNode with the argument key
     const getMatchingValInUpdatedTree = <T extends ValNode>(
       valNode: T,
@@ -3067,7 +3173,7 @@ export function getSetOfPinnedVariantsForViewCtx(
 // Unrendered tpls (e.g. Show is false) have no props, so evaluate the model args instead;
 // linked props read the wrapper's args. Memoized because every prop row calls this.
 const evalUnrenderedCodeProps = computedFn(
-  (viewCtx: ViewCtx, tpl: TplComponent, actualTpl: TplComponent) => {
+  (viewCtx: ViewCtx, tpl: TplComponent, actualTpl: TplComponent, anchorCloneKey?: string, ignoreFocusedCloneKey = false) => {
     const componentPropValues: Record<string, any> = {};
     const owner = $$$(tpl).tryGetOwningComponent();
     if (
@@ -3080,7 +3186,7 @@ const evalUnrenderedCodeProps = computedFn(
     }
     const linkedProps = getLinkedCodeProps(tpl.component);
     const effectiveVs = viewCtx.effectiveCurrentVariantSetting(tpl);
-    const env = viewCtx.getCanvasEnvForTpl(tpl) ?? {};
+    const env = viewCtx.getCanvasEnvForTpl(tpl, { anchorCloneKey, ignoreFocusedCloneKey }) ?? {};
     const exprCtx = {
       projectFlags: viewCtx.projectFlags(),
       component: viewCtx.currentComponent(),
@@ -3129,3 +3235,5 @@ const evalUnrenderedCodeProps = computedFn(
     return componentPropValues;
   },
 );
+import type { CanvasComponentPart } from "@/wab/client/components/canvas/canvas-component-parts";
+import type { CanvasPartTextEditor } from "@/wab/client/components/canvas/canvas-part-text-editor";

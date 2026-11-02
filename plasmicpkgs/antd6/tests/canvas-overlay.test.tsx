@@ -42,6 +42,37 @@ const content = (
 );
 const trigger = <button>Trigger</button>;
 
+test("Modal exposes only its native buttons as editing parts, preserving props and runtime behavior", () => {
+  let meta: any;
+  registerModal({ registerComponent: (_impl: any, value: any) => { meta = value; } } as Registerable);
+  expect(meta.canvasParts.ok.props).toEqual(["okText", "okButtonProps", "confirmLoading", "onOk"]);
+  expect(meta.canvasParts.ok.text.prop).toBe("okText");
+  expect(meta.canvasParts.cancel.text.prop).toBe("cancelText");
+  expect(meta.props.okButtonProps.fields.type.options).toContain("primary");
+  expect(meta.props.cancelButtonProps.fields.size.options).toContain("small");
+  const onOk = vi.fn(), onCancel = vi.fn();
+  const props = { open: true, modalScopeClassName: "", wrapClassName: "", onOk, onCancel, okText: "Next", cancelText: "Dismiss", okButtonProps: { className: "custom-ok", style: { color: "red" } } };
+  const view = render(<Canvas><AntdModal {...props} /></Canvas>);
+  const ok = screen.getByRole("button", { name: "Next" });
+  expect(ok.matches(meta.canvasParts.ok.selector)).toBe(true);
+  expect(ok.querySelector(meta.canvasParts.ok.text.selector)?.textContent).toBe("Next");
+  expect(ok.classList.contains("custom-ok")).toBe(true);
+  expect(ok.style.color).toBe("red");
+  fireEvent.click(ok);
+  fireEvent.click(screen.getByRole("button", { name: "Dismiss" }));
+  expect(onOk).not.toHaveBeenCalled();
+  expect(onCancel).not.toHaveBeenCalled();
+  view.rerender(<Canvas><AntdModal {...props} footer={<button>Custom action</button>} /></Canvas>);
+  expect(document.querySelector(meta.canvasParts.ok.selector)).toBeNull();
+  expect(document.querySelector(meta.canvasParts.cancel.selector)).toBeNull();
+  view.rerender(<AntdModal {...props} />);
+  expect(document.querySelector(meta.canvasParts.ok.selector)).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "Next" }));
+  expect(onOk).toHaveBeenCalledTimes(1);
+  fireEvent.click(screen.getByRole("button", { name: "Dismiss" }));
+  expect(onCancel).toHaveBeenCalledTimes(1);
+});
+
 test.each([false, true])(
   "Dropdown renders wrapped menu slots (interactive=%s)",
   async (interactive) => {

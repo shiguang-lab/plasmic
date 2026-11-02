@@ -35,6 +35,7 @@ import {
   selectMarquee,
 } from "@/wab/client/components/canvas/marquee-selection";
 import { closestTaggedNonTextDomElt } from "@/wab/client/components/canvas/studio-canvas-util";
+import { getActiveCanvasModal } from "@/wab/client/components/canvas/canvas-modal-scope";
 import { getMergedTextArg } from "@/wab/client/components/canvas/view-ops";
 import { CommentsDialogs } from "@/wab/client/components/comments/CommentsDialogs";
 import { DevContainer } from "@/wab/client/components/dev";
@@ -70,7 +71,7 @@ import { PLATFORM } from "@/wab/client/platform";
 import { bindShortcutHandlers } from "@/wab/client/shortcuts/shortcut-handler";
 import { shouldHandleStudioShortcut } from "@/wab/client/shortcuts/studio/studio-shortcut-handlers";
 import { STUDIO_SHORTCUTS } from "@/wab/client/shortcuts/studio/studio-shortcuts";
-import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { RightTabKey, StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewportCtx } from "@/wab/client/studio-ctx/ViewportCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import {
@@ -156,7 +157,7 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
   private onClipperScrollListener: (() => void) | null = null;
   private dragState?: DragState;
   private canvasClicks = new CanvasClickTracker();
-  private pendingCanvasClick?: { viewCtx: ViewCtx; target: JQuery };
+  private pendingCanvasClick?: { viewCtx: ViewCtx; target: JQuery; componentPart?: boolean };
   private marquee?: {
     start: Pt;
     box: Box;
@@ -496,6 +497,10 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
         this.handleHotkeyIfCanvasFocused(e, async () =>
           this.props.studioCtx.changeUnsafe(() => {
             const viewCtx = this.ensureViewCtx();
+            if (viewCtx.focusedComponentPart) {
+              viewCtx.viewOps.tryEditText();
+              return;
+            }
             if (!viewCtx.focusedSelectable()) {
               // If we're not focused on anything object yet, then start from
               // the root of the current frame
@@ -1201,6 +1206,25 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
 
     this.props.studioCtx.commentsCtx.maybeCloseCommentDialogs();
 
+    targetVc.setFocusedComponentPart(undefined);
+    const owner = targetVc.dom2focusObj(closest);
+    if (!e.shiftKey && !e.altKey && owner instanceof ValComponent && isCodeComponent(owner.tpl.component)) {
+      const part = findCanvasComponentPart(
+        $target[0], closest[0], owner.tpl,
+        targetVc.getCodeComponentMeta(owner.tpl.component)?.canvasParts,
+      );
+      if (part) {
+        targetVc.changeSelection(() => {
+          targetVc.getViewOps().tryFocusObj(owner, { exact: true, anchorCloneKey: targetVc.sel2cloneKey(owner) });
+          targetVc.setFocusedComponentPart(part);
+          targetVc.studioCtx.switchRightTab(RightTabKey.style);
+        });
+        this.canvasClicks.start(e, part.tpl);
+        this.pendingCanvasClick = { viewCtx: targetVc, target: closest, componentPart: true };
+        return;
+      }
+    }
+
     this.canvasClicks.start(e, targetVc);
     this.pendingCanvasClick = { viewCtx: targetVc, target: closest };
 
@@ -1603,7 +1627,11 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
         !this.props.studioCtx.freestyleState() &&
         !click.viewCtx.viewOps.isEditing(e.target as HTMLElement)
       ) {
-        click.viewCtx.viewOps.deepFocusElement(click.target);
+        if (click.componentPart) {
+          click.viewCtx.change(() => click.viewCtx.viewOps.tryEditText());
+        } else {
+          click.viewCtx.viewOps.deepFocusElement(click.target);
+        }
       }
     };
     if (this.marquee) {
@@ -1851,6 +1879,11 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
       return undefined;
     }
     const [$target, targetVc] = result;
+    const modal = getActiveCanvasModal($target[0]?.ownerDocument);
+    if (modal && !modal.contains($target[0])) {
+      // The mask must not expose a model ancestor behind the foreground dialog.
+      return undefined;
+    }
     // The iframe and hidden ancestors still provide React/data context, but
     // only the isolated content belongs to the visible editing surface.
     if (
@@ -2346,3 +2379,4 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
 }
 
 export const ViewEditor = observer(ViewEditor_);
+import { findCanvasComponentPart } from "@/wab/client/components/canvas/canvas-component-parts";

@@ -187,7 +187,7 @@ export const CanvasFrame = observer(function CanvasFrame({
         if (studioCtx.isInteractiveMode) {
           return;
         }
-        if (!viewCtx().editingTextContext()) {
+        if (!viewCtx().viewOps.isEditing()) {
           studioCtx.markKeyup(e.which);
           viewCtx().viewOps.refreshHover(
             isCanvasModifierPressed(e) && !e.altKey,
@@ -199,7 +199,7 @@ export const CanvasFrame = observer(function CanvasFrame({
         if (studioCtx.isInteractiveMode) {
           return;
         }
-        if (!viewCtx().editingTextContext()) {
+        if (!viewCtx().viewOps.isEditing()) {
           studioCtx.markKeydown(e.which);
           viewCtx().viewOps.refreshHover(
             isCanvasModifierPressed(e) && !e.altKey,
@@ -259,9 +259,8 @@ export const CanvasFrame = observer(function CanvasFrame({
             spawn(studioCtx.changeUnsafe(() => selectAllInCanvas(studioCtx)));
             return true;
           },
-          TOGGLE_INTERACTIVE_MODE: () => {
-            studioCtx.isInteractiveMode = false;
-          },
+          TOGGLE_INTERACTIVE_MODE: () =>
+            studioCtx.changeUnsafe(() => studioCtx.toggleInteractiveMode()),
         },
       );
 

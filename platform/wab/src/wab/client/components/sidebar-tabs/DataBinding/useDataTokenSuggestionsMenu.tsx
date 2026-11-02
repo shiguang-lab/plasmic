@@ -79,56 +79,57 @@ export function useDataTokenSuggestionsMenu(
   });
   const anchorWidth = useElementWidth(anchor, { enabled: isMenuOpen });
 
+  const menuProps = getMenuProps({
+    "data-test-id": "data-token-suggestions",
+    className: "m0 p0",
+    // Clicking in the list must not blur the input.
+    onMouseDown: (e: React.MouseEvent) => e.preventDefault(),
+  } as any);
   const menu = ReactDOM.createPortal(
-    <DropdownOverlay
-      ref={overlayRef}
-      {...overlayProps}
-      className="absolute block"
-      style={{
-        width: anchorWidth,
-        minWidth: 240,
-        maxHeight: 200,
-        ...overlayProps.style,
-        // This is to avoid downshift dev-logs every render
-        ...(isMenuOpen ? undefined : { display: "none" }),
-      }}
-    >
-      <ul
-        {...getMenuProps({
-          "data-test-id": "data-token-suggestions",
-          className: "m0 p0",
-          // Clicking in the list must not blur the input
-          onMouseDown: (e: React.MouseEvent) => e.preventDefault(),
-        } as any)}
+    isMenuOpen ? (
+      <DropdownOverlay
+        ref={overlayRef}
+        {...overlayProps}
+        className="absolute block"
+        style={{
+          width: anchorWidth,
+          minWidth: 240,
+          maxHeight: 200,
+          ...overlayProps.style,
+        }}
       >
-        {isMenuOpen &&
-          items.map((tokenRef, index) => {
-            const token = tokenRef.token;
-            const value = displayTokenValue(token.value);
-            return (
-              <li
-                key={token.uuid}
-                {...getItemProps({
-                  item: tokenRef,
-                  index,
-                  "aria-label": token.name,
-                  title: value ? `${token.name}\n${value}` : token.name,
-                } as any)}
-              >
-                <ListItem
-                  isFocused={index === highlightedIndex}
-                  icon={<Icon icon={DataTokenIcon} className="dimfg" />}
-                  addendum={value && matcher.boldSnippets(value)}
-                  showAddendums={!!value}
-                  style={{ paddingLeft: 8, paddingRight: 8 }}
+        <ul {...menuProps}>
+          {isMenuOpen &&
+            items.map((tokenRef, index) => {
+              const token = tokenRef.token;
+              const value = displayTokenValue(token.value);
+              return (
+                <li
+                  key={token.uuid}
+                  {...getItemProps({
+                    item: tokenRef,
+                    index,
+                    "aria-label": token.name,
+                    title: value ? `${token.name}\n${value}` : token.name,
+                  } as any)}
                 >
-                  {matcher.boldSnippets(token.name)}
-                </ListItem>
-              </li>
-            );
-          })}
-      </ul>
-    </DropdownOverlay>,
+                  <ListItem
+                    isFocused={index === highlightedIndex}
+                    icon={<Icon icon={DataTokenIcon} className="dimfg" />}
+                    addendum={value && matcher.boldSnippets(value)}
+                    showAddendums={!!value}
+                    style={{ paddingLeft: 8, paddingRight: 8 }}
+                  >
+                    {matcher.boldSnippets(token.name)}
+                  </ListItem>
+                </li>
+              );
+            })}
+        </ul>
+      </DropdownOverlay>
+    ) : (
+      <ul {...menuProps} hidden />
+    ),
     document.body,
   );
 

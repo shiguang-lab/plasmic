@@ -830,7 +830,6 @@ export const IFrameAwareDropdownMenu = (props: {
   align?: DropdownProps["align"];
 }) => {
   const { onVisibleChange } = props;
-  const { styles: popupStyles } = useEditorPopupStyles();
   const productUI = usesProductTheme(window.location.pathname);
   const [menuVisible, setMenuVisibleState] = React.useState(false);
   const triggerElement = React.useRef<HTMLElement | null>(null);
@@ -904,20 +903,6 @@ export const IFrameAwareDropdownMenu = (props: {
     return () => document.removeEventListener("keydown", closeOnEscape, true);
   }, [menuVisible, setMenuVisible]);
 
-  const renderScrollableMenu = (menu: ReactNode, maxHeight?: number) =>
-    productUI ? (
-      <Scrollbar
-        scrollX={false}
-        defer={false}
-        className={cx("studio-scrollbar", popupStyles.menuScroll)}
-        style={maxHeight === undefined ? undefined : { maxHeight }}
-      >
-        {menu}
-      </Scrollbar>
-    ) : (
-      menu
-    );
-
   return (
     <Dropdown
       ref={dropdownTrigger}
@@ -933,50 +918,19 @@ export const IFrameAwareDropdownMenu = (props: {
         const effectiveMenu = (
           L.isFunction(menu) ? menu(() => setMenuVisible(false)) : menu
         ) as React.ReactElement;
-        return renderScrollableMenu(
-          React.cloneElement(effectiveMenu, {
-            rootClassName: cx(
-              effectiveMenu.props.rootClassName,
-              productUI && popupStyles.root,
-            ),
-            popupRender: (node, info) =>
-              renderScrollableMenu(
-                effectiveMenu.props.popupRender?.(node, info) ?? node,
-              ),
-            // Include the menu's 8px padding to align rows and leave a 4px gap.
-            builtinPlacements: productUI
-              ? {
-                  ...effectiveMenu.props.builtinPlacements,
-                  rightTop: {
-                    points: ["tl", "tr"],
-                    offset: [12, -8],
-                    overflow: { adjustX: 1, adjustY: 1 },
-                  },
-                  leftTop: {
-                    points: ["tr", "tl"],
-                    offset: [-12, -8],
-                    overflow: { adjustX: 1, adjustY: 1 },
-                  },
-                }
-              : effectiveMenu.props.builtinPlacements,
-            onClick: (e) => {
-              setMenuVisible(false);
-              if (effectiveMenu.props.onClick) {
-                effectiveMenu.props.onClick(e);
-              }
-              e.domEvent.stopPropagation();
-            },
-          }),
-          menuMaxHeight,
+        return (
+          <DropdownMenuContent
+            menu={effectiveMenu}
+            productUI={productUI}
+            maxHeight={menuMaxHeight}
+            onClose={() => setMenuVisible(false)}
+          />
         );
       }}
       trigger={["click"]}
       open={menuVisible}
       onOpenChange={(visible) => setMenuVisible(visible)}
-      overlayClassName={cx(
-        props.overlayClassName,
-        productUI && popupStyles.root,
-      )}
+      overlayClassName={props.overlayClassName}
       overlayStyle={props.overlayStyle}
       destroyPopupOnHide
     >
@@ -984,6 +938,75 @@ export const IFrameAwareDropdownMenu = (props: {
     </Dropdown>
   );
 };
+
+/** Build palette rules and scrolling only when a menu is actually opened. */
+function DropdownMenuContent({
+  menu: effectiveMenu,
+  productUI,
+  maxHeight: menuMaxHeight,
+  onClose,
+}: {
+  menu: React.ReactElement;
+  productUI: boolean;
+  maxHeight?: number;
+  onClose: () => void;
+}) {
+  const { styles: popupStyles } = useEditorPopupStyles();
+  const renderScrollableMenu = (menu: ReactNode, maxHeight?: number) =>
+    productUI ? (
+      <Scrollbar
+        scrollX={false}
+        defer={false}
+        className={cx(
+          "studio-scrollbar",
+          popupStyles.menuScroll,
+          popupStyles.root,
+        )}
+        style={maxHeight === undefined ? undefined : { maxHeight }}
+      >
+        {menu}
+      </Scrollbar>
+    ) : (
+      menu
+    );
+
+  return renderScrollableMenu(
+    React.cloneElement(effectiveMenu, {
+      rootClassName: cx(
+        effectiveMenu.props.rootClassName,
+        productUI && popupStyles.root,
+      ),
+      popupRender: (node, info) =>
+        renderScrollableMenu(
+          effectiveMenu.props.popupRender?.(node, info) ?? node,
+        ),
+      // Include the menu's 8px padding to align rows and leave a 4px gap.
+      builtinPlacements: productUI
+        ? {
+            ...effectiveMenu.props.builtinPlacements,
+            rightTop: {
+              points: ["tl", "tr"],
+              offset: [12, -8],
+              overflow: { adjustX: 1, adjustY: 1 },
+            },
+            leftTop: {
+              points: ["tr", "tl"],
+              offset: [-12, -8],
+              overflow: { adjustX: 1, adjustY: 1 },
+            },
+          }
+        : effectiveMenu.props.builtinPlacements,
+      onClick: (e) => {
+        onClose();
+        if (effectiveMenu.props.onClick) {
+          effectiveMenu.props.onClick(e);
+        }
+        e.domEvent.stopPropagation();
+      },
+    }),
+    menuMaxHeight,
+  );
+}
 
 export function ClickStopper({
   children,

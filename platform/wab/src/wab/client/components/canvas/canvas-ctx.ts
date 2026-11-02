@@ -57,7 +57,6 @@ import {
 import { notification } from "antd";
 import $ from "jquery";
 import L from "lodash";
-import debounce from "lodash/debounce";
 import { Lambda, autorun, observable, runInAction } from "mobx";
 import React from "react";
 
@@ -91,6 +90,7 @@ export class CanvasCtx {
   Sub: SubDeps;
 
   private _resizeObserver: ResizeObserver;
+  private _resizeFrame: number | undefined;
   private _mutationObserver: MutationObserver;
   private disposals: Lambda[] = [];
 
@@ -408,15 +408,42 @@ export class CanvasCtx {
       getBuiltinComponentRegistrations(this.Sub),
     );
 
-    // Keep track of the changeCounter during latest resize
+    spawn(
+      this.waitForUserBody().then(($userBody) => {
+        if (!this._isDisposed) {
+          this.observeUserBodySize(sc, arenaFrame, $userBody[0]);
+        }
+      }),
+    );
+
+    yield "done";
+  }
+
+  private observeUserBodySize(
+    sc: StudioCtx,
+    arenaFrame: ArenaFrame,
+    userBody: HTMLElement,
+  ) {
+    this._resizeObserver?.disconnect();
+    if (this._resizeFrame !== undefined) {
+      window.cancelAnimationFrame(this._resizeFrame);
+      this._resizeFrame = undefined;
+    }
     const MAX_RESIZES_WITHOUT_USER_EDIT = 16;
     let resizeObserverLastChangeCounter = sc._changeCounter;
     let resizeObserverResizeCounter = 0;
     let resizeObserverLastFullPageHeight = sc.fullPageHeight;
-    const resizeObserverCallback = debounce(
-      ([entry]: ResizeObserverEntry[]) => {
+    let height = 0;
+    this._resizeObserver = new ResizeObserver(([entry]: ResizeObserverEntry[]) => {
+      height = Math.round(entry.contentRect.height);
+      if (this._resizeFrame !== undefined) {
+        return;
+      }
+      // Coalesce measurements into the next paint without waiting for content
+      // to stop resizing, so height toggles update promptly.
+      this._resizeFrame = window.requestAnimationFrame(() => {
+        this._resizeFrame = undefined;
         if (isHeightAutoDerived(arenaFrame)) {
-          const height = Math.round(entry.contentRect.height);
           const frameHeight = getFrameHeight(arenaFrame);
           if (height && height !== frameHeight) {
             // We need to resize, but we want to limit how many resizes
@@ -435,11 +462,8 @@ export class CanvasCtx {
             }
 
             if (resizeObserverResizeCounter < MAX_RESIZES_WITHOUT_USER_EDIT) {
-              window.requestAnimationFrame(() => {
-                // Shouldn't trigger a model change here since we don't save the
-                // auto-derived height in the bundle.
-                updateAutoDerivedFrameHeight(arenaFrame, height);
-              });
+              // Auto-derived height is transient and never saved in the bundle.
+              updateAutoDerivedFrameHeight(arenaFrame, height);
             } else if (
               resizeObserverResizeCounter === MAX_RESIZES_WITHOUT_USER_EDIT
             ) {
@@ -461,25 +485,9 @@ export class CanvasCtx {
             }
           }
         }
-      },
-      200,
-      { maxWait: 500 },
-    );
-
-    spawn(
-      this.waitForUserBody().then(($userBody) => {
-        // If there's already a resizeObserver, it might be from another frame
-        // so we just disconnect it to then reconnect to a diff dom element
-        if (this._resizeObserver) {
-          this._resizeObserver.disconnect();
-        }
-
-        this._resizeObserver = new ResizeObserver(resizeObserverCallback);
-        this._resizeObserver.observe($userBody[0]);
-      }),
-    );
-
-    yield "done";
+      });
+    });
+    this._resizeObserver.observe(userBody);
   }
 
   private async waitForUserBody(): Promise<JQuery<HTMLElement>> {
@@ -791,6 +799,10 @@ export class CanvasCtx {
     this._frameState?.dispose();
     this._frameState = undefined;
     this._resizeObserver?.disconnect();
+    if (this._resizeFrame !== undefined) {
+      window.cancelAnimationFrame(this._resizeFrame);
+      this._resizeFrame = undefined;
+    }
     if (this.bridgeDispose) {
       this.bridgeDispose();
     }

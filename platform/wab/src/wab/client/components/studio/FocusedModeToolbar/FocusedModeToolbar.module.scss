@@ -16,14 +16,3 @@
   max-width: 60%;
   min-width: 213px;
 }
-
-.interactiveCanvasSwitchContainer {
-  display: flex;
-
-  & label {
-    display: flex;
-    align-items: center;
-    color: var(--ui-muted, #706f6c);
-    font-size: 11px;
-  }
-}

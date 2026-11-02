@@ -2,6 +2,8 @@ import type { StyleSection } from "@plasmicapp/host/registerComponent";
 import { Modal } from "antd";
 import classNames from "classnames";
 import React, { ReactElement, useMemo } from "react";
+import { omit } from "lodash";
+import { getButtonProps } from "./registerButton";
 import {
   CanvasOverlayProps,
   previewOpenProp,
@@ -55,6 +57,8 @@ export function AntdModal(
     trigger,
     mask,
     closeOnOutsideClick,
+    okButtonProps,
+    cancelButtonProps,
     defaultStylesClassName,
     ...rest
   } = canvasProps;
@@ -85,6 +89,8 @@ export function AntdModal(
     <>
       <Modal
         {...rest}
+        okButtonProps={isEditing ? { ...okButtonProps, "data-plasmic-modal-part": "ok" } : okButtonProps}
+        cancelButtonProps={isEditing ? { ...cancelButtonProps, "data-plasmic-modal-part": "cancel" } : cancelButtonProps}
         mask={
           closeOnOutsideClick === undefined || mask === false
             ? mask
@@ -127,6 +133,10 @@ export function registerModal(loader?: Registerable) {
   registerComponentHelper(loader, AntdModal, {
     name: "plasmic-antd6-modal",
     canvasOverlay,
+    canvasParts: {
+      ok: { selector: '[data-plasmic-modal-part="ok"]', displayName: "Confirm button", props: ["okText", "okButtonProps", "confirmLoading", "onOk"], text: { prop: "okText", selector: ":scope > span:not(.ant-btn-icon)" } },
+      cancel: { selector: '[data-plasmic-modal-part="cancel"]', displayName: "Cancel button", props: ["cancelText", "cancelButtonProps", "onCancel"], text: { prop: "cancelText", selector: ":scope > span:not(.ant-btn-icon)" } },
+    },
     displayName: "Modal",
     styleSections,
     description:
@@ -214,11 +224,15 @@ export function registerModal(loader?: Registerable) {
       },
       okButtonProps: {
         type: "object",
+        fields: { ...omit(getButtonProps(), ["children", "icon", "onClick", "submitsForm", "target"]), style: { type: "object" } },
+        display: "inline",
         advanced: true,
         description: "Native Button props for the default OK button.",
       },
       cancelButtonProps: {
         type: "object",
+        fields: { ...omit(getButtonProps(), ["children", "icon", "onClick", "submitsForm", "target"]), style: { type: "object" } },
+        display: "inline",
         advanced: true,
         description: "Native Button props for the default Cancel button.",
       },

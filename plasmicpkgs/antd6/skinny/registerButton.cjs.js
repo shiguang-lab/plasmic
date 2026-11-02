@@ -31,127 +31,127 @@ function registerButton(loader) {
   utils.registerComponentHelper(loader, AntdButton, {
     name: names.buttonComponentName,
     displayName: "Button",
-    props: {
-      "aria-label": {
-        type: "string",
-        displayName: "Accessible name",
-        description: "Describe the action of an icon-only button for assistive technology."
-      },
-      type: {
-        type: "choice",
-        options: ["default", "primary", "dashed", "link", "text"],
-        description: "Can be set to primary, dashed, link, text, default",
-        defaultValueHint: "default"
-      },
-      variant: {
-        type: "choice",
-        options: ["outlined", "dashed", "solid", "filled", "text", "link"]
-      },
-      color: {
-        type: "choice",
-        options: [
-          "default",
-          "primary",
-          "danger",
-          "blue",
-          "purple",
-          "cyan",
-          "green",
-          "magenta",
-          "pink",
-          "red",
-          "orange",
-          "yellow",
-          "volcano",
-          "geekblue",
-          "lime",
-          "gold"
-        ]
-      },
-      iconPlacement: {
-        type: "choice",
-        options: ["start", "end"],
-        defaultValueHint: "start"
-      },
-      size: {
-        type: "choice",
-        options: ["small", "medium", "large"],
-        description: "Set the size of button",
-        defaultValueHint: "medium"
-      },
-      shape: {
-        type: "choice",
-        options: ["default", "circle", "round"],
-        description: "Set the button shape",
-        defaultValueHint: "default"
-      },
-      disabled: {
-        type: "boolean",
-        description: "Whether the button is disabled",
-        defaultValueHint: false
-      },
-      submitsForm: {
-        type: "boolean",
-        displayName: "Submits form?",
-        defaultValueHint: false,
-        description: "whether clicking this button should submit the enclosing form.",
-        advanced: true
-      },
-      ghost: {
-        type: "boolean",
-        description: "Make background transparent and invert text and border colors",
-        defaultValueHint: false,
-        advanced: true
-      },
-      danger: {
-        type: "boolean",
-        description: "Set the danger status of button",
-        defaultValueHint: false,
-        advanced: true
-      },
-      loading: {
-        type: "boolean",
-        description: "Set the loading status of button",
-        defaultValueHint: false,
-        advanced: true
-      },
-      href: {
-        displayName: "Link to",
-        type: "href",
-        description: "Use this button as a link to this url"
-      },
-      target: {
-        type: "boolean",
-        displayName: "Open in new tab?",
-        description: "Whether to open the link in a new window",
-        hidden: (props) => !props.href,
-        defaultValueHint: false
-      },
-      children: {
-        type: "slot",
-        hidePlaceholder: true,
-        defaultValue: [
-          {
-            type: "text",
-            value: "Button"
-          }
-        ],
-        ...{ mergeWithParent: true }
-      },
-      icon: {
-        type: "slot",
-        hidePlaceholder: true
-      },
-      onClick: {
-        type: "eventHandler",
-        argTypes: []
-      }
-    },
+    canvasText: { prop: "children", selector: ":scope > span:not(.ant-btn-icon)" },
+    props: getButtonProps(),
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerButton",
     importName: "AntdButton"
   });
 }
+function getButtonProps() {
+  return {
+    "aria-label": {
+      type: "string",
+      displayName: "Accessible name",
+      description: "Describe the action of an icon-only button for assistive technology."
+    },
+    type: {
+      type: "choice",
+      options: ["default", "primary", "dashed", "link", "text"],
+      description: "Can be set to primary, dashed, link, text, default",
+      defaultValueHint: "default"
+    },
+    variant: {
+      type: "choice",
+      options: ["outlined", "dashed", "solid", "filled", "text", "link"]
+    },
+    color: {
+      type: "choice",
+      options: [
+        "default",
+        "primary",
+        "danger",
+        "blue",
+        "purple",
+        "cyan",
+        "green",
+        "magenta",
+        "pink",
+        "red",
+        "orange",
+        "yellow",
+        "volcano",
+        "geekblue",
+        "lime",
+        "gold"
+      ]
+    },
+    iconPlacement: {
+      type: "choice",
+      options: ["start", "end"],
+      defaultValueHint: "start"
+    },
+    size: {
+      type: "choice",
+      options: ["small", "medium", "large"],
+      description: "Set the size of button",
+      defaultValueHint: "medium"
+    },
+    shape: {
+      type: "choice",
+      options: ["default", "circle", "round"],
+      description: "Set the button shape",
+      defaultValueHint: "default"
+    },
+    disabled: {
+      type: "boolean",
+      description: "Whether the button is disabled",
+      defaultValueHint: false
+    },
+    submitsForm: {
+      type: "boolean",
+      displayName: "Submits form?",
+      defaultValueHint: false,
+      description: "whether clicking this button should submit the enclosing form.",
+      advanced: true
+    },
+    ghost: {
+      type: "boolean",
+      description: "Make background transparent and invert text and border colors",
+      defaultValueHint: false,
+      advanced: true
+    },
+    danger: {
+      type: "boolean",
+      description: "Set the danger status of button",
+      defaultValueHint: false,
+      advanced: true
+    },
+    loading: {
+      type: "boolean",
+      description: "Set the loading status of button",
+      defaultValueHint: false,
+      advanced: true
+    },
+    href: {
+      displayName: "Link to",
+      type: "href",
+      description: "Use this button as a link to this url"
+    },
+    target: {
+      type: "boolean",
+      displayName: "Open in new tab?",
+      description: "Whether to open the link in a new window",
+      hidden: (props) => !props.href,
+      defaultValueHint: false
+    },
+    children: {
+      type: "slot",
+      hidePlaceholder: true,
+      defaultValue: "Button",
+      mergeWithParent: true
+    },
+    icon: {
+      type: "slot",
+      hidePlaceholder: true
+    },
+    onClick: {
+      type: "eventHandler",
+      argTypes: []
+    }
+  };
+}
 
 exports.AntdButton = AntdButton;
+exports.getButtonProps = getButtonProps;
 exports.registerButton = registerButton;
 //# sourceMappingURL=registerButton.cjs.js.map

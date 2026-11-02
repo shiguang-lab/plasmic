@@ -22,7 +22,6 @@ interface IndicatorProps extends Omit<DefaultIndicatorProps, "color"> {
 
 function Indicator(props: IndicatorProps) {
   const { tooltip, popover, popoverTitle, placement, color, ...rest } = props;
-  const { styles: popupStyles, cx } = useEditorPopupStyles();
 
   let result = (
     // Antd's trigger needs a DOM ref; the generated component cannot forward it.
@@ -45,15 +44,11 @@ function Indicator(props: IndicatorProps) {
     result = (
       <Popover
         classNames={{
-          root: cx("defined-indicator__popover group", popupStyles.root),
+          root: "defined-indicator__popover group",
         }}
         title={popoverTitle}
         placement={placement}
-        content={() => (
-          <Scrollbar scrollX={false} style={{ maxHeight: 300 }}>
-            {typeof popover === "function" ? popover() : popover}
-          </Scrollbar>
-        )}
+        content={() => <IndicatorPopoverContents content={popover} />}
       >
         <TriggerTarget>{result}</TriggerTarget>
       </Popover>
@@ -61,6 +56,23 @@ function Indicator(props: IndicatorProps) {
   }
 
   return result;
+}
+
+function IndicatorPopoverContents({
+  content,
+}: {
+  content: React.ReactNode | RenderFunction;
+}) {
+  const { styles } = useEditorPopupStyles();
+  return (
+    <Scrollbar
+      scrollX={false}
+      className={styles.root}
+      style={{ maxHeight: 300 }}
+    >
+      {typeof content === "function" ? content() : content}
+    </Scrollbar>
+  );
 }
 
 export default Indicator;

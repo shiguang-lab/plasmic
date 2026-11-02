@@ -5,10 +5,15 @@ import {
 import { SubDeps } from "@/wab/client/components/canvas/subdeps";
 import { interpolatedStringToTemplatedString } from "@/wab/shared/copilot/dynamic-value-input";
 import { ComponentType, mkComponent } from "@/wab/shared/core/components";
+import { createExprForDataPickerValue } from "@/wab/shared/core/exprs";
+import { codeLit } from "@/wab/shared/core/exprs";
 import { mkParam } from "@/wab/shared/core/lang";
+import { createSite } from "@/wab/shared/core/sites";
+import { initBuiltinActions, mkInteraction } from "@/wab/shared/core/states";
 import { mkTplComponentX, mkTplTagX } from "@/wab/shared/core/tpls";
 import { mkDataSourceTemplate } from "@/wab/shared/data-sources-meta/data-sources";
 import {
+  Arg,
   CodeComponentMeta,
   Component,
   ComponentDataQuery,
@@ -17,16 +22,57 @@ import {
   CustomFunction,
   CustomFunctionExpr,
   DataSourceOpExpr,
+  EventHandler,
   FunctionArg,
   RenderExpr,
 } from "@/wab/shared/model/classes";
+import { EffectiveVariantSetting } from "@/wab/shared/effective-variant-setting";
 import { typeFactory } from "@/wab/shared/model/model-util";
+import { ensure } from "@/wab/shared/common";
+import { DEVFLAGS } from "@/wab/shared/devflags";
+import { TplMgr } from "@/wab/shared/TplMgr";
+import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { usePlasmicQueries } from "@plasmicapp/data-sources";
-import { $StateSpec, useDollarState } from "@plasmicapp/react-web";
-import { act, render } from "@testing-library/react";
+import { $StateSpec, get, set, useDollarState } from "@plasmicapp/react-web";
+import { act, fireEvent, render } from "@testing-library/react";
 import React from "react";
 
 const { getQueryFetcherHookCounts, useComponentLevelQueries } = _testOnlyUtils;
+
+it("starts each root from its artboard variant and preserves runtime state when interaction is turned off", async () => {
+  const site = createSite();
+  const tplMgr = new TplMgr({ site });
+  const component = tplMgr.addComponent({ name: "Tabs", type: ComponentType.Plain });
+  const group = tplMgr.createVariantGroup({ component, name: "Tab" });
+  tplMgr.createVariant(component, group, "First");
+  tplMgr.createVariant(component, group, "Second");
+  const state = ensure(group.linkedState, "Missing linked variant state");
+  state.param.defaultExpr = new CustomCode({ code: '"first"', fallback: null });
+  const exprCtx = { component, projectFlags: DEVFLAGS, inStudio: true };
+  let interactive = true;
+  const viewCtx = {
+    component, currentComponent: () => component,
+    studioCtx: { get isInteractiveMode() { return interactive; } },
+    canvasCtx: { win: () => window }, site,
+  } as unknown as ViewCtx;
+  function Artboard({ preset }: { preset: string }) {
+    const env = { $props: { tab: preset }, $ctx: {}, $queries: {}, $q: {}, $refs: {} };
+    const $state = useDollarState([{
+      path: "tab", type: "private", variableType: "variant",
+      initFunc: _testOnlyUtils.mkInitFunc(state, [], viewCtx, env, exprCtx),
+      initFuncHash: _testOnlyUtils.mkInitFuncHash(state, [], viewCtx, exprCtx),
+    }], env);
+    return <button onClick={() => { $state.tab = "first"; }}>{$state.tab}</button>;
+  }
+  const view = render(<Artboard preset="second" />);
+  expect(view.getByRole("button").textContent).toBe("second");
+  await act(async () => fireEvent.click(view.getByRole("button")));
+  expect(view.getByRole("button").textContent).toBe("first");
+  interactive = false;
+  view.rerender(<Artboard preset="second" />);
+  expect(view.getByRole("button").textContent).toBe("first");
+  view.unmount();
+});
 
 function mkEmptyComponent(): Component {
   return mkComponent({
@@ -453,6 +499,99 @@ describe("code component slot defaults on canvas", () => {
         ctx,
       );
       expect(explicit.suffixIcon).toBeNull();
+      tpl.vsettings[0].args[0].expr = codeLit("新建模板");
+      const primitive = _testOnlyUtils.computeTplComponentArgs(
+        tpl,
+        { args: tpl.vsettings[0].args, attrs: {} } as any,
+        ctx,
+      );
+      expect(primitive.suffixIcon).toBe("新建模板");
     },
   );
+});
+
+describe("authored canvas click interactions", () => {
+  beforeEach(() => {
+    vi.stubGlobal("__PLASMIC_CACHE_EVENT_ARGS", vi.fn());
+    vi.stubGlobal("__PLASMIC_CACHE_$STEP_VALUE", vi.fn());
+  });
+  afterEach(() => vi.unstubAllGlobals());
+
+  function setup() {
+    const env = mkEnv();
+    env.$state.basicOpen = false;
+    env.$state.viewer = { id: "operator", role: "operator" };
+    const ctx = mkCtx(env, new Map());
+    initBuiltinActions({ projectId: "canvas-click", platform: "react", projectFlags: ctx.projectFlags, inStudio: true });
+    Object.assign(ctx, { sub: { reactWeb: { get, set } } });
+    Object.assign(ctx.viewCtx.studioCtx, {
+      isInteractiveMode: false,
+      executePlasmicDataOp: vi.fn(),
+      tplMgr: () => ({ findInteractionByUuid: () => undefined }),
+    });
+    Object.assign(ctx.viewCtx, {
+      componentArgsContainer: () => undefined,
+      componentStackFrames: () => [],
+    });
+    Object.assign(ctx.viewCtx.canvasCtx, {
+      getRegisteredCodeComponentsAndContextsMap: () => new Map(),
+    });
+    const handler = new EventHandler({ interactions: [] });
+    handler.interactions.push(mkInteraction(handler, "customFunction", "Open create", {
+      customFunction: createExprForDataPickerValue('const viewer = $state.viewer; if (!viewer.id || !["operator", "strategist"].includes(viewer.role)) return; $state.basicOpen = true;', null, true, []),
+    }));
+    return { ctx, env, handler };
+  }
+
+  it("retains the code component click handler but runs it only for the platform modifier", async () => {
+    const { ctx, env, handler } = setup();
+    const param = mkParam({ name: "onClick", type: typeFactory.func(typeFactory.arg("event", typeFactory.any())), paramType: "prop" });
+    const component = mkComponent({
+      name: "Button", type: ComponentType.Code, params: [param],
+      codeComponentMeta: { importPath: "antd", importName: "Button", defaultExport: false } as CodeComponentMeta,
+      tplTree: (baseVariant) => mkTplTagX("button", { baseVariant }),
+    });
+    const tpl = mkTplComponentX({ component, baseVariant: component.variants[0] });
+    tpl.vsettings[0].args.push(new Arg({ param, expr: handler }));
+    ctx.ownerComponent = mkComponent({ name: "Page", type: ComponentType.Plain, tplTree: tpl });
+    const props = _testOnlyUtils.computeTplComponentArgs(tpl, {
+      args: tpl.vsettings[0].args, attrs: {},
+    } as any, ctx);
+    expect(props.onClick).toBeTypeOf("function");
+    await props.onClick(new MouseEvent("click", { button: 0 }));
+    expect(env.$state.basicOpen).toBe(false);
+    await props.onClick(new MouseEvent("click", { button: 0, metaKey: true, ctrlKey: true }));
+    expect(env.$state.basicOpen).toBe(true);
+    expect(ctx.viewCtx.studioCtx.isInteractiveMode).toBe(false);
+    env.$state.basicOpen = false;
+    env.$state.viewer.role = "reviewer";
+    await props.onClick(new MouseEvent("click", { button: 0, metaKey: true, ctrlKey: true }));
+    expect(env.$state.basicOpen).toBe(false);
+  });
+
+  it("gates native tag handlers too, without enabling initialization or unrelated events", async () => {
+    const { ctx, env, handler } = setup();
+    const component = mkEmptyComponent();
+    ctx.ownerComponent = component;
+    ctx.site = createSite();
+    const tag = mkTplTagX("button", { baseVariant: component.variants[0], attrs: { onClick: handler } });
+    component.tplTree = tag;
+    const { evaledAttrs } = _testOnlyUtils.computeActiveVariantsForMaybeDisabledTag(
+      tag, ctx, tag.vsettings,
+      new EffectiveVariantSetting(tag, tag.vsettings, ctx.site),
+    );
+    const onClick = evaledAttrs.onClick;
+    expect(onClick).toBeTypeOf("function");
+    await onClick();
+    expect(env.$state.basicOpen).toBe(false);
+    await onClick(new MouseEvent("change", { metaKey: true, ctrlKey: true }));
+    expect(env.$state.basicOpen).toBe(false);
+    const view = render(<button onClick={onClick}>New template</button>);
+    await act(async () => { fireEvent.click(view.getByRole("button"), { metaKey: true, ctrlKey: true }); });
+    expect(env.$state.basicOpen).toBe(true);
+    env.$state.basicOpen = false;
+    ctx.viewCtx.studioCtx.isInteractiveMode = true;
+    await act(async () => { fireEvent.click(view.getByRole("button")); });
+    expect(env.$state.basicOpen).toBe(true);
+  });
 });

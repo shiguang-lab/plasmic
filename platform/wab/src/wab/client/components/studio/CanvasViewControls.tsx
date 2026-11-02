@@ -6,6 +6,7 @@ import { getArenaFrames } from "@/wab/shared/Arenas";
 import { Button, Tooltip } from "antd";
 import { createStyles } from "antd-style";
 import { observer } from "mobx-react";
+import { ok } from "neverthrow";
 import * as React from "react";
 
 const useStyles = createStyles(({ token }) => ({
@@ -88,6 +89,32 @@ export const CanvasViewControls = observer(function CanvasViewControls({
       data-test-id="canvas-view-controls"
       aria-label={t("Canvas view")}
     >
+      <Tooltip title={`${t(studioCtx?.isInteractiveMode ? "Turn off interactive mode" : "Turn on interactive mode")} (Shift + I)`}>
+        <Button
+          type="text"
+          id="interactive-canvas-switch"
+          className={cx(styles.action, studioCtx?.isInteractiveMode && styles.pressed)}
+          aria-label={t("Interactive")}
+          aria-pressed={!!studioCtx?.isInteractiveMode}
+          disabled={!studioCtx || studioCtx.currentArenaEmpty}
+          data-test-id="interactive-switch"
+          icon={
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m9 9 5 12 2-5 5-2-12-5Z M4 4l2 2 M9 2v3 M2 9h3 M14 4l-2 2 M4 14l2-2" />
+            </svg>
+          }
+          onClick={() => {
+            if (!studioCtx) {
+              return;
+            }
+            void studioCtx.change(() => {
+              studioCtx.toggleInteractiveMode();
+              return ok();
+            });
+          }}
+        />
+      </Tooltip>
+      <span className={styles.separator} aria-hidden="true" />
       <Tooltip
         title={t(
           fullPageHeight ? "Fit to viewport height" : "Show full page height",

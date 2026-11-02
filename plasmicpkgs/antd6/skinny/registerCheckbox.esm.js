@@ -1,6 +1,6 @@
 import { Checkbox } from 'antd';
 import React from 'react';
-import { c as checkboxComponentName, a as checkboxGroupComponentName } from './names-oKrrGg47.esm.js';
+import { c as checkboxComponentName, a as checkboxGroupComponentName } from './names-DQIzgrvq.esm.js';
 import { r as registerComponentHelper, t as traverseReactEltTree } from './utils-U416WEAa.esm.js';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';

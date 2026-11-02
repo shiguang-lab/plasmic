@@ -25,6 +25,7 @@ import { usePreventDefaultBrowserPinchToZoomBehavior } from "@/wab/client/hooks/
 import { getUiLocale, useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { translate } from "@/wab/client/i18n/locales";
+import { useLocation } from "@/wab/client/route/HistoryProvider";
 import { useForceUpdate } from "@/wab/client/useForceUpdate";
 import { getHostUrl } from "@/wab/client/utils/app-hosting-utils";
 import { useBrowserNotification } from "@/wab/client/utils/useBrowserNotification";
@@ -63,6 +64,7 @@ export function StudioFrame({
 }) {
   const { t: uiT } = useI18n();
   const appCtx = useAppCtx();
+  const currentLocation = useLocation();
   // Keep the startup snapshot stable; live theme changes use the frame bridge
   // and must not navigate/reload the host by changing its hash.
   const studioArgsHash = React.useMemo(
@@ -233,9 +235,9 @@ export function StudioFrame({
     },
   );
 
-  const projectLocation = parseProjectLocation(appCtx.history.location);
+  const projectLocation = parseProjectLocation(currentLocation);
   const editorRoute = !projectLocation?.isPreview &&
-    !APP_ROUTES.projectDocs.parse(appCtx.history.location.pathname, false);
+    !APP_ROUTES.projectDocs.parse(currentLocation.pathname, false);
   const showComposer = editorRoute && (!project || editorPerm) &&
     !topFrameChromeProps.aiPanelOpen;
   const openAiChat = React.useRef<(() => Promise<void>) | undefined>(undefined);
@@ -328,7 +330,7 @@ export function StudioFrame({
     <>
       {showComposer && (
         <CanvasAiComposer
-          key={projectId}
+          key={`canvas-ai-${projectId}`}
           appCtx={appCtx}
           projectId={projectId}
           context={editorPerm ? topFrameChromeProps.localAiContext : undefined}
@@ -352,7 +354,7 @@ export function StudioFrame({
         )}
         <TopFrameChrome
           appCtx={appCtx}
-          pathname={location.pathname}
+          pathname={currentLocation.pathname}
           project={project}
           refreshProjectAndPerms={refreshProjectAndPerms}
           isRefreshingProjectData={isRefreshingProjectData}

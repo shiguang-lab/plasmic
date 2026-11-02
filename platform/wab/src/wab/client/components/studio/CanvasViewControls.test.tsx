@@ -21,6 +21,69 @@ vi.mock("@/wab/client/components/top-bar/ZoomButton", () => ({
   ZoomButton: () => <button>Zoom</button>,
 }));
 afterEach(cleanup);
+
+it("toggles canvas interaction and reflects changes from other entry points", async () => {
+  const state = observable({ focused: true, interactive: false });
+  const ctx = mock<StudioCtx>();
+  Object.defineProperties(ctx, {
+    viewCtxs: { value: [] },
+    focusedMode: { get: () => state.focused },
+    currentArenaEmpty: { value: false },
+    isInteractiveMode: {
+      get: () => state.interactive,
+      set: (value: boolean) => { state.interactive = value; },
+    },
+  });
+  ctx.change.mockImplementation(async (fn) => runInAction(fn));
+  ctx.toggleInteractiveMode.mockImplementation(() => {
+    ctx.isInteractiveMode = !ctx.isInteractiveMode;
+  });
+  render(
+    <AntdConfigProvider productUI>
+      <CanvasViewControls studioCtx={ctx} />
+    </AntdConfigProvider>,
+  );
+  const toggle = screen.getByRole("button", { name: "Interactive" });
+  expect(toggle.textContent).toBe("");
+  expect(toggle.getAttribute("aria-pressed")).toBe("false");
+  await act(async () => fireEvent.click(toggle));
+  expect(ctx.isInteractiveMode).toBe(true);
+  expect(toggle.getAttribute("aria-pressed")).toBe("true");
+  await act(async () => fireEvent.click(toggle));
+  expect(ctx.isInteractiveMode).toBe(false);
+  expect(ctx.change).toHaveBeenCalledTimes(2);
+
+  await act(() => runInAction(() => { state.interactive = true; }));
+  expect(toggle.getAttribute("aria-pressed")).toBe("true");
+  expect(ctx.refreshFocusedFrameArena).not.toHaveBeenCalled();
+  expect(ctx.toggleFocusedMode).not.toHaveBeenCalled();
+
+  await act(() => runInAction(() => { state.focused = false; }));
+  expect(screen.getByRole("button", { name: "Interactive" })).toBe(toggle);
+  await act(async () => fireEvent.click(toggle));
+  expect(ctx.isInteractiveMode).toBe(false);
+  expect(ctx.toggleInteractiveMode).toHaveBeenCalledTimes(3);
+});
+
+it("keeps canvas interaction visible and disabled while the editor is loading", () => {
+  render(<AntdConfigProvider productUI><CanvasViewControls /></AntdConfigProvider>);
+  expect(screen.getByRole("button", { name: "Interactive" }).hasAttribute("disabled")).toBe(true);
+});
+
+it("keeps canvas interaction visible and disabled in an empty artboard group", () => {
+  const ctx = mock<StudioCtx>();
+  Object.defineProperties(ctx, {
+    viewCtxs: { value: [] },
+    currentArena: { value: new Arena({ name: "Empty", children: [] }) },
+    currentArenaEmpty: { value: true },
+  });
+  render(<AntdConfigProvider productUI><CanvasViewControls studioCtx={ctx} /></AntdConfigProvider>);
+  const toggle = screen.getByRole("button", { name: "Interactive" });
+  expect(toggle.hasAttribute("disabled")).toBe(true);
+  fireEvent.click(toggle);
+  expect(ctx.toggleInteractiveMode).not.toHaveBeenCalled();
+});
+
 it("locates the current artboard repeatedly without toggling modes or selection", async () => {
   const state = observable({ focused: false, empty: false });
   const ctx = mock<StudioCtx>();

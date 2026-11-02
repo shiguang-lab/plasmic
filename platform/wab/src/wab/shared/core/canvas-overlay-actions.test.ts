@@ -74,6 +74,21 @@ test("supports explicit paths and boolean open flags without executing calls", (
   expect(check("malformed {")).toBe(false);
 });
 
+test("finds the overlay opened after an unresolved permission guard without executing it", () => {
+  expect(
+    check(
+      'const viewer = localStorage.getItem("viewer") ? JSON.parse(localStorage.getItem("viewer")) : $state.viewer; if (!viewer.id || !["operator", "strategist"].includes(viewer.role)) return; $state.basicValues = { method: "DEDUCT" }; $state.basicOpen = true;',
+      {},
+      customCode("$state.basicOpen"),
+    ),
+  ).toBe(true);
+  expect(check("if (!canEdit) { return; } $state.action='export'")).toBe(true);
+  // A guard with a known result must still respect the actual selected branch.
+  expect(check("if (!canEdit) return; $state.action='export'", { canEdit: false })).toBe(false);
+  expect(check("if (unknownCall()) $state.action='export'")).toBe(false);
+  expect(check("if (unknownCall()) return; $state.action='edit'")).toBe(false);
+});
+
 test("uses structured interactions and their conditions", () => {
   const handler = new EventHandler({ interactions: [] });
   const action = mkInteraction(handler, "updateVariable", "Open", {

@@ -45,7 +45,6 @@ import {
   isStyleOrCodeComponentVariant,
   VariantCombo,
 } from "@/wab/shared/Variants";
-import { $State } from "@plasmicapp/react-web";
 import { isArray } from "lodash";
 
 export interface VariantsController {
@@ -69,7 +68,6 @@ export interface VariantsController {
   isTargeted: (variant: Variant) => boolean;
   canChangeActiveVariants: () => boolean;
   canToggleTargeting: (variant: Variant) => boolean;
-  setVariantsFrom$State: ($state: $State) => void;
 }
 
 export function makeVariantsController(
@@ -213,9 +211,6 @@ export class CustomVariantsController implements VariantsController {
     return makeClientPinManager(this.viewCtx);
   }
 
-  setVariantsFrom$State($state: $State) {
-    this.pinManager.setVariantsFrom$State($state);
-  }
 }
 
 export class ComponentArenaVariantsController implements VariantsController {
@@ -452,9 +447,6 @@ export class ComponentArenaVariantsController implements VariantsController {
     switchToFrame(this.studioCtx, this.currentFrame, newFrame);
   }
 
-  setVariantsFrom$State($state: $State) {
-    this.pinManager?.setVariantsFrom$State($state);
-  }
 }
 
 export class PageArenaVariantsController implements VariantsController {
@@ -668,9 +660,6 @@ export class PageArenaVariantsController implements VariantsController {
     switchToFrame(this.studioCtx, this.currentFrame, newFrame);
   }
 
-  setVariantsFrom$State($state: $State) {
-    this.pinManager?.setVariantsFrom$State($state);
-  }
 }
 
 function switchToFrame(

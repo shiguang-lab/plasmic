@@ -43,7 +43,7 @@ export function useAnimations(options: UseAnimationsOptions) {
 
   const vsh = makeVariantedStylesHelperFromCurrentCtx(studioCtx);
 
-  const focusedTpl = studioCtx.focusedViewCtx()?.focusedTpl();
+  const focusedTpl = studioCtx.inspectorSelection?.tpl;
   const forceUpdate = useForceUpdate();
   useSignalListener(studioCtx.animationChanged, forceUpdate, [studioCtx]);
 

@@ -410,7 +410,7 @@ export const TextContentRow = observer(function TextContentRow(props: {
                     );
                   }}
                   disabled={isDisabled}
-                  data={viewCtx.getCanvasEnvForTpl(tpl)}
+                  data={viewCtx.getInspectorCanvasEnvForTpl(tpl)}
                   schema={viewCtx.customFunctionsSchema()}
                   component={viewCtx.currentComponent()}
                   key={tpl.uid}
@@ -458,7 +458,7 @@ export const TextContentRow = observer(function TextContentRow(props: {
                   setVisible={setIsDataPickerVisible}
                   isDisabled={isDisabled}
                   disabledTooltip={disabledTooltip}
-                  data={viewCtx.getCanvasEnvForTpl(tpl)}
+                  data={viewCtx.getInspectorCanvasEnvForTpl(tpl)}
                   schema={viewCtx.customFunctionsSchema()}
                   key={tpl.uid}
                   context="The text content to be displayed"

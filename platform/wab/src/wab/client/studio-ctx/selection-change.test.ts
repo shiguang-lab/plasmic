@@ -1,5 +1,6 @@
 import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
+import { canEditInspectorSelection } from "@/wab/client/studio-ctx/inspector-selection";
 import { mkArenaFrame, mkMixedArena } from "@/wab/shared/Arenas";
 import { mkBaseVariant } from "@/wab/shared/Variants";
 import { ensure, ensureInstance } from "@/wab/shared/common";
@@ -69,6 +70,53 @@ it("selects and clears without entering a model transaction or scheduling evalua
     expect(sync).not.toHaveBeenCalled();
     await vi.advanceTimersByTimeAsync(100);
     expect(sc.isSelectionPending).toBe(false);
+  } finally {
+    sc.dispose();
+    vi.useRealTimers();
+  }
+});
+
+it("publishes inspector focus after canvas focus paints and commits only the latest clone", async () => {
+  const { sc, vc } = await setup();
+  vi.useFakeTimers();
+  const inspect = vi.fn();
+  const stop = autorun(() => inspect(vc.inspectorTpl(), vc.inspectorCloneKey()));
+  try {
+    sc.changeSelection(() => vc.setStudioFocusByTpl(vc.component.tplTree, "first"));
+    expect(vc.focusedTpl()).toBe(vc.component.tplTree);
+    expect(vc.inspectorTpl()).toBeNull();
+    await vi.advanceTimersByTimeAsync(100);
+    const first = sc.inspectorSelection;
+    expect(first?.cloneKey).toBe("first");
+    expect(canEditInspectorSelection(sc, first)).toBe(true);
+    inspect.mockClear();
+    sc.changeSelection(() => vc.setStudioFocusByTpl(vc.component.tplTree, "second"));
+    sc.changeSelection(() => vc.setStudioFocusByTpl(vc.component.tplTree, "latest"));
+    expect(vc.focusedCloneKey()).toBe("latest");
+    expect(vc.inspectorCloneKey()).toBe("first");
+    expect(inspect).not.toHaveBeenCalled();
+    expect(canEditInspectorSelection(sc, first)).toBe(false);
+    await vi.advanceTimersByTimeAsync(100);
+    expect(inspect).toHaveBeenCalledExactlyOnceWith(vc.component.tplTree, "latest");
+    expect(canEditInspectorSelection(sc, first)).toBe(false);
+    expect(canEditInspectorSelection(sc, sc.inspectorSelection)).toBe(true);
+  } finally {
+    stop();
+    sc.dispose();
+    expect(sc.inspectorSelection).toBeUndefined();
+    vi.useRealTimers();
+  }
+});
+
+it("commits focus set by model or navigation paths without a pure selection transaction", async () => {
+  const { sc, vc } = await setup();
+  vi.useFakeTimers();
+  try {
+    runInAction(() => vc.setStudioFocusByTpl(vc.component.tplTree, "model-edit"));
+    expect(sc.isSelectionPending).toBe(true);
+    expect(vc.inspectorTpl()).toBeNull();
+    await vi.advanceTimersByTimeAsync(100);
+    expect(vc.inspectorCloneKey()).toBe("model-edit");
   } finally {
     sc.dispose();
     vi.useRealTimers();

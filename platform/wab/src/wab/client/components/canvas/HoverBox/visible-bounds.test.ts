@@ -74,6 +74,19 @@ it("keeps the outline of a visibility: hidden element, which still has its box",
   expect(visible?.rect()).toEqual(geometry.rect());
 });
 
+it("excludes modal-covered ancestors from visible selection bounds", () => {
+  const background = div(new Box(0, 0, 900, 700));
+  const modal = div(new Box(100, 100, 500, 400), {}, background);
+  modal.setAttribute("role", "dialog");
+  modal.setAttribute("aria-modal", "true");
+  const field = div(new Box(200, 150, 200, 40), {}, modal);
+  expect(visibilityOf(background).visible).toBeUndefined();
+  expect(visibilityOf(field).visible?.rect()).toEqual(new Box(200, 150, 200, 40).rect());
+  const roots = $([background, modal]);
+  expect(computeElementVisibility(roots, recomputeBounds(roots)).visible?.rect())
+    .toEqual(new Box(100, 100, 500, 400).rect());
+});
+
 it("keeps the real box for an element that is fully visible", () => {
   const elt = div(new Box(10, 20, 300, 200));
   const { geometry, visible, clippedSides } = visibilityOf(elt);

@@ -120,7 +120,7 @@ export const RepeatingElementSection = observer(function (props: {
               }}
               visible={isDataPickerVisible}
               setVisible={setIsDataPickerVisible}
-              data={viewCtx.getCanvasEnvForTpl(tpl, {
+              data={viewCtx.getInspectorCanvasEnvForTpl(tpl, {
                 forDataRepCollection: true,
               })}
               schema={viewCtx.customFunctionsSchema()}

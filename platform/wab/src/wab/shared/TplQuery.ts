@@ -611,7 +611,7 @@ export class TplQuery {
                 $$$(
                   ensure(ss.tpl, () => `Expected a tpl-backed SlotSelection`),
                 ).getSlotArg(ss.slotParam.variable.name),
-                (arg) => ensureKnownRenderExpr(arg.expr).tpl,
+                (arg) => isKnownRenderExpr(arg.expr) ? arg.expr.tpl : [],
               ) || [],
           )
           .when(TplNode, (n) => {

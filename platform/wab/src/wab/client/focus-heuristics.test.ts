@@ -8,6 +8,9 @@ import {
 import { FocusHeuristics } from "@/wab/client/focus-heuristics";
 import { Selectable } from "@/wab/shared/core/selection";
 import { ComponentCtx } from "@/wab/client/studio-ctx/component-ctx";
+import { ViewOps } from "@/wab/client/components/canvas/view-ops";
+import type { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
+import $ from "jquery";
 import { TplMgr } from "@/wab/shared/TplMgr";
 import { mkCodeComponent } from "@/wab/shared/code-components/code-components";
 import { ensure, ensureInstance, maybe, tuple } from "@/wab/shared/common";
@@ -385,6 +388,31 @@ describe("FocusHeuristics", function () {
       expect(fh.selectionParent(leaf)).toBe(content);
       // Explicitly selecting another tree node still uses its normal scope.
       expect(fh.bestFocusTarget(outer, { exact: true }).focusTarget).toBe(outer);
+    });
+
+    it("selects within a rendered modal without climbing to its background model ancestor", () => {
+      const background = valTree.children[0];
+      const modalVal = background.children[0];
+      const leaf = modalVal.children[0];
+      const portal = document.body.appendChild(document.createElement("div"));
+      const modal = portal.appendChild(document.createElement("section"));
+      modal.setAttribute("role", "dialog");
+      modal.setAttribute("aria-modal", "true");
+      Object.defineProperties(modal, { offsetWidth: { value: 500 }, offsetHeight: { value: 300 } });
+      const view = {
+        site, tplMgr: () => new TplMgr({ site }), valState: () => valState,
+        canvasCtx: { doc: () => document }, contentEditor: { root: undefined },
+        currentComponentCtx: () => null, showDefaultSlotContents: () => false,
+        dom2focusObj: (element: JQuery) => element[0] === portal ? modalVal : undefined,
+        selectionDom: () => $(portal), sel2cloneKey: () => undefined,
+        renderState: { tpl2bestVal: (tpl: TplNode) => ValNodes.flattenVals(valTree).find((val) => val.tpl === tpl) },
+      } as unknown as ViewCtx;
+      const ops = new ViewOps({ viewCtx: view });
+      try {
+        const heuristics = Reflect.get(ops, "focusHeuristics").call(ops) as FocusHeuristics;
+        expect(heuristics.bestFocusTarget(leaf, { exact: false, curFocused: background }).focusTarget).toBe(leaf);
+        expect(heuristics.selectionParent(modalVal)).toBeUndefined();
+      } finally { portal.remove(); }
     });
 
     it("double click descends one layout level and single click stays in the entered level", () => {

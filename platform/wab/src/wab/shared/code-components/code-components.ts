@@ -3420,7 +3420,7 @@ export const isContainerElement = (
   typeof schema === "object" && "children" in schema;
 
 export const flattenElementSchema = (
-  rootSchema: PlasmicElement | PlasmicElement[] | undefined,
+  rootSchema: string | PlasmicElement | PlasmicElement[] | undefined,
 ) =>
   ensureArray(rootSchema).flatMap((schema) =>
     typeof schema === "object" && isContainerElement(schema)
@@ -4445,7 +4445,7 @@ export function getNewStates(
 }
 
 function getReferencedComponentsFromDefaultSlotContents(
-  slotContents: Record<string, PlasmicElement | PlasmicElement[]>,
+  slotContents: Record<string, string | PlasmicElement | PlasmicElement[]>,
 ) {
   const referenced = new Set<string>();
   for (const contents of Object.values(slotContents)) {
@@ -4463,14 +4463,14 @@ function getReferencedComponentsFromDefaultSlotContents(
 }
 
 function walkPlasmicElementTree(
-  root: PlasmicElement,
+  root: string | PlasmicElement,
   opts: {
-    pre?: (elt: PlasmicElement) => void;
-    post?: (elt: PlasmicElement) => void;
+    pre?: (elt: string | PlasmicElement) => void;
+    post?: (elt: string | PlasmicElement) => void;
   },
 ) {
   const { pre, post } = opts;
-  const rec = (elt: PlasmicElement) => {
+  const rec = (elt: string | PlasmicElement) => {
     pre?.(elt);
     if (elt && typeof elt === "object" && "type" in elt) {
       if (
@@ -5298,7 +5298,7 @@ export function extractDefaultSlotContents(
         if (
           isPlainObjectPropType(propMeta) &&
           propMeta.type === "slot" &&
-          propMeta.defaultValue
+          propMeta.defaultValue !== undefined
         ) {
           return [prop, propMeta.defaultValue];
         } else {

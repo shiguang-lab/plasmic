@@ -1,4 +1,5 @@
 import { EditableNodeLabel } from "@/wab/client/components/canvas/EditableNodeLabel";
+import { getActiveCanvasModal, getCanvasModalSelectionRoot } from "@/wab/client/components/canvas/canvas-modal-scope";
 import styles from "@/wab/client/components/canvas/HoverBox/HoverBox.module.scss";
 import { useTagPlacement } from "@/wab/client/components/canvas/HoverBox/useTagPlacement";
 import { computeScalerVisibility } from "@/wab/client/components/canvas/HoverBox/visible-bounds";
@@ -25,16 +26,14 @@ import {
 } from "@/wab/shared/core/selection";
 import { isTplTagOrComponent, isTplVariantable } from "@/wab/shared/core/tpls";
 import cn from "classnames";
+import $ from "jquery";
 import { observer } from "mobx-react";
 import React from "react";
 
 export const PreselectBoxes = observer(PreselectBoxes_);
 function PreselectBoxes_() {
   const studioCtx = useStudioCtx();
-
-  if (studioCtx.isTransforming()) {
-    return null;
-  }
+  const forceUpdate = useForceUpdate();
 
   const viewCtx = studioCtx.viewCtxs
     // read through all ViewCtx's hovered dom element so that we are
@@ -43,6 +42,32 @@ function PreselectBoxes_() {
     .find((vc) =>
       getArenaFrames(studioCtx.currentArena).includes(vc.arenaFrame()),
     );
+  const doc = viewCtx?.canvasCtx.$doc()[0];
+  React.useEffect(() => {
+    if (!doc?.body) {
+      return;
+    }
+    let previous = getActiveCanvasModal(doc);
+    const modalObserver = new MutationObserver(() => {
+      const current = getActiveCanvasModal(doc);
+      if (current !== previous) {
+        previous = current;
+        forceUpdate();
+      }
+    });
+    modalObserver.observe(doc.body, {
+      subtree: true,
+      childList: true,
+      attributes: true,
+      attributeFilter: ["class", "style", "aria-modal"],
+    });
+    return () => modalObserver.disconnect();
+  }, [doc, forceUpdate]);
+
+  if (studioCtx.isTransforming()) {
+    return null;
+  }
+  const modal = getActiveCanvasModal(doc);
 
   const hoveredSelectable = viewCtx?.hoveredSelectable();
   const cloneKey = hoveredSelectable
@@ -65,6 +90,7 @@ function PreselectBoxes_() {
           studioCtx={studioCtx}
           viewCtx={viewCtx}
           isHoveredElt={hoveredSelectable === selectable}
+          modal={modal}
         />
       ))
     : !!hoveredSelectable && (
@@ -74,6 +100,7 @@ function PreselectBoxes_() {
           studioCtx={studioCtx}
           viewCtx={viewCtx}
           isHoveredElt={true}
+          modal={modal}
         />
       );
   return <>{preselectBoxes}</>;
@@ -86,10 +113,27 @@ function PreselectBox_(props: {
   studioCtx: StudioCtx;
   viewCtx: ViewCtx | undefined;
   isHoveredElt: boolean;
+  modal?: HTMLElement;
 }) {
   const { selectable, cloneKey, studioCtx, viewCtx, isHoveredElt } = props;
 
-  const $element = viewCtx?.selectionDom(selectable, cloneKey) ?? undefined;
+  const $selection = viewCtx?.selectionDom(selectable, cloneKey) ?? undefined;
+  const $hovered = viewCtx?.$hoveredDomElt();
+  // Portals keep model ancestors whose DOM remains behind the overlay. Only
+  // outline ancestor roots that actually contain the hovered foreground DOM.
+  const $ancestors = !isHoveredElt && $hovered?.length
+    ? $selection?.filter((_, element) =>
+        $hovered.toArray().some((hovered) => element.contains(hovered)),
+      )
+    : $selection;
+  // Opening a modal can cover the last hover target before another mousemove.
+  // Use the rendered modal boundary, including for that stale hovered element.
+  const modal = props.modal ?? getActiveCanvasModal($selection?.[0]?.ownerDocument);
+  const modalRoot = modal && viewCtx && getCanvasModalSelectionRoot(viewCtx, modal);
+  const $element = modal && selectable === modalRoot
+    ? $(modal) : modal
+    ? $ancestors?.filter((_, element) => modal.contains(element))
+    : $ancestors;
   const $focused =
     viewCtx === studioCtx.focusedViewCtx() && viewCtx?.focusedDomElt();
 

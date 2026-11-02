@@ -11,7 +11,7 @@ import {
   MessageOutlined,
 } from "@ant-design/icons";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
-import { Button, Checkbox, Dropdown, Flex, Segmented, Skeleton, Tooltip, Typography } from "antd";
+import { Alert, Button, Checkbox, Dropdown, Flex, Segmented, Skeleton, Tooltip, Typography } from "antd";
 import { createStyles } from "antd-style";
 import { observer } from "mobx-react";
 import * as React from "react";
@@ -286,10 +286,17 @@ export const CommentsTab = observer(function CommentsTab(
       <Scrollbar scrollX={false} style={{ flex: 1, minHeight: 0 }}>
         <div className={styles.content}>
           {commentsCtx.loadFailed && (
-            <Button size="small" loading={commentsCtx.isLoading}
-              onClick={() => { void commentsCtx.fetchComments(); }}>
-              {uiT("Retry")}
-            </Button>
+            <Alert
+              type="error"
+              showIcon
+              title={uiT("Failed to fetch comments for project")}
+              action={
+                <Button size="small" loading={commentsCtx.isLoading}
+                  onClick={() => { void commentsCtx.fetchComments(); }}>
+                  {uiT("Retry")}
+                </Button>
+              }
+            />
           )}
           {!commentsCtx.hasLoaded && !commentsCtx.loadFailed ? (
             <Skeleton active paragraph={{ rows: 4 }} />

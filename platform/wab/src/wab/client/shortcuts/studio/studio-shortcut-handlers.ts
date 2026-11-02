@@ -188,9 +188,7 @@ export function bindStudioShortcutHandlers(studioCtx: StudioCtx) {
       },
       TOGGLE_INTERACTIVE_MODE: async () => {
         return studioCtx.changeUnsafe(() => {
-          if (studioCtx.focusedMode) {
-            studioCtx.isInteractiveMode = !studioCtx.isInteractiveMode;
-          }
+          studioCtx.toggleInteractiveMode();
         });
       },
       TOGGLE_COPILOT_CHAT: async () => {

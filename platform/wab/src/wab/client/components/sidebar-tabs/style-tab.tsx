@@ -23,6 +23,7 @@ import {
 } from "@/wab/client/components/style-controls/StyleComponent";
 import { makeVariantsController } from "@/wab/client/components/variants/VariantsController";
 import { Icon } from "@/wab/client/components/widgets/Icon";
+import { SelectionInspector } from "@/wab/client/components/sidebar-tabs/SelectionInspector";
 import { useCurrentRecordingTarget } from "@/wab/client/hooks/useCurrentRecordingTarget";
 import { useI18n } from "@/wab/client/i18n";
 import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
@@ -78,7 +79,6 @@ import { observer } from "mobx-react";
 import { ok } from "neverthrow";
 import * as React from "react";
 import { createContext, useContext } from "react";
-import ResizeObserver from "resize-observer-polyfill";
 
 export const StyleTabContext = createContext<StyleTabFilter>("design");
 
@@ -119,10 +119,10 @@ const StyleTabForTpl = observer(function _StyleTabForTpl(props: {
   React.useEffect(() => {
     const mixinDisposal = mobx.reaction(
       () => {
-        // We read focusedTpl instead of tpl, as tpl may have changed,
+        // Read the committed inspector target instead of the captured tpl,
         // and this reaction may be running before the surrounding component
         // has been re-rendered.
-        const curTpl = viewCtx.focusedTpl(false);
+        const curTpl = viewCtx.inspectorTpl(false);
         return !!curTpl && isMixinSet(curTpl, viewCtx);
       },
       (mixinVisible) => setShowMixins(mixinVisible),
@@ -132,7 +132,7 @@ const StyleTabForTpl = observer(function _StyleTabForTpl(props: {
     );
     const privateStyleVariantsDisposal = mobx.reaction(
       () => {
-        const curTpl = viewCtx.focusedTpl(false);
+        const curTpl = viewCtx.inspectorTpl(false);
         return (
           !!curTpl && shouldShowPrivateStyleVariantsSection(curTpl, viewCtx)
         );
@@ -391,13 +391,19 @@ export const StyleTab = observer(function StyleTab(props: {
   viewCtx?: ViewCtx;
 }) {
   const { studioCtx, viewCtx } = props;
-  const tpl = viewCtx?.focusedTpl(true);
+  const selection = studioCtx.inspectorSelection;
+  const pending = studioCtx.isSelectionPending;
+  const contextMatches = selection?.viewCtx === viewCtx && selection?.componentCtx === viewCtx?.currentComponentCtx();
+  const tpl = contextMatches ? viewCtx?.inspectorTpl(true) : null;
 
   React.useEffect(() => {
-    if (tpl && !isTplAttachedToSite(studioCtx.site, tpl)) {
+    if (!pending && tpl && !isTplAttachedToSite(studioCtx.site, tpl)) {
       spawn(
         studioCtx.change<never>(
           () => {
+            if (studioCtx.inspectorSelection !== selection || studioCtx.isSelectionPending) {
+              return ok();
+            }
             studioCtx.setStudioFocusOnFrameContents(undefined);
             studioCtx.focusReset.dispatch();
             return ok();
@@ -408,7 +414,7 @@ export const StyleTab = observer(function StyleTab(props: {
         ),
       );
     }
-  }, [tpl]);
+  }, [tpl, pending]);
 
   if (tpl && !isTplAttachedToSite(studioCtx.site, tpl)) {
     // We will fix this invalid state in the useEffect hook
@@ -416,7 +422,7 @@ export const StyleTab = observer(function StyleTab(props: {
     return null;
   }
 
-  if (!viewCtx) {
+  if (!viewCtx || !contextMatches) {
     return null;
   }
 
@@ -428,9 +434,10 @@ const StyleTabBottomPanel = observer(function StyleTabBottomPanel(props: {
   viewCtx: ViewCtx;
 }) {
   const { viewCtx } = props;
+  const partTab = useContext(StyleTabContext);
 
-  const focused = viewCtx.focusedSelectable();
-  const tpl = viewCtx.focusedTpl(false);
+  const focused = viewCtx.inspectorSelectable();
+  const tpl = viewCtx.inspectorTpl(false);
   const component = viewCtx.currentComponent();
 
   const currentTarget = useCurrentRecordingTarget();
@@ -453,8 +460,10 @@ const StyleTabBottomPanel = observer(function StyleTabBottomPanel(props: {
                 : undefined
             }
           >
-            <SelectionInspector studioCtx={props.studioCtx}>
-            {focused instanceof SlotSelection ? (
+            <SelectionInspector pending={props.studioCtx.isSelectionPending}>
+            {viewCtx.inspectorComponentPart() ? (
+              <CanvasComponentPartSection key={props.studioCtx.inspectorSelection?.generation} viewCtx={viewCtx} interactions={partTab === "interactions"} />
+            ) : focused instanceof SlotSelection ? (
               <SlotSelectionMessage node={focused} viewCtx={viewCtx} />
             ) : tpl === component.tplTree && isCodeComponent(component) ? (
               <CodeComponentRootMessage component={component} />
@@ -462,7 +471,7 @@ const StyleTabBottomPanel = observer(function StyleTabBottomPanel(props: {
               <CodeComponentTplSlotMessage component={component} />
             ) : tpl ? (
               <>
-                <StyleTabForTpl viewCtx={viewCtx} tpl={tpl} />
+                <StyleTabForTpl key={props.studioCtx.inspectorSelection?.generation} viewCtx={viewCtx} tpl={tpl} />
               </>
             ) : null}
             </SelectionInspector>
@@ -470,36 +479,6 @@ const StyleTabBottomPanel = observer(function StyleTabBottomPanel(props: {
         </div>
       </SidebarModalProvider>
     </PopoverFrameProvider>
-  );
-});
-
-/** Keep the shared scrollbar and its scroll range while replacing selection controls. */
-const SelectionInspector = observer(function SelectionInspector({
-  studioCtx,
-  children,
-}: {
-  studioCtx: StudioCtx;
-  children: React.ReactNode;
-}) {
-  const pending = studioCtx.isSelectionPending;
-  const content = React.useRef<HTMLDivElement>(null);
-  const height = React.useRef(0);
-  React.useEffect(() => {
-    if (!content.current || pending) {
-      return;
-    }
-    const resizeObserver = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        height.current = entry.contentRect.height;
-      }
-    });
-    resizeObserver.observe(content.current);
-    return () => resizeObserver.disconnect();
-  }, [pending]);
-  return (
-    <div ref={content} style={pending ? { height: height.current } : undefined} aria-busy={pending}>
-      {pending ? null : children}
-    </div>
   );
 });
 
@@ -789,3 +768,4 @@ function shouldShowPrivateStyleVariantsSection(tpl: TplNode, viewCtx: ViewCtx) {
 
   return definedIndicator.source !== "none";
 }
+import { CanvasComponentPartSection } from "@/wab/client/components/sidebar-tabs/CanvasComponentPartSection";

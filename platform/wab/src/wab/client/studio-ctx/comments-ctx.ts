@@ -330,13 +330,6 @@ export class CommentsCtx {
     } catch (err) {
       runInAction(() => this._loadFailed.set(true));
       reportError(err);
-      showError(err, {
-        title: translate(getUiLocale(), "Unable to process your request"),
-        description: translate(
-          getUiLocale(),
-          "Failed to fetch comments for project",
-        ),
-      });
     } finally {
       runInAction(() => this._loading.set(false));
     }

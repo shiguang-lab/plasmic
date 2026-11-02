@@ -129,6 +129,21 @@ test("selection updates close auto-opened content and business-open content need
   expect(viewCtx.disabledAutoOpenUuid).toBe("hidden-tag");
 });
 
+test("runtime open changes take over a temporary closed overlay without changing its saved preview prop", () => {
+  const viewCtx = overlayViewCtx();
+  const savedPreviewOpen = false;
+  expect(viewCtx.syncCanvasOverlayState("modal", savedPreviewOpen, false)).toBe(false);
+  viewCtx.setCanvasOverlayOpen("modal", false);
+  expect(viewCtx.syncCanvasOverlayState("modal", savedPreviewOpen, true)).toBe(true);
+  expect(viewCtx.syncCanvasOverlayState("modal", savedPreviewOpen, true)).toBe(true);
+  expect(viewCtx.hasShownHiddenContent).toBe(false);
+  // The eye can still hide runtime-open content until the next runtime change.
+  viewCtx.setCanvasOverlayOpen("modal", false);
+  expect(viewCtx.syncCanvasOverlayState("modal", savedPreviewOpen, true)).toBe(false);
+  expect(viewCtx.syncCanvasOverlayState("modal", savedPreviewOpen, false)).toBe(false);
+  expect(viewCtx.syncCanvasOverlayState("modal", savedPreviewOpen, true)).toBe(true);
+});
+
 function setup() {
   const enabled = mkParam({
     name: "enabled",
@@ -329,6 +344,7 @@ test("deep hover leaves the editing stack unchanged and direct selection creates
   const frames = [new TransientComponentVariantFrame(root.tpl)];
   const valState = new ValState({ sysRoot: root, globalRoot: root });
   const viewCtx = Object.assign(Object.create(ViewCtx.prototype), {
+    canvasCtx: { doc: () => document },
     _globalFrame: observable.box(new TransientComponentVariantFrame(root.tpl)),
     studioCtx: { dbCtx: () => ({ site }), canEditComponent: vi.fn(() => true) },
     tplMgr: () => tplMgr,
@@ -416,6 +432,7 @@ test("canvas hover and click share authored layout levels; Enter and parent navi
   let selected: Selectable | null = null;
   const hover = vi.fn();
   const viewCtx = Object.assign(Object.create(ViewCtx.prototype), {
+    canvasCtx: { doc: () => document },
     studioCtx: {
       dbCtx: () => ({ site }),
       canEditComponent: () => true,

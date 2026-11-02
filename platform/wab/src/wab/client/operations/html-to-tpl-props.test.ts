@@ -31,7 +31,7 @@ test("only invalid optional literal props can be safely discarded", () => {
     ["requiredLabel", 42, false],
     ["onSave", "ignored", false],
     ["href", 42, false],
-    ["children", "content", false],
+    ["children", { type: "text", value: "content" }, false],
   ] as const) {
     const result = getComponentArgFromHtmlProp(
       site,

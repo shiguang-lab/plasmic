@@ -113,6 +113,8 @@ For example, with the installed `onFinish(values)` contract, a required destinat
 
 Insertable code components use `<plasmic-component data-plasmic-component="REGISTERED_NAME" data-plasmic-project="IMPORTED_PROJECT_ID" data-props='{"prop":"value"}'><slot name="children">Content</slot></plasmic-component>`. Names and values come from the registration. Instance styles affect layout; appearance uses real props. Do not insert scripts or invent native input handlers. Dynamic bindings use the discovered expression contract and available data scopes.
 
+A Slot can also hold a primitive string directly in `data-props`, such as `{"children":"新建模板"}` on Button. This creates no label element. Use `<slot>` children for structured content; the Slot contract stays the same for both forms.
+
 Generate each binding from that component's live `contract.props` type. For the Antd6 registrations, Input.placeholder is text while Select.placeholder is a Slot:
 
 ```html

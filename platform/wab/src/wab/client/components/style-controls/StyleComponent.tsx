@@ -21,6 +21,7 @@ import { getUiLocale } from "@/wab/client/i18n";
 import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
 import { StudioChangeOpts, StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
+import { canEditInspectorSelection, InspectorSelection } from "@/wab/client/studio-ctx/inspector-selection";
 import {
   withConsumer,
   withProvider,
@@ -132,7 +133,12 @@ export class StyleComponent<
 > extends React.Component<P, S> {
   studioCtx = () => this.props.expsProvider.studioCtx;
   change(f: () => void, opts?: StudioChangeOpts) {
-    this.studioCtx().changeSpawn(f, opts);
+    const provider = this.props.expsProvider;
+    this.studioCtx().changeSpawn(() => {
+      if (!(provider instanceof TplExpsProvider) || provider.canEdit()) {
+        f();
+      }
+    }, opts);
   }
   app() {
     return this.studioCtx().app;
@@ -1185,6 +1191,7 @@ export class SingleRsExpsProvider implements ExpsProvider {
 }
 
 export class TplExpsProvider implements ExpsProvider {
+  private readonly selection: InspectorSelection | undefined;
   private vtm: VariantTplMgr;
   targetVariantCombo: VariantCombo;
   activeVariantCombo: VariantCombo;
@@ -1196,6 +1203,7 @@ export class TplExpsProvider implements ExpsProvider {
     readonly tpl: TplTag | TplComponent | TplSlot,
   ) {
     this.studioCtx = viewCtx.studioCtx;
+    this.selection = this.studioCtx.inspectorSelection;
     // We request a fixed componentStackFrame so that we don't use stale
     // inconsistent ComponentStackFrames for tpl.
     this.vtm = this.viewCtx.variantTplMgr(true);
@@ -1243,6 +1251,9 @@ export class TplExpsProvider implements ExpsProvider {
     // put in (or take out) the special magic it needs to for
     // e.g. grid layouts.
     this.viewCtx.change(() => {
+      if (!this.canEdit()) {
+        return;
+      }
       if (isTplComponent(this.tpl)) {
         assert(isCodeComponent(this.tpl.component), "only for code components");
         convertSelfContainerType(this.targetExp(), val);
@@ -1257,10 +1268,15 @@ export class TplExpsProvider implements ExpsProvider {
     });
   };
 
-  forDom = () => this.viewCtx.focusedDomElt();
+  forDom = () => this.selection ? this.selection.dom : this.viewCtx.focusedDomElt();
+
+  canEdit = () => canEditInspectorSelection(this.studioCtx, this.selection);
 
   onPositionChange = (val) => {
     this.viewCtx.change(() => {
+      if (!this.canEdit()) {
+        return;
+      }
       if (isTplTagOrComponent(this.tpl)) {
         const viewOps = this.viewCtx.getViewOps();
         switch (val) {

@@ -454,6 +454,7 @@ import {
   runInAction,
   when,
 } from "mobx";
+import { InspectorSelection } from "@/wab/client/studio-ctx/inspector-selection";
 import { computedFn } from "mobx-utils";
 import { Result, err, ok } from "neverthrow";
 import React from "react";
@@ -808,6 +809,32 @@ export class StudioCtx extends WithDbCtx {
     );
 
     this.disposals.push(
+      reaction(
+        () => {
+          const vc = this.focusedViewCtx();
+          return {
+            vc,
+            frame: this.focusedFrame(),
+            tpls: vc?.focusedTpls().slice() ?? [],
+            keys: vc?.focusedSelectables().map((selection) => selection && makeSelectableFullKey(selection)) ?? [],
+            clones: vc?.focusedCloneKeys().slice() ?? [],
+            context: vc?.currentComponentCtx(),
+            part: vc?.focusedComponentPart?.name,
+          };
+        },
+        () => {
+          // changeSelection() already owns the pending paint for pure selection.
+          // This covers focus changed by model edits, undo and component-part edits.
+          if (!this.isSelectionPending) {
+            this.scheduleInspectorSelection();
+          }
+        },
+        {
+          name: "StudioCtx.inspectorSelection",
+          equals: (a, b) => a.vc === b.vc && a.frame === b.frame && a.context === b.context && a.part === b.part &&
+            arrayEq(a.tpls, b.tpls) && arrayEq(a.keys, b.keys) && arrayEq(a.clones, b.clones),
+        },
+      ),
       this.appCtx.history.listen(({ location }) => {
         spawn(this.handleRouteChange(location));
       }),
@@ -1387,11 +1414,39 @@ export class StudioCtx extends WithDbCtx {
   }
 
   private selectionPending = observable.box(false);
+  private committedInspectorSelection = observable.box<InspectorSelection | undefined>(undefined, { deep: false });
+  private inspectorGeneration = 0;
   private selectionPaintFrame?: number;
   private selectionPaintTask?: ReturnType<typeof setTimeout>;
 
   get isSelectionPending() {
     return this.selectionPending.get();
+  }
+
+  get inspectorSelection() {
+    return this.committedInspectorSelection.get();
+  }
+
+  private scheduleInspectorSelection() {
+    if (this.selectionPaintFrame !== undefined) {
+      cancelAnimationFrame(this.selectionPaintFrame);
+    }
+    clearTimeout(this.selectionPaintTask);
+    runInAction(() => {
+      this.inspectorSelection?.pause();
+      this.selectionPending.set(true);
+    });
+    this.selectionPaintFrame = requestAnimationFrame(() => {
+      this.selectionPaintFrame = undefined;
+      this.selectionPaintTask = setTimeout(() => {
+        this.selectionPaintTask = undefined;
+        runInAction(() => {
+          const vc = this.focusedViewCtx();
+          this.committedInspectorSelection.set(vc && !vc.isDisposed ? new InspectorSelection(vc, ++this.inspectorGeneration) : undefined);
+          this.selectionPending.set(false);
+        });
+      }, 0);
+    });
   }
 
   /** Selection is editor state. Actual variant/context edits still use change(). */
@@ -1437,6 +1492,7 @@ export class StudioCtx extends WithDbCtx {
         }
         clearTimeout(this.selectionPaintTask);
         // The action publishes the new focus and pending state together.
+        this.inspectorSelection?.pause();
         this.selectionPending.set(true);
         const tpl = vc?.focusedTpl();
         if (
@@ -1448,6 +1504,7 @@ export class StudioCtx extends WithDbCtx {
         }
         this.createViewStateUndoRecord();
       } catch (error) {
+        this.inspectorSelection?.resume();
         this.selectionPending.set(false);
         throw error;
       }
@@ -1467,14 +1524,7 @@ export class StudioCtx extends WithDbCtx {
         });
       }
     }
-    // Let the selection chrome paint before mounting controls for the latest focus.
-    this.selectionPaintFrame = requestAnimationFrame(() => {
-      this.selectionPaintFrame = undefined;
-      this.selectionPaintTask = setTimeout(() => {
-        this.selectionPaintTask = undefined;
-        runInAction(() => this.selectionPending.set(false));
-      }, 0);
-    });
+    this.scheduleInspectorSelection();
   }
 
   /**
@@ -2009,6 +2059,7 @@ export class StudioCtx extends WithDbCtx {
     this.canvasLoadingDisposed = true;
     this.copilotActivity.dispose();
     this.disposals.forEach((d) => d());
+    this.committedInspectorSelection.set(undefined);
     this.clearUndoLog();
     this.viewInfoObserverDispose?.();
     this.watchPlayerDispose?.();
@@ -2830,11 +2881,6 @@ export class StudioCtx extends WithDbCtx {
             });
           }
         }
-      }
-
-      // If not in focused mode, leave interactive mode.
-      if (!isDedicatedArena(arena) || !arena._focusedFrame) {
-        this.isInteractiveMode = false;
       }
 
       // If there were still outstanding canvas load requests for this arena,
@@ -3767,6 +3813,12 @@ export class StudioCtx extends WithDbCtx {
     }
   }
 
+  toggleInteractiveMode() {
+    if (!this.currentArenaEmpty) {
+      this.isInteractiveMode = !this.isInteractiveMode;
+    }
+  }
+
   private _isAutoOpenMode = observable.box(true);
   get isAutoOpenMode() {
     return !this.isDraggingObject() && this._isAutoOpenMode.get();
@@ -4171,7 +4223,6 @@ export class StudioCtx extends WithDbCtx {
       return;
     }
 
-    this.isInteractiveMode = false;
     this.styleMgr.stopAllAnimationPreviews();
     currentArena._focusedFrame = null;
 

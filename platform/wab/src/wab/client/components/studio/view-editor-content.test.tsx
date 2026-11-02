@@ -83,3 +83,24 @@ it("treats the iframe gutter as canvas background without unknown-element warnin
     f.studioCtx.dispose();
   }
 });
+
+it("does not hit background nodes or the mask while a modal is open", () => {
+  const f = fixture();
+  try {
+    f.target.mockReturnValue(undefined);
+    const modal = document.body.appendChild(document.createElement("section"));
+    modal.setAttribute("role", "dialog");
+    modal.setAttribute("aria-modal", "true");
+    Object.defineProperties(modal, { offsetWidth: { value: 500 }, offsetHeight: { value: 300 } });
+    const field = modal.appendChild(document.createElement("input"));
+    const extract = (element: HTMLElement) =>
+      Reflect.get(f.editor, "extractEventTarget").call(f.editor, f.eventFor(element), f.source);
+    expect(extract(modal)[1]).toBe(f.source);
+    expect(extract(field)[1]).toBe(f.source);
+    expect(extract(f.ancestor)).toBeUndefined();
+    expect(extract(f.cell)).toBeUndefined();
+    expect(extract(document.body)).toBeUndefined();
+    modal.style.visibility = "hidden";
+    expect(extract(f.cell)[1]).toBe(f.source);
+  } finally { f.studioCtx.dispose(); }
+});

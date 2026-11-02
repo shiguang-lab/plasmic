@@ -74,7 +74,10 @@ import {
   TplNode,
   Variant,
   isKnownArenaFrame,
+  isKnownCustomCode,
+  isKnownObjectPath,
   isKnownRenderExpr,
+  isKnownTemplatedString,
   isKnownStateChangeHandlerParam,
   isKnownStateParam,
   isKnownVarRef,
@@ -680,7 +683,13 @@ function* _genTplErrors(site: Site, component: Component, tpl: TplNode) {
           );
         }
         if (isSlot(arg.param)) {
-          if (arg.expr && !isKnownRenderExpr(arg.expr)) {
+          if (arg.expr && !(
+            isKnownRenderExpr(arg.expr) ||
+            isKnownCustomCode(arg.expr) ||
+            isKnownTemplatedString(arg.expr) ||
+            isKnownObjectPath(arg.expr) ||
+            isKnownVarRef(arg.expr)
+          )) {
             yield new InvariantError(
               `${tplName}'s ${
                 arg.param.variable.name

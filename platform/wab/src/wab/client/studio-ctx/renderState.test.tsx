@@ -111,6 +111,24 @@ it("filters resource nodes when resolving a forwarded className in descendants",
   }
 });
 
+it("only measures ancestor dimensions when overflow can clip the mapped DOM", () => {
+  const { container, state, val, canvas } = fixture(<div className="content">Content</div>);
+  const height = vi.spyOn(Element.prototype, "clientHeight", "get");
+  const width = vi.spyOn(Element.prototype, "clientWidth", "get");
+  try {
+    expect(state.val2dom(val, canvas)).toEqual([container.firstElementChild]);
+    expect(height).not.toHaveBeenCalled();
+    expect(width).not.toHaveBeenCalled();
+    container.style.overflow = "hidden";
+    expect(state.val2dom(val, canvas)).toEqual([]);
+    expect(height).toHaveBeenCalled();
+  } finally {
+    height.mockRestore();
+    width.mockRestore();
+    state.dispose();
+  }
+});
+
 it("keeps ordinary display:none roots mapped so they can become visible later", () => {
   const { container, state, val, canvas } = fixture(
     <>

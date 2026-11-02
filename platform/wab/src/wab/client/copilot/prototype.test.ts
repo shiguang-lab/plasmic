@@ -19,7 +19,7 @@ import { ComponentType, mkComponent, getRealParams } from "@/wab/shared/core/com
 import { codeLit, customCode, tryExtractJson } from "@/wab/shared/core/exprs";
 import { mkParam } from "@/wab/shared/core/lang";
 import { ensureOk } from "@/wab/commons/neverthrow-utils";
-import { createSite, writeable } from "@/wab/shared/core/sites";
+import { cloneSite, createSite, writeable } from "@/wab/shared/core/sites";
 import {
   addComponentState,
   mkNamedState,
@@ -35,12 +35,15 @@ import {
   ensureKnownTplTag,
   ensureKnownStateParam,
   ensureKnownPropParam,
+  ensureKnownSlotParam,
+  VariantsRef,
 } from "@/wab/shared/model/classes";
 import { typeFactory } from "@/wab/shared/model/model-util";
 import { runInAction } from "mobx";
 import { ok } from "neverthrow";
 import { vi } from "vitest";
 import { runInNewContext } from "node:vm";
+import { assertSiteInvariants } from "@/wab/shared/site-invariants";
 
 function fixture(site = createSite()) {
   const { studioCtx } = fakeStudioCtx({ site });
@@ -3258,4 +3261,40 @@ it("diagnoses elements defined in another component and confirms deleteCanvas wi
   ).rejects.toThrow(`Preview target must be a local Page; "ChildComp" is a component. To inspect component rendering, navigate to its canvas artboard and use get_screenshot.`);
 
   studioCtx.copilotActivity.dispose();
+});
+
+it("creates and edits primitive Slot content without a label node and preserves structured content", async () => {
+  const site = createSite();
+  const meta = { name: "PrimitiveButton", importPath: "./button", props: { children: { type: "slot" as const, mergeWithParent: true } } };
+  const definition = mkCodeComponent(meta.name, meta, {});
+  definition.params.push(...ensureOk(propMetasToComponentParams(meta.props, site, meta.name, meta)));
+  const slot = mkSlot(ensureKnownSlotParam(definition.params[0]), []);
+  ensureKnownTplTag(definition.tplTree).children.push(slot);
+  slot.parent = definition.tplTree;
+  site.components.push(definition);
+  const { studioCtx, call, createPage } = fixture(site);
+  try {
+    studioCtx.tplMgr().ensureBaseVariantSetting(slot);
+    const page = await createPage("StringSlot");
+    await call("insertHtml", { componentUuid: page.uuid, html: '<plasmic-component data-plasmic-component="PrimitiveButton" data-props=\'{"children":"新建模板"}\'></plasmic-component><plasmic-component data-plasmic-component="PrimitiveButton"><slot name="children"><strong>自定义内容</strong></slot></plasmic-component>' });
+    const buttons = flattenTpls(page.tplTree).filter(isKnownTplComponent);
+    expect(buttons).toHaveLength(2);
+    const param = definition.params[0];
+    expect(tryExtractJson(getTplComponentArg(buttons[0], buttons[0].vsettings[0], param.variable)!.expr)).toBe("新建模板");
+    expect(flattenTpls(buttons[0])).toHaveLength(1);
+    expect(flattenTpls(buttons[1])).toHaveLength(2);
+    await call("changeElement", { componentUuid: page.uuid, elementUuid: buttons[0].uuid, props: { children: "创建" } });
+    expect(tryExtractJson(getTplComponentArg(buttons[0], buttons[0].vsettings[0], param.variable)!.expr)).toBe("创建");
+    const model = (await call("read", { componentUuids: [page.uuid], view: "full", depth: "all" })).results[0];
+    expect(model.baseVariantTplTree).toContain('"children":"创建"');
+    expect(flattenTpls(buttons[0])).toHaveLength(1);
+    expect((await call("validate")).valid).toBe(true);
+    assertSiteInvariants(studioCtx.site);
+    assertSiteInvariants(cloneSite(studioCtx.site));
+    const invalidSite = cloneSite(studioCtx.site);
+    const copiedPage = ensure(invalidSite.components.find((c) => c.name === page.name), "Copied page");
+    const copiedButton = ensure(flattenTpls(copiedPage.tplTree).find(isKnownTplComponent), "Copied Button");
+    copiedButton.vsettings[0].args[0].expr = new VariantsRef({ variants: [] });
+    expect(() => assertSiteInvariants(invalidSite)).toThrow(/expected renderable/);
+  } finally { studioCtx.dispose(); }
 });

@@ -100,7 +100,7 @@ export const MergedSlotsPropsSection = observer(
 
     const propTypes = getComponentPropTypes(viewCtx, tpl.component);
     const { componentPropValues, ccContextData } =
-      viewCtx.getComponentEvalContext(tpl);
+      viewCtx.getInspectorComponentEvalContext(tpl);
 
     const slotParams = getSlotParams(tpl.component).filter((p) => {
       if (!p.mergeWithParent || !(p.variable.name in propTypes)) {

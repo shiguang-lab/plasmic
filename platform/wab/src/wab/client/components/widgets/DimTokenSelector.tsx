@@ -552,6 +552,11 @@ export const DimTokenSpinner = observer(
       disabled: !isOpen,
     });
 
+    const menuProps = getMenuProps({
+      ref: menuRef,
+      "aria-label": fieldAriaProps?.["aria-label"],
+    });
+
     const itemSizer = (index: number) => {
       const item = virtualItems[index];
       if (!item) {
@@ -753,49 +758,50 @@ export const DimTokenSpinner = observer(
         </MaybeWrap>
 
         {ReactDOM.createPortal(
-          <DropdownOverlay
-            ref={overlayRef}
-            {...overlayPositionProps}
-            style={{
-              position: "absolute",
-              display: isOpen && hasOptions ? "block" : "none",
-              ...overlayPositionProps.style,
-            }}
-          >
-            <ul
-              {...getMenuProps({
-                ref: menuRef,
-                "aria-label": fieldAriaProps?.["aria-label"],
-              })}
+          isOpen && hasOptions ? (
+            <DropdownOverlay
+              scrollable={false}
+              ref={overlayRef}
+              {...overlayPositionProps}
+              style={{
+                position: "absolute",
+                overflow: "hidden",
+                maxHeight: "80vh",
+                ...overlayPositionProps.style,
+              }}
             >
-              {isOpen && (
-                <DimTokenContext.Provider
-                  value={{
-                    matcher,
-                    getItemProps,
-                    highlightedItemIndex: highlightedIndex,
-                    tokenType,
-                    vsh,
-                    resolver,
-                  }}
-                >
-                  <VariableSizeList
-                    outerElementType={VirtualListScrollbar}
-                    ref={listRef}
-                    itemData={virtualItems}
-                    itemCount={virtualItems.length}
-                    estimatedItemSize={32}
-                    height={height}
-                    width={menuWidth}
-                    overscanCount={2}
-                    itemSize={itemSizer}
+              <ul {...menuProps}>
+                {isOpen && (
+                  <DimTokenContext.Provider
+                    value={{
+                      matcher,
+                      getItemProps,
+                      highlightedItemIndex: highlightedIndex,
+                      tokenType,
+                      vsh,
+                      resolver,
+                    }}
                   >
-                    {Row}
-                  </VariableSizeList>
-                </DimTokenContext.Provider>
-              )}
-            </ul>
-          </DropdownOverlay>,
+                    <VariableSizeList
+                      outerElementType={VirtualListScrollbar}
+                      ref={listRef}
+                      itemData={virtualItems}
+                      itemCount={virtualItems.length}
+                      estimatedItemSize={32}
+                      height={height}
+                      width={menuWidth}
+                      overscanCount={2}
+                      itemSize={itemSizer}
+                    >
+                      {Row}
+                    </VariableSizeList>
+                  </DimTokenContext.Provider>
+                )}
+              </ul>
+            </DropdownOverlay>
+          ) : (
+            <ul {...menuProps} hidden />
+          ),
           document.body,
         )}
 

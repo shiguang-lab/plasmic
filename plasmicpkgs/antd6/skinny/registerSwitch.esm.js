@@ -1,6 +1,6 @@
 import { Switch } from 'antd';
 import React from 'react';
-import { h as switchComponentName } from './names-oKrrGg47.esm.js';
+import { h as switchComponentName } from './names-DQIzgrvq.esm.js';
 import { r as registerComponentHelper } from './utils-U416WEAa.esm.js';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';

@@ -489,10 +489,10 @@ function shouldAcceptAsMappedDomNode(element: HTMLElement) {
     if (
       style?.display !== "contents" &&
       style?.display !== "inline" &&
-      ((parent.clientHeight === 0 &&
-        (overflowY === "hidden" || overflowY === "clip")) ||
-        (parent.clientWidth === 0 &&
-          (overflowX === "hidden" || overflowX === "clip")))
+      (((overflowY === "hidden" || overflowY === "clip") &&
+        parent.clientHeight === 0) ||
+        ((overflowX === "hidden" || overflowX === "clip") &&
+          parent.clientWidth === 0))
     ) {
       return false;
     }

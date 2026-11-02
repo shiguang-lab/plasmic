@@ -86,7 +86,7 @@ function setup(contextName = "HelloGlobalContext") {
         },
       },
     },
-    viewCtx: { getComponentEvalContext, customFunctionsSchema: () => ({}) },
+    viewCtx: { getInspectorComponentEvalContext: getComponentEvalContext, customFunctionsSchema: () => ({}), inspectorCloneKey: () => "committed-clone", studioCtx: { inspectorSelection: undefined } },
     env: {},
   };
   const rendered = render(
@@ -164,7 +164,7 @@ it("uses the selected component context when overrides are omitted", () => {
     <PropEditorRow
       tpl={tpl}
       expr={undefined}
-      viewCtx={{ getComponentEvalContext } as any}
+      viewCtx={{ getInspectorComponentEvalContext: getComponentEvalContext, inspectorCloneKey: () => "committed-clone", studioCtx: { inspectorSelection: undefined } } as any}
       env={{}}
       schema={{}}
       attr="name"

@@ -6,6 +6,7 @@ import { ComponentType, mkComponent } from "@/wab/shared/core/components";
 import { mkParam } from "@/wab/shared/core/lang";
 import { SlotSelection } from "@/wab/shared/core/slots";
 import { mkTplComponent, mkTplTagX } from "@/wab/shared/core/tpls";
+import { ValComponent } from "@/wab/shared/core/val-nodes";
 import { Box } from "@/wab/shared/geom";
 import { typeFactory } from "@/wab/shared/model/model-util";
 import $ from "jquery";
@@ -16,6 +17,8 @@ vi.mock("@/wab/client/components/sidebar-tabs/tpl-tree", () => ({
 vi.mock("@/wab/client/utils/tpl-client-utils", () => ({
   summarizeFocusObj: () => "Content",
 }));
+
+afterEach(() => { document.body.innerHTML = ""; });
 
 function element(box: Box, visible = true) {
   const elt = document.createElement("div");
@@ -48,6 +51,7 @@ function fixture() {
     slotParam: slot,
   });
   const vc = {
+    dom2focusObj: () => undefined,
     studioCtx: {
       isDraggingObject: () => false,
       isTransformingObject: () => false,
@@ -56,6 +60,29 @@ function fixture() {
   } as unknown as ViewCtx;
   return { vc, focusObj };
 }
+
+it("hides an already-selected background node while a modal is open", () => {
+  const { vc, focusObj } = fixture();
+  const background = document.body.appendChild(element(new Box(0, 0, 1000, 400)));
+  const modal = document.body.appendChild(element(new Box(100, 100, 600, 300)));
+  modal.setAttribute("role", "dialog");
+  modal.setAttribute("aria-modal", "true");
+  const target = { node: $(background), focusObj };
+  expect(computeHoverBoxViewState(vc, target)).toEqual({ display: "none" });
+  modal.style.visibility = "hidden";
+  expect(computeHoverBoxViewState(vc, target).display).toBe("unset");
+});
+
+it("measures only foreground roots when a selected component also renders behind a modal", () => {
+  const { vc, focusObj } = fixture();
+  const background = document.body.appendChild(element(new Box(0, 0, 1000, 400)));
+  const modal = document.body.appendChild(element(new Box(100, 100, 600, 300)));
+  modal.setAttribute("role", "dialog");
+  modal.setAttribute("aria-modal", "true");
+  const result = computeHoverBoxViewState(vc, { node: $([background, modal]), focusObj });
+  expect(result.displayProps).toMatchObject({ top: 300, left: 200, width: 600, height: 300 });
+  expect(result.focusedElt?.toArray()).toEqual([modal]);
+});
 
 it.each(["style", "hidden root"])(
   "shows the full visible selection when a %s precedes the content",
@@ -92,6 +119,17 @@ it("hides an empty or entirely non-layout selection", () => {
     });
     expect(getSelectionBounds([node])).toBeUndefined();
   }
+});
+
+it("resolves a native component part without a global jQuery", () => {
+  const { vc, focusObj } = fixture();
+  const owner = new ValComponent({ tpl: focusObj.tpl } as any);
+  const button = document.createElement("button");
+  Object.defineProperty(vc, "focusedComponentPart", {
+    value: { tpl: owner.tpl, element: button, displayName: "Confirm button" },
+  });
+  expect(computeHoverBoxViewState(vc, { node: $(document.createElement("div")), focusObj: owner }))
+    .toEqual({ display: "none" });
 });
 
 it("shows a selection when an initially hidden root gains layout", () => {

@@ -1,10 +1,12 @@
 import fs from "fs";
-import { isBuiltin } from "module";
+import { createRequire, isBuiltin } from "module";
 import os from "os";
 import path from "path";
 import { defineConfig, Plugin } from "vitest/config";
 
 const srcDir = path.join(__dirname, "src");
+const mobxReactRequire = createRequire(require.resolve("mobx-react"));
+const mobxReactLiteRequire = createRequire(mobxReactRequire.resolve("mobx-react-lite"));
 
 // jsdom makes vite resolve for the browser, which picks npm shims such as
 // path@0.12.7 over the real builtins. Tests run in node, so use the builtins.
@@ -71,7 +73,10 @@ export default defineConfig({
     },
   },
   resolve: {
+    // Workspace SDK sources and their external-store hook must share Studio's React.
+    dedupe: ["react", "react-dom"],
     alias: {
+      "use-sync-external-store/shim/index.js": mobxReactLiteRequire.resolve("use-sync-external-store/shim/index.js"),
       "monaco-editor": require.resolve("monaco-editor/esm/vs/editor/editor.api.js"),
       "@plasmicpkgs/antd5/form-meta": path.resolve(__dirname, "../../plasmicpkgs/antd5/src/form-meta.ts"),
       "@/": `${srcDir}/`,
@@ -79,6 +84,7 @@ export default defineConfig({
     },
   },
   test: {
+    server: { deps: { inline: [/valtio/] } },
     projects: [
       {
         extends: true,

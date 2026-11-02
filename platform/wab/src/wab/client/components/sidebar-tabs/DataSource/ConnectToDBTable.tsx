@@ -224,7 +224,7 @@ export function ConnectToDBTable({
           <DataSourceTablePicker
             studioCtx={viewCtx.studioCtx}
             requireLookupValue={selectedFormOption === FormType.UpdateEntry}
-            env={viewCtx.getCanvasEnvForTpl(tpl)}
+            env={viewCtx.getInspectorCanvasEnvForTpl(tpl)}
             schema={viewCtx.customFunctionsSchema()}
             draft={lookupDraft}
             onChange={(newDraft) => setLookupDraft(newDraft)}

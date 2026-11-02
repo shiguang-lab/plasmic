@@ -7,6 +7,7 @@ import {
   NO_CLIPPED_SIDES,
   computeElementVisibility,
 } from "@/wab/client/components/canvas/HoverBox/visible-bounds";
+import { filterCanvasModalElements, getActiveCanvasModal, getCanvasModalSelectionRoot } from "@/wab/client/components/canvas/canvas-modal-scope";
 import { isCodeComponentMissingPositionClass } from "@/wab/client/components/sidebar-tabs/Sections";
 import { createNodeIcon } from "@/wab/client/components/sidebar-tabs/tpl-tree";
 import { frameToScalerRect } from "@/wab/client/coords";
@@ -62,6 +63,7 @@ import {
 } from "@/wab/shared/model/classes";
 import { isExplicitSize, isTplDefaultSized } from "@/wab/shared/sizingutils";
 import { uniq } from "lodash";
+import $ from "jquery";
 import * as React from "react";
 
 export interface HoverBoxViewDisplayProps {
@@ -92,6 +94,7 @@ export interface HoverBoxViewDisplayProps {
   containerChildAlignment: Record<Orient, ContainerChildAlignment | undefined>;
   isSlot?: boolean;
   isRepeated?: boolean;
+  isComponentPart?: boolean;
 }
 
 export interface HoverBoxViewProps {
@@ -200,7 +203,14 @@ export function computeHoverBoxViewState(vc: ViewCtx, target: HoverBoxTarget) {
     };
   }
 
-  const { node, focusObj } = target;
+  const { focusObj } = target;
+  const part = focusObj instanceof ValComponent && vc.focusedComponentPart?.tpl === focusObj.tpl
+    ? vc.focusedComponentPart : undefined;
+  const selection = part ? $(part.element) : target.node;
+  const modal = getActiveCanvasModal(selection?.[0]?.ownerDocument);
+  const modalRoot = modal && getCanvasModalSelectionRoot(vc, modal);
+  const node = !part && focusObj === modalRoot && modal
+    ? $(modal) : selection ? filterCanvasModalElements(selection) : selection;
 
   if (node == null || !node.toArray().some(hasLayoutBox) || !focusObj) {
     return { display: "none" };
@@ -237,10 +247,15 @@ export function computeHoverBoxViewState(vc: ViewCtx, target: HoverBoxTarget) {
       visibleBox: Box.fromRect(visibleBox).posRect(),
       clippedSides: visibility.clippedSides,
       isRepeated: !!effectiveVariantSetting?.dataRep,
-      tagName: summarizeFocusObj(focusObj, vc, effectiveVariantSetting),
+      tagName: part?.displayName ?? summarizeFocusObj(focusObj, vc, effectiveVariantSetting),
       tagIcon: createNodeIcon(tplOrSlot, effectiveVariantSetting),
       tagUid: tpl?.uid,
       ...computeSpacingViewState(focusObj, vc),
+      ...(part && {
+        isComponentPart: true,
+        edgeControls: { top: [], right: [], bottom: [], left: [] },
+        padding: undefined, paddingPx: undefined, margin: undefined, marginPx: undefined,
+      }),
     },
     focusedElt: node,
   };

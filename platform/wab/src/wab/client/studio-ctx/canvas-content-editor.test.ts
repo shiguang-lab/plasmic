@@ -363,6 +363,20 @@ function clippedBox(horizontal = false) {
   return element;
 }
 
+test("stops entry detection at the first clipped region but enumerates all regions for editing", () => {
+  const { vc, tpl, element } = fixture();
+  const nested = clippedBox(true);
+  element.append(nested);
+  const computedStyle = vi.spyOn(window, "getComputedStyle");
+  expect(getContentEditorTarget(vc)?.tpl).toBe(tpl);
+  expect(computedStyle.mock.calls.some(([node]) => node === nested)).toBe(false);
+  expect(findClippedContent(element).map((region) => region.element)).toEqual([
+    element,
+    nested,
+  ]);
+  expect(computedStyle.mock.calls.some(([node]) => node === nested)).toBe(true);
+});
+
 test("automatically detects an AppShell-style internal viewport without a model node or metadata flag", () => {
   const { vc, element } = fixture(false);
   const viewport = clippedBox();

@@ -2,7 +2,7 @@ import { Select } from 'antd';
 import cls from 'classnames';
 import React from 'react';
 import { u as useCanvasOverlay, p as previewOpenProp } from './canvas-overlay-Dan70Oxr.esm.js';
-import { o as optionComponentName, g as optionGroupComponentName, s as selectComponentName } from './names-oKrrGg47.esm.js';
+import { o as optionComponentName, g as optionGroupComponentName, s as selectComponentName } from './names-DQIzgrvq.esm.js';
 import { r as registerComponentHelper, t as traverseReactEltTree } from './utils-U416WEAa.esm.js';
 import '@plasmicapp/host';
 import '@plasmicapp/host/registerComponent';

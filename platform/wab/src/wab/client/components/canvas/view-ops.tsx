@@ -24,6 +24,7 @@ import {
 } from "@/wab/client/clipboard/local";
 import { toast } from "@/wab/client/components/Messages";
 import { closestTaggedNonTextDomElt } from "@/wab/client/components/canvas/studio-canvas-util";
+import { getActiveCanvasModal, getCanvasModalSelectionRoot } from "@/wab/client/components/canvas/canvas-modal-scope";
 import { promptExtractComponent } from "@/wab/client/components/modals/ExtractComponentModal";
 import { promptWrapInComponent } from "@/wab/client/components/modals/WrapInComponentModal";
 import { reactConfirm } from "@/wab/client/components/quick-modals";
@@ -157,6 +158,8 @@ import {
   isPageComponent,
 } from "@/wab/shared/core/components";
 import * as exprs from "@/wab/shared/core/exprs";
+import { createCanvasPartTextEditor } from "@/wab/client/components/canvas/canvas-part-text-editor";
+import type { CanvasComponentPart } from "@/wab/client/components/canvas/canvas-component-parts";
 import { mkImageAssetRef } from "@/wab/shared/core/image-assets";
 import {
   SQ,
@@ -244,6 +247,7 @@ import {
   RawText,
   RichText,
   StyleToken,
+  TemplatedString,
   TplComponent,
   TplNode,
   TplSlot,
@@ -258,6 +262,7 @@ import {
   isKnownTplComponent,
   isKnownTplNode,
   isKnownTplTag,
+  isKnownTemplatedString,
 } from "@/wab/shared/model/classes";
 import {
   canAddChildren,
@@ -1180,7 +1185,10 @@ export class ViewOps {
   }
 
   private focusHeuristics() {
-    const selectionRoot = this.viewCtx().contentEditor.root;
+    const modal = getActiveCanvasModal(this.viewCtx().canvasCtx.doc());
+    const modalRoot = modal && getCanvasModalSelectionRoot(this.viewCtx(), modal);
+    const selectionRoot = modalRoot instanceof ValNode
+      ? modalRoot : this.viewCtx().contentEditor.root;
     return new FocusHeuristics(
       this.site(),
       this.tplMgr(),
@@ -1309,6 +1317,26 @@ export class ViewOps {
       focusObj: this.viewCtx().focusedSelectable(),
     },
   ) {
+    const part = this.viewCtx().focusedComponentPart;
+    if (part) {
+      this.tryEditComponentPartText(part);
+      return;
+    }
+    if (focusObj instanceof ValComponent && isCodeComponent(focusObj.tpl.component)) {
+      const vc = this.viewCtx();
+      const text = vc.getCodeComponentMeta(focusObj.tpl.component)?.canvasText;
+      const element = vc.renderState.sel2dom(focusObj, vc.canvasCtx)?.[0];
+      const arg = text && vc.effectiveCurrentVariantSetting(focusObj.tpl).args.find(
+        (a) => a.param.variable.name === text.prop,
+      );
+      if (text && element && !isKnownRenderExpr(arg?.expr)) {
+        this.tryEditComponentPartText({
+          tpl: focusObj.tpl, element, text, props: [text.prop],
+          name: text.prop, displayName: text.prop, selector: text.selector,
+        });
+        return;
+      }
+    }
     const textValNode = this.getFocusObjForEditText(focusObj);
     if (!textValNode || this.viewCtx().isOutOfContext(textValNode.tpl)) {
       return;
@@ -1349,6 +1377,50 @@ export class ViewOps {
       run: undefined,
       editor: undefined,
     });
+  }
+
+  private tryEditComponentPartText(part: CanvasComponentPart) {
+    const vc = this.viewCtx();
+    if (!part.text || !part.props.includes(part.text.prop) || vc.isOutOfContext(part.tpl) || this.studioCtx().blockChanges) {
+      return;
+    }
+    const param = part.tpl.component.params.find((p) => p.variable.name === part.text?.prop);
+    if (!param) {
+      return;
+    }
+    const effective = vc.effectiveCurrentVariantSetting(part.tpl);
+    const vtm = vc.variantTplMgr();
+    const blocked = getTargetBlockingCombo([computeDefinedIndicator(
+      vc.site, vc.currentComponent(), effective.getArgSource(param), vtm.getTargetIndicatorComboForNode(part.tpl),
+    )]);
+    if (blocked) {
+      notification.warning({ message: <TargetBlockedTooltip displayName={param.variable.name} combo={blocked} studioCtx={this.studioCtx()} /> });
+      return;
+    }
+    const expr = effective.args.find((a) => a.param === param)?.expr ?? param.defaultExpr;
+    const value = expr
+      ? isKnownTemplatedString(expr) && expr.text.every((item) => typeof item === "string")
+        ? expr.text.join("") : exprs.tryExtractJson(expr)
+      : part.element.querySelector(part.text.selector)?.textContent;
+    if (typeof value !== "string") {
+      vc.highlightParams = { tpl: part.tpl, params: [param] };
+      notification.info({ message: <UiText message="Edit bound text in the property panel." /> });
+      return;
+    }
+    vc.editingComponentPartText?.finish();
+    const editor = createCanvasPartTextEditor(part, value,
+      (next) => vc.change(() => vtm.setArg(part.tpl, param.variable, new TemplatedString({ text: [next] }))),
+      () => {
+        vc.editingComponentPartText = undefined;
+        vc.canvasCtx.resetCanvasOverlay();
+      },
+      (rect) => vc.canvasCtx.updateCanvasOverlay(rect),
+    );
+    if (editor) {
+      vc.editingComponentPartText = editor;
+      editor.input.focus();
+      editor.input.select();
+    }
   }
 
   saveText() {
@@ -1852,6 +1924,9 @@ export class ViewOps {
     forceDelete?: boolean;
     skipCommentsConfirmation?: boolean;
   }) {
+    if (_target == null && this.viewCtx().focusedComponentPart) {
+      return;
+    }
     if (_target == null) {
       _target = this.viewCtx().focusedTplsOrSlotSelections();
     }
@@ -3378,6 +3453,10 @@ export class ViewOps {
     }
   }
   isEditing(domNode: HTMLElement | null = null) {
+    const partEditor = this.viewCtx().editingComponentPartText;
+    if (partEditor && (!domNode || domNode === partEditor.input)) {
+      return true;
+    }
     const editingTextContext = this.viewCtx().editingTextContext();
     if (!editingTextContext) {
       return false;
@@ -4704,7 +4783,7 @@ export function getMergedTextArg(tpl: TplComponent) {
       if (p.mergeWithParent) {
         const arg = $$$(tpl).getSlotArgForParam(p);
         const maybeText = getSingleTextBlockFromArg(arg);
-        if (maybeText) {
+        if (maybeText || (arg && typeof exprs.tryExtractJson(arg.expr) === "string")) {
           return tuple(p, arg);
         }
       }

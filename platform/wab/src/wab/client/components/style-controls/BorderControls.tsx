@@ -174,7 +174,7 @@ function BorderRadiusSection_(props: {
 
   useEffect(() => {
     setOpen(false);
-  }, [studioCtx.focusedViewCtx()?.focusedSelectable()]);
+  }, [studioCtx.inspectorSelection?.selectable]);
 
   const showHeaderControls =
     hasBorderRadiusTargetProps || !hasBorderRadiusProps;

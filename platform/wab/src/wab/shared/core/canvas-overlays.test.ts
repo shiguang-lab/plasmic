@@ -102,6 +102,14 @@ test("a button handler exposes a sibling modal without executing the handler or 
   expect(modal.vsettings[0].args[0].expr).toBe(open);
 });
 
+test("a guarded create action exposes its sibling modal from the button label", () => {
+  const { label, button, modal, component } = fixture();
+  ensureVariantSetting(button, [base]).attrs.onClick = customCode(
+    "() => { const viewer = readViewer(); if (!viewer.id) return; $state.action = 'export'; }",
+  );
+  expect(getCanvasOverlayTargets(component, [label, button])).toEqual([modal]);
+});
+
 test("Plasmic updateVariable interactions also expose the related modal", () => {
   const { button, modal, component } = fixture();
   const handler = new EventHandler({ interactions: [] });

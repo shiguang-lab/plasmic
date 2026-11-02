@@ -21,16 +21,19 @@ import {
   tryExtractJson,
   tryExtractString,
 } from "@/wab/shared/core/exprs";
+import { JsonValue } from "@/wab/shared/core/lang";
 import {
   CollectionExpr,
   ensureKnownMapExpr,
   Expr,
+  isKnownCollectionExpr,
   isKnownCustomCode,
   isKnownMapExpr,
   MapExpr,
   TplComponent,
   TplTag,
 } from "@/wab/shared/model/classes";
+import { mapValues } from "lodash";
 import omit from "lodash/omit";
 import React from "react";
 
@@ -160,7 +163,7 @@ export function ValidationRuleBuilder(props: ValidationRuleBuilderProps) {
             componentPropValues={rule}
             schema={viewCtx.customFunctionsSchema()}
             env={{
-              ...(viewCtx.getCanvasEnvForTpl(tpl) ?? {}),
+              ...(viewCtx.getInspectorCanvasEnvForTpl(tpl) ?? {}),
               ...(name === "custom"
                 ? {
                     rule: {},
@@ -179,7 +182,7 @@ export function ValidationRuleBuilder(props: ValidationRuleBuilderProps) {
 }
 
 interface FormValidationRulesEditorProps {
-  value?: CollectionExpr;
+  value?: JsonValue | Expr;
   onChange: (value: CollectionExpr) => void;
   viewCtx: ViewCtx;
   tpl: TplTag | TplComponent;
@@ -188,8 +191,25 @@ interface FormValidationRulesEditorProps {
 export function FormValidationRulesEditor(
   props: FormValidationRulesEditorProps,
 ) {
-  const clonedExpr = props.value ? cloneExpr(props.value) : undefined;
-  const rules = clonedExpr?.exprs ?? [];
+  // Literal props arrive as JSON after PropEditorRow extracts their value.
+  // Structured rules retain their expressions, including custom validators.
+  let clonedExpr: CollectionExpr;
+  if (isKnownCollectionExpr(props.value)) {
+    clonedExpr = cloneExpr(props.value);
+  } else {
+    const literalRules = props.value ?? [];
+    assert(Array.isArray(literalRules), "Validation rules must be an array");
+    clonedExpr = new CollectionExpr({
+      exprs: literalRules.map((rule) => {
+        assert(
+          typeof rule === "object" && rule !== null && !Array.isArray(rule),
+          "Validation rules must be objects",
+        );
+        return new MapExpr({ mapExpr: mapValues(rule, codeLit) });
+      }),
+    });
+  }
+  const rules = clonedExpr.exprs;
   const [showModal, setShowModal] = React.useState(false);
 
   return (
@@ -221,9 +241,7 @@ export function FormValidationRulesEditor(
                       key={`rule-${index}`}
                       {...omit(props, "value")}
                       onChange={(argName, argExpr) => {
-                        const newExpr = props.value
-                          ? cloneExpr(props.value)
-                          : new CollectionExpr({ exprs: [] });
+                        const newExpr = cloneExpr(clonedExpr);
                         const mapExpr = ensureKnownMapExpr(
                           newExpr.exprs[index],
                         ).mapExpr;
@@ -235,9 +253,6 @@ export function FormValidationRulesEditor(
                         props.onChange(newExpr);
                       }}
                       onDelete={() => {
-                        if (!clonedExpr) {
-                          return;
-                        }
                         arrayRemove(clonedExpr.exprs, rule);
                         props.onChange(clonedExpr);
                       }}
@@ -249,9 +264,7 @@ export function FormValidationRulesEditor(
               <Button
                 startIcon={<Icon icon={PlusIcon} />}
                 onClick={() => {
-                  const newExpr = props.value
-                    ? cloneExpr(props.value)
-                    : new CollectionExpr({ exprs: [] });
+                  const newExpr = cloneExpr(clonedExpr);
                   newExpr.exprs.push(
                     new MapExpr({
                       mapExpr: {

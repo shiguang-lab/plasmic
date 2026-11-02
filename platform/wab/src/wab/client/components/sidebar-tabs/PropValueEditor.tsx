@@ -436,7 +436,7 @@ const PropValueEditor_ = (
         tpl={tpl}
         viewCtx={viewCtx}
         onChange={onChange}
-        value={value as CollectionExpr}
+        value={value}
       />
     );
   } else if (isPlainObjectPropType(propType) && propType.type === "variable") {
@@ -571,7 +571,7 @@ const PropValueEditor_ = (
         ({
           componentPropValues: innerComponentPropValues,
           ccContextData: innerCcContextData,
-        } = viewCtx.getComponentEvalContext(targetTpl));
+        } = viewCtx.getInspectorComponentEvalContext(targetTpl));
       }
     }
 

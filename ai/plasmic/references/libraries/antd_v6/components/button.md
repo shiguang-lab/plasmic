@@ -30,6 +30,8 @@ Each action group has at most one primary action, derived from the user's main t
 
 Use concise action/result labels consistent with the surrounding instructions and actual event: distinguish save, submit for approval, run, publish, cancel editing, return and stop a running task. Do not use a generic submit label for an operation described elsewhere as a run/test, or claim a close action stops backend work. Routine Modal labels follow its [footer contract](modal.md#footer). Do not manually insert spaces into two-character Chinese labels; preserve native typography/spacing.
 
+For a plain label, pass `children` as a primitive string on the Button, for example `props: { children: "新建模板" }`. The `children` contract remains a Slot and also accepts structured content. Create child elements when their markup or composition is intentional; plain labels are edited directly on the Button without a separate label node.
+
 Visual `type` and native `htmlType` are separate contracts. Only the intended validated form submission uses submit semantics; cancel, navigation and auxiliary operations must not accidentally submit or reset the Form. Follow the installed Form/ref action contracts, including footer actions outside Form; do not wire both native submission and a click handler to perform the same mutation twice.
 
 Use [action-bar composition](../compositions/action-bars.md) for contextual order, alignment, grouped availability and combined Preview acceptance.
