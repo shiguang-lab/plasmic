@@ -6,7 +6,7 @@ const vm = require("node:vm");
 const { EventEmitter } = require("node:events");
 const config = require("../desktop.config.json");
 
-function setup({ save = async () => {}, load = async () => {}, open = async () => {} } = {}) {
+function setup({ save = async () => {}, load = async () => {}, open = async () => {}, platform = process.platform } = {}) {
   let previewHandler;
   let handle;
   const browserUrls = [];
@@ -25,6 +25,7 @@ function setup({ save = async () => {}, load = async () => {}, open = async () =
     webContents,
     isDestroyed: () => false,
     setBackgroundColor: (value) => { windowForTest.background = value; },
+    setTitleBarOverlay: (value) => { windowForTest.titleBarOverlay = { ...value }; },
     loadURL: async (url) => {
       navigationSteps.push("navigate");
       await load(url);
@@ -43,7 +44,7 @@ function setup({ save = async () => {}, load = async () => {}, open = async () =
     {
       module: { exports: {} },
       __dirname: path.dirname(filename),
-      process,
+      process: { ...process, platform },
       URL,
       windowForTest,
       studioForTest,
@@ -117,18 +118,26 @@ test("full preview opens in the default browser and denies creating an Electron 
   assert.equal(s.loginUrls.length, 0);
 });
 
-test("the current window follows native appearance and unsubscribes when closed", () => {
-  const s = setup();
-  assert.equal(s.windowForTest.background, "#15161b");
-  assert.equal(s.studioForTest.background, "#15161b");
-  s.appearance.set("light");
-  assert.equal(s.windowForTest.background, "#eceef3");
-  assert.equal(s.studioForTest.background, "#eceef3");
-  s.windowForTest.emit("closed");
-  s.appearance.set("dark");
-  assert.equal(s.windowForTest.background, "#eceef3");
-  assert.equal(s.studioForTest.background, "#eceef3");
-});
+for (const platform of ["win32", "darwin", "linux"]) {
+  test(`${platform}: current window follows native appearance and unsubscribes when closed`, () => {
+    const s = setup({ platform });
+    assert.equal(s.windowForTest.background, "#15161b");
+    assert.equal(s.studioForTest.background, "#15161b");
+    assert.deepEqual(s.windowForTest.titleBarOverlay, platform === "win32"
+      ? { color: "#15161b", symbolColor: "#edeef5", height: 40 } : undefined);
+    s.appearance.set("light");
+    assert.equal(s.windowForTest.background, "#eceef3");
+    assert.equal(s.studioForTest.background, "#eceef3");
+    assert.deepEqual(s.windowForTest.titleBarOverlay, platform === "win32"
+      ? { color: "#eceef3", symbolColor: "#252936", height: 40 } : undefined);
+    s.windowForTest.emit("closed");
+    s.appearance.set("dark");
+    assert.equal(s.windowForTest.background, "#eceef3");
+    assert.equal(s.studioForTest.background, "#eceef3");
+    assert.deepEqual(s.windowForTest.titleBarOverlay, platform === "win32"
+      ? { color: "#eceef3", symbolColor: "#252936", height: 40 } : undefined);
+  });
+}
 
 test("embedded preview navigation stays in the current window", () => {
   const s = setup();
