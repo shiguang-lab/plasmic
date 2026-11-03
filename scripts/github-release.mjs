@@ -120,6 +120,7 @@ export async function collectRelease(plan, root = ".") {
 const gh = (args) =>
   execFileSync("gh", args, {
     encoding: "utf8",
+    maxBuffer: 32 * 1024 * 1024,
     stdio: ["ignore", "pipe", "pipe"],
   });
 
