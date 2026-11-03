@@ -1,6 +1,6 @@
 import { isProjectPath, parseProjectLocation } from "@/wab/client/cli-routes";
 import { StudioChrome } from "@/wab/client/components/studio/StudioChrome";
-import { RowsSkeleton } from "@/wab/client/components/widgets/ContentSkeletons";
+import { BrandLoading } from "@/wab/client/components/widgets/BrandLoading";
 import { useLocation } from "@/wab/client/route/HistoryProvider";
 import * as React from "react";
 
@@ -18,7 +18,7 @@ export function ApplicationPageLoading({
     return <StudioChrome>{failure}</StudioChrome>;
   }
   return (
-    <React.Suspense fallback={<RowsSkeleton rows={6} />}>
+    <React.Suspense fallback={<BrandLoading />}>
       <ApplicationRouteLoading failure={failure} />
     </React.Suspense>
   );

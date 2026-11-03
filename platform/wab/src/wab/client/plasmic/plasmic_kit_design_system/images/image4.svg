@@ -1,5 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 32 32">
-  <path fill-rule="evenodd" clip-rule="evenodd" d="M30.974 20.103C30.51 12.236 23.984 6 16 6 8.017 6 1.49 12.236 1.026 20.103c.027.339.082.589.192.805a2 2 0 00.874.874c.402.205.92.217 1.908.218v-1C4 14.373 9.373 9 16 9s12 5.373 12 12v1c.988 0 1.506-.013 1.908-.218a2 2 0 00.874-.874c.11-.216.165-.466.192-.805z" fill="#0091FF"/>
-  <path fill-rule="evenodd" clip-rule="evenodd" d="M16 13a8 8 0 00-8 8v1H5v-1c0-6.075 4.925-11 11-11s11 4.925 11 11v1h-3v-1a8 8 0 00-8-8z" fill="#46A758"/>
-  <path fill-rule="evenodd" clip-rule="evenodd" d="M23 22v-1a7 7 0 10-14 0v1h2a1 1 0 001-1 4 4 0 018 0 1 1 0 001 1h2z" fill="#E54D2E"/>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><defs><linearGradient id="brand-gradient" gradientUnits="userSpaceOnUse" x1="4" y1="3" x2="23" y2="29">
+<stop offset="0" stop-color="#39d3df"/>
+<stop offset="0.34" stop-color="#4c89ed"/>
+<stop offset="0.7" stop-color="#7955d9"/>
+<stop offset="1" stop-color="#c46cda"/>
+</linearGradient></defs><g fill="url(#brand-gradient)"><path d="M7 3H21A8 8 0 0 1 21 19H14.48Q14 19 14.300 18.625L17.825 14.219Q18 14 18.28 14H21A3 3 0 0 0 21 8H11Z"/><path d="M11 13H17.52Q18 13 17.700 13.375L14.175 17.781Q14 18 13.72 18H11A3 3 0 0 0 11 24H21L17 29H11A8 8 0 0 1 11 13Z"/></g></svg>

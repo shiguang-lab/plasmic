@@ -108,7 +108,7 @@ export async function seedTestDb(em: EntityManager) {
             isNew: true,
             name: "Plasmic Design System",
             projectId: plexusBundleInfo.projectId,
-            imageUrl: "https://static1.plasmic.app/plasmic-logo.png",
+            imageUrl: "/static/img/plasmic-mark.png",
             entryPoint: {
               type: "arena",
               name: "Components",

@@ -1,4 +1,3 @@
-
 import AnalyticsHeader from "@/wab/client/components/analytics/AnalyticsHeader";
 import { ANALYTICS_EVENTS } from "@/wab/client/components/analytics/utils";
 import { CmsLoadingShell } from "@/wab/client/components/cms/CmsLoading";
@@ -6,10 +5,10 @@ import { DashboardLayout } from "@/wab/client/components/dashboard/DashboardLayo
 import { DashboardPageLoading } from "@/wab/client/components/dashboard/DashboardPageLoading";
 import { NormalLayoutLoading } from "@/wab/client/components/normal-layout";
 import { IntakeFlowForm } from "@/wab/client/components/pages/IntakeFlowForm";
+import { BrandLoading } from "@/wab/client/components/widgets/BrandLoading";
 import {
   ChartSkeleton,
   FormSkeleton,
-  RowsSkeleton,
 } from "@/wab/client/components/widgets/ContentSkeletons";
 import { useI18n } from "@/wab/client/i18n";
 import { useLocation } from "@/wab/client/route/HistoryProvider";
@@ -187,7 +186,7 @@ export default function ApplicationRouteLoading({
   ) {
     return (
       <NormalLayoutLoading>
-        <RowsSkeleton rows={6} avatar />
+        <BrandLoading />
       </NormalLayoutLoading>
     );
   }

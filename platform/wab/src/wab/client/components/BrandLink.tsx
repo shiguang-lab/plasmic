@@ -1,4 +1,5 @@
 import styles from "@/wab/client/components/BrandLink.module.scss";
+import { BrandLogo } from "@/wab/client/components/BrandLogo";
 import { PublicLink } from "@/wab/client/components/PublicLink";
 import { useI18n } from "@/wab/client/i18n";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
@@ -30,13 +31,7 @@ export function BrandLink({
             <img src={brand.logoImgSrc} alt={brand.logoAlt ?? label} />
           ) : (
             <>
-              <svg
-                viewBox="0 0 32 32"
-                aria-hidden="true"
-                style={{ fill: token.colorPrimary }}
-              >
-                <path d="M7 3h14a8 8 0 0 1 0 16h-7l4-5h3a3 3 0 0 0 0-6H11z M11 13h7l-4 5h-3a3 3 0 0 0 0 6h10l-4 5h-6a8 8 0 0 1 0-16z" />
-              </svg>
+              <BrandLogo aria-hidden="true" />
               <span>Plasmic</span>
             </>
           )}

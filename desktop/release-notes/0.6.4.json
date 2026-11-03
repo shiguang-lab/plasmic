@@ -1,0 +1,7 @@
+{
+  "en": "- Add gradient logo loading with a smoother 2.8-second reveal.\n- Unify Studio, sign-in, favicon and Desktop app icons.",
+  "zh-CN": "- 全页加载使用渐变 Logo 动效，优化尺寸与 2.8 秒显色节奏。\n- 统一 Studio、登录页、浏览器及桌面 App 图标。",
+  "zh-TW": "- 全頁載入採用漸層 Logo 動效，優化尺寸與顯色節奏。\n- 統一 Studio、登入頁、瀏覽器與桌面 App 圖示。",
+  "ja": "- グラデーションロゴの読み込みアニメーションとサイズを改善。\n- Studio、ログイン画面、ブラウザー、デスクトップのアイコンを統一。",
+  "ko": "- 그라데이션 로고 로딩 애니메이션과 크기 개선.\n- Studio, 로그인, 브라우저 및 데스크톱 아이콘 통일."
+}

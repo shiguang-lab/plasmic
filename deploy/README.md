@@ -268,10 +268,16 @@ stripping, rejected redirects and missing-asset 404 responses. No GitHub credent
 
 ## Product branding
 
-Studio uses `platform/wab/public/favicon.svg` and `favicon.ico`. The mark matches
-Studio's editor and dashboard. Shiguang Website uses the same mark in
-`ZhijieMark` and `/assets/plasmic-app-mark.png`; the desktop OAuth registration's
-`logoUrl` points to that PNG.
+Studio and Desktop share the gradient and paths in
+`platform/wab/src/wab/shared/branding.json`. Run
+`node scripts/generate-brand-assets.mjs` to regenerate the favicon, Desktop
+icons, window marks, and starter template logo. Studio's `BrandLogo` and
+`BrandLoading` use the same definition. The loading mark is about 80px wide
+inside a 192px construction grid, with a 2.8-second animation and a static
+gradient for reduced motion.
+
+The desktop OAuth registration's `logoUrl` points to Shiguang Website's
+`/assets/plasmic-app-mark.png`, maintained in that website's repository.
 
 ## Shared hosting package
 

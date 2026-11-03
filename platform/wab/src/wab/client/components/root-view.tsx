@@ -22,9 +22,9 @@ import { shouldUpsellRedirect } from "@/wab/client/components/dashboard/useUpsel
 import { StudioChrome } from "@/wab/client/components/studio/StudioChrome";
 import { AppView } from "@/wab/client/components/top-view";
 import * as widgets from "@/wab/client/components/widgets";
+import { BrandLoading } from "@/wab/client/components/widgets/BrandLoading";
 import {
   FormSkeleton,
-  RowsSkeleton,
 } from "@/wab/client/components/widgets/ContentSkeletons";
 import { LoadingError } from "@/wab/client/components/widgets/LoadingError";
 import { providesAppCtx, useAppCtx } from "@/wab/client/contexts/AppContexts";
@@ -416,7 +416,7 @@ function LoggedInContainer(props: LoggedInContainerProps) {
                               selfInfo.isAdmin ? (
                                 <NormalLayout appCtx={appCtx}>
                                   <React.Suspense
-                                    fallback={<RowsSkeleton rows={6} avatar />}
+                                    fallback={<BrandLoading />}
                                   >
                                     <LoggedInPages.AdminPage
                                       nonAuthCtx={nonAuthCtx}

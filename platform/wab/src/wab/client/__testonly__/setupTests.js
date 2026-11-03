@@ -27,7 +27,8 @@ vi.mock(
     getReactWebBundle: async () => "",
     getLiveFrameClientJs: async () => "",
     getHostLessPkg: async () => "",
-    getSortedHostLessPkgs: async (_win, _api, pkgs) => pkgs.map((pkg) => [pkg, ""]),
+    getSortedHostLessPkgs: async (_win, _api, pkgs) =>
+      pkgs.map((pkg) => [pkg, ""]),
   }),
 );
 
@@ -40,6 +41,17 @@ for (const method of ["open", "success", "info", "warning", "error"]) {
 }
 
 // Web shims for APIs missing in JSDOM
+// Real SVG geometry is checked in Chromium; jsdom exercises animation lifecycle.
+if (typeof SVGElement !== "undefined") {
+  Object.defineProperties(SVGElement.prototype, {
+    getTotalLength: { configurable: true, value: () => 100 },
+    getPointAtLength: {
+      configurable: true,
+      value: (distance) => ({ x: distance, y: 0 }),
+    },
+  });
+}
+
 global.ResizeObserver = class ResizeObserver {
   observe() {}
   unobserve() {}
@@ -71,7 +83,9 @@ global.URL.createObjectURL = () => `blob:${++objectURLCounter}`;
 global.URL.revokeObjectURL = () => {};
 
 beforeAll(async () => {
-  if (typeof window === "undefined") {return;}
+  if (typeof window === "undefined") {
+    return;
+  }
   const { initializeUiLocale } = await vi.importActual("@/wab/client/i18n");
   await initializeUiLocale();
 });
