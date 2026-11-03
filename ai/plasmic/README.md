@@ -37,7 +37,7 @@ scripts/build-plasmic-resources.mjs        构建资源与独立版本的 CLI �
 
 设计前通过 MCP 核对 imported project、注册 key、importPath 和可确认的实现版本；Studio 发布版本、wrapper npm 版本和底层 UI 版本分别记录。组合规范声明参与库，静态检查脚本只用于其已支持的库契约。没有匹配规范时依据真实实现、注册和通用设计规则完成可确认部分，明确缺少的规范覆盖；不回退套用 Antd 6，也不为适配模板切换目标组件库。组件库使用 `antd_v6`、`antd_v5`、`overseas`、`react_ui`、`antd_icons` 这样的单层目录名。目录标识注册组件库，底层依赖版本记入库索引的依赖说明，不追加到目录名。新增组件库时增加独立目录和索引、验证对应组件及依赖后接入总索引；不创建空版本占位或版本间重定向。
 
-组件与组合文档统一使用阶段模板：开头为标题、库、注册表和可选的 **Hard constraints**（只认这一英文标记，构建拒绝其他写法，以免约束摘要漏读）；随后依次是 `## Plan decisions`（仅当 rules.json 声明本文档的决策项）、`## Generation rules`（必需）、可选的 `## Conditional rules` 和 `## Acceptance checks`，原主题小节降为 `###`。规则卡按阶段取节：编排读 Plan decisions + Generation rules，验收读全文；不再为单个组件维护必读章节清单。新增组件时写入模板文档并在 rules.json 增加一条，构建会校验模板、目录、决策表和锚点一致。决策项可由共享文档拥有（如 `design/scale.md` 的尺寸基线），此时该文档维护 Plan decisions 表。
+组件与组合文档统一使用阶段模板：开头为标题、库、注册表和可选的 **Hard constraints**（只认这一英文标记，构建拒绝其他写法，以免约束摘要漏读）；随后依次是 `## Plan decisions`（仅当 rules.json 声明本文档的决策项）、`## Generation rules`（必需）、可选的 `## Conditional rules` 和 `## Acceptance checks`，原主题小节降为 `###`。规则卡按阶段取节：编排读 Plan decisions + Generation rules，验收保留适用章节并补 Acceptance checks；Conditional rules 与页面类型始终按当前范围投放，同一上下文通过读取台账只补新章节或新版本；不再为单个组件维护必读章节清单。新增组件时写入模板文档并在 rules.json 增加一条，构建会校验模板、目录、决策表和锚点一致。决策项可由共享文档拥有（如 `design/scale.md` 的尺寸基线），此时该文档维护 Plan decisions 表。
 
 Page plan 的步骤、命令和读取台账见 [规划](references/planning.md)，逐页编排与恢复见 [原型工作流](references/workflows/prototype.md)，最终验收见 [统一验证](references/verification.md) 和 [规则评审](references/review-mode.md#rule-review)。`rules.json` 维护注册与组件决策的映射，`gate-rules.json` 维护项目/页面规则路由；脚手架、规则卡和门禁从这两处读取，README 不另维护执行流程。
 

@@ -11,7 +11,7 @@ Library: [Ant Design v6](../index.md).
 
 - The field collection uses either native `items` or direct Descriptions.Item children, never both. Reject span/div/text fields, layout components and wrappers in the children Slot, even beside valid Items. Text and rich content remain valid inside Item label/children Slots and the Descriptions title Slot.
 - Fixed fields must use real Descriptions.Item nodes with editable label/children Slots, even when values are bound to API data. Native `items` is allowed only when the field collection itself is determined at runtime or the user explicitly requests it; record source-backed `itemsReason` outside props. See [Composition](#composition).
-- Decide `column` from the group's container before markup: 3 or 4 in a full-width page region according to actual value lengths and rendered density (use 4 when 3 looks too sparse, 3 when 4 crowds the content), 2 in a half-width Card, 640px Drawer or 720px Modal, 1 below about 560px. A wider single-column group needs evidence that every value requires a full row, or an explicit source override. See [Column and span](#column-and-span).
+- Choose an initial `column` from the group’s container and realistic content before markup, then confirm or adjust it from the first rendered result: 3 or 4 in a full-width page region according to actual value lengths and rendered density (use 4 when 3 looks too sparse, 3 when 4 crowds the content), 2 in a half-width Card, 640px Drawer or 720px Modal, 1 below about 560px. A wider single-column group needs evidence that every value requires a full row, or an explicit source override. See [Column and span](#column-and-span).
 - Default to `layout="horizontal"` (label and value side by side). Use `vertical` only when explicitly required by the user or source; a template or aesthetic preference does not justify it. See [Layout direction](#layout-direction).
 - Short parallel facts (status, check results, owner, dates) fill the columns side by side; never stack them in one column inside a wide region.
 - A long value takes a larger `span`; it does not lower the whole group's `column`.
@@ -19,7 +19,7 @@ Library: [Ant Design v6](../index.md).
 
 ## Plan decisions
 
-Declare these native props in each planned instance before markup. `prepare_plan.py scaffold` sets the horizontal layout baseline and writes `"__DECIDE__"` for column; selection preflight rejects pending values.
+Declare these native props before markup using the initial content/container estimate; record the rendered choice in the same plan before Saved-Page acceptance. `prepare_plan.py scaffold` sets the horizontal layout baseline and writes `"__DECIDE__"` for column; selection preflight rejects pending values.
 
 | Registration | Prop | Decision |
 | --- | --- | --- |
@@ -36,7 +36,7 @@ Declare these native props in each planned instance before markup. `prepare_plan
 | Half-width Card or column, 640px Drawer, 720px Modal | 2 |
 | Narrower than about 560px, or evidence shows every value requires a full row | 1 |
 
-For a full-width region, compare the actual labels and realistic values at the target viewport: use 4 columns when 3 leaves excessive whitespace; use 3 when 4 crowds labels/values or causes avoidable wrapping. Choose from the rendered result, not container width alone or a fixed template count.
+For a full-width region, compare the actual labels and realistic values at the target viewport: use 4 columns when 3 leaves excessive whitespace; use 3 when 4 crowds labels/values or causes avoidable wrapping. For a new group, preflight accepts an initial 3/4-column estimate from labels, realistic values and usable container width; it does not require a render that does not yet exist. After insertion, confirm or revise that value from the rendered result and update the existing plan/model before Saved-Page review. Final acceptance uses the rendered density, not the estimate or a fixed template count.
 
 For a wider single-column group, review every value at the target viewport or cite an explicit source override under [protected configuration](../../../design/component-policy.md#protected-configuration). One long value justifies that Item's span, not a single-column group. A width measurement alone does not identify a full-width region versus a half-width or overlay container.
 

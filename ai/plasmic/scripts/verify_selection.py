@@ -349,10 +349,10 @@ OVERLAYS = {'plasmicantd6modal', 'plasmicantd6drawer'}
 
 def page_type_errors(plan):
     value = plan.get('pageType')
-    if value == rules_manifest.PENDING or value in PAGE_TYPES:
+    if value in (rules_manifest.PENDING, 'non-admin') or value in PAGE_TYPES:
         return []
-    return [{'check': 'pageType', 'pointer': '/pageType', 'rule': PAGE_TYPE_RULE, 'allowedValues': list(PAGE_TYPES),
-             'message': 'Choose the Page type from the user task on this Page before declaring regions and components'}]
+    return [{'check': 'pageType', 'pointer': '/pageType', 'rule': PAGE_TYPE_RULE, 'allowedValues': [*PAGE_TYPES, 'non-admin'],
+             'message': 'Choose an admin Page type or non-admin from the source task; record its intent and source in pageStructure before declaring regions and components'}]
 
 
 def page_structure_errors(plan):
@@ -678,7 +678,9 @@ def page_libraries(plan):
 
 
 def admin_page(plan):
-    """Page-wide v6 recipes cannot establish another library's layout/API contract."""
+    """Admin recipes need a declared admin task and a supported library contract."""
+    if plan.get('pageType') not in (*PAGE_TYPES, rules_manifest.PENDING):
+        return False
     if any(not rules_manifest.library_for(spec.get('component', ''))
            for spec in component_declarations(plan)):
         return False
@@ -687,7 +689,7 @@ def admin_page(plan):
 
 
 def project_reads(stage='compose', root=None):
-    """Shared design rules read once per task in full and reviewed once per project.
+    """Shared rules: read initially, then supplement when the plan adds rule owners.
 
     Task-wide rules that only some tasks need (record context, permissions) join
     when any planned Page needs them (gate-rules.json projectRulesWhen).
@@ -731,8 +733,11 @@ def page_conditions(plan, root=None):
         'contentStates': bool(keys & state_components),
         'tableSelection': any(selectable(table) for table in tables),
         'stepForm': {'plasmicantd6steps', 'plasmicantd6form'} <= keys,
-        'summaryMetrics': bool(keys & {'plasmicantd6descriptions', 'plasmicantd6statistic', 'plasmicantd6statistictimer'}),
-        'searchTable': 'plasmicantd6table' in keys,
+        'summaryMetrics': plan.get('pageType') != 'non-admin'
+                          and bool(keys & {'plasmicantd6descriptions', 'plasmicantd6statistic', 'plasmicantd6statistictimer'}),
+        'searchTable': 'plasmicantd6table' in keys
+                       and (plan.get('pageType') != 'non-admin'
+                            or bool(keys & {'plasmicoverseassearchform', 'plasmicoverseasappshell'})),
         'categoryColumn': any(norm(c.get('component', '')) == 'plasmicantd6tablecolumn'
                               and c.get('role') == 'category' for c in declarations),
         'pageHeader': admin_page(plan) and plan.get('pageType') in ('basic-detail', 'tabbed-detail')
@@ -758,13 +763,50 @@ def dynamic_navigation(plan, root=None):
     return False
 
 
+def table_feature_sections(plan):
+    """Optional Table chapters from the existing native props and Slot ownership.
+
+    Undeclared/opaque props cannot prove feature absence. Keep both chapters
+    discoverable until the Table/Column declaration is concrete.
+    """
+    expansion, sorting = 'expandable-row-details', 'header-sorting'
+    needed = set()
+    declarations = component_declarations(plan)
+    tables = {spec.get('nodeName') for spec in declarations
+              if norm(spec.get('component', '')) == 'plasmicantd6table'}
+    for spec in declarations:
+        key = norm(spec.get('component', ''))
+        if key == 'plasmicantd6tableexpandcolumn':
+            needed.add(expansion)
+        if key not in {'plasmicantd6table', 'plasmicantd6tablecolumn'}:
+            continue
+        values, dynamic = spec.get('props'), spec.get('dynamicProps', [])
+        if not isinstance(values, dict) or not isinstance(dynamic, list):
+            needed.update((expansion, sorting))
+            continue
+        names = set(values) | {name.split('.')[0] for name in dynamic if isinstance(name, str)}
+        if key == 'plasmicantd6table' and names & {
+                'expandable', 'expandedRowRender', 'canvasExpandedRowKeys', 'onExpand', 'onExpandedRowsChange'}:
+            needed.add(expansion)
+        if key == 'plasmicantd6tablecolumn' and names & {
+                'sorter', 'defaultSortOrder', 'sortOrder', 'sortDirections'}:
+            needed.add(sorting)
+    nodes = plan.get('nodes') if isinstance(plan.get('nodes'), list) else []
+    for spec in declarations + nodes:
+        owner = spec.get('owner') if isinstance(spec, dict) else None
+        if (isinstance(owner, dict) and owner.get('nodeName') in tables
+                and owner.get('slot') == 'expandedRowRender'):
+            needed.add(expansion)
+    return needed
+
+
 def required_reads(plan, stage='compose', root=None):
     """{resource-relative path: set of anchors, or None for the full document}.
 
     Each declaration needs its own `rule` and its registration's owner document
     (rules.json). Stage-template documents deliver their preamble plus Plan
-    decisions and Generation rules when composing, and the complete document
-    for acceptance. Other documents and explicit anchors are read as declared.
+    decisions and Generation rules when composing, adding Acceptance checks
+    for acceptance. Conditional sections remain scoped in both stages.
     The decided page type and applicable Page conditions add their composition
     documents (gate-rules.json pageRules); `root` is the whole expectation.
     """
@@ -776,10 +818,11 @@ def required_reads(plan, stage='compose', root=None):
             needed.setdefault(path, set()).update(anchors)
     def stage_anchors(path):
         stages = rules_manifest.stage_sections(path)
-        if stage == 'accept' or 'generation-rules' not in stages:
+        if 'generation-rules' not in stages:
             return None
         # Conditional rules arrive by explicit subsection (below), never as a whole stage.
-        return {anchor for anchor in stages if anchor not in ('acceptance-checks', 'conditional-rules')}
+        return {anchor for anchor in stages if anchor != 'conditional-rules'
+                and (stage == 'accept' or anchor != 'acceptance-checks')}
     page_rules = rules_manifest.manifest()['pageRules']
     if stage == 'accept' and 'components' in plan:
         add(PAGE_STRUCTURE_RULE, None)
@@ -818,6 +861,9 @@ def required_reads(plan, stage='compose', root=None):
             if decision_anchor and needed.get(decision_path) is not None:
                 needed[decision_path].add(decision_anchor)
     # Conditional sections outside the stage template reach only the Pages that need them.
+    table = (rules_manifest.document_for('plasmic-antd6-table') or '').split('#', 1)[0]
+    if table in needed and needed[table] is not None:
+        needed[table].update(table_feature_sections(plan))
     shell = (rules_manifest.document_for(APP_SHELL) or '').split('#', 1)[0]
     if shell in needed and needed[shell] is not None:
         context = plan.get('appContext')
@@ -831,8 +877,9 @@ def required_reads(plan, stage='compose', root=None):
         add(SCALE, None)
         page_types = PAGE_TYPE_RULE.split('#', 1)[0]
         kind = plan.get('pageType')
-        add(page_types, None if stage == 'accept' else
-            ({kind, 'regions-inside-any-type'} if kind in PAGE_TYPES else {'choosing-the-type'}))
+        add(page_types, {kind, 'regions-inside-any-type'} if kind in PAGE_TYPES else {'choosing-the-type'})
+    elif 'components' in plan and plan.get('pageType') == 'non-admin':
+        add(PAGE_TYPE_RULE.split('#', 1)[0], {'non-admin'})
     return needed
 
 
@@ -851,27 +898,33 @@ def project_coverage_errors(ledger, stage='compose', root=None):
             for error in coverage_errors(project_reads(stage, root), ledger)]
 
 
+def covered_lines(path, content, ledger):
+    """Current-version emitted lines; callers cannot infer retained model context."""
+    from read_reference import selected_lines
+    digest = hashlib.sha256(content.encode()).hexdigest()
+    covered = set()
+    for record in ledger:
+        if not isinstance(record, dict):
+            continue
+        if not str(record.get('path', '')).endswith('/' + path) or record.get('sha256') != digest or record.get('outline'):
+            continue
+        chosen = record.get('sections')
+        if not isinstance(chosen, list) or not all(isinstance(anchor, str) for anchor in chosen):
+            continue
+        try:
+            covered.update(selected_lines(content, chosen))
+        except ValueError:
+            continue
+    return covered
+
+
 def coverage_errors(needed, ledger):
     from read_reference import sections, selected_lines
     errors = []
     for path, anchors in sorted(needed.items()):
-        file = RESOURCE_ROOT / path
-        text = file.read_text(encoding='utf-8')
-        digest = hashlib.sha256(text.encode()).hexdigest()
+        text = (RESOURCE_ROOT / path).read_text(encoding='utf-8')
         lines, headings = sections(text)
-        covered = set()
-        for record in ledger:
-            if not isinstance(record, dict):
-                continue
-            if not str(record.get('path', '')).endswith('/' + path) or record.get('sha256') != digest or record.get('outline'):
-                continue
-            chosen = record.get('sections')
-            if not isinstance(chosen, list) or not all(isinstance(anchor, str) for anchor in chosen):
-                continue
-            try:
-                covered.update(selected_lines(text, chosen))
-            except ValueError:
-                continue
+        covered = covered_lines(path, text, ledger)
         missing_lines = selected_lines(text, anchors) - covered
         if not missing_lines:
             continue

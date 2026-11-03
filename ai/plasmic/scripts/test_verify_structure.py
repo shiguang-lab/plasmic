@@ -352,6 +352,62 @@ class StructureTests(unittest.TestCase):
         page["baseVariantTplTree"] = original + '<plasmic-component data-plasmic-component="plasmic-antd6-descriptions"><slot name="title">Basic information</slot></plasmic-component>'
         self.assertTrue(self.result()["passed"])
 
+    def test_non_admin_heading_does_not_inherit_admin_title_ban(self):
+        self.expected["pages"][0]["pageType"] = "non-admin"
+        self.pages["results"][0]["baseVariantTplTree"] += '<h1>品牌故事</h1>'
+        self.assertFalse(any(e.get("check") == "pageHeader" for e in self.result()["errors"]))
+        self.expected["pages"][0]["pageType"] = "list"
+        self.assertTrue(any(e.get("check") == "pageHeader" for e in self.result()["errors"]))
+
+    def test_non_admin_structure_keeps_source_checks_without_requiring_app_shell(self):
+        from test_verify_selection import PagePurposeTests, node
+        plan = PagePurposeTests().public_page()
+        plan['source'] = 'REQ §Public brand homepage'
+        page = {'uuid': 'public', 'type': 'page', 'name': plan['name'], 'pageMeta': {'path': '/'},
+                'baseVariantTplTree': node('VisitStore', 'plasmic-antd6-button')}
+        overview = {'results': [{'__type': 'Project', 'components': [page]}]}
+        readback = {'results': [page]}
+        result = check({'pages': [plan]}, overview, readback)
+        self.assertTrue(result['passed'], result)
+        self.assertTrue(any('non-admin navigation' in value for value in result['notChecked']))
+        page['baseVariantTplTree'] = ''
+        self.assertFalse(check({'pages': [plan]}, overview, readback)['passed'])
+        page['baseVariantTplTree'] = node('VisitStore', 'plasmic-antd6-button')
+        plan['pageType'] = 'list'
+        result = check({'pages': [plan]}, overview, readback)
+        self.assertTrue(any(e['check'] == 'shell' for e in result['errors']))
+        plan['pageType'] = 'non-admin'
+        plan['components'].append({'nodeName': 'Shell', 'component': 'plasmic-overseas-app-shell', 'source': 'REQ §Shell'})
+        self.assertTrue(any(e['check'] == 'shell' for e in check({'pages': [plan]}, overview, readback)['errors']))
+
+    def test_focused_structure_cli_keeps_sibling_drafts_out_of_page_checks(self):
+        import subprocess
+        import sys
+        from test_verify_selection import PagePurposeTests, node
+        plan = PagePurposeTests().public_page()
+        plan['source'] = 'REQ §Public brand homepage'
+        sibling = {'path': '/stories', 'source': 'REQ §Brand stories', 'recordPage': True}
+        page = {'uuid': 'public', 'type': 'page', 'name': plan['name'], 'pageMeta': {'path': '/'},
+                'baseVariantTplTree': node('VisitStore', 'plasmic-antd6-button')}
+        overview = {'results': [{'__type': 'Project', 'components': [page,
+                    {'uuid': 'stories', 'type': 'page', 'pageMeta': {'path': '/stories'}}]}]}
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            filenames = []
+            for name, data in [('plan', {'pages': [plan, sibling]}), ('overview', overview), ('pages', {'results': [page]})]:
+                path = root / (name + '.json')
+                path.write_text(json.dumps(data))
+                filenames.append(str(path))
+            command = [sys.executable, str(Path(__file__).with_name('verify_structure.py')), *filenames]
+            scoped = subprocess.run([*command, '--page', '/'], capture_output=True, text=True)
+            self.assertEqual(scoped.returncode, 0, scoped.stdout + scoped.stderr)
+            self.assertFalse(subprocess.run(command, capture_output=True, text=True).returncode == 0)
+            plan['rowActions'] = [{'column': 'VisitStore', 'carries': 'id', 'destination': '/stories'}]
+            Path(filenames[0]).write_text(json.dumps({'pages': [plan, sibling]}))
+            dependent = subprocess.run([*command, '--page', '/'], capture_output=True, text=True)
+            self.assertNotEqual(dependent.returncode, 0)
+            self.assertIn('Destination record Page must declare the carried identity', dependent.stdout)
+
     def test_top_level_header_using_spans_cannot_bypass_the_heading_guard(self):
         self.pages["results"][0]["baseVariantTplTree"] = '<plasmic-component data-plasmic-component="plasmic-overseas-app-shell"><slot name="children"><div><div data-plasmic-name="BuilderHeader"><span>Create record</span></div><div>Fields</div></div></slot></plasmic-component>'
         errors = self.result()["errors"]
@@ -382,7 +438,11 @@ class StructureTests(unittest.TestCase):
         self.assertIn("exceeds its 6-unit budget", str(copy_budget_errors([{"nodeName": "Save", "kind": "action", "text": "Save and publish now"}])))
         dup = copy_budget_errors([{"nodeName": "Banner", "role": "hint", "text": "预跑成功后可保存 SQL"},
                                   {"nodeName": "Footer", "role": "hint", "text": "预跑成功后可保存 SQL"}])
-        self.assertIn("state each fact once", str(dup))
+        # Repeated prose needs semantic review; equality cannot prove shared scope.
+        self.assertEqual(dup, [])
+        self.assertEqual(copy_budget_errors([
+            {"nodeName": "CreateCancel", "kind": "action", "text": "取消"},
+            {"nodeName": "EditCancel", "kind": "action", "text": "取消"}]), [])
         # Column titles may legitimately repeat across tables; data values never count.
         self.assertEqual(copy_budget_errors([{"nodeName": "A", "role": "columnTitle", "text": "状态"},
                                              {"nodeName": "B", "role": "columnTitle", "text": "状态"}]), [])
@@ -399,6 +459,44 @@ class StructureTests(unittest.TestCase):
         page["baseVariantTplTree"] = page["baseVariantTplTree"].replace("校验语句合法性", "校验")
         self.assertNotIn("copy exceeds", str(self.result()["errors"]))
         plan["copy"]["entries"] = []
+
+    def test_explicit_long_copy_requires_current_verbatim_source(self):
+        from prepare_plan import evidence
+        from verify_structure import copy_budget_errors
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / 'requirement.md'
+            source.write_text('按钮文案必须为：导出全部查询结果。', encoding='utf-8')
+            entry = {'nodeName': 'ExportAll', 'kind': 'action', 'text': '导出全部查询结果'}
+            self.assertTrue(copy_budget_errors([entry]))
+            entry['evidence'] = evidence(source, source.read_text(encoding='utf-8'))
+            self.assertEqual(copy_budget_errors([entry]), [])
+            entry['text'] = '导出全部未审核的记录'
+            self.assertIn('verbatim', str(copy_budget_errors([entry])))
+            entry['text'] = '导出全部查询结果'
+            entry['evidence']['quote'] = '不存在的来源'
+            self.assertTrue(copy_budget_errors([entry]))
+            entry['evidence'] = evidence(source, source.read_text(encoding='utf-8'))
+            source.write_text('按钮改为：导出。', encoding='utf-8')
+            self.assertIn('Source changed', str(copy_budget_errors([entry])))
+
+    def test_saved_plan_allows_copy_provenance_inheritance(self):
+        from prepare_plan import example, evidence
+        from verify_selection import check as preflight
+        from verify_structure import validate_page_plan
+        with tempfile.TemporaryDirectory() as directory:
+            expected = json.loads(example(Path(directory) / 'fixture').read_text())
+            plan = expected['pages'][0]
+            for excluded in plan['copy']['excluded']:
+                excluded['evidence'] = evidence(excluded['source'], excluded['text'])
+            entry = plan['copy']['entries'][0]
+            entry.pop('source')
+            entry.pop('purpose')
+            self.assertTrue(preflight(expected)['passed'])
+            validate_page_plan(plan)
+            entry['source'] = ''
+            self.assertFalse(preflight(expected)['passed'])
+            with self.assertRaisesRegex(ValueError, 'UI-copy review'):
+                validate_page_plan(plan)
 
     def test_copy_triage_defaults_from_location_and_rejects_hidden_prose(self):
         page = self.pages["results"][0]

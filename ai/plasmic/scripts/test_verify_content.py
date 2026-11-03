@@ -14,6 +14,26 @@ def component(name, registration, values=None, body=''):
 
 
 class ContentTests(unittest.TestCase):
+    def test_copy_inherits_only_omitted_provenance_without_mutating_plan(self):
+        from verify_content import resolved_copy_entries
+        for entry in self.plan['copy']['entries']:
+            entry.pop('source')
+            entry.pop('purpose')
+        original = copy.deepcopy(self.plan)
+        self.assertEqual(plan_errors(self.plan), [])
+        self.assertTrue(self.result()['passed'])
+        self.assertEqual(self.plan, original)
+        resolved = resolved_copy_entries(self.plan)
+        self.assertEqual(resolved[2]['purpose'], self.plan['nodes'][2]['purpose'])
+        self.plan['copy']['entries'][2]['purpose'] = 'Distinct decision at this location'
+        self.assertEqual(resolved_copy_entries(self.plan)[2]['purpose'], 'Distinct decision at this location')
+        for invalid in ('', None, {}):
+            self.plan['copy']['entries'][2]['source'] = invalid
+            self.assertTrue(plan_errors(self.plan))
+        self.plan['copy']['entries'][2].pop('source')
+        self.plan['copy']['entries'][2]['nodeName'] = 'Unknown'
+        self.assertTrue(plan_errors(self.plan))
+
     def setUp(self):
         self.help = '填写 SQL 查询；返回成员 uid 列。'
         self.markup = component('QueryField', 'plasmic-antd6-form-item', {'rules': [{'message': '请填写查询'}]},

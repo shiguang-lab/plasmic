@@ -271,33 +271,39 @@ def decided_values(page):
 
 
 def card_reads(needed, ledger):
-    """Reader commands, byte counts and hard constraints for a {path: anchors} selection."""
-    from read_reference import select
-    from verify_selection import RESOURCE_ROOT
+    """Missing reader commands for this context's ledger; keep all applicable constraints."""
+    from read_reference import select, selected_lines
+    from verify_selection import RESOURCE_ROOT, covered_lines, load_ledger
+    records = load_ledger(ledger) if Path(ledger).exists() else []
     reads, total, constraints = [], 0, []
     for path, anchors in sorted(needed.items()):
         absolute = RESOURCE_ROOT / path
+        content = absolute.read_text(encoding='utf-8')
+        items = hard_constraints(content)
+        if items:
+            constraints.append({'rule': path, 'constraints': items})
+        covered = covered_lines(path, content, records)
+        if not selected_lines(content, anchors) - covered:
+            continue
+        if anchors is not None:
+            anchors = {anchor for anchor in anchors if selected_lines(content, [anchor]) - covered}
         command = ['python3', str(RESOURCE_ROOT / 'scripts/read_reference.py'), str(absolute)]
         for anchor in sorted(anchors or ()):
             command += ['--section', anchor]
         command += ['--log', str(Path(ledger).resolve())]
-        content = absolute.read_text(encoding='utf-8')
         size = len((select(content, sorted(anchors)) if anchors else content).encode())
         total += size
-        items = hard_constraints(content)
-        if items:
-            constraints.append({'rule': path, 'constraints': items})
         reads.append({'rule': path, 'sections': sorted(anchors) if anchors is not None else 'full', 'bytes': size,
                       'command': ' '.join(shlex.quote(part) for part in command), 'args': command})
     return reads, total, constraints
 
 
 def project_rules(ledger, stage='compose', plan=None):
-    """Project card: shared design rules read once per task and reviewed once per project;
+    """Project card: shared rules supplemented as the plan grows, reviewed once per project;
     with the plan, also the task-wide rules its Pages need (record context, permissions)."""
     from verify_selection import project_reads
     reads, total, constraints = card_reads(project_reads(stage, plan), ledger)
-    follow = ('read once before the first Page compose card; verify_selection.py --reads checks them with every Page'
+    follow = ('read before the first Page compose card; rerun when the plan adds libraries, record Pages or action contracts; verify_selection.py --reads checks coverage with every Page'
               if stage == 'compose' else
               'record static findings in the checkpoint; complete project rule verdicts after required Preview/persistence checks (review-mode.md#rule-review)')
     return {'scope': 'project', 'stage': stage, 'totalBytes': total, 'hardConstraints': constraints, 'reads': reads,
@@ -317,7 +323,7 @@ def review_skeleton(plan, capture, mode, page_path=None):
         raise ValueError('mode is independent or fallback')
     after = capture.get('after') if isinstance(capture, dict) else None
     if not valid_state(after):
-        raise ValueError('Use the final verify_all capture.json; its after identity binds the review')
+        raise ValueError('Use the final capture.json from suite or focused MCP collection; its after identity binds the review')
     if capture.get('pagePath') is not None and capture['pagePath'] != page_path:
         raise ValueError('Capture Page scope must match the review; a scoped capture cannot establish full-project review')
     pages = [page_at(plan, page_path)] if page_path is not None else plan.get('pages', [])
@@ -615,7 +621,7 @@ def main():
     card.add_argument('plan', type=Path, nargs='?')
     scope = card.add_mutually_exclusive_group(required=True)
     scope.add_argument('--page')
-    scope.add_argument('--project', action='store_true', help='Shared design rules read once per task and reviewed once per project')
+    scope.add_argument('--project', action='store_true', help='Shared rules; supplement current-context reads as the plan grows')
     card.add_argument('--ledger', type=Path, required=True)
     card.add_argument('--stage', choices=('compose', 'accept'), default='compose')
     build = commands.add_parser('scaffold', help='Add rule owners, baselines and __DECIDE__ slots to a minimal declaration list')
@@ -648,7 +654,7 @@ def main():
     review = commands.add_parser('review-skeleton', help='Write the rule review file with every accept-card rule and hard constraint pending')
     review.add_argument('plan', type=Path)
     review.add_argument('--page', help='Review shared project rules and only this Page; retain the complete plan digest')
-    review.add_argument('--capture', type=Path, required=True, help='Final verify_all capture.json of the reviewed saved model')
+    review.add_argument('--capture', type=Path, required=True, help='Final capture.json from suite or focused MCP collection of the reviewed saved model')
     review.add_argument('--mode', choices=('independent', 'fallback'), required=True)
     review.add_argument('--output', type=Path, required=True)
     derive = commands.add_parser('inventories', help='Derive Form/Descriptions/overlay inventories, Slot intents and suite.json from the plan')
@@ -684,7 +690,7 @@ def main():
             plan, pending = scaffold(json.loads(args.plan.read_text(encoding='utf-8')), args.page)
             write_new(args.output, plan)
             result = {'output': str(args.output.resolve()), 'pendingDecisions': pending,
-                      'next': 'Run rules PLAN --project once per task and rules PLAN --page ROUTE --stage compose on this scaffold; '
+                      'next': 'Run rules PLAN --project and rules PLAN --page ROUTE --stage compose on this scaffold to supplement current-context reads; '
                               'replace every "__DECIDE__" from the source and the delivered Plan decisions rows, then run '
                               'verify_selection.py --page ROUTE --reads LEDGER'}
         elif args.command == 'show':

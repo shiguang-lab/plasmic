@@ -13,10 +13,11 @@ Library: [Ant Design v6](../index.md).
 
 - Decide every Column's `width` in the plan before markup. The project default uses literal pixel widths, exactly one main text Column (`role:widget`, native text or a text Tooltip render) without width, and numeric Table `scroll.x` greater than the explicit widths sum. Native `max-content` is available through a source-backed `scroll.x` override; this is a project layout policy, not an Ant Design limitation. See [content and scroll width](#content-and-scroll-width).
 - Size each width from its title as well as its values; status/time/short fields are fixed, never the main column.
-- Row operations: registered ActionGroup in the last leaf Column.render, `fixed:"right"` and a measured numeric width ([operation column sizing](#operation-column-sizing)).
+- Row operations: registered ActionGroup in the last leaf Column.render, `fixed:"right"` and a numeric width estimated before insertion and measured before Saved-Page acceptance ([operation column sizing](#operation-column-sizing)).
 - Column presentation is a plan field: `text` leaves the native render Slot empty, `custom` composes registered components in it; status Columns render a mapped Badge, categories default to text.
 - Text columns expected to exceed their planned width use `ellipsis:{showTitle:false}` and a registered Tooltip in Column.render to expose the complete current-row value. Record `presentation:custom` for this render template. See [columns and content](#columns-and-content).
 - Every paginated list needs a fixture larger than the initial pageSize. Prototype-owned paging (bound `current`/`pageSize`, a server query or a source page policy) also needs first/second/return `page-change` cases, plus `page-size` when adjustable; native component-owned paging over local data needs no case. See [paging acceptance](#pagination-data-and-acceptance).
+- Feature reading: [inline expansion](#expandable-row-details) applies to expandable rows, expandedRowRender, ExpandColumn or canvas expansion samples; [header sorting](#header-sorting) applies to configured Column sorting. Read these before planning a requested feature, even if its props are not yet declared; ordinary tables retain the shared rules below.
 
 ## Plan decisions
 
@@ -45,7 +46,7 @@ Read the installed Table contract and the real [Column](table.md#columns) instan
 
 ### Complete editable table
 
-Before inserting each Table, read its live Table and Column contracts and inventory every Column's source purpose, native presentation, dataIndex/render scope and width. Keep category Columns as role:category for both text and Tag. Record `presentation` text or custom from the source decision; the render Slot's content alone carries it. Ordinary single-value categories default to text. When Tag is justified, place a registered Tag in Column.render ([render templates](#render-templates)), not styled spans. For custom presentation declare the actual component/Slot owners; a text template remains valid without a Tag. Row operations use registered [ActionGroup](../../react_ui/components/action-group.md) in Column.render, in the last leaf Column with fixed=right and measured width. Discover its library before choosing substitutes. Pagination totals use native showTotal(total, range). Insert real Column nodes in Table children; ColumnGroup is for grouped headers. Read back visible headers and two distinct rows before advancing. The structural gate checks required identities, props, Slots and complete Column coverage; review the draft and equivalent Tabs for presentation consistency.
+Before inserting each Table, read its live Table and Column contracts and inventory every Column's source purpose, native presentation, dataIndex/render scope and width. Keep category Columns as role:category for both text and Tag. Record `presentation` text or custom from the source decision; the render Slot's content alone carries it. Ordinary single-value categories default to text. When Tag is justified, place a registered Tag in Column.render ([render templates](#render-templates)), not styled spans. For custom presentation declare the actual component/Slot owners; a text template remains valid without a Tag. Row operations use registered [ActionGroup](../../react_ui/components/action-group.md) in Column.render, in the last leaf Column with fixed=right and an initial width estimate, confirmed by measurement after insertion. Discover its library before choosing substitutes. Pagination totals use native showTotal(total, range). Insert real Column nodes in Table children; ColumnGroup is for grouped headers. Read back visible headers and two distinct rows before advancing. The structural gate checks required identities, props, Slots and complete Column coverage; review the draft and equivalent Tabs for presentation consistency.
 
 For a required record action, declare `rowActions` in the [source inventory](../../../requirement-alignment.md#structural-gate). Do not use link formatting for an action label such as “查看”: it consumes a URL. Use ActionGroup items in the live row scope; onAction(key) owns navigation (a page-navigation interaction conditioned on the key) and local effects. The destination or overlay must show the clicked record, carried by its own route param rather than a global; declare it per [record context](../../../design/record-context.md) and verify with two distinct records. A registered Button in Column.render remains valid for an explicitly required cell control, not a replacement for the row-operation group. For query-driven tables declare dynamic data/state dependencies; test a nonmatching keyword, zero rows **and total**, then reset and recovery. Event presence does not establish the effect.
 
@@ -106,11 +107,44 @@ Name each instance for its role. Generate `data-props` with a JSON serializer: i
 
 #### Operation column sizing
 
-Measure the widest visible permission-filtered ActionGroup for valid rows in the current role, add actual left/right cell padding, and round up for the fixed-right operation column. Exclude hidden menu widths. An existing width is not evidence that it still fits after replacing the action component.
+For a new Table, initially estimate the operation column from its planned visible action labels and cell padding. After insertion, measure the widest visible permission-filtered ActionGroup for valid rows in the current role, add actual left/right cell padding, and round up for the fixed-right operation column. Exclude hidden menu widths. An existing width is not evidence that it still fits after replacing the action component.
 
 #### Table.ColumnGroup
 
 Use the real ColumnGroup children/title contract for a required grouped header. Keep actual Column nodes and their render scopes inside that group; a decorative row above the Table is not a grouped header. Verify group order, fixed/scrolling boundaries and the complete leaf-column content after save/reopen.
+
+### Data identity, sorting and pagination
+
+The wrapper's data input is the actual registered data-source contract, not an assumed native dataSource prop. Use a unique stable business field as rowKey, especially when selection, refresh or sorting is involved. Array indexes and display labels do not identify rows across those transitions. Read the ordered onChange arguments: pagination, filters, sorter and extra. Map their real values to the owning workflow rather than treating the first argument as a row.
+
+Declare client-side or server-side ownership for sorting, filtering and paging. Server-side total is the full matching count, not the current row count; do not slice an already paged response again. Reset or retain current page according to the changed filters/scope and requirement. Do not promise a sorting/filtering column control absent from the installed registration. Use [Pagination](pagination.md) and the matching query composition for the actual configuration.
+
+#### When to enable header sorting
+
+Enable header sorting when the requirement explicitly calls for it, or when an in-scope comparison/prioritization task benefits from users changing the order and the field has a meaningful, supported ordering. Record the task, eligible fields, initial order and local/server owner in the existing design decision notes. Field type alone is not a reason to add sorting; when no ordering task is established, retain the supplied order and leave sorting unset.
+
+| Task or field | Decision |
+| --- | --- |
+| Find newest/oldest records; compare creation, update or due times | Enable the relevant time Column when users need both directions. Compare actual timestamps, not formatted display strings. |
+| Compare amounts, counts, duration or scores; find largest/smallest values | Enable only the relevant metric Columns. Compare underlying numeric values with consistent units, not currency/percentage strings. |
+| Browse a directory by name | Enable only when alphabetical/name ordering helps the task and the locale/collation rule is defined. Search remains the entry point for locating a known record. |
+| Status, category, person or other discrete attributes | Prefer filtering for finding a subset. Sort only when the requirement defines a meaningful order, such as priority rank; never infer rank from enum codes or translated captions. |
+| IDs, operation/selection columns, images, long descriptions or mixed summary cells | Leave sorting disabled by default. An explicit business requirement must identify an actual comparable field before enabling it. |
+| Manual sequences, workflow steps, relevance-ranked results or business-priority queues | Preserve the authoritative order unless the requirement permits switching away from it. An ordered list does not by itself require sortable headers. |
+
+Initial ordering and user-changeable sorting are separate decisions. A requirement such as "newest first" may be satisfied by the data/query's fixed order without a clickable header. When header sorting is enabled, derive its initial direction from the business task; there is no universal ascending or descending default. Use single-column sorting by default; multiple sorting requires a stated priority and tie-breaking need. Define empty-value placement and stable tie-breaking where the data requires them; do not treat missing values as zero implicitly.
+
+Sorting covers the full filtered result set before pagination. Use local comparison only when all matching records are available locally; a server-paged list needs server sorting support. Never sort only the loaded page while presenting it as full-result sorting. If a required server order is unavailable, record the contract gap rather than showing an ineffective sorting affordance. Sorting reorders records; filtering changes membership, and neither replaces the other.
+
+#### Paging and selection ownership
+
+Choose one ownership mode before binding. For local data with component-owned paging, `pagination:{defaultPageSize:20,showSizeChanger:true,pageSizeOptions:[20,50,100]}` initializes an editable pager without freezing its size. If application state owns paging, bind `pagination.current` and `pagination.pageSize` to the existing states and update both from the registered Table `onChange` argument `pagination.current` / `pagination.pageSize`. Reset current on the source-defined filter change. A constant `pageSize:20` is a controlled value, so displaying a size changer does not make size changes work. Verify the installed contract before using this pattern, and check resulting rows as well as the pager label.
+
+For selection, bind selectedRowKeys only when intentionally controlled and use the actual onSelectedRowKeysChange/ref actions. Define whether selection covers the current page, retains keys across pages, or resets after filters/mutations; the current wrapper does not certify arbitrary cross-page retention. Verify keys still identify the intended records after refresh. [Bulk-action composition](../compositions/bulk-actions.md) owns batch effects and permission handling.
+
+## Conditional rules
+
+Read the applicable feature below before adding it; rerun the existing rules card after updating the plan. A plan with unknown Table/Column props reads both sections until its feature scope is decided.
 
 ### Expandable row details
 
@@ -185,30 +219,7 @@ When `canvasExpandedRowKeys` is omitted, the canvas follows native expanded/defa
 
 Acceptance: use multiple requirement-defined detail variants and a non-expandable record. Verify the configured representative keys on the ordinary canvas, row-key types, missing/ineligible keys, explicit empty samples, manual expansion and sample edits. Selecting content must not broaden configured samples. In Preview verify independent native controlled/default expansion and event arguments, hidden-column row click, marker order alongside selection/fixed columns, and correct row data in the Slot. Save/reopen and confirm sample configuration persists separately while temporary interaction keys do not. Verify `editOnly`/ToolsOnly excludes samples from generated exports and check pagination/horizontal scrolling with expanded content.
 
-### Data identity, sorting and pagination
-
-The wrapper's data input is the actual registered data-source contract, not an assumed native dataSource prop. Use a unique stable business field as rowKey, especially when selection, refresh or sorting is involved. Array indexes and display labels do not identify rows across those transitions. Read the ordered onChange arguments: pagination, filters, sorter and extra. Map their real values to the owning workflow rather than treating the first argument as a row.
-
-Declare client-side or server-side ownership for sorting, filtering and paging. Server-side total is the full matching count, not the current row count; do not slice an already paged response again. Reset or retain current page according to the changed filters/scope and requirement. Do not promise a sorting/filtering column control absent from the installed registration. Use [Pagination](pagination.md) and the matching query composition for the actual configuration.
-
-#### When to enable header sorting
-
-Enable header sorting when the requirement explicitly calls for it, or when an in-scope comparison/prioritization task benefits from users changing the order and the field has a meaningful, supported ordering. Record the task, eligible fields, initial order and local/server owner in the existing design decision notes. Field type alone is not a reason to add sorting; when no ordering task is established, retain the supplied order and leave sorting unset.
-
-| Task or field | Decision |
-| --- | --- |
-| Find newest/oldest records; compare creation, update or due times | Enable the relevant time Column when users need both directions. Compare actual timestamps, not formatted display strings. |
-| Compare amounts, counts, duration or scores; find largest/smallest values | Enable only the relevant metric Columns. Compare underlying numeric values with consistent units, not currency/percentage strings. |
-| Browse a directory by name | Enable only when alphabetical/name ordering helps the task and the locale/collation rule is defined. Search remains the entry point for locating a known record. |
-| Status, category, person or other discrete attributes | Prefer filtering for finding a subset. Sort only when the requirement defines a meaningful order, such as priority rank; never infer rank from enum codes or translated captions. |
-| IDs, operation/selection columns, images, long descriptions or mixed summary cells | Leave sorting disabled by default. An explicit business requirement must identify an actual comparable field before enabling it. |
-| Manual sequences, workflow steps, relevance-ranked results or business-priority queues | Preserve the authoritative order unless the requirement permits switching away from it. An ordered list does not by itself require sortable headers. |
-
-Initial ordering and user-changeable sorting are separate decisions. A requirement such as "newest first" may be satisfied by the data/query's fixed order without a clickable header. When header sorting is enabled, derive its initial direction from the business task; there is no universal ascending or descending default. Use single-column sorting by default; multiple sorting requires a stated priority and tie-breaking need. Define empty-value placement and stable tie-breaking where the data requires them; do not treat missing values as zero implicitly.
-
-Sorting covers the full filtered result set before pagination. Use local comparison only when all matching records are available locally; a server-paged list needs server sorting support. Never sort only the loaded page while presenting it as full-result sorting. If a required server order is unavailable, record the contract gap rather than showing an ineffective sorting affordance. Sorting reorders records; filtering changes membership, and neither replaces the other.
-
-#### Header sorting
+### Header sorting
 
 Configure sorting on the real leaf Column, including leaves inside ColumnGroup. Read the installed Column with MCP `view:"contract"` and confirm these props before composing; a local wrapper build or this reference does not prove the consuming project's installed library model and runtime registration have synchronized.
 
@@ -225,9 +236,12 @@ For numeric local sorting, bind Column `sorter` to `{{ (a, b) => a.amount - b.am
 
 The design canvas reflects edits to `defaultSortOrder` immediately through a temporary render override. Header clicks there retain authoring selection; exercise actual sorting in Preview. The override is not a saved `sortOrder` or a runtime state binding. For MCP discovery, read Column's `registration.type`, descriptions and choice options, and Table's ordered `onChange` arguments; missing props require a synchronized library/runtime before use.
 
-Choose one ownership mode before binding. For local data with component-owned paging, `pagination:{defaultPageSize:20,showSizeChanger:true,pageSizeOptions:[20,50,100]}` initializes an editable pager without freezing its size. If application state owns paging, bind `pagination.current` and `pagination.pageSize` to the existing states and update both from the registered Table `onChange` argument `pagination.current` / `pagination.pageSize`. Reset current on the source-defined filter change. A constant `pageSize:20` is a controlled value, so displaying a size changer does not make size changes work. Verify the installed contract before using this pattern, and check resulting rows as well as the pager label.
+#### Header sorting acceptance
 
-For selection, bind selectedRowKeys only when intentionally controlled and use the actual onSelectedRowKeysChange/ref actions. Define whether selection covers the current page, retains keys across pages, or resets after filters/mutations; the current wrapper does not certify arbitrary cross-page retention. Verify keys still identify the intended records after refresh. [Bulk-action composition](../compositions/bulk-actions.md) owns batch effects and permission handling.
+Confirm each sortable Column has a task-based reason under [sorting decisions](#when-to-enable-header-sorting), and fixed business ordering has not acquired an unintended header control. Check ordering across page boundaries when pagination is present.
+
+Use at least three distinct, initially unsorted values and stable row keys. In Preview verify ascending, descending and clearing (or the declared non-clearing cycle) against actual row order, not just the header icon. Check initial ordering, controlled-state updates including explicit null, and page/selection behavior under the chosen ownership. Server sorting must prove outgoing field/direction and the returned row order; `sorter:true` alone is not acceptance. Verify multiple-sort priority when configured. After save/reopen, reread the Column expressions and directions and confirm temporary canvas ordering did not create a persisted controlled prop.
+
 
 ## Acceptance checks
 
@@ -240,12 +254,6 @@ Measure the complete rendered buttons, including More's arrow, gaps and button p
 ### Selection
 
 Selection must persist without a state binding, and controlled selection must follow the bound keys. Clear selection and radio/checkbox modes must work. For wrapper changes, test omitted, explicit and controlled/uncontrolled values with the installed Ant Design version.
-
-### Header sorting acceptance
-
-Confirm each sortable Column has a task-based reason under [sorting decisions](#when-to-enable-header-sorting), and fixed business ordering has not acquired an unintended header control. Check ordering across page boundaries when pagination is present.
-
-Use at least three distinct, initially unsorted values and stable row keys. In Preview verify ascending, descending and clearing (or the declared non-clearing cycle) against actual row order, not just the header icon. Check initial ordering, controlled-state updates including explicit null, and page/selection behavior under the chosen ownership. Server sorting must prove outgoing field/direction and the returned row order; `sorter:true` alone is not acceptance. Verify multiple-sort priority when configured. After save/reopen, reread the Column expressions and directions and confirm temporary canvas ordering did not create a persisted controlled prop.
 
 ### Pagination data and acceptance
 

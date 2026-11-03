@@ -1,9 +1,10 @@
-/** The same finite logo construction animation runs before and after React starts.
+/** The same logo construction and waiting animation runs before and after React starts.
  * @param {SVGSVGElement} svg
  * @returns {(() => void) | undefined}
  */
 exports.animateBrandLoading = function animateBrandLoading(svg) {
-  const duration = 2800;
+  const duration = 5600;
+  const breathingDuration = 3200;
   const namespace = "http://www.w3.org/2000/svg";
   const clamp = (value) => Math.max(0, Math.min(1, value));
   const smooth = (value) => {
@@ -32,11 +33,12 @@ exports.animateBrandLoading = function animateBrandLoading(svg) {
       return node;
     }),
   }));
-  const render = (progress) => {
+  const render = (progress, breath = 1) => {
     const ready = smooth((progress - 0.08) / 0.49);
     const fade = 1 - smooth((progress - 0.2) / 0.4);
     const edgeFade = 1 - smooth((progress - 0.39) / 0.18);
-    for (const track of tracks) {
+    lights.setAttribute("opacity", String(edgeFade));
+    for (const track of edgeFade > 0 ? tracks : []) {
       const head = (progress / 0.64 + track.index * 0.28) % 1;
       track.pieces.forEach((node, i) => {
         const fraction = i / 55;
@@ -55,12 +57,12 @@ exports.animateBrandLoading = function animateBrandLoading(svg) {
         );
         node.setAttribute(
           "opacity",
-          String(Math.pow(fraction, 1.35) * edgeFade),
+          String(Math.pow(fraction, 1.35)),
         );
       });
     }
     scaffold.setAttribute("opacity", String(fade * 0.55));
-    solid.setAttribute("opacity", String(smooth((progress - 0.06) / 0.17)));
+    solid.setAttribute("opacity", String(smooth((progress - 0.06) / 0.17) * breath));
     front.setAttribute("offset", String(Math.max(0, ready * 1.22 - 0.22)));
     tail.setAttribute("offset", String(Math.min(1, ready * 1.22)));
     if (ready === 1) {solid.removeAttribute("mask");}
@@ -71,20 +73,28 @@ exports.animateBrandLoading = function animateBrandLoading(svg) {
   let started = performance.now();
   let last = 0;
   function tick(time) {
+    const elapsed = time - started;
     const progress = reducedMotion.matches
       ? 1
-      : clamp((time - started) / duration);
-    if (time - last >= 30 || progress === 1) {
-      render(progress);
+      : clamp(elapsed / duration);
+    if (time - last >= 30 || reducedMotion.matches) {
+      // Keep the completed logo moving gently throughout long waits.
+      const breath = reducedMotion.matches
+        ? 1
+        : 0.9 + 0.1 * Math.cos(
+          (Math.max(0, elapsed - duration * 0.6) / breathingDuration) * Math.PI * 2,
+        );
+      render(progress, breath);
       last = time;
     }
-    if (progress < 1) {frame = requestAnimationFrame(tick);}
+    if (!reducedMotion.matches) {frame = requestAnimationFrame(tick);}
   }
   const reduceMotion = () => {
     cancelAnimationFrame(frame);
     if (reducedMotion.matches) {render(1);}
     else {
       started = performance.now();
+      last = 0;
       frame = requestAnimationFrame(tick);
     }
   };

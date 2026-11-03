@@ -1,14 +1,16 @@
 # Unified prototype verification
 
-Use [verify_all.py](../scripts/verify_all.py) from resolved `resourceRoot` for full-project standalone fixed-viewport Overseas/Antd-v6 Pages. It checks native models, rendered layout, structure/devices/regions and supplied-reference coverage; it does not derive expectations, save, publish, switch projects or exercise Preview. During generation run `--page /exact-route` before advancing; omit it for final full-project acceptance. Local edits/mixed libraries use focused gates.
+Use [verify_all.py](../scripts/verify_all.py) from resolved `resourceRoot` for full-project standalone fixed-viewport admin Overseas/Antd-v6 Pages. It checks native models, rendered layout, structure/devices/regions and supplied-reference coverage; it does not derive expectations, save, publish, switch projects or exercise Preview. During generation run `--page /exact-route` before advancing; omit it for final full-project acceptance. Non-admin Pages, local edits and mixed libraries use focused gates. For `pageType: "non-admin"`, retain selection/read coverage, content/structure, actual component contracts, accessibility and source/visual/runtime/persistence review; skip inapplicable admin page/shell-layout recipes and state the coverage limits.
+
+For non-admin saved-model checks, use the existing `verify_selection.py PLAN PAGES --page ROUTE --reads LEDGER` for contracts, content and reference coverage, plus `verify_structure.py PLAN OVERVIEW PAGES --page ROUTE --report REPORT` for source-backed routes, nodes and model structure. Non-admin Pages without AppShell do not require an admin navigation inventory; custom website navigation remains a source/Preview review obligation. An actual or declared AppShell still requires its navigation contract. Run applicable component gates and the standalone [rule review](review-mode.md#rule-review) with the final capture; these checks do not claim the admin-only suite ran.
 
 ## Single-Page execution
 
 For one Page, inventories cover that Page and its overlays. Use the unified [review checkpoints](review-mode.md#review-checkpoints); the main agent generates and repairs. Finish selection preflight before markup, then use `--page /exact-route` below. Component rules, hidden Tabs/overlays and negative cases remain required. Report excluded cross-page transitions as unexecuted; do not generate destinations for tests. Fix collected issues together, rerun affected saved-model checks, then exercise fixes in Preview.
 
-Review [copy economy](design/content-review.md#copy-economy). The structural gate checks every copy entry's role budget and repeated prose; wording, meaning and placement still need reviewer judgement.
+Review [copy economy](design/content-review.md#copy-economy). The structural gate checks role budgets and source-backed wording exceptions; repeated wording is reviewed by meaning, business owner and visible state, not by whole-Page text equality.
 
-Deviation fields (`layoutReason`, `controlWidthReason`, `nonStatusReason`, `bindingsNotApplicable`, override `reason`) are generation claims. Reviewers verify that a hashed source quote or measured geometry supports each deviation, one reason object per instance. Prose-only deviations fail even if gates pass.
+Review protected configuration deviations against their documented source/measurement evidence. Semantic explanations (`nonStatusReason`, `bindingsNotApplicable`) use the existing nonempty-string contracts and require source/scope judgement, not a reason object. A passing format check does not establish either claim; follow [diagnostics and repair](planning.md#diagnostics-and-repair).
 
 ## Reviewed suite configuration
 
@@ -96,6 +98,16 @@ Intent records the components and **direct Slots you supply**, plus ownership; t
 A name-only AppShell/Card/Table outline omits supplied Slot content and cannot establish acceptance. Native Form, Descriptions and overlay inventories independently verify fields and content; passing Slot ownership does not replace them.
 
 ## Collect and verify
+
+For scopes outside the admin suite, reuse its collector without running its gates:
+
+```sh
+python3 RESOURCE_ROOT/scripts/verify_all.py --project-id PROJECT_ID --page ROUTE --collect-only --output /absolute/path/to/new-capture
+```
+
+Omit `--page` for the full planned scope. This uses the same public MCP collection, identity/build checks, file hashes and `capture.json` format as the suite; it reports `status: collected`, never an acceptance pass. Run the applicable focused gates against the collected files and pass that capture to the existing review skeleton and standalone `verify_review.py`. After save/reopen, collect fresh evidence and use the same persistence comparison below.
+
+For the supported admin suite, collect and run its gates together:
 
 Open the intended project in the signed-in Desktop, save in edit mode, then collect. Live collection uses the same profile as Desktop MCP: `PLASMIC_DESKTOP_PROFILE` when set, otherwise the standard platform location. For a custom instance, pass `--profile` with its **user-data directory** containing `mcp-connection.json`. Collection uses authenticated local RPC on macOS/Linux and never copies its token into evidence.
 

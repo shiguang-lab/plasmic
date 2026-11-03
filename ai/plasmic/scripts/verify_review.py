@@ -234,7 +234,7 @@ def main():
     parser.add_argument("plan", type=Path)
     parser.add_argument("--ledger", type=Path, required=True)
     parser.add_argument("--review", type=Path, required=True)
-    parser.add_argument("--capture", type=Path, help="Final verify_all capture.json; binds checkedState to its after identity")
+    parser.add_argument("--capture", type=Path, help="Final capture.json from suite or focused MCP collection; binds checkedState to its after identity")
     parser.add_argument("--page", help="Check shared project rules and one route; omit for every planned Page")
     args = parser.parse_args()
     plan = json.loads(args.plan.read_text(encoding="utf-8"))

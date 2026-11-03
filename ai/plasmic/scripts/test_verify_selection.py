@@ -354,5 +354,72 @@ class PageTypeTests(unittest.TestCase):
         errors = page_body_errors(page)
         self.assertEqual([e['check'] for e in errors], ['pageBody'])
 
+class PagePurposeTests(unittest.TestCase):
+    def public_page(self):
+        return {
+            'path': '/', 'name': '咖啡官网', 'pageType': 'non-admin',
+            'components': [spec('VisitStore', 'plasmic-antd6-button', 'widget')],
+            'pageStructure': {
+                'intent': 'Present the coffee brand and store information to visitors',
+                'source': 'REQ §Public brand homepage',
+                'layout': 'Brand introduction followed by products and store information',
+                'rationale': 'Introduce the brand before directing visitors to a store',
+                'regions': [{'nodeName': 'VisitStore', 'purpose': 'Visit a store'}],
+                'sizing': 'Content-sized sections within the requested viewport',
+                'scrolling': 'The host owns document scrolling',
+                'actions': 'Store action belongs to the store section'},
+            'templates': [], 'templatesNotApplicable': 'Public brand presentation; admin record-management templates do not match REQ §Public brand homepage',
+            'wireframe': {'notApplicable': 'The source contains prose only'},
+            'feedback': [], 'nodes': [], 'copy': {'source': 'REQ §Public brand homepage', 'entries': [], 'excluded': []}}
+
+    def test_public_antd_page_passes_shared_preflight_without_admin_recipe(self):
+        from verify_selection import admin_page, check, required_reads, SCALE
+        page = self.public_page()
+        report = check({'pages': [page]})
+        self.assertTrue(report['passed'], report)
+        self.assertFalse(admin_page(page))
+        needed = required_reads(page)
+        self.assertEqual(needed['references/design/page-types.md'], {'non-admin'})
+        self.assertNotIn(SCALE, needed)
+        self.assertIn('references/libraries/antd_v6/components/button.md', needed)
+        self.assertFalse(any('search-table' in p or 'form-layout' in p for p in needed))
+
+    def test_purpose_does_not_exempt_structure_content_or_component_checks(self):
+        from verify_selection import check
+        page = self.public_page()
+        page['pageStructure'].pop('source')
+        self.assertTrue(any(e['check'] == 'pageStructure' for e in check({'pages': [page]})['errors']))
+        page = self.public_page()
+        page['components'][0]['role'] = 'data-table'
+        self.assertFalse(check({'pages': [page]})['passed'])
+        page = self.public_page()
+        page['copy']['entries'] = [{'nodeName': 'Missing', 'at': '/text', 'text': 'Welcome'}]
+        self.assertFalse(check({'pages': [page]})['passed'])
+
+    def test_component_library_alone_does_not_classify_admin_purpose(self):
+        from verify_selection import admin_page, page_type_errors
+        page = self.public_page()
+        page.pop('pageType')
+        self.assertFalse(admin_page(page))
+        self.assertTrue(page_type_errors(page))
+        page['pageType'] = 'list'
+        self.assertTrue(admin_page(page))
+        self.assertEqual(page_type_errors(page), [])
+
+    def test_public_table_and_statistic_keep_components_without_admin_regions(self):
+        from verify_selection import required_reads
+        page = self.public_page()
+        page['components'] = [spec('Products', 'plasmic-antd6-table', 'data-table'),
+                              spec('StoreCount', 'plasmic-antd6-statistic', 'widget')]
+        needed = required_reads(page)
+        self.assertIn('references/libraries/antd_v6/components/table.md', needed)
+        self.assertIn('references/libraries/antd_v6/components/statistic.md', needed)
+        self.assertIn('references/libraries/antd_v6/compositions/content-states.md', needed)
+        self.assertNotIn('references/libraries/overseas/compositions/search-table.md', needed)
+        self.assertNotIn('references/libraries/antd_v6/compositions/summary-metrics.md', needed)
+        page['components'].append(spec('Filters', 'plasmic-overseas-search-form', 'query'))
+        self.assertIn('references/libraries/overseas/compositions/search-table.md', required_reads(page))
+
+
 if __name__ == "__main__":
     unittest.main()

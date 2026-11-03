@@ -11,6 +11,7 @@ from verify_forms import check
 
 
 _LAYOUT = None
+_COPY_SOURCE = None
 
 
 def measured_from():
@@ -26,12 +27,29 @@ def measured_from():
         atexit.register(_LAYOUT.unlink, missing_ok=True)
     return {"path": str(_LAYOUT), "sha256": hashlib.sha256(_LAYOUT.read_bytes()).hexdigest()}
 
+
+def copy_source():
+    """Retain source evidence when another suite reuses this fixture's inventory."""
+    global _COPY_SOURCE
+    if _COPY_SOURCE is None:
+        import atexit
+        handle = tempfile.NamedTemporaryFile('w', suffix='-requirement.md', delete=False)
+        handle.write('Help\nDefault 14 days\nShort instructions')
+        handle.close()
+        _COPY_SOURCE = Path(handle.name)
+        atexit.register(_COPY_SOURCE.unlink, missing_ok=True)
+    return {'path': str(_COPY_SOURCE), 'sha256': hashlib.sha256(_COPY_SOURCE.read_bytes()).hexdigest(),
+            'quote': _COPY_SOURCE.read_text()}
+
 class FormCheckTests(unittest.TestCase):
     def setUp(self):
         self.expected = {"pages": [{"componentUuid": "page", "forms": [{"name": "Form", "fields": [{"nodeName": "NameField", "name": "name", "label": "Name", "control": "Name", "rules": [{"ruleType": "required"}], "tooltip": "Help"}]}]}]}
         self.html = '''<plasmic-component data-plasmic-component="plasmicAntd6Form" data-plasmic-name="Form" data-props='{"mode":"advanced"}'><slot name="children"><plasmic-component data-plasmic-component="plasmic-antd6-form-item" data-plasmic-name="NameField" data-props='{"name":"name","rules":[{"ruleType":"required","message":"Required"}]}'><slot name="label"><span>Name</span></slot><slot name="tooltip"><span>Help</span></slot><slot name="children"><plasmic-component data-plasmic-component="plasmic-antd6-input" data-plasmic-name="Name" data-props='{}'></plasmic-component></slot></plasmic-component></slot></plasmic-component>'''
         self.expected["pages"][0]["forms"][0]["formLayout"] = "horizontal"
         self.expected["pages"][0]["forms"][0]["fields"][0]["copyTriage"] = "perceive-on-demand"
+        self.copy_source = copy_source()
+        self.expected['pages'][0]['forms'][0]['sourceCopyUnits'] = [
+            {'field': 'NameField', 'text': 'Help', 'decision': 'perceive-on-demand', 'source': self.copy_source}]
         self.html = self.html.replace('{"mode":"advanced"}', '{"mode":"advanced","layout":"horizontal"}')
         self.html = self.html.replace('data-plasmic-name="Form"', 'data-plasmic-name="Form" style="width:100%"')
         self.html = self.html.replace('data-plasmic-name="Name"', 'data-plasmic-name="Name" style="width:100%"')
@@ -352,6 +370,8 @@ class FormCheckTests(unittest.TestCase):
 
     def test_persistent_description_must_belong_to_item(self):
         self.expected["pages"][0]["forms"][0]["fields"][0]["description"] = "Default 14 days"
+        self.expected['pages'][0]['forms'][0]['sourceCopyUnits'].append(
+            {'field': 'NameField', 'text': 'Default 14 days', 'decision': 'perceive-now', 'source': self.copy_source})
         self.expected["pages"][0]["forms"][0]["fields"][0]["copyTriage"] = "perceive-now"
         # copy triage is required once copy is rendered
         html = self.html.replace('<slot name="label">', '<slot name="description"><span>Default 14 days</span></slot><slot name="label">')
@@ -363,6 +383,8 @@ class FormCheckTests(unittest.TestCase):
     def inline_fixture(self):
         field = self.expected["pages"][0]["forms"][0]["fields"][0]
         field.update(description="Short instructions", descriptionPlacement="afterControl", descriptionNode="Instructions")
+        self.expected['pages'][0]['forms'][0]['sourceCopyUnits'].append(
+            {'field': 'NameField', 'text': 'Short instructions', 'decision': 'perceive-now', 'source': self.copy_source})
         field["copyTriage"] = "perceive-now"
         text = '''<plasmic-component data-plasmic-component="plasmic-antd6-typography-text" data-plasmic-name="Instructions" data-props='{"type":"secondary"}'><slot name="children"><span>Short instructions</span></slot></plasmic-component>'''
         return self.html.replace('</plasmic-component></slot></plasmic-component>', '</plasmic-component>' + text + '</slot></plasmic-component>', 1)
@@ -431,6 +453,7 @@ class FormCheckTests(unittest.TestCase):
         form = self.expected["pages"][0]["forms"][0]
         base = form["fields"][0]
         base.pop("tooltip")
+        self.expected['pages'][0]['forms'][0]['sourceCopyUnits'] = []
         base.pop("copyTriage")
         start = self.html.index('<plasmic-component data-plasmic-component="plasmic-antd6-form-item"')
         end = self.html.rindex('</slot></plasmic-component>')
@@ -613,12 +636,25 @@ class FormCheckTests(unittest.TestCase):
         self.assertIn("must equal", label_width_problem(
             {"longestLabel": "名称", "labelTextPx": 28, "requiredMarkPx": 10, "helpIconPx": 0, "paddingPx": 8, "measuredPx": 90, "measuredFrom": measured_from()}, False))
 
-    def test_long_description_in_multi_column_form_needs_tooltip(self):
-        from verify_forms import description_budget_problem
+    def test_essential_long_description_keeps_source_and_visibility_checks(self):
+        from verify_forms import TextTree, page_form_problems, copy_triage_problem
+        from prepare_plan import evidence
         long_text = "存量分区数据保留天数，选择 3 天则保留近 3 天所有分区的明细数据，超期分区会清理且不可恢复"
-        self.assertIn("label tooltip", description_budget_problem(3, [{"nodeName": "RetentionField", "description": long_text}]))
-        self.assertIsNone(description_budget_problem(3, [{"nodeName": "RetentionField", "description": "3-180 days"}]))
-        self.assertIsNone(description_budget_problem(2, [{"nodeName": "RetentionField", "description": long_text}]))
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / 'requirement.md'
+            source.write_text(long_text, encoding='utf-8')
+            field = {'nodeName': 'RetentionField', 'description': long_text, 'copyTriage': 'perceive-now', 'span': 3}
+            expected = {'formLayout': 'vertical', 'fields': [field], 'sourceCopyUnits': [
+                {'field': 'RetentionField', 'text': long_text, 'decision': 'perceive-now', 'exactWording': True,
+                 'source': evidence(source, long_text)}]}
+            root = TextTree('<plasmic-component data-plasmic-component="plasmic-antd6-form"></plasmic-component>').root
+            self.assertEqual(page_form_problems(root, root['children'][0], expected, {'columns': 3}), [])
+            self.assertIsNone(copy_triage_problem(field))
+            field['copyTriage'] = 'perceive-on-demand'
+            self.assertIsNotNone(copy_triage_problem(field))
+            field['copyTriage'] = 'perceive-now'
+            field['description'] = 'Changed instructions'
+            self.assertTrue(page_form_problems(root, root['children'][0], expected, {'columns': 3}))
 
     def test_source_copy_units_must_cover_every_rendered_sentence(self):
         from verify_forms import copy_coverage_problem
@@ -626,8 +662,11 @@ class FormCheckTests(unittest.TestCase):
         source.write_text("配 info 小按钮提示「存量分区数据保留天数，超期会被清理（不可恢复）」", encoding="utf-8")
         evidence = {"path": str(source), "sha256": hashlib.sha256(source.read_bytes()).hexdigest(), "quote": source.read_text()}
         field = {"nodeName": "RetentionField", "tooltip": "存量分区数据保留天数，超期会被清理（不可恢复）", "copyTriage": "perceive-on-demand"}
-        form = {"fields": [field], "sourceCopyUnits": [{"field": "RetentionField", "text": field["tooltip"], "decision": "perceive-on-demand", "source": evidence}]}
+        form = {"fields": [field], "sourceCopyUnits": [{"field": "RetentionField", "text": field["tooltip"], "decision": "perceive-on-demand", "source": evidence, "exactWording": True}]}
         self.assertEqual(copy_coverage_problem(form), [])
+        changed_display = copy.deepcopy(form)
+        changed_display['fields'][0]['tooltip'] = '分区保留策略说明'
+        self.assertIn('exactWording', str(copy_coverage_problem(changed_display)))
         # A rendered sentence with no unit fails.
         self.assertIn("without sourceCopyUnits", str(copy_coverage_problem({"fields": [field]})))
         # A paraphrase that is absent from the quote fails.
@@ -642,6 +681,52 @@ class FormCheckTests(unittest.TestCase):
         self.assertIn("excludedCopy", str(copy_coverage_problem(excluded)))
         excluded["fields"][0]["excludedCopy"] = [{"text": excluded["sourceCopyUnits"][0]["text"], "source": evidence}]
         self.assertEqual(copy_coverage_problem(excluded), [])
+
+    def test_source_copy_can_be_paraphrased_and_combined_per_slot(self):
+        from verify_forms import copy_coverage_problem, copy_triage_problem
+        from prepare_plan import evidence
+        source = Path(__file__).resolve().parents[1] / 'evals/page-types/requirements/basic-form.md'
+        quote = '使用门槛：选填，0 表示无门槛。'
+        field = {'nodeName': 'ThresholdField', 'description': '不设门槛时填0。', 'copyTriage': 'perceive-now'}
+        unit = {'field': 'ThresholdField', 'text': '0 表示无门槛', 'decision': 'perceive-now',
+                'source': evidence(source, quote)}
+        form = {'fields': [field], 'sourceCopyUnits': [unit]}
+        self.assertEqual(copy_coverage_problem(form), [])
+        form['sourceCopyUnits'].append({**unit, 'text': '选填'})
+        field['description'] = '选填；不设门槛时填0。'
+        self.assertEqual(copy_coverage_problem(form), [])
+        field['tooltip'] = '门槛是使用该券所需的订单金额。'
+        self.assertIn('no sourceCopyUnit', str(copy_coverage_problem(form)))
+        # Visible and on-demand copy have independent source units, one field summary.
+        form['sourceCopyUnits'].append({**unit, 'text': '使用门槛', 'decision': 'perceive-on-demand'})
+        self.assertEqual(copy_coverage_problem(form), [])
+        self.assertIsNone(copy_triage_problem(field))
+        del field['description']
+        self.assertIn('description is missing', str(copy_coverage_problem(form)))
+
+    def test_source_copy_still_rejects_empty_fabricated_and_stale_evidence(self):
+        from verify_forms import copy_coverage_problem
+        form = copy.deepcopy(self.expected['pages'][0]['forms'][0])
+        for value in ['', '   ', 'An invented source sentence']:
+            with self.subTest(value=value):
+                form['sourceCopyUnits'][0]['text'] = value
+                self.assertTrue(copy_coverage_problem(form))
+        form['sourceCopyUnits'][0]['text'] = 'Help'
+        form['sourceCopyUnits'][0]['source']['sha256'] = 'stale'
+        self.assertIn('changed after planning', str(copy_coverage_problem(form)))
+
+    def test_no_layout_and_overlay_forms_cannot_skip_source_copy_units(self):
+        self.expected['pages'][0]['forms'][0].pop('sourceCopyUnits')
+        self.assertIn('without sourceCopyUnits', str(self.result(self.html)))
+        html = self.grid_fixture()
+        self.expected['pages'][0]['forms'][0].pop('sourceCopyUnits')
+        self.assertIn('without sourceCopyUnits', str(self.result(html)))
+
+    def test_reviewed_paraphrase_must_match_saved_form_copy(self):
+        form = self.expected['pages'][0]['forms'][0]
+        form['fields'][0]['tooltip'] = '帮助'
+        self.assertTrue(self.result(self.html.replace('<span>Help</span>', '<span>帮助</span>'))['passed'])
+        self.assertFalse(self.result(self.html)['passed'])
 
     def test_compact_single_column_modal_passes(self):
         html = self.grid_fixture()

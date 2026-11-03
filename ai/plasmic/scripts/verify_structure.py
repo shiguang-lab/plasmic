@@ -498,29 +498,31 @@ def check_required_nodes(plan, nodes, page, path):
 
 COPY_BUDGET = {"button": 6, "fieldLabel": 10, "columnTitle": 8, "placeholder": 16,
                "title": 12, "help": 80, "hint": 20}
-PROSE_ROLES = {"button", "help", "hint", "title"}
 
 
 def copy_budget_errors(entries):
-    """Length and repetition budgets from the copy economy table (content-review.md#copy-economy).
+    """Default length budgets, with verified verbatim source wording exceptions.
 
     Lengths are display units: a CJK/fullwidth character is 1, any other character 0.5,
     so the same budget fits Chinese and English UI. Bindings are reviewed in Preview.
     """
-    from verify_content import copy_role, copy_units
-    errors, seen = [], {}
+    from verify_content import copy_role, copy_units, normalized
+    errors = []
     for entry in entries:
         role, text = copy_role(entry), str(entry.get("text", "")).strip()
         limit = COPY_BUDGET.get(role)
         if limit and not text.startswith("{{") and copy_units(text) > limit:
+            if entry.get("evidence") is not None:
+                try:
+                    verify_component_policy.source_text(entry["evidence"])
+                    if normalized(text) not in normalized(entry["evidence"]["quote"]):
+                        raise ValueError("the displayed wording must occur verbatim in the source quote")
+                except (ValueError, OSError, UnicodeError) as error:
+                    errors.append({"check": "uiCopy", "node": entry.get("nodeName"),
+                                   "message": f"Copy budget exception needs current verbatim source evidence: {error}"})
+                continue
             errors.append({"check": "uiCopy", "text": text, "node": entry.get("nodeName"), "role": role,
-                           "message": f"{role} copy exceeds its {limit}-unit budget (CJK character 1, other character 0.5); shorten it to the source's own UI wording"})
-        if role in PROSE_ROLES and text and not text.startswith("{{"):
-            seen.setdefault((role, text), []).append(entry.get("nodeName"))
-    for (role, text), owners in seen.items():
-        if len(owners) > 1:
-            errors.append({"check": "uiCopy", "text": text, "nodes": owners,
-                           "message": f"Same {role} copy appears at multiple owners; state each fact once"})
+                           "message": f"{role} copy exceeds its {limit}-unit budget (CJK character 1, other character 0.5); shorten inferred wording or cite the explicitly required wording with evidence"})
     return errors
 
 
@@ -553,7 +555,7 @@ def check_presentation(plan, root, path):
         page_heading = (name in {"pageheader", "pageheading", "pagetitle", "pagesubtitle", "pageintro"}
                         or node["tag"] == "h1" or attrs.get("role") == "heading" and attrs.get("aria-level", "1") == "1"
                         or id(node) in first_branch and name.endswith("header"))
-        if page_heading and id(node) not in permitted:
+        if plan.get("pageType") != "non-admin" and page_heading and id(node) not in permitted:
             errors.append({"check": "pageHeader", "path": path, "node": node_name(node), "message": "Unrequested standalone Page title/header/intro area; keep navigation in AppShell and business titles in their owning components"})
 
     normalize = lambda text: " ".join(text.split())
@@ -655,7 +657,8 @@ def validate_page_plan(plan):
         and isinstance(item.get("evidence"), dict)
         and all(text(item["evidence"].get(key)) for key in ("path", "sha256", "quote"))
         for item in copy.get("excluded", []))
-    if not isinstance(copy, dict) or not text(copy.get("source")) or not excluded_ok or not entries(copy.get("entries"), ("text", "source", "nodeName", "at", "kind", "purpose")):
+    from verify_content import resolved_copy_entries
+    if not isinstance(copy, dict) or not text(copy.get("source")) or not excluded_ok or not entries(resolved_copy_entries(plan), ("text", "source", "nodeName", "at", "kind", "purpose")):
         raise ValueError("Independent UI-copy review requires source, excluded and complete entries arrays")
     element_fallbacks(plan)
     if not isinstance(plan.get("controls", []), list):
@@ -686,7 +689,7 @@ def route_matches(pattern, path):
     return bool(re.fullmatch(regex, path))
 
 
-def record_context_errors(plan):
+def record_context_errors(plan, page_path=None):
     """Record pages must own a route param, and record actions must carry it.
 
     A prototype may not pass a clicked record through globals, query strings or
@@ -696,6 +699,8 @@ def record_context_errors(plan):
     errors = []
     record_pages = {p.get("path"): p for p in plan.get("pages", []) if p.get("recordPage")}
     for path, page in record_pages.items():
+        if page_path is not None and path != page_path:
+            continue
         pattern = page.get("routePattern")
         params = page.get("params") or []
         if not isinstance(pattern, str) or not pattern.strip():
@@ -737,7 +742,7 @@ def record_context_errors(plan):
                     errors.append({"check": "recordPage", "path": path, "readOnlyMode": read_only,
                                    "message": "readOnlyMode must be one of the declared modes"})
     actions = [a for a in plan.get("rowActions", []) if isinstance(a, dict)]
-    actions += [a for page in plan.get("pages", []) if isinstance(page, dict)
+    actions += [a for page in plan.get("pages", []) if isinstance(page, dict) and (page_path is None or page.get("path") == page_path)
                 for a in (page.get("rowActions") if isinstance(page.get("rowActions"), list) else []) if isinstance(a, dict)]
     for spec in actions:
         # Generic: an action participates in record context only when it declares
@@ -765,13 +770,17 @@ def check(expectation, overview, readback, page_path=None):
     errors = []
     planned = expectation.get("pages", [])
     navigation = expectation.get("navigation", {})
+    scoped = [p for p in planned if page_path is None or p.get("path") == page_path]
+    shell_pages = {p.get("path") for p in scoped if p.get("pageType") != "non-admin" or any(
+        re.sub(r"[^a-z0-9]", "", str(c.get("component", "")).lower()) == "plasmicoverseasappshell"
+        for c in p.get("components", []) if isinstance(c, dict))}
     if not planned or any(not p.get("path") or not isinstance(p.get("source"), str) or not p["source"].strip() for p in planned):
         errors.append({"check": "expectation", "message": "Nonempty page inventory with source citations required"})
-    if not isinstance(navigation.get("source"), str) or not navigation["source"].strip():
+    if (shell_pages or navigation) and (not isinstance(navigation.get("source"), str) or not navigation["source"].strip()):
         errors.append({"check": "expectation", "message": "Navigation source citation required"})
-    errors.extend(record_context_errors(expectation))
+    errors.extend(record_context_errors(expectation, page_path))
     try:
-        expected_menu = menu_tree(navigation.get("items"))
+        expected_menu = menu_tree(navigation.get("items")) if shell_pages or navigation else None
     except ValueError as exc:
         errors.append({"check": "expectation", "message": str(exc)})
         expected_menu = None
@@ -853,6 +862,10 @@ def check(expectation, overview, readback, page_path=None):
                     errors.append({"check": "binding", "path": path, "node": binding["nodeName"], "missingEvent": event})
         try:
             shells = Shells(markup).props
+            if path not in shell_pages and not shells:
+                continue  # Shared source/model checks above still apply; custom navigation needs review.
+            if path not in shell_pages and not navigation:
+                errors.append({"check": "navigation", "path": path, "message": "An actual AppShell requires its source-reviewed navigation inventory"})
             if len(shells) != 1:
                 errors.append({"check": "shell", "path": path, "count": len(shells)})
                 continue
@@ -867,6 +880,8 @@ def check(expectation, overview, readback, page_path=None):
     return {
         "passed": not errors, "expectedPageCount": len(planned), "actualPageCount": len(inventory),
         "errors": errors, "notChecked": ["source-interpretation", "runtime-behavior", "visual-quality", "dynamic UI-copy meaning and unlabeled visual heading inference"]
+        + (["non-admin navigation outside AppShell: review source coverage and exercise actual destinations"]
+           if any(p.get("pageType") == "non-admin" for p in planned) else [])
     }
 
 
@@ -875,14 +890,15 @@ def main():
     parser.add_argument("expectation", type=Path)
     parser.add_argument("overview", type=Path)
     parser.add_argument("pages", type=Path)
+    parser.add_argument("--page", help="Check one exact Page route while retaining the complete project route inventory")
     parser.add_argument("--report", type=Path)
     args = parser.parse_args()
     expected, overview, pages = (json.loads(path.read_text(encoding="utf-8")) for path in [args.expectation, args.overview, args.pages])
-    report = check(expected, overview, pages)
+    report = check(expected, overview, pages, args.page)
     # The CLI, like verify_all, is a full Page check. Internal structural helpers
     # remain usable for focused contract diagnostics without granting acceptance.
     from verify_selection import check as check_selection
-    report["selection"] = check_selection(expected, pages)
+    report["selection"] = check_selection(expected, pages, args.page)
     report["errors"].extend(report["selection"]["errors"])
     report["errors"].extend(check_complete_names(pages))
     report["passed"] = not report["errors"]

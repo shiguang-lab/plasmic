@@ -24,12 +24,12 @@ For requested changes, defect reports and module optimization, first follow [fee
 
 1. Before editor work, resolve Team → Workspace → Project through [management](../desktop-management.md); reread identity/schemas and check canEdit. Pass [MCP preflight](../desktop-transports.md#prototype-preflight) before writes.
 2. Read and reconcile sources under [requirement alignment](../requirement-alignment.md). Derive [business cases](../behavior-acceptance.md#plan-from-the-source) and inventory source [wireframes](../design/text-wireframes.md) before layout. Truncated reads are incomplete.
-3. Draft `pageStructure` under [structure design](../design/page-structure.md), separating source constraints from inference. Choose a [page type](../design/page-types.md#choosing-the-type) for starting guidance.
+3. Draft `pageStructure` under [structure design](../design/page-structure.md), separating source constraints from inference. Choose a [page type](../design/page-types.md#choosing-the-type) from the task: an admin type for its starting recipe, or `non-admin` with source-backed structure for other experiences.
 4. Use [native library selection](../libraries/index.md#native-component-selection); Overseas/Antd6 follows [selection](../libraries/antd_v6/selection.md). Read chosen live Props/Slots/events.
-5. Read [admin design](../admin-design.md), [templates](../admin-templates.md) and the full [catalog](../templates/admin/catalog.json) from resourceRoot. Match Page/regions by scenario, inspect live templates/contracts and finalize the current structure. Stability tasks read [reproducibility](../reproducibility.md).
+5. For admin Pages or matching admin regions, read [admin design](../admin-design.md), [templates](../admin-templates.md) and the full [catalog](../templates/admin/catalog.json) from resourceRoot. Match Page/regions by scenario, inspect live templates/contracts and finalize the current structure. Stability tasks read [reproducibility](../reproducibility.md).
 6. Follow [Page planning](../planning.md): read the project card, scaffold the current Page with `--page ROUTE`, read its compose card, resolve decisions/anchors and pass `verify_selection.py --page ROUTE --reads LEDGER`. Complete Design review before composition.
 
-Full-suite commands apply to the [standalone fixed-viewport Overseas/Antd6 scope](../verification.md). Local edits and other libraries use focused checks with explicit coverage limits; do not change libraries or unrelated Pages to pass.
+Full-suite commands apply to the [standalone fixed-viewport admin Overseas/Antd6 scope](../verification.md). Non-admin Pages, local edits and other libraries use focused checks with explicit coverage limits; do not change libraries or unrelated Pages to pass.
 
 ## Execution plan and completion evidence
 
@@ -49,7 +49,7 @@ Retain [checkpoint records](../review-mode.md#checkpoint-records); launch or aut
 
 Resume from the Page structure, compose card, contracts and checkpoint. `readingBudgetExceeded` signals context pressure. Use verified [composition handoff](../review-mode.md#page-composition-handoff) or supported compaction; otherwise read sequentially and checkpoint without skipping rules or claiming fresh context. If capacity is insufficient, stop dependent work with the remaining reads/checks and next action recorded.
 
-Keep plans outside UI; derive Slots from [Pen evidence](../design-references.md)/contracts. Run `verify_all.py --page /exact-route` and open [pixels](../desktop-inspection.md) before Saved-Page review. Then record the static review under [rule review](../review-mode.md#rule-review), with one Desktop controller and unified fallback. Single-Page scope includes overlays and hidden content, excludes sibling transitions. Preview adds no devices. Use [explicit recovery](../desktop-context.md).
+Keep plans outside UI; derive Slots from [Pen evidence](../design-references.md)/contracts. Run `verify_all.py --page /exact-route` for the supported admin suite, or the applicable focused gates for non-admin/other scopes, and open [pixels](../desktop-inspection.md) before Saved-Page review. Then record the static review under [rule review](../review-mode.md#rule-review), with one Desktop controller and unified fallback. Single-Page scope includes overlays and hidden content, excludes sibling transitions. Preview adds no devices. Use [explicit recovery](../desktop-context.md).
 
 ## Final Preview review
 
@@ -61,4 +61,4 @@ Retain findings, captures and failed/unexecuted/invalid-evidence cases under [ru
 
 ## Final acceptance
 
-Save/reopen the same project and collect fresh evidence. Complete [model comparison and checks](../verification.md#collect-and-verify) and the Integration checkpoint's final rule review. Revalidate affected cases when reopened models differ. Local edits stay scoped to affected regions/flows; complete generation requires the full suite. Report actual review modes and separate source, static, visual, runtime and persistence outcomes. Required failures or missing checks block delivery.
+Save/reopen the same project and collect fresh evidence. Complete [model comparison and checks](../verification.md#collect-and-verify) and the Integration checkpoint's final rule review. Revalidate affected cases when reopened models differ. Local edits stay scoped to affected regions/flows; complete generation within the supported admin scope requires the full suite; other scopes retain their applicable checks and explicit coverage limits. Report actual review modes and separate source, static, visual, runtime and persistence outcomes. Required failures or missing checks block delivery.

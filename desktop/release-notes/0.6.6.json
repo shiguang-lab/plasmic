@@ -1,0 +1,7 @@
+{
+  "en": "- Slow down logo construction and keep a gentle breathing animation during long loading waits.\n- Improve prototype planning rules, component contracts and focused verification.",
+  "zh-CN": "- 放慢 Logo 栅格构建动画，长时间加载时持续显示轻柔呼吸效果。\n- 完善原型规划规则、组件契约与定向校验。",
+  "zh-TW": "- 放慢 Logo 格線構建動畫，長時間載入時持續顯示輕柔呼吸效果。\n- 完善原型規劃規則、元件契約與定向驗證。",
+  "ja": "- ロゴの構築アニメーションをゆっくりにし、長い読み込み中も穏やかな明滅を継続。\n- プロトタイプの計画ルール、コンポーネント契約と対象を絞った検証を改善。",
+  "ko": "- 로고 구성 애니메이션 속도를 낮추고 긴 로딩 중에도 부드러운 숨쉬기 효과를 유지합니다.\n- 프로토타입 계획 규칙, 컴포넌트 계약 및 집중 검증을 개선합니다."
+}

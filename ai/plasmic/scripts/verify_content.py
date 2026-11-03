@@ -138,6 +138,20 @@ def inventory(page, declarations=()):
     return {'nodes': records, 'copy': list(grouped.values())}
 
 
+def resolved_copy_entries(plan):
+    """Inherit repeated provenance from the named declaration without changing the plan."""
+    declarations = {item.get('nodeName'): item for key in ('components', 'nodes')
+                    for item in (plan.get(key) if isinstance(plan.get(key), list) else [])
+                    if isinstance(item, dict) and text(item.get('nodeName'))}
+    review = plan.get('copy')
+    entries = review.get('entries') if isinstance(review, dict) else None
+    if not isinstance(entries, list):
+        return entries
+    return [{**{key: declarations.get(item.get('nodeName') if text(item.get('nodeName')) else None, {}).get(key)
+                for key in ('source', 'purpose')}, **item}
+            if isinstance(item, dict) else item for item in entries]
+
+
 def plan_errors(plan):
     errors = []
 
@@ -187,7 +201,7 @@ def plan_errors(plan):
         issue('/copy', 'Source-reviewed copy requires source, entries and excluded arrays; empty entries never exempts actual UI text')
         return errors
     keys = []
-    for i, spec in enumerate(copy['entries']):
+    for i, spec in enumerate(resolved_copy_entries(plan)):
         pointer = f'/copy/entries/{i}'
         if not isinstance(spec, dict) or not all(text(spec.get(k)) for k in ('nodeName', 'at', 'text', 'source', 'purpose', 'kind')):
             issue(pointer, 'Every UI literal/binding needs a named location, exact text, kind, source and user purpose')

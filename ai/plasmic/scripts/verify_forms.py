@@ -163,7 +163,7 @@ def normalize_copy(text):
 
 
 def copy_coverage_problem(expected_form):
-    """Every source copy unit is classified; every rendered copy maps back to a unit."""
+    """Bind source units to reviewed field Slots; wording equivalence needs review."""
     units = expected_form.get("sourceCopyUnits")
     fields = {f["nodeName"]: f for f in expected_form.get("fields", [])}
     rendered = [(f["nodeName"], key, f.get(key)) for f in fields.values()
@@ -175,8 +175,12 @@ def copy_coverage_problem(expected_form):
     from verify_component_policy import source_text
     problems, covered = [], set()
     for unit in units:
-        if not isinstance(unit, dict) or not isinstance(unit.get("text"), str) or not isinstance(unit.get("field"), str):
+        if (not isinstance(unit, dict) or not isinstance(unit.get("text"), str)
+                or not normalize_copy(unit["text"]) or not isinstance(unit.get("field"), str)):
             problems.append("sourceCopyUnits entries need field, text, decision and source")
+            continue
+        if "exactWording" in unit and type(unit["exactWording"]) is not bool:
+            problems.append(f"Copy unit for {unit['field']} exactWording must be a boolean")
             continue
         decision = unit.get("decision")
         if decision not in ("perceive-now", "perceive-on-demand", "not-user-facing"):
@@ -188,20 +192,20 @@ def copy_coverage_problem(expected_form):
             problems.append(f"Copy unit for {unit['field']} has unusable source evidence: {error}")
             continue
         if normalize_copy(unit["text"]) not in normalize_copy(quote):
-            problems.append(f"Copy unit for {unit['field']} is not a verbatim part of its source quote; do not paraphrase requirement copy")
+            problems.append(f"Copy unit for {unit['field']} is not a verbatim part of its source quote; keep source text here and reviewed UI wording on the field")
             continue
         field = fields.get(unit["field"])
         if field is None:
             problems.append(f"Copy unit targets unknown field {unit['field']}")
             continue
-        if decision == "perceive-now":
-            if field.get("description") != unit["text"]:
-                problems.append(f"Copy unit for {unit['field']} is perceive-now but the field description does not match it")
-            covered.add((unit["field"], "description", unit["text"]))
-        elif decision == "perceive-on-demand":
-            if field.get("tooltip") != unit["text"]:
-                problems.append(f"Copy unit for {unit['field']} is perceive-on-demand but the label tooltip does not match it")
-            covered.add((unit["field"], "tooltip", unit["text"]))
+        if decision in ("perceive-now", "perceive-on-demand"):
+            key = "description" if decision == "perceive-now" else "tooltip"
+            text = field.get(key)
+            if not isinstance(text, str) or not text.strip():
+                problems.append(f"Copy unit for {unit['field']} is {decision} but the field {key} is missing")
+            elif unit.get("exactWording") and unit["text"] not in text:
+                problems.append(f"Copy unit for {unit['field']} requires exactWording in the field {key}")
+            covered.add((unit["field"], key))
         else:
             if unit["text"] in (field.get("description"), field.get("tooltip")):
                 problems.append(f"Copy unit for {unit['field']} is not-user-facing but the field renders it")
@@ -209,8 +213,8 @@ def copy_coverage_problem(expected_form):
             if unit["text"] not in excluded:
                 problems.append(f"Not-user-facing copy for {unit['field']} must be listed in excludedCopy")
     for name, key, text in rendered:
-        if (name, key, text) not in covered:
-            problems.append(f"Field {name} renders {key} copy with no sourceCopyUnit; every rendered sentence must trace to the requirement")
+        if (name, key) not in covered:
+            problems.append(f"Field {name} renders {key} copy with no sourceCopyUnit; review every rendered sentence against its source units")
     return problems
 
 
@@ -284,18 +288,6 @@ def label_width_problem(label_width, has_tooltip):
     if abs(measured - (label + mark + icon + padding)) > 2:
         return ("measuredPx must equal labelTextPx + requiredMarkPx + helpIconPx + paddingPx (within 2px); "
                 "recalculate from the rendered label including the help icon and its padding")
-    return None
-
-
-def description_budget_problem(columns, fields):
-    """A multi-column Form keeps descriptions to one short line; background text belongs in the tooltip."""
-    if not isinstance(columns, int) or columns < 3:
-        return None
-    for field in fields:
-        text = field.get("description")
-        if isinstance(text, str) and len(text) > 40:
-            return (f"Field {field['nodeName']} carries a long persistent description in a {columns}-column Form; "
-                    "move background text to the label tooltip")
     return None
 
 
@@ -528,7 +520,7 @@ def fills_width(node, parent):
 
 
 def page_form_problems(root, form, expected_form, layout):
-    """Label width, alignment, column count and copy budget for a page (non-overlay) Form."""
+    """Label width, alignment, column count and source-copy coverage for a Page Form."""
     failures = []
     label_width = expected_form.get("labelWidth")
     horizontal = expected_form.get("formLayout") == "horizontal"
@@ -554,9 +546,6 @@ def page_form_problems(root, form, expected_form, layout):
             problem = alignment_reason_problem(expected_form.get("labelAlignReason"))
             if problem:
                 failures.append(problem)
-        budget = description_budget_problem(layout.get("columns"), expected_form["fields"])
-        if budget:
-            failures.append(budget)
         failures.extend(copy_coverage_problem(expected_form))
         if layout.get("columns") != 3:
             problem = columns_reason_problem(expected_form.get("columnsReason"))
@@ -778,7 +767,7 @@ def check(expectations, overview, readback, references=None):
             if isinstance(layout, dict) and any(key in layout for key in ("modalWidth", "drawerSize")) and not inside_overlay(root, form):
                 errors.append({"page": model["uuid"], "form": form_name,
                                "error": "Overlay dimensions require the owning Modal or Drawer"})
-            if "sourceCopyUnits" in expected_form and (not layout or inside_overlay(root, form)):
+            if not layout or inside_overlay(root, form):
                 errors.extend({"page": model["uuid"], "form": form_name, "error": error}
                               for error in copy_coverage_problem(expected_form))
             container = None

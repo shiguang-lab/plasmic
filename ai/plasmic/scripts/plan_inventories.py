@@ -159,7 +159,13 @@ def form_inventory(plan):
                     field.setdefault('copyTriage', decision)
                     if slot == 'description' and 'copyTriage' not in item_spec:
                         field['copyTriage'] = decision
-                    units.append({'field': item, 'text': field[slot], 'decision': decision, 'source': PENDING})
+                    # Display wording may paraphrase the requirement. Reuse actual
+                    # source quotes, not UI text; reviewed Form units override the draft.
+                    for copy in copies or [{}]:
+                        evidence = copy.get('evidence', PENDING)
+                        units.append({'field': item,
+                                      'text': evidence.get('quote', PENDING) if isinstance(evidence, dict) else PENDING,
+                                      'decision': copy.get('copyTriage', decision), 'source': deepcopy(evidence)})
                 units.extend({'field': item, 'text': excluded.get('text', PENDING),
                               'decision': 'not-user-facing', 'source': deepcopy(excluded.get('source', PENDING))}
                              for excluded in field.get('excludedCopy', []) if isinstance(excluded, dict))

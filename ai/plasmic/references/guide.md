@@ -1,11 +1,12 @@
 # Plasmic task guide
 
-Read resolved `mustRead` files and [context/evidence rules](context-reading.md), then applicable conditional sections. Links are file-relative; commands use `resourceRoot`.
+Choose the task branch below first. Native inspect/prototype/codegen reads resolved `mustRead` files and [context/evidence rules](context-reading.md), then applicable conditional sections. Links are file-relative; commands use `resourceRoot`.
 
 ## Task routing
 
-| Intent | Mode |
+| Intent | Mode / branch |
 | --- | --- |
+| Explicit official CLI sync/watch/export/codegen or metadata | Resolve codegen resources, then [official CLI](official-cli.md); its guide replaces the native codegen mustRead/workflow, without Desktop preparation unless separately needed |
 | Explain/review the design of a page, component or template | [inspect](workflows/inspect.md), read-only |
 | Create/revise/repair an editable design and verify it | [prototype](workflows/prototype.md), writes require `canEdit` |
 | Implement/repair application code or verify it against a design | [codegen](workflows/codegen.md), code review may be read-only |

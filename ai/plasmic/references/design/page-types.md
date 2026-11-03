@@ -1,18 +1,20 @@
-# Admin page types
+# Page purpose and admin page types
 
-Choose `pageType` from the Page's primary user task during [structure design](page-structure.md), before templates or components. It routes starting skeletons and composition guidance; the source determines required content, not component counts. Put the type in the minimal plan. Explicit spatial constraints take precedence; otherwise decide arrangement through `pageStructure` reasoning without overriding protected component defaults. Use the [design scale](scale.md) for dimensions and the linked compositions for region internals.
+Choose `pageType` from the Page's primary user task during [structure design](page-structure.md), before templates or components. For admin work, it routes starting skeletons and composition guidance; for a public website, editorial or other non-admin experience, use `non-admin` and derive the arrangement from `pageStructure.intent` and `source`. A component library does not determine page purpose. Put the type in the minimal plan. Explicit spatial constraints take precedence; otherwise decide arrangement through `pageStructure` reasoning without overriding protected component defaults. Admin pages use the [design scale](scale.md) and linked compositions for region internals.
 
-Rendered examples of every type live in the Plasmic project 页面类型参考 (`gPHk7DnpyjQisz59sZYNVJ`), one Page per type. Read a Page's model through MCP to compare structure and props; the reference structures below remain the rule.
+Rendered examples of every admin type live in the Plasmic project 页面类型参考 (`gPHk7DnpyjQisz59sZYNVJ`), one Page per type. Read a Page's model through MCP to compare structure and props; the reference structures below remain the rule.
 
 **Hard constraints** (always delivered with any section):
 
-- Decide `pageType` from the user task of the Page, not from its fields: find records, enter one record, read one record, follow a multi-stage flow, see an outcome or monitor indicators.
+- Decide `pageType` from the source task: choose an admin type below or `non-admin`; record the purpose and source in `pageStructure`. Do not reclassify an admin Page to bypass its rules.
 - Use the regions below as starting guidance, then decide arrangement from the source and task under [Page structure design](page-structure.md). Omit regions with no source content; retain required regions and explicit arrangements even when they differ from the example. Record source constraints separately from agent reasoning and verify the inventory.
-- Content starts with the first business region inside the AppShell; no Page title, intro or breadcrumb copy (see [admin content entry](layout.md#admin-content-entry)).
-- Top-level regions follow the decided Page structure using native layout components and the shared 16px spacing baseline. Vertical Flex is suitable for sequential regions; Row or horizontal Flex can express simultaneous regions. Do not nest one region's surface inside another's.
+- Inside an admin AppShell, content starts with the first business region; no Page title, intro or breadcrumb copy (see [admin content entry](layout.md#admin-content-entry)).
+- Admin top-level regions follow the decided Page structure using native layout components and the shared 16px spacing baseline. Vertical Flex is suitable for sequential regions; Row or horizontal Flex can express simultaneous regions. Do not nest one region's surface inside another's.
 - Overlays (Modal, Drawer) belong to the Page that opens them; they are not separate Pages.
 
 ## Choosing the type
+
+First determine whether the source task is admin work. Use `non-admin` for a public website, editorial or other non-admin experience, even when it uses Antd6. The following table routes admin tasks; `overview` is not a fallback for a website homepage.
 
 | User task on this Page | `pageType` | Template |
 | --- | --- | --- |
@@ -30,6 +32,14 @@ Rendered examples of every type live in the Plasmic project 页面类型参考 (
 An input-and-run tool uses the closest form type plus its output region; `result` is for an outcome-focused Page. Keep the real action (for example Run), without inventing Save or record persistence.
 
 A create/edit flow that keeps list context uses a Drawer or Modal on the list Page instead of a form Page; see [overlays](../libraries/antd_v6/compositions/modal-drawer.md).
+
+## Non-admin
+
+Use `pageType: "non-admin"` with the same source-backed `pageStructure`, components, nodes, copy and behavior declarations. The shared project/Page cards and selection preflight still apply, as do live component contracts, source coverage, accessibility, saved-model review and required Preview/persistence checks. Page-wide admin recipes, shell assumptions and the no-standalone-header rule do not apply; component-owned defaults still do. Design a website heading or hero from the actual task and review its copy normally.
+
+Select relevant templates by purpose. When the admin catalog is outside the task, use the existing `templates: []` and a specific `templatesNotApplicable` reason grounded in the Page's source; no live admin template read is needed merely because an Antd6 control is present. A matching admin region still follows its component/composition rules.
+
+Use applicable focused checks under [verification](../verification.md), and report their coverage limits. Do not run admin-only page/shell layout checks against a website or report a focused pass as full-suite acceptance. Design review must confirm the declared purpose against the source; the enum alone cannot prove it.
 
 ## Page types
 
@@ -73,7 +83,7 @@ AppShell › children
 
 ### catalog-workspace
 
-A Row with `wrap:false` and gutter 16: a 248px catalog column (Card with a search Input and Menu or Tree) and a flexible workspace column (`flex:auto`, `min-width:0`) containing a `list` or `tabbed-list` layout. The workspace column is narrower than a full-width list: measure its rendered content width and choose columns whose `scroll.x` (fixed widths plus the main column's baseline, per [Table](../libraries/antd_v6/components/table.md#content-and-scroll-width)) fits it, rather than relying on horizontal scroll. See [master-detail](../libraries/antd_v6/compositions/master-detail.md).
+A Row with `wrap:false` and gutter 16: a 248px catalog column (Card with a search Input and Menu or Tree) and a flexible workspace column (`flex:auto`, `min-width:0`) containing a `list` or `tabbed-list` layout. The workspace column is narrower than a full-width list: measure its rendered content width and choose columns whose `scroll.x` (fixed widths plus the main column's baseline, per [Table](../libraries/antd_v6/components/table.md#content-and-scroll-width)) fits it when all required fields remain readable. If their minimum usable widths do not fit, adjust the outer arrangement or retain Table-internal horizontal scrolling with reachable fixed actions; keep all required fields and prevent Page overflow. See [master-detail](../libraries/antd_v6/compositions/master-detail.md).
 
 Reference structure:
 

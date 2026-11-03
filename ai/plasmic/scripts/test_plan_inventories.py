@@ -65,7 +65,7 @@ class FormInventoryTests(unittest.TestCase):
         self.assertEqual((name['label'], name['control'], name['rules']), ('名称', 'NameInput', [{'ruleType': 'required'}]))
         self.assertEqual(owner['tooltip'], '负责处理该记录的人员')
         self.assertEqual(owner['copyTriage'], 'perceive-on-demand')
-        self.assertEqual(form['sourceCopyUnits'], [{'field': 'OwnerItem', 'text': '负责处理该记录的人员',
+        self.assertEqual(form['sourceCopyUnits'], [{'field': 'OwnerItem', 'text': PENDING,
                                                    'decision': 'perceive-on-demand', 'source': PENDING}])
         self.assertEqual(note['span'], 3)
         self.assertNotIn('span', name)
@@ -77,6 +77,38 @@ class FormInventoryTests(unittest.TestCase):
         from prepare_plan import label_widths
         result = label_widths(self.plan(), '/records/new')
         self.assertEqual(result['forms'], [{'form': 'RecordForm', 'longestLabel': '负责人', 'estimatedPx': 84, 'labelCol': {'flex': '84px'}}])
+
+    def test_source_units_keep_original_text_separate_from_display_copy(self):
+        plan = self.plan()
+        declarations = {s['nodeName']: s for s in plan['pages'][0]['components']}
+        declarations['OwnerItem']['description'] = '请选择实际办理人。'
+        raw = {'field': 'OwnerItem', 'text': '负责人需要是实际办理该记录的工作人员',
+               'decision': 'perceive-now', 'source': PENDING, 'exactWording': False}
+        declarations['RecordForm']['sourceCopyUnits'] = [raw]
+        form = form_inventory(plan)['pages'][0]['forms'][0]
+        self.assertEqual(form['sourceCopyUnits'], [raw])
+        owner = form['fields'][1]
+        self.assertEqual(owner['description'], '请选择实际办理人。')
+        self.assertEqual(owner['tooltip'], '负责处理该记录的人员')
+        self.assertEqual(owner['copyTriage'], 'perceive-now')
+        form['sourceCopyUnits'][0]['text'] = 'changed'
+        self.assertEqual(declarations['RecordForm']['sourceCopyUnits'][0]['text'], raw['text'])
+
+    def test_copy_evidence_is_reused_without_requiring_display_text_to_be_verbatim(self):
+        plan = self.plan()
+        first = next(e for e in plan['pages'][0]['copy']['entries'] if e['nodeName'] == 'OwnerHelp')
+        first['evidence'] = {'path': '/requirement.md', 'sha256': 'hash', 'quote': '负责人需要是实际办理该记录的工作人员'}
+        node, entry = text('OwnerHelpExtra', 'OwnerItem', 'tooltip', '提交后不可更换。')
+        entry['evidence'] = {'path': '/requirement.md', 'sha256': 'hash', 'quote': '负责人提交之后不能修改'}
+        plan['pages'][0]['nodes'].append(node)
+        plan['pages'][0]['copy']['entries'].append(entry)
+        form = form_inventory(plan)['pages'][0]['forms'][0]
+        self.assertEqual(form['fields'][1]['tooltip'], '负责处理该记录的人员 提交后不可更换。')
+        self.assertEqual(form['sourceCopyUnits'], [
+            {'field': 'OwnerItem', 'text': e['evidence']['quote'], 'decision': 'perceive-on-demand', 'source': e['evidence']}
+            for e in (first, entry)])
+        form['sourceCopyUnits'][0]['source']['quote'] = 'changed'
+        self.assertEqual(first['evidence']['quote'], '负责人需要是实际办理该记录的工作人员')
     def test_controls_outside_any_form_need_a_reviewed_reason(self):
         standalone = form_inventory(self.plan())['pages'][0]['standaloneControls']
         self.assertEqual(standalone, [{'nodeName': 'Search', 'reason': PENDING}])
@@ -334,7 +366,7 @@ class CommandTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stderr)
             summary = json.loads(result.stdout)
             # measuredPx, measuredFrom, copy evidence and the standalone-control reason.
-            self.assertEqual(summary['pendingDecisions']['forms-inventory.json'], 4)
+            self.assertEqual(summary['pendingDecisions']['forms-inventory.json'], 5)
             suite = json.loads((out / 'suite.json').read_text(encoding='utf-8'))
             self.assertEqual(suite['structure']['inventory'], '../structure-expectation.json')
             self.assertEqual(suite['structure']['reads'], '../compose.jsonl')

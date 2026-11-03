@@ -80,7 +80,7 @@ A single-group Form goes inside its Card; a grouped Form wraps its group Cards. 
 
 #### Columns and label width
 
-Background and definition text belongs in the label `tooltip`, not in a persistent description. In a multi-column Form a persistent description is limited to one short line of format or range information; long explanatory paragraphs make a grid row tall and crowded, so move them to the label tooltip (the user opens it on demand) or drop them.
+Use [Form field instructions](../components/form.md#field-instructions) to decide visibility: optional background belongs in the label tooltip; instructions needed while entering a value remain visible in description. Layout does not change that decision. For necessary long instructions, allow wrapping and a full-row field or a source/measurement-backed column adjustment; verify readable controls, errors and complete instructions without overlap. Length alone is not a reason to hide or delete them.
 
 A Page create/edit Form defaults to three fields per row. Use a source-specified count, or two when measured control widths show three would crowd them (`columnsReason` measurement). A trailing row may hold fewer fields at the same column width.
 

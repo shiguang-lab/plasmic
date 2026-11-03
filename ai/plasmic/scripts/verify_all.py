@@ -607,18 +607,31 @@ def main():
     source.add_argument("--profile", type=Path, help="Running Desktop user-data directory; defaults to PLASMIC_DESKTOP_PROFILE or the standard Desktop profile (macOS/Linux)")
     source.add_argument("--evidence", type=Path, help="Replay a previously collected evidence directory")
     parser.add_argument("--reuse-evidence", type=Path, help="During live collection, reuse complete models when session/model/build and hashes match; always refresh layouts")
-    parser.add_argument("--expectations", type=Path, required=True, help="Reviewed suite JSON; paths relative to this file")
+    parser.add_argument("--expectations", type=Path, help="Reviewed suite JSON; required unless --collect-only")
+    parser.add_argument("--collect-only", action="store_true", help="Collect the existing evidence bundle for focused checks without running or claiming a suite pass")
     parser.add_argument("--output", type=Path, required=True, help="New output directory; never overwrites a previous run")
     args = parser.parse_args()
     if args.reuse_evidence and args.evidence:
         parser.error("--reuse-evidence is for live collection; offline replay uses --evidence")
+    if args.collect_only and (args.evidence or args.expectations):
+        parser.error("--collect-only collects live evidence without --evidence or --expectations")
+    if not args.collect_only and not args.expectations:
+        parser.error("--expectations is required to run the suite")
     args.output.mkdir(parents=True, exist_ok=False)
     try:
-        config = read_json(args.expectations)
-        if not isinstance(config, dict):
+        config = read_json(args.expectations) if args.expectations else None
+        if not args.collect_only and not isinstance(config, dict):
             raise ValueError("Suite expectations must be an object keyed by gate name")
         if not args.evidence:
             collect(Desktop(args.profile or default_profile()), args.project_id, args.output, args.reuse_evidence, args.page)
+        if args.collect_only:
+            capture, hashes, overview, readback, _ = read_capture(args.output)
+            errors = capture_errors(args.output, args.project_id, capture, overview, readback['results'], hashes, args.page)
+            if errors:
+                raise ValueError('; '.join(errors))
+            print(json.dumps({"status": "collected", "capture": str(args.output / "capture.json"),
+                              "notChecked": ["suite gates", "design and runtime acceptance"]}))
+            return
         report = run_suite(config, args.expectations.resolve().parent, args.evidence or args.output, args.project_id, args.page)
     except Exception as error:
         report = {"passed": False, "projectId": args.project_id, "checks": [{"gate": "collection", "status": "failed", "report": {"errorType": type(error).__name__, "error": str(error)}}],

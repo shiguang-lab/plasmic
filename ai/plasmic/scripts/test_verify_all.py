@@ -752,6 +752,41 @@ class SuiteTests(unittest.TestCase):
         self.assertEqual([name for name, _ in calls], ["get_app_state", "identify", "getEditorContext", "read", "read", "snapshot_layout", "validate", "getEditorContext", "get_app_state"])
         self.assertIn(("read", {"view": "full", "fields": OVERVIEW_FIELDS}), calls)
         self.assertIn(("read", {"componentUuids": ["page"], "view": "full", "depth": "all"}), calls)
+        # The focused CLI uses this same collector and never runs admin suite gates.
+        import contextlib
+        import io
+        from verify_all import main
+        output = self.root / 'focused-capture'
+        stdout = io.StringIO()
+        with patch('verify_all.Desktop', return_value=Desktop()), patch('verify_all.run_suite') as suite, \
+             patch.object(sys, 'argv', ['verify_all.py', '--project-id', 'project', '--page', '/records',
+                                       '--collect-only', '--profile', str(self.root), '--output', str(output)]), \
+             contextlib.redirect_stdout(stdout):
+            main()
+        suite.assert_not_called()
+        result = json.loads(stdout.getvalue().splitlines()[-1])
+        self.assertEqual(result['status'], 'collected')
+        self.assertNotIn('passed', result)
+        self.assertFalse((output / 'report.json').exists())
+        capture = read_json(output / 'capture.json')
+        self.assertEqual(capture['pagePath'], '/records')
+        self.assertEqual(capture['files'], evidence_hashes(output))
+        # Fresh collection can observe an edit; capture-only must reject it just as the suite does.
+        unstable = self.root / 'unstable-capture'
+        def changing_collect(*args):
+            collect(*args)
+            value = read_json(unstable / 'capture.json')
+            value['after']['changeCounter'] += 1
+            write_json(unstable / 'capture.json', value)
+        with patch('verify_all.Desktop', return_value=Desktop()), patch('verify_all.collect', side_effect=changing_collect), \
+             patch('verify_all.run_suite') as suite, \
+             patch.object(sys, 'argv', ['verify_all.py', '--project-id', 'project', '--collect-only',
+                                       '--profile', str(self.root), '--output', str(unstable)]), \
+             contextlib.redirect_stdout(io.StringIO()), self.assertRaises(SystemExit) as stopped:
+            main()
+        self.assertEqual(stopped.exception.code, 1)
+        suite.assert_not_called()
+        self.assertFalse(read_json(unstable / 'report.json')['passed'])
         fixture.readback["read"]["depth"] = 0
         with self.assertRaisesRegex(ValueError, "complete model reads"):
             collect(Desktop(), "project", self.root)

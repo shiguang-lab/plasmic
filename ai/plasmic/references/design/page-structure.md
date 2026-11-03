@@ -30,9 +30,11 @@ Choose fixed, content-sized or flexible regions from real content needs and the 
 
 ## Resolve templates and contracts
 
-Read `RESOURCE_ROOT/references/admin-templates.md` and the complete `RESOURCE_ROOT/references/templates/admin/catalog.json`, where `RESOURCE_ROOT` is the resolver's `resourceRoot`. Follow [template acquisition](../admin-templates.md#read-and-compose-through-public-tools) to inspect matching live models and nested definitions. Do not guess local template paths, project IDs or native registration keys.
+For admin Pages or matching admin regions, read `RESOURCE_ROOT/references/admin-templates.md` and the complete `RESOURCE_ROOT/references/templates/admin/catalog.json`, where `RESOURCE_ROOT` is the resolver's `resourceRoot`. Follow [template acquisition](../admin-templates.md#read-and-compose-through-public-tools) to inspect matching live models and nested definitions. Do not guess local template paths, project IDs or native registration keys.
 
 Match both the Page and its individual regions by scenario and interaction scope. Compare the draft with the live template's layout, Slots and destination component capabilities, then retain or revise the structure with a concrete reason. For an editor with live preview, a form region may reuse the form template's inspected structure even when no complete editor-preview template exists. A catalog template is not a match solely because it also has two columns. Record selections and adaptations in the existing `templates` entries; do not duplicate template identities in the structure decision.
+
+For non-admin Pages, discover templates appropriate to the source task; record an out-of-scope admin catalog using the existing `templatesNotApplicable` reason under [non-admin planning](page-types.md#non-admin). Retain live contracts and shared structure/source checks.
 
 Finalize the current Page and complete the [Design review checkpoint](../review-mode.md#review-checkpoints) before markup. Review a structure-only draft with its unresolved contract assumptions; do not invent live evidence. Missing layout detail is normally an agent decision, not a user approval checkpoint. Ask only about an unresolved material source conflict or business choice; continue independent work. A missing required contract blocks the affected implementation, not permission to silently change the requirement.
 

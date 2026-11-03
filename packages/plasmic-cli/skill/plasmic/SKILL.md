@@ -10,7 +10,9 @@ This is the entrypoint for resolving current resources and selecting a workflow.
 
 ## Resolve the workflow
 
-Choose by the task's artifact and intent, not whether it is new work or uses MCP:
+For an explicit official `@plasmicapp/cli` sync/watch/export/codegen or metadata request, resolve the codegen resources below, then read `references/guide.md` and `references/official-cli.md` instead of the native codegen `mustRead` set. Execute that official-CLI branch without Desktop/model-reading or native implementation steps unless the task also requests them.
+
+For other tasks, choose by artifact and intent:
 
 - `inspect`: explain or review the design/model itself without changing it.
 - `prototype`: create, revise or repair an editable design and verify the resulting prototype.
@@ -30,7 +32,7 @@ npx -y --prefer-online @plasmickit/cli@latest context resolve --mode codegen
 
 Published `context resolve` first synchronizes existing installed skill entries from its CLI bundle, independently of resource updates. Local-source and symlinked entries are preserved. Report `skillUpdate` failures separately; they do not invalidate usable resources. Updated discovery instructions apply when the client reloads skills, not necessarily in this conversation.
 
-Before work in a mode, resolve its resources and read every returned `mustRead` file, starting with `referencePath`; follow relevant links from `resourceRoot`. Within the same task, reuse known, already-read resources and retain pending checks; do not resolve again just because a new message arrived. Resolve/read a newly required mode or recover missing resource context before dependent work; reread affected design inputs when they change. Resource readiness or document reading alone does not establish workflow completion.
+Before native inspect/prototype/codegen work, resolve its resources and read every returned `mustRead` file, starting with `referencePath`; follow relevant links from `resourceRoot`. Within the same task, reuse known, already-read resources and retain pending checks; do not resolve again just because a new message arrived. Resolve/read a newly required mode or recover missing resource context before dependent work; reread affected design inputs when they change. Resource readiness or document reading alone does not establish workflow completion.
 
 Both resolvers verify that Python 3.9+ is available as `python3` for reference readers and gates. The published resolver also checks the NAS release manifest and verifies resource hashes. Stop dependent work on failure; do not silently use stale references. If it requires a newer CLI before npm has that version, install its returned `cliUrl` and rerun. Relay meaningful preparation progress from stderr; stdout contains the result. Report local versus published resources accurately.
 
@@ -48,9 +50,11 @@ Start with the workflow's **Before content writes** checkpoint and the resolved 
 
 Design the in-scope Pages' region relationships before detailed generation under `references/design/page-structure.md`; reconcile the current Page with live templates and component contracts, then generate and review against that structure. Requirements constrain business behavior and explicit presentation choices; use design reasoning for unspecified layout. Select components before composing markup. Discover existing business components and matching templates, prefer them and registered library components, and read their current Props, Slots and event contracts. Do not redraw available functional components with HTML/CSS. Follow `references/libraries/index.md` for selection and verified contract gaps.
 
+Choose page purpose from the task: admin Pages use their matching page type; other experiences use `non-admin` with source-backed structure and focused verification. Component-library choice alone does not make a Page admin.
+
 For admin prototypes, read `references/admin-templates.md` and its catalog, inspect applicable live templates, then adapt the selected composition to the requirement. Read the relevant component and composition references before using them. A template or component must fit the current requirement and the project's actual library.
 
-Keep plans and acceptance evidence outside the business UI. Prototype mutations require edit permission. Codegen follows the target application's architecture; an explicit official Plasmic CLI request follows the guide's official-CLI reference.
+Keep plans and acceptance evidence outside the business UI. Prototype mutations require edit permission. Native codegen follows the target application’s architecture.
 
 For prototype work, follow the workflow's execution-stage table. Derive observable acceptance cases from the current requirements before generation, prepare the current Page's detailed inputs, and retain actual gate/runtime results at each stage. Use existing preparation and verification commands; declarations, tool success and screenshots alone do not establish business acceptance.
 

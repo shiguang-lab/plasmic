@@ -103,19 +103,20 @@ class ReadCoverageTests(unittest.TestCase):
         needed = required_reads(table_plan())
         self.assertEqual(needed[TABLE], {'plan-decisions', 'generation-rules'})
         self.assertEqual(needed['references/libraries/react_ui/components/action-group.md'], {'plan-decisions', 'generation-rules'})
-        self.assertIsNone(required_reads(table_plan(), 'accept')[TABLE])
+        self.assertEqual(required_reads(table_plan(), 'accept')[TABLE],
+                         {'plan-decisions', 'generation-rules', 'acceptance-checks'})
         anchored = {'components': [spec('Results', 'plasmic-antd6-table', 'data-table', rule=TABLE + '#loading-empty-and-failure-acceptance')]}
         self.assertIn('loading-empty-and-failure-acceptance', required_reads(anchored)[TABLE])
 
     def test_missing_width_section_is_reported(self):
-        plan = {'components': [spec('Results', 'plasmic-antd6-table', 'data-table', rule=TABLE + '#columns')]}
+        plan = {'components': [spec('Results', 'plasmic-antd6-table', 'data-table', rule=TABLE + '#columns', props={})]}
         with tempfile.TemporaryDirectory() as directory:
             errors = [e for e in read_coverage_errors(plan, self.ledger(directory, ['columns'])) if e['rule'] == TABLE]
         self.assertEqual(len(errors), 1)
         self.assertEqual(errors[0]['missingSections'], ['generation-rules', 'plan-decisions'])
 
     def test_parent_section_covers_descendants_and_full_read_covers_all(self):
-        plan = {'components': [spec('Results', 'plasmic-antd6-table', 'data-table', rule=TABLE + '#operation-column-sizing')]}
+        plan = {'components': [spec('Results', 'plasmic-antd6-table', 'data-table', rule=TABLE + '#operation-column-sizing', props={})]}
         sections = ['plan-decisions', 'generation-rules']
         with tempfile.TemporaryDirectory() as directory:
             self.assertEqual([e for e in read_coverage_errors(plan, self.ledger(directory, sections)) if e['rule'] == TABLE], [])
@@ -144,6 +145,77 @@ class ReadCoverageTests(unittest.TestCase):
                 subprocess.run(read['args'], check=True, capture_output=True)
             ledger = [json.loads(line) for line in log.read_text().splitlines()]
             self.assertEqual(read_coverage_errors(plan['pages'][0], ledger), [])
+
+    def test_plain_table_omits_optional_feature_bodies_but_keeps_discovery(self):
+        text = (RESOURCE_ROOT / TABLE).read_text()
+        selected = select(text, required_reads(table_plan())[TABLE])
+        self.assertIn('[inline expansion](#expandable-row-details)', selected)
+        self.assertIn('#### When to enable header sorting', selected)
+        self.assertNotIn('### Expandable row details', selected)
+        self.assertNotIn('### Header sorting\n', selected)
+
+    def test_expansion_features_reach_compose_and_accept(self):
+        variants = []
+        for name, value in [('expandable', {}), ('canvasExpandedRowKeys', []), ('onExpand', '__DECIDE__')]:
+            plan = table_plan()
+            plan['components'][0]['props'][name] = value
+            variants.append(plan)
+        plan = table_plan()
+        plan['components'][0]['dynamicProps'] = ['expandable.expandedRowKeys']
+        variants.append(plan)
+        plan = table_plan()
+        plan['components'].append(spec('Expand', 'plasmic-antd6-table-expand-column', 'widget'))
+        variants.append(plan)
+        for collection in ('components', 'nodes'):
+            plan = table_plan()
+            plan.setdefault(collection, []).append({'nodeName': 'Detail', 'component': 'plasmic-antd6-flex',
+                'owner': {'nodeName': 'Results', 'slot': 'expandedRowRender'}})
+            variants.append(plan)
+        for index, plan in enumerate(variants):
+            for stage in ('compose', 'accept'):
+                with self.subTest(variant=index, stage=stage):
+                    self.assertIn('expandable-row-details', required_reads(plan, stage)[TABLE])
+
+    def test_sorting_features_reach_compose_and_accept_with_checks(self):
+        for prop in ('sorter', 'defaultSortOrder', 'sortOrder', 'sortDirections'):
+            for dynamic in (False, True):
+                plan = table_plan()
+                column = plan['components'][1]
+                if dynamic:
+                    column['dynamicProps'] = [prop]
+                else:
+                    column['props'][prop] = None
+                for stage in ('compose', 'accept'):
+                    with self.subTest(prop=prop, dynamic=dynamic, stage=stage):
+                        needed = required_reads(plan, stage)[TABLE]
+                        self.assertIn('header-sorting', needed)
+                        self.assertIn('#### Header sorting acceptance', select((RESOURCE_ROOT / TABLE).read_text(), needed))
+
+    def test_unknown_table_scope_reads_all_features(self):
+        for values in (None, '__DECIDE__', '{{ tableProps }}'):
+            plan = table_plan()
+            plan['components'][0]['props'] = values
+            for stage in ('compose', 'accept'):
+                self.assertTrue({'expandable-row-details', 'header-sorting'} <= required_reads(plan, stage)[TABLE])
+
+    def test_new_feature_requires_supplemental_read_in_the_same_command(self):
+        plan = {'pages': [{'path': '/records', **table_plan()}]}
+        with tempfile.TemporaryDirectory() as directory:
+            log = Path(directory) / 'reads.jsonl'
+            for read in rules(plan, '/records', log)['reads']:
+                subprocess.run(read['args'], check=True, capture_output=True)
+            plan['pages'][0]['components'][0]['props']['expandable'] = {'showExpandColumn': True}
+            plan['pages'][0]['components'][1]['props']['sorter'] = True
+            card = rules(plan, '/records', log)
+            reads = [read for read in card['reads'] if read['rule'] == TABLE]
+            self.assertEqual(len(reads), 1)
+            self.assertEqual(reads[0]['sections'], ['expandable-row-details', 'header-sorting'])
+            records = [json.loads(line) for line in log.read_text().splitlines()]
+            errors = [e for e in read_coverage_errors(plan['pages'][0], records) if e['rule'] == TABLE]
+            self.assertEqual(errors[0]['missingSections'], ['expandable-row-details', 'header-sorting'])
+            subprocess.run(reads[0]['args'], check=True, capture_output=True)
+            records = [json.loads(line) for line in log.read_text().splitlines()]
+            self.assertEqual(read_coverage_errors(plan['pages'][0], records), [])
 
 
 if __name__ == '__main__':
@@ -275,9 +347,13 @@ class ManifestAndScaffoldTests(unittest.TestCase):
         from verify_selection import required_reads
         page = {'components': [spec('Shell', 'plasmic-overseas-app-shell', 'shell')]}
         shell = 'references/libraries/overseas/components/app-shell.md'
-        self.assertNotIn('cross-page-context-and-dynamic-menus', required_reads(page)[shell])
         root = {'navigation': {'items': [], 'roleQuery': {'state': 'viewer', 'query': 'role', 'default': 'admin'}}}
-        self.assertIn('cross-page-context-and-dynamic-menus', required_reads(page, 'compose', root)[shell])
+        for stage in ('compose', 'accept'):
+            self.assertNotIn('cross-page-context-and-dynamic-menus', required_reads(page, stage)[shell])
+            self.assertNotIn('app-context', required_reads(page, stage)[shell])
+            self.assertIn('cross-page-context-and-dynamic-menus', required_reads(page, stage, root)[shell])
+            scoped = dict(page, appContext={'required': True})
+            self.assertIn('app-context', required_reads(scoped, stage)[shell])
         page['components'][0]['dynamicProps'] = ['menuItems']
         self.assertIn('cross-page-context-and-dynamic-menus', required_reads(page)[shell])
 
@@ -319,7 +395,66 @@ class ManifestAndScaffoldTests(unittest.TestCase):
             compose = rules(plan, '/records', Path(directory) / 'l.jsonl')
             accept = rules(plan, '/records', Path(directory) / 'l.jsonl', 'accept')
         self.assertLess(compose['totalBytes'], accept['totalBytes'])
-        self.assertTrue(all(r['sections'] == 'full' for r in accept['reads']))
+        table = next(r for r in accept['reads'] if r['rule'] == TABLE)
+        self.assertIn('acceptance-checks', table['sections'])
+
+    def test_accept_card_reuses_retained_context_and_supplements_checks(self):
+        from verify_selection import load_ledger, project_coverage_errors
+        from prepare_plan import project_rules
+        page = {'path': '/records', 'pageType': 'list', **table_plan()}
+        plan = {'pages': [page]}
+        with tempfile.TemporaryDirectory() as directory:
+            log = Path(directory) / 'reads.jsonl'
+            for card in (project_rules(log, plan=plan), rules(plan, '/records', log)):
+                for read in card['reads']:
+                    subprocess.run(read['args'], check=True, capture_output=True)
+            self.assertTrue(read_coverage_errors(page, load_ledger(log), 'accept', plan))
+            self.assertEqual(project_rules(log, 'accept', plan)['reads'], [])
+            card = rules(plan, '/records', log, 'accept')
+            table = next(r for r in card['reads'] if r['rule'] == TABLE)
+            self.assertEqual(table['sections'], ['acceptance-checks'])
+            self.assertNotIn('references/design/page-types.md', [r['rule'] for r in card['reads']])
+            for read in card['reads']:
+                subprocess.run(read['args'], check=True, capture_output=True)
+            self.assertEqual(read_coverage_errors(page, load_ledger(log), 'accept', plan), [])
+            self.assertEqual(project_coverage_errors(load_ledger(log), 'accept', plan), [])
+            complete = rules(plan, '/records', log, 'accept')
+            self.assertEqual(complete['reads'], [])
+            self.assertEqual(complete['totalBytes'], 0)
+            self.assertEqual(complete['hardConstraints'], card['hardConstraints'])
+            # A fresh reviewer has no retained reading; no cross-context suppression.
+            fresh = rules(plan, '/records', Path(directory) / 'reviewer.jsonl', 'accept')
+            self.assertGreater(fresh['totalBytes'], card['totalBytes'])
+            self.assertEqual(next(r for r in fresh['reads'] if r['rule'].endswith('page-types.md'))['sections'],
+                             ['list', 'regions-inside-any-type'])
+
+    def test_project_card_supplements_growing_scope(self):
+        from prepare_plan import project_rules
+        plan = {'pages': [{'path': '/records', **table_plan()}]}
+        with tempfile.TemporaryDirectory() as directory:
+            log = Path(directory) / 'reads.jsonl'
+            for read in project_rules(log, plan=plan)['reads']:
+                subprocess.run(read['args'], check=True, capture_output=True)
+            self.assertEqual(project_rules(log, plan=plan)['reads'], [])
+            plan['pages'][0].update(recordPage=True, actionContracts=[{'key': 'edit'}])
+            self.assertEqual({r['rule'] for r in project_rules(log, plan=plan)['reads']},
+                             {'references/design/record-context.md', 'references/design/permissions.md'})
+
+    def test_card_does_not_reuse_stale_outline_or_invalid_section_records(self):
+        from prepare_plan import card_reads
+        import hashlib
+        with tempfile.TemporaryDirectory() as directory:
+            log = Path(directory) / 'reads.jsonl'
+            record = {'path': str(RESOURCE_ROOT / TABLE),
+                      'sha256': hashlib.sha256((RESOURCE_ROOT / TABLE).read_bytes()).hexdigest(), 'sections': []}
+            for override in ({'sha256': '0' * 64}, {'outline': True}, {'sections': ['unknown-section']}):
+                log.write_text(json.dumps({**record, **override}) + '\n')
+                reads, size, _ = card_reads({TABLE: {'generation-rules'}}, log)
+                self.assertEqual(len(reads), 1)
+                self.assertGreater(size, 0)
+            log.write_text('not JSON\n')
+            with self.assertRaises(json.JSONDecodeError):
+                card_reads({TABLE: None}, log)
 
     def test_large_cards_keep_all_reads_and_provide_a_capability_fallback(self):
         plan = {'pages': [{'path': '/records', **table_plan()}]}

@@ -29,7 +29,7 @@ Route matches take priority over `selectedMenuKey`: exact paths win, followed by
 
 ## Conditional rules
 
-The compose card delivers each subsection only to a Page that meets its condition; acceptance reads them all.
+The compose card delivers each subsection only to a Page that meets its condition; acceptance retains the same conditions and adds Acceptance checks.
 
 ### App context
 
