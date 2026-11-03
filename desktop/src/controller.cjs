@@ -26,12 +26,12 @@ function resourceName(value) {
 }
 class DesktopController {
   constructor(
-    getWindow,
+    getStudio,
     config,
     waitForStartup = async () => {},
     prepareSession = async () => {},
   ) {
-    this.getWindow = getWindow;
+    this.getStudio = getStudio;
     this.config = config;
     this.waitForStartup = waitForStartup;
     this.prepareSession = prepareSession;
@@ -46,7 +46,7 @@ class DesktopController {
       const pending = this.pending.get(id);
       if (
         !pending ||
-        event.sender !== pending.window.webContents ||
+        event.sender !== pending.contents ||
         event.senderFrame !== event.sender.mainFrame
       ) {
         return;
@@ -65,22 +65,23 @@ class DesktopController {
     ipcMain.on("desktop:result", this.receive);
   }
   clearCallerActivity(callerId) {
-    const window = this.getWindow();
-    if (window && !window.isDestroyed()) {
+    const window = this.getStudio();
+    if (window && !window.window.isDestroyed()) {
       window.webContents.send("desktop:caller-disconnected", { callerId });
     }
   }
   invoke(method, input = {}, timeout = 600000) {
     const signal = this.signalContext.getStore();
     signal?.throwIfAborted();
-    const window = this.getWindow();
-    if (!window || window.isDestroyed()) {
+    const window = this.getStudio();
+    if (!window || window.window.isDestroyed()) {
       throw new Error("Open the desktop editor window");
     }
+    const contents = window.webContents;
     return new Promise((resolve, reject) => {
       const id = randomUUID();
       const cancel = () => {
-        if (!window.isDestroyed()) window.webContents.send("desktop:cancel", { id });
+        if (!contents.isDestroyed()) contents.send("desktop:cancel", { id });
       };
       const cleanup = () => signal?.removeEventListener("abort", cancel);
       const timer = setTimeout(() => {
@@ -97,8 +98,8 @@ class DesktopController {
           ),
         );
       }, timeout);
-      this.pending.set(id, { window, timer, resolve, reject, cleanup, cancel });
-      window.webContents.send("desktop:invoke", { id, method, input, caller: this.callerContext.getStore() });
+      this.pending.set(id, { contents, timer, resolve, reject, cleanup, cancel });
+      contents.send("desktop:invoke", { id, method, input, caller: this.callerContext.getStore() });
       if (this.pending.has(id)) {
         signal?.addEventListener("abort", cancel, { once: true });
         if (signal?.aborted) cancel();
@@ -120,8 +121,8 @@ class DesktopController {
     }
   }
   async state(toolNames = []) {
-    const win = this.getWindow();
-    if (!win || win.isDestroyed()) {
+    const win = this.getStudio();
+    if (!win || win.window.isDestroyed()) {
       return { running: true, windowOpen: false, ready: false };
     }
     let metadata = { ready: false, tools: {} };
@@ -152,8 +153,8 @@ class DesktopController {
   async ready() {
     const end = Date.now() + 120000;
     while (Date.now() < end) {
-      const win = this.getWindow();
-      if (!win || win.isDestroyed()) {
+      const win = this.getStudio();
+      if (!win || win.window.isDestroyed()) {
         throw new Error("Open the desktop editor window");
       }
       if (win.webContents.isLoadingMainFrame()) {
@@ -181,7 +182,7 @@ class DesktopController {
     throw new Error("Design did not become ready");
   }
   async requestStudio(path, body, signal, method = body === undefined ? "GET" : "POST") {
-    const response = await this.getWindow().webContents.session.fetch(
+    const response = await this.getStudio().webContents.session.fetch(
       this.config.studioOrigin + path,
       {
         // Native API requests share the renderer's session restoration.
@@ -253,12 +254,12 @@ class DesktopController {
     let state;
     try { state = await this.state(); }
     catch (error) {
-      const url = this.getWindow()?.webContents?.getURL?.();
+      const url = this.getStudio()?.webContents?.getURL?.();
       const projectId = url ? new URL(url).pathname.match(/^\/projects\/([^/]+)/)?.[1] : null;
       throw contextError(required, currentContext({ ready: false, projectId, url }, this.config.studioOrigin),
         "Cannot verify tool execution context: " + error.message);
     }
-    const url = state.url || this.getWindow()?.webContents?.getURL?.();
+    const url = state.url || this.getStudio()?.webContents?.getURL?.();
     return assertContext(required, { ...state, ...(url ? { url } : {}) }, this.config.studioOrigin);
   }
   dispatch(method, input, caller, signal) {
@@ -281,7 +282,7 @@ class DesktopController {
         if (["get_app_state", "get_build_info", "get_image_service_status"].includes(method)) return await this.execute(method, input);
         await this.prepareSession();
         if (!["list_projects", "search_stock_images", "generate_image", "browser", "reference_browser", "import_reference", "design_reference", "capture_browser", "make_vector", "vectorize_image"].includes(method)) await this.waitForStartup();
-        this.activity.bind(id, await this.checkContext(method, input), this.getWindow()?.webContents?.getURL?.());
+        this.activity.bind(id, await this.checkContext(method, input), this.getStudio()?.webContents?.getURL?.());
         signal?.throwIfAborted();
         return await this.execute(method, input);
       } catch (error) {
@@ -395,8 +396,8 @@ class DesktopController {
         ...(state.operations?.length ? { operations: state.operations } : {}),
       };
     }
-    const win = this.getWindow();
-    if (!win || win.isDestroyed()) {
+    const win = this.getStudio();
+    if (!win || win.window.isDestroyed()) {
       throw new Error("Open the desktop editor window");
     }
     if (method === "design_reference") return this.references.read(input);
@@ -997,7 +998,7 @@ class DesktopController {
           }
           await this.invoke("renderReady");
           if (input.rect) {
-            const bounds = win.getContentBounds();
+            const bounds = win.window.getContentBounds();
             if (
               !["x", "y", "width", "height"].every((key) =>
                 Number.isInteger(input.rect[key]),
@@ -1064,7 +1065,7 @@ class DesktopController {
         elementUuid: result.elementUuids[0],
         frameUuid: result.frameUuid,
       });
-    this.getWindow().show();
+    this.getStudio().window.show();
     return { located: true };
   }
   async undoBrowserImport(result) {
@@ -1082,7 +1083,7 @@ class DesktopController {
   async uploadImage(bytes, name = "WebScreenshot") {
     if (bytes.length > 10 * 1024 * 1024)
       throw new Error("Image exceeds 10 MiB");
-    const win = this.getWindow();
+    const win = this.getStudio();
     const image = nativeImage.createFromBuffer(bytes);
     if (image.isEmpty()) {
       throw new Error("Image format cannot be decoded");
@@ -1139,7 +1140,7 @@ class DesktopController {
     if (forExport) {
       inspectionInput.forExport = true;
       if (!input.frameUuid && !input.componentUuid) {
-        const frames = await canvasFrames(this.getWindow());
+        const frames = await canvasFrames(this.getStudio());
         const matching = input.artboardElementUuid
           ? frames.filter(({ layout }) =>
               layout.elements.some(
@@ -1168,9 +1169,9 @@ class DesktopController {
       }));
     }
   }
-  cancelPending(window, message) {
+  cancelPending(contents, message) {
     for (const [id, request] of this.pending) {
-      if (window && request.window !== window) {
+      if (contents && request.contents !== contents) {
         continue;
       }
       clearTimeout(request.timer);

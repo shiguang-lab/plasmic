@@ -1,0 +1,259 @@
+{
+  "scope": "macOS arm64 Electron 44.5.1; exact offline ten-artboard fixture; same frontend; ABBA policies; 6 entries per app run; restart pairs reuse each policy profile. No debugger and no diagnostic GC. firstCapturedContent is a 50ms sampled capture upper bound, not FCP. Renderer retirement is asserted by the harness before each returned sample.",
+  "rendererHash": "84de5af6701c93f187e29550e33181ccb4bd7be744e16737819eb710e716ae91",
+  "runs": [
+    {
+      "run": "nodbg-code",
+      "policy": "code",
+      "debuggerEnabled": false,
+      "firstEntryMs": {
+        "firstCapturedContentMs": 212.6259765625,
+        "firstCanvasReadyMs": 2122.7158203125,
+        "allFramesRenderedMs": 4724.80029296875
+      },
+      "entries": [
+        {
+          "entry": 1,
+          "firstCapturedContentMs": 212.6259765625,
+          "firstCanvasReadyMs": 2122.7158203125,
+          "allFramesRenderedMs": 4724.80029296875
+        },
+        {
+          "entry": 2,
+          "firstCapturedContentMs": 190.582763671875,
+          "firstCanvasReadyMs": 2120.192626953125,
+          "allFramesRenderedMs": 4861.499755859375
+        },
+        {
+          "entry": 3,
+          "firstCapturedContentMs": 181.447265625,
+          "firstCanvasReadyMs": 2011.37890625,
+          "allFramesRenderedMs": 4421.599853515625
+        },
+        {
+          "entry": 4,
+          "firstCapturedContentMs": 203.44580078125,
+          "firstCanvasReadyMs": 2015.70556640625,
+          "allFramesRenderedMs": 4419.699951171875
+        },
+        {
+          "entry": 5,
+          "firstCapturedContentMs": 204.27783203125,
+          "firstCanvasReadyMs": 2000.044921875,
+          "allFramesRenderedMs": 4482.300048828125
+        },
+        {
+          "entry": 6,
+          "firstCapturedContentMs": 208.0478515625,
+          "firstCanvasReadyMs": 2016.75,
+          "allFramesRenderedMs": 4643.300048828125
+        }
+      ],
+      "laterFiveMedianMs": {
+        "firstCapturedContentMs": 203.4,
+        "firstCanvasReadyMs": 2015.7,
+        "allFramesRenderedMs": 4482.3
+      },
+      "returnedDashboardMiB": [
+        261.3,
+        260.6,
+        260.6,
+        259.5,
+        259.0,
+        261.6
+      ],
+      "rendererErrors": 0,
+      "successfulRetiredPidChecks": 6
+    },
+    {
+      "run": "nodbg-bypass",
+      "policy": "bypassHeatCheck",
+      "debuggerEnabled": false,
+      "firstEntryMs": {
+        "firstCapturedContentMs": 203.821533203125,
+        "firstCanvasReadyMs": 2043.610595703125,
+        "allFramesRenderedMs": 4499.60009765625
+      },
+      "entries": [
+        {
+          "entry": 1,
+          "firstCapturedContentMs": 203.821533203125,
+          "firstCanvasReadyMs": 2043.610595703125,
+          "allFramesRenderedMs": 4499.60009765625
+        },
+        {
+          "entry": 2,
+          "firstCapturedContentMs": 210.77978515625,
+          "firstCanvasReadyMs": 2036.318115234375,
+          "allFramesRenderedMs": 4536.39990234375
+        },
+        {
+          "entry": 3,
+          "firstCapturedContentMs": 209.211669921875,
+          "firstCanvasReadyMs": 1999.064208984375,
+          "allFramesRenderedMs": 4499.000244140625
+        },
+        {
+          "entry": 4,
+          "firstCapturedContentMs": 209.001220703125,
+          "firstCanvasReadyMs": 2045.54541015625,
+          "allFramesRenderedMs": 4491.39990234375
+        },
+        {
+          "entry": 5,
+          "firstCapturedContentMs": 208.1796875,
+          "firstCanvasReadyMs": 2069.44970703125,
+          "allFramesRenderedMs": 4524
+        },
+        {
+          "entry": 6,
+          "firstCapturedContentMs": 212.188720703125,
+          "firstCanvasReadyMs": 2019.371826171875,
+          "allFramesRenderedMs": 4558.499755859375
+        }
+      ],
+      "laterFiveMedianMs": {
+        "firstCapturedContentMs": 209.2,
+        "firstCanvasReadyMs": 2036.3,
+        "allFramesRenderedMs": 4524
+      },
+      "returnedDashboardMiB": [
+        262.4,
+        262.2,
+        261.1,
+        262.1,
+        263.4,
+        262.6
+      ],
+      "rendererErrors": 0,
+      "successfulRetiredPidChecks": 6
+    },
+    {
+      "run": "nodbg-bypass-restart",
+      "policy": "bypassHeatCheck",
+      "debuggerEnabled": false,
+      "firstEntryMs": {
+        "firstCapturedContentMs": 212.1904296875,
+        "firstCanvasReadyMs": 2080.818603515625,
+        "allFramesRenderedMs": 4559.900146484375
+      },
+      "entries": [
+        {
+          "entry": 1,
+          "firstCapturedContentMs": 212.1904296875,
+          "firstCanvasReadyMs": 2080.818603515625,
+          "allFramesRenderedMs": 4559.900146484375
+        },
+        {
+          "entry": 2,
+          "firstCapturedContentMs": 199.380859375,
+          "firstCanvasReadyMs": 2066.844970703125,
+          "allFramesRenderedMs": 4524.400146484375
+        },
+        {
+          "entry": 3,
+          "firstCapturedContentMs": 208.077880859375,
+          "firstCanvasReadyMs": 1994.034912109375,
+          "allFramesRenderedMs": 4544.000244140625
+        },
+        {
+          "entry": 4,
+          "firstCapturedContentMs": 205.280029296875,
+          "firstCanvasReadyMs": 2011.123291015625,
+          "allFramesRenderedMs": 4511
+        },
+        {
+          "entry": 5,
+          "firstCapturedContentMs": 207.79345703125,
+          "firstCanvasReadyMs": 2023.880126953125,
+          "allFramesRenderedMs": 4566.099853515625
+        },
+        {
+          "entry": 6,
+          "firstCapturedContentMs": 203.8388671875,
+          "firstCanvasReadyMs": 2030.122314453125,
+          "allFramesRenderedMs": 4541.39990234375
+        }
+      ],
+      "laterFiveMedianMs": {
+        "firstCapturedContentMs": 205.3,
+        "firstCanvasReadyMs": 2023.9,
+        "allFramesRenderedMs": 4541.4
+      },
+      "returnedDashboardMiB": [
+        261.8,
+        262.1,
+        262.4,
+        265.4,
+        264.2,
+        262.1
+      ],
+      "rendererErrors": 0,
+      "successfulRetiredPidChecks": 6
+    },
+    {
+      "run": "nodbg-code-restart",
+      "policy": "code",
+      "debuggerEnabled": false,
+      "firstEntryMs": {
+        "firstCapturedContentMs": 211.61865234375,
+        "firstCanvasReadyMs": 2035.42041015625,
+        "allFramesRenderedMs": 4454.2998046875
+      },
+      "entries": [
+        {
+          "entry": 1,
+          "firstCapturedContentMs": 211.61865234375,
+          "firstCanvasReadyMs": 2035.42041015625,
+          "allFramesRenderedMs": 4454.2998046875
+        },
+        {
+          "entry": 2,
+          "firstCapturedContentMs": 209.427734375,
+          "firstCanvasReadyMs": 2030.412353515625,
+          "allFramesRenderedMs": 4454.699951171875
+        },
+        {
+          "entry": 3,
+          "firstCapturedContentMs": 205.6904296875,
+          "firstCanvasReadyMs": 1966.024169921875,
+          "allFramesRenderedMs": 4435.000244140625
+        },
+        {
+          "entry": 4,
+          "firstCapturedContentMs": 209.3955078125,
+          "firstCanvasReadyMs": 1983.905517578125,
+          "allFramesRenderedMs": 4495.099853515625
+        },
+        {
+          "entry": 5,
+          "firstCapturedContentMs": 206.839111328125,
+          "firstCanvasReadyMs": 2033.524169921875,
+          "allFramesRenderedMs": 4395.699951171875
+        },
+        {
+          "entry": 6,
+          "firstCapturedContentMs": 212.40478515625,
+          "firstCanvasReadyMs": 2007.636474609375,
+          "allFramesRenderedMs": 4431.800048828125
+        }
+      ],
+      "laterFiveMedianMs": {
+        "firstCapturedContentMs": 209.4,
+        "firstCanvasReadyMs": 2007.6,
+        "allFramesRenderedMs": 4435.0
+      },
+      "returnedDashboardMiB": [
+        261.2,
+        260.4,
+        262.2,
+        260.7,
+        261.3,
+        261.3
+      ],
+      "rendererErrors": 0,
+      "successfulRetiredPidChecks": 6
+    }
+  ],
+  "decision": "Keep default code policy: bypassHeatCheck showed no consistent startup improvement. Code cache files exist; cache consumption was not measured."
+}

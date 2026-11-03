@@ -1,0 +1,1329 @@
+{
+  "scope": "Frozen offline fixtures; no online design writes; before/after identical enhanced replay; strict renderer error gating; diagnostic traces not performance scores.",
+  "rootCause": {
+    "disposed": true,
+    "listed": false,
+    "focused": true,
+    "callChain": [
+      "CanvasContentEditorControls",
+      "getContentEditorTarget",
+      "ViewCtx.maybeTpl2ValsInContext",
+      "ViewCtx.valState",
+      "disposed csEvaluator"
+    ],
+    "phase": "Studio teardown during save/reload after cold-frame restoration"
+  },
+  "functional": {
+    "cold-baseline": {
+      "build": {
+        "kind": "diagnostic",
+        "variant": "baseline",
+        "runtimeRevision": "400c402f651be86b96cf0a3fe5bc7d8bdec4887e",
+        "rendererHash": "38a7f8175816561db8e52d30c2a343e3004e7a2a5bf6ee82382af862e39d4351"
+      },
+      "errors": [
+        "TypeError: Cannot read properties of null (reading 'valState')"
+      ],
+      "failure": "Error: Renderer errors during functional replay: TypeError: Cannot read properties of null (reading 'valState')\n    at /Users/yanxianliang/shiguang/plasmic/desktop/tests/performance/real-project-open.cjs:278:39",
+      "functional": {
+        "cases": [
+          {
+            "case": "switch-artboard",
+            "passed": true
+          },
+          {
+            "case": "switch-artboard",
+            "passed": true
+          },
+          {
+            "case": "switch-artboard",
+            "passed": true
+          },
+          {
+            "case": "rename-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "rendered-style-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "frame-position-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "cold-frame-undo-selection-style",
+            "passed": true
+          },
+          {
+            "case": "cold-frame-redo-rendered-style",
+            "passed": true
+          }
+        ],
+        "reopen": true,
+        "savedRevision": 1
+      },
+      "saves": [
+        {
+          "revision": 1,
+          "sha256": "10281222e847d69dcec1f7f019e5608ebb2a70ccb7324fd9e4b9105427423517"
+        }
+      ],
+      "thumbnailFixtureErrors": 1
+    },
+    "cold-fixed-final": {
+      "build": {
+        "kind": "diagnostic",
+        "variant": "fixed-final",
+        "runtimeRevision": "400c402f651be86b96cf0a3fe5bc7d8bdec4887e",
+        "rendererHash": "82a27332ffe281ac551f10aef4ebd8d7e5ab6df8daadaa8ccb6db82e0e338d60"
+      },
+      "errors": [],
+      "failure": null,
+      "functional": {
+        "cases": [
+          {
+            "case": "switch-artboard",
+            "passed": true
+          },
+          {
+            "case": "switch-artboard",
+            "passed": true
+          },
+          {
+            "case": "switch-artboard",
+            "passed": true
+          },
+          {
+            "case": "rename-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "rendered-style-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "frame-position-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "cold-frame-undo-selection-style",
+            "passed": true
+          },
+          {
+            "case": "cold-frame-redo-rendered-style",
+            "passed": true
+          }
+        ],
+        "reopen": true,
+        "savedRevision": 1
+      },
+      "saves": [
+        {
+          "revision": 1,
+          "sha256": "10281222e847d69dcec1f7f019e5608ebb2a70ccb7324fd9e4b9105427423517"
+        }
+      ],
+      "thumbnailFixtureErrors": 1
+    }
+  },
+  "fixtureHashes": {
+    "complex": {
+      "project-response.json": "f33cc7b3a88cd952d2b25a6608aff0577b97c8a95347711577e784c6fcbad5e2",
+      "model-resources.json": "71479c7baaaf34766858b8b0ff48c01d2d10018577b963221b0fa83b7b7aca16",
+      "code-resources.json": "92d30a7c2e13e50cf9623bf2551669129c6384db5cf50df78d577edcca87279f"
+    },
+    "gp": {
+      "project-response.json": "fa1e1965d363561d357e98539f838fe74140eee7be9791210ab69e4e79b4b5ef",
+      "model-resources.json": "71479c7baaaf34766858b8b0ff48c01d2d10018577b963221b0fa83b7b7aca16",
+      "code-resources.json": "92d30a7c2e13e50cf9623bf2551669129c6384db5cf50df78d577edcca87279f"
+    }
+  },
+  "checks": {
+    "beforeRegressionUnit": {
+      "passed": 14,
+      "failed": 1,
+      "targetFailure": "Cannot read properties of null (reading 'valState')"
+    },
+    "afterScopedUnits": {
+      "passed": 84,
+      "failed": 1,
+      "baselineExistingFailure": "arena-navigation.test.ts:117 same-arena comment navigation interactive-mode assertion; also fails on frozen baseline"
+    },
+    "typecheckExit": 0,
+    "eslintExit": 0,
+    "selectedTeardownAndDraftUnits": {
+      "passed": 16,
+      "failed": 0
+    }
+  },
+  "production": {
+    "final-cold-prod-complex-1": {
+      "build": {
+        "kind": "local",
+        "revision": "400c402f651be86b96cf0a3fe5bc7d8bdec4887e",
+        "dirty": true,
+        "builtAt": "2026-11-03T10:50:10.316Z",
+        "sourceHash": "1d099a0b1287526d6da89ffcccbbef8bcae5e99282321f4aeff92c3351e8c284",
+        "rendererHash": "71f2aa5fd61a253b33698221176e240d697032c72dd96b01cdb45a67e46d536a",
+        "desktopHash": "8af3fcd201b466eb68da1fefc44afc70be92209b7c0b45165e822b2c5ff9d8b4"
+      },
+      "errors": [],
+      "functional": {
+        "cases": [
+          {
+            "case": "switch-artboard",
+            "passed": true
+          },
+          {
+            "case": "switch-artboard",
+            "passed": true
+          },
+          {
+            "case": "switch-artboard",
+            "passed": true
+          },
+          {
+            "case": "rename-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "rendered-style-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "frame-position-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "cold-frame-undo-selection-style",
+            "passed": true
+          },
+          {
+            "case": "cold-frame-redo-rendered-style",
+            "passed": true
+          }
+        ],
+        "reopen": true,
+        "savedRevision": 1
+      },
+      "saves": [
+        {
+          "revision": 1,
+          "sha256": "10281222e847d69dcec1f7f019e5608ebb2a70ccb7324fd9e4b9105427423517"
+        }
+      ],
+      "thumbnailFixtureErrors": 1
+    },
+    "final-cold-prod-complex-2": {
+      "build": {
+        "kind": "local",
+        "revision": "400c402f651be86b96cf0a3fe5bc7d8bdec4887e",
+        "dirty": true,
+        "builtAt": "2026-11-03T10:50:10.316Z",
+        "sourceHash": "1d099a0b1287526d6da89ffcccbbef8bcae5e99282321f4aeff92c3351e8c284",
+        "rendererHash": "71f2aa5fd61a253b33698221176e240d697032c72dd96b01cdb45a67e46d536a",
+        "desktopHash": "8af3fcd201b466eb68da1fefc44afc70be92209b7c0b45165e822b2c5ff9d8b4"
+      },
+      "errors": [],
+      "functional": {
+        "cases": [
+          {
+            "case": "switch-artboard",
+            "passed": true
+          },
+          {
+            "case": "switch-artboard",
+            "passed": true
+          },
+          {
+            "case": "switch-artboard",
+            "passed": true
+          },
+          {
+            "case": "rename-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "rendered-style-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "frame-position-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "cold-frame-undo-selection-style",
+            "passed": true
+          },
+          {
+            "case": "cold-frame-redo-rendered-style",
+            "passed": true
+          }
+        ],
+        "reopen": true,
+        "savedRevision": 1
+      },
+      "saves": [
+        {
+          "revision": 1,
+          "sha256": "10281222e847d69dcec1f7f019e5608ebb2a70ccb7324fd9e4b9105427423517"
+        }
+      ],
+      "thumbnailFixtureErrors": 1
+    },
+    "final-cold-prod-gp": {
+      "build": {
+        "kind": "local",
+        "revision": "400c402f651be86b96cf0a3fe5bc7d8bdec4887e",
+        "dirty": true,
+        "builtAt": "2026-11-03T10:50:10.316Z",
+        "sourceHash": "1d099a0b1287526d6da89ffcccbbef8bcae5e99282321f4aeff92c3351e8c284",
+        "rendererHash": "71f2aa5fd61a253b33698221176e240d697032c72dd96b01cdb45a67e46d536a",
+        "desktopHash": "8af3fcd201b466eb68da1fefc44afc70be92209b7c0b45165e822b2c5ff9d8b4"
+      },
+      "errors": [],
+      "functional": {
+        "cases": [
+          {
+            "case": "switch-artboard",
+            "passed": true
+          },
+          {
+            "case": "rename-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "rendered-style-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "frame-position-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "preview-business-pagination-return",
+            "passed": true
+          }
+        ],
+        "reopen": true,
+        "savedRevision": 159
+      },
+      "saves": [
+        {
+          "revision": 159,
+          "sha256": "e420dfbc049a0aa9597f50dbfc089791a2611edb8eea04eeaac4dacf083f9c97"
+        }
+      ],
+      "thumbnailFixtureErrors": 1
+    }
+  },
+  "memory": {
+    "final-cold-memory-baseline": {
+      "opens": 6,
+      "build": {
+        "kind": "local",
+        "revision": "400c402f651be86b96cf0a3fe5bc7d8bdec4887e",
+        "dirty": true,
+        "builtAt": "2026-11-03T09:47:28.546Z",
+        "sourceHash": "ba18d99f3055b499931911ce0098736a25480548dc1f5dbb5a824ab32af1dac5",
+        "rendererHash": "f7bf6e4787a973cc6528592a68be00ae6be02f6856855ea629c6e643b901eb67",
+        "desktopHash": "8af3fcd201b466eb68da1fefc44afc70be92209b7c0b45165e822b2c5ff9d8b4"
+      },
+      "errors": [],
+      "openPeaksKiB": [
+        1664144,
+        1687056,
+        1692096,
+        1697632,
+        1700784,
+        1648624
+      ],
+      "overallPeakWorkingSetSumKiB": 1896576,
+      "dashboardPoints": [
+        {
+          "label": "cold-dashboard",
+          "rendererPid": 13484,
+          "rendererRssKiB": 267424,
+          "appWorkingSetSumKiB": 688320,
+          "processes": [
+            {
+              "pid": 13479,
+              "type": "Browser",
+              "rssKiB": 265808
+            },
+            {
+              "pid": 13482,
+              "type": "GPU",
+              "rssKiB": 106480
+            },
+            {
+              "pid": 13483,
+              "type": "Utility",
+              "rssKiB": 48608
+            },
+            {
+              "pid": 13484,
+              "type": "Tab",
+              "rssKiB": 267424
+            }
+          ]
+        },
+        {
+          "label": "returned-0",
+          "rendererPid": 13484,
+          "rendererRssKiB": 268096,
+          "appWorkingSetSumKiB": 942000,
+          "processes": [
+            {
+              "pid": 13479,
+              "type": "Browser",
+              "rssKiB": 335584
+            },
+            {
+              "pid": 13482,
+              "type": "GPU",
+              "rssKiB": 125504
+            },
+            {
+              "pid": 13483,
+              "type": "Utility",
+              "rssKiB": 49024
+            },
+            {
+              "pid": 13484,
+              "type": "Tab",
+              "rssKiB": 268096
+            },
+            {
+              "pid": 13489,
+              "type": "Tab",
+              "rssKiB": 163792
+            }
+          ]
+        },
+        {
+          "label": "returned-1",
+          "rendererPid": 13484,
+          "rendererRssKiB": 268272,
+          "appWorkingSetSumKiB": 960624,
+          "processes": [
+            {
+              "pid": 13479,
+              "type": "Browser",
+              "rssKiB": 350672
+            },
+            {
+              "pid": 13482,
+              "type": "GPU",
+              "rssKiB": 128848
+            },
+            {
+              "pid": 13483,
+              "type": "Utility",
+              "rssKiB": 49104
+            },
+            {
+              "pid": 13484,
+              "type": "Tab",
+              "rssKiB": 268272
+            },
+            {
+              "pid": 13496,
+              "type": "Tab",
+              "rssKiB": 163728
+            }
+          ]
+        },
+        {
+          "label": "returned-2",
+          "rendererPid": 13484,
+          "rendererRssKiB": 267024,
+          "appWorkingSetSumKiB": 965040,
+          "processes": [
+            {
+              "pid": 13479,
+              "type": "Browser",
+              "rssKiB": 355088
+            },
+            {
+              "pid": 13482,
+              "type": "GPU",
+              "rssKiB": 130720
+            },
+            {
+              "pid": 13483,
+              "type": "Utility",
+              "rssKiB": 49104
+            },
+            {
+              "pid": 13484,
+              "type": "Tab",
+              "rssKiB": 267024
+            },
+            {
+              "pid": 13500,
+              "type": "Tab",
+              "rssKiB": 163104
+            }
+          ]
+        },
+        {
+          "label": "returned-3",
+          "rendererPid": 13484,
+          "rendererRssKiB": 267216,
+          "appWorkingSetSumKiB": 958144,
+          "processes": [
+            {
+              "pid": 13479,
+              "type": "Browser",
+              "rssKiB": 346576
+            },
+            {
+              "pid": 13482,
+              "type": "GPU",
+              "rssKiB": 131536
+            },
+            {
+              "pid": 13483,
+              "type": "Utility",
+              "rssKiB": 49136
+            },
+            {
+              "pid": 13484,
+              "type": "Tab",
+              "rssKiB": 267216
+            },
+            {
+              "pid": 13507,
+              "type": "Tab",
+              "rssKiB": 163680
+            }
+          ]
+        },
+        {
+          "label": "returned-4",
+          "rendererPid": 13484,
+          "rendererRssKiB": 267392,
+          "appWorkingSetSumKiB": 976160,
+          "processes": [
+            {
+              "pid": 13479,
+              "type": "Browser",
+              "rssKiB": 364720
+            },
+            {
+              "pid": 13482,
+              "type": "GPU",
+              "rssKiB": 131904
+            },
+            {
+              "pid": 13483,
+              "type": "Utility",
+              "rssKiB": 49136
+            },
+            {
+              "pid": 13484,
+              "type": "Tab",
+              "rssKiB": 267392
+            },
+            {
+              "pid": 13510,
+              "type": "Tab",
+              "rssKiB": 163008
+            }
+          ]
+        },
+        {
+          "label": "returned-5",
+          "rendererPid": 13484,
+          "rendererRssKiB": 232256,
+          "appWorkingSetSumKiB": 938352,
+          "processes": [
+            {
+              "pid": 13479,
+              "type": "Browser",
+              "rssKiB": 341024
+            },
+            {
+              "pid": 13482,
+              "type": "GPU",
+              "rssKiB": 152880
+            },
+            {
+              "pid": 13483,
+              "type": "Utility",
+              "rssKiB": 49136
+            },
+            {
+              "pid": 13484,
+              "type": "Tab",
+              "rssKiB": 232256
+            },
+            {
+              "pid": 13516,
+              "type": "Tab",
+              "rssKiB": 163056
+            }
+          ]
+        }
+      ],
+      "allRetained": true,
+      "aliveRetiredEditorPids": [],
+      "thumbnailFixtureErrors": 7
+    },
+    "final-cold-memory-fixed20": {
+      "opens": 20,
+      "build": {
+        "kind": "local",
+        "revision": "400c402f651be86b96cf0a3fe5bc7d8bdec4887e",
+        "dirty": true,
+        "builtAt": "2026-11-03T10:50:10.316Z",
+        "sourceHash": "1d099a0b1287526d6da89ffcccbbef8bcae5e99282321f4aeff92c3351e8c284",
+        "rendererHash": "71f2aa5fd61a253b33698221176e240d697032c72dd96b01cdb45a67e46d536a",
+        "desktopHash": "8af3fcd201b466eb68da1fefc44afc70be92209b7c0b45165e822b2c5ff9d8b4"
+      },
+      "errors": [],
+      "openPeaksKiB": [
+        1638400,
+        1678272,
+        1677872,
+        1685520,
+        1679728,
+        1664976,
+        1639152,
+        1647264,
+        1647392,
+        1649056,
+        1658944,
+        1646272,
+        1649776,
+        1649776,
+        1656592,
+        1678304,
+        1674256,
+        1691056,
+        1663088,
+        1678448
+      ],
+      "overallPeakWorkingSetSumKiB": 1917872,
+      "dashboardPoints": [
+        {
+          "label": "cold-dashboard",
+          "rendererPid": 13523,
+          "rendererRssKiB": 264096,
+          "appWorkingSetSumKiB": 682016,
+          "processes": [
+            {
+              "pid": 13519,
+              "type": "Browser",
+              "rssKiB": 264432
+            },
+            {
+              "pid": 13521,
+              "type": "GPU",
+              "rssKiB": 104928
+            },
+            {
+              "pid": 13522,
+              "type": "Utility",
+              "rssKiB": 48560
+            },
+            {
+              "pid": 13523,
+              "type": "Tab",
+              "rssKiB": 264096
+            }
+          ]
+        },
+        {
+          "label": "returned-0",
+          "rendererPid": 13523,
+          "rendererRssKiB": 264656,
+          "appWorkingSetSumKiB": 927760,
+          "processes": [
+            {
+              "pid": 13519,
+              "type": "Browser",
+              "rssKiB": 324752
+            },
+            {
+              "pid": 13521,
+              "type": "GPU",
+              "rssKiB": 126112
+            },
+            {
+              "pid": 13522,
+              "type": "Utility",
+              "rssKiB": 48944
+            },
+            {
+              "pid": 13523,
+              "type": "Tab",
+              "rssKiB": 264656
+            },
+            {
+              "pid": 13529,
+              "type": "Tab",
+              "rssKiB": 163296
+            }
+          ]
+        },
+        {
+          "label": "returned-1",
+          "rendererPid": 13523,
+          "rendererRssKiB": 264832,
+          "appWorkingSetSumKiB": 946576,
+          "processes": [
+            {
+              "pid": 13519,
+              "type": "Browser",
+              "rssKiB": 339696
+            },
+            {
+              "pid": 13521,
+              "type": "GPU",
+              "rssKiB": 129712
+            },
+            {
+              "pid": 13522,
+              "type": "Utility",
+              "rssKiB": 49024
+            },
+            {
+              "pid": 13523,
+              "type": "Tab",
+              "rssKiB": 264832
+            },
+            {
+              "pid": 13534,
+              "type": "Tab",
+              "rssKiB": 163312
+            }
+          ]
+        },
+        {
+          "label": "returned-2",
+          "rendererPid": 13523,
+          "rendererRssKiB": 264992,
+          "appWorkingSetSumKiB": 958304,
+          "processes": [
+            {
+              "pid": 13519,
+              "type": "Browser",
+              "rssKiB": 348976
+            },
+            {
+              "pid": 13521,
+              "type": "GPU",
+              "rssKiB": 132512
+            },
+            {
+              "pid": 13522,
+              "type": "Utility",
+              "rssKiB": 49024
+            },
+            {
+              "pid": 13523,
+              "type": "Tab",
+              "rssKiB": 264992
+            },
+            {
+              "pid": 13539,
+              "type": "Tab",
+              "rssKiB": 162800
+            }
+          ]
+        },
+        {
+          "label": "returned-3",
+          "rendererPid": 13523,
+          "rendererRssKiB": 265248,
+          "appWorkingSetSumKiB": 959216,
+          "processes": [
+            {
+              "pid": 13519,
+              "type": "Browser",
+              "rssKiB": 347168
+            },
+            {
+              "pid": 13521,
+              "type": "GPU",
+              "rssKiB": 134944
+            },
+            {
+              "pid": 13522,
+              "type": "Utility",
+              "rssKiB": 49056
+            },
+            {
+              "pid": 13523,
+              "type": "Tab",
+              "rssKiB": 265248
+            },
+            {
+              "pid": 13545,
+              "type": "Tab",
+              "rssKiB": 162800
+            }
+          ]
+        },
+        {
+          "label": "returned-4",
+          "rendererPid": 13523,
+          "rendererRssKiB": 265264,
+          "appWorkingSetSumKiB": 969152,
+          "processes": [
+            {
+              "pid": 13519,
+              "type": "Browser",
+              "rssKiB": 356064
+            },
+            {
+              "pid": 13521,
+              "type": "GPU",
+              "rssKiB": 135456
+            },
+            {
+              "pid": 13522,
+              "type": "Utility",
+              "rssKiB": 49056
+            },
+            {
+              "pid": 13523,
+              "type": "Tab",
+              "rssKiB": 265264
+            },
+            {
+              "pid": 13548,
+              "type": "Tab",
+              "rssKiB": 163312
+            }
+          ]
+        },
+        {
+          "label": "returned-5",
+          "rendererPid": 13523,
+          "rendererRssKiB": 228976,
+          "appWorkingSetSumKiB": 942128,
+          "processes": [
+            {
+              "pid": 13519,
+              "type": "Browser",
+              "rssKiB": 364992
+            },
+            {
+              "pid": 13521,
+              "type": "GPU",
+              "rssKiB": 135888
+            },
+            {
+              "pid": 13522,
+              "type": "Utility",
+              "rssKiB": 49056
+            },
+            {
+              "pid": 13523,
+              "type": "Tab",
+              "rssKiB": 228976
+            },
+            {
+              "pid": 13556,
+              "type": "Tab",
+              "rssKiB": 163216
+            }
+          ]
+        },
+        {
+          "label": "returned-6",
+          "rendererPid": 13523,
+          "rendererRssKiB": 230064,
+          "appWorkingSetSumKiB": 918096,
+          "processes": [
+            {
+              "pid": 13519,
+              "type": "Browser",
+              "rssKiB": 339088
+            },
+            {
+              "pid": 13521,
+              "type": "GPU",
+              "rssKiB": 136352
+            },
+            {
+              "pid": 13522,
+              "type": "Utility",
+              "rssKiB": 49056
+            },
+            {
+              "pid": 13523,
+              "type": "Tab",
+              "rssKiB": 230064
+            },
+            {
+              "pid": 13561,
+              "type": "Tab",
+              "rssKiB": 163536
+            }
+          ]
+        },
+        {
+          "label": "returned-7",
+          "rendererPid": 13523,
+          "rendererRssKiB": 231232,
+          "appWorkingSetSumKiB": 927632,
+          "processes": [
+            {
+              "pid": 13519,
+              "type": "Browser",
+              "rssKiB": 347296
+            },
+            {
+              "pid": 13521,
+              "type": "GPU",
+              "rssKiB": 136688
+            },
+            {
+              "pid": 13522,
+              "type": "Utility",
+              "rssKiB": 49056
+            },
+            {
+              "pid": 13523,
+              "type": "Tab",
+              "rssKiB": 231232
+            },
+            {
+              "pid": 13565,
+              "type": "Tab",
+              "rssKiB": 163360
+            }
+          ]
+        },
+        {
+          "label": "returned-8",
+          "rendererPid": 13523,
+          "rendererRssKiB": 231568,
+          "appWorkingSetSumKiB": 924944,
+          "processes": [
+            {
+              "pid": 13519,
+              "type": "Browser",
+              "rssKiB": 343296
+            },
+            {
+              "pid": 13521,
+              "type": "GPU",
+              "rssKiB": 137376
+            },
+            {
+              "pid": 13522,
+              "type": "Utility",
+              "rssKiB": 49056
+            },
+            {
+              "pid": 13523,
+              "type": "Tab",
+              "rssKiB": 231568
+            },
+            {
+              "pid": 13569,
+              "type": "Tab",
+              "rssKiB": 163648
+            }
+          ]
+        },
+        {
+          "label": "returned-9",
+          "rendererPid": 13523,
+          "rendererRssKiB": 232016,
+          "appWorkingSetSumKiB": 930976,
+          "processes": [
+            {
+              "pid": 13519,
+              "type": "Browser",
+              "rssKiB": 349008
+            },
+            {
+              "pid": 13521,
+              "type": "GPU",
+              "rssKiB": 137408
+            },
+            {
+              "pid": 13522,
+              "type": "Utility",
+              "rssKiB": 49120
+            },
+            {
+              "pid": 13523,
+              "type": "Tab",
+              "rssKiB": 232016
+            },
+            {
+              "pid": 13576,
+              "type": "Tab",
+              "rssKiB": 163424
+            }
+          ]
+        },
+        {
+          "label": "returned-10",
+          "rendererPid": 13523,
+          "rendererRssKiB": 232240,
+          "appWorkingSetSumKiB": 938208,
+          "processes": [
+            {
+              "pid": 13519,
+              "type": "Browser",
+              "rssKiB": 356368
+            },
+            {
+              "pid": 13521,
+              "type": "GPU",
+              "rssKiB": 137584
+            },
+            {
+              "pid": 13522,
+              "type": "Utility",
+              "rssKiB": 49120
+            },
+            {
+              "pid": 13523,
+              "type": "Tab",
+              "rssKiB": 232240
+            },
+            {
+              "pid": 13579,
+              "type": "Tab",
+              "rssKiB": 162896
+            }
+          ]
+        },
+        {
+          "label": "returned-11",
+          "rendererPid": 13523,
+          "rendererRssKiB": 233088,
+          "appWorkingSetSumKiB": 927568,
+          "processes": [
+            {
+              "pid": 13519,
+              "type": "Browser",
+              "rssKiB": 344688
+            },
+            {
+              "pid": 13521,
+              "type": "GPU",
+              "rssKiB": 137840
+            },
+            {
+              "pid": 13522,
+              "type": "Utility",
+              "rssKiB": 49168
+            },
+            {
+              "pid": 13523,
+              "type": "Tab",
+              "rssKiB": 233088
+            },
+            {
+              "pid": 13584,
+              "type": "Tab",
+              "rssKiB": 162784
+            }
+          ]
+        },
+        {
+          "label": "returned-12",
+          "rendererPid": 13523,
+          "rendererRssKiB": 232192,
+          "appWorkingSetSumKiB": 924896,
+          "processes": [
+            {
+              "pid": 13519,
+              "type": "Browser",
+              "rssKiB": 342784
+            },
+            {
+              "pid": 13521,
+              "type": "GPU",
+              "rssKiB": 137712
+            },
+            {
+              "pid": 13522,
+              "type": "Utility",
+              "rssKiB": 49168
+            },
+            {
+              "pid": 13523,
+              "type": "Tab",
+              "rssKiB": 232192
+            },
+            {
+              "pid": 13589,
+              "type": "Tab",
+              "rssKiB": 163040
+            }
+          ]
+        },
+        {
+          "label": "returned-13",
+          "rendererPid": 13523,
+          "rendererRssKiB": 233584,
+          "appWorkingSetSumKiB": 928576,
+          "processes": [
+            {
+              "pid": 13519,
+              "type": "Browser",
+              "rssKiB": 343968
+            },
+            {
+              "pid": 13521,
+              "type": "GPU",
+              "rssKiB": 138224
+            },
+            {
+              "pid": 13522,
+              "type": "Utility",
+              "rssKiB": 49168
+            },
+            {
+              "pid": 13523,
+              "type": "Tab",
+              "rssKiB": 233584
+            },
+            {
+              "pid": 13596,
+              "type": "Tab",
+              "rssKiB": 163632
+            }
+          ]
+        },
+        {
+          "label": "returned-14",
+          "rendererPid": 13523,
+          "rendererRssKiB": 234096,
+          "appWorkingSetSumKiB": 939600,
+          "processes": [
+            {
+              "pid": 13519,
+              "type": "Browser",
+              "rssKiB": 354320
+            },
+            {
+              "pid": 13521,
+              "type": "GPU",
+              "rssKiB": 138384
+            },
+            {
+              "pid": 13522,
+              "type": "Utility",
+              "rssKiB": 49168
+            },
+            {
+              "pid": 13523,
+              "type": "Tab",
+              "rssKiB": 234096
+            },
+            {
+              "pid": 13602,
+              "type": "Tab",
+              "rssKiB": 163632
+            }
+          ]
+        },
+        {
+          "label": "returned-15",
+          "rendererPid": 13523,
+          "rendererRssKiB": 233808,
+          "appWorkingSetSumKiB": 925632,
+          "processes": [
+            {
+              "pid": 13519,
+              "type": "Browser",
+              "rssKiB": 340960
+            },
+            {
+              "pid": 13521,
+              "type": "GPU",
+              "rssKiB": 138368
+            },
+            {
+              "pid": 13522,
+              "type": "Utility",
+              "rssKiB": 49168
+            },
+            {
+              "pid": 13523,
+              "type": "Tab",
+              "rssKiB": 233808
+            },
+            {
+              "pid": 13608,
+              "type": "Tab",
+              "rssKiB": 163328
+            }
+          ]
+        },
+        {
+          "label": "returned-16",
+          "rendererPid": 13523,
+          "rendererRssKiB": 234064,
+          "appWorkingSetSumKiB": 951440,
+          "processes": [
+            {
+              "pid": 13519,
+              "type": "Browser",
+              "rssKiB": 366960
+            },
+            {
+              "pid": 13521,
+              "type": "GPU",
+              "rssKiB": 138448
+            },
+            {
+              "pid": 13522,
+              "type": "Utility",
+              "rssKiB": 49168
+            },
+            {
+              "pid": 13523,
+              "type": "Tab",
+              "rssKiB": 234064
+            },
+            {
+              "pid": 13614,
+              "type": "Tab",
+              "rssKiB": 162800
+            }
+          ]
+        },
+        {
+          "label": "returned-17",
+          "rendererPid": 13523,
+          "rendererRssKiB": 234368,
+          "appWorkingSetSumKiB": 930448,
+          "processes": [
+            {
+              "pid": 13519,
+              "type": "Browser",
+              "rssKiB": 345376
+            },
+            {
+              "pid": 13521,
+              "type": "GPU",
+              "rssKiB": 138608
+            },
+            {
+              "pid": 13522,
+              "type": "Utility",
+              "rssKiB": 49168
+            },
+            {
+              "pid": 13523,
+              "type": "Tab",
+              "rssKiB": 234368
+            },
+            {
+              "pid": 13621,
+              "type": "Tab",
+              "rssKiB": 162928
+            }
+          ]
+        },
+        {
+          "label": "returned-18",
+          "rendererPid": 13523,
+          "rendererRssKiB": 234912,
+          "appWorkingSetSumKiB": 940544,
+          "processes": [
+            {
+              "pid": 13519,
+              "type": "Browser",
+              "rssKiB": 354336
+            },
+            {
+              "pid": 13521,
+              "type": "GPU",
+              "rssKiB": 138944
+            },
+            {
+              "pid": 13522,
+              "type": "Utility",
+              "rssKiB": 49168
+            },
+            {
+              "pid": 13523,
+              "type": "Tab",
+              "rssKiB": 234912
+            },
+            {
+              "pid": 13628,
+              "type": "Tab",
+              "rssKiB": 163184
+            }
+          ]
+        },
+        {
+          "label": "returned-19",
+          "rendererPid": 13523,
+          "rendererRssKiB": 235632,
+          "appWorkingSetSumKiB": 995152,
+          "processes": [
+            {
+              "pid": 13519,
+              "type": "Browser",
+              "rssKiB": 387248
+            },
+            {
+              "pid": 13521,
+              "type": "GPU",
+              "rssKiB": 160160
+            },
+            {
+              "pid": 13522,
+              "type": "Utility",
+              "rssKiB": 49248
+            },
+            {
+              "pid": 13523,
+              "type": "Tab",
+              "rssKiB": 235632
+            },
+            {
+              "pid": 13635,
+              "type": "Tab",
+              "rssKiB": 162864
+            }
+          ]
+        }
+      ],
+      "allRetained": true,
+      "aliveRetiredEditorPids": [],
+      "thumbnailFixtureErrors": 21
+    }
+  },
+  "build": {
+    "kind": "local",
+    "revision": "400c402f651be86b96cf0a3fe5bc7d8bdec4887e",
+    "dirty": true,
+    "builtAt": "2026-11-03T10:50:10.316Z",
+    "sourceHash": "1d099a0b1287526d6da89ffcccbbef8bcae5e99282321f4aeff92c3351e8c284",
+    "rendererHash": "71f2aa5fd61a253b33698221176e240d697032c72dd96b01cdb45a67e46d536a",
+    "desktopHash": "8af3fcd201b466eb68da1fefc44afc70be92209b7c0b45165e822b2c5ff9d8b4"
+  },
+  "frozenRuntimeInputs": {
+    "verifiedFiles": 2192,
+    "excludes": "Markdown documentation",
+    "changed": []
+  },
+  "installation": {
+    "status": "awaiting-safe-restart",
+    "activeProjectBeforeInstall": true,
+    "openingChangeCounter": 26
+  },
+  "sourceFiles": {
+    "platform/wab/src/wab/client/studio-ctx/StudioCtx.tsx": "2c56dec7474395dddb5a4e2562f4e1a747cd1bae2fd9c16701a42289110a07ae",
+    "platform/wab/src/wab/client/studio-ctx/selection-change.test.ts": "79acde2783fa3d6e1cb11400cf4ccab1ee102eb596f965d773cee1d84adbf7f4",
+    "desktop/tests/performance/open-functional.cjs": "536f7cc73dc4489c0203badd3f04f8b4600f584906255331723dfcc8a84ac416"
+  }
+}

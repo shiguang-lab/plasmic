@@ -18,9 +18,12 @@ async function fixture(t, initial) {
   };
   dom.window.HTMLDialogElement.prototype.close = function () {
     this.open = false;
+    this.dispatchEvent(new dom.window.Event("close"));
   };
   const commands = [];
+  let closed = 0;
   dom.window.desktopUpdates = {
+    closed: () => { closed++; },
     onOpen: (callback) => {
       open = callback;
     },
@@ -45,6 +48,7 @@ async function fixture(t, initial) {
   return {
     window: dom.window,
     commands,
+    get closed() { return closed; },
     dialog: root.querySelector("dialog"),
     open: () => open(status),
     element: (id) => root.getElementById(id),
@@ -126,6 +130,7 @@ test("Later closes only the dialog", async (t) => {
   await flush();
   assert.equal(ui.dialog.open, false);
   assert.equal(ui.commands.includes("close"), false);
+  assert.equal(ui.closed, 1);
   assert.equal(ui.commands.includes("install"), false);
 });
 
@@ -172,6 +177,7 @@ test("a completed check removes stale release information and provides Done", as
   await flush();
   assert.equal(ui.dialog.open, false);
   assert.equal(ui.commands.includes("close"), false);
+  assert.equal(ui.closed, 1);
 });
 
 test("update dialog stays isolated and follows Studio appearance", async (t) => {
@@ -202,4 +208,23 @@ test("update dialog stays isolated and follows Studio appearance", async (t) => 
   ui.open();
   ui.send({ phase: "installing" });
   assert.equal(ui.element("dismiss").disabled, true);
+});
+
+
+test("dialog keyboard events stay inside the modal without cancelling native defaults", async (t) => {
+  const ui = await fixture(t, { phase: "current" });
+  ui.open();
+  let forwarded = 0;
+  for (const type of ["keydown", "keypress", "keyup"]) {
+    ui.window.document.body.addEventListener(type, event => {
+      forwarded++;
+      event.preventDefault();
+    });
+    const event = new ui.window.KeyboardEvent(type, {
+      key: "Escape", bubbles: true, composed: true, cancelable: true,
+    });
+    ui.dialog.dispatchEvent(event);
+    assert.equal(event.defaultPrevented, false, "Native dialog cancellation must remain available");
+  }
+  assert.equal(forwarded, 0, "Global Studio shortcuts must not receive modal keys");
 });

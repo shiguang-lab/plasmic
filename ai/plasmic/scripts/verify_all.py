@@ -9,6 +9,7 @@ from collections import Counter
 from datetime import datetime, timezone
 import hashlib
 import json
+import os
 import re
 from pathlib import Path
 import shutil
@@ -45,6 +46,19 @@ def write_json(path, value):
 def same_json(first, second):
     """Compare JSON values without Python's bool/number coercion."""
     return json.dumps(first, sort_keys=True, allow_nan=False) == json.dumps(second, sort_keys=True, allow_nan=False)
+
+
+def default_profile():
+    """Use the same profile selection as Desktop's MCP entrypoint."""
+    if os.environ.get("PLASMIC_DESKTOP_PROFILE"):
+        return Path(os.environ["PLASMIC_DESKTOP_PROFILE"])
+    if sys.platform == "darwin":
+        app_data = Path.home() / "Library/Application Support"
+    elif sys.platform == "win32":
+        app_data = Path(os.environ.get("APPDATA") or Path.home() / "AppData/Roaming")
+    else:
+        app_data = Path(os.environ.get("XDG_CONFIG_HOME") or Path.home() / ".config")
+    return app_data / "Plasmic Desktop"
 
 
 class Desktop:
@@ -404,9 +418,14 @@ def run_suite(config, base, evidence, project_id, page_path=None):
                 # Bad inventory metadata must not hide independent selection/coverage findings.
                 report = {"passed": False, "errors": plan_errors} if plan_errors else verify_structure.check(expected, overview, readback, page_path)
                 report["errors"].extend(verify_structure.check_complete_names(readback))
-                ledger = [json.loads(line) for line in read_input(base / spec["reads"]).decode("utf-8").splitlines() if line.strip()]
-                if any(not isinstance(record, dict) for record in ledger):
-                    raise ValueError("structure.reads requires a read_reference.py JSONL ledger")
+                try:
+                    ledger = [json.loads(line) for line in read_input(base / spec["reads"]).decode("utf-8").splitlines() if line.strip()]
+                    if any(not isinstance(record, dict) for record in ledger):
+                        raise ValueError("structure.reads requires a read_reference.py JSONL ledger")
+                except (OSError, ValueError) as error:
+                    # Missing reading evidence must fail without discarding model findings.
+                    ledger = []
+                    report["errors"].append({"check": "referenceReads", "message": str(error)})
                 selection = verify_selection.check(expected, readback, page_path, reads=ledger)
                 report["selection"] = selection
                 report["errors"].extend(selection["errors"])
@@ -535,37 +554,77 @@ def write_report(destination, report):
     (destination / "report.md").write_text("\n".join(lines), encoding="utf-8")
 
 
+def summary(report, destination):
+    """Bound terminal feedback; full diagnostics stay at resolvable report pointers."""
+    groups = []
+    checks = []
+    for index, item in enumerate(report["checks"]):
+        check = {"gate": item["gate"], "status": item["status"]}
+        if item.get("rule"):
+            check["rule"] = item["rule"]
+        if item["status"] in ("failed", "unverified"):
+            body = item["report"]
+            errors = body.get("errors", [])
+            entries = [(f"/checks/{index}/report/errors/{i}", error) for i, error in enumerate(errors)]
+            if not entries:
+                entries = [(f"/checks/{index}/report", {"message": body.get("error") or body.get("reason") or "Inspect gate report"})]
+            counts = Counter(error.get("check", item["gate"]) if isinstance(error, dict) else item["gate"]
+                             for _, error in entries)
+            check["byCheck"] = dict(counts)
+            # One representative per failure class; hundreds of unnamed nodes
+            # must not crowd out a native-component mismatch or another gate.
+            first = {}
+            for pointer, error in entries:
+                error = error if isinstance(error, dict) else {"message": str(error)}
+                kind = error.get("check", item["gate"])
+                row = {"gate": item["gate"], "check": kind, "reportPointer": pointer}
+                for key in ("path", "node", "nodeName", "elementUuid", "message", "expected", "rule"):
+                    value = error.get(key, item.get("rule") if key == "rule" else None)
+                    if isinstance(value, (str, int, float, bool)):
+                        row[key] = value[:240] + "…" if isinstance(value, str) and len(value) > 240 else value
+                first.setdefault(kind, row)
+            groups.append(list(first.values()))
+            check["diagnosticCount"] = len(entries)
+        checks.append(check)
+    examples = []
+    while any(groups) and len(examples) < 8:
+        for group in groups:
+            if group and len(examples) < 8:
+                examples.append(group.pop(0))
+    return {"passed": report["passed"], "report": str(destination / "report.md"),
+            "reportJson": str(destination / "report.json"),
+            "checks": checks, "examples": examples,
+            "omittedDiagnosticCount": sum(c.get("diagnosticCount", 0) for c in checks) - len(examples),
+            "repair": "Use reportJson and reportPointer to read full diagnostics. Repair actual model findings against the source-reviewed plan; missing evidence remains failed. Save and recapture after edits; do not change expectations to match output.",
+            "notChecked": report["notChecked"]}
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--project-id", required=True)
     parser.add_argument("--page", help="Verify one exact route before generating the next Page; final acceptance omits this option")
-    source = parser.add_mutually_exclusive_group(required=True)
-    source.add_argument("--profile", type=Path, help="Running Desktop user-data directory (macOS/Linux)")
+    source = parser.add_mutually_exclusive_group()
+    source.add_argument("--profile", type=Path, help="Running Desktop user-data directory; defaults to PLASMIC_DESKTOP_PROFILE or the standard Desktop profile (macOS/Linux)")
     source.add_argument("--evidence", type=Path, help="Replay a previously collected evidence directory")
-    parser.add_argument("--reuse-evidence", type=Path, help="With --profile, reuse complete models when session/model/build and hashes match; always refresh layouts")
+    parser.add_argument("--reuse-evidence", type=Path, help="During live collection, reuse complete models when session/model/build and hashes match; always refresh layouts")
     parser.add_argument("--expectations", type=Path, required=True, help="Reviewed suite JSON; paths relative to this file")
     parser.add_argument("--output", type=Path, required=True, help="New output directory; never overwrites a previous run")
     args = parser.parse_args()
-    if args.reuse_evidence and not args.profile:
-        parser.error("--reuse-evidence requires --profile; offline replay uses --evidence")
+    if args.reuse_evidence and args.evidence:
+        parser.error("--reuse-evidence is for live collection; offline replay uses --evidence")
     args.output.mkdir(parents=True, exist_ok=False)
     try:
         config = read_json(args.expectations)
         if not isinstance(config, dict):
             raise ValueError("Suite expectations must be an object keyed by gate name")
-        if args.profile:
-            collect(Desktop(args.profile), args.project_id, args.output, args.reuse_evidence, args.page)
+        if not args.evidence:
+            collect(Desktop(args.profile or default_profile()), args.project_id, args.output, args.reuse_evidence, args.page)
         report = run_suite(config, args.expectations.resolve().parent, args.evidence or args.output, args.project_id, args.page)
     except Exception as error:
         report = {"passed": False, "projectId": args.project_id, "checks": [{"gate": "collection", "status": "failed", "report": {"errorType": type(error).__name__, "error": str(error)}}],
                   "notChecked": NOT_CHECKED}
     write_report(args.output, report)
-    print(json.dumps({"passed": report["passed"], "report": str(args.output / "report.md"),
-                      "checks": [{"gate": item["gate"], "status": item["status"],
-                                  **({"rule": item["rule"]} if item.get("rule") and item["status"] == "failed" else {})}
-                                 for item in report["checks"]],
-                      "repair": "For each failed gate, read the rule of every diagnostic in report.json before repairing the batch",
-                      "notChecked": report["notChecked"]}))
+    print(json.dumps(summary(report, args.output), ensure_ascii=False))
     raise SystemExit(0 if report["passed"] else 1)
 
 

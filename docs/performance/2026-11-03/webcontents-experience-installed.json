@@ -1,0 +1,149 @@
+{
+  "version": "0.6.4",
+  "build": {
+    "kind": "local",
+    "revision": "400c402f651be86b96cf0a3fe5bc7d8bdec4887e",
+    "dirty": true,
+    "builtAt": "2026-11-03T06:10:35.512Z",
+    "sourceHash": "f8fe4a4333e329f7356d3faa2d0a06da90561647dac35f075c6257aa5f2fb454",
+    "rendererHash": "86528de72bfd0b06532ab537ee9e2e3c0be819711d5882445d75bed01bf2f23b",
+    "desktopHash": "9ed25cae422409669019b9bccf333574f59b3be406ee7d07fdcaed9580894f1a"
+  },
+  "signatureAndRuntimeHashesVerified": true,
+  "nativeApp": {
+    "samples": [
+      {
+        "label": "escape-fixed-cold-dashboard",
+        "largestRendererMiB": 265.5
+      },
+      {
+        "label": "escape-fixed-editor",
+        "largestRendererMiB": 649.4
+      },
+      {
+        "label": "escape-fixed-return",
+        "largestRendererMiB": 294.3
+      },
+      {
+        "label": "escape-fixed-return-settled",
+        "largestRendererMiB": 253.6
+      }
+    ],
+    "oldEditorPidGone": 5443,
+    "projectRevision": 750,
+    "changeCounter": 0,
+    "dashboardFullProjectListVerified": true,
+    "installedDialogEscape": "passed in the online original project via actual native key input; the dialog closed and Studio showed synced",
+    "forcedGc": false
+  },
+  "previousBuildOnlineCycles": {
+    "rendererHash": "a8f02f776ab45fa588c2c34541ea13c20206429e2064338c02fe870e7a9fe654",
+    "cycles": [
+      {
+        "label": "recovered-dashboard",
+        "largestRendererMiB": 201.2
+      },
+      {
+        "label": "recovered-editor1",
+        "largestRendererMiB": 616.0
+      },
+      {
+        "label": "recovered-editor1-visible",
+        "largestRendererMiB": 769.4
+      },
+      {
+        "label": "recovered-return1",
+        "largestRendererMiB": 225.1
+      },
+      {
+        "label": "recovered-return1-loaded",
+        "largestRendererMiB": 117.5
+      },
+      {
+        "label": "recovered-editor2",
+        "largestRendererMiB": 1021.0
+      },
+      {
+        "label": "recovered-editor2-visible",
+        "largestRendererMiB": 624.8
+      },
+      {
+        "label": "recovered-return2",
+        "largestRendererMiB": 288.9
+      },
+      {
+        "label": "recovered-return2-loaded",
+        "largestRendererMiB": 184.4
+      }
+    ],
+    "retiredPids": [
+      86912,
+      87516
+    ],
+    "projectRevision": 750,
+    "changeCounter": 0,
+    "userConfirmedEscapeFailure": true
+  },
+  "preEscapeBuildOfflineReplay": {
+    "rendererHash": "a8f02f776ab45fa588c2c34541ea13c20206429e2064338c02fe870e7a9fe654",
+    "samples": [
+      {
+        "label": "cold-dashboard",
+        "rendererMiB": 258.2
+      },
+      {
+        "label": "canvas-0",
+        "rendererMiB": 969.8
+      },
+      {
+        "label": "returned-0",
+        "rendererMiB": 259.2
+      },
+      {
+        "label": "canvas-1",
+        "rendererMiB": 969.7
+      },
+      {
+        "label": "returned-1",
+        "rendererMiB": 258.8
+      }
+    ],
+    "oldEditorPidChecks": 2,
+    "forcedGc": false,
+    "rendererErrors": 0,
+    "previewFixtureErrors": 3,
+    "previewErrorMessage": "TypeError: Cannot read properties of undefined (reading 'map')"
+  },
+  "preEscapeBuildInteraction": {
+    "escapeThenUndo": {
+      "before": 17,
+      "after": 0
+    },
+    "redoThenSave": {
+      "left": 17,
+      "revision": 159,
+      "status": "saved"
+    },
+    "pan": {
+      "before": [
+        1205.5,
+        800
+      ],
+      "after": [
+        1155.5,
+        770
+      ],
+      "modelUnchanged": true,
+      "spaceAndPanningReleased": true,
+      "firstActivationProbe": "failed input delivery; successful subsequent probe retained, not treated as an unconditional first-attempt pass"
+    }
+  },
+  "unitTests": 540,
+  "dialogTargetedTests": 13,
+  "nativeDialogCases": 4,
+  "regressionEvidence": {
+    "unitBeforeFix": "modal Escape defaultPrevented became true through underlying body shortcut",
+    "nativeBeforeFix": "timeout waiting for dialog closed after escape",
+    "afterFix": "modal keyboard events do not reach body, native Escape closes and restores nested editor focus across two renderers"
+  }
+}

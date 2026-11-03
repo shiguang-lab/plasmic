@@ -1,3 +1,4 @@
+const { studioFixture } = require("./fixtures/studio.cjs");
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs/promises");
@@ -37,7 +38,7 @@ function fixture(t) {
   } };
   const context = { projectId: "p", branchId: null, sessionId: "session", revision: 1, changeCounter: 0,
     mode: "preview", previewKind: "in-app", previewContext: { componentUuid: "page", path: "/records" } };
-  const controller = new DesktopController(() => win, { studioOrigin: "https://studio.example" });
+  const controller = new DesktopController(() => studioFixture(win), { studioOrigin: "https://studio.example" });
   t.after(() => controller.close());
   controller.state = async () => ({ ready: true, projectId: "p", editorContext: context });
   controller.editor = async (name) => { assert.equal(name, "getEditorContext"); return context; };

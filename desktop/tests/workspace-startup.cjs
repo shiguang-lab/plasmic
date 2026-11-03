@@ -1,3 +1,4 @@
+const { studioContents } = require("./fixtures/native-studio.cjs");
 const { app, session } = require("electron");
 const fs = require("node:fs");
 const os = require("node:os");
@@ -65,14 +66,14 @@ app
       return Response.json({ projectData: { projects: [], perms: [] } }, { status: forbidden ? 403 : 404 });
     };
     let win = await startDesktop();
-    assert.equal(win.webContents.getURL(), config.studioOrigin + "/");
+    assert.equal(studioContents(win).getURL(), config.studioOrigin + "/");
     assert.deepEqual(
       JSON.parse(fs.readFileSync(path.join(profile, "workspace.json"), "utf8")),
       [],
     );
     win.destroy();
     win = await startDesktop();
-    assert.equal(win.webContents.getURL(), config.studioOrigin + "/");
+    assert.equal(studioContents(win).getURL(), config.studioOrigin + "/");
     assert.equal(
       projectChecks,
       1,
@@ -84,7 +85,7 @@ app
       "The failed project document must never load or display its error toast",
     );
     if (process.platform === "darwin") {
-      await win.loadURL(config.studioOrigin + "/projects/header-fixture");
+      await studioContents(win).loadURL(config.studioOrigin + "/projects/header-fixture");
       await new Promise(setImmediate);
       assert.deepEqual(win.getWindowButtonPosition(), { x: 24, y: 22 });
       const resized = new Promise((resolve) => win.once("resize", resolve));
@@ -93,7 +94,7 @@ app
       await resized;
       await new Promise(setImmediate);
       assert.deepEqual(win.getWindowButtonPosition(), { x: 24, y: 22 });
-      await win.loadURL(config.studioOrigin + "/");
+      await studioContents(win).loadURL(config.studioOrigin + "/");
       await new Promise(setImmediate);
       assert.deepEqual(win.getWindowButtonPosition(), { x: 24, y: 22 });
       console.log("Native window buttons stay aligned across application pages and resize");

@@ -98,7 +98,7 @@ function createIslandCapture() {
       let scene = await abortable(signal, () => frame.executeJavaScript(`(${inspectScene.toString()})(${JSON.stringify(context.mode)},${JSON.stringify(context.previewContext?.componentUuid)})`));
       if (!scene) continue;
       if (!await presentationRect(frame, {x:0,y:0,width:scene.width,height:scene.height})) continue;
-      if (version !== epoch || win.isDestroyed() || url !== win.webContents.getURL()) return null;
+      if (version !== epoch || win.window.isDestroyed() || url !== win.webContents.getURL()) return null;
       if (scene.boards) scene = framing.select(scene, context, operation, operations);
       const sources = scene.boards ? scene.boards.map(board => frame.frames[board.index]) : [frame];
       const stamps = [];
@@ -129,7 +129,7 @@ function createIslandCapture() {
           const html = await abortable(signal, () => source.executeJavaScript(`(${snapshotDocument.toString()})({preserveContentEditor:true,reuseCanvasPixels:true})`));
           boards.push({ ...board, html });
         }
-        if (version !== epoch || win.isDestroyed() || url !== win.webContents.getURL()) return null;
+        if (version !== epoch || win.window.isDestroyed() || url !== win.webContents.getURL()) return null;
         const document = sceneDocument(scene, boards);
         const fresh = !surface;
         if (!surface) {
@@ -157,7 +157,7 @@ function createIslandCapture() {
         const rect = {x:Math.round(css.x*zoom),y:Math.round(css.y*zoom),width:Math.round(css.width*zoom),height:Math.round(css.height*zoom)};
         image = await abortable(signal, () => win.webContents.capturePage(rect, {stayHidden:true,stayAwake:true}));
       }
-      if (version !== epoch || win.isDestroyed() || url !== win.webContents.getURL()) return null;
+      if (version !== epoch || win.window.isDestroyed() || url !== win.webContents.getURL()) return null;
       if (!pixels) {
         if (image.isEmpty()) return null;
         const size = image.getSize(), scale = Math.min(1, 720 / size.width, 400 / size.height);
@@ -184,7 +184,7 @@ function createIslandCapture() {
           }
         }
       }
-      if (version !== epoch || win.isDestroyed() || url !== win.webContents.getURL()) return null;
+      if (version !== epoch || win.window.isDestroyed() || url !== win.webContents.getURL()) return null;
       return {...pixels,
         feedback:regions.length ? {id:active.id,kind:active.kind,phase:active.phase,regions} : null};
     }

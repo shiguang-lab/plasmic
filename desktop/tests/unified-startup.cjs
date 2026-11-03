@@ -1,3 +1,4 @@
+const { studioContents } = require("./fixtures/native-studio.cjs");
 const { app, session, BrowserWindow, nativeTheme, Menu } = require("electron");
 const fs = require("node:fs");
 const os = require("node:os");
@@ -106,24 +107,24 @@ app
       slowRequests > 0,
       "The first navigation must still have a loading resource",
     );
-    assert.equal(win.webContents.getLastWebPreferences().sandbox, true);
+    assert.equal(studioContents(win).getLastWebPreferences().sandbox, true);
     for (let i = 0; i < 150; i++) {
       if (
-        new URL(win.webContents.getURL()).pathname ===
+        new URL(studioContents(win).getURL()).pathname ===
           "/desktop/unified-login" &&
-        !win.webContents.isLoadingMainFrame()
+        !studioContents(win).isLoadingMainFrame()
       ) {
         break;
       }
       await new Promise((resolve) => setTimeout(resolve, 100));
     }
-    await win.webContents
+    await studioContents(win)
       .executeJavaScript("window.desktopUnifiedLogin.command('status')")
       .then((status) => assert.equal(status.phase, "idle"));
     assert.equal(opened, undefined, "Startup must not open the system browser");
     if (process.platform === "darwin") {
       assert.deepEqual(win.getWindowButtonPosition(), { x: 24, y: 22 });
-      const chrome = await win.webContents.executeJavaScript(`(() => {
+      const chrome = await studioContents(win).executeJavaScript(`(() => {
         const brand = document.querySelector('.chrome-brand');
         const rect = brand.getBoundingClientRect();
         return { left: rect.left, top: rect.top, height: rect.height,
@@ -135,7 +136,7 @@ app
         height: 42,
         paddingLeft: "96px",
       });
-      const settings = await win.webContents.executeJavaScript(`(() => {
+      const settings = await studioContents(win).executeJavaScript(`(() => {
         const bar = document.querySelector('.auth-settings').getBoundingClientRect();
         const button = document.querySelector('.settings-trigger').getBoundingClientRect();
         return {top:bar.top, height:bar.height, buttonHeight:button.height};
@@ -178,19 +179,19 @@ app
       );
     }
     assert.equal(
-      await win.webContents.executeJavaScript(
+      await studioContents(win).executeJavaScript(
         "document.getElementById('sign-in').hidden",
       ),
       false,
     );
     assert.equal(
-      await win.webContents.executeJavaScript(
+      await studioContents(win).executeJavaScript(
         "document.getElementById('spinner').hidden",
       ),
       true,
     );
     for (const language of ["en", "zh-CN", "zh-TW", "ja", "ko"]) {
-      await win.webContents.executeJavaScript(
+      await studioContents(win).executeJavaScript(
         `window.desktopEnvironment.setUiLocale(${JSON.stringify(language)})`,
       );
       const pack = JSON.parse(
@@ -206,7 +207,7 @@ app
       const menu = Menu.getApplicationMenu();
       for (let attempt = 0; attempt < 100; attempt++) {
         if (
-          (await win.webContents.executeJavaScript(
+          (await studioContents(win).executeJavaScript(
             "document.documentElement.lang",
           )) === language
         ) {
@@ -215,10 +216,10 @@ app
         await new Promise((resolve) => setTimeout(resolve, 20));
       }
       for (const [id, key] of [
-        ["title", "Please sign in again"],
+        ["title", "Sign in to Plasmic"],
         [
           "message",
-          "Your session has expired. Sign in again to return to your previous page.",
+          "Continue your projects and bring your ideas to life on the canvas.",
         ],
         ["sign-in", "Sign in"],
         [
@@ -227,7 +228,7 @@ app
         ],
       ]) {
         assert.equal(
-          await win.webContents.executeJavaScript(
+          await studioContents(win).executeJavaScript(
             `document.getElementById(${JSON.stringify(id)}).textContent.trim()`,
           ),
           pack[key],
@@ -254,10 +255,10 @@ app
       }
     }
 
-    await win.webContents.executeJavaScript(
+    await studioContents(win).executeJavaScript(
       'localStorage.setItem("shiguang.ui.language", "zh-CN")',
     );
-    await win.loadURL(config.studioOrigin + "/desktop/unified-login");
+    await studioContents(win).loadURL(config.studioOrigin + "/desktop/unified-login");
     const zhPack = JSON.parse(
       fs.readFileSync(
         path.join(
@@ -269,7 +270,7 @@ app
     );
     for (let attempt = 0; attempt < 100; attempt++) {
       if (
-        (await win.webContents.executeJavaScript(
+        (await studioContents(win).executeJavaScript(
           'document.getElementById("sign-in").textContent.trim()',
         )) === zhPack["Sign in"]
       ) {
@@ -283,7 +284,7 @@ app
       ["retry", "Try again"],
     ]) {
       assert.equal(
-        await win.webContents.executeJavaScript(
+        await studioContents(win).executeJavaScript(
           `document.getElementById(${JSON.stringify(id)}).textContent.trim()`,
         ),
         zhPack[key],
@@ -296,35 +297,35 @@ app
     console.log(
       "PASS: Reload restores the cached language in native menus and sign-in controls",
     );
-    await win.webContents.executeJavaScript(
+    await studioContents(win).executeJavaScript(
       'localStorage.setItem("shiguang.ui.language", "en")',
     );
-    await win.webContents.executeJavaScript(
+    await studioContents(win).executeJavaScript(
       `document.getElementById("appearance").click(); document.getElementById("appearance-menu").querySelector('[data-value="light"]').click()`,
     );
     assert.equal(
-      await win.webContents.executeJavaScript(
+      await studioContents(win).executeJavaScript(
         "document.documentElement.dataset.uiAppearance",
       ),
       "light",
     );
     assert.equal(
-      await win.webContents.executeJavaScript(
+      await studioContents(win).executeJavaScript(
         'localStorage.getItem("shiguang.ui.appearance")',
       ),
       "light",
     );
-    await win.webContents.executeJavaScript(
+    await studioContents(win).executeJavaScript(
       'window.desktopEnvironment.setUiLocale("en")',
     );
     console.log(
       "PASS: Actual native menus follow five UI language changes through the trusted preload bridge",
     );
-    await win.webContents.executeJavaScript(
+    await studioContents(win).executeJavaScript(
       "window.desktopUpdates.command('open')",
     );
     assert.deepEqual(
-      await win.webContents.executeJavaScript(`(() => {
+      await studioContents(win).executeJavaScript(`(() => {
       const root = document.getElementById("plasmic-desktop-update-dialog").shadowRoot;
       const dialog = root.querySelector("dialog");
       return { open: dialog.open, modal: dialog.matches(":modal"), background: getComputedStyle(dialog).backgroundColor, title: root.getElementById("status").textContent.trim() };
@@ -337,16 +338,16 @@ app
       },
     );
     assert.equal(BrowserWindow.getAllWindows().length, 1);
-    await win.webContents.executeJavaScript(
+    await studioContents(win).executeJavaScript(
       'document.getElementById("plasmic-desktop-update-dialog").shadowRoot.getElementById("primary").click()',
     );
     assert.equal(
-      await win.webContents.executeJavaScript(
+      await studioContents(win).executeJavaScript(
         'document.getElementById("plasmic-desktop-update-dialog").shadowRoot.querySelector("dialog").open',
       ),
       false,
     );
-    await win.webContents.executeJavaScript(
+    await studioContents(win).executeJavaScript(
       "document.getElementById('sign-in').click()",
     );
     for (let i = 0; i < 100 && !opened; i++) {
@@ -356,12 +357,12 @@ app
     assert.equal(opened.origin, "https://shiguanglab.com");
     assert.equal(opened.searchParams.get("client_id"), "plasmicapp");
     assert.equal(opened.searchParams.get("code_challenge_method"), "S256");
-    const cancelled = await win.webContents.executeJavaScript(
+    const cancelled = await studioContents(win).executeJavaScript(
       "window.desktopUnifiedLogin.command('cancel')",
     );
     assert.equal(cancelled.phase, "idle");
     assert.equal(
-      new URL(win.webContents.getURL()).pathname,
+      new URL(studioContents(win).getURL()).pathname,
       "/desktop/unified-login",
     );
     clearTimeout(timeout);

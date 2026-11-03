@@ -1,3 +1,4 @@
+const { studioContents } = require("./fixtures/native-studio.cjs");
 // Run with Node; launches isolated real Electron app instances across restarts.
 const fs = require("node:fs");
 const path = require("node:path");
@@ -106,7 +107,7 @@ if (!process.versions.electron) {
       if (url.pathname === "/api/v1/projects") return Response.json({ projects: [] });
       return Response.json({ authenticated: true });
     };
-    await until(() => main && !main.webContents.isLoadingMainFrame() && fs.existsSync(path.join(profile, "presentation.json")), "main app startup");
+    await until(() => main && !studioContents(main).isLoadingMainFrame() && fs.existsSync(path.join(profile, "presentation.json")), "main app startup");
     await until(() => Menu.getApplicationMenu()?.getMenuItemById("close-action-ask"), "native menu ready");
     const island = () => BrowserWindow.getAllWindows().find((win) => win !== main && win.webContents.getURL().endsWith("/island.html"));
     function islandMenu() {
@@ -139,7 +140,7 @@ if (!process.versions.electron) {
     }
     if (stage === "choose") {
       assert.equal(main.isVisible(), true);
-      assert.equal(await main.webContents.executeJavaScript("typeof desktopPresentation"), "undefined");
+      assert.equal(await studioContents(main).executeJavaScript("typeof desktopPresentation"), "undefined");
       await choose(2, true);
       assert.equal(main.isVisible(), true); assert.equal(preference().closeAction, "ask");
       await choose(0, false); await waitIsland();
@@ -182,9 +183,9 @@ if (!process.versions.electron) {
       const menu=await islandMenu();
       menu.getMenuItemById("island-show-main").click();
       await until(()=>main.isVisible() && !island(),"show main releases island");
-      await main.webContents.executeJavaScript("desktopUpdates.onOpen(status=>{window.updateOpened=status});true");
+      await studioContents(main).executeJavaScript("desktopUpdates.onOpen(status=>{window.updateOpened=status});true");
       Menu.getApplicationMenu().getMenuItemById("check-for-updates").click();
-      await until(async()=>await main.webContents.executeJavaScript("!!window.updateOpened"),"visible main routes to its own update dialog");
+      await until(async()=>await studioContents(main).executeJavaScript("!!window.updateOpened"),"visible main routes to its own update dialog");
       assert.equal(island(),undefined,"returning to main releases the island update panel");
       assert.equal(preference().mode,"window");assert.equal(preference().closeAction,"island");
       app.emit("activate");await pause(150);
@@ -196,12 +197,12 @@ if (!process.versions.electron) {
       main.close();await waitIsland();assert.equal(prompts,0,"main closes back to island without a dialog");
       await until(async()=>await island().webContents.executeJavaScript("!document.getElementById('capsule-sign-in').hidden"),"signed-out island offers sign-in");
       const shownBeforeLogin = shown;
-      const loginMainUrl = main.webContents.getURL();
+      const loginMainUrl = studioContents(main).getURL();
       await island().webContents.executeJavaScript("document.getElementById('capsule-sign-in').click();true");
       await until(()=>authorization,"island opens browser authorization directly");
       assert.equal(authorization.origin,"https://shiguanglab.com");
       assert.equal(authorization.pathname,"/oauth/authorize");
-      assert.equal(main.webContents.getURL(),loginMainUrl,"starting browser login does not navigate the hidden main window");
+      assert.equal(studioContents(main).getURL(),loginMainUrl,"starting browser login does not navigate the hidden main window");
       assert.equal(main.isVisible(),false);assert.equal(island().isVisible(),true);
       const callback = new URL("plasmic-desktop://oauth/callback");
       callback.searchParams.set("state",authorization.searchParams.get("state"));

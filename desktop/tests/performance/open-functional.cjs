@@ -45,6 +45,21 @@ exports.run = async ({frame,win,ready,preview}) => {
       assert(vc&&vc!==old&&vc.focusedTpl()===root,'Cold frame or selection restoration failed');
       assert(opacity()===prior,'Cold undo style did not reach DOM');
       cases.push({case:'cold-frame-undo-selection-style',passed:true});
+      const restored=vc;
+      for(const a of s.site.componentArenas.slice(0,7)){s.changeSelection(()=>s.switchToArena(a));await sync()}
+      assert(restored.isDisposed,'Cold redo did not evict the restored frame');
+      await s.redo();await sync();
+      // Navigation updates the undo record's view; revisit the edited arena to check its DOM.
+      s.changeSelection(()=>s.switchToArena(arena));await sync();vc=s.tryGetViewCtxForFrame(f);
+      assert(vc&&vc!==restored&&vc.initialRenderReady,'Cold redo frame did not render');
+      assert(opacity()==='0.87','Cold redo style did not reach DOM');
+      await s.undo();await sync();
+      s.changeSelection(()=>s.switchToArena(arena));await sync();vc=s.tryGetViewCtxForFrame(f);
+      assert(opacity()===prior,'Final cold undo did not restore DOM');
+      cases.push({case:'cold-frame-redo-rendered-style',passed:true});
+      // Reload with a selected element so content controls observe Studio teardown.
+      s.changeSelection(()=>vc.setStudioFocusByTpl(root));await sync();
+      assert(vc.focusedTpl()===root,'Selected element missing before Studio reload');
     }
     if (${!!preview}) {
       await s.previewCtx.toggleLiveMode();let doc;

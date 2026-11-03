@@ -19,6 +19,7 @@ const appIcon = path.join(
   "assets",
   process.platform === "win32" ? "icon.ico" : "icon.png",
 );
+const { StudioWindow } = require("./studio-window.cjs");
 const { createAssetHandler } = require("./asset-handler.cjs");
 const { forwardRemoteRequest } = require("./remote-fetch.cjs");
 const { openBrowser } = require("./open-browser.cjs");
@@ -51,6 +52,9 @@ let controller, stopRpc, openMcpSettings, updates, openUpdates, workspace, prese
 let quitting = false;
 
 let mainWindow;
+let studioWindow;
+let drafts;
+let dashboardPreviews;
 let desktopSession;
 let unifiedAuth;
 let recoverSession;
@@ -68,10 +72,15 @@ const {
 function trustedAuthSender(event) {
   return (
     mainWindow &&
-    event.sender === mainWindow.webContents &&
+    event.sender === studioWindow?.webContents &&
     event.senderFrame === event.sender.mainFrame &&
     new URL(event.senderFrame.url).origin === config.studioOrigin
   );
+}
+function trustedViewSender(event) {
+  return mainWindow && studioWindow?.owns(event.sender) &&
+    event.senderFrame === event.sender.mainFrame &&
+    new URL(event.senderFrame.url).origin === config.studioOrigin;
 }
 function openDesktopPreview(event, url) {
   if (!trustedAuthSender(event)) {throw new Error("Invalid Studio page");}
@@ -101,16 +110,10 @@ function isUnifiedLogin(url) {
   const parsed = new URL(url);
   return parsed.origin === AUTH_ORIGIN && parsed.pathname === "/login";
 }
-function protectWindow(win) {
-  const syncBackground = (appearance) => {
-    if (!win.isDestroyed()) {
-      win.setBackgroundColor(appearance === "dark" ? "#15161b" : "#eceef3");
-    }
-  };
-  syncBackground(desktopAppearance.snapshot());
-  win.once("closed", desktopAppearance.subscribe(syncBackground));
+function protectWindow(studio, contents) {
+  const win = studio.window;
   for (const eventName of ["will-navigate", "will-redirect"]) {
-    win.webContents.on(eventName, (event, url) => {
+    contents.on(eventName, (event, url) => {
       if (win === mainWindow && isUnifiedLogin(url)) {
         event.preventDefault();
         void unifiedAuth.show(url);
@@ -120,7 +123,7 @@ function protectWindow(win) {
       }
     });
   }
-  win.webContents.setWindowOpenHandler(({ url }) => {
+  contents.setWindowOpenHandler(({ url }) => {
     if (win === mainWindow && isUnifiedLogin(url)) {
       void unifiedAuth.show(url);
       return { action: "deny" };
@@ -139,7 +142,7 @@ function protectWindow(win) {
     }
     void (async () => {
       await controller.saveBeforeNavigation(await controller.state([]));
-      await win.loadURL(url);
+      await studio.loadURL(url);
     })().catch((error) => {
       console.error("Desktop navigation failed", error);
       dialog.showErrorBox(
@@ -149,7 +152,7 @@ function protectWindow(win) {
     });
     return { action: "deny" };
   });
-  win.webContents.on("will-attach-webview", (event) => event.preventDefault());
+  contents.on("will-attach-webview", (event) => event.preventDefault());
 }
 
 async function startDesktop() {
@@ -204,7 +207,10 @@ async function startDesktop() {
       },
       fetchIdentity: () => controller.requestStudio("/api/v1/auth/self", undefined, AbortSignal.timeout(10_000)),
     });
-    desktopLogin.on("session-changed", () => desktopIdentity.invalidate());
+    desktopLogin.on("session-changed", () => {
+      desktopIdentity.invalidate();
+      studioWindow?.invalidateDashboard();
+    });
     desktopIdentity.on("changed", () => workspace?.clearStartupData());
     app.once("will-quit", () => desktopIdentity.dispose());
     const proxy = process.env.HTTPS_PROXY || process.env.HTTP_PROXY;
@@ -296,6 +302,23 @@ async function startDesktop() {
       return response;
     }
   }
+  const studioWebPreferences = {
+      devTools: !app.isPackaged,
+      session: desktopSession,
+      preload: path.join(__dirname, "preload.cjs"),
+      additionalArguments: [
+        `--shiguang-system-languages=${JSON.stringify(app.getPreferredSystemLanguages())}`,
+        // Development-only A/B switch: render Dashboard previews inside the page as before.
+        ...(!app.isPackaged && process.env.PLASMIC_DESKTOP_PREVIEW_IN_PAGE === "1"
+          ? ["--plasmic-dashboard-preview-in-page"]
+          : []),
+      ],
+      nodeIntegration: false,
+      contextIsolation: true,
+      sandbox: true,
+      webSecurity: true,
+      backgroundThrottling: false,
+    };
   mainWindow = new BrowserWindow({
     width: 1600,
     height: 1000,
@@ -318,23 +341,35 @@ async function startDesktop() {
             },
           }
         : {}),
-    webPreferences: {
-      devTools: !app.isPackaged,
-      session: desktopSession,
-      preload: path.join(__dirname, "preload.cjs"),
-      additionalArguments: [
-        `--shiguang-system-languages=${JSON.stringify(app.getPreferredSystemLanguages())}`,
-        // Development-only A/B switch: render Dashboard previews inside the page as before.
-        ...(!app.isPackaged && process.env.PLASMIC_DESKTOP_PREVIEW_IN_PAGE === "1"
-          ? ["--plasmic-dashboard-preview-in-page"]
-          : []),
-      ],
-      nodeIntegration: false,
-      contextIsolation: true,
-      sandbox: true,
-      webSecurity: true,
-      backgroundThrottling: false,
+    webPreferences: { ...studioWebPreferences, preload: undefined },
+  });
+  studioWindow = new StudioWindow(mainWindow, {
+    webPreferences: studioWebPreferences,
+    studioOrigin: config.studioOrigin,
+    projectId: (url) => workspace?.projectId(url),
+    backgroundColor: desktopAppearance.snapshot() === "dark" ? "#15161b" : "#eceef3",
+    beforeNavigate: async () => {
+      if (workspace?.projectId(studioWindow.webContents.getURL()) && !studioWindow.webContents.isCrashed()) {
+        const backup = await controller.invoke("flushDraft", {}, 10000);
+        if (!backup.protected) throw new Error(t("Edits are not saved"));
+        await capture();
+      }
     },
+  });
+  const studio = studioWindow;
+  studio.on("navigation-error", (error) => {
+    console.error("Desktop navigation failed:", error);
+    dialog.showErrorBox(t("Operation Failed"), t("Please try again"));
+  });
+  studio.on("contents-deactivated", (contents) => {
+    controller?.cancelPending(contents, "Desktop view deactivated");
+    controller?.browser?.hide();
+    drafts?.reset();
+    dashboardPreviews?.cancelFor(contents);
+  });
+  studio.on("contents-released", contents => {
+    controller?.cancelPending(contents, "Desktop view closed");
+    dashboardPreviews?.cancelFor(contents);
   });
   const appearanceWindow = mainWindow;
   if (process.platform === "darwin") {
@@ -360,6 +395,9 @@ async function startDesktop() {
       return;
     }
     const dark = appearance === "dark";
+    appearanceWindow.setBackgroundColor(dark ? "#15161b" : "#eceef3");
+    for (const view of [studio.dashboard, studio.editor]) view?.setBackgroundColor(dark ? "#15161b" : "#eceef3");
+    studio.backgroundColor = dark ? "#15161b" : "#eceef3";
     if (process.platform === "win32") {
       appearanceWindow.setTitleBarOverlay({
         color: dark ? "#15161b" : "#eceef3",
@@ -372,7 +410,7 @@ async function startDesktop() {
   const stopAppearance = desktopAppearance.subscribe(syncWindowAppearance);
   mainWindow.once("closed", stopAppearance);
   unifiedAuth = new UnifiedAuthWindow(
-    mainWindow,
+    studio,
     config.studioOrigin,
     openBrowser,
     desktopLogin,
@@ -390,16 +428,6 @@ async function startDesktop() {
     });
   };
   mainWindow.on("focus", userActivity);
-  mainWindow.webContents.on("before-input-event", userActivity);
-  mainWindow.webContents.on("before-mouse-event", (_event, mouse) => {
-    if (["mouseDown", "mouseWheel"].includes(mouse.type)) {
-      userActivity();
-    }
-  });
-  protectWindow(mainWindow);
-  mainWindow.webContents.on("did-start-navigation", (_event, _url, inPlace, isMainFrame) => {
-    if (isMainFrame && !inPlace) desktopIdentity.expire();
-  });
   if (!controller) {
     const integrations = new McpIntegrations({
       userData: app.getPath("userData"),
@@ -413,7 +441,7 @@ async function startDesktop() {
       desktopAppearance,
     );
     ipcMain.handle("desktop:ui-appearance", (event, value) => {
-      if (!trustedAuthSender(event)) {
+      if (!trustedViewSender(event)) {
         throw new Error("Invalid Studio page");
       }
       desktopAppearance.set(value);
@@ -435,7 +463,7 @@ async function startDesktop() {
       return workspace.savedEditorView(event.senderFrame.url);
     });
     ipcMain.handle("desktop:ui-locale", (event, value) => {
-      if (!trustedAuthSender(event)) {
+      if (!trustedViewSender(event)) {
         throw new Error("Invalid Studio page");
       }
       if (value !== undefined) {
@@ -465,12 +493,12 @@ async function startDesktop() {
       return unifiedAuth.command(command);
     });
     controller = new DesktopController(
-      () => mainWindow,
+      () => studioWindow,
       config,
       () => startingDesktop,
       () => desktopLogin.noteActivity(),
     );
-    const drafts = createDraftHandler({
+    drafts = createDraftHandler({
       store: new DesktopDraftStore(path.join(app.getPath("userData"), "drafts")),
       origin: config.studioOrigin,
       trustedSender: trustedAuthSender,
@@ -479,16 +507,13 @@ async function startDesktop() {
     });
     desktopIdentity.on("changed", () => drafts.invalidate());
     ipcMain.handle("desktop:drafts", (event, command, input) => drafts.command(event, command, input));
-    const dashboardPreviews = createDashboardPreviews({
+    dashboardPreviews = createDashboardPreviews({
       session: desktopSession,
       studioOrigin: config.studioOrigin,
       trustedSender: trustedAuthSender,
     });
     app.once("will-quit", () => dashboardPreviews.dispose());
-    mainWindow.webContents.on("did-start-navigation", (_event, _url, inPlace, isMainFrame) => {
-      if (isMainFrame && !inPlace) {drafts.reset();}
-    });
-    presentation = createIsland({ getWindow: () => mainWindow, controller, identity: desktopIdentity, isQuitting: () => quitting,
+    presentation = createIsland({ getWindow: () => mainWindow, getStudio: () => studioWindow, controller, identity: desktopIdentity, isQuitting: () => quitting,
       i18n: desktopI18n, appearance: desktopAppearance, config,
       signIn: () => unifiedAuth.begin(),
       changed: (mode) => {
@@ -501,6 +526,7 @@ async function startDesktop() {
     });
     controller.browser = new ReferenceBrowser({
       getParent: () => mainWindow,
+      getStudio: () => studioWindow,
       dispatch: (method, input) => controller.dispatch(method, input),
       getImportContext: (input) => controller.browserImportContext(input),
       importHtml: (input) => controller.importBrowserHtml(input),
@@ -509,6 +535,16 @@ async function startDesktop() {
       undo: (result) => controller.undoBrowserImport(result),
       i18n: desktopI18n,
       appearance: desktopAppearance,
+    });
+    ipcMain.handle("desktop:view-state", (event) => {
+      if (!trustedViewSender(event)) throw new Error("Invalid Desktop view");
+      return { active: event.sender === studioWindow.webContents };
+    });
+    ipcMain.handle("desktop:navigate", (event, value) => {
+      if (!trustedAuthSender(event) || typeof value !== "string") throw new Error("Invalid Studio navigation");
+      const url = new URL(value, config.studioOrigin);
+      if (!workspace.isWorkspaceUrl(url.href)) throw new Error("Invalid Studio destination");
+      return studioWindow.loadURL(url.href);
     });
     ipcMain.handle("desktop:open-preview", openDesktopPreview);
     ipcMain.handle("desktop:open-reference-browser", (event) => {
@@ -531,24 +567,35 @@ async function startDesktop() {
   );
   const win = mainWindow;
   presentation.attach(win);
-  win.webContents.on("did-navigate", (_event, url) =>
-    workspace.rememberUrl(url),
-  );
-  win.webContents.on("did-navigate-in-page", (_event, url, isMainFrame) => {
-    if (isMainFrame) {
-      workspace.rememberUrl(url);
-    }
-  });
-  attachWindowRecovery(win, {
-    controller,
-    dialog,
-    homeUrl: config.studioOrigin + "/",
-    t,
-  });
+  const updateDialogs = new Map();
+  const attachUpdateDialog = contents => {
+    if (updateDialogs.has(contents)) return;
+    updateDialogs.set(contents, createUpdateDialog(updates, win, contents));
+    contents.once("destroyed", () => updateDialogs.delete(contents));
+  };
+  const attachContents = (contents) => {
+    contents.on("before-input-event", userActivity);
+    contents.on("before-mouse-event", (_event, mouse) => {
+      if (["mouseDown", "mouseWheel"].includes(mouse.type)) userActivity();
+    });
+    protectWindow(studio, contents);
+    contents.on("did-start-navigation", (_event, _url, inPlace, isMainFrame) => {
+      if (contents === studio.webContents && isMainFrame && !inPlace) { desktopIdentity.expire(); drafts.reset(); }
+    });
+    contents.on("did-navigate", (_event, url) => { if (contents === studio.webContents) workspace.rememberUrl(url); });
+    contents.on("did-navigate-in-page", (_event, url, isMainFrame) => {
+      if (contents === studio.webContents && isMainFrame) workspace.rememberUrl(url);
+    });
+    presentation.attachContents(contents);
+    attachWindowRecovery(studio, { controller, dialog, homeUrl: config.studioOrigin + "/", t }, contents);
+    if (updates) attachUpdateDialog(contents);
+  };
+  studio.on("contents-created", attachContents);
+  attachContents(studio.webContents);
   let menuState;
   let checkpoint;
   const capture = () => {
-    workspace.rememberUrl(win.webContents.getURL());
+    workspace.rememberUrl(studio.webContents.getURL());
     return (checkpoint ??= controller
       .state()
       .then((state) => {
@@ -567,7 +614,7 @@ async function startDesktop() {
       }));
   };
   const workspaceTimer = setInterval(() => {
-    if (win.webContents.isLoadingMainFrame() || win.webContents.isCrashed()) {
+    if (studio.webContents.isLoadingMainFrame() || studio.webContents.isCrashed()) {
       return;
     }
     void capture().then((changed) => {
@@ -578,7 +625,7 @@ async function startDesktop() {
   }, 5000);
   let closeRequest;
   const protectDraftBeforeQuit = async () => {
-    if (win.isDestroyed() || win.webContents.isCrashed() || !workspace.projectId(win.webContents.getURL())) {return true;}
+    if (win.isDestroyed() || studio.webContents.isCrashed() || !workspace.projectId(studio.webContents.getURL())) {return true;}
     try {
       if ((await controller.invoke("flushDraft", {}, 10000)).protected) {return true;}
     } catch (error) { console.warn("Cannot flush local draft:", error.message); }
@@ -590,7 +637,7 @@ async function startDesktop() {
     return result.response === 1;
   };
   win.on("close", (event) => {
-    if (quitting || win.webContents.isCrashed()) {
+    if (quitting || studio.webContents.isCrashed()) {
       return;
     }
     event.preventDefault();
@@ -627,14 +674,15 @@ async function startDesktop() {
     clearInterval(workspaceTimer);
     app.removeListener("before-quit", beforeQuit);
   });
-  mainWindow.once("ready-to-show", () => { if (presentation.mode !== "island") {win.show();} });
+
   mainWindow.on("closed", () => {
     mainWindow = undefined;
+    studioWindow = undefined;
   });
   if (!updates) {
     updates = await createUpdates({
       config,
-      getWindow: () => mainWindow,
+      getStudio: () => studioWindow,
       session: desktopSession,
       showUpdateDialog: () => openUpdates(),
       beforeInstall: () => controller.prepareUpdate(),
@@ -642,10 +690,10 @@ async function startDesktop() {
     updates.on("status", (status) => { if (status.phase !== "installing") {controller.updating = false;} });
   }
   presentation.attachUpdates(updates);
-  const openWindowUpdates = createUpdateDialog(updates, win);
+  for (const view of [studio.dashboard, studio.editor]) if (view) attachUpdateDialog(view.webContents);
   openUpdates = () => {
     if (presentation.mode === "island" && !win.isVisible()) {presentation.openUpdates();}
-    else {openWindowUpdates();}
+    else {updateDialogs.get(studio.webContents)();}
   };
   function buildMenu() {
     const checkForUpdatesItem = {
@@ -677,6 +725,7 @@ async function startDesktop() {
         workspace,
         session: desktopSession,
         getWindow: () => mainWindow,
+        navigate: (url) => studioWindow.loadURL(url),
         dialog,
         refresh: buildMenu,
         state: menuState,
@@ -717,15 +766,15 @@ async function startDesktop() {
             },
           },
           { type: "separator" },
-          { role: "reload", label: t("Reload") },
-          { role: "forceReload", label: t("Force Reload") },
+          { label: t("Reload"), accelerator: "CmdOrCtrl+R", click: () => studioWindow?.webContents.reload() },
+          { label: t("Force Reload"), accelerator: "CmdOrCtrl+Shift+R", click: () => studioWindow?.webContents.reloadIgnoringCache() },
           ...(!app.isPackaged
-            ? [{ role: "toggleDevTools", label: t("Toggle Developer Tools") }]
+            ? [{ id: "desktop-devtools", label: t("Toggle Developer Tools"), accelerator: "Alt+CmdOrCtrl+I", click: () => studioWindow?.webContents.toggleDevTools() }]
             : []),
           { type: "separator" },
-          { label: t("Actual Size"), accelerator: "CmdOrCtrl+0", click: () => mainWindow?.webContents.setZoomLevel(0) },
-          { label: t("Zoom In"), accelerator: "CmdOrCtrl+Plus", click: () => mainWindow?.webContents.setZoomLevel(mainWindow.webContents.getZoomLevel() + .5) },
-          { label: t("Zoom Out"), accelerator: "CmdOrCtrl+-", click: () => mainWindow?.webContents.setZoomLevel(mainWindow.webContents.getZoomLevel() - .5) },
+          { label: t("Actual Size"), accelerator: "CmdOrCtrl+0", click: () => studioWindow?.webContents.setZoomLevel(0) },
+          { label: t("Zoom In"), accelerator: "CmdOrCtrl+Plus", click: () => studioWindow?.webContents.setZoomLevel(studioWindow.webContents.getZoomLevel() + .5) },
+          { label: t("Zoom Out"), accelerator: "CmdOrCtrl+-", click: () => studioWindow?.webContents.setZoomLevel(studioWindow.webContents.getZoomLevel() - .5) },
           { label: t("Toggle Full Screen"), accelerator: process.platform === "darwin" ? "Ctrl+Command+F" : "F11",
             click: () => void presentation.setMode(presentation.mode === "fullscreen" ? "window" : "fullscreen").catch(console.error) },
         ],
@@ -780,19 +829,19 @@ async function startDesktop() {
   const stopLocale = desktopI18n.subscribe(() => {
     buildMenu();
     if (!win.isDestroyed()) {
-      win.webContents.send("desktop:ui-locale", desktopI18n.snapshot());
+      for (const view of [studio.dashboard, studio.editor]) view?.webContents.send("desktop:ui-locale", desktopI18n.snapshot());
     }
   });
   win.once("closed", stopLocale);
   try {
-    await mainWindow.loadURL(startupUrl);
+    await studio.loadURL(startupUrl);
   } catch (error) {
     // Session recovery can replace the first page before its load finishes.
     // Wait for that login navigation rather than treating it as a fatal startup.
     if (
       error.errno !== -3 ||
       (!unifiedAuth.navigation &&
-        new URL(mainWindow.webContents.getURL()).pathname !== AUTH_PATH)
+        new URL(studioWindow.webContents.getURL()).pathname !== AUTH_PATH)
     ) {
       throw error;
     }

@@ -1,3 +1,4 @@
+const { studioFixture } = require("./fixtures/studio.cjs");
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
 const { EventEmitter } = require("node:events");
@@ -24,7 +25,7 @@ test("island login opens the browser without a main-window prompt and completes 
   win.show = win.focus = () => assert.fail("Island login must keep the main window hidden");
   let finish, starts = 0, opened;
   const callback = new Promise(resolve => { finish = resolve; });
-  const auth = new UnifiedAuthWindow(win, origin, url => { opened = url; }, {
+  const auth = new UnifiedAuthWindow(studioFixture(win), origin, url => { opened = url; }, {
     start: async ({ openBrowser }) => {
       starts++;
       await openBrowser("https://shiguanglab.com/oauth/authorize");
@@ -51,7 +52,7 @@ test("central return_to reaches the original project in the same window", async 
     );
   const destination = origin + "/projects/example?branch=main";
   let starts = 0;
-  const auth = new UnifiedAuthWindow(win, origin, () => {}, {
+  const auth = new UnifiedAuthWindow(studioFixture(win), origin, () => {}, {
     start: async ({ returnUrl }) => {
       starts++;
       assert.equal(returnUrl, destination);
@@ -77,7 +78,7 @@ test("login waits for the previous navigation to stop and shares overlapping red
   let stops = 0;
   contents.stop = () => { stops++; };
   win.webContents = contents;
-  const auth = new UnifiedAuthWindow(win, origin, () => {}, {});
+  const auth = new UnifiedAuthWindow(studioFixture(win), origin, () => {}, {});
   const first = auth.show(origin + "/login?continueTo=%2Fprojects%2Fexample");
   const second = auth.show();
   assert.equal(stops, 1);
@@ -91,7 +92,7 @@ test("login waits for the previous navigation to stop and shares overlapping red
 test("cancel returns to the sign-in prompt and allows a fresh attempt", async () => {
   const win = window();
   let starts = 0;
-  const auth = new UnifiedAuthWindow(win, origin, () => {}, {
+  const auth = new UnifiedAuthWindow(studioFixture(win), origin, () => {}, {
     start: async ({ signal }) => {
       starts++;
       if (starts === 1) {
@@ -122,7 +123,7 @@ test("cancelling during browser launch cannot restore the waiting state", async 
   const opened = new Promise((resolve) => {
     finishOpening = resolve;
   });
-  const auth = new UnifiedAuthWindow(win, origin, () => opened, {
+  const auth = new UnifiedAuthWindow(studioFixture(win), origin, () => opened, {
     start: async ({ openBrowser, onAuthorizationUrl }) => {
       onAuthorizationUrl("https://shiguanglab.com/oauth/authorize");
       await openBrowser("https://shiguanglab.com/oauth/authorize");

@@ -1,0 +1,2222 @@
+{
+  "scope": "macOS arm64; serial offline fixture replay; no forced GC; no debugger in timing/memory runs; working-set sums are not private physical memory. Internal reveal is not compositor presentation.",
+  "timing": [
+    {
+      "run": "host-A1",
+      "build": {
+        "kind": "diagnostic",
+        "variant": "baseline",
+        "runtimeRevision": "400c402f651be86b96cf0a3fe5bc7d8bdec4887e",
+        "rendererHash": "d7e5ce8fca69638b37253cfa6c796ae2445767ece5d83543980a96a14ca8d7b1"
+      },
+      "medianMs": {
+        "canvasRevealedMs": 1859.550048828125,
+        "firstCanvasReadyMs": 2056.08349609375,
+        "allFramesRenderedMs": 4783.75
+      },
+      "criticalPathMedianMs": {
+        "navigationToEntry": 202.4500732421875,
+        "topBootstrap": 105.4500732421875,
+        "hostAndBridgeToStudioImport": 483.050048828125,
+        "studioModuleImport": 131.0999755859375,
+        "editorInitialization": 317.25,
+        "firstFrameDispatch": 31.7999267578125,
+        "firstFrameContext": 368.8499755859375,
+        "firstRenderAndReveal": 213.6500244140625
+      },
+      "phaseDurationMedianMs": {
+        "studio-module-import": 131.09999999403954,
+        "startup-preferences": 10.700000017881393,
+        "project-fetch": 36.05000001192093,
+        "model-unbundle": 72.59999999403954,
+        "studio-context": 30.19999998807907,
+        "initial-route": 57.650000005960464,
+        "initial-viewport": 57.80000001192093,
+        "code-component-sync": 7.549999982118607,
+        "app-user-init": 0.0,
+        "initializer-ready": 0.0,
+        "frame-load-start": 0.0,
+        "frame-host-document": 163.75,
+        "frame-host-ready": 9.650000005960464,
+        "frame-runtime": 38.00000002980232,
+        "frame-component-packages": 127.24999997019768,
+        "frame-context-created": 0.0,
+        "frame-initialization": 390.0499999821186,
+        "frame-first-render": 192.74999997019768,
+        "canvas-revealed": 0.0,
+        "frame-rendered": 0.0,
+        "background-canvas-wait": 248.64999997615814,
+        "all-frame-contexts-created": 0.0,
+        "all-frames-rendered": 0.0
+      },
+      "errors": [],
+      "previewErrors": 7
+    },
+    {
+      "run": "host-H1",
+      "build": {
+        "kind": "diagnostic",
+        "variant": "dialogs",
+        "runtimeRevision": "400c402f651be86b96cf0a3fe5bc7d8bdec4887e",
+        "rendererHash": "a925ceaf2e083c2451c9b178b29441008b7f0ef87ca552d04b9df70e4a8c64ab"
+      },
+      "medianMs": {
+        "canvasRevealedMs": 1673.0498046875,
+        "firstCanvasReadyMs": 1869.9482421875,
+        "allFramesRenderedMs": 4575.949951171875
+      },
+      "criticalPathMedianMs": {
+        "navigationToEntry": 148.349853515625,
+        "topBootstrap": 96.0999755859375,
+        "hostAndBridgeToStudioImport": 323.050048828125,
+        "studioModuleImport": 189.199951171875,
+        "editorInitialization": 307.25,
+        "firstFrameDispatch": 31.5001220703125,
+        "firstFrameContext": 358.099853515625,
+        "firstRenderAndReveal": 211.650146484375
+      },
+      "phaseDurationMedianMs": {
+        "studio-module-import": 189.2000000178814,
+        "startup-preferences": 12.349999994039536,
+        "project-fetch": 36.05000001192093,
+        "model-unbundle": 66.69999998807907,
+        "studio-context": 27.349999994039536,
+        "initial-route": 51.69999998807907,
+        "initial-viewport": 51.89999997615814,
+        "code-component-sync": 7.3499999940395355,
+        "app-user-init": 0.0,
+        "initializer-ready": 0.0,
+        "frame-load-start": 0.0,
+        "frame-host-document": 127.59999999403954,
+        "frame-host-ready": 42.60000002384186,
+        "frame-runtime": 35.89999997615814,
+        "frame-component-packages": 120.94999998807907,
+        "frame-context-created": 0.0,
+        "frame-initialization": 381.2499999701977,
+        "frame-first-render": 189.60000002384186,
+        "canvas-revealed": 0.0,
+        "frame-rendered": 0.0,
+        "background-canvas-wait": 245.50000002980232,
+        "all-frame-contexts-created": 0.0,
+        "all-frames-rendered": 0.0
+      },
+      "errors": [],
+      "previewErrors": 7
+    },
+    {
+      "run": "host-H2",
+      "build": {
+        "kind": "diagnostic",
+        "variant": "dialogs",
+        "runtimeRevision": "400c402f651be86b96cf0a3fe5bc7d8bdec4887e",
+        "rendererHash": "a925ceaf2e083c2451c9b178b29441008b7f0ef87ca552d04b9df70e4a8c64ab"
+      },
+      "medianMs": {
+        "canvasRevealedMs": 1629.0499267578125,
+        "firstCanvasReadyMs": 1809.8502197265625,
+        "allFramesRenderedMs": 4490.599853515625
+      },
+      "criticalPathMedianMs": {
+        "navigationToEntry": 137.0498046875,
+        "topBootstrap": 92.1500244140625,
+        "hostAndBridgeToStudioImport": 313.6002197265625,
+        "studioModuleImport": 193.14990234375,
+        "editorInitialization": 300.4000244140625,
+        "firstFrameDispatch": 30.0001220703125,
+        "firstFrameContext": 360.25,
+        "firstRenderAndReveal": 206.5
+      },
+      "phaseDurationMedianMs": {
+        "studio-module-import": 193.15000000596046,
+        "startup-preferences": 11.950000017881393,
+        "project-fetch": 34.599999994039536,
+        "model-unbundle": 65.15000000596046,
+        "studio-context": 25.299999982118607,
+        "initial-route": 45.85000002384186,
+        "initial-viewport": 45.95000001788139,
+        "code-component-sync": 7.5,
+        "app-user-init": 0.0,
+        "initializer-ready": 0.0,
+        "frame-load-start": 0.0,
+        "frame-host-document": 94.69999998807907,
+        "frame-host-ready": 77.39999997615814,
+        "frame-runtime": 35.70000001788139,
+        "frame-component-packages": 124.0499999821186,
+        "frame-context-created": 0.0,
+        "frame-initialization": 382.2000000178814,
+        "frame-first-render": 185.9000000357628,
+        "canvas-revealed": 0.0,
+        "frame-rendered": 0.0,
+        "background-canvas-wait": 235.9500000178814,
+        "all-frame-contexts-created": 0.0,
+        "all-frames-rendered": 0.0
+      },
+      "errors": [],
+      "previewErrors": 7
+    },
+    {
+      "run": "host-A2",
+      "build": {
+        "kind": "diagnostic",
+        "variant": "baseline",
+        "runtimeRevision": "400c402f651be86b96cf0a3fe5bc7d8bdec4887e",
+        "rendererHash": "d7e5ce8fca69638b37253cfa6c796ae2445767ece5d83543980a96a14ca8d7b1"
+      },
+      "medianMs": {
+        "canvasRevealedMs": 1915.25,
+        "firstCanvasReadyMs": 2117.54248046875,
+        "allFramesRenderedMs": 4923.0
+      },
+      "criticalPathMedianMs": {
+        "navigationToEntry": 206.699951171875,
+        "topBootstrap": 109.9000244140625,
+        "hostAndBridgeToStudioImport": 509.5,
+        "studioModuleImport": 138.449951171875,
+        "editorInitialization": 320.5,
+        "firstFrameDispatch": 32.9500732421875,
+        "firstFrameContext": 385.5499267578125,
+        "firstRenderAndReveal": 211.9500732421875
+      },
+      "phaseDurationMedianMs": {
+        "studio-module-import": 138.44999998807907,
+        "startup-preferences": 11.049999982118607,
+        "project-fetch": 36.45000001788139,
+        "model-unbundle": 70.25,
+        "studio-context": 30.19999998807907,
+        "initial-route": 56.25,
+        "initial-viewport": 56.400000005960464,
+        "code-component-sync": 9.150000005960464,
+        "app-user-init": 0.0,
+        "initializer-ready": 0.0,
+        "frame-load-start": 0.0,
+        "frame-host-document": 174.55000001192093,
+        "frame-host-ready": 8.799999982118607,
+        "frame-runtime": 37.64999997615814,
+        "frame-component-packages": 127.59999999403954,
+        "frame-context-created": 0.0,
+        "frame-initialization": 410.60000002384186,
+        "frame-first-render": 189.49999997019768,
+        "canvas-revealed": 0.0,
+        "frame-rendered": 0.0,
+        "background-canvas-wait": 244.34999999403954,
+        "all-frame-contexts-created": 0.0,
+        "all-frames-rendered": 0.0
+      },
+      "errors": [],
+      "previewErrors": 7
+    },
+    {
+      "run": "host-F1",
+      "build": {
+        "kind": "diagnostic",
+        "variant": "fallback",
+        "runtimeRevision": "400c402f651be86b96cf0a3fe5bc7d8bdec4887e",
+        "rendererHash": "0db57b60f6334846093d564e0e268ec18f88174553f06f1aadde568dc79d2cb8"
+      },
+      "medianMs": {
+        "canvasRevealedMs": 1663.499755859375,
+        "firstCanvasReadyMs": 1867.5228271484375,
+        "allFramesRenderedMs": 4256.4998779296875
+      },
+      "criticalPathMedianMs": {
+        "navigationToEntry": 140.749755859375,
+        "topBootstrap": 91.2501220703125,
+        "hostAndBridgeToStudioImport": 453.75,
+        "studioModuleImport": 125.1500244140625,
+        "editorInitialization": 305.89990234375,
+        "firstFrameDispatch": 33.1500244140625,
+        "firstFrameContext": 303.5,
+        "firstRenderAndReveal": 209.650146484375
+      },
+      "phaseDurationMedianMs": {
+        "studio-module-import": 125.15000000596046,
+        "startup-preferences": 10.299999982118607,
+        "project-fetch": 34.40000003576279,
+        "model-unbundle": 68.0499999821186,
+        "studio-context": 30.30000001192093,
+        "initial-route": 56.19999998807907,
+        "initial-viewport": 56.34999996423721,
+        "code-component-sync": 8.349999994039536,
+        "app-user-init": 0.0,
+        "initializer-ready": 0.0,
+        "frame-load-start": 0.0,
+        "frame-host-document": 93.34999999403954,
+        "frame-host-ready": 43.75000002980232,
+        "frame-runtime": 7.950000017881393,
+        "frame-component-packages": 128.90000000596046,
+        "frame-context-created": 0.0,
+        "frame-initialization": 317.5,
+        "frame-first-render": 192.25,
+        "canvas-revealed": 0.0,
+        "frame-rendered": 0.0,
+        "background-canvas-wait": 248.65000000596046,
+        "all-frame-contexts-created": 0.0,
+        "all-frames-rendered": 0.0
+      },
+      "errors": [],
+      "previewErrors": 7
+    },
+    {
+      "run": "host-A3",
+      "build": {
+        "kind": "diagnostic",
+        "variant": "baseline",
+        "runtimeRevision": "400c402f651be86b96cf0a3fe5bc7d8bdec4887e",
+        "rendererHash": "d7e5ce8fca69638b37253cfa6c796ae2445767ece5d83543980a96a14ca8d7b1"
+      },
+      "medianMs": {
+        "canvasRevealedMs": 1749.25,
+        "firstCanvasReadyMs": 1939.133544921875,
+        "allFramesRenderedMs": 4551.3502197265625
+      },
+      "criticalPathMedianMs": {
+        "navigationToEntry": 144.25,
+        "topBootstrap": 93.39990234375,
+        "hostAndBridgeToStudioImport": 459.3001708984375,
+        "studioModuleImport": 126.25,
+        "editorInitialization": 304.8001708984375,
+        "firstFrameDispatch": 31.2999267578125,
+        "firstFrameContext": 369.4998779296875,
+        "firstRenderAndReveal": 205.949951171875
+      },
+      "phaseDurationMedianMs": {
+        "studio-module-import": 126.25000002980232,
+        "startup-preferences": 10.300000011920929,
+        "project-fetch": 34.5,
+        "model-unbundle": 66.44999998807907,
+        "studio-context": 29.5,
+        "initial-route": 53.79999998211861,
+        "initial-viewport": 53.94999995827675,
+        "code-component-sync": 9.099999964237213,
+        "app-user-init": 0.0,
+        "initializer-ready": 0.0,
+        "frame-load-start": 0.0,
+        "frame-host-document": 90.19999998807907,
+        "frame-host-ready": 74.75,
+        "frame-runtime": 35.5,
+        "frame-component-packages": 121.80000001192093,
+        "frame-context-created": 0.0,
+        "frame-initialization": 391.2999999821186,
+        "frame-first-render": 183.30000001192093,
+        "canvas-revealed": 0.0,
+        "frame-rendered": 0.0,
+        "background-canvas-wait": 237.19999995827675,
+        "all-frame-contexts-created": 0.0,
+        "all-frames-rendered": 0.0
+      },
+      "errors": [],
+      "previewErrors": 7
+    },
+    {
+      "run": "host-F2",
+      "build": {
+        "kind": "diagnostic",
+        "variant": "fallback",
+        "runtimeRevision": "400c402f651be86b96cf0a3fe5bc7d8bdec4887e",
+        "rendererHash": "0db57b60f6334846093d564e0e268ec18f88174553f06f1aadde568dc79d2cb8"
+      },
+      "medianMs": {
+        "canvasRevealedMs": 1653.8499755859375,
+        "firstCanvasReadyMs": 1843.7225341796875,
+        "allFramesRenderedMs": 4146.2999267578125
+      },
+      "criticalPathMedianMs": {
+        "navigationToEntry": 142.949951171875,
+        "topBootstrap": 91.9000244140625,
+        "hostAndBridgeToStudioImport": 462.25,
+        "studioModuleImport": 126.0,
+        "editorInitialization": 303.7999267578125,
+        "firstFrameDispatch": 32.5999755859375,
+        "firstFrameContext": 289.4000244140625,
+        "firstRenderAndReveal": 203.5999755859375
+      },
+      "phaseDurationMedianMs": {
+        "studio-module-import": 125.99999997019768,
+        "startup-preferences": 10.349999994039536,
+        "project-fetch": 33.44999998807907,
+        "model-unbundle": 67.0,
+        "studio-context": 30.450000017881393,
+        "initial-route": 55.650000005960464,
+        "initial-viewport": 56.40000003576279,
+        "code-component-sync": 7.750000029802322,
+        "app-user-init": 0.0,
+        "initializer-ready": 0.0,
+        "frame-load-start": 0.0,
+        "frame-host-document": 91.09999999403954,
+        "frame-host-ready": 42.0,
+        "frame-runtime": 7.200000017881393,
+        "frame-component-packages": 120.35000002384186,
+        "frame-context-created": 0.0,
+        "frame-initialization": 304.55000001192093,
+        "frame-first-render": 182.00000002980232,
+        "canvas-revealed": 0.0,
+        "frame-rendered": 0.0,
+        "background-canvas-wait": 241.55000001192093,
+        "all-frame-contexts-created": 0.0,
+        "all-frames-rendered": 0.0
+      },
+      "errors": [],
+      "previewErrors": 7
+    },
+    {
+      "run": "combined-A1",
+      "build": {
+        "kind": "diagnostic",
+        "variant": "baseline",
+        "runtimeRevision": "400c402f651be86b96cf0a3fe5bc7d8bdec4887e",
+        "rendererHash": "d7e5ce8fca69638b37253cfa6c796ae2445767ece5d83543980a96a14ca8d7b1"
+      },
+      "medianMs": {
+        "canvasRevealedMs": 1716.449951171875,
+        "firstCanvasReadyMs": 1911.6568603515625,
+        "allFramesRenderedMs": 4465.5499267578125
+      },
+      "criticalPathMedianMs": {
+        "navigationToEntry": 142.699951171875,
+        "topBootstrap": 92.64990234375,
+        "hostAndBridgeToStudioImport": 456.5,
+        "studioModuleImport": 125.699951171875,
+        "editorInitialization": 306.1500244140625,
+        "firstFrameDispatch": 32.550048828125,
+        "firstFrameContext": 356.7000732421875,
+        "firstRenderAndReveal": 203.2498779296875
+      },
+      "phaseDurationMedianMs": {
+        "studio-module-import": 125.70000004768372,
+        "startup-preferences": 10.400000005960464,
+        "project-fetch": 33.90000003576279,
+        "model-unbundle": 67.44999998807907,
+        "studio-context": 30.950000017881393,
+        "initial-route": 56.349999994039536,
+        "initial-viewport": 56.54999998211861,
+        "code-component-sync": 7.5999999940395355,
+        "app-user-init": 0.0,
+        "initializer-ready": 0.0,
+        "frame-load-start": 0.0,
+        "frame-host-document": 90.55000001192093,
+        "frame-host-ready": 75.59999999403954,
+        "frame-runtime": 35.80000001192093,
+        "frame-component-packages": 123.35000002384186,
+        "frame-context-created": 0.0,
+        "frame-initialization": 376.5,
+        "frame-first-render": 181.5,
+        "canvas-revealed": 0.0,
+        "frame-rendered": 0.0,
+        "background-canvas-wait": 235.69999998807907,
+        "all-frame-contexts-created": 0.0,
+        "all-frames-rendered": 0.0
+      },
+      "errors": [],
+      "previewErrors": 7
+    },
+    {
+      "run": "combined-C1",
+      "build": {
+        "kind": "diagnostic",
+        "variant": "combined",
+        "runtimeRevision": "400c402f651be86b96cf0a3fe5bc7d8bdec4887e",
+        "rendererHash": "a46c429620ffbb1c172ca250087a001d7ddbf84c296abdeb13f12e077557df91"
+      },
+      "medianMs": {
+        "canvasRevealedMs": 1623.599853515625,
+        "firstCanvasReadyMs": 1821.9124755859375,
+        "allFramesRenderedMs": 4184.4998779296875
+      },
+      "criticalPathMedianMs": {
+        "navigationToEntry": 142.449951171875,
+        "topBootstrap": 96.300048828125,
+        "hostAndBridgeToStudioImport": 312.14990234375,
+        "studioModuleImport": 201.300048828125,
+        "editorInitialization": 308.050048828125,
+        "firstFrameDispatch": 31.5999755859375,
+        "firstFrameContext": 303.199951171875,
+        "firstRenderAndReveal": 209.5001220703125
+      },
+      "phaseDurationMedianMs": {
+        "studio-module-import": 201.30000001192093,
+        "startup-preferences": 12.050000011920929,
+        "project-fetch": 36.5,
+        "model-unbundle": 66.94999998807907,
+        "studio-context": 25.349999994039536,
+        "initial-route": 46.95000001788139,
+        "initial-viewport": 47.05000004172325,
+        "code-component-sync": 7.5,
+        "app-user-init": 0.0,
+        "initializer-ready": 0.0,
+        "frame-load-start": 0.0,
+        "frame-host-document": 98.05000001192093,
+        "frame-host-ready": 43.150000005960464,
+        "frame-runtime": 7.549999982118607,
+        "frame-component-packages": 125.59999996423721,
+        "frame-context-created": 0.0,
+        "frame-initialization": 323.4500000178814,
+        "frame-first-render": 185.69999998807907,
+        "canvas-revealed": 0.0,
+        "frame-rendered": 0.0,
+        "background-canvas-wait": 239.59999999403954,
+        "all-frame-contexts-created": 0.0,
+        "all-frames-rendered": 0.0
+      },
+      "errors": [],
+      "previewErrors": 7
+    },
+    {
+      "run": "combined-C2",
+      "build": {
+        "kind": "diagnostic",
+        "variant": "combined",
+        "runtimeRevision": "400c402f651be86b96cf0a3fe5bc7d8bdec4887e",
+        "rendererHash": "a46c429620ffbb1c172ca250087a001d7ddbf84c296abdeb13f12e077557df91"
+      },
+      "medianMs": {
+        "canvasRevealedMs": 1577.9000244140625,
+        "firstCanvasReadyMs": 1755.553466796875,
+        "allFramesRenderedMs": 4119.2498779296875
+      },
+      "criticalPathMedianMs": {
+        "navigationToEntry": 148.5,
+        "topBootstrap": 93.199951171875,
+        "hostAndBridgeToStudioImport": 311.949951171875,
+        "studioModuleImport": 188.7000732421875,
+        "editorInitialization": 303.25,
+        "firstFrameDispatch": 31.800048828125,
+        "firstFrameContext": 299.5,
+        "firstRenderAndReveal": 206.9000244140625
+      },
+      "phaseDurationMedianMs": {
+        "studio-module-import": 188.69999998807907,
+        "startup-preferences": 12.25,
+        "project-fetch": 35.89999997615814,
+        "model-unbundle": 65.55000001192093,
+        "studio-context": 25.399999976158142,
+        "initial-route": 47.35000002384186,
+        "initial-viewport": 47.400000005960464,
+        "code-component-sync": 7.250000029802322,
+        "app-user-init": 0.0,
+        "initializer-ready": 0.0,
+        "frame-load-start": 0.0,
+        "frame-host-document": 116.80000001192093,
+        "frame-host-ready": 26.30000001192093,
+        "frame-runtime": 7.6500000059604645,
+        "frame-component-packages": 119.7000000178814,
+        "frame-context-created": 0.0,
+        "frame-initialization": 318.34999999403954,
+        "frame-first-render": 183.15000000596046,
+        "canvas-revealed": 0.0,
+        "frame-rendered": 0.0,
+        "background-canvas-wait": 242.14999997615814,
+        "all-frame-contexts-created": 0.0,
+        "all-frames-rendered": 0.0
+      },
+      "errors": [],
+      "previewErrors": 7
+    },
+    {
+      "run": "combined-A2",
+      "build": {
+        "kind": "diagnostic",
+        "variant": "baseline",
+        "runtimeRevision": "400c402f651be86b96cf0a3fe5bc7d8bdec4887e",
+        "rendererHash": "d7e5ce8fca69638b37253cfa6c796ae2445767ece5d83543980a96a14ca8d7b1"
+      },
+      "medianMs": {
+        "canvasRevealedMs": 1728.800048828125,
+        "firstCanvasReadyMs": 1923.1546630859375,
+        "allFramesRenderedMs": 4538.8499755859375
+      },
+      "criticalPathMedianMs": {
+        "navigationToEntry": 144.1500244140625,
+        "topBootstrap": 91.699951171875,
+        "hostAndBridgeToStudioImport": 459.5999755859375,
+        "studioModuleImport": 124.5,
+        "editorInitialization": 305.2999267578125,
+        "firstFrameDispatch": 32.7501220703125,
+        "firstFrameContext": 367.2498779296875,
+        "firstRenderAndReveal": 208.449951171875
+      },
+      "phaseDurationMedianMs": {
+        "studio-module-import": 124.5,
+        "startup-preferences": 10.399999976158142,
+        "project-fetch": 33.849999994039536,
+        "model-unbundle": 67.2000000178814,
+        "studio-context": 30.500000029802322,
+        "initial-route": 56.700000047683716,
+        "initial-viewport": 56.85000002384186,
+        "code-component-sync": 7.649999976158142,
+        "app-user-init": 0.0,
+        "initializer-ready": 0.0,
+        "frame-load-start": 0.0,
+        "frame-host-document": 126.59999999403954,
+        "frame-host-ready": 41.99999997019768,
+        "frame-runtime": 36.75,
+        "frame-component-packages": 135.34999999403954,
+        "frame-context-created": 0.0,
+        "frame-initialization": 389.75,
+        "frame-first-render": 187.80000001192093,
+        "canvas-revealed": 0.0,
+        "frame-rendered": 0.0,
+        "background-canvas-wait": 241.84999999403954,
+        "all-frame-contexts-created": 0.0,
+        "all-frames-rendered": 0.0
+      },
+      "errors": [],
+      "previewErrors": 7
+    },
+    {
+      "run": "production-A1",
+      "build": {
+        "kind": "local",
+        "revision": "400c402f651be86b96cf0a3fe5bc7d8bdec4887e",
+        "dirty": true,
+        "builtAt": "2026-11-03T08:28:09.080Z",
+        "sourceHash": "061fa5406684fb2ef5b390f80238ebc5d35a15aee8b704c48f4b902d1ccd8edb",
+        "rendererHash": "531d001bb11f5d034fb18397775053313355b3a923d114695b6adc6b49771cc7",
+        "desktopHash": "8af3fcd201b466eb68da1fefc44afc70be92209b7c0b45165e822b2c5ff9d8b4"
+      },
+      "medianMs": {
+        "canvasRevealedMs": 1812.949951171875,
+        "firstCanvasReadyMs": 2022.98876953125,
+        "allFramesRenderedMs": 4764.0499267578125
+      },
+      "criticalPathMedianMs": {
+        "navigationToEntry": 158.800048828125,
+        "topBootstrap": 102.75,
+        "hostAndBridgeToStudioImport": 485.89990234375,
+        "studioModuleImport": 128.4000244140625,
+        "editorInitialization": 318.300048828125,
+        "firstFrameDispatch": 33.150146484375,
+        "firstFrameContext": 368.349853515625,
+        "firstRenderAndReveal": 215.0001220703125
+      },
+      "phaseDurationMedianMs": {
+        "studio-module-import": 128.39999997615814,
+        "startup-preferences": 11.049999982118607,
+        "project-fetch": 35.14999997615814,
+        "model-unbundle": 72.0,
+        "studio-context": 30.5,
+        "initial-route": 57.70000001788139,
+        "initial-viewport": 57.80000001192093,
+        "code-component-sync": 8.449999988079071,
+        "app-user-init": 0.0,
+        "initializer-ready": 0.0,
+        "frame-load-start": 0.0,
+        "frame-host-document": 131.0,
+        "frame-host-ready": 43.20000001788139,
+        "frame-runtime": 36.75,
+        "frame-component-packages": 125.40000000596046,
+        "frame-context-created": 0.0,
+        "frame-initialization": 389.59999999403954,
+        "frame-first-render": 194.94999998807907,
+        "canvas-revealed": 0.0,
+        "frame-rendered": 0.0,
+        "background-canvas-wait": 249.5,
+        "all-frame-contexts-created": 0.0,
+        "all-frames-rendered": 0.0
+      },
+      "errors": [],
+      "previewErrors": 7
+    },
+    {
+      "run": "production-C1",
+      "build": {
+        "kind": "local",
+        "revision": "400c402f651be86b96cf0a3fe5bc7d8bdec4887e",
+        "dirty": true,
+        "builtAt": "2026-11-03T09:47:28.546Z",
+        "sourceHash": "ba18d99f3055b499931911ce0098736a25480548dc1f5dbb5a824ab32af1dac5",
+        "rendererHash": "f7bf6e4787a973cc6528592a68be00ae6be02f6856855ea629c6e643b901eb67",
+        "desktopHash": "8af3fcd201b466eb68da1fefc44afc70be92209b7c0b45165e822b2c5ff9d8b4"
+      },
+      "medianMs": {
+        "canvasRevealedMs": 1682.949951171875,
+        "firstCanvasReadyMs": 1865.947998046875,
+        "allFramesRenderedMs": 4302.699951171875
+      },
+      "criticalPathMedianMs": {
+        "navigationToEntry": 159.2000732421875,
+        "topBootstrap": 103.25,
+        "hostAndBridgeToStudioImport": 330.5501708984375,
+        "studioModuleImport": 195.89990234375,
+        "editorInitialization": 324.9500732421875,
+        "firstFrameDispatch": 34.300048828125,
+        "firstFrameContext": 305.75,
+        "firstRenderAndReveal": 221.349853515625
+      },
+      "phaseDurationMedianMs": {
+        "studio-module-import": 195.89999997615814,
+        "startup-preferences": 12.649999976158142,
+        "project-fetch": 36.650000005960464,
+        "model-unbundle": 73.30000001192093,
+        "studio-context": 31.55000001192093,
+        "initial-route": 58.849999994039536,
+        "initial-viewport": 58.99999997019768,
+        "code-component-sync": 8.150000005960464,
+        "app-user-init": 0.0,
+        "initializer-ready": 0.0,
+        "frame-load-start": 0.0,
+        "frame-host-document": 118.2999999821186,
+        "frame-host-ready": 27.25,
+        "frame-runtime": 7.700000017881393,
+        "frame-component-packages": 122.90000000596046,
+        "frame-context-created": 0.0,
+        "frame-initialization": 322.2999999821186,
+        "frame-first-render": 200.30000001192093,
+        "canvas-revealed": 0.0,
+        "frame-rendered": 0.0,
+        "background-canvas-wait": 262.44999998807907,
+        "all-frame-contexts-created": 0.0,
+        "all-frames-rendered": 0.0
+      },
+      "errors": [],
+      "previewErrors": 7
+    },
+    {
+      "run": "production-C2",
+      "build": {
+        "kind": "local",
+        "revision": "400c402f651be86b96cf0a3fe5bc7d8bdec4887e",
+        "dirty": true,
+        "builtAt": "2026-11-03T09:47:28.546Z",
+        "sourceHash": "ba18d99f3055b499931911ce0098736a25480548dc1f5dbb5a824ab32af1dac5",
+        "rendererHash": "f7bf6e4787a973cc6528592a68be00ae6be02f6856855ea629c6e643b901eb67",
+        "desktopHash": "8af3fcd201b466eb68da1fefc44afc70be92209b7c0b45165e822b2c5ff9d8b4"
+      },
+      "medianMs": {
+        "canvasRevealedMs": 1681.8499755859375,
+        "firstCanvasReadyMs": 1871.344482421875,
+        "allFramesRenderedMs": 4278.1500244140625
+      },
+      "criticalPathMedianMs": {
+        "navigationToEntry": 156.0999755859375,
+        "topBootstrap": 102.64990234375,
+        "hostAndBridgeToStudioImport": 346.7000732421875,
+        "studioModuleImport": 195.6500244140625,
+        "editorInitialization": 320.0499267578125,
+        "firstFrameDispatch": 34.2999267578125,
+        "firstFrameContext": 304.39990234375,
+        "firstRenderAndReveal": 212.800048828125
+      },
+      "phaseDurationMedianMs": {
+        "studio-module-import": 195.65000000596046,
+        "startup-preferences": 12.100000023841858,
+        "project-fetch": 35.849999994039536,
+        "model-unbundle": 71.19999998807907,
+        "studio-context": 30.999999970197678,
+        "initial-route": 59.0,
+        "initial-viewport": 59.10000002384186,
+        "code-component-sync": 8.199999988079071,
+        "app-user-init": 0.0,
+        "initializer-ready": 0.0,
+        "frame-load-start": 0.0,
+        "frame-host-document": 97.7999999821186,
+        "frame-host-ready": 44.349999994039536,
+        "frame-runtime": 7.450000017881393,
+        "frame-component-packages": 123.34999999403954,
+        "frame-context-created": 0.0,
+        "frame-initialization": 319.0,
+        "frame-first-render": 192.5499999821186,
+        "canvas-revealed": 0.0,
+        "frame-rendered": 0.0,
+        "background-canvas-wait": 251.94999998807907,
+        "all-frame-contexts-created": 0.0,
+        "all-frames-rendered": 0.0
+      },
+      "errors": [],
+      "previewErrors": 7
+    },
+    {
+      "run": "production-A2",
+      "build": {
+        "kind": "local",
+        "revision": "400c402f651be86b96cf0a3fe5bc7d8bdec4887e",
+        "dirty": true,
+        "builtAt": "2026-11-03T08:28:09.080Z",
+        "sourceHash": "061fa5406684fb2ef5b390f80238ebc5d35a15aee8b704c48f4b902d1ccd8edb",
+        "rendererHash": "531d001bb11f5d034fb18397775053313355b3a923d114695b6adc6b49771cc7",
+        "desktopHash": "8af3fcd201b466eb68da1fefc44afc70be92209b7c0b45165e822b2c5ff9d8b4"
+      },
+      "medianMs": {
+        "canvasRevealedMs": 1820.099853515625,
+        "firstCanvasReadyMs": 2014.2283935546875,
+        "allFramesRenderedMs": 4716.4498291015625
+      },
+      "criticalPathMedianMs": {
+        "navigationToEntry": 156.349853515625,
+        "topBootstrap": 102.3001708984375,
+        "hostAndBridgeToStudioImport": 488.699951171875,
+        "studioModuleImport": 127.550048828125,
+        "editorInitialization": 319.2999267578125,
+        "firstFrameDispatch": 34.85009765625,
+        "firstFrameContext": 369.550048828125,
+        "firstRenderAndReveal": 214.0499267578125
+      },
+      "phaseDurationMedianMs": {
+        "studio-module-import": 127.55000001192093,
+        "startup-preferences": 11.099999994039536,
+        "project-fetch": 36.65000003576279,
+        "model-unbundle": 70.34999999403954,
+        "studio-context": 31.799999982118607,
+        "initial-route": 58.900000005960464,
+        "initial-viewport": 59.05000001192093,
+        "code-component-sync": 8.199999988079071,
+        "app-user-init": 0.0,
+        "initializer-ready": 0.0,
+        "frame-load-start": 0.0,
+        "frame-host-document": 93.55000001192093,
+        "frame-host-ready": 77.64999997615814,
+        "frame-runtime": 36.599999994039536,
+        "frame-component-packages": 127.84999999403954,
+        "frame-context-created": 0.0,
+        "frame-initialization": 391.84999999403954,
+        "frame-first-render": 193.60000002384186,
+        "canvas-revealed": 0.0,
+        "frame-rendered": 0.0,
+        "background-canvas-wait": 247.90000000596046,
+        "all-frame-contexts-created": 0.0,
+        "all-frames-rendered": 0.0
+      },
+      "errors": [],
+      "previewErrors": 7
+    }
+  ],
+  "memory": {
+    "baseline": {
+      "opens": 6,
+      "overallPeakWorkingSetSumKiB": 1980608,
+      "openPeaksKiB": [
+        1732480,
+        1764352,
+        1764128,
+        1785104,
+        1764256,
+        1745616
+      ],
+      "dashboardPoints": [
+        {
+          "label": "cold-dashboard",
+          "rendererPid": 94722,
+          "rendererRssKiB": 264784,
+          "appWorkingSetSumKiB": 679312,
+          "processes": [
+            {
+              "pid": 94719,
+              "type": "Browser",
+              "rssKiB": 263488
+            },
+            {
+              "pid": 94720,
+              "type": "GPU",
+              "rssKiB": 102544
+            },
+            {
+              "pid": 94721,
+              "type": "Utility",
+              "rssKiB": 48496
+            },
+            {
+              "pid": 94722,
+              "type": "Tab",
+              "rssKiB": 264784
+            }
+          ]
+        },
+        {
+          "label": "returned-0",
+          "rendererPid": 94722,
+          "rendererRssKiB": 265376,
+          "appWorkingSetSumKiB": 925808,
+          "processes": [
+            {
+              "pid": 94719,
+              "type": "Browser",
+              "rssKiB": 328416
+            },
+            {
+              "pid": 94720,
+              "type": "GPU",
+              "rssKiB": 120144
+            },
+            {
+              "pid": 94721,
+              "type": "Utility",
+              "rssKiB": 48864
+            },
+            {
+              "pid": 94722,
+              "type": "Tab",
+              "rssKiB": 265376
+            },
+            {
+              "pid": 94731,
+              "type": "Tab",
+              "rssKiB": 163008
+            }
+          ]
+        },
+        {
+          "label": "returned-1",
+          "rendererPid": 94722,
+          "rendererRssKiB": 265680,
+          "appWorkingSetSumKiB": 950704,
+          "processes": [
+            {
+              "pid": 94719,
+              "type": "Browser",
+              "rssKiB": 345680
+            },
+            {
+              "pid": 94720,
+              "type": "GPU",
+              "rssKiB": 127072
+            },
+            {
+              "pid": 94721,
+              "type": "Utility",
+              "rssKiB": 48944
+            },
+            {
+              "pid": 94722,
+              "type": "Tab",
+              "rssKiB": 265680
+            },
+            {
+              "pid": 94735,
+              "type": "Tab",
+              "rssKiB": 163328
+            }
+          ]
+        },
+        {
+          "label": "returned-2",
+          "rendererPid": 94722,
+          "rendererRssKiB": 265808,
+          "appWorkingSetSumKiB": 957344,
+          "processes": [
+            {
+              "pid": 94719,
+              "type": "Browser",
+              "rssKiB": 349888
+            },
+            {
+              "pid": 94720,
+              "type": "GPU",
+              "rssKiB": 129120
+            },
+            {
+              "pid": 94721,
+              "type": "Utility",
+              "rssKiB": 48960
+            },
+            {
+              "pid": 94722,
+              "type": "Tab",
+              "rssKiB": 265808
+            },
+            {
+              "pid": 94746,
+              "type": "Tab",
+              "rssKiB": 163568
+            }
+          ]
+        },
+        {
+          "label": "returned-3",
+          "rendererPid": 94722,
+          "rendererRssKiB": 266224,
+          "appWorkingSetSumKiB": 971344,
+          "processes": [
+            {
+              "pid": 94719,
+              "type": "Browser",
+              "rssKiB": 361456
+            },
+            {
+              "pid": 94720,
+              "type": "GPU",
+              "rssKiB": 130992
+            },
+            {
+              "pid": 94721,
+              "type": "Utility",
+              "rssKiB": 48992
+            },
+            {
+              "pid": 94722,
+              "type": "Tab",
+              "rssKiB": 266224
+            },
+            {
+              "pid": 94750,
+              "type": "Tab",
+              "rssKiB": 163680
+            }
+          ]
+        },
+        {
+          "label": "returned-4",
+          "rendererPid": 94722,
+          "rendererRssKiB": 266352,
+          "appWorkingSetSumKiB": 964480,
+          "processes": [
+            {
+              "pid": 94719,
+              "type": "Browser",
+              "rssKiB": 354112
+            },
+            {
+              "pid": 94720,
+              "type": "GPU",
+              "rssKiB": 131920
+            },
+            {
+              "pid": 94721,
+              "type": "Utility",
+              "rssKiB": 48992
+            },
+            {
+              "pid": 94722,
+              "type": "Tab",
+              "rssKiB": 266352
+            },
+            {
+              "pid": 94756,
+              "type": "Tab",
+              "rssKiB": 163104
+            }
+          ]
+        },
+        {
+          "label": "returned-5",
+          "rendererPid": 94722,
+          "rendererRssKiB": 230480,
+          "appWorkingSetSumKiB": 979680,
+          "processes": [
+            {
+              "pid": 94719,
+              "type": "Browser",
+              "rssKiB": 383760
+            },
+            {
+              "pid": 94720,
+              "type": "GPU",
+              "rssKiB": 153280
+            },
+            {
+              "pid": 94721,
+              "type": "Utility",
+              "rssKiB": 48944
+            },
+            {
+              "pid": 94722,
+              "type": "Tab",
+              "rssKiB": 230480
+            },
+            {
+              "pid": 94788,
+              "type": "Tab",
+              "rssKiB": 163216
+            }
+          ]
+        }
+      ],
+      "rendererErrors": 0,
+      "thumbnailFixtureErrors": 7,
+      "retainedDashboard": true
+    },
+    "combined": {
+      "opens": 20,
+      "overallPeakWorkingSetSumKiB": 1853408,
+      "openPeaksKiB": [
+        1625200,
+        1625920,
+        1657024,
+        1621088,
+        1483952,
+        1543552,
+        1529312,
+        1532304,
+        1517024,
+        1517760,
+        1518224,
+        1544480,
+        1544912,
+        1548960,
+        1535792,
+        1528656,
+        1542048,
+        1533888,
+        1562064,
+        1549664
+      ],
+      "dashboardPoints": [
+        {
+          "label": "cold-dashboard",
+          "rendererPid": 94795,
+          "rendererRssKiB": 256912,
+          "appWorkingSetSumKiB": 671472,
+          "processes": [
+            {
+              "pid": 94792,
+              "type": "Browser",
+              "rssKiB": 264016
+            },
+            {
+              "pid": 94793,
+              "type": "GPU",
+              "rssKiB": 101904
+            },
+            {
+              "pid": 94794,
+              "type": "Utility",
+              "rssKiB": 48640
+            },
+            {
+              "pid": 94795,
+              "type": "Tab",
+              "rssKiB": 256912
+            }
+          ]
+        },
+        {
+          "label": "returned-0",
+          "rendererPid": 94795,
+          "rendererRssKiB": 257696,
+          "appWorkingSetSumKiB": 911664,
+          "processes": [
+            {
+              "pid": 94792,
+              "type": "Browser",
+              "rssKiB": 321152
+            },
+            {
+              "pid": 94793,
+              "type": "GPU",
+              "rssKiB": 120656
+            },
+            {
+              "pid": 94794,
+              "type": "Utility",
+              "rssKiB": 48976
+            },
+            {
+              "pid": 94795,
+              "type": "Tab",
+              "rssKiB": 257696
+            },
+            {
+              "pid": 94801,
+              "type": "Tab",
+              "rssKiB": 163184
+            }
+          ]
+        },
+        {
+          "label": "returned-1",
+          "rendererPid": 94795,
+          "rendererRssKiB": 258016,
+          "appWorkingSetSumKiB": 939632,
+          "processes": [
+            {
+              "pid": 94792,
+              "type": "Browser",
+              "rssKiB": 341984
+            },
+            {
+              "pid": 94793,
+              "type": "GPU",
+              "rssKiB": 127408
+            },
+            {
+              "pid": 94794,
+              "type": "Utility",
+              "rssKiB": 49056
+            },
+            {
+              "pid": 94795,
+              "type": "Tab",
+              "rssKiB": 258016
+            },
+            {
+              "pid": 94807,
+              "type": "Tab",
+              "rssKiB": 163168
+            }
+          ]
+        },
+        {
+          "label": "returned-2",
+          "rendererPid": 94795,
+          "rendererRssKiB": 259392,
+          "appWorkingSetSumKiB": 939984,
+          "processes": [
+            {
+              "pid": 94792,
+              "type": "Browser",
+              "rssKiB": 339888
+            },
+            {
+              "pid": 94793,
+              "type": "GPU",
+              "rssKiB": 128688
+            },
+            {
+              "pid": 94794,
+              "type": "Utility",
+              "rssKiB": 49056
+            },
+            {
+              "pid": 94795,
+              "type": "Tab",
+              "rssKiB": 259392
+            },
+            {
+              "pid": 94827,
+              "type": "Tab",
+              "rssKiB": 162960
+            }
+          ]
+        },
+        {
+          "label": "returned-3",
+          "rendererPid": 94795,
+          "rendererRssKiB": 233952,
+          "appWorkingSetSumKiB": 875920,
+          "processes": [
+            {
+              "pid": 94792,
+              "type": "Browser",
+              "rssKiB": 312352
+            },
+            {
+              "pid": 94793,
+              "type": "GPU",
+              "rssKiB": 120768
+            },
+            {
+              "pid": 94794,
+              "type": "Utility",
+              "rssKiB": 44896
+            },
+            {
+              "pid": 94795,
+              "type": "Tab",
+              "rssKiB": 233952
+            },
+            {
+              "pid": 94904,
+              "type": "Tab",
+              "rssKiB": 163952
+            }
+          ]
+        },
+        {
+          "label": "returned-4",
+          "rendererPid": 94795,
+          "rendererRssKiB": 201888,
+          "appWorkingSetSumKiB": 799136,
+          "processes": [
+            {
+              "pid": 94792,
+              "type": "Browser",
+              "rssKiB": 280144
+            },
+            {
+              "pid": 94793,
+              "type": "GPU",
+              "rssKiB": 110672
+            },
+            {
+              "pid": 94794,
+              "type": "Utility",
+              "rssKiB": 42784
+            },
+            {
+              "pid": 94795,
+              "type": "Tab",
+              "rssKiB": 201888
+            },
+            {
+              "pid": 94930,
+              "type": "Tab",
+              "rssKiB": 163648
+            }
+          ]
+        },
+        {
+          "label": "returned-5",
+          "rendererPid": 94795,
+          "rendererRssKiB": 202336,
+          "appWorkingSetSumKiB": 845584,
+          "processes": [
+            {
+              "pid": 94792,
+              "type": "Browser",
+              "rssKiB": 325376
+            },
+            {
+              "pid": 94793,
+              "type": "GPU",
+              "rssKiB": 112208
+            },
+            {
+              "pid": 94794,
+              "type": "Utility",
+              "rssKiB": 42784
+            },
+            {
+              "pid": 94795,
+              "type": "Tab",
+              "rssKiB": 202336
+            },
+            {
+              "pid": 94935,
+              "type": "Tab",
+              "rssKiB": 162880
+            }
+          ]
+        },
+        {
+          "label": "returned-6",
+          "rendererPid": 94795,
+          "rendererRssKiB": 181504,
+          "appWorkingSetSumKiB": 831296,
+          "processes": [
+            {
+              "pid": 94792,
+              "type": "Browser",
+              "rssKiB": 330560
+            },
+            {
+              "pid": 94793,
+              "type": "GPU",
+              "rssKiB": 112688
+            },
+            {
+              "pid": 94794,
+              "type": "Utility",
+              "rssKiB": 42784
+            },
+            {
+              "pid": 94795,
+              "type": "Tab",
+              "rssKiB": 181504
+            },
+            {
+              "pid": 94940,
+              "type": "Tab",
+              "rssKiB": 163760
+            }
+          ]
+        },
+        {
+          "label": "returned-7",
+          "rendererPid": 94795,
+          "rendererRssKiB": 182544,
+          "appWorkingSetSumKiB": 829040,
+          "processes": [
+            {
+              "pid": 94792,
+              "type": "Browser",
+              "rssKiB": 327072
+            },
+            {
+              "pid": 94793,
+              "type": "GPU",
+              "rssKiB": 113168
+            },
+            {
+              "pid": 94794,
+              "type": "Utility",
+              "rssKiB": 42784
+            },
+            {
+              "pid": 94795,
+              "type": "Tab",
+              "rssKiB": 182544
+            },
+            {
+              "pid": 94943,
+              "type": "Tab",
+              "rssKiB": 163472
+            }
+          ]
+        },
+        {
+          "label": "returned-8",
+          "rendererPid": 94795,
+          "rendererRssKiB": 183760,
+          "appWorkingSetSumKiB": 824704,
+          "processes": [
+            {
+              "pid": 94792,
+              "type": "Browser",
+              "rssKiB": 321376
+            },
+            {
+              "pid": 94793,
+              "type": "GPU",
+              "rssKiB": 113616
+            },
+            {
+              "pid": 94794,
+              "type": "Utility",
+              "rssKiB": 43056
+            },
+            {
+              "pid": 94795,
+              "type": "Tab",
+              "rssKiB": 183760
+            },
+            {
+              "pid": 94948,
+              "type": "Tab",
+              "rssKiB": 162896
+            }
+          ]
+        },
+        {
+          "label": "returned-9",
+          "rendererPid": 94795,
+          "rendererRssKiB": 183776,
+          "appWorkingSetSumKiB": 826896,
+          "processes": [
+            {
+              "pid": 94792,
+              "type": "Browser",
+              "rssKiB": 321936
+            },
+            {
+              "pid": 94793,
+              "type": "GPU",
+              "rssKiB": 113968
+            },
+            {
+              "pid": 94794,
+              "type": "Utility",
+              "rssKiB": 43184
+            },
+            {
+              "pid": 94795,
+              "type": "Tab",
+              "rssKiB": 183776
+            },
+            {
+              "pid": 94953,
+              "type": "Tab",
+              "rssKiB": 164032
+            }
+          ]
+        },
+        {
+          "label": "returned-10",
+          "rendererPid": 94795,
+          "rendererRssKiB": 185808,
+          "appWorkingSetSumKiB": 825936,
+          "processes": [
+            {
+              "pid": 94792,
+              "type": "Browser",
+              "rssKiB": 319776
+            },
+            {
+              "pid": 94793,
+              "type": "GPU",
+              "rssKiB": 114096
+            },
+            {
+              "pid": 94794,
+              "type": "Utility",
+              "rssKiB": 43184
+            },
+            {
+              "pid": 94795,
+              "type": "Tab",
+              "rssKiB": 185808
+            },
+            {
+              "pid": 94957,
+              "type": "Tab",
+              "rssKiB": 163072
+            }
+          ]
+        },
+        {
+          "label": "returned-11",
+          "rendererPid": 94795,
+          "rendererRssKiB": 186032,
+          "appWorkingSetSumKiB": 847424,
+          "processes": [
+            {
+              "pid": 94792,
+              "type": "Browser",
+              "rssKiB": 339328
+            },
+            {
+              "pid": 94793,
+              "type": "GPU",
+              "rssKiB": 114784
+            },
+            {
+              "pid": 94794,
+              "type": "Utility",
+              "rssKiB": 43712
+            },
+            {
+              "pid": 94795,
+              "type": "Tab",
+              "rssKiB": 186032
+            },
+            {
+              "pid": 94967,
+              "type": "Tab",
+              "rssKiB": 163568
+            }
+          ]
+        },
+        {
+          "label": "returned-12",
+          "rendererPid": 94795,
+          "rendererRssKiB": 186256,
+          "appWorkingSetSumKiB": 841232,
+          "processes": [
+            {
+              "pid": 94792,
+              "type": "Browser",
+              "rssKiB": 333840
+            },
+            {
+              "pid": 94793,
+              "type": "GPU",
+              "rssKiB": 113744
+            },
+            {
+              "pid": 94794,
+              "type": "Utility",
+              "rssKiB": 43712
+            },
+            {
+              "pid": 94795,
+              "type": "Tab",
+              "rssKiB": 186256
+            },
+            {
+              "pid": 94974,
+              "type": "Tab",
+              "rssKiB": 163680
+            }
+          ]
+        },
+        {
+          "label": "returned-13",
+          "rendererPid": 94795,
+          "rendererRssKiB": 185712,
+          "appWorkingSetSumKiB": 846656,
+          "processes": [
+            {
+              "pid": 94792,
+              "type": "Browser",
+              "rssKiB": 340256
+            },
+            {
+              "pid": 94793,
+              "type": "GPU",
+              "rssKiB": 113920
+            },
+            {
+              "pid": 94794,
+              "type": "Utility",
+              "rssKiB": 43712
+            },
+            {
+              "pid": 94795,
+              "type": "Tab",
+              "rssKiB": 185712
+            },
+            {
+              "pid": 94978,
+              "type": "Tab",
+              "rssKiB": 163056
+            }
+          ]
+        },
+        {
+          "label": "returned-14",
+          "rendererPid": 94795,
+          "rendererRssKiB": 187200,
+          "appWorkingSetSumKiB": 848240,
+          "processes": [
+            {
+              "pid": 94792,
+              "type": "Browser",
+              "rssKiB": 343200
+            },
+            {
+              "pid": 94793,
+              "type": "GPU",
+              "rssKiB": 110848
+            },
+            {
+              "pid": 94794,
+              "type": "Utility",
+              "rssKiB": 43712
+            },
+            {
+              "pid": 94795,
+              "type": "Tab",
+              "rssKiB": 187200
+            },
+            {
+              "pid": 94985,
+              "type": "Tab",
+              "rssKiB": 163280
+            }
+          ]
+        },
+        {
+          "label": "returned-15",
+          "rendererPid": 94795,
+          "rendererRssKiB": 187520,
+          "appWorkingSetSumKiB": 842656,
+          "processes": [
+            {
+              "pid": 94792,
+              "type": "Browser",
+              "rssKiB": 334912
+            },
+            {
+              "pid": 94793,
+              "type": "GPU",
+              "rssKiB": 113328
+            },
+            {
+              "pid": 94794,
+              "type": "Utility",
+              "rssKiB": 43712
+            },
+            {
+              "pid": 94795,
+              "type": "Tab",
+              "rssKiB": 187520
+            },
+            {
+              "pid": 94988,
+              "type": "Tab",
+              "rssKiB": 163184
+            }
+          ]
+        },
+        {
+          "label": "returned-16",
+          "rendererPid": 94795,
+          "rendererRssKiB": 187312,
+          "appWorkingSetSumKiB": 836464,
+          "processes": [
+            {
+              "pid": 94792,
+              "type": "Browser",
+              "rssKiB": 327984
+            },
+            {
+              "pid": 94793,
+              "type": "GPU",
+              "rssKiB": 113872
+            },
+            {
+              "pid": 94794,
+              "type": "Utility",
+              "rssKiB": 43712
+            },
+            {
+              "pid": 94795,
+              "type": "Tab",
+              "rssKiB": 187312
+            },
+            {
+              "pid": 94993,
+              "type": "Tab",
+              "rssKiB": 163584
+            }
+          ]
+        },
+        {
+          "label": "returned-17",
+          "rendererPid": 94795,
+          "rendererRssKiB": 187568,
+          "appWorkingSetSumKiB": 850128,
+          "processes": [
+            {
+              "pid": 94792,
+              "type": "Browser",
+              "rssKiB": 340592
+            },
+            {
+              "pid": 94793,
+              "type": "GPU",
+              "rssKiB": 114864
+            },
+            {
+              "pid": 94794,
+              "type": "Utility",
+              "rssKiB": 43712
+            },
+            {
+              "pid": 94795,
+              "type": "Tab",
+              "rssKiB": 187568
+            },
+            {
+              "pid": 94997,
+              "type": "Tab",
+              "rssKiB": 163392
+            }
+          ]
+        },
+        {
+          "label": "returned-18",
+          "rendererPid": 94795,
+          "rendererRssKiB": 187856,
+          "appWorkingSetSumKiB": 846992,
+          "processes": [
+            {
+              "pid": 94792,
+              "type": "Browser",
+              "rssKiB": 336688
+            },
+            {
+              "pid": 94793,
+              "type": "GPU",
+              "rssKiB": 115040
+            },
+            {
+              "pid": 94794,
+              "type": "Utility",
+              "rssKiB": 43712
+            },
+            {
+              "pid": 94795,
+              "type": "Tab",
+              "rssKiB": 187856
+            },
+            {
+              "pid": 95003,
+              "type": "Tab",
+              "rssKiB": 163696
+            }
+          ]
+        },
+        {
+          "label": "returned-19",
+          "rendererPid": 94795,
+          "rendererRssKiB": 188560,
+          "appWorkingSetSumKiB": 889456,
+          "processes": [
+            {
+              "pid": 94792,
+              "type": "Browser",
+              "rssKiB": 357056
+            },
+            {
+              "pid": 94793,
+              "type": "GPU",
+              "rssKiB": 135888
+            },
+            {
+              "pid": 94794,
+              "type": "Utility",
+              "rssKiB": 43792
+            },
+            {
+              "pid": 94795,
+              "type": "Tab",
+              "rssKiB": 188560
+            },
+            {
+              "pid": 95008,
+              "type": "Tab",
+              "rssKiB": 164160
+            }
+          ]
+        }
+      ],
+      "rendererErrors": 0,
+      "thumbnailFixtureErrors": 21,
+      "retainedDashboard": true
+    }
+  },
+  "functional": {
+    "complex": {
+      "cases": [
+        {
+          "case": "switch-artboard",
+          "passed": true
+        },
+        {
+          "case": "switch-artboard",
+          "passed": true
+        },
+        {
+          "case": "switch-artboard",
+          "passed": true
+        },
+        {
+          "case": "rename-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "rendered-style-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "frame-position-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "cold-frame-undo-selection-style",
+          "passed": true
+        }
+      ],
+      "savedRevision": 1,
+      "reopen": true,
+      "rendererErrors": 1,
+      "saves": [
+        {
+          "revision": 1,
+          "sha256": "10281222e847d69dcec1f7f019e5608ebb2a70ccb7324fd9e4b9105427423517"
+        }
+      ]
+    },
+    "gp": {
+      "cases": [
+        {
+          "case": "switch-artboard",
+          "passed": true
+        },
+        {
+          "case": "rename-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "rendered-style-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "frame-position-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "preview-business-pagination-return",
+          "passed": true
+        }
+      ],
+      "savedRevision": 159,
+      "reopen": true,
+      "rendererErrors": 0,
+      "saves": [
+        {
+          "revision": 159,
+          "sha256": "e420dfbc049a0aa9597f50dbfc089791a2611edb8eea04eeaac4dacf083f9c97"
+        }
+      ]
+    }
+  },
+  "dialogFirstUse": {
+    "baseline": {
+      "bodyMs": 85.80000001192093,
+      "firstMs": 58.30000001192093,
+      "warmMs": 51.39999997615814,
+      "rendererErrors": 0
+    },
+    "combined": {
+      "bodyMs": 159.20000004768372,
+      "firstMs": 104.30000001192093,
+      "warmMs": 51.39999997615814,
+      "rendererErrors": 0
+    }
+  },
+  "retiredEditorProcesses": {
+    "checked": 20,
+    "alive": []
+  },
+  "fixtures": {
+    "complex": {
+      "project-response.json": "f33cc7b3a88cd952d2b25a6608aff0577b97c8a95347711577e784c6fcbad5e2",
+      "model-resources.json": "71479c7baaaf34766858b8b0ff48c01d2d10018577b963221b0fa83b7b7aca16",
+      "code-resources.json": "92d30a7c2e13e50cf9623bf2551669129c6384db5cf50df78d577edcca87279f"
+    },
+    "gp": {
+      "project-response.json": "fa1e1965d363561d357e98539f838fe74140eee7be9791210ab69e4e79b4b5ef",
+      "model-resources.json": "71479c7baaaf34766858b8b0ff48c01d2d10018577b963221b0fa83b7b7aca16",
+      "code-resources.json": "92d30a7c2e13e50cf9623bf2551669129c6384db5cf50df78d577edcca87279f"
+    }
+  },
+  "pooledTiming": {
+    "baseline": {
+      "sampleCount": 8,
+      "medianMs": {
+        "canvasRevealedMs": 1716.449951171875,
+        "firstCanvasReadyMs": 1913.2344970703125,
+        "allFramesRenderedMs": 4497.64990234375
+      },
+      "revealRangeMs": [
+        1691.2001953125,
+        2046.400146484375
+      ]
+    },
+    "combined": {
+      "sampleCount": 8,
+      "medianMs": {
+        "canvasRevealedMs": 1592.4000244140625,
+        "firstCanvasReadyMs": 1770.0074462890625,
+        "allFramesRenderedMs": 4136.0498046875
+      },
+      "revealRangeMs": [
+        1559,
+        1692.7998046875
+      ]
+    }
+  },
+  "production": {
+    "baseline": {
+      "sampleCount": 8,
+      "medianMs": {
+        "canvasRevealedMs": 1818.849853515625,
+        "firstCanvasReadyMs": 2017.90869140625,
+        "allFramesRenderedMs": 4735.7999267578125
+      },
+      "revealRangeMs": [
+        1800.2998046875,
+        1859.10009765625
+      ],
+      "returnAnimationFrameMedianMs": 34.5745849609375,
+      "errors": []
+    },
+    "combined": {
+      "sampleCount": 8,
+      "medianMs": {
+        "canvasRevealedMs": 1681.8499755859375,
+        "firstCanvasReadyMs": 1869.7528076171875,
+        "allFramesRenderedMs": 4281.3499755859375
+      },
+      "revealRangeMs": [
+        1660.900146484375,
+        1725.30029296875
+      ],
+      "returnAnimationFrameMedianMs": 36.6556396484375,
+      "errors": []
+    },
+    "functional": {
+      "complex": {
+        "cases": [
+          {
+            "case": "switch-artboard",
+            "passed": true
+          },
+          {
+            "case": "switch-artboard",
+            "passed": true
+          },
+          {
+            "case": "switch-artboard",
+            "passed": true
+          },
+          {
+            "case": "rename-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "rendered-style-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "frame-position-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "cold-frame-undo-selection-style",
+            "passed": true
+          }
+        ],
+        "savedRevision": 1,
+        "reopen": true,
+        "errors": [
+          "TypeError: Cannot read properties of null (reading 'valState')"
+        ],
+        "saves": [
+          {
+            "revision": 1,
+            "sha256": "10281222e847d69dcec1f7f019e5608ebb2a70ccb7324fd9e4b9105427423517"
+          }
+        ]
+      },
+      "gp": {
+        "cases": [
+          {
+            "case": "switch-artboard",
+            "passed": true
+          },
+          {
+            "case": "rename-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "rendered-style-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "frame-position-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "preview-business-pagination-return",
+            "passed": true
+          }
+        ],
+        "savedRevision": 159,
+        "reopen": true,
+        "errors": [],
+        "saves": [
+          {
+            "revision": 159,
+            "sha256": "e420dfbc049a0aa9597f50dbfc089791a2611edb8eea04eeaac4dacf083f9c97"
+          }
+        ]
+      }
+    },
+    "memory": {
+      "opens": 6,
+      "openPeaksKiB": [
+        1652560,
+        1663104,
+        1680416,
+        1666400,
+        1676896,
+        1657184
+      ],
+      "overallPeakWorkingSetSumKiB": 1897152,
+      "dashboardPoints": [
+        {
+          "label": "cold-dashboard",
+          "rendererRssKiB": 265568,
+          "appWorkingSetSumKiB": 682128
+        },
+        {
+          "label": "returned-0",
+          "rendererRssKiB": 266368,
+          "appWorkingSetSumKiB": 938160
+        },
+        {
+          "label": "returned-1",
+          "rendererRssKiB": 266624,
+          "appWorkingSetSumKiB": 946480
+        },
+        {
+          "label": "returned-2",
+          "rendererRssKiB": 266448,
+          "appWorkingSetSumKiB": 954368
+        },
+        {
+          "label": "returned-3",
+          "rendererRssKiB": 266624,
+          "appWorkingSetSumKiB": 948288
+        },
+        {
+          "label": "returned-4",
+          "rendererRssKiB": 266784,
+          "appWorkingSetSumKiB": 954688
+        },
+        {
+          "label": "returned-5",
+          "rendererRssKiB": 231216,
+          "appWorkingSetSumKiB": 978832
+        }
+      ],
+      "aliveRetiredEditorPids": [],
+      "errors": []
+    }
+  },
+  "build": {
+    "kind": "local",
+    "revision": "400c402f651be86b96cf0a3fe5bc7d8bdec4887e",
+    "dirty": true,
+    "builtAt": "2026-11-03T09:47:28.546Z",
+    "sourceHash": "ba18d99f3055b499931911ce0098736a25480548dc1f5dbb5a824ab32af1dac5",
+    "rendererHash": "f7bf6e4787a973cc6528592a68be00ae6be02f6856855ea629c6e643b901eb67",
+    "desktopHash": "8af3fcd201b466eb68da1fefc44afc70be92209b7c0b45165e822b2c5ff9d8b4"
+  },
+  "installedApp": {
+    "version": "0.6.4",
+    "build": {
+      "kind": "local",
+      "revision": "400c402f651be86b96cf0a3fe5bc7d8bdec4887e",
+      "dirty": true,
+      "builtAt": "2026-11-03T09:47:28.546Z",
+      "sourceHash": "ba18d99f3055b499931911ce0098736a25480548dc1f5dbb5a824ab32af1dac5",
+      "rendererHash": "f7bf6e4787a973cc6528592a68be00ae6be02f6856855ea629c6e643b901eb67",
+      "desktopHash": "8af3fcd201b466eb68da1fefc44afc70be92209b7c0b45165e822b2c5ff9d8b4"
+    },
+    "backup": "~/Library/Caches/Plasmic-local-backups/2026-11-03T09-56-16.810Z/Plasmic.app",
+    "samples": [
+      {
+        "label": "cold-dashboard",
+        "time": 1793699816.0146718,
+        "processes": [
+          {
+            "pid": 11786,
+            "ppid": 1,
+            "rssKiB": 278288,
+            "renderer": false,
+            "gpu": false
+          },
+          {
+            "pid": 11790,
+            "ppid": 11786,
+            "rssKiB": 87344,
+            "renderer": false,
+            "gpu": true
+          },
+          {
+            "pid": 11791,
+            "ppid": 11786,
+            "rssKiB": 57264,
+            "renderer": false,
+            "gpu": false
+          },
+          {
+            "pid": 11794,
+            "ppid": 11786,
+            "rssKiB": 237488,
+            "renderer": true,
+            "gpu": false
+          },
+          {
+            "pid": 11798,
+            "ppid": 11786,
+            "rssKiB": 87424,
+            "renderer": true,
+            "gpu": false
+          },
+          {
+            "pid": 11799,
+            "ppid": 11786,
+            "rssKiB": 116096,
+            "renderer": true,
+            "gpu": false
+          }
+        ]
+      },
+      {
+        "label": "gp-canvas",
+        "time": 1793699847.435631,
+        "processes": [
+          {
+            "pid": 11786,
+            "ppid": 1,
+            "rssKiB": 234240,
+            "renderer": false,
+            "gpu": false
+          },
+          {
+            "pid": 11790,
+            "ppid": 11786,
+            "rssKiB": 99376,
+            "renderer": false,
+            "gpu": true
+          },
+          {
+            "pid": 11791,
+            "ppid": 11786,
+            "rssKiB": 52640,
+            "renderer": false,
+            "gpu": false
+          },
+          {
+            "pid": 11794,
+            "ppid": 11786,
+            "rssKiB": 179760,
+            "renderer": true,
+            "gpu": false
+          },
+          {
+            "pid": 11798,
+            "ppid": 11786,
+            "rssKiB": 79168,
+            "renderer": true,
+            "gpu": false
+          },
+          {
+            "pid": 11799,
+            "ppid": 11786,
+            "rssKiB": 98480,
+            "renderer": true,
+            "gpu": false
+          },
+          {
+            "pid": 11857,
+            "ppid": 11786,
+            "rssKiB": 620080,
+            "renderer": true,
+            "gpu": false
+          }
+        ]
+      },
+      {
+        "label": "returned-gp",
+        "time": 1793699928.6209931,
+        "processes": [
+          {
+            "pid": 11786,
+            "ppid": 1,
+            "rssKiB": 254880,
+            "renderer": false,
+            "gpu": false
+          },
+          {
+            "pid": 11790,
+            "ppid": 11786,
+            "rssKiB": 115936,
+            "renderer": false,
+            "gpu": true
+          },
+          {
+            "pid": 11791,
+            "ppid": 11786,
+            "rssKiB": 52016,
+            "renderer": false,
+            "gpu": false
+          },
+          {
+            "pid": 11794,
+            "ppid": 11786,
+            "rssKiB": 191152,
+            "renderer": true,
+            "gpu": false
+          },
+          {
+            "pid": 11798,
+            "ppid": 11786,
+            "rssKiB": 82048,
+            "renderer": true,
+            "gpu": false
+          },
+          {
+            "pid": 11799,
+            "ppid": 11786,
+            "rssKiB": 98576,
+            "renderer": true,
+            "gpu": false
+          }
+        ]
+      }
+    ],
+    "dashboardPid": 11794,
+    "editorPids": [
+      11857
+    ],
+    "retiredEditorPidsGone": true,
+    "openingReady": true,
+    "openingChangeCounter": 0,
+    "shareOpened": true,
+    "nativeEscapeClosedShare": true,
+    "returnedToDashboard": true
+  }
+}

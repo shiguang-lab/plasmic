@@ -18,10 +18,15 @@ app.setPath("userData", profile);
 app.on("window-all-closed", () => {});
 process.on("exit", () => fs.rmSync(profile, { recursive: true, force: true }));
 const origin = "https://startup.example";
-const source = fs.readFileSync(
+const source = require("../../platform/wab/node_modules/lodash/template")(fs.readFileSync(
   path.join(__dirname, "../../platform/wab/public/index.html"),
   "utf8",
-);
+), { interpolate: /<%=([\s\S]+?)%>/g })({
+  staticUrl: origin,
+  previewLoadingCss: fs.readFileSync(path.join(__dirname, "../../platform/wab/src/wab/client/components/live/PreviewLoading.css"), "utf8"),
+  brand: require("../../platform/wab/src/wab/shared/branding.json"),
+  brandLoadingAnimation: require("../../platform/wab/src/wab/client/components/widgets/brand-loading-animation.js").animateBrandLoading.toString(),
+});
 let scriptNumber = 0;
 const studioHtml = source
   .replace(/<script\b[^>]*>[\s\S]*?<\/script>/g, (script) =>
@@ -33,7 +38,8 @@ scriptNumber = 0;
 const projectHtml = source
   .replace(/<script\b[^>]*>[\s\S]*?<\/script>/g, (script) =>
     ++scriptNumber === 1 ||
-    script.includes('getElementById("studio-startup-loading")')
+    script.includes('getElementById("studio-startup-loading")') ||
+    script.includes("animateStartupLogo")
       ? script
       : "",
   )
@@ -50,6 +56,7 @@ const bootstrap = fs.readFileSync(
 );
 const timeout = setTimeout(() => app.exit(1), 30000);
 let activeWindow;
+ipcMain.handle("desktop:view-state", () => ({active:true}));
 ipcMain.handle("desktop:ui-appearance", (_event, appearance) => {
   activeWindow.setBackgroundColor(
     appearance === "dark" ? "#15161b" : "#eceef3",
@@ -65,7 +72,7 @@ app
       let html = studioHtml;
       if (url.pathname === "/seed") {
         html = `<script>localStorage.setItem("shiguang.ui.appearance", ${JSON.stringify(url.searchParams.get("appearance"))});</script>`;
-      } else if (url.pathname.startsWith("/projects/")) {
+      } else if (url.pathname.startsWith("/projects/") || url.pathname.startsWith("/d/")) {
         html = projectHtml;
       } else if (url.pathname === "/host") {
         html = hostHtml.replace(
@@ -118,6 +125,7 @@ app
         `Startup ${appearance}: native window and document paint ${resolved} before app bundles`,
       );
     }
+    for (const pathname of ["/projects/example", "/projects/example/preview", "/d/0123456789"]) {
     for (const appearance of ["dark", "light"]) {
       activeWindow = new BrowserWindow({
         width: 900,
@@ -126,17 +134,16 @@ app
         webPreferences: { session: ses },
       });
       await activeWindow.loadURL(`${origin}/seed?appearance=${appearance}`);
-      await activeWindow.loadURL(origin + "/projects/example");
+      await activeWindow.loadURL(origin + pathname);
       const computed = await activeWindow.webContents
         .executeJavaScript(`(() => {
-      const loading = document.getElementById("studio-startup-loading");
-      const artboard = loading.querySelector(".studio-loading__artboard");
-      const rect = artboard.getBoundingClientRect();
+      const loading = document.getElementById(${JSON.stringify(pathname.endsWith("/preview") || pathname.startsWith("/d/") ? "preview-startup-loading" : "studio-startup-loading")});
+      const logo = loading.querySelector("svg");
+      const rect = logo.getBoundingClientRect();
       return {
         display: getComputedStyle(loading).display,
         background: getComputedStyle(document.body).backgroundColor,
         loadingBackground: getComputedStyle(loading).backgroundColor,
-        surface: getComputedStyle(artboard).backgroundColor,
         width: rect.width,
         height: rect.height,
         top: rect.top,
@@ -144,8 +151,10 @@ app
         viewportHeight: innerHeight,
         placeholders: loading.querySelectorAll(".studio-loading__placeholder").length,
         pages: loading.querySelectorAll(".studio-loading__artboard").length,
-        animation: getComputedStyle(loading.querySelector(".studio-loading__placeholder")).animationName,
-        gradient: getComputedStyle(loading.querySelector(".studio-loading__placeholder")).backgroundImage,
+        scaffold: logo.querySelectorAll("[data-scaffold] [clip-path] path").length,
+        backgroundGrid: !!logo.querySelector("[data-grid]"),
+        lights: logo.querySelector("[data-lights]").children.length,
+        gradientStops: logo.querySelectorAll("linearGradient")[0].querySelectorAll("stop").length,
         spinner: !!loading.querySelector(".studio-loading__spinner, .ant-spin"),
       };
     })()`);
@@ -155,23 +164,23 @@ app
         appearance === "dark" ? "rgb(21, 22, 27)" : "rgb(236, 238, 243)",
       );
       assert.equal(computed.loadingBackground, computed.background);
-      assert.equal(
-        computed.surface,
-        appearance === "dark" ? "rgb(32, 33, 40)" : "rgb(255, 255, 255)",
-      );
-      assert.ok(computed.width > 100 && computed.height > 100);
+      assert.equal(computed.width, 192);
+      assert.ok(computed.height > 158 && computed.height < 159);
       assert.ok(
         computed.top >= 0 && computed.bottom <= computed.viewportHeight,
       );
-      assert.ok(computed.placeholders > 0);
-      assert.equal(computed.pages, 3);
-      assert.equal(computed.animation, "studioLoadingShimmer");
-      assert.ok(computed.gradient.startsWith("linear-gradient"));
+      assert.equal(computed.placeholders, 0);
+      assert.equal(computed.pages, 0);
+      assert.equal(computed.scaffold, 40);
+      assert.equal(computed.backgroundGrid, false);
+      assert.equal(computed.lights, 112);
+      assert.equal(computed.gradientStops, 4);
       assert.equal(computed.spinner, false);
       activeWindow.destroy();
       console.log(
-        `Project ${appearance}: content skeleton paints before app bundles without a spinner`,
+        `${pathname} ${appearance}: brand logo paints before app bundles`,
       );
+    }
     }
     for (const appearance of ["dark", "light"]) {
       activeWindow = new BrowserWindow({

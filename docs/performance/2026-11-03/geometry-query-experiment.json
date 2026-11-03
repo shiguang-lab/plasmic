@@ -1,0 +1,7665 @@
+{
+  "scope": "Offline actual Studio diagnostics; no deployed product changes",
+  "privateArtifacts": "/tmp/plasmic-geometry-26fk__p2",
+  "runs": [
+    {
+      "file": "functional-complex-1-cached-wasm.json",
+      "phase": "functional",
+      "dataset": "complex",
+      "variant": "cached-wasm",
+      "buildHash": "5d8affccd499b73c42a7551af98e17fd4d9b6efb9b1c915b845d685f168cbec7",
+      "setup": {
+        "canvasDom": 600,
+        "frame": {
+          "height": 128.70330810546875,
+          "width": 180.989013671875,
+          "x": 523.3984375,
+          "y": 341.3984375
+        },
+        "frames": 10,
+        "query": {
+          "height": 83.65715026855469,
+          "width": 138.6923095703125,
+          "x": 511.3984375,
+          "y": 354.2687683105469
+        },
+        "selectable": 1,
+        "zoom": 0.12568681318681318
+      },
+      "wasm": {
+        "bytes": 1114112,
+        "initMs": 0.2999999523162842
+      },
+      "query": null,
+      "feedback": null,
+      "nativeQuery": null,
+      "selected": [],
+      "errors": [],
+      "reads": {
+        "rectReads": null,
+        "rectRequests": null,
+        "styleReads": null,
+        "styleRequests": null,
+        "numericRects": null,
+        "clipMs": null,
+        "collectMs": null,
+        "rectMs": null,
+        "styleMs": null,
+        "predicateMs": null,
+        "packMs": null,
+        "kernelMs": null,
+        "pruneMs": null
+      },
+      "cases": [
+        {
+          "label": "initial",
+          "matches": true,
+          "queries": 24,
+          "selectedMax": 2,
+          "selectedMin": 0
+        },
+        {
+          "label": "zoom-0.5",
+          "matches": true,
+          "queries": 8,
+          "selectedMax": 0,
+          "selectedMin": 0
+        },
+        {
+          "label": "zoom-1",
+          "matches": true,
+          "queries": 8,
+          "selectedMax": 0,
+          "selectedMin": 0
+        },
+        {
+          "label": "zoom-2",
+          "matches": true,
+          "queries": 8,
+          "selectedMax": 0,
+          "selectedMin": 0
+        },
+        {
+          "label": "pan",
+          "matches": true,
+          "queries": 8,
+          "selectedMax": 0,
+          "selectedMin": 0
+        },
+        {
+          "label": "hidden",
+          "matches": true,
+          "queries": 8,
+          "selectedMax": 0,
+          "selectedMin": 0
+        },
+        {
+          "label": "transform",
+          "matches": true,
+          "queries": 8,
+          "selectedMax": 0,
+          "selectedMin": 0
+        },
+        {
+          "label": "clip-resize",
+          "matches": true,
+          "queries": 8,
+          "selectedMax": 0,
+          "selectedMin": 0
+        },
+        {
+          "label": "model-edit",
+          "matches": true,
+          "queries": 8,
+          "selectedMax": 0,
+          "selectedMin": 0
+        },
+        {
+          "label": "undo",
+          "matches": true,
+          "queries": 8,
+          "selectedMax": 0,
+          "selectedMin": 0
+        },
+        {
+          "label": "redo",
+          "matches": true,
+          "queries": 8,
+          "selectedMax": 0,
+          "selectedMin": 0
+        }
+      ],
+      "memory": [],
+      "peakRendererRssMiB": null
+    },
+    {
+      "file": "functional-gp-1-cached-wasm.json",
+      "phase": "functional",
+      "dataset": "gp",
+      "variant": "cached-wasm",
+      "buildHash": "5d8affccd499b73c42a7551af98e17fd4d9b6efb9b1c915b845d685f168cbec7",
+      "setup": {
+        "canvasDom": 1107,
+        "frame": {
+          "height": 732,
+          "width": 1029.375,
+          "x": 99.3984375,
+          "y": 39.8984375
+        },
+        "frames": 1,
+        "query": {
+          "height": 340,
+          "width": 562,
+          "x": 87.3984375,
+          "y": 64.8984375
+        },
+        "selectable": 1,
+        "zoom": 0.71484375
+      },
+      "wasm": {
+        "bytes": 1114112,
+        "initMs": 0.30000001192092896
+      },
+      "query": null,
+      "feedback": null,
+      "nativeQuery": null,
+      "selected": [],
+      "errors": [],
+      "reads": {
+        "rectReads": null,
+        "rectRequests": null,
+        "styleReads": null,
+        "styleRequests": null,
+        "numericRects": null,
+        "clipMs": null,
+        "collectMs": null,
+        "rectMs": null,
+        "styleMs": null,
+        "predicateMs": null,
+        "packMs": null,
+        "kernelMs": null,
+        "pruneMs": null
+      },
+      "cases": [
+        {
+          "label": "initial",
+          "matches": true,
+          "queries": 24,
+          "selectedMax": 126,
+          "selectedMin": 0
+        },
+        {
+          "label": "zoom-0.5",
+          "matches": true,
+          "queries": 8,
+          "selectedMax": 32,
+          "selectedMin": 0
+        },
+        {
+          "label": "zoom-1",
+          "matches": true,
+          "queries": 8,
+          "selectedMax": 32,
+          "selectedMin": 0
+        },
+        {
+          "label": "zoom-2",
+          "matches": true,
+          "queries": 8,
+          "selectedMax": 32,
+          "selectedMin": 0
+        },
+        {
+          "label": "pan",
+          "matches": true,
+          "queries": 8,
+          "selectedMax": 32,
+          "selectedMin": 0
+        },
+        {
+          "label": "hidden",
+          "matches": true,
+          "queries": 8,
+          "selectedMax": 0,
+          "selectedMin": 0
+        },
+        {
+          "label": "transform",
+          "matches": true,
+          "queries": 8,
+          "selectedMax": 32,
+          "selectedMin": 0
+        },
+        {
+          "label": "clip-resize",
+          "matches": true,
+          "queries": 8,
+          "selectedMax": 1,
+          "selectedMin": 0
+        },
+        {
+          "label": "internal-scroll",
+          "matches": true,
+          "queries": 8,
+          "selectedMax": 36,
+          "selectedMin": 0
+        },
+        {
+          "label": "model-edit",
+          "matches": true,
+          "queries": 8,
+          "selectedMax": 32,
+          "selectedMin": 0
+        },
+        {
+          "label": "undo",
+          "matches": true,
+          "queries": 8,
+          "selectedMax": 32,
+          "selectedMin": 0
+        },
+        {
+          "label": "redo",
+          "matches": true,
+          "queries": 8,
+          "selectedMax": 32,
+          "selectedMin": 0
+        }
+      ],
+      "memory": [],
+      "peakRendererRssMiB": null
+    },
+    {
+      "file": "memory-complex-1-baseline.json",
+      "phase": "memory",
+      "dataset": "complex",
+      "variant": "baseline",
+      "buildHash": "5d8affccd499b73c42a7551af98e17fd4d9b6efb9b1c915b845d685f168cbec7",
+      "setup": {
+        "canvasDom": 600,
+        "frame": {
+          "height": 128.70330810546875,
+          "width": 180.989013671875,
+          "x": 523.3984375,
+          "y": 341.3984375
+        },
+        "frames": 10,
+        "query": {
+          "height": 83.65715026855469,
+          "width": 138.6923095703125,
+          "x": 511.3984375,
+          "y": 354.2687683105469
+        },
+        "selectable": 1,
+        "zoom": 0.12568681318681318
+      },
+      "query": null,
+      "feedback": null,
+      "nativeQuery": null,
+      "selected": [],
+      "errors": [],
+      "reads": {
+        "rectReads": null,
+        "rectRequests": null,
+        "styleReads": null,
+        "styleRequests": null,
+        "numericRects": null,
+        "clipMs": null,
+        "collectMs": null,
+        "rectMs": null,
+        "styleMs": null,
+        "predicateMs": null,
+        "packMs": null,
+        "kernelMs": null,
+        "pruneMs": null
+      },
+      "memory": [
+        {
+          "label": "before",
+          "rendererRssMiB": 716.046875,
+          "heapMiB": 199.42852020263672,
+          "backingStorageMiB": 48.1905517578125,
+          "isolates": 1
+        },
+        {
+          "label": "queries-0",
+          "rendererRssMiB": 901.84375,
+          "heapMiB": 315.8701057434082,
+          "backingStorageMiB": 70.07385635375977,
+          "isolates": 1
+        },
+        {
+          "label": "queries-1",
+          "rendererRssMiB": 1010.421875,
+          "heapMiB": 352.0625457763672,
+          "backingStorageMiB": 86.47661209106445,
+          "isolates": 1
+        },
+        {
+          "label": "queries-2",
+          "rendererRssMiB": 1019.390625,
+          "heapMiB": 355.97962188720703,
+          "backingStorageMiB": 86.47664833068848,
+          "isolates": 1
+        },
+        {
+          "label": "settled",
+          "rendererRssMiB": 1016.015625,
+          "heapMiB": 355.97962188720703,
+          "backingStorageMiB": 86.47664833068848,
+          "isolates": 1
+        },
+        {
+          "label": "diagnostic-gc",
+          "rendererRssMiB": 824.859375,
+          "heapMiB": 248.36953735351562,
+          "backingStorageMiB": 69.62052154541016,
+          "isolates": 1
+        }
+      ],
+      "peakRendererRssMiB": 1019.390625
+    },
+    {
+      "file": "memory-complex-1-cached-js.json",
+      "phase": "memory",
+      "dataset": "complex",
+      "variant": "cached-js",
+      "buildHash": "5d8affccd499b73c42a7551af98e17fd4d9b6efb9b1c915b845d685f168cbec7",
+      "setup": {
+        "canvasDom": 600,
+        "frame": {
+          "height": 128.70330810546875,
+          "width": 180.989013671875,
+          "x": 523.3984375,
+          "y": 341.3984375
+        },
+        "frames": 10,
+        "query": {
+          "height": 83.65715026855469,
+          "width": 138.6923095703125,
+          "x": 511.3984375,
+          "y": 354.2687683105469
+        },
+        "selectable": 1,
+        "zoom": 0.12568681318681318
+      },
+      "query": null,
+      "feedback": null,
+      "nativeQuery": null,
+      "selected": [],
+      "errors": [],
+      "reads": {
+        "rectReads": null,
+        "rectRequests": null,
+        "styleReads": null,
+        "styleRequests": null,
+        "numericRects": null,
+        "clipMs": null,
+        "collectMs": null,
+        "rectMs": null,
+        "styleMs": null,
+        "predicateMs": null,
+        "packMs": null,
+        "kernelMs": null,
+        "pruneMs": null
+      },
+      "memory": [
+        {
+          "label": "before",
+          "rendererRssMiB": 714.625,
+          "heapMiB": 199.7553482055664,
+          "backingStorageMiB": 48.20528221130371,
+          "isolates": 1
+        },
+        {
+          "label": "queries-0",
+          "rendererRssMiB": 935.140625,
+          "heapMiB": 325.3888168334961,
+          "backingStorageMiB": 75.55663681030273,
+          "isolates": 1
+        },
+        {
+          "label": "queries-1",
+          "rendererRssMiB": 998.15625,
+          "heapMiB": 355.4955139160156,
+          "backingStorageMiB": 86.49001598358154,
+          "isolates": 1
+        },
+        {
+          "label": "queries-2",
+          "rendererRssMiB": 1006.796875,
+          "heapMiB": 360.3306083679199,
+          "backingStorageMiB": 86.49005317687988,
+          "isolates": 1
+        },
+        {
+          "label": "settled",
+          "rendererRssMiB": 983.8125,
+          "heapMiB": 360.3306083679199,
+          "backingStorageMiB": 86.49005317687988,
+          "isolates": 1
+        },
+        {
+          "label": "diagnostic-gc",
+          "rendererRssMiB": 799.34375,
+          "heapMiB": 248.49533081054688,
+          "backingStorageMiB": 69.63381576538086,
+          "isolates": 1
+        }
+      ],
+      "peakRendererRssMiB": 1006.796875
+    },
+    {
+      "file": "memory-complex-1-cached-wasm.json",
+      "phase": "memory",
+      "dataset": "complex",
+      "variant": "cached-wasm",
+      "buildHash": "5d8affccd499b73c42a7551af98e17fd4d9b6efb9b1c915b845d685f168cbec7",
+      "setup": {
+        "canvasDom": 600,
+        "frame": {
+          "height": 128.70330810546875,
+          "width": 180.989013671875,
+          "x": 523.3984375,
+          "y": 341.3984375
+        },
+        "frames": 10,
+        "query": {
+          "height": 83.65715026855469,
+          "width": 138.6923095703125,
+          "x": 511.3984375,
+          "y": 354.2687683105469
+        },
+        "selectable": 1,
+        "zoom": 0.12568681318681318
+      },
+      "wasm": {
+        "bytes": 1114112,
+        "initMs": 0.19999998807907104
+      },
+      "query": null,
+      "feedback": null,
+      "nativeQuery": null,
+      "selected": [],
+      "errors": [],
+      "reads": {
+        "rectReads": null,
+        "rectRequests": null,
+        "styleReads": null,
+        "styleRequests": null,
+        "numericRects": null,
+        "clipMs": null,
+        "collectMs": null,
+        "rectMs": null,
+        "styleMs": null,
+        "predicateMs": null,
+        "packMs": null,
+        "kernelMs": null,
+        "pruneMs": null
+      },
+      "memory": [
+        {
+          "label": "before",
+          "rendererRssMiB": 717.875,
+          "heapMiB": 200.25666046142578,
+          "backingStorageMiB": 48.21169853210449,
+          "isolates": 1
+        },
+        {
+          "label": "queries-0",
+          "rendererRssMiB": 921.71875,
+          "heapMiB": 339.3350715637207,
+          "backingStorageMiB": 75.55532741546631,
+          "isolates": 1
+        },
+        {
+          "label": "queries-1",
+          "rendererRssMiB": 1000.1875,
+          "heapMiB": 356.16152572631836,
+          "backingStorageMiB": 86.49143886566162,
+          "isolates": 1
+        },
+        {
+          "label": "queries-2",
+          "rendererRssMiB": 1008.78125,
+          "heapMiB": 361.0614891052246,
+          "backingStorageMiB": 86.4914779663086,
+          "isolates": 1
+        },
+        {
+          "label": "settled",
+          "rendererRssMiB": 1006.15625,
+          "heapMiB": 361.073055267334,
+          "backingStorageMiB": 86.4914779663086,
+          "isolates": 1
+        },
+        {
+          "label": "diagnostic-gc",
+          "rendererRssMiB": 813.3125,
+          "heapMiB": 248.25194549560547,
+          "backingStorageMiB": 69.61918830871582,
+          "isolates": 1
+        }
+      ],
+      "peakRendererRssMiB": 1008.796875
+    },
+    {
+      "file": "memory-complex-2-baseline.json",
+      "phase": "memory",
+      "dataset": "complex",
+      "variant": "baseline",
+      "buildHash": "5d8affccd499b73c42a7551af98e17fd4d9b6efb9b1c915b845d685f168cbec7",
+      "setup": {
+        "canvasDom": 600,
+        "frame": {
+          "height": 128.70330810546875,
+          "width": 180.989013671875,
+          "x": 523.3984375,
+          "y": 341.3984375
+        },
+        "frames": 10,
+        "query": {
+          "height": 83.65715026855469,
+          "width": 138.6923095703125,
+          "x": 511.3984375,
+          "y": 354.2687683105469
+        },
+        "selectable": 1,
+        "zoom": 0.12568681318681318
+      },
+      "query": null,
+      "feedback": null,
+      "nativeQuery": null,
+      "selected": [],
+      "errors": [],
+      "reads": {
+        "rectReads": null,
+        "rectRequests": null,
+        "styleReads": null,
+        "styleRequests": null,
+        "numericRects": null,
+        "clipMs": null,
+        "collectMs": null,
+        "rectMs": null,
+        "styleMs": null,
+        "predicateMs": null,
+        "packMs": null,
+        "kernelMs": null,
+        "pruneMs": null
+      },
+      "memory": [
+        {
+          "label": "before",
+          "rendererRssMiB": 715.921875,
+          "heapMiB": 201.66476440429688,
+          "backingStorageMiB": 48.21793079376221,
+          "isolates": 1
+        },
+        {
+          "label": "queries-0",
+          "rendererRssMiB": 925.84375,
+          "heapMiB": 320.3242492675781,
+          "backingStorageMiB": 75.56652069091797,
+          "isolates": 1
+        },
+        {
+          "label": "queries-1",
+          "rendererRssMiB": 1003.171875,
+          "heapMiB": 356.3716697692871,
+          "backingStorageMiB": 86.50262832641602,
+          "isolates": 1
+        },
+        {
+          "label": "queries-2",
+          "rendererRssMiB": 1012.140625,
+          "heapMiB": 360.29283905029297,
+          "backingStorageMiB": 86.50266456604004,
+          "isolates": 1
+        },
+        {
+          "label": "settled",
+          "rendererRssMiB": 1008.578125,
+          "heapMiB": 360.29283905029297,
+          "backingStorageMiB": 86.50266456604004,
+          "isolates": 1
+        },
+        {
+          "label": "diagnostic-gc",
+          "rendererRssMiB": 814.703125,
+          "heapMiB": 248.37416076660156,
+          "backingStorageMiB": 69.64643478393555,
+          "isolates": 1
+        }
+      ],
+      "peakRendererRssMiB": 1012.140625
+    },
+    {
+      "file": "memory-complex-2-cached-js.json",
+      "phase": "memory",
+      "dataset": "complex",
+      "variant": "cached-js",
+      "buildHash": "5d8affccd499b73c42a7551af98e17fd4d9b6efb9b1c915b845d685f168cbec7",
+      "setup": {
+        "canvasDom": 600,
+        "frame": {
+          "height": 128.70330810546875,
+          "width": 180.989013671875,
+          "x": 523.3984375,
+          "y": 341.3984375
+        },
+        "frames": 10,
+        "query": {
+          "height": 83.65715026855469,
+          "width": 138.6923095703125,
+          "x": 511.3984375,
+          "y": 354.2687683105469
+        },
+        "selectable": 1,
+        "zoom": 0.12568681318681318
+      },
+      "query": null,
+      "feedback": null,
+      "nativeQuery": null,
+      "selected": [],
+      "errors": [],
+      "reads": {
+        "rectReads": null,
+        "rectRequests": null,
+        "styleReads": null,
+        "styleRequests": null,
+        "numericRects": null,
+        "clipMs": null,
+        "collectMs": null,
+        "rectMs": null,
+        "styleMs": null,
+        "predicateMs": null,
+        "packMs": null,
+        "kernelMs": null,
+        "pruneMs": null
+      },
+      "memory": [
+        {
+          "label": "before",
+          "rendererRssMiB": 708.625,
+          "heapMiB": 201.38942337036133,
+          "backingStorageMiB": 48.19075012207031,
+          "isolates": 1
+        },
+        {
+          "label": "queries-0",
+          "rendererRssMiB": 919.640625,
+          "heapMiB": 318.71051025390625,
+          "backingStorageMiB": 75.53738117218018,
+          "isolates": 1
+        },
+        {
+          "label": "queries-1",
+          "rendererRssMiB": 997.015625,
+          "heapMiB": 355.7948684692383,
+          "backingStorageMiB": 86.47476005554199,
+          "isolates": 1
+        },
+        {
+          "label": "queries-2",
+          "rendererRssMiB": 1005.5625,
+          "heapMiB": 360.6298065185547,
+          "backingStorageMiB": 86.47479724884033,
+          "isolates": 1
+        },
+        {
+          "label": "settled",
+          "rendererRssMiB": 1003.578125,
+          "heapMiB": 360.63431549072266,
+          "backingStorageMiB": 86.47479724884033,
+          "isolates": 1
+        },
+        {
+          "label": "diagnostic-gc",
+          "rendererRssMiB": 812.0625,
+          "heapMiB": 248.19586181640625,
+          "backingStorageMiB": 69.61845970153809,
+          "isolates": 1
+        }
+      ],
+      "peakRendererRssMiB": 1005.5625
+    },
+    {
+      "file": "memory-complex-2-cached-wasm.json",
+      "phase": "memory",
+      "dataset": "complex",
+      "variant": "cached-wasm",
+      "buildHash": "5d8affccd499b73c42a7551af98e17fd4d9b6efb9b1c915b845d685f168cbec7",
+      "setup": {
+        "canvasDom": 600,
+        "frame": {
+          "height": 128.70330810546875,
+          "width": 180.989013671875,
+          "x": 523.3984375,
+          "y": 341.3984375
+        },
+        "frames": 10,
+        "query": {
+          "height": 83.65715026855469,
+          "width": 138.6923095703125,
+          "x": 511.3984375,
+          "y": 354.2687683105469
+        },
+        "selectable": 1,
+        "zoom": 0.12568681318681318
+      },
+      "wasm": {
+        "bytes": 1114112,
+        "initMs": 0.20000004768371582
+      },
+      "query": null,
+      "feedback": null,
+      "nativeQuery": null,
+      "selected": [],
+      "errors": [],
+      "reads": {
+        "rectReads": null,
+        "rectRequests": null,
+        "styleReads": null,
+        "styleRequests": null,
+        "numericRects": null,
+        "clipMs": null,
+        "collectMs": null,
+        "rectMs": null,
+        "styleMs": null,
+        "predicateMs": null,
+        "packMs": null,
+        "kernelMs": null,
+        "pruneMs": null
+      },
+      "memory": [
+        {
+          "label": "before",
+          "rendererRssMiB": 714.65625,
+          "heapMiB": 199.89875030517578,
+          "backingStorageMiB": 48.21170139312744,
+          "isolates": 1
+        },
+        {
+          "label": "queries-0",
+          "rendererRssMiB": 933.609375,
+          "heapMiB": 326.3340606689453,
+          "backingStorageMiB": 75.55805397033691,
+          "isolates": 1
+        },
+        {
+          "label": "queries-1",
+          "rendererRssMiB": 996.875,
+          "heapMiB": 355.99950790405273,
+          "backingStorageMiB": 86.49143505096436,
+          "isolates": 1
+        },
+        {
+          "label": "queries-2",
+          "rendererRssMiB": 1005.4375,
+          "heapMiB": 360.8985939025879,
+          "backingStorageMiB": 86.49147415161133,
+          "isolates": 1
+        },
+        {
+          "label": "settled",
+          "rendererRssMiB": 1003.171875,
+          "heapMiB": 360.8985939025879,
+          "backingStorageMiB": 86.49147415161133,
+          "isolates": 1
+        },
+        {
+          "label": "diagnostic-gc",
+          "rendererRssMiB": 815.0625,
+          "heapMiB": 248.31684494018555,
+          "backingStorageMiB": 69.61918544769287,
+          "isolates": 1
+        }
+      ],
+      "peakRendererRssMiB": 1005.4375
+    },
+    {
+      "file": "memory-gp-1-baseline.json",
+      "phase": "memory",
+      "dataset": "gp",
+      "variant": "baseline",
+      "buildHash": "5d8affccd499b73c42a7551af98e17fd4d9b6efb9b1c915b845d685f168cbec7",
+      "setup": {
+        "canvasDom": 1107,
+        "frame": {
+          "height": 732,
+          "width": 1029.375,
+          "x": 99.3984375,
+          "y": 39.8984375
+        },
+        "frames": 1,
+        "query": {
+          "height": 340,
+          "width": 562,
+          "x": 87.3984375,
+          "y": 64.8984375
+        },
+        "selectable": 1,
+        "zoom": 0.71484375
+      },
+      "query": null,
+      "feedback": null,
+      "nativeQuery": null,
+      "selected": [],
+      "errors": [],
+      "reads": {
+        "rectReads": null,
+        "rectRequests": null,
+        "styleReads": null,
+        "styleRequests": null,
+        "numericRects": null,
+        "clipMs": null,
+        "collectMs": null,
+        "rectMs": null,
+        "styleMs": null,
+        "predicateMs": null,
+        "packMs": null,
+        "kernelMs": null,
+        "pruneMs": null
+      },
+      "memory": [
+        {
+          "label": "before",
+          "rendererRssMiB": 674.390625,
+          "heapMiB": 177.21402740478516,
+          "backingStorageMiB": 35.74820327758789,
+          "isolates": 1
+        },
+        {
+          "label": "queries-0",
+          "rendererRssMiB": 1302.671875,
+          "heapMiB": 148.1316909790039,
+          "backingStorageMiB": 34.592838287353516,
+          "isolates": 1
+        },
+        {
+          "label": "queries-1",
+          "rendererRssMiB": 1011.28125,
+          "heapMiB": 165.85253143310547,
+          "backingStorageMiB": 34.592838287353516,
+          "isolates": 1
+        },
+        {
+          "label": "queries-2",
+          "rendererRssMiB": 1018.21875,
+          "heapMiB": 155.67532348632812,
+          "backingStorageMiB": 34.592838287353516,
+          "isolates": 1
+        },
+        {
+          "label": "settled",
+          "rendererRssMiB": 1018.453125,
+          "heapMiB": 157.6157569885254,
+          "backingStorageMiB": 34.592838287353516,
+          "isolates": 1
+        },
+        {
+          "label": "diagnostic-gc",
+          "rendererRssMiB": 373.296875,
+          "heapMiB": 135.56634902954102,
+          "backingStorageMiB": 34.57779407501221,
+          "isolates": 1
+        }
+      ],
+      "peakRendererRssMiB": 1503.40625
+    },
+    {
+      "file": "memory-gp-1-cached-js.json",
+      "phase": "memory",
+      "dataset": "gp",
+      "variant": "cached-js",
+      "buildHash": "5d8affccd499b73c42a7551af98e17fd4d9b6efb9b1c915b845d685f168cbec7",
+      "setup": {
+        "canvasDom": 1107,
+        "frame": {
+          "height": 732,
+          "width": 1029.375,
+          "x": 99.3984375,
+          "y": 39.8984375
+        },
+        "frames": 1,
+        "query": {
+          "height": 340,
+          "width": 562,
+          "x": 87.3984375,
+          "y": 64.8984375
+        },
+        "selectable": 1,
+        "zoom": 0.71484375
+      },
+      "query": null,
+      "feedback": null,
+      "nativeQuery": null,
+      "selected": [],
+      "errors": [],
+      "reads": {
+        "rectReads": null,
+        "rectRequests": null,
+        "styleReads": null,
+        "styleRequests": null,
+        "numericRects": null,
+        "clipMs": null,
+        "collectMs": null,
+        "rectMs": null,
+        "styleMs": null,
+        "predicateMs": null,
+        "packMs": null,
+        "kernelMs": null,
+        "pruneMs": null
+      },
+      "memory": [
+        {
+          "label": "before",
+          "rendererRssMiB": 665.859375,
+          "heapMiB": 195.95801544189453,
+          "backingStorageMiB": 35.80198574066162,
+          "isolates": 1
+        },
+        {
+          "label": "queries-0",
+          "rendererRssMiB": 1468.21875,
+          "heapMiB": 143.74962997436523,
+          "backingStorageMiB": 34.64652729034424,
+          "isolates": 1
+        },
+        {
+          "label": "queries-1",
+          "rendererRssMiB": 998,
+          "heapMiB": 155.6397590637207,
+          "backingStorageMiB": 34.64652729034424,
+          "isolates": 1
+        },
+        {
+          "label": "queries-2",
+          "rendererRssMiB": 1003.625,
+          "heapMiB": 140.50301361083984,
+          "backingStorageMiB": 34.646522521972656,
+          "isolates": 1
+        },
+        {
+          "label": "settled",
+          "rendererRssMiB": 1004.078125,
+          "heapMiB": 142.45673751831055,
+          "backingStorageMiB": 34.64652729034424,
+          "isolates": 1
+        },
+        {
+          "label": "diagnostic-gc",
+          "rendererRssMiB": 368.515625,
+          "heapMiB": 134.99432373046875,
+          "backingStorageMiB": 34.63145446777344,
+          "isolates": 1
+        }
+      ],
+      "peakRendererRssMiB": 1626
+    },
+    {
+      "file": "memory-gp-1-cached-wasm.json",
+      "phase": "memory",
+      "dataset": "gp",
+      "variant": "cached-wasm",
+      "buildHash": "5d8affccd499b73c42a7551af98e17fd4d9b6efb9b1c915b845d685f168cbec7",
+      "setup": {
+        "canvasDom": 1107,
+        "frame": {
+          "height": 732,
+          "width": 1029.375,
+          "x": 99.3984375,
+          "y": 39.8984375
+        },
+        "frames": 1,
+        "query": {
+          "height": 340,
+          "width": 562,
+          "x": 87.3984375,
+          "y": 64.8984375
+        },
+        "selectable": 1,
+        "zoom": 0.71484375
+      },
+      "wasm": {
+        "bytes": 1114112,
+        "initMs": 6.5
+      },
+      "query": null,
+      "feedback": null,
+      "nativeQuery": null,
+      "selected": [],
+      "errors": [],
+      "reads": {
+        "rectReads": null,
+        "rectRequests": null,
+        "styleReads": null,
+        "styleRequests": null,
+        "numericRects": null,
+        "clipMs": null,
+        "collectMs": null,
+        "rectMs": null,
+        "styleMs": null,
+        "predicateMs": null,
+        "packMs": null,
+        "kernelMs": null,
+        "pruneMs": null
+      },
+      "memory": [
+        {
+          "label": "before",
+          "rendererRssMiB": 705.171875,
+          "heapMiB": 189.25076293945312,
+          "backingStorageMiB": 35.84340190887451,
+          "isolates": 1
+        },
+        {
+          "label": "queries-0",
+          "rendererRssMiB": 1587,
+          "heapMiB": 149.64667892456055,
+          "backingStorageMiB": 34.67336559295654,
+          "isolates": 1
+        },
+        {
+          "label": "queries-1",
+          "rendererRssMiB": 1536,
+          "heapMiB": 159.51649856567383,
+          "backingStorageMiB": 34.67336559295654,
+          "isolates": 1
+        },
+        {
+          "label": "queries-2",
+          "rendererRssMiB": 1435.03125,
+          "heapMiB": 168.52187728881836,
+          "backingStorageMiB": 34.67561054229736,
+          "isolates": 1
+        },
+        {
+          "label": "settled",
+          "rendererRssMiB": 1435.09375,
+          "heapMiB": 143.58551788330078,
+          "backingStorageMiB": 34.67561054229736,
+          "isolates": 1
+        },
+        {
+          "label": "diagnostic-gc",
+          "rendererRssMiB": 427.265625,
+          "heapMiB": 135.7142562866211,
+          "backingStorageMiB": 34.644588470458984,
+          "isolates": 1
+        }
+      ],
+      "peakRendererRssMiB": 1666.875
+    },
+    {
+      "file": "memory-gp-2-baseline.json",
+      "phase": "memory",
+      "dataset": "gp",
+      "variant": "baseline",
+      "buildHash": "5d8affccd499b73c42a7551af98e17fd4d9b6efb9b1c915b845d685f168cbec7",
+      "setup": {
+        "canvasDom": 1107,
+        "frame": {
+          "height": 732,
+          "width": 1029.375,
+          "x": 99.3984375,
+          "y": 39.8984375
+        },
+        "frames": 1,
+        "query": {
+          "height": 340,
+          "width": 562,
+          "x": 87.3984375,
+          "y": 64.8984375
+        },
+        "selectable": 1,
+        "zoom": 0.71484375
+      },
+      "query": null,
+      "feedback": null,
+      "nativeQuery": null,
+      "selected": [],
+      "errors": [],
+      "reads": {
+        "rectReads": null,
+        "rectRequests": null,
+        "styleReads": null,
+        "styleRequests": null,
+        "numericRects": null,
+        "clipMs": null,
+        "collectMs": null,
+        "rectMs": null,
+        "styleMs": null,
+        "predicateMs": null,
+        "packMs": null,
+        "kernelMs": null,
+        "pruneMs": null
+      },
+      "memory": [
+        {
+          "label": "before",
+          "rendererRssMiB": 697.546875,
+          "heapMiB": 172.26505279541016,
+          "backingStorageMiB": 35.69271278381348,
+          "isolates": 1
+        },
+        {
+          "label": "queries-0",
+          "rendererRssMiB": 1408.9375,
+          "heapMiB": 169.9647674560547,
+          "backingStorageMiB": 34.53769111633301,
+          "isolates": 1
+        },
+        {
+          "label": "queries-1",
+          "rendererRssMiB": 1416.171875,
+          "heapMiB": 140.75765991210938,
+          "backingStorageMiB": 34.5377082824707,
+          "isolates": 1
+        },
+        {
+          "label": "queries-2",
+          "rendererRssMiB": 1023.296875,
+          "heapMiB": 168.5395393371582,
+          "backingStorageMiB": 34.5377082824707,
+          "isolates": 1
+        },
+        {
+          "label": "settled",
+          "rendererRssMiB": 1023.625,
+          "heapMiB": 142.92502975463867,
+          "backingStorageMiB": 34.5377082824707,
+          "isolates": 1
+        },
+        {
+          "label": "diagnostic-gc",
+          "rendererRssMiB": 370.125,
+          "heapMiB": 135.94858932495117,
+          "backingStorageMiB": 34.522664070129395,
+          "isolates": 1
+        }
+      ],
+      "peakRendererRssMiB": 1626.90625
+    },
+    {
+      "file": "memory-gp-2-cached-js.json",
+      "phase": "memory",
+      "dataset": "gp",
+      "variant": "cached-js",
+      "buildHash": "5d8affccd499b73c42a7551af98e17fd4d9b6efb9b1c915b845d685f168cbec7",
+      "setup": {
+        "canvasDom": 1107,
+        "frame": {
+          "height": 732,
+          "width": 1029.375,
+          "x": 99.3984375,
+          "y": 39.8984375
+        },
+        "frames": 1,
+        "query": {
+          "height": 340,
+          "width": 562,
+          "x": 87.3984375,
+          "y": 64.8984375
+        },
+        "selectable": 1,
+        "zoom": 0.71484375
+      },
+      "query": null,
+      "feedback": null,
+      "nativeQuery": null,
+      "selected": [],
+      "errors": [],
+      "reads": {
+        "rectReads": null,
+        "rectRequests": null,
+        "styleReads": null,
+        "styleRequests": null,
+        "numericRects": null,
+        "clipMs": null,
+        "collectMs": null,
+        "rectMs": null,
+        "styleMs": null,
+        "predicateMs": null,
+        "packMs": null,
+        "kernelMs": null,
+        "pruneMs": null
+      },
+      "memory": [
+        {
+          "label": "before",
+          "rendererRssMiB": 697.140625,
+          "heapMiB": 185.63159561157227,
+          "backingStorageMiB": 35.82441234588623,
+          "isolates": 1
+        },
+        {
+          "label": "queries-0",
+          "rendererRssMiB": 1557.5625,
+          "heapMiB": 157.0844612121582,
+          "backingStorageMiB": 34.659647941589355,
+          "isolates": 1
+        },
+        {
+          "label": "queries-1",
+          "rendererRssMiB": 1558.4375,
+          "heapMiB": 163.31228637695312,
+          "backingStorageMiB": 34.659647941589355,
+          "isolates": 1
+        },
+        {
+          "label": "queries-2",
+          "rendererRssMiB": 1559.03125,
+          "heapMiB": 166.40452575683594,
+          "backingStorageMiB": 34.65963268280029,
+          "isolates": 1
+        },
+        {
+          "label": "settled",
+          "rendererRssMiB": 1559.078125,
+          "heapMiB": 142.35148239135742,
+          "backingStorageMiB": 34.659647941589355,
+          "isolates": 1
+        },
+        {
+          "label": "diagnostic-gc",
+          "rendererRssMiB": 516.65625,
+          "heapMiB": 135.4764060974121,
+          "backingStorageMiB": 34.644575119018555,
+          "isolates": 1
+        }
+      ],
+      "peakRendererRssMiB": 1611.75
+    },
+    {
+      "file": "memory-gp-2-cached-wasm.json",
+      "phase": "memory",
+      "dataset": "gp",
+      "variant": "cached-wasm",
+      "buildHash": "5d8affccd499b73c42a7551af98e17fd4d9b6efb9b1c915b845d685f168cbec7",
+      "setup": {
+        "canvasDom": 1107,
+        "frame": {
+          "height": 732,
+          "width": 1029.375,
+          "x": 99.3984375,
+          "y": 39.8984375
+        },
+        "frames": 1,
+        "query": {
+          "height": 340,
+          "width": 562,
+          "x": 87.3984375,
+          "y": 64.8984375
+        },
+        "selectable": 1,
+        "zoom": 0.71484375
+      },
+      "wasm": {
+        "bytes": 1114112,
+        "initMs": 2
+      },
+      "query": null,
+      "feedback": null,
+      "nativeQuery": null,
+      "selected": [],
+      "errors": [],
+      "reads": {
+        "rectReads": null,
+        "rectRequests": null,
+        "styleReads": null,
+        "styleRequests": null,
+        "numericRects": null,
+        "clipMs": null,
+        "collectMs": null,
+        "rectMs": null,
+        "styleMs": null,
+        "predicateMs": null,
+        "packMs": null,
+        "kernelMs": null,
+        "pruneMs": null
+      },
+      "memory": [
+        {
+          "label": "before",
+          "rendererRssMiB": 697.421875,
+          "heapMiB": 175.2280387878418,
+          "backingStorageMiB": 35.77791881561279,
+          "isolates": 1
+        },
+        {
+          "label": "queries-0",
+          "rendererRssMiB": 1410.703125,
+          "heapMiB": 146.15078735351562,
+          "backingStorageMiB": 34.61754512786865,
+          "isolates": 1
+        },
+        {
+          "label": "queries-1",
+          "rendererRssMiB": 1412.90625,
+          "heapMiB": 160.05780410766602,
+          "backingStorageMiB": 34.61754512786865,
+          "isolates": 1
+        },
+        {
+          "label": "queries-2",
+          "rendererRssMiB": 1411.765625,
+          "heapMiB": 163.8448486328125,
+          "backingStorageMiB": 34.61754512786865,
+          "isolates": 1
+        },
+        {
+          "label": "settled",
+          "rendererRssMiB": 1413.03125,
+          "heapMiB": 165.78251266479492,
+          "backingStorageMiB": 34.61754512786865,
+          "isolates": 1
+        },
+        {
+          "label": "diagnostic-gc",
+          "rendererRssMiB": 384.921875,
+          "heapMiB": 135.42184829711914,
+          "backingStorageMiB": 34.58652305603027,
+          "isolates": 1
+        }
+      ],
+      "peakRendererRssMiB": 1658.234375
+    },
+    {
+      "file": "profile-complex-1-baseline.json",
+      "phase": "profile",
+      "dataset": "complex",
+      "variant": "baseline",
+      "buildHash": "5d8affccd499b73c42a7551af98e17fd4d9b6efb9b1c915b845d685f168cbec7",
+      "setup": {
+        "canvasDom": 600,
+        "frame": {
+          "height": 128.70330810546875,
+          "width": 180.989013671875,
+          "x": 523.3984375,
+          "y": 341.3984375
+        },
+        "frames": 10,
+        "query": {
+          "height": 83.65715026855469,
+          "width": 138.6923095703125,
+          "x": 511.3984375,
+          "y": 354.2687683105469
+        },
+        "selectable": 1,
+        "zoom": 0.12568681318681318
+      },
+      "query": {
+        "n": 32,
+        "min": 0.30000001192092896,
+        "median": 0.6500000059604645,
+        "p95": 1.399999976158142,
+        "max": 1.5
+      },
+      "feedback": {
+        "n": 12,
+        "min": 61.90000003576279,
+        "median": 64.99999997019768,
+        "p95": 235.10000002384186,
+        "max": 235.10000002384186
+      },
+      "nativeQuery": {
+        "n": 12,
+        "min": 0.5,
+        "median": 0.5999999940395355,
+        "p95": 0.699999988079071,
+        "max": 0.699999988079071
+      },
+      "selected": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "nativeSelectionHash": "5307a86f889f9084bce219e5ca004cc5cb1a0fc50740d1c92d0bc61fe2c50786",
+      "querySelected": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        2,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "errors": [],
+      "reads": {
+        "rectReads": {
+          "n": 32,
+          "min": 27,
+          "median": 27,
+          "p95": 27,
+          "max": 27
+        },
+        "rectRequests": {
+          "n": 32,
+          "min": 27,
+          "median": 27,
+          "p95": 27,
+          "max": 27
+        },
+        "styleReads": {
+          "n": 32,
+          "min": 73,
+          "median": 73,
+          "p95": 73,
+          "max": 73
+        },
+        "styleRequests": {
+          "n": 32,
+          "min": 73,
+          "median": 73,
+          "p95": 73,
+          "max": 73
+        },
+        "numericRects": {
+          "n": 32,
+          "min": 5,
+          "median": 5,
+          "p95": 5,
+          "max": 5
+        },
+        "clipMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0.20000001788139343,
+          "p95": 0.40000003576278687,
+          "max": 0.5000000596046448
+        },
+        "collectMs": {
+          "n": 32,
+          "min": 0.30000001192092896,
+          "median": 0.5999999642372131,
+          "p95": 0.7999999523162842,
+          "max": 0.800000011920929
+        },
+        "rectMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0.09999996423721313,
+          "p95": 0.699999988079071,
+          "max": 0.800000011920929
+        },
+        "styleMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0.10000002384185791,
+          "max": 0.10000002384185791
+        },
+        "predicateMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0.10000002384185791
+        },
+        "packMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "kernelMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "pruneMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        }
+      },
+      "memory": [],
+      "peakRendererRssMiB": null
+    },
+    {
+      "file": "profile-complex-1-cached-js.json",
+      "phase": "profile",
+      "dataset": "complex",
+      "variant": "cached-js",
+      "buildHash": "5d8affccd499b73c42a7551af98e17fd4d9b6efb9b1c915b845d685f168cbec7",
+      "setup": {
+        "canvasDom": 600,
+        "frame": {
+          "height": 128.70330810546875,
+          "width": 180.989013671875,
+          "x": 523.3984375,
+          "y": 341.3984375
+        },
+        "frames": 10,
+        "query": {
+          "height": 83.65715026855469,
+          "width": 138.6923095703125,
+          "x": 511.3984375,
+          "y": 354.2687683105469
+        },
+        "selectable": 1,
+        "zoom": 0.12568681318681318
+      },
+      "query": {
+        "n": 32,
+        "min": 0.2999999523162842,
+        "median": 0.6000000238418579,
+        "p95": 1.399999976158142,
+        "max": 1.4000000357627869
+      },
+      "feedback": {
+        "n": 12,
+        "min": 61.40000003576279,
+        "median": 66.65000000596046,
+        "p95": 666,
+        "max": 666
+      },
+      "nativeQuery": {
+        "n": 12,
+        "min": 0.5,
+        "median": 0.6000000238418579,
+        "p95": 0.7000000476837158,
+        "max": 0.7000000476837158
+      },
+      "selected": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "nativeSelectionHash": "5307a86f889f9084bce219e5ca004cc5cb1a0fc50740d1c92d0bc61fe2c50786",
+      "querySelected": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        2,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "errors": [],
+      "reads": {
+        "rectReads": {
+          "n": 32,
+          "min": 10,
+          "median": 10,
+          "p95": 10,
+          "max": 10
+        },
+        "rectRequests": {
+          "n": 32,
+          "min": 27,
+          "median": 27,
+          "p95": 27,
+          "max": 27
+        },
+        "styleReads": {
+          "n": 32,
+          "min": 19,
+          "median": 19,
+          "p95": 19,
+          "max": 19
+        },
+        "styleRequests": {
+          "n": 32,
+          "min": 73,
+          "median": 73,
+          "p95": 73,
+          "max": 73
+        },
+        "numericRects": {
+          "n": 32,
+          "min": 5,
+          "median": 5,
+          "p95": 5,
+          "max": 5
+        },
+        "clipMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0.19999998807907104,
+          "p95": 0.3999999761581421,
+          "max": 0.4999999403953552
+        },
+        "collectMs": {
+          "n": 32,
+          "min": 0.2999999523162842,
+          "median": 0.5499999821186066,
+          "p95": 0.7000000476837158,
+          "max": 0.7999999523162842
+        },
+        "rectMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0.09999996423721313,
+          "p95": 0.699999988079071,
+          "max": 0.800000011920929
+        },
+        "styleMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0.10000002384185791,
+          "p95": 0.20000004768371582,
+          "max": 0.30000001192092896
+        },
+        "predicateMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0.09999996423721313,
+          "max": 0.10000002384185791
+        },
+        "packMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "kernelMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "pruneMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        }
+      },
+      "memory": [],
+      "peakRendererRssMiB": null
+    },
+    {
+      "file": "profile-complex-1-cached-wasm.json",
+      "phase": "profile",
+      "dataset": "complex",
+      "variant": "cached-wasm",
+      "buildHash": "5d8affccd499b73c42a7551af98e17fd4d9b6efb9b1c915b845d685f168cbec7",
+      "setup": {
+        "canvasDom": 600,
+        "frame": {
+          "height": 128.70330810546875,
+          "width": 180.989013671875,
+          "x": 523.3984375,
+          "y": 341.3984375
+        },
+        "frames": 10,
+        "query": {
+          "height": 83.65715026855469,
+          "width": 138.6923095703125,
+          "x": 511.3984375,
+          "y": 354.2687683105469
+        },
+        "selectable": 1,
+        "zoom": 0.12568681318681318
+      },
+      "wasm": {
+        "bytes": 1114112,
+        "initMs": 0.5
+      },
+      "query": {
+        "n": 32,
+        "min": 0.3999999761581421,
+        "median": 0.699999988079071,
+        "p95": 1.5,
+        "max": 1.5
+      },
+      "feedback": {
+        "n": 12,
+        "min": 62.90000003576279,
+        "median": 67.90000000596046,
+        "p95": 612.9000000357628,
+        "max": 612.9000000357628
+      },
+      "nativeQuery": {
+        "n": 12,
+        "min": 0.5,
+        "median": 0.699999988079071,
+        "p95": 0.7000000476837158,
+        "max": 0.7000000476837158
+      },
+      "selected": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "nativeSelectionHash": "5307a86f889f9084bce219e5ca004cc5cb1a0fc50740d1c92d0bc61fe2c50786",
+      "querySelected": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        2,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "errors": [],
+      "reads": {
+        "rectReads": {
+          "n": 32,
+          "min": 10,
+          "median": 10,
+          "p95": 10,
+          "max": 10
+        },
+        "rectRequests": {
+          "n": 32,
+          "min": 27,
+          "median": 27,
+          "p95": 27,
+          "max": 27
+        },
+        "styleReads": {
+          "n": 32,
+          "min": 19,
+          "median": 19,
+          "p95": 19,
+          "max": 19
+        },
+        "styleRequests": {
+          "n": 32,
+          "min": 73,
+          "median": 73,
+          "p95": 73,
+          "max": 73
+        },
+        "numericRects": {
+          "n": 32,
+          "min": 5,
+          "median": 5,
+          "p95": 5,
+          "max": 5
+        },
+        "clipMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0.19999998807907104,
+          "p95": 0.30000001192092896,
+          "max": 0.30000007152557373
+        },
+        "collectMs": {
+          "n": 32,
+          "min": 0.30000001192092896,
+          "median": 0.5999999642372131,
+          "p95": 0.7000000476837158,
+          "max": 0.7999999523162842
+        },
+        "rectMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0.04999998211860657,
+          "p95": 0.800000011920929,
+          "max": 0.9000000357627869
+        },
+        "styleMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0.09999996423721313,
+          "p95": 0.20000004768371582,
+          "max": 0.30000001192092896
+        },
+        "predicateMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "packMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0.09999996423721313,
+          "max": 0.09999996423721313
+        },
+        "kernelMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "pruneMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0.10000002384185791
+        }
+      },
+      "memory": [],
+      "peakRendererRssMiB": null
+    },
+    {
+      "file": "profile-gp-1-baseline.json",
+      "phase": "profile",
+      "dataset": "gp",
+      "variant": "baseline",
+      "buildHash": "5d8affccd499b73c42a7551af98e17fd4d9b6efb9b1c915b845d685f168cbec7",
+      "setup": {
+        "canvasDom": 1107,
+        "frame": {
+          "height": 732,
+          "width": 1029.375,
+          "x": 99.3984375,
+          "y": 39.8984375
+        },
+        "frames": 1,
+        "query": {
+          "height": 340,
+          "width": 562,
+          "x": 87.3984375,
+          "y": 64.8984375
+        },
+        "selectable": 1,
+        "zoom": 0.71484375
+      },
+      "query": {
+        "n": 32,
+        "min": 270.89999997615814,
+        "median": 277.09999999403954,
+        "p95": 310.39999997615814,
+        "max": 322.4000000357628
+      },
+      "feedback": {
+        "n": 12,
+        "min": 322,
+        "median": 358.19999998807907,
+        "p95": 399.5,
+        "max": 399.5
+      },
+      "nativeQuery": {
+        "n": 12,
+        "min": 263.19999998807907,
+        "median": 309,
+        "p95": 343.80000001192093,
+        "max": 343.80000001192093
+      },
+      "selected": [
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7
+      ],
+      "nativeSelectionHash": "a7a56f238fb3ffe728aff27390739243573bb48a439a225a08253457b4a51e23",
+      "querySelected": [
+        0,
+        5,
+        19,
+        19,
+        32,
+        18,
+        2,
+        10,
+        15,
+        29,
+        14,
+        84,
+        2,
+        8,
+        27,
+        1,
+        13,
+        35,
+        6,
+        18,
+        7,
+        10,
+        23,
+        126,
+        0,
+        5,
+        19,
+        19,
+        32,
+        18,
+        2,
+        10
+      ],
+      "errors": [],
+      "reads": {
+        "rectReads": {
+          "n": 32,
+          "min": 22793,
+          "median": 22793,
+          "p95": 22793,
+          "max": 22793
+        },
+        "rectRequests": {
+          "n": 32,
+          "min": 22793,
+          "median": 22793,
+          "p95": 22793,
+          "max": 22793
+        },
+        "styleReads": {
+          "n": 32,
+          "min": 100486,
+          "median": 100486,
+          "p95": 100486,
+          "max": 100486
+        },
+        "styleRequests": {
+          "n": 32,
+          "min": 100486,
+          "median": 100486,
+          "p95": 100486,
+          "max": 100486
+        },
+        "numericRects": {
+          "n": 32,
+          "min": 1803,
+          "median": 1803,
+          "p95": 1803,
+          "max": 1803
+        },
+        "clipMs": {
+          "n": 32,
+          "min": 213.9999994635582,
+          "median": 223.05000045895576,
+          "p95": 236.39999932050705,
+          "max": 257.39999908208847
+        },
+        "collectMs": {
+          "n": 32,
+          "min": 270.7000000476837,
+          "median": 277,
+          "p95": 310.39999997615814,
+          "max": 322.0999999642372
+        },
+        "rectMs": {
+          "n": 32,
+          "min": 19.699999809265137,
+          "median": 21.549999564886093,
+          "p95": 23.69999998807907,
+          "max": 23.799999833106995
+        },
+        "styleMs": {
+          "n": 32,
+          "min": 21.099999725818634,
+          "median": 23.8499998152256,
+          "p95": 27.29999977350235,
+          "max": 29.69999998807907
+        },
+        "predicateMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0.1499999761581421,
+          "p95": 0.5,
+          "max": 0.5
+        },
+        "packMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "kernelMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "pruneMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0.10000002384185791,
+          "p95": 0.5999999642372131,
+          "max": 0.5999999642372131
+        }
+      },
+      "memory": [],
+      "peakRendererRssMiB": null
+    },
+    {
+      "file": "profile-gp-1-cached-js.json",
+      "phase": "profile",
+      "dataset": "gp",
+      "variant": "cached-js",
+      "buildHash": "5d8affccd499b73c42a7551af98e17fd4d9b6efb9b1c915b845d685f168cbec7",
+      "setup": {
+        "canvasDom": 1107,
+        "frame": {
+          "height": 732,
+          "width": 1029.375,
+          "x": 99.3984375,
+          "y": 39.8984375
+        },
+        "frames": 1,
+        "query": {
+          "height": 340,
+          "width": 562,
+          "x": 87.3984375,
+          "y": 64.8984375
+        },
+        "selectable": 1,
+        "zoom": 0.71484375
+      },
+      "query": {
+        "n": 32,
+        "min": 133.30000001192093,
+        "median": 135.85000002384186,
+        "p95": 157.5999999642372,
+        "max": 168.5999999642372
+      },
+      "feedback": {
+        "n": 12,
+        "min": 200.19999998807907,
+        "median": 213.59999999403954,
+        "p95": 222.70000004768372,
+        "max": 222.70000004768372
+      },
+      "nativeQuery": {
+        "n": 12,
+        "min": 146.79999995231628,
+        "median": 157.90000000596046,
+        "p95": 166.80000001192093,
+        "max": 166.80000001192093
+      },
+      "selected": [
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7
+      ],
+      "nativeSelectionHash": "a7a56f238fb3ffe728aff27390739243573bb48a439a225a08253457b4a51e23",
+      "querySelected": [
+        0,
+        5,
+        19,
+        19,
+        32,
+        18,
+        2,
+        10,
+        15,
+        29,
+        14,
+        84,
+        2,
+        8,
+        27,
+        1,
+        13,
+        35,
+        6,
+        18,
+        7,
+        10,
+        23,
+        126,
+        0,
+        5,
+        19,
+        19,
+        32,
+        18,
+        2,
+        10
+      ],
+      "errors": [],
+      "reads": {
+        "rectReads": {
+          "n": 32,
+          "min": 373,
+          "median": 373,
+          "p95": 373,
+          "max": 373
+        },
+        "rectRequests": {
+          "n": 32,
+          "min": 22793,
+          "median": 22793,
+          "p95": 22793,
+          "max": 22793
+        },
+        "styleReads": {
+          "n": 32,
+          "min": 451,
+          "median": 451,
+          "p95": 451,
+          "max": 451
+        },
+        "styleRequests": {
+          "n": 32,
+          "min": 100486,
+          "median": 100486,
+          "p95": 100486,
+          "max": 100486
+        },
+        "numericRects": {
+          "n": 32,
+          "min": 1803,
+          "median": 1803,
+          "p95": 1803,
+          "max": 1803
+        },
+        "clipMs": {
+          "n": 32,
+          "min": 89.5,
+          "median": 92.20000010728836,
+          "p95": 105.50000005960464,
+          "max": 111.89999955892563
+        },
+        "collectMs": {
+          "n": 32,
+          "min": 133,
+          "median": 135.5499999821186,
+          "p95": 157.39999997615814,
+          "max": 168.5
+        },
+        "rectMs": {
+          "n": 32,
+          "min": 0.09999996423721313,
+          "median": 0.5,
+          "p95": 0.9000000953674316,
+          "max": 0.9999999403953552
+        },
+        "styleMs": {
+          "n": 32,
+          "min": 1.199999988079071,
+          "median": 1.6999999582767487,
+          "p95": 2.300000011920929,
+          "max": 2.3000001311302185
+        },
+        "predicateMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0.10000002384185791,
+          "p95": 0.30000001192092896,
+          "max": 0.5
+        },
+        "packMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "kernelMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "pruneMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0.10000002384185791,
+          "p95": 0.5,
+          "max": 1
+        }
+      },
+      "memory": [],
+      "peakRendererRssMiB": null
+    },
+    {
+      "file": "profile-gp-1-cached-wasm.json",
+      "phase": "profile",
+      "dataset": "gp",
+      "variant": "cached-wasm",
+      "buildHash": "5d8affccd499b73c42a7551af98e17fd4d9b6efb9b1c915b845d685f168cbec7",
+      "setup": {
+        "canvasDom": 1107,
+        "frame": {
+          "height": 732,
+          "width": 1029.375,
+          "x": 99.3984375,
+          "y": 39.8984375
+        },
+        "frames": 1,
+        "query": {
+          "height": 340,
+          "width": 562,
+          "x": 87.3984375,
+          "y": 64.8984375
+        },
+        "selectable": 1,
+        "zoom": 0.71484375
+      },
+      "wasm": {
+        "bytes": 1114112,
+        "initMs": 0.800000011920929
+      },
+      "query": {
+        "n": 32,
+        "min": 134.60000002384186,
+        "median": 136.5,
+        "p95": 155.9000000357628,
+        "max": 162.69999998807907
+      },
+      "feedback": {
+        "n": 12,
+        "min": 198.4000000357628,
+        "median": 216.65000000596046,
+        "p95": 224.69999998807907,
+        "max": 224.69999998807907
+      },
+      "nativeQuery": {
+        "n": 12,
+        "min": 148,
+        "median": 161.69999998807907,
+        "p95": 177.5,
+        "max": 177.5
+      },
+      "selected": [
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7
+      ],
+      "nativeSelectionHash": "a7a56f238fb3ffe728aff27390739243573bb48a439a225a08253457b4a51e23",
+      "querySelected": [
+        0,
+        5,
+        19,
+        19,
+        32,
+        18,
+        2,
+        10,
+        15,
+        29,
+        14,
+        84,
+        2,
+        8,
+        27,
+        1,
+        13,
+        35,
+        6,
+        18,
+        7,
+        10,
+        23,
+        126,
+        0,
+        5,
+        19,
+        19,
+        32,
+        18,
+        2,
+        10
+      ],
+      "errors": [],
+      "reads": {
+        "rectReads": {
+          "n": 32,
+          "min": 373,
+          "median": 373,
+          "p95": 373,
+          "max": 373
+        },
+        "rectRequests": {
+          "n": 32,
+          "min": 22793,
+          "median": 22793,
+          "p95": 22793,
+          "max": 22793
+        },
+        "styleReads": {
+          "n": 32,
+          "min": 451,
+          "median": 451,
+          "p95": 451,
+          "max": 451
+        },
+        "styleRequests": {
+          "n": 32,
+          "min": 100486,
+          "median": 100486,
+          "p95": 100486,
+          "max": 100486
+        },
+        "numericRects": {
+          "n": 32,
+          "min": 1803,
+          "median": 1803,
+          "p95": 1803,
+          "max": 1803
+        },
+        "clipMs": {
+          "n": 32,
+          "min": 88.99999982118607,
+          "median": 92.05000016093254,
+          "p95": 101.70000040531158,
+          "max": 110.10000079870224
+        },
+        "collectMs": {
+          "n": 32,
+          "min": 134.29999995231628,
+          "median": 136.25,
+          "p95": 155.70000004768372,
+          "max": 162.4000000357628
+        },
+        "rectMs": {
+          "n": 32,
+          "min": 0.19999998807907104,
+          "median": 0.49999991059303284,
+          "p95": 0.8999998569488525,
+          "max": 0.8999999165534973
+        },
+        "styleMs": {
+          "n": 32,
+          "min": 0.9999999403953552,
+          "median": 1.899999976158142,
+          "p95": 2.5000001788139343,
+          "max": 2.7000001072883606
+        },
+        "predicateMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "packMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0.09999999403953552,
+          "p95": 0.30000001192092896,
+          "max": 0.3999999761581421
+        },
+        "kernelMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0.10000002384185791,
+          "max": 0.10000002384185791
+        },
+        "pruneMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0.10000002384185791,
+          "p95": 0.6000000238418579,
+          "max": 1.300000011920929
+        }
+      },
+      "memory": [],
+      "peakRendererRssMiB": null
+    },
+    {
+      "file": "profile-gp-2-baseline.json",
+      "phase": "profile",
+      "dataset": "gp",
+      "variant": "baseline",
+      "buildHash": "5d8affccd499b73c42a7551af98e17fd4d9b6efb9b1c915b845d685f168cbec7",
+      "setup": {
+        "canvasDom": 1107,
+        "frame": {
+          "height": 732,
+          "width": 1029.375,
+          "x": 99.3984375,
+          "y": 39.8984375
+        },
+        "frames": 1,
+        "query": {
+          "height": 340,
+          "width": 562,
+          "x": 87.3984375,
+          "y": 64.8984375
+        },
+        "selectable": 1,
+        "zoom": 0.71484375
+      },
+      "query": {
+        "n": 32,
+        "min": 268.89999997615814,
+        "median": 274.59999999403954,
+        "p95": 290.4000000357628,
+        "max": 292.39999997615814
+      },
+      "feedback": {
+        "n": 12,
+        "min": 309,
+        "median": 333.84999999403954,
+        "p95": 368.19999998807907,
+        "max": 368.19999998807907
+      },
+      "nativeQuery": {
+        "n": 12,
+        "min": 261.10000002384186,
+        "median": 281.84999999403954,
+        "p95": 303.80000001192093,
+        "max": 303.80000001192093
+      },
+      "selected": [
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7
+      ],
+      "nativeSelectionHash": "a7a56f238fb3ffe728aff27390739243573bb48a439a225a08253457b4a51e23",
+      "querySelected": [
+        0,
+        5,
+        19,
+        19,
+        32,
+        18,
+        2,
+        10,
+        15,
+        29,
+        14,
+        84,
+        2,
+        8,
+        27,
+        1,
+        13,
+        35,
+        6,
+        18,
+        7,
+        10,
+        23,
+        126,
+        0,
+        5,
+        19,
+        19,
+        32,
+        18,
+        2,
+        10
+      ],
+      "errors": [],
+      "reads": {
+        "rectReads": {
+          "n": 32,
+          "min": 22793,
+          "median": 22793,
+          "p95": 22793,
+          "max": 22793
+        },
+        "rectRequests": {
+          "n": 32,
+          "min": 22793,
+          "median": 22793,
+          "p95": 22793,
+          "max": 22793
+        },
+        "styleReads": {
+          "n": 32,
+          "min": 100486,
+          "median": 100486,
+          "p95": 100486,
+          "max": 100486
+        },
+        "styleRequests": {
+          "n": 32,
+          "min": 100486,
+          "median": 100486,
+          "p95": 100486,
+          "max": 100486
+        },
+        "numericRects": {
+          "n": 32,
+          "min": 1803,
+          "median": 1803,
+          "p95": 1803,
+          "max": 1803
+        },
+        "clipMs": {
+          "n": 32,
+          "min": 216.0000001192093,
+          "median": 220.7500001192093,
+          "p95": 225.1999997496605,
+          "max": 227.69999939203262
+        },
+        "collectMs": {
+          "n": 32,
+          "min": 268.69999998807907,
+          "median": 274.39999997615814,
+          "p95": 290.10000002384186,
+          "max": 292.0999999642372
+        },
+        "rectMs": {
+          "n": 32,
+          "min": 19.00000011920929,
+          "median": 21.70000022649765,
+          "p95": 24.80000066757202,
+          "max": 25.399999797344208
+        },
+        "styleMs": {
+          "n": 32,
+          "min": 19.89999955892563,
+          "median": 23.34999990463257,
+          "p95": 28.500000536441803,
+          "max": 30.000000178813934
+        },
+        "predicateMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0.09999999403953552,
+          "p95": 0.4999999403953552,
+          "max": 0.5
+        },
+        "packMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "kernelMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "pruneMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0.10000002384185791,
+          "p95": 0.5999999642372131,
+          "max": 0.9000000357627869
+        }
+      },
+      "memory": [],
+      "peakRendererRssMiB": null
+    },
+    {
+      "file": "profile-gp-2-cached-js.json",
+      "phase": "profile",
+      "dataset": "gp",
+      "variant": "cached-js",
+      "buildHash": "5d8affccd499b73c42a7551af98e17fd4d9b6efb9b1c915b845d685f168cbec7",
+      "setup": {
+        "canvasDom": 1107,
+        "frame": {
+          "height": 732,
+          "width": 1029.375,
+          "x": 99.3984375,
+          "y": 39.8984375
+        },
+        "frames": 1,
+        "query": {
+          "height": 340,
+          "width": 562,
+          "x": 87.3984375,
+          "y": 64.8984375
+        },
+        "selectable": 1,
+        "zoom": 0.71484375
+      },
+      "query": {
+        "n": 32,
+        "min": 135.80000001192093,
+        "median": 137.15000000596046,
+        "p95": 158.19999998807907,
+        "max": 164.69999998807907
+      },
+      "feedback": {
+        "n": 12,
+        "min": 194.30000001192093,
+        "median": 212.4500000178814,
+        "p95": 216.69999998807907,
+        "max": 216.69999998807907
+      },
+      "nativeQuery": {
+        "n": 12,
+        "min": 147.0999999642372,
+        "median": 157,
+        "p95": 171.5,
+        "max": 171.5
+      },
+      "selected": [
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7
+      ],
+      "nativeSelectionHash": "a7a56f238fb3ffe728aff27390739243573bb48a439a225a08253457b4a51e23",
+      "querySelected": [
+        0,
+        5,
+        19,
+        19,
+        32,
+        18,
+        2,
+        10,
+        15,
+        29,
+        14,
+        84,
+        2,
+        8,
+        27,
+        1,
+        13,
+        35,
+        6,
+        18,
+        7,
+        10,
+        23,
+        126,
+        0,
+        5,
+        19,
+        19,
+        32,
+        18,
+        2,
+        10
+      ],
+      "errors": [],
+      "reads": {
+        "rectReads": {
+          "n": 32,
+          "min": 373,
+          "median": 373,
+          "p95": 373,
+          "max": 373
+        },
+        "rectRequests": {
+          "n": 32,
+          "min": 22793,
+          "median": 22793,
+          "p95": 22793,
+          "max": 22793
+        },
+        "styleReads": {
+          "n": 32,
+          "min": 451,
+          "median": 451,
+          "p95": 451,
+          "max": 451
+        },
+        "styleRequests": {
+          "n": 32,
+          "min": 100486,
+          "median": 100486,
+          "p95": 100486,
+          "max": 100486
+        },
+        "numericRects": {
+          "n": 32,
+          "min": 1803,
+          "median": 1803,
+          "p95": 1803,
+          "max": 1803
+        },
+        "clipMs": {
+          "n": 32,
+          "min": 90.79999995231628,
+          "median": 93.29999965429306,
+          "p95": 113.4000004529953,
+          "max": 116.69999974966049
+        },
+        "collectMs": {
+          "n": 32,
+          "min": 135.5999999642372,
+          "median": 137,
+          "p95": 158.19999998807907,
+          "max": 164.5
+        },
+        "rectMs": {
+          "n": 32,
+          "min": 0.10000002384185791,
+          "median": 0.5999999046325684,
+          "p95": 0.800000011920929,
+          "max": 1.100000262260437
+        },
+        "styleMs": {
+          "n": 32,
+          "min": 1.1999999284744263,
+          "median": 1.7000000774860382,
+          "p95": 2.7999998331069946,
+          "max": 2.8999998569488525
+        },
+        "predicateMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0.10000002384185791,
+          "p95": 0.30000001192092896,
+          "max": 0.30000001192092896
+        },
+        "packMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "kernelMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "pruneMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0.10000002384185791,
+          "p95": 1.100000023841858,
+          "max": 1.199999988079071
+        }
+      },
+      "memory": [],
+      "peakRendererRssMiB": null
+    },
+    {
+      "file": "profile-gp-2-cached-wasm.json",
+      "phase": "profile",
+      "dataset": "gp",
+      "variant": "cached-wasm",
+      "buildHash": "5d8affccd499b73c42a7551af98e17fd4d9b6efb9b1c915b845d685f168cbec7",
+      "setup": {
+        "canvasDom": 1107,
+        "frame": {
+          "height": 732,
+          "width": 1029.375,
+          "x": 99.3984375,
+          "y": 39.8984375
+        },
+        "frames": 1,
+        "query": {
+          "height": 340,
+          "width": 562,
+          "x": 87.3984375,
+          "y": 64.8984375
+        },
+        "selectable": 1,
+        "zoom": 0.71484375
+      },
+      "wasm": {
+        "bytes": 1114112,
+        "initMs": 0.19999998807907104
+      },
+      "query": {
+        "n": 32,
+        "min": 135.10000002384186,
+        "median": 137.19999998807907,
+        "p95": 159.20000004768372,
+        "max": 176.69999998807907
+      },
+      "feedback": {
+        "n": 12,
+        "min": 194.89999997615814,
+        "median": 213.75000002980232,
+        "p95": 234.30000001192093,
+        "max": 234.30000001192093
+      },
+      "nativeQuery": {
+        "n": 12,
+        "min": 147,
+        "median": 157.80000001192093,
+        "p95": 172.30000001192093,
+        "max": 172.30000001192093
+      },
+      "selected": [
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7
+      ],
+      "nativeSelectionHash": "a7a56f238fb3ffe728aff27390739243573bb48a439a225a08253457b4a51e23",
+      "querySelected": [
+        0,
+        5,
+        19,
+        19,
+        32,
+        18,
+        2,
+        10,
+        15,
+        29,
+        14,
+        84,
+        2,
+        8,
+        27,
+        1,
+        13,
+        35,
+        6,
+        18,
+        7,
+        10,
+        23,
+        126,
+        0,
+        5,
+        19,
+        19,
+        32,
+        18,
+        2,
+        10
+      ],
+      "errors": [],
+      "reads": {
+        "rectReads": {
+          "n": 32,
+          "min": 373,
+          "median": 373,
+          "p95": 373,
+          "max": 373
+        },
+        "rectRequests": {
+          "n": 32,
+          "min": 22793,
+          "median": 22793,
+          "p95": 22793,
+          "max": 22793
+        },
+        "styleReads": {
+          "n": 32,
+          "min": 451,
+          "median": 451,
+          "p95": 451,
+          "max": 451
+        },
+        "styleRequests": {
+          "n": 32,
+          "min": 100486,
+          "median": 100486,
+          "p95": 100486,
+          "max": 100486
+        },
+        "numericRects": {
+          "n": 32,
+          "min": 1803,
+          "median": 1803,
+          "p95": 1803,
+          "max": 1803
+        },
+        "clipMs": {
+          "n": 32,
+          "min": 90.50000047683716,
+          "median": 93.3499998152256,
+          "p95": 113.2000002861023,
+          "max": 126.59999978542328
+        },
+        "collectMs": {
+          "n": 32,
+          "min": 134.89999997615814,
+          "median": 136.9500000178814,
+          "p95": 159.10000002384186,
+          "max": 176.39999997615814
+        },
+        "rectMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0.44999998807907104,
+          "p95": 0.8999999165534973,
+          "max": 0.9000000357627869
+        },
+        "styleMs": {
+          "n": 32,
+          "min": 1.2999997735023499,
+          "median": 1.9000000357627869,
+          "p95": 2.5999998450279236,
+          "max": 2.599999964237213
+        },
+        "predicateMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "packMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0.10000002384185791,
+          "p95": 0.30000001192092896,
+          "max": 0.5
+        },
+        "kernelMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0.09999996423721313,
+          "max": 0.10000002384185791
+        },
+        "pruneMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0.10000002384185791,
+          "p95": 0.6000000238418579,
+          "max": 1.100000023841858
+        }
+      },
+      "memory": [],
+      "peakRendererRssMiB": null
+    },
+    {
+      "file": "timing-complex-1-baseline.json",
+      "phase": "timing",
+      "dataset": "complex",
+      "variant": "baseline",
+      "buildHash": "5d8affccd499b73c42a7551af98e17fd4d9b6efb9b1c915b845d685f168cbec7",
+      "setup": {
+        "canvasDom": 600,
+        "frame": {
+          "height": 128.70330810546875,
+          "width": 180.989013671875,
+          "x": 523.3984375,
+          "y": 341.3984375
+        },
+        "frames": 10,
+        "query": {
+          "height": 83.65715026855469,
+          "width": 138.6923095703125,
+          "x": 511.3984375,
+          "y": 354.2687683105469
+        },
+        "selectable": 1,
+        "zoom": 0.12568681318681318
+      },
+      "query": {
+        "n": 32,
+        "min": 0.3999999761581421,
+        "median": 0.5999999642372131,
+        "p95": 0.800000011920929,
+        "max": 1.300000011920929
+      },
+      "feedback": {
+        "n": 12,
+        "min": 59.39999997615814,
+        "median": 60.35000002384186,
+        "p95": 356.19999998807907,
+        "max": 356.19999998807907
+      },
+      "nativeQuery": {
+        "n": 12,
+        "min": 0.5,
+        "median": 0.6000000238418579,
+        "p95": 0.800000011920929,
+        "max": 0.800000011920929
+      },
+      "selected": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "nativeSelectionHash": "5307a86f889f9084bce219e5ca004cc5cb1a0fc50740d1c92d0bc61fe2c50786",
+      "querySelected": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        2,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "errors": [],
+      "reads": {
+        "rectReads": {
+          "n": 32,
+          "min": 27,
+          "median": 27,
+          "p95": 27,
+          "max": 27
+        },
+        "rectRequests": {
+          "n": 32,
+          "min": 27,
+          "median": 27,
+          "p95": 27,
+          "max": 27
+        },
+        "styleReads": {
+          "n": 32,
+          "min": 73,
+          "median": 73,
+          "p95": 73,
+          "max": 73
+        },
+        "styleRequests": {
+          "n": 32,
+          "min": 73,
+          "median": 73,
+          "p95": 73,
+          "max": 73
+        },
+        "numericRects": {
+          "n": 32,
+          "min": 5,
+          "median": 5,
+          "p95": 5,
+          "max": 5
+        },
+        "clipMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "collectMs": {
+          "n": 32,
+          "min": 0.30000001192092896,
+          "median": 0.5,
+          "p95": 0.6000000238418579,
+          "max": 0.699999988079071
+        },
+        "rectMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "styleMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "predicateMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "packMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "kernelMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "pruneMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        }
+      },
+      "memory": [],
+      "peakRendererRssMiB": null
+    },
+    {
+      "file": "timing-complex-1-cached-js.json",
+      "phase": "timing",
+      "dataset": "complex",
+      "variant": "cached-js",
+      "buildHash": "5d8affccd499b73c42a7551af98e17fd4d9b6efb9b1c915b845d685f168cbec7",
+      "setup": {
+        "canvasDom": 600,
+        "frame": {
+          "height": 128.70330810546875,
+          "width": 180.989013671875,
+          "x": 523.3984375,
+          "y": 341.3984375
+        },
+        "frames": 10,
+        "query": {
+          "height": 83.65715026855469,
+          "width": 138.6923095703125,
+          "x": 511.3984375,
+          "y": 354.2687683105469
+        },
+        "selectable": 1,
+        "zoom": 0.12568681318681318
+      },
+      "query": {
+        "n": 32,
+        "min": 0.3999999761581421,
+        "median": 0.5999999642372131,
+        "p95": 1.2999999523162842,
+        "max": 1.4000000357627869
+      },
+      "feedback": {
+        "n": 12,
+        "min": 58.5,
+        "median": 60.25,
+        "p95": 413.0999999642372,
+        "max": 413.0999999642372
+      },
+      "nativeQuery": {
+        "n": 12,
+        "min": 0.5,
+        "median": 0.5999999642372131,
+        "p95": 0.699999988079071,
+        "max": 0.699999988079071
+      },
+      "selected": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "nativeSelectionHash": "5307a86f889f9084bce219e5ca004cc5cb1a0fc50740d1c92d0bc61fe2c50786",
+      "querySelected": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        2,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "errors": [],
+      "reads": {
+        "rectReads": {
+          "n": 32,
+          "min": 10,
+          "median": 10,
+          "p95": 10,
+          "max": 10
+        },
+        "rectRequests": {
+          "n": 32,
+          "min": 27,
+          "median": 27,
+          "p95": 27,
+          "max": 27
+        },
+        "styleReads": {
+          "n": 32,
+          "min": 19,
+          "median": 19,
+          "p95": 19,
+          "max": 19
+        },
+        "styleRequests": {
+          "n": 32,
+          "min": 73,
+          "median": 73,
+          "p95": 73,
+          "max": 73
+        },
+        "numericRects": {
+          "n": 32,
+          "min": 5,
+          "median": 5,
+          "p95": 5,
+          "max": 5
+        },
+        "clipMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "collectMs": {
+          "n": 32,
+          "min": 0.30000001192092896,
+          "median": 0.5,
+          "p95": 0.7000000476837158,
+          "max": 0.800000011920929
+        },
+        "rectMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "styleMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "predicateMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "packMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "kernelMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "pruneMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        }
+      },
+      "memory": [],
+      "peakRendererRssMiB": null
+    },
+    {
+      "file": "timing-complex-1-cached-wasm.json",
+      "phase": "timing",
+      "dataset": "complex",
+      "variant": "cached-wasm",
+      "buildHash": "5d8affccd499b73c42a7551af98e17fd4d9b6efb9b1c915b845d685f168cbec7",
+      "setup": {
+        "canvasDom": 600,
+        "frame": {
+          "height": 128.70330810546875,
+          "width": 180.989013671875,
+          "x": 523.3984375,
+          "y": 341.3984375
+        },
+        "frames": 10,
+        "query": {
+          "height": 83.65715026855469,
+          "width": 138.6923095703125,
+          "x": 511.3984375,
+          "y": 354.2687683105469
+        },
+        "selectable": 1,
+        "zoom": 0.12568681318681318
+      },
+      "wasm": {
+        "bytes": 1114112,
+        "initMs": 0.2999999523162842
+      },
+      "query": {
+        "n": 32,
+        "min": 0.3999999761581421,
+        "median": 0.6000000238418579,
+        "p95": 0.8999999761581421,
+        "max": 1.300000011920929
+      },
+      "feedback": {
+        "n": 12,
+        "min": 57.59999996423721,
+        "median": 60.60000002384186,
+        "p95": 353,
+        "max": 353
+      },
+      "nativeQuery": {
+        "n": 12,
+        "min": 0.5,
+        "median": 0.6000000238418579,
+        "p95": 0.7000000476837158,
+        "max": 0.7000000476837158
+      },
+      "selected": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "nativeSelectionHash": "5307a86f889f9084bce219e5ca004cc5cb1a0fc50740d1c92d0bc61fe2c50786",
+      "querySelected": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        2,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "errors": [],
+      "reads": {
+        "rectReads": {
+          "n": 32,
+          "min": 10,
+          "median": 10,
+          "p95": 10,
+          "max": 10
+        },
+        "rectRequests": {
+          "n": 32,
+          "min": 27,
+          "median": 27,
+          "p95": 27,
+          "max": 27
+        },
+        "styleReads": {
+          "n": 32,
+          "min": 19,
+          "median": 19,
+          "p95": 19,
+          "max": 19
+        },
+        "styleRequests": {
+          "n": 32,
+          "min": 73,
+          "median": 73,
+          "p95": 73,
+          "max": 73
+        },
+        "numericRects": {
+          "n": 32,
+          "min": 5,
+          "median": 5,
+          "p95": 5,
+          "max": 5
+        },
+        "clipMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "collectMs": {
+          "n": 32,
+          "min": 0.30000001192092896,
+          "median": 0.5,
+          "p95": 0.6000000238418579,
+          "max": 0.6000000238418579
+        },
+        "rectMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "styleMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "predicateMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "packMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0.10000002384185791
+        },
+        "kernelMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "pruneMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0.10000002384185791
+        }
+      },
+      "memory": [],
+      "peakRendererRssMiB": null
+    },
+    {
+      "file": "timing-complex-2-baseline.json",
+      "phase": "timing",
+      "dataset": "complex",
+      "variant": "baseline",
+      "buildHash": "5d8affccd499b73c42a7551af98e17fd4d9b6efb9b1c915b845d685f168cbec7",
+      "setup": {
+        "canvasDom": 600,
+        "frame": {
+          "height": 128.70330810546875,
+          "width": 180.989013671875,
+          "x": 523.3984375,
+          "y": 341.3984375
+        },
+        "frames": 10,
+        "query": {
+          "height": 83.65715026855469,
+          "width": 138.6923095703125,
+          "x": 511.3984375,
+          "y": 354.2687683105469
+        },
+        "selectable": 1,
+        "zoom": 0.12568681318681318
+      },
+      "query": {
+        "n": 32,
+        "min": 0.3999999761581421,
+        "median": 0.5,
+        "p95": 0.9000000357627869,
+        "max": 1.2000000476837158
+      },
+      "feedback": {
+        "n": 12,
+        "min": 56.80000001192093,
+        "median": 59.29999998211861,
+        "p95": 589.9000000357628,
+        "max": 589.9000000357628
+      },
+      "nativeQuery": {
+        "n": 12,
+        "min": 0.5,
+        "median": 0.5,
+        "p95": 0.6000000238418579,
+        "max": 0.6000000238418579
+      },
+      "selected": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "nativeSelectionHash": "5307a86f889f9084bce219e5ca004cc5cb1a0fc50740d1c92d0bc61fe2c50786",
+      "querySelected": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        2,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "errors": [],
+      "reads": {
+        "rectReads": {
+          "n": 32,
+          "min": 27,
+          "median": 27,
+          "p95": 27,
+          "max": 27
+        },
+        "rectRequests": {
+          "n": 32,
+          "min": 27,
+          "median": 27,
+          "p95": 27,
+          "max": 27
+        },
+        "styleReads": {
+          "n": 32,
+          "min": 73,
+          "median": 73,
+          "p95": 73,
+          "max": 73
+        },
+        "styleRequests": {
+          "n": 32,
+          "min": 73,
+          "median": 73,
+          "p95": 73,
+          "max": 73
+        },
+        "numericRects": {
+          "n": 32,
+          "min": 5,
+          "median": 5,
+          "p95": 5,
+          "max": 5
+        },
+        "clipMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "collectMs": {
+          "n": 32,
+          "min": 0.3999999761581421,
+          "median": 0.5,
+          "p95": 0.7000000476837158,
+          "max": 0.7000000476837158
+        },
+        "rectMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "styleMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "predicateMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "packMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "kernelMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "pruneMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0.10000002384185791
+        }
+      },
+      "memory": [],
+      "peakRendererRssMiB": null
+    },
+    {
+      "file": "timing-complex-2-cached-js.json",
+      "phase": "timing",
+      "dataset": "complex",
+      "variant": "cached-js",
+      "buildHash": "5d8affccd499b73c42a7551af98e17fd4d9b6efb9b1c915b845d685f168cbec7",
+      "setup": {
+        "canvasDom": 600,
+        "frame": {
+          "height": 128.70330810546875,
+          "width": 180.989013671875,
+          "x": 523.3984375,
+          "y": 341.3984375
+        },
+        "frames": 10,
+        "query": {
+          "height": 83.65715026855469,
+          "width": 138.6923095703125,
+          "x": 511.3984375,
+          "y": 354.2687683105469
+        },
+        "selectable": 1,
+        "zoom": 0.12568681318681318
+      },
+      "query": {
+        "n": 32,
+        "min": 0.30000001192092896,
+        "median": 0.6000000238418579,
+        "p95": 0.9000000357627869,
+        "max": 1.300000011920929
+      },
+      "feedback": {
+        "n": 12,
+        "min": 58.30000001192093,
+        "median": 60.94999998807907,
+        "p95": 255.69999998807907,
+        "max": 255.69999998807907
+      },
+      "nativeQuery": {
+        "n": 12,
+        "min": 0.5,
+        "median": 0.5999999642372131,
+        "p95": 0.7000000476837158,
+        "max": 0.7000000476837158
+      },
+      "selected": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "nativeSelectionHash": "5307a86f889f9084bce219e5ca004cc5cb1a0fc50740d1c92d0bc61fe2c50786",
+      "querySelected": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        2,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "errors": [],
+      "reads": {
+        "rectReads": {
+          "n": 32,
+          "min": 10,
+          "median": 10,
+          "p95": 10,
+          "max": 10
+        },
+        "rectRequests": {
+          "n": 32,
+          "min": 27,
+          "median": 27,
+          "p95": 27,
+          "max": 27
+        },
+        "styleReads": {
+          "n": 32,
+          "min": 19,
+          "median": 19,
+          "p95": 19,
+          "max": 19
+        },
+        "styleRequests": {
+          "n": 32,
+          "min": 73,
+          "median": 73,
+          "p95": 73,
+          "max": 73
+        },
+        "numericRects": {
+          "n": 32,
+          "min": 5,
+          "median": 5,
+          "p95": 5,
+          "max": 5
+        },
+        "clipMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "collectMs": {
+          "n": 32,
+          "min": 0.30000001192092896,
+          "median": 0.5,
+          "p95": 0.7000000476837158,
+          "max": 0.7000000476837158
+        },
+        "rectMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "styleMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "predicateMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "packMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "kernelMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "pruneMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        }
+      },
+      "memory": [],
+      "peakRendererRssMiB": null
+    },
+    {
+      "file": "timing-complex-2-cached-wasm.json",
+      "phase": "timing",
+      "dataset": "complex",
+      "variant": "cached-wasm",
+      "buildHash": "5d8affccd499b73c42a7551af98e17fd4d9b6efb9b1c915b845d685f168cbec7",
+      "setup": {
+        "canvasDom": 600,
+        "frame": {
+          "height": 128.70330810546875,
+          "width": 180.989013671875,
+          "x": 523.3984375,
+          "y": 341.3984375
+        },
+        "frames": 10,
+        "query": {
+          "height": 83.65715026855469,
+          "width": 138.6923095703125,
+          "x": 511.3984375,
+          "y": 354.2687683105469
+        },
+        "selectable": 1,
+        "zoom": 0.12568681318681318
+      },
+      "wasm": {
+        "bytes": 1114112,
+        "initMs": 0.30000001192092896
+      },
+      "query": {
+        "n": 32,
+        "min": 0.3999999761581421,
+        "median": 0.6000000238418579,
+        "p95": 1,
+        "max": 1.5
+      },
+      "feedback": {
+        "n": 12,
+        "min": 59.69999998807907,
+        "median": 61.900000005960464,
+        "p95": 571.4000000357628,
+        "max": 571.4000000357628
+      },
+      "nativeQuery": {
+        "n": 12,
+        "min": 0.5,
+        "median": 0.6000000238418579,
+        "p95": 1.199999988079071,
+        "max": 1.199999988079071
+      },
+      "selected": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "nativeSelectionHash": "5307a86f889f9084bce219e5ca004cc5cb1a0fc50740d1c92d0bc61fe2c50786",
+      "querySelected": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        2,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "errors": [],
+      "reads": {
+        "rectReads": {
+          "n": 32,
+          "min": 10,
+          "median": 10,
+          "p95": 10,
+          "max": 10
+        },
+        "rectRequests": {
+          "n": 32,
+          "min": 27,
+          "median": 27,
+          "p95": 27,
+          "max": 27
+        },
+        "styleReads": {
+          "n": 32,
+          "min": 19,
+          "median": 19,
+          "p95": 19,
+          "max": 19
+        },
+        "styleRequests": {
+          "n": 32,
+          "min": 73,
+          "median": 73,
+          "p95": 73,
+          "max": 73
+        },
+        "numericRects": {
+          "n": 32,
+          "min": 5,
+          "median": 5,
+          "p95": 5,
+          "max": 5
+        },
+        "clipMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "collectMs": {
+          "n": 32,
+          "min": 0.3999999761581421,
+          "median": 0.5,
+          "p95": 0.699999988079071,
+          "max": 0.7000000476837158
+        },
+        "rectMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "styleMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "predicateMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "packMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0.09999996423721313,
+          "max": 0.10000002384185791
+        },
+        "kernelMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "pruneMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        }
+      },
+      "memory": [],
+      "peakRendererRssMiB": null
+    },
+    {
+      "file": "timing-complex-3-baseline.json",
+      "phase": "timing",
+      "dataset": "complex",
+      "variant": "baseline",
+      "buildHash": "5d8affccd499b73c42a7551af98e17fd4d9b6efb9b1c915b845d685f168cbec7",
+      "setup": {
+        "canvasDom": 600,
+        "frame": {
+          "height": 128.70330810546875,
+          "width": 180.989013671875,
+          "x": 523.3984375,
+          "y": 341.3984375
+        },
+        "frames": 10,
+        "query": {
+          "height": 83.65715026855469,
+          "width": 138.6923095703125,
+          "x": 511.3984375,
+          "y": 354.2687683105469
+        },
+        "selectable": 1,
+        "zoom": 0.12568681318681318
+      },
+      "query": {
+        "n": 32,
+        "min": 0.30000001192092896,
+        "median": 0.5999999642372131,
+        "p95": 0.800000011920929,
+        "max": 1.300000011920929
+      },
+      "feedback": {
+        "n": 12,
+        "min": 59.89999997615814,
+        "median": 60.95000001788139,
+        "p95": 352.2000000476837,
+        "max": 352.2000000476837
+      },
+      "nativeQuery": {
+        "n": 12,
+        "min": 0.3999999761581421,
+        "median": 0.5,
+        "p95": 0.7000000476837158,
+        "max": 0.7000000476837158
+      },
+      "selected": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "nativeSelectionHash": "5307a86f889f9084bce219e5ca004cc5cb1a0fc50740d1c92d0bc61fe2c50786",
+      "querySelected": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        2,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "errors": [],
+      "reads": {
+        "rectReads": {
+          "n": 32,
+          "min": 27,
+          "median": 27,
+          "p95": 27,
+          "max": 27
+        },
+        "rectRequests": {
+          "n": 32,
+          "min": 27,
+          "median": 27,
+          "p95": 27,
+          "max": 27
+        },
+        "styleReads": {
+          "n": 32,
+          "min": 73,
+          "median": 73,
+          "p95": 73,
+          "max": 73
+        },
+        "styleRequests": {
+          "n": 32,
+          "min": 73,
+          "median": 73,
+          "p95": 73,
+          "max": 73
+        },
+        "numericRects": {
+          "n": 32,
+          "min": 5,
+          "median": 5,
+          "p95": 5,
+          "max": 5
+        },
+        "clipMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "collectMs": {
+          "n": 32,
+          "min": 0.2999999523162842,
+          "median": 0.5,
+          "p95": 0.6000000238418579,
+          "max": 0.699999988079071
+        },
+        "rectMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "styleMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "predicateMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "packMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "kernelMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "pruneMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0.09999996423721313
+        }
+      },
+      "memory": [],
+      "peakRendererRssMiB": null
+    },
+    {
+      "file": "timing-complex-3-cached-js.json",
+      "phase": "timing",
+      "dataset": "complex",
+      "variant": "cached-js",
+      "buildHash": "5d8affccd499b73c42a7551af98e17fd4d9b6efb9b1c915b845d685f168cbec7",
+      "setup": {
+        "canvasDom": 600,
+        "frame": {
+          "height": 128.70330810546875,
+          "width": 180.989013671875,
+          "x": 523.3984375,
+          "y": 341.3984375
+        },
+        "frames": 10,
+        "query": {
+          "height": 83.65715026855469,
+          "width": 138.6923095703125,
+          "x": 511.3984375,
+          "y": 354.2687683105469
+        },
+        "selectable": 1,
+        "zoom": 0.12568681318681318
+      },
+      "query": {
+        "n": 32,
+        "min": 0.3999999761581421,
+        "median": 0.6000000238418579,
+        "p95": 0.9000000357627869,
+        "max": 1.199999988079071
+      },
+      "feedback": {
+        "n": 12,
+        "min": 59.19999998807907,
+        "median": 62.349999994039536,
+        "p95": 191.19999998807907,
+        "max": 191.19999998807907
+      },
+      "nativeQuery": {
+        "n": 12,
+        "min": 0.5,
+        "median": 0.6000000238418579,
+        "p95": 0.699999988079071,
+        "max": 0.699999988079071
+      },
+      "selected": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "nativeSelectionHash": "5307a86f889f9084bce219e5ca004cc5cb1a0fc50740d1c92d0bc61fe2c50786",
+      "querySelected": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        2,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "errors": [],
+      "reads": {
+        "rectReads": {
+          "n": 32,
+          "min": 10,
+          "median": 10,
+          "p95": 10,
+          "max": 10
+        },
+        "rectRequests": {
+          "n": 32,
+          "min": 27,
+          "median": 27,
+          "p95": 27,
+          "max": 27
+        },
+        "styleReads": {
+          "n": 32,
+          "min": 19,
+          "median": 19,
+          "p95": 19,
+          "max": 19
+        },
+        "styleRequests": {
+          "n": 32,
+          "min": 73,
+          "median": 73,
+          "p95": 73,
+          "max": 73
+        },
+        "numericRects": {
+          "n": 32,
+          "min": 5,
+          "median": 5,
+          "p95": 5,
+          "max": 5
+        },
+        "clipMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "collectMs": {
+          "n": 32,
+          "min": 0.3999999761581421,
+          "median": 0.5,
+          "p95": 0.699999988079071,
+          "max": 0.7000000476837158
+        },
+        "rectMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "styleMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "predicateMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "packMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "kernelMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "pruneMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        }
+      },
+      "memory": [],
+      "peakRendererRssMiB": null
+    },
+    {
+      "file": "timing-complex-3-cached-wasm.json",
+      "phase": "timing",
+      "dataset": "complex",
+      "variant": "cached-wasm",
+      "buildHash": "5d8affccd499b73c42a7551af98e17fd4d9b6efb9b1c915b845d685f168cbec7",
+      "setup": {
+        "canvasDom": 600,
+        "frame": {
+          "height": 128.70330810546875,
+          "width": 180.989013671875,
+          "x": 523.3984375,
+          "y": 341.3984375
+        },
+        "frames": 10,
+        "query": {
+          "height": 83.65715026855469,
+          "width": 138.6923095703125,
+          "x": 511.3984375,
+          "y": 354.2687683105469
+        },
+        "selectable": 1,
+        "zoom": 0.12568681318681318
+      },
+      "wasm": {
+        "bytes": 1114112,
+        "initMs": 0.30000001192092896
+      },
+      "query": {
+        "n": 32,
+        "min": 0.3999999761581421,
+        "median": 0.6000000238418579,
+        "p95": 0.8999999761581421,
+        "max": 1.300000011920929
+      },
+      "feedback": {
+        "n": 12,
+        "min": 62.30000001192093,
+        "median": 67.94999998807907,
+        "p95": 535.1000000238419,
+        "max": 535.1000000238419
+      },
+      "nativeQuery": {
+        "n": 12,
+        "min": 0.5,
+        "median": 0.6000000238418579,
+        "p95": 0.699999988079071,
+        "max": 0.699999988079071
+      },
+      "selected": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "nativeSelectionHash": "5307a86f889f9084bce219e5ca004cc5cb1a0fc50740d1c92d0bc61fe2c50786",
+      "querySelected": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        2,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "errors": [],
+      "reads": {
+        "rectReads": {
+          "n": 32,
+          "min": 10,
+          "median": 10,
+          "p95": 10,
+          "max": 10
+        },
+        "rectRequests": {
+          "n": 32,
+          "min": 27,
+          "median": 27,
+          "p95": 27,
+          "max": 27
+        },
+        "styleReads": {
+          "n": 32,
+          "min": 19,
+          "median": 19,
+          "p95": 19,
+          "max": 19
+        },
+        "styleRequests": {
+          "n": 32,
+          "min": 73,
+          "median": 73,
+          "p95": 73,
+          "max": 73
+        },
+        "numericRects": {
+          "n": 32,
+          "min": 5,
+          "median": 5,
+          "p95": 5,
+          "max": 5
+        },
+        "clipMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "collectMs": {
+          "n": 32,
+          "min": 0.3999999761581421,
+          "median": 0.5,
+          "p95": 0.6000000238418579,
+          "max": 0.6000000238418579
+        },
+        "rectMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "styleMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "predicateMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "packMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0.10000002384185791,
+          "max": 0.10000002384185791
+        },
+        "kernelMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0.09999996423721313
+        },
+        "pruneMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0.09999996423721313
+        }
+      },
+      "memory": [],
+      "peakRendererRssMiB": null
+    },
+    {
+      "file": "timing-gp-1-baseline.json",
+      "phase": "timing",
+      "dataset": "gp",
+      "variant": "baseline",
+      "buildHash": "5d8affccd499b73c42a7551af98e17fd4d9b6efb9b1c915b845d685f168cbec7",
+      "setup": {
+        "canvasDom": 1107,
+        "frame": {
+          "height": 732,
+          "width": 1029.375,
+          "x": 99.3984375,
+          "y": 39.8984375
+        },
+        "frames": 1,
+        "query": {
+          "height": 340,
+          "width": 562,
+          "x": 87.3984375,
+          "y": 64.8984375
+        },
+        "selectable": 1,
+        "zoom": 0.71484375
+      },
+      "query": {
+        "n": 32,
+        "min": 218.80000001192093,
+        "median": 223.05000001192093,
+        "p95": 245.70000004768372,
+        "max": 261.5
+      },
+      "feedback": {
+        "n": 12,
+        "min": 279.69999998807907,
+        "median": 305.34999999403954,
+        "p95": 330.39999997615814,
+        "max": 330.39999997615814
+      },
+      "nativeQuery": {
+        "n": 12,
+        "min": 230.19999998807907,
+        "median": 261.4500000178814,
+        "p95": 279.4000000357628,
+        "max": 279.4000000357628
+      },
+      "selected": [
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7
+      ],
+      "nativeSelectionHash": "a7a56f238fb3ffe728aff27390739243573bb48a439a225a08253457b4a51e23",
+      "querySelected": [
+        0,
+        5,
+        19,
+        19,
+        32,
+        18,
+        2,
+        10,
+        15,
+        29,
+        14,
+        84,
+        2,
+        8,
+        27,
+        1,
+        13,
+        35,
+        6,
+        18,
+        7,
+        10,
+        23,
+        126,
+        0,
+        5,
+        19,
+        19,
+        32,
+        18,
+        2,
+        10
+      ],
+      "errors": [],
+      "reads": {
+        "rectReads": {
+          "n": 32,
+          "min": 22793,
+          "median": 22793,
+          "p95": 22793,
+          "max": 22793
+        },
+        "rectRequests": {
+          "n": 32,
+          "min": 22793,
+          "median": 22793,
+          "p95": 22793,
+          "max": 22793
+        },
+        "styleReads": {
+          "n": 32,
+          "min": 100486,
+          "median": 100486,
+          "p95": 100486,
+          "max": 100486
+        },
+        "styleRequests": {
+          "n": 32,
+          "min": 100486,
+          "median": 100486,
+          "p95": 100486,
+          "max": 100486
+        },
+        "numericRects": {
+          "n": 32,
+          "min": 1803,
+          "median": 1803,
+          "p95": 1803,
+          "max": 1803
+        },
+        "clipMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "collectMs": {
+          "n": 32,
+          "min": 217.9000000357628,
+          "median": 222.90000000596046,
+          "p95": 245.4000000357628,
+          "max": 261.4000000357628
+        },
+        "rectMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "styleMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "predicateMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "packMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "kernelMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "pruneMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0.10000002384185791,
+          "p95": 0.8999999761581421,
+          "max": 3.200000047683716
+        }
+      },
+      "memory": [],
+      "peakRendererRssMiB": null
+    },
+    {
+      "file": "timing-gp-1-cached-js.json",
+      "phase": "timing",
+      "dataset": "gp",
+      "variant": "cached-js",
+      "buildHash": "5d8affccd499b73c42a7551af98e17fd4d9b6efb9b1c915b845d685f168cbec7",
+      "setup": {
+        "canvasDom": 1107,
+        "frame": {
+          "height": 732,
+          "width": 1029.375,
+          "x": 99.3984375,
+          "y": 39.8984375
+        },
+        "frames": 1,
+        "query": {
+          "height": 340,
+          "width": 562,
+          "x": 87.3984375,
+          "y": 64.8984375
+        },
+        "selectable": 1,
+        "zoom": 0.71484375
+      },
+      "query": {
+        "n": 32,
+        "min": 120.10000002384186,
+        "median": 123.0499999821186,
+        "p95": 145.30000001192093,
+        "max": 155.60000002384186
+      },
+      "feedback": {
+        "n": 12,
+        "min": 176.19999998807907,
+        "median": 185.5,
+        "p95": 212.30000001192093,
+        "max": 212.30000001192093
+      },
+      "nativeQuery": {
+        "n": 12,
+        "min": 133.5999999642372,
+        "median": 140.90000000596046,
+        "p95": 166.69999998807907,
+        "max": 166.69999998807907
+      },
+      "selected": [
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7
+      ],
+      "nativeSelectionHash": "a7a56f238fb3ffe728aff27390739243573bb48a439a225a08253457b4a51e23",
+      "querySelected": [
+        0,
+        5,
+        19,
+        19,
+        32,
+        18,
+        2,
+        10,
+        15,
+        29,
+        14,
+        84,
+        2,
+        8,
+        27,
+        1,
+        13,
+        35,
+        6,
+        18,
+        7,
+        10,
+        23,
+        126,
+        0,
+        5,
+        19,
+        19,
+        32,
+        18,
+        2,
+        10
+      ],
+      "errors": [],
+      "reads": {
+        "rectReads": {
+          "n": 32,
+          "min": 373,
+          "median": 373,
+          "p95": 373,
+          "max": 373
+        },
+        "rectRequests": {
+          "n": 32,
+          "min": 22793,
+          "median": 22793,
+          "p95": 22793,
+          "max": 22793
+        },
+        "styleReads": {
+          "n": 32,
+          "min": 451,
+          "median": 451,
+          "p95": 451,
+          "max": 451
+        },
+        "styleRequests": {
+          "n": 32,
+          "min": 100486,
+          "median": 100486,
+          "p95": 100486,
+          "max": 100486
+        },
+        "numericRects": {
+          "n": 32,
+          "min": 1803,
+          "median": 1803,
+          "p95": 1803,
+          "max": 1803
+        },
+        "clipMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "collectMs": {
+          "n": 32,
+          "min": 120,
+          "median": 122.89999997615814,
+          "p95": 145.10000002384186,
+          "max": 155.5
+        },
+        "rectMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "styleMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "predicateMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "packMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "kernelMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "pruneMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0.10000002384185791,
+          "p95": 0.3999999761581421,
+          "max": 0.6000000238418579
+        }
+      },
+      "memory": [],
+      "peakRendererRssMiB": null
+    },
+    {
+      "file": "timing-gp-1-cached-wasm.json",
+      "phase": "timing",
+      "dataset": "gp",
+      "variant": "cached-wasm",
+      "buildHash": "5d8affccd499b73c42a7551af98e17fd4d9b6efb9b1c915b845d685f168cbec7",
+      "setup": {
+        "canvasDom": 1107,
+        "frame": {
+          "height": 732,
+          "width": 1029.375,
+          "x": 99.3984375,
+          "y": 39.8984375
+        },
+        "frames": 1,
+        "query": {
+          "height": 340,
+          "width": 562,
+          "x": 87.3984375,
+          "y": 64.8984375
+        },
+        "selectable": 1,
+        "zoom": 0.71484375
+      },
+      "wasm": {
+        "bytes": 1114112,
+        "initMs": 0.30000001192092896
+      },
+      "query": {
+        "n": 32,
+        "min": 120.29999995231628,
+        "median": 125.0499999821186,
+        "p95": 151.9000000357628,
+        "max": 170.19999998807907
+      },
+      "feedback": {
+        "n": 12,
+        "min": 183.69999998807907,
+        "median": 194.05000001192093,
+        "p95": 231,
+        "max": 231
+      },
+      "nativeQuery": {
+        "n": 12,
+        "min": 136.20000004768372,
+        "median": 146.69999998807907,
+        "p95": 178.79999995231628,
+        "max": 178.79999995231628
+      },
+      "selected": [
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7
+      ],
+      "nativeSelectionHash": "a7a56f238fb3ffe728aff27390739243573bb48a439a225a08253457b4a51e23",
+      "querySelected": [
+        0,
+        5,
+        19,
+        19,
+        32,
+        18,
+        2,
+        10,
+        15,
+        29,
+        14,
+        84,
+        2,
+        8,
+        27,
+        1,
+        13,
+        35,
+        6,
+        18,
+        7,
+        10,
+        23,
+        126,
+        0,
+        5,
+        19,
+        19,
+        32,
+        18,
+        2,
+        10
+      ],
+      "errors": [],
+      "reads": {
+        "rectReads": {
+          "n": 32,
+          "min": 373,
+          "median": 373,
+          "p95": 373,
+          "max": 373
+        },
+        "rectRequests": {
+          "n": 32,
+          "min": 22793,
+          "median": 22793,
+          "p95": 22793,
+          "max": 22793
+        },
+        "styleReads": {
+          "n": 32,
+          "min": 451,
+          "median": 451,
+          "p95": 451,
+          "max": 451
+        },
+        "styleRequests": {
+          "n": 32,
+          "min": 100486,
+          "median": 100486,
+          "p95": 100486,
+          "max": 100486
+        },
+        "numericRects": {
+          "n": 32,
+          "min": 1803,
+          "median": 1803,
+          "p95": 1803,
+          "max": 1803
+        },
+        "clipMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "collectMs": {
+          "n": 32,
+          "min": 120.19999998807907,
+          "median": 124.84999999403954,
+          "p95": 151.60000002384186,
+          "max": 170
+        },
+        "rectMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "styleMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "predicateMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "packMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0.09999996423721313,
+          "p95": 0.20000004768371582,
+          "max": 0.20000004768371582
+        },
+        "kernelMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0.10000002384185791,
+          "max": 0.10000002384185791
+        },
+        "pruneMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0.10000002384185791,
+          "p95": 0.6000000238418579,
+          "max": 0.9000000357627869
+        }
+      },
+      "memory": [],
+      "peakRendererRssMiB": null
+    },
+    {
+      "file": "timing-gp-2-baseline.json",
+      "phase": "timing",
+      "dataset": "gp",
+      "variant": "baseline",
+      "buildHash": "5d8affccd499b73c42a7551af98e17fd4d9b6efb9b1c915b845d685f168cbec7",
+      "setup": {
+        "canvasDom": 1107,
+        "frame": {
+          "height": 732,
+          "width": 1029.375,
+          "x": 99.3984375,
+          "y": 39.8984375
+        },
+        "frames": 1,
+        "query": {
+          "height": 340,
+          "width": 562,
+          "x": 87.3984375,
+          "y": 64.8984375
+        },
+        "selectable": 1,
+        "zoom": 0.71484375
+      },
+      "query": {
+        "n": 32,
+        "min": 214.5,
+        "median": 225.25,
+        "p95": 248.39999997615814,
+        "max": 257.69999998807907
+      },
+      "feedback": {
+        "n": 12,
+        "min": 281.5,
+        "median": 305.4500000178814,
+        "p95": 362.2000000476837,
+        "max": 362.2000000476837
+      },
+      "nativeQuery": {
+        "n": 12,
+        "min": 236,
+        "median": 257.9999999701977,
+        "p95": 309.5,
+        "max": 309.5
+      },
+      "selected": [
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7
+      ],
+      "nativeSelectionHash": "a7a56f238fb3ffe728aff27390739243573bb48a439a225a08253457b4a51e23",
+      "querySelected": [
+        0,
+        5,
+        19,
+        19,
+        32,
+        18,
+        2,
+        10,
+        15,
+        29,
+        14,
+        84,
+        2,
+        8,
+        27,
+        1,
+        13,
+        35,
+        6,
+        18,
+        7,
+        10,
+        23,
+        126,
+        0,
+        5,
+        19,
+        19,
+        32,
+        18,
+        2,
+        10
+      ],
+      "errors": [],
+      "reads": {
+        "rectReads": {
+          "n": 32,
+          "min": 22793,
+          "median": 22793,
+          "p95": 22793,
+          "max": 22793
+        },
+        "rectRequests": {
+          "n": 32,
+          "min": 22793,
+          "median": 22793,
+          "p95": 22793,
+          "max": 22793
+        },
+        "styleReads": {
+          "n": 32,
+          "min": 100486,
+          "median": 100486,
+          "p95": 100486,
+          "max": 100486
+        },
+        "styleRequests": {
+          "n": 32,
+          "min": 100486,
+          "median": 100486,
+          "p95": 100486,
+          "max": 100486
+        },
+        "numericRects": {
+          "n": 32,
+          "min": 1803,
+          "median": 1803,
+          "p95": 1803,
+          "max": 1803
+        },
+        "clipMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "collectMs": {
+          "n": 32,
+          "min": 214.30000001192093,
+          "median": 225,
+          "p95": 245.30000001192093,
+          "max": 257.69999998807907
+        },
+        "rectMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "styleMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "predicateMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "packMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "kernelMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "pruneMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0.10000002384185791,
+          "p95": 0.8999999761581421,
+          "max": 3.899999976158142
+        }
+      },
+      "memory": [],
+      "peakRendererRssMiB": null
+    },
+    {
+      "file": "timing-gp-2-cached-js.json",
+      "phase": "timing",
+      "dataset": "gp",
+      "variant": "cached-js",
+      "buildHash": "5d8affccd499b73c42a7551af98e17fd4d9b6efb9b1c915b845d685f168cbec7",
+      "setup": {
+        "canvasDom": 1107,
+        "frame": {
+          "height": 732,
+          "width": 1029.375,
+          "x": 99.3984375,
+          "y": 39.8984375
+        },
+        "frames": 1,
+        "query": {
+          "height": 340,
+          "width": 562,
+          "x": 87.3984375,
+          "y": 64.8984375
+        },
+        "selectable": 1,
+        "zoom": 0.71484375
+      },
+      "query": {
+        "n": 32,
+        "min": 121.39999997615814,
+        "median": 123.55000001192093,
+        "p95": 149.79999995231628,
+        "max": 160.10000002384186
+      },
+      "feedback": {
+        "n": 12,
+        "min": 179.10000002384186,
+        "median": 190.9000000357628,
+        "p95": 227,
+        "max": 227
+      },
+      "nativeQuery": {
+        "n": 12,
+        "min": 137.39999997615814,
+        "median": 145.2999999821186,
+        "p95": 181.0999999642372,
+        "max": 181.0999999642372
+      },
+      "selected": [
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7
+      ],
+      "nativeSelectionHash": "a7a56f238fb3ffe728aff27390739243573bb48a439a225a08253457b4a51e23",
+      "querySelected": [
+        0,
+        5,
+        19,
+        19,
+        32,
+        18,
+        2,
+        10,
+        15,
+        29,
+        14,
+        84,
+        2,
+        8,
+        27,
+        1,
+        13,
+        35,
+        6,
+        18,
+        7,
+        10,
+        23,
+        126,
+        0,
+        5,
+        19,
+        19,
+        32,
+        18,
+        2,
+        10
+      ],
+      "errors": [],
+      "reads": {
+        "rectReads": {
+          "n": 32,
+          "min": 373,
+          "median": 373,
+          "p95": 373,
+          "max": 373
+        },
+        "rectRequests": {
+          "n": 32,
+          "min": 22793,
+          "median": 22793,
+          "p95": 22793,
+          "max": 22793
+        },
+        "styleReads": {
+          "n": 32,
+          "min": 451,
+          "median": 451,
+          "p95": 451,
+          "max": 451
+        },
+        "styleRequests": {
+          "n": 32,
+          "min": 100486,
+          "median": 100486,
+          "p95": 100486,
+          "max": 100486
+        },
+        "numericRects": {
+          "n": 32,
+          "min": 1803,
+          "median": 1803,
+          "p95": 1803,
+          "max": 1803
+        },
+        "clipMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "collectMs": {
+          "n": 32,
+          "min": 121.30000001192093,
+          "median": 123.09999999403954,
+          "p95": 149.5999999642372,
+          "max": 159.9000000357628
+        },
+        "rectMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "styleMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "predicateMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "packMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "kernelMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "pruneMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0.09999999403953552,
+          "p95": 0.6000000238418579,
+          "max": 0.8999999761581421
+        }
+      },
+      "memory": [],
+      "peakRendererRssMiB": null
+    },
+    {
+      "file": "timing-gp-2-cached-wasm.json",
+      "phase": "timing",
+      "dataset": "gp",
+      "variant": "cached-wasm",
+      "buildHash": "5d8affccd499b73c42a7551af98e17fd4d9b6efb9b1c915b845d685f168cbec7",
+      "setup": {
+        "canvasDom": 1107,
+        "frame": {
+          "height": 732,
+          "width": 1029.375,
+          "x": 99.3984375,
+          "y": 39.8984375
+        },
+        "frames": 1,
+        "query": {
+          "height": 340,
+          "width": 562,
+          "x": 87.3984375,
+          "y": 64.8984375
+        },
+        "selectable": 1,
+        "zoom": 0.71484375
+      },
+      "wasm": {
+        "bytes": 1114112,
+        "initMs": 0.19999998807907104
+      },
+      "query": {
+        "n": 32,
+        "min": 130.5,
+        "median": 138.65000000596046,
+        "p95": 184.89999997615814,
+        "max": 395.5
+      },
+      "feedback": {
+        "n": 12,
+        "min": 207.9000000357628,
+        "median": 267.19999998807907,
+        "p95": 350.19999998807907,
+        "max": 350.19999998807907
+      },
+      "nativeQuery": {
+        "n": 12,
+        "min": 147.4000000357628,
+        "median": 202.09999999403954,
+        "p95": 251,
+        "max": 251
+      },
+      "selected": [
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7
+      ],
+      "nativeSelectionHash": "a7a56f238fb3ffe728aff27390739243573bb48a439a225a08253457b4a51e23",
+      "querySelected": [
+        0,
+        5,
+        19,
+        19,
+        32,
+        18,
+        2,
+        10,
+        15,
+        29,
+        14,
+        84,
+        2,
+        8,
+        27,
+        1,
+        13,
+        35,
+        6,
+        18,
+        7,
+        10,
+        23,
+        126,
+        0,
+        5,
+        19,
+        19,
+        32,
+        18,
+        2,
+        10
+      ],
+      "errors": [],
+      "reads": {
+        "rectReads": {
+          "n": 32,
+          "min": 373,
+          "median": 373,
+          "p95": 373,
+          "max": 373
+        },
+        "rectRequests": {
+          "n": 32,
+          "min": 22793,
+          "median": 22793,
+          "p95": 22793,
+          "max": 22793
+        },
+        "styleReads": {
+          "n": 32,
+          "min": 451,
+          "median": 451,
+          "p95": 451,
+          "max": 451
+        },
+        "styleRequests": {
+          "n": 32,
+          "min": 100486,
+          "median": 100486,
+          "p95": 100486,
+          "max": 100486
+        },
+        "numericRects": {
+          "n": 32,
+          "min": 1803,
+          "median": 1803,
+          "p95": 1803,
+          "max": 1803
+        },
+        "clipMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "collectMs": {
+          "n": 32,
+          "min": 130.29999995231628,
+          "median": 138.40000000596046,
+          "p95": 184.69999998807907,
+          "max": 395.30000001192093
+        },
+        "rectMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "styleMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "predicateMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "packMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0.10000002384185791,
+          "p95": 0.20000004768371582,
+          "max": 0.30000001192092896
+        },
+        "kernelMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0.10000002384185791,
+          "max": 0.10000002384185791
+        },
+        "pruneMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0.10000002384185791,
+          "p95": 1,
+          "max": 1.2999999523162842
+        }
+      },
+      "memory": [],
+      "peakRendererRssMiB": null
+    },
+    {
+      "file": "timing-gp-3-baseline.json",
+      "phase": "timing",
+      "dataset": "gp",
+      "variant": "baseline",
+      "buildHash": "5d8affccd499b73c42a7551af98e17fd4d9b6efb9b1c915b845d685f168cbec7",
+      "setup": {
+        "canvasDom": 1107,
+        "frame": {
+          "height": 732,
+          "width": 1029.375,
+          "x": 99.3984375,
+          "y": 39.8984375
+        },
+        "frames": 1,
+        "query": {
+          "height": 340,
+          "width": 562,
+          "x": 87.3984375,
+          "y": 64.8984375
+        },
+        "selectable": 1,
+        "zoom": 0.71484375
+      },
+      "query": {
+        "n": 32,
+        "min": 216.9000000357628,
+        "median": 227.05000001192093,
+        "p95": 278.19999998807907,
+        "max": 290.10000002384186
+      },
+      "feedback": {
+        "n": 12,
+        "min": 285.5,
+        "median": 315.65000000596046,
+        "p95": 377.0999999642372,
+        "max": 377.0999999642372
+      },
+      "nativeQuery": {
+        "n": 12,
+        "min": 239.5,
+        "median": 261.0499999821186,
+        "p95": 317.19999998807907,
+        "max": 317.19999998807907
+      },
+      "selected": [
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7
+      ],
+      "nativeSelectionHash": "a7a56f238fb3ffe728aff27390739243573bb48a439a225a08253457b4a51e23",
+      "querySelected": [
+        0,
+        5,
+        19,
+        19,
+        32,
+        18,
+        2,
+        10,
+        15,
+        29,
+        14,
+        84,
+        2,
+        8,
+        27,
+        1,
+        13,
+        35,
+        6,
+        18,
+        7,
+        10,
+        23,
+        126,
+        0,
+        5,
+        19,
+        19,
+        32,
+        18,
+        2,
+        10
+      ],
+      "errors": [],
+      "reads": {
+        "rectReads": {
+          "n": 32,
+          "min": 22793,
+          "median": 22793,
+          "p95": 22793,
+          "max": 22793
+        },
+        "rectRequests": {
+          "n": 32,
+          "min": 22793,
+          "median": 22793,
+          "p95": 22793,
+          "max": 22793
+        },
+        "styleReads": {
+          "n": 32,
+          "min": 100486,
+          "median": 100486,
+          "p95": 100486,
+          "max": 100486
+        },
+        "styleRequests": {
+          "n": 32,
+          "min": 100486,
+          "median": 100486,
+          "p95": 100486,
+          "max": 100486
+        },
+        "numericRects": {
+          "n": 32,
+          "min": 1803,
+          "median": 1803,
+          "p95": 1803,
+          "max": 1803
+        },
+        "clipMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "collectMs": {
+          "n": 32,
+          "min": 216.80000001192093,
+          "median": 226.65000000596046,
+          "p95": 278,
+          "max": 289.9000000357628
+        },
+        "rectMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "styleMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "predicateMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "packMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "kernelMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "pruneMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0.10000002384185791,
+          "p95": 0.5,
+          "max": 0.800000011920929
+        }
+      },
+      "memory": [],
+      "peakRendererRssMiB": null
+    },
+    {
+      "file": "timing-gp-3-cached-js.json",
+      "phase": "timing",
+      "dataset": "gp",
+      "variant": "cached-js",
+      "buildHash": "5d8affccd499b73c42a7551af98e17fd4d9b6efb9b1c915b845d685f168cbec7",
+      "setup": {
+        "canvasDom": 1107,
+        "frame": {
+          "height": 732,
+          "width": 1029.375,
+          "x": 99.3984375,
+          "y": 39.8984375
+        },
+        "frames": 1,
+        "query": {
+          "height": 340,
+          "width": 562,
+          "x": 87.3984375,
+          "y": 64.8984375
+        },
+        "selectable": 1,
+        "zoom": 0.71484375
+      },
+      "query": {
+        "n": 32,
+        "min": 119.30000001192093,
+        "median": 121.09999999403954,
+        "p95": 139.39999997615814,
+        "max": 143.69999998807907
+      },
+      "feedback": {
+        "n": 12,
+        "min": 178.80000001192093,
+        "median": 192.19999998807907,
+        "p95": 216.70000004768372,
+        "max": 216.70000004768372
+      },
+      "nativeQuery": {
+        "n": 12,
+        "min": 136.0999999642372,
+        "median": 145,
+        "p95": 156.69999998807907,
+        "max": 156.69999998807907
+      },
+      "selected": [
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7
+      ],
+      "nativeSelectionHash": "a7a56f238fb3ffe728aff27390739243573bb48a439a225a08253457b4a51e23",
+      "querySelected": [
+        0,
+        5,
+        19,
+        19,
+        32,
+        18,
+        2,
+        10,
+        15,
+        29,
+        14,
+        84,
+        2,
+        8,
+        27,
+        1,
+        13,
+        35,
+        6,
+        18,
+        7,
+        10,
+        23,
+        126,
+        0,
+        5,
+        19,
+        19,
+        32,
+        18,
+        2,
+        10
+      ],
+      "errors": [],
+      "reads": {
+        "rectReads": {
+          "n": 32,
+          "min": 373,
+          "median": 373,
+          "p95": 373,
+          "max": 373
+        },
+        "rectRequests": {
+          "n": 32,
+          "min": 22793,
+          "median": 22793,
+          "p95": 22793,
+          "max": 22793
+        },
+        "styleReads": {
+          "n": 32,
+          "min": 451,
+          "median": 451,
+          "p95": 451,
+          "max": 451
+        },
+        "styleRequests": {
+          "n": 32,
+          "min": 100486,
+          "median": 100486,
+          "p95": 100486,
+          "max": 100486
+        },
+        "numericRects": {
+          "n": 32,
+          "min": 1803,
+          "median": 1803,
+          "p95": 1803,
+          "max": 1803
+        },
+        "clipMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "collectMs": {
+          "n": 32,
+          "min": 119,
+          "median": 121,
+          "p95": 139.19999998807907,
+          "max": 143.5
+        },
+        "rectMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "styleMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "predicateMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "packMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "kernelMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "pruneMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0.10000002384185791,
+          "p95": 0.5,
+          "max": 0.800000011920929
+        }
+      },
+      "memory": [],
+      "peakRendererRssMiB": null
+    },
+    {
+      "file": "timing-gp-3-cached-wasm.json",
+      "phase": "timing",
+      "dataset": "gp",
+      "variant": "cached-wasm",
+      "buildHash": "5d8affccd499b73c42a7551af98e17fd4d9b6efb9b1c915b845d685f168cbec7",
+      "setup": {
+        "canvasDom": 1107,
+        "frame": {
+          "height": 732,
+          "width": 1029.375,
+          "x": 99.3984375,
+          "y": 39.8984375
+        },
+        "frames": 1,
+        "query": {
+          "height": 340,
+          "width": 562,
+          "x": 87.3984375,
+          "y": 64.8984375
+        },
+        "selectable": 1,
+        "zoom": 0.71484375
+      },
+      "wasm": {
+        "bytes": 1114112,
+        "initMs": 0.40000003576278687
+      },
+      "query": {
+        "n": 32,
+        "min": 120.69999998807907,
+        "median": 122.64999997615814,
+        "p95": 145.29999995231628,
+        "max": 156.30000001192093
+      },
+      "feedback": {
+        "n": 12,
+        "min": 180.69999998807907,
+        "median": 186.5,
+        "p95": 225.80000001192093,
+        "max": 225.80000001192093
+      },
+      "nativeQuery": {
+        "n": 12,
+        "min": 136.4000000357628,
+        "median": 141.4500000178814,
+        "p95": 176.19999998807907,
+        "max": 176.19999998807907
+      },
+      "selected": [
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7
+      ],
+      "nativeSelectionHash": "a7a56f238fb3ffe728aff27390739243573bb48a439a225a08253457b4a51e23",
+      "querySelected": [
+        0,
+        5,
+        19,
+        19,
+        32,
+        18,
+        2,
+        10,
+        15,
+        29,
+        14,
+        84,
+        2,
+        8,
+        27,
+        1,
+        13,
+        35,
+        6,
+        18,
+        7,
+        10,
+        23,
+        126,
+        0,
+        5,
+        19,
+        19,
+        32,
+        18,
+        2,
+        10
+      ],
+      "errors": [],
+      "reads": {
+        "rectReads": {
+          "n": 32,
+          "min": 373,
+          "median": 373,
+          "p95": 373,
+          "max": 373
+        },
+        "rectRequests": {
+          "n": 32,
+          "min": 22793,
+          "median": 22793,
+          "p95": 22793,
+          "max": 22793
+        },
+        "styleReads": {
+          "n": 32,
+          "min": 451,
+          "median": 451,
+          "p95": 451,
+          "max": 451
+        },
+        "styleRequests": {
+          "n": 32,
+          "min": 100486,
+          "median": 100486,
+          "p95": 100486,
+          "max": 100486
+        },
+        "numericRects": {
+          "n": 32,
+          "min": 1803,
+          "median": 1803,
+          "p95": 1803,
+          "max": 1803
+        },
+        "clipMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "collectMs": {
+          "n": 32,
+          "min": 120.39999997615814,
+          "median": 122.05000001192093,
+          "p95": 145,
+          "max": 156.0999999642372
+        },
+        "rectMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "styleMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "predicateMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "packMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0.10000002384185791,
+          "p95": 0.20000004768371582,
+          "max": 0.20000004768371582
+        },
+        "kernelMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0,
+          "p95": 0.10000002384185791,
+          "max": 0.10000002384185791
+        },
+        "pruneMs": {
+          "n": 32,
+          "min": 0,
+          "median": 0.09999996423721313,
+          "p95": 0.6000000238418579,
+          "max": 0.9000000357627869
+        }
+      },
+      "memory": [],
+      "peakRendererRssMiB": null
+    }
+  ],
+  "groups": [
+    {
+      "dataset": "gp",
+      "variant": "baseline",
+      "runs": 3,
+      "medianOfQueryMedians": {
+        "n": 3,
+        "min": 223.05000001192093,
+        "median": 225.25,
+        "p95": 227.05000001192093,
+        "max": 227.05000001192093
+      },
+      "medianOfFeedbackMedians": {
+        "n": 3,
+        "min": 305.34999999403954,
+        "median": 305.4500000178814,
+        "p95": 315.65000000596046,
+        "max": 315.65000000596046
+      },
+      "perRun": [
+        {
+          "file": "timing-gp-1-baseline.json",
+          "queryMedian": 223.05000001192093,
+          "queryP95": 245.70000004768372,
+          "feedbackMedian": 305.34999999403954,
+          "feedbackP95": 330.39999997615814
+        },
+        {
+          "file": "timing-gp-2-baseline.json",
+          "queryMedian": 225.25,
+          "queryP95": 248.39999997615814,
+          "feedbackMedian": 305.4500000178814,
+          "feedbackP95": 362.2000000476837
+        },
+        {
+          "file": "timing-gp-3-baseline.json",
+          "queryMedian": 227.05000001192093,
+          "queryP95": 278.19999998807907,
+          "feedbackMedian": 315.65000000596046,
+          "feedbackP95": 377.0999999642372
+        }
+      ]
+    },
+    {
+      "dataset": "gp",
+      "variant": "cached-js",
+      "runs": 3,
+      "medianOfQueryMedians": {
+        "n": 3,
+        "min": 121.09999999403954,
+        "median": 123.0499999821186,
+        "p95": 123.55000001192093,
+        "max": 123.55000001192093
+      },
+      "medianOfFeedbackMedians": {
+        "n": 3,
+        "min": 185.5,
+        "median": 190.9000000357628,
+        "p95": 192.19999998807907,
+        "max": 192.19999998807907
+      },
+      "perRun": [
+        {
+          "file": "timing-gp-1-cached-js.json",
+          "queryMedian": 123.0499999821186,
+          "queryP95": 145.30000001192093,
+          "feedbackMedian": 185.5,
+          "feedbackP95": 212.30000001192093
+        },
+        {
+          "file": "timing-gp-2-cached-js.json",
+          "queryMedian": 123.55000001192093,
+          "queryP95": 149.79999995231628,
+          "feedbackMedian": 190.9000000357628,
+          "feedbackP95": 227
+        },
+        {
+          "file": "timing-gp-3-cached-js.json",
+          "queryMedian": 121.09999999403954,
+          "queryP95": 139.39999997615814,
+          "feedbackMedian": 192.19999998807907,
+          "feedbackP95": 216.70000004768372
+        }
+      ]
+    },
+    {
+      "dataset": "gp",
+      "variant": "cached-wasm",
+      "runs": 3,
+      "medianOfQueryMedians": {
+        "n": 3,
+        "min": 122.64999997615814,
+        "median": 125.0499999821186,
+        "p95": 138.65000000596046,
+        "max": 138.65000000596046
+      },
+      "medianOfFeedbackMedians": {
+        "n": 3,
+        "min": 186.5,
+        "median": 194.05000001192093,
+        "p95": 267.19999998807907,
+        "max": 267.19999998807907
+      },
+      "perRun": [
+        {
+          "file": "timing-gp-1-cached-wasm.json",
+          "queryMedian": 125.0499999821186,
+          "queryP95": 151.9000000357628,
+          "feedbackMedian": 194.05000001192093,
+          "feedbackP95": 231
+        },
+        {
+          "file": "timing-gp-2-cached-wasm.json",
+          "queryMedian": 138.65000000596046,
+          "queryP95": 184.89999997615814,
+          "feedbackMedian": 267.19999998807907,
+          "feedbackP95": 350.19999998807907
+        },
+        {
+          "file": "timing-gp-3-cached-wasm.json",
+          "queryMedian": 122.64999997615814,
+          "queryP95": 145.29999995231628,
+          "feedbackMedian": 186.5,
+          "feedbackP95": 225.80000001192093
+        }
+      ]
+    },
+    {
+      "dataset": "complex",
+      "variant": "baseline",
+      "runs": 3,
+      "medianOfQueryMedians": {
+        "n": 3,
+        "min": 0.5,
+        "median": 0.5999999642372131,
+        "p95": 0.5999999642372131,
+        "max": 0.5999999642372131
+      },
+      "medianOfFeedbackMedians": {
+        "n": 3,
+        "min": 59.29999998211861,
+        "median": 60.35000002384186,
+        "p95": 60.95000001788139,
+        "max": 60.95000001788139
+      },
+      "perRun": [
+        {
+          "file": "timing-complex-1-baseline.json",
+          "queryMedian": 0.5999999642372131,
+          "queryP95": 0.800000011920929,
+          "feedbackMedian": 60.35000002384186,
+          "feedbackP95": 356.19999998807907
+        },
+        {
+          "file": "timing-complex-2-baseline.json",
+          "queryMedian": 0.5,
+          "queryP95": 0.9000000357627869,
+          "feedbackMedian": 59.29999998211861,
+          "feedbackP95": 589.9000000357628
+        },
+        {
+          "file": "timing-complex-3-baseline.json",
+          "queryMedian": 0.5999999642372131,
+          "queryP95": 0.800000011920929,
+          "feedbackMedian": 60.95000001788139,
+          "feedbackP95": 352.2000000476837
+        }
+      ]
+    },
+    {
+      "dataset": "complex",
+      "variant": "cached-js",
+      "runs": 3,
+      "medianOfQueryMedians": {
+        "n": 3,
+        "min": 0.5999999642372131,
+        "median": 0.6000000238418579,
+        "p95": 0.6000000238418579,
+        "max": 0.6000000238418579
+      },
+      "medianOfFeedbackMedians": {
+        "n": 3,
+        "min": 60.25,
+        "median": 60.94999998807907,
+        "p95": 62.349999994039536,
+        "max": 62.349999994039536
+      },
+      "perRun": [
+        {
+          "file": "timing-complex-1-cached-js.json",
+          "queryMedian": 0.5999999642372131,
+          "queryP95": 1.2999999523162842,
+          "feedbackMedian": 60.25,
+          "feedbackP95": 413.0999999642372
+        },
+        {
+          "file": "timing-complex-2-cached-js.json",
+          "queryMedian": 0.6000000238418579,
+          "queryP95": 0.9000000357627869,
+          "feedbackMedian": 60.94999998807907,
+          "feedbackP95": 255.69999998807907
+        },
+        {
+          "file": "timing-complex-3-cached-js.json",
+          "queryMedian": 0.6000000238418579,
+          "queryP95": 0.9000000357627869,
+          "feedbackMedian": 62.349999994039536,
+          "feedbackP95": 191.19999998807907
+        }
+      ]
+    },
+    {
+      "dataset": "complex",
+      "variant": "cached-wasm",
+      "runs": 3,
+      "medianOfQueryMedians": {
+        "n": 3,
+        "min": 0.6000000238418579,
+        "median": 0.6000000238418579,
+        "p95": 0.6000000238418579,
+        "max": 0.6000000238418579
+      },
+      "medianOfFeedbackMedians": {
+        "n": 3,
+        "min": 60.60000002384186,
+        "median": 61.900000005960464,
+        "p95": 67.94999998807907,
+        "max": 67.94999998807907
+      },
+      "perRun": [
+        {
+          "file": "timing-complex-1-cached-wasm.json",
+          "queryMedian": 0.6000000238418579,
+          "queryP95": 0.8999999761581421,
+          "feedbackMedian": 60.60000002384186,
+          "feedbackP95": 353
+        },
+        {
+          "file": "timing-complex-2-cached-wasm.json",
+          "queryMedian": 0.6000000238418579,
+          "queryP95": 1,
+          "feedbackMedian": 61.900000005960464,
+          "feedbackP95": 571.4000000357628
+        },
+        {
+          "file": "timing-complex-3-cached-wasm.json",
+          "queryMedian": 0.6000000238418579,
+          "queryP95": 0.8999999761581421,
+          "feedbackMedian": 67.94999998807907,
+          "feedbackP95": 535.1000000238419
+        }
+      ]
+    }
+  ],
+  "equivalence": {
+    "gp": {
+      "runs": 9,
+      "nativeSelectionsMatch": true,
+      "querySelectionCountsMatch": true
+    },
+    "complex": {
+      "runs": 9,
+      "nativeSelectionsMatch": true,
+      "querySelectionCountsMatch": true
+    }
+  },
+  "date": "2026-11-03",
+  "machine": {
+    "model": "Mac16,1",
+    "cpu": "Apple M4",
+    "ramGiB": 24,
+    "macOS": "26.6.2",
+    "electron": "44.5.1",
+    "chrome": "152.0.7977.130",
+    "rustc": "rustc 1.94.0 (4a4ef493e 2026-03-02)"
+  },
+  "verification": {
+    "unitTests": [
+      {
+        "mode": "baseline",
+        "testsPassed": 28
+      },
+      {
+        "mode": "cached-js",
+        "testsPassed": 28
+      },
+      {
+        "mode": "cached-wasm",
+        "testsPassed": 28
+      }
+    ],
+    "nativeFunctionalCases": 23,
+    "nativeTimingGestures": 216,
+    "timedQueries": 576,
+    "productSourceHashesUnchanged": [
+      {
+        "path": "components/canvas/marquee-selection.ts",
+        "before": "0a638a6eae94d6c4013b98ea3333010d1265ee6b4971d4bf5ec8761ae0445e7a",
+        "after": "ead087a9b132ff9cef0c2a3e2b36591eec0f6fafadf4c9c42f9a804c8f55b6b8"
+      },
+      {
+        "path": "components/canvas/HoverBox/visible-bounds.ts",
+        "before": "cb3fadf69633df9eaedb2100ed4ef04972763a73faa86622dd192946fac5f38c",
+        "after": "f9c70e31cfa793a5f4d4a7046f5d9eac8738eb79167bb96e6ad62e5bbe8a31b8"
+      },
+      {
+        "path": "coords.ts",
+        "before": "b39024c944f666715396b5df166547808316ad5564f1b4746cf4b3386e31a654",
+        "after": "6eee6190b57d9f4fae6e19054bcbdb982fd1ba54e5d4fef6fe3c2acbbcf1e455"
+      }
+    ]
+  },
+  "protocol": {
+    "warmupQueriesPerProcess": 8,
+    "timedQueriesPerProcess": 32,
+    "nativeGesturesPerProcess": 12,
+    "timingRoundsPerModeAndDataset": 3,
+    "memoryRoundsPerModeAndDataset": 2,
+    "memoryQueriesPerProcess": 240,
+    "memoryGc": "Only final diagnostic point; never in timing",
+    "cacheLifetime": "One synchronous query, read-only DOM snapshot; no retained geometry across gestures",
+    "feedbackMetric": "Trusted pointerup capture -> awaitEval -> double requestAnimationFrame, excludes pre-dispatch queue, OS input and compositor presentation",
+    "sampling": "Detailed stage timers / CPU / traces separate from timing; common lightweight counters remain in all three timing paths",
+    "memoryMetric": "App-owned renderer RSS sum, not physical footprint; all attached unique V8 isolate heaps; WASM logical linear-memory capacity reported separately"
+  },
+  "decisions": {
+    "wasm": "Do not introduce: no incremental interaction benefit versus cached JS, no demonstrated memory saving",
+    "jsReadCache": "Interaction benefit for GP; no product changes in this experiment. Further JS work should target paddingBox/ancestor-derived geometry and validate memory peaks",
+    "memory": "No demonstrated stable saving; retained heap similar. Natural RSS peaks are noisy; WASM GP peaks higher in these two runs"
+  },
+  "cpuProfiles": [
+    {
+      "id": "profile-complex-1-baseline",
+      "cpuProfileAvailable": false,
+      "activeMs": 0,
+      "idleMs": 0,
+      "topSelf": [],
+      "inclusiveFiles": [],
+      "timeline": {
+        "UpdateLayoutTree": {
+          "count": 883,
+          "ms": 509.6120000000004
+        },
+        "Layout": {
+          "count": 390,
+          "ms": 44.654999999999966
+        },
+        "Paint": {
+          "count": 1106,
+          "ms": 273.8959999999993
+        },
+        "MinorGC": {
+          "count": 94,
+          "ms": 92.56299999999997
+        },
+        "MajorGC": {
+          "count": 2,
+          "ms": 18.691
+        }
+      }
+    },
+    {
+      "id": "profile-complex-1-cached-js",
+      "cpuProfileAvailable": false,
+      "activeMs": 0,
+      "idleMs": 0,
+      "topSelf": [],
+      "inclusiveFiles": [],
+      "timeline": {
+        "UpdateLayoutTree": {
+          "count": 846,
+          "ms": 500.16099999999926
+        },
+        "Paint": {
+          "count": 1088,
+          "ms": 268.5040000000002
+        },
+        "Layout": {
+          "count": 374,
+          "ms": 42.771000000000015
+        },
+        "MinorGC": {
+          "count": 98,
+          "ms": 89.80000000000001
+        },
+        "MajorGC": {
+          "count": 3,
+          "ms": 16.317
+        }
+      }
+    },
+    {
+      "id": "profile-complex-1-cached-wasm",
+      "cpuProfileAvailable": false,
+      "activeMs": 0,
+      "idleMs": 0,
+      "topSelf": [],
+      "inclusiveFiles": [],
+      "timeline": {
+        "Paint": {
+          "count": 1116,
+          "ms": 278.79899999999986
+        },
+        "UpdateLayoutTree": {
+          "count": 878,
+          "ms": 510.9869999999997
+        },
+        "MajorGC": {
+          "count": 3,
+          "ms": 20.245
+        },
+        "Layout": {
+          "count": 388,
+          "ms": 44.865999999999964
+        },
+        "MinorGC": {
+          "count": 95,
+          "ms": 89.905
+        }
+      }
+    },
+    {
+      "id": "profile-gp-1-baseline",
+      "cpuProfileAvailable": false,
+      "activeMs": 0,
+      "idleMs": 0,
+      "topSelf": [],
+      "inclusiveFiles": [],
+      "timeline": {
+        "UpdateLayoutTree": {
+          "count": 630,
+          "ms": 1030.035000000001
+        },
+        "Layout": {
+          "count": 361,
+          "ms": 57.93399999999999
+        },
+        "Paint": {
+          "count": 737,
+          "ms": 131.21300000000002
+        },
+        "MinorGC": {
+          "count": 63,
+          "ms": 162.25100000000006
+        },
+        "MajorGC": {
+          "count": 9,
+          "ms": 96.767
+        }
+      }
+    },
+    {
+      "id": "profile-gp-1-cached-js",
+      "cpuProfileAvailable": false,
+      "activeMs": 0,
+      "idleMs": 0,
+      "topSelf": [],
+      "inclusiveFiles": [],
+      "timeline": {
+        "UpdateLayoutTree": {
+          "count": 650,
+          "ms": 1018.8290000000009
+        },
+        "Layout": {
+          "count": 357,
+          "ms": 56.86400000000005
+        },
+        "Paint": {
+          "count": 750,
+          "ms": 128.0309999999999
+        },
+        "MinorGC": {
+          "count": 64,
+          "ms": 72.92199999999998
+        },
+        "MajorGC": {
+          "count": 6,
+          "ms": 67.046
+        }
+      }
+    },
+    {
+      "id": "profile-gp-1-cached-wasm",
+      "cpuProfileAvailable": false,
+      "activeMs": 0,
+      "idleMs": 0,
+      "topSelf": [],
+      "inclusiveFiles": [],
+      "timeline": {
+        "UpdateLayoutTree": {
+          "count": 642,
+          "ms": 1038.3869999999993
+        },
+        "Layout": {
+          "count": 354,
+          "ms": 57.08099999999999
+        },
+        "MinorGC": {
+          "count": 61,
+          "ms": 71.874
+        },
+        "Paint": {
+          "count": 751,
+          "ms": 129.019
+        },
+        "MajorGC": {
+          "count": 7,
+          "ms": 72.81799999999998
+        }
+      }
+    },
+    {
+      "id": "profile-gp-2-baseline",
+      "cpuProfileAvailable": true,
+      "activeMs": 18779.306,
+      "idleMs": 447.558,
+      "topSelf": [
+        {
+          "name": "wab/src/wab/client/components/canvas/HoverBox/visible-bounds.ts:paddingBox",
+          "ms": 4009.772,
+          "activeShare": 0.21352077653987853
+        },
+        {
+          "name": "wab/src/wab/client/components/canvas/HoverBox/visible-bounds.ts:clipSources",
+          "ms": 3807.253,
+          "activeShare": 0.20273661870145787
+        },
+        {
+          "name": "runtime:(program)",
+          "ms": 2614.835,
+          "activeShare": 0.13924023603428157
+        },
+        {
+          "name": "runtime:getBoundingClientRect",
+          "ms": 991.232,
+          "activeShare": 0.05278320721756172
+        },
+        {
+          "name": "experiment/probe.ts:readStyle",
+          "ms": 811.213,
+          "activeShare": 0.04319717672207908
+        },
+        {
+          "name": "wab/src/wab/client/components/canvas/HoverBox/visible-bounds.ts:containsPaint",
+          "ms": 629.48,
+          "activeShare": 0.03351987554811663
+        },
+        {
+          "name": "wab/src/wab/client/studio-ctx/renderState.ts:shouldAcceptAsMappedDomNode",
+          "ms": 473.655,
+          "activeShare": 0.02522217807196922
+        },
+        {
+          "name": "wab/src/wab/client/studio-ctx/view-ctx.ts:(anonymous)",
+          "ms": 445.133,
+          "activeShare": 0.023703378601956857
+        },
+        {
+          "name": "runtime:getComputedStyle",
+          "ms": 352.048,
+          "activeShare": 0.018746592658961943
+        },
+        {
+          "name": "wab/src/wab/client/components/canvas/HoverBox/visible-bounds.ts:computeClipBounds",
+          "ms": 320.611,
+          "activeShare": 0.017072569135408944
+        },
+        {
+          "name": "runtime:now",
+          "ms": 279.603,
+          "activeShare": 0.014888888865222176
+        },
+        {
+          "name": "wab/src/wab/client/components/canvas/HoverBox/visible-bounds.ts:viewportBounds",
+          "ms": 260.542,
+          "activeShare": 0.013873888630389217
+        },
+        {
+          "name": "runtime:(garbage collector)",
+          "ms": 253.351,
+          "activeShare": 0.013490967131586226
+        },
+        {
+          "name": "overlayscrollbars/overlayscrollbars.mjs:eB",
+          "ms": 188.804,
+          "activeShare": 0.010053832660269766
+        },
+        {
+          "name": "overlayscrollbars/overlayscrollbars.mjs:eE",
+          "ms": 183.509,
+          "activeShare": 0.009771873358898354
+        },
+        {
+          "name": "wab/src/wab/client/dom.ts:hasLayoutBox",
+          "ms": 180.902,
+          "activeShare": 0.009633050337429935
+        }
+      ],
+      "inclusiveFiles": [
+        {
+          "name": "runtime",
+          "ms": 18779.306,
+          "activeShare": 1
+        },
+        {
+          "name": "wab/src/wab/client/components/canvas/marquee-selection.ts",
+          "ms": 14193.061,
+          "activeShare": 0.7557819761816544
+        },
+        {
+          "name": "experiment/probe.ts",
+          "ms": 13988.892,
+          "activeShare": 0.7449099556714183
+        },
+        {
+          "name": "wab/src/wab/client/components/canvas/HoverBox/visible-bounds.ts",
+          "ms": 11263.751,
+          "activeShare": 0.5997959136509091
+        },
+        {
+          "name": "experiment/entry.ts",
+          "ms": 10806.463,
+          "activeShare": 0.5754452800332451
+        },
+        {
+          "name": "wab/src/wab/client/components/studio/view-editor.tsx",
+          "ms": 3672.787,
+          "activeShare": 0.19557629019943548
+        },
+        {
+          "name": "wab/src/wab/client/studio-ctx/view-ctx.ts",
+          "ms": 2098.495,
+          "activeShare": 0.11174507726749859
+        },
+        {
+          "name": "jquery/dist/jquery.js",
+          "ms": 1216.563,
+          "activeShare": 0.06478210643140912
+        },
+        {
+          "name": "react-dom/cjs/react-dom.production.min.js",
+          "ms": 1061.948,
+          "activeShare": 0.05654884158125971
+        },
+        {
+          "name": "mobx/dist/mobx.esm.js",
+          "ms": 923.441,
+          "activeShare": 0.04917332940844566
+        },
+        {
+          "name": "wab/src/wab/client/studio-ctx/StudioCtx.tsx",
+          "ms": 780.884,
+          "activeShare": 0.04158215431390276
+        },
+        {
+          "name": "overlayscrollbars/overlayscrollbars.mjs",
+          "ms": 771.079,
+          "activeShare": 0.04106003704290244
+        },
+        {
+          "name": "wab/src/wab/client/studio-ctx/renderState.ts",
+          "ms": 636.601,
+          "activeShare": 0.03389906953963048
+        },
+        {
+          "name": "overlayscrollbars-react/overlayscrollbars-react.mjs",
+          "ms": 537.168,
+          "activeShare": 0.02860425193561466
+        },
+        {
+          "name": "async/dist/async.mjs",
+          "ms": 325.244,
+          "activeShare": 0.017319276867845915
+        },
+        {
+          "name": "wab/src/wab/commons/control.ts",
+          "ms": 324.228,
+          "activeShare": 0.017265174762049248
+        }
+      ],
+      "timeline": {
+        "UpdateLayoutTree": {
+          "count": 647,
+          "ms": 1043.937
+        },
+        "Layout": {
+          "count": 369,
+          "ms": 59.172999999999966
+        },
+        "Paint": {
+          "count": 777,
+          "ms": 134.80599999999987
+        },
+        "MinorGC": {
+          "count": 66,
+          "ms": 149.943
+        },
+        "MajorGC": {
+          "count": 11,
+          "ms": 109.227
+        }
+      }
+    },
+    {
+      "id": "profile-gp-2-cached-js",
+      "cpuProfileAvailable": true,
+      "activeMs": 10903.122,
+      "idleMs": 428.71,
+      "topSelf": [
+        {
+          "name": "wab/src/wab/client/components/canvas/HoverBox/visible-bounds.ts:paddingBox",
+          "ms": 4068.362,
+          "activeShare": 0.37313734543188637
+        },
+        {
+          "name": "runtime:(program)",
+          "ms": 1515.377,
+          "activeShare": 0.13898560430672977
+        },
+        {
+          "name": "wab/src/wab/client/studio-ctx/renderState.ts:shouldAcceptAsMappedDomNode",
+          "ms": 475.889,
+          "activeShare": 0.043647039811166015
+        },
+        {
+          "name": "jquery/dist/jquery.js:(anonymous)",
+          "ms": 420.228,
+          "activeShare": 0.03854198824887037
+        },
+        {
+          "name": "wab/src/wab/client/components/canvas/HoverBox/visible-bounds.ts:viewportBounds",
+          "ms": 240.735,
+          "activeShare": 0.022079455774226868
+        },
+        {
+          "name": "wab/src/wab/client/components/canvas/HoverBox/visible-bounds.ts:computeClipBounds",
+          "ms": 221.789,
+          "activeShare": 0.02034178834282511
+        },
+        {
+          "name": "overlayscrollbars/overlayscrollbars.mjs:eB",
+          "ms": 195.329,
+          "activeShare": 0.017914960503973083
+        },
+        {
+          "name": "runtime:(garbage collector)",
+          "ms": 192.155,
+          "activeShare": 0.017623851223530287
+        },
+        {
+          "name": "jquery/dist/jquery.js:w.fn.init",
+          "ms": 172.447,
+          "activeShare": 0.01581629555277837
+        },
+        {
+          "name": "overlayscrollbars/overlayscrollbars.mjs:eE",
+          "ms": 156.782,
+          "activeShare": 0.014379551104720282
+        },
+        {
+          "name": "runtime:focus",
+          "ms": 154.347,
+          "activeShare": 0.014156220576088207
+        },
+        {
+          "name": "experiment/probe.ts:readStyle",
+          "ms": 151.78,
+          "activeShare": 0.013920783423316735
+        },
+        {
+          "name": "wab/src/wab/client/components/canvas/HoverBox/visible-bounds.ts:clipSources",
+          "ms": 142.144,
+          "activeShare": 0.01303699986114069
+        },
+        {
+          "name": "overlayscrollbars/overlayscrollbars.mjs:eX",
+          "ms": 136.837,
+          "activeShare": 0.012550258540627171
+        },
+        {
+          "name": "wab/src/wab/client/dom.ts:hasLayoutBox",
+          "ms": 126.769,
+          "activeShare": 0.011626853299449461
+        },
+        {
+          "name": "experiment/probe.ts:key",
+          "ms": 89.54,
+          "activeShare": 0.008212326707891557
+        }
+      ],
+      "inclusiveFiles": [
+        {
+          "name": "runtime",
+          "ms": 10903.122,
+          "activeShare": 1
+        },
+        {
+          "name": "wab/src/wab/client/components/canvas/marquee-selection.ts",
+          "ms": 7573.543,
+          "activeShare": 0.6946215038224831
+        },
+        {
+          "name": "experiment/probe.ts",
+          "ms": 7384.168,
+          "activeShare": 0.6772526254406765
+        },
+        {
+          "name": "experiment/entry.ts",
+          "ms": 5629.463,
+          "activeShare": 0.516316610967024
+        },
+        {
+          "name": "wab/src/wab/client/components/canvas/HoverBox/visible-bounds.ts",
+          "ms": 4997.489,
+          "activeShare": 0.45835394669526763
+        },
+        {
+          "name": "wab/src/wab/client/components/studio/view-editor.tsx",
+          "ms": 2227.637,
+          "activeShare": 0.20431184756072618
+        },
+        {
+          "name": "wab/src/wab/client/studio-ctx/view-ctx.ts",
+          "ms": 2140.676,
+          "activeShare": 0.1963360586078006
+        },
+        {
+          "name": "jquery/dist/jquery.js",
+          "ms": 1240.998,
+          "activeShare": 0.11382042684654908
+        },
+        {
+          "name": "react-dom/cjs/react-dom.production.min.js",
+          "ms": 1034.11,
+          "activeShare": 0.09484531127873283
+        },
+        {
+          "name": "mobx/dist/mobx.esm.js",
+          "ms": 861.417,
+          "activeShare": 0.0790064533809674
+        },
+        {
+          "name": "wab/src/wab/client/studio-ctx/StudioCtx.tsx",
+          "ms": 771.443,
+          "activeShare": 0.07075432156037509
+        },
+        {
+          "name": "overlayscrollbars/overlayscrollbars.mjs",
+          "ms": 717.618,
+          "activeShare": 0.06581766213383652
+        },
+        {
+          "name": "wab/src/wab/client/studio-ctx/renderState.ts",
+          "ms": 635.901,
+          "activeShare": 0.05832283633990338
+        },
+        {
+          "name": "overlayscrollbars-react/overlayscrollbars-react.mjs",
+          "ms": 479.496,
+          "activeShare": 0.043977862487460016
+        },
+        {
+          "name": "async/dist/async.mjs",
+          "ms": 324.153,
+          "activeShare": 0.029730291929229078
+        },
+        {
+          "name": "wab/src/wab/commons/control.ts",
+          "ms": 322.843,
+          "activeShare": 0.02961014285633051
+        }
+      ],
+      "timeline": {
+        "UpdateLayoutTree": {
+          "count": 651,
+          "ms": 989.6129999999991
+        },
+        "Layout": {
+          "count": 353,
+          "ms": 56.15599999999998
+        },
+        "Paint": {
+          "count": 759,
+          "ms": 131.95499999999987
+        },
+        "MinorGC": {
+          "count": 61,
+          "ms": 69.99400000000001
+        },
+        "MajorGC": {
+          "count": 7,
+          "ms": 79.19
+        }
+      }
+    },
+    {
+      "id": "profile-gp-2-cached-wasm",
+      "cpuProfileAvailable": true,
+      "activeMs": 10923.936,
+      "idleMs": 450.646,
+      "topSelf": [
+        {
+          "name": "wab/src/wab/client/components/canvas/HoverBox/visible-bounds.ts:paddingBox",
+          "ms": 4119.137,
+          "activeShare": 0.3770744354415844
+        },
+        {
+          "name": "runtime:(program)",
+          "ms": 1490.453,
+          "activeShare": 0.13643919188102163
+        },
+        {
+          "name": "wab/src/wab/client/studio-ctx/renderState.ts:shouldAcceptAsMappedDomNode",
+          "ms": 447.278,
+          "activeShare": 0.04094476569617398
+        },
+        {
+          "name": "wab/src/wab/client/studio-ctx/view-ctx.ts:(anonymous)",
+          "ms": 343.925,
+          "activeShare": 0.03148361542945693
+        },
+        {
+          "name": "wab/src/wab/client/components/canvas/HoverBox/visible-bounds.ts:viewportBounds",
+          "ms": 217.197,
+          "activeShare": 0.019882668664481375
+        },
+        {
+          "name": "runtime:(garbage collector)",
+          "ms": 200.319,
+          "activeShare": 0.018337621165118508
+        },
+        {
+          "name": "wab/src/wab/client/components/canvas/HoverBox/visible-bounds.ts:clipSources",
+          "ms": 192.803,
+          "activeShare": 0.017649590770213226
+        },
+        {
+          "name": "overlayscrollbars/overlayscrollbars.mjs:eB",
+          "ms": 190.796,
+          "activeShare": 0.017465865783175587
+        },
+        {
+          "name": "jquery/dist/jquery.js:w.fn.init",
+          "ms": 177.145,
+          "activeShare": 0.01621622462819262
+        },
+        {
+          "name": "wab/src/wab/client/components/canvas/HoverBox/visible-bounds.ts:computeClipBounds",
+          "ms": 175.971,
+          "activeShare": 0.016108754207274742
+        },
+        {
+          "name": "overlayscrollbars/overlayscrollbars.mjs:eE",
+          "ms": 171.945,
+          "activeShare": 0.015740205728045277
+        },
+        {
+          "name": "runtime:focus",
+          "ms": 166.354,
+          "activeShare": 0.015228393868290696
+        },
+        {
+          "name": "overlayscrollbars/overlayscrollbars.mjs:eX",
+          "ms": 150.696,
+          "activeShare": 0.013795027726270092
+        },
+        {
+          "name": "wab/src/wab/client/dom.ts:hasLayoutBox",
+          "ms": 141.218,
+          "activeShare": 0.012927391738655371
+        },
+        {
+          "name": "experiment/probe.ts:readStyle",
+          "ms": 114.258,
+          "activeShare": 0.010459416825583746
+        },
+        {
+          "name": "runtime:closest",
+          "ms": 100.975,
+          "activeShare": 0.009243463161995823
+        }
+      ],
+      "inclusiveFiles": [
+        {
+          "name": "runtime",
+          "ms": 10923.936,
+          "activeShare": 1
+        },
+        {
+          "name": "wab/src/wab/client/components/canvas/marquee-selection.ts",
+          "ms": 7596.576,
+          "activeShare": 0.695406490847255
+        },
+        {
+          "name": "experiment/probe.ts",
+          "ms": 7395.391,
+          "activeShare": 0.6769895942268428
+        },
+        {
+          "name": "experiment/entry.ts",
+          "ms": 5628.258,
+          "activeShare": 0.5152225351741351
+        },
+        {
+          "name": "wab/src/wab/client/components/canvas/HoverBox/visible-bounds.ts",
+          "ms": 5020.678,
+          "activeShare": 0.4596033883757649
+        },
+        {
+          "name": "wab/src/wab/client/components/studio/view-editor.tsx",
+          "ms": 2244.768,
+          "activeShare": 0.20549076816268422
+        },
+        {
+          "name": "wab/src/wab/client/studio-ctx/view-ctx.ts",
+          "ms": 2113.165,
+          "activeShare": 0.19344355367882052
+        },
+        {
+          "name": "jquery/dist/jquery.js",
+          "ms": 1267.232,
+          "activeShare": 0.1160050736291388
+        },
+        {
+          "name": "react-dom/cjs/react-dom.production.min.js",
+          "ms": 1026.236,
+          "activeShare": 0.09394379461761768
+        },
+        {
+          "name": "mobx/dist/mobx.esm.js",
+          "ms": 862.694,
+          "activeShare": 0.07897281712379128
+        },
+        {
+          "name": "wab/src/wab/client/studio-ctx/StudioCtx.tsx",
+          "ms": 762.969,
+          "activeShare": 0.06984378158202319
+        },
+        {
+          "name": "overlayscrollbars/overlayscrollbars.mjs",
+          "ms": 748.29,
+          "activeShare": 0.06850003515216493
+        },
+        {
+          "name": "wab/src/wab/client/studio-ctx/renderState.ts",
+          "ms": 591.756,
+          "activeShare": 0.054170584668383266
+        },
+        {
+          "name": "overlayscrollbars-react/overlayscrollbars-react.mjs",
+          "ms": 511.824,
+          "activeShare": 0.0468534418363491
+        },
+        {
+          "name": "wab/src/wab/commons/control.ts",
+          "ms": 325.216,
+          "activeShare": 0.029770954351984485
+        },
+        {
+          "name": "async/dist/async.mjs",
+          "ms": 325.216,
+          "activeShare": 0.029770954351984485
+        }
+      ],
+      "timeline": {
+        "UpdateLayoutTree": {
+          "count": 652,
+          "ms": 1036.5939999999994
+        },
+        "Layout": {
+          "count": 351,
+          "ms": 56.29400000000003
+        },
+        "Paint": {
+          "count": 751,
+          "ms": 128.17499999999984
+        },
+        "MinorGC": {
+          "count": 63,
+          "ms": 77.32599999999998
+        },
+        "MajorGC": {
+          "count": 6,
+          "ms": 77.12
+        }
+      }
+    }
+  ],
+  "kernel": {
+    "fileBytes": 5247,
+    "sha256": "5b7221d6263423533d824cec81ab02dd948327b13e69dd67ae593773a7a19be3",
+    "linearMemoryBytes": 1114112,
+    "implementation": "Scalar Rust f64 batch predicates; no SIMD, workers or GPU"
+  },
+  "frozenSource": {
+    "files": 4825,
+    "sha256": "b5877782820ac8dc8e6063a8997b02c7ee33c01fa239abed31bdcc762982ff28"
+  },
+  "excludedRuns": [
+    "Initial static-origin / alias / duplicate-entry pilots; not used",
+    "An obsolete functional pilot was stopped before qualification; not used",
+    "First profile round has valid stage counters/timeline but no standalone CPU profile; CPU attribution uses corrected round 2 only"
+  ]
+}

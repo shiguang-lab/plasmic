@@ -1,0 +1,146 @@
+{
+  "date": "2026-11-03",
+  "platform": "macOS arm64",
+  "electron": "45.2.1",
+  "unitTests": 548,
+  "nativeIntegrationEntries": 26,
+  "failures": 0,
+  "results": [
+    {
+      "name": "unit",
+      "exit": 0,
+      "seconds": 10.05
+    },
+    {
+      "name": "unified-startup",
+      "exit": 0,
+      "seconds": 3.73
+    },
+    {
+      "name": "unified-session",
+      "exit": 0,
+      "seconds": 0.45
+    },
+    {
+      "name": "workspace-startup",
+      "exit": 0,
+      "seconds": 0.72
+    },
+    {
+      "name": "startup-appearance",
+      "exit": 0,
+      "seconds": 1.09
+    },
+    {
+      "name": "library-cache-native",
+      "exit": 0,
+      "seconds": 0.44
+    },
+    {
+      "name": "resource-cache-web-native",
+      "exit": 0,
+      "seconds": 0.51
+    },
+    {
+      "name": "preview-navigation",
+      "exit": 0,
+      "seconds": 60.4
+    },
+    {
+      "name": "preview-errors",
+      "exit": 0,
+      "seconds": 3.86
+    },
+    {
+      "name": "island-layout",
+      "exit": 0,
+      "seconds": 13.32
+    },
+    {
+      "name": "island-native",
+      "exit": 0,
+      "seconds": 66.61
+    },
+    {
+      "name": "studio-window-native",
+      "exit": 0,
+      "seconds": 3.32
+    },
+    {
+      "name": "reference-browser-native",
+      "exit": 0,
+      "seconds": 4.33
+    },
+    {
+      "name": "update-download-native",
+      "exit": 0,
+      "seconds": 1.17
+    },
+    {
+      "name": "updates-native",
+      "exit": 0,
+      "seconds": 0.81
+    },
+    {
+      "name": "dashboard-updates-native",
+      "exit": 0,
+      "seconds": 1.04
+    },
+    {
+      "name": "update-dialog-focus-native",
+      "exit": 0,
+      "seconds": 0.71
+    },
+    {
+      "name": "canvas-full-content",
+      "exit": 0,
+      "seconds": 11.93
+    },
+    {
+      "name": "canvas-pdf",
+      "exit": 0,
+      "seconds": 0.6
+    },
+    {
+      "name": "window-recovery-native",
+      "exit": 0,
+      "seconds": 0.51
+    },
+    {
+      "name": "window-recovery-e2e",
+      "exit": 0,
+      "seconds": 0.66
+    },
+    {
+      "name": "workspace-forbidden",
+      "exit": 0,
+      "seconds": 0.81
+    },
+    {
+      "name": "close-mode-native",
+      "exit": 0,
+      "seconds": 6.33
+    },
+    {
+      "name": "session-lifecycle",
+      "exit": 0,
+      "seconds": 22.67
+    },
+    {
+      "name": "mcp-lifecycle",
+      "exit": 0,
+      "seconds": 3.3
+    },
+    {
+      "name": "mcp-background-native",
+      "exit": 0,
+      "seconds": 0.29
+    },
+    {
+      "name": "runtime-security-native",
+      "exit": 0,
+      "seconds": 8.25
+    }
+  ],
+  "scope": "Serial isolated Desktop automatic regressions; excludes manual UI inspection, live-account smoke/MCP acceptance and Windows/Linux native runs."
+}

@@ -1,7 +1,11 @@
 name: shiguang-plasmic-images
+x-logging: &logging
+  driver: journald
+  options: { tag: "plasmic/{{.Name}}" }
 x-server: &server
   image: ghcr.io/shiguang-lab/plasmic-server:${IMAGE_TAG:?set IMAGE_TAG}
   init: true
+  stop_grace_period: 210s
   networks: [default, auth-edge]
   command: [src/wab/server/main.ts]
   environment: &env
@@ -42,11 +46,10 @@ x-server: &server
     db: { condition: service_healthy }
     storage: { condition: service_healthy }
   mem_limit: 2304m
-  logging:
-    driver: json-file
-    options: { max-size: "10m", max-file: "3" }
+  logging: *logging
 services:
   db:
+    logging: *logging
     image: postgres@sha256:3d0f7584ed7d04e27fa050d6683a74746608faf21f202be78460d679cc56461f
     restart: unless-stopped
     environment:
@@ -63,6 +66,7 @@ services:
       retries: 20
     mem_limit: 512m
   storage:
+    logging: *logging
     image: chrislusf/seaweedfs@sha256:52194fba4fecd0083c842158b3a902ba6e04a63619b2b0efcd08007bdb6a4602
     restart: unless-stopped
     command:
@@ -107,7 +111,7 @@ services:
   server:
     <<: *server
     restart: unless-stopped
-    healthcheck:
+    healthcheck: &server-health
       test:
         [
           CMD,
@@ -120,6 +124,7 @@ services:
       start_period: 90s
       retries: 20
   temporal:
+    logging: *logging
     image: temporalio/auto-setup:1.29.1
     restart: unless-stopped
     environment:
@@ -147,11 +152,12 @@ services:
     command: [src/wab/server/copilot/ai-worker.ts]
     environment:
       <<: *env
-      SOCKET_HOST: http://server:3004
+      SOCKET_HOST: http://edge:8080
     depends_on:
       server: { condition: service_healthy }
       temporal: { condition: service_healthy }
-  preview:
+  preview: &preview
+    logging: *logging
     image: ghcr.io/shiguang-lab/plasmic-preview:${IMAGE_TAG:?set IMAGE_TAG}
     init: true
     restart: unless-stopped
@@ -174,7 +180,8 @@ services:
       timeout: 5s
       start_period: 30s
       retries: 10
-  web:
+  web: &web
+    logging: *logging
     image: ghcr.io/shiguang-lab/plasmic-web:${IMAGE_TAG:?set IMAGE_TAG}
     restart: unless-stopped
     environment:
@@ -182,21 +189,44 @@ services:
       CANVAS_ORIGIN: ${CANVAS_ORIGIN}
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
-    ports:
-      [
-        "${BIND_IP:-127.0.0.1}:3900:8080",
-        "${BIND_IP:-127.0.0.1}:3901:8081",
-        "${BIND_IP:-127.0.0.1}:3902:8082",
-      ]
     healthcheck:
       test:
-        [CMD, wget, -q, -O, /dev/null, http://127.0.0.1:8080/static/host.html]
+        [CMD-SHELL, "wget -q -O /dev/null http://127.0.0.1:8080/static/host.html && wget -q -O /dev/null http://127.0.0.1:8080/healthcheck"]
       interval: 5s
       timeout: 3s
       start_period: 30s
       retries: 20
     depends_on:
       server: { condition: service_healthy }
+  server-next:
+    <<: *server
+    profiles: [rollout]
+    restart: unless-stopped
+    healthcheck: *server-health
+  preview-next:
+    <<: *preview
+    profiles: [rollout]
+  web-next:
+    <<: *web
+    profiles: [rollout]
+    hostname: web-next
+    depends_on:
+      server-next: { condition: service_healthy }
+  edge:
+    image: nginx:1.29-alpine
+    restart: unless-stopped
+    logging: *logging
+    volumes:
+      - ./edge:/etc/nginx/conf.d:ro
+    ports:
+      - "${BIND_IP:-127.0.0.1}:3900:8080"
+      - "${BIND_IP:-127.0.0.1}:3901:8081"
+      - "${BIND_IP:-127.0.0.1}:3902:8082"
+    healthcheck:
+      test: [CMD, wget, -q, -O, /dev/null, http://127.0.0.1:8080/healthcheck]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 networks:
   auth-edge:
     external: true

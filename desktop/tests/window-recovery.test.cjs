@@ -11,7 +11,7 @@ function fixture(response = 2) {
   win.isDestroyed = () => false;
   contents.getURL = () => "https://studio.example/projects/broken";
   win.loadURL = async (url) => { loads.push(url); };
-  attachWindowRecovery(win, {
+  attachWindowRecovery({window: win, webContents: contents, loadURL: win.loadURL}, {
     homeUrl: "https://studio.example/", t: (text) => text,
     controller: { cancelPending: (_win, reason) => cancelled.push(reason) },
     dialog: { showMessageBox: async (_win, options) => { prompts.push(options); return { response }; }, showErrorBox: () => assert.fail("Recovery failed") },

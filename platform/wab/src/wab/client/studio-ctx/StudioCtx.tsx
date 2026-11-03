@@ -2065,9 +2065,14 @@ export class StudioCtx extends WithDbCtx {
     }
     clearTimeout(this.selectionPaintTask);
     this.canvasLoadingDisposed = true;
+    // Detach UI observers before destroying evaluators, without committing pending edits.
+    runInAction(() => {
+      this._xFocusedViewCtx.set(undefined);
+      this._xFocusedFrames.set([]);
+      this.committedInspectorSelection.set(undefined);
+    });
     this.copilotActivity.dispose();
     this.disposals.forEach((d) => d());
-    this.committedInspectorSelection.set(undefined);
     this.clearUndoLog();
     this.viewInfoObserverDispose?.();
     this.watchPlayerDispose?.();

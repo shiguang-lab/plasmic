@@ -1,3 +1,4 @@
+const { studioFixture } = require("./fixtures/studio.cjs");
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs/promises");
@@ -25,7 +26,7 @@ function fixture(t, initialMode = "edit") {
     editorView: { arenaId: "original", arenaType: "page", frameUuid: "original-frame", scale: 0.75, scroll: { x: 12, y: 34 } } };
   let url;
   const calls = [];
-  const controller = new DesktopController(() => ({ isDestroyed: () => false,
+  const controller = new DesktopController(() => studioFixture({ isDestroyed: () => false,
     webContents: { getURL: () => url || `https://studio.example/projects/project${context.mode === "preview" ? "/preview#/page" : ""}` } }),
   { studioOrigin: "https://studio.example" });
   t.after(() => controller.close());

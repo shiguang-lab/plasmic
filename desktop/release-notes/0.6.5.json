@@ -1,0 +1,7 @@
+{
+  "en": "- Improve canvas selection and multi-object drag startup performance.\n- Reduce editor startup work and preserve canvas state across navigation.\n- Unify logo construction loading across canvas, preview and debug pages, retaining the logo wireframe without background guides.\n- Improve Desktop preview, recovery, update and lifecycle behavior; upgrade Electron.",
+  "zh-CN": "- 优化画布框选和多选拖拽启动性能。\n- 减少编辑器启动开销，完善导航时的画布状态保留。\n- 统一画布、预览和调试页的 Logo 构建加载动效，保留内部栅格并移除背景辅助线。\n- 完善桌面预览、恢复、更新与生命周期行为，升级 Electron。",
+  "zh-TW": "- 優化畫布框選及多選拖曳啟動效能。\n- 減少編輯器啟動開銷，完善導覽時的畫布狀態保留。\n- 統一畫布、預覽與偵錯頁的 Logo 構建載入動畫，保留內部格線並移除背景輔助線。\n- 改善桌面預覽、復原、更新與生命週期行為，升級 Electron。",
+  "ja": "- キャンバス選択と複数要素ドラッグの開始性能を改善。\n- エディターの起動処理と画面移動時の状態保持を改善。\n- ロゴ内部のワイヤーフレームを維持し、背景ガイドを除いた読み込みアニメーションに統一。\n- デスクトップのプレビュー、復元、更新とライフサイクルを改善し、Electron を更新。",
+  "ko": "- 캔버스 선택과 여러 요소 드래그 시작 성능 개선.\n- 편집기 시작 처리와 탐색 시 상태 유지 개선.\n- 로고 내부 와이어프레임을 유지하고 배경 가이드를 제거한 로딩 애니메이션으로 통일.\n- 데스크톱 미리보기, 복구, 업데이트 및 수명 주기 개선과 Electron 업그레이드."
+}

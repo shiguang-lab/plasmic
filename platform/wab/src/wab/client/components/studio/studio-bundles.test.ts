@@ -39,7 +39,7 @@ beforeEach(async () => {
 });
 
 function targetWindow() {
-  return { document: {}, initializations: 0, registrations: [] } as unknown as Window & {
+  return { document: {}, __Sub: { Antd6: {} }, initializations: 0, registrations: [] } as unknown as Window & {
     initializations: number;
     registrations: object[];
     __CanvasPkgs?: { Antd6?: object };
@@ -79,7 +79,7 @@ test("ready frames do not fetch or execute the runtime, and ordinary libraries d
   const fetchMock = vi.fn(async () => ({ ok: true, text: async () => "registration" }));
   vi.stubGlobal("fetch", fetchMock);
   const ready = targetWindow();
-  ready.__CanvasPkgs = {};
+  ready.__CanvasPkgs = { Antd6: {} };
   await bundles.getSortedHostLessPkgs(ready, api, ["antd6"], "-v2");
   const ordinary = targetWindow();
   await bundles.getHostLessPkg(ordinary, api, "ordinary", "-v2");
@@ -91,7 +91,7 @@ test("ready frames do not fetch or execute the runtime, and ordinary libraries d
 
 test("concurrent callers share a failed download and a single retry", async () => {
   const failed = Promise.withResolvers<{ ok: boolean; status: number; text: () => Promise<string> }>();
-  const fetchMock = vi.fn().mockReturnValueOnce(failed.promise).mockResolvedValue({ ok: true, text: async () => "window.initializations++; window.__CanvasPkgs = {};" });
+  const fetchMock = vi.fn().mockReturnValueOnce(failed.promise).mockResolvedValue({ ok: true, text: async () => "window.initializations++; window.__CanvasPkgs = { Antd6: window.__Sub.Antd6 };" });
   vi.stubGlobal("fetch", fetchMock);
   const win = targetWindow();
   const first = bundles.ensureCanvasRuntime(win);
@@ -108,7 +108,7 @@ test("concurrent callers share a failed download and a single retry", async () =
 
 test.each(["headers", "body"])("a stalled runtime %s times out and permits one shared retry", async (stage) => {
   vi.useFakeTimers();
-  const source = "window.initializations++; window.__CanvasPkgs = {};";
+  const source = "window.initializations++; window.__CanvasPkgs = { Antd6: window.__Sub.Antd6 };";
   const response = { ok: true, status: 200, text: async () => source };
   const headers = Promise.withResolvers<typeof response>();
   const body = Promise.withResolvers<string>();
@@ -142,12 +142,12 @@ test.each(["headers", "body"])("a stalled runtime %s times out and permits one s
 });
 
 test.each(["throw", "missing runtime"])("retries an initialization failure (%s) using the cached source", async (failure) => {
-  const fetchMock = vi.fn(async () => ({ ok: true, text: async () => "window.initializations++; window.__CanvasPkgs = {};" }));
+  const fetchMock = vi.fn(async () => ({ ok: true, text: async () => "window.initializations++; window.__CanvasPkgs = { Antd6: window.__Sub.Antd6 };" }));
   vi.stubGlobal("fetch", fetchMock);
   const win = targetWindow();
   vi.mocked(scriptExec).mockImplementationOnce(() => {
     if (failure === "throw") {
-      win.__CanvasPkgs = {};
+      win.__CanvasPkgs = { Antd6: {} };
       throw new Error("Runtime execution failed");
     }
   });
@@ -166,7 +166,7 @@ test("a navigated frame has its own initialization and does not receive the old 
   const old = expect(bundles.ensureCanvasRuntime(win)).rejects.toThrow("target navigated");
   Object.defineProperty(win, "document", { value: {}, configurable: true });
   const current = bundles.ensureCanvasRuntime(win);
-  pending.resolve("window.initializations++; window.__CanvasPkgs = {};");
+  pending.resolve("window.initializations++; window.__CanvasPkgs = { Antd6: window.__Sub.Antd6 };");
   await Promise.all([old, current]);
   expect(win.initializations).toBe(1);
   expect(scriptExec).toHaveBeenCalledOnce();
@@ -178,7 +178,7 @@ test("does not return registrations for a document replaced while its library wa
   const pending = Promise.withResolvers<string>();
   vi.stubGlobal("fetch", vi.fn(async () => ({ ok: true, text: () => pending.promise })));
   const win = targetWindow();
-  win.__CanvasPkgs = {};
+  win.__CanvasPkgs = { Antd6: {} };
   const old = expect(bundles.getSortedHostLessPkgs(win, api, ["antd6"], "-v2")).rejects.toThrow("target navigated");
   Object.defineProperty(win, "document", { value: {}, configurable: true });
   delete win.__CanvasPkgs;
@@ -218,7 +218,7 @@ test.each([["antd6", "overseas", "react-ui"], ["react-ui"]])(
 
 test("loads a new library registration at the Project dependency version", async () => {
   flags.hostLessComponents = [{ codeName: "new-library", hasCodeArtifacts: true }];
-  const fetchMock = vi.fn(async (url: string) => ({ ok: true, text: async () => url.endsWith("client.test.js") ? "window.__CanvasPkgs = {};" : "registration" }));
+  const fetchMock = vi.fn(async (url: string) => ({ ok: true, text: async () => url.endsWith("client.test.js") ? "window.__CanvasPkgs = { Antd6: window.__Sub.Antd6 };" : "registration" }));
   vi.stubGlobal("fetch", fetchMock);
   const site = { projectDependencies: [{ pkgId: "library-package", version: "2.3.4", site: { hostLessPackageInfo: { name: "new-library" } } }] } as any;
   const loaded = await bundles.getSortedHostLessPkgs(targetWindow(), api, ["new-library"], "-v2", site);
@@ -231,7 +231,7 @@ test("missing consumer releases fail instead of silently loading latest", async 
   flags.hostLessComponents = [{ codeName: "managed", hasCodeArtifacts: true }];
   const fetchMock = vi.fn();
   vi.stubGlobal("fetch", fetchMock);
-  const win = targetWindow(); win.__CanvasPkgs = {};
+  const win = targetWindow(); win.__CanvasPkgs = { Antd6: {} };
   await expect(bundles.getSortedHostLessPkgs(win, api, ["managed"], "-v2", { projectDependencies: [] } as any)).rejects.toThrow("Missing exact component library dependency");
   expect(fetchMock).not.toHaveBeenCalled();
 });
@@ -241,7 +241,7 @@ test("library authoring resolves latest again and then fetches each exact releas
   let latest = "1.0.0";
   const fetchMock = vi.fn(async (url: string) => ({ ok: true, json: async () => ({ pkgId: "library-package", version: latest }), text: async () => url }));
   vi.stubGlobal("fetch", fetchMock);
-  const win = targetWindow(); win.__CanvasPkgs = {};
+  const win = targetWindow(); win.__CanvasPkgs = { Antd6: {} };
   expect(await bundles.getHostLessPkg(win, api, "managed", "-v2")).toContain("version=1.0.0&pkgId=library-package");
   latest = "2.0.0";
   expect(await bundles.getHostLessPkg(win, api, "managed", "-v2")).toContain("version=2.0.0&pkgId=library-package");
@@ -256,7 +256,7 @@ test.each([false, true])("retries a failed library download (managed: %s) withou
   vi.resetModules();
   const { getHostLessPkg } = await import("@/wab/client/components/studio/studio-bundles");
   flags.hostLessComponents = managed ? [{ codeName: "retry-library", hasCodeArtifacts: true }] : [];
-  const fetchMock = vi.fn(async (url: string) => ({ ok: true, status: 200, text: async (): Promise<string> => url.endsWith("client.test.js") ? "window.__CanvasPkgs = {};" : "registration" }));
+  const fetchMock = vi.fn(async (url: string) => ({ ok: true, status: 200, text: async (): Promise<string> => url.endsWith("client.test.js") ? "window.__CanvasPkgs = { Antd6: window.__Sub.Antd6 };" : "registration" }));
   fetchMock.mockResolvedValueOnce({ ok: false, status: 503, text: async () => "unavailable" });
   vi.stubGlobal("fetch", fetchMock);
   const win = targetWindow();
@@ -273,7 +273,7 @@ test("retries a failed shared runtime download through the Studio cache", async 
   const fetchMock = vi.fn(async (url: string) => ({
     ok: !url.endsWith("client.test.js") || ++runtimeCalls > 1,
     status: 503,
-    text: async () => url.endsWith("client.test.js") ? "window.__CanvasPkgs = {};" : "registration",
+    text: async () => url.endsWith("client.test.js") ? "window.__CanvasPkgs = { Antd6: window.__Sub.Antd6 };" : "registration",
   }));
   vi.stubGlobal("fetch", fetchMock);
   const win = targetWindow();
@@ -290,7 +290,7 @@ test("replaces every registry owned by an updated library, preserves other libra
   flags.hostLessComponents = ["versioned-library", "unrelated-library"].map((codeName) => ({ codeName, hasCodeArtifacts: true }));
   vi.stubGlobal("fetch", vi.fn(async (url: string) => ({ ok: true, text: async () => {
     if (url.endsWith("client.test.js")) {
-      return "window.__CanvasPkgs = {};";
+      return "window.__CanvasPkgs = { Antd6: window.__Sub.Antd6 };";
     }
     const name = url.includes("unrelated-library") ? "Other" : "Versioned";
     const version = new URL(url, "http://localhost").searchParams.get("version");
@@ -298,7 +298,7 @@ test("replaces every registry owned by an updated library, preserves other libra
       .join("\n") + (name === "Versioned" && version === "1.0.0" ? '\nwindow.__PlasmicComponentRegistry.push({name:"RemovedComponent"});' : "")
       + (version === "broken" ? '\nthrow new Error("Registration failed");' : "");
   } })));
-  const win = { document: {} } as unknown as Record<string, { name: string; version?: string }[]>;
+  const win = { document: {}, __Sub: { Antd6: {} } } as unknown as Record<string, { name: string; version?: string }[]>;
   const execute = async (pkg: string, version: string) => runInNewContext(await getHostLessPkg(win as unknown as Window, api, pkg, "-v2", { pkgId: "library-package", version }), { window: win });
   await execute("versioned-library", "1.0.0");
   await execute("unrelated-library", "1.0.0");
@@ -322,9 +322,79 @@ test("a canvas host delegates managed releases to Studio and does not retain ano
     getHostlessLibraryRelease: vi.fn(async () => ({pkgId:"library",version:"1.0.0"})),
     getHostlessLibraryCanvas: vi.fn().mockResolvedValueOnce("firstAccount").mockResolvedValueOnce("secondAccount"),
   };
-  const win = targetWindow(); win.__CanvasPkgs = {};
+  const win = targetWindow(); win.__CanvasPkgs = { Antd6: {} };
   expect(await bundles.getHostLessPkg(win, studio, "managed", "-v2")).toContain("firstAccount");
   expect(await bundles.getHostLessPkg(win, studio, "managed", "-v2")).toContain("secondAccount");
   expect(studio.getHostlessLibraryCanvas).toHaveBeenCalledWith("managed", {pkgId:"library",version:"1.0.0"});
   expect(frameFetch).not.toHaveBeenCalled();
+});
+
+
+test("built-in hosts reuse their native library without downloading a fallback", async () => {
+  const win = targetWindow();
+  const fetchMock = vi.fn(async () => ({ok: true, text: async () => "window.__CanvasPkgs = { Antd6: window.__Sub.Antd6 };"}));
+  vi.stubGlobal("fetch", fetchMock);
+  await bundles.ensureCanvasRuntime(win);
+  expect(fetchMock).toHaveBeenCalledOnce();
+  expect(win.__CanvasPkgs?.Antd6).toBe((win as any).__Sub.Antd6);
+});
+
+test("custom hosts share fallback downloads but initialize a native library in each destination", async () => {
+  const fetchMock = vi.fn(async (url: string) => ({ok: true, text: async () => url.includes("antd6-runtime") ? "window.__CanvasPkgs.Antd6 = { local: true };" : "window.initializations++; window.__CanvasPkgs = {};"}));
+  vi.stubGlobal("fetch", fetchMock);
+  const a = targetWindow(), b = targetWindow();
+  delete (a as any).__Sub.Antd6; delete (b as any).__Sub.Antd6;
+  const first = bundles.ensureCanvasRuntime(a);
+  expect(bundles.ensureCanvasRuntime(a)).toBe(first);
+  await Promise.all([first, bundles.ensureCanvasRuntime(b)]);
+  expect(fetchMock).toHaveBeenCalledTimes(2);
+  expect(a.__CanvasPkgs?.Antd6).toEqual({local: true});
+  expect(a.__CanvasPkgs?.Antd6).not.toBe(b.__CanvasPkgs?.Antd6);
+  expect(a.initializations).toBe(1); expect(b.initializations).toBe(1);
+});
+
+test("fallback download failure is retryable and never exposes a partial runtime", async () => {
+  const win = targetWindow(); delete (win as any).__Sub.Antd6;
+  let fail = true;
+  const fetchMock = vi.fn(async (url: string) => ({ok: !url.includes("antd6-runtime") || !fail, status: 503, text: async () => url.includes("antd6-runtime") ? "window.__CanvasPkgs.Antd6 = {};" : "window.__CanvasPkgs = {};"}));
+  vi.stubGlobal("fetch", fetchMock);
+  await expect(bundles.ensureCanvasRuntime(win)).rejects.toThrow("503");
+  expect(win.__CanvasPkgs).toBeUndefined(); fail = false;
+  await bundles.ensureCanvasRuntime(win);
+  expect(fetchMock).toHaveBeenCalledTimes(3);
+  expect(win.__CanvasPkgs?.Antd6).toBeTruthy();
+});
+
+test("fallback execution failure clears partial state and retries cached sources", async () => {
+  const win = targetWindow(); delete (win as any).__Sub.Antd6;
+  const fetchMock = vi.fn(async (url: string) => ({ok: true, text: async () => url.includes("antd6-runtime") ? "window.__CanvasPkgs.Antd6 = {};" : "window.__CanvasPkgs = {};"}));
+  vi.stubGlobal("fetch", fetchMock);
+  let fail = true;
+  vi.mocked(scriptExec).mockImplementation((target, source) => {
+    if (source.includes(".Antd6 =") && fail) {throw new Error("Native execution failed");}
+    runInNewContext(source, {window:target});
+  });
+  await expect(bundles.ensureCanvasRuntime(win)).rejects.toThrow("Native execution failed");
+  expect(win.__CanvasPkgs).toBeUndefined(); fail = false;
+  await bundles.ensureCanvasRuntime(win);
+  expect(fetchMock).toHaveBeenCalledTimes(2);
+  expect(win.__CanvasPkgs?.Antd6).toBeTruthy();
+});
+
+test("a custom host navigation waits for the fallback before injecting only into the new document", async () => {
+  const win = targetWindow();
+  delete (win as any).__Sub.Antd6;
+  const pending = Promise.withResolvers<string>();
+  const fetchMock = vi.fn(async (url: string) => ({ok: true, text: async () => url.includes("antd6-runtime") ? pending.promise : "window.initializations++; window.__CanvasPkgs = {};"}));
+  vi.stubGlobal("fetch", fetchMock);
+  const old = expect(bundles.ensureCanvasRuntime(win)).rejects.toThrow("target navigated");
+  await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+  expect(scriptExec).not.toHaveBeenCalled();
+  Object.defineProperty(win, "document", {value: {}, configurable: true});
+  const current = bundles.ensureCanvasRuntime(win);
+  pending.resolve("window.__CanvasPkgs.Antd6 = {};");
+  await Promise.all([old, current]);
+  expect(win.initializations).toBe(1);
+  expect(scriptExec).toHaveBeenCalledTimes(2);
+  expect(fetchMock).toHaveBeenCalledTimes(2);
 });

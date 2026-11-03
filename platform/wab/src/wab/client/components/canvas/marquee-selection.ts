@@ -2,7 +2,7 @@ import {
   clipBox,
   computeClipBounds,
 } from "@/wab/client/components/canvas/HoverBox/visible-bounds";
-import { frameToClientRect } from "@/wab/client/coords";
+import { GeometrySnapshot } from "@/wab/client/components/canvas/geometry-snapshot";
 import { hasLayoutBox } from "@/wab/client/dom";
 import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import type { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
@@ -19,9 +19,9 @@ export function getSelectableLayers(vc: ViewCtx, box?: Box): ValNode[] {
   if (!owner) {
     return [];
   }
-  const frameBox = Box.fromRect(
-    vc.canvasCtx.viewport().getBoundingClientRect(),
-  );
+  const geometry = new GeometrySnapshot();
+  const frameBox = Box.fromRect(geometry.getRect(vc.canvasCtx.viewport()));
+  const zoom = vc.studioCtx.zoom;
   const candidates = SQ(owner, valState)
     .descendantsDfsFullstack()
     .toArrayOfValNodes()
@@ -39,8 +39,7 @@ export function getSelectableLayers(vc: ViewCtx, box?: Box): ValNode[] {
           .selectionDom(val, vc.sel2cloneKey(val))
           ?.toArray()
           .filter((element) => {
-            const style =
-              element.ownerDocument.defaultView?.getComputedStyle(element);
+            const style = geometry.getStyle(element);
             return (
               hasLayoutBox(element) &&
               style?.visibility !== "hidden" &&
@@ -57,11 +56,11 @@ export function getSelectableLayers(vc: ViewCtx, box?: Box): ValNode[] {
       }
       const visibleBounds = elements.flatMap((element) => {
         const visible = clipBox(
-          Box.fromRect(element.getBoundingClientRect()),
-          computeClipBounds(element),
+          Box.fromRect(geometry.getRect(element)),
+          computeClipBounds(element, geometry),
         );
         return visible
-          ? [Box.fromRect(frameToClientRect(visible.rect(), vc))]
+          ? [visible.scale(zoom).moveBy(frameBox.left(), frameBox.top())]
           : [];
       });
       return (

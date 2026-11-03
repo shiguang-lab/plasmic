@@ -1,3 +1,4 @@
+import { isDesktopViewActive, subscribeDesktopView } from "@/wab/client/desktop-navigation";
 import { subscribePreview } from "@/wab/client/components/dashboard/preview/client";
 import { previewCanvasBackground } from "@/wab/client/components/dashboard/preview/types";
 import { Skeleton } from "antd";
@@ -39,7 +40,7 @@ export function ProjectPreview({
       setStatus("waiting");
     };
     const update = () => {
-      if (visible && document.visibilityState !== "hidden") {
+      if (visible && document.visibilityState !== "hidden" && isDesktopViewActive()) {
         if (unsubscribe || attempted) {
           return;
         }
@@ -72,7 +73,9 @@ export function ProjectPreview({
     });
     observer.observe(element);
     document.addEventListener("visibilitychange", update);
+    const stopDesktopView = subscribeDesktopView(update);
     return () => {
+      stopDesktopView();
       observer.disconnect();
       document.removeEventListener("visibilitychange", update);
       release();

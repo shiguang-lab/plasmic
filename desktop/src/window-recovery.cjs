@@ -1,11 +1,12 @@
-function attachWindowRecovery(win, { controller, dialog, homeUrl, t }) {
+function attachWindowRecovery(studio, { controller, dialog, homeUrl, t }, contents = studio.webContents) {
+  const win = studio.window;
   let prompting = false;
   let failedLoadUrl;
   const recover = async (kind) => {
-    if (prompting || win.isDestroyed()) return;
+    if (prompting || win.isDestroyed() || studio.webContents !== contents) return;
     prompting = true;
     const unresponsive = kind === "unresponsive";
-    const url = win.webContents.getURL();
+    const url = contents.getURL();
     try {
       const { response } = await dialog.showMessageBox(win, {
         type: "warning",
@@ -29,17 +30,17 @@ function attachWindowRecovery(win, { controller, dialog, homeUrl, t }) {
         defaultId: kind === "crash" ? 1 : 0,
         cancelId: unresponsive ? 0 : 2,
       });
-      if (win.isDestroyed()) return;
+      if (win.isDestroyed() || studio.webContents !== contents) return;
       if (
         (!unresponsive && response === 0) ||
         (unresponsive && response === 1)
       ) {
-        await win.loadURL(url || homeUrl);
+        await studio.loadURL(url || homeUrl);
       } else if (
         (!unresponsive && response === 1) ||
         (unresponsive && response === 2)
       ) {
-        await win.loadURL(homeUrl);
+        await studio.loadURL(homeUrl);
       }
     } catch (error) {
       console.error("Window recovery failed", error);
@@ -48,14 +49,14 @@ function attachWindowRecovery(win, { controller, dialog, homeUrl, t }) {
       prompting = false;
     }
   };
-  win.webContents.on("render-process-gone", (_event, details) => {
+  contents.on("render-process-gone", (_event, details) => {
     if (["clean-exit", "still-running"].includes(details.reason)) return;
-    controller.cancelPending(win, "Editor renderer exited: " + details.reason);
+    controller.cancelPending(contents, "Editor renderer exited: " + details.reason);
     void recover("crash");
   });
-  win.on("unresponsive", () => void recover("unresponsive"));
-  win.webContents.on("did-navigate", () => { failedLoadUrl = undefined; });
-  win.webContents.on(
+  contents.on("unresponsive", () => void recover("unresponsive"));
+  contents.on("did-navigate", () => { failedLoadUrl = undefined; });
+  contents.on(
     "did-fail-load",
     (_event, code, _description, url, isMainFrame) => {
       // Authentication/navigation retries must not turn one failure into a dialog loop.
@@ -64,6 +65,7 @@ function attachWindowRecovery(win, { controller, dialog, homeUrl, t }) {
       void recover("load");
     },
   );
-  win.on("closed", () => controller.cancelPending(win, "Editor window closed"));
+  const closed = () => controller.cancelPending(contents, "Editor window closed");
+  contents.once("destroyed", closed);
 }
 module.exports = { attachWindowRecovery };

@@ -1,3 +1,5 @@
+import { PushPullQueue } from "@/wab/commons/asyncutil";
+import * as Comlink from "comlink";
 import { FrameMessage } from "@/wab/client/frame-ctx/frame-message-types";
 import {
   TopFrameApi,
@@ -13,17 +15,25 @@ import * as React from "react";
 const wire = vitest.hoisted(() => ({
   exposed: undefined as TopFrameFullApi | undefined,
   getSiteInfo: vitest.fn().mockResolvedValue({}),
+  listenSocket: vitest.fn().mockResolvedValue(undefined),
+  closeSocket: vitest.fn().mockResolvedValue(undefined),
 }));
 vitest.mock("@/wab/client/cli-routes", () => ({
   ensureIsTopFrame: vitest.fn(),
 }));
 vitest.mock("@/wab/client/api", () => ({
-  filteredApi: () => ({ getSiteInfo: wire.getSiteInfo }),
+  filteredApi: () => ({
+    getSiteInfo: wire.getSiteInfo,
+    listenSocket: wire.listenSocket,
+    closeSocket: wire.closeSocket,
+  }),
 }));
 vitest.mock("@/wab/client/contexts/AppContexts", () => ({
   useAppCtx: () => ({ api: {}, appConfig: {} }),
 }));
 vitest.mock("comlink", () => ({
+  transferHandlers: new Map(),
+  releaseProxy: Symbol("releaseProxy"),
   windowEndpoint: () => ({
     addEventListener: vitest.fn(),
     removeEventListener: vitest.fn(),
@@ -34,12 +44,12 @@ vitest.mock("comlink", () => ({
   proxy: (value: unknown) => value,
 }));
 
-function connect(initialBranchId?: BranchId) {
+function connect(initialBranchId?: BranchId, topFrameApi = {} as TopFrameApi) {
   const mounted = render(
     <TopFrameCtxProvider
       projectId="project"
       initialBranchId={initialBranchId}
-      topFrameApi={{} as TopFrameApi}
+      topFrameApi={topFrameApi}
     >
       <div>Host placeholder</div>
     </TopFrameCtxProvider>,
@@ -61,6 +71,8 @@ afterEach(() => {
   cleanup();
   wire.exposed = undefined;
   wire.getSiteInfo.mockReset().mockResolvedValue({});
+  wire.listenSocket.mockReset().mockResolvedValue(undefined);
+  wire.closeSocket.mockReset().mockResolvedValue(undefined);
 });
 
 it("starts the model request before host registration and consumes it only once", async () => {
@@ -144,4 +156,54 @@ it("sends the resolved appearance before host registration and keeps it synchron
   act(() => setAppearancePreference("dark"));
   expect(listener).not.toHaveBeenCalled();
   mounted.unmount();
+});
+
+it("resolves pending socket pulls in the parent when the host is removed", async () => {
+  const queue = new PushPullQueue<{ eventName: string; data: unknown }>();
+  wire.listenSocket.mockImplementation(() => queue.pull());
+  wire.closeSocket.mockImplementation(async () => queue.close());
+  const { api, mounted } = connect();
+  const pending = api.listenSocket([]);
+  mounted.unmount();
+  await expect(pending).resolves.toBeUndefined();
+  expect(wire.closeSocket).toHaveBeenCalledOnce();
+});
+
+it("ignores socket requests from an old host after another session mounts", async () => {
+  const previous = connect();
+  previous.mounted.unmount();
+  const current = connect();
+  wire.closeSocket.mockClear();
+  wire.listenSocket.mockClear();
+  await previous.api.closeSocket();
+  await previous.api.listenSocket([]);
+  expect(wire.closeSocket).not.toHaveBeenCalled();
+  expect(wire.listenSocket).not.toHaveBeenCalled();
+  await current.api.listenSocket([]);
+  expect(wire.listenSocket).toHaveBeenCalledOnce();
+  current.mounted.unmount();
+  expect(wire.closeSocket).toHaveBeenCalledOnce();
+});
+
+it("unregisters parent history subscriptions without an unload RPC", () => {
+  const unregister = vitest.fn();
+  const registerLocationListener = vitest.fn(() => unregister);
+  const { api, mounted } = connect(undefined, { registerLocationListener } as unknown as TopFrameApi);
+  api.registerLocationListener(vitest.fn());
+  mounted.unmount();
+  expect(unregister).toHaveBeenCalledOnce();
+  api.registerLocationListener(vitest.fn());
+  expect(registerLocationListener).toHaveBeenCalledOnce();
+});
+
+it("releases the host proxy and rejects late host registration after disposal", () => {
+  const { api, mounted } = connect();
+  const release = vitest.fn();
+  const host = { [Comlink.releaseProxy]: release } as unknown as Parameters<typeof api.exposeHostFrameApi>[0];
+  act(() => api.exposeHostFrameApi(host));
+  mounted.unmount();
+  expect(release).toHaveBeenCalledOnce();
+  const releaseLate = vitest.fn();
+  api.exposeHostFrameApi({ [Comlink.releaseProxy]: releaseLate } as unknown as typeof host);
+  expect(releaseLate).toHaveBeenCalledOnce();
 });

@@ -197,3 +197,32 @@ it("keeps dashboard navigation available without constructing a project context"
   expect(appCtx.history.location.pathname).toBe(APP_ROUTES.allProjects.fill({}));
   expect(api.getProjects).not.toHaveBeenCalled();
 });
+
+it("disposes a context that finishes initializing after its host has left", async () => {
+  const { studioCtx, appCtx } = fakeStudioCtx();
+  let finish!: (ctx: typeof studioCtx) => void;
+  const pending = new Promise<typeof studioCtx>((resolve) => { finish = resolve; });
+  vi.mocked(initStudioCtx).mockReturnValue(pending);
+  const dispose = vi.spyOn(studioCtx, "dispose");
+  const startListening = vi.spyOn(studioCtx, "startListeningForSocketEvents").mockResolvedValue();
+  const mounted = render(
+    providesAppCtx(appCtx)(
+      <HistoryProvider history={appCtx.history}>
+        <AntdConfigProvider productUI>
+          <StudioInitializer
+            projectId={studioCtx.siteInfo.id}
+            appCtx={appCtx}
+            hostFrameCtx={mock<HostFrameCtx>()}
+            onRefreshUi={() => {}}
+          />
+        </AntdConfigProvider>
+      </HistoryProvider>,
+    ),
+  );
+  await waitFor(() => expect(initStudioCtx).toHaveBeenCalled());
+  fireEvent(window, new Event("pagehide"));
+  mounted.unmount();
+  await act(async () => { finish(studioCtx); await pending; });
+  expect(dispose).toHaveBeenCalledOnce();
+  expect(startListening).not.toHaveBeenCalled();
+});

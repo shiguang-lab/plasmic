@@ -1,0 +1,31 @@
+map $http_upgrade $edge_connection {
+  default upgrade;
+  '' close;
+}
+map $http_x_forwarded_proto $edge_proto {
+  default $scheme;
+  https https;
+}
+map $server_port $release_target {
+  8080 http://web:8080;
+  8081 http://web:8081;
+  8082 http://web:8082;
+}
+server {
+  listen 8080;
+  listen 8081;
+  listen 8082;
+  resolver 127.0.0.11 valid=5s ipv6=off;
+  client_max_body_size 20m;
+  location / {
+    proxy_pass $release_target;
+    proxy_http_version 1.1;
+    proxy_set_header Host $http_host;
+    proxy_set_header X-Forwarded-Proto $edge_proto;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection $edge_connection;
+    proxy_buffering off;
+    proxy_read_timeout 300s;
+  }
+}

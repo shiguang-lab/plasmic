@@ -1,3 +1,4 @@
+import "@/wab/client/frame-ctx/project-model-transfer";
 import { ensureIsHostFrame, isHostFrame } from "@/wab/client/cli-routes";
 import {
   providesFrameCtx,

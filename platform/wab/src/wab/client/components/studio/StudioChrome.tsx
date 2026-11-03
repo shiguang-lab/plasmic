@@ -30,7 +30,7 @@ export function useStudioStartup() {
 }
 
 // This owner lives above application loading and route Suspense, so replacing
-// their fallback trees cannot replace the visible skeleton or restart its animation.
+// their fallback trees cannot replace the visible loader or restart its animation.
 export function StudioStartupBoundary({
   children,
 }: {
@@ -56,8 +56,7 @@ export function StudioStartupBoundary({
     setState((prev) => ({ ...prev, ...patch }));
   }, []);
   React.useLayoutEffect(() => {
-    // Keep the HTML skeleton in place: replacing or moving its animated nodes
-    // restarts the shimmer when React takes over the first paint.
+    // Keep the HTML logo in place so React taking over does not restart it.
     const visible =
       !!projectId &&
       !projectLocation?.isPreview &&

@@ -221,11 +221,17 @@ button:disabled { opacity: .55; cursor: default; }
   byId("primary").onclick = () => run(action);
   byId("secondary").onclick = () => run("close");
   byId("dismiss").onclick = () => run("close");
+  // Studio forwards page-level shortcuts into the canvas. Keep modal keys
+  // local while preserving native defaults, including Escape cancellation.
+  for (const type of ["keydown", "keypress", "keyup"]) {
+    dialog.addEventListener(type, (event) => event.stopPropagation());
+  }
   dialog.addEventListener("cancel", (event) => {
     if (state.phase === "installing") {
       event.preventDefault();
     }
   });
+  dialog.addEventListener("close", () => window.desktopUpdates.closed());
   window.desktopUpdates.onStatus(render);
   window.desktopUpdates.onOpen((status) => {
     render(status);

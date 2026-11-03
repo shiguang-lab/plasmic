@@ -301,7 +301,7 @@ async function runPreview(win, input, context, signal = AbortSignal.timeout(3000
     const cssRect = await viewportRect(frame, { width: layout.width, height: layout.height }, signal);
     const zoom = win.webContents.getZoomFactor();
     const rect = Object.fromEntries(Object.entries(cssRect).map(([k, v]) => [k, Math.round(v * zoom)]));
-    const bounds = win.getContentBounds();
+    const bounds = win.window.getContentBounds();
     if (rect.x < 0 || rect.y < 0 || rect.x + rect.width > bounds.width + 1 || rect.y + rect.height > bounds.height + 1) throw new Error("Native Preview is clipped by the App window; reveal the full viewport before recording a screenshot");
     diagnostics.phase = "capture";
     let image;

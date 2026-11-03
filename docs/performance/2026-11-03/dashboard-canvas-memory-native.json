@@ -1,0 +1,435 @@
+{
+  "scope": "Installed signed /Applications/Plasmic.app; live original project, two canvas visits and in-app Preview; no GC/debugging switches; OS RSS, not Activity Monitor footprint. No model edits.",
+  "build": {
+    "kind": "local",
+    "revision": "400c402f651be86b96cf0a3fe5bc7d8bdec4887e",
+    "dirty": true,
+    "builtAt": "2026-11-03T04:08:11.895Z",
+    "sourceHash": "9d7e17c6c593a11f6c8d7e33af9cad7ea0b43e3e8471f88dae6f2ba1f023f380",
+    "rendererHash": "84de5af6701c93f187e29550e33181ccb4bd7be744e16737819eb710e716ae91",
+    "desktopHash": "05cc9c198d861858c828449653428bf8b3a1b82bcee2bc0da54b7e0a7d2b6cdc"
+  },
+  "samples": [
+    {
+      "label": "isolated-app-cold-dashboard",
+      "time": 1793679653.610112,
+      "processes": [
+        {
+          "pid": 51553,
+          "ppid": 1,
+          "rssKiB": 291488,
+          "renderer": false,
+          "gpu": false
+        },
+        {
+          "pid": 51561,
+          "ppid": 51553,
+          "rssKiB": 90352,
+          "renderer": false,
+          "gpu": true
+        },
+        {
+          "pid": 51562,
+          "ppid": 51553,
+          "rssKiB": 57456,
+          "renderer": false,
+          "gpu": false
+        },
+        {
+          "pid": 51565,
+          "ppid": 51553,
+          "rssKiB": 249728,
+          "renderer": true,
+          "gpu": false
+        },
+        {
+          "pid": 51574,
+          "ppid": 51553,
+          "rssKiB": 88480,
+          "renderer": true,
+          "gpu": false
+        },
+        {
+          "pid": 51576,
+          "ppid": 51553,
+          "rssKiB": 116272,
+          "renderer": true,
+          "gpu": false
+        }
+      ],
+      "primaryRenderer": {
+        "pid": 51565,
+        "ppid": 51553,
+        "rssKiB": 249728,
+        "renderer": true,
+        "gpu": false
+      }
+    },
+    {
+      "label": "isolated-app-first-canvas",
+      "time": 1793679668.0148532,
+      "processes": [
+        {
+          "pid": 51553,
+          "ppid": 1,
+          "rssKiB": 306176,
+          "renderer": false,
+          "gpu": false
+        },
+        {
+          "pid": 51561,
+          "ppid": 51553,
+          "rssKiB": 104944,
+          "renderer": false,
+          "gpu": true
+        },
+        {
+          "pid": 51562,
+          "ppid": 51553,
+          "rssKiB": 52480,
+          "renderer": false,
+          "gpu": false
+        },
+        {
+          "pid": 51682,
+          "ppid": 51553,
+          "rssKiB": 1189024,
+          "renderer": true,
+          "gpu": false
+        }
+      ],
+      "primaryRenderer": {
+        "pid": 51682,
+        "ppid": 51553,
+        "rssKiB": 1189024,
+        "renderer": true,
+        "gpu": false
+      }
+    },
+    {
+      "label": "isolated-app-returned1",
+      "time": 1793679687.817245,
+      "processes": [
+        {
+          "pid": 51553,
+          "ppid": 1,
+          "rssKiB": 302272,
+          "renderer": false,
+          "gpu": false
+        },
+        {
+          "pid": 51561,
+          "ppid": 51553,
+          "rssKiB": 145744,
+          "renderer": false,
+          "gpu": true
+        },
+        {
+          "pid": 51562,
+          "ppid": 51553,
+          "rssKiB": 53024,
+          "renderer": false,
+          "gpu": false
+        },
+        {
+          "pid": 51706,
+          "ppid": 51553,
+          "rssKiB": 295776,
+          "renderer": true,
+          "gpu": false
+        },
+        {
+          "pid": 51711,
+          "ppid": 51553,
+          "rssKiB": 88976,
+          "renderer": true,
+          "gpu": false
+        },
+        {
+          "pid": 51712,
+          "ppid": 51553,
+          "rssKiB": 116496,
+          "renderer": true,
+          "gpu": false
+        },
+        {
+          "pid": 51715,
+          "ppid": 51553,
+          "rssKiB": 160016,
+          "renderer": true,
+          "gpu": false
+        }
+      ],
+      "primaryRenderer": {
+        "pid": 51706,
+        "ppid": 51553,
+        "rssKiB": 295776,
+        "renderer": true,
+        "gpu": false
+      }
+    },
+    {
+      "label": "isolated-app-returned1-settled",
+      "time": 1793679721.79714,
+      "processes": [
+        {
+          "pid": 51553,
+          "ppid": 1,
+          "rssKiB": 277504,
+          "renderer": false,
+          "gpu": false
+        },
+        {
+          "pid": 51561,
+          "ppid": 51553,
+          "rssKiB": 122560,
+          "renderer": false,
+          "gpu": true
+        },
+        {
+          "pid": 51562,
+          "ppid": 51553,
+          "rssKiB": 52992,
+          "renderer": false,
+          "gpu": false
+        },
+        {
+          "pid": 51706,
+          "ppid": 51553,
+          "rssKiB": 258064,
+          "renderer": true,
+          "gpu": false
+        },
+        {
+          "pid": 51711,
+          "ppid": 51553,
+          "rssKiB": 88928,
+          "renderer": true,
+          "gpu": false
+        },
+        {
+          "pid": 51712,
+          "ppid": 51553,
+          "rssKiB": 116464,
+          "renderer": true,
+          "gpu": false
+        }
+      ],
+      "primaryRenderer": {
+        "pid": 51706,
+        "ppid": 51553,
+        "rssKiB": 258064,
+        "renderer": true,
+        "gpu": false
+      }
+    },
+    {
+      "label": "isolated-app-second-canvas",
+      "time": 1793679738.302499,
+      "processes": [
+        {
+          "pid": 51553,
+          "ppid": 1,
+          "rssKiB": 356464,
+          "renderer": false,
+          "gpu": false
+        },
+        {
+          "pid": 51561,
+          "ppid": 51553,
+          "rssKiB": 118496,
+          "renderer": false,
+          "gpu": true
+        },
+        {
+          "pid": 51562,
+          "ppid": 51553,
+          "rssKiB": 52864,
+          "renderer": false,
+          "gpu": false
+        },
+        {
+          "pid": 51750,
+          "ppid": 51553,
+          "rssKiB": 1439568,
+          "renderer": true,
+          "gpu": false
+        }
+      ],
+      "primaryRenderer": {
+        "pid": 51750,
+        "ppid": 51553,
+        "rssKiB": 1439568,
+        "renderer": true,
+        "gpu": false
+      }
+    },
+    {
+      "label": "isolated-app-preview",
+      "time": 1793679759.706763,
+      "processes": [
+        {
+          "pid": 51553,
+          "ppid": 1,
+          "rssKiB": 302960,
+          "renderer": false,
+          "gpu": false
+        },
+        {
+          "pid": 51561,
+          "ppid": 51553,
+          "rssKiB": 118704,
+          "renderer": false,
+          "gpu": true
+        },
+        {
+          "pid": 51562,
+          "ppid": 51553,
+          "rssKiB": 52880,
+          "renderer": false,
+          "gpu": false
+        },
+        {
+          "pid": 51750,
+          "ppid": 51553,
+          "rssKiB": 1506624,
+          "renderer": true,
+          "gpu": false
+        }
+      ],
+      "primaryRenderer": {
+        "pid": 51750,
+        "ppid": 51553,
+        "rssKiB": 1506624,
+        "renderer": true,
+        "gpu": false
+      }
+    },
+    {
+      "label": "isolated-app-returned2",
+      "time": 1793679777.455165,
+      "processes": [
+        {
+          "pid": 51553,
+          "ppid": 1,
+          "rssKiB": 310944,
+          "renderer": false,
+          "gpu": false
+        },
+        {
+          "pid": 51561,
+          "ppid": 51553,
+          "rssKiB": 130608,
+          "renderer": false,
+          "gpu": true
+        },
+        {
+          "pid": 51562,
+          "ppid": 51553,
+          "rssKiB": 52768,
+          "renderer": false,
+          "gpu": false
+        },
+        {
+          "pid": 51784,
+          "ppid": 51553,
+          "rssKiB": 295936,
+          "renderer": true,
+          "gpu": false
+        },
+        {
+          "pid": 51787,
+          "ppid": 51553,
+          "rssKiB": 88960,
+          "renderer": true,
+          "gpu": false
+        },
+        {
+          "pid": 51789,
+          "ppid": 51553,
+          "rssKiB": 116464,
+          "renderer": true,
+          "gpu": false
+        },
+        {
+          "pid": 51812,
+          "ppid": 51553,
+          "rssKiB": 159184,
+          "renderer": true,
+          "gpu": false
+        }
+      ],
+      "primaryRenderer": {
+        "pid": 51784,
+        "ppid": 51553,
+        "rssKiB": 295936,
+        "renderer": true,
+        "gpu": false
+      }
+    },
+    {
+      "label": "isolated-app-returned2-settled",
+      "time": 1793679822.059042,
+      "processes": [
+        {
+          "pid": 51553,
+          "ppid": 1,
+          "rssKiB": 271888,
+          "renderer": false,
+          "gpu": false
+        },
+        {
+          "pid": 51561,
+          "ppid": 51553,
+          "rssKiB": 107264,
+          "renderer": false,
+          "gpu": true
+        },
+        {
+          "pid": 51562,
+          "ppid": 51553,
+          "rssKiB": 52720,
+          "renderer": false,
+          "gpu": false
+        },
+        {
+          "pid": 51784,
+          "ppid": 51553,
+          "rssKiB": 258240,
+          "renderer": true,
+          "gpu": false
+        },
+        {
+          "pid": 51787,
+          "ppid": 51553,
+          "rssKiB": 88944,
+          "renderer": true,
+          "gpu": false
+        },
+        {
+          "pid": 51789,
+          "ppid": 51553,
+          "rssKiB": 116432,
+          "renderer": true,
+          "gpu": false
+        }
+      ],
+      "primaryRenderer": {
+        "pid": 51784,
+        "ppid": 51553,
+        "rssKiB": 258240,
+        "renderer": true,
+        "gpu": false
+      }
+    }
+  ],
+  "retiredRendererPids": [
+    51682,
+    51750
+  ],
+  "retiredPidsExited": true,
+  "newEditorSessionEachEntry": true,
+  "revisionUnchanged": 750,
+  "finalSurface": "dashboard",
+  "previewReady": true
+}

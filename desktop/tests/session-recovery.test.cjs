@@ -1,3 +1,4 @@
+const { studioFixture } = require("./fixtures/studio.cjs");
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
 const { EventEmitter } = require("node:events");
@@ -24,7 +25,7 @@ function fixture(fetch) {
     window.url = url;
   };
   const auth = new UnifiedAuthWindow(
-    window,
+    studioFixture(window),
     studioOrigin,
     () => {
       assert.fail("Session expiry must not open browser authorization");

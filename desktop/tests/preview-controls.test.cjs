@@ -1,3 +1,4 @@
+const { studioFixture } = require("./fixtures/studio.cjs");
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const { JSDOM } = require("jsdom");
@@ -19,7 +20,7 @@ test("MCP Preview state and navigation report availability without operating Stu
   const frame = { url: dom.window.location.href, executeJavaScript: (script) => dom.window.eval(script) };
   const context = { projectId: "p", branchId: null, sessionId: "s", changeCounter: 0, mode: "preview", previewKind: "in-app",
     componentUuid: "editor-page", previewContext: { componentUuid: "details", path: "/details", canGoBack: true, canGoForward: false } };
-  const controller = new DesktopController(() => ({ isDestroyed: () => false, webContents: {
+  const controller = new DesktopController(() => studioFixture({ isDestroyed: () => false, webContents: {
     getURL: () => `https://studio.example/projects/p/preview#${context.previewContext.path}`,
     mainFrame: { framesInSubtree: [frame] },
     reload: () => assert.fail("Studio reloaded"),
@@ -58,7 +59,7 @@ test("MCP Preview state and navigation report availability without operating Stu
 
 test("MCP Preview state outside Preview reports both navigation directions unavailable", async (t) => {
   const context = { projectId: "p", sessionId: "s", changeCounter: 0, mode: "edit", previewContext: null };
-  const controller = new DesktopController(() => ({ isDestroyed: () => false, webContents: { getURL: () => "https://studio.example/projects/p" } }), { studioOrigin: "https://studio.example" });
+  const controller = new DesktopController(() => studioFixture({ isDestroyed: () => false, webContents: { getURL: () => "https://studio.example/projects/p" } }), { studioOrigin: "https://studio.example" });
   t.after(() => controller.close());
   controller.state = async () => ({ ready: true, projectId: "p", editorContext: context });
   controller.editor = async (name) => { assert.equal(name, "getEditorContext"); return context; };

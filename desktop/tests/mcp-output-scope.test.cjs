@@ -1,3 +1,4 @@
+const { studioFixture } = require("./fixtures/studio.cjs");
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs/promises");
@@ -24,7 +25,7 @@ test("public MCP output preserves the next-step inputs without UI state, permiss
   const context = { projectId: "project", branchId: null, sessionId: "session", revision: 3, changeCounter: 5,
     componentUuid: "page", selectedElementUuids: ["node"], editorView: view, browserImportCanvasName: "ImportCanvas", mode: "edit", canEdit: true };
   const contextSchema = { type: "object", properties: { projectId: { type: "string" }, editorView: { type: "object" }, browserImportCanvasName: { type: "string" } }, required: ["projectId", "editorView", "browserImportCanvasName"] };
-  const controller = new DesktopController(() => ({ isDestroyed: () => false,
+  const controller = new DesktopController(() => studioFixture({ isDestroyed: () => false,
     webContents: { getURL: () => "https://studio.example/projects/project" } }), { studioOrigin: "https://studio.example" });
   controller.state = async () => ({ running: true, ready: true, version: require("../package.json").version, build,
     projectId: "project", editorContext: context, browser: { recent: ["private history"] }, imageService: { configured: false },

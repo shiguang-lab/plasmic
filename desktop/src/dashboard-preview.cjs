@@ -10,6 +10,7 @@ const ENGINE_PATH = "/canvas-preview/index.html";
 // capture, so the Dashboard's main thread stays free for input.
 function createDashboardPreviews({ session, studioOrigin, trustedSender }) {
   const jobs = new Map();
+  const owners = new Map();
   let queue = Promise.resolve();
 
   function render(id, src, request, scale) {
@@ -92,8 +93,10 @@ function createDashboardPreviews({ session, studioOrigin, trustedSender }) {
     };
     sender.once("destroyed", abandon);
     sender.on("did-start-navigation", abandon);
+    owners.set(id, sender);
     return render(id, url.href, request, Number.isFinite(ratio) ? Math.min(4, Math.max(1, ratio)) : 1)
       .finally(() => {
+        owners.delete(id);
         sender.removeListener("destroyed", abandon);
         sender.removeListener("did-start-navigation", abandon);
       });
@@ -103,6 +106,9 @@ function createDashboardPreviews({ session, studioOrigin, trustedSender }) {
   };
   ipcMain.on("desktop:dashboard-preview-cancel", onCancel);
   return {
+    cancelFor(contents) {
+      for (const [id, owner] of owners) if (owner === contents) jobs.get(id)?.();
+    },
     dispose() {
       ipcMain.removeHandler("desktop:dashboard-preview");
       ipcMain.removeListener("desktop:dashboard-preview-cancel", onCancel);

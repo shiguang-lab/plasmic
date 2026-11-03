@@ -211,6 +211,9 @@ it("installs and upgrades through the real dependency manager, reads new live co
   vi.spyOn(studioBundles, "getSortedHostLessPkgs").mockImplementation(realBundles.getSortedHostLessPkgs);
   vi.spyOn(scriptUtils, "scriptExec").mockImplementation((win, source) => { runInNewContext(source, { window: win }); });
   vi.stubGlobal("fetch", vi.fn(async (url: string) => ({ ok: true, text: async () => {
+    if (url.endsWith("antd6-runtime.test.js")) {
+      return "window.__CanvasPkgs.Antd6 = {};";
+    }
     if (url.endsWith("client.test.js")) {
       return "window.__CanvasPkgs = {};";
     }

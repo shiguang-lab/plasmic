@@ -1,3 +1,4 @@
+const { studioFixture } = require("./fixtures/studio.cjs");
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs/promises");
@@ -42,7 +43,7 @@ function fixture(t, response = {}) {
       },
     },
   };
-  const controller = new DesktopController(() => win, { studioOrigin: origin });
+  const controller = new DesktopController(() => studioFixture(win), { studioOrigin: origin });
   controller.state = async () => ({ ready: true, projectId: "current", url });
   controller.editor = async (method) => {
     calls.push({ method });

@@ -1,3 +1,4 @@
+import { installDesktopNavigation } from "@/wab/client/desktop-navigation";
 import { PresentationEntry } from "@/wab/client/components/live/PresentationEntry";
 import { handleError, normalizeError } from "@/wab/client/ErrorNotifications";
 import {
@@ -135,6 +136,13 @@ export function Shell() {
   const [history] = React.useState(() =>
     hostFrameCtx ? hostFrameCtx.history : createBrowserHistory(),
   );
+
+  React.useEffect(() => {
+    if (!hostFrameCtx) {
+      return installDesktopNavigation(history);
+    }
+    return undefined;
+  }, [history, hostFrameCtx]);
 
   return (
     <HistoryProvider history={history}>

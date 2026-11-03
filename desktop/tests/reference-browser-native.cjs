@@ -4,12 +4,14 @@ const {
   nativeImage,
   clipboard,
   Menu,
+  ipcMain,
 } = require("electron");
 const http = require("node:http");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
+const { StudioWindow } = require("../src/studio-window.cjs");
 const { ReferenceBrowser } = require("../src/reference-browser.cjs");
 const { inPage } = require("../src/browser-page.cjs");
 const { createDesktopI18n } = require("../src/i18n.cjs");
@@ -22,7 +24,7 @@ app.setPath(
   "userData",
   fs.mkdtempSync(path.join(os.tmpdir(), "plasmic-browser-profile-")),
 );
-let parent, browser, server;
+let parent, studio, browser, server;
 const imports = [];
 const screenshots = [];
 const localeDirectory = fs.mkdtempSync(
@@ -48,6 +50,7 @@ const watchdog = setTimeout(() => {
 app
   .whenReady()
   .then(async () => {
+    ipcMain.handle("desktop:view-state", event => ({active:event.sender===studio?.webContents}));
     await (
       await import("../scripts/build-reference-browser-ui.mjs")
     ).buildReferenceBrowserUi();
@@ -71,7 +74,7 @@ app
     );
     parent = new BrowserWindow({
       width: 1500,
-      height: 1000,
+      height: 740,
       show: false,
       ...(process.platform === "darwin"
         ? {
@@ -85,10 +88,11 @@ app
         sandbox: true,
       },
     });
-    await parent.loadURL(
+    studio = new StudioWindow(parent, {studioOrigin:"https://studio.test",backgroundColor:"#202226",webPreferences:{preload:path.join(__dirname,"../src/preload.cjs"),contextIsolation:true,sandbox:true},projectId:()=>undefined,beforeNavigate:async()=>{}});
+    await studio.webContents.loadURL(
       "data:text/html,<style>body{margin:0;background:%23202226}aside{position:fixed;right:8px;top:0}</style><aside>Editor edge</aside>",
     );
-    const originalViewport = await parent.webContents.executeJavaScript(
+    const originalViewport = await studio.webContents.executeJavaScript(
       "({width:innerWidth,height:innerHeight,dpr:devicePixelRatio})",
     );
 
@@ -105,6 +109,7 @@ app
     console.log("NATIVE configure browser");
     browser = new ReferenceBrowser({
       getParent: () => parent,
+      getStudio: () => studio,
       dispatch: (_method, input) => browser.command(input),
       getImportContext: async () => ({
         projectId: "fixture",
@@ -584,6 +589,9 @@ app
     report.checks.push(
       "explicit import uses selected DOM, static capture and shared import callback",
     );
+    // Direct commands publish renderer state asynchronously. Wait until the
+    // preceding import has re-enabled the actual button before clicking it.
+    await waitChrome('!document.getElementById("import").disabled');
     const completed = new Promise((resolve) => {
       const original = browser.dispatch;
       browser.dispatch = async (...args) => {
@@ -673,6 +681,7 @@ app
         browser.state.zoom,
     );
     browser.menu("more", 3);
+    await waitChrome('document.getElementById("height-handle").getAttribute("aria-disabled") === "false"');
     await chromeEval(
       'document.getElementById("height-handle").dispatchEvent(new MouseEvent("dblclick",{bubbles:true}))',
     );
@@ -748,7 +757,7 @@ app
       );
       assert.equal(toolbar.bottom, 42);
       assert.equal(toolbar.controlHeight, 28);
-      const editor = await parent.webContents.executeJavaScript(
+      const editor = await studio.webContents.executeJavaScript(
         '({width:innerWidth,height:innerHeight,right:document.querySelector("aside").getBoundingClientRect().right,dpr:devicePixelRatio,scale:visualViewport.scale})',
       );
       assert.equal(
@@ -777,7 +786,7 @@ app
     assert(leadingBounds.pickerLeft > leadingBounds.right);
     if (process.platform === "darwin") assert(leadingBounds.left >= 96);
     assert.deepEqual(
-      await parent.webContents.executeJavaScript(
+      await studio.webContents.executeJavaScript(
         "({visibility:document.documentElement.style.visibility,inert:document.documentElement.inert})",
       ),
       { visibility: "hidden", inert: true },
@@ -799,7 +808,7 @@ app
       true,
     );
     assert.deepEqual(
-      await parent.webContents.executeJavaScript(
+      await studio.webContents.executeJavaScript(
         "({visibility:document.documentElement.style.visibility,inert:document.documentElement.inert})",
       ),
       { visibility: "", inert: false },
@@ -808,6 +817,10 @@ app
       "expanded mode merges app identity and workspace entry into the browser header, reserves native window controls, and restores the hidden inert editor on exit",
     );
     const chromeContents = browser.chrome.webContents;
+    app.focus({steal:true});parent.show();parent.focus();chromeContents.focus();
+    await waitChrome("document.hasFocus()");
+    const nativeOrigin = parent.getContentBounds();
+    const screenPoint = (x,y) => ({globalX:nativeOrigin.x+browser.chrome.getBounds().x+x,globalY:nativeOrigin.y+browser.chrome.getBounds().y+y});
     await chromeEval(
       'document.getElementById("resize-handle").addEventListener("pointerdown", event => { window.resizePointerId = event.pointerId; })',
     );
@@ -816,7 +829,7 @@ app
         type: "mouseMove",
         x,
         y: 200,
-        globalX: browser.chrome.getBounds().x + x,
+        ...screenPoint(x,200),
         modifiers: pressed ? ["leftButtonDown"] : [],
       });
       await settleChrome();
@@ -826,7 +839,7 @@ app
         type: "mouseDown",
         x: 3,
         y: 200,
-        globalX: browser.chrome.getBounds().x + 3,
+        ...screenPoint(3,200),
         button: "left",
         clickCount: 1,
       });
@@ -895,7 +908,7 @@ app
     browser.layout();
     await assertDocked();
     parent.setContentSize(originalViewport.width, originalViewport.height);
-    await parent.webContents.executeJavaScript(
+    await studio.webContents.executeJavaScript(
       "new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))",
     );
     await browser.onCommand(
@@ -910,10 +923,10 @@ app
     await browser.command({ action: "close" });
     assert(!browser.snapshot().visible);
     assert(parent.isVisible());
-    await parent.webContents.executeJavaScript(
+    await studio.webContents.executeJavaScript(
       "new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))",
     );
-    const restoredViewport = await parent.webContents.executeJavaScript(
+    const restoredViewport = await studio.webContents.executeJavaScript(
       "({width:innerWidth,height:innerHeight,dpr:devicePixelRatio})",
     );
     assert.deepEqual(restoredViewport, originalViewport);
@@ -926,11 +939,11 @@ app
     );
     await browser.command({ action: "expand" });
     await browser.command({ action: "close" });
-    await parent.webContents.executeJavaScript(
+    await studio.webContents.executeJavaScript(
       "new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))",
     );
     assert.equal(
-      await parent.webContents.executeJavaScript(
+      await studio.webContents.executeJavaScript(
         "document.documentElement.inert",
       ),
       false,
@@ -938,7 +951,7 @@ app
     await browser.command({ action: "open" });
     await settleChrome();
     assert.equal(
-      await parent.webContents.executeJavaScript(
+      await studio.webContents.executeJavaScript(
         "document.documentElement.inert",
       ),
       true,
@@ -946,7 +959,7 @@ app
     await browser.command({ action: "expand" });
     await settleChrome();
     assert.equal(
-      await parent.webContents.executeJavaScript(
+      await studio.webContents.executeJavaScript(
         "document.documentElement.inert",
       ),
       false,
@@ -1099,7 +1112,7 @@ app
     assert(page.isDestroyed());
     assert(!parent.isDestroyed());
     assert.equal(
-      await parent.webContents.executeJavaScript("innerWidth"),
+      await studio.webContents.executeJavaScript("innerWidth"),
       parent.getContentSize()[0],
     );
     browser = undefined;

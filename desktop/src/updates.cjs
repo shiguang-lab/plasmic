@@ -5,7 +5,7 @@ const { UpdateManager } = require("./update-manager.cjs");
 const { MacUpdater, acknowledgeMacUpdate } = require("./mac-updater.cjs");
 const { macUpdateArch } = require("./update-architecture.cjs");
 
-async function createUpdates({ config, getWindow, session, beforeInstall, showUpdateDialog }) {
+async function createUpdates({ config, getStudio, session, beforeInstall, showUpdateDialog }) {
   const feedUrl = `${config.updateUrl}/${process.platform}/${process.platform === "darwin" ? macUpdateArch(app) : process.arch}/`;
   if (new URL(feedUrl).protocol !== "https:") throw new Error("Updates require HTTPS");
   const updater = process.platform === "darwin"
@@ -19,14 +19,14 @@ async function createUpdates({ config, getWindow, session, beforeInstall, showUp
     manager.fail(new Error(error));
   } catch (error) { if (error.code !== "ENOENT") throw error; }
   ipcMain.handle("desktop:update", (event, command) => {
-    const window = getWindow();
-    if (!window || event.sender !== window.webContents || event.senderFrame !== event.sender.mainFrame || new URL(event.senderFrame.url).origin !== config.studioOrigin) throw new Error("Invalid update sender");
+    const window = getStudio();
+    if (!window || (event.sender !== window.webContents && !(command === "status" && window.owns(event.sender))) || event.senderFrame !== event.sender.mainFrame || new URL(event.senderFrame.url).origin !== config.studioOrigin) throw new Error("Invalid update sender");
     if (command === "open") { showUpdateDialog(); return manager.state; }
     return manager.command(command);
   });
   manager.on("status", (status) => {
-    const window = getWindow();
-    if (window && !window.isDestroyed()) window.webContents.send("desktop:update-status", status);
+    const window = getStudio();
+    if (window && !window.window.isDestroyed()) window.webContents.send("desktop:update-status", status);
   });
   manager.start();
   app.once("will-quit", () => manager.stop());

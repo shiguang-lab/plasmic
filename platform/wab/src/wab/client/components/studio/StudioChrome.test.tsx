@@ -46,7 +46,7 @@ function setup(children: React.ReactNode, path = "/projects/project") {
   };
 }
 
-it("keeps one skeleton and its animation nodes across app startup, app context, lazy route and canvas initialization", async () => {
+it("keeps one logo and its animation nodes across app startup, app context, lazy route and canvas initialization", async () => {
   let releaseStartup!: () => void;
   let releaseAppCtx!: () => void;
   let releaseRoute!: () => void;
@@ -81,13 +81,14 @@ it("keeps one skeleton and its animation nodes across app startup, app context, 
       )}
     />,
   );
-  const skeleton = screen.getByRole("status");
-  const input = skeleton.querySelector(".ant-skeleton-input");
+  const loadingNode = screen.getByRole("status");
+  const logo = loadingNode.querySelector("svg [data-solid]");
+  expect(logo).toBeTruthy();
   const unchanged = () => {
     expect(screen.getAllByRole("status")).toHaveLength(1);
-    expect(screen.getByRole("status")).toBe(skeleton);
-    expect(skeleton.querySelector(".ant-skeleton-input")).toBe(input);
-    expect(skeleton.isConnected).toBe(true);
+    expect(screen.getByRole("status")).toBe(loadingNode);
+    expect(loadingNode.querySelector("svg [data-solid]")).toBe(logo);
+    expect(loadingNode.isConnected).toBe(true);
   };
   await act(async () => releaseStartup());
   unchanged();
@@ -100,12 +101,12 @@ it("keeps one skeleton and its animation nodes across app startup, app context, 
   expect(screen.queryByRole("status")).toBeNull();
 });
 
-it("keeps the first-paint HTML skeleton until ready without mounting a second skeleton", () => {
+it("keeps the first-paint HTML logo until ready without mounting a second logo", () => {
   const bootstrap = document.createElement("div");
   bootstrap.id = "studio-startup-loading";
   bootstrap.className = "studio-loading visible";
   bootstrap.setAttribute("role", "status");
-  bootstrap.innerHTML = '<div class="studio-loading__placeholder"></div>';
+  bootstrap.innerHTML = '<svg class="startup-loading__logo"></svg>';
   document.body.appendChild(bootstrap);
   try {
     const placeholder = bootstrap.firstElementChild;
@@ -129,7 +130,7 @@ it("keeps the first-paint HTML skeleton until ready without mounting a second sk
   }
 });
 
-it("reveals startup failures and restores the HTML skeleton on retry", () => {
+it("reveals startup failures and restores the HTML logo on retry", () => {
   const bootstrap = document.createElement("div");
   bootstrap.id = "studio-startup-loading";
   bootstrap.className = "studio-loading visible";
@@ -151,7 +152,7 @@ it("reveals startup failures and restores the HTML skeleton on retry", () => {
   }
 });
 
-it("shows startup failures and retry through the owner instead of covering them with a skeleton", () => {
+it("shows startup failures and retry through the owner instead of covering them with a loader", () => {
   const retry = vi.fn();
   const { rerender } = setup(
     <ApplicationPageLoading failure={<LoadingError onRetry={retry} />} />,
@@ -185,7 +186,7 @@ it.each(["/projects/project/preview", "/d/0123456789"])(
       `${mode}#/home`,
     );
     expect(screen.getAllByRole("status")).toHaveLength(1);
-    expect(screen.getByText("Loading preview…")).toBeTruthy();
+    expect(screen.getByRole("status", { name: "Loading preview…" }).querySelector("svg")).toBeTruthy();
     expect(
       document.querySelector(".canvas-editor, .studio-loading, .ant-skeleton"),
     ).toBeNull();
@@ -239,7 +240,7 @@ it.each(["/projects/project/preview", "/d/0123456789"])(
     );
     await act(() => Promise.resolve());
     expect(screen.queryByText("Startup crashed")).toBeNull();
-    expect(screen.getByRole("status").textContent).toContain("Loading preview…");
+    expect(screen.getByRole("status").getAttribute("aria-label")).toBe("Loading preview…");
     await act(async () => releaseSignIn());
     expect(screen.getByText("Sign in to preview")).toBeTruthy();
     expect(screen.queryByRole("status")).toBeNull();

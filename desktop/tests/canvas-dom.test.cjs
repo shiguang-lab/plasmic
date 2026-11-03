@@ -1,3 +1,4 @@
+const { studioFixture } = require("./fixtures/studio.cjs");
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
 const Module = require("node:module");
@@ -120,7 +121,7 @@ test("a frame-targeted layout read renders an offscreen Page without selecting t
   const visibleFrames = win.webContents.mainFrame.framesInSubtree;
   const originalHtml = overview.window.document.documentElement.outerHTML;
   const calls = [];
-  const controller = new DesktopController(() => win, {});
+  const controller = new DesktopController(() => studioFixture(win), {});
   controller.state = async () => ({ ready: true, projectId: "test", editorContext: { mode: "edit", frameUuid: "overview-frame" } });
   controller.editor = async (method, input) => {
     calls.push({ method, input });
@@ -289,7 +290,7 @@ test("layout checks ignore clipped scrolling content but still detect overflowin
       width: 800,
       height: 20,
     });
-  const controller = new DesktopController(() => windowFor(source), {});
+  const controller = new DesktopController(() => studioFixture(windowFor(source)), {});
   controller.ready = async () => {};
   controller.state = async () => ({ ready: true, projectId: "test", editorContext: { mode: "edit", frameUuid: "frame" } });
   try {
@@ -384,7 +385,7 @@ test("layout text excludes descendant CSS, scripts and hidden content", async ()
   const source = domFor(
     '<body><main class="__wab_val_root"><section><style data-plasmic-editor-style>.selected{outline:1px solid blue}</style><script type="application/json">{"secret":"noise"}</script><span style="display:none">Hidden data</span><span data-plasmic-editor-only>Editor hint</span><span>Visible status</span></section></main></body>',
   );
-  const controller = new DesktopController(() => windowFor(source), {});
+  const controller = new DesktopController(() => studioFixture(windowFor(source)), {});
   controller.ready = async () => {};
   controller.state = async () => ({ ready: true, projectId: "test", editorContext: { mode: "edit", frameUuid: "frame" } });
   try {

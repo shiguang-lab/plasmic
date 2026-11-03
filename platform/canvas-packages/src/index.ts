@@ -5,7 +5,7 @@
 // evaluate the generated javascript when each frame loads (but we can fetch the
 // code only once when the project loads and store it as a string).
 
-import {
+import type {
   nativeAntd6,
   nativeAntd6EnUS,
   nativeAntd6ZhCN,
@@ -74,11 +74,7 @@ interface ModalProps {
 
 const __CanvasPkgs: CanvasPkgs = {
   StudioControlsProvider: (window as any).__Sub.StudioControlsProvider,
-  Antd6: (window as any).__Sub.Antd6 ?? {
-    ...nativeAntd6,
-    localeZhCN: nativeAntd6ZhCN,
-    localeEnUS: nativeAntd6EnUS,
-  },
+  Antd6: (window as any).__Sub.Antd6,
   ResizeObserver,
   GenericErrorBoundary,
   slate,

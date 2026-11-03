@@ -34,6 +34,7 @@ const CDP_READ_METHODS = new Set([
 class ReferenceBrowser {
   constructor({
     getParent,
+    getStudio,
     dispatch,
     getImportContext,
     importHtml,
@@ -45,6 +46,7 @@ class ReferenceBrowser {
   }) {
     Object.assign(this, {
       getParent,
+      getStudio,
       dispatch,
       getImportContext,
       importHtml,
@@ -214,7 +216,7 @@ class ReferenceBrowser {
       for (const event of ["resize", "enter-full-screen", "leave-full-screen"])
         this.window?.removeListener(event, this.onResize);
       this.window?.removeListener("closed", this.onParentClosed);
-      this.window?.webContents.removeListener(
+      this.parentContents?.removeListener(
         "did-start-navigation",
         this.onParentNavigation,
       );
@@ -230,7 +232,14 @@ class ReferenceBrowser {
       for (const event of ["resize", "enter-full-screen", "leave-full-screen"])
         parent.on(event, this.onResize);
       parent.once("closed", this.onParentClosed);
-      parent.webContents.on("did-start-navigation", this.onParentNavigation);
+      this.parentContents = this.getStudio().webContents;
+      this.parentContents.on("did-start-navigation", this.onParentNavigation);
+    }
+    const parentContents = this.getStudio().webContents;
+    if (this.parentContents !== parentContents) {
+      this.parentContents?.removeListener("did-start-navigation", this.onParentNavigation);
+      this.parentContents = parentContents;
+      parentContents.on("did-start-navigation", this.onParentNavigation);
     }
     if (!this.chrome || this.chrome.webContents.isDestroyed()) {
       this.chrome = new WebContentsView({
@@ -275,7 +284,7 @@ class ReferenceBrowser {
     this.view?.setVisible(false);
     this.publish();
     if (this.window && !this.window.isDestroyed())
-      this.window.webContents.focus();
+      this.getStudio().webContents.focus();
     return this.snapshot();
   }
   panelBounds() {
@@ -296,7 +305,7 @@ class ReferenceBrowser {
   }
   resizeEditor(width) {
     if (!this.window || this.window.isDestroyed()) return;
-    const contents = this.window.webContents;
+    const contents = this.getStudio().webContents;
     if (!width) {
       if (this.editorViewport) contents.disableDeviceEmulation();
       this.editorViewport = undefined;
@@ -324,7 +333,7 @@ class ReferenceBrowser {
     clearTimeout(this.pollTimer);
     this.resizeEditor();
     if (this.editorExpanded && this.window && !this.window.isDestroyed())
-      this.window.webContents.send("desktop:reference-browser-mode", {
+      this.getStudio().webContents.send("desktop:reference-browser-mode", {
         expanded: false,
       });
     this.editorExpanded = false;
@@ -483,7 +492,7 @@ class ReferenceBrowser {
     const expanded = !!this.visible && !!this.expanded;
     if (this.editorExpanded !== expanded) {
       this.editorExpanded = expanded;
-      this.window.webContents.send("desktop:reference-browser-mode", {
+      this.getStudio().webContents.send("desktop:reference-browser-mode", {
         expanded,
       });
     }
@@ -1008,7 +1017,7 @@ class ReferenceBrowser {
       for (const event of ["resize", "enter-full-screen", "leave-full-screen"])
         this.window.removeListener(event, this.onResize);
       this.window.removeListener("closed", this.onParentClosed);
-      this.window.webContents.removeListener(
+      this.parentContents.removeListener(
         "did-start-navigation",
         this.onParentNavigation,
       );

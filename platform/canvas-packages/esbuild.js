@@ -164,6 +164,7 @@ const clientEntries = [
   {
     pkg: "index",
   },
+  { pkg: "antd6-runtime" },
   ...hostlessPkgNames.flatMap((pkg) => [
     {
       pkg,
@@ -200,7 +201,7 @@ const clientConfigs = clientEntries.map(({ pkg, useSubJSXRuntime }) => ({
     externalGlobalPlugin({
       react: "__Sub.React",
       "react-dom": "__Sub.ReactDOM",
-      ...(["index", "antd6", "overseas", "react-ui"].includes(pkg)
+      ...(["index", "antd6-runtime", "antd6", "overseas", "react-ui"].includes(pkg)
         ? { "react-dom/client": "__Sub.ReactDOMClient" }
         : {}),
       "@plasmicapp/host": "__Sub",
@@ -261,7 +262,7 @@ const clientConfigs = clientEntries.map(({ pkg, useSubJSXRuntime }) => ({
   external: [
     "react",
     "react-dom",
-    ...(["index", "antd6", "overseas", "react-ui"].includes(pkg)
+    ...(["index", "antd6-runtime", "antd6", "overseas", "react-ui"].includes(pkg)
       ? ["react-dom/client"]
       : []),
     "@plasmicapp/host",

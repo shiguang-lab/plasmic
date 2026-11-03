@@ -1,0 +1,294 @@
+{
+  "environment": {
+    "platform": "macOS arm64",
+    "order": [
+      "44-a",
+      "45-b",
+      "45-c",
+      "44-d"
+    ],
+    "rendererHash": "71f2aa5fd61a253b33698221176e240d697032c72dd96b01cdb45a67e46d536a",
+    "startup": "fresh profile each time, launch to production Desktop dashboard DOM card, OS cache uncontrolled",
+    "project": "offline exact saved model/dependencies, production StudioWindow, persistent partition, no debugger/trace/forced GC, first two opens per process excluded"
+  },
+  "versions": {
+    "44.5.1": {
+      "startupSamples": [
+        {
+          "appReadyMs": 2578,
+          "shellStartedMs": 3958,
+          "dashboardCardReadyMs": 4011
+        },
+        {
+          "appReadyMs": 282,
+          "shellStartedMs": 1551,
+          "dashboardCardReadyMs": 1555
+        },
+        {
+          "appReadyMs": 223,
+          "shellStartedMs": 1455,
+          "dashboardCardReadyMs": 1466
+        },
+        {
+          "appReadyMs": 378,
+          "shellStartedMs": 2010,
+          "dashboardCardReadyMs": 2015
+        },
+        {
+          "appReadyMs": 198,
+          "shellStartedMs": 1532,
+          "dashboardCardReadyMs": 1536
+        },
+        {
+          "appReadyMs": 215,
+          "shellStartedMs": 1565,
+          "dashboardCardReadyMs": 1567
+        }
+      ],
+      "startupMedianMs": {
+        "appReadyMs": 252.5,
+        "shellStartedMs": 1558.0,
+        "dashboardCardReadyMs": 1561.0
+      },
+      "projects": {
+        "gp": {
+          "fixtureSha256": "fa1e1965d363561d357e98539f838fe74140eee7be9791210ab69e4e79b4b5ef",
+          "measuredSamples": [
+            {
+              "firstCanvasReadyMs": 1926.669921875,
+              "allFramesRenderedMs": 1789.5
+            },
+            {
+              "firstCanvasReadyMs": 1921.691650390625,
+              "allFramesRenderedMs": 1787.5
+            },
+            {
+              "firstCanvasReadyMs": 2086.573486328125,
+              "allFramesRenderedMs": 1940.699951171875
+            },
+            {
+              "firstCanvasReadyMs": 1893.906005859375,
+              "allFramesRenderedMs": 1755.300048828125
+            },
+            {
+              "firstCanvasReadyMs": 2174.955078125,
+              "allFramesRenderedMs": 2022.7001953125
+            },
+            {
+              "firstCanvasReadyMs": 1940.777587890625,
+              "allFramesRenderedMs": 1793.699951171875
+            },
+            {
+              "firstCanvasReadyMs": 1952.399169921875,
+              "allFramesRenderedMs": 1817.900146484375
+            },
+            {
+              "firstCanvasReadyMs": 1906.3564453125,
+              "allFramesRenderedMs": 1765.500244140625
+            }
+          ],
+          "medianMs": {
+            "firstCanvasReadyMs": 1933.7237548828125,
+            "allFramesRenderedMs": 1791.5999755859375
+          },
+          "rendererErrorCounts": [
+            0,
+            0
+          ],
+          "previewFixtureErrorCounts": [
+            7,
+            7
+          ]
+        },
+        "complex": {
+          "fixtureSha256": "f33cc7b3a88cd952d2b25a6608aff0577b97c8a95347711577e784c6fcbad5e2",
+          "measuredSamples": [
+            {
+              "firstCanvasReadyMs": 1898.25390625,
+              "allFramesRenderedMs": 4195.699951171875
+            },
+            {
+              "firstCanvasReadyMs": 1759.85888671875,
+              "allFramesRenderedMs": 4142.900146484375
+            },
+            {
+              "firstCanvasReadyMs": 1912.30029296875,
+              "allFramesRenderedMs": 4437.60009765625
+            },
+            {
+              "firstCanvasReadyMs": 1922.197021484375,
+              "allFramesRenderedMs": 4417.300048828125
+            },
+            {
+              "firstCanvasReadyMs": 1715.184326171875,
+              "allFramesRenderedMs": 4082.099853515625
+            },
+            {
+              "firstCanvasReadyMs": 1774.083740234375,
+              "allFramesRenderedMs": 4159.599853515625
+            },
+            {
+              "firstCanvasReadyMs": 1778.017578125,
+              "allFramesRenderedMs": 4148.800048828125
+            },
+            {
+              "firstCanvasReadyMs": 1735.795166015625,
+              "allFramesRenderedMs": 4099.099853515625
+            }
+          ],
+          "medianMs": {
+            "firstCanvasReadyMs": 1776.0506591796875,
+            "allFramesRenderedMs": 4154.199951171875
+          },
+          "rendererErrorCounts": [
+            0,
+            0
+          ],
+          "previewFixtureErrorCounts": [
+            7,
+            7
+          ]
+        }
+      }
+    },
+    "45.2.1": {
+      "startupSamples": [
+        {
+          "appReadyMs": 1811,
+          "shellStartedMs": 3205,
+          "dashboardCardReadyMs": 3207
+        },
+        {
+          "appReadyMs": 273,
+          "shellStartedMs": 1783,
+          "dashboardCardReadyMs": 1785
+        },
+        {
+          "appReadyMs": 261,
+          "shellStartedMs": 1702,
+          "dashboardCardReadyMs": 1703
+        },
+        {
+          "appReadyMs": 132,
+          "shellStartedMs": 1384,
+          "dashboardCardReadyMs": 1454
+        },
+        {
+          "appReadyMs": 211,
+          "shellStartedMs": 1560,
+          "dashboardCardReadyMs": 1561
+        },
+        {
+          "appReadyMs": 206,
+          "shellStartedMs": 1688,
+          "dashboardCardReadyMs": 1689
+        }
+      ],
+      "startupMedianMs": {
+        "appReadyMs": 236.0,
+        "shellStartedMs": 1695.0,
+        "dashboardCardReadyMs": 1696.0
+      },
+      "projects": {
+        "gp": {
+          "fixtureSha256": "fa1e1965d363561d357e98539f838fe74140eee7be9791210ab69e4e79b4b5ef",
+          "measuredSamples": [
+            {
+              "firstCanvasReadyMs": 2011.51416015625,
+              "allFramesRenderedMs": 1852.300048828125
+            },
+            {
+              "firstCanvasReadyMs": 1933.677734375,
+              "allFramesRenderedMs": 1788.699951171875
+            },
+            {
+              "firstCanvasReadyMs": 1936.79931640625,
+              "allFramesRenderedMs": 1793.300048828125
+            },
+            {
+              "firstCanvasReadyMs": 1954.535888671875,
+              "allFramesRenderedMs": 1801.2001953125
+            },
+            {
+              "firstCanvasReadyMs": 1951.859130859375,
+              "allFramesRenderedMs": 1806.900146484375
+            },
+            {
+              "firstCanvasReadyMs": 2024.359375,
+              "allFramesRenderedMs": 1819.7001953125
+            },
+            {
+              "firstCanvasReadyMs": 1900.433837890625,
+              "allFramesRenderedMs": 1756.900146484375
+            },
+            {
+              "firstCanvasReadyMs": 1902.30078125,
+              "allFramesRenderedMs": 1760
+            }
+          ],
+          "medianMs": {
+            "firstCanvasReadyMs": 1944.3292236328125,
+            "allFramesRenderedMs": 1797.2501220703125
+          },
+          "rendererErrorCounts": [
+            0,
+            0
+          ],
+          "previewFixtureErrorCounts": [
+            7,
+            7
+          ]
+        },
+        "complex": {
+          "fixtureSha256": "f33cc7b3a88cd952d2b25a6608aff0577b97c8a95347711577e784c6fcbad5e2",
+          "measuredSamples": [
+            {
+              "firstCanvasReadyMs": 1899.9169921875,
+              "allFramesRenderedMs": 4174.300048828125
+            },
+            {
+              "firstCanvasReadyMs": 1828.391357421875,
+              "allFramesRenderedMs": 4213
+            },
+            {
+              "firstCanvasReadyMs": 1755.00146484375,
+              "allFramesRenderedMs": 4057.300048828125
+            },
+            {
+              "firstCanvasReadyMs": 1805.204345703125,
+              "allFramesRenderedMs": 4175.10009765625
+            },
+            {
+              "firstCanvasReadyMs": 1716.94580078125,
+              "allFramesRenderedMs": 3995.800048828125
+            },
+            {
+              "firstCanvasReadyMs": 1712.003173828125,
+              "allFramesRenderedMs": 3958.39990234375
+            },
+            {
+              "firstCanvasReadyMs": 1720.86572265625,
+              "allFramesRenderedMs": 3987.7998046875
+            },
+            {
+              "firstCanvasReadyMs": 1735.307373046875,
+              "allFramesRenderedMs": 3977.500244140625
+            }
+          ],
+          "medianMs": {
+            "firstCanvasReadyMs": 1745.1544189453125,
+            "allFramesRenderedMs": 4026.550048828125
+          },
+          "rendererErrorCounts": [
+            0,
+            0
+          ],
+          "previewFixtureErrorCounts": [
+            7,
+            7
+          ]
+        }
+      }
+    }
+  }
+}

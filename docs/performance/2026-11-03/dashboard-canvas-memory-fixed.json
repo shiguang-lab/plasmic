@@ -1,0 +1,1391 @@
+{
+  "scope": "Offline real ten-artboard project; production StudioWindow and frontend navigation; natural GC only; renderer RSS is not Activity Monitor footprint or whole-App memory.",
+  "build": {
+    "kind": "local",
+    "revision": "400c402f651be86b96cf0a3fe5bc7d8bdec4887e",
+    "dirty": true,
+    "builtAt": "2026-11-03T04:08:11.895Z",
+    "sourceHash": "9d7e17c6c593a11f6c8d7e33af9cad7ea0b43e3e8471f88dae6f2ba1f023f380",
+    "rendererHash": "84de5af6701c93f187e29550e33181ccb4bd7be744e16737819eb710e716ae91",
+    "desktopHash": "05cc9c198d861858c828449653428bf8b3a1b82bcee2bc0da54b7e0a7d2b6cdc"
+  },
+  "samples": [
+    {
+      "label": "cold-dashboard",
+      "rendererPid": 51158,
+      "rendererRssKiB": 258016,
+      "heapUsedBytes": 41728296,
+      "documents": 1,
+      "processes": [
+        {
+          "pid": 51153,
+          "type": "Browser",
+          "rssKiB": 263840
+        },
+        {
+          "pid": 51154,
+          "type": "GPU",
+          "rssKiB": 104960
+        },
+        {
+          "pid": 51155,
+          "type": "Utility",
+          "rssKiB": 48656
+        },
+        {
+          "pid": 51158,
+          "type": "Tab",
+          "rssKiB": 258016
+        }
+      ]
+    },
+    {
+      "label": "canvas-0",
+      "rendererPid": 51187,
+      "rendererRssKiB": 1022688,
+      "heapUsedBytes": 376919208,
+      "documents": 35,
+      "processes": [
+        {
+          "pid": 51153,
+          "type": "Browser",
+          "rssKiB": 320064
+        },
+        {
+          "pid": 51154,
+          "type": "GPU",
+          "rssKiB": 120800
+        },
+        {
+          "pid": 51155,
+          "type": "Utility",
+          "rssKiB": 48960
+        },
+        {
+          "pid": 51187,
+          "type": "Tab",
+          "rssKiB": 1022688
+        }
+      ]
+    },
+    {
+      "label": "returned-0",
+      "rendererPid": 51189,
+      "rendererRssKiB": 266368,
+      "heapUsedBytes": 31890284,
+      "documents": 1,
+      "processes": [
+        {
+          "pid": 51153,
+          "type": "Browser",
+          "rssKiB": 332672
+        },
+        {
+          "pid": 51154,
+          "type": "GPU",
+          "rssKiB": 120160
+        },
+        {
+          "pid": 51155,
+          "type": "Utility",
+          "rssKiB": 48992
+        },
+        {
+          "pid": 51189,
+          "type": "Tab",
+          "rssKiB": 266368
+        },
+        {
+          "pid": 51191,
+          "type": "Tab",
+          "rssKiB": 166048
+        }
+      ]
+    },
+    {
+      "label": "canvas-1",
+      "rendererPid": 51192,
+      "rendererRssKiB": 1020256,
+      "heapUsedBytes": 375296032,
+      "documents": 35,
+      "processes": [
+        {
+          "pid": 51153,
+          "type": "Browser",
+          "rssKiB": 341504
+        },
+        {
+          "pid": 51154,
+          "type": "GPU",
+          "rssKiB": 124112
+        },
+        {
+          "pid": 51155,
+          "type": "Utility",
+          "rssKiB": 49040
+        },
+        {
+          "pid": 51192,
+          "type": "Tab",
+          "rssKiB": 1020256
+        }
+      ]
+    },
+    {
+      "label": "returned-1",
+      "rendererPid": 51196,
+      "rendererRssKiB": 267888,
+      "heapUsedBytes": 32034828,
+      "documents": 1,
+      "processes": [
+        {
+          "pid": 51153,
+          "type": "Browser",
+          "rssKiB": 305488
+        },
+        {
+          "pid": 51154,
+          "type": "GPU",
+          "rssKiB": 123392
+        },
+        {
+          "pid": 51155,
+          "type": "Utility",
+          "rssKiB": 49072
+        },
+        {
+          "pid": 51196,
+          "type": "Tab",
+          "rssKiB": 267888
+        },
+        {
+          "pid": 51198,
+          "type": "Tab",
+          "rssKiB": 165904
+        }
+      ]
+    },
+    {
+      "label": "canvas-2",
+      "rendererPid": 51199,
+      "rendererRssKiB": 1021984,
+      "heapUsedBytes": 376429912,
+      "documents": 35,
+      "processes": [
+        {
+          "pid": 51153,
+          "type": "Browser",
+          "rssKiB": 336992
+        },
+        {
+          "pid": 51154,
+          "type": "GPU",
+          "rssKiB": 126192
+        },
+        {
+          "pid": 51155,
+          "type": "Utility",
+          "rssKiB": 49040
+        },
+        {
+          "pid": 51199,
+          "type": "Tab",
+          "rssKiB": 1021984
+        }
+      ]
+    },
+    {
+      "label": "returned-2",
+      "rendererPid": 51201,
+      "rendererRssKiB": 267120,
+      "heapUsedBytes": 31192900,
+      "documents": 1,
+      "processes": [
+        {
+          "pid": 51153,
+          "type": "Browser",
+          "rssKiB": 345520
+        },
+        {
+          "pid": 51154,
+          "type": "GPU",
+          "rssKiB": 125328
+        },
+        {
+          "pid": 51155,
+          "type": "Utility",
+          "rssKiB": 49072
+        },
+        {
+          "pid": 51201,
+          "type": "Tab",
+          "rssKiB": 267120
+        },
+        {
+          "pid": 51204,
+          "type": "Tab",
+          "rssKiB": 165696
+        }
+      ]
+    },
+    {
+      "label": "canvas-3",
+      "rendererPid": 51206,
+      "rendererRssKiB": 1023936,
+      "heapUsedBytes": 378005740,
+      "documents": 36,
+      "processes": [
+        {
+          "pid": 51153,
+          "type": "Browser",
+          "rssKiB": 343072
+        },
+        {
+          "pid": 51154,
+          "type": "GPU",
+          "rssKiB": 126880
+        },
+        {
+          "pid": 51155,
+          "type": "Utility",
+          "rssKiB": 49072
+        },
+        {
+          "pid": 51206,
+          "type": "Tab",
+          "rssKiB": 1023936
+        }
+      ]
+    },
+    {
+      "label": "returned-3",
+      "rendererPid": 51209,
+      "rendererRssKiB": 266784,
+      "heapUsedBytes": 31767324,
+      "documents": 1,
+      "processes": [
+        {
+          "pid": 51153,
+          "type": "Browser",
+          "rssKiB": 347072
+        },
+        {
+          "pid": 51154,
+          "type": "GPU",
+          "rssKiB": 126016
+        },
+        {
+          "pid": 51155,
+          "type": "Utility",
+          "rssKiB": 49104
+        },
+        {
+          "pid": 51209,
+          "type": "Tab",
+          "rssKiB": 266784
+        },
+        {
+          "pid": 51210,
+          "type": "Tab",
+          "rssKiB": 165776
+        }
+      ]
+    },
+    {
+      "label": "canvas-4",
+      "rendererPid": 51211,
+      "rendererRssKiB": 1025472,
+      "heapUsedBytes": 379167664,
+      "documents": 35,
+      "processes": [
+        {
+          "pid": 51153,
+          "type": "Browser",
+          "rssKiB": 373360
+        },
+        {
+          "pid": 51154,
+          "type": "GPU",
+          "rssKiB": 127392
+        },
+        {
+          "pid": 51155,
+          "type": "Utility",
+          "rssKiB": 49072
+        },
+        {
+          "pid": 51211,
+          "type": "Tab",
+          "rssKiB": 1025472
+        }
+      ]
+    },
+    {
+      "label": "returned-4",
+      "rendererPid": 51214,
+      "rendererRssKiB": 268240,
+      "heapUsedBytes": 31995772,
+      "documents": 1,
+      "processes": [
+        {
+          "pid": 51153,
+          "type": "Browser",
+          "rssKiB": 352464
+        },
+        {
+          "pid": 51154,
+          "type": "GPU",
+          "rssKiB": 126496
+        },
+        {
+          "pid": 51155,
+          "type": "Utility",
+          "rssKiB": 49104
+        },
+        {
+          "pid": 51214,
+          "type": "Tab",
+          "rssKiB": 268240
+        },
+        {
+          "pid": 51215,
+          "type": "Tab",
+          "rssKiB": 166032
+        }
+      ]
+    },
+    {
+      "label": "canvas-5",
+      "rendererPid": 51216,
+      "rendererRssKiB": 1029856,
+      "heapUsedBytes": 380574276,
+      "documents": 35,
+      "processes": [
+        {
+          "pid": 51153,
+          "type": "Browser",
+          "rssKiB": 340880
+        },
+        {
+          "pid": 51154,
+          "type": "GPU",
+          "rssKiB": 128832
+        },
+        {
+          "pid": 51155,
+          "type": "Utility",
+          "rssKiB": 49072
+        },
+        {
+          "pid": 51216,
+          "type": "Tab",
+          "rssKiB": 1029856
+        }
+      ]
+    },
+    {
+      "label": "returned-5",
+      "rendererPid": 51221,
+      "rendererRssKiB": 268432,
+      "heapUsedBytes": 31849628,
+      "documents": 1,
+      "processes": [
+        {
+          "pid": 51153,
+          "type": "Browser",
+          "rssKiB": 357152
+        },
+        {
+          "pid": 51154,
+          "type": "GPU",
+          "rssKiB": 127856
+        },
+        {
+          "pid": 51155,
+          "type": "Utility",
+          "rssKiB": 49104
+        },
+        {
+          "pid": 51221,
+          "type": "Tab",
+          "rssKiB": 268432
+        },
+        {
+          "pid": 51222,
+          "type": "Tab",
+          "rssKiB": 165920
+        }
+      ]
+    },
+    {
+      "label": "canvas-6",
+      "rendererPid": 51223,
+      "rendererRssKiB": 1027248,
+      "heapUsedBytes": 378007308,
+      "documents": 36,
+      "processes": [
+        {
+          "pid": 51153,
+          "type": "Browser",
+          "rssKiB": 337968
+        },
+        {
+          "pid": 51154,
+          "type": "GPU",
+          "rssKiB": 129008
+        },
+        {
+          "pid": 51155,
+          "type": "Utility",
+          "rssKiB": 49072
+        },
+        {
+          "pid": 51223,
+          "type": "Tab",
+          "rssKiB": 1027248
+        }
+      ]
+    },
+    {
+      "label": "returned-6",
+      "rendererPid": 51226,
+      "rendererRssKiB": 266992,
+      "heapUsedBytes": 32007672,
+      "documents": 1,
+      "processes": [
+        {
+          "pid": 51153,
+          "type": "Browser",
+          "rssKiB": 349520
+        },
+        {
+          "pid": 51154,
+          "type": "GPU",
+          "rssKiB": 128128
+        },
+        {
+          "pid": 51155,
+          "type": "Utility",
+          "rssKiB": 49152
+        },
+        {
+          "pid": 51226,
+          "type": "Tab",
+          "rssKiB": 266992
+        },
+        {
+          "pid": 51229,
+          "type": "Tab",
+          "rssKiB": 166000
+        }
+      ]
+    },
+    {
+      "label": "canvas-7",
+      "rendererPid": 51230,
+      "rendererRssKiB": 1018480,
+      "heapUsedBytes": 376635360,
+      "documents": 35,
+      "processes": [
+        {
+          "pid": 51153,
+          "type": "Browser",
+          "rssKiB": 340176
+        },
+        {
+          "pid": 51154,
+          "type": "GPU",
+          "rssKiB": 129632
+        },
+        {
+          "pid": 51155,
+          "type": "Utility",
+          "rssKiB": 49120
+        },
+        {
+          "pid": 51230,
+          "type": "Tab",
+          "rssKiB": 1018480
+        }
+      ]
+    },
+    {
+      "label": "returned-7",
+      "rendererPid": 51234,
+      "rendererRssKiB": 266992,
+      "heapUsedBytes": 31858924,
+      "documents": 1,
+      "processes": [
+        {
+          "pid": 51153,
+          "type": "Browser",
+          "rssKiB": 349776
+        },
+        {
+          "pid": 51154,
+          "type": "GPU",
+          "rssKiB": 128736
+        },
+        {
+          "pid": 51155,
+          "type": "Utility",
+          "rssKiB": 49152
+        },
+        {
+          "pid": 51234,
+          "type": "Tab",
+          "rssKiB": 266992
+        },
+        {
+          "pid": 51235,
+          "type": "Tab",
+          "rssKiB": 165616
+        }
+      ]
+    },
+    {
+      "label": "canvas-8",
+      "rendererPid": 51236,
+      "rendererRssKiB": 1024032,
+      "heapUsedBytes": 378625140,
+      "documents": 35,
+      "processes": [
+        {
+          "pid": 51153,
+          "type": "Browser",
+          "rssKiB": 362720
+        },
+        {
+          "pid": 51154,
+          "type": "GPU",
+          "rssKiB": 131600
+        },
+        {
+          "pid": 51155,
+          "type": "Utility",
+          "rssKiB": 49072
+        },
+        {
+          "pid": 51236,
+          "type": "Tab",
+          "rssKiB": 1024032
+        }
+      ]
+    },
+    {
+      "label": "returned-8",
+      "rendererPid": 51240,
+      "rendererRssKiB": 267472,
+      "heapUsedBytes": 31922252,
+      "documents": 1,
+      "processes": [
+        {
+          "pid": 51153,
+          "type": "Browser",
+          "rssKiB": 354368
+        },
+        {
+          "pid": 51154,
+          "type": "GPU",
+          "rssKiB": 130736
+        },
+        {
+          "pid": 51155,
+          "type": "Utility",
+          "rssKiB": 49104
+        },
+        {
+          "pid": 51240,
+          "type": "Tab",
+          "rssKiB": 267472
+        },
+        {
+          "pid": 51241,
+          "type": "Tab",
+          "rssKiB": 166224
+        }
+      ]
+    },
+    {
+      "label": "canvas-9",
+      "rendererPid": 51242,
+      "rendererRssKiB": 1025360,
+      "heapUsedBytes": 379256496,
+      "documents": 36,
+      "processes": [
+        {
+          "pid": 51153,
+          "type": "Browser",
+          "rssKiB": 356688
+        },
+        {
+          "pid": 51154,
+          "type": "GPU",
+          "rssKiB": 132064
+        },
+        {
+          "pid": 51155,
+          "type": "Utility",
+          "rssKiB": 49072
+        },
+        {
+          "pid": 51242,
+          "type": "Tab",
+          "rssKiB": 1025360
+        }
+      ]
+    },
+    {
+      "label": "returned-9",
+      "rendererPid": 51247,
+      "rendererRssKiB": 270128,
+      "heapUsedBytes": 33109012,
+      "documents": 1,
+      "processes": [
+        {
+          "pid": 51153,
+          "type": "Browser",
+          "rssKiB": 351072
+        },
+        {
+          "pid": 51154,
+          "type": "GPU",
+          "rssKiB": 131168
+        },
+        {
+          "pid": 51155,
+          "type": "Utility",
+          "rssKiB": 49104
+        },
+        {
+          "pid": 51247,
+          "type": "Tab",
+          "rssKiB": 270128
+        },
+        {
+          "pid": 51248,
+          "type": "Tab",
+          "rssKiB": 165840
+        }
+      ]
+    },
+    {
+      "label": "canvas-10",
+      "rendererPid": 51249,
+      "rendererRssKiB": 1021072,
+      "heapUsedBytes": 376448164,
+      "documents": 35,
+      "processes": [
+        {
+          "pid": 51153,
+          "type": "Browser",
+          "rssKiB": 347728
+        },
+        {
+          "pid": 51154,
+          "type": "GPU",
+          "rssKiB": 132528
+        },
+        {
+          "pid": 51155,
+          "type": "Utility",
+          "rssKiB": 49120
+        },
+        {
+          "pid": 51249,
+          "type": "Tab",
+          "rssKiB": 1021072
+        }
+      ]
+    },
+    {
+      "label": "returned-10",
+      "rendererPid": 51252,
+      "rendererRssKiB": 266336,
+      "heapUsedBytes": 32963332,
+      "documents": 1,
+      "processes": [
+        {
+          "pid": 51153,
+          "type": "Browser",
+          "rssKiB": 365712
+        },
+        {
+          "pid": 51154,
+          "type": "GPU",
+          "rssKiB": 131632
+        },
+        {
+          "pid": 51155,
+          "type": "Utility",
+          "rssKiB": 49152
+        },
+        {
+          "pid": 51252,
+          "type": "Tab",
+          "rssKiB": 266336
+        },
+        {
+          "pid": 51254,
+          "type": "Tab",
+          "rssKiB": 165328
+        }
+      ]
+    },
+    {
+      "label": "canvas-11",
+      "rendererPid": 51255,
+      "rendererRssKiB": 1020416,
+      "heapUsedBytes": 374457340,
+      "documents": 36,
+      "processes": [
+        {
+          "pid": 51153,
+          "type": "Browser",
+          "rssKiB": 371776
+        },
+        {
+          "pid": 51154,
+          "type": "GPU",
+          "rssKiB": 132624
+        },
+        {
+          "pid": 51155,
+          "type": "Utility",
+          "rssKiB": 49120
+        },
+        {
+          "pid": 51255,
+          "type": "Tab",
+          "rssKiB": 1020416
+        }
+      ]
+    },
+    {
+      "label": "returned-11",
+      "rendererPid": 51257,
+      "rendererRssKiB": 266848,
+      "heapUsedBytes": 31222860,
+      "documents": 1,
+      "processes": [
+        {
+          "pid": 51153,
+          "type": "Browser",
+          "rssKiB": 358096
+        },
+        {
+          "pid": 51154,
+          "type": "GPU",
+          "rssKiB": 131728
+        },
+        {
+          "pid": 51155,
+          "type": "Utility",
+          "rssKiB": 49152
+        },
+        {
+          "pid": 51257,
+          "type": "Tab",
+          "rssKiB": 266848
+        },
+        {
+          "pid": 51258,
+          "type": "Tab",
+          "rssKiB": 166400
+        }
+      ]
+    },
+    {
+      "label": "canvas-12",
+      "rendererPid": 51260,
+      "rendererRssKiB": 1027904,
+      "heapUsedBytes": 377554536,
+      "documents": 36,
+      "processes": [
+        {
+          "pid": 51153,
+          "type": "Browser",
+          "rssKiB": 320352
+        },
+        {
+          "pid": 51154,
+          "type": "GPU",
+          "rssKiB": 132640
+        },
+        {
+          "pid": 51155,
+          "type": "Utility",
+          "rssKiB": 49120
+        },
+        {
+          "pid": 51260,
+          "type": "Tab",
+          "rssKiB": 1027904
+        }
+      ]
+    },
+    {
+      "label": "returned-12",
+      "rendererPid": 51264,
+      "rendererRssKiB": 268592,
+      "heapUsedBytes": 31690960,
+      "documents": 1,
+      "processes": [
+        {
+          "pid": 51153,
+          "type": "Browser",
+          "rssKiB": 338192
+        },
+        {
+          "pid": 51154,
+          "type": "GPU",
+          "rssKiB": 131664
+        },
+        {
+          "pid": 51155,
+          "type": "Utility",
+          "rssKiB": 49152
+        },
+        {
+          "pid": 51264,
+          "type": "Tab",
+          "rssKiB": 268592
+        },
+        {
+          "pid": 51265,
+          "type": "Tab",
+          "rssKiB": 165888
+        }
+      ]
+    },
+    {
+      "label": "canvas-13",
+      "rendererPid": 51267,
+      "rendererRssKiB": 1020240,
+      "heapUsedBytes": 376814520,
+      "documents": 35,
+      "processes": [
+        {
+          "pid": 51153,
+          "type": "Browser",
+          "rssKiB": 372096
+        },
+        {
+          "pid": 51154,
+          "type": "GPU",
+          "rssKiB": 132944
+        },
+        {
+          "pid": 51155,
+          "type": "Utility",
+          "rssKiB": 49120
+        },
+        {
+          "pid": 51267,
+          "type": "Tab",
+          "rssKiB": 1020240
+        }
+      ]
+    },
+    {
+      "label": "returned-13",
+      "rendererPid": 51269,
+      "rendererRssKiB": 258848,
+      "heapUsedBytes": 41482584,
+      "documents": 1,
+      "processes": [
+        {
+          "pid": 51153,
+          "type": "Browser",
+          "rssKiB": 360496
+        },
+        {
+          "pid": 51154,
+          "type": "GPU",
+          "rssKiB": 132064
+        },
+        {
+          "pid": 51155,
+          "type": "Utility",
+          "rssKiB": 49152
+        },
+        {
+          "pid": 51269,
+          "type": "Tab",
+          "rssKiB": 258848
+        },
+        {
+          "pid": 51270,
+          "type": "Tab",
+          "rssKiB": 166208
+        }
+      ]
+    },
+    {
+      "label": "canvas-14",
+      "rendererPid": 51271,
+      "rendererRssKiB": 1027040,
+      "heapUsedBytes": 378552372,
+      "documents": 35,
+      "processes": [
+        {
+          "pid": 51153,
+          "type": "Browser",
+          "rssKiB": 364688
+        },
+        {
+          "pid": 51154,
+          "type": "GPU",
+          "rssKiB": 133024
+        },
+        {
+          "pid": 51155,
+          "type": "Utility",
+          "rssKiB": 49120
+        },
+        {
+          "pid": 51271,
+          "type": "Tab",
+          "rssKiB": 1027040
+        }
+      ]
+    },
+    {
+      "label": "returned-14",
+      "rendererPid": 51276,
+      "rendererRssKiB": 267936,
+      "heapUsedBytes": 31186160,
+      "documents": 1,
+      "processes": [
+        {
+          "pid": 51153,
+          "type": "Browser",
+          "rssKiB": 347792
+        },
+        {
+          "pid": 51154,
+          "type": "GPU",
+          "rssKiB": 132096
+        },
+        {
+          "pid": 51155,
+          "type": "Utility",
+          "rssKiB": 49232
+        },
+        {
+          "pid": 51276,
+          "type": "Tab",
+          "rssKiB": 267936
+        },
+        {
+          "pid": 51277,
+          "type": "Tab",
+          "rssKiB": 165264
+        }
+      ]
+    },
+    {
+      "label": "canvas-15",
+      "rendererPid": 51278,
+      "rendererRssKiB": 1020880,
+      "heapUsedBytes": 375646672,
+      "documents": 35,
+      "processes": [
+        {
+          "pid": 51153,
+          "type": "Browser",
+          "rssKiB": 377520
+        },
+        {
+          "pid": 51154,
+          "type": "GPU",
+          "rssKiB": 133152
+        },
+        {
+          "pid": 51155,
+          "type": "Utility",
+          "rssKiB": 49200
+        },
+        {
+          "pid": 51278,
+          "type": "Tab",
+          "rssKiB": 1020880
+        }
+      ]
+    },
+    {
+      "label": "returned-15",
+      "rendererPid": 51281,
+      "rendererRssKiB": 267840,
+      "heapUsedBytes": 31015272,
+      "documents": 1,
+      "processes": [
+        {
+          "pid": 51153,
+          "type": "Browser",
+          "rssKiB": 367536
+        },
+        {
+          "pid": 51154,
+          "type": "GPU",
+          "rssKiB": 132368
+        },
+        {
+          "pid": 51155,
+          "type": "Utility",
+          "rssKiB": 49232
+        },
+        {
+          "pid": 51281,
+          "type": "Tab",
+          "rssKiB": 267840
+        },
+        {
+          "pid": 51282,
+          "type": "Tab",
+          "rssKiB": 165568
+        }
+      ]
+    },
+    {
+      "label": "canvas-16",
+      "rendererPid": 51283,
+      "rendererRssKiB": 1019872,
+      "heapUsedBytes": 376757008,
+      "documents": 35,
+      "processes": [
+        {
+          "pid": 51153,
+          "type": "Browser",
+          "rssKiB": 356352
+        },
+        {
+          "pid": 51154,
+          "type": "GPU",
+          "rssKiB": 133536
+        },
+        {
+          "pid": 51155,
+          "type": "Utility",
+          "rssKiB": 49200
+        },
+        {
+          "pid": 51283,
+          "type": "Tab",
+          "rssKiB": 1019872
+        }
+      ]
+    },
+    {
+      "label": "returned-16",
+      "rendererPid": 51289,
+      "rendererRssKiB": 266496,
+      "heapUsedBytes": 31856912,
+      "documents": 1,
+      "processes": [
+        {
+          "pid": 51153,
+          "type": "Browser",
+          "rssKiB": 372640
+        },
+        {
+          "pid": 51154,
+          "type": "GPU",
+          "rssKiB": 132624
+        },
+        {
+          "pid": 51155,
+          "type": "Utility",
+          "rssKiB": 49232
+        },
+        {
+          "pid": 51289,
+          "type": "Tab",
+          "rssKiB": 266496
+        },
+        {
+          "pid": 51290,
+          "type": "Tab",
+          "rssKiB": 165808
+        }
+      ]
+    },
+    {
+      "label": "canvas-17",
+      "rendererPid": 51291,
+      "rendererRssKiB": 1022592,
+      "heapUsedBytes": 377031480,
+      "documents": 35,
+      "processes": [
+        {
+          "pid": 51153,
+          "type": "Browser",
+          "rssKiB": 356784
+        },
+        {
+          "pid": 51154,
+          "type": "GPU",
+          "rssKiB": 133728
+        },
+        {
+          "pid": 51155,
+          "type": "Utility",
+          "rssKiB": 49200
+        },
+        {
+          "pid": 51291,
+          "type": "Tab",
+          "rssKiB": 1022592
+        }
+      ]
+    },
+    {
+      "label": "returned-17",
+      "rendererPid": 51296,
+      "rendererRssKiB": 268096,
+      "heapUsedBytes": 33137168,
+      "documents": 1,
+      "processes": [
+        {
+          "pid": 51153,
+          "type": "Browser",
+          "rssKiB": 361312
+        },
+        {
+          "pid": 51154,
+          "type": "GPU",
+          "rssKiB": 132128
+        },
+        {
+          "pid": 51155,
+          "type": "Utility",
+          "rssKiB": 49232
+        },
+        {
+          "pid": 51296,
+          "type": "Tab",
+          "rssKiB": 268096
+        },
+        {
+          "pid": 51298,
+          "type": "Tab",
+          "rssKiB": 165872
+        }
+      ]
+    },
+    {
+      "label": "canvas-18",
+      "rendererPid": 51299,
+      "rendererRssKiB": 1025056,
+      "heapUsedBytes": 377479748,
+      "documents": 36,
+      "processes": [
+        {
+          "pid": 51153,
+          "type": "Browser",
+          "rssKiB": 385888
+        },
+        {
+          "pid": 51154,
+          "type": "GPU",
+          "rssKiB": 134160
+        },
+        {
+          "pid": 51155,
+          "type": "Utility",
+          "rssKiB": 49200
+        },
+        {
+          "pid": 51299,
+          "type": "Tab",
+          "rssKiB": 1025056
+        }
+      ]
+    },
+    {
+      "label": "returned-18",
+      "rendererPid": 51302,
+      "rendererRssKiB": 267280,
+      "heapUsedBytes": 31151212,
+      "documents": 1,
+      "processes": [
+        {
+          "pid": 51153,
+          "type": "Browser",
+          "rssKiB": 367456
+        },
+        {
+          "pid": 51154,
+          "type": "GPU",
+          "rssKiB": 133024
+        },
+        {
+          "pid": 51155,
+          "type": "Utility",
+          "rssKiB": 49232
+        },
+        {
+          "pid": 51302,
+          "type": "Tab",
+          "rssKiB": 267280
+        },
+        {
+          "pid": 51305,
+          "type": "Tab",
+          "rssKiB": 165888
+        }
+      ]
+    },
+    {
+      "label": "canvas-19",
+      "rendererPid": 51306,
+      "rendererRssKiB": 1027424,
+      "heapUsedBytes": 378641320,
+      "documents": 36,
+      "processes": [
+        {
+          "pid": 51153,
+          "type": "Browser",
+          "rssKiB": 386560
+        },
+        {
+          "pid": 51154,
+          "type": "GPU",
+          "rssKiB": 154672
+        },
+        {
+          "pid": 51155,
+          "type": "Utility",
+          "rssKiB": 49200
+        },
+        {
+          "pid": 51306,
+          "type": "Tab",
+          "rssKiB": 1027424
+        }
+      ]
+    },
+    {
+      "label": "returned-19",
+      "rendererPid": 51312,
+      "rendererRssKiB": 266848,
+      "heapUsedBytes": 31710316,
+      "documents": 1,
+      "processes": [
+        {
+          "pid": 51153,
+          "type": "Browser",
+          "rssKiB": 359456
+        },
+        {
+          "pid": 51154,
+          "type": "GPU",
+          "rssKiB": 153776
+        },
+        {
+          "pid": 51155,
+          "type": "Utility",
+          "rssKiB": 49232
+        },
+        {
+          "pid": 51312,
+          "type": "Tab",
+          "rssKiB": 266848
+        },
+        {
+          "pid": 51313,
+          "type": "Tab",
+          "rssKiB": 166512
+        }
+      ]
+    }
+  ],
+  "rendererConsoleErrors": [],
+  "previewFixtureErrors": [
+    {
+      "phase": "dashboard-bootstrap",
+      "message": "TypeError: Cannot read properties of undefined (reading 'map')"
+    },
+    {
+      "phase": "return-list-0",
+      "message": "TypeError: Cannot read properties of undefined (reading 'map')"
+    },
+    {
+      "phase": "return-list-1",
+      "message": "TypeError: Cannot read properties of undefined (reading 'map')"
+    },
+    {
+      "phase": "return-list-2",
+      "message": "TypeError: Cannot read properties of undefined (reading 'map')"
+    },
+    {
+      "phase": "return-list-3",
+      "message": "TypeError: Cannot read properties of undefined (reading 'map')"
+    },
+    {
+      "phase": "return-list-4",
+      "message": "TypeError: Cannot read properties of undefined (reading 'map')"
+    },
+    {
+      "phase": "return-list-5",
+      "message": "TypeError: Cannot read properties of undefined (reading 'map')"
+    },
+    {
+      "phase": "return-list-6",
+      "message": "TypeError: Cannot read properties of undefined (reading 'map')"
+    },
+    {
+      "phase": "return-list-7",
+      "message": "TypeError: Cannot read properties of undefined (reading 'map')"
+    },
+    {
+      "phase": "return-list-8",
+      "message": "TypeError: Cannot read properties of undefined (reading 'map')"
+    },
+    {
+      "phase": "return-list-9",
+      "message": "TypeError: Cannot read properties of undefined (reading 'map')"
+    },
+    {
+      "phase": "return-list-10",
+      "message": "TypeError: Cannot read properties of undefined (reading 'map')"
+    },
+    {
+      "phase": "return-list-11",
+      "message": "TypeError: Cannot read properties of undefined (reading 'map')"
+    },
+    {
+      "phase": "return-list-12",
+      "message": "TypeError: Cannot read properties of undefined (reading 'map')"
+    },
+    {
+      "phase": "return-list-13",
+      "message": "TypeError: Cannot read properties of undefined (reading 'map')"
+    },
+    {
+      "phase": "return-list-14",
+      "message": "TypeError: Cannot read properties of undefined (reading 'map')"
+    },
+    {
+      "phase": "return-list-15",
+      "message": "TypeError: Cannot read properties of undefined (reading 'map')"
+    },
+    {
+      "phase": "return-list-16",
+      "message": "TypeError: Cannot read properties of undefined (reading 'map')"
+    },
+    {
+      "phase": "return-list-17",
+      "message": "TypeError: Cannot read properties of undefined (reading 'map')"
+    },
+    {
+      "phase": "return-list-18",
+      "message": "TypeError: Cannot read properties of undefined (reading 'map')"
+    },
+    {
+      "phase": "return-list-19",
+      "message": "TypeError: Cannot read properties of undefined (reading 'map')"
+    }
+  ],
+  "forcedGcSamples": []
+}

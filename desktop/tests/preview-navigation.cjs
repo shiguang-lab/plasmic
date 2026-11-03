@@ -1,3 +1,4 @@
+const { studioFixture } = require("./fixtures/studio.cjs");
 // Isolated Electron regression: no NAS, credentials or prototype mutations.
 const { app, BrowserWindow } = require("electron");
 const assert = require("node:assert/strict");
@@ -31,7 +32,7 @@ app.whenReady().then(async () => {
   await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
   const origin = `http://127.0.0.1:${server.address().port}`;
   win = new BrowserWindow({ show: false, width: 1000, height: 800, webPreferences: { backgroundThrottling: false } });
-  controller = new DesktopController(() => win, { studioOrigin: origin });
+  controller = new DesktopController(() => studioFixture(win), { studioOrigin: origin });
   let mode = "preview";
   const context = () => ({ mode, projectId: "p", sessionId: "s", changeCounter: 0, previewContext: mode === "preview" ? { componentUuid: "page" } : null });
   controller.state = async () => ({ ready: true, projectId: "p", url: win.webContents.getURL(), editorContext: context() });

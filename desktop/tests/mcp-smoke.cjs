@@ -1,3 +1,4 @@
+const { studioContents } = require("./fixtures/native-studio.cjs");
 const { app } = require("electron");
 const fs = require("node:fs");
 const path = require("node:path");
@@ -29,7 +30,7 @@ app
   .whenReady()
   .then(async () => {
     window = await startDesktop();
-    window.webContents.session.webRequest.onErrorOccurred((details) => {
+    studioContents(window).session.webRequest.onErrorOccurred((details) => {
       console.log(
         "NETWORK FAILURE",
         details.error,
@@ -180,7 +181,7 @@ app
     fs.writeFileSync(path.join(reportDir, "prototype.webp"), bytes);
     // Reload the app, then use MCP to read the persisted page from NAS.
     await new Promise((resolve) => {
-      window.webContents.once("did-finish-load", resolve);
+      studioContents(window).once("did-finish-load", resolve);
       window.reload();
     });
     await call("open_design", {
@@ -224,13 +225,13 @@ app
     if (window && !window.isDestroyed()) {
       console.error(
         "DESKTOP URL",
-        window.webContents.getURL(),
+        studioContents(window).getURL(),
         "LOADING",
-        window.webContents.isLoading(),
+        studioContents(window).isLoading(),
       );
       fs.writeFileSync(
         path.join(reportDir, "failure.png"),
-        (await window.webContents.capturePage()).toPNG(),
+        (await studioContents(window).capturePage()).toPNG(),
       );
     }
     await client?.close();

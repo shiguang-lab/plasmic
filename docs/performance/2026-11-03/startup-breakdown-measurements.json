@@ -1,0 +1,1080 @@
+{
+  "scope": "Serial isolated native Electron runs; same frozen frontend, exact ten-artboard fixture, no debugger, no forced GC. Six opens per process, first two warmup, last four measured. Internal reveal is not compositor presentation. Order A/T/M/A/T/M/A, not randomized; limited independent process samples.",
+  "runs": [
+    {
+      "run": "A1",
+      "build": {
+        "kind": "diagnostic",
+        "variant": "baseline",
+        "runtimeRevision": "400c402f651be86b96cf0a3fe5bc7d8bdec4887e",
+        "rendererHash": "e2757e4517114b0db7a6ddc91d36aea2fa1986e2bfe3dc2b14a0faa8616ce631"
+      },
+      "opens": 6,
+      "measuredOpens": 4,
+      "medianMs": {
+        "canvasRevealedMs": 2004.64990234375,
+        "firstCanvasReadyMs": 2211.96533203125,
+        "allFramesRenderedMs": 5172.3499755859375
+      },
+      "phaseDurationMedianMs": {
+        "studio-module-import": 127.0,
+        "startup-preferences": 11.250000029802322,
+        "project-fetch": 132.24999997019768,
+        "model-unbundle": 77.40000000596046,
+        "studio-context": 31.44999998807907,
+        "initial-route": 54.900000005960464,
+        "initial-viewport": 55.00000002980232,
+        "code-component-sync": 8.400000005960464,
+        "app-user-init": 0.0,
+        "initializer-ready": 0.0,
+        "frame-load-start": 0.0,
+        "frame-host-document": 202.60000002384186,
+        "frame-host-ready": 16.900000005960464,
+        "frame-runtime": 43.75,
+        "frame-component-packages": 143.8499999642372,
+        "frame-context-created": 0.0,
+        "frame-initialization": 459.84999999403954,
+        "frame-first-render": 210.75,
+        "canvas-revealed": 0.0,
+        "frame-rendered": 0.0,
+        "background-canvas-wait": 285.60000002384186,
+        "all-frame-contexts-created": 0.0,
+        "all-frames-rendered": 0.0
+      },
+      "criticalPathMedianMs": {
+        "navigationToEntry": 152.199951171875,
+        "topBootstrap": 96.5499267578125,
+        "hostAndBridgeToStudioImport": 491.050048828125,
+        "studioModuleImport": 127.0,
+        "editorInitialization": 428.800048828125,
+        "firstFrameDispatch": 36.3499755859375,
+        "firstFrameContext": 435.0499267578125,
+        "firstRenderAndReveal": 233.75,
+        "detectionLag": 194.0283203125
+      },
+      "rendererErrors": 0,
+      "thumbnailFixtureErrors": 7
+    },
+    {
+      "run": "T1",
+      "build": {
+        "kind": "diagnostic",
+        "variant": "transfer",
+        "runtimeRevision": "400c402f651be86b96cf0a3fe5bc7d8bdec4887e",
+        "rendererHash": "bb4650656ea90244aa9494050e7342467e004a560d5714a1d2c2c4818d605b21"
+      },
+      "opens": 6,
+      "measuredOpens": 4,
+      "medianMs": {
+        "canvasRevealedMs": 1702.3997802734375,
+        "firstCanvasReadyMs": 1905.98095703125,
+        "allFramesRenderedMs": 4562.64990234375
+      },
+      "phaseDurationMedianMs": {
+        "studio-module-import": 124.9500000178814,
+        "startup-preferences": 10.349999994039536,
+        "project-fetch": 34.29999998211861,
+        "model-unbundle": 68.5,
+        "studio-context": 30.349999994039536,
+        "initial-route": 55.95000001788139,
+        "initial-viewport": 55.95000001788139,
+        "code-component-sync": 7.5999999940395355,
+        "app-user-init": 0.0,
+        "initializer-ready": 0.0,
+        "frame-load-start": 0.0,
+        "frame-host-document": 89.90000000596046,
+        "frame-host-ready": 76.05000001192093,
+        "frame-runtime": 36.650000005960464,
+        "frame-component-packages": 123.94999998807907,
+        "frame-context-created": 0.0,
+        "frame-initialization": 378.25,
+        "frame-first-render": 180.15000000596046,
+        "canvas-revealed": 0.0,
+        "frame-rendered": 0.0,
+        "background-canvas-wait": 234.55000004172325,
+        "all-frame-contexts-created": 0.0,
+        "all-frames-rendered": 0.0
+      },
+      "criticalPathMedianMs": {
+        "navigationToEntry": 142.7000732421875,
+        "topBootstrap": 91.2999267578125,
+        "hostAndBridgeToStudioImport": 453.800048828125,
+        "studioModuleImport": 124.949951171875,
+        "editorInitialization": 302.8499755859375,
+        "firstFrameDispatch": 32.5001220703125,
+        "firstFrameContext": 359.3499755859375,
+        "firstRenderAndReveal": 200.449951171875,
+        "detectionLag": 189.4295654296875
+      },
+      "rendererErrors": 0,
+      "thumbnailFixtureErrors": 7
+    },
+    {
+      "run": "M1",
+      "build": {
+        "kind": "diagnostic",
+        "variant": "markdown",
+        "runtimeRevision": "400c402f651be86b96cf0a3fe5bc7d8bdec4887e",
+        "rendererHash": "33c352c6d5e1e2b5bd379dfd407e700dec31e190823fe6f24fcc525315d11697"
+      },
+      "opens": 6,
+      "measuredOpens": 4,
+      "medianMs": {
+        "canvasRevealedMs": 1667.9498291015625,
+        "firstCanvasReadyMs": 1849.81396484375,
+        "allFramesRenderedMs": 4524.2498779296875
+      },
+      "phaseDurationMedianMs": {
+        "studio-module-import": 28.80000001192093,
+        "startup-preferences": 10.299999982118607,
+        "project-fetch": 107.39999997615814,
+        "model-unbundle": 67.84999996423721,
+        "studio-context": 26.099999994039536,
+        "initial-route": 49.04999998211861,
+        "initial-viewport": 49.25,
+        "code-component-sync": 7.449999988079071,
+        "app-user-init": 0.0,
+        "initializer-ready": 0.0,
+        "frame-load-start": 0.0,
+        "frame-host-document": 125.25,
+        "frame-host-ready": 41.60000002384186,
+        "frame-runtime": 35.0,
+        "frame-component-packages": 122.0,
+        "frame-context-created": 0.0,
+        "frame-initialization": 373.59999999403954,
+        "frame-first-render": 180.25,
+        "canvas-revealed": 0.0,
+        "frame-rendered": 0.0,
+        "background-canvas-wait": 237.7999999821186,
+        "all-frame-contexts-created": 0.0,
+        "all-frames-rendered": 0.0
+      },
+      "criticalPathMedianMs": {
+        "navigationToEntry": 137.949951171875,
+        "topBootstrap": 89.75,
+        "hostAndBridgeToStudioImport": 455.9998779296875,
+        "studioModuleImport": 28.7999267578125,
+        "editorInitialization": 374.2999267578125,
+        "firstFrameDispatch": 31.7000732421875,
+        "firstFrameContext": 354.85009765625,
+        "firstRenderAndReveal": 203.4000244140625,
+        "detectionLag": 182.2205810546875
+      },
+      "rendererErrors": 0,
+      "thumbnailFixtureErrors": 7
+    },
+    {
+      "run": "A2",
+      "build": {
+        "kind": "diagnostic",
+        "variant": "baseline",
+        "runtimeRevision": "400c402f651be86b96cf0a3fe5bc7d8bdec4887e",
+        "rendererHash": "e2757e4517114b0db7a6ddc91d36aea2fa1986e2bfe3dc2b14a0faa8616ce631"
+      },
+      "opens": 6,
+      "measuredOpens": 4,
+      "medianMs": {
+        "canvasRevealedMs": 1863.2001953125,
+        "firstCanvasReadyMs": 2058.98193359375,
+        "allFramesRenderedMs": 4759.500244140625
+      },
+      "phaseDurationMedianMs": {
+        "studio-module-import": 129.25000002980232,
+        "startup-preferences": 10.550000041723251,
+        "project-fetch": 112.9500000178814,
+        "model-unbundle": 71.5,
+        "studio-context": 30.200000017881393,
+        "initial-route": 56.599999994039536,
+        "initial-viewport": 56.74999997019768,
+        "code-component-sync": 8.599999994039536,
+        "app-user-init": 0.0,
+        "initializer-ready": 0.0,
+        "frame-load-start": 0.0,
+        "frame-host-document": 130.69999998807907,
+        "frame-host-ready": 44.54999998211861,
+        "frame-runtime": 35.94999998807907,
+        "frame-component-packages": 130.0,
+        "frame-context-created": 0.0,
+        "frame-initialization": 394.90000000596046,
+        "frame-first-render": 184.30000001192093,
+        "canvas-revealed": 0.0,
+        "frame-rendered": 0.0,
+        "background-canvas-wait": 241.35000002384186,
+        "all-frame-contexts-created": 0.0,
+        "all-frames-rendered": 0.0
+      },
+      "criticalPathMedianMs": {
+        "navigationToEntry": 153.7000732421875,
+        "topBootstrap": 91.0001220703125,
+        "hostAndBridgeToStudioImport": 470.0,
+        "studioModuleImport": 129.25,
+        "editorInitialization": 402.699951171875,
+        "firstFrameDispatch": 33.0999755859375,
+        "firstFrameContext": 370.3499755859375,
+        "firstRenderAndReveal": 208.0499267578125,
+        "detectionLag": 201.935546875
+      },
+      "rendererErrors": 0,
+      "thumbnailFixtureErrors": 7
+    },
+    {
+      "run": "T2",
+      "build": {
+        "kind": "diagnostic",
+        "variant": "transfer",
+        "runtimeRevision": "400c402f651be86b96cf0a3fe5bc7d8bdec4887e",
+        "rendererHash": "bb4650656ea90244aa9494050e7342467e004a560d5714a1d2c2c4818d605b21"
+      },
+      "opens": 6,
+      "measuredOpens": 4,
+      "medianMs": {
+        "canvasRevealedMs": 1780.5001220703125,
+        "firstCanvasReadyMs": 1994.594970703125,
+        "allFramesRenderedMs": 4724.0001220703125
+      },
+      "phaseDurationMedianMs": {
+        "studio-module-import": 129.25000002980232,
+        "startup-preferences": 10.949999988079071,
+        "project-fetch": 36.75,
+        "model-unbundle": 69.40000003576279,
+        "studio-context": 29.25,
+        "initial-route": 56.89999997615814,
+        "initial-viewport": 57.05000001192093,
+        "code-component-sync": 7.650000035762787,
+        "app-user-init": 0.0,
+        "initializer-ready": 0.0,
+        "frame-load-start": 0.0,
+        "frame-host-document": 170.25,
+        "frame-host-ready": 13.849999994039536,
+        "frame-runtime": 39.70000001788139,
+        "frame-component-packages": 121.99999997019768,
+        "frame-context-created": 0.0,
+        "frame-initialization": 391.94999998807907,
+        "frame-first-render": 187.75,
+        "canvas-revealed": 0.0,
+        "frame-rendered": 0.0,
+        "background-canvas-wait": 246.5499999821186,
+        "all-frame-contexts-created": 0.0,
+        "all-frames-rendered": 0.0
+      },
+      "criticalPathMedianMs": {
+        "navigationToEntry": 138.199951171875,
+        "topBootstrap": 93.8499755859375,
+        "hostAndBridgeToStudioImport": 490.949951171875,
+        "studioModuleImport": 129.25,
+        "editorInitialization": 316.5,
+        "firstFrameDispatch": 33.0499267578125,
+        "firstFrameContext": 371.900146484375,
+        "firstRenderAndReveal": 208.5499267578125,
+        "detectionLag": 198.244873046875
+      },
+      "rendererErrors": 0,
+      "thumbnailFixtureErrors": 7
+    },
+    {
+      "run": "M2",
+      "build": {
+        "kind": "diagnostic",
+        "variant": "markdown",
+        "runtimeRevision": "400c402f651be86b96cf0a3fe5bc7d8bdec4887e",
+        "rendererHash": "33c352c6d5e1e2b5bd379dfd407e700dec31e190823fe6f24fcc525315d11697"
+      },
+      "opens": 6,
+      "measuredOpens": 4,
+      "medianMs": {
+        "canvasRevealedMs": 1752.7000732421875,
+        "firstCanvasReadyMs": 1966.1270751953125,
+        "allFramesRenderedMs": 4694.7000732421875
+      },
+      "phaseDurationMedianMs": {
+        "studio-module-import": 29.999999970197678,
+        "startup-preferences": 10.650000005960464,
+        "project-fetch": 112.60000002384186,
+        "model-unbundle": 70.74999997019768,
+        "studio-context": 30.249999970197678,
+        "initial-route": 54.70000001788139,
+        "initial-viewport": 54.80000001192093,
+        "code-component-sync": 7.949999988079071,
+        "app-user-init": 0.0,
+        "initializer-ready": 0.0,
+        "frame-load-start": 0.0,
+        "frame-host-document": 132.30000001192093,
+        "frame-host-ready": 44.19999998807907,
+        "frame-runtime": 36.30000001192093,
+        "frame-component-packages": 120.89999997615814,
+        "frame-context-created": 0.0,
+        "frame-initialization": 391.44999998807907,
+        "frame-first-render": 192.4500000178814,
+        "canvas-revealed": 0.0,
+        "frame-rendered": 0.0,
+        "background-canvas-wait": 245.34999999403954,
+        "all-frame-contexts-created": 0.0,
+        "all-frames-rendered": 0.0
+      },
+      "criticalPathMedianMs": {
+        "navigationToEntry": 138.699951171875,
+        "topBootstrap": 95.4000244140625,
+        "hostAndBridgeToStudioImport": 479.35009765625,
+        "studioModuleImport": 30.0,
+        "editorInitialization": 392.89990234375,
+        "firstFrameDispatch": 34.150146484375,
+        "firstFrameContext": 369.2999267578125,
+        "firstRenderAndReveal": 215.1500244140625,
+        "detectionLag": 212.82666015625
+      },
+      "rendererErrors": 0,
+      "thumbnailFixtureErrors": 7
+    },
+    {
+      "run": "A3",
+      "build": {
+        "kind": "diagnostic",
+        "variant": "baseline",
+        "runtimeRevision": "400c402f651be86b96cf0a3fe5bc7d8bdec4887e",
+        "rendererHash": "e2757e4517114b0db7a6ddc91d36aea2fa1986e2bfe3dc2b14a0faa8616ce631"
+      },
+      "opens": 6,
+      "measuredOpens": 4,
+      "medianMs": {
+        "canvasRevealedMs": 2025.449951171875,
+        "firstCanvasReadyMs": 2219.6005859375,
+        "allFramesRenderedMs": 5202.5999755859375
+      },
+      "phaseDurationMedianMs": {
+        "studio-module-import": 142.05000001192093,
+        "startup-preferences": 12.800000011920929,
+        "project-fetch": 139.30000001192093,
+        "model-unbundle": 77.75,
+        "studio-context": 32.85000002384186,
+        "initial-route": 58.79999998211861,
+        "initial-viewport": 58.94999998807907,
+        "code-component-sync": 8.399999976158142,
+        "app-user-init": 0.0,
+        "initializer-ready": 0.0,
+        "frame-load-start": 0.0,
+        "frame-host-document": 173.14999997615814,
+        "frame-host-ready": 10.499999970197678,
+        "frame-runtime": 39.04999998211861,
+        "frame-component-packages": 127.0499999821186,
+        "frame-context-created": 0.0,
+        "frame-initialization": 402.25,
+        "frame-first-render": 193.0,
+        "canvas-revealed": 0.0,
+        "frame-rendered": 0.0,
+        "background-canvas-wait": 261.75,
+        "all-frame-contexts-created": 0.0,
+        "all-frames-rendered": 0.0
+      },
+      "criticalPathMedianMs": {
+        "navigationToEntry": 152.2498779296875,
+        "topBootstrap": 103.9000244140625,
+        "hostAndBridgeToStudioImport": 547.099853515625,
+        "studioModuleImport": 142.050048828125,
+        "editorInitialization": 434.2498779296875,
+        "firstFrameDispatch": 35.85009765625,
+        "firstFrameContext": 379.25,
+        "firstRenderAndReveal": 215.3499755859375,
+        "detectionLag": 212.8902587890625
+      },
+      "rendererErrors": 0,
+      "thumbnailFixtureErrors": 7
+    }
+  ],
+  "memory": {
+    "baseline": {
+      "opens": 6,
+      "overallPeakWorkingSetSumKiB": 2026608,
+      "openRenderingPeaksKiB": [
+        1752848,
+        1815296,
+        1816496,
+        1795744,
+        1834112,
+        1733696
+      ],
+      "dashboardPoints": [
+        {
+          "label": "cold-dashboard",
+          "pid": 44917,
+          "rendererRssKiB": 263696,
+          "appWorkingSetSumKiB": 679088
+        },
+        {
+          "label": "returned-0",
+          "pid": 44917,
+          "rendererRssKiB": 264288,
+          "appWorkingSetSumKiB": 898048
+        },
+        {
+          "label": "returned-1",
+          "pid": 44917,
+          "rendererRssKiB": 264512,
+          "appWorkingSetSumKiB": 918256
+        },
+        {
+          "label": "returned-2",
+          "pid": 44917,
+          "rendererRssKiB": 264688,
+          "appWorkingSetSumKiB": 979440
+        },
+        {
+          "label": "returned-3",
+          "pid": 44917,
+          "rendererRssKiB": 265392,
+          "appWorkingSetSumKiB": 957104
+        },
+        {
+          "label": "returned-4",
+          "pid": 44917,
+          "rendererRssKiB": 265488,
+          "appWorkingSetSumKiB": 998720
+        },
+        {
+          "label": "returned-5",
+          "pid": 44917,
+          "rendererRssKiB": 228880,
+          "appWorkingSetSumKiB": 941760
+        }
+      ],
+      "rendererErrors": 0,
+      "thumbnailFixtureErrors": 7
+    },
+    "transfer": {
+      "opens": 20,
+      "overallPeakWorkingSetSumKiB": 1865984,
+      "openRenderingPeaksKiB": [
+        1465904,
+        1638896,
+        1627440,
+        1651920,
+        1652400,
+        1652624,
+        1661712,
+        1653024,
+        1662208,
+        1672032,
+        1593840,
+        1638944,
+        1645152,
+        1638432,
+        1670624,
+        1588000,
+        1659536,
+        1671808,
+        1682352,
+        1679712
+      ],
+      "dashboardPoints": [
+        {
+          "label": "cold-dashboard",
+          "pid": 45021,
+          "rendererRssKiB": 264976,
+          "appWorkingSetSumKiB": 679680
+        },
+        {
+          "label": "returned-0",
+          "pid": 45021,
+          "rendererRssKiB": 183904,
+          "appWorkingSetSumKiB": 752080
+        },
+        {
+          "label": "returned-1",
+          "pid": 45021,
+          "rendererRssKiB": 189216,
+          "appWorkingSetSumKiB": 832112
+        },
+        {
+          "label": "returned-2",
+          "pid": 45021,
+          "rendererRssKiB": 196384,
+          "appWorkingSetSumKiB": 803664
+        },
+        {
+          "label": "returned-3",
+          "pid": 45021,
+          "rendererRssKiB": 198576,
+          "appWorkingSetSumKiB": 843456
+        },
+        {
+          "label": "returned-4",
+          "pid": 45021,
+          "rendererRssKiB": 199264,
+          "appWorkingSetSumKiB": 846352
+        },
+        {
+          "label": "returned-5",
+          "pid": 45021,
+          "rendererRssKiB": 188080,
+          "appWorkingSetSumKiB": 839840
+        },
+        {
+          "label": "returned-6",
+          "pid": 45021,
+          "rendererRssKiB": 188672,
+          "appWorkingSetSumKiB": 857056
+        },
+        {
+          "label": "returned-7",
+          "pid": 45021,
+          "rendererRssKiB": 189056,
+          "appWorkingSetSumKiB": 832864
+        },
+        {
+          "label": "returned-8",
+          "pid": 45021,
+          "rendererRssKiB": 190448,
+          "appWorkingSetSumKiB": 861232
+        },
+        {
+          "label": "returned-9",
+          "pid": 45021,
+          "rendererRssKiB": 190672,
+          "appWorkingSetSumKiB": 840336
+        },
+        {
+          "label": "returned-10",
+          "pid": 45021,
+          "rendererRssKiB": 190560,
+          "appWorkingSetSumKiB": 758976
+        },
+        {
+          "label": "returned-11",
+          "pid": 45021,
+          "rendererRssKiB": 190640,
+          "appWorkingSetSumKiB": 829296
+        },
+        {
+          "label": "returned-12",
+          "pid": 45021,
+          "rendererRssKiB": 190800,
+          "appWorkingSetSumKiB": 807936
+        },
+        {
+          "label": "returned-13",
+          "pid": 45021,
+          "rendererRssKiB": 190704,
+          "appWorkingSetSumKiB": 839312
+        },
+        {
+          "label": "returned-14",
+          "pid": 45021,
+          "rendererRssKiB": 190880,
+          "appWorkingSetSumKiB": 816080
+        },
+        {
+          "label": "returned-15",
+          "pid": 45021,
+          "rendererRssKiB": 191488,
+          "appWorkingSetSumKiB": 789488
+        },
+        {
+          "label": "returned-16",
+          "pid": 45021,
+          "rendererRssKiB": 191888,
+          "appWorkingSetSumKiB": 847936
+        },
+        {
+          "label": "returned-17",
+          "pid": 45021,
+          "rendererRssKiB": 193216,
+          "appWorkingSetSumKiB": 870112
+        },
+        {
+          "label": "returned-18",
+          "pid": 45021,
+          "rendererRssKiB": 193488,
+          "appWorkingSetSumKiB": 839248
+        },
+        {
+          "label": "returned-19",
+          "pid": 45021,
+          "rendererRssKiB": 194128,
+          "appWorkingSetSumKiB": 862864
+        }
+      ],
+      "rendererErrors": 0,
+      "thumbnailFixtureErrors": 21
+    }
+  },
+  "firstUse": {
+    "baseline": {
+      "cases": [
+        "markdown-table-math-safety-locate-copy-fullscreen",
+        "streaming-finalization",
+        "code-theme-content-scrollbar",
+        "warm-reopen-and-snippet"
+      ],
+      "codeFirstUseMs": 37.5,
+      "markdownFirstUseMs": 104,
+      "markdownWarmUseMs": 39.80000001192093,
+      "probeModuleMs": 1.800000011920929
+    },
+    "markdown": {
+      "cases": [
+        "markdown-table-math-safety-locate-copy-fullscreen",
+        "streaming-finalization",
+        "code-theme-content-scrollbar",
+        "warm-reopen-and-snippet"
+      ],
+      "codeFirstUseMs": 28.899999976158142,
+      "markdownFirstUseMs": 195.60000002384186,
+      "markdownWarmUseMs": 37.799999952316284,
+      "probeModuleMs": 2.599999964237213
+    }
+  },
+  "functional": {
+    "complex": {
+      "cases": [
+        {
+          "case": "switch-artboard",
+          "frame": "g6iKNJJfK8J6",
+          "rendered": true
+        },
+        {
+          "case": "switch-artboard",
+          "frame": "58rcnoga5nrA",
+          "rendered": true
+        },
+        {
+          "case": "switch-artboard",
+          "frame": "yqGY4RQZ5MAn",
+          "rendered": true
+        },
+        {
+          "case": "rename-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "rendered-style-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "frame-position-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "cold-frame-undo-selection-style",
+          "passed": true
+        }
+      ],
+      "revision": 1,
+      "reopen": true
+    },
+    "gp": {
+      "cases": [
+        {
+          "case": "switch-artboard",
+          "frame": "dO6gEmTQ80cE",
+          "rendered": true
+        },
+        {
+          "case": "rename-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "rendered-style-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "frame-position-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "preview-business-pagination-return",
+          "passed": true
+        }
+      ],
+      "revision": 159,
+      "reopen": true
+    }
+  },
+  "retainedSources": {
+    "platform/wab/src/wab/client/frame-ctx/project-model-transfer.ts": "41eba324e5298621b0389685dfd5c73b26eda2dea196ef56062c37a30e392c5b",
+    "platform/wab/src/wab/client/frame-ctx/top-frame-ctx.tsx": "b0bdccb007467c7b17ce930027f9ea3e2aa4b155143785252d4e0803c22c8ff1",
+    "platform/wab/src/wab/client/frame-ctx/host-frame-ctx.tsx": "6482b4e00351c6039e3f6547c52b7bcc33a152a1eab72b5dc097ba8196e8f081"
+  },
+  "installedBuild": {
+    "installed": "/Applications/Plasmic.app",
+    "backup": "/Users/yanxianliang/Library/Caches/Plasmic-local-backups/2026-11-03T08-36-05.741Z/Plasmic.app",
+    "version": "0.6.4",
+    "build": {
+      "kind": "local",
+      "revision": "400c402f651be86b96cf0a3fe5bc7d8bdec4887e",
+      "dirty": true,
+      "builtAt": "2026-11-03T08:28:09.080Z",
+      "sourceHash": "061fa5406684fb2ef5b390f80238ebc5d35a15aee8b704c48f4b902d1ccd8edb",
+      "rendererHash": "531d001bb11f5d034fb18397775053313355b3a923d114695b6adc6b49771cc7",
+      "desktopHash": "8af3fcd201b466eb68da1fefc44afc70be92209b7c0b45165e822b2c5ff9d8b4"
+    }
+  },
+  "onlineRegression": {
+    "dashboardPid": 76045,
+    "retiredEditorPids": [
+      76126,
+      76386
+    ],
+    "revisions": [
+      750,
+      751
+    ],
+    "changeCounters": [
+      0,
+      0
+    ],
+    "samples": [
+      {
+        "label": "startup-installed-cold",
+        "time": 1793695029.478637,
+        "processes": [
+          {
+            "pid": 76028,
+            "ppid": 1,
+            "rssKiB": 289072,
+            "renderer": false,
+            "gpu": false
+          },
+          {
+            "pid": 76036,
+            "ppid": 76028,
+            "rssKiB": 88560,
+            "renderer": false,
+            "gpu": true
+          },
+          {
+            "pid": 76037,
+            "ppid": 76028,
+            "rssKiB": 57568,
+            "renderer": false,
+            "gpu": false
+          },
+          {
+            "pid": 76045,
+            "ppid": 76028,
+            "rssKiB": 230304,
+            "renderer": true,
+            "gpu": false
+          },
+          {
+            "pid": 76050,
+            "ppid": 76028,
+            "rssKiB": 87136,
+            "renderer": true,
+            "gpu": false
+          },
+          {
+            "pid": 76051,
+            "ppid": 76028,
+            "rssKiB": 114864,
+            "renderer": true,
+            "gpu": false
+          }
+        ]
+      },
+      {
+        "label": "startup-installed-canvas1",
+        "time": 1793695069.4914129,
+        "processes": [
+          {
+            "pid": 76028,
+            "ppid": 1,
+            "rssKiB": 308336,
+            "renderer": false,
+            "gpu": false
+          },
+          {
+            "pid": 76036,
+            "ppid": 76028,
+            "rssKiB": 99296,
+            "renderer": false,
+            "gpu": true
+          },
+          {
+            "pid": 76037,
+            "ppid": 76028,
+            "rssKiB": 52768,
+            "renderer": false,
+            "gpu": false
+          },
+          {
+            "pid": 76045,
+            "ppid": 76028,
+            "rssKiB": 187264,
+            "renderer": true,
+            "gpu": false
+          },
+          {
+            "pid": 76050,
+            "ppid": 76028,
+            "rssKiB": 79952,
+            "renderer": true,
+            "gpu": false
+          },
+          {
+            "pid": 76051,
+            "ppid": 76028,
+            "rssKiB": 97296,
+            "renderer": true,
+            "gpu": false
+          },
+          {
+            "pid": 76126,
+            "ppid": 76028,
+            "rssKiB": 1122640,
+            "renderer": true,
+            "gpu": false
+          }
+        ]
+      },
+      {
+        "label": "startup-installed-return1",
+        "time": 1793695094.2285151,
+        "processes": [
+          {
+            "pid": 76028,
+            "ppid": 1,
+            "rssKiB": 294832,
+            "renderer": false,
+            "gpu": false
+          },
+          {
+            "pid": 76036,
+            "ppid": 76028,
+            "rssKiB": 140832,
+            "renderer": false,
+            "gpu": true
+          },
+          {
+            "pid": 76037,
+            "ppid": 76028,
+            "rssKiB": 52960,
+            "renderer": false,
+            "gpu": false
+          },
+          {
+            "pid": 76045,
+            "ppid": 76028,
+            "rssKiB": 202176,
+            "renderer": true,
+            "gpu": false
+          },
+          {
+            "pid": 76050,
+            "ppid": 76028,
+            "rssKiB": 80000,
+            "renderer": true,
+            "gpu": false
+          },
+          {
+            "pid": 76051,
+            "ppid": 76028,
+            "rssKiB": 97376,
+            "renderer": true,
+            "gpu": false
+          },
+          {
+            "pid": 76363,
+            "ppid": 76028,
+            "rssKiB": 160080,
+            "renderer": true,
+            "gpu": false
+          }
+        ]
+      },
+      {
+        "label": "startup-installed-canvas2",
+        "time": 1793695144.044093,
+        "processes": [
+          {
+            "pid": 76028,
+            "ppid": 1,
+            "rssKiB": 355360,
+            "renderer": false,
+            "gpu": false
+          },
+          {
+            "pid": 76036,
+            "ppid": 76028,
+            "rssKiB": 99456,
+            "renderer": false,
+            "gpu": true
+          },
+          {
+            "pid": 76037,
+            "ppid": 76028,
+            "rssKiB": 53040,
+            "renderer": false,
+            "gpu": false
+          },
+          {
+            "pid": 76045,
+            "ppid": 76028,
+            "rssKiB": 190544,
+            "renderer": true,
+            "gpu": false
+          },
+          {
+            "pid": 76050,
+            "ppid": 76028,
+            "rssKiB": 80000,
+            "renderer": true,
+            "gpu": false
+          },
+          {
+            "pid": 76051,
+            "ppid": 76028,
+            "rssKiB": 97376,
+            "renderer": true,
+            "gpu": false
+          },
+          {
+            "pid": 76386,
+            "ppid": 76028,
+            "rssKiB": 1176144,
+            "renderer": true,
+            "gpu": false
+          }
+        ]
+      },
+      {
+        "label": "startup-installed-return2",
+        "time": 1793695342.141593,
+        "processes": [
+          {
+            "pid": 76028,
+            "ppid": 1,
+            "rssKiB": 222208,
+            "renderer": false,
+            "gpu": false
+          },
+          {
+            "pid": 76036,
+            "ppid": 76028,
+            "rssKiB": 90016,
+            "renderer": false,
+            "gpu": true
+          },
+          {
+            "pid": 76037,
+            "ppid": 76028,
+            "rssKiB": 51856,
+            "renderer": false,
+            "gpu": false
+          },
+          {
+            "pid": 76045,
+            "ppid": 76028,
+            "rssKiB": 183840,
+            "renderer": true,
+            "gpu": false
+          },
+          {
+            "pid": 76050,
+            "ppid": 76028,
+            "rssKiB": 79984,
+            "renderer": true,
+            "gpu": false
+          },
+          {
+            "pid": 76051,
+            "ppid": 76028,
+            "rssKiB": 99296,
+            "renderer": true,
+            "gpu": false
+          }
+        ]
+      }
+    ],
+    "concurrentWrites": {
+      "revisions": [
+        751,
+        752,
+        753,
+        754
+      ],
+      "sameAccountAsTestClient": false,
+      "writerAppVersion": "0.6.0",
+      "testAppVersion": "0.6.4",
+      "testClientSaveRequestsInAuditedWindow": 0,
+      "auditedWindowUtc": [
+        "2026-11-03T08:37:00Z",
+        "2026-11-03T08:43:00Z"
+      ]
+    }
+  },
+  "finalBuildFunctional": {
+    "complex": {
+      "result": {
+        "cases": [
+          {
+            "case": "switch-artboard",
+            "frame": "g6iKNJJfK8J6",
+            "rendered": true
+          },
+          {
+            "case": "switch-artboard",
+            "frame": "58rcnoga5nrA",
+            "rendered": true
+          },
+          {
+            "case": "switch-artboard",
+            "frame": "yqGY4RQZ5MAn",
+            "rendered": true
+          },
+          {
+            "case": "rename-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "rendered-style-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "frame-position-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "cold-frame-undo-selection-style",
+            "passed": true
+          }
+        ],
+        "revision": 1,
+        "reopen": true
+      },
+      "rendererErrors": [
+        "TypeError: Cannot read properties of null (reading 'valState')"
+      ],
+      "thumbnailFixtureErrors": 1
+    },
+    "gp": {
+      "result": {
+        "cases": [
+          {
+            "case": "switch-artboard",
+            "frame": "dO6gEmTQ80cE",
+            "rendered": true
+          },
+          {
+            "case": "rename-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "rendered-style-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "frame-position-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "preview-business-pagination-return",
+            "passed": true
+          }
+        ],
+        "revision": 159,
+        "reopen": true
+      },
+      "rendererErrors": [],
+      "thumbnailFixtureErrors": 1
+    }
+  }
+}

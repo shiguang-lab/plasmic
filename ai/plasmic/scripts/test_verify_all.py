@@ -8,7 +8,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from verify_all import GATES, OVERVIEW_FIELDS, collect, run_suite, read_json, write_json, reusable_evidence, evidence_hashes
+from verify_all import GATES, OVERVIEW_FIELDS, collect, run_suite, read_json, write_json, reusable_evidence, evidence_hashes, default_profile, summary
 import test_verify_forms
 import test_verify_shell_height
 import test_verify_references
@@ -147,6 +147,43 @@ class SuiteTests(unittest.TestCase):
         ledger.write_bytes(data)
         self.assertTrue(self.run_suite()["passed"])
         self.assertIn(str(ledger.resolve()), [f["path"] for f in self.run_suite()["checkedInputs"]["files"]])
+
+    def test_missing_or_invalid_ledger_preserves_actual_model_findings(self):
+        self.model['baseVariantTplTree'] = self.model['baseVariantTplTree'].replace('data-plasmic-name="Root"', 'id="root"')
+        write_json(self.root / 'pages.json', self.readback)
+        self.write_capture()
+        ledger = self.root / 'compose-reads.jsonl'
+        for content in (None, 'not json', '[1]\n'):
+            with self.subTest(content=content):
+                if content is None:
+                    ledger.unlink()
+                else:
+                    ledger.write_text(content)
+                report = self.run_suite()
+                structure = next(c for c in report['checks'] if c['gate'] == 'structure')
+                self.assertEqual(structure['status'], 'failed')
+                kinds = {e['check'] for e in structure['report']['errors']}
+                self.assertIn('naming', kinds)
+                self.assertIn('referenceReads', kinds)
+
+    def test_model_repair_passes_without_rewriting_expectations(self):
+        original = self.model['baseVariantTplTree']
+        plan = (self.root / 'structure.json').read_bytes()
+        # A declaration still says Input, while the saved instance is TextArea.
+        self.model['baseVariantTplTree'] = original.replace('data-plasmic-name="Root"', 'id="root"').replace(
+            'data-plasmic-component="plasmic-antd6-input"', 'data-plasmic-component="plasmic-antd6-input-textarea"')
+        write_json(self.root / 'pages.json', self.readback)
+        self.write_capture()
+        report = self.run_suite()
+        self.assertFalse(report['passed'])
+        structure = next(c for c in report['checks'] if c['gate'] == 'structure')['report']
+        self.assertTrue(any(e.get('check') == 'naming' for e in structure['errors']))
+        self.assertTrue(any(e.get('node') == 'Name' for e in structure['errors']))
+        self.model['baseVariantTplTree'] = original
+        write_json(self.root / 'pages.json', self.readback)
+        self.write_capture()
+        self.assertTrue(self.run_suite()['passed'])
+        self.assertEqual((self.root / 'structure.json').read_bytes(), plan)
 
     def test_final_acceptance_requires_the_rule_review(self):
         del self.config["review"]
@@ -670,6 +707,9 @@ class SuiteTests(unittest.TestCase):
         run = subprocess.run(command, capture_output=True, text=True)
         self.assertEqual(run.returncode, 0, run.stderr + run.stdout)
         self.assertTrue(json.loads((output / "report.json").read_text())["passed"])
+        feedback = json.loads(run.stdout)
+        self.assertEqual(feedback['reportJson'], str(output / 'report.json'))
+        self.assertEqual(feedback['examples'], [])
         self.assertIn("Not checked", (output / "report.md").read_text())
         before = (output / "report.json").read_bytes()
         self.assertNotEqual(subprocess.run(command, capture_output=True).returncode, 0)
@@ -949,6 +989,40 @@ class SuiteTests(unittest.TestCase):
             self.write_capture()
             with self.subTest(field=key, value=value):
                 self.assertFalse(reusable_evidence(self.root, state, self.context))
+
+
+class FeedbackTests(unittest.TestCase):
+    def test_profile_matches_desktop_entrypoint(self):
+        for platform, env, expected in [
+            ('darwin', {}, '/home/test/Library/Application Support/Plasmic Desktop'),
+            ('linux', {}, '/home/test/.config/Plasmic Desktop'),
+            ('linux', {'XDG_CONFIG_HOME': '/custom'}, '/custom/Plasmic Desktop'),
+            ('darwin', {'PLASMIC_DESKTOP_PROFILE': '/explicit'}, '/explicit'),
+        ]:
+            with self.subTest(platform=platform, env=env), patch('verify_all.sys.platform', platform), patch.dict('os.environ', env, clear=True), patch('pathlib.Path.home', return_value=Path('/home/test')):
+                self.assertEqual(str(default_profile()), expected)
+
+    def test_feedback_is_bounded_and_pointers_resolve_without_changing_report(self):
+        errors = [{'check': 'naming', 'nodeUuid': str(i), 'message': 'Name the actual node'} for i in range(109)]
+        errors.append({'check': 'nativeComponent', 'node': 'PageBody', 'expected': 'Flex', 'message': 'Wrong native identity'})
+        report = {'passed': False, 'notChecked': ['runtime'], 'checks': [
+            {'gate': 'structure', 'status': 'failed', 'report': {'errors': errors}},
+            {'gate': 'forms', 'status': 'unverified', 'report': {'reason': 'Missing inventory'}},
+            {'gate': 'rendering', 'status': 'failed', 'report': {'errors': ['x' * 20000]}},
+        ]}
+        original = copy.deepcopy(report)
+        result = summary(report, Path('/tmp/verification'))
+        self.assertLess(len(json.dumps(result).encode()), 8192)
+        self.assertLessEqual(len(result['examples']), 8)
+        self.assertTrue(any(e.get('node') == 'PageBody' for e in result['examples']))
+        self.assertTrue(any(e['gate'] == 'forms' for e in result['examples']))
+        self.assertEqual(result['omittedDiagnosticCount'], 108)
+        for entry in result['examples']:
+            value = report
+            for key in entry['reportPointer'].split('/')[1:]:
+                value = value[int(key)] if isinstance(value, list) else value[key]
+            self.assertTrue(value)
+        self.assertEqual(report, original)
 
 
 if __name__ == "__main__":

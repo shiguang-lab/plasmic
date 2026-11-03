@@ -1,7 +1,9 @@
 const AUTH_PATH = "/desktop/unified-login";
 const { errorMessage } = require("./ui-error.cjs");
 class UnifiedAuthWindow {
-  constructor(window, studioOrigin, openBrowser, login) {
+  constructor(studio, studioOrigin, openBrowser, login) {
+    const window = studio.window;
+    this.studio = studio;
     this.window = window;
     this.login = login;
     this.studioOrigin = studioOrigin;
@@ -13,12 +15,12 @@ class UnifiedAuthWindow {
   publish(status) {
     this.status = { ...status, sessionExpired: Boolean(this.sessionExpired) };
     if (!this.window.isDestroyed()) {
-      this.window.webContents.send("desktop:auth-status", this.status);
+      this.studio.webContents.send("desktop:auth-status", this.status);
     }
   }
   async show(loginUrl, { sessionExpired = false } = {}) {
     if (this.navigation) return this.navigation;
-    const current = new URL(loginUrl || this.window.webContents.getURL());
+    const current = new URL(loginUrl || this.studio.webContents.getURL());
     if (current.pathname !== AUTH_PATH) {
       const next = new URL(
         (current.origin === "https://shiguanglab.com" &&
@@ -38,7 +40,7 @@ class UnifiedAuthWindow {
       this.publish({ phase: "idle" });
     }
     this.navigation = (async () => {
-      const contents = this.window.webContents;
+      const contents = this.studio.webContents;
       // Electron's loadURL listeners also receive the previous navigation's
       // abort event. Finish stopping it before starting the login navigation.
       if (contents.isLoadingMainFrame()) {
@@ -47,7 +49,7 @@ class UnifiedAuthWindow {
           contents.stop();
         });
       }
-      await this.window.loadURL(this.studioOrigin + AUTH_PATH);
+      await this.studio.loadURL(this.studioOrigin + AUTH_PATH);
     })();
     try {
       await this.navigation;
@@ -83,7 +85,7 @@ class UnifiedAuthWindow {
         return;
       }
       this.publish({ phase: "success" });
-      await this.window.loadURL(this.returnUrl);
+      await this.studio.loadURL(this.returnUrl);
     } catch (error) {
       if (!abort.signal.aborted) {
         this.publish({

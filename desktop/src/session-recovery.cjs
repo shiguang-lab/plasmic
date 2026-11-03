@@ -24,7 +24,7 @@ function createSessionRecovery({
     if (pending) {
       return pending;
     }
-    const current = new URL(auth.window.webContents.getURL());
+    const current = new URL(auth.studio.webContents.getURL());
     if (current.origin !== studioOrigin || current.pathname === AUTH_PATH) {
       return;
     }
@@ -58,7 +58,7 @@ function createSessionRecovery({
           return;
         }
       }
-      const destination = new URL(auth.window.webContents.getURL());
+      const destination = new URL(auth.studio.webContents.getURL());
       if (
         destination.origin !== studioOrigin ||
         destination.pathname === AUTH_PATH

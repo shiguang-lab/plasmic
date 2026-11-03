@@ -76,6 +76,7 @@ for (const suffix of ["", "-v2"]) {
             ]
           : [
               "client",
+              "antd6-runtime",
               `antd6${suffix}`,
               `overseas${suffix}`,
               `react-ui${suffix}`,

@@ -54,7 +54,8 @@ class StudioInitializer_ extends React.Component<
   StudioInitializerProps,
   StudioInitializerState
 > {
-  _cleanups;
+  _cleanups: (() => void)[];
+  _disposed = false;
   constructor(props) {
     super(props);
     this._cleanups = [];
@@ -63,20 +64,49 @@ class StudioInitializer_ extends React.Component<
       previewCtx: undefined,
     };
   }
+  componentDidMount() {
+    window.addEventListener("pagehide", this.cleanup);
+    window.addEventListener("unload", this.cleanup);
+    this._cleanups.push(() => {
+      window.removeEventListener("pagehide", this.cleanup);
+      window.removeEventListener("unload", this.cleanup);
+    });
+  }
+
   componentWillUnmount() {
-    // TODO: this code never actually gets to run, because the containing
-    // app host iframe is violently removed from the DOM and React did
-    // not get a chance to unmount. Even window.onbeforeunload does not work.
+    this.cleanup();
+  }
+
+  cleanup = () => {
+    if (this._disposed) {
+      return;
+    }
+    this._disposed = true;
     const studioCtx = this.state.studioCtx;
     if (studioCtx) {
-      studioCtx.dispose();
+      try {
+        studioCtx.dispose();
+      } catch (e) {
+        console.warn("Failed to dispose studioCtx:", e);
+      }
       const previewCtx = studioCtx.previewCtx;
       if (previewCtx) {
-        previewCtx.dispose();
+        try {
+          previewCtx.dispose();
+        } catch (e) {
+          console.warn("Failed to dispose previewCtx:", e);
+        }
       }
     }
-    this._cleanups.forEach((cleanup) => cleanup());
-  }
+    this._cleanups.forEach((cleanup) => {
+      try {
+        cleanup();
+      } catch (e) {
+        console.warn("Error running cleanup:", e);
+      }
+    });
+    this._cleanups = [];
+  };
 
   init = async () => {
     const loadTimings = this.props.loadTimings ?? new StudioLoadTimings();
@@ -109,6 +139,11 @@ class StudioInitializer_ extends React.Component<
       loadTimings,
     );
     const previewCtx = new PreviewCtx(hostFrameCtx, studioCtx);
+    if (this._disposed) {
+      previewCtx.dispose();
+      studioCtx.dispose();
+      return { studioCtx, previewCtx };
+    }
 
     spawn(studioCtx.startListeningForSocketEvents());
 

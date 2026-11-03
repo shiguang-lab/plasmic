@@ -35,15 +35,15 @@ it("keeps simultaneous gradient logos independent", () => {
 it("settles on the gradient logo and stops scheduling frames", () => {
   const { container } = render(<BrandLoading />);
   expect(screen.getByRole("status").getAttribute("aria-busy")).toBe("true");
+  expect(container.querySelector("[data-grid]")).toBeNull();
+  expect(container.querySelectorAll("[data-scaffold] [clip-path] path")).toHaveLength(40);
+  expect(container.querySelector("[data-scaffold]")?.getAttribute("opacity")).toBe("0.55");
   act(() => ensure(frames.shift(), "Initial animation frame")(2800));
   expect(container.querySelector("[data-solid]")?.getAttribute("opacity")).toBe(
     "1",
   );
   expect(container.querySelector("[data-solid]")?.hasAttribute("mask")).toBe(
     false,
-  );
-  expect(container.querySelector("[data-grid]")?.getAttribute("opacity")).toBe(
-    "0",
   );
   expect(frames).toHaveLength(0);
 });

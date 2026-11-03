@@ -1,3 +1,5 @@
+import { createCanvasPartTextEditor } from "@/wab/client/components/canvas/canvas-part-text-editor";
+import { getContentEditorTarget } from "@/wab/client/studio-ctx/canvas-content-editor";
 import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { canEditInspectorSelection } from "@/wab/client/studio-ctx/inspector-selection";
@@ -407,6 +409,64 @@ it("deduplicates hover DOM notifications while keeping clone, target and DOM cha
     expect(update).toHaveBeenCalledTimes(3);
   } finally {
     disposeObserver();
+    sc.dispose();
+  }
+});
+
+it.each(["frame", "studio"])(
+  "disposing %s detaches focused content controls before destroying their evaluator",
+  async (scope) => {
+    const { sc, vc } = await setup();
+    sc.changeSelection(() => vc.setStudioFocusByTpl(vc.component.tplTree));
+    const errors: unknown[] = [];
+    const stop = autorun(() => {
+      sc.viewCtxs.slice();
+      const focused = sc.focusedViewCtx();
+      if (focused) {
+        getContentEditorTarget(focused);
+      }
+    }, { onError: (error) => errors.push(error) });
+    try {
+      if (scope === "frame") {
+        sc.disposeViewCtx(vc);
+      } else {
+        sc.dispose();
+        expect(sc.inspectorSelection).toBeUndefined();
+      }
+      expect(errors).toEqual([]);
+      expect(sc.focusedViewCtx()).toBeUndefined();
+      expect(sc.focusedFrames()).toEqual([]);
+      expect(sc.viewCtxs.includes(vc)).toBe(false);
+      expect(vc.isDisposed).toBe(true);
+    } finally {
+      stop();
+      sc.dispose();
+    }
+  },
+);
+
+it("Studio teardown cancels an unfinished part-text draft without committing a model edit", async () => {
+  const { sc, vc } = await setup();
+  sc.changeSelection(() => vc.setStudioFocusByTpl(vc.component.tplTree));
+  const button = document.body.appendChild(document.createElement("button"));
+  const label = button.appendChild(document.createElement("span"));
+  label.className = "label";
+  label.textContent = "Saved label";
+  const commit = vi.fn();
+  const editor = ensure(createCanvasPartTextEditor({
+    element: button, displayName: "Button label", text: {prop: "label", selector: ".label"},
+  }, "Saved label", commit, () => { vc.editingComponentPartText = undefined; }, vi.fn()), "Part-text editor");
+  vc.editingComponentPartText = editor;
+  editor.input.value = "Unfinished draft";
+  editor.input.dispatchEvent(new Event("input"));
+  try {
+    sc.dispose();
+    expect(commit).not.toHaveBeenCalled();
+    expect(editor.input.isConnected).toBe(false);
+    expect(label.textContent).toBe("Saved label");
+  } finally {
+    editor.finish(true);
+    button.remove();
     sc.dispose();
   }
 });

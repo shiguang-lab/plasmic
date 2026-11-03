@@ -34,6 +34,18 @@ The inspector mounts when its ViewCtx exists so saved viewport restoration can
 account for its padding before revealing the canvas. Loading does not select
 frames, rewrite props or restore the viewport a second time.
 
+Top-frame dialogs load as one deferred module when a dialog or onboarding tour is
+first requested. The group stays mounted after closing so form state and ongoing
+publishing survive. Closed dialogs do not pull editor modules into the top-frame
+bootstrap.
+
+`ensureCanvasRuntime()` owns initialization per destination Document. Its base
+bundle uses the Host's native Antd6 when available; otherwise it downloads the
+separate `antd6-runtime` bundle in parallel and executes it after the base bundle.
+Library registration waits for both. Concurrent callers share initialization;
+failed downloads or execution can retry, and navigation cannot inject into the
+replacement document. React, Slate and DOM ownership remain local to each frame.
+
 ## Timings
 
 Read `window.studioCtx.loadTimings.snapshot()` in the Studio host frame's console.
@@ -115,6 +127,14 @@ an exact project/branch/latest-model match; other projects, revisions and later
 requests use the normal API. Host trust checks still precede editor execution.
 Transient context and promises are cleared when consumed.
 
+The authorized prefetched `getSiteInfo` response crosses Comlink once as a JSON
+string through the `PROJECT_MODEL` transfer handler registered in both frame
+contexts. This avoids structured-cloning the hydrated dependency object graph.
+The decoded value retains the normal `GetProjectResponse` contract. A WeakSet
+marks only this startup response and removes the mark during serialization;
+ordinary refreshes, other API results and errors retain Comlink's normal wire
+format. No project model or serialized response is added to a persistent cache.
+
 Loading chrome imports lightweight contexts and disabled controls. It does not
 import `StudioCtx`, billing dialogs or dashboard screens. Context definitions and
 hooks live in `contexts/StudioContexts.tsx`; the model classes are type-only
@@ -149,3 +169,7 @@ must still use a timer outside the application to include entry download,
 parsing and initialization. The project endpoint adds `Server-Timing` stages
 for revision, permission, dependency and owner reads alongside existing database
 timings. Independent reads begin only after project authorization.
+
+Studio teardown clears canvas focus and committed inspector selection together
+before disposing ViewCtx evaluators. Content controls may still react while
+React unmounts; the focused view must not outlive its evaluator.

@@ -619,16 +619,18 @@ export class DragMoveManager {
         Math.min(this.cursorOffset.x, domRect.left - clientPt.x),
         Math.min(this.cursorOffset.y, domRect.top - clientPt.y),
       );
+      if (!this._aborted) {
+        this.vc.startUnlogged();
+      }
+    });
+    // All selected objects share drop geometry and the final cursor offset.
+    if (objects.length) {
       this.targeter = new NodeTargeter(
         this.vc,
         this.objects.map((obj) => obj.tpl),
         this.cursorOffset,
       );
-
-      if (!this._aborted) {
-        this.vc.startUnlogged();
-      }
-    });
+    }
     // Scratch artboards are independent sources. Reuse canvas targeting and
     // paste adaptation when their content is moved into a different component.
     if (

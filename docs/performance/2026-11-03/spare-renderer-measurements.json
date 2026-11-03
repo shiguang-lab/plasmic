@@ -1,0 +1,700 @@
+{
+  "environment": {
+    "platform": "macOS arm64",
+    "electron": "45.2.1",
+    "rendererHash": "7a1176047d44f109f7212dea00fb939bdbad19bba4d842cb5f1f445ce73bc097",
+    "scope": "Offline immutable project replay, production StudioWindow and diagnostic preload; no live IAM/API latency or native draft bridge. Compatible preferences omit production additionalArguments; production language initialization migration is not implemented. Timing and settled-memory ABBA rounds are separate. No debugger, trace, periodic memory profiler or forced GC. Working-set sums double-count shared pages and are not physical footprint."
+  },
+  "eligibility": [
+    {
+      "arguments": "arguments",
+      "policy": "off",
+      "opens": 5,
+      "reused": 0,
+      "blankHtmlLoadMs": [
+        49.166540999999825,
+        62.87845799999991,
+        60.07670899999994,
+        60.819375000000036,
+        73.748333
+      ]
+    },
+    {
+      "arguments": "arguments",
+      "policy": "on",
+      "opens": 5,
+      "reused": 0,
+      "blankHtmlLoadMs": [
+        60.10108300000002,
+        65.20787500000006,
+        64.92441700000018,
+        58.56116699999984,
+        71.84791700000005
+      ]
+    },
+    {
+      "arguments": "plain",
+      "policy": "off",
+      "opens": 5,
+      "reused": 0,
+      "blankHtmlLoadMs": [
+        71.96054200000003,
+        70.5395840000001,
+        67.74691699999994,
+        70.00762500000019,
+        52.207332999999835
+      ]
+    },
+    {
+      "arguments": "plain",
+      "policy": "on",
+      "opens": 5,
+      "reused": 5,
+      "blankHtmlLoadMs": [
+        24.40345900000011,
+        21.033040999999912,
+        23.34545799999978,
+        22.89133300000003,
+        29.116625000000113
+      ]
+    }
+  ],
+  "productionArgumentsControl": [
+    {
+      "mode": "production-off",
+      "opens": 6,
+      "reused": 0,
+      "allFramesMedianMs": 4422.7999267578125,
+      "returned500msWorkingSetMedianMiB": 942.1484375,
+      "previewFixtureErrors": 7
+    },
+    {
+      "mode": "production-on",
+      "opens": 6,
+      "reused": 0,
+      "allFramesMedianMs": 4419.0001220703125,
+      "returned500msWorkingSetMedianMiB": 1000.015625,
+      "previewFixtureErrors": 7
+    }
+  ],
+  "timing": {
+    "gp": {
+      "fixtureSha256": "fa1e1965d363561d357e98539f838fe74140eee7be9791210ab69e4e79b4b5ef",
+      "runs": [
+        {
+          "mode": "timing-a-off",
+          "policy": "off",
+          "opens": 8,
+          "reused": 0,
+          "measured": [
+            {
+              "entry": 3,
+              "canvasRevealedMs": 2187.2001953125,
+              "allFramesRenderedMs": 2206.400146484375,
+              "firstCanvasReadyMs": 2339.1455078125
+            },
+            {
+              "entry": 4,
+              "canvasRevealedMs": 2109.2001953125,
+              "allFramesRenderedMs": 2129,
+              "firstCanvasReadyMs": 2270.199462890625
+            },
+            {
+              "entry": 5,
+              "canvasRevealedMs": 2166,
+              "allFramesRenderedMs": 2185.300048828125,
+              "firstCanvasReadyMs": 2324
+            },
+            {
+              "entry": 6,
+              "canvasRevealedMs": 2146.7001953125,
+              "allFramesRenderedMs": 2165.900146484375,
+              "firstCanvasReadyMs": 2306.31494140625
+            },
+            {
+              "entry": 7,
+              "canvasRevealedMs": 2200.5,
+              "allFramesRenderedMs": 2220.300048828125,
+              "firstCanvasReadyMs": 2352.3017578125
+            },
+            {
+              "entry": 8,
+              "canvasRevealedMs": 2165,
+              "allFramesRenderedMs": 2184.5,
+              "firstCanvasReadyMs": 2324.5849609375
+            }
+          ],
+          "previewFixtureErrors": 9
+        },
+        {
+          "mode": "timing-b-on",
+          "policy": "on",
+          "opens": 8,
+          "reused": 8,
+          "measured": [
+            {
+              "entry": 3,
+              "canvasRevealedMs": 2154.60009765625,
+              "allFramesRenderedMs": 2174.400146484375,
+              "firstCanvasReadyMs": 2313.374267578125
+            },
+            {
+              "entry": 4,
+              "canvasRevealedMs": 2133.10009765625,
+              "allFramesRenderedMs": 2152.5,
+              "firstCanvasReadyMs": 2290.504150390625
+            },
+            {
+              "entry": 5,
+              "canvasRevealedMs": 2143.89990234375,
+              "allFramesRenderedMs": 2164,
+              "firstCanvasReadyMs": 2302.052978515625
+            },
+            {
+              "entry": 6,
+              "canvasRevealedMs": 2165,
+              "allFramesRenderedMs": 2184.599853515625,
+              "firstCanvasReadyMs": 2318.529052734375
+            },
+            {
+              "entry": 7,
+              "canvasRevealedMs": 2129.800048828125,
+              "allFramesRenderedMs": 2149.60009765625,
+              "firstCanvasReadyMs": 2288.26025390625
+            },
+            {
+              "entry": 8,
+              "canvasRevealedMs": 2137.7998046875,
+              "allFramesRenderedMs": 2157.2998046875,
+              "firstCanvasReadyMs": 2296.543212890625
+            }
+          ],
+          "previewFixtureErrors": 9
+        },
+        {
+          "mode": "timing-c-on",
+          "policy": "on",
+          "opens": 8,
+          "reused": 8,
+          "measured": [
+            {
+              "entry": 3,
+              "canvasRevealedMs": 2157.60009765625,
+              "allFramesRenderedMs": 2177,
+              "firstCanvasReadyMs": 2308.810546875
+            },
+            {
+              "entry": 4,
+              "canvasRevealedMs": 2128.7001953125,
+              "allFramesRenderedMs": 2148.300048828125,
+              "firstCanvasReadyMs": 2288.046875
+            },
+            {
+              "entry": 5,
+              "canvasRevealedMs": 2151.599853515625,
+              "allFramesRenderedMs": 2171.099853515625,
+              "firstCanvasReadyMs": 2301.142333984375
+            },
+            {
+              "entry": 6,
+              "canvasRevealedMs": 2134.599853515625,
+              "allFramesRenderedMs": 2154.699951171875,
+              "firstCanvasReadyMs": 2293.679931640625
+            },
+            {
+              "entry": 7,
+              "canvasRevealedMs": 2145,
+              "allFramesRenderedMs": 2165.10009765625,
+              "firstCanvasReadyMs": 2304.721923828125
+            },
+            {
+              "entry": 8,
+              "canvasRevealedMs": 2135.10009765625,
+              "allFramesRenderedMs": 2154.800048828125,
+              "firstCanvasReadyMs": 2292.475341796875
+            }
+          ],
+          "previewFixtureErrors": 9
+        },
+        {
+          "mode": "timing-d-off",
+          "policy": "off",
+          "opens": 8,
+          "reused": 0,
+          "measured": [
+            {
+              "entry": 3,
+              "canvasRevealedMs": 2178.699951171875,
+              "allFramesRenderedMs": 2199,
+              "firstCanvasReadyMs": 2347.41943359375
+            },
+            {
+              "entry": 4,
+              "canvasRevealedMs": 2165.2998046875,
+              "allFramesRenderedMs": 2185.099853515625,
+              "firstCanvasReadyMs": 2323.72216796875
+            },
+            {
+              "entry": 5,
+              "canvasRevealedMs": 2165.2998046875,
+              "allFramesRenderedMs": 2185.19970703125,
+              "firstCanvasReadyMs": 2323.99755859375
+            },
+            {
+              "entry": 6,
+              "canvasRevealedMs": 2180.000244140625,
+              "allFramesRenderedMs": 2199.800048828125,
+              "firstCanvasReadyMs": 2332.481689453125
+            },
+            {
+              "entry": 7,
+              "canvasRevealedMs": 2195.2001953125,
+              "allFramesRenderedMs": 2215.300048828125,
+              "firstCanvasReadyMs": 2350.830810546875
+            },
+            {
+              "entry": 8,
+              "canvasRevealedMs": 2147.5,
+              "allFramesRenderedMs": 2166.800048828125,
+              "firstCanvasReadyMs": 2300.4462890625
+            }
+          ],
+          "previewFixtureErrors": 9
+        }
+      ],
+      "medians": {
+        "off": {
+          "canvasRevealedMs": 2165.64990234375,
+          "allFramesRenderedMs": 2185.2498779296875,
+          "firstCanvasReadyMs": 2324.29248046875
+        },
+        "on": {
+          "canvasRevealedMs": 2140.849853515625,
+          "allFramesRenderedMs": 2160.64990234375,
+          "firstCanvasReadyMs": 2298.8427734375
+        }
+      }
+    },
+    "complex": {
+      "fixtureSha256": "f33cc7b3a88cd952d2b25a6608aff0577b97c8a95347711577e784c6fcbad5e2",
+      "runs": [
+        {
+          "mode": "timing-a-off",
+          "policy": "off",
+          "opens": 8,
+          "reused": 0,
+          "measured": [
+            {
+              "entry": 3,
+              "canvasRevealedMs": 2017,
+              "allFramesRenderedMs": 4453.400146484375,
+              "firstCanvasReadyMs": 2215.134765625
+            },
+            {
+              "entry": 4,
+              "canvasRevealedMs": 2007.89990234375,
+              "allFramesRenderedMs": 4412.5,
+              "firstCanvasReadyMs": 2200.0625
+            },
+            {
+              "entry": 5,
+              "canvasRevealedMs": 1986,
+              "allFramesRenderedMs": 4402.89990234375,
+              "firstCanvasReadyMs": 2182.85107421875
+            },
+            {
+              "entry": 6,
+              "canvasRevealedMs": 1984.099853515625,
+              "allFramesRenderedMs": 4367.39990234375,
+              "firstCanvasReadyMs": 2158.3896484375
+            },
+            {
+              "entry": 7,
+              "canvasRevealedMs": 2010.699951171875,
+              "allFramesRenderedMs": 4427.300048828125,
+              "firstCanvasReadyMs": 2184.343017578125
+            },
+            {
+              "entry": 8,
+              "canvasRevealedMs": 2005,
+              "allFramesRenderedMs": 4389.300048828125,
+              "firstCanvasReadyMs": 2198.83740234375
+            }
+          ],
+          "previewFixtureErrors": 9
+        },
+        {
+          "mode": "timing-b-on",
+          "policy": "on",
+          "opens": 8,
+          "reused": 8,
+          "measured": [
+            {
+              "entry": 3,
+              "canvasRevealedMs": 1960.10009765625,
+              "allFramesRenderedMs": 4382.10009765625,
+              "firstCanvasReadyMs": 2020.98828125
+            },
+            {
+              "entry": 4,
+              "canvasRevealedMs": 1959,
+              "allFramesRenderedMs": 4376.699951171875,
+              "firstCanvasReadyMs": 2155.729248046875
+            },
+            {
+              "entry": 5,
+              "canvasRevealedMs": 1984.699951171875,
+              "allFramesRenderedMs": 4409.099853515625,
+              "firstCanvasReadyMs": 2158.96875
+            },
+            {
+              "entry": 6,
+              "canvasRevealedMs": 2047.39990234375,
+              "allFramesRenderedMs": 4430.7998046875,
+              "firstCanvasReadyMs": 2223.655029296875
+            },
+            {
+              "entry": 7,
+              "canvasRevealedMs": 1997.699951171875,
+              "allFramesRenderedMs": 4408.5,
+              "firstCanvasReadyMs": 2193.271484375
+            },
+            {
+              "entry": 8,
+              "canvasRevealedMs": 1976,
+              "allFramesRenderedMs": 4388.199951171875,
+              "firstCanvasReadyMs": 2168.971435546875
+            }
+          ],
+          "previewFixtureErrors": 9
+        },
+        {
+          "mode": "timing-c-on",
+          "policy": "on",
+          "opens": 8,
+          "reused": 8,
+          "measured": [
+            {
+              "entry": 3,
+              "canvasRevealedMs": 1989.7998046875,
+              "allFramesRenderedMs": 4397.7998046875,
+              "firstCanvasReadyMs": 2170.150634765625
+            },
+            {
+              "entry": 4,
+              "canvasRevealedMs": 1997.599853515625,
+              "allFramesRenderedMs": 4413.199951171875,
+              "firstCanvasReadyMs": 2172.95458984375
+            },
+            {
+              "entry": 5,
+              "canvasRevealedMs": 2008.69970703125,
+              "allFramesRenderedMs": 4438.899658203125,
+              "firstCanvasReadyMs": 2180.423095703125
+            },
+            {
+              "entry": 6,
+              "canvasRevealedMs": 1976.300048828125,
+              "allFramesRenderedMs": 4396.89990234375,
+              "firstCanvasReadyMs": 2166.333740234375
+            },
+            {
+              "entry": 7,
+              "canvasRevealedMs": 1975.39990234375,
+              "allFramesRenderedMs": 4433.699951171875,
+              "firstCanvasReadyMs": 2151.6015625
+            },
+            {
+              "entry": 8,
+              "canvasRevealedMs": 1970.2998046875,
+              "allFramesRenderedMs": 4369.89990234375,
+              "firstCanvasReadyMs": 2143.232666015625
+            }
+          ],
+          "previewFixtureErrors": 9
+        },
+        {
+          "mode": "timing-d-off",
+          "policy": "off",
+          "opens": 8,
+          "reused": 0,
+          "measured": [
+            {
+              "entry": 3,
+              "canvasRevealedMs": 2033.599853515625,
+              "allFramesRenderedMs": 4457.199951171875,
+              "firstCanvasReadyMs": 2221.377197265625
+            },
+            {
+              "entry": 4,
+              "canvasRevealedMs": 2005.199951171875,
+              "allFramesRenderedMs": 4385.800048828125,
+              "firstCanvasReadyMs": 2192.879150390625
+            },
+            {
+              "entry": 5,
+              "canvasRevealedMs": 2028.19970703125,
+              "allFramesRenderedMs": 4452.2998046875,
+              "firstCanvasReadyMs": 2203.414306640625
+            },
+            {
+              "entry": 6,
+              "canvasRevealedMs": 2015.69970703125,
+              "allFramesRenderedMs": 4409.69970703125,
+              "firstCanvasReadyMs": 2190.58740234375
+            },
+            {
+              "entry": 7,
+              "canvasRevealedMs": 2050.900146484375,
+              "allFramesRenderedMs": 4481,
+              "firstCanvasReadyMs": 2223.2978515625
+            },
+            {
+              "entry": 8,
+              "canvasRevealedMs": 2013.599853515625,
+              "allFramesRenderedMs": 4380,
+              "firstCanvasReadyMs": 2189.220458984375
+            }
+          ],
+          "previewFixtureErrors": 9
+        }
+      ],
+      "medians": {
+        "off": {
+          "canvasRevealedMs": 2012.14990234375,
+          "allFramesRenderedMs": 4411.099853515625,
+          "firstCanvasReadyMs": 2195.8582763671875
+        },
+        "on": {
+          "canvasRevealedMs": 1980.5,
+          "allFramesRenderedMs": 4403.14990234375,
+          "firstCanvasReadyMs": 2167.652587890625
+        }
+      }
+    }
+  },
+  "memory": {
+    "off": {
+      "runs": [
+        {
+          "mode": "final-memory-a-off",
+          "opens": 6,
+          "reused": 0,
+          "previewFixtureErrors": 7,
+          "measuredReturns": [
+            {
+              "entry": 3,
+              "workingSetMiB": {
+                "500ms": 922.953125,
+                "1s": 764.03125,
+                "5s": 721.25
+              }
+            },
+            {
+              "entry": 4,
+              "workingSetMiB": {
+                "500ms": 909.921875,
+                "1s": 751.296875,
+                "5s": 745.375
+              }
+            },
+            {
+              "entry": 5,
+              "workingSetMiB": {
+                "500ms": 903.515625,
+                "1s": 745.234375,
+                "5s": 739.140625
+              }
+            },
+            {
+              "entry": 6,
+              "workingSetMiB": {
+                "500ms": 939.9375,
+                "1s": 781.171875,
+                "5s": 755.328125
+              }
+            }
+          ]
+        },
+        {
+          "mode": "final-memory-d-off",
+          "opens": 6,
+          "reused": 0,
+          "previewFixtureErrors": 7,
+          "measuredReturns": [
+            {
+              "entry": 3,
+              "workingSetMiB": {
+                "500ms": 914.578125,
+                "1s": 755.25,
+                "5s": 711.796875
+              }
+            },
+            {
+              "entry": 4,
+              "workingSetMiB": {
+                "500ms": 878.765625,
+                "1s": 720.03125,
+                "5s": 715.140625
+              }
+            },
+            {
+              "entry": 5,
+              "workingSetMiB": {
+                "500ms": 911.3125,
+                "1s": 752.859375,
+                "5s": 746.875
+              }
+            },
+            {
+              "entry": 6,
+              "workingSetMiB": {
+                "500ms": 961.15625,
+                "1s": 802.734375,
+                "5s": 776.75
+              }
+            }
+          ]
+        }
+      ],
+      "mediansMiB": {
+        "500ms": 912.9453125,
+        "1s": 754.0546875,
+        "5s": 742.2578125
+      },
+      "confirmedSpareWorkingSetsMiB": [],
+      "oldEditorOrFrameSurvivors": 0
+    },
+    "on": {
+      "runs": [
+        {
+          "mode": "final-memory-b-on",
+          "opens": 6,
+          "reused": 6,
+          "previewFixtureErrors": 7,
+          "measuredReturns": [
+            {
+              "entry": 3,
+              "workingSetMiB": {
+                "500ms": 994.5,
+                "1s": 835.65625,
+                "5s": 792.28125
+              }
+            },
+            {
+              "entry": 4,
+              "workingSetMiB": {
+                "500ms": 950.84375,
+                "1s": 791.765625,
+                "5s": 785.6875
+              }
+            },
+            {
+              "entry": 5,
+              "workingSetMiB": {
+                "500ms": 962.28125,
+                "1s": 804.125,
+                "5s": 798.265625
+              }
+            },
+            {
+              "entry": 6,
+              "workingSetMiB": {
+                "500ms": 984.6875,
+                "1s": 826.3125,
+                "5s": 800.265625
+              }
+            }
+          ]
+        },
+        {
+          "mode": "final-memory-c-on",
+          "opens": 6,
+          "reused": 6,
+          "previewFixtureErrors": 7,
+          "measuredReturns": [
+            {
+              "entry": 3,
+              "workingSetMiB": {
+                "500ms": 978.546875,
+                "1s": 819.671875,
+                "5s": 777.515625
+              }
+            },
+            {
+              "entry": 4,
+              "workingSetMiB": {
+                "500ms": 946.84375,
+                "1s": 788.828125,
+                "5s": 780.484375
+              }
+            },
+            {
+              "entry": 5,
+              "workingSetMiB": {
+                "500ms": 955.8125,
+                "1s": 796.875,
+                "5s": 791.0
+              }
+            },
+            {
+              "entry": 6,
+              "workingSetMiB": {
+                "500ms": 974.875,
+                "1s": 815.84375,
+                "5s": 790.03125
+              }
+            }
+          ]
+        }
+      ],
+      "mediansMiB": {
+        "500ms": 968.578125,
+        "1s": 809.984375,
+        "5s": 790.515625
+      },
+      "confirmedSpareWorkingSetsMiB": [
+        64.328125,
+        64.25,
+        64.28125,
+        64.375,
+        64.359375,
+        64.375
+      ],
+      "oldEditorOrFrameSurvivors": 0
+    }
+  },
+  "functional": {
+    "gp": {
+      "passed": true,
+      "reopen": true,
+      "cases": [
+        "switch-artboard",
+        "rename-undo-redo",
+        "rendered-style-undo-redo",
+        "frame-position-undo-redo",
+        "preview-business-pagination-return"
+      ]
+    },
+    "complex": {
+      "passed": true,
+      "reopen": true,
+      "cases": [
+        "switch-artboard",
+        "switch-artboard",
+        "switch-artboard",
+        "rename-undo-redo",
+        "rendered-style-undo-redo",
+        "frame-position-undo-redo",
+        "cold-frame-undo-selection-style",
+        "cold-frame-redo-rendered-style"
+      ]
+    }
+  },
+  "memorySourceHashes": {
+    "desktop/tests/performance/real-project-open.cjs": "1f54e27fdba01730edb723e8e34c7bcc2472094b0e087fda42d53306f0b20b18",
+    "desktop/src/studio-window.cjs": "e39a85068dcc17f55d1ff3e7870a45697625489484683c4ff2cb8dea42ca43fa",
+    "desktop/src/asset-handler.cjs": "2cffbf77918761fe4685081339327a6a5d7e9ba5e810265eb33997d53fa33a00",
+    "desktop/src/library-cache.cjs": "f0a1fdc0630cd8261fdd87d6f5252dc4c69ae4e5b4ca1b9dddbc49a9ee01b250"
+  }
+}

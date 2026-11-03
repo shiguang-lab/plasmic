@@ -66,8 +66,9 @@ function fixture(t) {
   };
   let createIsland;
   try { ({ createIsland } = require(filename)); } finally { Module._load = originalLoad; delete require.cache[filename]; }
-  const presentation = createIsland({ getWindow: () => main, controller, identity, i18n, appearance, config: { studioOrigin: "https://studio.test" }, isQuitting: () => false });
+  const presentation = createIsland({ getWindow: () => main, getStudio: () => ({window:main,webContents:main.webContents}), controller, identity, i18n, appearance, config: { studioOrigin: "https://studio.test" }, isQuitting: () => false });
   presentation.attach(main);
+  presentation.attachContents(main.webContents);
   t.after(() => { presentation.dispose(); fs.rmSync(profile, { recursive: true, force: true }); });
   return { main, windows, messages, requests, controller, activity, mirror, presentation,
     notify: () => { activity.notify(); localeListener(); appearanceListener(); },

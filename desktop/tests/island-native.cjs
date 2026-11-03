@@ -1,3 +1,4 @@
+const { studioFixture } = require("./fixtures/studio.cjs");
 // Electron integration fixture: real IPC, stdio MCP, hidden compositor and windows.
 // The deterministic editor below is a fixture, not the full Studio application.
 const { app, BrowserWindow, ipcMain, session, Menu, screen } = require("electron");
@@ -95,6 +96,7 @@ app.whenReady().then(async () => {
   fs.copyFileSync(path.join(localeSource, "locale-resolution.cjs"), path.join(localeDir, "locale-resolution.cjs"));
   const i18n = createDesktopI18n(localeDir, ["zh-CN"]);
   const appearance = createDesktopAppearance("dark");
+  ipcMain.handle("desktop:view-state", event => ({active:event.sender===main?.webContents}));
   ipcMain.handle("desktop:ui-appearance", () => {});
   ipcMain.handle("desktop:ui-locale", () => i18n.snapshot());
   const partition = session.fromPartition("island-native");
@@ -116,7 +118,7 @@ app.whenReady().then(async () => {
     session: partition, preload: path.join(root, "src/preload.cjs"), sandbox: true,
     contextIsolation: true, nodeIntegration: false, backgroundThrottling: false,
   } });
-  controller = new DesktopController(() => main, { studioOrigin: origin });
+  controller = new DesktopController(() => studioFixture(main), { studioOrigin: origin });
   const accountData = { user:{id:"account-a",firstName:"演示账号",lastName:"",email:"demo@example.test"},
     teams:[{id:"team",name:"业务组织"}],workspaces:[{id:"w",team:{id:"team"},name:"采购工作区"}],projects:[{id:"p"},{id:"p2"}] };
   const requestStudio = controller.requestStudio.bind(controller);
@@ -133,8 +135,9 @@ app.whenReady().then(async () => {
   let signInCalls = 0;
   identity = new DesktopIdentity({ session: partition, studioOrigin: origin, prepare: async () => {}, fetchIdentity: () => controller.requestStudio("/api/v1/auth/self") });
   main.webContents.on("did-start-navigation", (_event, _url, inPlace, isMainFrame) => { if (isMainFrame && !inPlace) identity.expire(); });
-  presentation = createIsland({ identity, signIn: () => { signInCalls++; }, isQuitting: () => false, getWindow: () => main, controller, config: { studioOrigin: origin }, i18n, appearance });
+  presentation = createIsland({ identity, signIn: () => { signInCalls++; }, isQuitting: () => false, getWindow: () => main, getStudio: () => studioFixture(main), controller, config: { studioOrigin: origin }, i18n, appearance });
   presentation.attach(main);
+  presentation.attachContents(main.webContents);
   await main.loadURL(origin + "/projects/p");
   assert.equal(identityReads, 0, "normal window navigation does not load the island account");
   await presentation.setMode("island");
@@ -729,7 +732,7 @@ app.whenReady().then(async () => {
 
   await presentation.setMode("window");
   await main.webContents.executeJavaScript("desktopUpdates.onOpen(status=>{window.sharedUpdate=status});true");
-  const openMainUpdate=createUpdateDialog(updates,main);
+  const openMainUpdate=createUpdateDialog(updates,main,main.webContents);
   main.webContents.emit("did-finish-load");
   openMainUpdate();
   await until(async()=>(await main.webContents.executeJavaScript("window.sharedUpdate?.phase"))==="downloaded","main-window dialog receives the same download");

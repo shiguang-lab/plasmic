@@ -145,3 +145,16 @@ it("retains an image skeleton if the generated image cannot be decoded", () => {
   expect(container.querySelector(".ant-skeleton-node")).not.toBeNull();
   expect(container.textContent).toBe("");
 });
+
+it("cancels hidden Desktop previews and restarts them on Dashboard activation", () => {
+  let active=true;
+  let change:()=>void=()=>undefined;
+  const stop=vi.fn();
+  vi.stubGlobal("desktopNavigation",{isActive:()=>active,onActiveChange:(callback:()=>void)=>{change=callback;return stop;}});
+  const {unmount}=render(<ProjectPreview userId="user" projectId="p" updatedAt="today" />);
+  intersect(true);expect(mocks.subscribe).toHaveBeenCalledOnce();
+  act(()=>{active=false;change();});expect(mocks.cancel).toHaveBeenCalledOnce();
+  intersect(true);expect(mocks.subscribe).toHaveBeenCalledOnce();
+  act(()=>{active=true;change();});expect(mocks.subscribe).toHaveBeenCalledTimes(2);
+  unmount();expect(stop).toHaveBeenCalledOnce();
+});

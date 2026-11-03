@@ -1,5 +1,6 @@
 import { recomputeBounds } from "@/wab/client/components/canvas/HoverBox/recomputeBounds";
 import { filterCanvasModalElements } from "@/wab/client/components/canvas/canvas-modal-scope";
+import type { GeometrySnapshot, GeometryStyle } from "@/wab/client/components/canvas/geometry-snapshot";
 import { frameToScalerRect } from "@/wab/client/coords";
 import { hasLayoutBox } from "@/wab/client/dom";
 import type { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
@@ -61,20 +62,20 @@ function clipsAxis(overflow: string) {
   );
 }
 
-function containsPaint(style: CSSStyleDeclaration) {
+function containsPaint(style: GeometryStyle) {
   const contain = style.contain ?? "";
   return /\b(paint|strict|content)\b/.test(contain);
 }
 
 /** Whether `style` makes its element the containing block of fixed descendants. */
-function establishesFixedContainingBlock(style: CSSStyleDeclaration) {
+function establishesFixedContainingBlock(style: GeometryStyle) {
   const isSet = (value: string | undefined) =>
     !!value && value !== "none" && value !== "";
   return (
     isSet(style.transform) ||
     isSet(style.perspective) ||
     isSet(style.filter) ||
-    isSet((style as any).backdropFilter) ||
+    isSet(style.backdropFilter) ||
     /\b(layout|paint|strict|content)\b/.test(style.contain ?? "") ||
     /\b(transform|perspective|filter)\b/.test(style.willChange ?? "")
   );
@@ -95,8 +96,8 @@ function isHTMLElementLike(elt: Element): elt is HTMLElement {
 }
 
 /** Padding box of `elt`, which is where its overflow is clipped. */
-function paddingBox(elt: Element): Bounds | undefined {
-  const rect = elt.getBoundingClientRect();
+function paddingBox(elt: Element, geometry?: GeometrySnapshot): Bounds | undefined {
+  const rect = geometry ? geometry.getRect(elt) : elt.getBoundingClientRect();
   if (!isHTMLElementLike(elt)) {
     // SVG and other non-HTML boxes have no client metrics; clip to the box.
     return rect.width || rect.height
@@ -108,7 +109,9 @@ function paddingBox(elt: Element): Bounds | undefined {
         }
       : undefined;
   }
-  if (!elt.offsetWidth && !elt.offsetHeight) {
+  const metrics = geometry ? geometry.getClientMetrics(elt) : elt;
+  const { offsetWidth, offsetHeight } = metrics;
+  if (!offsetWidth && !offsetHeight) {
     // No layout metrics. A real box without them only exists in non-layout
     // DOMs (tests); use it as is. Otherwise the element has no box.
     return rect.width || rect.height
@@ -121,23 +124,24 @@ function paddingBox(elt: Element): Bounds | undefined {
       : undefined;
   }
   // Account for ancestor transforms: client* sizes are untransformed.
-  const scaleX = elt.offsetWidth ? rect.width / elt.offsetWidth : 1;
-  const scaleY = elt.offsetHeight ? rect.height / elt.offsetHeight : 1;
-  const left = rect.left + elt.clientLeft * scaleX;
-  const top = rect.top + elt.clientTop * scaleY;
+  const scaleX = offsetWidth ? rect.width / offsetWidth : 1;
+  const scaleY = offsetHeight ? rect.height / offsetHeight : 1;
+  const left = rect.left + metrics.clientLeft * scaleX;
+  const top = rect.top + metrics.clientTop * scaleY;
   return {
     left,
     top,
-    right: left + elt.clientWidth * scaleX,
-    bottom: top + elt.clientHeight * scaleY,
+    right: left + metrics.clientWidth * scaleX,
+    bottom: top + metrics.clientHeight * scaleY,
   };
 }
 
 /** The artboard document's visible viewport, in its own client coordinates. */
-export function viewportBounds(doc: Document): Bounds | undefined {
+export function viewportBounds(doc: Document, geometry?: GeometrySnapshot): Bounds | undefined {
   const root = doc.documentElement;
-  const width = root?.clientWidth || doc.defaultView?.innerWidth || 0;
-  const height = root?.clientHeight || doc.defaultView?.innerHeight || 0;
+  const metrics = root && geometry ? geometry.getClientMetrics(root) : root;
+  const width = metrics?.clientWidth || doc.defaultView?.innerWidth || 0;
+  const height = metrics?.clientHeight || doc.defaultView?.innerHeight || 0;
   if (!width || !height) {
     return undefined;
   }
@@ -161,7 +165,7 @@ const ZERO_BOUNDS: Bounds = { top: 0, left: 0, right: 0, bottom: 0 };
  * viewport. Ancestors that an absolutely or fixed positioned element escapes
  * do not clip it.
  */
-function clipSources(elt: Element): ClipSource[] {
+function clipSources(elt: Element, geometry?: GeometrySnapshot): ClipSource[] {
   const doc = elt.ownerDocument;
   const win = doc.defaultView;
   if (!win) {
@@ -169,13 +173,13 @@ function clipSources(elt: Element): ClipSource[] {
   }
   const sources: ClipSource[] = [];
 
-  let position = win.getComputedStyle(elt).position;
+  let position = (geometry?.getStyle(elt) ?? win.getComputedStyle(elt)).position;
   for (
     let ancestor = parentInFlatTree(elt);
     ancestor && ancestor !== doc.body && ancestor !== doc.documentElement;
     ancestor = parentInFlatTree(ancestor)
   ) {
-    const style = win.getComputedStyle(ancestor);
+    const style = geometry?.getStyle(ancestor) ?? win.getComputedStyle(ancestor);
     const inContainingBlockChain =
       position === "fixed"
         ? establishesFixedContainingBlock(style)
@@ -197,7 +201,7 @@ function clipSources(elt: Element): ClipSource[] {
     if (!clipX && !clipY) {
       continue;
     }
-    const box = paddingBox(ancestor);
+    const box = paddingBox(ancestor, geometry);
     if (!box) {
       // A clipping ancestor without a box hides everything inside it.
       sources.push({
@@ -211,7 +215,7 @@ function clipSources(elt: Element): ClipSource[] {
     sources.push({ container: ancestor, bounds: box, clipX, clipY });
   }
 
-  const viewport = viewportBounds(doc);
+  const viewport = viewportBounds(doc, geometry);
   if (viewport) {
     sources.push({
       container: doc.scrollingElement ?? doc.documentElement,
@@ -229,9 +233,9 @@ function clipSources(elt: Element): ClipSource[] {
  * chain. Ancestors that an absolutely or fixed positioned element escapes do
  * not clip it.
  */
-export function computeClipBounds(elt: Element): Bounds {
+export function computeClipBounds(elt: Element, geometry?: GeometrySnapshot): Bounds {
   const clip = { ...UNBOUNDED };
-  for (const { bounds, clipX, clipY } of clipSources(elt)) {
+  for (const { bounds, clipX, clipY } of clipSources(elt, geometry)) {
     if (clipX) {
       clip.left = Math.max(clip.left, bounds.left);
       clip.right = Math.min(clip.right, bounds.right);

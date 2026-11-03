@@ -1,5 +1,28 @@
 const { ipcRenderer, contextBridge } = require("electron");
 if (window.top === window) {
+  let viewActive = false;
+  let receivedViewState = false;
+  const viewListeners = new Set();
+  const applyViewState = (state) => {
+    viewActive = state.active;
+    if (document.documentElement) document.documentElement.inert = !viewActive;
+    for (const listener of viewListeners) listener(state);
+  };
+  ipcRenderer.on("desktop:view-state", (_event, state) => {
+    receivedViewState = true;
+    applyViewState(state);
+  });
+  void ipcRenderer.invoke("desktop:view-state").then(state => {
+    if (!receivedViewState) applyViewState(state);
+  }).catch(error => console.warn("Cannot read Desktop view state:", error.message));
+  contextBridge.exposeInMainWorld("desktopNavigation", {
+    navigate: (url) => ipcRenderer.invoke("desktop:navigate", url),
+    isActive: () => viewActive,
+    onActiveChange: (callback) => {
+      viewListeners.add(callback);
+      return () => viewListeners.delete(callback);
+    },
+  });
   contextBridge.exposeInMainWorld("desktopDrafts", {
     open: (userId, projectId, branchId) => ipcRenderer.invoke("desktop:drafts", "open", { userId, projectId, branchId }),
     list: (userId) => ipcRenderer.invoke("desktop:drafts", "list", { userId }),
@@ -36,6 +59,7 @@ if (window.top === window) {
     openPreview: (url) => ipcRenderer.invoke("desktop:open-preview", url),
   });
   window.addEventListener("DOMContentLoaded", () => {
+    document.documentElement.inert = !viewActive;
     const appearance = document.documentElement.dataset.uiAppearance;
     if (appearance === "dark" || appearance === "light") {
       void ipcRenderer.invoke("desktop:ui-appearance", appearance);
@@ -71,6 +95,7 @@ if (window.top === window) {
       : navigator.languages,
   });
   contextBridge.exposeInMainWorld("desktopUpdates", {
+    closed: () => ipcRenderer.send("desktop:update-dialog-closed"),
     command: (command) => ipcRenderer.invoke("desktop:update", command),
     onOpen: (callback) => {
       const listener = (_event, status) => callback(status);

@@ -1,3 +1,4 @@
+import { transferProjectModel } from "@/wab/client/frame-ctx/project-model-transfer";
 import { filteredApi } from "@/wab/client/api";
 import { ensureIsTopFrame } from "@/wab/client/cli-routes";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
@@ -17,7 +18,7 @@ import { getUiAppearance, subscribeUiAppearance } from "@/wab/client/ui-theme";
 import { PromisifyMethods } from "@/wab/commons/promisify-methods";
 import { bindMethods } from "@/wab/commons/proxies";
 import { BranchId } from "@/wab/shared/ApiSchema";
-import { assert } from "@/wab/shared/common";
+import { assert, spawn } from "@/wab/shared/common";
 import * as Comlink from "comlink";
 import * as React from "react";
 
@@ -69,7 +70,9 @@ export function TopFrameCtxProvider({
         ? prefetched.data
         : api.getSiteInfo(projectId, { branchId: initialBranchId });
     void initialSiteInfo.catch(() => undefined);
-    const localeDisposers = new Set<() => void>();
+    let disposed = false;
+    let remoteHostApi: Comlink.Remote<HostFrameApi> | undefined;
+    const sessionDisposers = new Set<() => void>();
     let comlinkState:
       | undefined
       | {
@@ -106,6 +109,11 @@ export function TopFrameCtxProvider({
       );
       const topFrameCtxApi: TopFrameFullApi = {
         exposeHostFrameApi: (hostFrameApi: Comlink.Remote<HostFrameApi>) => {
+          if (disposed) {
+            hostFrameApi[Comlink.releaseProxy]();
+            return;
+          }
+          remoteHostApi = hostFrameApi;
           setTopFrameCtx((prev) => ({
             ...prev,
             hostFrameApi,
@@ -114,6 +122,13 @@ export function TopFrameCtxProvider({
         },
         ...api,
         ...topFrameApi,
+
+        // The parent owns the socket. A removed host cannot finish an RPC
+        // cleanup, and its late requests must not touch a subsequent session.
+        listenSocket: (eventNames) =>
+          disposed ? Promise.resolve(undefined) : api.listenSocket(eventNames),
+        closeSocket: () =>
+          disposed ? Promise.resolve() : api.closeSocket(),
 
         getSiteInfo: (siteId, opts) => {
           if (
@@ -126,42 +141,55 @@ export function TopFrameCtxProvider({
           ) {
             const request = initialSiteInfo;
             initialSiteInfo = undefined;
-            return request;
+            return request.then(transferProjectModel);
           }
           return api.getSiteInfo(siteId, opts);
         },
 
         // Override some methods to hide Comlink implementation details.
         async registerUiLocaleListener(localeListener): Promise<() => void> {
+          if (disposed) {
+            return Comlink.proxy(() => {});
+          }
           const dispose = subscribeUiLocale(() =>
             localeListener(getUiLocale()),
           );
-          localeDisposers.add(dispose);
+          sessionDisposers.add(dispose);
           // The callback crosses a MessagePort, while registration returns on
           // the window endpoint. Await it so the host mounts in the right locale.
           await localeListener(getUiLocale());
           return Comlink.proxy(() => {
             dispose();
-            localeDisposers.delete(dispose);
+            sessionDisposers.delete(dispose);
           });
         },
         async registerUiAppearanceListener(
           appearanceListener,
         ): Promise<() => void> {
+          if (disposed) {
+            return Comlink.proxy(() => {});
+          }
           const dispose = subscribeUiAppearance(() =>
             appearanceListener(getUiAppearance()),
           );
-          localeDisposers.add(dispose);
+          sessionDisposers.add(dispose);
           await appearanceListener(getUiAppearance());
           return Comlink.proxy(() => {
             dispose();
-            localeDisposers.delete(dispose);
+            sessionDisposers.delete(dispose);
           });
         },
         registerLocationListener(locationListener): () => void {
-          return Comlink.proxy(
-            topFrameApi.registerLocationListener(locationListener),
-          );
+          if (disposed) {
+            return Comlink.proxy(() => {});
+          }
+          const unregister = topFrameApi.registerLocationListener(locationListener);
+          const dispose = () => {
+            sessionDisposers.delete(dispose);
+            unregister();
+          };
+          sessionDisposers.add(dispose);
+          return Comlink.proxy(dispose);
         },
       } as TopFrameFullApi;
       Comlink.expose(topFrameCtxApi, {
@@ -192,7 +220,14 @@ export function TopFrameCtxProvider({
     };
     window.addEventListener("message", listener);
     return () => {
-      localeDisposers.forEach((dispose) => dispose());
+      disposed = true;
+      // Resolve pending pulls locally before removing the bridge. The pending
+      // Comlink response otherwise keeps the entire old Host Window alive.
+      spawn(api.closeSocket());
+      remoteHostApi?.[Comlink.releaseProxy]();
+      sessionDisposers.forEach((dispose) => dispose());
+      sessionDisposers.clear();
+      initialSiteInfo = undefined;
       window.removeEventListener("message", listener);
       if (comlinkState) {
         comlinkState.hostFrameEndpoint.removeEventListener(

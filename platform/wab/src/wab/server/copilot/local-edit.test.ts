@@ -364,10 +364,13 @@ it("discovers and caches service models without returning credentials", async ()
   vi.stubGlobal("fetch", fetchMock);
   vi.stubEnv("PLASMIC_AI_BASE_URL", "https://model-catalog.example/v1");
   try {
-    expect(await getLocalAiModels()).toEqual([
-      "fixture-model",
-      "alternate-model",
-    ]);
+    expect(await getLocalAiModels()).toEqual(["fixture-model"]);
+    await vi.waitFor(async () => {
+      expect(await getLocalAiModels()).toEqual([
+        "fixture-model",
+        "alternate-model",
+      ]);
+    });
     expect(await getLocalAiModels()).toEqual([
       "fixture-model",
       "alternate-model",
@@ -408,7 +411,7 @@ it("retains the default model when discovery is unsupported", async () => {
   }
 });
 
-it("retries discovery after a transient failure instead of caching the fallback", async () => {
+it("cools down discovery failures before retrying instead of caching the fallback indefinitely", async () => {
   const original = config.models;
   config.models = undefined;
   vi.stubEnv("PLASMIC_AI_BASE_URL", "https://transient-catalog.example/v1");
@@ -420,12 +423,19 @@ it("retries discovery after a transient failure instead of caching the fallback"
       json: async () => ({ data: [{ id: "alternate-model" }] }),
     });
   vi.stubGlobal("fetch", fetchMock);
+  const now = vi.spyOn(Date, "now").mockReturnValue(1_000_000);
   try {
     expect(await getLocalAiModels()).toEqual(["fixture-model"]);
-    expect(await getLocalAiModels()).toEqual([
-      "fixture-model",
-      "alternate-model",
-    ]);
+    expect(await getLocalAiModels()).toEqual(["fixture-model"]);
+    expect(fetchMock).toHaveBeenCalledOnce();
+    now.mockReturnValue(1_030_000);
+    expect(await getLocalAiModels()).toEqual(["fixture-model"]);
+    await vi.waitFor(async () => {
+      expect(await getLocalAiModels()).toEqual([
+        "fixture-model",
+        "alternate-model",
+      ]);
+    });
     expect(await getLocalAiModels()).toEqual([
       "fixture-model",
       "alternate-model",

@@ -49,9 +49,39 @@ export function bindShortcutHandlers<Action extends string>(
     element: Element,
   ) => boolean,
 ): () => void {
-  const mousetrap = new Mousetrap(
-    target instanceof Document ? undefined : target,
-  );
+  // Mousetrap.reset() clears bindings but leaves its three DOM listeners
+  // installed. Record the constructor's registrations so this binding owns
+  // their lifetime, without removing another binding on the same element.
+  const listeners: {
+    type: string;
+    listener: EventListenerOrEventListenerObject;
+    options?: boolean | AddEventListenerOptions;
+  }[] = [];
+  const descriptor = Object.getOwnPropertyDescriptor(target, "addEventListener");
+  const addEventListener = target.addEventListener;
+  Object.defineProperty(target, "addEventListener", {
+    configurable: true,
+    value: (
+      type: string,
+      listener: EventListenerOrEventListenerObject,
+      options?: boolean | AddEventListenerOptions,
+    ) => {
+      listeners.push({ type, listener, options });
+      addEventListener.call(target, type, listener, options);
+    },
+  });
+  let mousetrap: Mousetrap.MousetrapInstance;
+  try {
+    mousetrap = new Mousetrap(
+      target instanceof Document ? undefined : target,
+    );
+  } finally {
+    if (descriptor) {
+      Object.defineProperty(target, "addEventListener", descriptor);
+    } else {
+      Reflect.deleteProperty(target, "addEventListener");
+    }
+  }
 
   // Some of our code uses checks like `element instanceof HTMLElement`.
   // However, this may not work if the element is in an iframe,
@@ -135,6 +165,10 @@ export function bindShortcutHandlers<Action extends string>(
   }
   return () => {
     mousetrap.reset();
+    for (const { type, listener, options } of listeners) {
+      target.removeEventListener(type, listener, options);
+    }
+    listeners.length = 0;
   };
 }
 

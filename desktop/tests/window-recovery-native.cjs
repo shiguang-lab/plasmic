@@ -1,4 +1,5 @@
 const { app, BrowserWindow } = require("electron");
+const { studioFixture } = require("./fixtures/studio.cjs");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
@@ -22,7 +23,7 @@ const deadline = setTimeout(() => app.exit(1), 30000);
 const pause = () => new Promise((resolve) => setTimeout(resolve, 50));
 app.whenReady().then(async () => {
   const win = new BrowserWindow({ show: false, webPreferences: { sandbox: true, contextIsolation: true } });
-  attachWindowRecovery(win, {
+  attachWindowRecovery(studioFixture(win), {
     homeUrl, t: (text) => text,
     controller: { cancelPending: (_win, reason) => cancellations.push(reason) },
     dialog: {

@@ -1,19 +1,9 @@
+import { TopFrameDialogs } from "@/wab/client/components/TopFrame/TopFrameDialogs";
 import { AppCtx } from "@/wab/client/app-ctx";
 import { desktopDraftBridge } from "@/wab/client/desktop-drafts";
 import { isPlasmicPath } from "@/wab/client/cli-routes";
-import { HostConfig } from "@/wab/client/components/HostConfig";
-import { DataSourcePicker } from "@/wab/client/components/TopFrame/DataSourcePicker";
-import CloneProjectModal from "@/wab/client/components/TopFrame/TopBar/CloneProjectModal";
-import ProjectNameModal from "@/wab/client/components/TopFrame/TopBar/ProjectNameModal";
-import PublishFlowDialogWrapper from "@/wab/client/components/TopFrame/TopBar/PublishFlowDialogWrapper";
 import { showRegenerateSecretTokenModal } from "@/wab/client/components/TopFrame/TopBar/RegenerateSecretTokenModal";
-import ShareModal from "@/wab/client/components/TopFrame/TopBar/ShareModal";
-import UpsellModal from "@/wab/client/components/TopFrame/TopBar/UpsellModal";
-import { AppAuthSettingsModal } from "@/wab/client/components/app-auth/AppAuthSettings";
 import { isAnonymousQuotaReached } from "@/wab/client/components/copilot/anonymous-chat";
-import { MergeModalWrapper } from "@/wab/client/components/merge/MergeFlow";
-import { ContentEditorConfigModal } from "@/wab/client/components/modals/ContentEditorConfigModal";
-import { EnableLocalizationModal } from "@/wab/client/components/modals/EnableLocalizationModal";
 import {
   TopBarPromptBillingArgs,
   promptTeamUpgrade,
@@ -40,7 +30,7 @@ import {
   TopFrameApiReturnType,
 } from "@/wab/client/frame-ctx/top-frame-api";
 import { useTopFrameCtx } from "@/wab/client/frame-ctx/top-frame-ctx";
-import { getUiLocale, useI18n } from "@/wab/client/i18n";
+import { getUiLocale } from "@/wab/client/i18n";
 import { translate } from "@/wab/client/i18n/locales";
 import { UiText } from "@/wab/client/i18n/UiText";
 import CloseIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Close";
@@ -51,10 +41,7 @@ import {
   STUDIO_SHORTCUTS,
   StudioShortcutAction,
 } from "@/wab/client/shortcuts/studio/studio-shortcuts";
-import {
-  TopFrameTourState,
-  TopFrameTours,
-} from "@/wab/client/tours/tutorials/TutorialTours";
+import type { TopFrameTourState } from "@/wab/client/tours/tutorials/TutorialTours";
 import {
   ApiBranch,
   ApiPermission,
@@ -153,22 +140,16 @@ export function useProjectAiSession({ projectId, userId, branchId, enabled, pane
   }, [projectId, enabled, userId, panelOpen]);
 }
 
-export function TopFrameChrome({
-  appCtx,
-  project,
-  refreshProjectAndPerms,
-  isRefreshingProjectData,
-  pathname,
-  editorPerm,
-  perms,
-  refreshStudio,
-  topFrameApi,
-  refreshBranchData,
-  shouldShowRegenerateSecretTokenModal,
-  didShowRegenerateSecretTokenModal,
-  ...rest
-}: TopFrameChromeProps) {
-  const { t: studioUiT } = useI18n();
+export function TopFrameChrome(props: TopFrameChromeProps) {
+  const {
+    appCtx,
+    project,
+    pathname,
+    perms,
+    desktopTitleBarDragRegions,
+    shouldShowRegenerateSecretTokenModal,
+    didShowRegenerateSecretTokenModal,
+  } = props;
 
   const { hostFrameApi, hostFrameApiReady } = useTopFrameCtx();
   React.useEffect(() => {
@@ -290,7 +271,7 @@ export function TopFrameChrome({
       {!fullPreview &&
         (navigator.userAgent.includes("PlasmicDesktop/darwin") ||
           navigator.userAgent.includes("PlasmicDesktop/win32")) &&
-        rest.desktopTitleBarDragRegions.map((region, index) => (
+        desktopTitleBarDragRegions.map((region, index) => (
           <div
             key={index}
             className="desktop-titlebar-drag-region"
@@ -300,141 +281,7 @@ export function TopFrameChrome({
         ))}
       {!fullPreview &&
         (APP_ROUTES.projectDocs.parse(pathname, false) ? null : (
-          <>
-            <ProjectNameModal
-              project={project}
-              refreshProjectAndPerms={refreshProjectAndPerms}
-              showProjectNameModal={rest.showProjectNameModal}
-              setShowProjectNameModal={topFrameApi.setShowProjectNameModal}
-            />
-            <CloneProjectModal
-              project={project}
-              showCloneProjectModal={rest.showCloneProjectModal}
-              setShowCloneProjectModal={topFrameApi.setShowCloneProjectModal}
-            />
-            {rest.showHostModal && (
-              <HostConfig
-                appCtx={appCtx}
-                project={project}
-                onCancel={() => {
-                  spawn(topFrameApi.setShowHostModal(false));
-                }}
-                isRefreshingProjectData={isRefreshingProjectData}
-                onUpdate={async (canSkipRefresh) => {
-                  if (!canSkipRefresh) {
-                    await refreshStudio();
-                  } else {
-                    refreshBranchData();
-                    refreshProjectAndPerms();
-                  }
-                }}
-              />
-            )}
-            {rest.showUpsellForm && (
-              <UpsellModal
-                appCtx={appCtx}
-                {...rest.showUpsellForm}
-                setShowUpsellForm={rest.setShowUpsellForm}
-              />
-            )}
-            <PublishFlowDialogWrapper
-              project={project}
-              refreshProjectAndPerms={refreshProjectAndPerms}
-              activatedBranch={rest.activatedBranch}
-              editorPerm={editorPerm}
-              latestPublishedVersionData={rest.latestPublishedVersionData}
-              revisionNum={rest.revisionNum}
-              showPublishModal={rest.showPublishModal}
-              keepPublishModalOpen={
-                rest.keepPublishModalOpen && !rest.showShareModal
-              }
-              setShowPublishModal={topFrameApi.setShowPublishModal}
-            />
-            <MergeModalWrapper
-              project={project}
-              editorPerm={editorPerm}
-              latestPublishedVersionData={rest.latestPublishedVersionData}
-              revisionNum={rest.revisionNum}
-              mergeModalContext={rest.mergeModalContext}
-              setMergeModalContext={topFrameApi.setMergeModalContext}
-              currentBranch={rest.activatedBranch}
-            />
-            <ShareModal
-              refreshProjectAndPerms={refreshProjectAndPerms}
-              project={project}
-              perms={perms}
-              showShareModal={rest.showShareModal}
-              setShowShareModal={topFrameApi.setShowShareModal}
-            />
-            {rest.dataSourcePicker && (
-              <DataSourcePicker
-                {...rest.dataSourcePicker.args}
-                onSelected={async (result) => {
-                  if (result?.sourceId) {
-                    await appCtx.api.allowProjectToDataSource(
-                      result.sourceId,
-                      project.id,
-                    );
-                  }
-                  rest.dataSourcePicker?.resolve(result);
-                }}
-                onCanceled={() => {
-                  rest.dataSourcePicker?.resolve("CANCELED");
-                }}
-                project={project}
-              />
-            )}
-            {rest.showUiConfigModal && (
-              <ContentEditorConfigModal
-                title={studioUiT("Studio UI for {part1}", {
-                  part1: String(project.name),
-                })}
-                appCtx={appCtx}
-                level={"project"}
-                onSubmit={async (newConfig) => {
-                  if (newConfig) {
-                    await appCtx.api.updateProjectMeta(project.id, {
-                      uiConfig: newConfig,
-                    });
-                  }
-                  await topFrameApi.setShowUiConfigModal(false);
-                  notification.info({
-                    message: studioUiT(
-                      "Changes in the configuration UI will only take place after refreshing the page",
-                    ),
-                    duration: 5,
-                  });
-                }}
-                onCancel={() => topFrameApi.setShowUiConfigModal(false)}
-                config={project.uiConfig ?? {}}
-              />
-            )}
-            {rest.showLocalizationModal && (
-              <EnableLocalizationModal
-                isLocalizationEnabled={rest.isLocalizationEnabled}
-                project={project}
-                onDone={() => topFrameApi.setShowLocalizationModal(false)}
-              />
-            )}
-            {rest.showAppAuthModal && (
-              <AppAuthSettingsModal
-                appCtx={appCtx}
-                project={project}
-                defaultPageRoleId={rest.defaultPageRoleId}
-                setDefaultPageRoleId={rest.setDefaultPageRoleId}
-                onCancel={() => topFrameApi.setShowAppAuthModal(false)}
-              />
-            )}
-            <React.Suspense fallback={null}>
-              <TopFrameTours
-                appCtx={appCtx}
-                tourState={rest.onboardingTour}
-                projectId={project.id}
-                topFrameApi={topFrameApi}
-                changeTourState={topFrameApi.setOnboardingTour}
-              />
-            </React.Suspense>
-          </>
+          <TopFrameDialogs {...props} />
         ))}
       <ForwardShortcuts />
       <ShareFileDrag />
@@ -544,6 +391,20 @@ export function useTopFrameState({
   forceUpdate: () => void;
 }) {
   const history = useHistory();
+  const activeDisposers = React.useRef(new Set<() => void>());
+
+  React.useEffect(() => {
+    return () => {
+      activeDisposers.current.forEach((dispose) => {
+        try {
+          dispose();
+        } catch {
+          // ignore
+        }
+      });
+      activeDisposers.current.clear();
+    };
+  }, []);
 
   const [studioReady, setStudioReady] = React.useState(false);
   const [studioError, setStudioError] = React.useState<string>();
@@ -724,8 +585,12 @@ export function useTopFrameState({
         const session = getLocalEditSession(projectId);
         const publish = () => listener(snapshotAiSession(session));
         const dispose = session.subscribe(publish);
+        activeDisposers.current.add(dispose);
         publish();
-        return Comlink.proxy(dispose);
+        return Comlink.proxy(() => {
+          activeDisposers.current.delete(dispose);
+          dispose();
+        });
       },
       updateAiSession: async (projectId, action) => {
         assert(

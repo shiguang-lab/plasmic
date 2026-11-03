@@ -1,3 +1,4 @@
+const { studioContents } = require("./fixtures/native-studio.cjs");
 const { app } = require("electron");
 const fs = require("node:fs");
 const path = require("node:path");
@@ -25,7 +26,7 @@ const env = Object.fromEntries(
 );
 async function until(win, expression) {
   for (let i = 0; i < 180; i++) {
-    if (await win.webContents.executeJavaScript(expression)) {
+    if (await studioContents(win).executeJavaScript(expression)) {
       return;
     }
     await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -36,8 +37,8 @@ app
   .whenReady()
   .then(async () => {
     const win = await startDesktop();
-    const ses = win.webContents.session;
-    win.webContents.on("console-message", (details) => {
+    const ses = studioContents(win).session;
+    studioContents(win).on("console-message", (details) => {
       if (
         /Uncaught|must have owner component|Unexpected error/.test(
           details.message || "",
@@ -68,10 +69,10 @@ app
     report.shiguangLogin = true;
     const projectId = "qTizhC3kqg4Y2ovU7xiLhG",
       componentUuid = "-HvnDCEDMZha";
-    await win.loadURL(config.studioOrigin + "/projects/" + projectId);
+    await studioContents(win).loadURL(config.studioOrigin + "/projects/" + projectId);
     await until(win, "!!window.PLASMIC_AI_TOOLS");
     async function call(name, input = {}) {
-      const result = await win.webContents.executeJavaScript(
+      const result = await studioContents(win).executeJavaScript(
         `window.PLASMIC_AI_TOOLS[${JSON.stringify(name)}](${JSON.stringify(input)})`,
       );
       assert(result.success, result.error?.message || name + " failed");
@@ -88,7 +89,7 @@ app
     report.validation = validation;
     report.nasSave = true;
     const loaded = new Set();
-    for (const frame of win.webContents.mainFrame.framesInSubtree) {
+    for (const frame of studioContents(win).mainFrame.framesInSubtree) {
       for (const url of await frame.executeJavaScript(
         'performance.getEntriesByType("resource").map(entry => entry.name)',
       )) {
@@ -112,9 +113,9 @@ app
     }
     fs.writeFileSync(
       path.join(reportDir, "studio.png"),
-      (await win.webContents.capturePage()).toPNG(),
+      (await studioContents(win).capturePage()).toPNG(),
     );
-    await win.loadURL(config.studioOrigin + "/projects/" + projectId);
+    await studioContents(win).loadURL(config.studioOrigin + "/projects/" + projectId);
     await until(win, "!!window.PLASMIC_AI_TOOLS");
     const restored = await call("read", { view: "full", componentUuids: [componentUuid] });
     assert(
@@ -123,7 +124,7 @@ app
     report.persisted = true;
     // Prove a full network outage does not require downloading a canvas resource.
     ses.enableNetworkEmulation({ offline: true });
-    const offline = await win.webContents.executeJavaScript(`(async () => {
+    const offline = await studioContents(win).executeJavaScript(`(async () => {
     const response = await fetch(${JSON.stringify(config.canvasOrigin + "/static/host.html")});
     return {status:response.status, local:response.headers.get('X-Plasmic-Desktop-Asset'),
       length:(await response.text()).length};

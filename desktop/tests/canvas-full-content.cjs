@@ -1,3 +1,4 @@
+const { studioFixture } = require("./fixtures/studio.cjs");
 // Native Chromium geometry/pixel regression: pnpm exec electron tests/canvas-full-content.cjs
 const { app, BrowserWindow } = require("electron");
 const assert = require("node:assert/strict");
@@ -76,7 +77,7 @@ app.whenReady().then(async () => {
     assert.deepEqual(cropped.image.getSize(), { width: 1104, height: 324 });
     assert.equal(cropped.width, 1104);
     assert.equal(cropped.height, 324);
-    const controller = new DesktopController(() => win, {});
+    const controller = new DesktopController(() => studioFixture(win), {});
     controller.state = async () => ({ ready: true, projectId: "test", editorContext: { mode: "edit", frameUuid: "frame" } });
     try {
       const encoded = await controller.dispatch("get_screenshot", { fullContent: true });

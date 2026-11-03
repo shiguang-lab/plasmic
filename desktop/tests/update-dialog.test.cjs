@@ -1,7 +1,13 @@
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
+const Module = require("node:module");
 const { EventEmitter } = require("node:events");
+const ipcMain = new EventEmitter();
+const load = Module._load;
+Module._load = function(name,...args) { return name === "electron" ? { ipcMain } : load.call(this,name,...args); };
+
 const { createUpdateDialog } = require("../src/update-dialog.cjs");
+Module._load = load;
 
 function fixture(phase = "idle") {
   const manager = new EventEmitter();
@@ -17,15 +23,18 @@ function fixture(phase = "idle") {
   window.isDestroyed = () => false;
   window.show = () => {};
   window.focus = () => {};
+  window.isFocused = () => true;
   window.webContents = new EventEmitter();
+  window.webContents.mainFrame = { framesInSubtree: [] };
   window.webContents.send = (...args) => sent.push(args);
   window.webContents.isLoadingMainFrame = () => loading;
+  window.webContents.isFocused = () => true;
   return {
     manager,
     window,
     commands,
     sent,
-    open: createUpdateDialog(manager, window),
+    open: createUpdateDialog(manager, window, window.webContents),
     loaded: () => {
       loading = false;
       window.webContents.emit("did-finish-load");
@@ -68,7 +77,7 @@ test("explicit requests open the dialog after its page loads without reopening o
       throw new Error("Object has been destroyed");
     },
   });
-  ui.window.emit("closed");
+  webContents.emit("destroyed");
   assert.equal(ui.manager.listenerCount("status"), 0);
   assert.equal(webContents.listenerCount("did-finish-load"), 0);
 });
@@ -93,4 +102,54 @@ test("background downloads stay silent across page loads and deliver the latest 
   ui.open();
   assert.deepEqual(ui.sent, [["desktop:update-open", ui.manager.state]]);
   assert.equal(ui.commands.length, 0);
+});
+
+test("closing updates restores the exact nested frame and retains it across repeated opens", async () => {
+  const ui = fixture();
+  let restored = 0;
+  const editor = { detached: false, executeJavaScript: async script => { assert.equal(script,"window.focus()"); restored++; } };
+  const contents = ui.window.webContents;
+  contents.mainFrame.framesInSubtree = [contents.mainFrame, editor];
+  contents.focusedFrame = editor;
+  ui.loaded();ui.open();
+  contents.focusedFrame = contents.mainFrame;
+  ui.open();
+  ipcMain.emit("desktop:update-dialog-closed",{sender:contents,senderFrame:{}});
+  ipcMain.emit("desktop:update-dialog-closed",{sender:{},senderFrame:contents.mainFrame});
+  assert.equal(restored,0);
+  ipcMain.emit("desktop:update-dialog-closed",{sender:contents,senderFrame:contents.mainFrame});
+  await Promise.resolve();assert.equal(restored,1);
+  ipcMain.emit("desktop:update-dialog-closed",{sender:contents,senderFrame:contents.mainFrame});
+  assert.equal(restored,1);
+  contents.emit("destroyed");
+});
+
+test("closing updates does not focus a detached editor or steal focus from another window", () => {
+  for (const detached of [true,false]) {
+    const ui=fixture(),contents=ui.window.webContents;
+    const editor={detached,executeJavaScript:()=>assert.fail("Unexpected focus")};
+    contents.mainFrame.framesInSubtree=[contents.mainFrame,editor];contents.focusedFrame=editor;
+    ui.window.isFocused=()=>detached;
+    ui.loaded();ui.open();
+    ipcMain.emit("desktop:update-dialog-closed",{sender:contents,senderFrame:contents.mainFrame});
+    contents.emit("destroyed");
+  }
+});
+
+test("destroyed renderer removes its focus callback and ignores late close notifications", () => {
+  const before=ipcMain.listenerCount("desktop:update-dialog-closed"),ui=fixture();
+  const contents=ui.window.webContents;
+  assert.equal(ipcMain.listenerCount("desktop:update-dialog-closed"),before+1);
+  ui.loaded();ui.open();contents.emit("destroyed");
+  assert.equal(ipcMain.listenerCount("desktop:update-dialog-closed"),before);
+  ipcMain.emit("desktop:update-dialog-closed",{sender:contents,senderFrame:contents.mainFrame});
+});
+
+test("closing an inactive retained view does not steal the active editor focus", () => {
+  const ui=fixture(),contents=ui.window.webContents;
+  const editor={executeJavaScript:()=>assert.fail("Inactive view stole focus")};
+  contents.mainFrame.framesInSubtree=[editor];contents.focusedFrame=editor;
+  ui.loaded();ui.open();contents.isFocused=()=>false;
+  ipcMain.emit("desktop:update-dialog-closed",{sender:contents,senderFrame:contents.mainFrame});
+  contents.emit("destroyed");
 });

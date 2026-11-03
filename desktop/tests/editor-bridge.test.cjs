@@ -1,3 +1,4 @@
+const { studioFixture } = require("./fixtures/studio.cjs");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const { createRequire } = require("node:module");
@@ -56,7 +57,7 @@ function fixture(t) {
       return requireSource(name);
     },
   });
-  const controller = new module.exports.DesktopController(() => ({
+  const controller = new module.exports.DesktopController(() => studioFixture({
     isDestroyed: () => false, webContents: {
       getURL: () => origin + "/projects/project", isLoadingMainFrame: () => false,
     },

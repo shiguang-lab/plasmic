@@ -75,6 +75,7 @@ app
         window.updateStatus = status => window.updateListeners.forEach(callback => callback(status));
         window.fixtureStatus = { phase: "downloaded", version: "0.0.7", currentVersion: "0.0.6" };
         window.desktopUpdates = {
+          closed: () => { window.fixtureClosed = (window.fixtureClosed || 0) + 1; },
           onStatus: callback => { window.updateListeners.push(callback); },
           onOpen: callback => { window.updateOpen = callback; },
           command: async command => { window.commands.push(command); return window.fixtureStatus; },
@@ -89,6 +90,14 @@ app
       );
     });
     const evaluate = (code) => window.webContents.executeJavaScript(code);
+    const waitFor = async (expression, run = evaluate) => {
+      const deadline = Date.now() + 3000;
+      while (Date.now() < deadline) {
+        if (await run(expression)) return;
+        await new Promise((resolve) => setTimeout(resolve, 20));
+      }
+      assert.fail(`Update UI did not become ready: ${expression}`);
+    };
     const focusWindow = async () => {
       window.show();
       window.focus();
@@ -163,6 +172,7 @@ app
     await evaluate(
       `document.body.insertAdjacentHTML("beforeend", '<header><span data-desktop-update-slot="header"></span></header>')`,
     );
+    await waitFor('!!document.querySelector(".update-action")');
     assert.equal(
       await evaluate(
         `document.querySelector(".update-action")?.getAttribute("aria-label")`,
@@ -265,8 +275,9 @@ app
     );
     await focusWindow();
     await evaluate(
-      `document.querySelector(".update-action").focus(); new Promise(resolve => setTimeout(resolve, 300))`,
+      `document.querySelector(".update-action").blur(); document.querySelector(".update-action").focus()`,
     );
+    await waitFor('document.querySelector(".update-tooltip").matches(":popover-open")');
     assert.equal(
       await evaluate(
         `document.querySelector(".update-tooltip").matches(":popover-open")`,
@@ -274,8 +285,8 @@ app
       true,
     );
     await evaluate(`document.querySelector(".update-action").blur()`);
-    window.hide();
     await evaluate(`document.querySelector(".update-action").click()`);
+    await waitFor('window.commands.at(-1) === "open"');
     assert.equal(await evaluate(`window.commands.at(-1)`), "open");
     await evaluate(
       `window.fixtureStatus = { phase: "downloading", version: "0.0.7", percent: 42 }; window.updateStatus(window.fixtureStatus)`,
@@ -303,6 +314,7 @@ app
       );
     }
     await evaluate(`document.querySelector("header").remove()`);
+    await waitFor('!document.getElementById("plasmic-desktop-update")');
     assert.equal(
       await evaluate(`document.getElementById("plasmic-desktop-update")`),
       null,
@@ -310,6 +322,7 @@ app
     await evaluate(
       `window.fixtureStatus = { phase: "downloaded", version: "0.0.7" }; window.updateStatus(window.fixtureStatus); document.body.insertAdjacentHTML("beforeend", '<header><span data-desktop-update-slot="header"></span></header>')`,
     );
+    await waitFor('document.getElementById("plasmic-desktop-update")?.parentElement.tagName === "SPAN"');
     assert.equal(
       await evaluate(
         `document.getElementById("plasmic-desktop-update").parentElement.tagName`,
@@ -366,8 +379,9 @@ app
     );
     await focusWindow();
     await editor.executeJavaScript(
-      `document.querySelector(".update-action").focus(); new Promise(resolve => setTimeout(resolve, 300))`,
+      `document.querySelector(".update-action").blur(); document.querySelector(".update-action").focus()`,
     );
+    await waitFor('document.querySelector(".update-tooltip").matches(":popover-open")', code => editor.executeJavaScript(code));
     assert.equal(
       await editor.executeJavaScript(
         `document.querySelector(".update-tooltip").matches(":popover-open")`,
@@ -398,14 +412,15 @@ app
       ),
       false,
     );
-    window.hide();
     await editor.executeJavaScript(
       `document.querySelector(".update-action").click()`,
     );
+    await waitFor('!document.querySelector(".update-action").disabled', code => editor.executeJavaScript(code));
     assert.equal(await evaluate(`window.commands.at(-1)`), "open");
     await evaluate(
       `window.fixtureStatus = { phase: "downloading", version: "0.0.7", percent: 67 }; window.updateStatus(window.fixtureStatus)`,
     );
+    await waitFor('document.getElementById("plasmic-desktop-update").getAttribute("aria-valuenow") === "67"', code => editor.executeJavaScript(code));
     assert.equal(
       await editor.executeJavaScript(
         `document.querySelector("#plasmic-desktop-update").getAttribute("aria-valuenow")`,
@@ -432,6 +447,7 @@ app
         await evaluate(
           `window.updateStatus({phase:${JSON.stringify(phase)},version:"0.0.7",percent:${percent}})`,
         );
+        await waitFor(`document.getElementById("plasmic-desktop-update").dataset.phase === ${JSON.stringify(phase)} && ${phase === "downloading" ? `document.getElementById("plasmic-desktop-update").getAttribute("aria-valuenow") === "${percent}"` : "true"}`, code => editor.executeJavaScript(code));
         assert(
           await editor.executeJavaScript(`(() => {
             const control = document.getElementById("plasmic-desktop-update");
@@ -447,6 +463,7 @@ app
     await evaluate(
       `window.updateStatus({phase:"downloading",version:"0.0.7",percent:67})`,
     );
+    await waitFor('document.getElementById("plasmic-desktop-update").getAttribute("aria-valuenow") === "67"', code => editor.executeJavaScript(code));
     const commandCount = await evaluate(`window.commands.length`);
     await editor.executeJavaScript(
       `window.parent.postMessage({channel:"plasmic-desktop-update-command",command:"install"},${JSON.stringify(studioOrigin)})`,
@@ -477,6 +494,7 @@ app
     await editor.executeJavaScript(
       `document.querySelector("[data-desktop-update-slot]").remove()`,
     );
+    await waitFor('!document.getElementById("plasmic-desktop-update")', code => editor.executeJavaScript(code));
     assert.equal(
       await editor.executeJavaScript(
         `document.querySelector("#plasmic-desktop-update")`,

@@ -31,17 +31,22 @@ function setup({ save = async () => {}, load = async () => {}, open = async () =
       navigatedUrls.push(url);
     },
   });
+  const studioForTest = { window: windowForTest, webContents, loadURL: windowForTest.loadURL, view: { setBackgroundColor: value => { studioForTest.background = value; } } };
+  studioForTest.dashboard = studioForTest.view;
   const appearance = require("../src/ui-appearance.cjs").createDesktopAppearance();
   const filename = require.resolve("../src/main.cjs");
+  const source = fs.readFileSync(filename, "utf8");
+  const appearanceSource = source.slice(source.indexOf("  const syncWindowAppearance ="), source.indexOf("  unifiedAuth = new UnifiedAuthWindow"));
   vm.runInNewContext(
-    fs.readFileSync(filename, "utf8") +
-      "\nmainWindow = windowForTest; unifiedAuth = authForTest; controller = controllerForTest; desktopI18n = { t: (key) => key }; protectWindow(windowForTest); registerPreviewForTest(openDesktopPreview);",
+    source +
+      "\nmainWindow = windowForTest; studioWindow = studioForTest; unifiedAuth = authForTest; controller = controllerForTest; desktopI18n = { t: (key) => key }; protectWindow(studioForTest, studioForTest.webContents); registerPreviewForTest(openDesktopPreview); const appearanceWindow = windowForTest; const studio = studioForTest;" + appearanceSource,
     {
       module: { exports: {} },
       __dirname: path.dirname(filename),
       process,
       URL,
       windowForTest,
+      studioForTest,
       registerPreviewForTest: (handler) => { previewHandler = handler; },
       authForTest: { show: (url) => loginUrls.push(url) },
       controllerForTest: {
@@ -90,6 +95,7 @@ function setup({ save = async () => {}, load = async () => {}, open = async () =
     loginUrls,
     webContents,
     windowForTest,
+    studioForTest,
     appearance,
     navigatedUrls,
     navigationSteps,
@@ -114,11 +120,14 @@ test("full preview opens in the default browser and denies creating an Electron 
 test("the current window follows native appearance and unsubscribes when closed", () => {
   const s = setup();
   assert.equal(s.windowForTest.background, "#15161b");
+  assert.equal(s.studioForTest.background, "#15161b");
   s.appearance.set("light");
   assert.equal(s.windowForTest.background, "#eceef3");
+  assert.equal(s.studioForTest.background, "#eceef3");
   s.windowForTest.emit("closed");
   s.appearance.set("dark");
   assert.equal(s.windowForTest.background, "#eceef3");
+  assert.equal(s.studioForTest.background, "#eceef3");
 });
 
 test("embedded preview navigation stays in the current window", () => {

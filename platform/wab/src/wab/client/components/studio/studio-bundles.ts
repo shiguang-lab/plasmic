@@ -10,11 +10,11 @@ import { DEVFLAGS } from "@/wab/shared/devflags";
 import { walkDependencyTree } from "@/wab/shared/core/project-deps";
 import type { Site } from "@/wab/shared/model/classes";
 
-const fetchCanvasPkgs = memoize(() => {
+const fetchCanvasRuntime = memoize((bundle: "client" | "antd6-runtime") => {
   const request = new AbortController();
   return withTimeout(
     fetch(
-      `${getStaticBaseUrl()}/canvas-packages/build/client.${ENV.COMMITHASH}.js`,
+      `${getStaticBaseUrl()}/canvas-packages/build/${bundle}.${ENV.COMMITHASH}.js`,
       { signal: request.signal },
     ).then((res) => {
       if (!res.ok) {
@@ -26,7 +26,7 @@ const fetchCanvasPkgs = memoize(() => {
     3 * 60 * 1000,
   ).catch((error) => {
     request.abort();
-    fetchCanvasPkgs.cache.delete(undefined);
+    fetchCanvasRuntime.cache.delete(bundle);
     throw error;
   });
 });
@@ -73,7 +73,7 @@ async function fetchHostLessPkg(api: LibraryApi, pkg: string, version: string, r
 }
 
 export function getCanvasPkgs() {
-  return fetchCanvasPkgs();
+  return fetchCanvasRuntime("client");
 }
 
 const canvasRuntimeLoads = new WeakMap<Document, Promise<void>>();
@@ -85,25 +85,38 @@ export function ensureCanvasRuntime(win: Window): Promise<void> {
   if (pending) {
     return pending;
   }
-  const target = win as Window & { __CanvasPkgs?: unknown };
-  if (target.__CanvasPkgs) {
+  const target = win as Window & {
+    __Sub?: { Antd6?: unknown };
+    __CanvasPkgs?: { Antd6?: unknown };
+  };
+  if (target.__CanvasPkgs?.Antd6) {
     return Promise.resolve();
   }
   // Defer the work so the task is stored before fetch or script execution starts.
   const task = Promise.resolve().then(async () => {
-    const source = await getCanvasPkgs();
+    const [source, nativeSource] = await Promise.all([
+      target.__CanvasPkgs ? undefined : getCanvasPkgs(),
+      target.__Sub?.Antd6 || target.__CanvasPkgs?.Antd6
+        ? undefined
+        : fetchCanvasRuntime("antd6-runtime"),
+    ]);
     assert(win.document === doc, "Canvas runtime target navigated while loading");
-    if (!target.__CanvasPkgs) {
-      try {
+    try {
+      if (!target.__CanvasPkgs) {
+        assert(source, "Missing canvas runtime source");
         scriptExec(win, source);
-        assert(target.__CanvasPkgs, "Canvas runtime did not initialize");
-      } catch (error) {
-        delete target.__CanvasPkgs;
-        throw error;
       }
+      assert(target.__CanvasPkgs, "Canvas runtime did not initialize");
+      if (!target.__CanvasPkgs.Antd6 && nativeSource) {
+        scriptExec(win, nativeSource);
+      }
+      assert(target.__CanvasPkgs.Antd6, "Native component runtime did not initialize");
+    } catch (error) {
+      delete target.__CanvasPkgs;
+      throw error;
     }
   }).finally(() => {
-    // Success is represented by __CanvasPkgs; failures must remain retryable.
+    // Both base and native runtimes must be ready; failures remain retryable.
     canvasRuntimeLoads.delete(doc);
   });
   canvasRuntimeLoads.set(doc, task);

@@ -1,3 +1,4 @@
+const { studioFixture } = require("./fixtures/studio.cjs");
 // Native regression for renderer exceptions crossing Electron, RPC and MCP.
 // Uses an isolated fixture without a Dock identity; no NAS or user project edits.
 const { app, BrowserWindow } = require("electron");
@@ -52,7 +53,7 @@ app.whenReady().then(async () => {
   assert.equal(win.isFocused(), true);
   const context = { projectId: "p", sessionId: "s", changeCounter: 0, mode: "preview", previewKind: "in-app",
     previewContext: { componentUuid: "page", path: "/records" } };
-  controller = new DesktopController(() => win, { studioOrigin: origin });
+  controller = new DesktopController(() => studioFixture(win), { studioOrigin: origin });
   controller.state = async () => ({ ready: true, projectId: "p", editorContext: context });
   controller.editor = async (name) => { assert.equal(name, "getEditorContext"); return context; };
   stop = await startRpc(profile, (method, input) => controller.dispatch(method, input));

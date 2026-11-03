@@ -1,3 +1,4 @@
+const { studioFixture } = require("./fixtures/studio.cjs");
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const { JSDOM } = require("jsdom");
@@ -97,7 +98,7 @@ test("Preview screenshots hide feedback and restore it even when capture fails",
     getURL: () => "https://studio.example/projects/p/preview#/records", getZoomFactor: () => 1,
     mainFrame: { framesInSubtree: [frame] }, capturePage: async () => { calls.push("capture"); throw new Error("capture failed"); },
   } };
-  await assert.rejects(runPreview(win, { action: "screenshot" }, { sessionId: "s" }), /capture failed/);
+  await assert.rejects(runPreview(studioFixture(win), { action: "screenshot" }, { sessionId: "s" }), /capture failed/);
   assert.deepEqual(calls, ["hide", "capture", "show", "clear"]);
 });
 
@@ -126,19 +127,19 @@ test("navigation waits for both the requested DOM identity and a committed runti
   const frame = { url: w.location.href, executeJavaScript: (script) => w.eval(script) };
   const win = { webContents: { getURL: () => "https://studio.example/projects/p/preview#/new", mainFrame: { framesInSubtree: [frame] } } };
   const context = { previewContext: { componentUuid: "new-page" } };
-  assert.equal((await runPreview(win, { action: "state" }, context)).ready, false);
+  assert.equal((await runPreview(studioFixture(win), { action: "state" }, context)).ready, false);
   runtime.status = "ready";
-  assert.equal((await runPreview(win, { action: "state" }, context)).ready, false, "An old DOM must not be relabelled by runtime metadata");
+  assert.equal((await runPreview(studioFixture(win), { action: "state" }, context)).ready, false, "An old DOM must not be relabelled by runtime metadata");
   runtime.status = "loading";
   w.document.querySelector(".live-root-container").setAttribute("data-plasmic-preview-component", "new-page");
-  assert.equal((await runPreview(win, { action: "state" }, context)).ready, false, "DOM alone cannot certify a commit");
+  assert.equal((await runPreview(studioFixture(win), { action: "state" }, context)).ready, false, "DOM alone cannot certify a commit");
   let accepted = false;
   const opening = previewFrame(win, "new-page").then((result) => { accepted = true; return result; });
   await new Promise((resolve) => setTimeout(resolve, 30));
   assert.equal(accepted, false);
   runtime.status = "ready";
   assert.equal((await opening).layout.componentUuid, "new-page");
-  assert.equal((await runPreview(win, { action: "state" }, context)).ready, true);
+  assert.equal((await runPreview(studioFixture(win), { action: "state" }, context)).ready, true);
 });
 
 test("Preview render errors surface immediately instead of a misleading missing-canvas timeout", async (t) => {
@@ -156,7 +157,7 @@ test("Preview render errors surface immediately instead of a misleading missing-
     assert.equal(error.context.runtime.status, "failed");
     return true;
   });
-  const state = await runPreview(win, { action: "state" }, {});
+  const state = await runPreview(studioFixture(win), { action: "state" }, {});
   assert.equal(state.ready, false);
   assert.equal(state.runtime.errors[0].message, "Invalid registered widget prop");
   assert.equal(state.runtime.errors[0].name, "TypeError");
@@ -204,7 +205,7 @@ function pendingRuntime(stage) {
 for (const stage of ["discovery", "target", "geometry", "input", "settle", "capture"]) {
   test(`Preview cancellation releases a stalled ${stage} wait without late input`, { timeout: 2000 }, async () => {
     const f = pendingRuntime(stage);
-    const operation = runPreview(f.win, { action: stage === "capture" ? "screenshot" : "click", ref: "ref" }, { sessionId: "s", previewContext: { componentUuid: "page" } }, f.abort.signal);
+    const operation = runPreview(studioFixture(f.win), { action: stage === "capture" ? "screenshot" : "click", ref: "ref" }, { sessionId: "s", previewContext: { componentUuid: "page" } }, f.abort.signal);
     const failed = assert.rejects(operation, /Preview deadline/);
     await f.started;
     f.abort.abort(new Error("Preview deadline"));
@@ -228,7 +229,7 @@ test("a cancelled Preview action releases the actual controller queue for close 
   f.win.isDestroyed = () => false;
   let mode = "preview";
   f.win.webContents.getURL = () => `https://studio.example/projects/p${mode === "preview" ? "/preview#/records" : ""}`;
-  const controller = new DesktopController(() => f.win, { studioOrigin: "https://studio.example" });
+  const controller = new DesktopController(() => studioFixture(f.win), { studioOrigin: "https://studio.example" });
   t.after(() => controller.close());
   controller.checkContext = async () => {};
   const events = [];

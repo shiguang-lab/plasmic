@@ -1,3 +1,4 @@
+const { studioFixture } = require("./fixtures/studio.cjs");
 const { app, net, session, BrowserWindow } = require("electron");
 const { createServer } = require("node:http");
 const assert = require("node:assert/strict");
@@ -198,7 +199,7 @@ app
         url: init.url.replace(AUTH_ORIGIN, origin),
       }),
     });
-    const controller = new DesktopController(() => win, { studioOrigin: origin });
+    const controller = new DesktopController(() => studioFixture(win), { studioOrigin: origin });
     const identity = new DesktopIdentity({
       session: ses, studioOrigin: origin, now: () => now,
       prepare: () => login.restore(),

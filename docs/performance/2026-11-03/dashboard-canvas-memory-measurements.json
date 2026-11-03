@@ -1,0 +1,1480 @@
+{
+  "installed": {
+    "samples": [
+      {
+        "label": "initial",
+        "gc": true,
+        "heap": {
+          "backingStorageSize": 12200056,
+          "embedderHeapUsedSize": 5473472,
+          "totalSize": 28229632,
+          "usedSize": 26852440
+        },
+        "dom": {
+          "documents": 1,
+          "jsEventListeners": 373,
+          "nodes": 1360
+        },
+        "processes": [
+          {
+            "pid": 83998,
+            "type": "Browser",
+            "rssKiB": 264832
+          },
+          {
+            "pid": 83999,
+            "type": "GPU",
+            "rssKiB": 101952
+          },
+          {
+            "pid": 84000,
+            "type": "Utility",
+            "rssKiB": 48608
+          },
+          {
+            "pid": 84001,
+            "type": "Tab",
+            "rssKiB": 231152
+          }
+        ]
+      },
+      {
+        "label": "canvas-0",
+        "gc": false,
+        "heap": {
+          "backingStorageSize": 94003332,
+          "embedderHeapUsedSize": 92073488,
+          "totalSize": 432095232,
+          "usedSize": 360493928
+        },
+        "dom": {
+          "documents": 33,
+          "jsEventListeners": 8063,
+          "nodes": 20418
+        },
+        "processes": [
+          {
+            "pid": 83998,
+            "type": "Browser",
+            "rssKiB": 288304
+          },
+          {
+            "pid": 83999,
+            "type": "GPU",
+            "rssKiB": 107360
+          },
+          {
+            "pid": 84000,
+            "type": "Utility",
+            "rssKiB": 43216
+          },
+          {
+            "pid": 84001,
+            "type": "Tab",
+            "rssKiB": 970896
+          }
+        ]
+      },
+      {
+        "label": "dashboard-0",
+        "gc": false,
+        "heap": {
+          "backingStorageSize": 94071385,
+          "embedderHeapUsedSize": 98926472,
+          "totalSize": 441532416,
+          "usedSize": 368437584
+        },
+        "dom": {
+          "documents": 33,
+          "jsEventListeners": 8789,
+          "nodes": 21108
+        },
+        "processes": [
+          {
+            "pid": 83998,
+            "type": "Browser",
+            "rssKiB": 296176
+          },
+          {
+            "pid": 83999,
+            "type": "GPU",
+            "rssKiB": 107296
+          },
+          {
+            "pid": 84000,
+            "type": "Utility",
+            "rssKiB": 43312
+          },
+          {
+            "pid": 84001,
+            "type": "Tab",
+            "rssKiB": 986816
+          },
+          {
+            "pid": 84015,
+            "type": "Tab",
+            "rssKiB": 166224
+          }
+        ]
+      },
+      {
+        "label": "dashboard-gc-0",
+        "gc": true,
+        "heap": {
+          "backingStorageSize": 78687783,
+          "embedderHeapUsedSize": 28463096,
+          "totalSize": 237862912,
+          "usedSize": 232247052
+        },
+        "dom": {
+          "documents": 17,
+          "jsEventListeners": 1389,
+          "nodes": 11914
+        },
+        "processes": [
+          {
+            "pid": 83998,
+            "type": "Browser",
+            "rssKiB": 295840
+          },
+          {
+            "pid": 83999,
+            "type": "GPU",
+            "rssKiB": 105504
+          },
+          {
+            "pid": 84000,
+            "type": "Utility",
+            "rssKiB": 43264
+          },
+          {
+            "pid": 84001,
+            "type": "Tab",
+            "rssKiB": 747536
+          }
+        ]
+      },
+      {
+        "label": "canvas-1",
+        "gc": false,
+        "heap": {
+          "backingStorageSize": 161811518,
+          "embedderHeapUsedSize": 158678240,
+          "totalSize": 780058624,
+          "usedSize": 714993352
+        },
+        "dom": {
+          "documents": 63,
+          "jsEventListeners": 9616,
+          "nodes": 34582
+        },
+        "processes": [
+          {
+            "pid": 83998,
+            "type": "Browser",
+            "rssKiB": 285104
+          },
+          {
+            "pid": 83999,
+            "type": "GPU",
+            "rssKiB": 109600
+          },
+          {
+            "pid": 84000,
+            "type": "Utility",
+            "rssKiB": 43360
+          },
+          {
+            "pid": 84001,
+            "type": "Tab",
+            "rssKiB": 1488768
+          }
+        ]
+      },
+      {
+        "label": "dashboard-1",
+        "gc": false,
+        "heap": {
+          "backingStorageSize": 161840041,
+          "embedderHeapUsedSize": 165509536,
+          "totalSize": 790282240,
+          "usedSize": 721336400
+        },
+        "dom": {
+          "documents": 63,
+          "jsEventListeners": 10337,
+          "nodes": 35272
+        },
+        "processes": [
+          {
+            "pid": 83998,
+            "type": "Browser",
+            "rssKiB": 300496
+          },
+          {
+            "pid": 83999,
+            "type": "GPU",
+            "rssKiB": 109456
+          },
+          {
+            "pid": 84000,
+            "type": "Utility",
+            "rssKiB": 43408
+          },
+          {
+            "pid": 84001,
+            "type": "Tab",
+            "rssKiB": 1507680
+          },
+          {
+            "pid": 84025,
+            "type": "Tab",
+            "rssKiB": 165424
+          }
+        ]
+      },
+      {
+        "label": "canvas-2",
+        "gc": false,
+        "heap": {
+          "backingStorageSize": 209367174,
+          "embedderHeapUsedSize": 167080960,
+          "totalSize": 924696576,
+          "usedSize": 799650476
+        },
+        "dom": {
+          "documents": 87,
+          "jsEventListeners": 10248,
+          "nodes": 42015
+        },
+        "processes": [
+          {
+            "pid": 83998,
+            "type": "Browser",
+            "rssKiB": 325264
+          },
+          {
+            "pid": 83999,
+            "type": "GPU",
+            "rssKiB": 130304
+          },
+          {
+            "pid": 84000,
+            "type": "Utility",
+            "rssKiB": 43376
+          },
+          {
+            "pid": 84001,
+            "type": "Tab",
+            "rssKiB": 1837488
+          }
+        ]
+      },
+      {
+        "label": "dashboard-2",
+        "gc": false,
+        "heap": {
+          "backingStorageSize": 209406595,
+          "embedderHeapUsedSize": 174290392,
+          "totalSize": 925220864,
+          "usedSize": 806841484
+        },
+        "dom": {
+          "documents": 87,
+          "jsEventListeners": 10969,
+          "nodes": 42705
+        },
+        "processes": [
+          {
+            "pid": 83998,
+            "type": "Browser",
+            "rssKiB": 323152
+          },
+          {
+            "pid": 83999,
+            "type": "GPU",
+            "rssKiB": 125056
+          },
+          {
+            "pid": 84000,
+            "type": "Utility",
+            "rssKiB": 43408
+          },
+          {
+            "pid": 84001,
+            "type": "Tab",
+            "rssKiB": 1787456
+          },
+          {
+            "pid": 84036,
+            "type": "Tab",
+            "rssKiB": 167584
+          }
+        ]
+      },
+      {
+        "label": "dashboard-gc-2",
+        "gc": true,
+        "heap": {
+          "backingStorageSize": 78687789,
+          "embedderHeapUsedSize": 28438648,
+          "totalSize": 242581504,
+          "usedSize": 233932696
+        },
+        "dom": {
+          "documents": 17,
+          "jsEventListeners": 1490,
+          "nodes": 12083
+        },
+        "processes": [
+          {
+            "pid": 83998,
+            "type": "Browser",
+            "rssKiB": 309504
+          },
+          {
+            "pid": 83999,
+            "type": "GPU",
+            "rssKiB": 124480
+          },
+          {
+            "pid": 84000,
+            "type": "Utility",
+            "rssKiB": 43360
+          },
+          {
+            "pid": 84001,
+            "type": "Tab",
+            "rssKiB": 945712
+          }
+        ]
+      }
+    ],
+    "recreated": null,
+    "error": null
+  },
+  "reload": {
+    "samples": [
+      {
+        "label": "initial",
+        "gc": true,
+        "heap": {
+          "backingStorageSize": 12200434,
+          "embedderHeapUsedSize": 5054448,
+          "totalSize": 27967488,
+          "usedSize": 26827912
+        },
+        "dom": {
+          "documents": 1,
+          "jsEventListeners": 374,
+          "nodes": 1360
+        },
+        "processes": [
+          {
+            "pid": 84243,
+            "type": "Browser",
+            "rssKiB": 263312
+          },
+          {
+            "pid": 84244,
+            "type": "GPU",
+            "rssKiB": 102272
+          },
+          {
+            "pid": 84245,
+            "type": "Utility",
+            "rssKiB": 48640
+          },
+          {
+            "pid": 84246,
+            "type": "Tab",
+            "rssKiB": 228704
+          }
+        ]
+      },
+      {
+        "label": "canvas-0",
+        "gc": false,
+        "heap": {
+          "backingStorageSize": 92427517,
+          "embedderHeapUsedSize": 88082032,
+          "totalSize": 416546816,
+          "usedSize": 348216092
+        },
+        "dom": {
+          "documents": 31,
+          "jsEventListeners": 7888,
+          "nodes": 19040
+        },
+        "processes": [
+          {
+            "pid": 84243,
+            "type": "Browser",
+            "rssKiB": 323536
+          },
+          {
+            "pid": 84244,
+            "type": "GPU",
+            "rssKiB": 120656
+          },
+          {
+            "pid": 84245,
+            "type": "Utility",
+            "rssKiB": 48880
+          },
+          {
+            "pid": 84246,
+            "type": "Tab",
+            "rssKiB": 965760
+          }
+        ]
+      },
+      {
+        "label": "dashboard-0",
+        "gc": false,
+        "heap": {
+          "backingStorageSize": 92495783,
+          "embedderHeapUsedSize": 94890472,
+          "totalSize": 426508288,
+          "usedSize": 356144208
+        },
+        "dom": {
+          "documents": 31,
+          "jsEventListeners": 8614,
+          "nodes": 19730
+        },
+        "processes": [
+          {
+            "pid": 84243,
+            "type": "Browser",
+            "rssKiB": 336928
+          },
+          {
+            "pid": 84244,
+            "type": "GPU",
+            "rssKiB": 120672
+          },
+          {
+            "pid": 84245,
+            "type": "Utility",
+            "rssKiB": 48912
+          },
+          {
+            "pid": 84246,
+            "type": "Tab",
+            "rssKiB": 984912
+          },
+          {
+            "pid": 84254,
+            "type": "Tab",
+            "rssKiB": 166176
+          }
+        ]
+      },
+      {
+        "label": "dashboard-gc-0",
+        "gc": true,
+        "heap": {
+          "backingStorageSize": 78699745,
+          "embedderHeapUsedSize": 28407056,
+          "totalSize": 237600768,
+          "usedSize": 230555064
+        },
+        "dom": {
+          "documents": 17,
+          "jsEventListeners": 1410,
+          "nodes": 12083
+        },
+        "processes": [
+          {
+            "pid": 84243,
+            "type": "Browser",
+            "rssKiB": 336592
+          },
+          {
+            "pid": 84244,
+            "type": "GPU",
+            "rssKiB": 120560
+          },
+          {
+            "pid": 84245,
+            "type": "Utility",
+            "rssKiB": 48864
+          },
+          {
+            "pid": 84246,
+            "type": "Tab",
+            "rssKiB": 764880
+          }
+        ]
+      },
+      {
+        "label": "canvas-1",
+        "gc": false,
+        "heap": {
+          "backingStorageSize": 161768113,
+          "embedderHeapUsedSize": 159506792,
+          "totalSize": 769835008,
+          "usedSize": 704527692
+        },
+        "dom": {
+          "documents": 63,
+          "jsEventListeners": 9618,
+          "nodes": 34559
+        },
+        "processes": [
+          {
+            "pid": 84243,
+            "type": "Browser",
+            "rssKiB": 265904
+          },
+          {
+            "pid": 84244,
+            "type": "GPU",
+            "rssKiB": 121008
+          },
+          {
+            "pid": 84245,
+            "type": "Utility",
+            "rssKiB": 43488
+          },
+          {
+            "pid": 84246,
+            "type": "Tab",
+            "rssKiB": 1432320
+          }
+        ]
+      },
+      {
+        "label": "dashboard-1",
+        "gc": false,
+        "heap": {
+          "backingStorageSize": 161796636,
+          "embedderHeapUsedSize": 166371216,
+          "totalSize": 780468224,
+          "usedSize": 710932488
+        },
+        "dom": {
+          "documents": 63,
+          "jsEventListeners": 10339,
+          "nodes": 35249
+        },
+        "processes": [
+          {
+            "pid": 84243,
+            "type": "Browser",
+            "rssKiB": 281984
+          },
+          {
+            "pid": 84244,
+            "type": "GPU",
+            "rssKiB": 121328
+          },
+          {
+            "pid": 84245,
+            "type": "Utility",
+            "rssKiB": 43536
+          },
+          {
+            "pid": 84246,
+            "type": "Tab",
+            "rssKiB": 1452528
+          },
+          {
+            "pid": 84267,
+            "type": "Tab",
+            "rssKiB": 165968
+          }
+        ]
+      },
+      {
+        "label": "dashboard-gc-1",
+        "gc": true,
+        "heap": {
+          "backingStorageSize": 78685436,
+          "embedderHeapUsedSize": 28509816,
+          "totalSize": 236961792,
+          "usedSize": 233404276
+        },
+        "dom": {
+          "documents": 17,
+          "jsEventListeners": 1450,
+          "nodes": 12083
+        },
+        "processes": [
+          {
+            "pid": 84243,
+            "type": "Browser",
+            "rssKiB": 281664
+          },
+          {
+            "pid": 84244,
+            "type": "GPU",
+            "rssKiB": 98800
+          },
+          {
+            "pid": 84245,
+            "type": "Utility",
+            "rssKiB": 43488
+          },
+          {
+            "pid": 84246,
+            "type": "Tab",
+            "rssKiB": 835264
+          }
+        ]
+      },
+      {
+        "label": "dashboard-reload",
+        "gc": true,
+        "heap": {
+          "backingStorageSize": 12208906,
+          "embedderHeapUsedSize": 5235792,
+          "totalSize": 27967488,
+          "usedSize": 26925852
+        },
+        "dom": {
+          "documents": 2,
+          "jsEventListeners": 374,
+          "nodes": 1365
+        },
+        "processes": [
+          {
+            "pid": 84243,
+            "type": "Browser",
+            "rssKiB": 293360
+          },
+          {
+            "pid": 84244,
+            "type": "GPU",
+            "rssKiB": 103536
+          },
+          {
+            "pid": 84245,
+            "type": "Utility",
+            "rssKiB": 43520
+          },
+          {
+            "pid": 84246,
+            "type": "Tab",
+            "rssKiB": 496960
+          }
+        ]
+      }
+    ],
+    "recreated": null,
+    "error": null
+  },
+  "control": {
+    "samples": [
+      {
+        "label": "initial",
+        "gc": true,
+        "heap": {
+          "backingStorageSize": 12200433,
+          "embedderHeapUsedSize": 5071736,
+          "totalSize": 27967488,
+          "usedSize": 26818696
+        },
+        "dom": {
+          "documents": 1,
+          "jsEventListeners": 374,
+          "nodes": 1360
+        },
+        "processes": [
+          {
+            "pid": 84294,
+            "type": "Browser",
+            "rssKiB": 263520
+          },
+          {
+            "pid": 84295,
+            "type": "GPU",
+            "rssKiB": 103056
+          },
+          {
+            "pid": 84296,
+            "type": "Utility",
+            "rssKiB": 48528
+          },
+          {
+            "pid": 84297,
+            "type": "Tab",
+            "rssKiB": 229680
+          }
+        ]
+      },
+      {
+        "label": "canvas-0",
+        "gc": false,
+        "heap": {
+          "backingStorageSize": 96482351,
+          "embedderHeapUsedSize": 104270464,
+          "totalSize": 453509120,
+          "usedSize": 386093104
+        },
+        "dom": {
+          "documents": 35,
+          "jsEventListeners": 8396,
+          "nodes": 21759
+        },
+        "processes": [
+          {
+            "pid": 84294,
+            "type": "Browser",
+            "rssKiB": 322080
+          },
+          {
+            "pid": 84295,
+            "type": "GPU",
+            "rssKiB": 119360
+          },
+          {
+            "pid": 84296,
+            "type": "Utility",
+            "rssKiB": 48752
+          },
+          {
+            "pid": 84297,
+            "type": "Tab",
+            "rssKiB": 1043952
+          }
+        ]
+      },
+      {
+        "label": "dashboard-0",
+        "gc": false,
+        "heap": {
+          "backingStorageSize": 96522015,
+          "embedderHeapUsedSize": 111189208,
+          "totalSize": 463732736,
+          "usedSize": 393969216
+        },
+        "dom": {
+          "documents": 35,
+          "jsEventListeners": 9117,
+          "nodes": 22449
+        },
+        "processes": [
+          {
+            "pid": 84294,
+            "type": "Browser",
+            "rssKiB": 335088
+          },
+          {
+            "pid": 84295,
+            "type": "GPU",
+            "rssKiB": 119376
+          },
+          {
+            "pid": 84296,
+            "type": "Utility",
+            "rssKiB": 48816
+          },
+          {
+            "pid": 84297,
+            "type": "Tab",
+            "rssKiB": 1062896
+          },
+          {
+            "pid": 84319,
+            "type": "Tab",
+            "rssKiB": 166272
+          }
+        ]
+      },
+      {
+        "label": "canvas-1",
+        "gc": false,
+        "heap": {
+          "backingStorageSize": 145701330,
+          "embedderHeapUsedSize": 150231448,
+          "totalSize": 682016768,
+          "usedSize": 611201184
+        },
+        "dom": {
+          "documents": 63,
+          "jsEventListeners": 9317,
+          "nodes": 32524
+        },
+        "processes": [
+          {
+            "pid": 84294,
+            "type": "Browser",
+            "rssKiB": 315776
+          },
+          {
+            "pid": 84295,
+            "type": "GPU",
+            "rssKiB": 121440
+          },
+          {
+            "pid": 84296,
+            "type": "Utility",
+            "rssKiB": 42000
+          },
+          {
+            "pid": 84297,
+            "type": "Tab",
+            "rssKiB": 1429184
+          }
+        ]
+      },
+      {
+        "label": "dashboard-1",
+        "gc": false,
+        "heap": {
+          "backingStorageSize": 145731120,
+          "embedderHeapUsedSize": 157467936,
+          "totalSize": 692240384,
+          "usedSize": 617274384
+        },
+        "dom": {
+          "documents": 63,
+          "jsEventListeners": 10038,
+          "nodes": 33214
+        },
+        "processes": [
+          {
+            "pid": 84294,
+            "type": "Browser",
+            "rssKiB": 328048
+          },
+          {
+            "pid": 84295,
+            "type": "GPU",
+            "rssKiB": 121328
+          },
+          {
+            "pid": 84296,
+            "type": "Utility",
+            "rssKiB": 42064
+          },
+          {
+            "pid": 84297,
+            "type": "Tab",
+            "rssKiB": 1437792
+          },
+          {
+            "pid": 84325,
+            "type": "Tab",
+            "rssKiB": 166320
+          }
+        ]
+      },
+      {
+        "label": "before-close-socket",
+        "gc": true,
+        "heap": {
+          "backingStorageSize": 78699695,
+          "embedderHeapUsedSize": 28425016,
+          "totalSize": 239435776,
+          "usedSize": 231795384
+        },
+        "dom": {
+          "documents": 17,
+          "jsEventListeners": 1450,
+          "nodes": 12083
+        },
+        "processes": [
+          {
+            "pid": 84294,
+            "type": "Browser",
+            "rssKiB": 327520
+          },
+          {
+            "pid": 84295,
+            "type": "GPU",
+            "rssKiB": 98832
+          },
+          {
+            "pid": 84296,
+            "type": "Utility",
+            "rssKiB": 42016
+          },
+          {
+            "pid": 84297,
+            "type": "Tab",
+            "rssKiB": 857536
+          }
+        ]
+      },
+      {
+        "label": "after-close-socket",
+        "gc": true,
+        "heap": {
+          "backingStorageSize": 13014480,
+          "embedderHeapUsedSize": 7429744,
+          "totalSize": 32948224,
+          "usedSize": 31965212
+        },
+        "dom": {
+          "documents": 2,
+          "jsEventListeners": 610,
+          "nodes": 2718
+        },
+        "processes": [
+          {
+            "pid": 84294,
+            "type": "Browser",
+            "rssKiB": 327520
+          },
+          {
+            "pid": 84295,
+            "type": "GPU",
+            "rssKiB": 94912
+          },
+          {
+            "pid": 84296,
+            "type": "Utility",
+            "rssKiB": 42016
+          },
+          {
+            "pid": 84297,
+            "type": "Tab",
+            "rssKiB": 512256
+          }
+        ]
+      },
+      {
+        "label": "after-history-clear",
+        "gc": true,
+        "heap": {
+          "backingStorageSize": 13014480,
+          "embedderHeapUsedSize": 7429552,
+          "totalSize": 32948224,
+          "usedSize": 31965212
+        },
+        "dom": {
+          "documents": 2,
+          "jsEventListeners": 610,
+          "nodes": 2718
+        },
+        "processes": [
+          {
+            "pid": 84294,
+            "type": "Browser",
+            "rssKiB": 327520
+          },
+          {
+            "pid": 84295,
+            "type": "GPU",
+            "rssKiB": 94912
+          },
+          {
+            "pid": 84296,
+            "type": "Utility",
+            "rssKiB": 42016
+          },
+          {
+            "pid": 84297,
+            "type": "Tab",
+            "rssKiB": 512256
+          }
+        ]
+      },
+      {
+        "label": "after-reload",
+        "gc": true,
+        "heap": {
+          "backingStorageSize": 12213163,
+          "embedderHeapUsedSize": 5261008,
+          "totalSize": 28229632,
+          "usedSize": 26935864
+        },
+        "dom": {
+          "documents": 2,
+          "jsEventListeners": 374,
+          "nodes": 1365
+        },
+        "processes": [
+          {
+            "pid": 84294,
+            "type": "Browser",
+            "rssKiB": 278944
+          },
+          {
+            "pid": 84295,
+            "type": "GPU",
+            "rssKiB": 101776
+          },
+          {
+            "pid": 84296,
+            "type": "Utility",
+            "rssKiB": 42080
+          },
+          {
+            "pid": 84297,
+            "type": "Tab",
+            "rssKiB": 498720
+          }
+        ]
+      },
+      {
+        "label": "after-recreate",
+        "gc": true,
+        "heap": {
+          "backingStorageSize": 12200448,
+          "embedderHeapUsedSize": 5077024,
+          "totalSize": 27705344,
+          "usedSize": 26828808
+        },
+        "dom": {
+          "documents": 1,
+          "jsEventListeners": 374,
+          "nodes": 1360
+        },
+        "processes": [
+          {
+            "pid": 84294,
+            "type": "Browser",
+            "rssKiB": 291792
+          },
+          {
+            "pid": 84295,
+            "type": "GPU",
+            "rssKiB": 102640
+          },
+          {
+            "pid": 84296,
+            "type": "Utility",
+            "rssKiB": 42080
+          },
+          {
+            "pid": 84330,
+            "type": "Tab",
+            "rssKiB": 229632
+          }
+        ]
+      }
+    ],
+    "recreated": {
+      "oldPid": 84297,
+      "newPid": 84330
+    },
+    "error": null
+  },
+  "proof": {
+    "samples": [
+      {
+        "label": "initial",
+        "gc": true,
+        "heap": {
+          "backingStorageSize": 12200888,
+          "embedderHeapUsedSize": 5097752,
+          "totalSize": 28229632,
+          "usedSize": 26828980
+        },
+        "dom": {
+          "documents": 1,
+          "jsEventListeners": 374,
+          "nodes": 1360
+        },
+        "processes": [
+          {
+            "pid": 84484,
+            "type": "Browser",
+            "rssKiB": 264352
+          },
+          {
+            "pid": 84485,
+            "type": "GPU",
+            "rssKiB": 106368
+          },
+          {
+            "pid": 84486,
+            "type": "Utility",
+            "rssKiB": 48592
+          },
+          {
+            "pid": 84487,
+            "type": "Tab",
+            "rssKiB": 229808
+          }
+        ]
+      },
+      {
+        "label": "canvas-0",
+        "gc": false,
+        "heap": {
+          "backingStorageSize": 94002176,
+          "embedderHeapUsedSize": 91709496,
+          "totalSize": 431833088,
+          "usedSize": 360667216
+        },
+        "dom": {
+          "documents": 33,
+          "jsEventListeners": 8029,
+          "nodes": 19968
+        },
+        "processes": [
+          {
+            "pid": 84484,
+            "type": "Browser",
+            "rssKiB": 245344
+          },
+          {
+            "pid": 84485,
+            "type": "GPU",
+            "rssKiB": 107744
+          },
+          {
+            "pid": 84486,
+            "type": "Utility",
+            "rssKiB": 42848
+          },
+          {
+            "pid": 84487,
+            "type": "Tab",
+            "rssKiB": 957744
+          }
+        ]
+      },
+      {
+        "label": "dashboard-0",
+        "gc": false,
+        "heap": {
+          "backingStorageSize": 94070235,
+          "embedderHeapUsedSize": 98753304,
+          "totalSize": 440745984,
+          "usedSize": 368430868
+        },
+        "dom": {
+          "documents": 33,
+          "jsEventListeners": 8750,
+          "nodes": 20658
+        },
+        "processes": [
+          {
+            "pid": 84484,
+            "type": "Browser",
+            "rssKiB": 259184
+          },
+          {
+            "pid": 84485,
+            "type": "GPU",
+            "rssKiB": 107440
+          },
+          {
+            "pid": 84486,
+            "type": "Utility",
+            "rssKiB": 42928
+          },
+          {
+            "pid": 84487,
+            "type": "Tab",
+            "rssKiB": 975584
+          },
+          {
+            "pid": 84493,
+            "type": "Tab",
+            "rssKiB": 165680
+          }
+        ]
+      },
+      {
+        "label": "canvas-1",
+        "gc": false,
+        "heap": {
+          "backingStorageSize": 145697667,
+          "embedderHeapUsedSize": 146388128,
+          "totalSize": 643497984,
+          "usedSize": 569805840
+        },
+        "dom": {
+          "documents": 70,
+          "jsEventListeners": 9318,
+          "nodes": 32567
+        },
+        "processes": [
+          {
+            "pid": 84484,
+            "type": "Browser",
+            "rssKiB": 334416
+          },
+          {
+            "pid": 84485,
+            "type": "GPU",
+            "rssKiB": 133104
+          },
+          {
+            "pid": 84486,
+            "type": "Utility",
+            "rssKiB": 42992
+          },
+          {
+            "pid": 84487,
+            "type": "Tab",
+            "rssKiB": 1371600
+          }
+        ]
+      },
+      {
+        "label": "dashboard-1",
+        "gc": false,
+        "heap": {
+          "backingStorageSize": 145727482,
+          "embedderHeapUsedSize": 153335888,
+          "totalSize": 652410880,
+          "usedSize": 577187836
+        },
+        "dom": {
+          "documents": 70,
+          "jsEventListeners": 10039,
+          "nodes": 33257
+        },
+        "processes": [
+          {
+            "pid": 84484,
+            "type": "Browser",
+            "rssKiB": 347840
+          },
+          {
+            "pid": 84485,
+            "type": "GPU",
+            "rssKiB": 132912
+          },
+          {
+            "pid": 84486,
+            "type": "Utility",
+            "rssKiB": 43040
+          },
+          {
+            "pid": 84487,
+            "type": "Tab",
+            "rssKiB": 1390016
+          },
+          {
+            "pid": 84499,
+            "type": "Tab",
+            "rssKiB": 165568
+          }
+        ]
+      },
+      {
+        "label": "before-close-socket",
+        "gc": true,
+        "heap": {
+          "backingStorageSize": 78700220,
+          "embedderHeapUsedSize": 28465984,
+          "totalSize": 237338624,
+          "usedSize": 232815224
+        },
+        "dom": {
+          "documents": 17,
+          "jsEventListeners": 1451,
+          "nodes": 12083
+        },
+        "processes": [
+          {
+            "pid": 84484,
+            "type": "Browser",
+            "rssKiB": 347664
+          },
+          {
+            "pid": 84485,
+            "type": "GPU",
+            "rssKiB": 110208
+          },
+          {
+            "pid": 84486,
+            "type": "Utility",
+            "rssKiB": 42992
+          },
+          {
+            "pid": 84487,
+            "type": "Tab",
+            "rssKiB": 866432
+          }
+        ]
+      },
+      {
+        "label": "after-close-socket",
+        "gc": true,
+        "heap": {
+          "backingStorageSize": 13014981,
+          "embedderHeapUsedSize": 7445320,
+          "totalSize": 33210368,
+          "usedSize": 31979804
+        },
+        "dom": {
+          "documents": 2,
+          "jsEventListeners": 611,
+          "nodes": 2718
+        },
+        "processes": [
+          {
+            "pid": 84484,
+            "type": "Browser",
+            "rssKiB": 347664
+          },
+          {
+            "pid": 84485,
+            "type": "GPU",
+            "rssKiB": 109568
+          },
+          {
+            "pid": 84486,
+            "type": "Utility",
+            "rssKiB": 42992
+          },
+          {
+            "pid": 84487,
+            "type": "Tab",
+            "rssKiB": 523632
+          }
+        ]
+      },
+      {
+        "label": "after-history-clear",
+        "gc": true,
+        "heap": {
+          "backingStorageSize": 13014981,
+          "embedderHeapUsedSize": 7445128,
+          "totalSize": 33210368,
+          "usedSize": 31979804
+        },
+        "dom": {
+          "documents": 2,
+          "jsEventListeners": 611,
+          "nodes": 2718
+        },
+        "processes": [
+          {
+            "pid": 84484,
+            "type": "Browser",
+            "rssKiB": 347664
+          },
+          {
+            "pid": 84485,
+            "type": "GPU",
+            "rssKiB": 109568
+          },
+          {
+            "pid": 84486,
+            "type": "Utility",
+            "rssKiB": 42992
+          },
+          {
+            "pid": 84487,
+            "type": "Tab",
+            "rssKiB": 523504
+          }
+        ]
+      },
+      {
+        "label": "after-reload",
+        "gc": true,
+        "heap": {
+          "backingStorageSize": 12213161,
+          "embedderHeapUsedSize": 5232064,
+          "totalSize": 28491776,
+          "usedSize": 26933224
+        },
+        "dom": {
+          "documents": 2,
+          "jsEventListeners": 374,
+          "nodes": 1365
+        },
+        "processes": [
+          {
+            "pid": 84484,
+            "type": "Browser",
+            "rssKiB": 282912
+          },
+          {
+            "pid": 84485,
+            "type": "GPU",
+            "rssKiB": 114704
+          },
+          {
+            "pid": 84486,
+            "type": "Utility",
+            "rssKiB": 43072
+          },
+          {
+            "pid": 84487,
+            "type": "Tab",
+            "rssKiB": 504640
+          }
+        ]
+      },
+      {
+        "label": "after-recreate",
+        "gc": true,
+        "heap": {
+          "backingStorageSize": 12200443,
+          "embedderHeapUsedSize": 5133120,
+          "totalSize": 27705344,
+          "usedSize": 26829796
+        },
+        "dom": {
+          "documents": 1,
+          "jsEventListeners": 374,
+          "nodes": 1360
+        },
+        "processes": [
+          {
+            "pid": 84484,
+            "type": "Browser",
+            "rssKiB": 294976
+          },
+          {
+            "pid": 84485,
+            "type": "GPU",
+            "rssKiB": 114512
+          },
+          {
+            "pid": 84486,
+            "type": "Utility",
+            "rssKiB": 43072
+          },
+          {
+            "pid": 84502,
+            "type": "Tab",
+            "rssKiB": 228528
+          }
+        ]
+      }
+    ],
+    "recreated": {
+      "oldPid": 84487,
+      "newPid": 84502
+    },
+    "error": null,
+    "socketProof": {
+      "calls": [
+        {
+          "t": 3176.599999964237,
+          "path": "editor",
+          "waiters": 0
+        },
+        {
+          "t": 8655.800000011921,
+          "path": "editor",
+          "waiters": 1
+        }
+      ],
+      "requests": [
+        {
+          "t": 3176.5,
+          "path": "editor"
+        },
+        {
+          "t": 7180,
+          "path": "dashboard"
+        },
+        {
+          "t": 8655.800000011921,
+          "path": "editor"
+        },
+        {
+          "t": 11934.599999964237,
+          "path": "dashboard"
+        }
+      ],
+      "waiters": 1,
+      "socketConnected": false
+    }
+  }
+}

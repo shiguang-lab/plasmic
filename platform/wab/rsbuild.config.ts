@@ -1,3 +1,4 @@
+import { animateBrandLoading } from "./src/wab/client/components/widgets/brand-loading-animation";
 import { defineConfig, mergeRsbuildConfig } from "@rsbuild/core";
 import {
   Assets,
@@ -281,6 +282,8 @@ const appConfig = defineConfig({
               template: "./public/index.html",
               templateParameters: {
                 previewLoadingCss: readFileSync(new URL("./src/wab/client/components/live/PreviewLoading.css", import.meta.url), "utf8"),
+                brand: JSON.parse(readFileSync(new URL("./src/wab/shared/branding.json", import.meta.url), "utf8")),
+                brandLoadingAnimation: animateBrandLoading.toString(),
                 staticUrl,
               },
             },

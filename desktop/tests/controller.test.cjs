@@ -1,3 +1,4 @@
+const { studioFixture } = require("./fixtures/studio.cjs");
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const Module = require("node:module");
@@ -23,7 +24,7 @@ test("queued and parallel calls retain their caller through async work and IPC",
     sent.push(request);
     controller.receive({ sender: webContents, senderFrame: webContents.mainFrame }, request.id, { success: true, output: "{}" });
   } };
-  const controller = new DesktopController(() => ({ isDestroyed: () => false, webContents }), {});
+  const controller = new DesktopController(() => studioFixture({ isDestroyed: () => false, webContents }), {});
   t.after(() => controller.close());
   controller.checkContext = async () => {};
   controller.execute = async (_method, input) => {
@@ -43,7 +44,7 @@ test("queued and parallel calls retain their caller through async work and IPC",
 });
 test("update preparation drains parallel and queued MCP calls, rejects new calls, then saves", async (t) => {
   const win = {isDestroyed:()=>false,webContents:{getURL:()=>"https://studio.example/projects/p"}};
-  const controller = new DesktopController(()=>win,{studioOrigin:"https://studio.example"});
+  const controller = new DesktopController(() => studioFixture(win),{studioOrigin:"https://studio.example"});
   t.after(()=>controller.close());
   controller.state = async()=>({ready:true,projectId:"p",editorContext:{mode:"edit",canEdit:true}});
   const first=deferred(), second=deferred(), order=[];
@@ -59,7 +60,7 @@ test("update preparation drains parallel and queued MCP calls, rejects new calls
   assert.equal(controller.updating,true);
 });
 test("updates close Preview before saving and a failed save releases the MCP gate", async (t) => {
-  const controller=new DesktopController(()=>null,{studioOrigin:"https://studio.example"});
+  const controller=new DesktopController(() => studioFixture(null),{studioOrigin:"https://studio.example"});
   t.after(()=>controller.close());
   let mode="preview";const order=[];
   controller.state=async()=>({ready:true,projectId:"p",editorContext:{mode}});
@@ -72,7 +73,7 @@ test("updates close Preview before saving and a failed save releases the MCP gat
   assert.deepEqual(await controller.dispatch("get_build_info",{}),{accepted:true});
 });
 test("the dispatcher intercepts quiet calls as well as queued tools, but internal state polling stays passive", async (t) => {
-  const controller = new DesktopController(() => null, { studioOrigin: "https://studio.example" });
+  const controller = new DesktopController(() => studioFixture(null), { studioOrigin: "https://studio.example" });
   t.after(() => controller.close());
   const gate = deferred(), started = deferred();
   controller.state = async () => ({ready:false});
@@ -98,7 +99,7 @@ test("the dispatcher intercepts quiet calls as well as queued tools, but interna
 });
 test("task reports update during a long-running MCP operation and reject unrelated page contexts", { timeout: 2000 }, async (t) => {
   const win = { isDestroyed: () => false, webContents: { getURL: () => "https://studio.example/projects/p" } };
-  const controller = new DesktopController(() => win, { studioOrigin: "https://studio.example" });
+  const controller = new DesktopController(() => studioFixture(win), { studioOrigin: "https://studio.example" });
   t.after(() => controller.close());
   let url = "https://studio.example/projects/p";
   controller.state = async () => ({ ready: true, projectId: "p", url, editorContext: { mode: "edit", canEdit: true, sessionId: "s" } });
@@ -118,7 +119,7 @@ test("task reports update during a long-running MCP operation and reject unrelat
 });
 test("reference tools reject Studio Preview and keep external CDP read-only", async (t) => {
   const win = { isDestroyed: () => false, webContents: { getURL: () => "https://studio.example/projects/p" } };
-  const controller = new DesktopController(() => win, { studioOrigin: "https://studio.example" });
+  const controller = new DesktopController(() => studioFixture(win), { studioOrigin: "https://studio.example" });
   t.after(() => controller.close());
   const calls = [];
   controller.state = async () => ({ ready: true, projectId: "p", editorContext: { mode: "edit", canEdit: true } });
@@ -136,7 +137,7 @@ test("reference tools reject Studio Preview and keep external CDP read-only", as
 });
 test("reference tools reject source-free opens and unloaded sources before showing any panel", async (t) => {
   const win = { isDestroyed: () => false, webContents: { getURL: () => "https://studio.example/projects/p" } };
-  const controller = new DesktopController(() => win, { studioOrigin: "https://studio.example" });
+  const controller = new DesktopController(() => studioFixture(win), { studioOrigin: "https://studio.example" });
   t.after(() => controller.close());
   const calls = [];
   controller.state = async () => ({ ready: true, projectId: "p", editorContext: { mode: "edit", canEdit: true } });
@@ -152,7 +153,7 @@ test("reference UI, capture and imports require an editable project in edit mode
   let url = "https://studio.example/projects/p/preview#/page";
   let state = { ready: true, projectId: "p", editorContext: { mode: "edit", canEdit: true } };
   const win = { isDestroyed: () => false, webContents: { getURL: () => url } };
-  const controller = new DesktopController(() => win, { studioOrigin: "https://studio.example" });
+  const controller = new DesktopController(() => studioFixture(win), { studioOrigin: "https://studio.example" });
   t.after(() => controller.close());
   const calls = [];
   controller.state = async () => state;
@@ -191,7 +192,7 @@ test("reference UI, capture and imports require an editable project in edit mode
 });
 test("failed Preview reports the supported recovery instead of suggesting a reference browser", async (t) => {
   const win = { isDestroyed: () => false };
-  const controller = new DesktopController(() => win, {});
+  const controller = new DesktopController(() => studioFixture(win), {});
   t.after(() => controller.close());
   controller.state = async () => ({ ready: true, projectId: "p", editorContext: { mode: "edit" } });
   controller.ready = async () => {};
@@ -210,7 +211,7 @@ test("failed Preview reports the supported recovery instead of suggesting a refe
   });
 });
 test("native execute aliases retain the Preview and batch context entry points", async (t) => {
-  const controller = new DesktopController(() => ({ isDestroyed: () => false }), {});
+  const controller = new DesktopController(() => studioFixture({ isDestroyed: () => false }), {});
   t.after(() => controller.close());
   let calls = 0;
   controller.editor = async () => { calls++; };
@@ -224,7 +225,7 @@ test("native execute aliases retain the Preview and batch context entry points",
 test("Preview tolerates completion of an existing autosave but rejects design or session changes", async (t) => {
   for (const [change, allowed] of [[{ revision: 2 }, true], [{ changeCounter: 2 }, false], [{ sessionId: "other" }, false], [{ projectId: "other" }, false]]) {
     const win = { isDestroyed: () => false, webContents: { getURL: () => "https://studio.example/projects/p" } };
-    const controller = new DesktopController(() => win, { studioOrigin: "https://studio.example" });
+    const controller = new DesktopController(() => studioFixture(win), { studioOrigin: "https://studio.example" });
     t.after(() => controller.close());
     const before = { projectId: "p", branchId: null, sessionId: "session", revision: 1, changeCounter: 1, mode: "edit" };
     let reads = 0;
@@ -243,7 +244,7 @@ test("Preview tolerates completion of an existing autosave but rejects design or
 test("project and dashboard navigation retain save, access and target checks", async (t) => {
   let projectId = "first", url = "https://studio.example/projects/first", canEdit = true;
   const calls = [];
-  const controller = new DesktopController(() => ({ isDestroyed: () => false,
+  const controller = new DesktopController(() => studioFixture({ isDestroyed: () => false,
     webContents: { getURL: () => url },
     loadURL: async (target) => { calls.push(["loadURL", target]); url = target; projectId = new URL(target).pathname.match(/^\/projects\/([^/]+)/)?.[1]; },
   }), { studioOrigin: "https://studio.example" });
@@ -276,7 +277,7 @@ test("project and dashboard navigation retain save, access and target checks", a
 
 test("reference navigation checks editor context after a queued Preview transition", async (t) => {
   const win = { isDestroyed: () => false, webContents: { getURL: () => "https://studio.example/projects/p" } };
-  const controller = new DesktopController(() => win, { studioOrigin: "https://studio.example" });
+  const controller = new DesktopController(() => studioFixture(win), { studioOrigin: "https://studio.example" });
   t.after(() => controller.close());
   let mode = "edit";
   const calls = [];
@@ -302,7 +303,7 @@ test("reference navigation checks editor context after a queued Preview transiti
   assert.deepEqual(calls, []);
 });
 test("schema discovery preserves full contracts while status polling omits their repeated bodies", async (t) => {
-  const controller = new DesktopController(() => null, {});
+  const controller = new DesktopController(() => studioFixture(null), {});
   t.after(() => controller.close());
   const read = { inputSchema: { type: "object" }, outputSchema: { definitions: { node: { type: "object" } }, $ref: "#/definitions/node" } };
   const batch = { inputSchema: { largeUnion: "native mutation contract" }, outputSchema: {} };
@@ -344,7 +345,7 @@ test("readiness polling requests context without schemas", async (t) => {
   const win = { isDestroyed: () => false, webContents: {
     isLoadingMainFrame: () => false, getURL: () => "https://studio.example/projects/project",
   } };
-  const controller = new DesktopController(() => win, { studioOrigin: "https://studio.example" });
+  const controller = new DesktopController(() => studioFixture(win), { studioOrigin: "https://studio.example" });
   t.after(() => controller.close());
   controller.invoke = async (method, input) => {
     assert.equal(method, "metadata");
@@ -354,7 +355,7 @@ test("readiness polling requests context without schemas", async (t) => {
   assert.equal((await controller.ready()).ready, true);
 });
 test("state and independent media remain responsive while editor operations serialize", async () => {
-  const controller = new DesktopController(() => null, {});
+  const controller = new DesktopController(() => studioFixture(null), {});
   controller.checkContext = async () => {};
   const gate = deferred();
   const entered = deferred();
@@ -392,7 +393,7 @@ test("a lost metadata response expires, releases the queue and ignores a late IP
     send: (_channel, request) => sent.push(request),
   };
   const win = { isDestroyed: () => false, webContents };
-  const controller = new DesktopController(() => win, {});
+  const controller = new DesktopController(() => studioFixture(win), {});
   controller.checkContext = async () => {};
   controller.execute = (method) =>
     method === "snapshot_layout"
@@ -431,7 +432,7 @@ test("opening a project waits for initial loadURL to finish", async () => {
     loadURL: async (url) => urls.push(url),
   };
   const controller = new DesktopController(
-    () => win,
+    () => studioFixture(win),
     { studioOrigin: "https://studio.example" },
     () => startup.promise,
   );
@@ -447,7 +448,7 @@ test("opening a project waits for initial loadURL to finish", async () => {
   controller.close();
 });
 test("background inspection releases its frame after a failed read without navigating", async () => {
-  const controller = new DesktopController(() => null, {});
+  const controller = new DesktopController(() => studioFixture(null), {});
   const calls = [];
   controller.editor = async (method, input) => {
     calls.push({ method, input });
@@ -475,7 +476,7 @@ test("background inspection releases its frame after a failed read without navig
 });
 
 test("exports pin the exact requested frame and release business rendering after failure", async () => {
-  const controller = new DesktopController(() => null, {});
+  const controller = new DesktopController(() => studioFixture(null), {});
   const calls = [];
   controller.editor = async (method, input) => {
     calls.push({ method, input });
@@ -502,7 +503,7 @@ test("exports pin the exact requested frame and release business rendering after
 });
 
 test("static reads pin explicit offscreen frames, including a frame on a supplied component", async (t) => {
-  const controller = new DesktopController(() => null, {});
+  const controller = new DesktopController(() => studioFixture(null), {});
   t.after(() => controller.close());
   const calls = [];
   controller.editor = async (method, input) => {
@@ -541,7 +542,7 @@ test("workspace screenshots capture the editor when a project uses a custom host
       },
     },
   };
-  const controller = new DesktopController(() => win, {});
+  const controller = new DesktopController(() => studioFixture(win), {});
   controller.state = async () => ({ ready: true, projectId: "p", editorContext: { mode: "edit", frameUuid: "frame" } });
   controller.ready = async () => calls.push("ready");
   controller.invoke = async (method) => calls.push(method);
@@ -607,7 +608,7 @@ test("exports transitive library CSS through authenticated codegen requests with
   };
   const requests = [];
   const controller = new DesktopController(
-    () => ({
+    () => studioFixture({
       isDestroyed: () => false,
       webContents: {
         session: {
@@ -668,7 +669,7 @@ test("downloads self-hosted pictures and includes their bytes in an export", asy
   const bytes = Buffer.from([0xff, 0xd8, 0xff, 0xd9]);
   const requests = [];
   const controller = new DesktopController(
-    () => ({
+    () => studioFixture({
       isDestroyed: () => false,
       webContents: {
         session: {
@@ -757,7 +758,7 @@ test("native API operations wait for device session restoration, while local sta
     },
   };
   const controller = new DesktopController(
-    () => win,
+    () => studioFixture(win),
     { studioOrigin: "https://studio.example" },
     async () => {},
     () => {
@@ -784,7 +785,7 @@ test("cancellation clears only its IPC activity and keeps the transaction queue 
     sent.push({ channel, request });
     if (channel === "desktop:invoke") entered.resolve();
   } };
-  const controller = new DesktopController(() => ({ isDestroyed: () => false, webContents }), {});
+  const controller = new DesktopController(() => studioFixture({ isDestroyed: () => false, webContents }), {});
   t.after(() => controller.close());
   controller.checkContext = async () => {};
   controller.execute = () => controller.invoke("read", {});
@@ -810,7 +811,7 @@ test("cancellation clears only its IPC activity and keeps the transaction queue 
 });
 
 test("cancelled inspection still releases its background canvas", async (t) => {
-  const controller = new DesktopController(() => null, {});
+  const controller = new DesktopController(() => studioFixture(null), {});
   t.after(() => controller.close());
   const abort = new AbortController(), calls = [];
   controller.editor = async (method) => {
@@ -828,8 +829,30 @@ test("cancelled inspection still releases its background canvas", async (t) => {
 test("caller disconnect is forwarded without a pending editor invocation", (t) => {
   const sent = [];
   const win = { isDestroyed: () => false, webContents: { send: (channel, input) => sent.push({ channel, input }) } };
-  const controller = new DesktopController(() => win, {});
+  const controller = new DesktopController(() => studioFixture(win), {});
   t.after(() => controller.close());
   controller.clearCallerActivity("session");
   assert.deepEqual(sent, [{ channel: "desktop:caller-disconnected", input: { callerId: "session" } }]);
+});
+
+test("renderer replacement cancels only retired requests and rejects replies from a different session", async t => {
+  const makeContents = () => ({ mainFrame: {}, isDestroyed: () => false, send() {} });
+  const old = makeContents(), current = makeContents();
+  const native = { isDestroyed: () => false, webContents: old };
+  const studio = studioFixture(native);
+  const controller = new DesktopController(() => studio, {});
+  t.after(() => controller.close());
+  const oldCall = assert.rejects(controller.invoke("metadata"), /Session closed/);
+  native.webContents = current;
+  let settled = false;
+  const newCall = controller.invoke("metadata").then(result => { settled = true; return result; });
+  const newId = [...controller.pending.keys()].at(-1);
+  controller.cancelPending(old, "Session closed");
+  await oldCall;
+  controller.receive({ sender: old, senderFrame: old.mainFrame }, newId, { stale: true });
+  await Promise.resolve();
+  assert.equal(settled, false);
+  assert.equal(controller.pending.size, 1);
+  controller.receive({ sender: current, senderFrame: current.mainFrame }, newId, { ready: true });
+  assert.deepEqual(await newCall, { ready: true });
 });

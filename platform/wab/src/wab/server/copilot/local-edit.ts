@@ -1,3 +1,4 @@
+import { logger } from "@/wab/server/observability";
 import { loadSecrets } from "@/wab/server/secrets";
 import { mapCopilotToolsToJsonSchema } from "@/wab/shared/copilot/copilot-tool-types";
 import {
@@ -51,41 +52,89 @@ export function getLocalAiConfig() {
   return { baseUrl: baseUrl.replace(/\/$/, ""), apiKey, model, models };
 }
 
-let modelCatalog:
-  { key: string; expires: number; models: string[] } | undefined;
-export async function getLocalAiModels(): Promise<string[]> {
-  const config = getLocalAiConfig();
-  if (!config) {
-    return [];
-  }
-  if (config.models) {
-    return [...new Set([config.model, ...config.models])];
-  }
-  const key = JSON.stringify([config.baseUrl, config.apiKey, config.model]);
-  if (modelCatalog?.key === key && modelCatalog.expires > Date.now()) {
-    return modelCatalog.models;
-  }
-  let models = [config.model];
+const modelCatalogFreshMs = 5 * 60_000;
+const modelCatalogMaxAgeMs = 60 * 60_000;
+const modelCatalogRetryMs = 30_000;
+const modelCatalogTimeoutMs = 3_000;
+
+interface ModelCatalog {
+  key: string;
+  models?: string[];
+  staleUntil: number;
+  refreshAfter: number;
+  refresh?: Promise<void>;
+}
+
+// One bounded entry per server process. Refreshes only mutate their own entry,
+// so an old request cannot repopulate the cache after credentials change.
+let modelCatalog: ModelCatalog | undefined;
+
+async function refreshModelCatalog(
+  entry: ModelCatalog,
+  config: NonNullable<ReturnType<typeof getLocalAiConfig>>,
+) {
+  let stage = "request";
+  let status: number | undefined;
+  const signal = AbortSignal.timeout(modelCatalogTimeoutMs);
   try {
     const response = await fetch(`${config.baseUrl}/models`, {
       headers: { Authorization: `Bearer ${config.apiKey}` },
       redirect: "error",
+      signal,
     });
+    status = response.status;
     if (!response.ok) {
-      return models;
+      stage = "http";
+      await response.body?.cancel();
+      throw new Error("Model catalog request failed");
     }
+    stage = "response";
     const catalog = z
       .object({ data: z.array(z.object({ id: z.string().min(1).max(200) })) })
       .parse(await response.json());
-    models = [
-      ...new Set([config.model, ...catalog.data.map((entry) => entry.id)]),
+    entry.models = [
+      ...new Set([config.model, ...catalog.data.map((item) => item.id)]),
     ];
+    const now = Date.now();
+    entry.refreshAfter = now + modelCatalogFreshMs;
+    entry.staleUntil = now + modelCatalogMaxAgeMs;
   } catch {
-    // Retain the default for this request, but let the next request retry discovery.
-    return models;
+    entry.refreshAfter = Date.now() + modelCatalogRetryMs;
+    // Never log the URL, credentials, upstream body or raw provider errors.
+    logger().warn("AI model catalog refresh failed", {
+      stage,
+      status,
+      timeout: signal.aborted,
+    });
   }
-  modelCatalog = { key, expires: Date.now() + 300000, models };
-  return models;
+}
+
+export async function getLocalAiModels(): Promise<string[]> {
+  const config = getLocalAiConfig();
+  if (!config) {
+    modelCatalog = undefined;
+    return [];
+  }
+  if (config.models) {
+    modelCatalog = undefined;
+    return [...new Set([config.model, ...config.models])];
+  }
+  const key = JSON.stringify([config.baseUrl, config.apiKey, config.model]);
+  if (modelCatalog?.key !== key) {
+    modelCatalog = { key, staleUntil: 0, refreshAfter: 0 };
+  }
+  const entry = modelCatalog;
+  const now = Date.now();
+  if (now >= entry.refreshAfter && !entry.refresh) {
+    entry.refresh = refreshModelCatalog(entry, config).finally(() => {
+      entry.refresh = undefined;
+    });
+  }
+  // Reads never await the provider, including on cold start and hard expiry.
+  // A missing/expired catalog returns the configured default while refreshing.
+  return entry.models && Date.now() < entry.staleUntil
+    ? [...entry.models]
+    : [config.model];
 }
 
 async function selectedModel(model: string | undefined) {

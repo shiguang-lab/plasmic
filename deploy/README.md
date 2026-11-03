@@ -71,7 +71,7 @@ For a newly forked repository, enable Actions in the GitHub Actions tab first.
 New GHCR packages are private by default. Make all three packages public for anonymous
 NAS pulls, or log in on the NAS with a token that has read:packages.
 
-Copy `compose.yml`, `nginx.conf`, `postgres-init.sql`, and `.env.example` to a NAS directory.
+Copy `compose.yml`, `nginx.conf`, `edge/`, `rollout.py`, `postgres-init.sql`, and `.env.example` to a NAS directory.
 Rename `.env.example` to `.env`, set IMAGE_TAG to a published tag, and fill in the
 origins and random secrets. Copy `platform/wab/tools/docker-dev/secrets.json` to
 `secrets/plasmic.json` and replace its secret values for your deployment. Keep this
@@ -84,7 +84,8 @@ docker compose pull
 docker compose up -d db storage
 docker compose --profile init run --rm bootstrap
 docker compose --profile init run --rm ai-bootstrap
-docker compose up -d temporal server ai-worker preview web
+python3 rollout.py --init
+docker compose up -d temporal server ai-worker preview web edge
 ```
 
 Bootstrap runs migrations and creates business workspaces and component packages
@@ -94,27 +95,55 @@ virtual-host bucket addresses; its storage domain and Docker network aliases mus
 match the endpoint hostname. The web health check waits for address injection and
 Nginx startup.
 
-For an existing deployment, back up the database and assets first. Change IMAGE_TAG,
-then run migrations before starting the new server:
+## Runtime upgrades
 
-Set a separate random `TEMPORAL_POSTGRES_PASSWORD` in the private `.env`.
-`ai-bootstrap` uses the existing database administrator to create only the
-dedicated `temporal_ai` role/databases, assign their public schemas, install
-`btree_gin` in visibility, and create the private `plasmic-ai-chat` bucket.
-It is safe to repeat and does not seed or reset application data. Temporal stays
-on the private Compose network; its health check gates AI Worker startup. The
-Node images use Debian because Temporal's native SDK requires glibc.
+The stable `edge` service owns ports 3900/3901/3902. Runtime releases alternate
+between `server`/`preview`/`web` and their `-next` counterparts on the same private
+network. The inactive runtime is pulled, started and checked while the active
+runtime keeps serving. Edge reload switches all three origins together; the old
+runtime is stopped only after the switch succeeds. Existing WebSocket clients
+may reconnect during retirement. The AI worker broadcasts through `edge` so it
+always addresses the active server.
 
-Remove any local-image or source-file overrides from `compose.override.yml`
-before upgrading. All three services must resolve to the published GHCR tag;
-runtime source and component bundles are supplied by the release images.
+For routine releases without database changes, back up the database and assets,
+copy the current deployment files, then run on the NAS:
 
 ```sh
-docker compose pull
-docker compose stop server preview web
-docker compose run --rm server node_modules/typeorm/cli.js migration:run
-docker compose --profile init run --rm ai-bootstrap
-docker compose up -d temporal server ai-worker preview web
+python3 rollout.py 0.6.5
+```
+
+The script serializes upgrades, rejects pending database migrations before
+starting a standby, verifies Studio API/Canvas/Preview, restores the old edge
+configuration if candidate checks fail, and records the successful IMAGE_TAG in
+the private `.env`. It does not modify database/storage/Temporal containers or
+run migrations. Schema changes require a separately planned maintenance window;
+do not use rolling deployment to run old code against a changed schema.
+`edge/default.conf.template` is a release artifact; `edge/default.conf` is the
+active deployment state. Copy the template on upgrades and preserve the active
+file. `--init` refuses to overwrite an initialized edge.
+
+Installing this layout on an existing deployment requires a one-time maintenance
+window to transfer the published ports from `web` to `edge`. Preserve the current
+release tag and private environment, back up the deployment files, install the
+new Compose/Nginx/edge files, and recreate only `web`, `edge`, and `ai-worker`
+after `python3 rollout.py --init`, using
+`docker compose up -d --no-deps web edge ai-worker`. Do not replace the
+existing database or storage services as part of this conversion. Verify all
+three public origins before using `rollout.py` for subsequent releases.
+
+The NAS must provide persistent systemd journals (`/var/log/journal`). Service
+logs use Docker's journald driver, which was verified on the NAS. Records survive
+container recreation; their retention follows the host journal policy. For
+example, `journalctl CONTAINER_TAG=plasmic/shiguang-plasmic-images-server-1`
+reads previous instances too, subject to journal-reader permissions. Web logs
+include the gateway request ID and upstream timing. Its health check requires
+both the static Host page and the proxied backend readiness endpoint.
+
+Validate deployment behavior without production services:
+
+```sh
+python3 -m unittest discover -s deploy -p 'test_*.py'
+RUN_DOCKER_INTEGRATION=1 python3 -m unittest discover -s deploy -p 'test_*.py'
 ```
 
 Component library versions also require immutable code artifacts before website
@@ -461,6 +490,17 @@ Preserve other fields in that file, keep it outside Git, and restrict its file
 permissions. `PLASMIC_AI_BASE_URL`, `PLASMIC_AI_API_KEY` and `PLASMIC_AI_MODEL`
 override those three fields. Use HTTPS except for local HTTP test services.
 The browser status endpoint returns configuration status and model name only.
+
+Model discovery uses a server-process cache shared by projects and clients.
+Reads always return immediately: a cached catalog, or the configured default
+model when no catalog younger than one hour is available. Catalogs are fresh
+for five minutes; subsequent reads trigger one background refresh while using
+the previous catalog. Background discovery has a three-second timeout and a
+30-second failure cooldown. Failed refreshes retain the previous catalog
+without extending its one-hour maximum age. Service URL, API key or default
+model changes replace the cache, and late responses cannot overwrite the new
+entry. The cache is cleared on server restart. Explicit `localAiEditing.models`
+or comma-separated `PLASMIC_AI_MODELS` bypass upstream discovery entirely.
 
 The assistant binds the project, branch, editor session, change counter, page,
 artboard and selected subtree at submission. Read, selection and scroll tools

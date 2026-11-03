@@ -97,12 +97,11 @@ A name-only AppShell/Card/Table outline omits supplied Slot content and cannot e
 
 ## Collect and verify
 
-Open the intended project in the signed-in Desktop, save in edit mode, then collect. `--profile` is the Desktop **user-data directory** containing `mcp-connection.json`; live collection uses authenticated local RPC on macOS/Linux and never copies its token into evidence.
+Open the intended project in the signed-in Desktop, save in edit mode, then collect. Live collection uses the same profile as Desktop MCP: `PLASMIC_DESKTOP_PROFILE` when set, otherwise the standard platform location. For a custom instance, pass `--profile` with its **user-data directory** containing `mcp-connection.json`. Collection uses authenticated local RPC on macOS/Linux and never copies its token into evidence.
 
 ```sh
 python3 RESOURCE_ROOT/scripts/verify_all.py \
   --project-id PROJECT_ID \
-  --profile "/absolute/path/to/Desktop user-data" \
   --expectations /absolute/path/to/suite.json \
   --output /absolute/path/to/new-verification-run
 ```
@@ -113,7 +112,7 @@ Before Preview, read actual `report.json`: every applicable automatic check must
 
 After each Page gate, complete [Saved-Page review](review-mode.md#rule-review): open pixels, check models/layout and record static findings plus pending runtime/persistence checks against that capture. Repair static findings and re-review before advancing; automatic pass alone is insufficient. Preview follows the [execution stages](workflows/prototype.md#execution-plan-and-completion-evidence) and [review rounds](workflows/prototype.md#final-preview-review) after all in-scope Pages are complete. After save/reopen, collect fresh evidence and run the full report. Then compare the last Preview round's capture with the reopened one: `python3 RESOURCE_ROOT/scripts/compare_models.py PRE/pages.json POST/pages.json --report /task/persistence.json`. Equal models carry the runtime report forward as the persistence result; any difference means the reopened model was not the one exercised, so repair or re-execute the affected cases against a fresh capture. Do not synthesize a runtime trace or infer execution order from a final model.
 
-Each gate result names its owning `rule`, and every diagnostic carries the most specific `rule` from the library `rules.json` or [gate rule map](gate-rules.json). Repair through the [diagnostic loop](planning.md#diagnostics-and-repair). Keep full evidence and reports on disk; inspect failed gates and the relevant Page subtree instead of printing whole `pages.json`/`layouts.json` into the conversation.
+Terminal feedback includes failure counts by check, up to eight representative diagnostics, `reportJson` and exact `reportPointer` locations. Read a full diagnostic with `prepare_plan.py show REPORT_JSON --pointer REPORT_POINTER`; inspect the gate's complete error list for the batch, including findings omitted from the summary. Each diagnostic carries its owning `rule`. A missing or malformed ledger file remains a failure without suppressing available model findings. Repair actual nodes against the source-reviewed plan through the [diagnostic loop](planning.md#diagnostics-and-repair), then save and recapture. Keep full evidence on disk rather than printing whole models or rewriting expectations to match output.
 
 ## Reuse within the same live design state
 

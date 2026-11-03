@@ -16,7 +16,7 @@ function containsPoint(point, rect) {
   return (point.x - x) ** 2 + (point.y - y) ** 2 <= radius ** 2;
 }
 
-function createIsland({ getWindow, controller, identity, i18n, appearance, config, signIn, isQuitting, changed = () => {} }) {
+function createIsland({ getWindow, getStudio, controller, identity, i18n, appearance, config, signIn, isQuitting, changed = () => {} }) {
   const page = pathToFileURL(path.join(__dirname, "island.html")).href;
   const preference = path.join(app.getPath("userData"), "presentation.json");
   let saved = {};
@@ -86,7 +86,7 @@ function createIsland({ getWindow, controller, identity, i18n, appearance, confi
       publish();
     } catch {
       if (version === epoch) {
-        updateContext({ url: getWindow()?.webContents?.getURL?.(), ready: false });
+        updateContext({ url: getStudio()?.webContents?.getURL?.(), ready: false });
         publish();
       }
     } finally { if (reading === task) {reading = undefined;} }
@@ -124,7 +124,7 @@ function createIsland({ getWindow, controller, identity, i18n, appearance, confi
     capturing = task;
     const version = epoch;
     try {
-      const result = await mirror.capture(win, context, controller.activity.snapshot(context.projectId, context.sessionId).operation, framingOperations());
+      const result = await mirror.capture(getStudio(), context, controller.activity.snapshot(context.projectId, context.sessionId).operation, framingOperations());
       if (disposed || version !== epoch || mode !== "island" || !expanded) {return;}
       if (result) { image = { ...result, identity: context.identity }; stale = false; }
       else {stale = true;}
@@ -232,13 +232,13 @@ function createIsland({ getWindow, controller, identity, i18n, appearance, confi
         mode = value;
         const latest = controller.activity.latest;
         lastCanvasOperation = latest && ["read", "write", "view"].includes(latest.kind) ? latest : undefined;
-        updateContext({url: navigationUrl || win.webContents.getURL(), ready: false}, true);
+        updateContext({url: navigationUrl || getStudio().webContents.getURL(), ready: false}, true);
       }
       await ensureWindow();
       if (disposed || win.isDestroyed()) {return;}
       mode = value;
       if (win.isMinimized()) {win.restore();}
-      win.webContents.setBackgroundThrottling(false);
+      getStudio().webContents.setBackgroundThrottling(false);
       win.hide();
       if (process.platform === "darwin") {
         app.setActivationPolicy("accessory");
@@ -363,20 +363,22 @@ function createIsland({ getWindow, controller, identity, i18n, appearance, confi
       updates.on("status", publish);
       publish();
     },
-    attach(win) {
+    attachContents(contents) {
       const invalidate = (url) => {
-        if (disposed || mode !== "island") {return;}
+        if (disposed || contents !== getStudio()?.webContents || mode !== "island") {return;}
         // Navigation refreshes the summary, but does not change the account.
         // Keep its in-flight read; cookie changes still invalidate that read.
-        updateContext({ url: typeof url === "string" ? url : win.webContents.getURL(), ready: false }, true);
+        updateContext({ url: typeof url === "string" ? url : contents.getURL(), ready: false }, true);
         publish(); void refresh();
       };
-      win.webContents.on("did-start-navigation", (_event, url, inPlace, main) => {
-        if (main) { if (!inPlace) {navigationUrl = url;} invalidate(url); }
+      contents.on("did-start-navigation", (_event, url, inPlace, main) => {
+        if (main && contents === getStudio()?.webContents) { if (!inPlace) {navigationUrl = url;} invalidate(url); }
       });
-      win.webContents.on("did-stop-loading", () => { navigationUrl = undefined; void refresh(); });
-      win.webContents.on("did-navigate-in-page", (_event, _url, main) => { if (main) {invalidate(_url);} });
-      win.webContents.on("render-process-gone", () => { navigationUrl = undefined; invalidate(); });
+      contents.on("did-stop-loading", () => { if (contents !== getStudio()?.webContents) return; navigationUrl = undefined; void refresh(); });
+      contents.on("did-navigate-in-page", (_event, _url, main) => { if (main) {invalidate(_url);} });
+      contents.on("render-process-gone", () => { if (contents !== getStudio()?.webContents) return; navigationUrl = undefined; invalidate(); });
+    },
+    attach(win) {
       const nativeMode = (value) => {
         if (mode === "island") {return;}
         mode = value; persist(); changed(mode);

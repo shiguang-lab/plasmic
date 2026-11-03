@@ -51,6 +51,10 @@ playwright-report/
 
 # NAS deployment credentials
 /deploy/secrets/
+/deploy/.rollout.lock
+/deploy/.env.pending
+/deploy/edge/default.conf
+/deploy/edge/*.pending
 
 # Agent task scratch directories
 /.agents/

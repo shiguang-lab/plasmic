@@ -1,3 +1,4 @@
+const { studioFixture } = require("./fixtures/studio.cjs");
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
 const Module = require("node:module");
@@ -11,7 +12,7 @@ const { DesktopController } = require("../src/controller.cjs");
 Module._load = original;
 
 test("browser imports retain their source arena and locate the exact mixed-canvas artboard", async () => {
-  const controller = new DesktopController(() => ({ show() {} }), {});
+  const controller = new DesktopController(() => studioFixture({ show() {} }), {});
   controller.ready = async () => {};
   const calls = [];
   controller.editor = async (name, input) => {
@@ -57,7 +58,7 @@ test("browser imports retain their source arena and locate the exact mixed-canva
   controller.close();
 });
 test("the import undo action cannot undo later user edits or a different project", async () => {
-  const controller = new DesktopController(() => ({}), {});
+  const controller = new DesktopController(() => studioFixture({}), {});
   let context = { projectId: "project", changeCounter: 4 };
   let undos = 0;
   controller.editor = async (name) =>

@@ -232,6 +232,7 @@ function fileMenu({
   workspace,
   session,
   getWindow,
+  navigate,
   dialog,
   refresh,
   state: menuState,
@@ -258,7 +259,7 @@ function fileMenu({
           if (state.ready && state.editorContext?.canEdit) {
             await controller.dispatch("execute", { name: "save", input: {} });
           }
-          await getWindow().loadURL(workspace.origin + "/");
+          await navigate(workspace.origin + "/");
         }),
       },
       {

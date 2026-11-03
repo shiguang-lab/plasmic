@@ -61,11 +61,8 @@ it("renders editor chrome before the application context exists", () => {
       .querySelector(".canvas-editor__canvas-container")
       ?.contains(loading),
   ).toBe(true);
-  expect(loading.querySelectorAll(".studio-loading__artboard")).toHaveLength(3);
-  expect(loading.querySelectorAll(".studio-loading__row")).toHaveLength(15);
-  expect(
-    loading.querySelectorAll(".ant-skeleton-active .ant-skeleton-input").length,
-  ).toBeGreaterThan(0);
+  expect(loading.querySelector("svg [data-solid]")).toBeTruthy();
+  expect(loading.querySelector(".ant-skeleton, .studio-loading__artboard")).toBeNull();
   expect(
     container.querySelector(".ant-spin, .studio-loading__spinner"),
   ).toBeNull();
@@ -95,34 +92,12 @@ it("keeps editor chrome and replaces loading with an error and retry", () => {
   expect(screen.queryByRole("status", { name: "Loading project…" })).toBeNull();
 });
 
-it("keeps compact canvas placeholders from inheriting Antd's default input dimensions", () => {
-  const css = readFileSync(resolve(process.cwd(), "public/index.html"), "utf8");
-  const rule = css.match(/\.studio-loading \.ant-skeleton[^{}]*\{[^}]*\}/)?.[0];
-  expect(rule).toBeTruthy();
-  const style = document.createElement("style");
-  style.textContent = rule ?? "";
-  document.head.appendChild(style);
-  try {
-    const { container } = setup("/projects/project");
-    const input = container.querySelector(
-      ".studio-loading__sidebar .ant-skeleton-input",
-    );
-    expect(input).toBeTruthy();
-    expect(getComputedStyle(input as Element).width).toBe("100%");
-    expect(getComputedStyle(input as Element).height).toBe("100%");
-  } finally {
-    style.remove();
-  }
-});
-
 it.each(["/projects/project/preview", "/d/0123456789"])(
   "uses preview loading without a startup boundary for %s",
   (mode) => {
     const { container } = setup(`${mode}#/home`);
-    expect(screen.getByText("Loading preview…")).toBeTruthy();
-    expect(container.querySelectorAll(".preview-loading__page")).toHaveLength(
-      3,
-    );
+    expect(screen.getByRole("status", { name: "Loading preview…" }).querySelector("svg [data-solid]")).toBeTruthy();
+    expect(container.querySelector(".preview-loading__page")).toBeNull();
     expect(container.querySelector(".canvas-editor, .ant-skeleton")).toBeNull();
   },
 );

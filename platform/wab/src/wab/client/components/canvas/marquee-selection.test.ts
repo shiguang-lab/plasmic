@@ -126,6 +126,18 @@ it("excludes partially enclosed, locked, hidden and nonselectable nodes", () => 
   expect(getSelectableLayers(vc, new Box(200, 100, 80, 50))).toEqual([]);
 });
 
+it("measures the frame once per query and rereads its position on the next selection", () => {
+  const { vc, firstVal, secondVal } = setup();
+  const measureFrame = vi.mocked(vc.canvasCtx.viewport().getBoundingClientRect);
+  measureFrame.mockClear();
+  expect(getSelectableLayers(vc, new Box(200, 100, 100, 50))).toEqual([firstVal, secondVal]);
+  expect(measureFrame).toHaveBeenCalledTimes(1);
+  measureFrame.mockReturnValue(new DOMRect(400, 200, 1000, 1000));
+  expect(getSelectableLayers(vc, new Box(200, 100, 100, 50))).toEqual([]);
+  expect(getSelectableLayers(vc, new Box(200, 400, 100, 50))).toEqual([firstVal, secondVal]);
+  expect(measureFrame).toHaveBeenCalledTimes(3);
+});
+
 it("selects a container without also selecting its children", () => {
   const { vc, root, firstVal, secondVal, measure } = setup();
   // The page root remains excluded, even if the entire artboard is enclosed.
