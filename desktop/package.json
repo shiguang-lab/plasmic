@@ -51,7 +51,8 @@
     "electron-builder": "26.15.3",
     "jsdom": "26.1.0",
     "esbuild": "0.28.2",
-    "@modelcontextprotocol/sdk": "1.32.0"
+    "@modelcontextprotocol/sdk": "1.32.0",
+    "@electron/asar": "3.4.1"
   },
   "dependencies": {
     "builder-util-runtime": "9.7.0",
