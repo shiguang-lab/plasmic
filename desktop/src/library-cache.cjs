@@ -10,6 +10,7 @@ class FileResourceStore {
     Object.assign(this, { directory, maxBytes });
     this.active = new Map();
     this.queue = Promise.resolve();
+    this.lastUsed = 0;
   }
   run(work) {
     const result = this.queue.then(work);
@@ -27,6 +28,12 @@ class FileResourceStore {
       if (count > 1) this.active.set(file, count - 1);
       else this.active.delete(file);
     };
+  }
+  async touch(file) {
+    // Preserve ordering when consecutive accesses share a filesystem clock tick.
+    this.lastUsed = Math.max(Date.now(), this.lastUsed + 1);
+    const seconds = this.lastUsed / 1000;
+    await fs.utimes(file, seconds, seconds);
   }
   async read(scope, kind, key, check) {
     const file = this.file(scope, kind, key);
@@ -50,7 +57,7 @@ class FileResourceStore {
       const body = bytes.subarray(4 + length);
       if (stored.key !== key || stored.digest !== contentDigest(stored.key, stored.headers, body)) throw new Error("Invalid library cache contents");
       check();
-      await fs.utimes(file, new Date(), new Date()).catch(() => {});
+      await this.touch(file).catch(() => {});
       return { body, headers: stored.headers };
     } catch {
       check();
@@ -78,6 +85,7 @@ class FileResourceStore {
         } finally { await handle.close(); }
         check();
         await fs.rename(temporary, file);
+        await this.touch(file);
         await fs.rm(file.replace(/\.bin$/, ".json"), { force: true });
         await this.prune();
       } finally { await fs.rm(temporary, { force: true }); }
