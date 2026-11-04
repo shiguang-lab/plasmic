@@ -1,4 +1,6 @@
 // Real model payloads, private files, no credentials/network or product writes.
+// Node-only transport double; use native-series for actual Electron timing.
+require("../fixtures/background.cjs");
 const fs = require("node:fs/promises");
 const path = require("node:path");
 const { randomUUID } = require("node:crypto");
@@ -31,15 +33,19 @@ async function main() {
       const Store = variant === "before" ? Before : After, store = new Store(directory);
       const wanted = scenario === "empty-project" ? { ...scope, projectId: "no-drafts" } : scope;
       let reads = 0;
-      const readDraft = store.readDraft.bind(store);
-      store.readDraft = async file => { reads++; return readDraft(file); };
+      if (store.readDraft) {
+        const readDraft = store.readDraft.bind(store);
+        store.readDraft = async file => { reads++; return readDraft(file); };
+      }
       const start = performance.now(), entries = await store.list(wanted, scenario === "all-projects");
       const ms = performance.now() - start;
       assert.equal(entries.length, scenario === "all-projects" ? 17 : scenario === "empty-project" ? 0 : 1);
+      reads = store.readDraft ? reads : store.summaries.size;
       const coldReads = reads, warmStart = performance.now();
       const again = await store.list(wanted, scenario === "all-projects");
       assert.deepEqual(again, entries);
-      result.samples.push({ variant, scenario, ms, coldReads, warmMs: performance.now() - warmStart, warmReads: reads - coldReads });
+      result.samples.push({ variant, scenario, ms, coldReads, warmMs: performance.now() - warmStart, warmReads: store.readDraft ? reads - coldReads : store.summaries.size - coldReads });
+      await store.close?.();
     }
   }
   result.bytes = (await Promise.all((await fs.readdir(writer.scope(scope))).map(async file => (await fs.stat(path.join(writer.scope(scope), file))).size))).reduce((a,b) => a+b, 0);

@@ -1,4 +1,4 @@
-import { AiMarkdown } from "@/wab/client/components/copilot/AiMarkdown";
+import { AiMarkdown } from "@/wab/client/components/copilot/AiMarkdownContent";
 import { copyToClipboard } from "@shiguang2/components/esm/x-markdown/utils/clipboard";
 import "@testing-library/jest-dom/vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";

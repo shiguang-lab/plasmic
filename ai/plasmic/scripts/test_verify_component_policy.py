@@ -5,7 +5,7 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from verify_component_policy import APP_SOURCE, BASELINES, check_page, plan_errors, policy_errors, search_form_span
+from verify_component_policy import BASELINES, check_page, plan_errors, policy_errors, search_form_span
 
 
 def node(name, component, values=None):
@@ -185,21 +185,29 @@ class PolicyTests(unittest.TestCase):
             'appSource': '{{ $state.appSource }}', 'onAppSourceChange': '{{ value => $state.appSource = value }}'}) + node(
             'Results', 'plasmic-antd6-table', {'pagination': False, 'data': '{{ {data:$state.rows.filter(row => row.app_source === $state.appSource)} }}'})
 
-    def test_app_source_aliases_require_semantic_context_review(self):
-        for name in ['App 来源', 'App Source', 'app_source', 'appSource', 'APP-SOURCE', '应用来源',
-                     'appId', 'app_id', 'application_id', 'app_name', '应用标识', '应用名称', '多 App']:
-            self.assertTrue(APP_SOURCE.search(name), name)
-            plan = self.context_plan(self.evidence('当前上下文按 ' + name + ' 区分 App。'))
-            self.assertEqual(plan_errors(plan), [])
-            plan['appContext']['required'] = False
-            self.assertTrue(plan_errors(plan), name)
+    def test_product_titles_and_equivalent_switcher_exclusions_are_source_review_decisions(self):
+        for text in [
+            '应用名称：报销系统。应用名称是产品标题，所有数据属于同一固定应用。',
+            '应用名称仅为表格只读字段，页面沿用既有单应用外壳，全局无须切换应用。',
+            '应用名称仅为表格只读字段，页面沿用既有单应用外壳，全局不要提供切换应用。',
+            'Application name: Expenses. This is a product title, not a working App dimension.',
+        ]:
+            with self.subTest(text=text):
+                plan = {'components': [{'nodeName': 'Shell', 'component': 'plasmic-overseas-app-shell', 'role': 'shell'}],
+                        'appContext': {'required': False, 'evidence': self.evidence(text)}}
+                self.assertEqual(plan_errors(plan), [])
+                plan['appContext']['evidence']['quote'] = 'Not in the authoritative source'
+                self.assertTrue(plan_errors(plan))
 
-    def test_excluding_form_filters_does_not_disable_global_switcher(self):
+    def test_required_context_still_checks_contracts_when_form_filters_are_excluded(self):
         plan = self.context_plan(self.evidence('页面无 App 来源筛选项，app_source 由入口带入。'))
-        plan['appContext']['required'] = False
-        self.assertTrue(plan_errors(plan))
-        plan['appContext']['evidence'] = self.evidence('当前用户明确要求顶部隐藏 AppSource 切换。')
         self.assertEqual(plan_errors(plan), [])
+        for field in ('shell', 'binding', 'consumers', 'cases'):
+            with self.subTest(field=field):
+                value = plan['appContext'].pop(field)
+                self.assertTrue(plan_errors(plan))
+                plan['appContext'][field] = value
+        self.assertTrue(check_page(plan, self.page(node('Shell', 'plasmic-overseas-app-shell', {'appSources': []}))))
 
     def test_shell_requires_a_decision_even_before_an_empty_array_is_written(self):
         plan = self.context_plan(self.evidence('app_source 是当前工作 App。'))

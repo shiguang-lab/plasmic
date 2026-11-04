@@ -15,8 +15,8 @@ const mocks = vi.hoisted(() => ({
   exec: vi.fn(),
   push: vi.fn(),
 }));
-vi.mock("@/wab/client/contexts/AppContexts", () => ({
-  useTopFrameApi: () => mocks.api,
+vi.mock("@/wab/client/frame-ctx/host-frame-ctx", () => ({
+  useHostFrameCtx: () => ({ revealStudio: mocks.api.setStudioReady }),
 }));
 vi.mock("@/wab/client/components/live/live-syncer", () => ({
   onLoadInjectLiveRuntime: mocks.load,

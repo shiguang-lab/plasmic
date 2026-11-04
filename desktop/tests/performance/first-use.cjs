@@ -10,9 +10,9 @@ app.whenReady().then(async () => {
   const delay = monitorEventLoopDelay({ resolution: 1 }); delay.enable();
   await new Promise(resolve => setTimeout(resolve, 20));
   let start = performance.now();
-  // The MCP server runs in its own stdio process. This measures module/validator
-  // setup only; transport and desktop RPC have separate regression tests.
-  if (feature === "server") require(path.join(root, "src/mcp.cjs"));
+  // Desktop has no in-process MCP runtime. Measure launch configuration only;
+  // mcp-bridge.cjs measures the actual native bridge in a separate process.
+  if (feature === "server") require(path.join(root, "src/mcp-launch.cjs")).mcpLaunch({isPackaged:false});
   const serverSetupMs = performance.now() - start;
   start = performance.now();
   const images = await Promise.all([encodeImagePreview(png), encodeImagePreview(png)]);

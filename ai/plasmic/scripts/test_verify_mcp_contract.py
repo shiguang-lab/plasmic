@@ -44,7 +44,7 @@ class ContractTests(unittest.TestCase):
                     del fields[missing]
                 self.assertFalse(check(self.state, tool_list)["passed"])
 
-    def run_cli(self, source, tool_list):
+    def run_cli(self, source, tool_list, capabilities=()):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             (root / "state.json").write_text(json.dumps(self.state), encoding="utf-8")
@@ -52,6 +52,8 @@ class ContractTests(unittest.TestCase):
             report_path = root / "report.json"
             argv = ["verify_mcp_contract.py", source, str(root / "state.json"),
                     "--tools", str(root / "tools.json"), "--report", str(report_path)]
+            for capability in capabilities:
+                argv.extend(["--require-capability", capability])
             output = io.StringIO()
             with patch("sys.argv", argv), contextlib.redirect_stdout(output), self.assertRaises(SystemExit) as exit_result:
                 main()
@@ -81,15 +83,39 @@ class ContractTests(unittest.TestCase):
 
     def test_source_free_reference_browser_cannot_pass_preflight(self):
         self.state["runtimeCapabilities"]["reference_browser"].append("open")
-        report = check(self.state, self.tool_list)
+        self.assertTrue(check(self.state, self.tool_list)['passed'])
+        report = check(self.state, self.tool_list, ["reference_browser"])
         self.assertFalse(report["passed"])
         self.assertIn("source-free open", " ".join(report["errors"]))
 
-    def test_missing_runtime_interaction_or_reference_bridge_is_rejected(self):
+    def test_missing_required_runtime_interaction_or_reference_bridge_is_rejected(self):
         for name in self.state["runtimeCapabilities"]:
             state = copy.deepcopy(self.state)
             state["runtimeCapabilities"][name] = []
-            self.assertFalse(check(state, self.tool_list)["passed"])
+            required = [] if name == "preview" else [name]
+            self.assertFalse(check(state, self.tool_list, required)["passed"])
+
+    def test_native_work_does_not_require_unrelated_reference_bridges(self):
+        self.state['runtimeCapabilities'] = {'preview': self.state['runtimeCapabilities']['preview']}
+        code, report = self.run_cli('--state', self.tool_list)
+        self.assertEqual(code, 0)
+        self.assertEqual(report['checkedCapabilities'], ['preview'])
+        for capability in ('design_reference', 'reference_browser', 'import_reference'):
+            code, report = self.run_cli('--state', self.tool_list, [capability])
+            self.assertEqual(code, 1)
+            self.assertIn(capability, ' '.join(report['errors']))
+
+    def test_reference_requirements_are_explicit_and_composable(self):
+        selected = ['design_reference', 'reference_browser', 'import_reference']
+        code, report = self.run_cli('--state', self.tool_list, selected)
+        self.assertEqual(code, 0)
+        self.assertEqual(report['checkedCapabilities'], sorted(['preview'] + selected))
+        code, report = self.run_cli('--state', self.tool_list, ['import_reference'])
+        self.assertEqual(code, 0)
+        self.assertEqual(report['checkedCapabilities'], ['import_reference', 'preview', 'reference_browser'])
+        for invalid in ('import_reference', ['unknown']):
+            with self.assertRaises(ValueError):
+                check(self.state, self.tool_list, invalid)
 
     def test_old_candidate_contract_cannot_pass_current_resources(self):
         for tool in ("read", "queryElements"):

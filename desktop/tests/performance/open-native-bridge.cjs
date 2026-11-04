@@ -11,7 +11,7 @@ exports.install = async ({ task, mode, origin, startup, ipcMain, getWindow, repo
   const directory = path.join(task, "native-" + mode);
   await fs.mkdir(directory, { recursive: true, mode: 0o700 });
   const workspace = new DesktopWorkspace(directory, origin);
-  const store = new DesktopDraftStore(path.join(directory, "drafts"));
+  let store = new DesktopDraftStore(path.join(directory, "drafts"));
   const scope = { origin, userId: startup.selfInfo.user.id, projectId: startup.projectId, branchId: null };
   const metrics = report.native = { scenario: process.env.PERF_OPEN_NATIVE, calls: [], checks: [] };
   const unrelated = Number(process.env.PERF_OPEN_NATIVE_OTHER || 0);
@@ -26,14 +26,18 @@ exports.install = async ({ task, mode, origin, startup, ipcMain, getWindow, repo
     };
     for (let i = 0; i < unrelated; i++) {
       const projectId = "unrelated-" + i;
-      await store.write({ ...scope, projectId }, { ...payload, projectId, id: randomUUID() });
+      const value = { ...payload, projectId, id: randomUUID() };
+      await store.write({ ...scope, projectId }, process.env.PERF_DESKTOP_ROOT ? value : new TextEncoder().encode(JSON.stringify(value)));
     }
-    store.summaries.clear();
+    if (store.close) { await store.close(); store = new DesktopDraftStore(path.join(directory, "drafts")); }
+    else store.summaries.clear();
   }
   metrics.unrelatedProjects = unrelated;
   let payloadReads = 0;
-  const readDraft = store.readDraft.bind(store);
-  store.readDraft = async file => { payloadReads++; return readDraft(file); };
+  if (store.readDraft) {
+    const readDraft = store.readDraft.bind(store);
+    store.readDraft = async file => { payloadReads++; return readDraft(file); };
+  }
   report.scope = report.scope.replace("native draft bridge, ", "") + " Native IPC uses production draft/workspace classes with a fixture identity, not live authentication.";
   let expected, originalName, savedView;
   const handler = createDraftHandler({
@@ -45,7 +49,7 @@ exports.install = async ({ task, mode, origin, startup, ipcMain, getWindow, repo
   ipcMain.handle("desktop:drafts", async (event, command, input) => {
     const start = performance.now(), readsBefore = payloadReads;
     const result = await handler.command(event, command, input);
-    metrics.calls.push({ command, ms: performance.now() - start, payloadReads: payloadReads - readsBefore, drafts: command === "open" ? result.drafts.length : undefined });
+    metrics.calls.push({ command, ms: performance.now() - start, payloadReads: store.readDraft ? payloadReads - readsBefore : null, drafts: command === "open" ? result.drafts.length : undefined });
     return result;
   });
   ipcMain.handle("desktop:saved-editor-view", (event, projectId) => {
@@ -56,8 +60,8 @@ exports.install = async ({ task, mode, origin, startup, ipcMain, getWindow, repo
     reload: metrics.scenario !== "empty",
     preload: `contextBridge.exposeInMainWorld('desktopDrafts',{
       open:(userId,projectId,branchId)=>ipcRenderer.invoke('desktop:drafts','open',{userId,projectId,branchId}),
-      read:(handle,id)=>ipcRenderer.invoke('desktop:drafts','read',{handle,id}),
-      write:(handle,draftJson)=>ipcRenderer.invoke('desktop:drafts','write',{handle,draftJson}),
+      read:async(handle,id)=>{const value=await ipcRenderer.invoke('desktop:drafts','read',{handle,id});return value instanceof Uint8Array?JSON.parse(new TextDecoder().decode(value)):value;},
+      write:(handle,draftJson)=>ipcRenderer.invoke('desktop:drafts','write',{handle,${process.env.PERF_DESKTOP_ROOT ? 'draftJson' : 'draftData:new TextEncoder().encode(draftJson)'}}),
       remove:(handle,id,sequence)=>ipcRenderer.invoke('desktop:drafts','remove',{handle,id,sequence})
     });contextBridge.exposeInMainWorld('desktopEnvironment',{getSavedEditorView:projectId=>ipcRenderer.invoke('desktop:saved-editor-view',projectId)});`,
     async afterOpen(frame, iteration) {
@@ -85,8 +89,10 @@ exports.install = async ({ task, mode, origin, startup, ipcMain, getWindow, repo
           })()`);
           if (metrics.scenario === "conflict") {
             const [summary] = await store.list(scope);
-            const draft = await store.read(scope, summary.id);
-            await store.write(scope, { ...draft, baseRevision: draft.baseRevision + 1, sequence: draft.sequence + 1 });
+            const stored = await store.read(scope, summary.id);
+            const draft = stored instanceof Uint8Array ? JSON.parse(new TextDecoder().decode(stored)) : stored;
+            const changed = { ...draft, baseRevision: draft.baseRevision + 1, sequence: draft.sequence + 1 };
+            await store.write(scope, process.env.PERF_DESKTOP_ROOT ? changed : new TextEncoder().encode(JSON.stringify(changed)));
           }
         }
       } else {

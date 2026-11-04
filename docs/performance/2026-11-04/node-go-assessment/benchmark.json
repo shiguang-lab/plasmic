@@ -1,0 +1,2670 @@
+{
+  "runtime": {
+    "node": "24.20.0",
+    "acorn": "8.18.0",
+    "ada": "4.0.0",
+    "amaro": "1.1.11",
+    "ares": "1.34.8",
+    "brotli": "1.2.0",
+    "cldr": "48.0",
+    "icu": "78.3",
+    "llhttp": "9.4.3",
+    "merve": "1.2.2",
+    "modules": "137",
+    "napi": "10",
+    "nbytes": "0.1.4",
+    "ncrypto": "0.0.1",
+    "nghttp2": "1.70.0",
+    "nghttp3": "",
+    "ngtcp2": "",
+    "openssl": "3.5.7",
+    "simdjson": "4.6.6",
+    "simdutf": "6.4.0",
+    "sqlite": "3.53.4",
+    "tz": "2026c",
+    "undici": "7.29.0",
+    "unicode": "17.0",
+    "uv": "1.52.1",
+    "uvwasi": "0.0.23",
+    "v8": "13.6.233.17-node.53",
+    "zlib": "1.3.2.1-motley-42c2f19",
+    "zstd": "1.5.7"
+  },
+  "platform": "darwin",
+  "arch": "arm64",
+  "cpu": "Apple M4",
+  "method": "Synthetic production-function microbenchmarks; one fresh process per case/mode; cold then 3 warm operations; serial; no forced GC; worker full input/output structured clone; OS file cache uncontrolled. RSS is total process working set, not physical footprint or App total. Timer max is scheduling delay, not UI frame time.",
+  "cases": [
+    {
+      "name": "trace-256",
+      "kind": "trace",
+      "pixels": 65536,
+      "modes": {
+        "main": {
+          "samples": [
+            {
+              "round": 0,
+              "cold": true,
+              "ms": 51.785124999999994,
+              "cpuMs": 91.607,
+              "maxLoopDelayMs": 50.895917,
+              "rssMiB": 71,
+              "heapUsedMiB": 5.701896667480469,
+              "digest": "8202a4692e4ace8fa1cc41ef63eb5154efd804aa4e1e01f7d796fca058a4ce98"
+            },
+            {
+              "round": 1,
+              "cold": false,
+              "ms": 30.078417,
+              "cpuMs": 48.833,
+              "maxLoopDelayMs": 30.453374999999994,
+              "rssMiB": 79.765625,
+              "heapUsedMiB": 10.339645385742188,
+              "digest": "8202a4692e4ace8fa1cc41ef63eb5154efd804aa4e1e01f7d796fca058a4ce98"
+            },
+            {
+              "round": 2,
+              "cold": false,
+              "ms": 24.639542000000006,
+              "cpuMs": 29.141,
+              "maxLoopDelayMs": 25.024333000000013,
+              "rssMiB": 80.5,
+              "heapUsedMiB": 7.832801818847656,
+              "digest": "8202a4692e4ace8fa1cc41ef63eb5154efd804aa4e1e01f7d796fca058a4ce98"
+            },
+            {
+              "round": 3,
+              "cold": false,
+              "ms": 26.213750000000005,
+              "cpuMs": 37.308,
+              "maxLoopDelayMs": 26.628667000000007,
+              "rssMiB": 83.3125,
+              "heapUsedMiB": 5.786674499511719,
+              "digest": "8202a4692e4ace8fa1cc41ef63eb5154efd804aa4e1e01f7d796fca058a4ce98"
+            }
+          ],
+          "positiveControlMs": 100.656,
+          "memoryBefore": {
+            "rss": 52117504,
+            "heapTotal": 7929856,
+            "heapUsed": 5353496,
+            "external": 2536464,
+            "arrayBuffers": 153849
+          },
+          "maxRssKiB": 85440
+        },
+        "worker": {
+          "samples": [
+            {
+              "round": 0,
+              "cold": true,
+              "ms": 89.15716700000002,
+              "cpuMs": 135.212,
+              "maxLoopDelayMs": 2.0907499999999857,
+              "rssMiB": 86.375,
+              "heapUsedMiB": 5.8634033203125,
+              "digest": "8202a4692e4ace8fa1cc41ef63eb5154efd804aa4e1e01f7d796fca058a4ce98"
+            },
+            {
+              "round": 1,
+              "cold": false,
+              "ms": 35.84133300000002,
+              "cpuMs": 74.021,
+              "maxLoopDelayMs": 0.413332999999966,
+              "rssMiB": 95.546875,
+              "heapUsedMiB": 5.9439697265625,
+              "digest": "8202a4692e4ace8fa1cc41ef63eb5154efd804aa4e1e01f7d796fca058a4ce98"
+            },
+            {
+              "round": 2,
+              "cold": false,
+              "ms": 21.05445800000001,
+              "cpuMs": 27.503,
+              "maxLoopDelayMs": 0.6442910000000097,
+              "rssMiB": 96.984375,
+              "heapUsedMiB": 6.03369140625,
+              "digest": "8202a4692e4ace8fa1cc41ef63eb5154efd804aa4e1e01f7d796fca058a4ce98"
+            },
+            {
+              "round": 3,
+              "cold": false,
+              "ms": 29.12279099999995,
+              "cpuMs": 32.518,
+              "maxLoopDelayMs": 0.42379099999999426,
+              "rssMiB": 106.609375,
+              "heapUsedMiB": 6.105659484863281,
+              "digest": "8202a4692e4ace8fa1cc41ef63eb5154efd804aa4e1e01f7d796fca058a4ce98"
+            }
+          ],
+          "positiveControlMs": 100.55325,
+          "memoryBefore": {
+            "rss": 52232192,
+            "heapTotal": 8192000,
+            "heapUsed": 5364296,
+            "external": 2536468,
+            "arrayBuffers": 153853
+          },
+          "maxRssKiB": 109200
+        }
+      },
+      "parity": true
+    },
+    {
+      "name": "trace-1024",
+      "kind": "trace",
+      "pixels": 1048576,
+      "modes": {
+        "main": {
+          "samples": [
+            {
+              "round": 0,
+              "cold": true,
+              "ms": 377.731667,
+              "cpuMs": 469.188,
+              "maxLoopDelayMs": 378.08504100000005,
+              "rssMiB": 245,
+              "heapUsedMiB": 68.87423706054688,
+              "digest": "4e21f7a0dec3c3b24c39b56e9f5e655bc24d399f9043ad59908486774cce2847"
+            },
+            {
+              "round": 1,
+              "cold": false,
+              "ms": 278.04158299999995,
+              "cpuMs": 297.561,
+              "maxLoopDelayMs": 278.447584,
+              "rssMiB": 261.28125,
+              "heapUsedMiB": 6.984184265136719,
+              "digest": "4e21f7a0dec3c3b24c39b56e9f5e655bc24d399f9043ad59908486774cce2847"
+            },
+            {
+              "round": 2,
+              "cold": false,
+              "ms": 388.4295420000001,
+              "cpuMs": 400.214,
+              "maxLoopDelayMs": 388.884458,
+              "rssMiB": 262.734375,
+              "heapUsedMiB": 7.0468292236328125,
+              "digest": "4e21f7a0dec3c3b24c39b56e9f5e655bc24d399f9043ad59908486774cce2847"
+            },
+            {
+              "round": 3,
+              "cold": false,
+              "ms": 451.40487499999995,
+              "cpuMs": 437.581,
+              "maxLoopDelayMs": 451.4359999999999,
+              "rssMiB": 263.671875,
+              "heapUsedMiB": 7.067558288574219,
+              "digest": "4e21f7a0dec3c3b24c39b56e9f5e655bc24d399f9043ad59908486774cce2847"
+            }
+          ],
+          "positiveControlMs": 100.54162500000001,
+          "memoryBefore": {
+            "rss": 52641792,
+            "heapTotal": 7929856,
+            "heapUsed": 5365680,
+            "external": 2832178,
+            "arrayBuffers": 449563
+          },
+          "maxRssKiB": 270416
+        },
+        "worker": {
+          "samples": [
+            {
+              "round": 0,
+              "cold": true,
+              "ms": 437.09112500000003,
+              "cpuMs": 578.023,
+              "maxLoopDelayMs": 2.1051669999999945,
+              "rssMiB": 248.484375,
+              "heapUsedMiB": 6.868560791015625,
+              "digest": "4e21f7a0dec3c3b24c39b56e9f5e655bc24d399f9043ad59908486774cce2847"
+            },
+            {
+              "round": 1,
+              "cold": false,
+              "ms": 333.2688340000001,
+              "cpuMs": 357.018,
+              "maxLoopDelayMs": 1.468332999999916,
+              "rssMiB": 267.3125,
+              "heapUsedMiB": 7.429100036621094,
+              "digest": "4e21f7a0dec3c3b24c39b56e9f5e655bc24d399f9043ad59908486774cce2847"
+            },
+            {
+              "round": 2,
+              "cold": false,
+              "ms": 302.668042,
+              "cpuMs": 318.32,
+              "maxLoopDelayMs": 0.733417000000145,
+              "rssMiB": 295.375,
+              "heapUsedMiB": 5.805122375488281,
+              "digest": "4e21f7a0dec3c3b24c39b56e9f5e655bc24d399f9043ad59908486774cce2847"
+            },
+            {
+              "round": 3,
+              "cold": false,
+              "ms": 278.7371660000001,
+              "cpuMs": 286.252,
+              "maxLoopDelayMs": 0.4825829999999769,
+              "rssMiB": 315.109375,
+              "heapUsedMiB": 6.294212341308594,
+              "digest": "4e21f7a0dec3c3b24c39b56e9f5e655bc24d399f9043ad59908486774cce2847"
+            }
+          ],
+          "positiveControlMs": 99.353375,
+          "memoryBefore": {
+            "rss": 52461568,
+            "heapTotal": 7929856,
+            "heapUsed": 5366712,
+            "external": 2832186,
+            "arrayBuffers": 449571
+          },
+          "maxRssKiB": 323504
+        }
+      },
+      "parity": true
+    },
+    {
+      "name": "preview-1024",
+      "kind": "preview",
+      "pixels": 1048576,
+      "modes": {
+        "main": {
+          "samples": [
+            {
+              "round": 0,
+              "cold": true,
+              "ms": 71.89695800000001,
+              "cpuMs": 59.107,
+              "maxLoopDelayMs": 43.417666,
+              "rssMiB": 87.828125,
+              "heapUsedMiB": 7.361846923828125,
+              "digest": "0d93af9430b2e54ff517a8015ae64857cc313ab56562a4765a70c088a586cbf0"
+            },
+            {
+              "round": 1,
+              "cold": false,
+              "ms": 28.934582999999975,
+              "cpuMs": 29.628,
+              "maxLoopDelayMs": 0.8208329999999933,
+              "rssMiB": 89.71875,
+              "heapUsedMiB": 7.467048645019531,
+              "digest": "0d93af9430b2e54ff517a8015ae64857cc313ab56562a4765a70c088a586cbf0"
+            },
+            {
+              "round": 2,
+              "cold": false,
+              "ms": 26.76162499999998,
+              "cpuMs": 27.781,
+              "maxLoopDelayMs": 0.658834000000013,
+              "rssMiB": 90.21875,
+              "heapUsedMiB": 6.781883239746094,
+              "digest": "0d93af9430b2e54ff517a8015ae64857cc313ab56562a4765a70c088a586cbf0"
+            },
+            {
+              "round": 3,
+              "cold": false,
+              "ms": 28.078542000000027,
+              "cpuMs": 28.75,
+              "maxLoopDelayMs": 0.8554579999999987,
+              "rssMiB": 90.28125,
+              "heapUsedMiB": 6.892112731933594,
+              "digest": "0d93af9430b2e54ff517a8015ae64857cc313ab56562a4765a70c088a586cbf0"
+            }
+          ],
+          "positiveControlMs": 100.422709,
+          "memoryBefore": {
+            "rss": 52396032,
+            "heapTotal": 8454144,
+            "heapUsed": 5356720,
+            "external": 2832190,
+            "arrayBuffers": 449575
+          },
+          "maxRssKiB": 92448
+        },
+        "worker": {
+          "samples": [
+            {
+              "round": 0,
+              "cold": true,
+              "ms": 85.074625,
+              "cpuMs": 88.369,
+              "maxLoopDelayMs": 2.9118749999999807,
+              "rssMiB": 103.25,
+              "heapUsedMiB": 6.582862854003906,
+              "digest": "0d93af9430b2e54ff517a8015ae64857cc313ab56562a4765a70c088a586cbf0"
+            },
+            {
+              "round": 1,
+              "cold": false,
+              "ms": 28.293082999999967,
+              "cpuMs": 29.517,
+              "maxLoopDelayMs": 0.4039579999999887,
+              "rssMiB": 110.140625,
+              "heapUsedMiB": 6.66778564453125,
+              "digest": "0d93af9430b2e54ff517a8015ae64857cc313ab56562a4765a70c088a586cbf0"
+            },
+            {
+              "round": 2,
+              "cold": false,
+              "ms": 29.47508300000004,
+              "cpuMs": 30.046,
+              "maxLoopDelayMs": 0.9532080000000178,
+              "rssMiB": 111.1875,
+              "heapUsedMiB": 6.753013610839844,
+              "digest": "0d93af9430b2e54ff517a8015ae64857cc313ab56562a4765a70c088a586cbf0"
+            },
+            {
+              "round": 3,
+              "cold": false,
+              "ms": 31.487959000000046,
+              "cpuMs": 32.929,
+              "maxLoopDelayMs": 0.7732920000000263,
+              "rssMiB": 111.265625,
+              "heapUsedMiB": 6.8300628662109375,
+              "digest": "0d93af9430b2e54ff517a8015ae64857cc313ab56562a4765a70c088a586cbf0"
+            }
+          ],
+          "positiveControlMs": 99.167041,
+          "memoryBefore": {
+            "rss": 52576256,
+            "heapTotal": 7929856,
+            "heapUsed": 5356152,
+            "external": 2832198,
+            "arrayBuffers": 449583
+          },
+          "maxRssKiB": 114080
+        }
+      },
+      "parity": true
+    },
+    {
+      "name": "preview-2048",
+      "kind": "preview",
+      "pixels": 4194304,
+      "modes": {
+        "main": {
+          "samples": [
+            {
+              "round": 0,
+              "cold": true,
+              "ms": 147.657666,
+              "cpuMs": 153.194,
+              "maxLoopDelayMs": 20.62104100000002,
+              "rssMiB": 115.640625,
+              "heapUsedMiB": 6.82794189453125,
+              "digest": "52c14a6adcebf673385c646ca3bbb4a31c6e30f0e448c9f38c3c04c0caf182de"
+            },
+            {
+              "round": 1,
+              "cold": false,
+              "ms": 121.26404199999996,
+              "cpuMs": 123.558,
+              "maxLoopDelayMs": 1.6445830000000115,
+              "rssMiB": 118.765625,
+              "heapUsedMiB": 7.1990509033203125,
+              "digest": "52c14a6adcebf673385c646ca3bbb4a31c6e30f0e448c9f38c3c04c0caf182de"
+            },
+            {
+              "round": 2,
+              "cold": false,
+              "ms": 110.96858299999997,
+              "cpuMs": 112.529,
+              "maxLoopDelayMs": 1.736291000000051,
+              "rssMiB": 121.796875,
+              "heapUsedMiB": 7.468025207519531,
+              "digest": "52c14a6adcebf673385c646ca3bbb4a31c6e30f0e448c9f38c3c04c0caf182de"
+            },
+            {
+              "round": 3,
+              "cold": false,
+              "ms": 114.90987499999994,
+              "cpuMs": 116.722,
+              "maxLoopDelayMs": 0.81512500000008,
+              "rssMiB": 122.703125,
+              "heapUsedMiB": 6.86102294921875,
+              "digest": "52c14a6adcebf673385c646ca3bbb4a31c6e30f0e448c9f38c3c04c0caf182de"
+            }
+          ],
+          "positiveControlMs": 100.270542,
+          "memoryBefore": {
+            "rss": 53510144,
+            "heapTotal": 8192000,
+            "heapUsed": 5378816,
+            "external": 3737720,
+            "arrayBuffers": 1355105
+          },
+          "maxRssKiB": 125648
+        },
+        "worker": {
+          "samples": [
+            {
+              "round": 0,
+              "cold": true,
+              "ms": 160.161917,
+              "cpuMs": 171.109,
+              "maxLoopDelayMs": 2.141999999999996,
+              "rssMiB": 133.5625,
+              "heapUsedMiB": 6.064788818359375,
+              "digest": "52c14a6adcebf673385c646ca3bbb4a31c6e30f0e448c9f38c3c04c0caf182de"
+            },
+            {
+              "round": 1,
+              "cold": false,
+              "ms": 106.128625,
+              "cpuMs": 108.614,
+              "maxLoopDelayMs": 1.2585829999999874,
+              "rssMiB": 135.46875,
+              "heapUsedMiB": 6.31744384765625,
+              "digest": "52c14a6adcebf673385c646ca3bbb4a31c6e30f0e448c9f38c3c04c0caf182de"
+            },
+            {
+              "round": 2,
+              "cold": false,
+              "ms": 98.43299999999999,
+              "cpuMs": 101.039,
+              "maxLoopDelayMs": 0.34437500000001364,
+              "rssMiB": 138.28125,
+              "heapUsedMiB": 6.58721923828125,
+              "digest": "52c14a6adcebf673385c646ca3bbb4a31c6e30f0e448c9f38c3c04c0caf182de"
+            },
+            {
+              "round": 3,
+              "cold": false,
+              "ms": 122.42033399999991,
+              "cpuMs": 133.18,
+              "maxLoopDelayMs": 0.5502920000000131,
+              "rssMiB": 142.890625,
+              "heapUsedMiB": 6.866722106933594,
+              "digest": "52c14a6adcebf673385c646ca3bbb4a31c6e30f0e448c9f38c3c04c0caf182de"
+            }
+          ],
+          "positiveControlMs": 100.446833,
+          "memoryBefore": {
+            "rss": 53428224,
+            "heapTotal": 7929856,
+            "heapUsed": 5377240,
+            "external": 3737728,
+            "arrayBuffers": 1355113
+          },
+          "maxRssKiB": 146480
+        }
+      },
+      "parity": true
+    },
+    {
+      "name": "vector-2",
+      "kind": "vector",
+      "paths": 2,
+      "modes": {
+        "main": {
+          "samples": [
+            {
+              "round": 0,
+              "cold": true,
+              "ms": 338.72850000000005,
+              "cpuMs": 245.208,
+              "maxLoopDelayMs": 341.282834,
+              "rssMiB": 145.21875,
+              "heapUsedMiB": 30.981918334960938,
+              "digest": "df43bf61f12bbfe97d36afc69342bf50b07bf8d1573ef1d80b2b9a7156da93ef"
+            },
+            {
+              "round": 1,
+              "cold": false,
+              "ms": 2.7262909999999465,
+              "cpuMs": 4.055,
+              "maxLoopDelayMs": 3.0551659999999856,
+              "rssMiB": 145.5625,
+              "heapUsedMiB": 32.06609344482422,
+              "digest": "df43bf61f12bbfe97d36afc69342bf50b07bf8d1573ef1d80b2b9a7156da93ef"
+            },
+            {
+              "round": 2,
+              "cold": false,
+              "ms": 1.3395420000000513,
+              "cpuMs": 2.201,
+              "maxLoopDelayMs": 1.7112910000000738,
+              "rssMiB": 145.9375,
+              "heapUsedMiB": 23.557571411132812,
+              "digest": "df43bf61f12bbfe97d36afc69342bf50b07bf8d1573ef1d80b2b9a7156da93ef"
+            },
+            {
+              "round": 3,
+              "cold": false,
+              "ms": 2.86262499999998,
+              "cpuMs": 4.352,
+              "maxLoopDelayMs": 3.847500000000082,
+              "rssMiB": 149.859375,
+              "heapUsedMiB": 24.610000610351562,
+              "digest": "df43bf61f12bbfe97d36afc69342bf50b07bf8d1573ef1d80b2b9a7156da93ef"
+            }
+          ],
+          "positiveControlMs": 99.1655,
+          "memoryBefore": {
+            "rss": 52101120,
+            "heapTotal": 8454144,
+            "heapUsed": 5349640,
+            "external": 2526592,
+            "arrayBuffers": 143977
+          },
+          "maxRssKiB": 153456
+        },
+        "worker": {
+          "samples": [
+            {
+              "round": 0,
+              "cold": true,
+              "ms": 328.761292,
+              "cpuMs": 345.878,
+              "maxLoopDelayMs": 6.9164160000000265,
+              "rssMiB": 160.53125,
+              "heapUsedMiB": 6.090217590332031,
+              "digest": "df43bf61f12bbfe97d36afc69342bf50b07bf8d1573ef1d80b2b9a7156da93ef"
+            },
+            {
+              "round": 1,
+              "cold": false,
+              "ms": 2.7212500000000546,
+              "cpuMs": 4.287,
+              "maxLoopDelayMs": 0.41600000000005366,
+              "rssMiB": 160.828125,
+              "heapUsedMiB": 6.126686096191406,
+              "digest": "df43bf61f12bbfe97d36afc69342bf50b07bf8d1573ef1d80b2b9a7156da93ef"
+            },
+            {
+              "round": 2,
+              "cold": false,
+              "ms": 1.4109579999999369,
+              "cpuMs": 2.459,
+              "maxLoopDelayMs": 0.40366599999993014,
+              "rssMiB": 160.984375,
+              "heapUsedMiB": 6.162452697753906,
+              "digest": "df43bf61f12bbfe97d36afc69342bf50b07bf8d1573ef1d80b2b9a7156da93ef"
+            },
+            {
+              "round": 3,
+              "cold": false,
+              "ms": 2.0845840000000635,
+              "cpuMs": 3.637,
+              "maxLoopDelayMs": 1.1611670000000913,
+              "rssMiB": 161.078125,
+              "heapUsedMiB": 6.188056945800781,
+              "digest": "df43bf61f12bbfe97d36afc69342bf50b07bf8d1573ef1d80b2b9a7156da93ef"
+            }
+          ],
+          "positiveControlMs": 100.50399999999999,
+          "memoryBefore": {
+            "rss": 52101120,
+            "heapTotal": 7929856,
+            "heapUsed": 5359432,
+            "external": 2526596,
+            "arrayBuffers": 143981
+          },
+          "maxRssKiB": 165408
+        }
+      },
+      "parity": true
+    },
+    {
+      "name": "vector-64",
+      "kind": "vector",
+      "paths": 64,
+      "modes": {
+        "main": {
+          "samples": [
+            {
+              "round": 0,
+              "cold": true,
+              "ms": 308.2505,
+              "cpuMs": 393.605,
+              "maxLoopDelayMs": 309.9295,
+              "rssMiB": 180.59375,
+              "heapUsedMiB": 24.01605224609375,
+              "digest": "a6ad4709cc37a36afb1fe3fe00e373881741feb60ffb98eb285541a6fe2ada1f"
+            },
+            {
+              "round": 1,
+              "cold": false,
+              "ms": 42.45341700000006,
+              "cpuMs": 76.209,
+              "maxLoopDelayMs": 42.814250000000015,
+              "rssMiB": 181.109375,
+              "heapUsedMiB": 24.431114196777344,
+              "digest": "a6ad4709cc37a36afb1fe3fe00e373881741feb60ffb98eb285541a6fe2ada1f"
+            },
+            {
+              "round": 2,
+              "cold": false,
+              "ms": 31.803250000000048,
+              "cpuMs": 61.514,
+              "maxLoopDelayMs": 32.17425000000003,
+              "rssMiB": 181.421875,
+              "heapUsedMiB": 43.006553649902344,
+              "digest": "a6ad4709cc37a36afb1fe3fe00e373881741feb60ffb98eb285541a6fe2ada1f"
+            },
+            {
+              "round": 3,
+              "cold": false,
+              "ms": 22.886499999999955,
+              "cpuMs": 37.097,
+              "maxLoopDelayMs": 23.293208999999933,
+              "rssMiB": 181.609375,
+              "heapUsedMiB": 25.81330108642578,
+              "digest": "a6ad4709cc37a36afb1fe3fe00e373881741feb60ffb98eb285541a6fe2ada1f"
+            }
+          ],
+          "positiveControlMs": 99.16699999999999,
+          "memoryBefore": {
+            "rss": 52264960,
+            "heapTotal": 8716288,
+            "heapUsed": 5354616,
+            "external": 2529155,
+            "arrayBuffers": 146540
+          },
+          "maxRssKiB": 185968
+        },
+        "worker": {
+          "samples": [
+            {
+              "round": 0,
+              "cold": true,
+              "ms": 329.911833,
+              "cpuMs": 439.794,
+              "maxLoopDelayMs": 2.844208999999978,
+              "rssMiB": 198.71875,
+              "heapUsedMiB": 5.5171661376953125,
+              "digest": "a6ad4709cc37a36afb1fe3fe00e373881741feb60ffb98eb285541a6fe2ada1f"
+            },
+            {
+              "round": 1,
+              "cold": false,
+              "ms": 20.50416699999994,
+              "cpuMs": 44.875,
+              "maxLoopDelayMs": 0.3547079999999596,
+              "rssMiB": 199.21875,
+              "heapUsedMiB": 5.5671844482421875,
+              "digest": "a6ad4709cc37a36afb1fe3fe00e373881741feb60ffb98eb285541a6fe2ada1f"
+            },
+            {
+              "round": 2,
+              "cold": false,
+              "ms": 168.938125,
+              "cpuMs": 85.656,
+              "maxLoopDelayMs": 39.647333,
+              "rssMiB": 199.921875,
+              "heapUsedMiB": 5.619026184082031,
+              "digest": "a6ad4709cc37a36afb1fe3fe00e373881741feb60ffb98eb285541a6fe2ada1f"
+            },
+            {
+              "round": 3,
+              "cold": false,
+              "ms": 44.186207999999965,
+              "cpuMs": 69.383,
+              "maxLoopDelayMs": 2.7773329999999987,
+              "rssMiB": 203.796875,
+              "heapUsedMiB": 5.660148620605469,
+              "digest": "a6ad4709cc37a36afb1fe3fe00e373881741feb60ffb98eb285541a6fe2ada1f"
+            }
+          ],
+          "positiveControlMs": 99.24041599999998,
+          "memoryBefore": {
+            "rss": 52494336,
+            "heapTotal": 7929856,
+            "heapUsed": 5366792,
+            "external": 2529159,
+            "arrayBuffers": 146544
+          },
+          "maxRssKiB": 209152
+        }
+      },
+      "parity": true
+    },
+    {
+      "name": "pdf-10",
+      "kind": "pdf",
+      "pages": 10,
+      "modes": {
+        "main": {
+          "samples": [
+            {
+              "round": 0,
+              "cold": true,
+              "ms": 39.28687500000001,
+              "cpuMs": 65.124,
+              "maxLoopDelayMs": 39.63887500000001,
+              "rssMiB": 70.53125,
+              "heapUsedMiB": 9.023666381835938,
+              "digest": "861c0ca570ff329e29e2716dcddd651dca4fb0db16430a4f318087945e75ce4e"
+            },
+            {
+              "round": 1,
+              "cold": false,
+              "ms": 3.24754200000001,
+              "cpuMs": 9.773,
+              "maxLoopDelayMs": 2.346624999999989,
+              "rssMiB": 71.296875,
+              "heapUsedMiB": 11.32379150390625,
+              "digest": "861c0ca570ff329e29e2716dcddd651dca4fb0db16430a4f318087945e75ce4e"
+            },
+            {
+              "round": 2,
+              "cold": false,
+              "ms": 3.42591699999997,
+              "cpuMs": 6.998,
+              "maxLoopDelayMs": 3.764624999999967,
+              "rssMiB": 71.546875,
+              "heapUsedMiB": 10.20721435546875,
+              "digest": "861c0ca570ff329e29e2716dcddd651dca4fb0db16430a4f318087945e75ce4e"
+            },
+            {
+              "round": 3,
+              "cold": false,
+              "ms": 2.310541999999998,
+              "cpuMs": 2.964,
+              "maxLoopDelayMs": 1.405499999999961,
+              "rssMiB": 72.921875,
+              "heapUsedMiB": 12.280555725097656,
+              "digest": "861c0ca570ff329e29e2716dcddd651dca4fb0db16430a4f318087945e75ce4e"
+            }
+          ],
+          "positiveControlMs": 100.46275,
+          "memoryBefore": {
+            "rss": 52117504,
+            "heapTotal": 7929856,
+            "heapUsed": 5383344,
+            "external": 2528132,
+            "arrayBuffers": 145517
+          },
+          "maxRssKiB": 74672
+        },
+        "worker": {
+          "samples": [
+            {
+              "round": 0,
+              "cold": true,
+              "ms": 75.021792,
+              "cpuMs": 116.038,
+              "maxLoopDelayMs": 1.497208999999998,
+              "rssMiB": 88.734375,
+              "heapUsedMiB": 5.335289001464844,
+              "digest": "861c0ca570ff329e29e2716dcddd651dca4fb0db16430a4f318087945e75ce4e"
+            },
+            {
+              "round": 1,
+              "cold": false,
+              "ms": 5.159708000000023,
+              "cpuMs": 15.143,
+              "maxLoopDelayMs": 0.4348749999999768,
+              "rssMiB": 89.609375,
+              "heapUsedMiB": 5.372100830078125,
+              "digest": "861c0ca570ff329e29e2716dcddd651dca4fb0db16430a4f318087945e75ce4e"
+            },
+            {
+              "round": 2,
+              "cold": false,
+              "ms": 4.361582999999996,
+              "cpuMs": 8.107,
+              "maxLoopDelayMs": 0.8163749999999936,
+              "rssMiB": 90.484375,
+              "heapUsedMiB": 5.4044647216796875,
+              "digest": "861c0ca570ff329e29e2716dcddd651dca4fb0db16430a4f318087945e75ce4e"
+            },
+            {
+              "round": 3,
+              "cold": false,
+              "ms": 6.755124999999964,
+              "cpuMs": 5.915,
+              "maxLoopDelayMs": 2.3562499999999886,
+              "rssMiB": 90.9375,
+              "heapUsedMiB": 5.4278717041015625,
+              "digest": "861c0ca570ff329e29e2716dcddd651dca4fb0db16430a4f318087945e75ce4e"
+            }
+          ],
+          "positiveControlMs": 99.36262500000001,
+          "memoryBefore": {
+            "rss": 52084736,
+            "heapTotal": 8454144,
+            "heapUsed": 5356904,
+            "external": 2528136,
+            "arrayBuffers": 145521
+          },
+          "maxRssKiB": 93152
+        }
+      },
+      "parity": true
+    },
+    {
+      "name": "pdf-100",
+      "kind": "pdf",
+      "pages": 100,
+      "modes": {
+        "main": {
+          "samples": [
+            {
+              "round": 0,
+              "cold": true,
+              "ms": 81.641042,
+              "cpuMs": 177.113,
+              "maxLoopDelayMs": 58.8305,
+              "rssMiB": 81.703125,
+              "heapUsedMiB": 15.083610534667969,
+              "digest": "1f3d8d5e49f467cb185bd48cd2587938ca551da57d52a32e554b42e36dccbc55"
+            },
+            {
+              "round": 1,
+              "cold": false,
+              "ms": 28.213833000000022,
+              "cpuMs": 45.628,
+              "maxLoopDelayMs": 13.118458000000032,
+              "rssMiB": 90.671875,
+              "heapUsedMiB": 16.535568237304688,
+              "digest": "1f3d8d5e49f467cb185bd48cd2587938ca551da57d52a32e554b42e36dccbc55"
+            },
+            {
+              "round": 2,
+              "cold": false,
+              "ms": 30.262875000000008,
+              "cpuMs": 36.655,
+              "maxLoopDelayMs": 15.859500000000025,
+              "rssMiB": 99.546875,
+              "heapUsedMiB": 19.62242889404297,
+              "digest": "1f3d8d5e49f467cb185bd48cd2587938ca551da57d52a32e554b42e36dccbc55"
+            },
+            {
+              "round": 3,
+              "cold": false,
+              "ms": 45.750625000000014,
+              "cpuMs": 41.259,
+              "maxLoopDelayMs": 28.663250000000005,
+              "rssMiB": 109.9375,
+              "heapUsedMiB": 26.605552673339844,
+              "digest": "1f3d8d5e49f467cb185bd48cd2587938ca551da57d52a32e554b42e36dccbc55"
+            }
+          ],
+          "positiveControlMs": 101.59020900000002,
+          "memoryBefore": {
+            "rss": 52215808,
+            "heapTotal": 8192000,
+            "heapUsed": 5389672,
+            "external": 2528135,
+            "arrayBuffers": 145520
+          },
+          "maxRssKiB": 112576
+        },
+        "worker": {
+          "samples": [
+            {
+              "round": 0,
+              "cold": true,
+              "ms": 108.92416699999998,
+              "cpuMs": 212.113,
+              "maxLoopDelayMs": 1.540791999999982,
+              "rssMiB": 103.09375,
+              "heapUsedMiB": 5.316497802734375,
+              "digest": "1f3d8d5e49f467cb185bd48cd2587938ca551da57d52a32e554b42e36dccbc55"
+            },
+            {
+              "round": 1,
+              "cold": false,
+              "ms": 32.76483299999995,
+              "cpuMs": 51.773,
+              "maxLoopDelayMs": 0.5421249999999986,
+              "rssMiB": 105.609375,
+              "heapUsedMiB": 5.360954284667969,
+              "digest": "1f3d8d5e49f467cb185bd48cd2587938ca551da57d52a32e554b42e36dccbc55"
+            },
+            {
+              "round": 2,
+              "cold": false,
+              "ms": 29.585958000000005,
+              "cpuMs": 36.364,
+              "maxLoopDelayMs": 0.5713329999999814,
+              "rssMiB": 114.921875,
+              "heapUsedMiB": 5.403938293457031,
+              "digest": "1f3d8d5e49f467cb185bd48cd2587938ca551da57d52a32e554b42e36dccbc55"
+            },
+            {
+              "round": 3,
+              "cold": false,
+              "ms": 25.706332999999972,
+              "cpuMs": 35.472,
+              "maxLoopDelayMs": 0.5144999999999982,
+              "rssMiB": 125.53125,
+              "heapUsedMiB": 5.438232421875,
+              "digest": "1f3d8d5e49f467cb185bd48cd2587938ca551da57d52a32e554b42e36dccbc55"
+            }
+          ],
+          "positiveControlMs": 100.471375,
+          "memoryBefore": {
+            "rss": 52150272,
+            "heapTotal": 7929856,
+            "heapUsed": 5348064,
+            "external": 2528139,
+            "arrayBuffers": 145524
+          },
+          "maxRssKiB": 128576
+        }
+      },
+      "parity": true
+    },
+    {
+      "name": "draft-write",
+      "kind": "draft-write",
+      "payloadBytes": 13861446,
+      "modes": {
+        "main": {
+          "samples": [
+            {
+              "round": 0,
+              "cold": true,
+              "ms": 96.01991699999999,
+              "cpuMs": 98.803,
+              "maxLoopDelayMs": 40.09170800000001,
+              "rssMiB": 165.09375,
+              "heapUsedMiB": 48.83660125732422,
+              "digest": "82a210beacaa01c555bf2a7ee6f4390ebb4f3879a8e8625b19f954db24d678d6"
+            },
+            {
+              "round": 1,
+              "cold": false,
+              "ms": 78.525667,
+              "cpuMs": 66.764,
+              "maxLoopDelayMs": 15.283375000000035,
+              "rssMiB": 183.671875,
+              "heapUsedMiB": 65.00090026855469,
+              "digest": "82a210beacaa01c555bf2a7ee6f4390ebb4f3879a8e8625b19f954db24d678d6"
+            },
+            {
+              "round": 2,
+              "cold": false,
+              "ms": 89.68679099999997,
+              "cpuMs": 84.368,
+              "maxLoopDelayMs": 18.488458999999978,
+              "rssMiB": 214.421875,
+              "heapUsedMiB": 81.05733489990234,
+              "digest": "82a210beacaa01c555bf2a7ee6f4390ebb4f3879a8e8625b19f954db24d678d6"
+            },
+            {
+              "round": 3,
+              "cold": false,
+              "ms": 81.57537500000001,
+              "cpuMs": 76.892,
+              "maxLoopDelayMs": 15.750999999999976,
+              "rssMiB": 250.328125,
+              "heapUsedMiB": 97.11624908447266,
+              "digest": "82a210beacaa01c555bf2a7ee6f4390ebb4f3879a8e8625b19f954db24d678d6"
+            }
+          ],
+          "positiveControlMs": 100.437833,
+          "memoryBefore": {
+            "rss": 95223808,
+            "heapTotal": 22233088,
+            "heapUsed": 19771656,
+            "external": 31128266,
+            "arrayBuffers": 28745651
+          },
+          "maxRssKiB": 256336
+        },
+        "worker": {
+          "samples": [
+            {
+              "round": 0,
+              "cold": true,
+              "ms": 108.96649999999997,
+              "cpuMs": 118.78,
+              "maxLoopDelayMs": 1.408709000000016,
+              "rssMiB": 177.453125,
+              "heapUsedMiB": 18.966957092285156,
+              "digest": "82a210beacaa01c555bf2a7ee6f4390ebb4f3879a8e8625b19f954db24d678d6"
+            },
+            {
+              "round": 1,
+              "cold": false,
+              "ms": 91.73729200000002,
+              "cpuMs": 81.369,
+              "maxLoopDelayMs": 0.39033299999999826,
+              "rssMiB": 222.21875,
+              "heapUsedMiB": 19.031089782714844,
+              "digest": "82a210beacaa01c555bf2a7ee6f4390ebb4f3879a8e8625b19f954db24d678d6"
+            },
+            {
+              "round": 2,
+              "cold": false,
+              "ms": 71.50995799999998,
+              "cpuMs": 56.747,
+              "maxLoopDelayMs": 0.7477499999999964,
+              "rssMiB": 247.375,
+              "heapUsedMiB": 19.08855438232422,
+              "digest": "82a210beacaa01c555bf2a7ee6f4390ebb4f3879a8e8625b19f954db24d678d6"
+            },
+            {
+              "round": 3,
+              "cold": false,
+              "ms": 73.69466699999998,
+              "cpuMs": 55.656,
+              "maxLoopDelayMs": 0.6628749999999854,
+              "rssMiB": 268.6875,
+              "heapUsedMiB": 19.1385498046875,
+              "digest": "82a210beacaa01c555bf2a7ee6f4390ebb4f3879a8e8625b19f954db24d678d6"
+            }
+          ],
+          "positiveControlMs": 100.485042,
+          "memoryBefore": {
+            "rss": 95436800,
+            "heapTotal": 23019520,
+            "heapUsed": 19800360,
+            "external": 31128274,
+            "arrayBuffers": 28745659
+          },
+          "maxRssKiB": 275184
+        }
+      },
+      "parity": true
+    },
+    {
+      "name": "draft-read",
+      "kind": "draft-read",
+      "id": "00000000-0000-4000-8000-000000000001",
+      "payloadBytes": 13861446,
+      "modes": {
+        "main": {
+          "samples": [
+            {
+              "round": 0,
+              "cold": true,
+              "ms": 51.85370900000001,
+              "cpuMs": 58.617,
+              "maxLoopDelayMs": 21.20470800000001,
+              "rssMiB": 118.875,
+              "heapUsedMiB": 47.487525939941406,
+              "digest": "ccbdea6cc0c5b890d30aaf067396a9e1161f2ce8ad4b1d82b171bcae3cf53b5c"
+            },
+            {
+              "round": 1,
+              "cold": false,
+              "ms": 49.794250000000034,
+              "cpuMs": 57.039,
+              "maxLoopDelayMs": 12.986000000000047,
+              "rssMiB": 177.640625,
+              "heapUsedMiB": 47.824951171875,
+              "digest": "ccbdea6cc0c5b890d30aaf067396a9e1161f2ce8ad4b1d82b171bcae3cf53b5c"
+            },
+            {
+              "round": 2,
+              "cold": false,
+              "ms": 55.173167000000035,
+              "cpuMs": 52.385,
+              "maxLoopDelayMs": 17.844749999999976,
+              "rssMiB": 157.625,
+              "heapUsedMiB": 20.317230224609375,
+              "digest": "ccbdea6cc0c5b890d30aaf067396a9e1161f2ce8ad4b1d82b171bcae3cf53b5c"
+            },
+            {
+              "round": 3,
+              "cold": false,
+              "ms": 70.147291,
+              "cpuMs": 60.817,
+              "maxLoopDelayMs": 29.364625000000046,
+              "rssMiB": 200.90625,
+              "heapUsedMiB": 77.8956298828125,
+              "digest": "ccbdea6cc0c5b890d30aaf067396a9e1161f2ce8ad4b1d82b171bcae3cf53b5c"
+            }
+          ],
+          "positiveControlMs": 99.240584,
+          "memoryBefore": {
+            "rss": 52150272,
+            "heapTotal": 8716288,
+            "heapUsed": 5356312,
+            "external": 2526504,
+            "arrayBuffers": 143889
+          },
+          "maxRssKiB": 220256
+        },
+        "worker": {
+          "samples": [
+            {
+              "round": 0,
+              "cold": true,
+              "ms": 114.66154100000003,
+              "cpuMs": 160.402,
+              "maxLoopDelayMs": 25.973915999999974,
+              "rssMiB": 174.71875,
+              "heapUsedMiB": 21.049118041992188,
+              "digest": "ccbdea6cc0c5b890d30aaf067396a9e1161f2ce8ad4b1d82b171bcae3cf53b5c"
+            },
+            {
+              "round": 1,
+              "cold": false,
+              "ms": 88.57587500000005,
+              "cpuMs": 116.353,
+              "maxLoopDelayMs": 20.91999999999996,
+              "rssMiB": 247.46875,
+              "heapUsedMiB": 39.86512756347656,
+              "digest": "ccbdea6cc0c5b890d30aaf067396a9e1161f2ce8ad4b1d82b171bcae3cf53b5c"
+            },
+            {
+              "round": 2,
+              "cold": false,
+              "ms": 92.96279099999998,
+              "cpuMs": 104.276,
+              "maxLoopDelayMs": 28.785083999999983,
+              "rssMiB": 328.125,
+              "heapUsedMiB": 56.418312072753906,
+              "digest": "ccbdea6cc0c5b890d30aaf067396a9e1161f2ce8ad4b1d82b171bcae3cf53b5c"
+            },
+            {
+              "round": 3,
+              "cold": false,
+              "ms": 90.50754199999994,
+              "cpuMs": 104.518,
+              "maxLoopDelayMs": 25.131457999999952,
+              "rssMiB": 392.625,
+              "heapUsedMiB": 20.73363494873047,
+              "digest": "ccbdea6cc0c5b890d30aaf067396a9e1161f2ce8ad4b1d82b171bcae3cf53b5c"
+            }
+          ],
+          "positiveControlMs": 100.54008300000001,
+          "memoryBefore": {
+            "rss": 52166656,
+            "heapTotal": 7929856,
+            "heapUsed": 5366640,
+            "external": 2526508,
+            "arrayBuffers": 143893
+          },
+          "maxRssKiB": 422176
+        }
+      },
+      "parity": true
+    },
+    {
+      "name": "draft-list",
+      "kind": "draft-list",
+      "count": 8,
+      "modes": {
+        "main": {
+          "samples": [
+            {
+              "round": 0,
+              "cold": true,
+              "ms": 201.288584,
+              "cpuMs": 222.175,
+              "maxLoopDelayMs": 70.07575000000003,
+              "rssMiB": 295.578125,
+              "heapUsedMiB": 171.2631607055664,
+              "digest": "923b865b439d187854488957d4ab749d5a0c04c37edd84cb21250ec4604713c7"
+            },
+            {
+              "round": 1,
+              "cold": false,
+              "ms": 0.35483399999998255,
+              "cpuMs": 0.51,
+              "maxLoopDelayMs": 0.5762500000000159,
+              "rssMiB": 295.671875,
+              "heapUsedMiB": 171.3534698486328,
+              "digest": "923b865b439d187854488957d4ab749d5a0c04c37edd84cb21250ec4604713c7"
+            },
+            {
+              "round": 2,
+              "cold": false,
+              "ms": 0.24425000000002228,
+              "cpuMs": 0.317,
+              "maxLoopDelayMs": 0.34699999999998,
+              "rssMiB": 295.734375,
+              "heapUsedMiB": 171.42761993408203,
+              "digest": "923b865b439d187854488957d4ab749d5a0c04c37edd84cb21250ec4604713c7"
+            },
+            {
+              "round": 3,
+              "cold": false,
+              "ms": 0.3247920000000022,
+              "cpuMs": 0.476,
+              "maxLoopDelayMs": 0.530083999999988,
+              "rssMiB": 295.84375,
+              "heapUsedMiB": 171.5111312866211,
+              "digest": "923b865b439d187854488957d4ab749d5a0c04c37edd84cb21250ec4604713c7"
+            }
+          ],
+          "positiveControlMs": 100.44179199999999,
+          "memoryBefore": {
+            "rss": 52281344,
+            "heapTotal": 8192000,
+            "heapUsed": 5356008,
+            "external": 2526452,
+            "arrayBuffers": 143837
+          },
+          "maxRssKiB": 302944
+        },
+        "worker": {
+          "samples": [
+            {
+              "round": 0,
+              "cold": true,
+              "ms": 184.69720800000002,
+              "cpuMs": 208.839,
+              "maxLoopDelayMs": 1.3805420000000197,
+              "rssMiB": 213.921875,
+              "heapUsedMiB": 5.343864440917969,
+              "digest": "923b865b439d187854488957d4ab749d5a0c04c37edd84cb21250ec4604713c7"
+            },
+            {
+              "round": 1,
+              "cold": false,
+              "ms": 0.47454199999998536,
+              "cpuMs": 0.72,
+              "maxLoopDelayMs": 0.8095420000000217,
+              "rssMiB": 214.03125,
+              "heapUsedMiB": 5.383384704589844,
+              "digest": "923b865b439d187854488957d4ab749d5a0c04c37edd84cb21250ec4604713c7"
+            },
+            {
+              "round": 2,
+              "cold": false,
+              "ms": 0.4099170000000072,
+              "cpuMs": 0.47,
+              "maxLoopDelayMs": 2.2913750000000164,
+              "rssMiB": 214.125,
+              "heapUsedMiB": 5.42022705078125,
+              "digest": "923b865b439d187854488957d4ab749d5a0c04c37edd84cb21250ec4604713c7"
+            },
+            {
+              "round": 3,
+              "cold": false,
+              "ms": 0.31412500000004684,
+              "cpuMs": 0.471,
+              "maxLoopDelayMs": 0.5538329999999974,
+              "rssMiB": 214.1875,
+              "heapUsedMiB": 5.450706481933594,
+              "digest": "923b865b439d187854488957d4ab749d5a0c04c37edd84cb21250ec4604713c7"
+            }
+          ],
+          "positiveControlMs": 100.400083,
+          "memoryBefore": {
+            "rss": 52117504,
+            "heapTotal": 8454144,
+            "heapUsed": 5348176,
+            "external": 2526456,
+            "arrayBuffers": 143841
+          },
+          "maxRssKiB": 219376
+        }
+      },
+      "parity": true
+    },
+    {
+      "name": "export-20",
+      "kind": "export",
+      "payloadBytes": 1132216,
+      "components": 20,
+      "modes": {
+        "main": {
+          "samples": [
+            {
+              "round": 0,
+              "cold": true,
+              "ms": 23.773167,
+              "cpuMs": 24.842,
+              "maxLoopDelayMs": 2.256333000000012,
+              "rssMiB": 65.546875,
+              "heapUsedMiB": 7.873832702636719,
+              "digest": "a9a6768e8044c6da9c097f104ecc1240006bfdad6fb7e6048eaf5d548cb73f52"
+            },
+            {
+              "round": 1,
+              "cold": false,
+              "ms": 20.62770900000001,
+              "cpuMs": 19.107,
+              "maxLoopDelayMs": 1.4424580000000162,
+              "rssMiB": 70.953125,
+              "heapUsedMiB": 10.591041564941406,
+              "digest": "a9a6768e8044c6da9c097f104ecc1240006bfdad6fb7e6048eaf5d548cb73f52"
+            },
+            {
+              "round": 2,
+              "cold": false,
+              "ms": 17.45216700000003,
+              "cpuMs": 22.716,
+              "maxLoopDelayMs": 1.4546659999999747,
+              "rssMiB": 76.421875,
+              "heapUsedMiB": 7.7427215576171875,
+              "digest": "a9a6768e8044c6da9c097f104ecc1240006bfdad6fb7e6048eaf5d548cb73f52"
+            },
+            {
+              "round": 3,
+              "cold": false,
+              "ms": 10.054958,
+              "cpuMs": 10.826,
+              "maxLoopDelayMs": 1.6011659999999779,
+              "rssMiB": 78.15625,
+              "heapUsedMiB": 10.432022094726562,
+              "digest": "a9a6768e8044c6da9c097f104ecc1240006bfdad6fb7e6048eaf5d548cb73f52"
+            }
+          ],
+          "positiveControlMs": 99.139458,
+          "memoryBefore": {
+            "rss": 55590912,
+            "heapTotal": 10813440,
+            "heapUsed": 6492928,
+            "external": 4708752,
+            "arrayBuffers": 1277561
+          },
+          "maxRssKiB": 80688
+        },
+        "worker": {
+          "samples": [
+            {
+              "round": 0,
+              "cold": true,
+              "ms": 32.1405,
+              "cpuMs": 38.532,
+              "maxLoopDelayMs": 1.6830839999999796,
+              "rssMiB": 82.65625,
+              "heapUsedMiB": 7.586875915527344,
+              "digest": "a9a6768e8044c6da9c097f104ecc1240006bfdad6fb7e6048eaf5d548cb73f52"
+            },
+            {
+              "round": 1,
+              "cold": false,
+              "ms": 10.668834000000004,
+              "cpuMs": 11.44,
+              "maxLoopDelayMs": 0.7483340000000283,
+              "rssMiB": 88.90625,
+              "heapUsedMiB": 6.9356842041015625,
+              "digest": "a9a6768e8044c6da9c097f104ecc1240006bfdad6fb7e6048eaf5d548cb73f52"
+            },
+            {
+              "round": 2,
+              "cold": false,
+              "ms": 17.879625000000033,
+              "cpuMs": 22.039,
+              "maxLoopDelayMs": 1.3444579999999746,
+              "rssMiB": 94.921875,
+              "heapUsedMiB": 7.662010192871094,
+              "digest": "a9a6768e8044c6da9c097f104ecc1240006bfdad6fb7e6048eaf5d548cb73f52"
+            },
+            {
+              "round": 3,
+              "cold": false,
+              "ms": 9.729291999999987,
+              "cpuMs": 11.096,
+              "maxLoopDelayMs": 0.6598339999999894,
+              "rssMiB": 96.59375,
+              "heapUsedMiB": 6.985679626464844,
+              "digest": "a9a6768e8044c6da9c097f104ecc1240006bfdad6fb7e6048eaf5d548cb73f52"
+            }
+          ],
+          "positiveControlMs": 101.05154200000001,
+          "memoryBefore": {
+            "rss": 55853056,
+            "heapTotal": 10551296,
+            "heapUsed": 6492856,
+            "external": 4708760,
+            "arrayBuffers": 1277569
+          },
+          "maxRssKiB": 99408
+        }
+      },
+      "parity": true
+    },
+    {
+      "name": "export-200",
+      "kind": "export",
+      "payloadBytes": 11323156,
+      "components": 200,
+      "modes": {
+        "main": {
+          "samples": [
+            {
+              "round": 0,
+              "cold": true,
+              "ms": 74.67699999999999,
+              "cpuMs": 84.903,
+              "maxLoopDelayMs": 11.047500000000014,
+              "rssMiB": 135.546875,
+              "heapUsedMiB": 35.17890167236328,
+              "digest": "9f69232ab30bd2ee44a93950ae4faf7e6ffbcc54f834eb037acc2f720d36e783"
+            },
+            {
+              "round": 1,
+              "cold": false,
+              "ms": 70.29312500000003,
+              "cpuMs": 78.517,
+              "maxLoopDelayMs": 9.299958000000004,
+              "rssMiB": 169.40625,
+              "heapUsedMiB": 33.16570281982422,
+              "digest": "9f69232ab30bd2ee44a93950ae4faf7e6ffbcc54f834eb037acc2f720d36e783"
+            },
+            {
+              "round": 2,
+              "cold": false,
+              "ms": 81.45570800000002,
+              "cpuMs": 85.576,
+              "maxLoopDelayMs": 9.180290999999954,
+              "rssMiB": 197.375,
+              "heapUsedMiB": 26.578170776367188,
+              "digest": "9f69232ab30bd2ee44a93950ae4faf7e6ffbcc54f834eb037acc2f720d36e783"
+            },
+            {
+              "round": 3,
+              "cold": false,
+              "ms": 70.64141600000005,
+              "cpuMs": 77.422,
+              "maxLoopDelayMs": 8.50912500000004,
+              "rssMiB": 216.671875,
+              "heapUsedMiB": 52.805328369140625,
+              "digest": "9f69232ab30bd2ee44a93950ae4faf7e6ffbcc54f834eb037acc2f720d36e783"
+            }
+          ],
+          "positiveControlMs": 100.409416,
+          "memoryBefore": {
+            "rss": 89341952,
+            "heapTotal": 29163520,
+            "heapUsed": 16576400,
+            "external": 13470426,
+            "arrayBuffers": 11087811
+          },
+          "maxRssKiB": 238784
+        },
+        "worker": {
+          "samples": [
+            {
+              "round": 0,
+              "cold": true,
+              "ms": 95.139917,
+              "cpuMs": 112.941,
+              "maxLoopDelayMs": 3.621167000000014,
+              "rssMiB": 178.953125,
+              "heapUsedMiB": 15.863853454589844,
+              "digest": "9f69232ab30bd2ee44a93950ae4faf7e6ffbcc54f834eb037acc2f720d36e783"
+            },
+            {
+              "round": 1,
+              "cold": false,
+              "ms": 91.88858399999998,
+              "cpuMs": 92.006,
+              "maxLoopDelayMs": 2.87091700000002,
+              "rssMiB": 257.28125,
+              "heapUsedMiB": 19.568496704101562,
+              "digest": "9f69232ab30bd2ee44a93950ae4faf7e6ffbcc54f834eb037acc2f720d36e783"
+            },
+            {
+              "round": 2,
+              "cold": false,
+              "ms": 98.71216699999997,
+              "cpuMs": 101.461,
+              "maxLoopDelayMs": 10.048541999999998,
+              "rssMiB": 302.15625,
+              "heapUsedMiB": 15.708038330078125,
+              "digest": "9f69232ab30bd2ee44a93950ae4faf7e6ffbcc54f834eb037acc2f720d36e783"
+            },
+            {
+              "round": 3,
+              "cold": false,
+              "ms": 149.173541,
+              "cpuMs": 126.224,
+              "maxLoopDelayMs": 7.70379099999991,
+              "rssMiB": 299.15625,
+              "heapUsedMiB": 17.613723754882812,
+              "digest": "9f69232ab30bd2ee44a93950ae4faf7e6ffbcc54f834eb037acc2f720d36e783"
+            }
+          ],
+          "positiveControlMs": 100.379042,
+          "memoryBefore": {
+            "rss": 89374720,
+            "heapTotal": 29687808,
+            "heapUsed": 16576328,
+            "external": 13470434,
+            "arrayBuffers": 11087819
+          },
+          "maxRssKiB": 339616
+        }
+      },
+      "parity": true
+    },
+    {
+      "name": "blockmap-4096",
+      "kind": "blockmap",
+      "archiveSize": 134217728,
+      "rawBytes": 217167,
+      "modes": {
+        "main": {
+          "samples": [
+            {
+              "round": 0,
+              "cold": true,
+              "ms": 5.812125000000009,
+              "cpuMs": 8.102,
+              "maxLoopDelayMs": 6.16508300000001,
+              "rssMiB": 60.03125,
+              "heapUsedMiB": 5.490425109863281,
+              "digest": "a4392d65dfb00e8b5b77d9466a66f1e59f3564e10850ec23322395d6e4795c63"
+            },
+            {
+              "round": 1,
+              "cold": false,
+              "ms": 3.084666999999996,
+              "cpuMs": 3.203,
+              "maxLoopDelayMs": 3.424834000000004,
+              "rssMiB": 60.546875,
+              "heapUsedMiB": 5.5322418212890625,
+              "digest": "a4392d65dfb00e8b5b77d9466a66f1e59f3564e10850ec23322395d6e4795c63"
+            },
+            {
+              "round": 2,
+              "cold": false,
+              "ms": 2.8011249999999563,
+              "cpuMs": 2.913,
+              "maxLoopDelayMs": 3.1207919999999945,
+              "rssMiB": 60.71875,
+              "heapUsedMiB": 5.5561981201171875,
+              "digest": "a4392d65dfb00e8b5b77d9466a66f1e59f3564e10850ec23322395d6e4795c63"
+            },
+            {
+              "round": 3,
+              "cold": false,
+              "ms": 2.783040999999969,
+              "cpuMs": 3.243,
+              "maxLoopDelayMs": 3.1127919999999563,
+              "rssMiB": 60.765625,
+              "heapUsedMiB": 5.542747497558594,
+              "digest": "a4392d65dfb00e8b5b77d9466a66f1e59f3564e10850ec23322395d6e4795c63"
+            }
+          ],
+          "positiveControlMs": 100.40333400000002,
+          "memoryBefore": {
+            "rss": 52543488,
+            "heapTotal": 7929856,
+            "heapUsed": 5365928,
+            "external": 2804772,
+            "arrayBuffers": 422157
+          },
+          "maxRssKiB": 62448
+        },
+        "worker": {
+          "samples": [
+            {
+              "round": 0,
+              "cold": true,
+              "ms": 31.763416000000007,
+              "cpuMs": 38.941,
+              "maxLoopDelayMs": 2.2665420000000154,
+              "rssMiB": 75.859375,
+              "heapUsedMiB": 5.5068511962890625,
+              "digest": "a4392d65dfb00e8b5b77d9466a66f1e59f3564e10850ec23322395d6e4795c63"
+            },
+            {
+              "round": 1,
+              "cold": false,
+              "ms": 3.517291,
+              "cpuMs": 3.871,
+              "maxLoopDelayMs": 0.36504099999999085,
+              "rssMiB": 77.59375,
+              "heapUsedMiB": 5.771995544433594,
+              "digest": "a4392d65dfb00e8b5b77d9466a66f1e59f3564e10850ec23322395d6e4795c63"
+            },
+            {
+              "round": 2,
+              "cold": false,
+              "ms": 3.6624160000000074,
+              "cpuMs": 3.897,
+              "maxLoopDelayMs": 0.41012499999999363,
+              "rssMiB": 79.296875,
+              "heapUsedMiB": 6.038482666015625,
+              "digest": "a4392d65dfb00e8b5b77d9466a66f1e59f3564e10850ec23322395d6e4795c63"
+            },
+            {
+              "round": 3,
+              "cold": false,
+              "ms": 6.424125000000004,
+              "cpuMs": 7.212,
+              "maxLoopDelayMs": 2.396583000000021,
+              "rssMiB": 81.109375,
+              "heapUsedMiB": 6.296073913574219,
+              "digest": "a4392d65dfb00e8b5b77d9466a66f1e59f3564e10850ec23322395d6e4795c63"
+            }
+          ],
+          "positiveControlMs": 99.28904100000001,
+          "memoryBefore": {
+            "rss": 52330496,
+            "heapTotal": 8716288,
+            "heapUsed": 5351192,
+            "external": 2804780,
+            "arrayBuffers": 422165
+          },
+          "maxRssKiB": 83136
+        }
+      },
+      "parity": true
+    },
+    {
+      "name": "blockmap-65536",
+      "kind": "blockmap",
+      "archiveSize": 2147483648,
+      "rawBytes": 3473487,
+      "modes": {
+        "main": {
+          "samples": [
+            {
+              "round": 0,
+              "cold": true,
+              "ms": 57.105207999999976,
+              "cpuMs": 68.536,
+              "maxLoopDelayMs": 57.52391700000001,
+              "rssMiB": 96.484375,
+              "heapUsedMiB": 21.152809143066406,
+              "digest": "d481dfb4fb3ec84961c703bc180e462107e09aef3bce4d3fb3046d21ea9bddab"
+            },
+            {
+              "round": 1,
+              "cold": false,
+              "ms": 62.564584000000025,
+              "cpuMs": 83.137,
+              "maxLoopDelayMs": 62.96833299999997,
+              "rssMiB": 123.390625,
+              "heapUsedMiB": 24.615440368652344,
+              "digest": "d481dfb4fb3ec84961c703bc180e462107e09aef3bce4d3fb3046d21ea9bddab"
+            },
+            {
+              "round": 2,
+              "cold": false,
+              "ms": 60.28720800000002,
+              "cpuMs": 59.668,
+              "maxLoopDelayMs": 60.64716699999997,
+              "rssMiB": 142.765625,
+              "heapUsedMiB": 48.58941650390625,
+              "digest": "d481dfb4fb3ec84961c703bc180e462107e09aef3bce4d3fb3046d21ea9bddab"
+            },
+            {
+              "round": 3,
+              "cold": false,
+              "ms": 48.413625000000025,
+              "cpuMs": 48.304,
+              "maxLoopDelayMs": 47.529791999999986,
+              "rssMiB": 172.59375,
+              "heapUsedMiB": 72.55447387695312,
+              "digest": "d481dfb4fb3ec84961c703bc180e462107e09aef3bce4d3fb3046d21ea9bddab"
+            }
+          ],
+          "positiveControlMs": 100.41120800000002,
+          "memoryBefore": {
+            "rss": 56803328,
+            "heapTotal": 8716288,
+            "heapUsed": 5392512,
+            "external": 6968148,
+            "arrayBuffers": 4585533
+          },
+          "maxRssKiB": 177840
+        },
+        "worker": {
+          "samples": [
+            {
+              "round": 0,
+              "cold": true,
+              "ms": 93.37499999999997,
+              "cpuMs": 113.941,
+              "maxLoopDelayMs": 4.0354580000000055,
+              "rssMiB": 120.734375,
+              "heapUsedMiB": 6.408447265625,
+              "digest": "d481dfb4fb3ec84961c703bc180e462107e09aef3bce4d3fb3046d21ea9bddab"
+            },
+            {
+              "round": 1,
+              "cold": false,
+              "ms": 58.860749999999996,
+              "cpuMs": 66.558,
+              "maxLoopDelayMs": 3.0461669999999685,
+              "rssMiB": 138.21875,
+              "heapUsedMiB": 8.747200012207031,
+              "digest": "d481dfb4fb3ec84961c703bc180e462107e09aef3bce4d3fb3046d21ea9bddab"
+            },
+            {
+              "round": 2,
+              "cold": false,
+              "ms": 49.21274999999997,
+              "cpuMs": 51.655,
+              "maxLoopDelayMs": 3.5335000000000036,
+              "rssMiB": 151.53125,
+              "heapUsedMiB": 10.077491760253906,
+              "digest": "d481dfb4fb3ec84961c703bc180e462107e09aef3bce4d3fb3046d21ea9bddab"
+            },
+            {
+              "round": 3,
+              "cold": false,
+              "ms": 76.26220800000004,
+              "cpuMs": 84.002,
+              "maxLoopDelayMs": 3.483500000000049,
+              "rssMiB": 158.296875,
+              "heapUsedMiB": 6.346015930175781,
+              "digest": "d481dfb4fb3ec84961c703bc180e462107e09aef3bce4d3fb3046d21ea9bddab"
+            }
+          ],
+          "positiveControlMs": 99.220958,
+          "memoryBefore": {
+            "rss": 56737792,
+            "heapTotal": 8192000,
+            "heapUsed": 5405000,
+            "external": 6968156,
+            "arrayBuffers": 4585541
+          },
+          "maxRssKiB": 174096
+        }
+      },
+      "parity": true
+    },
+    {
+      "name": "cache-write-8",
+      "kind": "cache",
+      "action": "write",
+      "payloadBytes": 8388608,
+      "modes": {
+        "main": {
+          "samples": [
+            {
+              "round": 0,
+              "cold": true,
+              "ms": 30.917416000000003,
+              "cpuMs": 38.05,
+              "maxLoopDelayMs": 24.49641699999998,
+              "rssMiB": 136.78125,
+              "heapUsedMiB": 16.095863342285156,
+              "digest": "82a210beacaa01c555bf2a7ee6f4390ebb4f3879a8e8625b19f954db24d678d6"
+            },
+            {
+              "round": 1,
+              "cold": false,
+              "ms": 21.628625,
+              "cpuMs": 24.914,
+              "maxLoopDelayMs": 15.240583000000015,
+              "rssMiB": 167.546875,
+              "heapUsedMiB": 16.07598114013672,
+              "digest": "82a210beacaa01c555bf2a7ee6f4390ebb4f3879a8e8625b19f954db24d678d6"
+            },
+            {
+              "round": 2,
+              "cold": false,
+              "ms": 22.895415999999955,
+              "cpuMs": 19.453,
+              "maxLoopDelayMs": 15.139500000000055,
+              "rssMiB": 159.546875,
+              "heapUsedMiB": 5.375144958496094,
+              "digest": "82a210beacaa01c555bf2a7ee6f4390ebb4f3879a8e8625b19f954db24d678d6"
+            },
+            {
+              "round": 3,
+              "cold": false,
+              "ms": 18.42225000000002,
+              "cpuMs": 18.196,
+              "maxLoopDelayMs": 13.067499999999995,
+              "rssMiB": 180.90625,
+              "heapUsedMiB": 26.82874298095703,
+              "digest": "82a210beacaa01c555bf2a7ee6f4390ebb4f3879a8e8625b19f954db24d678d6"
+            }
+          ],
+          "positiveControlMs": 100.402041,
+          "memoryBefore": {
+            "rss": 69140480,
+            "heapTotal": 8716288,
+            "heapUsed": 5448704,
+            "external": 19303918,
+            "arrayBuffers": 16921303
+          },
+          "maxRssKiB": 196160
+        },
+        "worker": {
+          "samples": [
+            {
+              "round": 0,
+              "cold": true,
+              "ms": 54.839833999999996,
+              "cpuMs": 74.193,
+              "maxLoopDelayMs": 3.477000000000004,
+              "rssMiB": 169.859375,
+              "heapUsedMiB": 4.9051055908203125,
+              "digest": "82a210beacaa01c555bf2a7ee6f4390ebb4f3879a8e8625b19f954db24d678d6"
+            },
+            {
+              "round": 1,
+              "cold": false,
+              "ms": 33.189332999999976,
+              "cpuMs": 29.752,
+              "maxLoopDelayMs": 1.290208000000007,
+              "rssMiB": 237.984375,
+              "heapUsedMiB": 4.949981689453125,
+              "digest": "82a210beacaa01c555bf2a7ee6f4390ebb4f3879a8e8625b19f954db24d678d6"
+            },
+            {
+              "round": 2,
+              "cold": false,
+              "ms": 35.14979099999999,
+              "cpuMs": 44.329,
+              "maxLoopDelayMs": 0.5312079999999924,
+              "rssMiB": 240.859375,
+              "heapUsedMiB": 4.992988586425781,
+              "digest": "82a210beacaa01c555bf2a7ee6f4390ebb4f3879a8e8625b19f954db24d678d6"
+            },
+            {
+              "round": 3,
+              "cold": false,
+              "ms": 35.38091700000001,
+              "cpuMs": 27.502,
+              "maxLoopDelayMs": 4.589999999999975,
+              "rssMiB": 270.203125,
+              "heapUsedMiB": 5.025932312011719,
+              "digest": "82a210beacaa01c555bf2a7ee6f4390ebb4f3879a8e8625b19f954db24d678d6"
+            }
+          ],
+          "positiveControlMs": 99.25229200000001,
+          "memoryBefore": {
+            "rss": 69222400,
+            "heapTotal": 8454144,
+            "heapUsed": 5441096,
+            "external": 19303926,
+            "arrayBuffers": 16921311
+          },
+          "maxRssKiB": 287664
+        }
+      },
+      "parity": true
+    },
+    {
+      "name": "cache-read-8",
+      "kind": "cache",
+      "action": "read",
+      "payloadBytes": 8388608,
+      "modes": {
+        "main": {
+          "samples": [
+            {
+              "round": 0,
+              "cold": true,
+              "ms": 36.872375000000005,
+              "cpuMs": 54.707,
+              "maxLoopDelayMs": 19.373208000000005,
+              "rssMiB": 143.203125,
+              "heapUsedMiB": 37.29424285888672,
+              "digest": "b16bd32b101132fd0102461bc75ea65442c37293ac881ae953486c8ac26a7388"
+            },
+            {
+              "round": 1,
+              "cold": false,
+              "ms": 19.825499999999977,
+              "cpuMs": 18.193,
+              "maxLoopDelayMs": 16.385124999999988,
+              "rssMiB": 183.359375,
+              "heapUsedMiB": 69.37342071533203,
+              "digest": "b16bd32b101132fd0102461bc75ea65442c37293ac881ae953486c8ac26a7388"
+            },
+            {
+              "round": 2,
+              "cold": false,
+              "ms": 23.909708000000023,
+              "cpuMs": 22.41,
+              "maxLoopDelayMs": 17.27166699999998,
+              "rssMiB": 210.15625,
+              "heapUsedMiB": 90.53014373779297,
+              "digest": "b16bd32b101132fd0102461bc75ea65442c37293ac881ae953486c8ac26a7388"
+            },
+            {
+              "round": 3,
+              "cold": false,
+              "ms": 24.48087499999997,
+              "cpuMs": 22.283,
+              "maxLoopDelayMs": 18.79525000000001,
+              "rssMiB": 261.25,
+              "heapUsedMiB": 133.2562026977539,
+              "digest": "b16bd32b101132fd0102461bc75ea65442c37293ac881ae953486c8ac26a7388"
+            }
+          ],
+          "positiveControlMs": 100.50050000000002,
+          "memoryBefore": {
+            "rss": 69107712,
+            "heapTotal": 7929856,
+            "heapUsed": 5432744,
+            "external": 19303912,
+            "arrayBuffers": 16921297
+          },
+          "maxRssKiB": 267520
+        },
+        "worker": {
+          "samples": [
+            {
+              "round": 0,
+              "cold": true,
+              "ms": 55.45575000000002,
+              "cpuMs": 78.719,
+              "maxLoopDelayMs": 2.2199580000000196,
+              "rssMiB": 140.265625,
+              "heapUsedMiB": 5.342498779296875,
+              "digest": "b16bd32b101132fd0102461bc75ea65442c37293ac881ae953486c8ac26a7388"
+            },
+            {
+              "round": 1,
+              "cold": false,
+              "ms": 24.24958300000003,
+              "cpuMs": 31.883,
+              "maxLoopDelayMs": 0.5321250000000077,
+              "rssMiB": 204.328125,
+              "heapUsedMiB": 5.3851776123046875,
+              "digest": "b16bd32b101132fd0102461bc75ea65442c37293ac881ae953486c8ac26a7388"
+            },
+            {
+              "round": 2,
+              "cold": false,
+              "ms": 19.06587499999995,
+              "cpuMs": 19.283,
+              "maxLoopDelayMs": 0.6893329999999764,
+              "rssMiB": 255.484375,
+              "heapUsedMiB": 5.423004150390625,
+              "digest": "b16bd32b101132fd0102461bc75ea65442c37293ac881ae953486c8ac26a7388"
+            },
+            {
+              "round": 3,
+              "cold": false,
+              "ms": 22.283416999999986,
+              "cpuMs": 22.626,
+              "maxLoopDelayMs": 0.5895829999999478,
+              "rssMiB": 271.609375,
+              "heapUsedMiB": 5.4542694091796875,
+              "digest": "b16bd32b101132fd0102461bc75ea65442c37293ac881ae953486c8ac26a7388"
+            }
+          ],
+          "positiveControlMs": 100.54399999999998,
+          "memoryBefore": {
+            "rss": 69419008,
+            "heapTotal": 8454144,
+            "heapUsed": 5439224,
+            "external": 19303920,
+            "arrayBuffers": 16921305
+          },
+          "maxRssKiB": 281168
+        }
+      },
+      "parity": true
+    },
+    {
+      "name": "cache-write-32",
+      "kind": "cache",
+      "action": "write",
+      "payloadBytes": 33554432,
+      "modes": {
+        "main": {
+          "samples": [
+            {
+              "round": 0,
+              "cold": true,
+              "ms": 112.28062500000001,
+              "cpuMs": 114.656,
+              "maxLoopDelayMs": 83.084667,
+              "rssMiB": 403.1875,
+              "heapUsedMiB": 90.88920593261719,
+              "digest": "82a210beacaa01c555bf2a7ee6f4390ebb4f3879a8e8625b19f954db24d678d6"
+            },
+            {
+              "round": 1,
+              "cold": false,
+              "ms": 102.02716600000002,
+              "cpuMs": 103.743,
+              "maxLoopDelayMs": 82.114667,
+              "rssMiB": 521.3125,
+              "heapUsedMiB": 90.89797973632812,
+              "digest": "82a210beacaa01c555bf2a7ee6f4390ebb4f3879a8e8625b19f954db24d678d6"
+            },
+            {
+              "round": 2,
+              "cold": false,
+              "ms": 103.49899999999997,
+              "cpuMs": 108.553,
+              "maxLoopDelayMs": 73.64612500000004,
+              "rssMiB": 514.75,
+              "heapUsedMiB": 48.25196075439453,
+              "digest": "82a210beacaa01c555bf2a7ee6f4390ebb4f3879a8e8625b19f954db24d678d6"
+            },
+            {
+              "round": 3,
+              "cold": false,
+              "ms": 103.41045899999995,
+              "cpuMs": 107.77,
+              "maxLoopDelayMs": 76.799083,
+              "rssMiB": 520.09375,
+              "heapUsedMiB": 47.24468231201172,
+              "digest": "82a210beacaa01c555bf2a7ee6f4390ebb4f3879a8e8625b19f954db24d678d6"
+            }
+          ],
+          "positiveControlMs": 100.436667,
+          "memoryBefore": {
+            "rss": 121044992,
+            "heapTotal": 9240576,
+            "heapUsed": 5636912,
+            "external": 69635570,
+            "arrayBuffers": 67252955
+          },
+          "maxRssKiB": 620576
+        },
+        "worker": {
+          "samples": [
+            {
+              "round": 0,
+              "cold": true,
+              "ms": 163.52229200000002,
+              "cpuMs": 165.142,
+              "maxLoopDelayMs": 4.69512499999999,
+              "rssMiB": 449.734375,
+              "heapUsedMiB": 6.3433380126953125,
+              "digest": "82a210beacaa01c555bf2a7ee6f4390ebb4f3879a8e8625b19f954db24d678d6"
+            },
+            {
+              "round": 1,
+              "cold": false,
+              "ms": 115.76891699999999,
+              "cpuMs": 93.182,
+              "maxLoopDelayMs": 2.339999999999975,
+              "rssMiB": 546.53125,
+              "heapUsedMiB": 6.417442321777344,
+              "digest": "82a210beacaa01c555bf2a7ee6f4390ebb4f3879a8e8625b19f954db24d678d6"
+            },
+            {
+              "round": 2,
+              "cold": false,
+              "ms": 98.38487500000008,
+              "cpuMs": 95.071,
+              "maxLoopDelayMs": 1.256208000000015,
+              "rssMiB": 507.9375,
+              "heapUsedMiB": 6.4842529296875,
+              "digest": "82a210beacaa01c555bf2a7ee6f4390ebb4f3879a8e8625b19f954db24d678d6"
+            },
+            {
+              "round": 3,
+              "cold": false,
+              "ms": 106.97058399999992,
+              "cpuMs": 102.71,
+              "maxLoopDelayMs": 1.607499999999959,
+              "rssMiB": 554.859375,
+              "heapUsedMiB": 6.560111999511719,
+              "digest": "82a210beacaa01c555bf2a7ee6f4390ebb4f3879a8e8625b19f954db24d678d6"
+            }
+          ],
+          "positiveControlMs": 100.439417,
+          "memoryBefore": {
+            "rss": 121880576,
+            "heapTotal": 11337728,
+            "heapUsed": 5436416,
+            "external": 69635578,
+            "arrayBuffers": 67252963
+          },
+          "maxRssKiB": 568224
+        }
+      },
+      "parity": true
+    },
+    {
+      "name": "cache-read-32",
+      "kind": "cache",
+      "action": "read",
+      "payloadBytes": 33554432,
+      "modes": {
+        "main": {
+          "samples": [
+            {
+              "round": 0,
+              "cold": true,
+              "ms": 102.441125,
+              "cpuMs": 114.63,
+              "maxLoopDelayMs": 78.880834,
+              "rssMiB": 381.921875,
+              "heapUsedMiB": 133.29972076416016,
+              "digest": "20f364a23762cb1a2e4f14f7036e9718ed806447caad2881a27fc4af14050415"
+            },
+            {
+              "round": 1,
+              "cold": false,
+              "ms": 94.88808399999999,
+              "cpuMs": 79.815,
+              "maxLoopDelayMs": 61.14383299999997,
+              "rssMiB": 543.34375,
+              "heapUsedMiB": 261.32022857666016,
+              "digest": "20f364a23762cb1a2e4f14f7036e9718ed806447caad2881a27fc4af14050415"
+            },
+            {
+              "round": 2,
+              "cold": false,
+              "ms": 78.07070799999997,
+              "cpuMs": 77.183,
+              "maxLoopDelayMs": 63.60158400000006,
+              "rssMiB": 403.796875,
+              "heapUsedMiB": 90.6551284790039,
+              "digest": "20f364a23762cb1a2e4f14f7036e9718ed806447caad2881a27fc4af14050415"
+            },
+            {
+              "round": 3,
+              "cold": false,
+              "ms": 70.709834,
+              "cpuMs": 69.618,
+              "maxLoopDelayMs": 60.91041699999994,
+              "rssMiB": 575.921875,
+              "heapUsedMiB": 261.34395599365234,
+              "digest": "20f364a23762cb1a2e4f14f7036e9718ed806447caad2881a27fc4af14050415"
+            }
+          ],
+          "positiveControlMs": 100.55587499999999,
+          "memoryBefore": {
+            "rss": 121077760,
+            "heapTotal": 8716288,
+            "heapUsed": 5635224,
+            "external": 69635564,
+            "arrayBuffers": 67252949
+          },
+          "maxRssKiB": 722080
+        },
+        "worker": {
+          "samples": [
+            {
+              "round": 0,
+              "cold": true,
+              "ms": 152.08608300000003,
+              "cpuMs": 178.153,
+              "maxLoopDelayMs": 4.719084000000009,
+              "rssMiB": 333.671875,
+              "heapUsedMiB": 5.6246795654296875,
+              "digest": "20f364a23762cb1a2e4f14f7036e9718ed806447caad2881a27fc4af14050415"
+            },
+            {
+              "round": 1,
+              "cold": false,
+              "ms": 90.31679200000002,
+              "cpuMs": 99.925,
+              "maxLoopDelayMs": 3.033374999999978,
+              "rssMiB": 558.28125,
+              "heapUsedMiB": 4.904266357421875,
+              "digest": "20f364a23762cb1a2e4f14f7036e9718ed806447caad2881a27fc4af14050415"
+            },
+            {
+              "round": 2,
+              "cold": false,
+              "ms": 96.22704199999998,
+              "cpuMs": 101.032,
+              "maxLoopDelayMs": 2.494374999999991,
+              "rssMiB": 558.296875,
+              "heapUsedMiB": 4.974128723144531,
+              "digest": "20f364a23762cb1a2e4f14f7036e9718ed806447caad2881a27fc4af14050415"
+            },
+            {
+              "round": 3,
+              "cold": false,
+              "ms": 79.11262499999998,
+              "cpuMs": 86.388,
+              "maxLoopDelayMs": 1.2326249999999845,
+              "rssMiB": 558.375,
+              "heapUsedMiB": 5.0262451171875,
+              "digest": "20f364a23762cb1a2e4f14f7036e9718ed806447caad2881a27fc4af14050415"
+            }
+          ],
+          "positiveControlMs": 100.55354200000001,
+          "memoryBefore": {
+            "rss": 121667584,
+            "heapTotal": 10551296,
+            "heapUsed": 5451944,
+            "external": 69635572,
+            "arrayBuffers": 67252957
+          },
+          "maxRssKiB": 747920
+        }
+      },
+      "parity": true
+    },
+    {
+      "name": "rpc-0",
+      "kind": "rpc",
+      "payloadBytes": 0,
+      "modes": {
+        "main": {
+          "samples": [
+            {
+              "round": 0,
+              "cold": true,
+              "ms": 6.028458999999998,
+              "cpuMs": 6.436,
+              "maxLoopDelayMs": 2.2229999999999848,
+              "rssMiB": 59.578125,
+              "heapUsedMiB": 5.508354187011719,
+              "digest": "63be7e41e020bc00ee1c7926929730c6f0a0b9c0c3d83427c76eb5acfba8dc67"
+            },
+            {
+              "round": 1,
+              "cold": false,
+              "ms": 0.6081660000000113,
+              "cpuMs": 0.711,
+              "maxLoopDelayMs": 0.9211249999999893,
+              "rssMiB": 59.75,
+              "heapUsedMiB": 5.583290100097656,
+              "digest": "63be7e41e020bc00ee1c7926929730c6f0a0b9c0c3d83427c76eb5acfba8dc67"
+            },
+            {
+              "round": 2,
+              "cold": false,
+              "ms": 0.5279999999999916,
+              "cpuMs": 0.683,
+              "maxLoopDelayMs": 0.6920840000000226,
+              "rssMiB": 59.796875,
+              "heapUsedMiB": 5.679168701171875,
+              "digest": "63be7e41e020bc00ee1c7926929730c6f0a0b9c0c3d83427c76eb5acfba8dc67"
+            },
+            {
+              "round": 3,
+              "cold": false,
+              "ms": 0.4925000000000068,
+              "cpuMs": 0.67,
+              "maxLoopDelayMs": 1.0876250000000027,
+              "rssMiB": 59.96875,
+              "heapUsedMiB": 5.7823028564453125,
+              "digest": "63be7e41e020bc00ee1c7926929730c6f0a0b9c0c3d83427c76eb5acfba8dc67"
+            }
+          ],
+          "positiveControlMs": 99.37912499999999,
+          "memoryBefore": {
+            "rss": 52084736,
+            "heapTotal": 8192000,
+            "heapUsed": 5364144,
+            "external": 2526452,
+            "arrayBuffers": 143837
+          },
+          "maxRssKiB": 61408
+        },
+        "worker": {
+          "samples": [
+            {
+              "round": 0,
+              "cold": true,
+              "ms": 38.41458399999999,
+              "cpuMs": 42.62,
+              "maxLoopDelayMs": 2.551125000000013,
+              "rssMiB": 73.875,
+              "heapUsedMiB": 5.291801452636719,
+              "digest": "63be7e41e020bc00ee1c7926929730c6f0a0b9c0c3d83427c76eb5acfba8dc67"
+            },
+            {
+              "round": 1,
+              "cold": false,
+              "ms": 0.6930830000000014,
+              "cpuMs": 0.858,
+              "maxLoopDelayMs": 1.0165829999999971,
+              "rssMiB": 74.046875,
+              "heapUsedMiB": 5.326324462890625,
+              "digest": "63be7e41e020bc00ee1c7926929730c6f0a0b9c0c3d83427c76eb5acfba8dc67"
+            },
+            {
+              "round": 2,
+              "cold": false,
+              "ms": 1.3426249999999982,
+              "cpuMs": 1.593,
+              "maxLoopDelayMs": 0.705791999999974,
+              "rssMiB": 74.140625,
+              "heapUsedMiB": 5.3589019775390625,
+              "digest": "63be7e41e020bc00ee1c7926929730c6f0a0b9c0c3d83427c76eb5acfba8dc67"
+            },
+            {
+              "round": 3,
+              "cold": false,
+              "ms": 0.5730829999999969,
+              "cpuMs": 0.802,
+              "maxLoopDelayMs": 0.8865830000000301,
+              "rssMiB": 74.1875,
+              "heapUsedMiB": 5.382354736328125,
+              "digest": "63be7e41e020bc00ee1c7926929730c6f0a0b9c0c3d83427c76eb5acfba8dc67"
+            }
+          ],
+          "positiveControlMs": 100.490666,
+          "memoryBefore": {
+            "rss": 52068352,
+            "heapTotal": 8454144,
+            "heapUsed": 5353616,
+            "external": 2526456,
+            "arrayBuffers": 143841
+          },
+          "maxRssKiB": 76032
+        }
+      },
+      "parity": true
+    },
+    {
+      "name": "rpc-linear-0",
+      "kind": "rpc-linear-client",
+      "payloadBytes": 0,
+      "modes": {
+        "main": {
+          "samples": [
+            {
+              "round": 0,
+              "cold": true,
+              "ms": 4.6699999999999875,
+              "cpuMs": 5.213,
+              "maxLoopDelayMs": 1.5073340000000144,
+              "rssMiB": 59.453125,
+              "heapUsedMiB": 5.501045227050781,
+              "digest": "63be7e41e020bc00ee1c7926929730c6f0a0b9c0c3d83427c76eb5acfba8dc67"
+            },
+            {
+              "round": 1,
+              "cold": false,
+              "ms": 0.47554199999999014,
+              "cpuMs": 0.498,
+              "maxLoopDelayMs": 0.7423750000000098,
+              "rssMiB": 59.71875,
+              "heapUsedMiB": 5.574836730957031,
+              "digest": "63be7e41e020bc00ee1c7926929730c6f0a0b9c0c3d83427c76eb5acfba8dc67"
+            },
+            {
+              "round": 2,
+              "cold": false,
+              "ms": 0.4684159999999906,
+              "cpuMs": 0.556,
+              "maxLoopDelayMs": 0.8556659999999852,
+              "rssMiB": 59.734375,
+              "heapUsedMiB": 5.662361145019531,
+              "digest": "63be7e41e020bc00ee1c7926929730c6f0a0b9c0c3d83427c76eb5acfba8dc67"
+            },
+            {
+              "round": 3,
+              "cold": false,
+              "ms": 0.5364159999999742,
+              "cpuMs": 0.854,
+              "maxLoopDelayMs": 0.424541999999974,
+              "rssMiB": 59.9375,
+              "heapUsedMiB": 5.7680816650390625,
+              "digest": "63be7e41e020bc00ee1c7926929730c6f0a0b9c0c3d83427c76eb5acfba8dc67"
+            }
+          ],
+          "positiveControlMs": 99.26266600000001,
+          "memoryBefore": {
+            "rss": 52117504,
+            "heapTotal": 8454144,
+            "heapUsed": 5357960,
+            "external": 2526480,
+            "arrayBuffers": 143865
+          },
+          "maxRssKiB": 61392
+        },
+        "worker": {
+          "samples": [
+            {
+              "round": 0,
+              "cold": true,
+              "ms": 25.438958000000014,
+              "cpuMs": 29.434,
+              "maxLoopDelayMs": 1.6779999999999973,
+              "rssMiB": 73.765625,
+              "heapUsedMiB": 5.381004333496094,
+              "digest": "63be7e41e020bc00ee1c7926929730c6f0a0b9c0c3d83427c76eb5acfba8dc67"
+            },
+            {
+              "round": 1,
+              "cold": false,
+              "ms": 0.9080830000000049,
+              "cpuMs": 0.974,
+              "maxLoopDelayMs": 0.3355420000000038,
+              "rssMiB": 73.984375,
+              "heapUsedMiB": 5.41632080078125,
+              "digest": "63be7e41e020bc00ee1c7926929730c6f0a0b9c0c3d83427c76eb5acfba8dc67"
+            },
+            {
+              "round": 2,
+              "cold": false,
+              "ms": 6.225041000000033,
+              "cpuMs": 1.901,
+              "maxLoopDelayMs": 0.9114999999999895,
+              "rssMiB": 74.015625,
+              "heapUsedMiB": 5.4500885009765625,
+              "digest": "63be7e41e020bc00ee1c7926929730c6f0a0b9c0c3d83427c76eb5acfba8dc67"
+            },
+            {
+              "round": 3,
+              "cold": false,
+              "ms": 0.957416999999964,
+              "cpuMs": 1.255,
+              "maxLoopDelayMs": 0.4957090000000335,
+              "rssMiB": 74.109375,
+              "heapUsedMiB": 5.475006103515625,
+              "digest": "63be7e41e020bc00ee1c7926929730c6f0a0b9c0c3d83427c76eb5acfba8dc67"
+            }
+          ],
+          "positiveControlMs": 100.46895799999999,
+          "memoryBefore": {
+            "rss": 52035584,
+            "heapTotal": 7929856,
+            "heapUsed": 5341496,
+            "external": 2526484,
+            "arrayBuffers": 143869
+          },
+          "maxRssKiB": 75952
+        }
+      },
+      "parity": true
+    },
+    {
+      "name": "rpc-8",
+      "kind": "rpc",
+      "payloadBytes": 8388608,
+      "modes": {
+        "main": {
+          "samples": [
+            {
+              "round": 0,
+              "cold": true,
+              "ms": 1121.925541,
+              "cpuMs": 1108.761,
+              "maxLoopDelayMs": 16.446416999999997,
+              "rssMiB": 175.671875,
+              "heapUsedMiB": 75.7518081665039,
+              "digest": "bb99f8d5ff70f51c5e7a7c02483e4ee272602b572b3f1895b6482404df205e2d"
+            },
+            {
+              "round": 1,
+              "cold": false,
+              "ms": 1031.931833,
+              "cpuMs": 1038.948,
+              "maxLoopDelayMs": 4.758291000000099,
+              "rssMiB": 215.625,
+              "heapUsedMiB": 114.57701110839844,
+              "digest": "bb99f8d5ff70f51c5e7a7c02483e4ee272602b572b3f1895b6482404df205e2d"
+            },
+            {
+              "round": 2,
+              "cold": false,
+              "ms": 1122.6398749999998,
+              "cpuMs": 1103.228,
+              "maxLoopDelayMs": 9.470291999999972,
+              "rssMiB": 185.390625,
+              "heapUsedMiB": 83.71111297607422,
+              "digest": "bb99f8d5ff70f51c5e7a7c02483e4ee272602b572b3f1895b6482404df205e2d"
+            },
+            {
+              "round": 3,
+              "cold": false,
+              "ms": 1039.2717080000002,
+              "cpuMs": 1041.035,
+              "maxLoopDelayMs": 7.583165999999437,
+              "rssMiB": 208.875,
+              "heapUsedMiB": 107.0469741821289,
+              "digest": "bb99f8d5ff70f51c5e7a7c02483e4ee272602b572b3f1895b6482404df205e2d"
+            }
+          ],
+          "positiveControlMs": 100.52466700000001,
+          "memoryBefore": {
+            "rss": 77398016,
+            "heapTotal": 17121280,
+            "heapUsed": 13823072,
+            "external": 19303866,
+            "arrayBuffers": 16921251
+          },
+          "maxRssKiB": 247936
+        },
+        "worker": {
+          "samples": [
+            {
+              "round": 0,
+              "cold": true,
+              "ms": 1100.479084,
+              "cpuMs": 1111.965,
+              "maxLoopDelayMs": 8.592542000000094,
+              "rssMiB": 166.359375,
+              "heapUsedMiB": 22.086532592773438,
+              "digest": "bb99f8d5ff70f51c5e7a7c02483e4ee272602b572b3f1895b6482404df205e2d"
+            },
+            {
+              "round": 1,
+              "cold": false,
+              "ms": 1062.4491659999999,
+              "cpuMs": 1082.809,
+              "maxLoopDelayMs": 1.746874999999818,
+              "rssMiB": 291.828125,
+              "heapUsedMiB": 29.329429626464844,
+              "digest": "bb99f8d5ff70f51c5e7a7c02483e4ee272602b572b3f1895b6482404df205e2d"
+            },
+            {
+              "round": 2,
+              "cold": false,
+              "ms": 1008.5946250000002,
+              "cpuMs": 1023.618,
+              "maxLoopDelayMs": 5.722709000000123,
+              "rssMiB": 224.59375,
+              "heapUsedMiB": 37.22583770751953,
+              "digest": "bb99f8d5ff70f51c5e7a7c02483e4ee272602b572b3f1895b6482404df205e2d"
+            },
+            {
+              "round": 3,
+              "cold": false,
+              "ms": 1134.0826250000005,
+              "cpuMs": 1096.36,
+              "maxLoopDelayMs": 4.373791999999867,
+              "rssMiB": 295.796875,
+              "heapUsedMiB": 44.952880859375,
+              "digest": "bb99f8d5ff70f51c5e7a7c02483e4ee272602b572b3f1895b6482404df205e2d"
+            }
+          ],
+          "positiveControlMs": 100.462209,
+          "memoryBefore": {
+            "rss": 77742080,
+            "heapTotal": 16334848,
+            "heapUsed": 13843832,
+            "external": 19303874,
+            "arrayBuffers": 16921259
+          },
+          "maxRssKiB": 339584
+        }
+      },
+      "parity": true
+    },
+    {
+      "name": "rpc-linear-8",
+      "kind": "rpc-linear-client",
+      "payloadBytes": 8388608,
+      "modes": {
+        "main": {
+          "samples": [
+            {
+              "round": 0,
+              "cold": true,
+              "ms": 21.235332999999997,
+              "cpuMs": 28.17,
+              "maxLoopDelayMs": 6.688625000000002,
+              "rssMiB": 119.53125,
+              "heapUsedMiB": 21.792037963867188,
+              "digest": "bb99f8d5ff70f51c5e7a7c02483e4ee272602b572b3f1895b6482404df205e2d"
+            },
+            {
+              "round": 1,
+              "cold": false,
+              "ms": 15.779334000000006,
+              "cpuMs": 21.298,
+              "maxLoopDelayMs": 5.272707999999994,
+              "rssMiB": 122.078125,
+              "heapUsedMiB": 22.079429626464844,
+              "digest": "bb99f8d5ff70f51c5e7a7c02483e4ee272602b572b3f1895b6482404df205e2d"
+            },
+            {
+              "round": 2,
+              "cold": false,
+              "ms": 14.935791000000052,
+              "cpuMs": 20.51,
+              "maxLoopDelayMs": 5.329958999999974,
+              "rssMiB": 124.84375,
+              "heapUsedMiB": 22.113441467285156,
+              "digest": "bb99f8d5ff70f51c5e7a7c02483e4ee272602b572b3f1895b6482404df205e2d"
+            },
+            {
+              "round": 3,
+              "cold": false,
+              "ms": 14.13695899999999,
+              "cpuMs": 17.781,
+              "maxLoopDelayMs": 5.192457999999988,
+              "rssMiB": 124.921875,
+              "heapUsedMiB": 22.160171508789062,
+              "digest": "bb99f8d5ff70f51c5e7a7c02483e4ee272602b572b3f1895b6482404df205e2d"
+            }
+          ],
+          "positiveControlMs": 100.44999999999999,
+          "memoryBefore": {
+            "rss": 77561856,
+            "heapTotal": 17121280,
+            "heapUsed": 13822968,
+            "external": 19303922,
+            "arrayBuffers": 16921307
+          },
+          "maxRssKiB": 144320
+        },
+        "worker": {
+          "samples": [
+            {
+              "round": 0,
+              "cold": true,
+              "ms": 42.81841700000001,
+              "cpuMs": 51.585,
+              "maxLoopDelayMs": 1.4131669999999872,
+              "rssMiB": 167.25,
+              "heapUsedMiB": 22.442855834960938,
+              "digest": "bb99f8d5ff70f51c5e7a7c02483e4ee272602b572b3f1895b6482404df205e2d"
+            },
+            {
+              "round": 1,
+              "cold": false,
+              "ms": 18.068292000000014,
+              "cpuMs": 19.968,
+              "maxLoopDelayMs": 1.558999999999969,
+              "rssMiB": 226.953125,
+              "heapUsedMiB": 29.284133911132812,
+              "digest": "bb99f8d5ff70f51c5e7a7c02483e4ee272602b572b3f1895b6482404df205e2d"
+            },
+            {
+              "round": 2,
+              "cold": false,
+              "ms": 17.67483299999998,
+              "cpuMs": 24.542,
+              "maxLoopDelayMs": 0.868583000000001,
+              "rssMiB": 221.046875,
+              "heapUsedMiB": 36.910987854003906,
+              "digest": "bb99f8d5ff70f51c5e7a7c02483e4ee272602b572b3f1895b6482404df205e2d"
+            },
+            {
+              "round": 3,
+              "cold": false,
+              "ms": 17.45241599999997,
+              "cpuMs": 20.518,
+              "maxLoopDelayMs": 0.9545840000000112,
+              "rssMiB": 202.578125,
+              "heapUsedMiB": 44.93792724609375,
+              "digest": "bb99f8d5ff70f51c5e7a7c02483e4ee272602b572b3f1895b6482404df205e2d"
+            }
+          ],
+          "positiveControlMs": 100.38033399999999,
+          "memoryBefore": {
+            "rss": 77512704,
+            "heapTotal": 16859136,
+            "heapUsed": 13834544,
+            "external": 19303930,
+            "arrayBuffers": 16921315
+          },
+          "maxRssKiB": 243056
+        }
+      },
+      "parity": true
+    }
+  ]
+}

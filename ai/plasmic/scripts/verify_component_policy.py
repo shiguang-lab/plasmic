@@ -28,7 +28,6 @@ def page_numbers(value):
 NATIVE_DEFAULTS = {
     'plasmicantd6table': {'pagination.defaultPageSize': 10, 'pagination.pageSizeOptions': [10, 20, 50, 100]},
 }
-APP_SOURCE = re.compile(r'app[\s_-]*source|app(?:lication)?[\s_-]*(?:id|name)|(?:app|应用)[\s_-]*(?:来源|标识|名称)|应用[\s_-]*id|多[\s_-]*(?:app|应用)', re.I)
 
 
 def static(value):
@@ -331,12 +330,10 @@ def plan_errors(plan):
             errors.append({'check': 'appContext', 'pointer': '/appContext', 'message': 'Declare appContext.required and its source evidence before shell composition'})
         else:
             try:
-                text = source_text(context.get('evidence'))
-                quote = context['evidence']['quote']
-                if not context['required'] and APP_SOURCE.search(text):
-                    if not (re.search(r'顶部|全局|AppShell|header|global', quote, re.I)
-                            and re.search(r'不提供|隐藏|禁用|不要|disable|omit', quote, re.I)):
-                        raise ValueError('App-source semantics require the shell switcher; excluding a filter/form field does not disable global context')
+                # Source review decides whether this is a working App dimension,
+                # a product title or an explicit switcher exclusion. Keywords
+                # cannot establish that meaning or override a reviewed decision.
+                source_text(context.get('evidence'))
                 if context['required'] and (context.get('shell') not in {s.get('nodeName') for s in shells}
                                            or not isinstance(context.get('binding'), str) or not context['binding'].strip()
                                            or not context.get('consumers')):

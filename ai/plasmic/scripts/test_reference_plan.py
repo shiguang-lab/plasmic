@@ -398,6 +398,33 @@ class ManifestAndScaffoldTests(unittest.TestCase):
         table = next(r for r in accept['reads'] if r['rule'] == TABLE)
         self.assertIn('acceptance-checks', table['sections'])
 
+    def test_reading_pressure_includes_unread_project_rules_without_double_counting(self):
+        from prepare_plan import card_reads
+        page = {'path': '/records', **table_plan()}
+        plan = {'pages': [page]}
+        with tempfile.TemporaryDirectory() as directory:
+            log = Path(directory) / 'reads.jsonl'
+            # One project rule overlaps a Page section. Its full read covers the
+            # Page section once; an unrelated project rule still adds pressure.
+            project = {TABLE: None, 'references/design/layout.md': None}
+            combined = {**required_reads(page), **project}
+            combined_reads, expected, _ = card_reads(combined, log)
+            with patch('verify_selection.project_reads', return_value=project.copy()):
+                card = rules(plan, '/records', log)
+                self.assertEqual(card['pendingProjectAndPageBytes'], expected)
+                self.assertGreater(expected, card['totalBytes'])
+                with patch('prepare_plan.READING_BUDGET_BYTES', card['totalBytes']):
+                    pressured = rules(plan, '/records', log)
+                self.assertFalse(pressured['readingBudgetExceeded'])
+                self.assertTrue(pressured['pendingProjectAndPageBudgetExceeded'])
+                self.assertIn('Pending project and Page rules', pressured['next'])
+                self.assertEqual(pressured['reads'], card['reads'])
+                for read in combined_reads:
+                    subprocess.run(read['args'], check=True, capture_output=True)
+                completed = rules(plan, '/records', log)
+                self.assertEqual(completed['pendingProjectAndPageBytes'], 0)
+                self.assertFalse(completed['pendingProjectAndPageBudgetExceeded'])
+
     def test_accept_card_reuses_retained_context_and_supplements_checks(self):
         from verify_selection import load_ledger, project_coverage_errors
         from prepare_plan import project_rules

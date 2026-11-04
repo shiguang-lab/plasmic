@@ -10,9 +10,11 @@ if (process.argv.includes("--mcp")) {
     if (process.platform !== "win32") {
       process.execve(command, [command, ...args], process.env);
     } else {
-      // Windows cannot replace a running process. Registered clients launch the
-      // helper directly; the public application command keeps its own stdio PID.
-      require("./mcp-entry.cjs");
+      // Registered clients launch Go directly. The public Windows entry keeps
+      // its inherited pipes attached until the helper exits.
+      const child = require("node:child_process").spawn(command, args, { stdio: "inherit", windowsHide: true });
+      child.once("error", error => { process.stderr.write(error.message + "\n"); app.exit(1); });
+      child.once("exit", (code) => app.exit(code ?? 1));
     }
   } catch (error) {
     process.stderr.write(error.message + "\n");

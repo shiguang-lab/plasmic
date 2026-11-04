@@ -1,3 +1,4 @@
+const { mcpTransport } = require("./fixtures/mcp.cjs");
 const { studioFixture } = require("./fixtures/studio.cjs");
 const test = require("node:test");
 const assert = require("node:assert/strict");
@@ -171,8 +172,7 @@ test("snapshot continuation and renderer diagnostics survive actual RPC and MCP"
   const stop = await startRpc(profile, (method, input) => f.controller.dispatch(method, input));
   const client = new Client({ name: "preview-error-test", version: "1" });
   try {
-    await client.connect(new StdioClientTransport({ command: process.execPath,
-      args: ["-e", `require(${JSON.stringify(require.resolve("../src/mcp.cjs"))}).serveMcp(${JSON.stringify(profile)})`], stderr: "pipe" }));
+    await client.connect(new StdioClientTransport(mcpTransport(profile)));
     const call = (arguments) => client.callTool({ name: "preview", arguments });
     const first = JSON.parse((await call({ action: "snapshot", limit: 1 })).content[0].text);
     assert.equal(first.continuation.tool, "preview");

@@ -164,10 +164,12 @@ async function rpcAddress(profile) {
     throw new Error("Start Plasmic before connecting MCP");
   }
 }
-async function connectRpcSession(profile) {
+async function connectRpcSession(profile, signal) {
+  signal?.throwIfAborted();
   const address = await rpcAddress(profile);
+  signal?.throwIfAborted();
   return new Promise((resolve, reject) => {
-    const connection = net.createConnection(address.socket);
+    const connection = net.createConnection({ path: address.socket, signal });
     let buffer = "", connected = false;
     connection.setEncoding("utf8");
     connection.setTimeout(5000, () => connection.destroy(new Error("Desktop connection timed out")));
@@ -195,36 +197,45 @@ async function connectRpcSession(profile) {
 }
 async function requestRpc(profile, method, input = {}, callerId, signal) {
   signal?.throwIfAborted();
-  const address = await rpcAddress(profile);
+  // A failed transport cannot establish whether a dispatched operation ran.
+  // Keep this explicit so callers never retry a possibly successful mutation.
+  const transportError = (cause, sent) => Object.assign(new Error(cause.message, { cause }), {
+    context: { code: "DESKTOP_CONNECTION_LOST", operationExecuted: sent ? null : false },
+  });
+  const address = await rpcAddress(profile).catch(error => { throw transportError(error, false); });
   signal?.throwIfAborted();
   return new Promise((resolve, reject) => {
     const connection = net.createConnection(address.socket);
+    let sent = false;
     const abort = () => { reject(signal.reason); connection.destroy(); };
     signal?.addEventListener("abort", abort, { once: true });
     connection.once("close", () => {
       signal?.removeEventListener("abort", abort);
-      reject(new Error("Desktop connection closed before a response"));
+      reject(transportError(new Error("Desktop connection closed before a response"), sent));
     });
     connection.setEncoding("utf8");
-    let buffer = "";
+    const chunks = [];
+    let bytes = 0;
     connection.setTimeout(150000, () =>
       connection.destroy(new Error("Desktop command timed out")),
     );
-    connection.on("error", reject);
-    connection.on("connect", () =>
+    connection.on("error", error => reject(transportError(error, sent)));
+    connection.on("connect", () => {
+      sent = true;
       connection.write(
         JSON.stringify({ token: address.token, method, input, ...(callerId ? { callerId } : {}) }) + "\n",
-      ),
-    );
+      );
+    });
     connection.on("data", (chunk) => {
-      buffer += chunk;
-      if (Buffer.byteLength(buffer) > 32 * 1024 * 1024) {
+      bytes += Buffer.byteLength(chunk);
+      chunks.push(chunk);
+      if (bytes > 32 * 1024 * 1024) {
         connection.destroy(new Error("Desktop response too large"));
       }
     });
     connection.on("end", () => {
       try {
-        const response = JSON.parse(buffer);
+        const response = JSON.parse(chunks.join(""));
         if (response.error) {
           const { message, name, stack, cause, ...context } = response.error;
           reject(Object.assign(new Error(message, cause === undefined ? undefined : { cause }),
@@ -234,7 +245,7 @@ async function requestRpc(profile, method, input = {}, callerId, signal) {
           resolve(response.result);
         }
       } catch (error) {
-        reject(error);
+        reject(transportError(error, sent));
       }
     });
   });

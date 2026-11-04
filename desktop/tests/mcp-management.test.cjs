@@ -1,3 +1,4 @@
+const { mcpTransport } = require("./fixtures/mcp.cjs");
 const { studioFixture } = require("./fixtures/studio.cjs");
 const test = require("node:test");
 const assert = require("node:assert/strict");
@@ -68,14 +69,7 @@ test("management tools expose strict MCP schemas and forward valid calls through
   const client = new Client({ name: "management-test", version: "1.0.0" });
   try {
     await client.connect(
-      new StdioClientTransport({
-        command: process.execPath,
-        args: [
-          "-e",
-          `require(${JSON.stringify(require.resolve("../src/mcp.cjs"))}).serveMcp(${JSON.stringify(profile)})`,
-        ],
-        stderr: "pipe",
-      }),
+      new StdioClientTransport(mcpTransport(profile)),
     );
     const tools = (await client.listTools()).tools;
     const editorNames = tools.find((tool) => tool.name === "get_app_state").inputSchema.properties.toolNames.items.enum;
@@ -657,14 +651,7 @@ test("MCP can reuse or create the selected hierarchy and enter its Project befor
       const client = new Client({ name: "hierarchy-test", version: "1.0.0" });
       try {
         await client.connect(
-          new StdioClientTransport({
-            command: process.execPath,
-            args: [
-              "-e",
-              `require(${JSON.stringify(require.resolve("../src/mcp.cjs"))}).serveMcp(${JSON.stringify(profile)})`,
-            ],
-            stderr: "pipe",
-          }),
+          new StdioClientTransport(mcpTransport(profile)),
         );
         async function call(name, input = {}) {
           const result = await client.callTool({ name, arguments: input });

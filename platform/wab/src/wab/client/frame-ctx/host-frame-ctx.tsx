@@ -1,4 +1,5 @@
 import "@/wab/client/frame-ctx/project-model-transfer";
+import { LoadingAnimationContext } from "@/wab/client/contexts/LoadingAnimationContext";
 import { ensureIsHostFrame, isHostFrame } from "@/wab/client/cli-routes";
 import {
   providesFrameCtx,
@@ -27,6 +28,7 @@ export interface HostFrameCtx {
   topFrameApi: PromisifyMethods<TopFrameFullApi>;
   history: History;
   onHostFrameApiReady: (api: HostFrameApi) => void;
+  revealStudio: () => Promise<void>;
 }
 
 export interface HostFrameCtxProviderProps {
@@ -36,6 +38,7 @@ export interface HostFrameCtxProviderProps {
 export function HostFrameCtxProvider({ children }: HostFrameCtxProviderProps) {
   ensureIsHostFrame();
 
+  const [animationEnabled, setAnimationEnabled] = React.useState(false);
   const [hostFrameCtx, setHostFrameCtx] = React.useState<
     HostFrameCtx | undefined
   >(undefined);
@@ -75,6 +78,15 @@ export function HostFrameCtxProvider({ children }: HostFrameCtxProviderProps) {
         setHostFrameCtx({
           history: hostHistory,
           topFrameApi,
+          revealStudio: async () => {
+            if (disposed) {
+              return;
+            }
+            await topFrameApi.setStudioReady();
+            if (!disposed) {
+              setAnimationEnabled(true);
+            }
+          },
           onHostFrameApiReady: (api) => {
             console.log(
               "[HostFrame] HostFrameApi ready, exposing API to TopFrame",
@@ -93,7 +105,11 @@ export function HostFrameCtxProvider({ children }: HostFrameCtxProviderProps) {
   }, []);
 
   // block children until connected to TopFrame
-  return providesFrameCtx(hostFrameCtx)(hostFrameCtx ? children : null);
+  return providesFrameCtx(hostFrameCtx)(
+    <LoadingAnimationContext.Provider value={animationEnabled}>
+      {hostFrameCtx ? children : null}
+    </LoadingAnimationContext.Provider>,
+  );
 }
 
 /**

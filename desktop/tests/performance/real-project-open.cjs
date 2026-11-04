@@ -59,8 +59,21 @@ app.userAgentFallback = `${app.userAgentFallback} PlasmicDesktop/${process.platf
 app.setPath("userData", path.join(task, "profile-" + profileKey));
 app.on("window-all-closed", () => {});
 ipcMain.on("desktop:preview-host-error", (_event,message) => report.previewErrors.push({phase,message:String(message)}));
-function bootstrap(countStyles) {
+function bootstrap(countStyles, blockPhysicalInput) {
   window.__openProbe = { longTasks: [], paints: [] };
+  if (blockPhysicalInput) {
+    window.__openProbe.blockedInputEvents = 0;
+    for (const type of ["paste", "drop", "beforeinput", "pointerdown", "mousedown", "click"]) {
+      document.addEventListener(type, event => {
+        if (event.isTrusted) {
+          window.__openProbe.blockedInputEvents++;
+          event.preventDefault();
+          event.stopImmediatePropagation();
+        }
+      }, true);
+    }
+  }
+
   new PerformanceObserver(list => {
     for (const entry of list.getEntries()) {
       const skeleton = document.getElementById("studio-startup-loading");
@@ -76,6 +89,12 @@ function bootstrap(countStyles) {
   new PerformanceObserver(list => __openProbe.longTasks.push(...list.getEntries().map(e => ({ start:e.startTime, duration:e.duration })))).observe({type:"longtask",buffered:true});
 }
 app.on("web-contents-created", (_, contents) => {
+  if (process.env.PERF_BLOCK_PHYSICAL_INPUT === "1") {
+    contents.on("before-input-event", event => {
+      event.preventDefault();
+      report.blockedKeyboardEvents = (report.blockedKeyboardEvents || 0) + 1;
+    });
+  }
   if(process.env.PERF_PRESENTATION === "1") {
     let capturing=false;
     const timer=setInterval(async()=>{
@@ -110,7 +129,7 @@ app.on("web-contents-created", (_, contents) => {
   debug.attach("1.3");
   const setup = async id => {
     await debug.sendCommand("Page.enable", {}, id);
-    await debug.sendCommand("Page.addScriptToEvaluateOnNewDocument", {source:`(${bootstrap.toString()})(${process.env.PERF_OPEN_COUNT_STYLES === '1'})`}, id);
+    await debug.sendCommand("Page.addScriptToEvaluateOnNewDocument", {source:`(${bootstrap.toString()})(${process.env.PERF_OPEN_COUNT_STYLES === '1'},${process.env.PERF_BLOCK_PHYSICAL_INPUT === '1'})`}, id);
     await debug.sendCommand("Target.setAutoAttach", {autoAttach:true,waitForDebuggerOnStart:true,flatten:true}, id);
   };
   debug.on("message", (_, method, params) => {
@@ -187,7 +206,7 @@ app.whenReady().then(async () => {
     const response=await assets(request);
     if(debuggerEnabled||!response.headers.get("Content-Type")?.startsWith("text/html"))return response;
     const headers=new Headers(response.headers);headers.delete("Content-Length");
-    const html=(await response.text()).replace(/<head[^>]*>/i,head=>head+`<script>(${bootstrap.toString()})(false)</script>`);
+    const html=(await response.text()).replace(/<head[^>]*>/i,head=>head+`<script>(${bootstrap.toString()})(false,${process.env.PERF_BLOCK_PHYSICAL_INPUT === '1'})</script>`);
     return new Response(html,{status:response.status,headers});
   });
   const preload = path.join(task,"preview-only-preload.cjs");
@@ -260,7 +279,7 @@ app.whenReady().then(async () => {
     await sleep(300);
     const probes = [];
     for (const f of win.webContents.mainFrame.framesInSubtree) {
-      try { probes.push(await f.executeJavaScript(`({url:location.href,timeOrigin:performance.timeOrigin,marks:performance.getEntriesByType('mark').map(e=>({name:e.name,start:e.startTime})),longTasks:window.__openProbe?.longTasks,computedStyles:window.__openProbe?.computedStyles,studio:window.studioCtx?{ready:studioCtx.activeCanvasReady,viewportReady:studioCtx.initialViewportReady,timings:studioCtx.loadTimings.snapshot(),project:studioCtx.site.name,revision:studioCtx.dbCtx().revisionNum,changes:studioCtx._changeCounter,components:studioCtx.site.components.length,views:studioCtx.viewCtxs.length,arenas:studioCtx.site.arenas.map(a=>({name:a.name,frames:a.children.length})),pageArenas:studioCtx.site.pageArenas.length,componentArenas:studioCtx.site.componentArenas.length}:null})`)); } catch {}
+      try { probes.push(await f.executeJavaScript(`({url:location.href,timeOrigin:performance.timeOrigin,marks:performance.getEntriesByType('mark').map(e=>({name:e.name,start:e.startTime})),longTasks:window.__openProbe?.longTasks,computedStyles:window.__openProbe?.computedStyles,blockedInputEvents:window.__openProbe?.blockedInputEvents,studio:window.studioCtx?{ready:studioCtx.activeCanvasReady,viewportReady:studioCtx.initialViewportReady,timings:studioCtx.loadTimings.snapshot(),project:studioCtx.site.name,revision:studioCtx.dbCtx().revisionNum,changes:studioCtx._changeCounter,components:studioCtx.site.components.length,views:studioCtx.viewCtxs.length,arenas:studioCtx.site.arenas.map(a=>({name:a.name,frames:a.children.length})),pageArenas:studioCtx.site.pageArenas.length,componentArenas:studioCtx.site.componentArenas.length}:null})`)); } catch {}
     }
     const sample = {phase,click,detectedReadyMs:detectedReady-click.at,atFirstReady,probes,
       memory:{processes:app.getAppMetrics().map(p=>({type:p.type,rssKiB:p.memory.workingSetSize})),peakWorkingSetSumKiB:report.memoryProbe?.openPeakRssKiB??null,heap:debuggerEnabled?await win.webContents.debugger.sendCommand("Runtime.getHeapUsage"):null}};

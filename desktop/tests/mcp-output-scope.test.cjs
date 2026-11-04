@@ -1,3 +1,5 @@
+require("./fixtures/background.cjs");
+const { mcpTransport } = require("./fixtures/mcp.cjs");
 const { studioFixture } = require("./fixtures/studio.cjs");
 const test = require("node:test");
 const assert = require("node:assert/strict");
@@ -51,8 +53,7 @@ test("public MCP output preserves the next-step inputs without UI state, permiss
   });
   const client = new Client({ name: "scope-test", version: "1" });
   try {
-    await client.connect(new StdioClientTransport({ command: process.execPath,
-      args: ["-e", `require(${JSON.stringify(require.resolve("../src/mcp.cjs"))}).serveMcp(${JSON.stringify(profile)})`], stderr: "pipe" }));
+    await client.connect(new StdioClientTransport(mcpTransport(profile)));
     const call = async (name, input = {}) => {
       const result = await client.callTool({ name, arguments: input });
       assert.equal(result.isError, false, result.content[0].text);

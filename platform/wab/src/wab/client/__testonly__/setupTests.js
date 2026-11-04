@@ -41,6 +41,9 @@ for (const method of ["open", "success", "info", "warning", "error"]) {
 }
 
 // Web shims for APIs missing in JSDOM
+if (typeof Element !== "undefined") {
+  Element.prototype.animate = () => ({ cancel: vi.fn() });
+}
 // Real SVG geometry is checked in Chromium; jsdom exercises animation lifecycle.
 if (typeof SVGElement !== "undefined") {
   Object.defineProperties(SVGElement.prototype, {

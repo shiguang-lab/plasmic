@@ -1,0 +1,117 @@
+{
+  "variant": "after",
+  "runtime": {
+    "node": "24.22.1",
+    "acorn": "8.18.0",
+    "ada": "4.0.0",
+    "amaro": "1.1.11",
+    "ares": "1.34.9",
+    "brotli": "1.2.0",
+    "cldr": "48.0",
+    "icu": "78.2",
+    "llhttp": "9.4.3",
+    "merve": "1.2.2",
+    "modules": "150",
+    "napi": "10",
+    "nbytes": "0.1.4",
+    "ncrypto": "0.0.1",
+    "nghttp2": "1.70.0",
+    "nghttp3": "",
+    "ngtcp2": "",
+    "openssl": "0.0.0",
+    "simdjson": "4.6.11",
+    "simdutf": "7.7.0",
+    "sqlite": "3.53.4",
+    "tz": "2026e",
+    "undici": "7.30.1",
+    "unicode": "17.0",
+    "uv": "1.52.1",
+    "uvwasi": "0.0.23",
+    "v8": "15.6.75.25-electron.0",
+    "zlib": "1.3.2.1-motley",
+    "zstd": "1.6.0",
+    "electron": "45.2.1",
+    "chrome": "156.0.8078.75"
+  },
+  "fixture": {
+    "chars": 7150377,
+    "nodes": 41944
+  },
+  "scope": "Minimal hidden Electron window, not full Studio/App total. Production preload, draft IPC and ASAR graph modules with only production graph dependencies. No forced GC. Main physical footprint includes workers; renderer RSS separately. Before/after same code paths and payload, separate processes; native operation samples include public bridge conversion.",
+  "memory": {
+    "initial": {
+      "mainFootprintMiB": 48,
+      "mainRssMiB": 166.640625,
+      "rendererRssMiB": 118.875
+    },
+    "afterJobs": {
+      "mainFootprintMiB": 385.6,
+      "mainRssMiB": 516.15625,
+      "rendererRssMiB": 287.609375
+    },
+    "afterIdle": {
+      "mainFootprintMiB": 271,
+      "mainRssMiB": 402.65625,
+      "rendererRssMiB": 287.5625
+    }
+  },
+  "samples": [
+    {
+      "kind": "write",
+      "round": 0,
+      "cold": true,
+      "ms": 77.74183300000004,
+      "maxLoopDelayMs": 1.9260420000000522
+    },
+    {
+      "kind": "read",
+      "round": 0,
+      "cold": true,
+      "ms": 66.0341249999999,
+      "maxLoopDelayMs": 0.4658329999999751
+    },
+    {
+      "kind": "write",
+      "round": 1,
+      "cold": false,
+      "ms": 84.18558299999995,
+      "maxLoopDelayMs": 2.004000000000133
+    },
+    {
+      "kind": "read",
+      "round": 1,
+      "cold": false,
+      "ms": 62.112458999999944,
+      "maxLoopDelayMs": 0.2430420000000595
+    },
+    {
+      "kind": "write",
+      "round": 2,
+      "cold": false,
+      "ms": 87.15120899999988,
+      "maxLoopDelayMs": 2.557499999999891
+    },
+    {
+      "kind": "read",
+      "round": 2,
+      "cold": false,
+      "ms": 65.93233299999997,
+      "maxLoopDelayMs": 1.116083000000117
+    },
+    {
+      "kind": "write",
+      "round": 3,
+      "cold": false,
+      "ms": 88.90687500000013,
+      "maxLoopDelayMs": 1.4789169999999103
+    },
+    {
+      "kind": "read",
+      "round": 3,
+      "cold": false,
+      "ms": 58.121999999999844,
+      "maxLoopDelayMs": 0.2389170000001286
+    }
+  ],
+  "workersReleased": true
+}

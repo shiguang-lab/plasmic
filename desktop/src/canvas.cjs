@@ -30,6 +30,37 @@ async function inspectCanvas() {
     return rect.width > 0 && rect.height > 0;
   };
   const visible = elements.filter(isVisible);
+  const visibleIndexes = new Map(visible.map((el, index) => [el, index]));
+  const tableCells = new Map();
+  for (const table of elements.filter((el) => el.tagName === "TABLE")) {
+    const groups = new Map();
+    for (const row of table.rows) {
+      if (!groups.has(row.parentElement)) groups.set(row.parentElement, []);
+      groups.get(row.parentElement).push(row);
+    }
+    const positions = new Map();
+    let valid = true;
+    for (const rows of groups.values()) {
+      const occupiedUntil = [];
+      rows.forEach((row, rowIndex) => {
+        let column = 0;
+        for (const cell of row.cells) {
+          while (occupiedUntil[column] > rowIndex) column++;
+          const span = cell.colSpan;
+          const rowSpan = cell.rowSpan === 0 ? rows.length - rowIndex : cell.rowSpan;
+          for (let offset = 0; offset < span; offset++) {
+            if (occupiedUntil[column + offset] > rowIndex) valid = false;
+            occupiedUntil[column + offset] = rowIndex + rowSpan;
+          }
+          positions.set(cell, { columnIndex: column, columnSpan: span });
+          column += span;
+        }
+      });
+    }
+    // Malformed overlapping cells do not establish a logical column. The gate
+    // reports the missing ownership instead of guessing from screen positions.
+    if (valid) for (const [cell, position] of positions) tableCells.set(cell, position);
+  }
   // Clone only for semantic text extraction; retain the live DOM for geometry.
   const textRoot = root.cloneNode(true);
   const textElements = [...textRoot.querySelectorAll("*")];
@@ -85,7 +116,8 @@ async function inspectCanvas() {
           const controlsRight = Math.max(...bounds.map((bound) => bound.right));
           const contentLeft = rect.left + paddingLeft + borderLeft;
           const contentRight = rect.right - paddingRight - borderRight;
-          cellContent = { left: contentLeft, right: contentRight, controlsLeft, controlsRight, paddingLeft, paddingRight,
+          cellContent = { tableIndex: visibleIndexes.get(el.closest("table")), ...tableCells.get(el),
+            left: contentLeft, right: contentRight, controlsLeft, controlsRight, paddingLeft, paddingRight,
             requiredWidth: Math.ceil(controlsRight - controlsLeft + paddingLeft + paddingRight + borderLeft + borderRight),
             overflow: controlsLeft < contentLeft - 1 || controlsRight > contentRight + 1 };
         }

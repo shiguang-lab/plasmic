@@ -43,7 +43,7 @@ Module._load=function(name,parent,...args){const value=originalLoad.call(this,na
    constructor(opts){super(opts);const read=this.store.read.bind(this.store);this.store.read=async(...args)=>{const start=performance.now();const result=await read(...args);span('cache.diskReadValidate',start,{kind:args[1],bytes:result?.body?.byteLength||0});return result};}
    async fetch(request){const start=performance.now();const result=await super.fetch(request);if(recording&&/dependency-models|hostless-libraries/.test(request.url))report.resources.push({phase,url:request.url,startMs:start,durationMs:performance.now()-start,hit:result.headers.get('X-Plasmic-Resource-Cache')});return result;}
   }};
-  if(name==='./drafts.cjs')return {...value,DesktopDraftStore:class extends value.DesktopDraftStore{async write(scope,draft){const start=performance.now();await super.write(scope,draft);lastStore=this;lastScope=scope;lastDraft=draft;if(recording)report.drafts.push({phase,startMs:start,durationMs:performance.now()-start,dependencies:draft.dependencies.length})}}};
+  if(name==='./drafts.cjs')return {...value,DesktopDraftStore:class extends value.DesktopDraftStore{async write(scope,draft){const start=performance.now();await super.write(scope,draft);lastStore=this;lastScope=scope;lastDraft=draft instanceof Uint8Array?[...this.summaries.values()].at(-1)?.summary:draft;if(recording)report.drafts.push({phase,startMs:start,durationMs:performance.now()-start,dependencies:lastDraft.dependencies?.length})}}};
  }return value;};
 const {startDesktop}=require(path.join(root,'src/main.cjs'));Module._load=originalLoad;
 function bootstrap(){
@@ -80,7 +80,8 @@ app.whenReady().then(async()=>{
  }finally{JSON.stringify=stringify;JSON.parse=parse;recording=false;}
  report.spans=spans;if(tracing)await contentTracing.stopRecording(path.join(out,'pipeline.trace.json'));tracing=false;
  const received = await frame.executeJavaScript('JSON.stringify({bundle:studioCtx.desktopDraft.checkpoint.bundle,dependencies:studioCtx.desktopDraft.checkpoint.dependencies})');
- const persisted=await lastStore.read(lastScope,lastDraft.id);
+ const persistedValue=await lastStore.read(lastScope,lastDraft.id);
+ const persisted=persistedValue instanceof Uint8Array?JSON.parse(Buffer.from(persistedValue).toString('utf8')):persistedValue;
  const {createHash}=require('node:crypto');const hash=s=>createHash('sha256').update(s).digest('hex');
  report.contentIntegrity={renderer:hash(received),disk:hash(JSON.stringify({bundle:persisted.bundle,dependencies:persisted.dependencies})),dependencies:persisted.dependencies.length,checkpoints:fs.readdirSync(lastStore.scope(lastScope)).filter(p=>p.endsWith('.json')||p.endsWith('.previous')).length};
  if(report.contentIntegrity.renderer!==report.contentIntegrity.disk)throw Error('Draft content changed across transport');

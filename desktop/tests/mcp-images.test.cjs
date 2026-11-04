@@ -1,3 +1,4 @@
+const { mcpTransport } = require("./fixtures/mcp.cjs");
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs/promises");
@@ -25,11 +26,7 @@ test("all MCP image routes deliver WebP once, with dimensions and original-file 
   });
   const client = new Client({ name: "image-test", version: "1.0.0" });
   try {
-    await client.connect(new StdioClientTransport({
-      command: process.execPath,
-      args: ["-e", `require(${JSON.stringify(require.resolve("../src/mcp.cjs"))}).serveMcp(${JSON.stringify(profile)})`],
-      stderr: "pipe",
-    }));
+    await client.connect(new StdioClientTransport(mcpTransport(profile)));
     const listing = await client.listTools();
     const screenshot = listing.tools.find((tool) => tool.name === "get_screenshot");
     assert.ok(screenshot, "AI clients must discover the screenshot tool");

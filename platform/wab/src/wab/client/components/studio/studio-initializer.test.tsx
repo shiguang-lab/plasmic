@@ -7,10 +7,13 @@ import { syncCodeComponentsAndHandleErrors } from "@/wab/client/code-components/
 import { StudioChrome } from "@/wab/client/components/studio/StudioChrome";
 import { StudioInitializer } from "@/wab/client/components/studio/studio-initializer";
 import { providesAppCtx } from "@/wab/client/contexts/AppContexts";
+import { LoadingAnimationContext } from "@/wab/client/contexts/LoadingAnimationContext";
+import { providesFrameCtx } from "@/wab/client/frame-ctx/frame-ctx";
 import { HostFrameCtx } from "@/wab/client/frame-ctx/host-frame-ctx";
 import { initStudioCtx } from "@/wab/client/init-view-ctx";
 import { HistoryProvider } from "@/wab/client/route/HistoryProvider";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
+import { ProjectId } from "@/wab/shared/ApiSchema";
 import {
   act,
   cleanup,
@@ -25,6 +28,7 @@ import { mock } from "vitest-mock-extended";
 vi.mock("@/wab/client/cli-routes", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/wab/client/cli-routes")>()),
   isHostFrame: () => true,
+  ensureIsHostFrame: vi.fn(),
 }));
 vi.mock("@/wab/client/init-view-ctx", () => ({ initStudioCtx: vi.fn() }));
 vi.mock(
@@ -85,6 +89,40 @@ vi.mock("@/wab/client/components/studio/view-editor", () => ({
 }));
 
 afterEach(cleanup);
+it("restores local loading when retrying after initialization revealed an error", async () => {
+  const { appCtx } = fakeAppCtx();
+  const reveal = vi.fn();
+  vi.mocked(initStudioCtx).mockClear();
+  vi.mocked(initStudioCtx)
+    .mockRejectedValueOnce(new Error("Project initialization failed"))
+    .mockReturnValue(new Promise(() => undefined));
+  vi.spyOn(globalThis, "fetch").mockRejectedValue(new Error("No animation asset in jsdom"));
+  function Harness() {
+    const [revealed, setRevealed] = React.useState(false);
+    const [host] = React.useState(() => mock<HostFrameCtx>({
+      revealStudio: async () => { reveal(); setRevealed(true); },
+    }));
+    return providesFrameCtx(host)(providesAppCtx(appCtx)(
+      <LoadingAnimationContext.Provider value={revealed}>
+        <HistoryProvider history={appCtx.history}>
+          <AntdConfigProvider productUI>
+            <StudioInitializer projectId={"ProjectId123" as ProjectId} appCtx={appCtx} hostFrameCtx={host} onRefreshUi={() => undefined} />
+          </AntdConfigProvider>
+        </HistoryProvider>
+      </LoadingAnimationContext.Provider>,
+    ));
+  }
+  const { container } = render(<Harness />);
+  expect(fetch).not.toHaveBeenCalled();
+  await screen.findByRole("alert");
+  expect(reveal).toHaveBeenCalledOnce();
+  fireEvent.click(screen.getByRole("button", { name: "Retry" }));
+  await screen.findByRole("status", { name: "Loading project…" });
+  expect(initStudioCtx).toHaveBeenCalledTimes(2);
+  expect(fetch).toHaveBeenCalledOnce();
+  expect(container.querySelectorAll("[data-scaffold] [clip-path] path")).toHaveLength(44);
+});
+
 it("shows shared editor controls before project data, then preserves the project shell while dependencies load", async () => {
   const { studioCtx, appCtx } = fakeStudioCtx({
     devFlagOverrides: { ccStubs: false },
@@ -178,7 +216,7 @@ it("keeps dashboard navigation available without constructing a project context"
       </HistoryProvider>,
     ),
   );
-  expect(screen.getByRole("status").textContent).toBe("Loading project…");
+  expect(screen.getByRole("status", { name: "Loading project…" }).getAttribute("aria-busy")).toBe("true");
   expect(
     screen.getByRole("button", { name: "Insert" }).hasAttribute("disabled"),
   ).toBe(true);

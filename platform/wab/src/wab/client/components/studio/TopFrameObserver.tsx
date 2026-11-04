@@ -341,9 +341,9 @@ export const TopFrameObserver = observer(function _TopFrameObserver({
   React.useEffect(() => {
     if (studioReady) {
       studioCtx.loadTimings.report("canvas-revealed");
-      spawn(topFrameApi.setStudioReady());
+      spawn(hostFrameCtx.revealStudio());
     }
-  }, [studioReady, topFrameApi]);
+  }, [studioReady, hostFrameCtx]);
 
   React.useEffect(
     () =>

@@ -547,6 +547,8 @@ export type StudioAppUser = Pick<
 >;
 
 export interface StudioChangeOpts {
+  // Agent operations return errors to their caller instead of showing a toast.
+  noErrorNotification?: boolean;
   // If you are calling StudioCtx.change() from a React event handler, and you are
   // reading values from the event, you should pass that event in here.  This is
   // because StudioCtx.change() may occur asynchronously, and because React
@@ -1931,7 +1933,7 @@ export class StudioCtx extends WithDbCtx {
       safeCallbackify(async (request: ModelChangeRequest) => {
         if (request.type === "change") {
           const result = this.changeInternal(request.changeFn, request.opts);
-          if (result.isErr()) {
+          if (result.isErr() && !request.opts?.noErrorNotification) {
             showError(result.error);
           }
           return result;
@@ -1945,8 +1947,8 @@ export class StudioCtx extends WithDbCtx {
       }),
       1,
     );
-    asyncQueue.error((error, _task) => {
-      handleError(error);
+    asyncQueue.error((error, task) => {
+      if (task.type !== "change" || !task.opts?.noErrorNotification) { handleError(error); }
       // The task callback already rejects its caller. Throwing here interrupts
       // async's completion bookkeeping, leaving drain() and later tasks stuck.
     });
@@ -6603,11 +6605,23 @@ export class StudioCtx extends WithDbCtx {
     fence: number;
     result?: import("@/wab/shared/copilot/local-edit").LocalEditToolResult;
   };
-  async save() {
-    return this.asyncSaver();
+  async save(opts?: { noErrorNotification?: boolean }) {
+    let failure: unknown;
+    const result = await this.asyncSaver(true, {
+      ...opts,
+      onError: opts?.noErrorNotification ? (error: unknown) => { failure = error; } : undefined,
+    });
+    if (failure) { throw failure; }
+    return result;
   }
 
-  private async trySave(preferIncremental = true): Promise<SaveResult> {
+  private async trySave(preferIncremental = true, opts?: {
+    noErrorNotification?: boolean;
+    onError?: (error: unknown) => void;
+  }): Promise<SaveResult> {
+    const showSaveError = (error: unknown, options?: Parameters<typeof showError>[1]) => {
+      if (!opts?.noErrorNotification) { showError(error, options); }
+    };
     if (this.desktopSaveConflict) {
       return SaveResult.SkipIsChanging;
     }
@@ -6726,6 +6740,11 @@ export class StudioCtx extends WithDbCtx {
         this._saveFailedCounter = 0;
         return SaveResult.Success;
       } catch (e) {
+        // Successful recovery should not return a failure to the caller.
+        if ((e.name !== "ProjectRevisionError" || this.desktopDraft?.enabled) &&
+            !(incremental && e.name === "UnknownReferencesError")) {
+          opts?.onError?.(e);
+        }
         if (e.name === "ProjectRevisionError") {
           if (this.desktopDraft?.enabled) {
             // A lost save response may already have committed these edits.
@@ -6744,20 +6763,20 @@ export class StudioCtx extends WithDbCtx {
             "Sync with latest updates timed out",
           ).then(async () => {
             await this.refreshRevisions();
-            return this.trySave(preferIncremental);
+            return this.trySave(preferIncremental, opts);
           });
         } else if (e.name === "ForbiddenError") {
-          showError(e);
+          showSaveError(e);
           this.alertBannerState.set(AlertSpec.PermError);
           this.isAtTip = false;
           return SaveResult.StopSaving;
         } else if (e.name === "AuthError") {
-          showError(e);
+          showSaveError(e);
           this.alertBannerState.set(AlertSpec.AuthError);
           this.isAtTip = false;
           return SaveResult.StopSaving;
         } else if (e.name === "SchemaMismatchError") {
-          showError(e);
+          showSaveError(e);
           this.alertBannerState.set(AlertSpec.OutOfDate);
           this.isAtTip = false;
           return SaveResult.StopSaving;
@@ -6767,7 +6786,7 @@ export class StudioCtx extends WithDbCtx {
         ) {
           reportError(e, "Gateway save error");
           if (this.saveErrorState === "normal") {
-            showError(e, {
+            showSaveError(e, {
               title: translate(getUiLocale(), "Unexpected error when saving"),
             });
           }
@@ -6779,7 +6798,7 @@ export class StudioCtx extends WithDbCtx {
           reportError(e, "Unknown references found in project bundle");
 
           // Try to save again with incremental save disabled
-          return await this.trySave(false);
+          return await this.trySave(false, opts);
         } else if (e.name === "PromiseTimeoutError") {
           reportError(e, "PromiseTimeoutError");
           // We don't know at this point whether the save succeeded or not.
@@ -6790,7 +6809,7 @@ export class StudioCtx extends WithDbCtx {
           //
           // Even if no save has been committed yet, the request could be
           // fulfilled afterwards, so we will just discard the local changes.
-          showError(e, {
+          showSaveError(e, {
             title: translate(getUiLocale(), "Failed to sync project"),
           });
           await this.loadVersion(undefined, true, this.branchInfo());
@@ -6798,7 +6817,7 @@ export class StudioCtx extends WithDbCtx {
         } else {
           reportError(e, "Unknown save error");
           if (this.saveErrorState === "normal") {
-            showError(e, {
+            showSaveError(e, {
               title: translate(getUiLocale(), "Unexpected error when saving"),
             });
           }
@@ -6810,9 +6829,10 @@ export class StudioCtx extends WithDbCtx {
         }
       }
     } catch (e) {
+      opts?.onError?.(e);
       reportError(e, "Unexpected error when saving");
       if (this.saveErrorState === "normal") {
-        showError(e, {
+        showSaveError(e, {
           title: translate(getUiLocale(), "Unexpected error when saving"),
         });
       }

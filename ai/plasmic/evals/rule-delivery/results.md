@@ -1,5 +1,7 @@
 # Skill 规则送达与检查覆盖：审核结果
 
+> Evidence availability checked 2026-11-04: original outputs at the recorded local paths are unavailable for independent regrading; see [availability record](../historical-evidence-status.md). The dated results below are historical reports, not new verification.
+
 日期：2026-10-30。结论：本次范围内的优化完成，独立工程审查未发现阻断问题。未修改真实原型，未增加 MCP 流程锁，未发布或替换已安装资源。
 
 ## 已完成

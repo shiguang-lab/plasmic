@@ -179,9 +179,10 @@ if (officialHook) {
 
   const mergeValsInSubtree = (node: Fiber) => {
     const nodeChildren = fiberChildren(node);
-    const valsInSubtree = nodeChildren.flatMap(
-      (child) => fiberToValSubtrees.get(child) ?? [],
-    );
+    // Cached subtree arrays are only read here; a single child needs no copy.
+    const valsInSubtree = nodeChildren.length === 1
+      ? fiberToValSubtrees.get(nodeChildren[0]) ?? []
+      : nodeChildren.flatMap((child) => fiberToValSubtrees.get(child) ?? []);
 
     const mergeArgsInSubtree = () => {
       if (nodeChildren.length === 0) {

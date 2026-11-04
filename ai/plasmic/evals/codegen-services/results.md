@@ -1,5 +1,7 @@
 # Service and simulation probe results
 
+> Evidence availability checked 2026-11-04: original outputs at the recorded local paths are unavailable for independent regrading; see [availability record](../historical-evidence-status.md). The dated results below are historical reports, not new verification.
+
 Date: 2026-10-27. Scope: six synthetic offline cases in [cases.json](cases.json), assessed against the [rubric](README.md). A fresh-context evaluator read the raw cases and the six specified codegen references without the rubric or previous results. It produced implementation snippets for cases 1/2 and decisions or source reviews for the other cases. It did not modify repository inputs, delegate again, contact services, compile snippets or run a browser.
 
 The parent inspected the actual output against the raw artifacts. This is bounded decision evidence, not a production pass rate or live codegen acceptance.

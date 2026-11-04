@@ -283,6 +283,7 @@ const appConfig = defineConfig({
               templateParameters: {
                 previewLoadingCss: readFileSync(new URL("./src/wab/client/components/live/PreviewLoading.css", import.meta.url), "utf8"),
                 brand: JSON.parse(readFileSync(new URL("./src/wab/shared/branding.json", import.meta.url), "utf8")),
+                construction: JSON.parse(readFileSync(new URL("./src/wab/shared/brand-loading.json", import.meta.url), "utf8")),
                 brandLoadingAnimation: animateBrandLoading.toString(),
                 staticUrl,
               },

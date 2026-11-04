@@ -1,0 +1,82 @@
+[
+  {
+    "query": "产品经理给了客户查询需求：名称、手机号筛选和分页。帮我做一个可编辑的后台页面原型，先沿用团队组件，没有指定设计工具。",
+    "should_trigger": true
+  },
+  {
+    "query": "用 Plasmic 给海外业务做一个订单详情原型，带基础信息、审核记录和关闭原因抽屉；先检查现有组件能否复用。",
+    "should_trigger": true
+  },
+  {
+    "query": "上一轮我们在 Plasmic 里做好了订单列表。现在只把查询按钮旁边的重置改成清空，并保持已有事件，保存后核对。",
+    "should_trigger": true
+  },
+  {
+    "query": "当前 Plasmic 账户页我只有读取权限。请解释 Tabs 的内容归属和保存按钮现在绑定了什么，不要改设计。",
+    "should_trigger": true
+  },
+  {
+    "query": "按 Plasmic 中的 Orders 页更新现有 React 应用，只改状态筛选和翻页逻辑，沿用 src/services/orders.ts，不改设计。",
+    "should_trigger": true
+  },
+  {
+    "query": "Plasmic 订单页已经生成代码了。请只检查实现与设计的组件、交互是否一致，列出问题，先别修复。",
+    "should_trigger": true
+  },
+  {
+    "query": "项目用官方 @plasmicapp/cli。按现有 host 配置查询已发布版本和元数据，不要同步或导出代码。",
+    "should_trigger": true
+  },
+  {
+    "query": "接着刚才的 Plasmic 原型：选了已完成再点查询，表格还是原来的数据。请定位现有绑定并修复，别重建整页。",
+    "should_trigger": true
+  },
+  {
+    "query": "给活动运营做一个手机端报名流程的可编辑原型：活动介绍、报名表和成功状态。还没有设计文件，也没有选设计工具。",
+    "should_trigger": true
+  },
+  {
+    "query": "从已确认的 Plasmic 页面实现一个新的 Vue 页面，先核对目标项目现有组件契约，再处理数据、事件和视觉还原。",
+    "should_trigger": true
+  },
+  {
+    "query": "把这个客户后台的设计画进 Figma，保留可编辑图层，使用我提供的 Figma 文件和组件库，不要另建其他工具的版本。",
+    "should_trigger": false
+  },
+  {
+    "query": "这个 React 仓库没有任何设计文件。修复订单筛选条件为空时仍提交 status 的问题，补一个行为测试。",
+    "should_trigger": false
+  },
+  {
+    "query": "我们在开发 Plasmic 平台本身。请修改 platform/wab 的 Studio 属性面板，让默认值显示与注册契约一致。",
+    "should_trigger": false
+  },
+  {
+    "query": "检查 packages/plasmic-cli/skill/plasmic/SKILL.md 和 ai/plasmic 的 skill 指令质量，分析触发边界与测试缺口，不操作原型。",
+    "should_trigger": false
+  },
+  {
+    "query": "沿用刚才的 Figma 登录页设计，把手机验证码按钮移到输入框右边，直接更新原文件。",
+    "should_trigger": false
+  },
+  {
+    "query": "请在当前本地仓库写一个 HTML 交互演示，展示管理员审批流程；交付可运行源码，不需要可编辑设计稿。",
+    "should_trigger": false
+  },
+  {
+    "query": "帮我写一份设计评审邮件，说明 Plasmic 订单原型还缺少空状态和审批权限；不要连接编辑器或修改设计。",
+    "should_trigger": false
+  },
+  {
+    "query": "我们的后台采用 Ant Design，排查 src/components/SearchForm.tsx 为什么回车不触发查询，与 Plasmic 设计无关。",
+    "should_trigger": false
+  },
+  {
+    "query": "读取我提供的 Pencil .pen 文件，只在这个文件里修复列表页布局，保留所有原有节点，不导入到其他工具。",
+    "should_trigger": false
+  },
+  {
+    "query": "在现有 Plasmic monorepo 的 desktop 单元测试里修复 macOS 配置路径识别错误；这是桌面客户端工程开发，不是原型设计。",
+    "should_trigger": false
+  }
+]

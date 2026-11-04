@@ -1,0 +1,1279 @@
+{
+  "scope": "Installed release renderer 0.6.6; Electron 45.2.1; offline exact fixtures; production StudioWindow with diagnostic preload; excludes live API/IAM, sockets, native drafts and compositor/OS input; no debugger/GC/periodic memory sampling in timing. One independent process per project, six opens, first two excluded. OS cache and other apps uncontrolled. No before/after regression conclusion.",
+  "build": {
+    "kind": "release",
+    "revision": "cc50fd519d0df382f0657afbfe6b977528155898",
+    "dirty": false,
+    "builtAt": "2026-11-03T15:11:09.569Z",
+    "rendererHash": "c725805d8298e08cbff7b6819304e5e95df5ac069cecb72cd6d04a843b88aae0",
+    "desktopHash": "c409041ac3795edeac78539e78f3b9b42c1c8bd0b5ca9e7c9565f7b88c49f2a6"
+  },
+  "projects": {
+    "gp": {
+      "fixtureSha256": "fa1e1965d363561d357e98539f838fe74140eee7be9791210ab69e4e79b4b5ef",
+      "frames": 1,
+      "rows": [
+        {
+          "open": 1,
+          "measured": false,
+          "milestones": {
+            "canvasRevealedMs": 3837.9,
+            "firstCanvasReadyMs": 3989.39,
+            "allFramesRenderedMs": 3859.4
+          },
+          "criticalPathMs": {
+            "navigationToEntry": 216.8,
+            "topBootstrap": 245.4,
+            "hostAndBridge": 944.1,
+            "studioImport": 308.4,
+            "editorInitialization": 760.6,
+            "frameDispatch": 15.5,
+            "frameContext": 884.3,
+            "renderAndReveal": 462.9
+          },
+          "phaseMs": {
+            "studio-module-import": 308.4,
+            "startup-preferences": 115,
+            "project-fetch": 165.1,
+            "model-unbundle": 87.1,
+            "studio-context": 56.1,
+            "initial-route": 185.6,
+            "initial-viewport": 185.7,
+            "code-component-sync": 6.4,
+            "app-user-init": 0,
+            "initializer-ready": 0,
+            "frame-load-start": 0,
+            "frame-host-document": 247.6,
+            "frame-host-ready": 65.1,
+            "frame-runtime": 8,
+            "frame-component-packages": 481.4,
+            "frame-context-created": 0,
+            "all-frame-contexts-created": 0,
+            "frame-initialization": 906.6,
+            "frame-first-render": 423.7,
+            "canvas-revealed": 0,
+            "frame-rendered": 0,
+            "all-frames-rendered": 0
+          }
+        },
+        {
+          "open": 2,
+          "measured": false,
+          "milestones": {
+            "canvasRevealedMs": 3552.2,
+            "firstCanvasReadyMs": 3714.28,
+            "allFramesRenderedMs": 3575.7
+          },
+          "criticalPathMs": {
+            "navigationToEntry": 190.2,
+            "topBootstrap": 195.9,
+            "hostAndBridge": 820.8,
+            "studioImport": 281.5,
+            "editorInitialization": 654.9,
+            "frameDispatch": 13.4,
+            "frameContext": 868.8,
+            "renderAndReveal": 526.7
+          },
+          "phaseMs": {
+            "studio-module-import": 281.5,
+            "startup-preferences": 104.3,
+            "project-fetch": 138.1,
+            "model-unbundle": 73.8,
+            "studio-context": 40.4,
+            "initial-route": 154.8,
+            "initial-viewport": 154.9,
+            "code-component-sync": 5.7,
+            "app-user-init": 0,
+            "initializer-ready": 0,
+            "frame-load-start": 0,
+            "frame-host-document": 230.8,
+            "frame-host-ready": 64.3,
+            "frame-runtime": 7.5,
+            "frame-component-packages": 487,
+            "frame-context-created": 0,
+            "all-frame-contexts-created": 0,
+            "frame-initialization": 886.6,
+            "frame-first-render": 487.3,
+            "canvas-revealed": 0,
+            "frame-rendered": 0,
+            "all-frames-rendered": 0
+          }
+        },
+        {
+          "open": 3,
+          "measured": true,
+          "milestones": {
+            "canvasRevealedMs": 3511.7,
+            "firstCanvasReadyMs": 3696.59,
+            "allFramesRenderedMs": 3532.1
+          },
+          "criticalPathMs": {
+            "navigationToEntry": 189.2,
+            "topBootstrap": 174.2,
+            "hostAndBridge": 825.4,
+            "studioImport": 281.1,
+            "editorInitialization": 676.5,
+            "frameDispatch": 15.4,
+            "frameContext": 818.0,
+            "renderAndReveal": 531.9
+          },
+          "phaseMs": {
+            "studio-module-import": 281.1,
+            "startup-preferences": 104.6,
+            "project-fetch": 139.9,
+            "model-unbundle": 65.2,
+            "studio-context": 45.2,
+            "initial-route": 168.3,
+            "initial-viewport": 168.4,
+            "code-component-sync": 5.9,
+            "app-user-init": 0,
+            "initializer-ready": 0,
+            "frame-load-start": 0,
+            "frame-host-document": 139.8,
+            "frame-host-ready": 95.2,
+            "frame-runtime": 7.1,
+            "frame-component-packages": 495.9,
+            "frame-context-created": 0,
+            "all-frame-contexts-created": 0,
+            "frame-initialization": 833.7,
+            "frame-first-render": 495.4,
+            "canvas-revealed": 0,
+            "frame-rendered": 0,
+            "all-frames-rendered": 0
+          }
+        },
+        {
+          "open": 4,
+          "measured": true,
+          "milestones": {
+            "canvasRevealedMs": 3470.8,
+            "firstCanvasReadyMs": 3632.14,
+            "allFramesRenderedMs": 3491.8
+          },
+          "criticalPathMs": {
+            "navigationToEntry": 207.6,
+            "topBootstrap": 168.9,
+            "hostAndBridge": 798.5,
+            "studioImport": 282.5,
+            "editorInitialization": 652.4,
+            "frameDispatch": 13.8,
+            "frameContext": 813.1,
+            "renderAndReveal": 534.1
+          },
+          "phaseMs": {
+            "studio-module-import": 282.5,
+            "startup-preferences": 104.6,
+            "project-fetch": 137.4,
+            "model-unbundle": 64.3,
+            "studio-context": 44.6,
+            "initial-route": 163.4,
+            "initial-viewport": 163.5,
+            "code-component-sync": 5.9,
+            "app-user-init": 0,
+            "initializer-ready": 0,
+            "frame-load-start": 0,
+            "frame-host-document": 138.6,
+            "frame-host-ready": 94.8,
+            "frame-runtime": 7.2,
+            "frame-component-packages": 494.5,
+            "frame-context-created": 0,
+            "all-frame-contexts-created": 0,
+            "frame-initialization": 828.6,
+            "frame-first-render": 498.4,
+            "canvas-revealed": 0,
+            "frame-rendered": 0,
+            "all-frames-rendered": 0
+          }
+        },
+        {
+          "open": 5,
+          "measured": true,
+          "milestones": {
+            "canvasRevealedMs": 3482.4,
+            "firstCanvasReadyMs": 3649.27,
+            "allFramesRenderedMs": 3503.4
+          },
+          "criticalPathMs": {
+            "navigationToEntry": 189.7,
+            "topBootstrap": 195.4,
+            "hostAndBridge": 778.4,
+            "studioImport": 295.7,
+            "editorInitialization": 667.0,
+            "frameDispatch": 13.4,
+            "frameContext": 814.4,
+            "renderAndReveal": 528.3
+          },
+          "phaseMs": {
+            "studio-module-import": 295.7,
+            "startup-preferences": 105.6,
+            "project-fetch": 147,
+            "model-unbundle": 74.3,
+            "studio-context": 38.4,
+            "initial-route": 155.1,
+            "initial-viewport": 155.3,
+            "code-component-sync": 6.4,
+            "app-user-init": 0,
+            "initializer-ready": 0,
+            "frame-load-start": 0,
+            "frame-host-document": 140.6,
+            "frame-host-ready": 94.8,
+            "frame-runtime": 7.1,
+            "frame-component-packages": 494.5,
+            "frame-context-created": 0,
+            "all-frame-contexts-created": 0,
+            "frame-initialization": 830,
+            "frame-first-render": 489.9,
+            "canvas-revealed": 0,
+            "frame-rendered": 0,
+            "all-frames-rendered": 0
+          }
+        },
+        {
+          "open": 6,
+          "measured": true,
+          "milestones": {
+            "canvasRevealedMs": 3632.4,
+            "firstCanvasReadyMs": 3813.05,
+            "allFramesRenderedMs": 3655.9
+          },
+          "criticalPathMs": {
+            "navigationToEntry": 201.4,
+            "topBootstrap": 229.5,
+            "hostAndBridge": 840.8,
+            "studioImport": 284.7,
+            "editorInitialization": 665.8,
+            "frameDispatch": 14.8,
+            "frameContext": 869.7,
+            "renderAndReveal": 525.7
+          },
+          "phaseMs": {
+            "studio-module-import": 284.7,
+            "startup-preferences": 107.5,
+            "project-fetch": 141,
+            "model-unbundle": 72.6,
+            "studio-context": 37.9,
+            "initial-route": 158.5,
+            "initial-viewport": 158.7,
+            "code-component-sync": 6,
+            "app-user-init": 0,
+            "initializer-ready": 0,
+            "frame-load-start": 0,
+            "frame-host-document": 232,
+            "frame-host-ready": 62.9,
+            "frame-runtime": 7.6,
+            "frame-component-packages": 488.1,
+            "frame-context-created": 0,
+            "all-frame-contexts-created": 0,
+            "frame-initialization": 887.4,
+            "frame-first-render": 489.7,
+            "canvas-revealed": 0,
+            "frame-rendered": 0,
+            "all-frames-rendered": 0
+          }
+        }
+      ],
+      "median": {
+        "milestones": {
+          "canvasRevealedMs": 3497.05,
+          "firstCanvasReadyMs": 3672.93,
+          "allFramesRenderedMs": 3517.75
+        },
+        "criticalPathMs": {
+          "navigationToEntry": 195.55,
+          "topBootstrap": 184.8,
+          "hostAndBridge": 811.95,
+          "studioImport": 283.6,
+          "editorInitialization": 666.4,
+          "frameDispatch": 14.3,
+          "frameContext": 816.2,
+          "renderAndReveal": 530.1
+        },
+        "phaseMs": {
+          "studio-module-import": 283.6,
+          "startup-preferences": 105.1,
+          "project-fetch": 140.45,
+          "model-unbundle": 68.9,
+          "studio-context": 41.5,
+          "initial-route": 160.95,
+          "initial-viewport": 161.1,
+          "code-component-sync": 5.95,
+          "app-user-init": 0.0,
+          "initializer-ready": 0.0,
+          "frame-load-start": 0.0,
+          "frame-host-document": 140.2,
+          "frame-host-ready": 94.8,
+          "frame-runtime": 7.15,
+          "frame-component-packages": 494.5,
+          "frame-context-created": 0.0,
+          "all-frame-contexts-created": 0.0,
+          "frame-initialization": 831.85,
+          "frame-first-render": 492.65,
+          "canvas-revealed": 0.0,
+          "frame-rendered": 0.0,
+          "all-frames-rendered": 0.0
+        }
+      },
+      "rendererErrors": [],
+      "thumbnailFixtureErrors": 7,
+      "warmResourceRequests": 70,
+      "warmResourceCacheHits": 70,
+      "warmResourceMaxMs": 14.79
+    },
+    "complex": {
+      "fixtureSha256": "f33cc7b3a88cd952d2b25a6608aff0577b97c8a95347711577e784c6fcbad5e2",
+      "frames": 10,
+      "rows": [
+        {
+          "open": 1,
+          "measured": false,
+          "milestones": {
+            "canvasRevealedMs": 3710.3,
+            "firstCanvasReadyMs": 3921.5,
+            "allFramesRenderedMs": 6864.2
+          },
+          "criticalPathMs": {
+            "navigationToEntry": 218.2,
+            "topBootstrap": 266.6,
+            "hostAndBridge": 961.2,
+            "studioImport": 313.9,
+            "editorInitialization": 764.5,
+            "frameDispatch": 39.4,
+            "frameContext": 860.9,
+            "renderAndReveal": 285.6
+          },
+          "phaseMs": {
+            "studio-module-import": 313.9,
+            "startup-preferences": 112.4,
+            "project-fetch": 154.3,
+            "model-unbundle": 100.8,
+            "studio-context": 30.4,
+            "initial-route": 172.8,
+            "initial-viewport": 172.9,
+            "code-component-sync": 9.5,
+            "app-user-init": 0,
+            "initializer-ready": 0,
+            "frame-load-start": 0,
+            "frame-host-document": 292.1,
+            "frame-host-ready": 68.4,
+            "frame-runtime": 9,
+            "frame-component-packages": 398.9,
+            "frame-context-created": 0,
+            "frame-initialization": 889.4,
+            "frame-first-render": 259.2,
+            "canvas-revealed": 0,
+            "frame-rendered": 0,
+            "background-canvas-wait": 327.7,
+            "all-frame-contexts-created": 0,
+            "all-frames-rendered": 0
+          }
+        },
+        {
+          "open": 2,
+          "measured": false,
+          "milestones": {
+            "canvasRevealedMs": 3735.3,
+            "firstCanvasReadyMs": 3957.0,
+            "allFramesRenderedMs": 6914.6
+          },
+          "criticalPathMs": {
+            "navigationToEntry": 205.6,
+            "topBootstrap": 257.7,
+            "hostAndBridge": 949.0,
+            "studioImport": 310.9,
+            "editorInitialization": 765.6,
+            "frameDispatch": 38.4,
+            "frameContext": 912.9,
+            "renderAndReveal": 295.1
+          },
+          "phaseMs": {
+            "studio-module-import": 310.9,
+            "startup-preferences": 112.6,
+            "project-fetch": 147,
+            "model-unbundle": 107.3,
+            "studio-context": 31.8,
+            "initial-route": 171.3,
+            "initial-viewport": 171.5,
+            "code-component-sync": 10.1,
+            "app-user-init": 0,
+            "initializer-ready": 0,
+            "frame-load-start": 0,
+            "frame-host-document": 286.1,
+            "frame-host-ready": 70.4,
+            "frame-runtime": 8.4,
+            "frame-component-packages": 456.8,
+            "frame-context-created": 0,
+            "frame-initialization": 941.4,
+            "frame-first-render": 267.4,
+            "canvas-revealed": 0,
+            "frame-rendered": 0,
+            "background-canvas-wait": 347,
+            "all-frame-contexts-created": 0,
+            "all-frames-rendered": 0
+          }
+        },
+        {
+          "open": 3,
+          "measured": true,
+          "milestones": {
+            "canvasRevealedMs": 3711.3,
+            "firstCanvasReadyMs": 3921.41,
+            "allFramesRenderedMs": 6849.1
+          },
+          "criticalPathMs": {
+            "navigationToEntry": 212.5,
+            "topBootstrap": 222.3,
+            "hostAndBridge": 991.2,
+            "studioImport": 313.4,
+            "editorInitialization": 749.4,
+            "frameDispatch": 39.4,
+            "frameContext": 867.8,
+            "renderAndReveal": 315.3
+          },
+          "phaseMs": {
+            "studio-module-import": 313.4,
+            "startup-preferences": 111.7,
+            "project-fetch": 151.3,
+            "model-unbundle": 96.3,
+            "studio-context": 30.1,
+            "initial-route": 165.4,
+            "initial-viewport": 165.6,
+            "code-component-sync": 11.2,
+            "app-user-init": 0,
+            "initializer-ready": 0,
+            "frame-load-start": 0,
+            "frame-host-document": 176.9,
+            "frame-host-ready": 102.6,
+            "frame-runtime": 8.8,
+            "frame-component-packages": 488,
+            "frame-context-created": 0,
+            "frame-initialization": 895.4,
+            "frame-first-render": 292.7,
+            "canvas-revealed": 0,
+            "frame-rendered": 0,
+            "background-canvas-wait": 303.4,
+            "all-frame-contexts-created": 0,
+            "all-frames-rendered": 0
+          }
+        },
+        {
+          "open": 4,
+          "measured": true,
+          "milestones": {
+            "canvasRevealedMs": 3719.2,
+            "firstCanvasReadyMs": 3928.88,
+            "allFramesRenderedMs": 6823.6
+          },
+          "criticalPathMs": {
+            "navigationToEntry": 205.4,
+            "topBootstrap": 287.9,
+            "hostAndBridge": 939.8,
+            "studioImport": 309.4,
+            "editorInitialization": 743.3,
+            "frameDispatch": 36.6,
+            "frameContext": 884.3,
+            "renderAndReveal": 312.5
+          },
+          "phaseMs": {
+            "studio-module-import": 309.4,
+            "startup-preferences": 111,
+            "project-fetch": 148.5,
+            "model-unbundle": 95.9,
+            "studio-context": 33,
+            "initial-route": 171.1,
+            "initial-viewport": 171.3,
+            "code-component-sync": 11.1,
+            "app-user-init": 0,
+            "initializer-ready": 0,
+            "frame-load-start": 0,
+            "frame-host-document": 284.9,
+            "frame-host-ready": 71.6,
+            "frame-runtime": 7.4,
+            "frame-component-packages": 429.9,
+            "frame-context-created": 0,
+            "frame-initialization": 911.8,
+            "frame-first-render": 289.1,
+            "canvas-revealed": 0,
+            "frame-rendered": 0,
+            "background-canvas-wait": 301.1,
+            "all-frame-contexts-created": 0,
+            "all-frames-rendered": 0
+          }
+        },
+        {
+          "open": 5,
+          "measured": true,
+          "milestones": {
+            "canvasRevealedMs": 3688.0,
+            "firstCanvasReadyMs": 3892.35,
+            "allFramesRenderedMs": 6843.0
+          },
+          "criticalPathMs": {
+            "navigationToEntry": 202.4,
+            "topBootstrap": 216.1,
+            "hostAndBridge": 961.3,
+            "studioImport": 307.3,
+            "editorInitialization": 781.7,
+            "frameDispatch": 38.3,
+            "frameContext": 904.3,
+            "renderAndReveal": 276.6
+          },
+          "phaseMs": {
+            "studio-module-import": 307.3,
+            "startup-preferences": 111.6,
+            "project-fetch": 156.1,
+            "model-unbundle": 107.6,
+            "studio-context": 32.8,
+            "initial-route": 170.7,
+            "initial-viewport": 170.8,
+            "code-component-sync": 11.2,
+            "app-user-init": 0,
+            "initializer-ready": 0,
+            "frame-load-start": 0,
+            "frame-host-document": 278.8,
+            "frame-host-ready": 70.2,
+            "frame-runtime": 8.3,
+            "frame-component-packages": 452.2,
+            "frame-context-created": 0,
+            "frame-initialization": 933.5,
+            "frame-first-render": 253.3,
+            "canvas-revealed": 0,
+            "frame-rendered": 0,
+            "background-canvas-wait": 308.8,
+            "all-frame-contexts-created": 0,
+            "all-frames-rendered": 0
+          }
+        },
+        {
+          "open": 6,
+          "measured": true,
+          "milestones": {
+            "canvasRevealedMs": 3724.0,
+            "firstCanvasReadyMs": 3939.61,
+            "allFramesRenderedMs": 6962.9
+          },
+          "criticalPathMs": {
+            "navigationToEntry": 229.7,
+            "topBootstrap": 219.4,
+            "hostAndBridge": 997.6,
+            "studioImport": 314.1,
+            "editorInitialization": 743.3,
+            "frameDispatch": 41.0,
+            "frameContext": 877.8,
+            "renderAndReveal": 301.1
+          },
+          "phaseMs": {
+            "studio-module-import": 314.1,
+            "startup-preferences": 112.1,
+            "project-fetch": 153.1,
+            "model-unbundle": 89,
+            "studio-context": 28,
+            "initial-route": 165.7,
+            "initial-viewport": 165.8,
+            "code-component-sync": 9.1,
+            "app-user-init": 0,
+            "initializer-ready": 0,
+            "frame-load-start": 0,
+            "frame-host-document": 179,
+            "frame-host-ready": 105.8,
+            "frame-runtime": 8.9,
+            "frame-component-packages": 494.4,
+            "frame-context-created": 0,
+            "frame-initialization": 898,
+            "frame-first-render": 277,
+            "canvas-revealed": 0,
+            "frame-rendered": 0,
+            "background-canvas-wait": 298.2,
+            "all-frame-contexts-created": 0,
+            "all-frames-rendered": 0
+          }
+        }
+      ],
+      "median": {
+        "milestones": {
+          "canvasRevealedMs": 3715.25,
+          "firstCanvasReadyMs": 3925.14,
+          "allFramesRenderedMs": 6846.05
+        },
+        "criticalPathMs": {
+          "navigationToEntry": 208.95,
+          "topBootstrap": 220.85,
+          "hostAndBridge": 976.25,
+          "studioImport": 311.4,
+          "editorInitialization": 746.35,
+          "frameDispatch": 38.85,
+          "frameContext": 881.05,
+          "renderAndReveal": 306.8
+        },
+        "phaseMs": {
+          "studio-module-import": 311.4,
+          "startup-preferences": 111.65,
+          "project-fetch": 152.2,
+          "model-unbundle": 96.1,
+          "studio-context": 31.45,
+          "initial-route": 168.2,
+          "initial-viewport": 168.3,
+          "code-component-sync": 11.15,
+          "app-user-init": 0.0,
+          "initializer-ready": 0.0,
+          "frame-load-start": 0.0,
+          "frame-host-document": 228.9,
+          "frame-host-ready": 87.1,
+          "frame-runtime": 8.55,
+          "frame-component-packages": 470.1,
+          "frame-context-created": 0.0,
+          "frame-initialization": 904.9,
+          "frame-first-render": 283.05,
+          "canvas-revealed": 0.0,
+          "frame-rendered": 0.0,
+          "background-canvas-wait": 302.25,
+          "all-frame-contexts-created": 0.0,
+          "all-frames-rendered": 0.0
+        }
+      },
+      "rendererErrors": [],
+      "thumbnailFixtureErrors": 7,
+      "warmResourceRequests": 245,
+      "warmResourceCacheHits": 245,
+      "warmResourceMaxMs": 16.88
+    }
+  },
+  "variants": {
+    "gp": {
+      "kind": "diagnostic static-logo variant of installed renderer, not a release build",
+      "rows": [
+        {
+          "open": 1,
+          "measured": false,
+          "milestones": {
+            "canvasRevealedMs": 1934,
+            "firstCanvasReadyMs": 2149.4,
+            "allFramesRenderedMs": 1957.1
+          },
+          "criticalPathMs": {
+            "navigationToEntry": 149.3,
+            "topBootstrap": 101.7,
+            "hostAndBridge": 333.3,
+            "studioImport": 209.1,
+            "editorInitialization": 355.2,
+            "frameDispatch": 16.5,
+            "frameContext": 297.2,
+            "renderAndReveal": 471.8
+          },
+          "phaseMs": {
+            "studio-module-import": 209.1,
+            "startup-preferences": 1.9,
+            "project-fetch": 70.5,
+            "model-unbundle": 72.3,
+            "studio-context": 45.8,
+            "initial-route": 51.6,
+            "initial-viewport": 51.8,
+            "code-component-sync": 6.5,
+            "app-user-init": 0,
+            "initializer-ready": 0,
+            "frame-load-start": 0,
+            "frame-host-document": 135,
+            "frame-host-ready": 7.7,
+            "frame-runtime": 8.4,
+            "frame-component-packages": 117.6,
+            "frame-context-created": 0,
+            "all-frame-contexts-created": 0,
+            "frame-initialization": 310.1,
+            "frame-first-render": 431.9,
+            "canvas-revealed": 0,
+            "frame-rendered": 0,
+            "all-frames-rendered": 0
+          }
+        },
+        {
+          "open": 2,
+          "measured": false,
+          "milestones": {
+            "canvasRevealedMs": 1852.9,
+            "firstCanvasReadyMs": 2062.29,
+            "allFramesRenderedMs": 1875.1
+          },
+          "criticalPathMs": {
+            "navigationToEntry": 141.7,
+            "topBootstrap": 99.0,
+            "hostAndBridge": 322.2,
+            "studioImport": 209.0,
+            "editorInitialization": 304.8,
+            "frameDispatch": 14.9,
+            "frameContext": 285.5,
+            "renderAndReveal": 475.8
+          },
+          "phaseMs": {
+            "studio-module-import": 209,
+            "startup-preferences": 1.9,
+            "project-fetch": 37.5,
+            "model-unbundle": 70.2,
+            "studio-context": 45.5,
+            "initial-route": 54.3,
+            "initial-viewport": 54.4,
+            "code-component-sync": 6.8,
+            "app-user-init": 0,
+            "initializer-ready": 0,
+            "frame-load-start": 0,
+            "frame-host-document": 126,
+            "frame-host-ready": 6.4,
+            "frame-runtime": 8.2,
+            "frame-component-packages": 119.2,
+            "frame-context-created": 0,
+            "all-frame-contexts-created": 0,
+            "frame-initialization": 297.3,
+            "frame-first-render": 436.3,
+            "canvas-revealed": 0,
+            "frame-rendered": 0,
+            "all-frames-rendered": 0
+          }
+        },
+        {
+          "open": 3,
+          "measured": true,
+          "milestones": {
+            "canvasRevealedMs": 1907.2,
+            "firstCanvasReadyMs": 2117.39,
+            "allFramesRenderedMs": 1929.8
+          },
+          "criticalPathMs": {
+            "navigationToEntry": 146.1,
+            "topBootstrap": 102.1,
+            "hostAndBridge": 328.2,
+            "studioImport": 214.7,
+            "editorInitialization": 319.4,
+            "frameDispatch": 16.4,
+            "frameContext": 297.4,
+            "renderAndReveal": 482.9
+          },
+          "phaseMs": {
+            "studio-module-import": 214.7,
+            "startup-preferences": 1.8,
+            "project-fetch": 37,
+            "model-unbundle": 74.3,
+            "studio-context": 46.6,
+            "initial-route": 53.5,
+            "initial-viewport": 53.7,
+            "code-component-sync": 6.7,
+            "app-user-init": 0,
+            "initializer-ready": 0,
+            "frame-load-start": 0,
+            "frame-host-document": 134.4,
+            "frame-host-ready": 7.6,
+            "frame-runtime": 8.2,
+            "frame-component-packages": 121.4,
+            "frame-context-created": 0,
+            "all-frame-contexts-created": 0,
+            "frame-initialization": 308.8,
+            "frame-first-render": 442.4,
+            "canvas-revealed": 0,
+            "frame-rendered": 0,
+            "all-frames-rendered": 0
+          }
+        },
+        {
+          "open": 4,
+          "measured": true,
+          "milestones": {
+            "canvasRevealedMs": 1861.8,
+            "firstCanvasReadyMs": 2071.23,
+            "allFramesRenderedMs": 1883.9
+          },
+          "criticalPathMs": {
+            "navigationToEntry": 145.4,
+            "topBootstrap": 99.9,
+            "hostAndBridge": 314.7,
+            "studioImport": 207.8,
+            "editorInitialization": 305.9,
+            "frameDispatch": 15.5,
+            "frameContext": 289.5,
+            "renderAndReveal": 483.1
+          },
+          "phaseMs": {
+            "studio-module-import": 207.8,
+            "startup-preferences": 2,
+            "project-fetch": 36.8,
+            "model-unbundle": 70.5,
+            "studio-context": 47.1,
+            "initial-route": 52.3,
+            "initial-viewport": 52.4,
+            "code-component-sync": 6.2,
+            "app-user-init": 0.1,
+            "initializer-ready": 0,
+            "frame-load-start": 0,
+            "frame-host-document": 127.2,
+            "frame-host-ready": 6.8,
+            "frame-runtime": 7.8,
+            "frame-component-packages": 122.4,
+            "frame-context-created": 0,
+            "all-frame-contexts-created": 0,
+            "frame-initialization": 300,
+            "frame-first-render": 445.6,
+            "canvas-revealed": 0,
+            "frame-rendered": 0,
+            "all-frames-rendered": 0
+          }
+        },
+        {
+          "open": 5,
+          "measured": true,
+          "milestones": {
+            "canvasRevealedMs": 1971.2,
+            "firstCanvasReadyMs": 2188.37,
+            "allFramesRenderedMs": 1993.8
+          },
+          "criticalPathMs": {
+            "navigationToEntry": 149.4,
+            "topBootstrap": 101.4,
+            "hostAndBridge": 331.6,
+            "studioImport": 212.4,
+            "editorInitialization": 317.4,
+            "frameDispatch": 16.0,
+            "frameContext": 347.2,
+            "renderAndReveal": 495.8
+          },
+          "phaseMs": {
+            "studio-module-import": 212.4,
+            "startup-preferences": 1.9,
+            "project-fetch": 39.3,
+            "model-unbundle": 71.5,
+            "studio-context": 46.8,
+            "initial-route": 53,
+            "initial-viewport": 53.1,
+            "code-component-sync": 6.3,
+            "app-user-init": 0,
+            "initializer-ready": 0,
+            "frame-load-start": 0,
+            "frame-host-document": 149.9,
+            "frame-host-ready": 16.4,
+            "frame-runtime": 9,
+            "frame-component-packages": 141.8,
+            "frame-context-created": 0,
+            "all-frame-contexts-created": 0,
+            "frame-initialization": 365.6,
+            "frame-first-render": 452.7,
+            "canvas-revealed": 0,
+            "frame-rendered": 0,
+            "all-frames-rendered": 0
+          }
+        },
+        {
+          "open": 6,
+          "measured": true,
+          "milestones": {
+            "canvasRevealedMs": 1932.9,
+            "firstCanvasReadyMs": 2194.51,
+            "allFramesRenderedMs": 1938.2
+          },
+          "criticalPathMs": {
+            "navigationToEntry": 166.8,
+            "topBootstrap": 104.2,
+            "hostAndBridge": 324.3,
+            "studioImport": 219.7,
+            "editorInitialization": 316.5,
+            "frameDispatch": 16.0,
+            "frameContext": 308.6,
+            "renderAndReveal": 476.8
+          },
+          "phaseMs": {
+            "studio-module-import": 219.7,
+            "startup-preferences": 1.9,
+            "project-fetch": 39.9,
+            "model-unbundle": 73.1,
+            "studio-context": 47.1,
+            "initial-route": 53.8,
+            "initial-viewport": 54,
+            "code-component-sync": 6.9,
+            "app-user-init": 0,
+            "initializer-ready": 0,
+            "frame-load-start": 0,
+            "frame-host-document": 134.4,
+            "frame-host-ready": 10.1,
+            "frame-runtime": 8.5,
+            "frame-component-packages": 128.2,
+            "frame-context-created": 0,
+            "all-frame-contexts-created": 0,
+            "frame-initialization": 319.3,
+            "frame-first-render": 468.2,
+            "canvas-revealed": 0,
+            "frame-rendered": 0,
+            "all-frames-rendered": 0
+          }
+        }
+      ],
+      "median": {
+        "milestones": {
+          "canvasRevealedMs": 1920.05,
+          "firstCanvasReadyMs": 2152.88,
+          "allFramesRenderedMs": 1934.0
+        },
+        "criticalPathMs": {
+          "navigationToEntry": 147.75,
+          "topBootstrap": 101.75,
+          "hostAndBridge": 326.25,
+          "studioImport": 213.55,
+          "editorInitialization": 316.95,
+          "frameDispatch": 16.0,
+          "frameContext": 303.0,
+          "renderAndReveal": 483.0
+        },
+        "phaseMs": {
+          "studio-module-import": 213.55,
+          "startup-preferences": 1.9,
+          "project-fetch": 38.15,
+          "model-unbundle": 72.3,
+          "studio-context": 46.95,
+          "initial-route": 53.25,
+          "initial-viewport": 53.4,
+          "code-component-sync": 6.5,
+          "app-user-init": 0.0,
+          "initializer-ready": 0.0,
+          "frame-load-start": 0.0,
+          "frame-host-document": 134.4,
+          "frame-host-ready": 8.85,
+          "frame-runtime": 8.35,
+          "frame-component-packages": 125.3,
+          "frame-context-created": 0.0,
+          "all-frame-contexts-created": 0.0,
+          "frame-initialization": 314.05,
+          "frame-first-render": 449.15,
+          "canvas-revealed": 0.0,
+          "frame-rendered": 0.0,
+          "all-frames-rendered": 0.0
+        }
+      },
+      "rendererErrors": [],
+      "thumbnailFixtureErrors": 7
+    },
+    "complex": {
+      "kind": "diagnostic static-logo variant of installed renderer, not a release build",
+      "rows": [
+        {
+          "open": 1,
+          "measured": false,
+          "milestones": {
+            "canvasRevealedMs": 1738.4,
+            "firstCanvasReadyMs": 1934.59,
+            "allFramesRenderedMs": 4514.3
+          },
+          "criticalPathMs": {
+            "navigationToEntry": 154.1,
+            "topBootstrap": 105.1,
+            "hostAndBridge": 323.7,
+            "studioImport": 212.3,
+            "editorInitialization": 333.0,
+            "frameDispatch": 36.7,
+            "frameContext": 315.9,
+            "renderAndReveal": 257.7
+          },
+          "phaseMs": {
+            "studio-module-import": 212.3,
+            "startup-preferences": 1.9,
+            "project-fetch": 47.2,
+            "model-unbundle": 84.8,
+            "studio-context": 29,
+            "initial-route": 50.5,
+            "initial-viewport": 50.7,
+            "code-component-sync": 8.4,
+            "app-user-init": 0,
+            "initializer-ready": 0,
+            "frame-load-start": 0,
+            "frame-host-document": 112.1,
+            "frame-host-ready": 40.9,
+            "frame-runtime": 8.2,
+            "frame-component-packages": 124.2,
+            "frame-context-created": 0,
+            "frame-initialization": 339,
+            "frame-first-render": 236.2,
+            "canvas-revealed": 0,
+            "frame-rendered": 0,
+            "background-canvas-wait": 297.6,
+            "all-frame-contexts-created": 0,
+            "all-frames-rendered": 0
+          }
+        },
+        {
+          "open": 2,
+          "measured": false,
+          "milestones": {
+            "canvasRevealedMs": 1657.2,
+            "firstCanvasReadyMs": 1867.29,
+            "allFramesRenderedMs": 4379.1
+          },
+          "criticalPathMs": {
+            "navigationToEntry": 149.8,
+            "topBootstrap": 113.9,
+            "hostAndBridge": 305.7,
+            "studioImport": 212.7,
+            "editorInitialization": 317.3,
+            "frameDispatch": 38.2,
+            "frameContext": 302.3,
+            "renderAndReveal": 217.4
+          },
+          "phaseMs": {
+            "studio-module-import": 212.7,
+            "startup-preferences": 1.7,
+            "project-fetch": 38.2,
+            "model-unbundle": 78.2,
+            "studio-context": 26.8,
+            "initial-route": 50.2,
+            "initial-viewport": 50.3,
+            "code-component-sync": 8.4,
+            "app-user-init": 0,
+            "initializer-ready": 0,
+            "frame-load-start": 0,
+            "frame-host-document": 137.3,
+            "frame-host-ready": 9.2,
+            "frame-runtime": 7.9,
+            "frame-component-packages": 117.6,
+            "frame-context-created": 0,
+            "frame-initialization": 315.2,
+            "frame-first-render": 193,
+            "canvas-revealed": 0,
+            "frame-rendered": 0,
+            "background-canvas-wait": 262.6,
+            "all-frame-contexts-created": 0,
+            "all-frames-rendered": 0
+          }
+        },
+        {
+          "open": 3,
+          "measured": true,
+          "milestones": {
+            "canvasRevealedMs": 1667.9,
+            "firstCanvasReadyMs": 1877.13,
+            "allFramesRenderedMs": 4400.1
+          },
+          "criticalPathMs": {
+            "navigationToEntry": 149.3,
+            "topBootstrap": 110.8,
+            "hostAndBridge": 306.3,
+            "studioImport": 213.9,
+            "editorInitialization": 315.9,
+            "frameDispatch": 37.4,
+            "frameContext": 305.6,
+            "renderAndReveal": 228.7
+          },
+          "phaseMs": {
+            "studio-module-import": 213.9,
+            "startup-preferences": 1.9,
+            "project-fetch": 39.3,
+            "model-unbundle": 78.4,
+            "studio-context": 26.6,
+            "initial-route": 48.3,
+            "initial-viewport": 48.5,
+            "code-component-sync": 8.4,
+            "app-user-init": 0,
+            "initializer-ready": 0,
+            "frame-load-start": 0,
+            "frame-host-document": 136.7,
+            "frame-host-ready": 9.1,
+            "frame-runtime": 8,
+            "frame-component-packages": 122.2,
+            "frame-context-created": 0,
+            "frame-initialization": 325.5,
+            "frame-first-render": 203.1,
+            "canvas-revealed": 0,
+            "frame-rendered": 0,
+            "background-canvas-wait": 270.3,
+            "all-frame-contexts-created": 0,
+            "all-frames-rendered": 0
+          }
+        },
+        {
+          "open": 4,
+          "measured": true,
+          "milestones": {
+            "canvasRevealedMs": 1723,
+            "firstCanvasReadyMs": 1929.35,
+            "allFramesRenderedMs": 4416.1
+          },
+          "criticalPathMs": {
+            "navigationToEntry": 148.8,
+            "topBootstrap": 111.8,
+            "hostAndBridge": 314.4,
+            "studioImport": 210.1,
+            "editorInitialization": 316.4,
+            "frameDispatch": 46.2,
+            "frameContext": 354.7,
+            "renderAndReveal": 220.6
+          },
+          "phaseMs": {
+            "studio-module-import": 210.1,
+            "startup-preferences": 1.7,
+            "project-fetch": 33.4,
+            "model-unbundle": 77,
+            "studio-context": 26.4,
+            "initial-route": 49.5,
+            "initial-viewport": 49.6,
+            "code-component-sync": 9,
+            "app-user-init": 0,
+            "initializer-ready": 0,
+            "frame-load-start": 0,
+            "frame-host-document": 178.1,
+            "frame-host-ready": 6.9,
+            "frame-runtime": 7.5,
+            "frame-component-packages": 119.9,
+            "frame-context-created": 0,
+            "frame-initialization": 375.7,
+            "frame-first-render": 196.4,
+            "canvas-revealed": 0,
+            "frame-rendered": 0,
+            "background-canvas-wait": 258.9,
+            "all-frame-contexts-created": 0,
+            "all-frames-rendered": 0
+          }
+        },
+        {
+          "open": 5,
+          "measured": true,
+          "milestones": {
+            "canvasRevealedMs": 1793.8,
+            "firstCanvasReadyMs": 1990.53,
+            "allFramesRenderedMs": 4637.1
+          },
+          "criticalPathMs": {
+            "navigationToEntry": 159.2,
+            "topBootstrap": 117.8,
+            "hostAndBridge": 342.5,
+            "studioImport": 231.8,
+            "editorInitialization": 335.3,
+            "frameDispatch": 43.0,
+            "frameContext": 333.2,
+            "renderAndReveal": 231.1
+          },
+          "phaseMs": {
+            "studio-module-import": 231.8,
+            "startup-preferences": 1.9,
+            "project-fetch": 36.2,
+            "model-unbundle": 82,
+            "studio-context": 26.3,
+            "initial-route": 50.4,
+            "initial-viewport": 50.6,
+            "code-component-sync": 9.4,
+            "app-user-init": 0,
+            "initializer-ready": 0,
+            "frame-load-start": 0,
+            "frame-host-document": 157.1,
+            "frame-host-ready": 8.9,
+            "frame-runtime": 8.5,
+            "frame-component-packages": 127.9,
+            "frame-context-created": 0,
+            "frame-initialization": 354.2,
+            "frame-first-render": 205.6,
+            "canvas-revealed": 0,
+            "frame-rendered": 0,
+            "background-canvas-wait": 271.8,
+            "all-frame-contexts-created": 0,
+            "all-frames-rendered": 0
+          }
+        },
+        {
+          "open": 6,
+          "measured": true,
+          "milestones": {
+            "canvasRevealedMs": 1663.7,
+            "firstCanvasReadyMs": 1864.48,
+            "allFramesRenderedMs": 4491.5
+          },
+          "criticalPathMs": {
+            "navigationToEntry": 149.4,
+            "topBootstrap": 109.3,
+            "hostAndBridge": 311.7,
+            "studioImport": 214.5,
+            "editorInitialization": 321.8,
+            "frameDispatch": 39.1,
+            "frameContext": 306.5,
+            "renderAndReveal": 211.4
+          },
+          "phaseMs": {
+            "studio-module-import": 214.5,
+            "startup-preferences": 1.9,
+            "project-fetch": 38.1,
+            "model-unbundle": 80.5,
+            "studio-context": 26.6,
+            "initial-route": 49.6,
+            "initial-viewport": 49.8,
+            "code-component-sync": 8.1,
+            "app-user-init": 0,
+            "initializer-ready": 0,
+            "frame-load-start": 0,
+            "frame-host-document": 137.8,
+            "frame-host-ready": 9.4,
+            "frame-runtime": 8.2,
+            "frame-component-packages": 121.3,
+            "frame-context-created": 0,
+            "frame-initialization": 320.7,
+            "frame-first-render": 200.6,
+            "canvas-revealed": 0,
+            "frame-rendered": 0,
+            "background-canvas-wait": 273.9,
+            "all-frame-contexts-created": 0,
+            "all-frames-rendered": 0
+          }
+        }
+      ],
+      "median": {
+        "milestones": {
+          "canvasRevealedMs": 1695.45,
+          "firstCanvasReadyMs": 1903.24,
+          "allFramesRenderedMs": 4453.8
+        },
+        "criticalPathMs": {
+          "navigationToEntry": 149.35,
+          "topBootstrap": 111.3,
+          "hostAndBridge": 313.05,
+          "studioImport": 214.2,
+          "editorInitialization": 319.1,
+          "frameDispatch": 41.05,
+          "frameContext": 319.85,
+          "renderAndReveal": 224.65
+        },
+        "phaseMs": {
+          "studio-module-import": 214.2,
+          "startup-preferences": 1.9,
+          "project-fetch": 37.15,
+          "model-unbundle": 79.45,
+          "studio-context": 26.5,
+          "initial-route": 49.55,
+          "initial-viewport": 49.7,
+          "code-component-sync": 8.7,
+          "app-user-init": 0.0,
+          "initializer-ready": 0.0,
+          "frame-load-start": 0.0,
+          "frame-host-document": 147.45,
+          "frame-host-ready": 9.0,
+          "frame-runtime": 8.1,
+          "frame-component-packages": 121.75,
+          "frame-context-created": 0.0,
+          "frame-initialization": 339.85,
+          "frame-first-render": 201.85,
+          "canvas-revealed": 0.0,
+          "frame-rendered": 0.0,
+          "background-canvas-wait": 271.05,
+          "all-frame-contexts-created": 0.0,
+          "all-frames-rendered": 0.0
+        }
+      },
+      "rendererErrors": [],
+      "thumbnailFixtureErrors": 7
+    }
+  },
+  "experiment": {
+    "order": [
+      "gp release",
+      "complex release",
+      "gp trace (excluded from timing)",
+      "gp static",
+      "complex static"
+    ],
+    "variant": {
+      "changedFiles": [
+        "renderer-static/index.html",
+        "renderer-static/static/js/index~0.24440492.js"
+      ],
+      "scope": "Only the two loading-logo JS functions see reduced-motion=true; no global media emulation or other animation change. The timing harness and release manifest remain identical; this is a diagnostic modified renderer, not the installed release."
+    },
+    "limitations": "Single independent process per arm/project; fixed order, no randomization/ABBA; ambient system workload/cache uncontrolled; diagnostic static-logo only, existing workspace animation change not built or validated.",
+    "privateArtifacts": "/tmp/plasmic-loading-20261104"
+  }
+}

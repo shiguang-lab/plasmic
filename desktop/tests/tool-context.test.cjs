@@ -1,3 +1,4 @@
+const { mcpTransport } = require("./fixtures/mcp.cjs");
 const { studioFixture } = require("./fixtures/studio.cjs");
 const test = require("node:test");
 const assert = require("node:assert/strict");
@@ -43,6 +44,15 @@ function fixture(t, initialMode = "edit") {
   };
   return { controller, context, calls, setUrl: (value) => { url = value; } };
 }
+
+test("graphics never insert into a replacement editor session after background computation", async t => {
+  const { controller, context, calls } = fixture(t);
+  controller.graphics.run = async () => { context.sessionId = "replacement"; return { svg: "<svg/>" }; };
+  await assert.rejects(controller.dispatch("make_vector", {
+    componentUuid: "page", width: 100, height: 100, paths: ["M0 0h10v10h-10z"],
+  }), error => error.context.code === "CONTEXT_MISMATCH");
+  assert.equal(calls.some(call => call.name === "insertHtml"), false);
+});
 
 test("a Preview write is rejected before execution while model reads retain Preview", async (t) => {
   const { controller, context, calls } = fixture(t, "preview");
@@ -199,8 +209,7 @@ test("context error and recovery survive RPC and MCP, allowing one explicit clos
   const stop = await startRpc(profile, (method, input) => controller.dispatch(method, input));
   const client = new Client({ name: "context-recovery-test", version: "1" });
   try {
-    await client.connect(new StdioClientTransport({ command: process.execPath,
-      args: ["-e", `require(${JSON.stringify(require.resolve("../src/mcp.cjs"))}).serveMcp(${JSON.stringify(profile)})`], stderr: "pipe" }));
+    await client.connect(new StdioClientTransport(mcpTransport(profile)));
     assert.match(client.getInstructions(), /JSON \{msg,detail\}/);
     assert.match(client.getInstructions(), /detail\.operationExecuted/);
     const args = { name: "changeElement", input: { componentUuid: "page", elementUuid: "node", name: "Content" } };

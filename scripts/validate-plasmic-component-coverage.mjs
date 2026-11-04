@@ -125,6 +125,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     "form-group": "form", "range-slider": "slider", "slider-mark": "slider",
     "segmented-option": "segmented", "single-collapse": "collapse",
     "row": "grid", "col": "grid", "search-form-item": "search-form",
+    "table-expand-column": "table",
     "resource-authorization-record": "resource-authorization",
   });
   const registrations = [];

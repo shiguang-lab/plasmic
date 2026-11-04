@@ -348,28 +348,41 @@ def review_skeleton(plan, capture, mode, page_path=None):
 def rules(plan, route, ledger, stage='compose'):
     """Per-Page reading card: the Page's hard constraints and decided values first, then
     exact reader commands for every required section."""
-    from verify_selection import required_reads
+    from verify_selection import project_reads, required_reads
     page = page_at(plan, route)
-    reads, total, constraints = card_reads(required_reads(page, stage, plan), ledger)
+    page_reads = required_reads(page, stage, plan)
+    reads, total, constraints = card_reads(page_reads, ledger)
+    combined = project_reads(stage, plan)
+    for path, anchors in page_reads.items():
+        if path not in combined:
+            combined[path] = anchors
+        elif combined[path] is None or anchors is None:
+            combined[path] = None
+        else:
+            combined[path] = combined[path] | anchors
+    _, combined_total, _ = card_reads(combined, ledger)
     follow = ('verify_selection.py PLAN --page ' + route + ' --reads ' + str(Path(ledger).resolve())
               if stage == 'compose' else
               'record static findings and pending runtime/persistence checks in the checkpoint; complete rule verdicts after those checks (review-mode.md#rule-review)')
     # A byte budget signals context pressure, not host delegation/compaction capability.
     budget_exceeded = total > READING_BUDGET_BYTES
+    combined_budget_exceeded = combined_total > READING_BUDGET_BYTES
     steps = ('Run this card on the scaffolded plan before deciding: decide every "__DECIDE__" value from the delivered '
              'Plan decisions rows and hard constraints, then check every hardConstraints item against the plan and its '
              'decisions values; a constraint without a matching decision or plan entry is a plan defect to fix before markup. '
              if stage == 'compose' else
              'Assess each hard constraint using its required evidence; saved models/pixels cannot prove runtime behavior. '
              'After execution, record one constraint verdict per item inside its final rule verdict. ')
-    if budget_exceeded:
-        steps += ('This card exceeds the reading budget; readingBudgetExceeded is a context-pressure signal, not a host-capability guarantee. '
+    if budget_exceeded or combined_budget_exceeded:
+        steps += ('Pending project and Page rules exceed the reading budget; byte totals are context-pressure signals, not a host-capability guarantee or total conversation usage. '
                   'Use a verified fresh-context handoff or client-supported compaction when available '
                   '(workflows/prototype.md#complete-one-page-at-a-time). Otherwise read sections sequentially with disk checkpoints, '
                   'without claiming a fresh context or skipping rules. If actual context capacity is insufficient, checkpoint '
                   'at the current Page boundary and report the remaining reads/checks before further composition or acceptance. ')
     # Digest first: small, decisive and read before the long sections.
     return {'page': route, 'stage': stage, 'readingBudgetExceeded': budget_exceeded, 'totalBytes': total,
+            'pendingProjectAndPageBytes': combined_total,
+            'pendingProjectAndPageBudgetExceeded': combined_budget_exceeded,
             'pageStructure': page.get('pageStructure', 'MISSING'),
             'hardConstraints': constraints, 'decisions': decided_values(page), 'reads': reads,
             'next': steps + 'Run every command, apply each document\'s hard constraints and decision rows, then ' + follow}
@@ -583,8 +596,11 @@ def scaffold(minimal, page_path=None):
         if not isinstance(page.get('path'), str) or not page['path'].startswith('/'):
             raise ValueError('Every Page needs its exact absolute route path')
         components = page.get('components')
-        if not isinstance(components, list) or not components:
+        if not isinstance(components, list):
             raise ValueError(page['path'] + ': list the planned functional instances in components')
+        if not components and not (page.get('pageType') == 'non-admin'
+                                   and isinstance(page.get('nodes'), list) and page['nodes']):
+            raise ValueError(page['path'] + ': list functional components or declare native nodes for a non-admin Page')
         for spec in components:
             if not isinstance(spec, dict) or not all(isinstance(spec.get(k), str) and spec[k].strip() for k in ('nodeName', 'component', 'role')):
                 raise ValueError(page['path'] + ': each component needs nodeName, component and role')

@@ -9,9 +9,15 @@
 }
 
 .art {
+  position: relative;
   display: block;
   width: 192px;
   max-width: 100%;
+}
+
+.logo {
+  display: block;
+  width: 100%;
   height: auto;
   overflow: visible;
 }
@@ -20,4 +26,36 @@
   fill: none;
   stroke: var(--studio-loading-muted, #70778b);
   stroke-width: 0.1;
+}
+
+.construction,
+.sheenClip {
+  position: absolute;
+  left: 24%;
+  top: calc(61 / 330 * 100%);
+  width: 52%;
+  height: calc(208 / 330 * 100%);
+  mask-size: 100% 100%;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.sheen {
+  width: 50%;
+  height: 100%;
+  opacity: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.7),
+    transparent
+  );
+}
+
+.construction {
+  opacity: 0;
+  pointer-events: none;
 }

@@ -1,5 +1,7 @@
 # Context optimization regression — 2026-10-17
 
+> Evidence availability checked 2026-11-04: original outputs at the recorded local paths are unavailable for independent regrading; see [availability record](historical-evidence-status.md). The dated results below are historical reports, not new verification.
+
 The three source changes are implemented. **The optimized-build REQ075 prototype regression now passes.** All six gates, evidence integrity, 185 behavior cases, 8 hidden Modal/Drawer instances and 5 confirmation surfaces pass; save/reopen preserves the complete model. See the [final acceptance report](req075-regression/completion-results.md). No resource or Desktop release was published.
 
 The [latest focused review](req075-regression/review3-results.md) closes further visibility, custom-close and invalid layout/provenance false acceptance, strengthens isolated counterexamples and catches all 45 specified guard regressions in disposable mutation tests. Current model, build and independently reviewed expectations remain unchanged; the corrected gates and evidence checks pass.

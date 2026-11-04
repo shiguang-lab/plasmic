@@ -1,5 +1,7 @@
 # Plasmic skill verification — 2026-10-09
 
+> Evidence availability checked 2026-11-04: original outputs at the recorded local paths are unavailable for independent regrading; see [availability record](historical-evidence-status.md). The dated results below are historical reports, not new verification.
+
 Verification used local skill/CLI/resources **0.0.59** before publication, with the installed bootstrap and public release unchanged during acceptance.
 
 ## Behavior evaluation

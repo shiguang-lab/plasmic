@@ -1,6 +1,7 @@
 import { openDesktopBrowser } from "@/wab/client/desktop-browser";
 import { parseProjectLocation } from "@/wab/client/cli-routes";
 import { PreviewLoading } from "@/wab/client/components/live/PreviewLoading";
+import { CanvasAiComposer, CanvasAiComposerProps } from "@/wab/client/components/copilot/CanvasAiComposer";
 import { CanvasViewControls } from "@/wab/client/components/studio/CanvasViewControls";
 import { EditorToolRail } from "@/wab/client/components/studio/EditorToolRail";
 import { StudioLayout } from "@/wab/client/components/studio/StudioLayout";
@@ -9,6 +10,7 @@ import { editorLeftRailLayout } from "@/wab/client/components/ui/layout-styles";
 import { StudioLoading } from "@/wab/client/components/widgets/StudioLoading";
 import { useLocation } from "@/wab/client/route/HistoryProvider";
 import { ensure, spawn } from "@/wab/shared/common";
+import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import * as React from "react";
 
 interface StudioStartupState {
@@ -16,6 +18,7 @@ interface StudioStartupState {
   ready: boolean;
   hidden: boolean;
   failure?: React.ReactNode;
+  composer?: Omit<CanvasAiComposerProps, "projectId"> & { visible: boolean };
 }
 
 const StudioStartupContext = React.createContext<
@@ -113,6 +116,16 @@ export function StudioStartupBoundary({
           </React.Suspense>
         </div>
       )}
+      {projectId && !projectLocation?.isPreview &&
+        !APP_ROUTES.projectDocs.parse(location.pathname, false) &&
+        state.composer?.visible !== false && (
+          <CanvasAiComposer
+            key={projectId}
+            {...state.composer}
+            projectId={projectId}
+            hiddenByModal={state.hidden || !!state.failure}
+          />
+        )}
     </>
   );
 }

@@ -1,5 +1,7 @@
 # Codegen contract probe results
 
+> Evidence availability checked 2026-11-04: original outputs at the recorded local paths are unavailable for independent regrading; see [availability record](../historical-evidence-status.md). The dated results below are historical reports, not new verification.
+
 Date: 2026-10-27. Inputs and grading criteria: the first three cases in the [probe suite](README.md). This run covers the contract-rule revision before the post-implementation review extension; the pinned hashes below identify the tested references.
 
 The baseline and final candidate each ran all three cases in a fresh agent context with the same raw fixtures and five pinned references. Executors did not receive the rubric or previous conclusions. The parent reviewed the actual JSX and reports against each criterion; these are bounded offline probes, not application tests. An intermediate candidate was also probed, then shortened to meet the existing reading budget; the final wording was tested in a new context.

@@ -158,12 +158,46 @@
         z-index: 36;
         background: transparent;
       }
-      .startup-loading__logo {
+      .startup-loading__art {
+        position: relative;
         display: block;
         width: 192px;
         max-width: 100%;
+      }
+      .startup-loading__logo {
+        display: block;
+        width: 100%;
         height: auto;
         overflow: visible;
+      }
+      .startup-loading__construction,
+      .startup-loading__sheen-clip {
+        position: absolute;
+        left: 24%;
+        top: calc(61 / 330 * 100%);
+        width: 52%;
+        height: calc(208 / 330 * 100%);
+        mask-size: 100% 100%;
+        mask-repeat: no-repeat;
+        -webkit-mask-size: 100% 100%;
+        -webkit-mask-repeat: no-repeat;
+        overflow: hidden;
+        pointer-events: none;
+      }
+      .startup-loading__construction {
+        opacity: 0;
+        pointer-events: none;
+      }
+      .startup-loading__sheen {
+        width: 50%;
+        height: 100%;
+        opacity: 0;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.7),
+          transparent
+        );
       }
       .startup-loading__wire {
         fill: none;
@@ -226,55 +260,83 @@
       aria-busy="true"
     >
       <% const id = mode + "-startup"; %>
-      <svg class="startup-loading__logo" viewBox="0 0 400 330" aria-hidden="true">
-        <defs>
-          <linearGradient
-            id="<%= id %>-fill"
-            gradientUnits="userSpaceOnUse"
-            x1="<%= brand.gradient.x1 %>" y1="<%= brand.gradient.y1 %>"
-            x2="<%= brand.gradient.x2 %>" y2="<%= brand.gradient.y2 %>"
-          >
-            <% for (const stop of brand.gradient.stops) { %>
-            <stop offset="<%= stop.offset %>" stop-color="<%= stop.color %>" />
-            <% } %>
-          </linearGradient>
-          <% brand.paths.forEach((path, i) => { %>
-          <path id="<%= id %>-<%= i %>" data-track d="<%= path %>" />
-          <% }); %>
-          <clipPath id="<%= id %>-clip">
-            <% brand.paths.forEach((_, i) => { %>
-            <use href="#<%= id %>-<%= i %>" />
-            <% }); %>
-          </clipPath>
-          <linearGradient id="<%= id %>-reveal" x1="0" y1="0" x2="0" y2="1">
-            <stop data-front offset="0" stop-color="white" />
-            <stop data-tail offset="0" stop-color="black" />
-          </linearGradient>
-          <mask id="<%= id %>-mask" maskUnits="userSpaceOnUse" x="0" y="0" width="32" height="32">
-            <rect width="32" height="32" fill="url(#<%= id %>-reveal)" />
-          </mask>
-        </defs>
-        <g transform="translate(96 61) scale(6.5)">
-          <g data-scaffold opacity=".55" class="startup-loading__wire">
-            <g clip-path="url(#<%= id %>-clip)">
-              <% for (let i = 0; i < 40; i++) { const y = (19 + i * 4.4) / 6.5; %>
-              <path d="M-.77 <%= y %> Q16.15 <%= y - 3.23 %> 32.3 <%= y - 0.46 %>" />
+      <div class="startup-loading__art">
+        <svg
+          class="startup-loading__logo"
+          viewBox="0 0 400 330"
+          aria-hidden="true"
+        >
+          <defs>
+            <linearGradient
+              id="<%= id %>-fill"
+              gradientUnits="userSpaceOnUse"
+              x1="<%= brand.gradient.x1 %>"
+              y1="<%= brand.gradient.y1 %>"
+              x2="<%= brand.gradient.x2 %>"
+              y2="<%= brand.gradient.y2 %>"
+            >
+              <% for (const stop of brand.gradient.stops) { %>
+              <stop
+                offset="<%= stop.offset %>"
+                stop-color="<%= stop.color %>"
+              />
               <% } %>
+            </linearGradient>
+            <% brand.paths.forEach((path, i) => { %>
+            <path id="<%= id %>-<%= i %>" data-track d="<%= path %>" />
+            <% }); %>
+            <clipPath id="<%= id %>-clip">
+              <% brand.paths.forEach((_, i) => { %>
+              <use href="#<%= id %>-<%= i %>" />
+              <% }); %>
+            </clipPath>
+          </defs>
+          <g transform="translate(96 61) scale(6.5)">
+            <g data-scaffold opacity=".55" class="startup-loading__wire">
+              <g clip-path="url(#<%= id %>-clip)">
+                <% for (let i = 0; i < 44; i++) { const y = (19 + i * 4.4) /
+                6.5; %>
+                <path
+                  d="M-.77 <%= y %> Q16.15 <%= y - 3.23 %> 32.3 <%= y - 0.46 %>"
+                />
+                <% } %>
+              </g>
+              <g opacity=".3">
+                <% brand.paths.forEach((_, i) => { %>
+                <use href="#<%= id %>-<%= i %>" />
+                <% }); %>
+              </g>
             </g>
-            <g opacity=".3">
+            <g data-solid fill="url(#<%= id %>-fill)" opacity="1">
               <% brand.paths.forEach((_, i) => { %>
               <use href="#<%= id %>-<%= i %>" />
               <% }); %>
             </g>
           </g>
-          <g data-lights fill="none" stroke-width=".16" stroke-linecap="round" stroke-linejoin="round" />
-          <g data-solid fill="url(#<%= id %>-fill)" mask="url(#<%= id %>-mask)" opacity="0">
-            <% brand.paths.forEach((_, i) => { %>
-            <use href="#<%= id %>-<%= i %>" />
-            <% }); %>
-          </g>
-        </g>
-      </svg>
+        </svg>
+        <img
+          data-construction
+          data-src="<%= staticUrl %>/static/img/<%= construction.file %>"
+          data-duration="<%= construction.duration %>"
+          class="startup-loading__construction"
+          width="200"
+          height="200"
+          alt=""
+          aria-hidden="true"
+          decoding="async"
+        />
+        <% const logoMask = encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">' + brand.paths.map(path => '<path fill="white" d="' + path + '"/>').join('') + '</svg>'); %>
+        <div
+          class="startup-loading__sheen-clip"
+          style="
+            mask-image: url(&quot;data:image/svg+xml,<%= logoMask %>&quot;);
+            -webkit-mask-image: url(&quot;data:image/svg+xml,<%= logoMask %>&quot;);
+          "
+          aria-hidden="true"
+        >
+          <div data-sheen class="startup-loading__sheen"></div>
+        </div>
+      </div>
     </div>
     <% } %>
     <script>

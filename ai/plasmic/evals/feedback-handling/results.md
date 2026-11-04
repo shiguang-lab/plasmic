@@ -1,5 +1,7 @@
 # Feedback workflow evaluation
 
+> Evidence availability checked 2026-11-04: original outputs at the recorded local paths are unavailable for independent regrading; see [availability record](../historical-evidence-status.md). The dated results below are historical reports, not new verification.
+
 Date: 2026-10-30. Scope: instruction changes and offline decision probes in this repository, not a live prototype task.
 
 ## Implementation and engineering review

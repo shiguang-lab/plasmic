@@ -450,6 +450,7 @@ async function change<T>(
         // Studio validates invariants after observing newly attached model nodes.
         return ok(result);
       },
+      { noErrorNotification: true },
     ),
   );
 }
@@ -1593,7 +1594,7 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
           "save",
         ].includes(input.name);
       if (persistentMutation) {
-        await studio.save();
+        await studio.save({ noErrorNotification: true });
         assert(
           !studio.hasUnsavedChanges(),
           "Save existing changes before AI editing.",
@@ -1626,7 +1627,7 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
               studio.aiSaveReceipt,
               "Execution receipt is missing",
             ).result = output;
-            await studio.save();
+            await studio.save({ noErrorNotification: true });
             assert(
               !studio.hasUnsavedChanges(),
               "AI changes could not be saved. Verify the design before retrying.",
@@ -2678,7 +2679,7 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
       const key = vc.renderState.tpl2fullKeys(tpl)[input.instanceIndex];
       const val = key ? vc.renderState.fullKey2val(key) : undefined;
       assert(val, "Rendered instance not found; check instanceIndex");
-      ensureOk(await studio.change(() => ok(vc.setStudioFocusBySelectable(val))));
+      ensureOk(await studio.change(() => ok(vc.setStudioFocusBySelectable(val)), { noErrorNotification: true }));
       await vc.awaitSync();
       const selectedVal = vc.renderState.fullKey2val(key);
       const node = selectedVal
@@ -2833,7 +2834,7 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
   save: defineCopilotTool(meta.save, async (studio) => {
     assertCanEditPrototype(studio);
     assertSiteInvariants(studio.site);
-    const result = await studio.save();
+    const result = await studio.save({ noErrorNotification: true });
     assert(
       !studio.hasUnsavedChanges(),
       `Save did not persist all changes (${String(result)}); retry or resolve the editor's save error`,

@@ -1,0 +1,7 @@
+{
+  "en": "- Improve loading animation, canvas startup and background task performance.\n- Use a native Go MCP helper and improve draft and resource handling.\n- Show concise error notices and save full Desktop diagnostics to log files; agent-triggered failures return to the caller without extra client toasts.\n- Strengthen prototype planning, component checks and verification evidence.",
+  "zh-CN": "- 优化加载动画、画布启动与后台任务性能。\n- 使用原生 Go MCP 辅助进程，改进草稿与资源处理。\n- 异常提示更简洁，Desktop 将完整诊断保存到日志；代理触发的失败返回调用方，不额外弹错。\n- 完善原型规划、组件检查与验证证据。",
+  "zh-TW": "- 最佳化載入動畫、畫布啟動與背景工作效能。\n- 使用原生 Go MCP 輔助程序，改善草稿與資源處理。\n- 錯誤提示更精簡，Desktop 將完整診斷儲存至日誌；代理觸發的失敗回傳呼叫端，不額外彈出錯誤。\n- 完善原型規劃、元件檢查與驗證證據。",
+  "ja": "- 読み込みアニメーション、キャンバス起動、バックグラウンド処理の性能を改善。\n- ネイティブ Go MCP ヘルパーを採用し、下書きとリソース処理を改善。\n- エラー通知を簡潔にし、Desktop の詳細な診断をログに保存。エージェント操作の失敗は追加通知なしで呼び出し元に返します。\n- プロトタイプ計画、コンポーネント検査、検証証跡を改善。",
+  "ko": "- 로딩 애니메이션, 캔버스 시작 및 백그라운드 작업 성능을 개선합니다.\n- 네이티브 Go MCP 도우미를 사용하고 초안 및 리소스 처리를 개선합니다.\n- 오류 알림을 간결하게 표시하고 Desktop 상세 진단을 로그에 저장합니다. 에이전트 작업 실패는 추가 알림 없이 호출자에게 반환합니다.\n- 프로토타입 계획, 컴포넌트 검사 및 검증 증거를 개선합니다."
+}

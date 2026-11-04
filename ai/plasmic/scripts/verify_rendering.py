@@ -32,17 +32,27 @@ def check(layouts, page_ids):
                 or not isinstance(frame.get("images"), list) or not isinstance(frame.get("problems"), list)):
             errors.append({"page": uuid, "error": "Complete ready full layout, positive viewport and explicit image/problem lists required"})
             continue
-        # Sticky control cells report their required content width. Cells of one
-        # rendered column share x and width; size that column from its widest row.
+        # Table ownership comes from the native DOM capture. Equal screen
+        # coordinates do not identify a column across separate Table instances.
         columns = {}
         for element in frame["elements"]:
-            required = element.get("cellContent", {}).get("requiredWidth")
-            if finite_number(required) and finite_number(element.get("x")) and finite_number(element.get("width")):
-                key = (round(element["x"]), round(element["width"]))
-                columns[key] = max(columns.get(key, 0), required)
-        for (x, width), required in sorted(columns.items()):
+            cell = element.get("cellContent")
+            if not isinstance(cell, dict):
+                continue
+            required, width = cell.get("requiredWidth"), element.get("width")
+            key = (cell.get("tableIndex"), cell.get("columnIndex"), cell.get("columnSpan"))
+            if (any(type(index) is not int or index < 0 for index in key[:2])
+                    or type(key[2]) is not int or key[2] < 1
+                    or not finite_number(required) or required <= 0 or not finite_number(width) or width <= 0):
+                errors.append({"page": uuid, "elementIndex": element.get("index"),
+                               "error": "Fresh sticky-cell tableIndex/logical columnIndex/columnSpan ownership and positive measured widths required; resolve overlapping table cells or use a Desktop build exposing logical cell ownership and recapture layout"})
+                continue
+            previous = columns.get(key, (0, 0))
+            columns[key] = (max(previous[0], width), max(previous[1], required))
+        for (table, column, span), (width, required) in sorted(columns.items()):
             if width > required + OPERATION_SLACK:
-                errors.append({"page": uuid, "x": x, "width": width, "requiredWidth": required,
+                errors.append({"page": uuid, "tableIndex": table, "columnIndex": column, "columnSpan": span,
+                               "width": width, "requiredWidth": required,
                                "error": "Fixed control column is wider than its widest measured content plus padding; size Column.width from requiredWidth and check scroll.x"})
         problems = frame["problems"]
         if problems or any(e.get("horizontalOverflow") is True or e.get("cellContent", {}).get("overflow") is True for e in frame["elements"]) or any(i.get("loaded") is not True for i in frame["images"]):

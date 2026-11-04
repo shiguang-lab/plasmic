@@ -1,70 +1,61 @@
-import { build } from "esbuild";
-import { inject } from "postject";
 import { execFileSync } from "node:child_process";
-import { createHash } from "node:crypto";
-import { chmod, copyFile, mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile, rm } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { createRequire } from "node:module";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const runtime = JSON.parse(await readFile(path.join(root, "scripts/mcp-node.json"), "utf8"));
-const cache = path.join(root, "mcp-bin", "node-" + runtime.version);
-const sha256 = bytes => createHash("sha256").update(bytes).digest("hex");
-
-async function nodeBinary(platform, arch) {
-  const target = `${platform}-${arch}`, expected = runtime.sha256[target];
-  if (!expected) throw new Error("Unsupported MCP runtime target: " + target);
-  const filename = platform === "win32" ? `win-${arch}/node.exe` : `node-v${runtime.version}-${target}.tar.gz`;
-  const archive = path.join(cache, filename.replaceAll("/", "-"));
-  await mkdir(cache, { recursive: true });
-  let bytes = await readFile(archive).catch(error => { if (error.code !== "ENOENT") throw error; });
-  if (!bytes) {
-    const response = await fetch(`https://nodejs.org/dist/v${runtime.version}/${filename}`);
-    if (!response.ok) throw new Error(`Node download failed: ${response.status}`);
-    bytes = Buffer.from(await response.arrayBuffer());
-    if (sha256(bytes) !== expected) throw new Error("Node runtime checksum mismatch: " + filename);
-    await writeFile(archive, bytes);
-  }
-  if (sha256(bytes) !== expected) throw new Error("Cached Node runtime checksum mismatch: " + filename);
-  if (platform === "win32") return { binary: archive };
-  execFileSync("tar", ["-xzf", archive, "-C", cache]);
-  const directory = path.join(cache, `node-v${runtime.version}-${target}`);
-  return { binary: path.join(directory, "bin/node"), license: path.join(directory, "LICENSE") };
+const require = createRequire(import.meta.url);
+export async function generateMcpManifest() {
+  const { tools, EDITOR_METHODS } = require("../src/mcp-contract.cjs");
+  const { getStyle } = require("../src/design-styles.cjs");
+  const bootstrap = require("../src/mcp-bootstrap.cjs");
+  const styles = getStyle();
+  const data = {
+    version: require("../package.json").version,
+    instructions: require("../src/mcp-instructions.cjs"),
+    tools, editorMethods: EDITOR_METHODS,
+    styles: { list: styles, values: Object.fromEntries(styles.styles.map(style => [style.id, getStyle(style.id)])) },
+    publishedSkill: { source: "published", instructions: bootstrap.publishedInstructions,
+      resourceManifestUrl: require("../desktop.config.json").updateUrl + "/plasmic/latest.json" },
+    localSkillInstructions: bootstrap.localInstructions,
+    protocolVersions: require("@modelcontextprotocol/sdk/types.js").SUPPORTED_PROTOCOL_VERSIONS,
+  };
+  await writeFile(path.join(root, "mcp/generated.json"), JSON.stringify(data));
 }
 
 export async function buildMcp(platform = process.platform, arch = process.arch) {
-  const host = await nodeBinary(process.platform, process.arch);
-  const target = platform === process.platform && arch === process.arch ? host : await nodeBinary(platform, arch);
+  const goos = { darwin: "darwin", win32: "windows", linux: "linux" }[platform];
+  const goarch = { arm64: "arm64", x64: "amd64" }[arch];
+  if (!goos || !goarch) throw new Error("Unsupported MCP target: " + platform + "-" + arch);
+  await generateMcpManifest();
   const directory = path.join(root, "mcp-bin", `${platform}-${arch}`);
   await mkdir(directory, { recursive: true });
-  const bundle = path.join(directory, "bundle.cjs"), blob = path.join(directory, "sea.blob"), config = path.join(directory, "sea.json");
-  await build({ entryPoints: [path.join(root, "src/mcp-entry.cjs")], outfile: bundle, bundle: true,
-    platform: "node", target: "node24", format: "cjs", minify: true, legalComments: "eof" });
-  await writeFile(config, JSON.stringify({ main: bundle, output: blob, disableExperimentalSEAWarning: true,
-    useSnapshot: false, useCodeCache: false, execArgvExtension: "none" }));
-  // Blob and target executable must use exactly the same Node version.
-  const env = { ...process.env }; delete env.NODE_OPTIONS; delete env.ELECTRON_RUN_AS_NODE;
-  execFileSync(host.binary, ["--experimental-sea-config", config], { env, stdio: "inherit" });
   const executable = path.join(directory, platform === "win32" ? "plasmic-mcp.exe" : "plasmic-mcp");
-  await copyFile(target.binary, executable);await chmod(executable, 0o755);
-  if (platform === "darwin") {
-    if (process.platform !== "darwin") throw new Error("macOS MCP binaries must be signed on macOS");
-    execFileSync("/usr/bin/codesign", ["--remove-signature", executable]);
-  }
-  await inject(executable, "NODE_SEA_BLOB", await readFile(blob), {
-    sentinelFuse: "NODE_SEA_FUSE_fce680ab2cc467b6e072b8b5df1996b2", machoSegmentName: "NODE_SEA",
+  execFileSync("go", ["build", "-trimpath", "-buildvcs=false", "-ldflags=-s -w", "-o", executable, "."], {
+    cwd: path.join(root, "mcp"), env: { ...process.env, CGO_ENABLED: "0", GOOS: goos, GOARCH: goarch }, stdio: "inherit",
   });
-  if (platform === "darwin") execFileSync("/usr/bin/codesign", ["--sign", "-", executable]);
-  const license = target.license || host.license;
-  if (license) await copyFile(license, path.join(directory, "LICENSE.node"));
-  else {
-    const response = await fetch(`https://raw.githubusercontent.com/nodejs/node/v${runtime.version}/LICENSE`);
-    if (!response.ok) throw new Error("Node license download failed");
-    await writeFile(path.join(directory, "LICENSE.node"), await response.text());
+  if (platform === "darwin" && process.platform === "darwin") {
+    execFileSync("/usr/bin/codesign", ["--force", "--sign", "-", executable]);
   }
+  const modules = JSON.parse("[" + execFileSync("go", ["list", "-m", "-json", "all"], {
+    cwd: path.join(root, "mcp"), encoding: "utf8",
+  }).trim().replace(/}\s*{/g, "},{") + "]");
+  const goroot = execFileSync("go", ["env", "GOROOT"], { encoding: "utf8" }).trim();
+  const licenses = ["Go runtime\n" + await readFile(path.join(goroot, "LICENSE"), "utf8")];
+  for (const module of modules.filter(module => !module.Main && module.Dir)) {
+    const license = await readFile(path.join(module.Dir, "LICENSE"), "utf8").catch(error => {
+      if (error.code !== "ENOENT") throw error;
+    });
+    if (license) licenses.push(`${module.Path} ${module.Version}\n${license}`);
+  }
+  await writeFile(path.join(directory, "LICENSES.mcp.txt"), licenses.join("\n\n"));
+  for (const name of ["bundle.cjs", "sea.blob", "sea.json", "LICENSE.node"]) await rm(path.join(directory, name), { force: true });
   if (platform === process.platform && arch === process.arch) {
-    const actual = JSON.parse(execFileSync(executable, ["--version"], { env, encoding: "utf8" }));
-    if (actual.node !== runtime.version || actual.platform !== platform || actual.arch !== arch) throw new Error("MCP runtime verification failed");
+    const actual = JSON.parse(execFileSync(executable, ["--version"], { encoding: "utf8" }));
+    if (!actual.go || actual.version !== require("../package.json").version || actual.platform !== platform || actual.arch !== arch) {
+      throw new Error("MCP runtime verification failed");
+    }
   }
   return directory;
 }

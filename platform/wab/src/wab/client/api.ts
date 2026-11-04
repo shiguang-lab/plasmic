@@ -1,3 +1,4 @@
+import { logError } from "@/wab/client/ErrorNotifications";
 import { clearResourceCache, fetchLibraryResource, setResourceCacheUser } from "@/wab/client/resource-cache";
 import {
   LocalStorageKey,
@@ -140,16 +141,15 @@ export const ajax = async (
         if (
           !noErrorTransform &&
           !(error instanceof ApiError) &&
-          ((xhr.status >= 400 && xhr.status < 500) || xhr.status === 503)
+          (xhr.status >= 400 && xhr.status <= 599)
         ) {
           error = new HttpError(xhr.status, error.message);
         }
         if (!noErrorTransform) {
-          if (error instanceof ApiError) {
-            error.request = { method: method.toUpperCase(), url: fullApiPath(apiSubpath) + search };
-          }
+          error.request = { method: method.toUpperCase(), url: fullApiPath(apiSubpath) + search };
           error.stack += `\n${callingStack}`;
         }
+        logError(error, "API request failed");
         reject(error);
       });
   });

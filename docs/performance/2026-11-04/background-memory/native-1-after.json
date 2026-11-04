@@ -1,0 +1,379 @@
+{
+  "variant": "after",
+  "runtime": {
+    "node": "24.22.1",
+    "acorn": "8.18.0",
+    "ada": "4.0.0",
+    "amaro": "1.1.11",
+    "ares": "1.34.9",
+    "brotli": "1.2.0",
+    "cldr": "48.0",
+    "icu": "78.2",
+    "llhttp": "9.4.3",
+    "merve": "1.2.2",
+    "modules": "150",
+    "napi": "10",
+    "nbytes": "0.1.4",
+    "ncrypto": "0.0.1",
+    "nghttp2": "1.70.0",
+    "nghttp3": "",
+    "ngtcp2": "",
+    "openssl": "0.0.0",
+    "simdjson": "4.6.11",
+    "simdutf": "7.7.0",
+    "sqlite": "3.53.4",
+    "tz": "2026e",
+    "undici": "7.30.1",
+    "unicode": "17.0",
+    "uv": "1.52.1",
+    "uvwasi": "0.0.23",
+    "v8": "15.6.75.25-electron.0",
+    "zlib": "1.3.2.1-motley",
+    "zstd": "1.6.0",
+    "electron": "45.2.1",
+    "chrome": "156.0.8078.75"
+  },
+  "fixture": {
+    "chars": 7150377,
+    "nodes": 41944
+  },
+  "scope": "Minimal hidden Electron window, not full Studio/App total. Production preload, draft IPC and ASAR graph modules with only production graph dependencies. No forced GC. Main physical footprint includes workers; renderer RSS separately. Before/after same code paths and payload, separate processes; native operation samples include public bridge conversion.",
+  "memory": {
+    "initial": {
+      "mainFootprintMiB": 39.7,
+      "background": [
+        {
+          "pid": 65806,
+          "name": "Plasmic Drafts",
+          "footprintMiB": 15.3
+        }
+      ],
+      "hostAndBackgroundFootprintMiB": 55,
+      "heapUsedMiB": 5.336437225341797,
+      "heapTotalMiB": 8,
+      "externalMiB": 4.126334190368652,
+      "arrayBuffersMiB": 0,
+      "electronMemoryKiB": {
+        "private": 40433,
+        "shared": 768
+      },
+      "mainRssMiB": 157.578125,
+      "rendererRssMiB": 118.921875
+    },
+    "afterDrafts": {
+      "mainFootprintMiB": 94.5,
+      "background": [
+        {
+          "pid": 65806,
+          "name": "Plasmic Drafts",
+          "footprintMiB": 145.3
+        }
+      ],
+      "hostAndBackgroundFootprintMiB": 239.8,
+      "heapUsedMiB": 5.0648345947265625,
+      "heapTotalMiB": 7.75,
+      "externalMiB": 57.03341007232666,
+      "arrayBuffersMiB": 0,
+      "electronMemoryKiB": {
+        "private": 96113,
+        "shared": 768
+      },
+      "mainRssMiB": 212.9375,
+      "rendererRssMiB": 287.8125
+    },
+    "afterJobs": {
+      "mainFootprintMiB": 104.9,
+      "background": [
+        {
+          "pid": 65806,
+          "name": "Plasmic Drafts",
+          "footprintMiB": 145.3
+        },
+        {
+          "pid": 65866,
+          "name": "Plasmic Background",
+          "footprintMiB": 150.2
+        }
+      ],
+      "hostAndBackgroundFootprintMiB": 400.4,
+      "heapUsedMiB": 6.5211334228515625,
+      "heapTotalMiB": 9.75,
+      "externalMiB": 65.13896560668945,
+      "arrayBuffersMiB": 0,
+      "electronMemoryKiB": {
+        "private": 106833,
+        "shared": 896
+      },
+      "mainRssMiB": 226.546875,
+      "rendererRssMiB": 287.765625
+    },
+    "afterIdle": {
+      "mainFootprintMiB": 105.3,
+      "background": [],
+      "hostAndBackgroundFootprintMiB": 105.3,
+      "heapUsedMiB": 6.789604187011719,
+      "heapTotalMiB": 9.75,
+      "externalMiB": 65.15849304199219,
+      "arrayBuffersMiB": 0,
+      "electronMemoryKiB": {
+        "private": 107249,
+        "shared": 640
+      },
+      "mainRssMiB": 219.59375,
+      "rendererRssMiB": 281.359375
+    }
+  },
+  "samples": [
+    {
+      "kind": "write",
+      "round": 0,
+      "cold": true,
+      "ms": 85.13487499999974,
+      "maxLoopDelayMs": 4.9848329999999805
+    },
+    {
+      "kind": "read",
+      "round": 0,
+      "cold": true,
+      "ms": 82.89399999999978,
+      "maxLoopDelayMs": 3.441541000000143
+    },
+    {
+      "kind": "write",
+      "round": 1,
+      "cold": false,
+      "ms": 106.05662500000017,
+      "maxLoopDelayMs": 8.77362499999981
+    },
+    {
+      "kind": "read",
+      "round": 1,
+      "cold": false,
+      "ms": 80.43341700000019,
+      "maxLoopDelayMs": 3.7507080000000315
+    },
+    {
+      "kind": "write",
+      "round": 2,
+      "cold": false,
+      "ms": 100.72670900000003,
+      "maxLoopDelayMs": 9.964332999999897
+    },
+    {
+      "kind": "read",
+      "round": 2,
+      "cold": false,
+      "ms": 86.97504199999958,
+      "maxLoopDelayMs": 3.4765409999999974
+    },
+    {
+      "kind": "write",
+      "round": 3,
+      "cold": false,
+      "ms": 104.19283300000006,
+      "maxLoopDelayMs": 12.81841600000007
+    },
+    {
+      "kind": "read",
+      "round": 3,
+      "cold": false,
+      "ms": 74.93287499999997,
+      "maxLoopDelayMs": 4.215749999999844
+    }
+  ],
+  "cycles": [
+    {
+      "cycle": 0,
+      "memory": {
+        "initial": {
+          "mainFootprintMiB": 39.7,
+          "background": [
+            {
+              "pid": 65806,
+              "name": "Plasmic Drafts",
+              "footprintMiB": 15.3
+            }
+          ],
+          "hostAndBackgroundFootprintMiB": 55,
+          "heapUsedMiB": 5.336437225341797,
+          "heapTotalMiB": 8,
+          "externalMiB": 4.126334190368652,
+          "arrayBuffersMiB": 0,
+          "electronMemoryKiB": {
+            "private": 40433,
+            "shared": 768
+          },
+          "mainRssMiB": 157.578125,
+          "rendererRssMiB": 118.921875
+        },
+        "afterDrafts": {
+          "mainFootprintMiB": 94.5,
+          "background": [
+            {
+              "pid": 65806,
+              "name": "Plasmic Drafts",
+              "footprintMiB": 145.3
+            }
+          ],
+          "hostAndBackgroundFootprintMiB": 239.8,
+          "heapUsedMiB": 5.0648345947265625,
+          "heapTotalMiB": 7.75,
+          "externalMiB": 57.03341007232666,
+          "arrayBuffersMiB": 0,
+          "electronMemoryKiB": {
+            "private": 96113,
+            "shared": 768
+          },
+          "mainRssMiB": 212.9375,
+          "rendererRssMiB": 287.8125
+        },
+        "afterJobs": {
+          "mainFootprintMiB": 104.9,
+          "background": [
+            {
+              "pid": 65806,
+              "name": "Plasmic Drafts",
+              "footprintMiB": 145.3
+            },
+            {
+              "pid": 65866,
+              "name": "Plasmic Background",
+              "footprintMiB": 150.2
+            }
+          ],
+          "hostAndBackgroundFootprintMiB": 400.4,
+          "heapUsedMiB": 6.5211334228515625,
+          "heapTotalMiB": 9.75,
+          "externalMiB": 65.13896560668945,
+          "arrayBuffersMiB": 0,
+          "electronMemoryKiB": {
+            "private": 106833,
+            "shared": 896
+          },
+          "mainRssMiB": 226.546875,
+          "rendererRssMiB": 287.765625
+        },
+        "afterIdle": {
+          "mainFootprintMiB": 105.3,
+          "background": [],
+          "hostAndBackgroundFootprintMiB": 105.3,
+          "heapUsedMiB": 6.789604187011719,
+          "heapTotalMiB": 9.75,
+          "externalMiB": 65.15849304199219,
+          "arrayBuffersMiB": 0,
+          "electronMemoryKiB": {
+            "private": 107249,
+            "shared": 640
+          },
+          "mainRssMiB": 219.59375,
+          "rendererRssMiB": 281.359375
+        }
+      },
+      "samples": [
+        {
+          "kind": "write",
+          "round": 0,
+          "cold": true,
+          "ms": 85.13487499999974,
+          "maxLoopDelayMs": 4.9848329999999805
+        },
+        {
+          "kind": "read",
+          "round": 0,
+          "cold": true,
+          "ms": 82.89399999999978,
+          "maxLoopDelayMs": 3.441541000000143
+        },
+        {
+          "kind": "write",
+          "round": 1,
+          "cold": false,
+          "ms": 106.05662500000017,
+          "maxLoopDelayMs": 8.77362499999981
+        },
+        {
+          "kind": "read",
+          "round": 1,
+          "cold": false,
+          "ms": 80.43341700000019,
+          "maxLoopDelayMs": 3.7507080000000315
+        },
+        {
+          "kind": "write",
+          "round": 2,
+          "cold": false,
+          "ms": 100.72670900000003,
+          "maxLoopDelayMs": 9.964332999999897
+        },
+        {
+          "kind": "read",
+          "round": 2,
+          "cold": false,
+          "ms": 86.97504199999958,
+          "maxLoopDelayMs": 3.4765409999999974
+        },
+        {
+          "kind": "write",
+          "round": 3,
+          "cold": false,
+          "ms": 104.19283300000006,
+          "maxLoopDelayMs": 12.81841600000007
+        },
+        {
+          "kind": "read",
+          "round": 3,
+          "cold": false,
+          "ms": 74.93287499999997,
+          "maxLoopDelayMs": 4.215749999999844
+        }
+      ],
+      "graphSamples": [
+        {
+          "round": 0,
+          "cold": true,
+          "ms": 382.80562499999996,
+          "maxLoopDelayMs": 2.2338330000002316,
+          "digest": "8a32bcd45470bf1bf641ee45fa81004130805825213fb2b488936f1cea18586e"
+        },
+        {
+          "round": 1,
+          "cold": false,
+          "ms": 277.9690419999997,
+          "maxLoopDelayMs": 4.612208999999893,
+          "digest": "8a32bcd45470bf1bf641ee45fa81004130805825213fb2b488936f1cea18586e"
+        },
+        {
+          "round": 2,
+          "cold": false,
+          "ms": 336.16254200000003,
+          "maxLoopDelayMs": 6.82641700000022,
+          "digest": "8a32bcd45470bf1bf641ee45fa81004130805825213fb2b488936f1cea18586e"
+        }
+      ]
+    }
+  ],
+  "graphSamples": [
+    {
+      "round": 0,
+      "cold": true,
+      "ms": 382.80562499999996,
+      "maxLoopDelayMs": 2.2338330000002316,
+      "digest": "8a32bcd45470bf1bf641ee45fa81004130805825213fb2b488936f1cea18586e"
+    },
+    {
+      "round": 1,
+      "cold": false,
+      "ms": 277.9690419999997,
+      "maxLoopDelayMs": 4.612208999999893,
+      "digest": "8a32bcd45470bf1bf641ee45fa81004130805825213fb2b488936f1cea18586e"
+    },
+    {
+      "round": 2,
+      "cold": false,
+      "ms": 336.16254200000003,
+      "maxLoopDelayMs": 6.82641700000022,
+      "digest": "8a32bcd45470bf1bf641ee45fa81004130805825213fb2b488936f1cea18586e"
+    }
+  ],
+  "workersReleased": true
+}

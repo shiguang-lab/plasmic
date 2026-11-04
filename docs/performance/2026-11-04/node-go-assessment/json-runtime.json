@@ -1,0 +1,133 @@
+{
+  "inputBytes": 13217860,
+  "nodeVersion": "v24.20.0",
+  "goVersion": "go version go1.26.5 darwin/arm64",
+  "scope": "Parse to a generic object tree then serialize; identical framed stdio; 2 fresh processes per runtime in ABBA order, cold + 3 warm; no disk/draft durability/IPC/account checks. Go UseNumber preserves numeric spellings; semantic parity on this synthetic fixture only, not JS serialization compatibility proof. RSS is process working set, not physical footprint.",
+  "samples": [
+    {
+      "runtime": "node",
+      "startupMs": 34.772999999999996,
+      "samples": [
+        {
+          "round": 0,
+          "ms": 81.36875,
+          "rssKiB": 147296,
+          "outputBytes": 13217860
+        },
+        {
+          "round": 1,
+          "ms": 61.178875000000005,
+          "rssKiB": 225440,
+          "outputBytes": 13217860
+        },
+        {
+          "round": 2,
+          "ms": 42.53375,
+          "rssKiB": 242288,
+          "outputBytes": 13217860
+        },
+        {
+          "round": 3,
+          "ms": 51.33808300000004,
+          "rssKiB": 272192,
+          "outputBytes": 13217860
+        }
+      ]
+    },
+    {
+      "runtime": "go",
+      "startupMs": 6.845916999999986,
+      "samples": [
+        {
+          "round": 0,
+          "ms": 116.66537500000004,
+          "rssKiB": 118528,
+          "outputBytes": 13217860
+        },
+        {
+          "round": 1,
+          "ms": 117.25458300000003,
+          "rssKiB": 153472,
+          "outputBytes": 13217860
+        },
+        {
+          "round": 2,
+          "ms": 125.85004200000003,
+          "rssKiB": 166768,
+          "outputBytes": 13217860
+        },
+        {
+          "round": 3,
+          "ms": 171.74708299999998,
+          "rssKiB": 170256,
+          "outputBytes": 13217860
+        }
+      ]
+    },
+    {
+      "runtime": "go",
+      "startupMs": 10.950708000000077,
+      "samples": [
+        {
+          "round": 0,
+          "ms": 158.62958400000002,
+          "rssKiB": 105584,
+          "outputBytes": 13217860
+        },
+        {
+          "round": 1,
+          "ms": 131.47000000000003,
+          "rssKiB": 161248,
+          "outputBytes": 13217860
+        },
+        {
+          "round": 2,
+          "ms": 109.85425000000009,
+          "rssKiB": 174368,
+          "outputBytes": 13217860
+        },
+        {
+          "round": 3,
+          "ms": 104.67266699999982,
+          "rssKiB": 177968,
+          "outputBytes": 13217860
+        }
+      ]
+    },
+    {
+      "runtime": "node",
+      "startupMs": 24.78470900000002,
+      "samples": [
+        {
+          "round": 0,
+          "ms": 53.069375000000036,
+          "rssKiB": 148320,
+          "outputBytes": 13217860
+        },
+        {
+          "round": 1,
+          "ms": 55.05683299999964,
+          "rssKiB": 198192,
+          "outputBytes": 13217860
+        },
+        {
+          "round": 2,
+          "ms": 148.7938750000003,
+          "rssKiB": 219264,
+          "outputBytes": 13217860
+        },
+        {
+          "round": 3,
+          "ms": 43.57224999999971,
+          "rssKiB": 233408,
+          "outputBytes": 13217860
+        }
+      ]
+    }
+  ],
+  "goBinary": {
+    "bytes": 2096786,
+    "gzipBytes": 894894,
+    "sha256": "42e7c0d300970532b40ebe7bf84cf06a3ce19850a5292ebdd8153d0c6ee729f2"
+  }
+}

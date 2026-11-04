@@ -22,35 +22,20 @@ import { DEVFLAGS } from "@/wab/shared/devflags";
 import { isStampedIgnoreError } from "@/wab/shared/error-handling";
 import { TplNode } from "@/wab/shared/model/classes";
 import * as Sentry from "@sentry/browser";
-import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
-import { Button, message as antdMessage } from "antd";
+import { message as antdMessage } from "antd";
 import { IconType } from "antd/lib/notification/interface";
-import copy from "copy-to-clipboard";
 import React from "react";
 
-const errorMessageCounters = new Map<string, number>();
-
-function ErrorDetailsContent({ details }: { details: string }) {
-  const [copied, setCopied] = React.useState(false);
-  return (
-    <div style={{ minWidth: 0 }}>
-      <Scrollbar scrollX={false} style={{ maxHeight: "60vh", minHeight: 0 }}>
-        <pre
-          style={{
-            margin: 0,
-            whiteSpace: "pre-wrap",
-            overflowWrap: "anywhere",
-            userSelect: "text",
-          }}
-        >
-          {details}
-        </pre>
-      </Scrollbar>
-      <Button style={{ marginTop: 16 }} onClick={() => setCopied(copy(details))}>
-        <UiText message={copied ? "Copied" : "Copy details"} />
-      </Button>
-    </div>
-  );
+/** Keep full diagnostics in the console; Desktop persists this record to disk. */
+export function logError(error: unknown, title = "Studio operation failed", description?: string) {
+  const normalized = normalizeError(error);
+  const api = asApiError(error);
+  console.error("Studio operation failed " + JSON.stringify({
+    title, description, name: normalized.name, message: normalized.message,
+    stack: normalized.stack, statusCode: api?.statusCode,
+    request: (error as ApiError | undefined)?.request,
+    detail: error instanceof UserError ? error.description : undefined,
+  }));
 }
 
 // Note that sometimes you will see double errors, due to React rethrowing
@@ -68,85 +53,21 @@ export function showError(
   const { title = "Unexpected error", description, type } = opts ?? {};
   const normalized = normalizeError(error);
   const businessError = asApiError(error);
-  console.error("Studio operation failed", { error, title, description });
-  const deriveErrorInfo = () => {
-    if (error instanceof NetworkError || normalized.message?.includes("XHRStatus0Error")) {
-      return { title: "Temporarily disconnected", type: type ?? ("error" as const) };
-    }
-    if (businessError) {
-      const presentation = getApiErrorPresentation(businessError);
-      return { title: opts?.title ?? presentation.title, type: type ?? ("error" as const) };
-    }
-    return {
-      title: opts?.title ?? (error instanceof UserError ? "Operation failed" : title),
-      type: type ?? ("error" as const),
-    };
-  };
-
-  const info = deriveErrorInfo();
-  const reason = error instanceof NetworkError
-    ? "No response was received. Check your network connection and whether the service is reachable."
+  logError(error, title, description);
+  const info = error instanceof NetworkError || normalized.message?.includes("XHRStatus0Error")
+    ? { title: "Temporarily disconnected", type: "error" as const }
     : businessError
-    ? getApiErrorPresentation(businessError).description
-    : error instanceof UserError
-      ? normalized.message
-      : `${normalized.name || "Error"}: ${normalized.message}`;
-  const summary = reason.replace(/\s+/g, " ").trim();
-  const briefReason = summary.length > 180 ? `${summary.slice(0, 180)}…` : summary;
-  const errorText = `${normalized.name || "Error"}: ${normalized.message}`;
-  const request = error instanceof ApiError || error instanceof NetworkError
-    ? error.request
-    : undefined;
-  const details = [
-    request ? `${request.method} ${request.url}` : undefined,
-    businessError ? `HTTP ${businessError.statusCode}` : undefined,
-    normalized.stack?.startsWith(errorText)
-      ? normalized.stack
-      : [errorText, normalized.stack].filter(Boolean).join("\n"),
-    description,
-    error instanceof UserError ? error.description : undefined,
-  ].filter(Boolean).join("\n\n");
-  const key = JSON.stringify([info.title, normalized.name, normalized.message, businessError?.statusCode, request]);
-  const newCount = 1 + (errorMessageCounters.get(key) || 0);
-  errorMessageCounters.set(key, newCount);
-
-  const heading = (
-    <div style={{ maxWidth: "min(520px, calc(100vw - 80px))", textAlign: "left" }}>
-      <div>
-        <UiLabel text={info.title} />
-        {newCount > 1 && (
-          <UiText message=" ({count} occurrences)" values={{ count: newCount }} />
-        )}
-      </div>
-      <div style={{ marginTop: 4, overflowWrap: "anywhere" }}>
-        <UiLabel text={briefReason} />
-      </div>
-      <button
-        type="button"
-        className="link-like"
-        onClick={() => {
-          antdMessage.destroy(key);
-          spawn(import("@/wab/client/components/quick-modals").then(({ showTemporaryInfo }) =>
-            showTemporaryInfo({
-              title: <UiText message="Error details" />,
-              content: <ErrorDetailsContent details={details} />,
-              width: 720,
-            }),
-          ));
-        }}
-      >
-        <UiText message="View details" />
-      </button>
-    </div>
-  );
-  const onClose = () => errorMessageCounters.delete(key);
-  const showMessage = info.type === "error" ? antdMessage.error : antdMessage.open;
+      ? getApiErrorPresentation(businessError)
+      : { title: opts?.title ?? (error instanceof UserError ? "Operation failed" : title), type: "error" as const };
+  const key = JSON.stringify([info.title, normalized.name, normalized.message, businessError?.statusCode]);
+  const heading = <UiLabel text={info.title.length <= 100 ? info.title : "Operation failed"} />;
+  const messageType = type ?? info.type;
+  const showMessage = messageType === "error" ? antdMessage.error : antdMessage.open;
   void showMessage({
-    type: info.type,
+    type: messageType,
     key,
     content: heading,
     duration: 4,
-    onClose,
   });
 }
 
@@ -160,6 +81,7 @@ export function handleError(error: Error, source?: string) {
   if (shouldIgnoreError(error, source)) {
     return;
   }
+  logError(error);
   setTimeout(() => {
     if (DEVFLAGS.debug || shouldShowError(error)) {
       showError(error);
@@ -256,6 +178,7 @@ export function shouldIgnoreError(error: Error, source?: string) {
 }
 
 export function reportError(error: Error, eventName?: string) {
+  logError(error, eventName);
   const apiError = asApiError(error);
   if (error instanceof UserError || (apiError && apiError.statusCode < 500)) {
     if (DEVFLAGS.debug) {

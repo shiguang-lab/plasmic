@@ -1,109 +1,115 @@
-/** The same logo construction and waiting animation runs before and after React starts.
+/** The same construction and waiting animation runs before and after React starts.
  * @param {SVGSVGElement} svg
  * @returns {(() => void) | undefined}
  */
 exports.animateBrandLoading = function animateBrandLoading(svg) {
-  const duration = 5600;
-  const breathingDuration = 3200;
-  const namespace = "http://www.w3.org/2000/svg";
-  const clamp = (value) => Math.max(0, Math.min(1, value));
-  const smooth = (value) => {
-    const x = clamp(value);
-    return x * x * (3 - 2 * x);
-  };
-
   const solid = svg.querySelector("[data-solid]");
   const scaffold = svg.querySelector("[data-scaffold]");
-  const lights = svg.querySelector("[data-lights]");
-  const front = svg.querySelector("[data-front]");
-  const tail = svg.querySelector("[data-tail]");
-  if (!solid || !scaffold || !lights || !front || !tail) {return;}
-  const maskNode = svg.querySelector("mask");
-  if (!maskNode) {return;}
-  const mask = `url(#${maskNode.id})`;
-  const tracks = Array.from(
-    svg.querySelectorAll("[data-track]"),
-  ).map((shape, index) => ({
-    shape,
-    index,
-    length: shape.getTotalLength(),
-    pieces: Array.from({ length: 56 }, () => {
-      const node = svg.ownerDocument.createElementNS(namespace, "path");
-      lights.appendChild(node);
-      return node;
-    }),
-  }));
-  const render = (progress, breath = 1) => {
-    const ready = smooth((progress - 0.08) / 0.49);
-    const fade = 1 - smooth((progress - 0.2) / 0.4);
-    const edgeFade = 1 - smooth((progress - 0.39) / 0.18);
-    lights.setAttribute("opacity", String(edgeFade));
-    for (const track of edgeFade > 0 ? tracks : []) {
-      const head = (progress / 0.64 + track.index * 0.28) % 1;
-      track.pieces.forEach((node, i) => {
-        const fraction = i / 55;
-        const start = head - (1 - fraction) * 0.22;
-        let d = "";
-        for (let j = 0; j <= 3; j++) {
-          const point = track.shape.getPointAtLength(
-            ((((start + (j * 0.22) / 55 / 3) % 1) + 1) % 1) * track.length,
-          );
-          d += `${j ? "L" : "M"}${point.x.toFixed(3)} ${point.y.toFixed(3)}`;
-        }
-        node.setAttribute("d", d);
-        node.setAttribute(
-          "stroke",
-          `rgb(${Math.round(96 + 111 * fraction)},${Math.round(67 + 125 * fraction)},${Math.round(176 + 79 * fraction)})`,
-        );
-        node.setAttribute(
-          "opacity",
-          String(Math.pow(fraction, 1.35)),
-        );
-      });
-    }
-    scaffold.setAttribute("opacity", String(fade * 0.55));
-    solid.setAttribute("opacity", String(smooth((progress - 0.06) / 0.17) * breath));
-    front.setAttribute("offset", String(Math.max(0, ready * 1.22 - 0.22)));
-    tail.setAttribute("offset", String(Math.min(1, ready * 1.22)));
-    if (ready === 1) {solid.removeAttribute("mask");}
-    else {solid.setAttribute("mask", mask);}
-  };
-  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-  let frame = 0;
-  let started = performance.now();
-  let last = 0;
-  function tick(time) {
-    const elapsed = time - started;
-    const progress = reducedMotion.matches
-      ? 1
-      : clamp(elapsed / duration);
-    if (time - last >= 30 || reducedMotion.matches) {
-      // Keep the completed logo moving gently throughout long waits.
-      const breath = reducedMotion.matches
-        ? 1
-        : 0.9 + 0.1 * Math.cos(
-          (Math.max(0, elapsed - duration * 0.6) / breathingDuration) * Math.PI * 2,
-        );
-      render(progress, breath);
-      last = time;
-    }
-    if (!reducedMotion.matches) {frame = requestAnimationFrame(tick);}
+  const image = svg.parentElement?.querySelector("[data-construction]");
+  const sheen = svg.parentElement?.querySelector("[data-sheen]");
+  if (!solid || !scaffold || !image || !sheen) {
+    return;
   }
-  const reduceMotion = () => {
-    cancelAnimationFrame(frame);
-    if (reducedMotion.matches) {render(1);}
-    else {
-      started = performance.now();
-      last = 0;
-      frame = requestAnimationFrame(tick);
-    }
+  const duration = Number(image.dataset.duration);
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  let animations = [];
+  let generation = 0;
+  let request;
+  let imageUrl;
+  const showStatic = () => {
+    image.style.opacity = "0";
+    svg.style.opacity = "1";
+    scaffold.setAttribute("opacity", "0");
+    solid.setAttribute("opacity", "1");
   };
-  reducedMotion.addEventListener("change", reduceMotion);
-  render(reducedMotion.matches ? 1 : 0);
-  frame = requestAnimationFrame(tick);
+  const stop = () => {
+    generation++;
+    request?.abort();
+    image.onload = image.onerror = null;
+    image.removeAttribute("src");
+    if (imageUrl) {
+      URL.revokeObjectURL(imageUrl);
+    }
+    imageUrl = undefined;
+    animations.forEach((animation) => animation.cancel());
+    animations = [];
+    showStatic();
+  };
+  const start = () => {
+    stop();
+    if (reducedMotion.matches) {
+      return;
+    }
+    const current = generation;
+    scaffold.setAttribute("opacity", ".55");
+    solid.setAttribute("opacity", "0");
+    request = new AbortController();
+    // Each instance needs its own image timeline: Chromium shares the playback
+    // position of animated images with the same URL. Blob URLs replay from frame
+    // zero without cache-busting the bundled asset or retaining decoded frames.
+    fetch(image.dataset.src, { signal: request.signal })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Loading animation unavailable");
+        }
+        return response.blob();
+      })
+      .then((blob) => {
+        if (current !== generation) {
+          return;
+        }
+        imageUrl = URL.createObjectURL(blob);
+        image.onload = () => {
+          if (current !== generation) {
+            return;
+          }
+          image.style.opacity = "1";
+          const fade = Array.from({ length: 65 }, (_, i) => {
+            const x = Math.max(0, Math.min(1, ((i / 64) * 0.57 - 0.2) / 0.4));
+            return {
+              opacity: i === 64 ? 0 : 1 - x * x * (3 - 2 * x),
+              offset: i / 64,
+            };
+          });
+          // Animate the SVG root, which contains only the static, theme-aware
+          // scaffold. Color reveal and moving paths are decoded off the main
+          // thread; no animation frame callbacks or SVG repaint loop remain.
+          animations.push(svg.animate(fade, { duration, fill: "forwards" }));
+          animations.push(
+            sheen.animate(
+              [
+                { transform: "translateX(-25%)", opacity: 0, offset: 0 },
+                { transform: "translateX(-9%)", opacity: 1, offset: 0.08 },
+                { transform: "translateX(139%)", opacity: 1, offset: 0.82 },
+                { transform: "translateX(175%)", opacity: 0, offset: 1 },
+              ],
+              {
+                duration: 2400,
+                iterations: Infinity,
+                easing: "linear",
+                delay: duration,
+                fill: "both",
+              },
+            ),
+          );
+        };
+        image.onerror = () => {
+          if (current === generation) {
+            showStatic();
+          }
+        };
+        image.src = imageUrl;
+      })
+      .catch(() => {
+        if (current === generation) {
+          showStatic();
+        }
+      });
+  };
+  reducedMotion.addEventListener("change", start);
+  start();
   return () => {
-    cancelAnimationFrame(frame);
-    reducedMotion.removeEventListener("change", reduceMotion);
-    lights.replaceChildren();
+    stop();
+    reducedMotion.removeEventListener("change", start);
   };
 };

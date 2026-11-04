@@ -81,14 +81,14 @@ it.each(businessTypes)(
 );
 
 it("renders API failures as localized error messages, including locale changes while open", async () => {
-  const open = vi.spyOn(message, "error").mockReturnValue(mock());
+  const open = vi.spyOn(message, "open").mockReturnValue(mock());
   const error = new ForbiddenError(
     "You can only have one unpaid organization. Upgrade or delete your existing organization before creating another.",
   );
   showError(error);
   const args = open.mock.calls[0][0];
   assert(args !== null && typeof args === "object" && "content" in args, "Expected a message configuration");
-  expect(args.type).toBe("error");
+  expect(args.type).toBe("warning");
   expect(args.duration).toBe(4);
   render(<div>{args.content}</div>);
   for (const { value } of languageOptions) {

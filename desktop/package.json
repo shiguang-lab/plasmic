@@ -1,6 +1,6 @@
 {
   "name": "@shiguang-lab/plasmic-desktop",
-  "version": "0.6.6",
+  "version": "0.6.7",
   "private": true,
   "description": "Locally bundled Plasmic Studio with the NAS backend",
   "main": "src/entry.cjs",
@@ -12,7 +12,7 @@
     "build:mcp": "node scripts/build-mcp.mjs",
     "prestart": "npm run build:mcp",
     "start": "electron .",
-    "test": "node --test tests/*.test.cjs",
+    "test": "npm run test:go && node --test tests/*.test.cjs",
     "test:smoke": "electron tests/smoke.cjs",
     "test:preview-navigation": "electron tests/preview-navigation.cjs",
     "test:preview-errors": "electron tests/preview-errors.cjs",
@@ -34,11 +34,16 @@
     "test:startup-appearance": "electron tests/startup-appearance.cjs",
     "test:auth-session": "electron tests/unified-session.cjs",
     "test:library-cache": "electron tests/library-cache-native.cjs",
+    "test:background": "node tests/background-native.cjs",
+    "test:background-packaged": "node tests/background-packaged.cjs",
+    "pretest:background": "npm run build:mcp",
     "test:session-lifecycle": "node tests/session-lifecycle.cjs",
     "distribution": "node scripts/build-distribution.mjs",
     "package:mac:arm64": "node scripts/package.mjs darwin arm64",
     "package:mac:x64": "node scripts/package.mjs darwin x64",
-    "test:resource-cache-web": "electron tests/resource-cache-web-native.cjs"
+    "test:resource-cache-web": "electron tests/resource-cache-web-native.cjs",
+    "pretest": "npm run build:mcp",
+    "test:go": "go -C mcp test ./..."
   },
   "devDependencies": {
     "canvas": "3.2.3",
@@ -46,10 +51,9 @@
     "electron-builder": "26.15.3",
     "jsdom": "26.1.0",
     "esbuild": "0.28.2",
-    "postject": "1.0.0-alpha.6"
+    "@modelcontextprotocol/sdk": "1.32.0"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "1.32.0",
     "builder-util-runtime": "9.7.0",
     "electron-updater": "6.8.9",
     "imagetracerjs": "1.2.6",

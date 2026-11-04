@@ -1,5 +1,13 @@
 # Desktop 定向性能诊断
 
+隐藏 SVG 与 Worker 候选的完整四组交叉对照、CSS 原生阻塞验证、回归及撤回决定见 [优化执行验证](../../../docs/performance/2026-11-04/loading-priority-optimization-validation.md)。不以后台可播放、单项中位数或减少 DOM 节点代替整体加载验收。
+
+加载展示的净影响应使用实际历史骨架卡片作基线，保持同一业务初始化与离线载荷；“关闭动画后的 Logo”和“更早的 SVG Logo”均不等同于原骨架。恢复范围、首屏资格检查及同轮结果见 [骨架基线验证](../../../docs/performance/2026-11-04/loading-skeleton-baseline-validation.md)。
+
+`PERF_BLOCK_PHYSICAL_INPUT=1` 可为 `real-project-open.cjs` 的自动计时窗口阻止真实键鼠、粘贴和拖放，并记录阻断计数，脚本交互继续执行。默认关闭，需真实输入的功能探针不要启用。相同对照各侧应使用相同设置；意外业务写入或 renderer error 应使该轮失败。动画重复播放的定位及同轮结果见 [宿主动画验证](../../../docs/performance/2026-11-04/loading-animation-ownership-validation.md)。
+
+`electron desktop/tests/performance/brand-loading-native.cjs <privateOutput> <rendererDirectory> <animationSource>` 在可见隔离窗口读取实际构建 HTML，并通过本地 HTTP 提供其中的静态资源。它分别在构造和流光阶段主动阻塞 renderer 主线程 1200ms，从浏览器进程捕获画面，检查构造填充继续推进、长等待、重复播放、卸载、减少动态效果切换；`PERF_LOADING_THEME=dark` 另验深色线框。输出 Document TaskDuration、JS 帧/属性写入、进程工作集快照和截图。不能与项目计时、构建、测试并行；画面变化不是显示 FPS，TaskDuration 不是整机 CPU。当前实现及取舍见 [构造阶段对照](../../../docs/performance/2026-11-04/loading-construction-compositing.md)，上轮流光见 [流光对照](../../../docs/performance/2026-11-04/loading-animation-compositing.md)。
+
 `electron-startup.cjs <privateFixture> <newOutputDirectory>` 从全新隔离 profile 启动生产 Desktop main/preload，使用同目录格式的离线项目夹具。父进程须在启动 Electron 前立即把 Unix 毫秒时间写入 `PERF_LAUNCHED_AT`。输出 `startup.json` 中的 Electron 版本、app ready、shell started 和项目卡片 DOM 就绪时间；不测量合成器呈现，不控制操作系统文件缓存，不访问正常用户 profile。两个 Electron 版本须使用相同源码及 renderer，串行交错运行；项目打开另用 `real-project-open.cjs`，前两次预热、后四次统计。
 
 仅在开发用 Electron 和独立 profile 运行；不修改发布 fuses、manifest 或生产调试配置。完整结果与边界见 `docs/performance/2026-10-31/main-memory-draft-implementation.md`。
@@ -85,3 +93,29 @@ Spare-renderer diagnostics use `spare-renderer-probe.cjs <off|on> <default|persi
 For real-project replay, set `PERF_OPEN_SESSIONS=1 PERF_NO_DEBUG=1 PERF_SPARE_POLICY=off|on`. `PERF_SPARE_ARGUMENTS=production` copies the current system-language `additionalArguments`; `compatible` omits them in the diagnostic preferences only. The compatible arm uses the existing diagnostic preload, not a production language-bootstrap migration. Both policies must use the same argument mode, renderer and immutable offline fixture. Run ABBA in separate processes; exclude the first two opens. `PERF_SPARE_MEMORY=1` additionally samples returned process working sets at 1 and 5 seconds, without diagnostic GC. Unowned renderer PIDs here exclude top-level WebContents owners only and can include subframes; they are diagnostic candidates, not proof of spare ownership; match them to the next editor PID to confirm consumption. These switches are confined to diagnostics and do not enable prewarming in the application.
 
 Spare-renderer qualification, project-open ABBA timing, settled returned-memory samples and the decision to leave production prewarming disabled: [Electron 45 spare-renderer validation](../../../docs/performance/2026-11-03/spare-renderer-validation.md).
+
+`node node-optimizations.cjs <frozenBeforeDesktopRoot> <output.json>` compares the
+actual host-side graph, draft, binary-cache and RPC implementations in ABBA order.
+The baseline must include its original `src/` and matching dependencies. Draft
+host timings exclude page-side UTF-8 encoding; the real public bridge is measured
+separately by `node node-optimization-native-series.cjs <frozenBeforeDesktopRoot>
+<reportDirectory>`. It owns private profiles, prepares production-only graph ASAR
+fixtures before launching Electron, measures public draft write/read and host
+footprint, and checks idle worker retirement after 16.5 seconds. Neither runner
+forces GC; RSS and physical footprint are different metrics, and these isolated
+processes are not the full Studio App. Run performance collection serially, apart
+from builds and tests. Implementation, results and memory tradeoffs:
+[Node optimization validation](../../../docs/performance/2026-11-04/node-optimizations/report.md).
+
+Background memory follow-up compares the frozen thread implementation with the
+current utility-process implementation using the same native-series runner. Its
+fixture detects whether the baseline has a background runner and executes that
+runner for both graph variants. The page preparation expression explicitly returns
+undefined, so a full JSON string is not inadvertently copied into the host. Main
+V8/external counters and Electron private memory supplement vmmap, and active
+memory includes every named background process. `PERF_BACKGROUND_CYCLES=3`
+replays retirement/restart cycles. `PERF_BACKGROUND_PHASE=drafts|graphics` isolates
+workloads; `PERF_BACKGROUND_GC_CONTROL=1` adds a diagnostic GC only after all natural
+idle samples, never to production or headline timing/memory results. Attribution,
+corrected ABBA comparison and lifecycle acceptance:
+[Background memory validation](../../../docs/performance/2026-11-04/background-memory/report.md).

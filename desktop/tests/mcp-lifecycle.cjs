@@ -1,4 +1,4 @@
-// Keep MCP stdin open in this independent client while the real GUI exits.
+// The same STDIO clients survive real GUI shutdown/crash and reconnect on use.
 const assert = require("node:assert/strict");
 const fs = require("node:fs/promises");
 const os = require("node:os");
@@ -42,30 +42,60 @@ async function transport() {
   await until(()=>child.output.split("\n").some(line=>{
     try{return JSON.parse(line).result?.serverInfo?.name==="plasmic-desktop";}catch{return false;}
   }),"MCP initialized: "+child.output);
+  child.stdin.write(JSON.stringify({jsonrpc:"2.0",method:"notifications/initialized"})+"\n");
+  child.requestId = 1;
   return child;
 }
+async function request(client, method, params) {
+  const id = ++client.requestId;
+  client.stdin.write(JSON.stringify({jsonrpc:"2.0",id,method,params})+"\n");
+  let response;
+  await until(() => client.output.split("\n").some(line => {
+    try { const value = JSON.parse(line); if (value.id === id) {response = value;return true;} } catch {}
+    return false;
+  }), "MCP response: " + client.output);
+  assert.equal(response.error, undefined, JSON.stringify(response));
+  return response.result;
+}
+const state = client => request(client, "tools/call", {name:"get_app_state",arguments:{}});
 (async()=>{
   profile=await fs.mkdtemp(path.join(os.tmpdir(),"plasmic-mcp-lifecycle-"));
+  const clients=await Promise.all([transport(),transport(),transport()]);
+  const pids=clients.map(client=>client.pid);
+  for (const client of clients) {
+    assert.ok((await request(client,"tools/list",{})).tools.length);
+    const result=await state(client);
+    assert.equal(result.isError,true);
+    assert.equal(JSON.parse(result.content[0].text).detail.operationExecuted,false);
+  }
   for(const kind of ["quit","crash","reopen"]) {
     await fs.rm(path.join(profile,"quit"),{force:true});
     const gui=launch(path.join(__dirname,"mcp-lifecycle-host.cjs"));
     await until(async()=>{
       try{return (await requestRpc(profile,"get_app_state")).windowOpen;}catch{return false;}
     },"GUI startup: "+gui.output);
-    const clients=await Promise.all([transport(),transport(),transport()]);
-    for(const client of clients) assert.equal(client.stdin.writableEnded,false);
+    for(const client of clients) {
+      assert.equal(client.stdin.writableEnded,false);
+      const result=await state(client);
+      assert.equal(result.isError,false,JSON.stringify(result));
+    }
     if(kind==="crash")gui.kill("SIGKILL");
     else await fs.writeFile(path.join(profile,"quit"),"");
     const guiExit=await deadline(gui.exited,"GUI exit: "+gui.output);
     if(kind!=="crash")assert.equal(guiExit.code,0,gui.output);
     for(const client of clients) {
-      assert.equal((await deadline(client.exited,"MCP exits with GUI: "+client.output,5000)).code,0,client.output);
+      assert.equal(client.exitCode,null,"Bridge survives Desktop shutdown");
       assert.equal(client.stdin.writableEnded,false,"The MCP client did not close stdin");
+      const result=await state(client);
+      assert.equal(result.isError,true);
+      assert.equal(JSON.parse(result.content[0].text).detail.operationExecuted,false);
     }
-    const offline=launch(path.join(__dirname,"../src/entry.cjs"),["--mcp"]);
-    assert.equal((await deadline(offline.exited,"MCP refuses offline startup",5000)).code,1,offline.output);
-    assert.match(offline.output,/Start Plasmic|ECONNREFUSED|ENOENT/);
-    report.push({kind,clientsExited:clients.length,offlineRefused:true});
+    assert.deepEqual(clients.map(client=>client.pid),pids);
+    report.push({kind,clientsSurvived:clients.length,offlineToolsRejected:true});
+  }
+  for(const client of clients) {
+    client.stdin.end();
+    assert.equal((await deadline(client.exited,"MCP exits on stdin EOF",5000)).code,0,client.output);
   }
   console.log(JSON.stringify({passed:true,cases:report}));
 })().catch(error=>{console.error(error,output.join(""));process.exitCode=1;}).finally(async()=>{

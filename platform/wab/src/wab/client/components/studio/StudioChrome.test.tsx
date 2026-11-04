@@ -82,9 +82,17 @@ it("keeps one logo and its animation nodes across app startup, app context, lazy
     />,
   );
   const loadingNode = screen.getByRole("status");
+  const input = screen.getByRole("textbox", { name: "Describe changes or a new page…" });
+  expect(input.getAttribute("aria-disabled")).toBe("false");
+  input.focus();
+  fireEvent.input(input, { target: { innerText: "Prepare the canvas while it loads" } });
+  expect((screen.getByRole("button", { name: "Send AI request" }) as HTMLButtonElement).disabled).toBe(true);
   const logo = loadingNode.querySelector("svg [data-solid]");
   expect(logo).toBeTruthy();
   const unchanged = () => {
+    expect(screen.getByRole("textbox", { name: "Describe changes or a new page…" })).toBe(input);
+    expect(input.innerText).toBe("Prepare the canvas while it loads");
+    expect(document.activeElement).toBe(input);
     expect(screen.getAllByRole("status")).toHaveLength(1);
     expect(screen.getByRole("status")).toBe(loadingNode);
     expect(loadingNode.querySelector("svg [data-solid]")).toBe(logo);
@@ -99,6 +107,7 @@ it("keeps one logo and its animation nodes across app startup, app context, lazy
   unchanged();
   rerender(<ReadyCanvas ready />);
   expect(screen.queryByRole("status")).toBeNull();
+  expect(screen.getByRole("textbox", { name: "Describe changes or a new page…" })).toBe(input);
 });
 
 it("keeps the first-paint HTML logo until ready without mounting a second logo", () => {

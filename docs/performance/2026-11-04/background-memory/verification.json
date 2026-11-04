@@ -1,0 +1,17 @@
+{
+  "sourceHashesMatch": true,
+  "jsTests": 562,
+  "goTests": "passed",
+  "native": "passed",
+  "packagedProductionFuses": "passed",
+  "nodeEnvironmentInjection": "blocked",
+  "normalAndKilledOwnerChildren": "all exited",
+  "abbaRuns": 4,
+  "svgParity": true,
+  "repeatCycles": 3,
+  "afterIdleBackgroundProcesses": [
+    0,
+    0,
+    0
+  ]
+}

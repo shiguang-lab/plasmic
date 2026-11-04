@@ -79,6 +79,10 @@ export async function readStudioBuild(source, repo) {
 
 export const desktopSources = [
   "src",
+  ...(await readdir(new URL("../desktop/mcp/", import.meta.url)))
+    .filter(name => /\.go$/.test(name) && !name.endsWith("_test.go") || ["go.mod", "go.sum"].includes(name))
+    .map(name => `mcp/${name}`),
+  "scripts/build-mcp.mjs",
   "package.json",
   "desktop.config.json",
 ];

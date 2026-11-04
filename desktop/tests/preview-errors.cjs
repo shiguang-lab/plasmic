@@ -1,3 +1,4 @@
+const { mcpTransport } = require("./fixtures/mcp.cjs");
 const { studioFixture } = require("./fixtures/studio.cjs");
 // Native regression for renderer exceptions crossing Electron, RPC and MCP.
 // Uses an isolated fixture without a Dock identity; no NAS or user project edits.
@@ -58,9 +59,7 @@ app.whenReady().then(async () => {
   controller.editor = async (name) => { assert.equal(name, "getEditorContext"); return context; };
   stop = await startRpc(profile, (method, input) => controller.dispatch(method, input));
   client = new Client({ name: "native-preview-errors", version: "1" });
-  await client.connect(new StdioClientTransport({ command: process.execPath,
-    args: ["-e", `require(${JSON.stringify(require.resolve("../src/mcp.cjs"))}).serveMcp(${JSON.stringify(profile)})`],
-    env: { ...process.env, ELECTRON_RUN_AS_NODE: "1" }, stderr: "pipe" }));
+  await client.connect(new StdioClientTransport(mcpTransport(profile, { env: { ...process.env, ELECTRON_RUN_AS_NODE: "1" } })));
   const preview = (arguments) => client.callTool({ name: "preview", arguments });
   const snapshot = JSON.parse((await preview({ action: "snapshot" })).content[0].text);
   const frame = win.webContents.mainFrame.framesInSubtree.find((frame) => frame.url.endsWith("#live=true"));

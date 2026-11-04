@@ -204,6 +204,7 @@ it.each(["ai", "tab", "insert", "inline insert", "group", "comments"])(
         history,
         topFrameApi: mock<HostFrameCtx["topFrameApi"]>(),
         onHostFrameApiReady: vi.fn(),
+        revealStudio: vi.fn().mockResolvedValue(undefined),
       },
       studioCtx,
     );

@@ -186,6 +186,54 @@ test("layout measures sticky cell controls against native cell padding even when
   } finally { dom.window.close(); }
 });
 
+test("sticky cell measurements retain Table and column ownership across repeated rows and separate tables", async () => {
+  const dom = domFor('<div class="__wab_val_root"><table><tbody><tr><td>First</td><td style="position:sticky"><button>Action</button></td></tr><tr><td>Second</td><td style="position:sticky"><button>Action</button></td></tr></tbody></table><table><tbody><tr><td style="position:sticky"><button>Action</button></td><td style="position:sticky"><button>Other</button></td></tr></tbody></table></div>');
+  try {
+    const layout = readLayout((await canvasFrames(windowFor(dom)))[0].layout, { view: "full" });
+    const tables = layout.elements.filter((element) => element.tag === "table");
+    const cells = layout.elements.filter((element) => element.cellContent);
+    assert.equal(tables.length, 2);
+    assert.equal(cells.length, 4);
+    assert.deepEqual(Array.from(cells, ({ cellContent }) => [cellContent.tableIndex, cellContent.columnIndex]), [
+      [tables[0].index, 1], [tables[0].index, 1], [tables[1].index, 0], [tables[1].index, 1],
+    ]);
+    assert.ok(cells.every((cell) => layout.elements[cell.cellContent.tableIndex].tag === "table"));
+  } finally { dom.window.close(); }
+});
+
+test("sticky cells use logical columns across colSpan and rowSpan, with rowSpan zero scoped to its row group", async () => {
+  const dom = domFor('<div class="__wab_val_root"><table><tbody><tr><td colspan="2">Merged</td><td id="colspanFirst" style="position:sticky"><button>Action</button></td></tr><tr><td>A</td><td>B</td><td id="colspanSecond" style="position:sticky"><button>Action</button></td></tr></tbody></table><table><tbody><tr><td rowspan="2">Merged</td><td id="rowspanFirst" style="position:sticky"><button>Action</button></td></tr><tr><td id="rowspanSecond" style="position:sticky"><button>Action</button></td></tr></tbody></table><table><thead><tr><td rowspan="0">Header</td><td id="zeroFirst" style="position:sticky"><button>Action</button></td></tr><tr><td id="zeroSecond" style="position:sticky"><button>Action</button></td></tr></thead><tbody><tr><td id="bodyFirst" style="position:sticky"><button>Action</button></td></tr></tbody></table></div>');
+  try {
+    for (const cell of dom.window.document.querySelectorAll('td[id]')) cell.setAttribute('data-plasmic-valkey', cell.id);
+    const layout = readLayout((await canvasFrames(windowFor(dom)))[0].layout, { view: "full" });
+    const ownership = (id) => layout.elements.find((element) => element.elementUuid === id).cellContent;
+    for (const [first, second, column] of [["colspanFirst", "colspanSecond", 2], ["rowspanFirst", "rowspanSecond", 1], ["zeroFirst", "zeroSecond", 1]]) {
+      assert.equal(ownership(first).tableIndex, ownership(second).tableIndex);
+      assert.equal(ownership(first).columnIndex, column);
+      assert.equal(ownership(second).columnIndex, column);
+      assert.equal(ownership(first).columnSpan, 1);
+    }
+    assert.equal(ownership("bodyFirst").columnIndex, 0);
+  } finally { dom.window.close(); }
+});
+
+test("cell ownership distinguishes merged ranges and nested Tables and omits malformed overlapping grids", async () => {
+  const dom = domFor('<div class="__wab_val_root"><table><tbody><tr><td id="merged" colspan="2" style="position:sticky"><button>Merged</button><table><tbody><tr><td id="nested" style="position:sticky"><button>Nested</button></td></tr></tbody></table></td></tr><tr><td id="single" style="position:sticky"><button>Single</button></td><td>Other</td></tr></tbody></table><table><tbody><tr><td>First</td><td rowspan="2">Occupied</td></tr><tr><td id="overlap" colspan="2" style="position:sticky"><button>Overlap</button></td></tr></tbody></table></div>');
+  try {
+    for (const cell of dom.window.document.querySelectorAll('td[id]')) cell.setAttribute('data-plasmic-valkey', cell.id);
+    const layout = readLayout((await canvasFrames(windowFor(dom)))[0].layout, { view: "full" });
+    const ownership = (id) => layout.elements.find((element) => element.elementUuid === id).cellContent;
+    assert.equal(ownership("merged").tableIndex, ownership("single").tableIndex);
+    assert.equal(ownership("merged").columnIndex, ownership("single").columnIndex);
+    assert.equal(ownership("merged").columnSpan, 2);
+    assert.equal(ownership("single").columnSpan, 1);
+    assert.notEqual(ownership("merged").tableIndex, ownership("nested").tableIndex);
+    assert.equal(ownership("nested").columnIndex, 0);
+    assert.equal(ownership("overlap").columnIndex, undefined);
+    assert.equal(ownership("overlap").columnSpan, undefined);
+  } finally { dom.window.close(); }
+});
+
 test("static export preserves live form values and both scroll axes while removing authored scripts", async () => {
   const source = domFor(
     '<html><head></head><body><div class="__wab_val_root"><input id="input" value="before"><textarea id="textarea">before</textarea><input id="check" type="checkbox"><input id="uncheck" type="checkbox" checked><select id="select"><option value="a" selected>A</option><option value="b">B</option></select><select id="multiple" multiple><option selected>A</option><option>B</option></select><div id="scroll" style="overflow:auto"><div>Content</div></div><button onclick="window.authored=true">Action</button><a href="javascript:window.authored=true">Link</a></div></body></html>',

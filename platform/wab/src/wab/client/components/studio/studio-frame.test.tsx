@@ -4,6 +4,8 @@ import { AntdConfigProvider } from "@/wab/client/antd-theme";
 import { StudioStartupBoundary } from "@/wab/client/components/studio/StudioChrome";
 import { StudioFrame } from "@/wab/client/components/studio/studio-frame";
 import { providesAppCtx } from "@/wab/client/contexts/AppContexts";
+import { getLocalEditSession } from "@/wab/client/copilot/local-edit-session";
+import type { LocalAiContext, LocalAiStatus } from "@/wab/shared/copilot/local-edit";
 import { HistoryProvider } from "@/wab/client/route/HistoryProvider";
 import { getHostUrl } from "@/wab/client/utils/app-hosting-utils";
 import { ForbiddenError } from "@/wab/shared/ApiErrors/errors";
@@ -17,7 +19,8 @@ const frame = vi.hoisted(() => ({
   studioReady: false,
   studioError: undefined as string | undefined,
   studioModalOpen: false,
-  status: vi.fn(() => ({ data: undefined })),
+  localAiContext: undefined as LocalAiContext | undefined,
+  status: vi.fn<() => { data: LocalAiStatus | undefined }>(() => ({ data: undefined })),
 }));
 vi.mock("@/wab/client/frame-ctx/top-frame-ctx", () => ({
   TopFrameCtxProvider: ({ children }: { children: React.ReactNode }) =>
@@ -33,6 +36,7 @@ vi.mock("@/wab/client/components/TopFrame/TopFrameChrome", () => ({
     studioReady: frame.studioReady,
     studioError: frame.studioError,
     studioModalOpen: frame.studioModalOpen,
+    localAiContext: frame.localAiContext,
   }),
 }));
 vi.mock("@/wab/client/components/TopFrame/HostLoadTimeoutPrompt", () => ({
@@ -54,7 +58,8 @@ beforeEach(() => {
   frame.studioReady = false;
   frame.studioError = undefined;
   frame.studioModalOpen = false;
-  frame.status.mockClear();
+  frame.localAiContext = undefined;
+  frame.status.mockReset().mockReturnValue({ data: undefined });
 });
 
 it("sends an anonymous private-project visitor to sign in with the original preview route", async () => {
@@ -122,6 +127,8 @@ it("preserves the visible skeleton through metadata, host registration and dialo
       </HistoryProvider>,
     );
   const rendered = render(view());
+  const session = getLocalEditSession(project.id);
+  const run = vi.spyOn(session, "run").mockResolvedValue(undefined);
   // Branch lookup starts while the project metadata request is still pending.
   expect(api.listBranchesForProject).toHaveBeenCalledWith(project.id);
   const input = screen.getByRole("textbox");
@@ -129,18 +136,36 @@ it("preserves the visible skeleton through metadata, host registration and dialo
   expect(frame.status).toHaveBeenCalledWith("project", true);
   expect((screen.getByRole("button", { name: "Switch conversation" }) as HTMLButtonElement).disabled).toBe(true);
   fireEvent.input(input, { target: { innerText: "Keep this prompt while the canvas loads" } });
+  fireEvent.keyDown(input, { key: "Enter" });
+  expect(run).not.toHaveBeenCalled();
   expect(input.innerText).toContain("Keep this prompt while the canvas loads");
   expect((screen.getByRole("button", { name: "Send AI request" }) as HTMLButtonElement).disabled).toBe(true);
   const skeleton = screen.getByRole("status");
   const firstInput = skeleton.querySelector(".ant-skeleton-input");
   await act(async () => releaseProject());
+  // Signing in resets session state after the outer shell has accepted input.
+  act(() => { session.userId = "signed-in-user"; });
   expect(rendered.container.querySelector("iframe")).toBeTruthy();
   expect(screen.getByRole("textbox")).toBe(input);
   expect(screen.getByRole("status")).toBe(skeleton);
   expect(skeleton.querySelector(".ant-skeleton-input")).toBe(firstInput);
   frame.hostFrameApiReady = true;
+  frame.localAiContext = { binding: {
+    projectId: project.id,
+    branchId: null,
+    sessionId: "session",
+    changeCounter: 0,
+    componentUuid: null,
+    canvasName: "Canvas",
+    frameUuid: null,
+    elementUuids: [],
+  } };
+  frame.status.mockReturnValue({ data: {
+    configured: true, model: "default-model", models: ["default-model"], pageGenerationEnabled: false,
+  } });
   rendered.rerender(view());
   expect(screen.getByRole("status")).toBe(skeleton);
+  expect((screen.getByRole("button", { name: "Send AI request" }) as HTMLButtonElement).disabled).toBe(true);
   frame.studioModalOpen = true;
   rendered.rerender(view());
   expect(getComputedStyle(skeleton).visibility).toBe("hidden");
@@ -153,6 +178,13 @@ it("preserves the visible skeleton through metadata, host registration and dialo
   expect(screen.queryByRole("status")).toBeNull();
   expect(screen.getByRole("textbox")).toBe(input);
   expect(input.innerText).toContain("Keep this prompt while the canvas loads");
+  expect(session.draft.prompt).toBe("Keep this prompt while the canvas loads");
+  expect((screen.getByRole("button", { name: "Send AI request" }) as HTMLButtonElement).disabled).toBe(false);
+  fireEvent.click(screen.getByRole("button", { name: "Send AI request" }));
+  expect(run).toHaveBeenCalledExactlyOnceWith(
+    "Keep this prompt while the canvas loads", frame.localAiContext.binding,
+    undefined, [], "default-model", session.activeThreadId,
+  );
 });
 
 beforeEach(() => registerPresentationProject("0123456789", "project" as import("@/wab/shared/ApiSchema").ProjectId));
@@ -189,9 +221,10 @@ it.each([
   await waitFor(() => expect(rendered.container.querySelector("iframe")).toBeTruthy());
   expect(screen.getByRole("group", { name: "AI canvas editing" })).toBeTruthy();
 
+  frame.status.mockClear();
   await act(() => appCtx.history.push(destination));
   expect(screen.queryByRole("group", { name: "AI canvas editing" })).toBeNull();
-  expect(frame.status).toHaveBeenLastCalledWith("project", false);
+  expect(frame.status).not.toHaveBeenCalled();
 
   await act(() => appCtx.history.back());
   expect(screen.getByRole("group", { name: "AI canvas editing" })).toBeTruthy();

@@ -113,3 +113,36 @@ test("Desktop preserves a live revision conflict without replaying edits and swi
   expect(files.size).toBe(1);
   expect(f.studioCtx.desktopDraft?.drafts.length).toBe(1);
 });
+
+
+test("agent save returns the original API failure without showing a toast", async () => {
+  const feedback = vi.spyOn(message, "error").mockReturnValue(mock());
+  const { studioCtx, api } = fakeStudioCtx();
+  studioCtx.dbCtx().revisionNum = 0;
+  const bundle = studioCtx.bundler().bundle(studioCtx.site, studioCtx.siteInfo.id, studioCtx.appCtx.lastBundleVersion);
+  studioCtx.bundler().unbundleAndRecomputeParents(bundle, studioCtx.siteInfo.id);
+  await COPILOT_TOOLS.createComponent.execute(studioCtx, { name: "Agent save", type: "page", path: "/agent-save" });
+  const error = new Error("Service unavailable: original API error");
+  api.saveProjectRevChanges.mockRejectedValueOnce(error);
+  await expect(COPILOT_TOOLS.save.execute(studioCtx, {})).rejects.toBe(error);
+  expect(feedback).not.toHaveBeenCalled();
+  expect(studioCtx.hasUnsavedChanges()).toBe(true);
+  expect(studioCtx.saveStatus).toBe("error");
+  feedback.mockRestore();
+  studioCtx.copilotActivity.dispose();
+});
+
+
+test("notification ownership is scoped to each queued change", async () => {
+  const { err } = await import("neverthrow");
+  const feedback = vi.spyOn(message, "error").mockReturnValue(mock());
+  const { studioCtx } = fakeStudioCtx();
+  const failure = new Error("Invalid agent operation");
+  const agent = await studioCtx.change(() => err(failure), { noErrorNotification: true });
+  expect(agent.isErr()).toBe(true);
+  expect(feedback).not.toHaveBeenCalled();
+  await studioCtx.change(() => err(new Error("User operation failed")));
+  expect(feedback).toHaveBeenCalledOnce();
+  feedback.mockRestore();
+  studioCtx.copilotActivity.dispose();
+});

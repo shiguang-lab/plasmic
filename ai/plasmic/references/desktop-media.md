@@ -12,6 +12,8 @@ export_design saves static PNG, JPEG, WebP, PDF or HTML at an absolute outputPat
 
 ## Capture and vector assets
 
+For prototype work using external website sources, select `--require-capability reference_browser` in [prototype preflight](desktop-transports.md#prototype-preflight); an explicitly requested reference import selects `--require-capability import_reference`, which also checks the browser bridge. Native screenshots and vector authoring do not require these reference bridges. Read-only inspection retains its own workflow.
+
 get_screenshot elementUuid crops visible nodes and returns a WebP preview (quality 85, long edge at most 2048). fullResolution:true returns original-size lossless WebP; sourceImageSize retains original dimensions. reference_browser maintains an isolated external reference page for load/capture/read-only CDP; only the reference page is accessible, never the Studio debugger. capture_browser captures an HTTP(S) reference page or selector as a WebP preview and a reference to sanitized styled HTML; fullResolution:true requests lossless original-size pixels. Read HTML through read_result if needed; import_reference with action editable passes it internally into a separate artboard without exposing it to the agent. make_vector authors SVG paths and boolean geometry, optionally importing an SVG asset; SVG source is returned by reference. SVG assets are replaced as source, not edited as native Studio path nodes.
 
 ## Multi-page export

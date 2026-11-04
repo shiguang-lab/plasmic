@@ -7,6 +7,17 @@ const net = require("node:net");
 const { setTimeout: delay } = require("node:timers/promises");
 const { startRpc, requestRpc, connectRpcSession, MCP_REGISTER_CALLER } = require("../src/local-rpc.cjs");
 
+test("large RPC replies retain Unicode and reject the existing 32MiB byte limit", async () => {
+  const profile = await fs.mkdtemp(path.join(os.tmpdir(), "plasmic-rpc-large-"));
+  const text = "客户😀".repeat(500000);
+  const stop = await startRpc(profile, async method => ({ text: method === "oversized" ? "x".repeat(32 * 1024 * 1024) : text }));
+  try {
+    assert.deepEqual(await requestRpc(profile, "large"), { text });
+    await assert.rejects(requestRpc(profile, "oversized"), error => /response too large/.test(error.message) && error.context.operationExecuted === null);
+    assert.deepEqual(await requestRpc(profile, "large"), { text });
+  } finally { await stop(); await fs.rm(profile, { recursive: true, force: true }); }
+});
+
 test("caller identity is registered once, scoped to its lifecycle connection, and retained by accepted work", async () => {
   const profile = await fs.mkdtemp(path.join(os.tmpdir(), "plasmic-rpc-callers-"));
   let release, entered;

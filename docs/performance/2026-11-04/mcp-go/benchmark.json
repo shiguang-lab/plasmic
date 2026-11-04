@@ -1,0 +1,475 @@
+{
+  "binaries": {
+    "baseline": {
+      "command": "/Users/yanxianliang/shiguang/plasmic/desktop/mcp-bin/node-baseline/plasmic-mcp",
+      "sha256": "6269080e64a8f71d2b39e55b6b1d4d93f0d879a5744c00aa9dda8e6a4dca7957",
+      "binaryBytes": 122166000,
+      "gzipBytes": 38675018,
+      "version": {
+        "version": "0.6.6",
+        "node": "24.21.0",
+        "platform": "darwin",
+        "arch": "arm64"
+      }
+    },
+    "current": {
+      "command": "/Users/yanxianliang/shiguang/plasmic/desktop/mcp-bin/darwin-arm64/plasmic-mcp",
+      "sha256": "2420c3d0fd80a2bc4b190cec96aff9454f3f6364c751c16468e948603321b4bd",
+      "binaryBytes": 8295504,
+      "gzipBytes": 3168182,
+      "version": {
+        "arch": "arm64",
+        "go": "go1.26.5",
+        "platform": "darwin",
+        "version": "0.6.6"
+      }
+    }
+  },
+  "samples": [
+    {
+      "label": "baseline",
+      "discoveryMs": 72.03591699999924,
+      "firstCallMs": 11.021457999999257,
+      "initialized": {
+        "rssKiB": 72448,
+        "footprintMiB": 35.6
+      },
+      "afterFirstCall": {
+        "rssKiB": 76080,
+        "footprintMiB": 39
+      }
+    },
+    {
+      "label": "current",
+      "discoveryMs": 9.59770799999933,
+      "firstCallMs": 1.5109169999996084,
+      "initialized": {
+        "rssKiB": 17824,
+        "footprintMiB": 9.0322265625
+      },
+      "afterFirstCall": {
+        "rssKiB": 18256,
+        "footprintMiB": 9.2666015625
+      }
+    },
+    {
+      "label": "current",
+      "discoveryMs": 9.153417000001355,
+      "firstCallMs": 1.5252499999987776,
+      "initialized": {
+        "rssKiB": 16048,
+        "footprintMiB": 7.4228515625
+      },
+      "afterFirstCall": {
+        "rssKiB": 17936,
+        "footprintMiB": 8.9697265625
+      }
+    },
+    {
+      "label": "baseline",
+      "discoveryMs": 77.68770900000163,
+      "firstCallMs": 10.354083000000173,
+      "initialized": {
+        "rssKiB": 72432,
+        "footprintMiB": 35.7
+      },
+      "afterFirstCall": {
+        "rssKiB": 76064,
+        "footprintMiB": 39.1
+      }
+    },
+    {
+      "label": "baseline",
+      "discoveryMs": 74.48579099999915,
+      "firstCallMs": 8.803625000000466,
+      "initialized": {
+        "rssKiB": 72544,
+        "footprintMiB": 35.7
+      },
+      "afterFirstCall": {
+        "rssKiB": 76096,
+        "footprintMiB": 39.2
+      }
+    },
+    {
+      "label": "current",
+      "discoveryMs": 7.968790999999328,
+      "firstCallMs": 1.0001250000004802,
+      "initialized": {
+        "rssKiB": 17120,
+        "footprintMiB": 8.3759765625
+      },
+      "afterFirstCall": {
+        "rssKiB": 17584,
+        "footprintMiB": 8.6416015625
+      }
+    },
+    {
+      "label": "current",
+      "discoveryMs": 8.429416999999376,
+      "firstCallMs": 2.0799169999991136,
+      "initialized": {
+        "rssKiB": 17264,
+        "footprintMiB": 8.5009765625
+      },
+      "afterFirstCall": {
+        "rssKiB": 17552,
+        "footprintMiB": 8.5947265625
+      }
+    },
+    {
+      "label": "baseline",
+      "discoveryMs": 87.3148340000007,
+      "firstCallMs": 9.120542000000569,
+      "initialized": {
+        "rssKiB": 72528,
+        "footprintMiB": 35.7
+      },
+      "afterFirstCall": {
+        "rssKiB": 76208,
+        "footprintMiB": 39.2
+      }
+    },
+    {
+      "label": "baseline",
+      "discoveryMs": 77.34466699999757,
+      "firstCallMs": 8.94683299999815,
+      "initialized": {
+        "rssKiB": 72592,
+        "footprintMiB": 35.8
+      },
+      "afterFirstCall": {
+        "rssKiB": 76256,
+        "footprintMiB": 39.3
+      }
+    },
+    {
+      "label": "current",
+      "discoveryMs": 7.088917000000947,
+      "firstCallMs": 1.604750000002241,
+      "initialized": {
+        "rssKiB": 17376,
+        "footprintMiB": 8.6103515625
+      },
+      "afterFirstCall": {
+        "rssKiB": 17840,
+        "footprintMiB": 8.8759765625
+      }
+    },
+    {
+      "label": "current",
+      "discoveryMs": 8.170708000001468,
+      "firstCallMs": 0.7691669999985606,
+      "initialized": {
+        "rssKiB": 17440,
+        "footprintMiB": 8.7041015625
+      },
+      "afterFirstCall": {
+        "rssKiB": 17696,
+        "footprintMiB": 8.7666015625
+      }
+    },
+    {
+      "label": "baseline",
+      "discoveryMs": 77.39079200000197,
+      "firstCallMs": 10.08233399999881,
+      "initialized": {
+        "rssKiB": 72496,
+        "footprintMiB": 35.7
+      },
+      "afterFirstCall": {
+        "rssKiB": 76112,
+        "footprintMiB": 39.1
+      }
+    },
+    {
+      "label": "baseline",
+      "discoveryMs": 74.85050000000047,
+      "firstCallMs": 9.311874999999418,
+      "initialized": {
+        "rssKiB": 72640,
+        "footprintMiB": 35.8
+      },
+      "afterFirstCall": {
+        "rssKiB": 76288,
+        "footprintMiB": 39.3
+      }
+    },
+    {
+      "label": "current",
+      "discoveryMs": 6.518334000000323,
+      "firstCallMs": 1.1715000000003783,
+      "initialized": {
+        "rssKiB": 16048,
+        "footprintMiB": 7.4384765625
+      },
+      "afterFirstCall": {
+        "rssKiB": 17744,
+        "footprintMiB": 8.7978515625
+      }
+    },
+    {
+      "label": "current",
+      "discoveryMs": 7.707333999998809,
+      "firstCallMs": 1.1970839999994496,
+      "initialized": {
+        "rssKiB": 17200,
+        "footprintMiB": 8.4541015625
+      },
+      "afterFirstCall": {
+        "rssKiB": 17584,
+        "footprintMiB": 8.6416015625
+      }
+    },
+    {
+      "label": "baseline",
+      "discoveryMs": 68.92266699999891,
+      "firstCallMs": 7.747292000000016,
+      "initialized": {
+        "rssKiB": 72560,
+        "footprintMiB": 35.8
+      },
+      "afterFirstCall": {
+        "rssKiB": 76288,
+        "footprintMiB": 39.3
+      }
+    },
+    {
+      "label": "baseline",
+      "discoveryMs": 93.29099999999744,
+      "firstCallMs": 8.657665999999153,
+      "initialized": {
+        "rssKiB": 72512,
+        "footprintMiB": 35.7
+      },
+      "afterFirstCall": {
+        "rssKiB": 76128,
+        "footprintMiB": 39.1
+      }
+    },
+    {
+      "label": "current",
+      "discoveryMs": 10.091333000000304,
+      "firstCallMs": 1.3507920000010927,
+      "initialized": {
+        "rssKiB": 17280,
+        "footprintMiB": 8.5478515625
+      },
+      "afterFirstCall": {
+        "rssKiB": 17744,
+        "footprintMiB": 8.8134765625
+      }
+    },
+    {
+      "label": "current",
+      "discoveryMs": 6.801416999998764,
+      "firstCallMs": 0.8123340000020107,
+      "initialized": {
+        "rssKiB": 17296,
+        "footprintMiB": 8.5322265625
+      },
+      "afterFirstCall": {
+        "rssKiB": 17744,
+        "footprintMiB": 8.7822265625
+      }
+    },
+    {
+      "label": "baseline",
+      "discoveryMs": 75.40550000000076,
+      "firstCallMs": 8.259666999998444,
+      "initialized": {
+        "rssKiB": 72528,
+        "footprintMiB": 35.7
+      },
+      "afterFirstCall": {
+        "rssKiB": 76144,
+        "footprintMiB": 39.1
+      }
+    }
+  ],
+  "summary": {
+    "baseline": {
+      "discoveryMs": {
+        "mean": 77.87293769999978,
+        "median": 76.37508349999916,
+        "p95": 93.29099999999744
+      },
+      "firstCallMs": {
+        "mean": 9.230537499999446,
+        "median": 9.03368749999936,
+        "p95": 11.021457999999257
+      },
+      "initializedFootprintMiB": {
+        "mean": 35.72,
+        "median": 35.7,
+        "p95": 35.8
+      },
+      "afterFirstCallFootprintMiB": {
+        "mean": 39.17,
+        "median": 39.150000000000006,
+        "p95": 39.3
+      }
+    },
+    "current": {
+      "discoveryMs": {
+        "mean": 8.1527376,
+        "median": 8.069749500000398,
+        "p95": 10.091333000000304
+      },
+      "firstCallMs": {
+        "mean": 1.3021836000001712,
+        "median": 1.2739380000002711,
+        "p95": 2.0799169999991136
+      },
+      "initializedFootprintMiB": {
+        "mean": 8.3619140625,
+        "median": 8.5166015625,
+        "p95": 9.0322265625
+      },
+      "afterFirstCallFootprintMiB": {
+        "mean": 8.8150390625,
+        "median": 8.7900390625,
+        "p95": 9.2666015625
+      }
+    }
+  },
+  "concurrent": [
+    {
+      "label": "baseline",
+      "durationMs": 30000,
+      "connections": 11,
+      "activeConnections": 2,
+      "activeCalls": [
+        293,
+        293
+      ],
+      "footprintSumMiB": 442.9,
+      "processes": [
+        {
+          "role": "active",
+          "rssKiB": 85984,
+          "footprintMiB": 45.9
+        },
+        {
+          "role": "active",
+          "rssKiB": 86320,
+          "footprintMiB": 46.2
+        },
+        {
+          "role": "idle",
+          "rssKiB": 75904,
+          "footprintMiB": 38.9
+        },
+        {
+          "role": "idle",
+          "rssKiB": 75936,
+          "footprintMiB": 39
+        },
+        {
+          "role": "idle",
+          "rssKiB": 75856,
+          "footprintMiB": 38.9
+        },
+        {
+          "role": "idle",
+          "rssKiB": 76000,
+          "footprintMiB": 39.1
+        },
+        {
+          "role": "idle",
+          "rssKiB": 75984,
+          "footprintMiB": 38.9
+        },
+        {
+          "role": "idle",
+          "rssKiB": 76016,
+          "footprintMiB": 39.1
+        },
+        {
+          "role": "idle",
+          "rssKiB": 75936,
+          "footprintMiB": 38.9
+        },
+        {
+          "role": "idle",
+          "rssKiB": 76016,
+          "footprintMiB": 39
+        },
+        {
+          "role": "idle",
+          "rssKiB": 75936,
+          "footprintMiB": 39
+        }
+      ]
+    },
+    {
+      "label": "current",
+      "durationMs": 30000,
+      "connections": 11,
+      "activeConnections": 2,
+      "activeCalls": [
+        293,
+        293
+      ],
+      "footprintSumMiB": 100.4703125,
+      "processes": [
+        {
+          "role": "active",
+          "rssKiB": 20768,
+          "footprintMiB": 11.5
+        },
+        {
+          "role": "active",
+          "rssKiB": 20592,
+          "footprintMiB": 11.4
+        },
+        {
+          "role": "idle",
+          "rssKiB": 17376,
+          "footprintMiB": 8.4228515625
+        },
+        {
+          "role": "idle",
+          "rssKiB": 17520,
+          "footprintMiB": 8.59375
+        },
+        {
+          "role": "idle",
+          "rssKiB": 17552,
+          "footprintMiB": 8.5634765625
+        },
+        {
+          "role": "idle",
+          "rssKiB": 17520,
+          "footprintMiB": 8.5478515625
+        },
+        {
+          "role": "idle",
+          "rssKiB": 17472,
+          "footprintMiB": 8.5009765625
+        },
+        {
+          "role": "idle",
+          "rssKiB": 17728,
+          "footprintMiB": 8.8134765625
+        },
+        {
+          "role": "idle",
+          "rssKiB": 17696,
+          "footprintMiB": 8.7041015625
+        },
+        {
+          "role": "idle",
+          "rssKiB": 17792,
+          "footprintMiB": 8.8603515625
+        },
+        {
+          "role": "idle",
+          "rssKiB": 17552,
+          "footprintMiB": 8.5634765625
+        }
+      ]
+    }
+  ],
+  "limitation": "Ten fresh processes per binary with warm OS file caches; one fixture tool plus 30 seconds of 11 connections (9 idle, 2 reading). Footprint sums are per-process measurements, not whole-system memory. Binary/gzip sizes cover the bridge, not the full Electron installer. No live design workload or forced GC."
+}

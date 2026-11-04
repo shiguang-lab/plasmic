@@ -50,7 +50,7 @@
       "expected_output": "保持官方 CLI 的明确请求，检查实际 help、host 和配置，执行只读 info；不改为 native coding，不运行 sync 或读取无关编辑模型。",
       "files": [],
       "expectations": [
-        "明确官方 CLI 请求通过 inspect 路径读取官方 CLI 条件规范。",
+        "明确官方 CLI 请求解析 codegen 资源，只读取 guide 与 official-cli 分支规范，不要求 native codegen mustRead。",
         "核对已有自托管配置，实际查询 help/版本并执行官方 info。",
         "info 使用指定 project 和自托管 host，输出已发布版本 2.3.0。",
         "未同步/生成代码、修改配置或转成 native coding。",

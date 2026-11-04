@@ -92,6 +92,10 @@ jobs:
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2, Node 24
         with:
           name: desktop-renderer
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
+        with:
+          go-version-file: desktop/mcp/go.mod
+          cache-dependency-path: desktop/mcp/go.sum
       - run: tar -xzf renderer.tar.gz -C desktop
       - name: Test Desktop on macOS
         if: matrix.platform == 'darwin' && matrix.arch == 'x64'
@@ -102,6 +106,12 @@ jobs:
       - name: Verify unavailable-project startup
         if: matrix.platform == 'darwin'
         run: npm run test:workspace-startup --prefix desktop
+      - name: Verify background workers and public draft bridge
+        if: matrix.platform == 'darwin'
+        run: npm run test:background --prefix desktop
+      - name: Verify packaged background process lifecycle
+        if: matrix.platform == 'darwin'
+        run: npm run test:background-packaged --prefix desktop
       - name: Verify file-based sign-in across a packaged upgrade
         if: matrix.platform == 'darwin'
         run: npm run test:session-lifecycle --prefix desktop

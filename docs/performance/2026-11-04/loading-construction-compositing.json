@@ -1,0 +1,1525 @@
+{
+  "scope": "macOS arm64 / Electron 45.2.1; visible isolated windows; offline exact-version GP and ten-frame fixtures; measurements run serially without builds/tests",
+  "construction": {
+    "A1": {
+      "loadMs": 0,
+      "taskMs": 27.632,
+      "scriptMs": 3.512,
+      "layoutMs": 0,
+      "recalcMs": 4.6499999999999995,
+      "memory": [
+        {
+          "type": "GPU",
+          "memory": {
+            "workingSetSize": 86816,
+            "peakWorkingSetSize": 89552
+          }
+        },
+        {
+          "type": "Tab",
+          "memory": {
+            "workingSetSize": 102368,
+            "peakWorkingSetSize": 102368
+          }
+        }
+      ],
+      "replayColored": 0,
+      "windowAttributeWrites": 234,
+      "windowRafRequests": 85,
+      "constructionBusyFrames": 1,
+      "constructionBusyColorRange": 0,
+      "blockMs": 1200,
+      "waitingBusyFrames": 7,
+      "stoppedAnimations": 0,
+      "reducedAnimations": 0,
+      "reducedSolid": "1"
+    },
+    "B1": {
+      "loadMs": 6.800000071525574,
+      "taskMs": 4.901000000000001,
+      "scriptMs": 0.13100000000000003,
+      "layoutMs": 0,
+      "recalcMs": 0.6069999999999999,
+      "memory": [
+        {
+          "type": "GPU",
+          "memory": {
+            "workingSetSize": 100160,
+            "peakWorkingSetSize": 102320
+          }
+        },
+        {
+          "type": "Tab",
+          "memory": {
+            "workingSetSize": 105136,
+            "peakWorkingSetSize": 105136
+          }
+        }
+      ],
+      "replayColored": 0,
+      "windowAttributeWrites": 0,
+      "windowRafRequests": 0,
+      "constructionBusyFrames": 7,
+      "constructionBusyColorRange": 7425,
+      "blockMs": 1200,
+      "waitingBusyFrames": 7,
+      "stoppedAnimations": 0,
+      "reducedAnimations": 0,
+      "reducedSolid": "1"
+    },
+    "B2": {
+      "loadMs": 38.200000047683716,
+      "taskMs": 1.0379999999999998,
+      "scriptMs": 0.061999999999999986,
+      "layoutMs": 0,
+      "recalcMs": 0.059000000000000025,
+      "memory": [
+        {
+          "type": "GPU",
+          "memory": {
+            "workingSetSize": 98304,
+            "peakWorkingSetSize": 100560
+          }
+        },
+        {
+          "type": "Tab",
+          "memory": {
+            "workingSetSize": 104960,
+            "peakWorkingSetSize": 104960
+          }
+        }
+      ],
+      "replayColored": 0,
+      "windowAttributeWrites": 0,
+      "windowRafRequests": 0,
+      "constructionBusyFrames": 7,
+      "constructionBusyColorRange": 7376,
+      "blockMs": 1200,
+      "waitingBusyFrames": 7,
+      "stoppedAnimations": 0,
+      "reducedAnimations": 0,
+      "reducedSolid": "1"
+    },
+    "A2": {
+      "loadMs": 0,
+      "taskMs": 25.716999999999995,
+      "scriptMs": 3.222,
+      "layoutMs": 0,
+      "recalcMs": 4.4430000000000005,
+      "memory": [
+        {
+          "type": "GPU",
+          "memory": {
+            "workingSetSize": 98992,
+            "peakWorkingSetSize": 101616
+          }
+        },
+        {
+          "type": "Tab",
+          "memory": {
+            "workingSetSize": 103216,
+            "peakWorkingSetSize": 103216
+          }
+        }
+      ],
+      "replayColored": 0,
+      "windowAttributeWrites": 228,
+      "windowRafRequests": 84,
+      "constructionBusyFrames": 1,
+      "constructionBusyColorRange": 0,
+      "blockMs": 1200,
+      "waitingBusyFrames": 7,
+      "stoppedAnimations": 0,
+      "reducedAnimations": 0,
+      "reducedSolid": "1"
+    },
+    "dark": {
+      "loadMs": 10,
+      "taskMs": 1.7260000000000018,
+      "scriptMs": 0.1529999999999995,
+      "layoutMs": 0,
+      "recalcMs": 0.05100000000000027,
+      "memory": [
+        {
+          "type": "GPU",
+          "memory": {
+            "workingSetSize": 99504,
+            "peakWorkingSetSize": 101744
+          }
+        },
+        {
+          "type": "Tab",
+          "memory": {
+            "workingSetSize": 105376,
+            "peakWorkingSetSize": 105376
+          }
+        }
+      ],
+      "replayColored": 0,
+      "windowAttributeWrites": 0,
+      "windowRafRequests": 0,
+      "constructionBusyFrames": 7,
+      "constructionBusyColorRange": 7261,
+      "blockMs": 1200,
+      "waitingBusyFrames": 7,
+      "stoppedAnimations": 0,
+      "reducedAnimations": 0,
+      "reducedSolid": "1"
+    }
+  },
+  "gp": {
+    "A": {
+      "runs": [
+        {
+          "label": "A1",
+          "rendererHash": "b4390d03f1896b21824396ad920c7f62dd79b2e02290d79a48830a803eb27f28",
+          "errors": 0,
+          "fixturePreviewErrors": 7,
+          "samples": [
+            {
+              "topPaint": {
+                "timeOrigin": 1793760517579.7,
+                "paints": [
+                  {
+                    "name": "first-paint",
+                    "start": 68,
+                    "skeletonVisible": true
+                  },
+                  {
+                    "name": "first-contentful-paint",
+                    "start": 68,
+                    "skeletonVisible": true
+                  }
+                ]
+              },
+              "firstCapturedContentMs": null,
+              "firstContentfulPaintMs": 78.10009765625,
+              "skeletonAtFirstContentfulPaint": true,
+              "firstCanvasReadyMs": 1722.918701171875,
+              "canvasRevealedMs": 1560.400146484375,
+              "firstFrameRenderedMs": 1579.7001953125,
+              "allFramesRenderedMs": 1579.7001953125,
+              "rendererPid": 82542
+            },
+            {
+              "topPaint": {
+                "timeOrigin": 1793760520220.8,
+                "paints": [
+                  {
+                    "name": "first-paint",
+                    "start": 84,
+                    "skeletonVisible": true
+                  },
+                  {
+                    "name": "first-contentful-paint",
+                    "start": 84,
+                    "skeletonVisible": true
+                  }
+                ]
+              },
+              "firstCapturedContentMs": null,
+              "firstContentfulPaintMs": 98.000244140625,
+              "skeletonAtFirstContentfulPaint": true,
+              "firstCanvasReadyMs": 1667.967529296875,
+              "canvasRevealedMs": 1526.400146484375,
+              "firstFrameRenderedMs": 1545.900146484375,
+              "allFramesRenderedMs": 1545.900146484375,
+              "rendererPid": 82544
+            },
+            {
+              "topPaint": {
+                "timeOrigin": 1793760522841.2,
+                "paints": [
+                  {
+                    "name": "first-paint",
+                    "start": 88,
+                    "skeletonVisible": true
+                  },
+                  {
+                    "name": "first-contentful-paint",
+                    "start": 88,
+                    "skeletonVisible": true
+                  }
+                ]
+              },
+              "firstCapturedContentMs": null,
+              "firstContentfulPaintMs": 106.699951171875,
+              "skeletonAtFirstContentfulPaint": true,
+              "firstCanvasReadyMs": 1729.784423828125,
+              "canvasRevealedMs": 1569.5,
+              "firstFrameRenderedMs": 1589.60009765625,
+              "allFramesRenderedMs": 1589.60009765625,
+              "rendererPid": 82547
+            },
+            {
+              "topPaint": {
+                "timeOrigin": 1793760525462.8,
+                "paints": [
+                  {
+                    "name": "first-paint",
+                    "start": 76,
+                    "skeletonVisible": true
+                  },
+                  {
+                    "name": "first-contentful-paint",
+                    "start": 76,
+                    "skeletonVisible": true
+                  }
+                ]
+              },
+              "firstCapturedContentMs": null,
+              "firstContentfulPaintMs": 79.2001953125,
+              "skeletonAtFirstContentfulPaint": true,
+              "firstCanvasReadyMs": 1872.049072265625,
+              "canvasRevealedMs": 1710,
+              "firstFrameRenderedMs": 1729.2001953125,
+              "allFramesRenderedMs": 1729.2001953125,
+              "rendererPid": 82550
+            }
+          ]
+        },
+        {
+          "label": "A2",
+          "rendererHash": "b4390d03f1896b21824396ad920c7f62dd79b2e02290d79a48830a803eb27f28",
+          "errors": 0,
+          "fixturePreviewErrors": 7,
+          "samples": [
+            {
+              "topPaint": {
+                "timeOrigin": 1793760571762.5,
+                "paints": [
+                  {
+                    "name": "first-paint",
+                    "start": 76,
+                    "skeletonVisible": true
+                  },
+                  {
+                    "name": "first-contentful-paint",
+                    "start": 76,
+                    "skeletonVisible": true
+                  }
+                ]
+              },
+              "firstCapturedContentMs": null,
+              "firstContentfulPaintMs": 80.5,
+              "skeletonAtFirstContentfulPaint": true,
+              "firstCanvasReadyMs": 1718.93408203125,
+              "canvasRevealedMs": 1560.099853515625,
+              "firstFrameRenderedMs": 1579.199951171875,
+              "allFramesRenderedMs": 1579.199951171875,
+              "rendererPid": 82648
+            },
+            {
+              "topPaint": {
+                "timeOrigin": 1793760574587.7,
+                "paints": [
+                  {
+                    "name": "first-paint",
+                    "start": 76,
+                    "skeletonVisible": true
+                  },
+                  {
+                    "name": "first-contentful-paint",
+                    "start": 76,
+                    "skeletonVisible": true
+                  }
+                ]
+              },
+              "firstCapturedContentMs": null,
+              "firstContentfulPaintMs": 85.199951171875,
+              "skeletonAtFirstContentfulPaint": true,
+              "firstCanvasReadyMs": 1705.73095703125,
+              "canvasRevealedMs": 1554.400146484375,
+              "firstFrameRenderedMs": 1573.5,
+              "allFramesRenderedMs": 1573.5,
+              "rendererPid": 82651
+            },
+            {
+              "topPaint": {
+                "timeOrigin": 1793760577232.5,
+                "paints": [
+                  {
+                    "name": "first-paint",
+                    "start": 80,
+                    "skeletonVisible": true
+                  },
+                  {
+                    "name": "first-contentful-paint",
+                    "start": 80,
+                    "skeletonVisible": true
+                  }
+                ]
+              },
+              "firstCapturedContentMs": null,
+              "firstContentfulPaintMs": 92.199951171875,
+              "skeletonAtFirstContentfulPaint": true,
+              "firstCanvasReadyMs": 1691.953369140625,
+              "canvasRevealedMs": 1540.89990234375,
+              "firstFrameRenderedMs": 1560.599853515625,
+              "allFramesRenderedMs": 1560.699951171875,
+              "rendererPid": 82656
+            },
+            {
+              "topPaint": {
+                "timeOrigin": 1793760580007.4,
+                "paints": [
+                  {
+                    "name": "first-paint",
+                    "start": 84,
+                    "skeletonVisible": true
+                  },
+                  {
+                    "name": "first-contentful-paint",
+                    "start": 84,
+                    "skeletonVisible": true
+                  }
+                ]
+              },
+              "firstCapturedContentMs": null,
+              "firstContentfulPaintMs": 98.099853515625,
+              "skeletonAtFirstContentfulPaint": true,
+              "firstCanvasReadyMs": 1709.503662109375,
+              "canvasRevealedMs": 1565.699951171875,
+              "firstFrameRenderedMs": 1585.199951171875,
+              "allFramesRenderedMs": 1585.199951171875,
+              "rendererPid": 82667
+            }
+          ]
+        },
+        {
+          "label": "A3",
+          "rendererHash": "b4390d03f1896b21824396ad920c7f62dd79b2e02290d79a48830a803eb27f28",
+          "errors": 0,
+          "fixturePreviewErrors": 7,
+          "samples": [
+            {
+              "topPaint": {
+                "timeOrigin": 1793760686828.9,
+                "paints": [
+                  {
+                    "name": "first-paint",
+                    "start": 92,
+                    "skeletonVisible": true
+                  },
+                  {
+                    "name": "first-contentful-paint",
+                    "start": 92,
+                    "skeletonVisible": true
+                  }
+                ]
+              },
+              "firstCapturedContentMs": null,
+              "firstContentfulPaintMs": 106.7998046875,
+              "skeletonAtFirstContentfulPaint": true,
+              "firstCanvasReadyMs": 1716.744140625,
+              "canvasRevealedMs": 1559.499755859375,
+              "firstFrameRenderedMs": 1579.599853515625,
+              "allFramesRenderedMs": 1579.599853515625,
+              "rendererPid": 82817
+            },
+            {
+              "topPaint": {
+                "timeOrigin": 1793760689475.8,
+                "paints": [
+                  {
+                    "name": "first-paint",
+                    "start": 76,
+                    "skeletonVisible": true
+                  },
+                  {
+                    "name": "first-contentful-paint",
+                    "start": 76,
+                    "skeletonVisible": true
+                  }
+                ]
+              },
+              "firstCapturedContentMs": null,
+              "firstContentfulPaintMs": 96.199951171875,
+              "skeletonAtFirstContentfulPaint": true,
+              "firstCanvasReadyMs": 1677.33984375,
+              "canvasRevealedMs": 1532.199951171875,
+              "firstFrameRenderedMs": 1551.699951171875,
+              "allFramesRenderedMs": 1551.699951171875,
+              "rendererPid": 82820
+            },
+            {
+              "topPaint": {
+                "timeOrigin": 1793760692206.8,
+                "paints": [
+                  {
+                    "name": "first-paint",
+                    "start": 92,
+                    "skeletonVisible": true
+                  },
+                  {
+                    "name": "first-contentful-paint",
+                    "start": 92,
+                    "skeletonVisible": true
+                  }
+                ]
+              },
+              "firstCapturedContentMs": null,
+              "firstContentfulPaintMs": 94.199951171875,
+              "skeletonAtFirstContentfulPaint": true,
+              "firstCanvasReadyMs": 2018.034423828125,
+              "canvasRevealedMs": 1688.699951171875,
+              "firstFrameRenderedMs": 1733.599853515625,
+              "allFramesRenderedMs": 1733.599853515625,
+              "rendererPid": 82825
+            },
+            {
+              "topPaint": {
+                "timeOrigin": 1793760695131.7,
+                "paints": [
+                  {
+                    "name": "first-paint",
+                    "start": 88,
+                    "skeletonVisible": true
+                  },
+                  {
+                    "name": "first-contentful-paint",
+                    "start": 88,
+                    "skeletonVisible": true
+                  }
+                ]
+              },
+              "firstCapturedContentMs": null,
+              "firstContentfulPaintMs": 90.099853515625,
+              "skeletonAtFirstContentfulPaint": true,
+              "firstCanvasReadyMs": 1902.584228515625,
+              "canvasRevealedMs": 1704.89990234375,
+              "firstFrameRenderedMs": 1726.599853515625,
+              "allFramesRenderedMs": 1726.599853515625,
+              "rendererPid": 82832
+            }
+          ]
+        },
+        {
+          "label": "A4",
+          "rendererHash": "b4390d03f1896b21824396ad920c7f62dd79b2e02290d79a48830a803eb27f28",
+          "errors": 0,
+          "fixturePreviewErrors": 7,
+          "samples": [
+            {
+              "topPaint": {
+                "timeOrigin": 1793760742929.6,
+                "paints": [
+                  {
+                    "name": "first-paint",
+                    "start": 80,
+                    "skeletonVisible": true
+                  },
+                  {
+                    "name": "first-contentful-paint",
+                    "start": 80,
+                    "skeletonVisible": true
+                  }
+                ]
+              },
+              "firstCapturedContentMs": null,
+              "firstContentfulPaintMs": 94.500244140625,
+              "skeletonAtFirstContentfulPaint": true,
+              "firstCanvasReadyMs": 1682.622802734375,
+              "canvasRevealedMs": 1533,
+              "firstFrameRenderedMs": 1552.10009765625,
+              "allFramesRenderedMs": 1552.199951171875,
+              "rendererPid": 82933
+            },
+            {
+              "topPaint": {
+                "timeOrigin": 1793760745542,
+                "paints": [
+                  {
+                    "name": "first-paint",
+                    "start": 76,
+                    "skeletonVisible": true
+                  },
+                  {
+                    "name": "first-contentful-paint",
+                    "start": 76,
+                    "skeletonVisible": true
+                  }
+                ]
+              },
+              "firstCapturedContentMs": null,
+              "firstContentfulPaintMs": 94,
+              "skeletonAtFirstContentfulPaint": true,
+              "firstCanvasReadyMs": 1693.94140625,
+              "canvasRevealedMs": 1552.10009765625,
+              "firstFrameRenderedMs": 1571.60009765625,
+              "allFramesRenderedMs": 1571.60009765625,
+              "rendererPid": 82935
+            },
+            {
+              "topPaint": {
+                "timeOrigin": 1793760748333.2,
+                "paints": [
+                  {
+                    "name": "first-paint",
+                    "start": 76,
+                    "skeletonVisible": true
+                  },
+                  {
+                    "name": "first-contentful-paint",
+                    "start": 76,
+                    "skeletonVisible": true
+                  }
+                ]
+              },
+              "firstCapturedContentMs": null,
+              "firstContentfulPaintMs": 89.300048828125,
+              "skeletonAtFirstContentfulPaint": true,
+              "firstCanvasReadyMs": 1758.943115234375,
+              "canvasRevealedMs": 1598.80029296875,
+              "firstFrameRenderedMs": 1618.30029296875,
+              "allFramesRenderedMs": 1618.30029296875,
+              "rendererPid": 82944
+            },
+            {
+              "topPaint": {
+                "timeOrigin": 1793760751176.1,
+                "paints": [
+                  {
+                    "name": "first-paint",
+                    "start": 76,
+                    "skeletonVisible": true
+                  },
+                  {
+                    "name": "first-contentful-paint",
+                    "start": 76,
+                    "skeletonVisible": true
+                  }
+                ]
+              },
+              "firstCapturedContentMs": null,
+              "firstContentfulPaintMs": 93.900146484375,
+              "skeletonAtFirstContentfulPaint": true,
+              "firstCanvasReadyMs": 1775.126708984375,
+              "canvasRevealedMs": 1583.000244140625,
+              "firstFrameRenderedMs": 1603.60009765625,
+              "allFramesRenderedMs": 1603.60009765625,
+              "rendererPid": 82948
+            }
+          ]
+        }
+      ],
+      "warmSamples": 16,
+      "canvasRevealedMedianMs": 1560.25,
+      "allFramesMedianMs": 1579.6500244140625,
+      "largestTopLongTaskMedianMs": 323.0
+    },
+    "B": {
+      "runs": [
+        {
+          "label": "B1",
+          "rendererHash": "da5bdf66fbf613750199668163c2419be793d129a1bc6e4b1c64647ae77bdb08",
+          "errors": 0,
+          "fixturePreviewErrors": 7,
+          "samples": [
+            {
+              "topPaint": {
+                "timeOrigin": 1793760535685.3,
+                "paints": [
+                  {
+                    "name": "first-paint",
+                    "start": 72,
+                    "skeletonVisible": true
+                  },
+                  {
+                    "name": "first-contentful-paint",
+                    "start": 72,
+                    "skeletonVisible": true
+                  }
+                ]
+              },
+              "firstCapturedContentMs": null,
+              "firstContentfulPaintMs": 84.199951171875,
+              "skeletonAtFirstContentfulPaint": true,
+              "firstCanvasReadyMs": 1735.098876953125,
+              "canvasRevealedMs": 1573.699951171875,
+              "firstFrameRenderedMs": 1594.099853515625,
+              "allFramesRenderedMs": 1594.099853515625,
+              "rendererPid": 82584
+            },
+            {
+              "topPaint": {
+                "timeOrigin": 1793760538348,
+                "paints": [
+                  {
+                    "name": "first-paint",
+                    "start": 76,
+                    "skeletonVisible": true
+                  },
+                  {
+                    "name": "first-contentful-paint",
+                    "start": 76,
+                    "skeletonVisible": true
+                  }
+                ]
+              },
+              "firstCapturedContentMs": null,
+              "firstContentfulPaintMs": 86.39990234375,
+              "skeletonAtFirstContentfulPaint": true,
+              "firstCanvasReadyMs": 1797.678466796875,
+              "canvasRevealedMs": 1617.10009765625,
+              "firstFrameRenderedMs": 1637.39990234375,
+              "allFramesRenderedMs": 1637.39990234375,
+              "rendererPid": 82588
+            },
+            {
+              "topPaint": {
+                "timeOrigin": 1793760541018.4,
+                "paints": [
+                  {
+                    "name": "first-paint",
+                    "start": 72,
+                    "skeletonVisible": true
+                  },
+                  {
+                    "name": "first-contentful-paint",
+                    "start": 72,
+                    "skeletonVisible": true
+                  }
+                ]
+              },
+              "firstCapturedContentMs": null,
+              "firstContentfulPaintMs": 87.699951171875,
+              "skeletonAtFirstContentfulPaint": true,
+              "firstCanvasReadyMs": 1805.53271484375,
+              "canvasRevealedMs": 1629,
+              "firstFrameRenderedMs": 1650.300048828125,
+              "allFramesRenderedMs": 1650.300048828125,
+              "rendererPid": 82592
+            },
+            {
+              "topPaint": {
+                "timeOrigin": 1793760543691.7,
+                "paints": [
+                  {
+                    "name": "first-paint",
+                    "start": 80,
+                    "skeletonVisible": true
+                  },
+                  {
+                    "name": "first-contentful-paint",
+                    "start": 80,
+                    "skeletonVisible": true
+                  }
+                ]
+              },
+              "firstCapturedContentMs": null,
+              "firstContentfulPaintMs": 95,
+              "skeletonAtFirstContentfulPaint": true,
+              "firstCanvasReadyMs": 1746.257080078125,
+              "canvasRevealedMs": 1589.199951171875,
+              "firstFrameRenderedMs": 1610.400146484375,
+              "allFramesRenderedMs": 1610.5,
+              "rendererPid": 82599
+            }
+          ]
+        },
+        {
+          "label": "B2",
+          "rendererHash": "da5bdf66fbf613750199668163c2419be793d129a1bc6e4b1c64647ae77bdb08",
+          "errors": 0,
+          "fixturePreviewErrors": 7,
+          "samples": [
+            {
+              "topPaint": {
+                "timeOrigin": 1793760553774.3,
+                "paints": [
+                  {
+                    "name": "first-paint",
+                    "start": 80,
+                    "skeletonVisible": true
+                  },
+                  {
+                    "name": "first-contentful-paint",
+                    "start": 80,
+                    "skeletonVisible": true
+                  }
+                ]
+              },
+              "firstCapturedContentMs": null,
+              "firstContentfulPaintMs": 98.300048828125,
+              "skeletonAtFirstContentfulPaint": true,
+              "firstCanvasReadyMs": 1750.827392578125,
+              "canvasRevealedMs": 1581.300048828125,
+              "firstFrameRenderedMs": 1601.800048828125,
+              "allFramesRenderedMs": 1601.800048828125,
+              "rendererPid": 82618
+            },
+            {
+              "topPaint": {
+                "timeOrigin": 1793760556408.9,
+                "paints": [
+                  {
+                    "name": "first-paint",
+                    "start": 80,
+                    "skeletonVisible": true
+                  },
+                  {
+                    "name": "first-contentful-paint",
+                    "start": 80,
+                    "skeletonVisible": true
+                  }
+                ]
+              },
+              "firstCapturedContentMs": null,
+              "firstContentfulPaintMs": 102.10009765625,
+              "skeletonAtFirstContentfulPaint": true,
+              "firstCanvasReadyMs": 1765.24560546875,
+              "canvasRevealedMs": 1590.2001953125,
+              "firstFrameRenderedMs": 1610.500244140625,
+              "allFramesRenderedMs": 1610.500244140625,
+              "rendererPid": 82622
+            },
+            {
+              "topPaint": {
+                "timeOrigin": 1793760559028.1,
+                "paints": [
+                  {
+                    "name": "first-paint",
+                    "start": 76,
+                    "skeletonVisible": true
+                  },
+                  {
+                    "name": "first-contentful-paint",
+                    "start": 76,
+                    "skeletonVisible": true
+                  }
+                ]
+              },
+              "firstCapturedContentMs": null,
+              "firstContentfulPaintMs": 92.60009765625,
+              "skeletonAtFirstContentfulPaint": true,
+              "firstCanvasReadyMs": 1776.4609375,
+              "canvasRevealedMs": 1611.599853515625,
+              "firstFrameRenderedMs": 1634,
+              "allFramesRenderedMs": 1634,
+              "rendererPid": 82625
+            },
+            {
+              "topPaint": {
+                "timeOrigin": 1793760561679.3,
+                "paints": [
+                  {
+                    "name": "first-paint",
+                    "start": 76,
+                    "skeletonVisible": true
+                  },
+                  {
+                    "name": "first-contentful-paint",
+                    "start": 76,
+                    "skeletonVisible": true
+                  }
+                ]
+              },
+              "firstCapturedContentMs": null,
+              "firstContentfulPaintMs": 79.000244140625,
+              "skeletonAtFirstContentfulPaint": true,
+              "firstCanvasReadyMs": 1766.80908203125,
+              "canvasRevealedMs": 1589.300048828125,
+              "firstFrameRenderedMs": 1610.000244140625,
+              "allFramesRenderedMs": 1610.000244140625,
+              "rendererPid": 82629
+            }
+          ]
+        },
+        {
+          "label": "B3",
+          "rendererHash": "da5bdf66fbf613750199668163c2419be793d129a1bc6e4b1c64647ae77bdb08",
+          "errors": 0,
+          "fixturePreviewErrors": 7,
+          "samples": [
+            {
+              "topPaint": {
+                "timeOrigin": 1793760705296.2,
+                "paints": [
+                  {
+                    "name": "first-paint",
+                    "start": 112,
+                    "skeletonVisible": true
+                  },
+                  {
+                    "name": "first-contentful-paint",
+                    "start": 112,
+                    "skeletonVisible": true
+                  }
+                ]
+              },
+              "firstCapturedContentMs": null,
+              "firstContentfulPaintMs": 119.699951171875,
+              "skeletonAtFirstContentfulPaint": true,
+              "firstCanvasReadyMs": 2002.16845703125,
+              "canvasRevealedMs": 1779.900146484375,
+              "firstFrameRenderedMs": 1802.60009765625,
+              "allFramesRenderedMs": 1802.60009765625,
+              "rendererPid": 82855
+            },
+            {
+              "topPaint": {
+                "timeOrigin": 1793760708174.7,
+                "paints": [
+                  {
+                    "name": "first-paint",
+                    "start": 80,
+                    "skeletonVisible": true
+                  },
+                  {
+                    "name": "first-contentful-paint",
+                    "start": 80,
+                    "skeletonVisible": true
+                  }
+                ]
+              },
+              "firstCapturedContentMs": null,
+              "firstContentfulPaintMs": 83.2998046875,
+              "skeletonAtFirstContentfulPaint": true,
+              "firstCanvasReadyMs": 2089.512939453125,
+              "canvasRevealedMs": 1879.199951171875,
+              "firstFrameRenderedMs": 1901.999755859375,
+              "allFramesRenderedMs": 1901.999755859375,
+              "rendererPid": 82859
+            },
+            {
+              "topPaint": {
+                "timeOrigin": 1793760711180.1,
+                "paints": [
+                  {
+                    "name": "first-paint",
+                    "start": 76,
+                    "skeletonVisible": true
+                  },
+                  {
+                    "name": "first-contentful-paint",
+                    "start": 76,
+                    "skeletonVisible": true
+                  }
+                ]
+              },
+              "firstCapturedContentMs": null,
+              "firstContentfulPaintMs": 104.60009765625,
+              "skeletonAtFirstContentfulPaint": true,
+              "firstCanvasReadyMs": 1953.148193359375,
+              "canvasRevealedMs": 1758.5,
+              "firstFrameRenderedMs": 1780.699951171875,
+              "allFramesRenderedMs": 1780.699951171875,
+              "rendererPid": 82862
+            },
+            {
+              "topPaint": {
+                "timeOrigin": 1793760714020.7,
+                "paints": [
+                  {
+                    "name": "first-paint",
+                    "start": 68,
+                    "skeletonVisible": true
+                  },
+                  {
+                    "name": "first-contentful-paint",
+                    "start": 68,
+                    "skeletonVisible": true
+                  }
+                ]
+              },
+              "firstCapturedContentMs": null,
+              "firstContentfulPaintMs": 75.39990234375,
+              "skeletonAtFirstContentfulPaint": true,
+              "firstCanvasReadyMs": 1970.315673828125,
+              "canvasRevealedMs": 1772.10009765625,
+              "firstFrameRenderedMs": 1794,
+              "allFramesRenderedMs": 1794,
+              "rendererPid": 82867
+            }
+          ]
+        },
+        {
+          "label": "B4",
+          "rendererHash": "da5bdf66fbf613750199668163c2419be793d129a1bc6e4b1c64647ae77bdb08",
+          "errors": 0,
+          "fixturePreviewErrors": 7,
+          "samples": [
+            {
+              "topPaint": {
+                "timeOrigin": 1793760724776.5,
+                "paints": [
+                  {
+                    "name": "first-paint",
+                    "start": 84,
+                    "skeletonVisible": true
+                  },
+                  {
+                    "name": "first-contentful-paint",
+                    "start": 84,
+                    "skeletonVisible": true
+                  }
+                ]
+              },
+              "firstCapturedContentMs": null,
+              "firstContentfulPaintMs": 102.400146484375,
+              "skeletonAtFirstContentfulPaint": true,
+              "firstCanvasReadyMs": 1822.46484375,
+              "canvasRevealedMs": 1629.800048828125,
+              "firstFrameRenderedMs": 1650.5,
+              "allFramesRenderedMs": 1650.5,
+              "rendererPid": 82890
+            },
+            {
+              "topPaint": {
+                "timeOrigin": 1793760727445.5,
+                "paints": [
+                  {
+                    "name": "first-paint",
+                    "start": 72,
+                    "skeletonVisible": true
+                  },
+                  {
+                    "name": "first-contentful-paint",
+                    "start": 72,
+                    "skeletonVisible": true
+                  }
+                ]
+              },
+              "firstCapturedContentMs": null,
+              "firstContentfulPaintMs": 84.60009765625,
+              "skeletonAtFirstContentfulPaint": true,
+              "firstCanvasReadyMs": 1755.476806640625,
+              "canvasRevealedMs": 1576.800048828125,
+              "firstFrameRenderedMs": 1598.7001953125,
+              "allFramesRenderedMs": 1598.7001953125,
+              "rendererPid": 82900
+            },
+            {
+              "topPaint": {
+                "timeOrigin": 1793760730064.1,
+                "paints": [
+                  {
+                    "name": "first-paint",
+                    "start": 80,
+                    "skeletonVisible": true
+                  },
+                  {
+                    "name": "first-contentful-paint",
+                    "start": 80,
+                    "skeletonVisible": true
+                  }
+                ]
+              },
+              "firstCapturedContentMs": null,
+              "firstContentfulPaintMs": 93.7001953125,
+              "skeletonAtFirstContentfulPaint": true,
+              "firstCanvasReadyMs": 1813.8466796875,
+              "canvasRevealedMs": 1632.699951171875,
+              "firstFrameRenderedMs": 1654,
+              "allFramesRenderedMs": 1654.10009765625,
+              "rendererPid": 82902
+            },
+            {
+              "topPaint": {
+                "timeOrigin": 1793760732745.8,
+                "paints": [
+                  {
+                    "name": "first-paint",
+                    "start": 76,
+                    "skeletonVisible": true
+                  },
+                  {
+                    "name": "first-contentful-paint",
+                    "start": 76,
+                    "skeletonVisible": true
+                  }
+                ]
+              },
+              "firstCapturedContentMs": null,
+              "firstContentfulPaintMs": 84.400146484375,
+              "skeletonAtFirstContentfulPaint": true,
+              "firstCanvasReadyMs": 1742.389404296875,
+              "canvasRevealedMs": 1578.7001953125,
+              "firstFrameRenderedMs": 1600.10009765625,
+              "allFramesRenderedMs": 1600.2001953125,
+              "rendererPid": 82906
+            }
+          ]
+        }
+      ],
+      "warmSamples": 16,
+      "canvasRevealedMedianMs": 1614.3499755859375,
+      "allFramesMedianMs": 1635.699951171875,
+      "largestTopLongTaskMedianMs": 347.5
+    }
+  },
+  "rejectedAtlas": {
+    "A": {
+      "samples": 8,
+      "canvasRevealedMedianMs": 1608.64990234375
+    },
+    "B": {
+      "samples": 8,
+      "canvasRevealedMedianMs": 1677.550048828125
+    },
+    "memory": [
+      {
+        "type": "GPU",
+        "memory": {
+          "workingSetSize": 159968,
+          "peakWorkingSetSize": 162656
+        }
+      },
+      {
+        "type": "Tab",
+        "memory": {
+          "workingSetSize": 166368,
+          "peakWorkingSetSize": 166368
+        }
+      }
+    ],
+    "taskMs": 1.7700000000000007
+  },
+  "functional": {
+    "gp": {
+      "errors": 0,
+      "fixturePreviewErrors": 1,
+      "reopen": true,
+      "cases": [
+        {
+          "case": "switch-artboard",
+          "rendered": true
+        },
+        {
+          "case": "rename-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "rendered-style-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "frame-position-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "preview-business-pagination-return",
+          "passed": true
+        }
+      ]
+    },
+    "complex": {
+      "errors": 0,
+      "fixturePreviewErrors": 1,
+      "reopen": true,
+      "cases": [
+        {
+          "case": "switch-artboard",
+          "rendered": true
+        },
+        {
+          "case": "switch-artboard",
+          "rendered": true
+        },
+        {
+          "case": "switch-artboard",
+          "rendered": true
+        },
+        {
+          "case": "rename-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "rendered-style-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "frame-position-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "cold-frame-undo-selection-style",
+          "passed": true
+        },
+        {
+          "case": "cold-frame-redo-rendered-style",
+          "passed": true
+        }
+      ]
+    }
+  },
+  "checks": {
+    "unitFiles": 2,
+    "unitTests": 11,
+    "typecheck": "passed",
+    "eslint": "passed"
+  },
+  "asset": {
+    "file": "brand-loading-construction.7a0ad6b7c6c3.webp",
+    "duration": 3192,
+    "bytes": 550418,
+    "sha256": "7a0ad6b7c6c350715784801e44012ee239e5f2ec86d1751f47cbd3cfe72af360"
+  },
+  "privateArtifacts": "/tmp/plasmic-construction-20261104",
+  "sourceHashes": {
+    "platform/wab/rsbuild.config.ts": "509684703936acecde83136908326c9dfd07cd2655c76875f8fe0d2e16056bdd",
+    "platform/wab/public/index.html": "bb6d6526566341bddd24892dd4922020a1eafdd214620f6c50f3850bfa4b95c1",
+    "platform/wab/src/wab/client/components/widgets/BrandLoading.tsx": "7e6690d4614bd0b6b379dcd07d7073bf65f1be7776f70b47e0abb689e1f60700",
+    "platform/wab/src/wab/client/components/widgets/BrandLoading.module.scss": "9975d03d5bf0665039120ad8cf4289e8c4416613e97a0c83c2cd9b4c5a348b46",
+    "platform/wab/src/wab/client/components/widgets/brand-loading-animation.js": "604d3d8cc16a294f10ae9c4263df923c7a75000d81201ed7137ac7f7b96fc246",
+    "platform/wab/src/wab/shared/brand-loading.json": "af2cabd79ad6f662d2141ceea0fbc7dcbdeeeaf8711f2e9c3cc8ad1018a106ae"
+  },
+  "build": {
+    "kind": "diagnostic",
+    "variant": "construction",
+    "sourceRoot": "/tmp/plasmic-opt-20261104/source",
+    "runtimeRevision": "cc50fd519d0df382f0657afbfe6b977528155898",
+    "rendererHash": "da5bdf66fbf613750199668163c2419be793d129a1bc6e4b1c64647ae77bdb08"
+  },
+  "installed": {
+    "path": "/Applications/Plasmic.app",
+    "backupAvailable": true,
+    "version": "0.6.6",
+    "build": {
+      "kind": "local",
+      "revision": "cc50fd519d0df382f0657afbfe6b977528155898",
+      "dirty": true,
+      "builtAt": "2026-11-04T03:03:10.351Z",
+      "sourceHash": "c4b89ae10db09821845c962ecbd315ec3831510a20c77306de1e90521dec14de",
+      "rendererHash": "3268991b033962f74bf462181dde0264a0e9c650b0be0a1faf28590943173764",
+      "desktopHash": "ebc77e3951d2bbde81cce8ebf90546fe145a684355005a7c5ef4fe3f08bac6f8"
+    },
+    "projectRestoredReady": true
+  },
+  "packagedLifecycle": {
+    "passed": true,
+    "constructionBusyFrames": 7,
+    "waitingBusyFrames": 7,
+    "replayColoredPixelsAt400ms": 0,
+    "reducedRunningAnimations": 0
+  },
+  "attribution": {
+    "originalPhaseDurations": {
+      "A": {
+        "studio-module-import": 90.75,
+        "startup-preferences": 2.300000011920929,
+        "project-fetch": 33.19999998807907,
+        "model-unbundle": 63.64999997615814,
+        "studio-context": 39.64999997615814,
+        "initial-route": 50.05000001192093,
+        "initial-viewport": 51.35000002384186,
+        "code-component-sync": 5.650000035762787,
+        "app-user-init": 0.0,
+        "initializer-ready": 0.0,
+        "frame-load-start": 0.0,
+        "frame-host-document": 80.80000001192093,
+        "frame-host-ready": 36.299999952316284,
+        "frame-runtime": 7.099999964237213,
+        "frame-component-packages": 113.5,
+        "frame-context-created": 0.0,
+        "all-frame-contexts-created": 0.0,
+        "frame-initialization": 273.69999998807907,
+        "frame-first-render": 358.75,
+        "canvas-revealed": 0.0,
+        "frame-rendered": 0.0,
+        "all-frames-rendered": 0.0
+      },
+      "B": {
+        "studio-module-import": 91.34999996423721,
+        "startup-preferences": 5.400000035762787,
+        "project-fetch": 32.5,
+        "model-unbundle": 64.60000002384186,
+        "studio-context": 39.94999998807907,
+        "initial-route": 52.65000003576279,
+        "initial-viewport": 52.84999996423721,
+        "code-component-sync": 5.950000047683716,
+        "app-user-init": 0.0,
+        "initializer-ready": 0.0,
+        "frame-load-start": 0.0,
+        "frame-host-document": 85.19999998807907,
+        "frame-host-ready": 37.35000002384186,
+        "frame-runtime": 7.5,
+        "frame-component-packages": 115.80000001192093,
+        "frame-context-created": 0.0,
+        "all-frame-contexts-created": 0.0,
+        "frame-initialization": 282.0499999523163,
+        "frame-first-render": 382.60000002384186,
+        "canvas-revealed": 0.0,
+        "frame-rendered": 0.0,
+        "all-frames-rendered": 0.0
+      }
+    },
+    "sameBuildAnimationAblation": {
+      "on": {
+        "warmSamples": 8,
+        "canvasRevealedMedianMs": 1652.8499755859375,
+        "largestTopLongTaskMedianMs": 370.0,
+        "phases": {
+          "studio-module-import": 92.10000002384186,
+          "startup-preferences": 5.449999988079071,
+          "project-fetch": 33.64999997615814,
+          "model-unbundle": 66.94999998807907,
+          "studio-context": 41.249999940395355,
+          "initial-route": 53.89999997615814,
+          "initial-viewport": 54.05000001192093,
+          "code-component-sync": 6.250000059604645,
+          "app-user-init": 0.0,
+          "initializer-ready": 0.0,
+          "frame-load-start": 0.0,
+          "frame-host-document": 104.85000002384186,
+          "frame-host-ready": 23.249999940395355,
+          "frame-runtime": 7.850000023841858,
+          "frame-component-packages": 116.65000003576279,
+          "frame-context-created": 0.0,
+          "all-frame-contexts-created": 0.0,
+          "frame-initialization": 287.14999997615814,
+          "frame-first-render": 403.8000000715256,
+          "canvas-revealed": 0.0,
+          "frame-rendered": 0.0,
+          "all-frames-rendered": 0.0
+        },
+        "runs": [
+          {
+            "run": 1,
+            "canvasRevealedMedianMs": 1611.9500732421875,
+            "phases": {
+              "studio-module-import": 91.5,
+              "startup-preferences": 5.249999940395355,
+              "project-fetch": 33.64999997615814,
+              "model-unbundle": 66.75,
+              "studio-context": 41.19999998807907,
+              "initial-route": 53.049999952316284,
+              "initial-viewport": 53.25,
+              "code-component-sync": 6.050000071525574,
+              "app-user-init": 0.0,
+              "initializer-ready": 0.0,
+              "frame-load-start": 0.0,
+              "frame-host-document": 83.55000001192093,
+              "frame-host-ready": 39.40000009536743,
+              "frame-runtime": 7.600000023841858,
+              "frame-component-packages": 116.30000001192093,
+              "frame-context-created": 0.0,
+              "all-frame-contexts-created": 0.0,
+              "frame-initialization": 282.30000001192093,
+              "frame-first-render": 391.3500000834465,
+              "canvas-revealed": 0.0,
+              "frame-rendered": 0.0,
+              "all-frames-rendered": 0.0
+            },
+            "errors": 0,
+            "fixturePreviewErrors": 7,
+            "build": {
+              "kind": "diagnostic",
+              "variant": "construction",
+              "sourceRoot": "/tmp/plasmic-opt-20261104/source",
+              "runtimeRevision": "cc50fd519d0df382f0657afbfe6b977528155898",
+              "rendererHash": "da5bdf66fbf613750199668163c2419be793d129a1bc6e4b1c64647ae77bdb08"
+            }
+          },
+          {
+            "run": 2,
+            "canvasRevealedMedianMs": 1696.449951171875,
+            "phases": {
+              "studio-module-import": 96.05000001192093,
+              "startup-preferences": 5.649999976158142,
+              "project-fetch": 33.84999996423721,
+              "model-unbundle": 67.70000004768372,
+              "studio-context": 41.549999952316284,
+              "initial-route": 55.05000001192093,
+              "initial-viewport": 55.19999998807907,
+              "code-component-sync": 6.450000047683716,
+              "app-user-init": 0.0,
+              "initializer-ready": 0.0,
+              "frame-load-start": 0.0,
+              "frame-host-document": 126.0,
+              "frame-host-ready": 7.5,
+              "frame-runtime": 7.949999988079071,
+              "frame-component-packages": 117.39999997615814,
+              "frame-context-created": 0.0,
+              "all-frame-contexts-created": 0.0,
+              "frame-initialization": 296.14999997615814,
+              "frame-first-render": 416.80000001192093,
+              "canvas-revealed": 0.0,
+              "frame-rendered": 0.0,
+              "all-frames-rendered": 0.0
+            },
+            "errors": 0,
+            "fixturePreviewErrors": 7,
+            "build": {
+              "kind": "diagnostic",
+              "variant": "construction",
+              "sourceRoot": "/tmp/plasmic-opt-20261104/source",
+              "runtimeRevision": "cc50fd519d0df382f0657afbfe6b977528155898",
+              "rendererHash": "da5bdf66fbf613750199668163c2419be793d129a1bc6e4b1c64647ae77bdb08"
+            }
+          }
+        ]
+      },
+      "off": {
+        "warmSamples": 8,
+        "canvasRevealedMedianMs": 1584.0999755859375,
+        "largestTopLongTaskMedianMs": 321.5,
+        "phases": {
+          "studio-module-import": 96.15000003576279,
+          "startup-preferences": 1.5,
+          "project-fetch": 32.89999997615814,
+          "model-unbundle": 66.39999997615814,
+          "studio-context": 40.0,
+          "initial-route": 52.59999996423721,
+          "initial-viewport": 52.700000047683716,
+          "code-component-sync": 5.849999964237213,
+          "app-user-init": 0.0,
+          "initializer-ready": 0.0,
+          "frame-load-start": 0.0,
+          "frame-host-document": 86.39999997615814,
+          "frame-host-ready": 23.649999976158142,
+          "frame-runtime": 8.150000035762787,
+          "frame-component-packages": 115.19999998807907,
+          "frame-context-created": 0.0,
+          "all-frame-contexts-created": 0.0,
+          "frame-initialization": 288.2999999523163,
+          "frame-first-render": 357.0500000715256,
+          "canvas-revealed": 0.0,
+          "frame-rendered": 0.0,
+          "all-frames-rendered": 0.0
+        },
+        "runs": [
+          {
+            "run": 1,
+            "canvasRevealedMedianMs": 1696.0501708984375,
+            "phases": {
+              "studio-module-import": 98.00000005960464,
+              "startup-preferences": 3.300000011920929,
+              "project-fetch": 32.94999998807907,
+              "model-unbundle": 66.85000002384186,
+              "studio-context": 40.0,
+              "initial-route": 52.799999952316284,
+              "initial-viewport": 53.05000001192093,
+              "code-component-sync": 6.550000011920929,
+              "app-user-init": 0.0,
+              "initializer-ready": 0.0,
+              "frame-load-start": 0.0,
+              "frame-host-document": 107.60000002384186,
+              "frame-host-ready": 23.649999976158142,
+              "frame-runtime": 8.150000035762787,
+              "frame-component-packages": 118.84999996423721,
+              "frame-context-created": 0.0,
+              "all-frame-contexts-created": 0.0,
+              "frame-initialization": 317.74999994039536,
+              "frame-first-render": 386.3000000715256,
+              "canvas-revealed": 0.0,
+              "frame-rendered": 0.0,
+              "all-frames-rendered": 0.0
+            },
+            "errors": 0,
+            "fixturePreviewErrors": 7,
+            "build": {
+              "kind": "diagnostic",
+              "variant": "construction-static-ablation",
+              "sourceRoot": "/tmp/plasmic-opt-20261104/source",
+              "runtimeRevision": "cc50fd519d0df382f0657afbfe6b977528155898",
+              "rendererHash": "f2050cf9b8ec57121b8cd51bf0d891c24b2ca7e6d46220a367114ca9c2b4f8b2",
+              "baseRendererHash": "da5bdf66fbf613750199668163c2419be793d129a1bc6e4b1c64647ae77bdb08",
+              "diagnosticPatch": "Only BrandLoading start returns after its existing showStatic/stop; other reduced-motion preferences unchanged",
+              "patchedFiles": [
+                "static/js/index~1.ee8491fb.js",
+                "static/js/studio.cc50fd.js",
+                "static/js/studio.js",
+                "index.html"
+              ]
+            }
+          },
+          {
+            "run": 2,
+            "canvasRevealedMedianMs": 1557.2498779296875,
+            "phases": {
+              "studio-module-import": 93.3500000834465,
+              "startup-preferences": 1.5,
+              "project-fetch": 32.5,
+              "model-unbundle": 64.55000001192093,
+              "studio-context": 40.0,
+              "initial-route": 52.09999996423721,
+              "initial-viewport": 52.200000047683716,
+              "code-component-sync": 5.749999940395355,
+              "app-user-init": 0.0,
+              "initializer-ready": 0.0,
+              "frame-load-start": 0.0,
+              "frame-host-document": 86.39999997615814,
+              "frame-host-ready": 23.100000023841858,
+              "frame-runtime": 8.050000071525574,
+              "frame-component-packages": 114.45000004768372,
+              "frame-context-created": 0.0,
+              "all-frame-contexts-created": 0.0,
+              "frame-initialization": 285.69999998807907,
+              "frame-first-render": 341.39999997615814,
+              "canvas-revealed": 0.0,
+              "frame-rendered": 0.0,
+              "all-frames-rendered": 0.0
+            },
+            "errors": 0,
+            "fixturePreviewErrors": 7,
+            "build": {
+              "kind": "diagnostic",
+              "variant": "construction-static-ablation",
+              "sourceRoot": "/tmp/plasmic-opt-20261104/source",
+              "runtimeRevision": "cc50fd519d0df382f0657afbfe6b977528155898",
+              "rendererHash": "f2050cf9b8ec57121b8cd51bf0d891c24b2ca7e6d46220a367114ca9c2b4f8b2",
+              "baseRendererHash": "da5bdf66fbf613750199668163c2419be793d129a1bc6e4b1c64647ae77bdb08",
+              "diagnosticPatch": "Only BrandLoading start returns after its existing showStatic/stop; other reduced-motion preferences unchanged",
+              "patchedFiles": [
+                "static/js/index~1.ee8491fb.js",
+                "static/js/studio.cc50fd.js",
+                "static/js/studio.js",
+                "index.html"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "causalityLimit": "Timing has process-to-process drift; the on/off experiment disables only BrandLoading activity, not global reduced motion. It does not separate fetching/Blob, image decode, raster/compositing costs, and does not identify all of the original 54.10ms as animation cost.",
+    "oldVsNewStaticSameRound": {
+      "originalAnimation": {
+        "runs": [
+          {
+            "run": 1,
+            "warmSamples": 4,
+            "canvasRevealedMedianMs": 1644.449951171875,
+            "rendererErrors": 0,
+            "fixturePreviewErrors": 7,
+            "rendererHash": "b4390d03f1896b21824396ad920c7f62dd79b2e02290d79a48830a803eb27f28"
+          },
+          {
+            "run": 2,
+            "warmSamples": 4,
+            "canvasRevealedMedianMs": 1581.1500244140625,
+            "rendererErrors": 0,
+            "fixturePreviewErrors": 7,
+            "rendererHash": "b4390d03f1896b21824396ad920c7f62dd79b2e02290d79a48830a803eb27f28"
+          }
+        ],
+        "warmSamples": 8,
+        "canvasRevealedMedianMs": 1616.0
+      },
+      "newBuildStaticLogo": {
+        "runs": [
+          {
+            "run": 1,
+            "warmSamples": 4,
+            "canvasRevealedMedianMs": 1561.6998291015625,
+            "rendererErrors": 0,
+            "fixturePreviewErrors": 7,
+            "rendererHash": "f2050cf9b8ec57121b8cd51bf0d891c24b2ca7e6d46220a367114ca9c2b4f8b2"
+          },
+          {
+            "run": 2,
+            "warmSamples": 4,
+            "canvasRevealedMedianMs": 1613.10009765625,
+            "rendererErrors": 0,
+            "fixturePreviewErrors": 7,
+            "rendererHash": "f2050cf9b8ec57121b8cd51bf0d891c24b2ca7e6d46220a367114ca9c2b4f8b2"
+          }
+        ],
+        "warmSamples": 8,
+        "canvasRevealedMedianMs": 1562.0499267578125
+      },
+      "interpretation": "Same-round ABBA reverses the earlier cross-round +23.85ms observation; no stable +23.85ms regression has been established with animation disabled. This does not establish equivalence or remove the earlier concern about enabled animation costs. No installed application settings changed."
+    }
+  }
+}

@@ -1,0 +1,120 @@
+{
+  "binaries": {
+    "node": {
+      "command": "/Users/yanxianliang/shiguang/plasmic/desktop/mcp-bin/node-baseline/plasmic-mcp",
+      "sha256": "6269080e64a8f71d2b39e55b6b1d4d93f0d879a5744c00aa9dda8e6a4dca7957"
+    },
+    "go": {
+      "command": "/Users/yanxianliang/shiguang/plasmic/desktop/mcp-bin/darwin-arm64/plasmic-mcp",
+      "sha256": "2420c3d0fd80a2bc4b190cec96aff9454f3f6364c751c16468e948603321b4bd"
+    }
+  },
+  "protocols": [
+    {
+      "requested": "2025-11-25",
+      "negotiated": "2025-11-25"
+    },
+    {
+      "requested": "2025-06-18",
+      "negotiated": "2025-06-18"
+    },
+    {
+      "requested": "2025-03-26",
+      "negotiated": "2025-03-26"
+    },
+    {
+      "requested": "2024-11-05",
+      "negotiated": "2024-11-05"
+    },
+    {
+      "requested": "2024-10-07",
+      "negotiated": "2024-10-07"
+    },
+    {
+      "requested": "unsupported",
+      "negotiated": "2025-11-25"
+    }
+  ],
+  "unsupportedMethods": [
+    {
+      "method": "resources/list",
+      "code": -32601,
+      "nodeMessage": "Method not found",
+      "goMessage": "method not found: \"resources/list\""
+    },
+    {
+      "method": "prompts/list",
+      "code": -32601,
+      "nodeMessage": "Method not found",
+      "goMessage": "method not found: \"prompts/list\""
+    },
+    {
+      "method": "logging/setLevel",
+      "code": -32601,
+      "nodeMessage": "Method not found",
+      "goMessage": "method not found: \"logging/setLevel\""
+    },
+    {
+      "method": "server/discover",
+      "code": -32601,
+      "nodeMessage": "Method not found",
+      "goMessage": "method not found: \"server/discover\""
+    },
+    {
+      "method": "unknown-method",
+      "code": -32601,
+      "nodeMessage": "Method not found",
+      "goMessage": "method not found: \"unknown-method\""
+    }
+  ],
+  "cases": [
+    {
+      "label": "node",
+      "toolCount": 41,
+      "comparedCalls": 9,
+      "unicodePages": 13,
+      "continuations": [
+        16000,
+        32000,
+        48000,
+        64000,
+        80000,
+        96000,
+        112000,
+        128000,
+        144000,
+        160000,
+        176000,
+        192000,
+        null
+      ],
+      "exportFiles": 120,
+      "orderedPagination": true
+    },
+    {
+      "label": "go",
+      "toolCount": 41,
+      "comparedCalls": 9,
+      "unicodePages": 13,
+      "continuations": [
+        16000,
+        32000,
+        48000,
+        64000,
+        80000,
+        96000,
+        112000,
+        128000,
+        144000,
+        160000,
+        176000,
+        192000,
+        null
+      ],
+      "exportFiles": 120,
+      "orderedPagination": true
+    }
+  ],
+  "passed": true,
+  "comparison": "JSON values compared independently of object key order. Bridge-local stack frames and SDK method-not-found wording differ by runtime; error codes/request IDs and remote diagnostic stacks are compared exactly."
+}

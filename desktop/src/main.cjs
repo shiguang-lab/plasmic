@@ -558,6 +558,7 @@ async function startDesktop() {
     app.once("will-quit", () => {
       presentation.dispose();
       controller.close();
+      void drafts.close();
       void stopRpc();
     });
   }
@@ -574,6 +575,7 @@ async function startDesktop() {
     contents.once("destroyed", () => updateDialogs.delete(contents));
   };
   const attachContents = (contents) => {
+    require("./error-log.cjs").attachErrorLog(contents, app.getPath("userData"));
     contents.on("before-input-event", userActivity);
     contents.on("before-mouse-event", (_event, mouse) => {
       if (["mouseDown", "mouseWheel"].includes(mouse.type)) userActivity();

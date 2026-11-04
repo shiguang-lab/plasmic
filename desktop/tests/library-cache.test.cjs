@@ -287,3 +287,58 @@ for (const status of [401, 403, 404, 500, 503]) {
     assert.equal(f.requests.length, 2);
   });
 }
+
+test("binary cache stores raw bytes, verifies them, and removes a tampered body", async t => {
+  const f = await fixture(t);
+  await f.cache.fetch(codeRequest());
+  const [{ file }] = await f.cache.store.files();
+  assert.match(file, /\.bin$/);
+  const bytes = await fs.readFile(file);
+  const length = bytes.readUInt32BE(0);
+  assert.deepEqual(bytes.subarray(4 + length), Buffer.from(script));
+  bytes[bytes.length - 1] ^= 1;
+  await fs.writeFile(file, bytes);
+  assert.equal(await (await f.cache.fetch(codeRequest())).text(), script);
+  assert.equal(f.requests.length, 2);
+  if (process.platform !== "win32") assert.equal((await fs.stat(file)).mode & 0o777, 0o600);
+});
+
+test("existing JSON cache entries migrate atomically without network or loss of offline access", async t => {
+  const f = await fixture(t), scope = await f.cache.scope();
+  const key = "/api/v1/hostless-libraries/antd6/canvas?pkgId=pkg&version=1.0.0";
+  const file = f.cache.store.file(scope, "code", key), legacy = file.replace(/\.bin$/, ".json");
+  const headers = Object.fromEntries(scriptResponse().headers), body = Buffer.from(script).toString("base64");
+  await fs.mkdir(path.dirname(file), { recursive: true });
+  await fs.writeFile(legacy, JSON.stringify({ key, headers, body, digest: hash(JSON.stringify([key, headers, body])) }));
+  f.respond(() => { throw Error("offline"); });
+  assert.equal(await (await f.cache.fetch(codeRequest())).text(), script);
+  assert.equal(f.requests.length, 0);
+  await assert.rejects(fs.stat(legacy), { code: "ENOENT" });
+  assert.deepEqual((await f.cache.store.files()).map(entry => entry.file), [file]);
+  assert.equal(await (await new LibraryCache(f.options).fetch(codeRequest())).text(), script);
+});
+
+test("a failed cache migration preserves the old entry and authorized contents", async t => {
+  const f = await fixture(t), scope = await f.cache.scope(), key = "fixture";
+  const file = f.cache.store.file(scope, "code", key), legacy = file.replace(/\.bin$/, ".json");
+  const body = Buffer.from(script).toString("base64"), headers = {};
+  await fs.mkdir(path.dirname(file), { recursive: true });
+  await fs.writeFile(legacy, JSON.stringify({ key, headers, body, digest: hash(JSON.stringify([key, headers, body])) }));
+  t.mock.method(f.cache.store, "write", async () => { throw Error("disk unavailable"); });
+  assert.equal((await f.cache.store.read(scope, "code", key, () => {})).body.toString(), script);
+  assert.ok(await fs.stat(legacy));
+});
+
+test("binary cache quota prunes unprotected entries while active consumers retain their body", async t => {
+  const f = await fixture(t, { maxBytes: 1000 }), scope = await f.cache.scope();
+  const release = f.cache.store.protect(scope, "code", "first");
+  const body = Buffer.alloc(500, 65), check = () => f.cache.check(scope);
+  await f.cache.store.write(scope, "code", "first", body, {}, check);
+  await f.cache.store.write(scope, "code", "second", body, {}, check);
+  assert.deepEqual((await f.cache.store.read(scope, "code", "first", check)).body, body);
+  assert.equal(await f.cache.store.read(scope, "code", "second", check), undefined);
+  release();
+  await f.cache.store.write(scope, "code", "third", body, {}, check);
+  assert.equal(await f.cache.store.read(scope, "code", "first", check), undefined);
+  assert.ok((await f.cache.store.files()).reduce((sum, file) => sum + file.bytes, 0) <= 1000);
+});

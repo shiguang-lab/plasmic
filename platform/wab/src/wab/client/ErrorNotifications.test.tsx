@@ -1,20 +1,13 @@
 import { assert } from "@/wab/shared/common";
 import { normalizeError, showError } from "@/wab/client/ErrorNotifications";
-import { showTemporaryInfo } from "@/wab/client/components/quick-modals";
 import { setLanguagePreference } from "@/wab/client/i18n";
 import { UserError } from "@/wab/shared/UserError";
 import { HttpError, NetworkError } from "@/wab/shared/ApiErrors/ApiError";
-import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, render, screen } from "@testing-library/react";
 import { message, notification } from "antd";
-import copy from "copy-to-clipboard";
 import React from "react";
 import { mock } from "vitest-mock-extended";
 import { runInNewContext } from "vm";
-
-vi.mock("@/wab/client/components/quick-modals", () => ({
-  showTemporaryInfo: vi.fn().mockResolvedValue(undefined),
-}));
-vi.mock("copy-to-clipboard", () => ({ default: vi.fn().mockReturnValue(true) }));
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -61,69 +54,21 @@ it("localizes connectivity notices and updates mounted notice content on languag
   args.onClose?.();
 });
 
-it("shows the specific exception and localizes repeat counts without displaying the stack", async () => {
-  await act(async () => await setLanguagePreference("zh-CN"));
-  const open = vi.spyOn(message, "error").mockReturnValue(mock());
-  const error = new Error("MyComponent{count}$&: socket error");
-  showError(error);
-  showError(error);
-  const args = open.mock.calls[1][0];
-  assert(args !== null && typeof args === "object" && "content" in args, "Expected a message configuration");
-  expect(args.duration).toBe(4);
-  render(<>{args.content}</>);
-  expect(screen.getByText("意外错误（出现 2 次）")).toBeTruthy();
-  expect(screen.getByText("Error: MyComponent{count}$&: socket error")).toBeTruthy();
-  expect(screen.getByRole("button", { name: "查看详情" })).toBeTruthy();
-  expect(screen.queryByText(error.stack ?? "missing stack")).toBeNull();
-  args.onClose?.();
-});
-
-it("counts different exceptions separately even when their headings match", () => {
-  const open = vi.spyOn(message, "error").mockReturnValue(mock());
-  showError(new TypeError("Cannot read table column"));
-  showError(new Error("Canvas frame has no state"));
-  showError(new TypeError("Cannot read table column"));
-  const args = open.mock.calls.map(([value]) => {
-    assert(value !== null && typeof value === "object" && "content" in value, "Expected a message configuration");
-    return value;
-  });
-  expect(args[0].key).not.toBe(args[1].key);
-  expect(args[2].key).toBe(args[0].key);
-  render(<>{args[1].content}{args[2].content}</>);
-  expect(screen.getByText("Unexpected error (2 occurrences)")).toBeTruthy();
-  expect(screen.getByText("Unexpected error")).toBeTruthy();
-  args.forEach((value) => value.onClose?.());
-});
-
-it.each([
-  new Error("STACK:" + " technical error".repeat(2000)),
-  new UserError("A very long title ".repeat(200), "DETAIL:".repeat(2000)),
-])("keeps the toast brief and exposes the complete exception and description in details", async (error) => {
+it("keeps technical details in the console without a details interaction", () => {
   const open = vi.spyOn(message, "error").mockReturnValue(mock());
   const log = vi.spyOn(console, "error").mockReturnValue(undefined);
-  showError(error, { title: "Operation failed", description: "RAW:".repeat(2000) });
+  const error = new HttpError(503, "RAW:".repeat(2000));
+  error.request = { method: "GET", url: "/api/v1/projects" };
+  showError(error, { title: "Failed to load projects" });
   const args = open.mock.calls[0][0];
-  assert(args !== null && typeof args === "object" && "content" in args, "Expected a message configuration");
-  const toast = render(<>{args.content}</>);
-  expect(screen.getByText("Operation failed")).toBeTruthy();
-  expect(toast.container.textContent?.length).toBeLessThan(400);
-  expect(toast.container.textContent).not.toContain("RAW:");
-  expect(log).toHaveBeenCalledWith("Studio operation failed", expect.objectContaining({ error, description: "RAW:".repeat(2000) }));
-  fireEvent.click(screen.getByRole("button", { name: "View details" }));
-  await waitFor(() => expect(showTemporaryInfo).toHaveBeenCalledOnce());
-  const modal = vi.mocked(showTemporaryInfo).mock.calls[0][0];
-  toast.unmount();
-  const { container } = render(<>{modal.title}{modal.content}</>);
-  const details = container.querySelector("pre");
-  expect(details?.textContent).toContain(error.message);
-  expect(details?.textContent).toContain(error.stack);
-  expect(details?.textContent).toContain("RAW:".repeat(2000));
-  if (error instanceof UserError) {
-    expect(details?.textContent).toContain(error.description);
-  }
-  fireEvent.click(screen.getByRole("button", { name: "Copy details" }));
-  expect(copy).toHaveBeenCalledWith(details?.textContent);
-  expect(screen.getByRole("button", { name: "Copied" })).toBeTruthy();
+  assert(args !== null && typeof args === "object" && "content" in args, "Expected message");
+  const view = render(<>{args.content}</>);
+  expect(view.container.textContent).toBe("Service unavailable");
+  expect(screen.queryByRole("button")).toBeNull();
+  const record = JSON.parse(log.mock.calls[0][0].slice("Studio operation failed ".length));
+  expect(record.message).toBe(error.message);
+  expect(record.stack).toBe(error.stack);
+  expect(record.request).toEqual(error.request);
   args.onClose?.();
 });
 
@@ -135,48 +80,4 @@ it("preserves the name, message and original stack of an exception from another 
   expect(normalized.name).toBe("TypeError");
   expect(normalized.message).toBe(error.message);
   expect(normalized.stack).toBe(error.stack);
-});
-
-it.each([
-  {error: Object.assign(new HttpError(502), {request: {method: "GET", url: "/api/v1/projects/project/ai/chat/events?afterSeq=7"}}), title: "服务不可用", reason: "网关无法连接服务，服务可能正在重启或暂时不可用。", status: "HTTP 502"},
-  {error: Object.assign(new HttpError(504), {request: {method: "GET", url: "/api/v1/projects/project/ai/chat/events?afterSeq=7"}}), title: "服务不可用", reason: "网关等待服务响应超时。", status: "HTTP 504"},
-  {error: new NetworkError({method: "GET", url: "/api/v1/projects/project/ai/chat/events?afterSeq=7"}), title: "连接暂时中断", reason: "未收到服务响应，请检查网络连接及服务是否可访问。", status: undefined},
-])("distinguishes $error.name/$status and includes the request in copied details", async ({error, title, reason, status}) => {
-  await act(async () => await setLanguagePreference("zh-CN"));
-  const open = vi.spyOn(message, "error").mockReturnValue(mock());
-  showError(error);
-  const args = open.mock.calls[0][0];
-  assert(args !== null && typeof args === "object" && "content" in args, "Expected a message configuration");
-  const toast = render(<>{args.content}</>);
-  expect(screen.getByText(title)).toBeTruthy();
-  expect(screen.getByText(reason)).toBeTruthy();
-  fireEvent.click(screen.getByRole("button", {name: "查看详情"}));
-  await waitFor(() => expect(showTemporaryInfo).toHaveBeenCalledOnce());
-  const modal = vi.mocked(showTemporaryInfo).mock.calls[0][0];
-  toast.unmount();
-  const details = render(<>{modal.content}</>);
-  expect(details.container.querySelector("pre")?.textContent).toContain("GET /api/v1/projects/project/ai/chat/events?afterSeq=7");
-  if (status) {expect(details.container.querySelector("pre")?.textContent).toContain(status);}
-  fireEvent.click(screen.getByRole("button", {name: "复制详情"}));
-  expect(copy).toHaveBeenCalledWith(details.container.querySelector("pre")?.textContent);
-  args.onClose?.();
-});
-
-it("keeps the actual details dialog open after the toast disappears and closes it normally", async () => {
-  vi.mocked(showTemporaryInfo).mockImplementationOnce(async (opts) => {
-    const actual = await vi.importActual<typeof import("@/wab/client/components/quick-modals")>("@/wab/client/components/quick-modals");
-    return actual.showTemporaryInfo(opts);
-  });
-  const open = vi.spyOn(message, "error").mockReturnValue(mock());
-  showError(new TypeError("Cannot read table column"));
-  const args = open.mock.calls[0][0];
-  assert(args !== null && typeof args === "object" && "content" in args, "Expected a message configuration");
-  const toast = render(<>{args.content}</>);
-  fireEvent.click(screen.getByRole("button", { name: "View details" }));
-  await screen.findByRole("dialog", { name: "Error details" });
-  toast.unmount();
-  expect(screen.getByRole("dialog", { name: "Error details" }).textContent).toContain("TypeError: Cannot read table column");
-  fireEvent.click(screen.getByRole("button", { name: "Close" }));
-  await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
-  args.onClose?.();
 });

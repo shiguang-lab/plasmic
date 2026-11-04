@@ -23,6 +23,9 @@ creates a second browser cache for these resources.
 
 Desktop stores immutable code and dependency-model contents in `library-cache/`
 under user data, isolated by Studio origin, account and actual renderer hash.
+Cache entries contain a small integrity-checked metadata header and raw binary
+body. Existing JSON/base64 entries migrate on read without a network request;
+failed migration retains the original entry for offline use.
 Code hits read disk directly, without HEAD, ETag or expiry requests. The project
 and package APIs still authorize each load and select current revisions, migrations
 and automatic upgrades. Initial opening uses one project GET with `includeStartup=true`
@@ -88,7 +91,7 @@ status with hover explanations. Web retains its existing remote-save behavior.
 
 ## Build and run
 
-Requires Node >=22.12, npm, curl, and Docker for extracting the released web build.
+Requires Node >=22.12, npm, Go (the version in `mcp/go.mod`), curl, and Docker for extracting the released web build.
 Run in `desktop`:
 
 ```sh
@@ -222,7 +225,7 @@ content-envelope escaping (images are separate). Oversized values return a
 append the entry key to the path to descend. Strings return `text` chunks and
 UTF-16 `nextOffset` values. Follow continuation offsets without cutting surrogate
 pairs. Up to 16 snapshots / 64 MiB are retained per MCP connection; references expire
-on disconnection or eviction. Reading does not re-execute edits. SVG and captured
+on STDIO disconnection, eviction or ten minutes without a read. Reading does not re-execute edits. SVG and captured
 HTML use references even when small. Authenticated local RPC remains complete
 for the verifier's evidence files.
 
@@ -404,6 +407,24 @@ usage must be read from the actual model client, not inferred from byte counts.
 
 Run `npm test` for Desktop checks and `npx electron tests/reference-browser-native.cjs`
 for actual Chromium selection, navigation, isolation and import integration.
+`npm run test:background` verifies real Electron graphics workers, the Go STDIO
+roundtrip, sandboxed draft API, checkpoint recovery, account fencing and ASAR
+worker loading with production graph dependencies.
+`npm run test:background-packaged` verifies a signed ASAR fixture with production
+fuses, disabled Node environment injection, and child cleanup after normal exit
+and owner crash on macOS.
+
+Tracing and vector Boolean operations run in one serial Electron utility process
+per Desktop controller. Draft parsing and durable storage use a separate utility
+process per store; only summary metadata and UTF-8 bytes cross the main thread.
+The page's public draft API still reads objects and writes JSON strings. These
+processes start on demand and terminate after 15 seconds idle; at most two are
+active in the normal App, independently of MCP connection count. Their separate
+address spaces let idle exit reclaim heavy runtime/native allocations. Draft summary metadata stays
+with the main owner and is validated against file identity after restart. Graph
+cancellation terminates the active worker; draft shutdown drains accepted writes
+before releasing its worker. Replacement work waits for the previous process to
+exit. No TCP listener or client-side release is required.
 
 ## Presentation addresses
 
@@ -469,8 +490,8 @@ The release plan compares production inputs and skips unchanged patch products. 
 builds macOS arm64 on Apple Silicon, macOS x64 on Intel, Windows x64 on Windows,
 and Linux x64 on Linux. macOS installers and updates use only
 `darwin/arm64/` and `darwin/x64/`; Rosetta launches select arm64.
-The Node test suite runs on Linux and Windows alongside the Studio image build.
-The Intel Mac installer job runs the macOS Node suite before native acceptance
+The Go bridge and Node test suites run on Linux and Windows alongside the Studio image build.
+The Intel Mac installer job runs both suites before native acceptance
 and packaging, so the release requests an ARM Mac runner only for its native
 acceptance and installer job. A linked release reuses
 successful tests only when their commit matches the packaged source revision.
@@ -577,11 +598,30 @@ Packaging embeds the platform icon; see `assets/README.md` for the design source
 
 ## Runtime
 
-Each stdio MCP client starts a bridge process that connects to the running
-Desktop through an authenticated local socket. The bridge refuses startup when
-Desktop is unavailable. Its persistent session ends when Desktop quits or
-crashes, closing MCP and exiting the bridge even if the AI client keeps stdin
-open. Closing a window into Dynamic Island keeps Desktop and MCP available.
+Each stdio MCP client starts the native Go bridge in `mcp/`, without a Node runtime
+or GUI subprocess. `npm run build:mcp` embeds tool contracts and descriptions from
+`src/mcp-contract.cjs`, bootstrap instructions, styles and package configuration;
+those registrations remain the source of truth. The build emits a standalone
+executable and `LICENSES.mcp.txt` under `mcp-bin/<platform>-<arch>/` for packaging.
+Installed clients do not need Go or Node. MCP initialization and tool discovery
+work while Desktop is closed. The first tool requiring Desktop opens an authenticated
+local socket and registers that client's identity. Desktop shutdown or crash closes
+the internal session; the bridge keeps STDIO open and reconnects on the next tool
+call, without polling or restarting the client. Calls while Desktop is unavailable
+return `DESKTOP_UNAVAILABLE` with `operationExecuted:false`. A transport failure
+after sending a command returns `DESKTOP_CONNECTION_LOST` with
+`operationExecuted:null`: the operation may have run and is never automatically
+replayed. The bridge does not launch Desktop. Closing a window into Dynamic Island
+keeps Desktop and MCP available; closing the client's STDIO releases its session
+and exits the bridge.
+
+Tool argument validators compile on first use. Large result snapshots remain
+connection-local and readable across Desktop restarts, with a limit of 16 retained
+results and a 64 MiB budget (a single oversized result is retained). Each snapshot
+expires after ten minutes without a `read_result` access; reading renews its lease.
+Expiry releases the cached data even when no new requests arrive, and closing the
+MCP connection clears all snapshots. Expired results require a fresh source read;
+never repeat a successful mutation to recover a receipt.
 
 Startup checks the saved project's access before restoring its route and viewport.
 Unavailable projects are removed from the saved history and open the dashboard.
@@ -930,9 +970,23 @@ activation policies during the discovery probe and initialized MCP startup.
 `PLASMIC_APP_PATH` selects a bundle; `PLASMIC_REPORT_DIR` retains the trace.
 
 `pnpm run test:mcp-lifecycle` starts an isolated GUI with three independent MCP
-clients whose stdin remains open. It verifies bridge exit on normal quit and
-GUI crash, refusal to connect while Desktop is closed, and successful reconnect
-after restarting Desktop. It uses local fixtures without NAS or design edits.
+clients whose stdin remains open. It verifies offline MCP initialization, rejection
+of Desktop-dependent tools while closed, survival of normal quit and GUI crash,
+reconnection through the same bridge processes after restarting Desktop, and bridge
+exit on stdin EOF. It uses local fixtures without NAS or design edits.
+
+On macOS, after `npm run build:mcp`, run
+`node tests/performance/mcp-bridge.cjs /absolute/path/to/baseline/plasmic-mcp /tmp/mcp-footprint.json`
+from `desktop` to compare a saved helper with the current build. It samples ten
+fresh processes per binary against an isolated local
+RPC fixture, recording physical footprint, RSS, discovery time, first-call latency
+and raw/gzip executable sizes. It also measures eleven simultaneous connections
+for 30 seconds, with nine idle and two reading. This is a fixture workload, not
+long-running live design usage. Keep builds and other performance tests stopped
+during measurement. `node tests/mcp-parity.cjs /absolute/path/to/node-baseline/plasmic-mcp /tmp/mcp-parity.json`
+compares tool contracts, handshake negotiation, paged outputs and errors against a
+saved optimized Node executable. `npm test` rebuilds the Go helper and runs both
+Go unit tests and the existing JavaScript client regressions against it.
 
 Screenshots and exports clone the rendered canvas into an isolated window with
 scripting disabled and empty slot placeholders removed. They wait for fonts and
@@ -967,3 +1021,17 @@ The chosen service must implement JSON `/images/generations`, multipart `/images
 Account identity uses a localized signed-in status dot beside the account name; the footer contains the email rather than a repeated sign-in label. Idle account cards also show the currently resolved theme and UI language as read-only metadata; these follow the shared appearance/localization snapshots and yield to account loading and MCP tasks/errors. Account loading uses two aligned rectangular content placeholders with a continuous shimmer, plus a short identity placeholder when needed. Loading is announced accessibly; reduced-motion preferences disable the shimmer. MCP activity retains its task and error display while statistics load.
 
 The signed-out capsule shows Plasmic on the left and a localized Sign in link on the right, and stays compact on hover. Sign in opens the existing browser authorization flow directly. The OAuth callback preserves the current presentation mode; in island mode, the main window stays hidden while the shared session is established and verified account data replaces the link. The closing preference is retained.
+
+### Error diagnostics
+
+Studio shows short localized error categories without a technical details dialog.
+Full request/status/stack diagnostics appear in the Web console. Desktop saves
+these renderer records in `<profile>/logs/errors.log`, rotating at 5 MiB with one
+backup (`errors.log.1`). The default macOS profile is
+`~/Library/Application Support/Plasmic Desktop`; `PLASMIC_DESKTOP_PROFILE` overrides
+it. Agent-triggered changes and saves return failures to the caller without
+showing client error toasts. User-triggered operations retain normal feedback.
+
+Verify file logging with `node --test desktop/tests/error-log.test.cjs` and
+`desktop/node_modules/.bin/electron desktop/tests/error-log-native.cjs` from the
+repository root.

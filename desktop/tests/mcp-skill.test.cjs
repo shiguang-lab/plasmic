@@ -1,9 +1,9 @@
+const { mcpTransport } = require("./fixtures/mcp.cjs");
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const { mkdtemp, rm, mkdir, writeFile } = require("node:fs/promises");
 const { tmpdir } = require("node:os");
 const path = require("node:path");
-const { readSkillBootstrap } = require("../src/skill-bootstrap.cjs");
 const { startRpc } = require("../src/local-rpc.cjs");
 const { Client } = require("@modelcontextprotocol/sdk/client/index.js");
 const { StdioClientTransport } = require("@modelcontextprotocol/sdk/client/stdio.js");
@@ -13,12 +13,7 @@ test("MCP bootstrap works without an open editor or a bundled workflow file", as
   t.after(() => rm(agentsHome, { recursive: true, force: true }));
   t.after(await startRpc(agentsHome, async () => { throw new Error("Bootstrap must not read an editor"); }));
   const client = new Client({ name: "skill-test", version: "1.0.0" });
-  const transport = new StdioClientTransport({
-    command: process.execPath,
-    args: ["-e", `require(${JSON.stringify(require.resolve("../src/mcp.cjs"))}).serveMcp(${JSON.stringify(agentsHome)})`],
-    stderr: "pipe",
-    env: { ...process.env, DSH_AGENTS_HOME: agentsHome },
-  });
+  const transport = new StdioClientTransport(mcpTransport(agentsHome, { env: { ...process.env, DSH_AGENTS_HOME: agentsHome } }));
   t.after(() => client.close());
   await client.connect(transport);
   assert.match(client.getInstructions(), /read_skill/);
@@ -52,9 +47,7 @@ test("MCP honors an explicit local source and never falls back when that source 
   await writeFile(config, JSON.stringify({ source: "local", resolver }));
   const client = new Client({ name: "local-skill-test", version: "1.0.0" });
   t.after(() => client.close());
-  await client.connect(new StdioClientTransport({ command: process.execPath,
-    args: ["-e", `require(${JSON.stringify(require.resolve("../src/mcp.cjs"))}).serveMcp(${JSON.stringify(agentsHome)})`],
-    env: { ...process.env, DSH_AGENTS_HOME: agentsHome }, stderr: "pipe" }));
+  await client.connect(new StdioClientTransport(mcpTransport(agentsHome, { env: { ...process.env, DSH_AGENTS_HOME: agentsHome } })));
   const result = await client.callTool({ name: "read_skill", arguments: {} });
   assert.ok(!result.isError);
   const bootstrap = JSON.parse(result.content.find((item) => item.type === "text").text);
@@ -67,9 +60,11 @@ test("MCP honors an explicit local source and never falls back when that source 
   await rm(resolver);
   assert.equal((await client.callTool({ name: "read_skill", arguments: {} })).isError, true);
   await writeFile(config, JSON.stringify({ source: "local", resolver: "relative.mjs" }));
-  await assert.rejects(readSkillBootstrap(agentsHome), /absolute resolver/);
+  const invalidResolver = await client.callTool({ name: "read_skill", arguments: {} });
+  assert.equal(invalidResolver.isError, true);
+  assert.match(JSON.parse(invalidResolver.content[0].text).detail.message, /absolute resolver/);
   await writeFile(config, "invalid JSON");
-  await assert.rejects(readSkillBootstrap(agentsHome), SyntaxError);
+  assert.equal((await client.callTool({ name: "read_skill", arguments: {} })).isError, true);
 });
 
 test("MCP uses the current client's non-shared skill path without falling back", async (t) => {
@@ -85,9 +80,7 @@ test("MCP uses the current client's non-shared skill path without falling back",
   await writeFile(path.join(skill, "local-source.json"), JSON.stringify({ source: "local", resolver }));
   const client = new Client({ name: "non-shared-skill-test", version: "1.0.0" });
   t.after(() => client.close());
-  await client.connect(new StdioClientTransport({ command: process.execPath,
-    args: ["-e", `require(${JSON.stringify(require.resolve("../src/mcp.cjs"))}).serveMcp(${JSON.stringify(root)})`],
-    env: { ...process.env, DSH_AGENTS_HOME: path.join(root, ".agents") }, stderr: "pipe" }));
+  await client.connect(new StdioClientTransport(mcpTransport(root, { env: { ...process.env, DSH_AGENTS_HOME: path.join(root, ".agents") } })));
   const read = async (args) => client.callTool({ name: "read_skill", arguments: args });
   const payload = (result) => JSON.parse(result.content.find((item) => item.type === "text").text);
   assert.equal(payload(await read({})).source, "published");

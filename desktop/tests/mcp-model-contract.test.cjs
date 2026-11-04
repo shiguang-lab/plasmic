@@ -1,3 +1,4 @@
+const { mcpTransport } = require("./fixtures/mcp.cjs");
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs/promises");
@@ -17,8 +18,7 @@ test("MCP advertises and routes library discovery, inspection, component search,
   });
   const client = new Client({ name: "library-test", version: "1.0.0" });
   try {
-    await client.connect(new StdioClientTransport({ command: process.execPath,
-      args: ["-e", `require(${JSON.stringify(require.resolve("../src/mcp.cjs"))}).serveMcp(${JSON.stringify(profile)})`], stderr: "pipe" }));
+    await client.connect(new StdioClientTransport(mcpTransport(profile)));
     const { tools } = await client.listTools();
     const execute = tools.find((tool) => tool.name === "execute");
     const state = tools.find((tool) => tool.name === "get_app_state");
@@ -55,11 +55,7 @@ test("MCP transports batch bindings, compact receipts and explicit read projecti
   });
   const client = new Client({ name: "model-test", version: "1.0.0" });
   try {
-    await client.connect(new StdioClientTransport({
-      command: process.execPath,
-      args: ["-e", `require(${JSON.stringify(require.resolve("../src/mcp.cjs"))}).serveMcp(${JSON.stringify(profile)})`],
-      stderr: "pipe",
-    }));
+    await client.connect(new StdioClientTransport(mcpTransport(profile)));
     const batch = { operations: [
       { as: "page", name: "createComponent", input: { name: "Records", type: "page" } },
       { name: "changeElement", input: { componentUuid: "$page", elementUuid: "$page.root", name: "Root" } },
@@ -93,8 +89,7 @@ test("MCP pages mutation receipts, SVG and CDP output without repeating RPC oper
   });
   const client = new Client({ name: "bounded-test", version: "1.0.0" });
   try {
-    await client.connect(new StdioClientTransport({ command: process.execPath,
-      args: ["-e", `require(${JSON.stringify(require.resolve("../src/mcp.cjs"))}).serveMcp(${JSON.stringify(profile)})`], stderr: "pipe" }));
+    await client.connect(new StdioClientTransport(mcpTransport(profile)));
     const call = async (name, input) => {
       const response = await client.callTool({ name, arguments: input });
       assert.equal(response.isError, false, response.content[0].text);

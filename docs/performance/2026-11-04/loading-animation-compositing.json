@@ -1,0 +1,1051 @@
+{
+  "environment": {
+    "electron": "45.2.1",
+    "platform": "macOS arm64",
+    "scope": "Isolated visible native windows; offline immutable GP/complex fixtures; diagnostic capture is not display FPS or OS input latency."
+  },
+  "waiting": {
+    "cases": [
+      {
+        "variant": "before",
+        "phase": "waiting",
+        "initial": {
+          "rafCalls": 385,
+          "attrWrites": 2350,
+          "solid": "1",
+          "scaffold": "0",
+          "mask": false,
+          "animations": 1
+        },
+        "running": {
+          "rafCalls": 385,
+          "attrWrites": 2350,
+          "solid": "1",
+          "scaffold": "0",
+          "mask": false,
+          "animations": 1
+        },
+        "idleWindowTaskMs": 45.24599999999998,
+        "compositingReasons": [
+          [
+            "Is a scrollable overflow element using accelerated scrolling."
+          ],
+          [
+            "Is the document.rootScroller.",
+            "Is a scrollable overflow element using accelerated scrolling."
+          ],
+          [
+            "Has an active accelerated transform animation or transition.",
+            "Has an active accelerated opacity animation or transition."
+          ],
+          [
+            "Is for the visual viewport."
+          ]
+        ],
+        "shots": [
+          {
+            "colored": 11361,
+            "at": 0,
+            "finished": 50,
+            "hash": "85b05d0a70d29c03c5d1c32a2078898fad6dd5cc908dfcff7537b0b792488d35"
+          },
+          {
+            "colored": 11223,
+            "at": 151,
+            "finished": 170,
+            "hash": "164782dfd0c1d015133f5d3415db626f78b21d7afc43e5bcc4f2cb3313e4a81c"
+          },
+          {
+            "colored": 11223,
+            "at": 271,
+            "finished": 298,
+            "hash": "164782dfd0c1d015133f5d3415db626f78b21d7afc43e5bcc4f2cb3313e4a81c"
+          },
+          {
+            "colored": 11223,
+            "at": 400,
+            "finished": 420,
+            "hash": "164782dfd0c1d015133f5d3415db626f78b21d7afc43e5bcc4f2cb3313e4a81c"
+          },
+          {
+            "colored": 11223,
+            "at": 521,
+            "finished": 543,
+            "hash": "164782dfd0c1d015133f5d3415db626f78b21d7afc43e5bcc4f2cb3313e4a81c"
+          },
+          {
+            "colored": 11223,
+            "at": 645,
+            "finished": 667,
+            "hash": "164782dfd0c1d015133f5d3415db626f78b21d7afc43e5bcc4f2cb3313e4a81c"
+          },
+          {
+            "colored": 11223,
+            "at": 768,
+            "finished": 792,
+            "hash": "164782dfd0c1d015133f5d3415db626f78b21d7afc43e5bcc4f2cb3313e4a81c"
+          },
+          {
+            "colored": 11223,
+            "at": 893,
+            "finished": 916,
+            "hash": "164782dfd0c1d015133f5d3415db626f78b21d7afc43e5bcc4f2cb3313e4a81c"
+          },
+          {
+            "colored": 11223,
+            "at": 1017,
+            "finished": 1043,
+            "hash": "164782dfd0c1d015133f5d3415db626f78b21d7afc43e5bcc4f2cb3313e4a81c"
+          },
+          {
+            "colored": 11223,
+            "at": 1144,
+            "finished": 1163,
+            "hash": "164782dfd0c1d015133f5d3415db626f78b21d7afc43e5bcc4f2cb3313e4a81c"
+          },
+          {
+            "colored": 11223,
+            "at": 1264,
+            "finished": 1290,
+            "hash": "164782dfd0c1d015133f5d3415db626f78b21d7afc43e5bcc4f2cb3313e4a81c"
+          },
+          {
+            "colored": 11361,
+            "at": 1391,
+            "finished": 1418,
+            "hash": "e5f9dd8472194fef74e8c06c5b4da6ae5632fc30eee641f5dcd544cee3135f4a"
+          }
+        ],
+        "blockMs": 1200
+      },
+      {
+        "variant": "after",
+        "phase": "waiting",
+        "initial": {
+          "rafCalls": 384,
+          "attrWrites": 1048,
+          "solid": "1",
+          "scaffold": "0",
+          "mask": false,
+          "animations": 1
+        },
+        "running": {
+          "rafCalls": 384,
+          "attrWrites": 1048,
+          "solid": "1",
+          "scaffold": "0",
+          "mask": false,
+          "animations": 1
+        },
+        "idleWindowTaskMs": 2.1829999999999905,
+        "compositingReasons": [
+          [
+            "Is a scrollable overflow element using accelerated scrolling."
+          ],
+          [
+            "Is the document.rootScroller.",
+            "Is a scrollable overflow element using accelerated scrolling."
+          ],
+          [
+            "Is the document.rootScroller.",
+            "Is a scrollable overflow element using accelerated scrolling."
+          ],
+          [
+            "Has an active accelerated transform animation or transition.",
+            "Has an active accelerated opacity animation or transition."
+          ],
+          [
+            "Is the document.rootScroller.",
+            "Is a scrollable overflow element using accelerated scrolling."
+          ],
+          [
+            "Is for the visual viewport."
+          ]
+        ],
+        "shots": [
+          {
+            "colored": 11345,
+            "at": 0,
+            "finished": 50,
+            "hash": "83f4c77e36b6494d5ff28e906e814f18bd2d1eae2e8ebab8f39bbc887bdf846e"
+          },
+          {
+            "colored": 11133,
+            "at": 152,
+            "finished": 175,
+            "hash": "ed231d5a596a1ce69bf87545d7fe4c1f52877a3664427f680ceef87b5ab26bb6"
+          },
+          {
+            "colored": 11262,
+            "at": 275,
+            "finished": 302,
+            "hash": "74ad6843fdead6f22d5c41073b4ff49d3c6f14fb117ff448544e5f3516b0f794"
+          },
+          {
+            "colored": 11842,
+            "at": 403,
+            "finished": 425,
+            "hash": "50f9f4bd1734b27b845945799572df68607981c66b4b271673d681bfffa9e19d"
+          },
+          {
+            "colored": 12411,
+            "at": 526,
+            "finished": 550,
+            "hash": "c569143c083da4a99aa44edc20b7b5b90989f26568cd569f47071f1cae1988c5"
+          },
+          {
+            "colored": 12638,
+            "at": 651,
+            "finished": 674,
+            "hash": "0709d743b40feba6908e15dd52e415c11d2e8cee11e3750faf6322c259cafc4c"
+          },
+          {
+            "colored": 12644,
+            "at": 775,
+            "finished": 799,
+            "hash": "726080732b80d833802ed4f55b28437005dceaf703df7da3dafbbf2263001519"
+          },
+          {
+            "colored": 12652,
+            "at": 900,
+            "finished": 924,
+            "hash": "c691457a1392f4fd9cd45923a51679006503be410f862a36e4471b7d49ad70d1"
+          },
+          {
+            "colored": 12654,
+            "at": 1025,
+            "finished": 1049,
+            "hash": "25dbfa607e6d7494093eb37e803e1688be034f53acea08984e6550897c4426d4"
+          },
+          {
+            "colored": 12601,
+            "at": 1150,
+            "finished": 1174,
+            "hash": "988b41f833039fe18586d133a0ca6be3c78254e162c00c2f43515b2ce74afdeb"
+          },
+          {
+            "colored": 11396,
+            "at": 1276,
+            "finished": 1298,
+            "hash": "d0baa8732570a28dcbd3cc5cd38859f8e28508b08cef98090a78b022856c460c"
+          },
+          {
+            "colored": 11291,
+            "at": 1400,
+            "finished": 1427,
+            "hash": "8cb1d0a625c5bd481e80930df44ec0384b94882d0e12d9867a52e969ea66769e"
+          }
+        ],
+        "blockMs": 1200
+      },
+      {
+        "variant": "after",
+        "phase": "waiting",
+        "initial": {
+          "rafCalls": 385,
+          "attrWrites": 1060,
+          "solid": "1",
+          "scaffold": "0",
+          "mask": false,
+          "animations": 1
+        },
+        "running": {
+          "rafCalls": 385,
+          "attrWrites": 1060,
+          "solid": "1",
+          "scaffold": "0",
+          "mask": false,
+          "animations": 1
+        },
+        "idleWindowTaskMs": 2.133999999999997,
+        "compositingReasons": [
+          [
+            "Is a scrollable overflow element using accelerated scrolling."
+          ],
+          [
+            "Is the document.rootScroller.",
+            "Is a scrollable overflow element using accelerated scrolling."
+          ],
+          [
+            "Is the document.rootScroller.",
+            "Is a scrollable overflow element using accelerated scrolling."
+          ],
+          [
+            "Has an active accelerated transform animation or transition.",
+            "Has an active accelerated opacity animation or transition."
+          ],
+          [
+            "Is the document.rootScroller.",
+            "Is a scrollable overflow element using accelerated scrolling."
+          ],
+          [
+            "Is for the visual viewport."
+          ]
+        ],
+        "shots": [
+          {
+            "colored": 11332,
+            "at": 0,
+            "finished": 50,
+            "hash": "b511e6ed542331abe8360e943fa6cd5044418c084c97de92a2f3e501256624b4"
+          },
+          {
+            "colored": 11122,
+            "at": 151,
+            "finished": 172,
+            "hash": "3bc0bdfbecf29a048fe41ae9d7a17819d4c08419e09609141928f126f272b53c"
+          },
+          {
+            "colored": 11282,
+            "at": 273,
+            "finished": 299,
+            "hash": "9f33d096129d698be86a7753e86debdaf1380515bc5159bf5bf26a941d5a4d81"
+          },
+          {
+            "colored": 11886,
+            "at": 400,
+            "finished": 422,
+            "hash": "e2b9be46967372f4711c17a49ac14319d4decffa799cdf23dab684e2ef0ed7ce"
+          },
+          {
+            "colored": 12447,
+            "at": 522,
+            "finished": 547,
+            "hash": "a49b00e50350c38a7569867ad7532aa5da8cbd3288dd2b149f5d6b81de1ce1d0"
+          },
+          {
+            "colored": 12638,
+            "at": 648,
+            "finished": 672,
+            "hash": "3f3103cfb405f768bae9dcd18d86ad35f4a84db8771708574d95ed9070499d61"
+          },
+          {
+            "colored": 12644,
+            "at": 773,
+            "finished": 797,
+            "hash": "9aea4828dfb1f2c96a39f84b669a1f96095d905085070f5c55321cb3a9f023eb"
+          },
+          {
+            "colored": 12652,
+            "at": 898,
+            "finished": 922,
+            "hash": "bd1435825ca021669910ea93aa8ea0a887ae745b6c684656ca262ba449e64358"
+          },
+          {
+            "colored": 12653,
+            "at": 1023,
+            "finished": 1047,
+            "hash": "83f9fb90a9732968abc643f5fb54bbd15d79670bd5f48de7fb65f54329ebfda4"
+          },
+          {
+            "colored": 12490,
+            "at": 1148,
+            "finished": 1172,
+            "hash": "892363fda54f722a418e1f1434e4557a8518395b344e878dcb14470bf9fcd2c3"
+          },
+          {
+            "colored": 11396,
+            "at": 1273,
+            "finished": 1297,
+            "hash": "4c7a6f3b6838aa3603a9ea893f85369e323cbe4249a7db898f39ed303a094509"
+          },
+          {
+            "colored": 11275,
+            "at": 1399,
+            "finished": 1426,
+            "hash": "52c01b716540ac598a86541f86db9fea03f236572dbbe5f641666eec7112f4d9"
+          }
+        ],
+        "blockMs": 1200
+      },
+      {
+        "variant": "before",
+        "phase": "waiting",
+        "initial": {
+          "rafCalls": 385,
+          "attrWrites": 2350,
+          "solid": "1",
+          "scaffold": "0",
+          "mask": false,
+          "animations": 1
+        },
+        "running": {
+          "rafCalls": 385,
+          "attrWrites": 2350,
+          "solid": "1",
+          "scaffold": "0",
+          "mask": false,
+          "animations": 1
+        },
+        "idleWindowTaskMs": 55.038000000000004,
+        "compositingReasons": [
+          [
+            "Is a scrollable overflow element using accelerated scrolling."
+          ],
+          [
+            "Is the document.rootScroller.",
+            "Is a scrollable overflow element using accelerated scrolling."
+          ],
+          [
+            "Has an active accelerated transform animation or transition.",
+            "Has an active accelerated opacity animation or transition."
+          ],
+          [
+            "Is for the visual viewport."
+          ]
+        ],
+        "shots": [
+          {
+            "colored": 11362,
+            "at": 0,
+            "finished": 31,
+            "hash": "c6587c9d816a36f08f51552916e9cb43736f4bfd88efc083765b7d20dff77a05"
+          },
+          {
+            "colored": 11223,
+            "at": 133,
+            "finished": 152,
+            "hash": "6240b9fd24d1977e6825f797ee881e1a71286d035dd19df2f499db87270d225c"
+          },
+          {
+            "colored": 11223,
+            "at": 253,
+            "finished": 275,
+            "hash": "6240b9fd24d1977e6825f797ee881e1a71286d035dd19df2f499db87270d225c"
+          },
+          {
+            "colored": 11223,
+            "at": 376,
+            "finished": 399,
+            "hash": "6240b9fd24d1977e6825f797ee881e1a71286d035dd19df2f499db87270d225c"
+          },
+          {
+            "colored": 11223,
+            "at": 501,
+            "finished": 522,
+            "hash": "6240b9fd24d1977e6825f797ee881e1a71286d035dd19df2f499db87270d225c"
+          },
+          {
+            "colored": 11223,
+            "at": 624,
+            "finished": 645,
+            "hash": "6240b9fd24d1977e6825f797ee881e1a71286d035dd19df2f499db87270d225c"
+          },
+          {
+            "colored": 11223,
+            "at": 746,
+            "finished": 770,
+            "hash": "6240b9fd24d1977e6825f797ee881e1a71286d035dd19df2f499db87270d225c"
+          },
+          {
+            "colored": 11223,
+            "at": 870,
+            "finished": 895,
+            "hash": "6240b9fd24d1977e6825f797ee881e1a71286d035dd19df2f499db87270d225c"
+          },
+          {
+            "colored": 11223,
+            "at": 996,
+            "finished": 1021,
+            "hash": "6240b9fd24d1977e6825f797ee881e1a71286d035dd19df2f499db87270d225c"
+          },
+          {
+            "colored": 11223,
+            "at": 1121,
+            "finished": 1145,
+            "hash": "6240b9fd24d1977e6825f797ee881e1a71286d035dd19df2f499db87270d225c"
+          },
+          {
+            "colored": 11223,
+            "at": 1245,
+            "finished": 1263,
+            "hash": "6240b9fd24d1977e6825f797ee881e1a71286d035dd19df2f499db87270d225c"
+          },
+          {
+            "colored": 11413,
+            "at": 1365,
+            "finished": 1390,
+            "hash": "f6724304b9278e73ba5b4dc73840a3df2a0e98f806a7e091b4cd751a29132e50"
+          },
+          {
+            "colored": 11153,
+            "at": 1491,
+            "finished": 1520,
+            "hash": "f4cc3e5c972248541107c3678a0269c0442b970882d9fc4faeb5813669dc23d5"
+          }
+        ],
+        "blockMs": 1200
+      }
+    ]
+  },
+  "native": {
+    "captures": [
+      {
+        "at": 0.005042000000685221,
+        "finished": 11.49212500000067,
+        "hash": "32fe95dd427e5c1810e38c3171e19218bf7b95e2120617da73c793ed0524c80a"
+      },
+      {
+        "at": 113.35466699999961,
+        "finished": 119.07049999999981,
+        "hash": "b7c037df890f5f2a24123e215d98b373ea4d507143345ff89aec509f24b04bf6"
+      },
+      {
+        "at": 220.00937499999964,
+        "finished": 227.04770800000006,
+        "hash": "e74c1c293ece8e17249623a0ed1d2b760d5752b7fdb70f218c17379cb4465b8b"
+      },
+      {
+        "at": 328.4063750000005,
+        "finished": 335.3248330000006,
+        "hash": "246cbe8b3d0141cdccb551e06db2c90245d9e2c0737568ecc1ffa07ba31e39c4"
+      },
+      {
+        "at": 436.64850000000115,
+        "finished": 443.5715,
+        "hash": "476bda792c917bc8fe6a1fcafe95ff337236ea19bb9e59bdc15bb3eb02b4f494"
+      },
+      {
+        "at": 544.5952080000006,
+        "finished": 551.9348330000012,
+        "hash": "e981f94aa40024f0b6cc104a03d3ccaff77778b80eef4804a0b5e865fb88aa55"
+      },
+      {
+        "at": 653.2412920000006,
+        "finished": 660.2528750000001,
+        "hash": "bcd0e4476bffef1449e4b29f29902128e087302660990fafd7da3cca809a4012"
+      },
+      {
+        "at": 761.5955420000009,
+        "finished": 768.5757919999996,
+        "hash": "0cb38f36b59ea7066dd09bd62a5153de621b5b3ce9651ef3f5d9536c096fe839"
+      },
+      {
+        "at": 869.9136670000007,
+        "finished": 876.9895830000005,
+        "hash": "9e80bcbaa849641e5ef1d68fe4be331ffdfa08918d82b2e5df4a2d00cea6b5eb"
+      },
+      {
+        "at": 977.6347920000007,
+        "finished": 984.4408330000006,
+        "hash": "5ed3708a07443d5e371dd6c8bc9b1a79b4311a65981ff8bc145f171d07c04335"
+      },
+      {
+        "at": 1084.8110420000012,
+        "finished": 1093.797958000001,
+        "hash": "b9ce30f943558998407baa6759fb44331a26c058dd5edd779427fdac92af402e"
+      },
+      {
+        "at": 1195.1125420000008,
+        "finished": 1201.9308330000003,
+        "hash": "a4b6c672ca6fa208b59bcaed90b278bbd53457ff53c745c4b7998d3e2c9b106e"
+      },
+      {
+        "at": 1303.2929999999997,
+        "finished": 1310.2342499999995,
+        "hash": "b1ee003d2143fcc1f73b7f6a5f5dce5f99914c9579b9588c9801d29876ceb4e2"
+      },
+      {
+        "at": 1410.6349169999994,
+        "finished": 1419.1407080000008,
+        "hash": "260652e17a27551ce5467a04e13d540f694e56b955312ee1422c08fa2f680ea7"
+      }
+    ],
+    "busyFrames": 9,
+    "blockMs": 1200,
+    "start": {
+      "jsFrames": 1,
+      "pieces": 6,
+      "reads": 0,
+      "mask": true,
+      "opacity": "0",
+      "animations": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "constructed": {
+      "jsFrames": 385,
+      "pieces": 0,
+      "reads": 0,
+      "mask": false,
+      "opacity": "1",
+      "animations": [
+        3495.7549999744747
+      ]
+    },
+    "waited": {
+      "jsFrames": 385,
+      "pieces": 0,
+      "reads": 0,
+      "mask": false,
+      "opacity": "1",
+      "animations": [
+        5987.3009999744745
+      ]
+    },
+    "stopped": {
+      "jsFrames": 385,
+      "pieces": 0,
+      "reads": 0,
+      "mask": false,
+      "opacity": "1",
+      "animations": []
+    },
+    "reduced": {
+      "jsFrames": 385,
+      "pieces": 0,
+      "reads": 0,
+      "mask": false,
+      "opacity": "1",
+      "animations": []
+    },
+    "longWaitTaskDurationMs": 4.406999999999995
+  },
+  "timing": {
+    "A": {
+      "runs": [
+        {
+          "mode": "shimmer-A1",
+          "rendererHash": "75de967c27143712a9a7967544ff99e5dcd836cc32a3f836a137e4125cc2815e",
+          "rows": [
+            {
+              "open": 1,
+              "measured": false,
+              "canvasRevealedMs": 1703.4,
+              "allFramesRenderedMs": 1723
+            },
+            {
+              "open": 2,
+              "measured": false,
+              "canvasRevealedMs": 1764.5,
+              "allFramesRenderedMs": 1785.3
+            },
+            {
+              "open": 3,
+              "measured": true,
+              "canvasRevealedMs": 1700.5,
+              "allFramesRenderedMs": 1720.3
+            },
+            {
+              "open": 4,
+              "measured": true,
+              "canvasRevealedMs": 1577.9,
+              "allFramesRenderedMs": 1597.5
+            },
+            {
+              "open": 5,
+              "measured": true,
+              "canvasRevealedMs": 1763.1,
+              "allFramesRenderedMs": 1783
+            },
+            {
+              "open": 6,
+              "measured": true,
+              "canvasRevealedMs": 1709.3,
+              "allFramesRenderedMs": 1729.5
+            }
+          ],
+          "rendererErrors": 0,
+          "thumbnailFixtureErrors": 7
+        },
+        {
+          "mode": "shimmer-A2",
+          "rendererHash": "75de967c27143712a9a7967544ff99e5dcd836cc32a3f836a137e4125cc2815e",
+          "rows": [
+            {
+              "open": 1,
+              "measured": false,
+              "canvasRevealedMs": 1608.2,
+              "allFramesRenderedMs": 1628.2
+            },
+            {
+              "open": 2,
+              "measured": false,
+              "canvasRevealedMs": 1600.8,
+              "allFramesRenderedMs": 1620.7
+            },
+            {
+              "open": 3,
+              "measured": true,
+              "canvasRevealedMs": 1569.7,
+              "allFramesRenderedMs": 1589.7
+            },
+            {
+              "open": 4,
+              "measured": true,
+              "canvasRevealedMs": 1730.0,
+              "allFramesRenderedMs": 1750.8
+            },
+            {
+              "open": 5,
+              "measured": true,
+              "canvasRevealedMs": 1602,
+              "allFramesRenderedMs": 1622.1
+            },
+            {
+              "open": 6,
+              "measured": true,
+              "canvasRevealedMs": 1567.2,
+              "allFramesRenderedMs": 1587.3
+            }
+          ],
+          "rendererErrors": 0,
+          "thumbnailFixtureErrors": 7
+        }
+      ],
+      "medianMs": {
+        "canvasRevealedMs": 1651.25,
+        "allFramesRenderedMs": 1671.2
+      }
+    },
+    "B": {
+      "runs": [
+        {
+          "mode": "shimmer-B1",
+          "rendererHash": "b4390d03f1896b21824396ad920c7f62dd79b2e02290d79a48830a803eb27f28",
+          "rows": [
+            {
+              "open": 1,
+              "measured": false,
+              "canvasRevealedMs": 1842.5,
+              "allFramesRenderedMs": 1864.1
+            },
+            {
+              "open": 2,
+              "measured": false,
+              "canvasRevealedMs": 1618.5,
+              "allFramesRenderedMs": 1639.4
+            },
+            {
+              "open": 3,
+              "measured": true,
+              "canvasRevealedMs": 1770.8,
+              "allFramesRenderedMs": 1792.5
+            },
+            {
+              "open": 4,
+              "measured": true,
+              "canvasRevealedMs": 1636.3,
+              "allFramesRenderedMs": 1657.4
+            },
+            {
+              "open": 5,
+              "measured": true,
+              "canvasRevealedMs": 1731.2,
+              "allFramesRenderedMs": 1751.8
+            },
+            {
+              "open": 6,
+              "measured": true,
+              "canvasRevealedMs": 1671.9,
+              "allFramesRenderedMs": 1691.2
+            }
+          ],
+          "rendererErrors": 0,
+          "thumbnailFixtureErrors": 7
+        },
+        {
+          "mode": "shimmer-B2",
+          "rendererHash": "b4390d03f1896b21824396ad920c7f62dd79b2e02290d79a48830a803eb27f28",
+          "rows": [
+            {
+              "open": 1,
+              "measured": false,
+              "canvasRevealedMs": 1587.6,
+              "allFramesRenderedMs": 1608.3
+            },
+            {
+              "open": 2,
+              "measured": false,
+              "canvasRevealedMs": 1712.8,
+              "allFramesRenderedMs": 1732.6
+            },
+            {
+              "open": 3,
+              "measured": true,
+              "canvasRevealedMs": 1709,
+              "allFramesRenderedMs": 1732
+            },
+            {
+              "open": 4,
+              "measured": true,
+              "canvasRevealedMs": 1652.7,
+              "allFramesRenderedMs": 1673.4
+            },
+            {
+              "open": 5,
+              "measured": true,
+              "canvasRevealedMs": 1608.1,
+              "allFramesRenderedMs": 1627.9
+            },
+            {
+              "open": 6,
+              "measured": true,
+              "canvasRevealedMs": 1599.8,
+              "allFramesRenderedMs": 1619.1
+            }
+          ],
+          "rendererErrors": 0,
+          "thumbnailFixtureErrors": 7
+        }
+      ],
+      "medianMs": {
+        "canvasRevealedMs": 1662.3,
+        "allFramesRenderedMs": 1682.3
+      }
+    }
+  },
+  "rejectedNativeConstruction": {
+    "A": {
+      "runs": [
+        {
+          "mode": "logo-A1",
+          "rendererHash": "75de967c27143712a9a7967544ff99e5dcd836cc32a3f836a137e4125cc2815e",
+          "rows": [
+            {
+              "open": 1,
+              "measured": false,
+              "canvasRevealedMs": 1587.6,
+              "allFramesRenderedMs": 1607.1
+            },
+            {
+              "open": 2,
+              "measured": false,
+              "canvasRevealedMs": 1560.9,
+              "allFramesRenderedMs": 1581.1
+            },
+            {
+              "open": 3,
+              "measured": true,
+              "canvasRevealedMs": 1596.4,
+              "allFramesRenderedMs": 1616.9
+            },
+            {
+              "open": 4,
+              "measured": true,
+              "canvasRevealedMs": 1551.9,
+              "allFramesRenderedMs": 1571.4
+            },
+            {
+              "open": 5,
+              "measured": true,
+              "canvasRevealedMs": 1561.5,
+              "allFramesRenderedMs": 1581.4
+            },
+            {
+              "open": 6,
+              "measured": true,
+              "canvasRevealedMs": 1601,
+              "allFramesRenderedMs": 1620.1
+            }
+          ],
+          "rendererErrors": 0,
+          "thumbnailFixtureErrors": 7
+        },
+        {
+          "mode": "logo-A2",
+          "rendererHash": "75de967c27143712a9a7967544ff99e5dcd836cc32a3f836a137e4125cc2815e",
+          "rows": [
+            {
+              "open": 1,
+              "measured": false,
+              "canvasRevealedMs": 1601.6,
+              "allFramesRenderedMs": 1621.5
+            },
+            {
+              "open": 2,
+              "measured": false,
+              "canvasRevealedMs": 1582,
+              "allFramesRenderedMs": 1602.8
+            },
+            {
+              "open": 3,
+              "measured": true,
+              "canvasRevealedMs": 1616.2,
+              "allFramesRenderedMs": 1635.8
+            },
+            {
+              "open": 4,
+              "measured": true,
+              "canvasRevealedMs": 1597.7,
+              "allFramesRenderedMs": 1618.4
+            },
+            {
+              "open": 5,
+              "measured": true,
+              "canvasRevealedMs": 1573.8,
+              "allFramesRenderedMs": 1592.9
+            },
+            {
+              "open": 6,
+              "measured": true,
+              "canvasRevealedMs": 1605.1,
+              "allFramesRenderedMs": 1625
+            }
+          ],
+          "rendererErrors": 0,
+          "thumbnailFixtureErrors": 7
+        }
+      ],
+      "medianMs": {
+        "canvasRevealedMs": 1597.05,
+        "allFramesRenderedMs": 1617.65
+      }
+    },
+    "B": {
+      "runs": [
+        {
+          "mode": "logo-B1",
+          "rendererHash": "a9cc2a176f004c72d1274cfecde21313e3f61fb446a30c07e9fe5ca7a610b457",
+          "rows": [
+            {
+              "open": 1,
+              "measured": false,
+              "canvasRevealedMs": 2899.3,
+              "allFramesRenderedMs": 2921.6
+            },
+            {
+              "open": 2,
+              "measured": false,
+              "canvasRevealedMs": 1708.9,
+              "allFramesRenderedMs": 1730.4
+            },
+            {
+              "open": 3,
+              "measured": true,
+              "canvasRevealedMs": 1699.2,
+              "allFramesRenderedMs": 1721.2
+            },
+            {
+              "open": 4,
+              "measured": true,
+              "canvasRevealedMs": 1694.7,
+              "allFramesRenderedMs": 1716.7
+            },
+            {
+              "open": 5,
+              "measured": true,
+              "canvasRevealedMs": 1679.8,
+              "allFramesRenderedMs": 1702.9
+            },
+            {
+              "open": 6,
+              "measured": true,
+              "canvasRevealedMs": 1728.4,
+              "allFramesRenderedMs": 1750.1
+            }
+          ],
+          "rendererErrors": 0,
+          "thumbnailFixtureErrors": 7
+        },
+        {
+          "mode": "logo-B2",
+          "rendererHash": "a9cc2a176f004c72d1274cfecde21313e3f61fb446a30c07e9fe5ca7a610b457",
+          "rows": [
+            {
+              "open": 1,
+              "measured": false,
+              "canvasRevealedMs": 1700.1,
+              "allFramesRenderedMs": 1721.6
+            },
+            {
+              "open": 2,
+              "measured": false,
+              "canvasRevealedMs": 1685,
+              "allFramesRenderedMs": 1706.9
+            },
+            {
+              "open": 3,
+              "measured": true,
+              "canvasRevealedMs": 1714.8,
+              "allFramesRenderedMs": 1736.8
+            },
+            {
+              "open": 4,
+              "measured": true,
+              "canvasRevealedMs": 1678.3,
+              "allFramesRenderedMs": 1700.3
+            },
+            {
+              "open": 5,
+              "measured": true,
+              "canvasRevealedMs": 1657.7,
+              "allFramesRenderedMs": 1679.3
+            },
+            {
+              "open": 6,
+              "measured": true,
+              "canvasRevealedMs": 1679.6,
+              "allFramesRenderedMs": 1700.8
+            }
+          ],
+          "rendererErrors": 0,
+          "thumbnailFixtureErrors": 7
+        }
+      ],
+      "medianMs": {
+        "canvasRevealedMs": 1687.25,
+        "allFramesRenderedMs": 1709.8
+      }
+    }
+  },
+  "functional": [
+    {
+      "project": "gp",
+      "cases": [
+        "switch-artboard",
+        "rename-undo-redo",
+        "rendered-style-undo-redo",
+        "frame-position-undo-redo",
+        "preview-business-pagination-return"
+      ],
+      "reopen": true,
+      "rendererErrors": 0,
+      "thumbnailFixtureErrors": 1
+    },
+    {
+      "project": "complex",
+      "cases": [
+        "switch-artboard",
+        "switch-artboard",
+        "switch-artboard",
+        "rename-undo-redo",
+        "rendered-style-undo-redo",
+        "frame-position-undo-redo",
+        "cold-frame-undo-selection-style",
+        "cold-frame-redo-rendered-style"
+      ],
+      "reopen": true,
+      "rendererErrors": 0,
+      "thumbnailFixtureErrors": 1
+    }
+  ],
+  "sourceHashes": {
+    "platform/wab/public/index.html": "52d2d00f29cb388dfdc9616dde18b56c2482420bdcb240a1e9808cdaf32817fb",
+    "platform/wab/src/wab/client/components/widgets/BrandLoading.tsx": "b1d45e0abec40ca75e28631906c8f7d381abe5b24cc0f0ebcc8d94ea3fcad413",
+    "platform/wab/src/wab/client/components/widgets/BrandLoading.module.scss": "6bf819cd4f59910a98dabeb2445590db3f0c3c945b314a8edcbb710b7bdebe58",
+    "platform/wab/src/wab/client/components/widgets/brand-loading-animation.js": "17199c31c0060ecc1494eb4fb69dcaa7995e1dd9eda806c45b54b0eadf0acbf4"
+  },
+  "build": {
+    "kind": "diagnostic",
+    "variant": "compositor-shimmer",
+    "sourceRoot": "/tmp/plasmic-opt-20261104/source",
+    "runtimeRevision": "cc50fd519d0df382f0657afbfe6b977528155898",
+    "rendererHash": "b4390d03f1896b21824396ad920c7f62dd79b2e02290d79a48830a803eb27f28"
+  },
+  "checks": {
+    "unitTests": 10,
+    "unitFiles": 2,
+    "typecheck": "passed",
+    "eslint": "passed",
+    "nativeSyntax": "passed",
+    "installedAppReplaced": false
+  },
+  "privateArtifacts": "/tmp/plasmic-logo-20261104"
+}

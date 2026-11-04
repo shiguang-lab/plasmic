@@ -20,13 +20,14 @@ async function mcp() {
   const {StdioClientTransport}=require("@modelcontextprotocol/sdk/client/stdio.js");
   let mutations=0;
   const png="iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aX1cAAAAASUVORK5CYII=";
-  const stop=await startRpc(profile,async(method,input)=>{
+  const dispatch=async(method,input)=>{
     if(method==="get_app_state")return {ok:true,large:"x".repeat(96000)};
     if(method==="get_screenshot")return {data:png,mimeType:"image/png",width:1,height:1};
     if(method==="execute"&&input.name==="save"){mutations++;return {saved:true};}
     if(method==="execute"&&input.name==="validate")throw Error("Expected diagnostic error");
     return {ok:true};
-  });
+  };
+  let stop=await startRpc(profile,dispatch);
   const samples=[],children=new Set();
   const before=process.env.PLASMIC_PERF_DESKTOP;
   if(!before)throw Error("fixed-mcp requires PLASMIC_PERF_DESKTOP baseline");
@@ -59,16 +60,23 @@ async function mcp() {
         functional:{initialize:true,listTools:true,rpc:true,largeResultPaging:true,mutationExactlyOnce:true,error:true,image:true,bundledStyle:true,bundledSkill:true},stderrBytes:Buffer.byteLength(stderr)});
       await client.close();children.delete(client);await sleep(500);
     }
-    // Keep stdin open and prove loss of host exits each transport naturally.
+    // The current bridge keeps STDIO alive and reconnects when the host returns.
     const live=[];
     for(const runtime of ["before","fixed"]) {
       const transport=new StdioClientTransport(launch(runtime));
       const client=new Client({name:"lifecycle",version:"1"},{capabilities:{}});await client.connect(transport);children.add(client);
+      assert.equal((await client.callTool({name:"get_app_state",arguments:{}})).isError,false);
       let closed=false;client.onclose=()=>{closed=true;};live.push({runtime,client,closed:()=>closed});
     }
-    await stop();await sleep(1000);for(const c of live){assert(c.closed());children.delete(c.client);}
-    return {samples,hostDisconnectExits:live.map(c=>({runtime:c.runtime,passed:c.closed()})),
-      limitation:"Actual SEA helper vs saved Electron baseline. RSS sums include shared pages; macOS native runtime only."};
+    await stop();await sleep(1000);
+    for(const c of live)assert.equal(c.closed(),c.runtime==="before");
+    stop=await startRpc(profile,dispatch);
+    const fixed=live.find(c=>c.runtime==="fixed");
+    assert.equal((await fixed.client.callTool({name:"get_app_state",arguments:{}})).isError,false);
+    const hostDisconnect=live.map(c=>({runtime:c.runtime,exited:c.closed(),reconnected:c.runtime==="fixed"}));
+    for(const c of live){await c.client.close();children.delete(c.client);}
+    return {samples,hostDisconnect,
+      limitation:"Actual native helper vs saved Electron baseline. RSS sums include shared pages; macOS native runtime only."};
   } finally {for(const c of children)await c.close().catch(()=>{});await stop().catch(()=>{});fs.rmSync(profile,{recursive:true,force:true});}
 }
 async function imageChild() {

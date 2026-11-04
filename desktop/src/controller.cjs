@@ -11,6 +11,7 @@ const { prototypeTools } = require("./prototype-mcp.cjs");
 const { requiredContext, currentContext, assertContext, contextError } = require("./tool-context.cjs");
 const { IslandActivity } = require("./island-activity.cjs");
 const { AsyncLocalStorage } = require("node:async_hooks");
+const { BackgroundWorker } = require("./background-worker.cjs");
 const { uiError } = require("./ui-error.cjs");
 const buildIdentity = (build) => createHash("sha256").update(JSON.stringify(build)).digest("hex");
 function validateResourceId(value, label) {
@@ -38,6 +39,7 @@ class DesktopController {
     this.activity = new IslandActivity();
     this.callerContext = new AsyncLocalStorage();
     this.signalContext = new AsyncLocalStorage();
+    this.graphics = new BackgroundWorker({ name: "Plasmic Graphics" });
     this.operations = this.activity.operations;
     this.pending = new Map();
     this.queue = Promise.resolve();
@@ -682,10 +684,7 @@ class DesktopController {
       if (image.isEmpty()) {
         throw new Error("Cannot decode image");
       }
-      const result = require("./raster-vector.cjs").tracePng(
-        image.toPNG(),
-        input.colors,
-      );
+      const result = await this.computeGraphic("trace", input, { png: image.toPNG(), colors: input.colors });
       if (input.outputPath) {
         if (
           !path.isAbsolute(input.outputPath) ||
@@ -707,7 +706,7 @@ class DesktopController {
       return result;
     }
     if (method === "make_vector") {
-      const result = require("./vector.cjs").makeVector(input);
+      const result = await this.computeGraphic("vector", input, input);
       if (input.componentUuid) {
         result.design = await this.editor("insertHtml", {
           componentUuid: input.componentUuid,
@@ -1121,6 +1120,18 @@ class DesktopController {
       mimeType: result.mimeType,
     };
   }
+  async computeGraphic(task, input, payload) {
+    const before = input.componentUuid ? await this.editor("getEditorContext") : null;
+    const result = await this.graphics.run(task, payload, { signal: this.signalContext.getStore() });
+    if (before) {
+      const after = await this.editor("getEditorContext");
+      if (["projectId", "branchId", "sessionId", "mode", "canEdit"].some(key => before[key] !== after[key])) {
+        throw contextError({ surface: "editor", projectId: before.projectId, sessionId: before.sessionId },
+          currentContext(await this.state(), this.config.studioOrigin), "Editor changed during background graphics computation");
+      }
+    }
+    return result;
+  }
   async inspectCanvas(input, read, forExport = false) {
     if (input.mode === "workspace" && (input.componentUuid || input.frameUuid)) {
       throw new Error(
@@ -1182,6 +1193,7 @@ class DesktopController {
     }
   }
   close() {
+    void this.graphics.close();
     this.browser?.dispose();
     void this.references.close().catch(() => {});
     ipcMain.removeListener("desktop:result", this.receive);

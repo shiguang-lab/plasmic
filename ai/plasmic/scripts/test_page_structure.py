@@ -90,6 +90,42 @@ class PageStructureTests(unittest.TestCase):
         self.assertIn(rule, project_reads(root={'pages': [{'path': '/draft'}]}))
         self.assertIn(rule, required_reads(self.page, stage='accept'))
 
+    def test_native_only_non_admin_page_reaches_saved_content_checks(self):
+        page = {
+            'path': '/about', 'name': '品牌介绍', 'pageType': 'non-admin', 'pageHeader': None,
+            'components': [],
+            'nodes': [{'nodeName': 'Introduction', 'tag': 'p', 'owner': None,
+                       'purpose': 'Introduce the brand', 'source': 'REQ §Brand introduction'}],
+            'pageStructure': {
+                'intent': 'Read the brand introduction', 'source': 'REQ §Brand introduction',
+                'layout': 'One static text region', 'rationale': 'No functional widget is needed',
+                'regions': [{'nodeName': 'Introduction', 'purpose': 'Brand introduction'}],
+                'sizing': 'Fluid width', 'scrolling': 'Host owns document scrolling', 'actions': 'None'},
+            'templates': [], 'templatesNotApplicable': 'Static editorial prose has no admin region',
+            'wireframe': {'notApplicable': 'Source is prose only'}, 'feedback': [],
+            'bindings': [], 'bindingsNotApplicable': 'Static content', 'runtimeCases': [],
+            'copy': {'source': 'REQ §Brand introduction', 'excluded': [], 'entries': [
+                {'nodeName': 'Introduction', 'at': '/text', 'text': '手作咖啡', 'kind': 'value'}]}}
+        original = {'pages': [page]}
+        prepared, pending = scaffold(original, '/about')
+        self.assertEqual(prepared, original)
+        self.assertEqual(pending, 0)
+        self.assertTrue(check(prepared)['passed'], check(prepared))
+        saved = {'type': 'page', 'pageMeta': {'path': '/about'},
+                 'baseVariantTplTree': '<p data-plasmic-name="Introduction">手作咖啡</p>'}
+        result = check(prepared, {'results': [saved]})
+        self.assertTrue(result['passed'], result)
+        saved['baseVariantTplTree'] = ''
+        self.assertFalse(check(prepared, {'results': [saved]})['passed'])
+
+    def test_scaffold_does_not_accept_an_empty_page_as_native_content(self):
+        for page_type, nodes in [('non-admin', []), ('non-admin', None), ('non-admin', {}),
+                                 ('list', [{'nodeName': 'Introduction', 'tag': 'p'}])]:
+            with self.subTest(page_type=page_type, nodes=nodes):
+                with self.assertRaisesRegex(ValueError, 'functional components'):
+                    scaffold({'pages': [{'path': '/empty', 'pageType': page_type,
+                                         'components': [], 'nodes': nodes}]})
+
     def test_scoped_cli_prepares_no_sibling_inventories(self):
         sibling = {'path': '/editor', 'pageStructure': {'intent': 'Edit with live preview'}}
         self.plan['pages'].append(sibling)

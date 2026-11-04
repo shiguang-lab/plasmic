@@ -26,8 +26,17 @@ if (window.top === window) {
   contextBridge.exposeInMainWorld("desktopDrafts", {
     open: (userId, projectId, branchId) => ipcRenderer.invoke("desktop:drafts", "open", { userId, projectId, branchId }),
     list: (userId) => ipcRenderer.invoke("desktop:drafts", "list", { userId }),
-    read: (handle, id) => ipcRenderer.invoke("desktop:drafts", "read", { handle, id }),
-    write: (handle, draftJson) => ipcRenderer.invoke("desktop:drafts", "write", { handle, draftJson }),
+    read: async (handle, id) => {
+      const data = await ipcRenderer.invoke("desktop:drafts", "read", { handle, id });
+      return data === null ? null : JSON.parse(new TextDecoder().decode(data));
+    },
+    write: async (handle, draftJson) => {
+      if (typeof draftJson !== "string") throw new Error("Invalid draft payload");
+      // JSON.stringify escapes lone UTF-16 surrogates; preserve them even for a
+      // caller supplying literal surrogate code units in its JSON source.
+      const json = draftJson.isWellFormed() ? draftJson : JSON.stringify(JSON.parse(draftJson));
+      return ipcRenderer.invoke("desktop:drafts", "write", { handle, draftData: new TextEncoder().encode(json) });
+    },
     remove: (handle, id, sequence) => ipcRenderer.invoke("desktop:drafts", "remove", { handle, id, sequence }),
   });
   let browserExpanded = false;

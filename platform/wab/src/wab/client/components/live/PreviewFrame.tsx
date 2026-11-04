@@ -12,7 +12,7 @@ import {
   getSortedHostLessPkgs,
   getVersionForCanvasPackages,
 } from "@/wab/client/components/studio/studio-bundles";
-import { useTopFrameApi } from "@/wab/client/contexts/AppContexts";
+import { useHostFrameCtx } from "@/wab/client/frame-ctx/host-frame-ctx";
 import { installPreviewAgentCursor } from "@/wab/client/copilot/agent-cursor";
 import { scriptExec } from "@/wab/client/script-exec";
 import { useI18n } from "@/wab/client/i18n";
@@ -56,7 +56,7 @@ interface LivePreview {
 }
 
 export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
-  const topFrameApi = useTopFrameApi();
+  const { revealStudio } = useHostFrameCtx();
   const { t } = useI18n();
   const { token } = theme.useToken();
   const full = previewCtx.full;
@@ -152,7 +152,7 @@ export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
       if ((error as Error)?.name === "SecurityError") { throw error; }
       await showPreviewLoadError(frameWindow, error);
       if (full && isMounted() && frameRef.current === frameWindow && frameGeneration.current === generation) {
-        await topFrameApi.setStudioReady();
+        await revealStudio();
       }
       return;
     }
@@ -256,7 +256,7 @@ export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
           if (!isCurrentFrame()) { return; }
           setInstallationStatus("failed");
           await showPreviewLoadError(win, error);
-          if (full && isCurrentFrame()) { await topFrameApi.setStudioReady(); }
+          if (full && isCurrentFrame()) { await revealStudio(); }
         }),
       );
     }
@@ -267,7 +267,7 @@ export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
     installedPkgs,
     installationStatus,
     full,
-    topFrameApi,
+    revealStudio,
     isMounted,
   ]);
 
@@ -303,7 +303,7 @@ export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
           frameGeneration.current === generation
         ) {
           readyNotified = true;
-          spawn(topFrameApi.setStudioReady());
+          spawn(revealStudio());
         }
       },
     });
@@ -324,7 +324,7 @@ export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
     usedPkgs,
     installedPkgs,
     full,
-    topFrameApi,
+    revealStudio,
   ]);
 
   // This effect scrolls when the component or hash changes.

@@ -1,3 +1,4 @@
+import { preloadAiMarkdown } from "@/wab/client/components/copilot/AiMarkdown";
 import { AiExecutionProgress } from "@/wab/client/components/copilot/AiExecutionProgress";
 import { LocalEditSession } from "@/wab/client/copilot/local-edit-session";
 import type { AiTask, EditRecord } from "@/wab/shared/copilot/ai-chat";
@@ -245,7 +246,8 @@ it("keeps chronological parts and folds thought summaries and technical details"
   ).toBe(true);
   expect(screen.getByText("StandardListPage")).toBeInTheDocument();
 });
-it("retains the same markdown and node reference when folding a thought summary", () => {
+it("retains the same markdown and node reference when folding a thought summary", async () => {
+  await preloadAiMarkdown();
   const session = mock<LocalEditSession>();
   const currentTask = task({
     parts: [
@@ -268,7 +270,7 @@ it("retains the same markdown and node reference when folding a thought summary"
   const toggle = within(thought).getByRole("button", {
     name: "Thought summary",
   });
-  const markdown = within(thought).getByTestId("ai-markdown");
+  const markdown = await within(thought).findByTestId("ai-markdown");
   const node = within(thought).getByRole("button", {
     name: "Locate node StandardListPage",
   });

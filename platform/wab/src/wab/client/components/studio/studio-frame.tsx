@@ -12,11 +12,9 @@ import {
   useTopFrameState,
   useProjectAiSession,
 } from "@/wab/client/components/TopFrame/TopFrameChrome";
-import { CanvasAiComposer } from "@/wab/client/components/copilot/CanvasAiComposer";
 import { useStudioStartup } from "@/wab/client/components/studio/StudioChrome";
 import { TopFrameCopilotToolsBridge } from "@/wab/client/components/studio/TopFrameCopilotToolsBridge";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
-import { useLocalAiStatus } from "@/wab/client/copilot/use-local-ai-status";
 import { buildPlasmicStudioArgsHash } from "@/wab/client/frame-ctx/plasmic-studio-args";
 import {
   TopFrameCtxProvider,
@@ -252,15 +250,26 @@ export function StudioFrame({
     enabled: !!project && appCtx.appConfig.enableLocalAiEditing,
     panelOpen: topFrameChromeProps.aiPanelOpen,
   });
-  useLocalAiStatus(projectId, editorRoute && appCtx.appConfig.enableLocalAiEditing);
 
   const updateStartup = useStudioStartup();
+  React.useLayoutEffect(() => () => {
+    updateStartup({ composer: undefined, ready: false });
+  }, [updateStartup]);
   React.useLayoutEffect(() => {
     updateStartup({
       projectName: project?.name,
       ready: studioReady && !studioError,
       failure: studioError ? <LoadingError detail={studioError} onRetry={() => location.reload()} /> : undefined,
       hidden: untrustedHost || topFrameChromeProps.studioModalOpen,
+      composer: {
+        appCtx,
+        visible: showComposer,
+        loading: !studioReady || !!studioError,
+        context: studioReady && !studioError && editorPerm
+          ? topFrameChromeProps.localAiContext
+          : undefined,
+        onOpen: () => openAiChat.current?.() ?? Promise.resolve(),
+      },
     });
   }, [
     updateStartup,
@@ -269,6 +278,10 @@ export function StudioFrame({
     studioError,
     untrustedHost,
     topFrameChromeProps.studioModalOpen,
+    appCtx,
+    showComposer,
+    editorPerm,
+    topFrameChromeProps.localAiContext,
   ]);
 
   useBrowserNotification();
@@ -331,16 +344,6 @@ export function StudioFrame({
 
   return (
     <>
-      {showComposer && (
-        <CanvasAiComposer
-          key={`canvas-ai-${projectId}`}
-          appCtx={appCtx}
-          projectId={projectId}
-          context={editorPerm ? topFrameChromeProps.localAiContext : undefined}
-          onOpen={() => openAiChat.current?.() ?? Promise.resolve()}
-          hiddenByModal={topFrameChromeProps.studioModalOpen}
-        />
-      )}
       {project && src && <TopFrameCtxProvider
       key={projectId}
       projectId={projectId}

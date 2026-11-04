@@ -1,0 +1,14 @@
+{
+  "sourceHashesMatch": true,
+  "hostCases": 13,
+  "hostInvocations": 208,
+  "nativeRuns": 4,
+  "workersReleased": true,
+  "javascriptTests": {
+    "pass": 562,
+    "fail": 0
+  },
+  "goTests": "passed via npm test",
+  "nativeBackground": "passed",
+  "nativeCache": "passed"
+}

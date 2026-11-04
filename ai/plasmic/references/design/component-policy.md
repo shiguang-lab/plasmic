@@ -36,6 +36,8 @@ The checker reads the real file and exact excerpt, verifies its hash and recogni
 
 Every planned standalone shell declares `appContext.required` with exact source evidence. App 来源, App Source, app_source, appSource, appId/app_id/application_id, app_name, 应用标识/应用名称, multi-App requirements and equivalent application identifiers trigger context review. Review whether they identify distinct working Apps rather than merely mentioning an application's display title. Excluding a business filter or form field does not remove the global App selector. An explicit current instruction disabling the top-level switcher is a separate exception.
 
+The static gate validates the declaration, source evidence and the required-context contract. Whether the source requires distinct working Apps is a source-review decision; these keywords trigger that review, not an automatic `required:true` verdict. An application's display name alone does not establish a switchable App context.
+
 For a required context, record `shell`, the actual shared `binding`, `consumers` and cases. A consumer uses its native `nodeName` and `property`; `kind` is data/create/export/navigation as applicable. For data-query-driven controls, `queryName` selects the actual native query whose arguments carry the context. Use native implicit AppShell.appSource state when its live state contract fits; do not add redundant callbacks around that native state. Otherwise wire the existing page/host context through the real appSource/onAppSourceChange contract. Cross-page persistence needs the actual supported router/host contract and a navigation case, not a claim based on local shell state.
 
 ```json

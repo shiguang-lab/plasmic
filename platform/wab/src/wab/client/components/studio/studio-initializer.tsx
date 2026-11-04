@@ -1,3 +1,5 @@
+import { preloadAiMarkdown } from "@/wab/client/components/copilot/AiMarkdown";
+import { requestIdleCallback, clearIdleCallback } from "@/wab/client/requestidlecallback";
 import { plexusKey, storageViewAsKey } from "@/wab/client/LocalStorageKey";
 import { AppCtx } from "@/wab/client/app-ctx";
 import { isHostFrame } from "@/wab/client/cli-routes";
@@ -13,9 +15,8 @@ import { ViewEditor } from "@/wab/client/components/studio/view-editor";
 import * as widgets from "@/wab/client/components/widgets";
 import { LoadingError } from "@/wab/client/components/widgets/LoadingError";
 import { AlertSpec } from "@/wab/client/components/widgets/plasmic/AlertBanner";
-import { useTopFrameApi } from "@/wab/client/contexts/AppContexts";
 import { providesViewCtx } from "@/wab/client/contexts/StudioContexts";
-import { HostFrameCtx } from "@/wab/client/frame-ctx/host-frame-ctx";
+import { HostFrameCtx, useHostFrameCtx } from "@/wab/client/frame-ctx/host-frame-ctx";
 import { checkRootSubHostVersion } from "@/wab/client/frame-ctx/windows";
 import { getUiLocale } from "@/wab/client/i18n";
 import { translate } from "@/wab/client/i18n/locales";
@@ -181,6 +182,13 @@ class StudioInitializer_ extends React.Component<
     );
 
     studioCtx.finishedLoading();
+    studioCtx.runAfterInitialCanvasReady(async () => {
+      const request = requestIdleCallback(() => {
+        // A failed speculative load is retried by the message's Loadable.
+        void preloadAiMarkdown().catch(() => undefined);
+      });
+      this._cleanups.push(() => clearIdleCallback(request));
+    });
 
     if (!appCtx.appConfig.ccStubs && !isHostLessPackage(studioCtx.site)) {
       // Version metadata and insertable templates are not needed to paint the
@@ -368,10 +376,10 @@ class StudioInitializer_ extends React.Component<
 export const StudioInitializer = observer(StudioInitializer_);
 
 function StudioInitializationError({ retry }: { retry: () => void }) {
-  const topFrameApi = useTopFrameApi();
+  const { revealStudio } = useHostFrameCtx();
   React.useEffect(() => {
-    spawn(topFrameApi.setStudioReady());
-  }, [topFrameApi]);
+    spawn(revealStudio());
+  }, [revealStudio]);
   return (
     <StudioChrome>
       <LoadingError onRetry={retry} />

@@ -1,3 +1,4 @@
+const { mcpTransport } = require("./fixtures/mcp.cjs");
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs/promises");
@@ -17,8 +18,7 @@ test("real MCP handshakes own subsequent calls without identity in tool argument
   const connect = async (info) => {
     const client = new Client({ ...info, version: "1" });
     clients.push(client);
-    await client.connect(new StdioClientTransport({ command: process.execPath,
-      args: ["-e", `require(${JSON.stringify(require.resolve("../src/mcp.cjs"))}).serveMcp(${JSON.stringify(profile)})`], stderr: "pipe" }));
+    await client.connect(new StdioClientTransport(mcpTransport(profile)));
     return client;
   };
   try {
@@ -63,8 +63,7 @@ test("MCP cancellation and session disconnect reach only their own running RPC",
   const clients = [];
   const connect = async name => {
     const client = new Client({ name, version: "1" }); clients.push(client);
-    await client.connect(new StdioClientTransport({ command: process.execPath,
-      args: ["-e", `require(${JSON.stringify(require.resolve("../src/mcp.cjs"))}).serveMcp(${JSON.stringify(profile)})`], stderr: "pipe" }));
+    await client.connect(new StdioClientTransport(mcpTransport(profile)));
     return client;
   };
   try {
@@ -91,5 +90,84 @@ test("MCP cancellation and session disconnect reach only their own running RPC",
     calls.forEach(call => call.release());
     await Promise.all(clients.map(client => client.close()));
     await stop(); await fs.rm(profile, { recursive: true, force: true });
+  }
+});
+
+test("STDIO starts offline and reconnects each caller on demand after Desktop restarts", { timeout: 15000 }, async () => {
+  const profile = await fs.mkdtemp(path.join(os.tmpdir(), "plasmic-mcp-reconnect-"));
+  const clients = [], transports = [];
+  const calls = [];
+  let stop;
+  const start = () => startRpc(profile, async (method, input, caller) => {
+    calls.push({ method, input, caller });
+    return method === "execute" ? { text: "snapshot".repeat(20000) } : { caller };
+  });
+  const decoded = result => JSON.parse(result.content[0].text);
+  try {
+    for (const name of ["codex", "chatgpt"]) {
+      const client = new Client({ name, version: "1" });
+      const transport = new StdioClientTransport(mcpTransport(profile, { env: { ...process.env, PLASMIC_DESKTOP_PROFILE: profile } }));
+      clients.push(client); transports.push(transport);
+      await client.connect(transport);
+      assert.ok((await client.listTools()).tools.length);
+    }
+    const pids = transports.map(transport => transport.pid);
+    const offline = await clients[0].callTool({ name: "get_app_state", arguments: {} });
+    assert.equal(offline.isError, true);
+    assert.equal(decoded(offline).detail.code, "DESKTOP_UNAVAILABLE");
+    assert.equal(decoded(offline).detail.operationExecuted, false);
+
+    stop = await start();
+    await Promise.all([0, 0, 1].map(index => clients[index].callTool({ name: "get_app_state", arguments: {} })));
+    const codexCalls = calls.filter(call => call.caller.name === "Codex");
+    assert.equal(codexCalls.length, 2);
+    assert.equal(codexCalls[0].caller.id, codexCalls[1].caller.id, "Concurrent calls share a single registered session");
+    assert.notEqual(codexCalls[0].caller.id, calls.find(call => call.caller.name === "ChatGPT").caller.id);
+    const firstCaller = codexCalls[0].caller.id;
+    const ref = decoded(await clients[0].callTool({ name: "execute", arguments: { name: "read", input: {} } }));
+    await stop(); stop = undefined;
+    const snapshot = await clients[0].callTool({ name: "read_result", arguments: { resultId: ref.resultId } });
+    assert.equal(snapshot.isError, false, "Detached snapshots remain readable while Desktop is offline");
+    const failed = await clients[0].callTool({ name: "get_app_state", arguments: {} });
+    assert.equal(failed.isError, true);
+    assert.equal(decoded(failed).detail.operationExecuted, false);
+    stop = await start();
+    for (const client of clients) {
+      const result = await client.callTool({ name: "get_app_state", arguments: {} });
+      assert.equal(result.isError, false, result.content[0].text);
+    }
+    assert.notEqual(calls.at(-2).caller.id, firstCaller);
+    assert.notEqual(calls.at(-2).caller.id, calls.at(-1).caller.id);
+    assert.deepEqual(transports.map(transport => transport.pid), pids, "The same STDIO processes survive restart");
+    assert.equal(calls.filter(call => call.method === "execute").length, 1);
+  } finally {
+    await Promise.all(clients.map(client => client.close()));
+    await stop?.(); await fs.rm(profile, { recursive: true, force: true });
+  }
+});
+
+test("Desktop loss during a mutation reports unknown execution and never replays it", { timeout: 10000 }, async () => {
+  const profile = await fs.mkdtemp(path.join(os.tmpdir(), "plasmic-mcp-no-replay-"));
+  let mutations = 0;
+  let stop = await startRpc(profile, async () => {
+    mutations++;
+    await stop();
+    return { saved: true };
+  });
+  const client = new Client({ name: "codex", version: "1" });
+  try {
+    await client.connect(new StdioClientTransport(mcpTransport(profile, { env: { ...process.env, PLASMIC_DESKTOP_PROFILE: profile } })));
+    const result = await client.callTool({ name: "execute", arguments: { name: "save" } });
+    assert.equal(result.isError, true);
+    const { detail } = JSON.parse(result.content[0].text);
+    assert.equal(detail.code, "DESKTOP_CONNECTION_LOST");
+    assert.equal(detail.operationExecuted, null);
+    assert.equal(mutations, 1);
+    stop = await startRpc(profile, async () => ({ mutations }));
+    const recovered = await client.callTool({ name: "get_app_state", arguments: {} });
+    assert.equal(recovered.isError, false);
+    assert.deepEqual(JSON.parse(recovered.content[0].text), { mutations: 1 });
+  } finally {
+    await client.close(); await stop(); await fs.rm(profile, { recursive: true, force: true });
   }
 });

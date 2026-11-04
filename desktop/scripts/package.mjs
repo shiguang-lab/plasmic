@@ -61,7 +61,7 @@ const outputs = await build({
     asar: true,
     extraResources: [
       { from: path.join(mcpDirectory, platform === "win32" ? "plasmic-mcp.exe" : "plasmic-mcp"), to: "mcp/" + (platform === "win32" ? "plasmic-mcp.exe" : "plasmic-mcp") },
-      { from: path.join(mcpDirectory, "LICENSE.node"), to: "mcp/LICENSE.node" },
+      { from: path.join(mcpDirectory, "LICENSES.mcp.txt"), to: "mcp/LICENSES.mcp.txt" },
     ],
     npmRebuild: false,
     electronFuses: runtimeSecurity.productionFuses,
@@ -76,13 +76,17 @@ const outputs = await build({
       execFileSync(path.join(bundle, "MacOS/Plasmic"), ["-e", `
         const { createRequire } = require("node:module");
         const packaged = createRequire(process.argv[1] + "/package.json");
-        packaged("./src/mcp.cjs");
         const metadata = packaged("./package.json");
         for (const name of Object.keys(metadata.dependencies)) {
-          if (name !== "@modelcontextprotocol/sdk") packaged(name);
+          packaged(name);
         }
-        console.log("Packaged MCP and runtime dependencies verified before disabling Node launch modes");
+        console.log("Packaged runtime dependencies verified before disabling Node launch modes");
       `, resources], { env: { ...process.env, ELECTRON_RUN_AS_NODE: "1" }, stdio: "inherit" });
+      if (arch === process.arch) {
+        const helper = path.join(bundle, "Resources/mcp/plasmic-mcp");
+        const version = JSON.parse(execFileSync(helper, ["--version"], { encoding: "utf8" }));
+        if (!version.go || version.version !== metadata.version) throw new Error("Packaged Go MCP verification failed");
+      }
     },
     afterSign: async (context) => {
       if (platform !== "darwin" || process.platform !== "darwin") return;
