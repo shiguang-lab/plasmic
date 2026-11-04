@@ -660,6 +660,19 @@ export class CanvasCtx {
   controlStyleSheet() {
     return this._controlStyleNode.sheet as CSSStyleSheet;
   }
+  private visibleDisplayClasses = new Map<string, string>();
+
+  /** Reveal an instance through its existing className contract, including code components. */
+  getVisibleDisplayClass(display: string) {
+    let name = this.visibleDisplayClasses.get(display);
+    if (!name) {
+      name = `__wab_canvas_visible_${this.visibleDisplayClasses.size}`;
+      const sheet = this.controlStyleSheet();
+      sheet.insertRule(`html body .${name} { display: ${display} !important; }`, sheet.cssRules.length);
+      this.visibleDisplayClasses.set(display, name);
+    }
+    return name;
+  }
   getRange(..._args) {
     return domMod.range(this.doc());
   }

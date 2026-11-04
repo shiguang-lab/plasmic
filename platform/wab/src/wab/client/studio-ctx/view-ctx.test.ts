@@ -2,6 +2,7 @@ import {
   buildValTree,
   TEST_GLOBAL_VARIANT,
 } from "@/wab/__testonly__/tpls";
+import { CanvasSessionState } from "@/wab/client/components/canvas/canvas-session-state";
 import { ViewOps } from "@/wab/client/components/canvas/view-ops";
 import { CanvasContentEditor } from "@/wab/client/studio-ctx/canvas-content-editor";
 import { ComponentCtx } from "@/wab/client/studio-ctx/component-ctx";
@@ -67,7 +68,7 @@ test("canvas overview renders offscreen artboards only in the current arena with
 
 function overlayViewCtx() {
   return Object.assign(Object.create(ViewCtx.prototype), {
-    _canvasOverlayStates: observable.map(),
+    canvasSessionState: new CanvasSessionState(),
     _autoOpenedUuid: observable.box<string | undefined>(),
     _disabledAutoOpenUuid: observable.box<string | undefined>(),
     scheduleSync: vi.fn(),

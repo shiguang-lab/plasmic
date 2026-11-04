@@ -71,7 +71,7 @@ export function AntdDropdown(
       {...rest}
       open={open}
       destroyOnHidden={isEditing ? true : props.destroyOnHidden}
-      onOpenChange={isEditing ? undefined : props.onOpenChange}
+      onOpenChange={isEditing ? undefined : canvasProps.onOpenChange}
       trigger={[trigger]}
       popupRender={() => {
         const itemsChildren = useMenuItemsSlot

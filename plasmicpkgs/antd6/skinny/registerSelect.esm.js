@@ -1,7 +1,7 @@
 import { Select } from 'antd';
 import cls from 'classnames';
 import React from 'react';
-import { u as useCanvasOverlay, p as previewOpenProp } from './canvas-overlay-Dan70Oxr.esm.js';
+import { u as useCanvasOverlay, p as previewOpenProp } from './canvas-overlay-CbpJk7_w.esm.js';
 import { o as optionComponentName, g as optionGroupComponentName, s as selectComponentName } from './names-DQIzgrvq.esm.js';
 import { r as registerComponentHelper, t as traverseReactEltTree } from './utils-U416WEAa.esm.js';
 import '@plasmicapp/host';
@@ -33,7 +33,7 @@ function AntdSelect(props) {
     {
       ...curated,
       open,
-      onOpenChange: isEditing ? void 0 : props.onOpenChange,
+      onOpenChange: isEditing ? void 0 : canvasProps.onOpenChange,
       onChange: isEditing ? void 0 : props.onChange,
       mode: !mode || mode === "single" ? void 0 : mode,
       classNames: (info) => {

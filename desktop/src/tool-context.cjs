@@ -1,9 +1,10 @@
 const modelReads = new Set(["identify", "read", "listLibraries", "getLibrary", "searchLibraryComponents", "queryElements", "readVector", "getEditorContext", "validate", "findEmptySpace"]);
-const viewOperations = new Set(["navigate", "navigateCanvas", "restoreEditorView", "selectElement", "scrollElementIntoView", "setCanvasPageHeight"]);
+const viewOperations = new Set(["navigate", "navigateCanvas", "restoreEditorView", "selectElement", "scrollElementIntoView", "setCanvasPageHeight", "setInteractiveMode"]);
 
 function requiredContext(method, input = {}) {
   if (method === "browser" && input.action === "close") return null;
   if (method === "execute") {
+    if (input.name === "setInteractiveMode") return { surface: "editor", previewKind: [null, "interactive"] };
     if (["preview", "executeBatch"].includes(input.name)) return null;
     if (modelReads.has(input.name) || input.name === "endCanvasInspection") return { surface: "editor" };
     if (input.name === "beginCanvasInspection") return { surface: "editor", ...(input.input?.componentUuid ? {} : { mode: "edit" }) };
@@ -14,7 +15,7 @@ function requiredContext(method, input = {}) {
     return { surface: "editor", ...(input.action === "state" ? {}
       : input.action === "open" ? { previewKind: [null, "in-app"] }
       : input.action === "close" ? { previewKind: [null, "in-app", "interactive"] }
-      : { mode: "preview", previewKind: "in-app" }) };
+      : { mode: "preview", previewKind: ["back", "forward", "refresh"].includes(input.action) ? "in-app" : ["in-app", "interactive"] }) };
   }
   if (["get_editor_view"].includes(method)) return { surface: "editor" };
   if (["snapshot_layout", "get_screenshot", "export_design", "export_pages"].includes(method)) {
@@ -63,11 +64,13 @@ function contextError(required, actual, message, operationExecuted = false) {
   if (actual.previewKind === "external") {
     message += " Close the external Preview window before using in-app tools.";
   } else if (actual.surface === "editor" && actual.ready && required.mode === "edit" && actual.mode === "preview") {
-    recovery = [{ tool: "preview", arguments: { action: "close" } }, { tool: "get_app_state", arguments: {} }];
+    recovery = [actual.previewKind === "interactive"
+      ? { tool: "execute", arguments: { name: "setInteractiveMode", input: { enabled: false } } }
+      : { tool: "preview", arguments: { action: "close" } }, { tool: "get_app_state", arguments: {} }];
   } else if (actual.surface === "editor" && actual.ready && required.mode === "preview") {
     recovery = [...(actual.previewKind === "interactive" ? [{ tool: "preview", arguments: { action: "close" } }] : []),
       { tool: "preview", arguments: { action: "open" }, requiresInput: ["componentUuid"] }, { tool: "preview", arguments: { action: "snapshot" } }];
-  } else if (actual.previewKind === "interactive" && Array.isArray(required.previewKind)) {
+  } else if (["interactive", "in-app"].includes(actual.previewKind) && Array.isArray(required.previewKind)) {
     recovery = [{ tool: "preview", arguments: { action: "close" } }];
   } else if (required.canvas && actual.mode === "edit" && actual.ready) {
     recovery = [{ tool: "execute", arguments: { name: "read", input: { collection: "components", fields: ["uuid", "name", "type", "pageMeta"] } } }];

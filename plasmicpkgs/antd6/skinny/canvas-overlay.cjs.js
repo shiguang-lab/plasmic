@@ -21,9 +21,14 @@ function renderCanvasSlot(children, render) {
 function getCanvasItems(children, isItem) {
   const items = [];
   React__default.default.Children.forEach(children, (child) => {
-    if (!React__default.default.isValidElement(child)) return;
-    if (isItem(child)) items.push(child);
-    else items.push(...getCanvasItems(child.props.children, isItem));
+    if (!React__default.default.isValidElement(child)) {
+      return;
+    }
+    if (isItem(child)) {
+      items.push(child);
+    } else {
+      items.push(...getCanvasItems(child.props.children, isItem));
+    }
   });
   return items;
 }
@@ -46,6 +51,17 @@ function useCanvasOverlay(props, triggerSlotName) {
   } = props;
   const autoOpen = isEditing && !!selection?.isSelected && (!triggerSlotName || selection.selectedSlotName !== triggerSlotName);
   const autoOpened = autoOpen && previewOpen === void 0 && !open;
+  const state = canvas ? selection?.getState?.("open", open) : void 0;
+  const editingOpen = previewOpen ?? (autoOpen || !!open);
+  if (state && !selection?.states?.open) {
+    const handler = rest.onOpenChange;
+    rest.onOpenChange = (next, ...args) => {
+      state.set(!isEditing && open !== void 0 ? open : next);
+      if (!isEditing) {
+        handler?.(next, ...args);
+      }
+    };
+  }
   React.useEffect(() => {
     if (autoOpened) {
       plasmicNotifyAutoOpenedContent?.();
@@ -54,7 +70,9 @@ function useCanvasOverlay(props, triggerSlotName) {
   return {
     props: rest,
     isEditing,
-    open: isEditing ? previewOpen ?? (autoOpen || !!open) : open
+    // Studio already resolves the selection reveal. Its effective value must
+    // not be fed back as a new reveal request after a real UI event closes it.
+    open: state ? !!state.value : isEditing ? editingOpen : open
   };
 }
 

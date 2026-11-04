@@ -1,4 +1,5 @@
 import { mutationReceiptSchema } from "@/wab/shared/copilot/mutation-receipt";
+import { toolPresentationSchema } from "@/wab/shared/copilot/presentation";
 import { modelReadOptions, modelReadResultSchema, projectCollections } from "@/wab/shared/copilot/model-read";
 import { tokenTypes } from "@/wab/commons/StyleToken";
 import {
@@ -27,6 +28,10 @@ const jsonValue: z.ZodType<JsonValue> = z.lazy(() =>
 );
 const uuid = z.string().min(1);
 const element = { componentUuid: uuid, elementUuid: uuid };
+const canvasVisibility = z.object({
+  visible: z.boolean(),
+  reason: z.enum(["visible", "scroll-clipped", "layout-clipped", "outside-viewport", "hidden", "no-layout", "not-rendered"]),
+});
 const libraryComponent = z.object({
   name: uuid,
   displayName: z.string(),
@@ -82,7 +87,7 @@ const EDIT_TOOL_META = {
     toolName: "read",
     title: "Read project resources",
     description:
-      "Read native models with batched component/element targets. tree returns structure/Slot IDs without values; depth expands structure. properties reads base-variant values/styles/attributes/text (root for component targets); propNames selects only named values (requires view:properties with targeted components/elements). contract returns registered Props/Slots/defaults/enums/event signatures and globalActions. isContext:true identifies a project-wide global context, not an insertable component; this identity survives fields projections. Read collection:globalContexts for installed instances/settings and use qualified globalActions directly without a page wrapper. full fields provides parameter IDs and implementation metadata. context reads owning states/events/queries/variants. full preserves complete target markup and models. fields projects values; omitted data is not empty. No targets returns project counts; collection/offset/limit pages inventory. Projects list dependency identities/versions; use fromProject to read each dependency's resources. Inherited nodes expose editable:false and source slot identity; imported definitions are read-only.",
+      "Read native models with batched component/element targets. tree returns structure/Slot IDs without values; depth expands structure. properties reads base-variant values/styles/attributes/text (root for component targets); propNames selects only named values (requires view:properties with targeted components/elements). contract returns registered Props/Slots/defaults/enums/event signatures and globalActions. isContext:true identifies a project-wide global context, not an insertable component; this identity survives fields projections. Read collection:globalContexts for installed instances/settings and use qualified globalActions directly without a page wrapper. full fields provides parameter IDs and implementation metadata. context reads owning states/events/queries/variants. full preserves complete target markup and models. fields projects values; omitted data is not empty. No targets returns project counts; collection/offset/limit pages inventory. Projects list dependency identities/versions; use fromProject to read each dependency's resources. Inherited nodes expose editable:false and source slot identity; imported definitions are read-only. Model reads include hidden/unmounted nodes; visual absence is not model absence. In the visible editor, a targeted local read automatically selects and temporarily reveals its first explicit element (or first component root), scrolls nested containers and locates an offscreen target. presentation reports the actual result separately from model data. Inventory/dependency/registration reads do not redirect the canvas. If a target is missing, check its defining component, pagination and current UUID before concluding it was never created. Only unresolved state/geometry requires Agent recovery; do not repeat a successful mutation to retry presentation.",
     inputSchema: z
       .object({
         ...modelReadOptions,
@@ -160,7 +165,7 @@ const EDIT_TOOL_META = {
     toolName: "queryElements",
     title: "Find editable elements by their contract",
     description:
-      "Search a component subtree by element name, native tag or registered component UUID. Returns shallow native nodes, with the same depth/view/fields projection as read. total and nextOffset make pagination explicit.",
+      "Search a component subtree by element name, native tag or registered component UUID. Returns shallow native nodes, with the same depth/view/fields projection as read. total and nextOffset make pagination explicit. This searches the model, including hidden nodes; finish pagination and verify the defining component before treating an empty result as uncreated.",
     inputSchema: z
       .object({
         ...modelReadOptions,
@@ -380,7 +385,7 @@ const EDIT_TOOL_META = {
     toolName: "changeElement",
     title: "Change element name, props or layout",
     description:
-      "Modify an existing element in a local page/component. text updates plain native text without replacing its identity; rich or bound text requires its existing editing contract. name renames a native element or component instance using Studio's reference updates; read back the applied name because conflicts are disambiguated. Props are validated against its registered contract. resetProps removes explicit prop overrides, including empty slot overrides, to restore component defaults; remove nonempty slot content first. styles uses CSS property names (null removes a style); visibleIf and repeat.collection use {{ JS }} bindings (null clears); variantUuids selects existing component/global variants. Unsupported styles, unknown props and invalid optional literal props are ignored with successful result messages; existing valid values are preserved. Invalid required props, slots or bindings reject the whole call. For text or slot content use insertHtml replace on that text element or its slot child.",
+      "Modify an existing element in a local page/component. text updates plain native text without replacing its identity; rich or bound text requires its existing editing contract. name renames a native element or component instance using Studio's reference updates; read back the applied name because conflicts are disambiguated. Props are validated against its registered contract. resetProps removes explicit prop overrides, including empty slot overrides, to restore component defaults; remove nonempty slot content first. styles uses CSS property names (null removes a style); visibleIf and repeat.collection use {{ JS }} bindings (null clears); variantUuids selects existing component/global variants. Unsupported styles, unknown props and invalid optional literal props are ignored with successful result messages; existing valid values are preserved. Invalid required props, slots or bindings reject the whole call. For text or slot content use insertHtml replace on that text element or its slot child. In the visible editor, the result automatically presents the edited target using selection/session reveal and scrolling, without calling authored business handlers or changing saved display defaults. presentation reports unresolved clipping, rendering or instance ambiguity separately from mutation success. A missing model target requires inventory/UUID verification, not an invented replacement.",
     inputSchema: z
       .object({
         ...element,
@@ -753,6 +758,8 @@ const EDIT_TOOL_META = {
       ...element,
       frameUuid: uuid,
       instanceIndex: z.number().int().min(0),
+      visibility: canvasVisibility,
+      guidance: z.string(),
     }),
   },
   navigate: {
@@ -793,7 +800,7 @@ const EDIT_TOOL_META = {
     toolName: "scrollElementIntoView",
     title: "Scroll a rendered element into view",
     description:
-      "Reveal an element in the current canvas by minimally scrolling its nested content containers. Navigate to its page first and wait for rendering. Preserves selection, editor mode, Studio pan/zoom and design properties. Specify frameUuid for an artboard; instanceIndex selects a repeated rendered instance (zero-based). Hidden/unrendered targets fail; visible=false means clipping still prevents visibility. Bounds are in artboard CSS pixels. Use a workspace screenshot to inspect the resulting editor position.",
+      "Reveal an element in the current canvas by minimally scrolling its nested content containers. Navigate to its page first and wait for rendering. Preserves selection, editor mode, Studio pan/zoom and design properties. Specify frameUuid for an artboard; instanceIndex selects a repeated rendered instance (zero-based). The result includes visibilityBefore and visibility diagnoses, including partial clipping. scroll-clipped means use nested scrolling, not interaction; layout-clipped requires inspecting clipping/sizing; outside-viewport requires locating the artboard. hidden is observed CSS/hidden-attribute suppression, not proof of a business state: read its owner state/style before enabling setInteractiveMode and operating its real trigger. no-layout/not-rendered does not prove hidden state or absence from the model. Missing/unrendered instances fail with recovery guidance. Bounds are in artboard CSS pixels. Use a workspace screenshot to inspect the resulting editor position.",
     inputSchema: z
       .object({
         ...element,
@@ -806,6 +813,9 @@ const EDIT_TOOL_META = {
       frameUuid: uuid,
       instanceIndex: z.number().int().min(0),
       visible: z.boolean(),
+      visibilityBefore: canvasVisibility,
+      visibility: canvasVisibility,
+      guidance: z.string(),
       bounds: z.object({
         x: z.number(),
         y: z.number(),
@@ -813,6 +823,14 @@ const EDIT_TOOL_META = {
         height: z.number(),
       }),
     }),
+  },
+  setInteractiveMode: {
+    toolName: "setInteractiveMode",
+    title: "Enable or disable canvas interaction",
+    description:
+      "Set the current canvas's interactive mode explicitly; repeated calls are idempotent. Targeted local model reads/edits already reveal supported hidden content automatically. Use interaction for real transition demonstrations or unresolved confirmed state-hidden UI: locate its artboard/trigger, enable interaction, then use top-level preview snapshot/click on the focused artboard. Targeted reads and Desktop model writes return to editing automatically. Disable explicitly before manual selection or other tools requiring edit mode. This changes only the canvas session, not saved props, defaults, undo history or the editor viewport. It does not open native Preview. Registered canvas session state retains supported display values across mode changes without saving them. Native/external Preview must be closed first.",
+    inputSchema: z.object({ enabled: z.boolean() }).strict(),
+    outputSchema: z.object({ previous: z.boolean(), current: z.boolean() }),
   },
   setCanvasPageHeight: {
     toolName: "setCanvasPageHeight",
@@ -1112,10 +1130,10 @@ export const PROTOTYPE_TOOL_META = {
     toolName: "executeBatch",
     title: "Apply one atomic edit transaction",
     description:
-      "Apply 1–30 native mutations as one undoable transaction. Any failure rolls back every edit. Name an operation with as; later UUID fields can use $name (first created ID), $name.root (component root), or $name.1 (second created ID). References are call-local and backward-only. Returns compact identities and diagnostics, never implicit full models. Read explicitly for verification. Save separately.",
+      "Apply 1–30 native mutations as one undoable transaction. Any failure rolls back every edit. Name an operation with as; later UUID fields can use $name (first created ID), $name.root (component root), or $name.1 (second created ID). References are call-local and backward-only. Returns compact identities and diagnostics, never implicit full models. Read explicitly for verification. Save separately. The visible editor automatically presents one target from the final operation after the atomic batch; inspect presentation for unresolved visibility rather than replaying mutations.",
     inputSchema: z
       .object({ operations: z.array(prototypeMutationSchema).min(1).max(30) })
       .strict(),
-    outputSchema: z.object({ operations: z.array(mutationReceiptSchema) }),
+    outputSchema: z.object({ operations: z.array(mutationReceiptSchema), presentation: toolPresentationSchema.optional() }),
   },
 };

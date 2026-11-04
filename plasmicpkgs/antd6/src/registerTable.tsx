@@ -365,14 +365,14 @@ export const AntdTable = React.forwardRef(function AntdTable(
     (info?.isEditingContents || (info?.isSelected &&
       info.selectedSlotName === "expandedRowRender"));
   const canvasRowKeys: React.Key[] = [];
-  if (isEditing && (canvasExpandedRowKeys !== undefined || revealRows || rowExpansion?.defaultExpandAllRows)) {
+  if (canvas && rowExpansion) {
     const collect = (rows: any[]) => rows.forEach((row) => {
       const key = row[rowKey ?? "key"];
       if (key != null && (!rowExpansion?.rowExpandable || rowExpansion.rowExpandable(row))) {
         canvasRowKeys.push(key);
       }
       const children = row[rowExpansion?.childrenColumnName ?? "children"];
-      if (Array.isArray(children)) collect(children);
+      if (Array.isArray(children)) {collect(children);}
     });
     collect(data?.data ?? []);
   }
@@ -380,22 +380,24 @@ export const AntdTable = React.forwardRef(function AntdTable(
     rowExpansion?.expandedRowKeys ??
     rowExpansion?.defaultExpandedRowKeys ??
     (rowExpansion?.defaultExpandAllRows ? canvasRowKeys : []);
-  const canvasKeysSource = JSON.stringify([rowKey, canvasExpandedRowKeys !== undefined, initialCanvasKeys]);
-  const [canvasExpansion, setCanvasExpansion] = React.useState<{
-    source: string;
-    keys: readonly React.Key[];
-  }>();
-  React.useEffect(() => setCanvasExpansion(undefined), [isEditing, canvasKeysSource]);
-  const resolvedExpansion = isEditing && rowExpansion
+  const expansionState = canvas && rowExpansion ? info?.getState?.(
+    "expandable.expandedRowKeys", rowExpansion.expandedRowKeys,
+    rowExpansion.defaultExpandedRowKeys ?? (rowExpansion.defaultExpandAllRows ? canvasRowKeys : []),
+  ) : undefined;
+  if (isEditing && expansionState) {
+    expansionState.reveal(revealRows ? canvasRowKeys : initialCanvasKeys);
+  }
+  const resolvedExpansion = canvas && rowExpansion
     ? {
         ...rowExpansion,
-        expandedRowKeys: revealRows ? canvasRowKeys :
-          canvasExpansion?.source === canvasKeysSource ? canvasExpansion.keys : initialCanvasKeys,
-        expandRowByClick: false,
-        onExpand: undefined,
-        onExpandedRowsChange: revealRows ? undefined : (keys: readonly React.Key[]) => {
-          // Native canvas interactions own temporary keys, never business state.
-          setCanvasExpansion({ source: canvasKeysSource, keys });
+        expandedRowKeys: expansionState
+          ? expansionState.value as readonly React.Key[] | undefined
+          : isEditing ? initialCanvasKeys : rowExpansion.expandedRowKeys,
+        expandRowByClick: isEditing ? false : rowExpansion.expandRowByClick,
+        onExpand: isEditing ? undefined : rowExpansion.onExpand,
+        onExpandedRowsChange: isEditing && revealRows ? undefined : (keys: readonly React.Key[]) => {
+          expansionState?.set(!isEditing && rowExpansion.expandedRowKeys !== undefined ? rowExpansion.expandedRowKeys : keys);
+          if (!isEditing) {rowExpansion.onExpandedRowsChange?.(keys);}
         },
       }
     : rowExpansion;
@@ -473,7 +475,6 @@ export const AntdTable = React.forwardRef(function AntdTable(
   );
   return (
     <TableWithColumns
-      key={isEditing ? "canvas" : "runtime"}
       loading={data?.isLoading}
       dataSource={data?.data}
       rowSelection={selection}

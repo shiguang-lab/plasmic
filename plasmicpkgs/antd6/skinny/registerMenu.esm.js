@@ -1,6 +1,6 @@
 import { Menu } from 'antd';
-import { usePlasmicCanvasContext } from '@plasmicapp/host';
-import { r as renderCanvasSlot } from './canvas-overlay-Dan70Oxr.esm.js';
+import { usePlasmicCanvasContext, usePlasmicCanvasComponentInfo } from '@plasmicapp/host';
+import { r as renderCanvasSlot } from './canvas-overlay-CbpJk7_w.esm.js';
 import React from 'react';
 import { r as registerComponentHelper } from './utils-U416WEAa.esm.js';
 import '@plasmicapp/host/registerComponent';
@@ -49,28 +49,45 @@ function menuChildrenToItems(children) {
 function AntdMenu(props) {
   return props.items !== void 0 ? /* @__PURE__ */ React.createElement(Menu, { ...props }) : renderCanvasSlot(props.children, (children) => /* @__PURE__ */ React.createElement(MenuWithChildren, { ...props, children }));
 }
-function MenuWithChildren({ children, openKeys, defaultOpenKeys, onOpenChange, ...rest }) {
+function MenuWithChildren(props) {
+  const { children, openKeys, defaultOpenKeys, onOpenChange, ...rest } = props;
   const canvas = usePlasmicCanvasContext();
+  const info = usePlasmicCanvasComponentInfo(props);
+  const state = canvas ? info?.getState?.("openKeys", openKeys, defaultOpenKeys) : void 0;
   const items = menuChildrenToItems(children);
   const selectedKeys = [];
   const visit = (nodes, ancestors) => nodes.forEach((item) => {
-    if (!item) return;
+    if (!item) {
+      return;
+    }
     const data = item;
     const path = data.children && data.type !== "group" ? [...ancestors, String(data.key)] : ancestors;
-    if (data.__plasmic_selection_prop__?.isSelected) selectedKeys.push(...path);
-    if (data.children) visit(data.children, path);
+    if (data.__plasmic_selection_prop__?.isSelected) {
+      selectedKeys.push(...path);
+    }
+    if (data.children) {
+      visit(data.children, path);
+    }
   });
-  if (canvas && !canvas.interactive) visit(items, []);
+  if (canvas && !canvas.interactive) {
+    visit(items, []);
+  }
   const reveal = selectedKeys.length > 0;
+  const revealedKeys = Array.from(/* @__PURE__ */ new Set([...openKeys ?? defaultOpenKeys ?? [], ...selectedKeys]));
+  const keys = reveal ? state ? state.reveal(revealedKeys) : revealedKeys : state ? state.value : openKeys;
   return /* @__PURE__ */ React.createElement(
     Menu,
     {
       ...rest,
-      key: reveal ? "canvas-reveal" : "business",
       items,
       defaultOpenKeys,
-      openKeys: reveal ? Array.from(/* @__PURE__ */ new Set([...openKeys ?? defaultOpenKeys ?? [], ...selectedKeys])) : openKeys,
-      onOpenChange: reveal ? void 0 : onOpenChange
+      openKeys: keys,
+      onOpenChange: state ? (next) => {
+        state.set(canvas && canvas.interactive && openKeys !== void 0 ? openKeys : next);
+        if (canvas && canvas.interactive) {
+          onOpenChange?.(next);
+        }
+      } : reveal ? void 0 : onOpenChange
     }
   );
 }

@@ -3,6 +3,9 @@ import {
   RenderingCtx,
 } from "@/wab/client/components/canvas/canvas-rendering";
 import { SubDeps } from "@/wab/client/components/canvas/subdeps";
+import { CanvasSessionState } from "@/wab/client/components/canvas/canvas-session-state";
+import { observable } from "mobx";
+import { setTplVisibility, TplVisibility } from "@/wab/shared/visibility-utils";
 import { interpolatedStringToTemplatedString } from "@/wab/shared/copilot/dynamic-value-input";
 import { ComponentType, mkComponent } from "@/wab/shared/core/components";
 import { createExprForDataPickerValue } from "@/wab/shared/core/exprs";
@@ -38,6 +41,48 @@ import { act, fireEvent, render } from "@testing-library/react";
 import React from "react";
 
 const { getQueryFetcherHookCounts, useComponentLevelQueries } = _testOnlyUtils;
+
+it.each([TplVisibility.NotRendered, TplVisibility.CustomExpr, TplVisibility.DisplayNone, "css-display-none"] as const)(
+  "retains a selected hidden region across canvas modes and excludes it from exports: %s",
+  (visibility) => {
+    const site = createSite();
+    const component = mkEmptyComponent();
+    site.components.push(component);
+    const node = component.tplTree;
+    const base = [component.variants[0]];
+    if (visibility === "css-display-none") {
+      setTplVisibility(node, base, TplVisibility.Visible);
+      node.vsettings[0].rs.values.display = "none";
+    } else {
+      setTplVisibility(node, base, visibility);
+    }
+    if (visibility === TplVisibility.CustomExpr) {node.vsettings[0].dataCond = codeLit(false);}
+    let interactive = false;
+    const exporting = observable.box(false);
+    const viewCtx = {
+      canvasSessionState: new CanvasSessionState(), canvasExporting: exporting,
+      studioCtx: { get isInteractiveMode() { return interactive; }, isAutoOpenMode: true },
+      focusedTplAncestorsThroughComponents: () => [{ node, layer: 0 }],
+      canvasCtx: { win: () => window },
+    } as unknown as ViewCtx;
+    const ctx = { valKey: node.uuid, env: {}, viewCtx, site, ownerComponent: component, projectFlags: DEVFLAGS } as unknown as RenderingCtx;
+    const read = () => _testOnlyUtils.determineAutoOpenState(ctx, node, new EffectiveVariantSetting(node, node.vsettings, site));
+    const before = JSON.stringify(node.vsettings);
+    expect(read().autoOpened).toBe(true);
+    if (visibility === "css-display-none") {expect(read().style?.display).toBe("revert");}
+    interactive = true;
+    expect(read().autoOpened).toBe(true);
+    interactive = false;
+    expect(read().autoOpened).toBe(true);
+    exporting.set(true);
+    expect(read().autoOpened).toBe(false);
+    if (visibility === TplVisibility.DisplayNone || visibility === "css-display-none") {expect(read().style).toBeUndefined();}
+    else {expect(read().rendered).toBe(false);}
+    expect(JSON.stringify(node.vsettings)).toBe(before);
+    exporting.set(false);
+    expect(read().autoOpened).toBe(true);
+  },
+);
 
 it("starts each root from its artboard variant and preserves runtime state when interaction is turned off", async () => {
   const site = createSite();

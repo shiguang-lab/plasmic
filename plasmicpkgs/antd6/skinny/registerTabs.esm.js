@@ -1,8 +1,8 @@
-import { usePlasmicCanvasContext } from '@plasmicapp/host';
+import { usePlasmicCanvasContext, usePlasmicCanvasComponentInfo } from '@plasmicapp/host';
 import { Tabs } from 'antd';
 import cls from 'classnames';
-import React, { useMemo, useState, useEffect } from 'react';
-import { a as getSelectedCanvasItemKey } from './canvas-overlay-Dan70Oxr.esm.js';
+import React, { useMemo } from 'react';
+import { a as getSelectedCanvasItemKey } from './canvas-overlay-CbpJk7_w.esm.js';
 import { r as registerComponentHelper, a as asArray, t as traverseReactEltTree } from './utils-U416WEAa.esm.js';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
@@ -50,6 +50,7 @@ function AntdTabs(props) {
 }
 function TabsWithItems(props) {
   const canvas = usePlasmicCanvasContext();
+  const state = usePlasmicCanvasComponentInfo(props)?.states?.activeKey;
   const isEditing = !!canvas && !canvas.interactive;
   const {
     items: itemsRaw,
@@ -82,23 +83,10 @@ function TabsWithItems(props) {
     };
   }).filter((i) => i != null);
   const initialActiveKey = rest.activeKey ?? rest.defaultActiveKey;
-  const [canvasTab, setCanvasTab] = useState();
-  useEffect(() => {
-    if (!isEditing) {
-      setCanvasTab(void 0);
-    } else if (selectedKey !== void 0) {
-      setCanvasTab({ key: String(selectedKey), initialActiveKey });
-    } else {
-      setCanvasTab(
-        (tab) => tab?.initialActiveKey === initialActiveKey ? tab : void 0
-      );
-    }
-  }, [isEditing, selectedKey, initialActiveKey]);
-  const retainedKey = canvasTab?.initialActiveKey === initialActiveKey && items.some((item) => item.key === canvasTab?.key) ? canvasTab?.key : void 0;
+  const activeKey = selectedKey !== void 0 && state ? state.reveal(String(selectedKey)) : rest.activeKey;
   return /* @__PURE__ */ React.createElement(
     Tabs,
     {
-      key: isEditing ? "canvas" : "runtime",
       className: cls(className, tabsScopeClassName),
       classNames: (info) => {
         const names = typeof classNames === "function" ? classNames(info) : classNames;
@@ -117,9 +105,9 @@ function TabsWithItems(props) {
       items,
       ...rest,
       activeKey: isEditing ? String(
-        selectedKey ?? retainedKey ?? initialActiveKey ?? items.find((item) => !item.disabled)?.key ?? ""
-      ) : rest.activeKey,
-      onChange: isEditing ? (key) => setCanvasTab({ key, initialActiveKey }) : rest.onChange,
+        activeKey ?? selectedKey ?? initialActiveKey ?? items.find((item) => !item.disabled)?.key ?? ""
+      ) : activeKey,
+      onChange: state || !isEditing ? rest.onChange : void 0,
       onTabClick: isEditing ? void 0 : rest.onTabClick,
       onTabScroll: isEditing ? void 0 : rest.onTabScroll
     }
@@ -302,6 +290,7 @@ function registerTabs(loader) {
         type: "writable",
         valueProp: "activeKey",
         onChangeProp: "onChange",
+        initialValueProp: "defaultActiveKey",
         variableType: "text"
       }
     },

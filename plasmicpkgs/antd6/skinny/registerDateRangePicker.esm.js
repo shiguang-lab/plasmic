@@ -3,7 +3,7 @@ import cls from 'classnames';
 import dayjs from 'dayjs';
 import kebabCase from 'lodash/kebabCase';
 import React, { useMemo } from 'react';
-import { u as useCanvasOverlay, p as previewOpenProp } from './canvas-overlay-Dan70Oxr.esm.js';
+import { u as useCanvasOverlay, p as previewOpenProp } from './canvas-overlay-CbpJk7_w.esm.js';
 import { r as registerComponentHelper, c as capitalize } from './utils-U416WEAa.esm.js';
 import localeData from 'dayjs/plugin/localeData';
 import weekday from 'dayjs/plugin/weekday';
@@ -58,10 +58,9 @@ function AntdDateRangePicker(props) {
   return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
     RangePicker,
     {
-      key: isEditing ? "edit" : "runtime",
       ...rest,
       open,
-      onOpenChange: isEditing ? void 0 : props.onOpenChange,
+      onOpenChange: isEditing ? void 0 : canvasProps.onOpenChange,
       onCalendarChange: isEditing ? void 0 : props.onCalendarChange,
       onPanelChange: isEditing ? void 0 : props.onPanelChange,
       picker,
@@ -82,7 +81,9 @@ function AntdDateRangePicker(props) {
         };
       },
       onChange: (values, _dateStrings) => {
-        if (isEditing) return;
+        if (isEditing) {
+          return;
+        }
         onChange?.(getStrRange(values) || [null, null]);
       }
     }

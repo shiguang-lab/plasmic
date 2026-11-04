@@ -1,4 +1,3 @@
-import { PlasmicCanvasContext } from "@plasmicapp/host";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import React from "react";
 import { expect, test, vi } from "vitest";
@@ -8,15 +7,14 @@ import { AntdTree, registerTree, registerDirectoryTree } from "../src/registerTr
 import { AntdDatePicker, registerDatePicker } from "../src/registerDatePicker";
 import { AntdDateRangePicker, registerDateRangePicker } from "../src/registerDateRangePicker";
 import type { Registerable } from "../src/utils";
+import { createSessionCanvas } from "./canvas-session";
 
 function metadata(register: (loader: Registerable) => void) {
   const metas = new Map<string, any>();
   register({ registerComponent: (_component, meta) => metas.set(meta.name, meta) } as Registerable);
   return metas;
 }
-function Canvas({ children, interactive = false }: { children: React.ReactNode; interactive?: boolean }) {
-  return <PlasmicCanvasContext.Provider value={{ componentName: "test", globalVariants: {}, interactive }}>{children}</PlasmicCanvasContext.Provider>;
-}
+const Canvas = createSessionCanvas([registerTabs, registerCollapse, registerTree, registerDirectoryTree, registerDatePicker, registerDateRangePicker]);
 const tabs = (selected: boolean) => <>
   <AntdTabItem key="first" label="First">First content</AntdTabItem>
   <AntdTabItem key="second" label="Second" {...{ __plasmic_selection_prop__: { isSelected: selected } }}>Second content</AntdTabItem>
@@ -65,9 +63,9 @@ test("inactive tab selection reveals content only in editing, without business e
   expect(screen.getByRole("tabpanel").textContent).toBe("Second content");
   expect(onChange).not.toHaveBeenCalled();
   view.rerender(<Canvas interactive><AntdTabs {...props as any} /></Canvas>);
-  expect(screen.getByRole("tabpanel").textContent).toBe("First content");
+  expect(screen.getByRole("tabpanel").textContent).toBe("Second content");
   view.rerender(<Canvas><AntdTabs {...props as any} items={tabs(false)} /></Canvas>);
-  expect(screen.getByRole("tabpanel").textContent).toBe("First content");
+  expect(screen.getByRole("tabpanel").textContent).toBe("Second content");
 });
 
 test("canvas observer slot callbacks execute within their observer", () => {
@@ -89,9 +87,10 @@ test("editing tab clicks survive observer updates without invoking business call
   expect(onTabClick).not.toHaveBeenCalled();
   expect(props.defaultActiveKey).toBe("first");
   view.rerender(<Canvas interactive><AntdTabs {...{ ...props, items: items() } as any} /></Canvas>);
-  expect(screen.getByRole("tabpanel").textContent).toBe("First content");
-  fireEvent.click(screen.getByRole("tab", { name: "Second" }));
-  expect(onChange).toHaveBeenCalledWith("second");
+  expect(screen.getByRole("tabpanel").textContent).toBe("Second content");
+  expect(onChange).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole("tab", { name: "First" }));
+  expect(onChange).toHaveBeenCalledWith("first");
   expect(onTabClick).toHaveBeenCalledTimes(1);
 });
 
@@ -157,7 +156,7 @@ test("Collapse rich slots render without competing default items; explicit nativ
 
 test("Tree callback metadata describes the real native info object", () => {
   const metas = metadata(registerTree);
-  for (const [name, meta] of metadata(registerDirectoryTree)) metas.set(name, meta);
+  for (const [name, meta] of metadata(registerDirectoryTree)) {metas.set(name, meta);}
   for (const name of ["tree", "directory-tree"]) {
     expect(metas.get(`plasmic-antd6-${name}`).props.onSelect.argTypes[1]).toEqual({ name: "info", type: { type: "object" } });
   }
@@ -171,7 +170,7 @@ for (const [name, Picker, register] of [
   ["date-picker", AntdDatePicker, registerDatePicker],
   ["date-range-picker", AntdDateRangePicker, registerDateRangePicker],
 ] as const) {
-  test(`${name} exposes editing-only calendar preview and preserves runtime open`, async () => {
+  test(`${name} retains its calendar across canvas modes without changing business open`, async () => {
     const meta = metadata(register).get(`plasmic-antd6-${name}`);
     expect(meta.props.previewOpen.editOnly).toBe(true);
     expect(meta.props.previewOpen.uncontrolledProp).toBeUndefined();
@@ -184,8 +183,10 @@ for (const [name, Picker, register] of [
     expect(onChange).not.toHaveBeenCalled();
     expect(onCalendarChange).not.toHaveBeenCalled();
     expect(props.open).toBe(false);
+    const draft = screen.getAllByRole("textbox").map((input) => (input as HTMLInputElement).value);
     view.rerender(<Canvas interactive><Picker {...props as any} /></Canvas>);
-    await waitFor(() => expect(document.querySelector(".ant-picker-dropdown:not(.ant-picker-dropdown-hidden)")).toBeNull());
-    expect(screen.getAllByRole("textbox").every((input) => !(input as HTMLInputElement).value)).toBe(true);
+    await waitFor(() => expect(document.querySelector(".ant-picker-dropdown:not(.ant-picker-dropdown-hidden)")).toBeTruthy());
+    expect(props.open).toBe(false);
+    expect(screen.getAllByRole("textbox").map((input) => (input as HTMLInputElement).value)).toEqual(draft);
   });
 }

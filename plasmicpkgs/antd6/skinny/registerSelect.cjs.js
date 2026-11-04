@@ -3,7 +3,7 @@
 var Ant = require('antd');
 var cls = require('classnames');
 var React = require('react');
-var canvasOverlay$1 = require('./canvas-overlay-BCQmyJjQ.cjs.js');
+var canvasOverlay$1 = require('./canvas-overlay-pJBoKL8M.cjs.js');
 var names = require('./names-DbJduus8.cjs.js');
 var utils = require('./utils-Diqr9Iet.cjs.js');
 require('@plasmicapp/host');
@@ -40,7 +40,7 @@ function AntdSelect(props) {
     {
       ...curated,
       open,
-      onOpenChange: isEditing ? void 0 : props.onOpenChange,
+      onOpenChange: isEditing ? void 0 : canvasProps.onOpenChange,
       onChange: isEditing ? void 0 : props.onChange,
       mode: !mode || mode === "single" ? void 0 : mode,
       classNames: (info) => {

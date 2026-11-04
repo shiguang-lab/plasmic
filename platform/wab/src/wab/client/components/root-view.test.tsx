@@ -2,6 +2,8 @@ import { registerPresentationProject } from "@/wab/client/route/presentation-pro
 import { Root } from "@/wab/client/components/root-view";
 import { HistoryProvider } from "@/wab/client/route/HistoryProvider";
 import { HttpError } from "@/wab/shared/ApiErrors/ApiError";
+import { ensure } from "@/wab/shared/common";
+import { getShiguangSignInUrl } from "@/wab/shared/shiguang-auth";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { createMemoryHistory } from "history";
 import * as React from "react";
@@ -200,6 +202,15 @@ it("does not treat a forbidden startup request as an expired session", async () 
   setup();
   expect(await screen.findByRole("button", { name: "Retry" })).toBeTruthy();
   expect(screen.queryByText("Ready")).toBeNull();
+});
+
+it("preserves the presentation when startup expires after the login redirect", async () => {
+  mocks.getLastBundleVersion.mockRejectedValue(new HttpError(401, "Unauthorized"));
+  const presentation = "/d/0123456789?width=1440#/audiences?market=MX#rules";
+  setup(`/login?${new URLSearchParams({ continueTo: presentation })}`);
+  const destination = (await screen.findByText("Ready")).getAttribute("data-return-to");
+  const loginUrl = new URL(getShiguangSignInUrl(new URL(ensure(destination, "Missing sign-in destination"), window.location.origin).href));
+  expect(loginUrl.searchParams.get("return_to")).toBe(window.location.origin + presentation);
 });
 
 beforeEach(() => registerPresentationProject("0123456789", "project" as import("@/wab/shared/ApiSchema").ProjectId));

@@ -1,5 +1,5 @@
 import { Menu as NativeMenu } from "antd";
-import { usePlasmicCanvasContext } from "@plasmicapp/host";
+import { usePlasmicCanvasContext, usePlasmicCanvasComponentInfo } from "@plasmicapp/host";
 import { renderCanvasSlot } from "./canvas-overlay";
 import React from "react";
 import { Registerable, registerComponentHelper } from "./utils";
@@ -65,22 +65,30 @@ export function AntdMenu(props: React.ComponentProps<typeof NativeMenu>) {
   return props.items !== undefined ? <NativeMenu {...props} /> : renderCanvasSlot(props.children, (children) => <MenuWithChildren {...props} children={children} />);
 }
 
-function MenuWithChildren({ children, openKeys, defaultOpenKeys, onOpenChange, ...rest }: React.ComponentProps<typeof NativeMenu>) {
+function MenuWithChildren(props: React.ComponentProps<typeof NativeMenu>) {
+  const { children, openKeys, defaultOpenKeys, onOpenChange, ...rest } = props;
   const canvas = usePlasmicCanvasContext();
+  const info = usePlasmicCanvasComponentInfo(props);
+  const state = canvas ? info?.getState?.("openKeys", openKeys, defaultOpenKeys) : undefined;
   const items = menuChildrenToItems(children);
   const selectedKeys: string[] = [];
   const visit = (nodes: typeof items, ancestors: string[]) => nodes.forEach((item) => {
-    if (!item) return;
+    if (!item) {return;}
     const data = item as typeof item & { __plasmic_selection_prop__?: { isSelected?: boolean }; children?: typeof items };
     const path = data.children && data.type !== "group" ? [...ancestors, String(data.key)] : ancestors;
-    if (data.__plasmic_selection_prop__?.isSelected) selectedKeys.push(...path);
-    if (data.children) visit(data.children, path);
+    if (data.__plasmic_selection_prop__?.isSelected) {selectedKeys.push(...path);}
+    if (data.children) {visit(data.children, path);}
   });
-  if (canvas && !canvas.interactive) visit(items, []);
+  if (canvas && !canvas.interactive) {visit(items, []);}
   const reveal = selectedKeys.length > 0;
-  return <NativeMenu {...rest} key={reveal ? "canvas-reveal" : "business"} items={items} defaultOpenKeys={defaultOpenKeys}
-    openKeys={reveal ? Array.from(new Set([...(openKeys ?? defaultOpenKeys ?? []), ...selectedKeys])) : openKeys}
-    onOpenChange={reveal ? undefined : onOpenChange}
+  const revealedKeys = Array.from(new Set([...(openKeys ?? defaultOpenKeys ?? []), ...selectedKeys]));
+  const keys = reveal ? state ? state.reveal(revealedKeys) : revealedKeys : state ? state.value : openKeys;
+  return <NativeMenu {...rest} items={items} defaultOpenKeys={defaultOpenKeys}
+    openKeys={keys as string[] | undefined}
+    onOpenChange={state ? (next) => {
+      state.set(canvas && canvas.interactive && openKeys !== undefined ? openKeys : next);
+      if (canvas && canvas.interactive) {onOpenChange?.(next);}
+    } : reveal ? undefined : onOpenChange}
   />;
 }
 

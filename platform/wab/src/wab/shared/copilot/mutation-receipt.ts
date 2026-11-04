@@ -1,5 +1,6 @@
 import { assert, ensure } from "@/wab/shared/common";
 import { z } from "zod";
+import { toolPresentationSchema } from "@/wab/shared/copilot/presentation";
 
 export const mutationIdentitySchema = z.object({
   kind: z.string(), uuid: z.string(), name: z.string().optional(),
@@ -7,6 +8,7 @@ export const mutationIdentitySchema = z.object({
 });
 export type MutationIdentity = z.infer<typeof mutationIdentitySchema>;
 export const mutationReceiptSchema = z.object({
+  presentation: toolPresentationSchema.optional(),
   name: z.string(), as: z.string().optional(),
   created: z.array(mutationIdentitySchema),
   componentUuid: z.string().optional(), elementUuid: z.string().optional(),

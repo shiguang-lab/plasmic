@@ -1,0 +1,7 @@
+{
+  "en": "- Preserve Tabs, overlays, drafts and hidden-region state across canvas mode changes without changing saved defaults.\n- Fix repeated overlay reopening, expression-backed Slots in Layers, and CSS-hidden canvas reveals.\n- Improve native canvas interaction, target visibility feedback and sign-in return navigation.\n- Strengthen component generation contracts and add full Desktop/Studio regression coverage.",
+  "zh-CN": "- 切换画布模式时保留标签页、浮层、输入草稿和隐藏区域状态，不改写保存的默认值。\n- 修复浮层重复打开、表达式插槽导致图层树崩溃及 CSS 隐藏内容无法临时显示的问题。\n- 改进原生画布交互、目标可见性反馈与登录后的返回导航。\n- 完善组件生成规范，补充完整 Desktop／Studio 回归验证。",
+  "zh-TW": "- 切換畫布模式時保留分頁、浮層、輸入草稿與隱藏區域狀態，不改寫儲存的預設值。\n- 修復浮層重複開啟、運算式插槽導致圖層樹崩潰與 CSS 隱藏內容無法暫時顯示的問題。\n- 改善原生畫布互動、目標可見性回饋與登入後的返回導覽。\n- 完善元件產生規範，補充完整 Desktop／Studio 回歸驗證。",
+  "ja": "- 保存済みの初期値を変更せず、キャンバスのモード切替時にタブ、オーバーレイ、入力内容、非表示領域の状態を保持。\n- オーバーレイの再表示、式を使うスロットによるレイヤーツリーのクラッシュ、CSS 非表示領域の編集表示を修正。\n- キャンバス操作、対象の可視性フィードバック、ログイン後の戻り先を改善。\n- コンポーネント生成規約と Desktop／Studio の回帰検証を強化。",
+  "ko": "- 저장된 기본값을 변경하지 않고 캔버스 모드 전환 시 탭, 오버레이, 입력 초안 및 숨김 영역 상태를 유지합니다.\n- 오버레이 재열림, 표현식 슬롯의 레이어 트리 충돌 및 CSS 숨김 영역 표시 문제를 수정합니다.\n- 캔버스 상호작용, 대상 가시성 피드백 및 로그인 후 복귀를 개선합니다.\n- 컴포넌트 생성 규약과 Desktop／Studio 회귀 검증을 강화합니다."
+}

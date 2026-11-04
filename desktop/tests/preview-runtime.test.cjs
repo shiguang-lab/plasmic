@@ -16,6 +16,41 @@ function fixture(t) {
   return { run, w };
 }
 
+test("interactive canvas inputs use the focused live artboard and can reveal hidden UI", async (t) => {
+  const documents = ["other", "focused"].map(id => {
+    const dom = new JSDOM(`<html class="__interactive_canvas" data-plasmic-render-ready data-plasmic-frame-uuid="${id}"><body><div class="__wab_val_root"><button>Open drawer</button><aside role="dialog" hidden>Drawer content</aside></div></body></html>`, { url: "https://canvas.example/#canvas=true", runScripts: "outside-only" });
+    t.after(() => dom.window.close());
+    const w = dom.window;
+    w.requestAnimationFrame = callback => callback();
+    Object.defineProperty(w.document.body, "innerText", { get: () => w.document.body.textContent });
+    for (const el of w.document.querySelectorAll("*")) el.getBoundingClientRect = () => ({ x: 0, y: 0, left: 0, top: 0, right: el.hidden ? 0 : 100, bottom: el.hidden ? 0 : 30, width: el.hidden ? 0 : 100, height: el.hidden ? 0 : 30 });
+    const button = w.document.querySelector("button");
+    button.scrollIntoView = () => {};
+    w.document.elementFromPoint = () => button;
+    button.onclick = () => { w.document.querySelector("aside").hidden = false; };
+    return { dom, frame: { url: w.location.href, executeJavaScript: script => w.eval(script) } };
+  });
+  const inputs = [];
+  const win = { webContents: { getURL: () => "https://studio.example/projects/p", mainFrame: { framesInSubtree: documents.map(d => d.frame) },
+    debugger: { isAttached: () => true, sendCommand: async (method, params) => {
+      inputs.push({ method, type: params.type });
+      if (params.type === "mouseReleased") documents[1].dom.window.document.querySelector("button").click();
+    } } } };
+  const options = { interactive: true, frameUuid: "focused" };
+  const selected = await previewFrame(win, undefined, undefined, options);
+  assert.equal(selected.frame, documents[1].frame);
+  const context = { sessionId: "s", previewKind: "interactive", frameUuid: "focused" };
+  const snapshot = await runPreview(studioFixture(win), { action: "snapshot" }, context);
+  assert.ok(snapshot.elements.some(el => el.name === "Open drawer"));
+  assert.equal(snapshot.runtime, undefined, "Canvas observations must not invent native Preview diagnostics");
+  await runPreview(studioFixture(win), { action: "click", ref: snapshot.elements.find(el => el.name === "Open drawer").ref }, context);
+  assert.deepEqual(inputs.map(input => input.type), ["mouseMoved", "mousePressed", "mouseReleased"]);
+  const result = await runPreview(studioFixture(win), { action: "assert", checks: [{ kind: "visible", role: "dialog", present: true }], timeoutMs: 0 }, context);
+  assert.equal(result.passed, true);
+  assert.equal(documents[0].dom.window.document.querySelector("aside").hidden, true);
+  await assert.rejects(previewFrame(win, undefined, undefined, { interactive: true }), /Select the target artboard/);
+});
+
 test("runtime snapshot is paged, redacts passwords, and expires refs on navigation", async (t) => {
   const { run } = fixture(t);
   const page = await run({ action: "snapshot", limit: 1 });

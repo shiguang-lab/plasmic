@@ -22,9 +22,9 @@ export function renderCanvasSlot(children: React.ReactNode, render: (children: R
 export function getCanvasItems(children: React.ReactNode, isItem: (item: ReactElement) => boolean): ReactElement[] {
   const items: ReactElement[] = [];
   React.Children.forEach(children, (child) => {
-    if (!React.isValidElement(child)) return;
-    if (isItem(child)) items.push(child);
-    else items.push(...getCanvasItems(child.props.children, isItem));
+    if (!React.isValidElement(child)) {return;}
+    if (isItem(child)) {items.push(child);}
+    else {items.push(...getCanvasItems(child.props.children, isItem));}
   });
   return items;
 }
@@ -62,6 +62,15 @@ export function useCanvasOverlay<
     !!selection?.isSelected &&
     (!triggerSlotName || selection.selectedSlotName !== triggerSlotName);
   const autoOpened = autoOpen && previewOpen === undefined && !open;
+  const state = canvas ? selection?.getState?.("open", open) : undefined;
+  const editingOpen = previewOpen ?? (autoOpen || !!open);
+  if (state && !selection?.states?.open) {
+    const handler = (rest as { onOpenChange?: (...args: any[]) => void }).onOpenChange;
+    (rest as { onOpenChange?: (...args: any[]) => void }).onOpenChange = (next: boolean, ...args: any[]) => {
+      state.set(!isEditing && open !== undefined ? open : next);
+      if (!isEditing) {handler?.(next, ...args);}
+    };
+  }
 
   useEffect(() => {
     if (autoOpened) {
@@ -72,6 +81,8 @@ export function useCanvasOverlay<
   return {
     props: rest,
     isEditing,
-    open: isEditing ? (previewOpen ?? (autoOpen || !!open)) : open,
+    // Studio already resolves the selection reveal. Its effective value must
+    // not be fed back as a new reveal request after a real UI event closes it.
+    open: state ? !!state.value : isEditing ? editingOpen : open,
   };
 }

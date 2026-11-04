@@ -20,6 +20,8 @@ Sketch in-scope Pages and flows; detail one Page at a time. Keep local edits sco
 
 For requested changes, defect reports and module optimization, first follow [feedback handling](../feedback-handling.md), with or without screenshots. Separate inspection, edit and regression scopes; preserve the current plan and completed evidence. Existing-defect diagnosis may use read-only Preview before repair; post-repair acceptance follows the stages below. Apply scope/contracts and review stages only to the affected decisions, structure, components and flows; a cosmetic edit does not restart full-Page planning/template selection. New Pages or structural changes use the corresponding preparation steps. Read-only analysis stays in inspect; authorized repair/optimization needs no routine reconfirmation.
 
+Targeted local model operations automatically [present their target](../desktop-inspection.md#automatic-presentation-during-model-operations) through temporary selection reveals and scrolling. Check `presentation` and recover only unresolved visibility; preserve successful model results. Use the [interactive canvas workflow](../desktop-inspection.md#interactive-canvas-for-hidden-content) for actual transition demonstrations or confirmed display-state cases that automatic reveal cannot resolve. Distinguish scroll/layout clipping, unrendered instances and absent model nodes before choosing recovery; never rewrite saved display props merely to show a target.
+
 ## Resolve scope and contracts
 
 1. Before editor work, resolve Team → Workspace → Project through [management](../desktop-management.md); reread identity/schemas and check canEdit. Pass [MCP preflight](../desktop-transports.md#prototype-preflight) before writes.

@@ -3,7 +3,7 @@
 var Ant = require('antd');
 var cls = require('classnames');
 var React = require('react');
-var canvasOverlay$1 = require('./canvas-overlay-BCQmyJjQ.cjs.js');
+var canvasOverlay$1 = require('./canvas-overlay-pJBoKL8M.cjs.js');
 var utils = require('./utils-Diqr9Iet.cjs.js');
 require('@plasmicapp/host');
 require('@plasmicapp/host/registerComponent');
@@ -29,7 +29,7 @@ function AntdTooltip(props) {
       ...rest,
       open,
       destroyOnHidden: isEditing ? true : props.destroyOnHidden,
-      onOpenChange: isEditing ? void 0 : props.onOpenChange,
+      onOpenChange: isEditing ? void 0 : canvasProps.onOpenChange,
       afterOpenChange: isEditing ? void 0 : props.afterOpenChange,
       classNames: (info) => {
         const names = typeof classNames === "function" ? classNames(info) : classNames;

@@ -28,10 +28,9 @@ export function AntdDatePicker(
   return (
     <>
       <DatePicker
-        key={isEditing ? "edit" : "runtime"}
         {...rest}
         open={open}
-        onOpenChange={isEditing ? undefined : props.onOpenChange}
+        onOpenChange={isEditing ? undefined : canvasProps.onOpenChange}
         onCalendarChange={isEditing ? undefined : props.onCalendarChange}
         onPanelChange={isEditing ? undefined : props.onPanelChange}
         picker={picker as any}
@@ -65,7 +64,7 @@ export function AntdDatePicker(
         }}
         // dateString isn't a valid ISO string, and value is a dayjs object.
         onChange={(value, _dateString) => {
-          if (isEditing) return;
+          if (isEditing) {return;}
           props.onChange?.(
             Array.isArray(value)
               ? value.map((date) => date.toISOString())

@@ -22,7 +22,7 @@ require('./contexts-DbLDJr3k.cjs.js');
 require('@plasmicapp/data-sources');
 require('classnames');
 require('dayjs');
-require('./canvas-overlay-BCQmyJjQ.cjs.js');
+require('./canvas-overlay-pJBoKL8M.cjs.js');
 require('@plasmicapp/host');
 require('./react-utils-CP3JYj1p.cjs.js');
 

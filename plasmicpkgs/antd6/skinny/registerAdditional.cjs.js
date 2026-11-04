@@ -4,7 +4,7 @@ var host = require('@plasmicapp/host');
 var Ant = require('antd');
 var dayjs = require('dayjs');
 var React = require('react');
-var canvasOverlay$1 = require('./canvas-overlay-BCQmyJjQ.cjs.js');
+var canvasOverlay$1 = require('./canvas-overlay-pJBoKL8M.cjs.js');
 var utils = require('./utils-Diqr9Iet.cjs.js');
 require('@plasmicapp/host/registerComponent');
 require('@plasmicapp/host/registerGlobalContext');
@@ -131,7 +131,7 @@ function AntdPopconfirm(props) {
       ...rest,
       open,
       destroyOnHidden: isEditing ? true : props.destroyOnHidden,
-      onOpenChange: isEditing ? void 0 : props.onOpenChange,
+      onOpenChange: isEditing ? void 0 : rest.onOpenChange,
       afterOpenChange: isEditing ? void 0 : props.afterOpenChange,
       onConfirm: isEditing ? void 0 : props.onConfirm,
       onCancel: isEditing ? void 0 : props.onCancel

@@ -1,4 +1,5 @@
 import { CanvasContentEditor } from "@/wab/client/studio-ctx/canvas-content-editor";
+import { CanvasSessionState } from "@/wab/client/components/canvas/canvas-session-state";
 import {
   isRenderReady,
   setRenderReadyAttr,
@@ -540,83 +541,36 @@ export class ViewCtx extends WithDbCtx {
   readonly canvasExporting = observable.box(false);
   readonly contentEditor = new CanvasContentEditor(this);
 
-  // One editing state per rendered instance. The source records whether the
-  // next selection update may change it; business props are never modified.
-  private _canvasOverlayStates = observable.map<
-    string,
-    {
-      open: boolean;
-      source: "selection" | "toolbar" | "runtime";
-      nativeOpen: boolean;
-    }
-  >();
+  readonly canvasSessionState = new CanvasSessionState();
 
   canvasOverlayOpen(fullKey: string) {
-    return this._canvasOverlayStates.get(fullKey)?.open ?? false;
+    return !!this.canvasSessionState.get(fullKey, "open");
   }
 
   syncCanvasOverlayState(
     fullKey: string,
     selectionOpen: boolean,
-    nativeOpen: boolean,
+    nativeOpen: boolean | undefined,
   ) {
-    const current = this._canvasOverlayStates.get(fullKey);
-    // An explicit runtime open/close takes over the previous editing reveal.
-    // Keep following it across renders until the eye is used again.
-    const source =
-      current && current.nativeOpen !== nativeOpen
-        ? "runtime"
-        : current?.source ?? "selection";
-    const open =
-      source === "runtime"
-        ? nativeOpen
-        : source === "toolbar"
-          ? current?.open ?? selectionOpen
-          : selectionOpen;
-    if (
-      !current ||
-      current.open !== open ||
-      current.nativeOpen !== nativeOpen
-    ) {
-      this._canvasOverlayStates.set(fullKey, {
-        open,
-        source,
-        nativeOpen,
-      });
-    }
-    return open;
+    this.canvasSessionState.resolve(fullKey, "open", nativeOpen);
+    return !!this.canvasSessionState.reveal(fullKey, "open", selectionOpen);
   }
 
   get hasShownHiddenContent() {
     return (
       !!this.autoOpenedUuid ||
-      Array.from(this._canvasOverlayStates.values()).some(
-        (state) => state.open && !state.nativeOpen,
-      )
+      this.canvasSessionState.hasReveals
     );
   }
 
   hideShownHiddenContent() {
-    for (const [key, state] of this._canvasOverlayStates) {
-      if (state.open && !state.nativeOpen) {
-        this._canvasOverlayStates.set(key, {
-          ...state,
-          open: false,
-          source: "toolbar",
-        });
-      }
-    }
+    this.canvasSessionState.hideReveals();
     this.forceCloseAutoOpen();
     this.scheduleSync({ eval: true, styles: false, asap: true });
   }
 
   setCanvasOverlayOpen(fullKey: string, open: boolean) {
-    const current = this._canvasOverlayStates.get(fullKey);
-    this._canvasOverlayStates.set(fullKey, {
-      open,
-      source: "toolbar",
-      nativeOpen: current?.nativeOpen ?? false,
-    });
+    this.canvasSessionState.set(fullKey, "open", open, true);
     this.scheduleSync({ eval: true, styles: false, asap: true });
   }
 
@@ -931,6 +885,7 @@ export class ViewCtx extends WithDbCtx {
       return;
     }
     this._isDisposed = true;
+    this.canvasSessionState.clear();
     if (this.canvasRerenderFrame !== undefined) {
       cancelAnimationFrame(this.canvasRerenderFrame);
     }

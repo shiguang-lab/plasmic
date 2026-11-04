@@ -63,6 +63,9 @@ it("keeps each artboard's state independent and retains it for editing without p
   const f = await fixture();
   try {
     const before = f.appCtx.bundler.bundle(f.studioCtx.site, f.studioCtx.siteInfo.id, f.appCtx.lastBundleVersion);
+    f.views[0].canvasSessionState.resolve("instance[0]", "open", false);
+    f.views[0].canvasSessionState.reveal("instance[0]", "open", true);
+    f.views[1].canvasSessionState.resolve("instance[0]", "open", false);
     runInAction(() => {
       f.studioCtx.isInteractiveMode = true;
       f.views[0].syncInteractiveVariants(f.state("second"));
@@ -75,6 +78,8 @@ it("keeps each artboard's state independent and retains it for editing without p
     expect(makeClientPinManager(f.views[0]).isActive(f.second)).toBe(true);
     expect(makeClientPinManager(f.views[1]).isActive(f.first)).toBe(true);
     runInAction(() => { f.studioCtx.isInteractiveMode = false; });
+    expect(f.views[0].canvasSessionState.get("instance[0]", "open")).toBe(true);
+    expect(f.views[1].canvasSessionState.get("instance[0]", "open")).toBe(false);
     expect(f.views[0].componentStackFrames()[0]).toBeInstanceOf(TransientComponentVariantFrame);
     expect(makeClientPinManager(f.views[0]).isActive(f.second)).toBe(true);
     expect(makeClientPinManager(f.views[1]).isActive(f.first)).toBe(true);

@@ -28,7 +28,7 @@ export function AntdTooltip(
       {...rest}
       open={open}
       destroyOnHidden={isEditing ? true : props.destroyOnHidden}
-      onOpenChange={isEditing ? undefined : props.onOpenChange}
+      onOpenChange={isEditing ? undefined : canvasProps.onOpenChange}
       afterOpenChange={isEditing ? undefined : props.afterOpenChange}
       classNames={(info) => {
         const names =

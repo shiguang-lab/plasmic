@@ -3,7 +3,7 @@ import cls from 'classnames';
 import React, { useMemo } from 'react';
 import { omit } from 'lodash';
 import { getButtonProps } from './registerButton.esm.js';
-import { u as useCanvasOverlay, p as previewOpenProp } from './canvas-overlay-Dan70Oxr.esm.js';
+import { u as useCanvasOverlay, p as previewOpenProp } from './canvas-overlay-CbpJk7_w.esm.js';
 import { r as registerComponentHelper } from './utils-U416WEAa.esm.js';
 import './names-DQIzgrvq.esm.js';
 import '@plasmicapp/host';

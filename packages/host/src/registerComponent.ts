@@ -65,6 +65,8 @@ export interface ComponentTemplates<P> {
 
 export type StateSpec<P> = {
   onChangeProp: string;
+  /** Native initial-value prop, when separate from the controlled value prop. */
+  initialValueProp?: string;
 
   /**
    * If true, will hide the state on studio.

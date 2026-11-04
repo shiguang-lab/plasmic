@@ -10,6 +10,7 @@ import {
 } from "@/wab/client/components/canvas/canvas-cache";
 import { CanvasCtx } from "@/wab/client/components/canvas/canvas-ctx";
 import { wrapCanvasEventHandler } from "@/wab/client/components/canvas/canvas-interactions";
+import { applyCanvasSessionState, CanvasStateSpec } from "@/wab/client/components/canvas/canvas-session-state";
 import {
   CanvasErrorBoundaryProps,
   mkCanvasErrorBoundary,
@@ -135,7 +136,6 @@ import {
   switchType,
   tuple,
   unexpected,
-  unreachable,
   withDefaultFunc,
   withoutNils,
 } from "@/wab/shared/common";
@@ -302,6 +302,7 @@ import {
   TplVisibility,
   getEffectiveVsVisibility,
   normalizeDisplayValue,
+  getTplComponentDefaultDisplayByActiveVariants,
 } from "@/wab/shared/visibility-utils";
 import type {
   ClientQueryResult,
@@ -1504,7 +1505,7 @@ function renderTplComponent(
     ctx.site,
   );
 
-  const { rendered } = determineAutoOpenState(ctx, node, effectiveVs);
+  const { rendered, style: visibilityStyle } = determineAutoOpenState(ctx, node, effectiveVs);
 
   if (!rendered) {
     return null;
@@ -1535,6 +1536,7 @@ function renderTplComponent(
   const positionClassName = uniqifyClassName(
     [
       makeWabInstanceClassName({ targetEnv: "canvas" }),
+      visibilityStyle && ctx.viewCtx.canvasCtx.getVisibleDisplayClass(visibilityStyle.display),
       isComponentRoot && ctx.rootClassName,
       ...activeVSettings.map((vs) => classNameForRuleSet(vs.rs)),
     ]
@@ -1662,6 +1664,7 @@ function renderTplComponent(
     (varName) => ctx.env[varName],
   );
   const builtinEventHandlers: Record<string, any[]> = {};
+  const canvasStateSpecs: CanvasStateSpec[] = [];
   ctx.ownerComponent?.states
     .filter((state) => state.tplNode === node)
     .forEach((state) => {
@@ -1687,6 +1690,18 @@ function renderTplComponent(
               ensureKnownNamedState(state.implicitState),
             )
           : undefined;
+      if (isTplCodeComponent(node) && meta && isWritableState(state.implicitState)) {
+        const registered = meta.meta.states?.[ensureKnownNamedState(state.implicitState).name];
+        const propMeta = meta.meta.props[getStateValuePropName(state.implicitState)];
+        canvasStateSpecs.push({
+          valueProp: getStateValuePropName(state.implicitState),
+          onChangeProp: maybeOnChangePropName,
+          initialValueProp: registered?.initialValueProp ??
+            (isPlainObjectPropType(propMeta) && "uncontrolledProp" in propMeta ? propMeta.uncontrolledProp : undefined),
+          controlled: explicitlyControlled,
+          onChangeArgsToValue: stateHelpers?.onChangeArgsToValue,
+        });
+      }
       if (maybeOnChangePropName && !explicitlyControlled) {
         const pushEventHandler = (handler: any) => {
           withDefaultFunc(
@@ -1824,12 +1839,12 @@ function renderTplComponent(
     ) {
       const autoOpen =
         codeComponentSelectionInfo.isSelected &&
-        codeComponentSelectionInfo.selectedSlotName !==
-          meta?.meta.canvasOverlay?.triggerSlot;
+        (!meta?.meta.canvasOverlay?.triggerSlot || codeComponentSelectionInfo.selectedSlotName !==
+          meta.meta.canvasOverlay.triggerSlot);
       props.previewOpen = ctx.viewCtx.syncCanvasOverlayState(
         computeFullKey(ctx),
         props.previewOpen ?? (autoOpen || !!props.open),
-        !!props.open,
+        props.open,
       );
     }
     props["plasmicNotifyAutoOpenedContent"] = () => {
@@ -1839,6 +1854,13 @@ function renderTplComponent(
             p.variable.name === codeComponentSelectionInfo.selectedSlotName,
         )?.uuid ?? node.uuid;
     };
+    if (!ctx.viewCtx.canvasExporting.get()) {
+      props[INTERNAL_CC_CANVAS_SELECTION_PROP].states = applyCanvasSessionState(
+        ctx.viewCtx.canvasSessionState, computeFullKey(ctx), props, canvasStateSpecs,
+        ctx.viewCtx.studioCtx.isInteractiveMode,
+        () => ctx.viewCtx.scheduleSync({ eval: true, styles: false, asap: true }),
+      );
+    }
   }
 
   let elt = createPlasmicElementProxy(node, ctx, ComponentImpl, props);
@@ -2843,70 +2865,37 @@ function determineAutoOpenState(
   node: TplNode,
   effectiveVs: EffectiveVariantSetting,
 ) {
-  function getVisibilityWithAutoOpen() {
-    const visibility = getEffectiveVsVisibility(effectiveVs);
-
-    switch (visibility) {
-      case TplVisibility.Visible: {
-        return {
-          rendered: true,
-          autoOpened: false,
-        };
-      }
-
-      case TplVisibility.NotRendered:
-      case TplVisibility.CustomExpr: {
-        const autoOpenInfo = getAutoOpenSelectionInfo(ctx, node);
-        const dataCondResult = evalDataCondExpr(ctx, effectiveVs);
-        if (dataCondResult) {
-          return {
-            rendered: true,
-            autoOpened: false,
-          };
-        }
-
-        return {
-          rendered: autoOpenInfo.isSelected,
-          autoOpened: autoOpenInfo.isSelected,
-        };
-      }
-
-      case TplVisibility.DisplayNone: {
-        const autoOpenInfo = getAutoOpenSelectionInfo(ctx, node);
-        // Auto Open is not yet supported for TplComponents / images with Visibility.DisplayNone
-        if (isTplComponent(node)) {
-          return {
-            rendered: true,
-            autoOpened: false,
-          };
-        }
-
-        return {
-          rendered: true,
-          style: autoOpenInfo.isSelected
-            ? {
-                display: normalizeDisplayValue(
-                  effectiveVs.rsh().get("display"),
-                ),
-              }
-            : undefined,
-          autoOpened: autoOpenInfo.isSelected,
-        };
-      }
-
-      default: {
-        unreachable(visibility);
+  const visibility = getEffectiveVsVisibility(effectiveVs);
+  const display = effectiveVs.rsh().get("display");
+  const hiddenByDisplay = visibility === TplVisibility.DisplayNone || display === "none";
+  const nativeVisible = !hiddenByDisplay && (visibility === TplVisibility.Visible ||
+    evalDataCondExpr(ctx, effectiveVs));
+  let visible = nativeVisible;
+  if (!ctx.viewCtx.canvasExporting.get()) {
+    const session = ctx.viewCtx.canvasSessionState;
+    const instance = computeFullKey(ctx);
+    if (!nativeVisible || session.has(instance, "$visibility")) {
+      visible = !!session.resolve(instance, "$visibility", nativeVisible, [
+      visibility, hiddenByDisplay, effectiveVs.dataCond ? hashExpr(ctx.site, effectiveVs.dataCond, {
+        component: ctx.ownerComponent ?? null, projectFlags: ctx.projectFlags, inStudio: true,
+      }) : undefined,
+      ]);
+      if (!ctx.viewCtx.studioCtx.isInteractiveMode && !nativeVisible) {
+        visible = !!session.reveal(instance, "$visibility", getAutoOpenSelectionInfo(ctx, node).isSelected);
       }
     }
   }
-
-  const state = getVisibilityWithAutoOpen();
-
-  if (state.autoOpened) {
-    ctx.viewCtx.autoOpenedUuid = node.uuid;
-  }
-
-  return state;
+  const autoOpened = visible && !nativeVisible;
+  if (autoOpened) {ctx.viewCtx.autoOpenedUuid = node.uuid;}
+  return {
+    rendered: visibility === TplVisibility.DisplayNone || visibility === TplVisibility.Visible || visible,
+    autoOpened,
+    style: hiddenByDisplay && visible
+      ? { display: normalizeDisplayValue(isTplComponent(node) && (!effectiveVs.rsh().has("display") || display === "none")
+          ? getTplComponentDefaultDisplayByActiveVariants(node, Array.from(ctx.activeVariants)) ?? "block"
+          : display === "none" ? "revert" : display) }
+      : undefined,
+  };
 }
 
 function deriveTplTagChildren(
@@ -4083,6 +4072,7 @@ export const _testOnlyUtils = {
   mkInitFuncHash,
   computeActiveVariantsForMaybeDisabledTag,
   computeTplComponentArgs,
+  determineAutoOpenState,
   getQueryFetcherHookCounts,
   useComponentLevelQueries,
 };

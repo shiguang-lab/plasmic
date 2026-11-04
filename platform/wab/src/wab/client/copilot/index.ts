@@ -2,10 +2,11 @@ import { resolveBatchInput, type MutationReceipt, type MutationIdentity } from "
 import { flushSync } from "react-dom";
 import { readDepth, selectedReadFields, projectReadFields, registrationContract, withRegisteredContracts, type ModelReadOptions } from "@/wab/shared/copilot/model-read";
 import {
-  isCanvasElementVisible,
+  getCanvasElementVisibility,
   revealCanvasElement,
 } from "@/wab/client/components/canvas/canvas-scroll";
 import { activityTargets } from "@/wab/client/copilot/activity";
+import { presentToolTarget } from "@/wab/client/copilot/present-target";
 import { getLibrary, listLibraries, searchLibraryComponents } from "@/wab/client/copilot/libraries";
 import {
   browserImportCanvas,
@@ -170,6 +171,33 @@ const editTools = new Set<string>([
 
 const previewEditorViews = new WeakMap<StudioCtx, ReturnType<typeof meta.restoreEditorView.inputSchema.parse>>();
 
+const presentedTools = new Set([...editTools, "read", "queryElements"]);
+
+async function presentOperationTarget(studio: StudioCtx, name: string, input: Record<string, any>, output?: any, signal?: AbortSignal) {
+  if (!studio.studioIsVisible || !presentedTools.has(name) || input.fromProject && input.fromProject !== studio.siteInfo.id || input.view === "contract") { return undefined; }
+  const receipt = name === "executeBatch" ? output?.operations?.at(-1) : output;
+  const created = receipt?.created?.find((item: MutationIdentity) => item.kind === "Element") ?? receipt?.created?.find((item: MutationIdentity) => item.kind === "Component");
+  const match = name === "queryElements" ? output?.results?.find((item: any) => item.__type === "Element") : undefined;
+  const componentUuid = created?.componentUuid ?? (created?.kind === "Component" ? created.uuid : undefined) ??
+    match?.componentUuid ?? receipt?.componentUuid ?? input.elements?.[0]?.componentUuid ?? input.componentUuids?.[0] ?? input.componentUuid;
+  const component = studio.site.components.find(candidate => candidate.uuid === componentUuid);
+  if (!component || isCodeComponent(component)) { return undefined; }
+  if (name === "queryElements" && !match) { return undefined; }
+  const elementUuid = (created?.kind === "Element" ? created.uuid : undefined) ?? match?.uuid ?? receipt?.elementUuid ?? input.elements?.[0]?.elementUuid ?? input.elementUuid;
+  const tpl = elementUuid ? flattenTpls(component.tplTree).find(node => node.uuid === elementUuid) : component.tplTree;
+  return tpl ? presentToolTarget(studio, component, tpl, signal) : undefined;
+}
+
+const canvasVisibilityGuidance: Record<ReturnType<typeof getCanvasElementVisibility>["reason"], string> = {
+  visible: "The element is visible in the artboard; inspect its position in a workspace screenshot.",
+  "scroll-clipped": "Use scrollElementIntoView to reveal content in nested scroll containers.",
+  "layout-clipped": "Inspect ancestor clipping and sizing; scrolling cannot fully reveal this element.",
+  "outside-viewport": "Locate the artboard in the workspace viewport before inspecting the element.",
+  hidden: "Inspect the owning state and styles before enabling interaction and operating the real trigger; CSS suppression alone does not prove a business state.",
+  "no-layout": "The element has no layout box; inspect its owning state and styles before inferring visibility or model absence.",
+  "not-rendered": "Navigate to the owning page and wait for rendering; verify the model identity before inferring absence.",
+};
+
 function editorView(studio: StudioCtx) {
   const vc = studio.focusedViewCtx();
   return studio.currentArena && studio.viewportCtx
@@ -209,7 +237,9 @@ const defineCopilotTool: typeof defineTool = (toolMeta, execute) =>
   defineTool(toolMeta, async (studio, input, caller, signal) => {
     signal?.throwIfAborted();
     if (!editTools.has(toolMeta.toolName)) {
-      return execute(studio, input, caller, signal);
+      const output = await execute(studio, input, caller, signal);
+      const presentation = await presentOperationTarget(studio, toolMeta.toolName, input, output, signal);
+      return presentation ? { ...output, presentation: { ...presentation, phase: "after" } } : output;
     }
     const targets = activityTargets(toolMeta.toolName, input).map((target) => {
       const component =
@@ -236,9 +266,12 @@ const defineCopilotTool: typeof defineTool = (toolMeta, execute) =>
     });
     const finish = studio.copilotActivity.begin(targets, "edit", caller, signal);
     try {
+      const beforeDelete = ["deleteElement", "deleteComponent"].includes(toolMeta.toolName);
+      const before = await presentOperationTarget(studio, toolMeta.toolName, input, undefined, signal);
       const output = await execute(studio, input, caller, signal);
+      const presentation = beforeDelete ? before : await presentOperationTarget(studio, toolMeta.toolName, input, output, signal);
       finish("success");
-      return output;
+      return presentation ? { ...output, presentation: { ...presentation, phase: beforeDelete ? "before" : "after" } } : output;
     } catch (error) {
       finish("error");
       throw error;
@@ -498,7 +531,7 @@ function readNativeModel(studio: StudioCtx, component: Component, tpl: TplNode |
       // Component contracts use registered names; exported instance markup may
       // instead use the uncontrolled prop recorded in param.propEffect.
       resource.props = withRegisteredContracts(resource.props.map((prop) => {
-        const param = component.params.find((param) => param.uuid === prop.uuid);
+        const param = component.params.find((candidate) => candidate.uuid === prop.uuid);
         return param ? { ...prop, name: param.variable.name } : prop;
       }), registration.props);
     }
@@ -2682,19 +2715,25 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
       ensureOk(await studio.change(() => ok(vc.setStudioFocusBySelectable(val)), { noErrorNotification: true }));
       await vc.awaitSync();
       const selectedVal = vc.renderState.fullKey2val(key);
-      const node = selectedVal
+      const doms = selectedVal
         ? vc.renderState
             .val2dom(selectedVal, vc.canvasCtx)
-            ?.find((dom) => dom.isConnected && dom.getClientRects().length > 0)
         : undefined;
+      const node = doms?.find((dom) => dom.isConnected && dom.getClientRects().length > 0)
+        ?? doms?.find((dom) => dom.isConnected);
       if (node) {
         revealCanvasElement(node);
       }
+      const visibility = node
+        ? getCanvasElementVisibility(node)
+        : { visible: false, reason: "not-rendered" as const };
       return {
         componentUuid: component.uuid,
         elementUuid: tpl.uuid,
         frameUuid: vc.arenaFrame().uuid,
         instanceIndex: input.instanceIndex,
+        visibility,
+        guidance: canvasVisibilityGuidance[visibility.reason],
       };
     },
   ),
@@ -2760,14 +2799,19 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
         .val2dom(val, vc.canvasCtx)
         ?.find((dom) => dom.isConnected && dom.getClientRects().length > 0);
       assert(node, "Element is hidden or has no rendered layout box");
+      const visibilityBefore = getCanvasElementVisibility(node);
       revealCanvasElement(node);
+      const visibility = getCanvasElementVisibility(node);
       const rect = node.getBoundingClientRect();
       return {
         componentUuid: component.uuid,
         elementUuid: tpl.uuid,
         frameUuid: vc.arenaFrame().uuid,
         instanceIndex: input.instanceIndex,
-        visible: isCanvasElementVisible(node),
+        visible: visibility.visible,
+        visibilityBefore,
+        visibility,
+        guidance: canvasVisibilityGuidance[visibility.reason],
         bounds: {
           x: rect.x,
           y: rect.y,
@@ -2777,6 +2821,16 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
       };
     },
   ),
+  setInteractiveMode: defineCopilotTool(meta.setInteractiveMode, async (studio, input) => {
+    assert(!studio.isLiveMode, "Close native Preview before changing canvas interaction");
+    assert(!input.enabled || !studio.currentArenaEmpty, "Open a nonempty canvas before enabling interaction");
+    const previous = studio.isInteractiveMode;
+    if (previous !== input.enabled) {
+      await studio.changeUnsafe(() => { studio.isInteractiveMode = input.enabled; });
+      await studio.awaitStudioReady();
+    }
+    return { previous, current: studio.isInteractiveMode };
+  }),
   setCanvasPageHeight: defineCopilotTool(
     meta.setCanvasPageHeight,
     async (studio, input) => {

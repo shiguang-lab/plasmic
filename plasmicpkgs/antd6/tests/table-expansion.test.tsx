@@ -1,10 +1,12 @@
-import { PlasmicCanvasContext } from "@plasmicapp/host";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { Table } from "antd";
 import React from "react";
 import { expect, test, vi } from "vitest";
 import { AntdColumn, AntdExpandColumn, AntdTable, registerTable } from "../src/registerTable";
 import type { Registerable } from "../src/utils";
+import { createSessionCanvas } from "./canvas-session";
+
+const Canvas = createSessionCanvas([registerTable]);
 
 type Props = React.ComponentProps<typeof AntdTable>;
 const data = { data: [{ id: "a", name: "Alpha", detail: "First detail" }, { id: "b", name: "Beta", detail: "Second detail" }, { id: "c", name: "Gamma" }] };
@@ -16,7 +18,7 @@ function table(props: Partial<Props> = {}, mode: "runtime" | "canvas" | "interac
   const element = <AntdTable data={data} rowKey="id" pagination={false} expandedRowRender={detail} {...props}>
     {props.children ?? <><AntdColumn title="Name" dataIndex="name" /><AntdExpandColumn /></>}
   </AntdTable>;
-  return mode === "runtime" ? element : <PlasmicCanvasContext.Provider value={{ componentName: "Expansion test", globalVariants: {}, interactive: mode === "interactive" }}>{element}</PlasmicCanvasContext.Provider>;
+  return mode === "runtime" ? element : <Canvas interactive={mode === "interactive"}>{element}</Canvas>;
 }
 
 test("registration exposes the native expandable fields, typed events, editable row scope and position marker", () => {
@@ -26,7 +28,7 @@ test("registration exposes the native expandable fields, typed events, editable 
   expect(meta.props.expandedRowRender.renderPropParams).toEqual(["row", "index", "indent", "expanded"]);
   expect(meta.props.expandedRowRender.type).toBe("slot");
   const fields = meta.props.expandable.fields;
-  for (const name of ["showExpandColumn", "expandRowByClick", "columnTitle", "columnWidth", "fixed", "rowExpandable", "defaultExpandAllRows", "defaultExpandedRowKeys", "expandedRowKeys"]) expect(fields[name]).toBeDefined();
+  for (const name of ["showExpandColumn", "expandRowByClick", "columnTitle", "columnWidth", "fixed", "rowExpandable", "defaultExpandAllRows", "defaultExpandedRowKeys", "expandedRowKeys"]) {expect(fields[name]).toBeDefined();}
   expect(meta.props.onExpand.argTypes).toEqual([{ name: "expanded", type: "boolean" }, { name: "row", type: "object" }]);
   expect(meta.props.onExpandedRowsChange.argTypes).toEqual([{ name: "expandedKeys", type: "object" }]);
   expect(meta.props.rowKey.hidden).toBeUndefined();
@@ -142,7 +144,7 @@ test("native renderer passthrough and top-level slot precedence remain explicit"
   expect(visibleDetails(container)).toEqual(["Second detail:1:1:true"]);
 });
 
-test("canvas sample keys cover multiple records without changing controlled runtime expansion", () => {
+test("canvas sample keys survive canvas mode changes without changing standalone controlled expansion", () => {
   const onExpand = vi.fn(), onExpandedRowsChange = vi.fn();
   const expandable = Object.freeze({ expandedRowKeys: Object.freeze([]), rowExpandable: eligible });
   const ps = { expandable, canvasExpandedRowKeys: Object.freeze(["a", "b", "c", "missing"]), onExpand, onExpandedRowsChange };
@@ -151,7 +153,7 @@ test("canvas sample keys cover multiple records without changing controlled runt
   expect(onExpand).not.toHaveBeenCalled();
   expect(onExpandedRowsChange).not.toHaveBeenCalled();
   rerender(table(ps, "interactive"));
-  expect(visibleDetails(container)).toEqual([]);
+  expect(visibleDetails(container)).toHaveLength(2);
   rerender(table(ps));
   expect(visibleDetails(container)).toEqual([]);
   expect(expandable.expandedRowKeys).toEqual([]);
@@ -186,7 +188,7 @@ test("explicit canvas samples retain manual changes and selection does not force
   expect(onExpandedRowsChange).not.toHaveBeenCalled();
 });
 
-test("native canvas expansion is row-specific, temporary, and reset by source edits or Preview", () => {
+test("native canvas expansion survives mode changes and resets on source edits or standalone Preview", () => {
   const onExpand = vi.fn(), onExpandedRowsChange = vi.fn();
   const expandable = Object.freeze({ expandedRowKeys: Object.freeze([]), rowExpandable: eligible });
   const ps = { expandable, onExpand, onExpandedRowsChange };
@@ -211,9 +213,9 @@ test("native canvas expansion is row-specific, temporary, and reset by source ed
   expect(visibleDetails(container)).toEqual([]);
   fireEvent.click(screen.getAllByRole("button", { name: "Expand row" })[0]);
   rerender(table(ps, "interactive"));
-  expect(visibleDetails(container)).toEqual([]);
+  expect(visibleDetails(container)).toEqual(["First detail:0:1:true"]);
   rerender(table(ps, "canvas"));
-  expect(visibleDetails(container)).toEqual([]);
+  expect(visibleDetails(container)).toEqual(["First detail:0:1:true"]);
   expect(expandable.expandedRowKeys).toEqual([]);
   expect(onExpand).not.toHaveBeenCalled();
   expect(onExpandedRowsChange).not.toHaveBeenCalled();

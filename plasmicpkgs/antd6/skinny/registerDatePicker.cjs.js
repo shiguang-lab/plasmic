@@ -4,7 +4,7 @@ var Ant = require('antd');
 var cls = require('classnames');
 var dayjs = require('dayjs');
 var React = require('react');
-var canvasOverlay = require('./canvas-overlay-BCQmyJjQ.cjs.js');
+var canvasOverlay = require('./canvas-overlay-pJBoKL8M.cjs.js');
 var utils = require('./utils-Diqr9Iet.cjs.js');
 require('@plasmicapp/host');
 require('@plasmicapp/host/registerComponent');
@@ -23,10 +23,9 @@ function AntdDatePicker(props) {
   return /* @__PURE__ */ React__default.default.createElement(React__default.default.Fragment, null, /* @__PURE__ */ React__default.default.createElement(
     Ant.DatePicker,
     {
-      key: isEditing ? "edit" : "runtime",
       ...rest,
       open,
-      onOpenChange: isEditing ? void 0 : props.onOpenChange,
+      onOpenChange: isEditing ? void 0 : canvasProps.onOpenChange,
       onCalendarChange: isEditing ? void 0 : props.onCalendarChange,
       onPanelChange: isEditing ? void 0 : props.onPanelChange,
       picker,
@@ -41,7 +40,9 @@ function AntdDatePicker(props) {
         };
       },
       onChange: (value, _dateString) => {
-        if (isEditing) return;
+        if (isEditing) {
+          return;
+        }
         props.onChange?.(
           Array.isArray(value) ? value.map((date) => date.toISOString()) : value?.toISOString() ?? null
         );

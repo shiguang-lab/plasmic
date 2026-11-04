@@ -1,7 +1,7 @@
 'use strict';
 
 var host = require('@plasmicapp/host');
-var canvasOverlay = require('./canvas-overlay-BCQmyJjQ.cjs.js');
+var canvasOverlay = require('./canvas-overlay-pJBoKL8M.cjs.js');
 var Ant = require('antd');
 var React = require('react');
 var utils = require('./utils-Diqr9Iet.cjs.js');
@@ -18,24 +18,26 @@ const collapsePanelComponentName = "plasmic-antd6-collapse-item";
 function AntdCollapse(props) {
   return props.items !== void 0 ? /* @__PURE__ */ React__default.default.createElement(Ant.Collapse, { ...props }) : canvasOverlay.renderCanvasSlot(props.children, (children) => /* @__PURE__ */ React__default.default.createElement(CollapseWithChildren, { ...props, children }));
 }
-function CollapseWithChildren({ children, activeKey, defaultActiveKey, onChange, accordion, ...rest }) {
+function CollapseWithChildren(props) {
+  const { children, activeKey, defaultActiveKey, onChange, accordion, ...rest } = props;
   const canvas = host.usePlasmicCanvasContext();
+  const state = host.usePlasmicCanvasComponentInfo(props)?.states?.activeKey;
   const panels = canvasOverlay.getCanvasItems(children, (item) => item.type === AntdCollapsePanel || item.type === Ant.Collapse.Panel);
   const selectedKey = canvas && !canvas.interactive ? canvasOverlay.getSelectedCanvasItemKey(panels) : void 0;
   const businessKeys = activeKey ?? defaultActiveKey ?? [];
-  const openKeys = selectedKey == null ? activeKey : accordion ? String(selectedKey) : Array.from(/* @__PURE__ */ new Set([...Array.isArray(businessKeys) ? businessKeys : [businessKeys], String(selectedKey)]));
+  const revealKeys = selectedKey == null ? void 0 : accordion ? String(selectedKey) : Array.from(/* @__PURE__ */ new Set([...Array.isArray(businessKeys) ? businessKeys : [businessKeys], String(selectedKey)]));
+  const openKeys = revealKeys === void 0 ? activeKey : state ? state.reveal(revealKeys) : revealKeys;
   return /* @__PURE__ */ React__default.default.createElement(
     Ant.Collapse,
     {
       ...rest,
-      key: selectedKey == null ? "business" : "canvas-reveal",
       accordion,
       activeKey: openKeys,
       defaultActiveKey,
-      onChange: selectedKey == null ? onChange : void 0,
+      onChange: state || selectedKey == null ? onChange : void 0,
       items: panels.map((panel, index) => {
-        const { header, __plasmic_selection_prop__: _selection, ...props } = panel.props;
-        return { ...props, key: panel.key ?? String(index), label: header };
+        const { header, __plasmic_selection_prop__: _selection, ...panelProps } = panel.props;
+        return { ...panelProps, key: panel.key ?? String(index), label: header };
       })
     }
   );

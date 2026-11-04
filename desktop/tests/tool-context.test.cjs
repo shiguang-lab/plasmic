@@ -10,6 +10,7 @@ const { Client } = require("@modelcontextprotocol/sdk/client/index.js");
 const { StdioClientTransport } = require("@modelcontextprotocol/sdk/client/stdio.js");
 const { startRpc } = require("../src/local-rpc.cjs");
 const { currentContext } = require("../src/tool-context.cjs");
+const { requiredContext, assertContext } = require("../src/tool-context.cjs");
 let userDataDirectory = os.tmpdir();
 const originalLoad = Module._load;
 Module._load = function (name, ...args) {
@@ -266,4 +267,73 @@ test("the page height view runs on read-only canvases as a view operation", asyn
     controller.dispatch("execute", { name: "changeElement", input: { componentUuid: "page" } }),
     (error) => error.context.required.canEdit === true,
   );
+});
+
+test("interactive mode can be explicitly enabled and disabled, while design writes remain guarded", async (t) => {
+  const { controller, context, calls } = fixture(t);
+  context.canEdit = false;
+  const enable = { name: "setInteractiveMode", input: { enabled: true } };
+  await controller.dispatch("execute", enable);
+  assert.deepEqual(calls.at(-1), enable);
+  context.mode = "preview"; context.previewKind = "interactive";
+  const disable = { name: "setInteractiveMode", input: { enabled: false } };
+  await controller.dispatch("execute", disable);
+  assert.deepEqual(calls.at(-1), disable);
+  await assert.rejects(controller.dispatch("execute", { name: "changeElement", input: {} }), error => {
+    assert.equal(error.context.code, "CONTEXT_MISMATCH");
+    assert.deepEqual(error.context.recovery[0], { tool: "execute", arguments: { name: "setInteractiveMode", input: { enabled: false } } });
+    return true;
+  });
+  const { EDITOR_METHODS, tools } = require("../src/mcp-contract.cjs");
+  assert.ok(EDITOR_METHODS.includes("setInteractiveMode"));
+  const batch = tools.find(tool => tool.name === "execute_batch");
+  assert.ok(!batch.inputSchema.properties.operations.items.properties.name.enum.includes("setInteractiveMode"));
+});
+
+test("canvas interaction rejects native/external Preview and accepts runtime inputs only in interactive canvas", () => {
+  const state = kind => ({ ready: true, projectId: "p", editorContext: { mode: "preview", previewKind: kind } });
+  const toggle = requiredContext("execute", { name: "setInteractiveMode" });
+  for (const kind of ["in-app", "external"]) assert.throws(() => assertContext(toggle, state(kind)), /requires/);
+  assert.doesNotThrow(() => assertContext(toggle, state("interactive")));
+  for (const action of ["snapshot", "click", "screenshot", "assert"]) assert.doesNotThrow(() => assertContext(requiredContext("preview", { action }), state("interactive")));
+  for (const action of ["back", "forward", "refresh"]) assert.throws(() => assertContext(requiredContext("preview", { action }), state("interactive")), /requires/);
+});
+
+for (const method of ["execute", "execute_batch"]) {
+  test(`${method} automatically leaves canvas interaction before editing`, async t => {
+    const { controller, context, calls } = fixture(t);
+    context.mode = "preview"; context.previewKind = "interactive"; context.canEdit = false;
+    const editor = controller.editor;
+    controller.editor = async (name, input) => {
+      const result = await editor(name, input);
+      if (name === "setInteractiveMode") {
+        context.mode = "edit"; context.previewKind = null; context.canEdit = true;
+      }
+      return result;
+    };
+    const operation = { name: "changeElement", input: { componentUuid: "page", elementUuid: "node", name: "Updated" } };
+    await controller.dispatch(method, method === "execute" ? operation : { operations: [operation] });
+    assert.deepEqual(calls[0], { name: "setInteractiveMode", input: { enabled: false } });
+    assert.equal(calls[1].name, method === "execute" ? "changeElement" : "executeBatch");
+    assert.equal(context.mode, "edit");
+  });
+}
+
+test("automatic interaction exit rechecks permission and session before any mutation", async t => {
+  for (const reason of ["permission", "session"]) {
+    const { controller, context, calls } = fixture(t);
+    context.mode = "preview"; context.previewKind = "interactive"; context.canEdit = false;
+    const editor = controller.editor;
+    controller.editor = async (name, input) => {
+      const result = await editor(name, input);
+      if (name === "setInteractiveMode") {
+        context.mode = "edit"; context.previewKind = null;
+        context.canEdit = reason !== "permission";
+        if (reason === "session") context.sessionId = "replacement";
+      }
+      return result;
+    };
+    await assert.rejects(controller.dispatch("execute", { name: "changeElement", input: { componentUuid: "page" } }), error => error.context.code === "CONTEXT_MISMATCH" && error.context.operationExecuted === false);
+    assert.deepEqual(calls.map(call => call.name), ["setInteractiveMode"]);
+  }
 });

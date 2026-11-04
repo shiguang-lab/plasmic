@@ -22,6 +22,20 @@ Global contexts use the context registration registry, separately from ordinary 
 
 Empty code-component Slots retain the component’s native default; an explicit null expression remains an override. Check native default content, explicit null and custom Slot content on editor canvas and Preview. Keep temporary selection/reveal separate from persisted business props; follow each component’s actual Slot and visibility contract.
 
+### Canvas session state
+
+The canvas owns one transient session per artboard, keyed by the full rendered instance identity (including repetition) and state property. Editing and interactive canvas modes share that session; changing modes must not change React keys, remount descendants, clear state, or invoke business callbacks.
+
+Registered writable states use their real `valueProp`, `onChangeProp` and state helper argument conversion. Declare `initialValueProp` when the native initial prop is separate, such as `defaultActiveKey`; existing `uncontrolledProp` mappings retain their real initial-prop meaning. Do not invent component-name branches or another persisted property schema.
+
+Use `usePlasmicCanvasComponentInfo(props).states` for selection-driven reveals of registered states. Native nested/private UI state without a writable top-level prop uses the same contract's `getState(name, nativeValue, initialValue)` binding: `value` reads the current session, `reveal(value)` supplies an editing reveal, and `set(value)` records a real UI change. The state name identifies the actual native property/path. Wrappers keep their real controlled/uncontrolled and event semantics; the canvas suppresses business handlers during editing. Explicit business/default value changes take precedence over retained session state. Releasing a selection reveal restores the state that preceded it.
+
+The same session retains conditional/not-rendered regions and display-none reveals. Overlay visibility follows the shared overlay contract, independent of widget identity. The canvas renderer resolves overlay selection once; wrappers read its effective state rather than feeding that value back as another reveal request. A real close must remain closed through repeated mode changes with the same selection. Preserve native DOM instances so fields, focus and internal state are not lost at mode boundaries. Dispose state with its artboard; independent Preview, static exports and generated applications use business props and initial values and never consume this session.
+
+Verify both transition directions, registered and native nested state, hidden regions, repeated instances/artboard isolation, controlled source updates, callback counts and mounted descendant identity. Check that saved models and independent Preview/exports retain their configured initial state.
+
+Run `node plasmicpkgs/antd6/tests/mode-session.browser.cjs` from the repository root for real-browser transition checks, including DOM identity, draft input, Tabs indicator stability, business event isolation and standalone initial values.
+
 ## Verification
 
 When changing a wrapper, test omitted props, explicit overrides and controlled/uncontrolled use against the same installed component library/version. Exercise validation failure, rejected/thrown save, retry, duplicate submission, disabled controls, selection, clearing and event timing where relevant. Run the package's behavior tests and registration/build checks. For affected prototype flows, exercise live App interactions and record screenshots plus observations; screenshots do not prove callback order, validation blocking or state recovery. For shell/editor sizing changes, verify create → content edit → save/reopen → further content edit: shell viewport fill and scrolling must survive each transition. Keep component examples and capability-test pages out of the deliverable.

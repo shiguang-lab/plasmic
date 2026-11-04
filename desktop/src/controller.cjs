@@ -262,7 +262,20 @@ class DesktopController {
         "Cannot verify tool execution context: " + error.message);
     }
     const url = state.url || this.getStudio()?.webContents?.getURL?.();
-    return assertContext(required, { ...state, ...(url ? { url } : {}) }, this.config.studioOrigin);
+    const snapshot = { ...state, ...(url ? { url } : {}) };
+    const actual = currentContext(snapshot, this.config.studioOrigin);
+    if (["execute", "execute_batch"].includes(method) && required.mode === "edit" && required.canEdit && actual.previewKind === "interactive") {
+      assertContext({ surface: "editor", previewKind: "interactive" }, snapshot, this.config.studioOrigin);
+      await this.editor("setInteractiveMode", { enabled: false });
+      const after = await this.state();
+      const afterUrl = after.url || this.getStudio()?.webContents?.getURL?.();
+      const verified = assertContext(required, { ...after, ...(afterUrl ? { url: afterUrl } : {}) }, this.config.studioOrigin);
+      if (["projectId", "branchId", "sessionId"].some(key => actual[key] !== verified[key])) {
+        throw contextError(required, verified, "The editor session changed while leaving canvas interaction; the requested operation was not executed.");
+      }
+      return verified;
+    }
+    return assertContext(required, snapshot, this.config.studioOrigin);
   }
   dispatch(method, input, caller, signal) {
     if (this.updating) return Promise.reject(uiError("Plasmic is restarting to install an update. Retry after it reopens."));
@@ -426,7 +439,7 @@ class DesktopController {
           result = { ...result, ready: layout.rootReady ?? layout.ready, runtime: layout.runtime };
         }
       } else {
-        if (input.action === "state" && (before.mode !== "preview" || !before.previewContext?.componentUuid)) result = { ready: false };
+        if (input.action === "state" && (before.mode !== "preview" || (!before.previewContext?.componentUuid && before.previewKind !== "interactive"))) result = { ready: false };
         else result = await runPreview(win, input, before,
           AbortSignal.any([AbortSignal.timeout(30000), ...[this.signalContext.getStore()].filter(Boolean)]),
           this.callerContext.getStore());

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { toolPresentationSchema } from "@/wab/shared/copilot/presentation";
 import { isDynamicValue } from "@/wab/shared/dynamic-bindings";
 import { isPlainObject } from "lodash";
 
@@ -148,6 +149,7 @@ export function validateRegisteredValue(value: unknown, metadata: unknown, path:
 }
 
 export const modelReadResultSchema = z.object({
+  presentation: toolPresentationSchema.optional(),
   __type: z.literal("OutputResult"),
   results: z.array(z.record(z.unknown())),
   // A partial model must never be mistaken for evidence of absent content.

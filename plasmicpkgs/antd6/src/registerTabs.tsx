@@ -1,8 +1,8 @@
-import { usePlasmicCanvasContext } from "@plasmicapp/host";
+import { usePlasmicCanvasContext, usePlasmicCanvasComponentInfo } from "@plasmicapp/host";
 import { ActionProps } from "@plasmicapp/host/registerComponent";
 import { Tabs } from "antd";
 import cls from "classnames";
-import React, { ReactElement, useEffect, useMemo, useState } from "react";
+import React, { ReactElement, useMemo } from "react";
 import { getSelectedCanvasItemKey } from "./canvas-overlay";
 import {
   Registerable,
@@ -85,6 +85,7 @@ export function AntdTabs(props: TabsProps) {
 
 function TabsWithItems(props: TabsProps) {
   const canvas = usePlasmicCanvasContext();
+  const state = usePlasmicCanvasComponentInfo(props)?.states?.activeKey;
   const isEditing = !!canvas && !canvas.interactive;
   const {
     items: itemsRaw,
@@ -124,33 +125,12 @@ function TabsWithItems(props: TabsProps) {
     })
     .filter((i) => i != null) as TabItemType[];
   const initialActiveKey = rest.activeKey ?? rest.defaultActiveKey;
-  const [canvasTab, setCanvasTab] = useState<{
-    key: string;
-    initialActiveKey: string | undefined;
-  }>();
-
-  useEffect(() => {
-    if (!isEditing) {
-      setCanvasTab(undefined);
-    } else if (selectedKey !== undefined) {
-      setCanvasTab({ key: String(selectedKey), initialActiveKey });
-    } else {
-      setCanvasTab((tab) =>
-        tab?.initialActiveKey === initialActiveKey ? tab : undefined,
-      );
-    }
-  }, [isEditing, selectedKey, initialActiveKey]);
-
-  // Keep the revealed tab when selection moves elsewhere, only for this canvas.
-  const retainedKey =
-    canvasTab?.initialActiveKey === initialActiveKey &&
-    items.some((item) => item.key === canvasTab?.key)
-      ? canvasTab?.key
-      : undefined;
+  const activeKey = selectedKey !== undefined && state
+    ? state.reveal(String(selectedKey)) as string | undefined
+    : rest.activeKey;
 
   return (
     <Tabs
-      key={isEditing ? "canvas" : "runtime"}
       className={cls(className, tabsScopeClassName)}
       classNames={(info) => {
         const names =
@@ -179,19 +159,14 @@ function TabsWithItems(props: TabsProps) {
       activeKey={
         isEditing
           ? String(
-              selectedKey ??
-                retainedKey ??
+              activeKey ?? selectedKey ??
                 initialActiveKey ??
                 items.find((item) => !item.disabled)?.key ??
                 "",
             )
-          : rest.activeKey
+          : activeKey
       }
-      onChange={
-        isEditing
-          ? (key) => setCanvasTab({ key, initialActiveKey })
-          : rest.onChange
-      }
+      onChange={state || !isEditing ? rest.onChange : undefined}
       onTabClick={isEditing ? undefined : rest.onTabClick}
       onTabScroll={isEditing ? undefined : rest.onTabScroll}
     />
@@ -379,6 +354,7 @@ export function registerTabs(loader?: Registerable) {
         type: "writable",
         valueProp: "activeKey",
         onChangeProp: "onChange",
+        initialValueProp: "defaultActiveKey",
         variableType: "text",
       },
     },

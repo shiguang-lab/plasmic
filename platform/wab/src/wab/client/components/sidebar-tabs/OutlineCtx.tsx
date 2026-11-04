@@ -39,7 +39,6 @@ import {
 import {
   ArenaFrame,
   Component,
-  ensureKnownRenderExpr,
   isKnownArenaFrame,
   isKnownNodeMarker,
   isKnownRawText,
@@ -837,7 +836,7 @@ const getTreeNodeChildren = computedFn(
                   "SlotSelection is expected to have a tpl",
                 ),
               ).getSlotArg(ss.slotParam.variable.name),
-              (arg) => ensureKnownRenderExpr(arg.expr).tpl,
+              (arg) => isKnownRenderExpr(arg.expr) ? arg.expr.tpl : [],
             ),
             [],
           ),
@@ -894,8 +893,8 @@ const getTreeNodeChildren = computedFn(
 
         const slotContents = shouldShowDefaultSlotContents
           ? slot.defaultContents
-          : arg
-            ? ensureKnownRenderExpr(arg.expr).tpl
+          : arg && isKnownRenderExpr(arg.expr)
+            ? arg.expr.tpl
             : [];
 
         return {
@@ -914,6 +913,8 @@ const getTreeNodeChildren = computedFn(
   },
   { name: "getTreeNodeChildren()" },
 );
+
+export const _testOnlyUtils = { getTreeNodeChildren };
 
 const getCachedSlotParams = computedFn(
   function getCachedSlotParams(component: Component) {

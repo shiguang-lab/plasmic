@@ -1,6 +1,7 @@
 import {
   OutlineCtx,
   makeNodeKey,
+  _testOnlyUtils,
 } from "@/wab/client/components/sidebar-tabs/OutlineCtx";
 import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import type { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
@@ -12,12 +13,28 @@ import {
 } from "@/wab/shared/Arenas";
 import { TplMgr } from "@/wab/shared/TplMgr";
 import { $$$ } from "@/wab/shared/TplQuery";
-import { ComponentType } from "@/wab/shared/core/components";
+import { ComponentType, mkComponent } from "@/wab/shared/core/components";
+import { mkParam } from "@/wab/shared/core/lang";
+import { SlotSelection } from "@/wab/shared/core/slots";
 import { createSite } from "@/wab/shared/core/sites";
-import { mkTplTagX } from "@/wab/shared/core/tpls";
-import { Arena, ArenaFrame, TplNode } from "@/wab/shared/model/classes";
+import { mkSlot, mkTplComponentX, mkTplTagX } from "@/wab/shared/core/tpls";
+import { Arena, ArenaFrame, CustomCode, ensureKnownSlotParam, TplNode } from "@/wab/shared/model/classes";
+import { typeFactory } from "@/wab/shared/model/model-util";
 import { observable, runInAction } from "mobx";
 import { mock } from "vitest-mock-extended";
+
+it.each(["null", "$props.content"])("keeps the outline usable for an expression-backed slot: %s", (code) => {
+  const param = ensureKnownSlotParam(mkParam({ name: "children", type: typeFactory.renderable(), paramType: "slot" }));
+  const slot = mkSlot(param);
+  const component = mkComponent({ name: "Overlay", type: ComponentType.Plain, params: [param], tplTree: slot });
+  const instance = mkTplComponentX({ component, baseVariant: component.variants[0], args: { children: new CustomCode({ code, fallback: null }) } });
+  const view = mock<ViewCtx>();
+  const variants = mock<ReturnType<ViewCtx["variantTplMgr"]>>();
+  view.variantTplMgr.mockReturnValue(variants);
+  variants.getEffectiveArgForParam.mockReturnValue(instance.vsettings[0].args[0]);
+  expect(_testOnlyUtils.getTreeNodeChildren(view, new SlotSelection({ tpl: instance, slotParam: param }), 1, instance)).toEqual({ children: [], childrenFrameNum: 1 });
+  expect(_testOnlyUtils.getTreeNodeChildren(view, slot, 1, instance)).toEqual({ children: [], childrenFrameNum: 0 });
+});
 
 function setup() {
   const site = createSite();

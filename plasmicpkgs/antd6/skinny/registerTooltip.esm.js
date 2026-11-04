@@ -1,7 +1,7 @@
 import { Tooltip } from 'antd';
 import cls from 'classnames';
 import React from 'react';
-import { u as useCanvasOverlay, p as previewOpenProp } from './canvas-overlay-Dan70Oxr.esm.js';
+import { u as useCanvasOverlay, p as previewOpenProp } from './canvas-overlay-CbpJk7_w.esm.js';
 import { r as registerComponentHelper } from './utils-U416WEAa.esm.js';
 import '@plasmicapp/host';
 import '@plasmicapp/host/registerComponent';
@@ -22,7 +22,7 @@ function AntdTooltip(props) {
       ...rest,
       open,
       destroyOnHidden: isEditing ? true : props.destroyOnHidden,
-      onOpenChange: isEditing ? void 0 : props.onOpenChange,
+      onOpenChange: isEditing ? void 0 : canvasProps.onOpenChange,
       afterOpenChange: isEditing ? void 0 : props.afterOpenChange,
       classNames: (info) => {
         const names = typeof classNames === "function" ? classNames(info) : classNames;

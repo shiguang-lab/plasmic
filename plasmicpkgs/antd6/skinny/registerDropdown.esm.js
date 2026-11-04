@@ -1,6 +1,6 @@
 import { Dropdown } from 'antd';
 import React from 'react';
-import { u as useCanvasOverlay, p as previewOpenProp } from './canvas-overlay-Dan70Oxr.esm.js';
+import { u as useCanvasOverlay, p as previewOpenProp } from './canvas-overlay-CbpJk7_w.esm.js';
 import { AntdMenu, MENU_ITEM_TYPE } from './registerMenu.esm.js';
 import { r as registerComponentHelper } from './utils-U416WEAa.esm.js';
 import '@plasmicapp/host';
@@ -53,7 +53,7 @@ function AntdDropdown(props) {
       ...rest,
       open,
       destroyOnHidden: isEditing ? true : props.destroyOnHidden,
-      onOpenChange: isEditing ? void 0 : props.onOpenChange,
+      onOpenChange: isEditing ? void 0 : canvasProps.onOpenChange,
       trigger: [trigger],
       popupRender: () => {
         const itemsChildren = useMenuItemsSlot ? menuItems?.() ?? [] : void 0;

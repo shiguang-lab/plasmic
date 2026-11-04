@@ -16,6 +16,10 @@ Global contexts retain isContext:true in inventories/projections and belong to p
 
 Keep plans/progress locally. External-browser capture/import tools require a ready, editable project's edit page; local Pen reads do not require a canvas. Start reference_browser with load_page and an external HTTP(S) URL. preview owns runtime acceptance; failure blocks that check without reference-tool fallback.
 
+Targeted local model reads and element mutations automatically present a concrete target in the visible editor using shared selection/session reveals and scrolling. Check the returned `presentation`; it distinguishes the visual outcome from model success, including clipping, missing rendering and ambiguous instances. See [automatic presentation](desktop-inspection.md#automatic-presentation-during-model-operations). Inventory/dependency/contract reads remain model-only. Do not replay a successful mutation because presentation failed.
+
+Use the [interactive canvas workflow](desktop-inspection.md#interactive-canvas-for-hidden-content) for a real transition demonstration or unresolved, confirmed state-hidden content: locate its artboard/trigger, enable `setInteractiveMode`, operate the real UI, then disable before editing. Scroll clipping, unknown rendering and absent model nodes are different cases; do not blanket-enable interaction whenever a target is invisible.
+
 ## Mutate and persist
 
 execute_batch is atomic/undoable. as binds earlier creations in identity fields only; see examples above. Receipts contain name/created and optional componentUuid/elementUuid/messages; batches return ordered operations. Inspect messages/IDs; read changed descendants separately. Navigation returns identities only.

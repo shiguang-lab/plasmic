@@ -106,10 +106,9 @@ export function AntdDateRangePicker(
   return (
     <>
       <RangePicker
-        key={isEditing ? "edit" : "runtime"}
         {...rest}
         open={open}
-        onOpenChange={isEditing ? undefined : props.onOpenChange}
+        onOpenChange={isEditing ? undefined : canvasProps.onOpenChange}
         onCalendarChange={isEditing ? undefined : props.onCalendarChange}
         onPanelChange={isEditing ? undefined : props.onPanelChange}
         picker={picker as any}
@@ -160,7 +159,7 @@ export function AntdDateRangePicker(
         }}
         // dateString isn't a valid ISO string, and value is a dayjs object.
         onChange={(values, _dateStrings) => {
-          if (isEditing) return;
+          if (isEditing) {return;}
           onChange?.((getStrRange(values) as [string, string]) || [null, null]);
         }}
       />

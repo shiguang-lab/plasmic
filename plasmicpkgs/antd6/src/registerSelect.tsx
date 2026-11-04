@@ -50,7 +50,7 @@ export function AntdSelect(
     <Select
       {...curated}
       open={open}
-      onOpenChange={isEditing ? undefined : props.onOpenChange}
+      onOpenChange={isEditing ? undefined : canvasProps.onOpenChange}
       onChange={isEditing ? undefined : props.onChange}
       mode={!mode || (mode as any) === "single" ? undefined : mode}
       classNames={(info) => {

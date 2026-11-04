@@ -1,5 +1,5 @@
-import { usePlasmicCanvasContext } from '@plasmicapp/host';
-import { r as renderCanvasSlot, g as getCanvasItems, a as getSelectedCanvasItemKey } from './canvas-overlay-Dan70Oxr.esm.js';
+import { usePlasmicCanvasContext, usePlasmicCanvasComponentInfo } from '@plasmicapp/host';
+import { r as renderCanvasSlot, g as getCanvasItems, a as getSelectedCanvasItemKey } from './canvas-overlay-CbpJk7_w.esm.js';
 import { Collapse } from 'antd';
 import React from 'react';
 import { r as registerComponentHelper } from './utils-U416WEAa.esm.js';
@@ -12,24 +12,26 @@ const collapsePanelComponentName = "plasmic-antd6-collapse-item";
 function AntdCollapse(props) {
   return props.items !== void 0 ? /* @__PURE__ */ React.createElement(Collapse, { ...props }) : renderCanvasSlot(props.children, (children) => /* @__PURE__ */ React.createElement(CollapseWithChildren, { ...props, children }));
 }
-function CollapseWithChildren({ children, activeKey, defaultActiveKey, onChange, accordion, ...rest }) {
+function CollapseWithChildren(props) {
+  const { children, activeKey, defaultActiveKey, onChange, accordion, ...rest } = props;
   const canvas = usePlasmicCanvasContext();
+  const state = usePlasmicCanvasComponentInfo(props)?.states?.activeKey;
   const panels = getCanvasItems(children, (item) => item.type === AntdCollapsePanel || item.type === Collapse.Panel);
   const selectedKey = canvas && !canvas.interactive ? getSelectedCanvasItemKey(panels) : void 0;
   const businessKeys = activeKey ?? defaultActiveKey ?? [];
-  const openKeys = selectedKey == null ? activeKey : accordion ? String(selectedKey) : Array.from(/* @__PURE__ */ new Set([...Array.isArray(businessKeys) ? businessKeys : [businessKeys], String(selectedKey)]));
+  const revealKeys = selectedKey == null ? void 0 : accordion ? String(selectedKey) : Array.from(/* @__PURE__ */ new Set([...Array.isArray(businessKeys) ? businessKeys : [businessKeys], String(selectedKey)]));
+  const openKeys = revealKeys === void 0 ? activeKey : state ? state.reveal(revealKeys) : revealKeys;
   return /* @__PURE__ */ React.createElement(
     Collapse,
     {
       ...rest,
-      key: selectedKey == null ? "business" : "canvas-reveal",
       accordion,
       activeKey: openKeys,
       defaultActiveKey,
-      onChange: selectedKey == null ? onChange : void 0,
+      onChange: state || selectedKey == null ? onChange : void 0,
       items: panels.map((panel, index) => {
-        const { header, __plasmic_selection_prop__: _selection, ...props } = panel.props;
-        return { ...props, key: panel.key ?? String(index), label: header };
+        const { header, __plasmic_selection_prop__: _selection, ...panelProps } = panel.props;
+        return { ...panelProps, key: panel.key ?? String(index), label: header };
       })
     }
   );

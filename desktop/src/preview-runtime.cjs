@@ -215,6 +215,19 @@ function runtimeFailure(runtime) {
 }
 
 async function previewFrame(win, componentUuid, signal = AbortSignal.timeout(30000), options = {}) {
+  if (options.interactive) {
+    if (!/^\/projects\/[^/]+(?:\/-\/[^/]+)?\/?$/.test(new URL(win.webContents.getURL()).pathname)) throw new Error("Interactive canvas inputs require the editor route");
+    if (!options.frameUuid) throw new Error("Select the target artboard in edit mode before enabling canvas interaction");
+    const frames = await canvasFrames(win, undefined, function inspectInteractiveCanvas({ frameUuid }) {
+      const html = document.documentElement;
+      const actual = html.getAttribute("data-plasmic-frame-uuid");
+      const ready = actual === frameUuid && html.classList.contains("__interactive_canvas")
+        && html.hasAttribute("data-plasmic-render-ready") && !!document.querySelector(".__wab_val_root");
+      return { ready, rootReady: ready, frameUuid: actual, width: innerWidth, height: innerHeight };
+    }, { frameUuid: options.frameUuid }, signal);
+    if (frames.length !== 1) throw new Error("Expected one focused interactive canvas artboard");
+    return frames[0];
+  }
   if (!/^(?:\/projects\/[^/]+\/preview\/?|\/d\/[\w-]{10})$/.test(new URL(win.webContents.getURL()).pathname)) throw new Error("Open native Preview first; the reference browser is not a runtime Preview");
   const frames = await canvasFrames(win, undefined, async function inspectPreview({ expected, readState }) {
     if (!readState && !globalThis.__plasmicLive?.getDiagnostics().errors.length && !document.querySelector("[data-plasmic-preview-error]")) {
@@ -272,8 +285,10 @@ async function runPreview(win, input, context, signal = AbortSignal.timeout(3000
     frame: null, inputsDispatched: [] };
   try {
   const readOnly = ["state", "snapshot", "screenshot"].includes(input.action);
+  const frameOptions = { allowErrors: true, readState: input.action === "state",
+    interactive: context.previewKind === "interactive", frameUuid: context.frameUuid };
   const { frame, layout } = await previewFrame(win, context.previewContext?.componentUuid, signal,
-    { allowErrors: true, readState: input.action === "state" });
+    frameOptions);
   feedbackFrame = frame;
   diagnostics.frame = frameIdentity(frame);
   if (input.action === "state") return { ready: (layout.rootReady ?? layout.ready) && layout.runtime?.status !== "failed",
@@ -281,7 +296,7 @@ async function runPreview(win, input, context, signal = AbortSignal.timeout(3000
   if (!readOnly && layout.runtime?.status === "failed") throw runtimeFailure(layout.runtime);
   if (input.action === "assert" && layout.runtime?.errors.length) throw runtimeFailure(layout.runtime);
   const finish = async (result) => {
-    const { frame: afterFrame, layout: after } = await previewFrame(win, undefined, signal, { allowErrors: true, readState: true });
+    const { frame: afterFrame, layout: after } = await previewFrame(win, undefined, signal, { ...frameOptions, readState: true });
     const runtime = after.runtime;
     const errors = runtime?.errors.filter((error) => afterFrame !== frame || runtime.componentUuid !== layout.runtime?.componentUuid || runtime.generation !== layout.runtime?.generation
       || !layout.runtime?.errors.some((previous) => previous.id === error.id));
@@ -322,7 +337,7 @@ async function runPreview(win, input, context, signal = AbortSignal.timeout(3000
   if (["fill", "select", "scroll", "press"].includes(input.action)) diagnostics.operationExecuted = null;
   // Catch inside the renderer so Electron cannot flatten the exception into a
   // string before its code, stack and execution state reach the main process.
-  const response = await abortable(signal, () => frame.executeJavaScript(`(${runtimeCommand.toString()})(${JSON.stringify({ ...input, pageIdentity: [context.sessionId, context.previewContext?.componentUuid, context.previewContext?.path].join(":") })},${JSON.stringify(randomUUID())},${JSON.stringify(caller)}).then(result => ({result}), error => ({error: {
+  const response = await abortable(signal, () => frame.executeJavaScript(`(${runtimeCommand.toString()})(${JSON.stringify({ ...input, pageIdentity: [context.sessionId, context.previewKind, context.previewKind === "interactive" ? context.frameUuid : context.previewContext?.componentUuid, context.previewContext?.path].join(":") })},${JSON.stringify(randomUUID())},${JSON.stringify(caller)}).then(result => ({result}), error => ({error: {
     message: typeof error?.message === "string" ? error.message : String(error),
     name: error?.name, stack: error?.stack, ...(error?.context || {})
   }}))`, true));

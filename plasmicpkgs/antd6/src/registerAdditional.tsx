@@ -119,7 +119,7 @@ export function AntdPopconfirm(
       {...rest}
       open={open}
       destroyOnHidden={isEditing ? true : props.destroyOnHidden}
-      onOpenChange={isEditing ? undefined : props.onOpenChange}
+      onOpenChange={isEditing ? undefined : rest.onOpenChange}
       afterOpenChange={isEditing ? undefined : props.afterOpenChange}
       onConfirm={isEditing ? undefined : props.onConfirm}
       onCancel={isEditing ? undefined : props.onCancel}

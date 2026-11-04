@@ -285,6 +285,17 @@ export function usePlasmicCanvasComponentInfo(props: any) {
         isSelected: selectionInfo.isSelected as boolean,
         isEditingContents: selectionInfo.isEditingContents === true,
         selectedSlotName: selectionInfo.selectedSlotName as string | undefined,
+        /** Transient, instance-scoped bindings supplied only by the editing canvas. */
+        states: selectionInfo.states as Record<string, {
+          value: unknown;
+          reveal: (value: unknown) => unknown;
+        }> | undefined,
+        /** Explicit access for native nested/private state that has no writable prop. */
+        getState: selectionInfo.getState as ((name: string, nativeValue: unknown, initialValue?: unknown) => {
+          readonly value: unknown;
+          reveal: (value: unknown) => unknown;
+          set: (value: unknown) => void;
+        }) | undefined,
       };
     }
     return null;
