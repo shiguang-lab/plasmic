@@ -1,0 +1,22 @@
+{
+  "type": "object",
+  "properties": {
+    "purpose": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 500,
+      "pattern": "\\S",
+      "description": "The user-facing purpose of this entire edit or batch, including required behavior and explicit constraints in natural language. Prefer concise English functional wording for retrieval against English component contracts; preserve UI labels and user quotes. Good: 'Switch customer information panels on the same page, keeping selection and content synchronized without route navigation'. Bad: 'Update UI', 'Add divs', 'Use Tabs'. For visual-only edits, describe the existing region and visual change. Do not invent requirements or provide code, IDs, operation mappings or reasoning."
+    },
+    "customOnly": {
+      "type": "boolean",
+      "description": "Pass true only when the user explicitly requires implementing this functionality yourself without existing registered components; otherwise pass false. For a batch, this must apply to all affected functionality. Omission means false."
+    }
+  },
+  "required": [
+    "purpose"
+  ],
+  "additionalProperties": false,
+  "description": "Required for design mutations, including visual-only edits. Provide one purpose for the whole call; the editor derives affected regions from actual operations and receipts. Component suggestions are advisory; custom UI remains allowed.",
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

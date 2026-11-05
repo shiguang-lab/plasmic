@@ -1,0 +1,98 @@
+{
+  "hardware": {
+    "cpu": "Apple M4",
+    "memoryBytes": 25769803776,
+    "platform": "macOS-26.6.2-arm64-arm-64bit",
+    "osVersion": "26.6.2",
+    "arch": "arm64"
+  },
+  "llamaCpp": {
+    "repository": "https://github.com/ggml-org/llama.cpp",
+    "tag": "v0.9.0",
+    "commit": "cd959bae99ff4bed22bef2604f45241c09bbb8c8",
+    "compiler": "Apple clang version 21.0.0 (clang-2100.1.1.101)\nTarget: arm64-apple-darwin25.6.0\nThread model: posix\nInstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin",
+    "buildFlags": [
+      "-DCMAKE_BUILD_TYPE=Release",
+      "-DGGML_METAL=OFF",
+      "-DGGML_ACCELERATE=ON",
+      "-DLLAMA_BUILD_TESTS=OFF",
+      "-DLLAMA_BUILD_EXAMPLES=OFF",
+      "-DLLAMA_BUILD_SERVER=ON",
+      "-DLLAMA_OPENSSL=OFF",
+      "-DLLAMA_CURL=OFF"
+    ],
+    "runtimeArtifacts": [
+      {
+        "name": "libggml-base.0.29.0.dylib",
+        "bytes": 772024,
+        "sha256": "08f5fdcc5f20fa995bab2728a5ca2f52f4f625af450f69ecd537abc2d0c1c7e7"
+      },
+      {
+        "name": "libggml-blas.0.29.0.dylib",
+        "bytes": 58776,
+        "sha256": "ebe26925f087eb9a9c4feada4eec05e34f75a68edcd80bc44cb3f0f2dfed30f2"
+      },
+      {
+        "name": "libggml-cpu.0.29.0.dylib",
+        "bytes": 992256,
+        "sha256": "74d95a22acc5f9afbfc6b3882f86ebcaf4c3a768d399b5a83c846ee0885bd946"
+      },
+      {
+        "name": "libggml.0.29.0.dylib",
+        "bytes": 59856,
+        "sha256": "84cf9e2798bc1d9def7cd846b5797e1b66e71294729c45c93aca322f8723beb8"
+      },
+      {
+        "name": "libllama-common.0.9.0.dylib",
+        "bytes": 5343160,
+        "sha256": "928b9af78f3c985374e7ab36908fac735fff51c4f69ec632cc792e39126f81a5"
+      },
+      {
+        "name": "libllama-server-impl.dylib",
+        "bytes": 7096136,
+        "sha256": "105ce551140e252d671e38941db8bd3af701a837bac5a11553f1f9d8f26a93b0"
+      },
+      {
+        "name": "libllama.0.9.0.dylib",
+        "bytes": 3754656,
+        "sha256": "a1f833d425dff93cc86ccb25ec52b485032ed2a5fc752f6072956507579f2f7c"
+      },
+      {
+        "name": "libmtmd.0.9.0.dylib",
+        "bytes": 1846176,
+        "sha256": "49f30c95fc80e453c0654449b8814310b46714628791a9a73ece7caa6d505227"
+      },
+      {
+        "name": "llama-server",
+        "bytes": 33472,
+        "sha256": "0d6675536069962d9daddea83918ebbe542d9b23170e16f930d3fbe980ee8bf7"
+      }
+    ],
+    "runtimeArtifactBytes": 19956512
+  },
+  "litert": {
+    "package": "litert-lm-api",
+    "version": "0.19.0",
+    "wheel": {
+      "name": "litert_lm_api-0.19.0-py3-none-macosx_12_0_arm64.whl",
+      "bytes": 17222369,
+      "sha256": "6f2a517266fe4dcac451ce8f41c45c02ef08078a6589e5e0253197937e1f70a5"
+    },
+    "nativeLibrary": {
+      "name": "liblitert-lm.dylib",
+      "bytes": 50592112,
+      "sha256": "0e1eba3a125295322af745502fdfb3f76c57b012696c20744764e83b51baec9e"
+    },
+    "pythonVersion": "Python 3.11.15",
+    "dependencies": "No package dependencies declared; no MediaPipe, PyTorch or NumPy installed."
+  },
+  "memoryScope": "LiteRT worker includes Python interpreter and native library. GGUF includes native server and its libraries, excluding Python HTTP/scoring observer. Both exclude Studio/Electron and OS nonresident file pages. RSS is not private/physical footprint.",
+  "procedure": "Quality runs first (index then queries); three separate resource processes per configuration (short queries then index), serially. Local files; OS disk cache not cleared; not a cold disk benchmark.",
+  "sourceUrls": [
+    "https://developers.google.com/edge/litert-lm/embedding_models",
+    "https://huggingface.co/google/embeddinggemma-2",
+    "https://huggingface.co/litert-community/embeddinggemma-2-text-270m-litert-lm",
+    "https://huggingface.co/unsloth/embeddinggemma-2-GGUF",
+    "https://github.com/ggml-org/llama.cpp/releases/tag/v0.9.0"
+  ]
+}

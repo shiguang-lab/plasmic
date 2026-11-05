@@ -135,7 +135,7 @@ func (b *bridge) validate(name string, args map[string]any) error {
 	if e := schema.Validate(plain(args)); e != nil {
 		hint := ""
 		if name == "execute" {
-			hint = ` Expected envelope: {"name":"read","input":{"collection":"components"}}; native operation fields belong inside input.`
+			hint = ` Expected envelope: {"name":"read","input":{"collection":"components"}}; native fields belong inside input. Design mutations require input.reviewContext with purpose describing the entire edit and customOnly:true only when the user explicitly requires implementation without existing registered components; otherwise pass false. Read the native input schema with get_app_state.`
 		}
 		if name == "get_app_state" {
 			hint = ` Example: {"toolNames":["read","insertHtml"]}.`
@@ -172,7 +172,7 @@ func (b *bridge) call(ctx context.Context, req *mcp.CallToolRequest) (*mcp.CallT
 			args["input"] = map[string]any{}
 		}
 		if e := b.validate(name, args); e != nil {
-			return nil, e
+			return nil, &bridgeError{map[string]any{"message": e.Error(), "code": "INVALID_TOOL_INPUT", "operationExecuted": false}}
 		}
 		switch name {
 		case "read_result":

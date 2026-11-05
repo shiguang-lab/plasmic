@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import React from "react";
+import { ConfigProvider } from "antd";
 import { expect, test, vi } from "vitest";
 import { AntdTabItem, AntdTabs, registerTabs } from "../src/registerTabs";
 import { AntdCollapse, AntdCollapsePanel, registerCollapse } from "../src/registerCollapse";
@@ -170,23 +171,39 @@ for (const [name, Picker, register] of [
   ["date-picker", AntdDatePicker, registerDatePicker],
   ["date-range-picker", AntdDateRangePicker, registerDateRangePicker],
 ] as const) {
-  test(`${name} retains its calendar across canvas modes without changing business open`, async () => {
+  test(`${name} editing calendar selection does not emit business events`, async () => {
     const meta = metadata(register).get(`plasmic-antd6-${name}`);
     expect(meta.props.previewOpen.editOnly).toBe(true);
     expect(meta.props.previewOpen.uncontrolledProp).toBeUndefined();
     expect(meta.canvasOverlay).toEqual({});
     const onChange = vi.fn(), onCalendarChange = vi.fn();
     const props = { open: false, onChange, onCalendarChange, __plasmic_selection_prop__: { isSelected: true } };
-    const view = render(<Canvas><Picker {...props as any} /></Canvas>);
+    render(<Canvas><Picker {...props as any} /></Canvas>);
     await waitFor(() => expect(document.querySelector(".ant-picker-dropdown:not(.ant-picker-dropdown-hidden)")).toBeTruthy());
     fireEvent.click(document.querySelector(".ant-picker-cell-in-view .ant-picker-cell-inner")!);
     expect(onChange).not.toHaveBeenCalled();
     expect(onCalendarChange).not.toHaveBeenCalled();
     expect(props.open).toBe(false);
-    const draft = screen.getAllByRole("textbox").map((input) => (input as HTMLInputElement).value);
-    view.rerender(<Canvas interactive><Picker {...props as any} /></Canvas>);
+  });
+
+  test(`${name} hides editing calendars in runtime while preserving configured values and input nodes`, async () => {
+    const onChange = vi.fn(), onCalendarChange = vi.fn();
+    const dates = name === "date-picker" ? { defaultValue: "2026-11-01" }
+      : { defaultStartDate: "2026-11-01", defaultEndDate: "2026-11-05" };
+    const props = { ...dates, open: false, onChange, onCalendarChange, __plasmic_selection_prop__: { isSelected: true } };
+    const page = (interactive: boolean) => <Canvas interactive={interactive}>
+      <ConfigProvider theme={{ token: { motion: false } }}><Picker {...props as any} /></ConfigProvider>
+    </Canvas>;
+    const view = render(page(false));
     await waitFor(() => expect(document.querySelector(".ant-picker-dropdown:not(.ant-picker-dropdown-hidden)")).toBeTruthy());
+    const inputs = screen.getAllByRole("textbox");
+    const draft = inputs.map((input) => (input as HTMLInputElement).value);
+    view.rerender(page(true));
+    await waitFor(() => expect(document.querySelector(".ant-picker-dropdown:not(.ant-picker-dropdown-hidden)")).toBeFalsy());
     expect(props.open).toBe(false);
     expect(screen.getAllByRole("textbox").map((input) => (input as HTMLInputElement).value)).toEqual(draft);
+    screen.getAllByRole("textbox").forEach((input, index) => expect(input).toBe(inputs[index]));
+    expect(onChange).not.toHaveBeenCalled();
+    expect(onCalendarChange).not.toHaveBeenCalled();
   });
 }

@@ -1,0 +1,1286 @@
+{
+  "summary": {
+    "model": {
+      "repo": "Xenova/multilingual-e5-small",
+      "revision": "761b726dd34fb83930e26aab4e9ac3899aa1fa78"
+    },
+    "runtime": "@huggingface/transformers 4.3.2, CPU, q8, two intra-op threads, 512-token input cap",
+    "source": "103-library-document candidate set before context exclusion; see data.json for actual count and pinned hashes",
+    "documentCount": 101,
+    "positiveCases": 37,
+    "negativeOrOutOfScopeCases": 4,
+    "hitAt1": 9,
+    "hitAt3": 15,
+    "hitAt5": 20,
+    "mrr": 0.3723664392920774,
+    "warnings": [
+      "Manually authored labels and truncated component documentation; not independently reviewed, not current project contracts.",
+      "Negative rankings are descriptive only; no abstention threshold was calibrated.",
+      "No resource or latency benchmark was performed."
+    ]
+  },
+  "results": [
+    {
+      "id": "content-switch",
+      "intent": "在同一个页面内切换基本信息、操作记录、权限设置，选中项与可见内容保持同步，不跳转路由。",
+      "expected": [
+        "antd_v5/components/tabs.md",
+        "antd_v6/components/tabs.md"
+      ],
+      "rank": 28,
+      "top5": [
+        {
+          "id": "antd_v6/components/popconfirm.md",
+          "score": 0.8364552520920715
+        },
+        {
+          "id": "antd_v6/components/menu.md",
+          "score": 0.8307055712348506
+        },
+        {
+          "id": "antd_v6/components/switch.md",
+          "score": 0.8289798836378867
+        },
+        {
+          "id": "antd_v5/components/switch.md",
+          "score": 0.8283031071686525
+        },
+        {
+          "id": "antd_v5/components/breadcrumb.md",
+          "score": 0.8273828924305331
+        }
+      ]
+    },
+    {
+      "id": "one-value",
+      "intent": "从多个互斥选项中选择一个值并提交到表单，不切换页面内容。",
+      "expected": [
+        "antd_v5/components/radio.md",
+        "antd_v5/components/segmented.md",
+        "antd_v5/components/select.md",
+        "antd_v6/components/radio.md",
+        "antd_v6/components/segmented.md",
+        "antd_v6/components/select.md"
+      ],
+      "rank": 3,
+      "top5": [
+        {
+          "id": "antd_v6/components/popconfirm.md",
+          "score": 0.8334614978999771
+        },
+        {
+          "id": "antd_v5/components/pagination.md",
+          "score": 0.8319760374638673
+        },
+        {
+          "id": "antd_v6/components/select.md",
+          "score": 0.8300971179000873
+        },
+        {
+          "id": "antd_v6/components/auto-complete.md",
+          "score": 0.827239890115396
+        },
+        {
+          "id": "antd_v5/components/switch.md",
+          "score": 0.8272196779627068
+        }
+      ]
+    },
+    {
+      "id": "many-values",
+      "intent": "给一条记录选择多个分类，允许增加或取消已选项，并提交选中值列表。",
+      "expected": [
+        "antd_v5/components/checkbox.md",
+        "antd_v5/components/select.md",
+        "antd_v6/components/checkbox.md",
+        "antd_v6/components/select.md"
+      ],
+      "rank": 1,
+      "top5": [
+        {
+          "id": "antd_v6/components/select.md",
+          "score": 0.8366147455998619
+        },
+        {
+          "id": "antd_v6/components/popconfirm.md",
+          "score": 0.8285982723237455
+        },
+        {
+          "id": "antd_v6/components/cascader.md",
+          "score": 0.8270286437970406
+        },
+        {
+          "id": "antd_v6/components/tree-select.md",
+          "score": 0.8250963313413694
+        },
+        {
+          "id": "antd_v5/components/select.md",
+          "score": 0.8240747574580086
+        }
+      ]
+    },
+    {
+      "id": "daily-clock",
+      "intent": "设置每天执行任务的时刻，用户选择小时、分钟和秒，不包含日期。",
+      "expected": [
+        "antd_v6/components/time-picker.md"
+      ],
+      "rank": 5,
+      "top5": [
+        {
+          "id": "antd_v5/components/date-picker.md",
+          "score": 0.8208986440961306
+        },
+        {
+          "id": "antd_v6/components/calendar.md",
+          "score": 0.8199156932567032
+        },
+        {
+          "id": "antd_v6/components/timeline.md",
+          "score": 0.8148235506818334
+        },
+        {
+          "id": "antd_v6/components/auto-complete.md",
+          "score": 0.812327489674508
+        },
+        {
+          "id": "antd_v6/components/time-picker.md",
+          "score": 0.811568082620877
+        }
+      ]
+    },
+    {
+      "id": "calendar-range",
+      "intent": "选择带具体年月日的预约起止时间，并能选择当天时分。",
+      "expected": [
+        "antd_v5/components/date-picker.md",
+        "antd_v6/components/date-picker.md"
+      ],
+      "rank": 7,
+      "top5": [
+        {
+          "id": "antd_v6/components/popconfirm.md",
+          "score": 0.8217838204485354
+        },
+        {
+          "id": "antd_v6/components/select.md",
+          "score": 0.8197002337240848
+        },
+        {
+          "id": "antd_v6/components/auto-complete.md",
+          "score": 0.8190478832501592
+        },
+        {
+          "id": "antd_v6/components/calendar.md",
+          "score": 0.8166447295438877
+        },
+        {
+          "id": "antd_v6/components/cascader.md",
+          "score": 0.8156493562659488
+        }
+      ]
+    },
+    {
+      "id": "quantity",
+      "intent": "输入保留时长，单位小时，允许小数，设置最小值和最大值，并能递增递减。",
+      "expected": [
+        "antd_v5/components/input-number.md",
+        "antd_v6/components/input-number.md"
+      ],
+      "rank": 3,
+      "top5": [
+        {
+          "id": "antd_v6/components/input.md",
+          "score": 0.827679952104481
+        },
+        {
+          "id": "antd_v6/components/select.md",
+          "score": 0.8229284342394445
+        },
+        {
+          "id": "antd_v6/components/input-number.md",
+          "score": 0.8225960138374129
+        },
+        {
+          "id": "antd_v6/components/rate.md",
+          "score": 0.8210866147708922
+        },
+        {
+          "id": "antd_v5/components/input-number.md",
+          "score": 0.8193681798508367
+        }
+      ]
+    },
+    {
+      "id": "identifier",
+      "intent": "录入客户标识符，允许前导零并原样保存为字符串，不进行数字加减。",
+      "expected": [
+        "antd_v5/components/input.md",
+        "antd_v6/components/input.md"
+      ],
+      "rank": 7,
+      "top5": [
+        {
+          "id": "antd_v6/components/popconfirm.md",
+          "score": 0.8372314989362651
+        },
+        {
+          "id": "antd_v6/components/input-number.md",
+          "score": 0.8349572977964206
+        },
+        {
+          "id": "antd_v5/components/input-number.md",
+          "score": 0.834531902363122
+        },
+        {
+          "id": "antd_v6/components/switch.md",
+          "score": 0.8235176309585077
+        },
+        {
+          "id": "antd_v5/components/rate.md",
+          "score": 0.8234662865078887
+        }
+      ]
+    },
+    {
+      "id": "password",
+      "intent": "输入访问密钥，默认隐藏内容，用户可以切换明文和掩码显示。",
+      "expected": [
+        "antd_v5/components/input.md",
+        "antd_v6/components/input.md"
+      ],
+      "rank": 1,
+      "top5": [
+        {
+          "id": "antd_v6/components/input.md",
+          "score": 0.833982801430914
+        },
+        {
+          "id": "antd_v5/components/input.md",
+          "score": 0.8258560944910439
+        },
+        {
+          "id": "antd_v6/components/affix.md",
+          "score": 0.8251335207781402
+        },
+        {
+          "id": "antd_v5/components/breadcrumb.md",
+          "score": 0.8236601213106027
+        },
+        {
+          "id": "antd_v6/components/popconfirm.md",
+          "score": 0.8236368072962679
+        }
+      ]
+    },
+    {
+      "id": "readonly-group",
+      "intent": "按业务分组展示一条客户记录的多个只读字段，每项都有字段名和值。",
+      "expected": [
+        "antd_v6/components/descriptions.md"
+      ],
+      "rank": 22,
+      "top5": [
+        {
+          "id": "antd_v6/components/select.md",
+          "score": 0.8170114586319058
+        },
+        {
+          "id": "antd_v5/components/avatar.md",
+          "score": 0.8158809251532032
+        },
+        {
+          "id": "antd_v6/components/popconfirm.md",
+          "score": 0.8136739604225646
+        },
+        {
+          "id": "antd_v6/components/input.md",
+          "score": 0.8134740725620694
+        },
+        {
+          "id": "antd_v5/components/table.md",
+          "score": 0.8105118876422873
+        }
+      ]
+    },
+    {
+      "id": "records",
+      "intent": "展示多条客户记录，每行一条记录，每列对应字段，支持排序、选中行和分页。",
+      "expected": [
+        "antd_v5/components/table.md",
+        "antd_v6/components/table.md"
+      ],
+      "rank": 3,
+      "top5": [
+        {
+          "id": "antd_v6/components/select.md",
+          "score": 0.8356142310110156
+        },
+        {
+          "id": "antd_v6/components/input.md",
+          "score": 0.8318000103464217
+        },
+        {
+          "id": "antd_v5/components/table.md",
+          "score": 0.8218169114882883
+        },
+        {
+          "id": "antd_v6/components/pagination.md",
+          "score": 0.8215075345304038
+        },
+        {
+          "id": "antd_v6/components/popconfirm.md",
+          "score": 0.820127635060585
+        }
+      ]
+    },
+    {
+      "id": "list",
+      "intent": "逐项展示通知，每项包含标题、头像和说明文字，不需要字段列对齐。",
+      "expected": [
+        "antd_v6/components/list.md",
+        "antd_v6/components/listy.md"
+      ],
+      "rank": 13,
+      "top5": [
+        {
+          "id": "antd_v6/components/popconfirm.md",
+          "score": 0.8309808966051988
+        },
+        {
+          "id": "antd_v6/components/select.md",
+          "score": 0.8191084496786204
+        },
+        {
+          "id": "antd_v6/components/form.md",
+          "score": 0.8180096130169514
+        },
+        {
+          "id": "antd_v6/components/input.md",
+          "score": 0.8174345927451783
+        },
+        {
+          "id": "antd_v6/components/button.md",
+          "score": 0.8140513938996913
+        }
+      ]
+    },
+    {
+      "id": "progress",
+      "intent": "展示文件处理完成比例，百分比变化时进度条同步更新。",
+      "expected": [
+        "antd_v5/components/progress.md",
+        "antd_v6/components/progress.md"
+      ],
+      "rank": 5,
+      "top5": [
+        {
+          "id": "antd_v6/components/popconfirm.md",
+          "score": 0.8254899273795835
+        },
+        {
+          "id": "antd_v6/components/pagination.md",
+          "score": 0.8194081433240866
+        },
+        {
+          "id": "antd_v6/components/skeleton.md",
+          "score": 0.8171892180082184
+        },
+        {
+          "id": "antd_v6/components/select.md",
+          "score": 0.8169497541939438
+        },
+        {
+          "id": "antd_v5/components/progress.md",
+          "score": 0.8136478561985719
+        }
+      ]
+    },
+    {
+      "id": "status",
+      "intent": "展示任务生命周期状态，用状态点和可读文字区分成功、处理中和失败。",
+      "expected": [
+        "antd_v6/components/badge.md"
+      ],
+      "rank": 8,
+      "top5": [
+        {
+          "id": "antd_v6/components/popconfirm.md",
+          "score": 0.8437790816725173
+        },
+        {
+          "id": "antd_v6/components/timeline.md",
+          "score": 0.8349641882679305
+        },
+        {
+          "id": "antd_v6/components/steps.md",
+          "score": 0.8348594238341763
+        },
+        {
+          "id": "antd_v5/components/progress.md",
+          "score": 0.8345843449382379
+        },
+        {
+          "id": "antd_v6/components/result.md",
+          "score": 0.8332248803514954
+        }
+      ]
+    },
+    {
+      "id": "categories",
+      "intent": "给内容显示多个可移除的分类标记，用户可以逐个移除标记。",
+      "expected": [
+        "antd_v6/components/tag.md"
+      ],
+      "rank": 17,
+      "top5": [
+        {
+          "id": "antd_v6/components/popconfirm.md",
+          "score": 0.8421038611077236
+        },
+        {
+          "id": "antd_v6/components/select.md",
+          "score": 0.8268414470374671
+        },
+        {
+          "id": "antd_v6/components/input.md",
+          "score": 0.8223125993965845
+        },
+        {
+          "id": "antd_v6/components/affix.md",
+          "score": 0.8217777907404118
+        },
+        {
+          "id": "antd_v5/components/table.md",
+          "score": 0.8217012968094712
+        }
+      ]
+    },
+    {
+      "id": "action-menu",
+      "intent": "点击一个入口展示多项操作菜单，选择后按菜单项的稳定键执行不同操作，不作为字段值选择。",
+      "expected": [
+        "antd_v5/components/dropdown.md",
+        "antd_v6/components/dropdown.md"
+      ],
+      "rank": 11,
+      "top5": [
+        {
+          "id": "antd_v6/components/select.md",
+          "score": 0.835471153982568
+        },
+        {
+          "id": "antd_v6/components/menu.md",
+          "score": 0.8343572523890717
+        },
+        {
+          "id": "antd_v6/components/input.md",
+          "score": 0.8301756186896498
+        },
+        {
+          "id": "antd_v6/components/cascader.md",
+          "score": 0.8296430672085117
+        },
+        {
+          "id": "antd_v5/components/select.md",
+          "score": 0.8278041335216645
+        }
+      ]
+    },
+    {
+      "id": "row-actions",
+      "intent": "每行有多个业务操作，结合权限显示，超过数量的操作折叠到更多菜单。",
+      "expected": [
+        "react_ui/components/action-group.md"
+      ],
+      "rank": 11,
+      "top5": [
+        {
+          "id": "antd_v6/components/select.md",
+          "score": 0.8308547953416248
+        },
+        {
+          "id": "antd_v6/components/input.md",
+          "score": 0.8283993138571812
+        },
+        {
+          "id": "antd_v5/components/table.md",
+          "score": 0.8273765321426266
+        },
+        {
+          "id": "antd_v6/components/menu.md",
+          "score": 0.8267153398398439
+        },
+        {
+          "id": "antd_v6/components/popconfirm.md",
+          "score": 0.825726225443343
+        }
+      ]
+    },
+    {
+      "id": "overlay-input",
+      "intent": "在覆盖层内编辑一条记录，提交前验证字段，用户可以确认或取消，不离开当前页面。",
+      "expected": [
+        "antd_v5/components/drawer.md",
+        "antd_v5/components/form.md",
+        "antd_v5/components/modal.md",
+        "antd_v6/components/drawer.md",
+        "antd_v6/components/form.md",
+        "antd_v6/components/modal.md"
+      ],
+      "rank": 5,
+      "top5": [
+        {
+          "id": "antd_v6/components/popconfirm.md",
+          "score": 0.8501418356996071
+        },
+        {
+          "id": "antd_v6/components/auto-complete.md",
+          "score": 0.8283246321701646
+        },
+        {
+          "id": "antd_v5/components/pagination.md",
+          "score": 0.827958511261052
+        },
+        {
+          "id": "antd_v6/components/popover.md",
+          "score": 0.8249734169029511
+        },
+        {
+          "id": "antd_v5/components/modal.md",
+          "score": 0.824915073190079
+        }
+      ]
+    },
+    {
+      "id": "brief-help",
+      "intent": "鼠标悬停或键盘聚焦一个图标时显示简短说明，说明中没有输入或交互操作。",
+      "expected": [
+        "antd_v5/components/tooltip.md",
+        "antd_v6/components/tooltip.md"
+      ],
+      "rank": 11,
+      "top5": [
+        {
+          "id": "antd_v6/components/popconfirm.md",
+          "score": 0.8500208533237293
+        },
+        {
+          "id": "antd_v5/components/collapse.md",
+          "score": 0.8241554319133272
+        },
+        {
+          "id": "antd_v6/components/input.md",
+          "score": 0.8222186665717354
+        },
+        {
+          "id": "antd_v5/components/dropdown.md",
+          "score": 0.8217764748923156
+        },
+        {
+          "id": "antd_v6/components/affix.md",
+          "score": 0.8212005405052263
+        }
+      ]
+    },
+    {
+      "id": "interactive-help",
+      "intent": "点击入口弹出一小块浮层，其中有说明、链接和可以点击的操作。",
+      "expected": [
+        "antd_v5/components/popover.md",
+        "antd_v6/components/popover.md"
+      ],
+      "rank": 10,
+      "top5": [
+        {
+          "id": "antd_v6/components/popconfirm.md",
+          "score": 0.8407479754034008
+        },
+        {
+          "id": "antd_v6/components/float-button.md",
+          "score": 0.8382442954096815
+        },
+        {
+          "id": "antd_v6/components/input.md",
+          "score": 0.8365736474805178
+        },
+        {
+          "id": "antd_v5/components/dropdown.md",
+          "score": 0.8350732721027784
+        },
+        {
+          "id": "antd_v5/components/breadcrumb.md",
+          "score": 0.8325380498909342
+        }
+      ]
+    },
+    {
+      "id": "anchored-confirm",
+      "intent": "用户点击删除操作后，在该操作附近出现简短确认，确认才执行，取消保持原样，不收集输入。",
+      "expected": [
+        "antd_v6/components/popconfirm.md"
+      ],
+      "rank": 1,
+      "top5": [
+        {
+          "id": "antd_v6/components/popconfirm.md",
+          "score": 0.8543821370165507
+        },
+        {
+          "id": "antd_v6/components/auto-complete.md",
+          "score": 0.8339834016113808
+        },
+        {
+          "id": "antd_v6/components/empty.md",
+          "score": 0.8290814376472118
+        },
+        {
+          "id": "antd_v6/components/select.md",
+          "score": 0.8259760054659355
+        },
+        {
+          "id": "antd_v5/components/input-number.md",
+          "score": 0.825777746030284
+        }
+      ]
+    },
+    {
+      "id": "page-outcome",
+      "intent": "操作完成后展示整页成功或失败结果，包含说明以及下一步操作入口。",
+      "expected": [
+        "antd_v6/components/result.md"
+      ],
+      "rank": 1,
+      "top5": [
+        {
+          "id": "antd_v6/components/result.md",
+          "score": 0.840530760646368
+        },
+        {
+          "id": "antd_v6/components/popconfirm.md",
+          "score": 0.8391780090276098
+        },
+        {
+          "id": "antd_v5/components/pagination.md",
+          "score": 0.8283437104230783
+        },
+        {
+          "id": "antd_v6/components/cascader.md",
+          "score": 0.8259856983315182
+        },
+        {
+          "id": "antd_v6/components/tour.md",
+          "score": 0.8228046861412466
+        }
+      ]
+    },
+    {
+      "id": "empty",
+      "intent": "数据集合为空时，在内容区展示无记录状态和可选的新增入口。",
+      "expected": [
+        "antd_v6/components/empty.md"
+      ],
+      "rank": 1,
+      "top5": [
+        {
+          "id": "antd_v6/components/empty.md",
+          "score": 0.8286378100721978
+        },
+        {
+          "id": "antd_v5/components/tree.md",
+          "score": 0.8258547133479582
+        },
+        {
+          "id": "antd_v6/components/input.md",
+          "score": 0.8244157492652765
+        },
+        {
+          "id": "antd_v6/components/auto-complete.md",
+          "score": 0.820372633650316
+        },
+        {
+          "id": "antd_v5/components/table.md",
+          "score": 0.8199488912335668
+        }
+      ]
+    },
+    {
+      "id": "loading",
+      "intent": "异步请求尚未完成时，在内容区显示加载状态，完成后呈现真实内容。",
+      "expected": [
+        "antd_v6/components/skeleton.md",
+        "antd_v6/components/spin.md"
+      ],
+      "rank": 24,
+      "top5": [
+        {
+          "id": "antd_v6/components/affix.md",
+          "score": 0.8331742784167605
+        },
+        {
+          "id": "antd_v5/components/modal.md",
+          "score": 0.8301657898571022
+        },
+        {
+          "id": "antd_v6/components/popconfirm.md",
+          "score": 0.8298720956623025
+        },
+        {
+          "id": "antd_v5/components/date-picker.md",
+          "score": 0.8260626777203072
+        },
+        {
+          "id": "antd_v5/components/pagination.md",
+          "score": 0.8254259682602781
+        }
+      ]
+    },
+    {
+      "id": "route-menu",
+      "intent": "为多级业务路由提供导航入口，点击切换路由，并反映当前所在位置。",
+      "expected": [
+        "antd_v5/components/menu.md",
+        "antd_v6/components/menu.md"
+      ],
+      "rank": 3,
+      "top5": [
+        {
+          "id": "antd_v6/components/breadcrumb.md",
+          "score": 0.8302838197474707
+        },
+        {
+          "id": "antd_v5/components/breadcrumb.md",
+          "score": 0.8292524942349829
+        },
+        {
+          "id": "antd_v6/components/menu.md",
+          "score": 0.8269171704635887
+        },
+        {
+          "id": "antd_v6/components/popconfirm.md",
+          "score": 0.8219037506054873
+        },
+        {
+          "id": "antd_v6/components/cascader.md",
+          "score": 0.8184974910817613
+        }
+      ]
+    },
+    {
+      "id": "workflow",
+      "intent": "展示分步填写流程的当前步骤、已完成步骤和后续步骤，业务字段由每步表单负责。",
+      "expected": [
+        "antd_v5/components/steps.md",
+        "antd_v6/components/steps.md"
+      ],
+      "rank": 4,
+      "top5": [
+        {
+          "id": "antd_v6/components/cascader.md",
+          "score": 0.8380921534535711
+        },
+        {
+          "id": "antd_v6/components/form.md",
+          "score": 0.8355157564999747
+        },
+        {
+          "id": "antd_v6/components/popconfirm.md",
+          "score": 0.8327803102487453
+        },
+        {
+          "id": "antd_v6/components/steps.md",
+          "score": 0.8313064637010825
+        },
+        {
+          "id": "antd_v6/components/select.md",
+          "score": 0.8294384981212258
+        }
+      ]
+    },
+    {
+      "id": "breadcrumb",
+      "intent": "展示当前业务页面的上级路径，允许跳到上级目录。",
+      "expected": [
+        "antd_v5/components/breadcrumb.md",
+        "antd_v6/components/breadcrumb.md"
+      ],
+      "rank": 8,
+      "top5": [
+        {
+          "id": "antd_v6/components/popconfirm.md",
+          "score": 0.8301817802889209
+        },
+        {
+          "id": "antd_v6/components/menu.md",
+          "score": 0.8278010475837171
+        },
+        {
+          "id": "antd_v6/components/cascader.md",
+          "score": 0.8244486703330746
+        },
+        {
+          "id": "antd_v6/components/affix.md",
+          "score": 0.8216131431632933
+        },
+        {
+          "id": "antd_v6/components/tooltip.md",
+          "score": 0.819413286006994
+        }
+      ]
+    },
+    {
+      "id": "calendar-month",
+      "intent": "在月历中查看每天的业务事项，允许切换月份和选中某一天。",
+      "expected": [
+        "antd_v6/components/calendar.md"
+      ],
+      "rank": 1,
+      "top5": [
+        {
+          "id": "antd_v6/components/calendar.md",
+          "score": 0.8311183011320674
+        },
+        {
+          "id": "antd_v6/components/select.md",
+          "score": 0.8207915698960642
+        },
+        {
+          "id": "antd_v6/components/cascader.md",
+          "score": 0.8179913344258091
+        },
+        {
+          "id": "antd_v5/components/date-picker.md",
+          "score": 0.8161714237232472
+        },
+        {
+          "id": "antd_v6/components/popconfirm.md",
+          "score": 0.8160555445233602
+        }
+      ]
+    },
+    {
+      "id": "finite-days",
+      "intent": "从预先给定的7天、30天、90天中选择一个保留周期，不允许任意输入数字。",
+      "expected": [
+        "antd_v5/components/radio.md",
+        "antd_v5/components/segmented.md",
+        "antd_v5/components/select.md",
+        "antd_v6/components/radio.md",
+        "antd_v6/components/segmented.md",
+        "antd_v6/components/select.md"
+      ],
+      "rank": 8,
+      "top5": [
+        {
+          "id": "antd_v6/components/popconfirm.md",
+          "score": 0.8262433649817493
+        },
+        {
+          "id": "antd_v6/components/input-number.md",
+          "score": 0.8240736722008668
+        },
+        {
+          "id": "antd_v5/components/input-number.md",
+          "score": 0.821013309717357
+        },
+        {
+          "id": "antd_v6/components/input.md",
+          "score": 0.8187125921440658
+        },
+        {
+          "id": "antd_v5/components/date-picker.md",
+          "score": 0.8154131692011679
+        }
+      ]
+    },
+    {
+      "id": "cascade",
+      "intent": "逐级选择省市区，子级选项由上级决定，可以异步加载下一层。",
+      "expected": [
+        "antd_v6/components/cascader.md",
+        "antd_v6/components/tree-select.md"
+      ],
+      "rank": 1,
+      "top5": [
+        {
+          "id": "antd_v6/components/cascader.md",
+          "score": 0.8402001473123645
+        },
+        {
+          "id": "antd_v6/components/tree-select.md",
+          "score": 0.8231577067669055
+        },
+        {
+          "id": "antd_v6/components/popconfirm.md",
+          "score": 0.8204839829227498
+        },
+        {
+          "id": "antd_v6/components/select.md",
+          "score": 0.8202956622865362
+        },
+        {
+          "id": "antd_v6/components/menu.md",
+          "score": 0.812607305809805
+        }
+      ]
+    },
+    {
+      "id": "hierarchy",
+      "intent": "展示多层组织节点，允许展开折叠、选择和勾选节点。",
+      "expected": [
+        "antd_v5/components/tree.md",
+        "antd_v6/components/tree-select.md",
+        "antd_v6/components/tree.md"
+      ],
+      "rank": 3,
+      "top5": [
+        {
+          "id": "antd_v6/components/cascader.md",
+          "score": 0.8546853742416772
+        },
+        {
+          "id": "antd_v6/components/select.md",
+          "score": 0.8452776497878122
+        },
+        {
+          "id": "antd_v5/components/tree.md",
+          "score": 0.839470505292461
+        },
+        {
+          "id": "antd_v6/components/tree-select.md",
+          "score": 0.8383596116082135
+        },
+        {
+          "id": "antd_v5/components/segmented.md",
+          "score": 0.8335640320642902
+        }
+      ]
+    },
+    {
+      "id": "search-business",
+      "intent": "在记录列表上方提供查询条件，支持展开收起、查询和重置，维护草稿条件与已应用条件。",
+      "expected": [
+        "overseas/components/search-form.md"
+      ],
+      "rank": 53,
+      "top5": [
+        {
+          "id": "antd_v6/components/popconfirm.md",
+          "score": 0.8257852416620565
+        },
+        {
+          "id": "antd_v5/components/table.md",
+          "score": 0.8251782493126186
+        },
+        {
+          "id": "antd_v6/components/select.md",
+          "score": 0.8236368963581023
+        },
+        {
+          "id": "antd_v6/components/input.md",
+          "score": 0.8222194044402206
+        },
+        {
+          "id": "antd_v5/components/collapse.md",
+          "score": 0.8220818837663838
+        }
+      ]
+    },
+    {
+      "id": "shell",
+      "intent": "提供业务系统的整体导航与用户入口，在统一外壳内承载各业务页面，并切换应用上下文。",
+      "expected": [
+        "antd_v6/components/app-shell.md",
+        "overseas/components/app-shell.md"
+      ],
+      "rank": 2,
+      "top5": [
+        {
+          "id": "antd_v6/components/popconfirm.md",
+          "score": 0.8221952405101668
+        },
+        {
+          "id": "overseas/components/app-shell.md",
+          "score": 0.8199617097395434
+        },
+        {
+          "id": "antd_v6/components/menu.md",
+          "score": 0.815300483868072
+        },
+        {
+          "id": "antd_v6/components/select.md",
+          "score": 0.8150984042086419
+        },
+        {
+          "id": "antd_v5/components/pagination.md",
+          "score": 0.8145368356278554
+        }
+      ]
+    },
+    {
+      "id": "file-upload",
+      "intent": "让用户选择或拖入多个文件，显示上传进度，并反馈失败与重试。",
+      "expected": [
+        "antd_v5/components/upload.md",
+        "antd_v6/components/upload.md"
+      ],
+      "rank": 1,
+      "top5": [
+        {
+          "id": "antd_v6/components/upload.md",
+          "score": 0.8430634405477319
+        },
+        {
+          "id": "antd_v5/components/upload.md",
+          "score": 0.8407708546299122
+        },
+        {
+          "id": "antd_v6/components/select.md",
+          "score": 0.8315569149501686
+        },
+        {
+          "id": "antd_v6/components/popconfirm.md",
+          "score": 0.8288234472497544
+        },
+        {
+          "id": "antd_v6/components/cascader.md",
+          "score": 0.8261440149276246
+        }
+      ]
+    },
+    {
+      "id": "permission",
+      "intent": "根据角色以及记录所属资源范围，决定操作是否可用，不能只隐藏按钮而跳过提交权限判断。",
+      "expected": [
+        "react_ui/components/resource-authorization.md"
+      ],
+      "rank": 12,
+      "top5": [
+        {
+          "id": "antd_v6/components/popconfirm.md",
+          "score": 0.8462634350772601
+        },
+        {
+          "id": "antd_v5/components/avatar.md",
+          "score": 0.8273180231905114
+        },
+        {
+          "id": "antd_v6/components/select.md",
+          "score": 0.8217158365217538
+        },
+        {
+          "id": "antd_v6/components/menu.md",
+          "score": 0.8210747685860371
+        },
+        {
+          "id": "antd_v6/components/avatar.md",
+          "score": 0.8207971281195566
+        }
+      ]
+    },
+    {
+      "id": "numeric-en",
+      "intent": "Let users enter a bounded decimal quantity with increment and decrement controls, preserving empty versus zero.",
+      "expected": [
+        "antd_v5/components/input-number.md",
+        "antd_v6/components/input-number.md"
+      ],
+      "rank": 1,
+      "top5": [
+        {
+          "id": "antd_v5/components/input-number.md",
+          "score": 0.8451347250011596
+        },
+        {
+          "id": "antd_v6/components/input-number.md",
+          "score": 0.8404884819185718
+        },
+        {
+          "id": "antd_v6/components/empty.md",
+          "score": 0.817242512664895
+        },
+        {
+          "id": "antd_v6/components/rate.md",
+          "score": 0.8159211356028411
+        },
+        {
+          "id": "antd_v5/components/rate.md",
+          "score": 0.80842198781004
+        }
+      ]
+    },
+    {
+      "id": "tabs-en",
+      "intent": "Switch between information panels in the same page while keeping the selected header and visible panel synchronized.",
+      "expected": [
+        "antd_v5/components/tabs.md",
+        "antd_v6/components/tabs.md"
+      ],
+      "rank": 5,
+      "top5": [
+        {
+          "id": "antd_v5/components/switch.md",
+          "score": 0.8194574547027965
+        },
+        {
+          "id": "antd_v6/components/segmented.md",
+          "score": 0.8182205670210879
+        },
+        {
+          "id": "antd_v6/components/switch.md",
+          "score": 0.8176522121965754
+        },
+        {
+          "id": "antd_v6/components/cascader.md",
+          "score": 0.8145591510572887
+        },
+        {
+          "id": "antd_v5/components/tabs.md",
+          "score": 0.8134768160100021
+        }
+      ]
+    },
+    {
+      "id": "readonly-en",
+      "intent": "Present grouped read-only attributes of one entity as label/value pairs rather than editable fields or repeated rows.",
+      "expected": [
+        "antd_v6/components/descriptions.md"
+      ],
+      "rank": 6,
+      "top5": [
+        {
+          "id": "antd_v6/components/tag.md",
+          "score": 0.8342003317444543
+        },
+        {
+          "id": "antd_v5/components/rate.md",
+          "score": 0.8294133368074348
+        },
+        {
+          "id": "antd_v5/components/table.md",
+          "score": 0.8272740139978231
+        },
+        {
+          "id": "antd_v6/components/form.md",
+          "score": 0.827077557781974
+        },
+        {
+          "id": "antd_v5/components/segmented.md",
+          "score": 0.8268262355670102
+        }
+      ]
+    },
+    {
+      "id": "custom-map",
+      "intent": "在地图上拖动多边形顶点编辑地理围栏，支持图层投影和地理坐标吸附。",
+      "expected": [],
+      "rank": null,
+      "top5": [
+        {
+          "id": "antd_v6/components/cascader.md",
+          "score": 0.8309059847862612
+        },
+        {
+          "id": "antd_v6/components/popconfirm.md",
+          "score": 0.8251121133956056
+        },
+        {
+          "id": "antd_v6/components/input.md",
+          "score": 0.822155674160475
+        },
+        {
+          "id": "antd_v5/components/drawer.md",
+          "score": 0.8218396015695341
+        },
+        {
+          "id": "antd_v5/components/collapse.md",
+          "score": 0.8210686932631222
+        }
+      ]
+    },
+    {
+      "id": "custom-node-editor",
+      "intent": "在无限画布上连接业务节点，支持自定义端口类型、边路由和执行图校验。",
+      "expected": [],
+      "rank": null,
+      "top5": [
+        {
+          "id": "antd_v6/components/cascader.md",
+          "score": 0.8300261033134503
+        },
+        {
+          "id": "antd_v6/components/popconfirm.md",
+          "score": 0.8287793245644683
+        },
+        {
+          "id": "antd_v5/components/pagination.md",
+          "score": 0.8249156888433423
+        },
+        {
+          "id": "antd_v5/components/drawer.md",
+          "score": 0.8233602054691618
+        },
+        {
+          "id": "antd_v5/components/avatar.md",
+          "score": 0.8220232862245794
+        }
+      ]
+    },
+    {
+      "id": "spacing-only",
+      "intent": "将已有区域中的间距从12像素改成16像素，保留现有行为和组件。",
+      "expected": [],
+      "rank": null,
+      "top5": [
+        {
+          "id": "antd_v6/components/popconfirm.md",
+          "score": 0.8361670441618888
+        },
+        {
+          "id": "antd_v6/components/affix.md",
+          "score": 0.8307288866257325
+        },
+        {
+          "id": "antd_v6/components/skeleton.md",
+          "score": 0.8284329922410352
+        },
+        {
+          "id": "antd_v5/components/avatar.md",
+          "score": 0.8283748740122053
+        },
+        {
+          "id": "antd_v6/components/input.md",
+          "score": 0.8276722270094226
+        }
+      ]
+    },
+    {
+      "id": "plain-copy",
+      "intent": "在页面放置一段普通的业务说明文字，没有点击、输入或状态变化。",
+      "expected": [],
+      "rank": null,
+      "top5": [
+        {
+          "id": "antd_v6/components/popconfirm.md",
+          "score": 0.8363599360507583
+        },
+        {
+          "id": "antd_v6/components/input.md",
+          "score": 0.8264772867515134
+        },
+        {
+          "id": "antd_v6/components/tooltip.md",
+          "score": 0.8210784807176389
+        },
+        {
+          "id": "antd_v6/components/popover.md",
+          "score": 0.8196499959251364
+        },
+        {
+          "id": "antd_v5/components/popover.md",
+          "score": 0.8185456677612793
+        }
+      ]
+    }
+  ]
+}

@@ -32,7 +32,7 @@ const { chromium } = require(path.join(wab, "node_modules/playwright"));
     await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
     browser = await chromium.launch({ headless: true });
     const results = [];
-    for (const widget of ["tabs", "modal", "drawer", "collapse", "menu", "table", "picker"]) {
+    for (const widget of ["tabs", "modal", "drawer", "collapse", "menu", "table", "picker", "tooltip"]) {
       const page = await browser.newPage({ viewport: { width: 1500, height: 1000 } });
       const errors = [];
       page.on("pageerror", (error) => errors.push(error.message));
@@ -63,13 +63,53 @@ const { chromium } = require(path.join(wab, "node_modules/playwright"));
           if (widget === "tabs") {assert.equal(value.selectedTab, "Second");}
         }
         frames.push(...sample);
+        if (widget === "tooltip") {
+          await frame.waitForFunction((expected) =>
+            document.querySelectorAll(".ant-tooltip:not(.ant-tooltip-hidden)").length === expected,
+            index % 2 ? 2 : 0);
+          assert.equal(await frame.locator(".ant-tooltip:visible").count(), index % 2 ? 2 : 0,
+            "Editing reveals must not leak into interactive mode");
+        }
       }
       const calls = await frame.evaluate(() => window.sessionCheck.calls);
       assert.deepEqual(calls, [], `${widget}: mode switch emitted a business event`);
       if (widget === "tabs") {assert.equal(new Set(frames.map((value) => value.indicator)).size, 1, "Tabs indicator moved at a mode boundary");}
+      const checkTooltips = async () => {
+        for (const [row, target] of [[0, input], [1, frame.getByRole("button", { name: "Second tooltip" })], [0, input]]) {
+          await target.hover();
+          await frame.getByRole("tooltip", { name: `Full text ${row}`, exact: true }).waitFor({ state: "visible" });
+          assert.equal(await frame.locator(".ant-tooltip:visible").count(), 1, "Repeated tooltips must remain independent");
+          await page.locator("#standalone").hover();
+          await frame.locator(".ant-tooltip:visible").waitFor({ state: "hidden" });
+        }
+      };
+      if (widget === "tooltip") {
+        await page.locator("#mode").click();
+        await frame.locator('[data-mode="interactive"]').waitFor();
+        await frame.waitForFunction(() => !document.querySelector(".ant-tooltip:not(.ant-tooltip-hidden)"));
+        await checkTooltips();
+        await frame.waitForFunction(() => window.sessionCheck.calls.length === 12);
+        assert.deepEqual(await frame.evaluate(() => window.sessionCheck.calls),
+          Array.from({ length: 3 }, () => ["tooltip:true", "after:true", "tooltip:false", "after:false"]).flat());
+        await input.hover();
+        await frame.getByRole("tooltip", { name: "Full text 0", exact: true }).waitFor({ state: "visible" });
+        await page.locator("#mode").click();
+        await frame.locator('[data-mode="editing"]').waitFor();
+        // Let the native mouse-leave delay finish while editing absorbs business events.
+        await frame.evaluate(async () => {
+          for (let index = 0; index < 20; index++) {await new Promise(requestAnimationFrame);}
+        });
+        await page.locator("#mode").click();
+        await frame.locator('[data-mode="interactive"]').waitFor();
+        await frame.waitForFunction(() => !document.querySelector(".ant-tooltip:not(.ant-tooltip-hidden)"));
+      }
       await page.locator("#standalone").click();
       if (widget === "tabs") {await frame.getByRole("tab", { name: "First", selected: true }).waitFor();}
       else if (widget === "picker") {assert.equal(await input.inputValue(), "");}
+      else if (widget === "tooltip") {
+        await frame.locator(".ant-tooltip:visible").waitFor({ state: "hidden" });
+        await checkTooltips();
+      }
       else {await input.waitFor({ state: "hidden" });}
       assert.deepEqual(errors, [], `${widget}: browser runtime errors`);
       results.push({ widget, passed: true, checkedFrames: frames.length, businessEventsAtModeChanges: calls.length });

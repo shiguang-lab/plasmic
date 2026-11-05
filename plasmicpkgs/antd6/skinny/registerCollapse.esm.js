@@ -1,5 +1,5 @@
 import { usePlasmicCanvasContext, usePlasmicCanvasComponentInfo } from '@plasmicapp/host';
-import { r as renderCanvasSlot, g as getCanvasItems, a as getSelectedCanvasItemKey } from './canvas-overlay-CbpJk7_w.esm.js';
+import { r as renderCanvasSlot, g as getCanvasItems, a as getSelectedCanvasItemKey } from './canvas-overlay-27tNRB55.esm.js';
 import { Collapse } from 'antd';
 import React from 'react';
 import { r as registerComponentHelper } from './utils-U416WEAa.esm.js';
@@ -41,6 +41,7 @@ function AntdCollapsePanel(props) {
 }
 function registerCollapse(loader) {
   registerComponentHelper(loader, AntdCollapse, {
+    description: "Expand or collapse labeled content sections, independently or in accordion mode. Keeps section headers available while their content is hidden.",
     name: collapseComponentName,
     displayName: "Collapse",
     defaultStyles: { width: "stretch" },

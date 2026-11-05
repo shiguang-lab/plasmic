@@ -3,7 +3,7 @@ import cls from 'classnames';
 import React, { useMemo } from 'react';
 import { omit } from 'lodash';
 import { getButtonProps } from './registerButton.esm.js';
-import { u as useCanvasOverlay, p as previewOpenProp } from './canvas-overlay-CbpJk7_w.esm.js';
+import { u as useCanvasOverlay, p as previewOpenProp } from './canvas-overlay-27tNRB55.esm.js';
 import { r as registerComponentHelper } from './utils-U416WEAa.esm.js';
 import './names-DQIzgrvq.esm.js';
 import '@plasmicapp/host';
@@ -29,7 +29,8 @@ function AntdModal(props) {
   const {
     props: canvasProps,
     open,
-    isEditing
+    isEditing,
+    destroyOnHidden
   } = useCanvasOverlay(props, canvasOverlay.triggerSlot);
   const {
     onOpenChange,
@@ -77,10 +78,10 @@ function AntdModal(props) {
       onOk: isEditing ? void 0 : onOk,
       width: widthProp,
       onCancel: isEditing ? void 0 : memoOnCancel,
-      afterOpenChange: isEditing ? void 0 : props.afterOpenChange,
-      afterClose: isEditing ? void 0 : props.afterClose,
+      afterOpenChange: isEditing ? void 0 : canvasProps.afterOpenChange,
+      afterClose: isEditing ? void 0 : canvasProps.afterClose,
       open,
-      destroyOnHidden: isEditing ? true : props.destroyOnHidden,
+      destroyOnHidden,
       forceRender: isEditing ? false : props.forceRender,
       focusable: isEditing ? { trap: false, focusTriggerAfterClose: false } : props.focusable,
       footer: hideFooter ? null : footer,
@@ -103,7 +104,7 @@ function registerModal(loader) {
     },
     displayName: "Modal",
     styleSections,
-    description: "[See tutorial video](https://www.youtube.com/watch?v=TkjxNJIFun8)",
+    description: "Open a dialog over the current page for focused confirmation, information or form editing. Control its open state and OK/cancel events. [See tutorial video](https://www.youtube.com/watch?v=TkjxNJIFun8)",
     props: {
       previewOpen: previewOpenProp,
       open: {

@@ -1,0 +1,1047 @@
+{
+  "description": "Offline component-document retrieval pilot, manually authored labels; not live project contracts, independent acceptance, or resource benchmark.",
+  "corpus": [
+    {
+      "id": "antd_v5/components/avatar.md",
+      "name": "avatar",
+      "text": "Components: plasmic-antd5-avatar, plasmic-antd5-avatar-group\n# Avatar\n\nLibrary: Ant Design v5.\n\n| Registered component | Registration key |\n| --- | --- |\n| Avatar | `plasmic-antd5-avatar` |\n| AvatarGroup | `plasmic-antd5-avatar-group` |\n\n## Generation rules\n\n### Avatar and Avatar.Group\n\nRead actual src/letters, href/target, size and shape for the individual Avatar. Group owns real child nodes and its maxCount/maxPopoverPlacement/size contract; these are not v6 max-object controls. Keep readable person/entity names alongside images as required and replace demo identities.\n\n## Acceptance checks\n\n### Acceptance\n\nTest missing/failed images, letters, few/many members, overflow disclosure and any actual destination. Verify dimensions, keyboard navigation when actionable and saved member/route bindings. Do not force an overflow preset solely to reproduce a demo.\n",
+      "source": "ai/plasmic/references/libraries/antd_v5/components/avatar.md",
+      "sourceSha256": "6d10556ff9de07aa36e470709578ea834c7d3d354c8cca0034c84d05042b4e9e"
+    },
+    {
+      "id": "antd_v5/components/breadcrumb.md",
+      "name": "breadcrumb",
+      "text": "Components: plasmic-antd5-breadcrumb, plasmic-antd5-breadcrumb-item\n# Breadcrumb\n\nLibrary: Ant Design v5.\n\n| Registered component | Registration key |\n| --- | --- |\n| Breadcrumb | `plasmic-antd5-breadcrumb` |\n| Breadcrumb Item | `plasmic-antd5-breadcrumb-item` |\n\n## Generation rules\n\n### Actual route ancestry\n\nRead this wrapper's itemsRaw and separator. Breadcrumb Item provides its actual children/onClick editing contract, while native item arrays follow the registered raw data path. Keep genuine ancestors and destinations; do not invent a per-item href prop absent from the exposed child controls.\n\n## Acceptance checks\n\n### Acceptance\n\nAn existing host shell may already own breadcrumbs. Avoid duplicating that region; verify direct entry, nested/current routes, long labels and actual parent navigation. Check keyboard access and saved item/action bindings against the current implementation rather than v6's items contract.\n",
+      "source": "ai/plasmic/references/libraries/antd_v5/components/breadcrumb.md",
+      "sourceSha256": "1e22cddafa70d88af7cead231fc35f1bba4bf5bc707da4cc90e45dec236d547e"
+    },
+    {
+      "id": "antd_v5/components/button.md",
+      "name": "button",
+      "text": "Components: plasmic-antd5-button\n# Button\n\nLibrary: Ant Design v5.\n\n| Registered component | Registration key |\n| --- | --- |\n| Button | `plasmic-antd5-button` |\n\n## Generation rules\n\n### Action and navigation\n\nRead type, size, shape, ghost, danger, loading, disabled, icon, onClick and href/target from this v5 registration. Form submission uses its submitsForm contract rather than an assumed v6 property model. One primary action belongs to the actual action group; danger reflects the required consequence, not every publish/save label.\n\n## Acceptance checks\n\n### Acceptance\n\nVerify the actual effect or route, permission/disabled/loading behavior, keyboard activation and complete labels. A submit button follows the owning Form's validated event and duplicate-submit policy. Icon-only buttons need a real accessible name. Save/reopen Props/Slots and callbacks.\n",
+      "source": "ai/plasmic/references/libraries/antd_v5/components/button.md",
+      "sourceSha256": "22270a1320c9cce95237c88311ba72bb2a059dd3b17e22c03eb2702903ea3387"
+    },
+    {
+      "id": "antd_v5/components/checkbox.md",
+      "name": "checkbox",
+      "text": "Components: plasmic-antd5-checkbox, plasmic-antd5-checkbox-group\n# Checkbox\n\nLibrary: Ant Design v5.\n\n| Registered component | Registration key |\n| --- | --- |\n| Checkbox | `plasmic-antd5-checkbox` |\n| Checkbox Group | `plasmic-antd5-checkbox-group` |\n\n## Generation rules\n\n### Checkbox and Checkbox.Group\n\nA single Checkbox owns checked/defaultChecked, with its native event converted through the registered state helper. Group owns an array value and actual Checkbox children; read its callback separately. Indeterminate describes partial selection and is not a third stored boolean. In Form, use the actual checked valuePropName contract without a competing page binding.\n\n## Acceptance checks\n\n### Acceptance\n\nTest false/true, group empty/partial/full selection, disabled items, clear and keyboard activation. Define the scope of any select-all action from the requirement; rendered checkboxes do not certify server-wide selection. Save/reopen and verify the real Form payload.\n",
+      "source": "ai/plasmic/references/libraries/antd_v5/components/checkbox.md",
+      "sourceSha256": "67e71671ae5840cf500146b0536251e36a68691d5e9b6726f6353f9b4d066383"
+    },
+    {
+      "id": "antd_v5/components/collapse.md",
+      "name": "collapse",
+      "text": "Components: plasmic-antd5-collapse, plasmic-antd5-collapse-item, plasmic-antd5-single-collapse\n# Collapse\n\nLibrary: Ant Design v5.\n\n| Registered component | Registration key |\n| --- | --- |\n| Accordion | `plasmic-antd5-collapse` |\n| Accordion Item | `plasmic-antd5-collapse-item` |\n| Collapse | `plasmic-antd5-single-collapse` |\n\n## Generation rules\n\n### Single and grouped sections\n\nThis library registers the single Collapse (`plasmic-antd5-single-collapse`), Accordion and Accordion Item under their actual keys. They share one Collapse document, with single open versus grouped activeKey/items ownership. Read label/label2/extra, forceRender, destroyInactivePanel, collapsible, disabled and onChange independently for the used variant.\n\n## Acceptance checks\n\n### Acceptance\n\nKeep stable group IDs and full real child content. Test default/open states, allowed multiple/accordion behavior, disabling, hidden field values/errors and destruction/preservation when configured. Verify callback/state conversion against the implementation; do not carry v6 Collapse.Panel metadata or items behavior across versions. Check keyboard access and scroll reachability after expansion.\n",
+      "source": "ai/plasmic/references/libraries/antd_v5/components/collapse.md",
+      "sourceSha256": "2f5e3155c3223353a9c36de3dea8fd5d9d81e0bb4b154d9fe332cced0310789a"
+    },
+    {
+      "id": "antd_v5/components/color-picker.md",
+      "name": "color-picker",
+      "text": "Components: plasmic-antd5-color-picker\n# ColorPicker\n\nLibrary: Ant Design v5.\n\n| Registered component | Registration key |\n| --- | --- |\n| Color Picker | `plasmic-antd5-color-picker` |\n\n## Generation rules\n\n### Color value\n\nRead this wrapper's value, format, showText/showTextSwitch, allowClear, disabled, trigger and onChange contract. Inspect its serialized returned color rather than storing a native Color object or assuming v6 completion callbacks. Theme-owned semantic colors remain theme choices unless the user actually configures them as business data.\n\n## Acceptance checks\n\n### Acceptance\n\nVerify initial/changing/cleared values, the required display/storage format, custom trigger and disabled state. Check Form ownership, popup bounds, actual stored value and saved callbacks; do not infer persistence from the displayed color swatch.\n",
+      "source": "ai/plasmic/references/libraries/antd_v5/components/color-picker.md",
+      "sourceSha256": "f745e98f836c327d41f84962e2fb4275ecbaeb2f66c028352801031f072d07b4"
+    },
+    {
+      "id": "antd_v5/components/date-picker.md",
+      "name": "date-picker",
+      "text": "Components: plasmic-antd5-date-picker, plasmic-antd5-date-range-picker\n# DatePicker\n\nLibrary: Ant Design v5.\n\n| Registered component | Registration key |\n| --- | --- |\n| Date/Time Picker | `plasmic-antd5-date-picker` |\n| Date Range Picker | `plasmic-antd5-date-range-picker` |\n\n## Generation rules\n\n### Serialized dates and display\n\nSingle DatePicker converts supported values through dayjs and emits an ISO string or null. Display format and the backend date/time contract are separate; establish date-only versus instant meaning and timezone from the requirement. Read picker, showTime, bordered, clear and the actual popup styling contract rather than adding v6 variant/classes.\n\n### RangePicker\n\nThe range wrapper exposes startDate/endDate and their own states, plus endpoint disabling/allowEmpty flags, presets and onChange. Read those exact arguments rather than inventing a single range value binding. Single-picker defaults and callback timing do not establish the range's behavior.\n\n## Acceptance checks\n\n### Acceptance\n\nVerify typing, picking, clear, both endpoints, disabled combinations, initialization and the actual serialized payload. Test relevant day/month/time boundaries and reopening another record. Existing wrapper popup behavior must be inspected in real Preview at required widths; it is not a general responsive layout guarantee.\n",
+      "source": "ai/plasmic/references/libraries/antd_v5/components/date-picker.md",
+      "sourceSha256": "de2a4ad1ba27147d972ffe90a8518e8fa19b39cdbdd4a4cedf8ae28e81d14b34"
+    },
+    {
+      "id": "antd_v5/components/drawer.md",
+      "name": "drawer",
+      "text": "Components: plasmic-antd5-drawer\n# Drawer\n\nLibrary: Ant Design v5.\n\n| Registered component | Registration key |\n| --- | --- |\n| Drawer | `plasmic-antd5-drawer` |\n\n## Generation rules\n\n### Region and visibility\n\nUse actual title, children, footer, closeIcon, open/onOpenChange, placement and forceRender contracts. Read this wrapper's canvas/closed-state behavior independently of v6 temporary reveal. The Drawer does not become the application's data or route owner merely by displaying details.\n\n## Acceptance checks\n\n### Acceptance\n\nCheck supported close paths, unsaved-input/processing policy, closing animation and reopen with another record. Form values and callbacks must follow the actual lifecycle. Verify bounded body, shared scroll integration, reachable footer, popup geometry and focus return, then save/reopen real visibility and Slot bindings.\n",
+      "source": "ai/plasmic/references/libraries/antd_v5/components/drawer.md",
+      "sourceSha256": "7b6af8d68110a1dbacd555be561cab85eb0666260470b8bf43f039634a807568"
+    },
+    {
+      "id": "antd_v5/components/dropdown.md",
+      "name": "dropdown",
+      "text": "Components: plasmic-antd5-dropdown\n# Dropdown\n\nLibrary: Ant Design v5.\n\n| Registered component | Registration key |\n| --- | --- |\n| Dropdown | `plasmic-antd5-dropdown` |\n\n## Generation rules\n\n### Trigger and item actions\n\nRead menuItems/menuItemsJson or the actual useMenuItemsSlot editing branch, children, trigger, placement, open and onAction. Keep item keys stable, permissions applied before presentation and actual action labels. A hover/click opening gesture does not perform the business mutation.\n\n## Acceptance checks\n\n### Acceptance\n\nVerify the chosen trigger, movement into/out of the menu, disabled items, actual selection callback and dismissal. Read its v5 styling and popup contract rather than v6 classNames/tokens. Save/reopen items, actions and state, keeping keyboard access and popup bounds usable.\n",
+      "source": "ai/plasmic/references/libraries/antd_v5/components/dropdown.md",
+      "sourceSha256": "da9052a824db34742dad058fa15f1943cad3f04cbe611a43754ede2d9d9ccefb"
+    },
+    {
+      "id": "antd_v5/components/form.md",
+      "name": "form",
+      "text": "Components: plasmic-antd5-form, plasmic-antd5-form-group, plasmic-antd5-form-item, plasmic-antd5-form-list\n# Form\n\nLibrary: Ant Design v5.\n\n| Registered component | Registration key |\n| --- | --- |\n| Form | `plasmic-antd5-form` |\n| Form Field Group | `plasmic-antd5-form-group` |\n| Form Field | `plasmic-antd5-form-item` |\n| Form List | `plasmic-antd5-form-list` |\n\n## Generation rules\n\n### Fields, modes and values\n\nRead simplified mode's formItems/dataFormItems/submitSlot or advanced mode's real Form Field children. Keep one Form value owner, meaningful field names, actual initialValues and requirement-derived rules. Standard controls retain their direct Item child binding; checked controls use the real valuePropName. Do not add v6 tooltip, description, validateFirst or styles controls absent from this v5 registration.\n\nValidation comes from the actual Form and Item rules. Submit through the registered submit/validateFields actions and onFinish values; failed validation performs no mutation and keeps recoverable input. Read actual ordered action/event arguments before binding refs. Async detail initialization and hidden/dependent values follow their verified runtime contract rather than assuming initialValues updates on every prop change.\n\n### Form.Item, Form.List and Form Field Group\n\nField exposes label, children, name, rules, dependencies, shouldUpdate, noStyle and preserve. Native hiding is distinct from clearing/excluding a field. Lists own array paths and their registered add/remove/move operations; Group prefixes nested child names through this wrapper's context and is not a native Form.Group API. Stable row identity and current array position have different roles.\n\n## Acceptance checks\n\n### Acceptance\n\nTest required/invalid/corrected values, actual hidden-field policy, list insertion/removal/move, nested paths, duplicate submission, failed save and reopening another re",
+      "source": "ai/plasmic/references/libraries/antd_v5/components/form.md",
+      "sourceSha256": "d0ac84147cd891d95ae39c892169b69b4f49aac40afcc4aaf2f7fc4e5617f507"
+    },
+    {
+      "id": "antd_v5/components/input-number.md",
+      "name": "input-number",
+      "text": "Components: plasmic-antd5-input-number\n# InputNumber\n\nLibrary: Ant Design v5.\n\n| Registered component | Registration key |\n| --- | --- |\n| Number Input | `plasmic-antd5-input-number` |\n\n## Generation rules\n\n### Numeric field\n\nRead this wrapper's value/defaultValue, min/max/step, controls and onChange(value) contract; native numeric clear may be null and zero is a legitimate value. The registration's input state metadata and the native returned value must be inspected together before binding or code generation. Do not infer the runtime type from a copied Input event handler.\n\nThis v5 registration exposes bordered and its own decoration controls; it does not certify the v6 variant/size/precision API. Business decimal/integer/range requirements belong in actual Form validation rather than an arbitrary display conversion.\n\n## Acceptance checks\n\n### Acceptance\n\nTest zero, clear, negative/decimal/boundary values when allowed, step changes, typing and the saved Form payload. Verify initialization, explicit disabling and reopen with another record; do not convert empty to zero with a truthy fallback.\n",
+      "source": "ai/plasmic/references/libraries/antd_v5/components/input-number.md",
+      "sourceSha256": "482b88fea472f4aa47176bfba3d011fb023ec9c4ec20231e4c387febf4836f2a"
+    },
+    {
+      "id": "antd_v5/components/input.md",
+      "name": "input",
+      "text": "Components: plasmic-antd5-input, plasmic-antd5-input-password, plasmic-antd5-textarea\n# Input\n\nLibrary: Ant Design v5.\n\n| Registered component | Registration key |\n| --- | --- |\n| Input | `plasmic-antd5-input` |\n| Password Input | `plasmic-antd5-input-password` |\n| Text Area | `plasmic-antd5-textarea` |\n\n## Generation rules\n\n### Input, Password and TextArea\n\nSelect the registered text control from its actual role: ordinary text, secret text or multi-line content. These v5 registrations use value/defaultValue and native onChange(event), whose state helper reads event.target.value. Inside Form, the real Item owns the value. Do not bind the event object or add v6 Search/OTP registrations that are not in this library.\n\nRead the exposed bordered, disabled, readOnly, allowClear, maxLength and decoration contracts per variant. Password and TextArea expose different subsets; TextArea autoSize controls growth. Labels/instructions remain outside the control's prefix/suffix/addon content. Native capabilities absent from the registration require verification, not an invented prop.\n\n## Acceptance checks\n\n### Acceptance\n\nVerify typing, clear, Enter, long text, actual disabled/readOnly and Form errors. Test Password reveal and TextArea growth when used, with complete content and preserved value ownership. Save/reopen real bindings and apply keyboard checks.\n",
+      "source": "ai/plasmic/references/libraries/antd_v5/components/input.md",
+      "sourceSha256": "2a45221eb3c49b1c74db8342336abd1f5f1bb086109b5b4dbbe4af1171ed8fbe"
+    },
+    {
+      "id": "antd_v5/components/menu.md",
+      "name": "menu",
+      "text": "Components: plasmic-antd5-menu, plasmic-antd5-menu-divider, plasmic-antd5-menu-item, plasmic-antd5-menu-item-group, plasmic-antd5-submenu\n# Menu\n\nLibrary: Ant Design v5.\n\n| Registered component | Registration key |\n| --- | --- |\n| Menu | `plasmic-antd5-menu` |\n| Menu Divider | `plasmic-antd5-menu-divider` |\n| Menu Item | `plasmic-antd5-menu-item` |\n| Item Group | `plasmic-antd5-menu-item-group` |\n| Sub Menu | `plasmic-antd5-submenu` |\n\n## Generation rules\n\n### Children and selection\n\nMenu.Item, ItemGroup, Divider and SubMenu stay in this document. Keep stable keys and meaningful titles; read mode, multiple, triggerSubMenuAction, defaultSelectedKeys and the actual onSelect(info) event. A group/divider is not a fake route. This wrapper exposes children rather than a general v6 items-based control surface.\n\n## Acceptance checks\n\n### Acceptance\n\nVerify direct-entry selection, nested expansion, disabled/permission-filtered items and actual action/route bindings. Read the runtime event/state helper together with registration metadata before binding selected keys. Test hover/click policy, keyboard navigation and long titles without persisting canvas-inspection state.\n",
+      "source": "ai/plasmic/references/libraries/antd_v5/components/menu.md",
+      "sourceSha256": "1dbf5c967dce110052f8fcb06ea3bfb37f517dcd076e5b135b9b6e097b65b6e2"
+    },
+    {
+      "id": "antd_v5/components/modal.md",
+      "name": "modal",
+      "text": "Components: plasmic-antd5-modal\n# Modal\n\nLibrary: Ant Design v5.\n\n| Registered component | Registration key |\n| --- | --- |\n| Modal | `plasmic-antd5-modal` |\n\n## Generation rules\n\n### Slots and close timing\n\nRead real title/children/footer/trigger/closeIcon, width, hideFooter, onOk/onCancel and onOpenChange. This maintained v5 wrapper requests onOpenChange(false) before invoking onOk; awaiting an onOk save does not automatically keep it open. Verify that the actual controlled workflow satisfies its required validation/failure close policy, and report a capability gap when it cannot. Do not describe the v6 Modal's explicit-success closing contract as this wrapper's behavior.\n\n## Acceptance checks\n\n### Acceptance\n\nChoose native default footer or an actual required custom footer through its installed Slot contract. Verify opening, all supported dismissal paths, validation failure, failed save, correction/retry and reopening another record. Keep titles/fields/footer reachable with the shared scrolling contract and check focus return. A successful happy path does not certify async closing semantics or retained input.\n",
+      "source": "ai/plasmic/references/libraries/antd_v5/components/modal.md",
+      "sourceSha256": "43b8756a8a84ef0fd5d064ca30cabb68ca190bb748e2dd9419fff790ae35c335"
+    },
+    {
+      "id": "antd_v5/components/pagination.md",
+      "name": "pagination",
+      "text": "Components: plasmic-antd5-pagination\n# Pagination\n\nLibrary: Ant Design v5.\n\n| Registered component | Registration key |\n| --- | --- |\n| Pagination | `plasmic-antd5-pagination` |\n\n## Generation rules\n\n### Page owner\n\nRead current/defaultCurrent, pageSize/defaultPageSize, total, pageSizeOptions and actual onChange/onShowSizeChange contracts and derived indexes. Server-side total is the full matching count and an already paged response is not sliced again. paginatedUrl is used only for an actual route-driven page contract.\n\n## Acceptance checks\n\n### Acceptance\n\nVerify initial derived state against this implementation; do not carry v6 initialization fixes into the v5 reference as facts. Test no results, last page, page-size/filter changes and controlled/uncontrolled bindings. Avoid duplicate requests or a second paging owner, keep controls reachable and save/reopen the actual values.\n",
+      "source": "ai/plasmic/references/libraries/antd_v5/components/pagination.md",
+      "sourceSha256": "31cc0b42697f1eeb4dec0bc063167142cae63c3decd06affa973d1fac745d51d"
+    },
+    {
+      "id": "antd_v5/components/popover.md",
+      "name": "popover",
+      "text": "Components: plasmic-antd5-popover\n# Popover\n\nLibrary: Ant Design v5.\n\n| Registered component | Registration key |\n| --- | --- |\n| Popover | `plasmic-antd5-popover` |\n\n## Generation rules\n\n### Content and trigger\n\nRead title/content/contentText/children, trigger, open/onOpenChange, placement and mouse enter/leave delays. Interactive supplemental content belongs in Popover; a short non-interactive explanation belongs in Tooltip. Native arrow/style props follow this v5 wrapper and are not interchangeable with v6 semantic classNames.\n\n## Acceptance checks\n\n### Acceptance\n\nVerify native versus fallback content, explicit empty values, entering/interacting with the popup, dismissal and keyboard/focus behavior. Hover never mutates business state. Inspect viewport bounds and saved open state rather than using a forced persisted opening for editor inspection.\n",
+      "source": "ai/plasmic/references/libraries/antd_v5/components/popover.md",
+      "sourceSha256": "e85319ffcebe9f642fb4346bc0281417c391c4b81d67963d6666e8ac493e6f30"
+    },
+    {
+      "id": "antd_v5/components/progress.md",
+      "name": "progress",
+      "text": "Components: plasmic-antd5-progress\n# Progress\n\nLibrary: Ant Design v5.\n\n| Registered component | Registration key |\n| --- | --- |\n| Progress | `plasmic-antd5-progress` |\n\n## Generation rules\n\n### Actual measured work\n\nRead percent/type/status and this wrapper's successPercent/successStrokeColor, stepColors, gradient and infoFormat controls. These map through the v5 implementation rather than a v6 success/format object assumed from a native API. Meaningful zero must remain distinguishable from missing values.\n\n## Acceptance checks\n\n### Acceptance\n\nTest zero/partial/complete and required failure/success segments, steps/gradient and complete status text. The displayed percent/status reflects actual work and does not certify backend completion. Inspect the implementation's omitted defaults and saved bindings independently of v6 fixes.\n",
+      "source": "ai/plasmic/references/libraries/antd_v5/components/progress.md",
+      "sourceSha256": "f5f0c7a6301d04fe56fa0e330fb02873ae12630d57d26dfdc7a72beb1745ee35"
+    },
+    {
+      "id": "antd_v5/components/radio.md",
+      "name": "radio",
+      "text": "Components: plasmic-antd5-radio, plasmic-antd5-radio-button, plasmic-antd5-radio-group\n# Radio\n\nLibrary: Ant Design v5.\n\n| Registered component | Registration key |\n| --- | --- |\n| Radio | `plasmic-antd5-radio` |\n| Radio Button | `plasmic-antd5-radio-button` |\n| Radio Group | `plasmic-antd5-radio-group` |\n\n## Generation rules\n\n### Radio, Radio.Button and Radio.Group\n\nRadio.Group owns one stable option value. This wrapper supports options or children via useChildren and optionType; individual Radio/Button nodes carry labels and their real values. Read the native group onChange(event) extraction rather than treating its event as a bare value. Do not simulate a group with independent checkbox booleans.\n\n## Acceptance checks\n\n### Acceptance\n\nVerify absent and explicit initial selection, switching, disabled choices, options/children modes and Form validation. Preserve zero/false option values, readable long labels and keyboard traversal, then save/reopen the actual group state.\n",
+      "source": "ai/plasmic/references/libraries/antd_v5/components/radio.md",
+      "sourceSha256": "855dbf484a90015e910b5317f722c042817d999f52216ca245a371e3cc2f4fe1"
+    },
+    {
+      "id": "antd_v5/components/rate.md",
+      "name": "rate",
+      "text": "Components: plasmic-antd5-rate\n# Rate\n\nLibrary: Ant Design v5.\n\n| Registered component | Registration key |\n| --- | --- |\n| Rate | `plasmic-antd5-rate` |\n\n## Generation rules\n\n### Editable or read-only rating\n\nRead value/defaultValue, count, allowHalf, allowClear, disabled, tooltips and this wrapper's character/multiCharacter/symbols contract. The returned rating is numeric; custom symbols change presentation rather than the business scale. Pure detail views retain the intended non-editable policy.\n\n## Acceptance checks\n\n### Acceptance\n\nTest zero, clear, partial/full ratings, hover without commit, supported keyboard events and the actual Form payload. Verify custom symbols/tooltips, disabled behavior and saved value/callback bindings rather than inferring completion from a decorative rating.\n",
+      "source": "ai/plasmic/references/libraries/antd_v5/components/rate.md",
+      "sourceSha256": "57d9c1d4fd4d1dc231d04d80f0348225c9e93ffe9f885f449b323edf2472e96a"
+    },
+    {
+      "id": "antd_v5/components/segmented.md",
+      "name": "segmented",
+      "text": "Components: plasmic-antd5-segmented, plasmic-antd5-segmented-option\n# Segmented\n\nLibrary: Ant Design v5.\n\n| Registered component | Registration key |\n| --- | --- |\n| Segmented | `plasmic-antd5-segmented` |\n| Segmented Option | `plasmic-antd5-segmented-option` |\n\n## Generation rules\n\n### Compact choice\n\nThe wrapper uses options or optionsSlot through useSlotOptions. Segmented Option nodes keep stable values and editable children. Read value/defaultValue, size, disabled, block and onChange from this library; native labels do not establish a new route or field schema.\n\n## Acceptance checks\n\n### Acceptance\n\nTest both option branches when used, initial/change/disabled states, long labels and actual value callback. Keep view state separate from business data and use Tabs when real panel semantics are required. Save/reopen option values and bindings; do not insert v6 option metadata into this wrapper.\n",
+      "source": "ai/plasmic/references/libraries/antd_v5/components/segmented.md",
+      "sourceSha256": "b4656165100caf6377f1a786c283d4a15b354618f083cafb35ca76603ea55c3f"
+    },
+    {
+      "id": "antd_v5/components/select.md",
+      "name": "select",
+      "text": "Components: plasmic-antd5-option, plasmic-antd5-option-group, plasmic-antd5-select\n# Select\n\nLibrary: Ant Design v5.\n\n| Registered component | Registration key |\n| --- | --- |\n| Option | `plasmic-antd5-option` |\n| Option Group | `plasmic-antd5-option-group` |\n| Select | `plasmic-antd5-select` |\n\n## Generation rules\n\n### Options and selected values\n\nThis registration chooses native options or editable Select.Option/OptGroup children through useChildren. Keep stable business values separate from labels. Read value/defaultValue, single/multiple/tags mode, showSearch, bordered and the actual onChange arguments/state helper. Do not substitute a v6 variant or filtering control absent from this registration.\n\n### Search and acceptance\n\nRemote search and loading use only the actual target's exposed capability; this wrapper's normal controls do not provide every native Select prop. Preserve selected labels while options change, and report a missing required search contract rather than inventing it. Verify initial/reloaded/empty options, disabled choices, clear, multiple/tags values, keyboard navigation and Form ownership. Check complete labels and saved bindings.\n",
+      "source": "ai/plasmic/references/libraries/antd_v5/components/select.md",
+      "sourceSha256": "b849f63989ca7c551e416e3bd430a6c8ac73f5a32e28f56f99d820ce73270833"
+    },
+    {
+      "id": "antd_v5/components/slider.md",
+      "name": "slider",
+      "text": "Components: plasmic-antd5-range-slider, plasmic-antd5-slider, plasmic-antd5-slider-mark\n# Slider\n\nLibrary: Ant Design v5.\n\n| Registered component | Registration key |\n| --- | --- |\n| Range Slider | `plasmic-antd5-range-slider` |\n| Slider | `plasmic-antd5-slider` |\n| Slider Mark | `plasmic-antd5-slider-mark` |\n\n## Generation rules\n\n### Slider, Range Slider and Slider Mark\n\nSingle Slider exposes value; Range Slider exposes its actual valueMin/valueMax states and draggableTrack, not a copied v6 range/value-array control surface. Read onChange/onAfterChange conversion and mark/stylableMarks/Slider Mark children, min/max/step and tooltip controls independently. Keep one actual numeric owner and preserve zero.\n\n## Acceptance checks\n\n### Acceptance\n\nVerify endpoints, step precision, marks, keyboard movement, disabled state and distinct single/range outputs. Intermediate movement and completion follow their registered events; do not submit an expensive mutation on every change unless required. Check long labels, initialization and actual saved values without assuming a v6 completion event.\n",
+      "source": "ai/plasmic/references/libraries/antd_v5/components/slider.md",
+      "sourceSha256": "2181364a1a7573a653449e692d881dd85fe3579286f28928527e7c6f3e3ee686"
+    },
+    {
+      "id": "antd_v5/components/steps.md",
+      "name": "steps",
+      "text": "Components: plasmic-antd5-steps\n# Steps\n\nLibrary: Ant Design v5.\n\n| Registered component | Registration key |\n| --- | --- |\n| Steps | `plasmic-antd5-steps` |\n\n## Generation rules\n\n### Actual workflow stage\n\nRead items/current/status and this registration's size/direction/progressDot/type/percent/responsive/onChange controls. A highlighted stage is presentation; the owning workflow determines whether navigation is allowed and whether fields validate before proceeding. Inspect this implementation's actual initial current value instead of carrying the v6 default-preservation rule across versions.\n\n## Acceptance checks\n\n### Acceptance\n\nTest initial and requested stage, permitted forward/back transitions, validation failure and final submission if stages own fields. Preserve entered values and stable stage meaning, complete labels, focus and required layout. Verify actual callbacks and saved state.\n",
+      "source": "ai/plasmic/references/libraries/antd_v5/components/steps.md",
+      "sourceSha256": "9152bfac365ec0a52961e8f86f449ba55d23807526b993329b64a7a1e9edd76d"
+    },
+    {
+      "id": "antd_v5/components/switch.md",
+      "name": "switch",
+      "text": "Components: plasmic-antd5-switch\n# Switch\n\nLibrary: Ant Design v5.\n\n| Registered component | Registration key |\n| --- | --- |\n| Switch | `plasmic-antd5-switch` |\n\n## Generation rules\n\n### Boolean value\n\nThis v5 Switch exposes checked/defaultChecked, disabled and onChange(checked). In Form, retain its actual checked field binding. An immediate backend toggle requires the consuming workflow's verified permission, pending and failure policy; the component does not save the boolean by itself.\n\n## Acceptance checks\n\n### Acceptance\n\nExercise false/true, initialization, controlled/uncontrolled values, disabled behavior and the actual submitted field. For immediate actions, test one mutation and required failure recovery. Keep a meaningful label and keyboard operation, then save/reopen bindings.\n",
+      "source": "ai/plasmic/references/libraries/antd_v5/components/switch.md",
+      "sourceSha256": "5c699094e143006612659724e16f498b811330019174f2b3f3fba66fcc739807"
+    },
+    {
+      "id": "antd_v5/components/table.md",
+      "name": "table",
+      "text": "Components: plasmic-antd5-table, plasmic-antd5-table-column, plasmic-antd5-table-column-group\n# Table\n\nLibrary: Ant Design v5.\n\n| Registered component | Registration key |\n| --- | --- |\n| Table (deprecated) | `plasmic-antd5-table` |\n| Column | `plasmic-antd5-table-column` |\n| Column Group | `plasmic-antd5-table-column-group` |\n\n## Generation rules\n\n### Registered data and columns\n\nThe current registration's display name is Table (deprecated); its actual wrapper remains the source for this library. Read data, rowKey, isSelectable, selectedRowKeys and the selection callbacks rather than assuming the v6 Table's control set. This registration does not expose ordinary v6 pagination/scroll/onChange controls. Preserve source identity; do not switch libraries or claim unsupported controls by copying a v6 recipe.\n\n### Table.Column and ColumnGroup\n\nColumns expose title, dataIndex, render, align, fixed and colSpan; ColumnGroup owns its title and actual leaf children. Inspect render scope before binding row content. Native width/ellipsis/sort capabilities require an actual supported binding path; an unregistered v6 template-conversion action is not available by assumption.\n\n## Acceptance checks\n\n### Acceptance\n\nUse stable unique row keys, complete real values and actual selection ownership. Test multiple distinct rows, zero/false/empty values, selection changes, refresh/reordering and the required overflow behavior. Use Pagination only when the consuming flow actually owns separate supported pagination. Verify actual Preview behavior and save/reopen; report a missing required Table capability directly.\n",
+      "source": "ai/plasmic/references/libraries/antd_v5/components/table.md",
+      "sourceSha256": "2b91d5dd2a64cf4ad725b9e648bef80d30c845a6a6c8f5ef3b9569e288222c66"
+    },
+    {
+      "id": "antd_v5/components/tabs.md",
+      "name": "tabs",
+      "text": "Components: plasmic-antd5-tab-item, plasmic-antd5-tabs\n# Tabs\n\nLibrary: Ant Design v5.\n\n| Registered component | Registration key |\n| --- | --- |\n| Tab Item | `plasmic-antd5-tab-item` |\n| Tabs | `plasmic-antd5-tabs` |\n\n## Generation rules\n\n### Panel ownership\n\nRead activeKey, items, tabPosition, size, destroyInactiveTabPane, sticky controls and ordered events from this v5 wrapper. Editable Tab Item nodes are the children of its actual items Slot. Stable keys identify real panels; each owns its content, not decorative sibling labels above a shared unbound region.\n\n## Acceptance checks\n\n### Acceptance\n\nVerify initial selection, both switch directions, disabled panels, actual event arguments and the lifecycle of inactive panel state. Test fields/queries in hidden panels and required preservation/reset behavior. Do not persist an editor reveal as the initial active key; save/reopen model bindings and inspect every affected panel.\n",
+      "source": "ai/plasmic/references/libraries/antd_v5/components/tabs.md",
+      "sourceSha256": "c5b87daade35d3144cfbafa2aeb85a4dfe2869931d1f29f0f66bf69a2127fdcb"
+    },
+    {
+      "id": "antd_v5/components/tooltip.md",
+      "name": "tooltip",
+      "text": "Components: plasmic-antd5-tooltip\n# Tooltip\n\nLibrary: Ant Design v5.\n\n| Registered component | Registration key |\n| --- | --- |\n| Tooltip | `plasmic-antd5-tooltip` |\n\n## Generation rules\n\n### Explanation and title ownership\n\nUse the actual title Slot or titleText fallback and children/placement contract. A Tooltip explains its trigger; it does not carry the only visible required instruction or validate a field. Verify any conditional display behavior against this library's live contract.\n\n## Acceptance checks\n\n### Acceptance\n\nVerify complete/empty title content, hover/focus, disabled/long triggers and viewport bounds. Use a real accessible action name for icon-only controls rather than assuming a popup supplies it. Save/reopen actual content and check that showing the explanation never triggers navigation or a mutation.\n",
+      "source": "ai/plasmic/references/libraries/antd_v5/components/tooltip.md",
+      "sourceSha256": "012fb5fd830d60976d4ac240b9f78b7105b3c824b2b515658c9c077981ecae57"
+    },
+    {
+      "id": "antd_v5/components/tree.md",
+      "name": "tree",
+      "text": "Components: plasmic-antd5-directory-tree, plasmic-antd5-tree\n# Tree\n\nLibrary: Ant Design v5.\n\n| Registered component | Registration key |\n| --- | --- |\n| Directory Tree | `plasmic-antd5-directory-tree` |\n| Tree | `plasmic-antd5-tree` |\n\n## Generation rules\n\n### Tree and DirectoryTree\n\nKeep stable unique treeData keys. Selected, checked and expanded states use different events/helpers, including info and half-checked data. Read actual editOnly/default state props, defaultExpandAll, autoExpandParent, expandAction and the native titleRender node scope. This wrapper's seeded defaults must be verified independently of v6.\n\n## Acceptance checks\n\n### Acceptance\n\nTest nested selection/checking/expansion, disabled nodes, required parent-child semantics, empty/reloaded data and long titles. DirectoryTree has its own defaults and expand interaction. Keep selection-driven business content and key identity consistent after refresh, preserve keyboard usability and save/reopen.\n",
+      "source": "ai/plasmic/references/libraries/antd_v5/components/tree.md",
+      "sourceSha256": "445d4551ab47218b5712916f940dae394dd54e3b5a4684a5ce467366ed171cec"
+    },
+    {
+      "id": "antd_v5/components/upload.md",
+      "name": "upload",
+      "text": "Components: plasmic-antd5-upload\n# Upload\n\nLibrary: Ant Design v5.\n\n| Registered component | Registration key |\n| --- | --- |\n| Upload | `plasmic-antd5-upload` |\n\n## Generation rules\n\n### Local reading contract\n\nThis Upload wrapper prevents native server upload and exposes files/onFilesChange with metadata, base64 contents and reading status. dragAndDropFiles selects the native drag surface inside the same local-reading wrapper; this library has no separately registered v6 Upload.Dragger contract. A done file means local reading completed, not backend persistence.\n\nRead accept, multiple, maxCount, listType and showUploadList. File validation, transport and saved-file identity belong to the actual consuming workflow; do not claim them from an accept hint or visible success state.\n\n## Acceptance checks\n\n### Acceptance\n\nTest one/multiple files, limit replacement, duplicate names, read failure, removal while pending, preview and reopening. Verify order, base64 payload, actual completion semantics and Form/permission ownership. Save/reopen bindings without leaving demo files or an unverified server-success claim.\n",
+      "source": "ai/plasmic/references/libraries/antd_v5/components/upload.md",
+      "sourceSha256": "1b549275de0d4c4ddfeabaf336ea99d72505854d002d5de3ab7c302ba89e0f1f"
+    },
+    {
+      "id": "antd_v6/components/affix.md",
+      "name": "affix",
+      "text": "Components: plasmic-antd6-affix\n# Affix\n\nLibrary: Ant Design v6.\n\n| Registered component | Registration key |\n| --- | --- |\n| Affix | `plasmic-antd6-affix` |\n\n## Generation rules\n\n### Affixed content\n\nUse Affix when a region must remain visible within its actual scroll context. offsetTop/offsetBottom and onChange(affixed) follow the registration; choose an offset from real fixed headers/footers rather than from a screenshot. Affixed content retains its normal-flow space and does not become the business state owner.\n\n## Acceptance checks\n\n### Acceptance\n\nDiscover the actual scroll target; the current registration does not imply an arbitrary target control. Test entering/leaving affixed state, short/long content, the final row and viewport resizing. Follow sticky-region rules; overlapping controls or document-only behavior in a separately scrolling shell must be resolved or reported as a capability gap.\n",
+      "source": "ai/plasmic/references/libraries/antd_v6/components/affix.md",
+      "sourceSha256": "f329cd0a719751768179ecd7474fc0ea33491befdbb6e13388863f8f7ffe4e15"
+    },
+    {
+      "id": "antd_v6/components/alert.md",
+      "name": "alert",
+      "text": "Components: plasmic-antd6-alert\n# Alert\n\nLibrary: Ant Design v6.\n\n| Registered component | Registration key |\n| --- | --- |\n| Alert | `plasmic-antd6-alert` |\n\n## Generation rules\n\n### Design defaults\n\n- Use for a condition that stays relevant to a region; a finished operation result uses a Message.\n- Type follows the condition (`info`, `success`, `warning`, `error`) with the icon shown; it spans the width of the affected surface, placed at its top or directly below the input it reports on.\n- One short title; a description only for the reason and the recovery step.\n\n### Persistent regional feedback\n\nUse Alert for information, warning or failure that remains relevant to a region. Read its title, description, icon, action, type, banner and closable contract. Include the affected context and a useful recovery action when one exists; do not display a generic error as a successful empty list. Native semantic color is supplemental to readable text.\n\nChoose the surface using feedback selection before binding content. Routine operation success/failure, including an export task being created, uses the ConfigProvider Message action, not a persistent Alert. An Alert is justified by an ongoing condition in the affected region, such as unavailable data with a retry action or a restriction that still applies. Stable does not mean static text: bind its title/description through native text bindings and its type to that ongoing condition; remove or update it when the condition resolves.\n\n## Acceptance checks\n\n### Acceptance\n\nThe current wrapper uses title rather than a copied v5 message prop. First verify that the Alert represents a continuing regional condition rather than the last operation result. Keep one spacing owner between the Alert and adjacent Form fields. Verify meaningful type/text, optional icon, closing/",
+      "source": "ai/plasmic/references/libraries/antd_v6/components/alert.md",
+      "sourceSha256": "befc739e9b5b2bbb383620b2a3c165db8f5f0f53bd35437fdf9905f0b0a6c67d"
+    },
+    {
+      "id": "antd_v6/components/anchor.md",
+      "name": "anchor",
+      "text": "Components: plasmic-antd6-anchor\n# Anchor\n\nLibrary: Ant Design v6.\n\n| Registered component | Registration key |\n| --- | --- |\n| Anchor | `plasmic-antd6-anchor` |\n\n## Generation rules\n\n### In-page navigation\n\nUse Anchor for actual sections in the same scroll context. Each items entry retains a stable key, target href and meaningful title, and the target node exists in the delivered page. The registered affix, offsetTop, direction and onChange(href) describe navigation presentation/state; changing the active anchor does not submit or mutate business data.\n\n## Acceptance checks\n\n### Acceptance\n\nVerify every target, selection while scrolling, direct fragment navigation and target visibility below fixed headers. Discover the actual scroll container instead of inventing an unregistered container prop. Test long labels and relevant hidden sections; apply shared layout so an affixed anchor does not overlap content or create another scroll owner.\n",
+      "source": "ai/plasmic/references/libraries/antd_v6/components/anchor.md",
+      "sourceSha256": "2a820810b0b4ebbaa3af5691a4474cc81e0519206f29d67ec39625dce753bff6"
+    },
+    {
+      "id": "antd_v6/components/app-shell.md",
+      "name": "app-shell",
+      "text": "Components: plasmic-antd6-app-shell\n# AppShell\n\nLibrary: Ant Design v6.\n\n| Registered component | Registration key |\n| --- | --- |\n| AppShell | `plasmic-antd6-app-shell` |\n\n## Generation rules\n\n### Registration and shared implementation\n\nThis Antd-v6 AppShell registration imports the maintained Overseas AppShell implementation under its own plasmic-antd6-app-shell identity. Select it only when it belongs to the target project's actual imported library. Read the shared AppShell geometry, menus and breadcrumb rules; reuse those implementation rules while retaining this registration key and import contract.\n\n## Acceptance checks\n\n### Acceptance\n\nKeep one shell per standalone page and no duplicate shell when the host owns navigation. Verify its actual children Slot, menu routes, current pagePath, breadcrumbs, viewport fill and shared Scrollbar behavior. Do not replace its identity with the Overseas key during editing or code generation. Save/reopen and check both its registered identity and delivered route/content behavior.\n",
+      "source": "ai/plasmic/references/libraries/antd_v6/components/app-shell.md",
+      "sourceSha256": "46a1dbe1272110a23a3b030189fa584dce2830eb809949f22571f11e5e2a1106"
+    },
+    {
+      "id": "antd_v6/components/auto-complete.md",
+      "name": "auto-complete",
+      "text": "Components: plasmic-antd6-auto-complete\n# AutoComplete\n\nLibrary: Ant Design v6.\n\n| Registered component | Registration key |\n| --- | --- |\n| Auto Complete | `plasmic-antd6-auto-complete` |\n\n## Generation rules\n\n### Free text and suggestions\n\nUse AutoComplete when free text remains valid and suggestions assist entry; use Select when the value must be one of the allowed choices. This registration exposes string value, options, onChange(value) and onSearch(value). Keep suggestion values stable and use the actual option format. A displayed suggestion is not proof that the user selected it.\n\n### Search and acceptance\n\nFor remote suggestions, the owning query manages requests and stale results; do not invent loading/filter props absent from the live registration. Preserve entered text while options change. Test typing without selecting, selecting a suggestion, clearing, no suggestions, disabled state, keyboard acceptance and Form validation. Only an explicit committed action submits the business query.\n",
+      "source": "ai/plasmic/references/libraries/antd_v6/components/auto-complete.md",
+      "sourceSha256": "699fbe3aa27b7eda6cb7262427236630d0e992f48bddd04c59a7b16cb82bb3b9"
+    },
+    {
+      "id": "antd_v6/components/avatar.md",
+      "name": "avatar",
+      "text": "Components: plasmic-antd6-avatar, plasmic-antd6-avatar-group\n# Avatar\n\nLibrary: Ant Design v6.\n\n| Registered component | Registration key |\n| --- | --- |\n| Avatar | `plasmic-antd6-avatar` |\n| Avatar.Group | `plasmic-antd6-avatar-group` |\n\n## Generation rules\n\n### Avatar.Group\n\nPreserve the installed Ant Design defaults unless explicitly overridden by the requirement. Do not force AvatarGroup overflow by injecting max through registration hints or runtime defaults.\n\n### Avatar and acceptance\n\nThe standalone Avatar uses the native src, alt, icon, size, shape and onClick props; `letters` is its editable text content. Avatar has no link prop: for navigation place it inside a link element, or attach a page-navigation step to onClick. Use the real person's/entity's content; missing images follow the installed fallback rather than a copied demo user. Navigation is present only when that avatar actually links to a destination. An avatar next to a name does not replace the name or permission context.\n\nGroup owns its actual Avatar children and supported max configuration. Verify few/many members, long names, missing/failed images, overflow disclosure when configured and any real destination. Keep native dimensions/spacing and save/reopen the member and navigation bindings.\n",
+      "source": "ai/plasmic/references/libraries/antd_v6/components/avatar.md",
+      "sourceSha256": "67647b920462fe4a3ea3ed82c98c21cf48251efa22cc5a166c6308ed859ccc8d"
+    },
+    {
+      "id": "antd_v6/components/badge.md",
+      "name": "badge",
+      "text": "Components: plasmic-antd6-badge, plasmic-antd6-badge-ribbon\n# Badge\n\nLibrary: Ant Design v6.\n\n| Registered component | Registration key |\n| --- | --- |\n| Badge | `plasmic-antd6-badge` |\n| Badge.Ribbon | `plasmic-antd6-badge-ribbon` |\n\n## Generation rules\n\n### Design defaults\n\n- Use status Badge for lifecycle or processing states in Table columns and Descriptions: dot plus the complete state text.\n- Map states to the five presets by meaning: active/success `success`, running `processing`, inactive/draft `default`, failed `error`, attention `warning`.\n\n### Usage and behavior\n\nUse Badge `status` (a supported semantic preset) plus `text` for lifecycle/processing status. Categories choose text or Tag under the Tag/text rules; an enum alone does not require either Badge or Tag. Read the installed `status`/`text` contract and keep status meaning consistent with the business value. Do not leave demo children/counts in status rendering.\n\n### Status columns and row mapping\n\nBadge exposes only the upstream Ant Design props — `status`, `text`, `count`, `dot`, `color`, `size`, `overflowCount`, `showZero`, `children`. Never add or rely on a non-official prop such as `value`/`options`: the registered contract must stay identical to the official component.\n\nA per-row status therefore maps the row value inside the binding expressions, not in a custom prop:\n\n| Prop | Requirement |\n| --- | --- |\n| `status` | Expression that maps the row state to one of `success`, `processing`, `default`, `warning` or `error` |\n| `text` | Expression that renders the row's visible status label |\n| Column declaration | `statusMap` `{value: {status, label}}` recording the mapping the expression renders, covering every state |\n\nA literal `status`/`text` in a status Column gives every row the same presentation and fails generation. A standalone status Badge may use a li",
+      "source": "ai/plasmic/references/libraries/antd_v6/components/badge.md",
+      "sourceSha256": "3411e1941bdd92d6db69ce1f79121e9a76a6d530a4fc974957a433f991481eb5"
+    },
+    {
+      "id": "antd_v6/components/border-beam.md",
+      "name": "border-beam",
+      "text": "Components: plasmic-antd6-border-beam\n# BorderBeam\n\nLibrary: Ant Design v6.\n\n| Registered component | Registration key |\n| --- | --- |\n| Border Beam | `plasmic-antd6-border-beam` |\n\n## Generation rules\n\n### Decorative border\n\nUse BorderBeam only for a required decorative emphasis with its actual children and color contract. It does not replace a Card surface, focus indication, error state or semantic business status. Do not add it to every panel solely because it is available in the component catalog.\n\n## Acceptance checks\n\n### Acceptance\n\nVerify the intended boundary, theme color, readable content and absence of overlap or unexpected region sizing. Keep interaction and status meaning on their native owners. Any motion preference or advanced styling must use the actual supported implementation rather than an invented registration prop.\n",
+      "source": "ai/plasmic/references/libraries/antd_v6/components/border-beam.md",
+      "sourceSha256": "ed0818ccecf2e1eb43a88faf5e494960f899aff4a8e88f3ddd4cd5b3386fee61"
+    },
+    {
+      "id": "antd_v6/components/breadcrumb.md",
+      "name": "breadcrumb",
+      "text": "Components: plasmic-antd6-breadcrumb, plasmic-antd6-breadcrumb-item\n# Breadcrumb\n\nLibrary: Ant Design v6.\n\n| Registered component | Registration key |\n| --- | --- |\n| Breadcrumb | `plasmic-antd6-breadcrumb` |\n| Breadcrumb.Item | `plasmic-antd6-breadcrumb-item` |\n\n## Generation rules\n\n### Route ancestry\n\nUse Breadcrumb to express the current route's actual ancestors, not a copied decorative label chain. This wrapper exposes itemsRaw and separator; use the actual raw-item shape with stable keys and verified destinations. Breadcrumb.Item is maintained here with its registered children/onClick contract; do not invent a separate child href control. The current page is identified without an invented navigation destination.\n\n### Ownership and acceptance\n\nAn AppShell that derives breadcrumbs from its menu/pagePath already owns this region; do not render another breadcrumb inside its business body. Verify direct entry, nested routes, hidden detail/create routes and returning to a parent. Check long labels, keyboard navigation and saved route bindings.\n",
+      "source": "ai/plasmic/references/libraries/antd_v6/components/breadcrumb.md",
+      "sourceSha256": "ff900129bbe0e4e88ff57692b92304ea2b74072df16b8264244868f0e36f5050"
+    },
+    {
+      "id": "antd_v6/components/button.md",
+      "name": "button",
+      "text": "Components: plasmic-antd6-button\n# Button\n\nLibrary: Ant Design v6.\n\n| Registered component | Registration key |\n| --- | --- |\n| Button | `plasmic-antd6-button` |\n\n## Generation rules\n\n### Design defaults\n\n- Use for an action the user triggers. Navigation inside running text uses Typography Link.\n- Type: one `primary` per region for its main or completion action; `default` for the others; `link` for actions inside Table cells and Descriptions; `danger` only for destructive actions, always behind a confirmation.\n- Labels are a verb or verb + object from the source wording; an icon-only Button needs a Tooltip and accessible name.\n- Placement: Card or Tabs extra, a region toolbar, the Page completion bar or an overlay footer, ordered by action bars; groups use Space 8px.\n\n### Types and labels\n\nEach action group has at most one primary action, derived from the user's main task in that region. Coordinate with the existing one-primary-page-action convention: do not independently promote every Card, row or auxiliary operation. A group with no dominant action may use only default buttons. Loading/disabled are states of the intended type, not new hierarchy roles; a disabled screenshot alone cannot prove the enabled hierarchy.\n\n| Meaning | Button treatment |\n| --- | --- |\n| Main task completion | `primary`; use the actual theme/contract, not a hand-painted brand color. |\n| Secondary business action | `default`; use `text` for low-emphasis auxiliary actions where the owning pattern supports it. |\n| Cancel/back in a completion footer | `default` by default; a verified native/approved pattern may use `text`. Ordinary cancellation does not use `primary` or `danger`. |\n| Add an item inside a collection | `dashed` when the owning component/pattern calls for it; not a generic secondary-action style. |\n| Navigation | Rea",
+      "source": "ai/plasmic/references/libraries/antd_v6/components/button.md",
+      "sourceSha256": "4e67724c9f3291cf857af7fbad9d4ee0273e2a157d62f67a4917c509b1bb2aa9"
+    },
+    {
+      "id": "antd_v6/components/calendar.md",
+      "name": "calendar",
+      "text": "Components: plasmic-antd6-calendar\n# Calendar\n\nLibrary: Ant Design v6.\n\n| Registered component | Registration key |\n| --- | --- |\n| Calendar | `plasmic-antd6-calendar` |\n\n## Generation rules\n\n### Date navigation and selection\n\nUse Calendar for a month/year date-navigation surface; DatePicker remains the compact field control. This wrapper serializes value/onChange/onSelect through dayjs and ISO strings. Bind the actual selected date and preserve the requirement's timezone/date-only meaning. Switching the visible mode or month is distinct from committing an operation.\n\n## Acceptance checks\n\n### Acceptance\n\nVerify initial date, navigation, selection, month/year and fullscreen behavior when used, serialization and adjacent region sizing. Custom date-cell rendering or event data requires a real registered capability; do not invent a cell Slot. Check boundary dates, empty data and save/reopen values at the requested viewport.\n",
+      "source": "ai/plasmic/references/libraries/antd_v6/components/calendar.md",
+      "sourceSha256": "041c8e85c65b3af06ff35736de23ff24cfd3185f0ac8b53007ef4a5da07ba63c"
+    },
+    {
+      "id": "antd_v6/components/card.md",
+      "name": "card",
+      "text": "Components: plasmic-antd6-card, plasmic-antd6-card-grid, plasmic-antd6-card-meta\n# Card\n\nLibrary: Ant Design v6.\n\n| Registered component | Registration key |\n| --- | --- |\n| Card | `plasmic-antd6-card` |\n| Card.Grid | `plasmic-antd6-card-grid` |\n| Card.Meta | `plasmic-antd6-card-meta` |\n\n**Hard constraints** (always delivered with any section):\n\n- Use Card only for an independently justified business surface (record `condition`); never around SearchForm, AppShell, Steps or every section, and avoid nested Cards.\n- Initial data-props: `{\"variant\":\"outlined\",\"styles\":{\"body\":{...}}}`; never the legacy `bordered` prop or a padded native wrapper.\n- A title is not required. Decide `header` per Card headers: `none`, `title` or `title+extra`. A header always has its title; an `extra`-only header (empty title, filled extra) is never valid.\n- A headerless Card supplies explicit empty `title` and `extra` Slots in the initial markup. Card-scoped actions make a `title+extra` header (rule 2), unless the content already owns the heading (rule 1): then they go in Tabs extra for a Tabs-first Card, otherwise in a right-aligned body toolbar.\n- Body padding keeps 20px left and right; each vertical edge has one owner. Information, metric or outcome (Result) content: `16px 20px`. Content ending in a paginated Table: `16px 20px 0` (the pagination's 16px margin is the bottom). Tabs first: `0 20px` (the tab bar owns the top). A Form: `24px 20px 0` with the Form's own padding 0 (the last Form.Item's 24px margin is the bottom). See Card ownership.\n\n## Plan decisions\n\nDeclare these native props in each planned instance before markup. `prepare_plan.py scaffold` writes `\"__DECIDE__\"` (or the baseline) for each; selection preflight rejects pending or missing values. `null` means deliberately unset and is accepted only where marked.\n\n| Registration | Prop | Decision |\n| --- | --- ",
+      "source": "ai/plasmic/references/libraries/antd_v6/components/card.md",
+      "sourceSha256": "128bc570b408aacdf21059a85755536609811444928e5adde6c41fbead22ff72"
+    },
+    {
+      "id": "antd_v6/components/carousel.md",
+      "name": "carousel",
+      "text": "Components: plasmic-antd6-carousel\n# Carousel\n\nLibrary: Ant Design v6.\n\n| Registered component | Registration key |\n| --- | --- |\n| Carousel | `plasmic-antd6-carousel` |\n\n## Generation rules\n\n### Sequential slides\n\nUse Carousel when the requirement calls for sequential slide content. Keep actual slide nodes in children and read autoplay, arrows, dots, infinite, effect, dotPlacement and afterChange(slide). Required business instructions and primary actions must not be accessible only in an automatically disappearing slide.\n\n## Acceptance checks\n\n### Acceptance\n\nTest multiple real slides, controls, boundaries/looping, visible-slide callbacks, variable-length content and the intended fixed/natural slide geometry. Enable autoplay only when approved for that content and preserve usable keyboard controls. Remove default Slide 1/Slide 2 content and verify the delivered nodes after save/reopen.\n",
+      "source": "ai/plasmic/references/libraries/antd_v6/components/carousel.md",
+      "sourceSha256": "33e6cbe47af95d5b5a8c489902bcdf8e676d2d84c6859f42ec50f72b1e0be373"
+    },
+    {
+      "id": "antd_v6/components/cascader.md",
+      "name": "cascader",
+      "text": "Components: plasmic-antd6-cascader, plasmic-antd6-cascader-panel\n# Cascader\n\nLibrary: Ant Design v6.\n\n| Registered component | Registration key |\n| --- | --- |\n| Cascader | `plasmic-antd6-cascader` |\n| Cascader.Panel | `plasmic-antd6-cascader-panel` |\n\n## Generation rules\n\n### Design defaults\n\n- Use for choosing a path through a fixed-depth hierarchy (region, category levels).\n- Fills its column; placeholder `请选择` + the field noun.\n\n### Hierarchical choice\n\nUse Cascader for a choice expressed as a hierarchy path. Maintain options with stable values and meaningful labels; a single value is a path array, while multiple selection uses the native collection of paths. Do not flatten paths into labels or reuse TreeSelect's value model. Keep the selected path and its labels valid when options reload.\n\n### Cascader.Panel\n\nPanel uses the same options/value/multiple/disabled contract in an inline region. It is content rather than a fabricated dropdown. Inside Form, use the verified field binding and preserve the complete path in submission. Remote loading, search and custom rendering may be used only when the actual registration exposes the required capability.\n\n## Acceptance checks\n\n### Acceptance\n\nTest nested selection, changing an ancestor, single/multiple modes, empty and disabled options, the complete saved path and real Form errors. Verify panel/dropdown geometry, keyboard navigation and long labels without widening the page.\n",
+      "source": "ai/plasmic/references/libraries/antd_v6/components/cascader.md",
+      "sourceSha256": "5e701ad56cdab1977de1e494184352d276b7bc01c180809864467812402456ab"
+    },
+    {
+      "id": "antd_v6/components/checkbox.md",
+      "name": "checkbox",
+      "text": "Components: plasmic-antd6-checkbox, plasmic-antd6-checkbox-group\n# Checkbox\n\nLibrary: Ant Design v6.\n\n| Registered component | Registration key |\n| --- | --- |\n| Checkbox | `plasmic-antd6-checkbox` |\n| Checkbox.Group | `plasmic-antd6-checkbox-group` |\n\n## Generation rules\n\n### Design defaults\n\n- Use a Checkbox group for up to six short options with multiple choice in a Form, and a single Checkbox for an agreement or flag that applies on submit; an immediately effective on/off setting uses Switch.\n- Content-sized inside its Form column; options laid out horizontally.\n\n### Usage and behavior\n\nIn a business Form or SearchForm, use the registered checked value-prop contract rather than a competing control binding. Read Form or SearchForm.Item. Group array state follows Checkbox.Group.\n\n### Checkbox.Group\n\nCheckbox Group state is an array. Registered state and events must preserve its native value type. Verify controlled/uncontrolled selections and clearing against the installed contract.\n\n### Choice and acceptance\n\nA standalone Checkbox expresses a boolean; a Group expresses a set of stable option values. Native onChange event extraction for the standalone control and Group's array callback are distinct contracts. An indeterminate visual state describes partial selection and does not replace the actual checked value or selected set.\n\nVerify labels, initial unchecked/checked, disabled items/group, empty and partial/full selection when required, clearing and Form payloads. A select-all action defines its actual scope and permission-filtered options; do not imply all server records were selected by checking currently rendered children. Check keyboard activation and saved bindings.\n",
+      "source": "ai/plasmic/references/libraries/antd_v6/components/checkbox.md",
+      "sourceSha256": "c4af74eadaa41bb3d8c63a3f32ac6426389320feee256d6612c0a531aa3d4dab"
+    },
+    {
+      "id": "antd_v6/components/collapse.md",
+      "name": "collapse",
+      "text": "Components: plasmic-antd6-collapse, plasmic-antd6-collapse-item\n# Collapse\n\nLibrary: Ant Design v6.\n\n| Registered component | Registration key |\n| --- | --- |\n| Collapse | `plasmic-antd6-collapse` |\n| Collapse.Panel | `plasmic-antd6-collapse-item` |\n\n## Generation rules\n\n### Design defaults\n\n- Use for optional or advanced groups that most users skip, and for regions the source marks as collapsible.\n- Collapsed by default unless the source says otherwise; one panel per group, titled with the group name.\n\n### Related expandable sections\n\nUse Collapse for sections that may be individually expanded or follow an explicit accordion rule. Read actual activeKey/defaultActiveKey, accordion, items/children and onChange contract. Keys are stable business identifiers, not array positions that change when sections are inserted. Collapse.Panel uses the installed child registration and lives in this document.\n\n### Content and acceptance\n\nTemporary canvas reveal does not persist expanded business state. Keep required form fields and their validation/values under the real Form preserve and visibility policy; do not treat a collapsed valid field as absent. Verify default, expanded/collapsed, disabled and controlled states, relevant keys after reordering, keyboard operation and hidden error reveal. Check complete content and scroll reachability after expansion.\n",
+      "source": "ai/plasmic/references/libraries/antd_v6/components/collapse.md",
+      "sourceSha256": "56eec85059f87f782d2e7fa04712ca312637177465fb0c6bf29d44ce051352b6"
+    },
+    {
+      "id": "antd_v6/components/color-picker.md",
+      "name": "color-picker",
+      "text": "Components: plasmic-antd6-color-picker\n# ColorPicker\n\nLibrary: Ant Design v6.\n\n| Registered component | Registration key |\n| --- | --- |\n| Color Picker | `plasmic-antd6-color-picker` |\n\n## Generation rules\n\nColorPicker updates its value on change while preserving the separate completion callback. For wrapper changes, verify value updates and completion callback timing separately against the installed Ant Design version.\n\n### Value and acceptance\n\nRead the wrapper's serialized color/state/event shape and supported format, disabled, allowClear, trigger and displayed-text controls. A native Color object and the business's stored color string are different contracts; do not infer the payload from the visible label. Use a color field only when users actually configure color, rather than replacing theme-owned semantic status colors.\n\nTest initial/changing/cleared values, the required formats, continuous versus completion callbacks, disabled state and Form ownership. Verify the actual stored representation, popup bounds, any custom trigger and complete text after save/reopen.\n",
+      "source": "ai/plasmic/references/libraries/antd_v6/components/color-picker.md",
+      "sourceSha256": "44c47a513c9f09bebc4a98de5fa21d7d7bc7000a51ea16b165aa0e20288db28e"
+    },
+    {
+      "id": "antd_v6/components/date-picker.md",
+      "name": "date-picker",
+      "text": "Components: plasmic-antd6-date-picker, plasmic-antd6-date-range-picker\n# DatePicker\n\nLibrary: Ant Design v6.\n\n| Registered component | Registration key |\n| --- | --- |\n| DatePicker | `plasmic-antd6-date-picker` |\n| DatePicker.RangePicker | `plasmic-antd6-date-range-picker` |\n\n**Hard constraints** (always delivered with any section):\n\n- Date-range quick choices such as recent-day ranges belong in RangePicker's native `presets` popup. Do not add sibling Segmented, Radio or button choices for the same range. Presets and manual selection must update the same start/end values and use the same query/reset path.\n\n## Generation rules\n\n### Design defaults\n\n- Use DatePicker for a calendar date, with time selection only for a dated instant; RangePicker for a period, including query ranges.\n- Set `width:100%` in a Form column. Display format `YYYY-MM-DD`, or `YYYY-MM-DD HH:mm:ss` with time.\n- Put requirement-defined quick ranges inside the date popup with native `presets`; keep the filter row to its date control and label.\n\n### Usage and behavior\n\nAllow typing by default; read-only is explicit. Do not inject global date-picker CSS from each component instance. Range values, endpoint flags and range-specific inheritance belong to RangePicker.\n\n### RangePicker\n\nDate ranges honor default dates when uncontrolled, respect controlled values.\n\nDate Range Picker inherits disabled from ConfigProvider when omitted, honors explicit disabled=false, and applies single-side flags only without a whole-control override. Whole-range allowEmpty=false must not enable an endpoint through leftover split flags. For wrapper changes, exercise omitted defaults, controlled/uncontrolled ranges, typing, provider inheritance and endpoint overrides.\n\n### Quick-range presets\n\nRead the installed RangePicker contract before configuring quick ranges. Its `presets` entries use `{label,",
+      "source": "ai/plasmic/references/libraries/antd_v6/components/date-picker.md",
+      "sourceSha256": "fa34c03cc32bc182ff7df227a104401bfd949f467c11d627cb2e8fb36a0039b0"
+    },
+    {
+      "id": "antd_v6/components/descriptions.md",
+      "name": "descriptions",
+      "text": "Components: plasmic-antd6-descriptions, plasmic-antd6-descriptions-item\n# Descriptions\n\nLibrary: Ant Design v6.\n\n| Registered component | Registration key |\n| --- | --- |\n| Descriptions | `plasmic-antd6-descriptions` |\n| Descriptions.Item | `plasmic-antd6-descriptions-item` |\n\n**Hard constraints** (always delivered with any section):\n\n- The field collection uses either native `items` or direct Descriptions.Item children, never both. Reject span/div/text fields, layout components and wrappers in the children Slot, even beside valid Items. Text and rich content remain valid inside Item label/children Slots and the Descriptions title Slot.\n- Fixed fields must use real Descriptions.Item nodes with editable label/children Slots, even when values are bound to API data. Native `items` is allowed only when the field collection itself is determined at runtime or the user explicitly requests it; record source-backed `itemsReason` outside props. See Composition.\n- Choose an initial `column` from the group’s container and realistic content before markup, then confirm or adjust it from the first rendered result: 3 or 4 in a full-width page region according to actual value lengths and rendered density (use 4 when 3 looks too sparse, 3 when 4 crowds the content), 2 in a half-width Card, 640px Drawer or 720px Modal, 1 below about 560px. A wider single-column group needs evidence that every value requires a full row, or an explicit source override. See Column and span.\n- Default to `layout=\"horizontal\"` (label and value side by side). Use `vertical` only when explicitly required by the user or source; a template or aesthetic preference does not justify it. See Layout direction.\n- Short parallel facts (status, check results, owner, dates) fill the columns side by side; never stack them in one column inside a wide region.\n- A long value takes a larger `span`;",
+      "source": "ai/plasmic/references/libraries/antd_v6/components/descriptions.md",
+      "sourceSha256": "9f58ff18820a5bd88d1e5edd252fcbffbeb22d6bd2680031eb4d8b38e2d34839"
+    },
+    {
+      "id": "antd_v6/components/divider.md",
+      "name": "divider",
+      "text": "Components: plasmic-antd6-divider\n# Divider\n\nLibrary: Ant Design v6.\n\n| Registered component | Registration key |\n| --- | --- |\n| Divider | `plasmic-antd6-divider` |\n\n## Generation rules\n\n### Section boundary\n\nUse Divider for a meaningful section or inline boundary. It does not own a Card surface, a heading hierarchy or arbitrary blank space. The current registration uses orientation and titlePlacement, not another major's direction/label-position props. Editable children provide the actual section text; choose semantic headings separately when required.\n\n## Acceptance checks\n\n### Acceptance\n\nKeep spacing on one owner and avoid a trailing divider after the last visible section. Verify horizontal/vertical placement, complete labels, conditional sections and theme contrast. Do not resize a vertical divider by adding a scrolling wrapper or insert repeated separators just to reproduce empty screenshot space.\n",
+      "source": "ai/plasmic/references/libraries/antd_v6/components/divider.md",
+      "sourceSha256": "015c012f15e4d1118dfe8e384fe8e1de099ae5df5a8b83e8d3c242a55f4ff84e"
+    },
+    {
+      "id": "antd_v6/components/drawer.md",
+      "name": "drawer",
+      "text": "Components: plasmic-antd6-drawer\n# Drawer\n\nLibrary: Ant Design v6.\n\n| Registered component | Registration key |\n| --- | --- |\n| Drawer | `plasmic-antd6-drawer` |\n\n## Generation rules\n\n### Design defaults\n\n- Use for viewing or editing one record while keeping the list context.\n- Opens from the right. Choose native `size` by the content under scale: 480 short help or a compact confirm, 640 record detail, Form or Table, 720 code or long values.\n- Title names the record or operation. Footer actions are right-aligned with an 8px gap (Space size 8), cancel first; the body scrolls and the footer stays visible. Detail content uses a two-column Descriptions.\n\n### Usage and behavior\n\nUse the native title, children, footer and closeIcon Slots. Read the installed Drawer contract before setting open or handling onOpenChange(open); temporary editing reveals must not persist an open initial state.\n\nAnt Design v6 `size` accepts `\"default\"`, `\"large\"`, a pixel number or a CSS length string. It controls width for a left/right Drawer and height for a top/bottom Drawer. Use this native prop in the plan and model; the pixel values above are content-based design choices, not the only accepted API values. Overlay composition owns sizing evidence and form inventories.\n\nChoose the footer from the Modal + Drawer composition. Remove an unused footer through the actual Drawer Slot contract, preserving a usable exit, bounded body and reachable business actions. Verify close/reopen, cleanup, keyboard focus and return to the trigger in Preview, then save/reopen and reread.\n",
+      "source": "ai/plasmic/references/libraries/antd_v6/components/drawer.md",
+      "sourceSha256": "0bd6f7cb3d95c3748eddd85d84fcb15d07cda102406299e42af9f98ee6fb3106"
+    },
+    {
+      "id": "antd_v6/components/dropdown.md",
+      "name": "dropdown",
+      "text": "Components: plasmic-antd6-dropdown\n# Dropdown\n\nLibrary: Ant Design v6.\n\n| Registered component | Registration key |\n| --- | --- |\n| Dropdown | `plasmic-antd6-dropdown` |\n\n## Generation rules\n\n### Design defaults\n\n- Use for three or more related actions behind one trigger, or a creation menu; two actions stay as Buttons.\n- The trigger is a Button with the action label and a down icon; menu items use the source wording and order; destructive items last.\n\n### Usage and behavior\n\nFor PC pointer interaction, ordinary Dropdown menus **must use the hover generation baseline**, including creation, language and account menus. Keep Ant Design enter/leave delays so moving from the trigger into the menu does not close it; item selection executes the action and closes the menu. Use click only for an explicit click/touch requirement and record its source-backed override; contextMenu requires an actual right-click requirement. Availability of the trigger Prop is not permission to choose click for convenience.\n\nRead the live contract: ordinary Dropdown exposes trigger=\"hover\". ActionGroup owns its separate More-menu contract and keeps @react/ui's native click default; an explicitly requested hover interaction can use its native dropdownProps. The ordinary Dropdown baseline does not override that default. Select, Cascader and date pickers remain click-operated form controls; Popconfirm remains an explicit click confirmation.\n\nPreserve a source-defined grouped create menu as one Dropdown trigger with its ordered menu choices. Discover `children`, `menuItems`/`menuItemsJson`, `useMenuItemsSlot` and `onAction` from the installed contract; a list of possible destinations is not permission to replace the menu with sibling Buttons. Shared tabbed-list actions follow the Tabs extra ownership rule.\n\n### Trigger appearance\n\nUse a ",
+      "source": "ai/plasmic/references/libraries/antd_v6/components/dropdown.md",
+      "sourceSha256": "6f217b7e1f2243a676e45fec17da876d8d3dc26890c6f19b49498f3b80ed4d18"
+    },
+    {
+      "id": "antd_v6/components/empty.md",
+      "name": "empty",
+      "text": "Components: plasmic-antd6-empty\n# Empty\n\nLibrary: Ant Design v6.\n\n| Registered component | Registration key |\n| --- | --- |\n| Empty | `plasmic-antd6-empty` |\n\n## Generation rules\n\n### Design defaults\n\n- Use inside the empty region (Table and List render their own); the description says what is missing in business terms.\n- Offer an action only when the user is allowed to create or change the filter.\n\n### No content\n\nUse Empty for an actual no-data or no-results region after loading has completed. Distinguish those conditions from request failure, missing prerequisites and denied access. Bind description and any children action to the actual condition; clear default demo content. A reset-filter or create action is shown only when meaningful and authorized.\n\n## Acceptance checks\n\n### Acceptance\n\nRead content-state composition. Verify the correct condition, message, action and reserved region size, then transition to real data. Do not replace usable content with Empty during a background refresh or show it before an outstanding request resolves.\n",
+      "source": "ai/plasmic/references/libraries/antd_v6/components/empty.md",
+      "sourceSha256": "bad0e50cc875682feb7a08a7b72e90be610c26a57741dab2b2a2e7e926426270"
+    },
+    {
+      "id": "antd_v6/components/flex.md",
+      "name": "flex",
+      "text": "Components: plasmic-antd6-flex\n# Flex\n\nLibrary: Ant Design v6.\n\n| Registered component | Registration key |\n| --- | --- |\n| Flex | `plasmic-antd6-flex` |\n\n## Generation rules\n\n### Design defaults\n\n- Content root inside AppShell: fill the width, gap 16; choose direction from the decided Page structure. Stacked blocks inside one surface: vertical, gap 16.\n- Horizontal rows of mixed items use `align: \"center\"`; wrapping groups of Tags or filters use wrap with gap 8.\n\n### Row and column flow\n\nUse registered Flex for related siblings and page/section columns. vertical controls the axis; align, justify, wrap and numeric gap follow this registration. Choose alignment from the content roles rather than forcing every row to center. Filling children need supported sizing and minWidth/minHeight constraints along the actual ancestor chain; Flex alone does not establish a bounded height or a scroll owner.\n\n### Spacing and acceptance\n\nRead shared layout for sizing, spacing ownership and reflow. Flex does not supply Card surfaces or Form field binding. Avoid a Flex wrapper between a named Form.Item and its bound control without the verified nested noStyle Item composition. Inspect long/wrapped/hidden siblings, remaining-space behavior, error expansion and footer reachability in real Preview; do not add another gap on component-owned margins.\n",
+      "source": "ai/plasmic/references/libraries/antd_v6/components/flex.md",
+      "sourceSha256": "e57d12181c3d879b789539467ebd3ade3ede116730cff5e419fb6f04259f4176"
+    },
+    {
+      "id": "antd_v6/components/float-button.md",
+      "name": "float-button",
+      "text": "Components: plasmic-antd6-back-top, plasmic-antd6-float-button, plasmic-antd6-float-button-group\n# FloatButton\n\nLibrary: Ant Design v6.\n\n| Registered component | Registration key |\n| --- | --- |\n| FloatButton.BackTop | `plasmic-antd6-back-top` |\n| Float Button | `plasmic-antd6-float-button` |\n| FloatButton.Group | `plasmic-antd6-float-button-group` |\n\n## Generation rules\n\n### Persistent auxiliary actions\n\nUse FloatButton for an explicitly required auxiliary action; primary business actions belong to their normal page/region toolbar. Read icon, content, tooltip, type, shape and onClick. Keep an accessible action name and placement that does not obscure form errors, pagination or the last row.\n\n### FloatButton.Group and BackTop\n\nGroup owns its actual FloatButton/BackTop children, trigger, controlled open and onOpenChange. BackTop uses visibilityHeight/duration/icon, but its actual scrolling target must work with the page's scroll owner. Do not invent a registered target prop or claim a document-scrolling BackTop controls a separately bounded AppShell body without verifying it.\n\n## Acceptance checks\n\n### Acceptance\n\nCheck opening/closing the group, each authorized action, real BackTop behavior and viewport bounds at the required widths. Hover does not perform the action. Save/reopen and verify no demo content or transient editing state remains.\n",
+      "source": "ai/plasmic/references/libraries/antd_v6/components/float-button.md",
+      "sourceSha256": "264d8652f5a322169ed7ca4a4b36b27aa05ca9dc4435d321c2b247974a3f0f31"
+    },
+    {
+      "id": "antd_v6/components/form.md",
+      "name": "form",
+      "text": "Components: plasmic-antd6-form, plasmic-antd6-form-group, plasmic-antd6-form-item, plasmic-antd6-form-list\n# Form\n\nLibrary: Ant Design v6.\n\n| Registered component | Registration key |\n| --- | --- |\n| Form | `plasmic-antd6-form` |\n| Form Field Group | `plasmic-antd6-form-group` |\n| Form.Item | `plasmic-antd6-form-item` |\n| Form.List | `plasmic-antd6-form-list` |\n\n## Generation rules\n\nRead the installed Form contract before changing values, validation or submission. Read Form Field for field controls and form composition for page layouts. Every Form inside a Modal additionally reads Modal form layout, which owns width, field columns, label placement and header copy for that composition.\n\n**Reading scope**\n\nThe rules card delivers Generation rules for composition and adds applicable Acceptance checks for acceptance, reusing retained reading through the context-local ledger; a focused edit uses `scripts/read_reference.py` with these `--section` selectors. Read all sections whose conditions apply; an unknown field/flow scope requires discovery before exclusion.\n\n- Every business Form: `values-and-validation`, `events-and-ref-actions`, `acceptance`, `simplified-and-advanced-modes`.\n- Any Form before markup: form layout `layout-ownership` (label direction and column pairing are decided first; a non-default direction needs cited or measured evidence).\n- Full-project generation or inventory audit: `project-inventory-and-acceptance`; a focused edit instead reads `focused-form-edits`.\n- Every editable field: field semantics, `validation-order` and `label-and-control-layout`.\n- Field-label help being added, changed or present in generated fields: `label-help`.\n- Visible field instructions being added, moved or present in generated fields: `field-instructions`.\n- Repeated fields or grouped paths: `formlist-and-form-field-group`.\n- Hidden, conditional or dependent fields: `conditional-and",
+      "source": "ai/plasmic/references/libraries/antd_v6/components/form.md",
+      "sourceSha256": "3966b35e48ac489958074573e8a4a9bd666883b9bbfcc44dd602b430ed685820"
+    },
+    {
+      "id": "antd_v6/components/grid.md",
+      "name": "grid",
+      "text": "Components: plasmic-antd6-col, plasmic-antd6-row\n# Grid\n\nLibrary: Ant Design v6.\n\n| Registered component | Registration key |\n| --- | --- |\n| Col | `plasmic-antd6-col` |\n| Row | `plasmic-antd6-row` |\n\n## Generation rules\n\n### Design defaults\n\n- Use Row/Col for field grids and repeated equal cells; gutter 16.\n- Spans on the 24 grid: 8 for three per row (Page Forms), 6 for four per row (metric Cards), 12 for two per row, 24 for a full row.\n\n### Row and Col\n\nGrid is maintained as one component-family document for the registered Row and Col. Row owns gutter, alignment, justification and wrapping; Col owns span, offset, order, flex and breakpoint configurations. Antd spans use a 24-column row. Plan normal and full-row allocations from actual available width, labels and content; account for offsets before deciding whether a row fits.\n\n### Sizing and responsive use\n\nThe current Row control exposes numeric gutter; Col breakpoint controls expose objects. Read supported binding forms before using a native API shape beyond those controls. Do not assume CSS grid-template-columns or gap props apply to Row/Col. Use responsive Col configurations only when the task requires reflow, retaining authored reading order rather than using order to create a conflicting keyboard sequence.\n\n## Acceptance checks\n\n### Acceptance\n\nCheck rendered gutter and cell edges, full-row/paired fields, longest values, error-expanded content and conditional cells. Apply Form layout for forms and shared layout for ownership. Test required widths near reflow boundaries, page overflow and save/reopen of real Row/Col props.\n",
+      "source": "ai/plasmic/references/libraries/antd_v6/components/grid.md",
+      "sourceSha256": "f4e4d85d097c57fdf709ed579ee6a63e873d2e7ab60988e375cb44855d31334c"
+    },
+    {
+      "id": "antd_v6/components/image.md",
+      "name": "image",
+      "text": "Components: plasmic-antd6-image, plasmic-antd6-image-preview-group\n# Image\n\nLibrary: Ant Design v6.\n\n| Registered component | Registration key |\n| --- | --- |\n| Image | `plasmic-antd6-image` |\n| Image.PreviewGroup | `plasmic-antd6-image-preview-group` |\n\n## Generation rules\n\n### Asset and geometry\n\nBind the actual asset src, supported alt, dimensions and fallback; the registration has no objectFit prop. Keep intended aspect ratio, preserve important image content and remove sample placeholder URLs. The Image wrapper disables native preview during non-interactive canvas editing; that editing behavior is not the runtime preview policy.\n\n### Image.PreviewGroup\n\nPreviewGroup owns the actual grouped image nodes or supported items array. Keep asset order and identity; do not turn unrelated decorative icons into a gallery. Its native preview is also suppressed only during non-interactive canvas editing. Discover any advanced preview capability through the installed registration.\n\n## Acceptance checks\n\n### Acceptance\n\nTest loading/fallback, actual fit/crop, long adjacent content, opening/closing Preview and group navigation when enabled. Check returned focus and viewport bounds. Apply media sizing, then save/reopen src/alt/group bindings.\n",
+      "source": "ai/plasmic/references/libraries/antd_v6/components/image.md",
+      "sourceSha256": "73ac6ae07aaa97ae4a59e16dcc5cd0626ccfad7fcc9660df3b632e297eb048f9"
+    },
+    {
+      "id": "antd_v6/components/input-number.md",
+      "name": "input-number",
+      "text": "Components: plasmic-antd6-input-number\n# InputNumber\n\nLibrary: Ant Design v6.\n\n| Registered component | Registration key |\n| --- | --- |\n| Number Input | `plasmic-antd6-input-number` |\n\n## Generation rules\n\n### Design defaults\n\n- Use for a freely entered quantity; finite numeric choices use Select or Radio, identifiers and phone numbers use Input.\n- Set `width:100%` in a Form column (it does not fill by default). `min`, `max` and precision come from the requirement; the unit goes in the label or the control suffix.\n\n### Usage and behavior\n\nNumeric input state is numeric. Registered state and event types must match the actual runtime value; verify controlled/uncontrolled values and explicit zero against the installed contract.\n\n### Range, precision and empty values\n\nRead the actual min/max/step, controls, value/defaultValue and onChange contract. Empty is distinct from zero; do not convert an empty field to zero through a truthy fallback. Decimal/integer restrictions and formatting come from the requirement. Native numeric or string-mode capabilities must be verified before using them; do not add an unregistered precision/stringMode prop solely because another InputNumber wrapper supports it.\n\n## Acceptance checks\n\n### Acceptance\n\nTest typing, increment/decrement, zero, negative/decimal values when allowed, empty/clearing and range boundaries. Keep Form as the value/validation owner and distinguish a component's editing behavior from a business validation rule. Check returned values, disabled/readOnly behavior and reopening a different record, including an invalid value corrected before submission.\n",
+      "source": "ai/plasmic/references/libraries/antd_v6/components/input-number.md",
+      "sourceSha256": "c52d41fff0a5303f6b48a7ed966e0e63766a946ba6ba58ef0a9ac8ba1b7faa48"
+    },
+    {
+      "id": "antd_v6/components/input.md",
+      "name": "input",
+      "text": "Components: plasmic-antd6-input, plasmic-antd6-input-otp, plasmic-antd6-input-password, plasmic-antd6-input-search, plasmic-antd6-textarea\n# Input\n\nLibrary: Ant Design v6.\n\n| Registered component | Registration key |\n| --- | --- |\n| Input | `plasmic-antd6-input` |\n| Input.OTP | `plasmic-antd6-input-otp` |\n| Input.Password | `plasmic-antd6-input-password` |\n| Input.Search | `plasmic-antd6-input-search` |\n| Input.TextArea | `plasmic-antd6-textarea` |\n\n## Generation rules\n\n### Design defaults\n\n- Use Input for free text and textual identifiers; TextArea for multi-line text (`autoSize`, at least 3 rows; code or query text uses a monospace TextArea of at least 8 rows); Input.Search only for one keyword search outside a SearchForm.\n- The control fills its Form or SearchForm column.\n- Placeholder states a format or example, otherwise `请输入` + the field noun; `allowClear` in query fields and optional form fields; `maxLength` from the requirement.\n\n### Value and field ownership\n\nApply field semantics before choosing Input. A time/date/quantity serialized as a string is not automatically a text field; use its semantic control and verified value conversion. Textual identifiers and explicit source-required text interactions retain Input.\n\nUse Input for ordinary text, Input.TextArea for multi-line text and Input.Password for an actual secret field. Keep the real control directly inside its owning Form.Item; the Form owns its value and validation. Standalone Input uses its registered value state. Input/Password/TextArea onChange receives the native event; the registration's state helper extracts event.target.value. Do not bind an event object as the business value or assume all Input variants use that signature.\n\nEditable SQL/code needs an actual installed editor or TextArea. A syntax-colored `<pre>` is read-only content. Bind the editor's real value to formatting/validation/submission; typing after a successful validatio",
+      "source": "ai/plasmic/references/libraries/antd_v6/components/input.md",
+      "sourceSha256": "5450d69c25e27b27ab909974f6389e96b8833edcb07b8c6d84dfd1b878c63584"
+    },
+    {
+      "id": "antd_v6/components/layout.md",
+      "name": "layout",
+      "text": "Components: plasmic-antd6-layout, plasmic-antd6-layout-content, plasmic-antd6-layout-footer, plasmic-antd6-layout-header, plasmic-antd6-layout-sider\n# Layout\n\nLibrary: Ant Design v6.\n\n| Registered component | Registration key |\n| --- | --- |\n| Layout | `plasmic-antd6-layout` |\n| Layout.Content | `plasmic-antd6-layout-content` |\n| Layout.Footer | `plasmic-antd6-layout-footer` |\n| Layout.Header | `plasmic-antd6-layout-header` |\n| Layout.Sider | `plasmic-antd6-layout-sider` |\n\n## Generation rules\n\n### Shell and regions\n\nLayout owns its Header, Footer, Content and Sider nodes. It is a layout primitive; a project using a host shell or AppShell does not need another nested application shell. Read each region's real children Slot and the Layout hasSider contract. Keep navigation and content ownership explicit rather than reproducing the shell with decorative sibling blocks.\n\n### Layout.Sider\n\nUse the registered width, collapsed/collapsedWidth, collapsible, theme, breakpoint and onCollapse contract. A controlled collapsed binding has one owner. Responsive collapse is conditional on task scope; it must not change business routes or data state. Header/footer retain natural required height while Content fills or grows according to the Page sizing contract.\n\n## Acceptance checks\n\n### Acceptance\n\nApply shared layout to bounded sizing and the shared Scrollbar. Verify expanded/collapsed navigation, content width, long content, shorter viewports, active routes and reachable footer. Each subcomponent stays in this document; keep one application shell per standalone page.\n",
+      "source": "ai/plasmic/references/libraries/antd_v6/components/layout.md",
+      "sourceSha256": "4536dd0461c39e2c45d5426b128959994b2545b4e20408838f05a88f9d452dc1"
+    },
+    {
+      "id": "antd_v6/components/list.md",
+      "name": "list",
+      "text": "Components: plasmic-antd6-list, plasmic-antd6-list-item, plasmic-antd6-list-item-meta\n# List\n\nLibrary: Ant Design v6.\n\n| Registered component | Registration key |\n| --- | --- |\n| List | `plasmic-antd6-list` |\n| List.Item | `plasmic-antd6-list-item` |\n| List.Item.Meta | `plasmic-antd6-list-item-meta` |\n\n## Generation rules\n\n### Design defaults\n\n- Use for a few repeated items without comparable columns (activity, notices, checklists); records with attributes use Table.\n- Each item shows its title, short description and at most two actions.\n\n### Static or data-driven items\n\nUse List for repeated content whose structure is an item rather than a table column matrix. Static children and dataSource/renderItem are distinct ownership paths; choose the one required by the content. The registered renderItem Slot exposes item and index bindings. Keep stable item identity and use each row's actual data rather than duplicating the first sample item.\n\n### List.Item and List.Item.Meta\n\nAn Item owns its content, extra and actions; Meta owns title, description and avatar. This wrapper converts action Slot children to the native actions array, so retain actual action nodes. Keep navigation/selection separate from destructive child actions and use native labels for icon-only operations.\n\n## Acceptance checks\n\n### Acceptance\n\nTest multiple distinct items, long/empty values, loading, no results and permission-dependent actions. Verify headers/footers and item spacing, row bindings and each action in real Preview. Use content states and shared layout; no second native scrolling wrapper is needed for an ordinary growing List.\n",
+      "source": "ai/plasmic/references/libraries/antd_v6/components/list.md",
+      "sourceSha256": "b92b9aa80bfb124ffa5ccbb0fed3ec06df9a6f4f5eb29a2b07ba1ffc43d111b7"
+    },
+    {
+      "id": "antd_v6/components/listy.md",
+      "name": "listy",
+      "text": "Components: plasmic-antd6-listy\n# Listy\n\nLibrary: Ant Design v6.\n\n| Registered component | Registration key |\n| --- | --- |\n| Listy | `plasmic-antd6-listy` |\n\n## Generation rules\n\n### Bounded or virtualized list\n\nThis maintained wrapper accepts items with key/content and renders content as text with rowKey=key. Read height, virtual and sticky from the actual registration. It does not expose the rich renderItem Slot of List; select that component when the requirement needs editable item layouts and actions.\n\n## Acceptance checks\n\n### Acceptance\n\nUse stable unique keys, the actual data and a requirement-derived bounded height. Verify short/long content, the last item, scrolling and sticky/virtual behavior only when enabled. Reuse the existing component's virtualization/scroll integration rather than creating a second native scroll container. Report an unavailable shared-Scrollbar integration as a component capability gap instead of claiming conformance from a screenshot.\n",
+      "source": "ai/plasmic/references/libraries/antd_v6/components/listy.md",
+      "sourceSha256": "d47ae9fc91b89cd424a323eecb41133ee8b7101ef9e0a3a9680d400bd82025a8"
+    },
+    {
+      "id": "antd_v6/components/masonry.md",
+      "name": "masonry",
+      "text": "Components: plasmic-antd6-masonry\n# Masonry\n\nLibrary: Ant Design v6.\n\n| Registered component | Registration key |\n| --- | --- |\n| Masonry | `plasmic-antd6-masonry` |\n\n## Generation rules\n\n### Variable-height tiles\n\nUse Masonry for actual variable-height tiles when that arrangement fits the content and reading order. This maintained wrapper accepts items with key/data.content and renders that content as text; columns and gutter are registered. It does not expose an arbitrary editable tile render Slot. Use registered Card/Grid composition when rich editable tile structure is required instead of inventing itemRender.\n\n## Acceptance checks\n\n### Acceptance\n\nRemove sample tiles, preserve stable keys and complete content, and verify column/gutter geometry with short/long/empty items. Check reading order, the required width/reflow and natural height under shared layout. Do not clip content to make all tiles look equal.\n",
+      "source": "ai/plasmic/references/libraries/antd_v6/components/masonry.md",
+      "sourceSha256": "c2583423f89bbcd201e2d74d06e94064b934fb7428ff82b1434c81ccd263d608"
+    },
+    {
+      "id": "antd_v6/components/mentions.md",
+      "name": "mentions",
+      "text": "Components: plasmic-antd6-mentions\n# Mentions\n\nLibrary: Ant Design v6.\n\n| Registered component | Registration key |\n| --- | --- |\n| Mentions | `plasmic-antd6-mentions` |\n\n## Generation rules\n\n### Text with suggested references\n\nMentions retains a string value; options and prefix describe its real suggestion vocabulary. Choosing a mention inserts text through the native onChange(value) contract, not an entity-object payload invented by the page. Derive any business entity lookup or storage separately from the verified requirement.\n\n## Acceptance checks\n\n### Acceptance\n\nTest ordinary typing, prefix activation, keyboard selection, multiple references, empty/no-match options and disabled state. Preserve free text while options change and verify actual Form ownership when it is a field. Do not mistake a displayed suggestion for an authorized or committed business relationship.\n",
+      "source": "ai/plasmic/references/libraries/antd_v6/components/mentions.md",
+      "sourceSha256": "f02e60bbb946bfba88ea5e300f222c1982ea8073860143803cb93f046306b9a8"
+    },
+    {
+      "id": "antd_v6/components/menu.md",
+      "name": "menu",
+      "text": "Components: plasmic-antd6-menu, plasmic-antd6-menu-divider, plasmic-antd6-menu-item, plasmic-antd6-menu-item-group, plasmic-antd6-submenu\n# Menu\n\nLibrary: Ant Design v6.\n\n| Registered component | Registration key |\n| --- | --- |\n| Menu | `plasmic-antd6-menu` |\n| Menu.Divider | `plasmic-antd6-menu-divider` |\n| Menu.Item | `plasmic-antd6-menu-item` |\n| Menu.ItemGroup | `plasmic-antd6-menu-item-group` |\n| Menu.SubMenu | `plasmic-antd6-submenu` |\n\n## Generation rules\n\nNative Menu onSelect receives an info object containing key and selectedKeys, not a bare key. Preserve that registered event signature and bind callbacks using its actual arguments.\n\n### Items, groups and selection\n\nMaintain Menu.Item, Menu.ItemGroup, Menu.Divider and Menu.SubMenu inside this document. Stable item keys identify the real route or action; groups/dividers do not become fake clickable destinations. Read the installed items/children, selected/defaultSelected and open/defaultOpen contracts before choosing a controlled binding. Let an existing AppShell own its route-derived menu rather than adding a second page menu state.\n\n## Acceptance checks\n\n### Acceptance\n\nVerify selected route on direct entry, parent expansion, click versus configured hover, disabled/permission-filtered items and group order. Keep navigation separate from decorative labels, inspect the actual onSelect object and check keyboard traversal and long titles. Canvas selection must not persist a temporary open submenu or rewrite business defaults.\n",
+      "source": "ai/plasmic/references/libraries/antd_v6/components/menu.md",
+      "sourceSha256": "2068d02f9f52b88d3050b71501a849a8cc77c8e2e18b29336341ce8aad9f1a52"
+    },
+    {
+      "id": "antd_v6/components/modal.md",
+      "name": "modal",
+      "text": "Components: plasmic-antd6-modal\n# Modal\n\nLibrary: Ant Design v6.\n\n| Registered component | Registration key |\n| --- | --- |\n| Modal | `plasmic-antd6-modal` |\n\n## Generation rules\n\n### Design defaults\n\n- Use for a short task or decision that interrupts the current flow; an edit that needs the list context or many fields uses a Drawer or a form Page.\n- Width per scale: 520 for one column, 720 for two. The title names the operation; the native footer keeps cancel before the confirming action, labelled with the actual action.\n- A Form inside uses vertical labels under Modal form layout.\n\n### Usage and behavior\n\nRead the installed Modal contract before changing its Props, Slots or events. Overlays owns Modal/Drawer composition, viewport limits, dismissal policy and the generation gate; Modal form layout owns width, field columns, label placement and header copy when a business Form is present.\n\nRead Trigger ownership, Footer and Registration and runtime verification for every Modal; Submission for confirmation/business actions. Follow Form/layout references only when a business Form is present. Read-only content still requires the overlay generation gate, close/reopen, visual and persistence checks.\n\n### Trigger ownership\n\nThe `trigger` Slot is a separate inline opener; a newly inserted Modal includes its registered sample Button. Binding `open` to external state does not clear that Slot. If another business control owns opening, explicitly supply `<slot name=\"trigger\"></slot>` on insertion or delete its existing children through native operations. Reread the full model and inspect the whole closed Page for default openers outside AppShell. Do not suppress an unwanted opener with CSS, delete the business trigger, or remove the native Confirm/Cancel footer to solve a trigger problem. Declare `trigger: []` i",
+      "source": "ai/plasmic/references/libraries/antd_v6/components/modal.md",
+      "sourceSha256": "61af49d58bfb663ca1d85d26a7879173063ac6e2a2225ce34726018a529d188e"
+    },
+    {
+      "id": "antd_v6/components/pagination.md",
+      "name": "pagination",
+      "text": "Components: plasmic-antd6-pagination\n# Pagination\n\nLibrary: Ant Design v6.\n\n| Registered component | Registration key |\n| --- | --- |\n| Pagination | `plasmic-antd6-pagination` |\n\n**Hard constraints** (always delivered with any section):\n\n- A Table owns its pagination; a standalone Pagination is only for List or card grids and disables any duplicated Table pager.\n- Defaults: 20 per page, options 20/50/100, a size changer and the native `showTotal(total, range)`; another value needs the requirement's override.\n- current/pageSize/total have one owner and the total is the full matching count, never the current page's row count.\n\n## Generation rules\n\n### Design defaults\n\n- Table owns its pagination. Standalone Pagination is only for List or card grids, right-aligned below them.\n- Same defaults as Table: 20 per page, options 20/50/100, total shown.\n\n### Usage and behavior\n\nRead the installed Pagination or Table pagination contract before binding page state. SearchForm + Tabs + Table owns the business page size, totals and scroll reachability.\n\nRead Table paging data and acceptance for normal-state fixture size, simulated records and proof of real page transitions. This also applies when native Pagination pages a separate result region; scope the assertions to that region and this pager.\n\nPagination initializes its derived indexes from current/default props without emitting a business onChange; changes after user interaction update both page and index values. For wrapper changes, verify initialization separately from user page/page-size changes and test both controlled and uncontrolled props.\n\n### Business paging and acceptance\n\nUse one pagination owner for current, pageSize and total. Server-side total is the full matching result count; client-side slicing happens only in the declared client owner. Read actual o",
+      "source": "ai/plasmic/references/libraries/antd_v6/components/pagination.md",
+      "sourceSha256": "7f093b9c5ae5e8ec72943656493ebf4fa047af9b2e422d63d631412c336ebdc4"
+    },
+    {
+      "id": "antd_v6/components/popconfirm.md",
+      "name": "popconfirm",
+      "text": "Components: plasmic-antd6-popconfirm\n# Popconfirm\n\nLibrary: Ant Design v6.\n\n| Registered component | Registration key |\n| --- | --- |\n| Popconfirm | `plasmic-antd6-popconfirm` |\n\n## Generation rules\n\n### Design defaults\n\n- Use for confirming a quick destructive or state-changing action anchored to its row or button; an action with wide impact uses a Modal.\n- Title `确认` + action + object + `？`; the confirm label repeats the action; placement above the trigger.\n\n### Usage and behavior\n\nWhen the requirement calls for confirmation of a single-row delete, enable/disable or another consequence that fits a short sentence, use registered Popconfirm. Anchor it to that row's action control or ActionGroup, including actions selected from More; close the menu and keep the source list visible without a modal mask. Include the object, consequence, cancel and an action-specific confirm label; `okButtonProps:{\"danger\":true}` marks a destructive confirmation. Execute the mutation only on confirm. Cancel/outside dismissal must not change the record, and must clear pending confirmation so another row works. Never replace these row confirmations with Modal. Modal remains appropriate for source-required preflight results, input forms or substantial impact/diff review.\n\n#### Row confirmation composition\n\nAround a single Button, the native click trigger opens Popconfirm; leave `open` unset. Around an ActionGroup, use this structure in the Table Column's render Slot: `Popconfirm → children → span RowActionAnchor → ActionGroup`. The native `span` is the positioning anchor: ActionGroup does not forward a DOM ref, so passing it directly as Popconfirm's child leaves the popup without an anchor. This span is a necessary semantic container, not a custom action widget. Give it `display:inline-block` so it has a measurable box without ch",
+      "source": "ai/plasmic/references/libraries/antd_v6/components/popconfirm.md",
+      "sourceSha256": "4f60fcb8bd30d304db3468a0bac469c83459b2561dcffe8c6b9551373c9fad41"
+    },
+    {
+      "id": "antd_v6/components/popover.md",
+      "name": "popover",
+      "text": "Components: plasmic-antd6-popover\n# Popover\n\nLibrary: Ant Design v6.\n\n| Registered component | Registration key |\n| --- | --- |\n| Popover | `plasmic-antd6-popover` |\n\n## Generation rules\n\n### Supplemental interactive content\n\nUse Popover for small supplemental content with its real title/content/children Slots. Use Tooltip for a brief non-interactive explanation and Popconfirm for a verified confirmation workflow. Read actual trigger, placement, open/onOpenChange and enter/leave timing; hover must not execute an action.\n\n### Editing and acceptance\n\nThe wrapper's temporary previewOpen/reveal belongs to canvas editing, not saved business open state. Explicit empty content must retain its actual native/wrapper semantics instead of showing stale fallback text. Verify entering the popup, interaction, dismissal, keyboard access, viewport bounds and returned focus where appropriate. Save/reopen to ensure transient reveal and inspection state did not enter Preview or export.\n",
+      "source": "ai/plasmic/references/libraries/antd_v6/components/popover.md",
+      "sourceSha256": "0452e70419b23248a3f9462052972334be17db8457db068f174841b11aaa7de2"
+    },
+    {
+      "id": "antd_v6/components/progress.md",
+      "name": "progress",
+      "text": "Components: plasmic-antd6-progress\n# Progress\n\nLibrary: Ant Design v6.\n\n| Registered component | Registration key |\n| --- | --- |\n| Progress | `plasmic-antd6-progress` |\n\n## Generation rules\n\nThe omitted type is line, so step colors must work without explicitly setting type. Preserve an explicit zero success segment. Test omitted type and explicit zero separately when changing the wrapper.\n\n### Meaning and acceptance\n\nUse Progress for actual measured completion, with the registered type, percent, status, success and format/steps contracts. A sample percent or animation is not evidence of completed work. Distinguish determinate progress from Spin and retain a readable status explanation for failures. Do not hard-code a success state independently of the actual result.\n\nVerify zero/partial/complete, the required success segment, failed/paused status as supported, step/color configuration and complete labels. Inspect the native bounds and actual source values rather than silently changing out-of-range data to make the visual look correct. Save/reopen bindings and exercise the underlying workflow when progress is interactive.\n",
+      "source": "ai/plasmic/references/libraries/antd_v6/components/progress.md",
+      "sourceSha256": "d54ef7b5f85021ec8b810a7fd2af90fa89e3bff62682539b6a51a7f996aa3147"
+    },
+    {
+      "id": "antd_v6/components/qr-code.md",
+      "name": "qr-code",
+      "text": "Components: plasmic-antd6-qr-code\n# QRCode\n\nLibrary: Ant Design v6.\n\n| Registered component | Registration key |\n| --- | --- |\n| Qr Code | `plasmic-antd6-qr-code` |\n\n## Generation rules\n\n### Encoded business value\n\nQRCode encodes the actual value, not its display label. Read size, color/bgColor, icon, canvas/svg type and active/expired/loading/scanned status. The state must come from the actual workflow; rendering or displaying a scanned style does not prove a user completed an external operation. Replace the registration's sample URL before delivery.\n\n## Acceptance checks\n\n### Acceptance\n\nVerify the encoded destination/content, usable size/contrast, supported icon and the required loading/expiry/recovery transitions. Test real decoding when the workflow requires scanning and keep adjacent instructions readable. Save/reopen the actual value and state bindings.\n",
+      "source": "ai/plasmic/references/libraries/antd_v6/components/qr-code.md",
+      "sourceSha256": "db12b41b4e082d1597ba62463ac655228de3c67b30f85f5267019ac1adc6d2ef"
+    },
+    {
+      "id": "antd_v6/components/radio.md",
+      "name": "radio",
+      "text": "Components: plasmic-antd6-radio, plasmic-antd6-radio-button, plasmic-antd6-radio-group\n# Radio\n\nLibrary: Ant Design v6.\n\n| Registered component | Registration key |\n| --- | --- |\n| Radio | `plasmic-antd6-radio` |\n| Radio.Button | `plasmic-antd6-radio-button` |\n| Radio.Group | `plasmic-antd6-radio-group` |\n\n## Generation rules\n\n### Design defaults\n\n- Use a Radio group for two to five mutually exclusive short options in a Form, laid out horizontally; more options use Select.\n- The group stays content-sized inside its Form column.\n\n### Choice and values\n\nUse Radio.Group for one choice from a visible set; each Radio or Radio.Button keeps its stable business value and label. Do not use separate booleans to simulate a mutually exclusive group. Group options and editable children are alternatives selected through the installed useChildren contract. Keep disabled choices visible when their meaning matters, and distinguish a disabled group from a disabled item.\n\nFor list/content-scope navigation, select Tabs before constructing the source inventory. Radio.Button is a field-choice presentation and does not replace scope Tabs merely because both expose two options.\n\n### Radio.Group and Radio.Button\n\nThe group owns the selected value; inside Form, let the named Item own that binding. Read its registered onChange event/state helper instead of treating the native event as a bare business value. Radio.Button changes presentation, not the value model. Select a default only from the requirement, preserve zero/false values and test an absent initial selection.\n\n## Acceptance checks\n\n### Acceptance\n\nVerify one selected choice, switching, disabled choices, controlled/uncontrolled initialization, Form validation and keyboard traversal. Test the actual options/children branch and save/reopen to confirm labels, values and selection bindings.\n",
+      "source": "ai/plasmic/references/libraries/antd_v6/components/radio.md",
+      "sourceSha256": "c6a34c2a6ecf194ec3e9ff27145e38322bbd7c24eb3ce4c205c1ebc6a5571817"
+    },
+    {
+      "id": "antd_v6/components/rate.md",
+      "name": "rate",
+      "text": "Components: plasmic-antd6-rate\n# Rate\n\nLibrary: Ant Design v6.\n\n| Registered component | Registration key |\n| --- | --- |\n| Rate | `plasmic-antd6-rate` |\n\n## Generation rules\n\nRating symbol Slots accept single nodes, arrays and text; hover events receive the numeric rating. Keep registered Slot/event types aligned with those native values.\n\n### Rating and acceptance\n\nUse actual value/defaultValue, count, allowHalf, allowClear, disabled and supported symbols/tooltips. Read-only rating and an editable rating field have different interaction requirements; do not leave an editable control in a pure detail region. Preserve zero and the declared rating scale rather than converting it to an absent value.\n\nVerify initial/cleared/half/full ratings when supported, hover without committing, disabled behavior, keyboard changes and the submitted value. Keep custom symbols readable and interactive targets usable; check Form ownership and saved callback/state bindings.\n",
+      "source": "ai/plasmic/references/libraries/antd_v6/components/rate.md",
+      "sourceSha256": "8c5646626e7b754ca316e720805fc804f5ec6cf6da15324412d77a0eae4cf430"
+    },
+    {
+      "id": "antd_v6/components/result.md",
+      "name": "result",
+      "text": "Components: plasmic-antd6-result\n# Result\n\nLibrary: Ant Design v6.\n\n| Registered component | Registration key |\n| --- | --- |\n| Result | `plasmic-antd6-result` |\n\n## Generation rules\n\n### Design defaults\n\n- Use for a Page-level outcome or error: the actual status, a short title, a one-sentence subtitle, then the next action (primary) and a return action.\n- Centered in its owning content region. Follow the result page layout for the page's surface, including its headerless Card; Result does not impose a separate Card policy.\n\n### Page or region outcome\n\nUse Result for a substantial success/error/access/not-found outcome, with actual title, subTitle, icon and extra actions. Bind status to the verified result; a rendered success illustration does not establish mutation success. A local field validation failure remains in Form and an ordinary transient success may use themed Message instead.\n\n## Acceptance checks\n\n### Acceptance\n\nCheck the affected scope, outcome text, authorized retry/return actions and the intended route/state after activation. Keep existing content when a recoverable regional failure does not invalidate it. Follow content-state composition and verify keyboard access and usable layout at the required viewport.\n",
+      "source": "ai/plasmic/references/libraries/antd_v6/components/result.md",
+      "sourceSha256": "b2fb6a32166266c7c4ac60694aedea40de551c2db890ecfc6abec4d063872f0d"
+    },
+    {
+      "id": "antd_v6/components/segmented.md",
+      "name": "segmented",
+      "text": "Components: plasmic-antd6-segmented\n# Segmented\n\nLibrary: Ant Design v6.\n\n| Registered component | Registration key |\n| --- | --- |\n| Segmented | `plasmic-antd6-segmented` |\n\n## Generation rules\n\n### Design defaults\n\n- Use for switching a view mode or granularity inside one region (list/card view, day/week); content scopes use Tabs, form values use Radio.\n- Two to five short options.\n\n### View or option selection\n\nUse Segmented for a compact mutually exclusive set, such as a display mode. Use Tabs when each option owns a content panel with its own tab semantics. The current registration exposes options, value/defaultValue, size, block, disabled and onChange; do not add a v5 Segmented Option node or invent an editable option Slot.\n\n## Acceptance checks\n\n### Acceptance\n\nKeep option values stable and distinct from labels. Verify initial selection, changing both directions, disabled items as supported, long labels and controlled/uncontrolled behavior. A view change must retain or reset business state according to its owner, not merely swap decorative content.\n",
+      "source": "ai/plasmic/references/libraries/antd_v6/components/segmented.md",
+      "sourceSha256": "9549030683303382ec38f9c5cc5b054355a3929caf427ef152e5278097765527"
+    },
+    {
+      "id": "antd_v6/components/select.md",
+      "name": "select",
+      "text": "Components: plasmic-antd6-option, plasmic-antd6-option-group, plasmic-antd6-select\n# Select\n\nLibrary: Ant Design v6.\n\n| Registered component | Registration key |\n| --- | --- |\n| Select.Option | `plasmic-antd6-option` |\n| Select.OptGroup | `plasmic-antd6-option-group` |\n| Select | `plasmic-antd6-select` |\n\n**Hard constraints** (always delivered with any section):\n\n- For `mode:\"multiple\"` or `mode:\"tags\"`, explicitly set `maxTagCount:\"responsive\"` by default. Selected tags must collapse into the native `+N` summary while retaining the complete selection. In SearchForm, the control must remain one native row at its configured size; selected tags must not increase the filter row height or displace labels and actions.\n\n## Generation rules\n\n### Design defaults\n\n- Use for choosing from more than five options or from dynamic options; two to five short, always-visible options in a Form use Radio; switching a view uses Segmented or Tabs.\n- Fills its column. `mode: \"multiple\"` for multi-choice; `showSearch:{\"optionFilterProp\":\"label\"}` above ten options; `allowClear` in query fields and optional form fields.\n- In multiple/tags mode, author `maxTagCount:\"responsive\"` on each instance unless an explicit requirement specifies another presentation. This is a page-generation default; keep the native component default unchanged. SearchForm multi-selects must stay on one row.\n- Placeholder `请选择` + the field noun. Options keep the source labels and order.\n\n### Usage and behavior\n\nSearch uses the native `showSearch` boolean or configuration object. Ant Design filters by option value by default; set `showSearch:{\"optionFilterProp\":\"label\"}` when searching displayed labels that differ from values. For editable Option children, select the actual searchable `children` field through the same native configuration. Server-side `showSearch.filterOption:false` and `suffixIcon:nul",
+      "source": "ai/plasmic/references/libraries/antd_v6/components/select.md",
+      "sourceSha256": "4a0f09465775d812a2c7ffd1fd5bbd3705059c4323ebe4489f633d9d7edf9a76"
+    },
+    {
+      "id": "antd_v6/components/skeleton.md",
+      "name": "skeleton",
+      "text": "Components: plasmic-antd6-skeleton, plasmic-antd6-skeleton-avatar, plasmic-antd6-skeleton-button, plasmic-antd6-skeleton-image, plasmic-antd6-skeleton-input, plasmic-antd6-skeleton-node\n# Skeleton\n\nLibrary: Ant Design v6.\n\n| Registered component | Registration key |\n| --- | --- |\n| Skeleton | `plasmic-antd6-skeleton` |\n| Skeleton.Avatar | `plasmic-antd6-skeleton-avatar` |\n| Skeleton.Button | `plasmic-antd6-skeleton-button` |\n| Skeleton.Image | `plasmic-antd6-skeleton-image` |\n| Skeleton.Input | `plasmic-antd6-skeleton-input` |\n| Skeleton.Node | `plasmic-antd6-skeleton-node` |\n\n## Generation rules\n\n### Design defaults\n\n- Use for the first load of a region whose structure is known, matching that structure; remove it when data arrives.\n\n### Initial loading structure\n\nUse Skeleton when the actual initial content structure is known and placeholders help retain its layout. Match the expected region without inserting sample business values. Its registered loading default is true; bind real loading state so the delivered page does not remain a placeholder after data arrives. Use Spin when an indeterminate operation over existing content is more appropriate.\n\n### Skeleton variants\n\nButton, Input, Avatar, Image and Node registrations are sections of this family. They expose their own active contract; do not assume every native Skeleton prop is available on each variant. They are non-interactive placeholders and must not replace the real actionable controls after loading.\n\n## Acceptance checks\n\n### Acceptance\n\nVerify placeholder-to-content transition, realistic bounds, long content and failure recovery under content-state composition. Preserve the owning region's spacing and scroll reachability without a large layout jump or leftover duplicate children.\n",
+      "source": "ai/plasmic/references/libraries/antd_v6/components/skeleton.md",
+      "sourceSha256": "9a09c42704645633c9e2d3b49836e9e5d9979d00b10482fb85a8656b52a39d28"
+    },
+    {
+      "id": "antd_v6/components/slider.md",
+      "name": "slider",
+      "text": "Components: plasmic-antd6-slider\n# Slider\n\nLibrary: Ant Design v6.\n\n| Registered component | Registration key |\n| --- | --- |\n| Slider | `plasmic-antd6-slider` |\n\n## Generation rules\n\n### Scalar and range values\n\nThe registered Slider uses a scalar for one handle and a numeric array for range mode. Read the actual range configuration, min/max/step, marks, tooltip and value/defaultValue contract. Keep numeric bounds and meaningful zero; do not silently round, clamp or add business restrictions beyond the requirement. A precise value may need an adjacent InputNumber, using one verified shared value owner.\n\n### Events and acceptance\n\nonChange reports interaction changes; onChangeComplete represents completion. Do not run an expensive business mutation on every movement when the requirement calls for a committed value. Test endpoints, step precision, keyboard changes, range ordering, disabled state and controlled/uncontrolled initialization. Verify marks and tooltip content at the required width and save/reopen bindings.\n",
+      "source": "ai/plasmic/references/libraries/antd_v6/components/slider.md",
+      "sourceSha256": "949e1dfac573f8fdeac998ae87c04edef6fd57e82842348b5aca4396dbc45138"
+    },
+    {
+      "id": "antd_v6/components/space.md",
+      "name": "space",
+      "text": "Components: plasmic-antd6-space, plasmic-antd6-space-compact\n# Space\n\nLibrary: Ant Design v6.\n\n| Registered component | Registration key |\n| --- | --- |\n| Space | `plasmic-antd6-space` |\n| Space.Compact | `plasmic-antd6-space-compact` |\n\n## Generation rules\n\n### Design defaults\n\n- Use for an inline group of Buttons, Tags or short items: horizontal, size 8.\n- Page and surface stacking uses Flex vertical with gap 16, not Space.\n\n### Spaced siblings\n\nUse Space for content-sized controls or inline groups; use Flex when children need to fill the remaining region. The v6 registration uses orientation, numeric size, wrap, align and separator. Set the intended gap once and inspect native child margins before adding it. A separator is part of the group, not an extra surface or heading.\n\n### Space.Compact\n\nCompact joins related controls through native borders and sizing; it does not create a business field or an ordinary gapped toolbar. Read orientation, size and block from its own registration. Keep each real Form field's ownership and accessible label. Do not place a Compact wrapper between a named Item and its bound control without the actual supported nested-Item pattern.\n\n## Acceptance checks\n\n### Acceptance\n\nVerify alignment, wrapping, joined borders, disabled controls, mixed content heights and long labels. Check width filling only where intended, no duplicated component margins and complete keyboard traversal. Follow shared layout for responsive and spacing decisions.\n",
+      "source": "ai/plasmic/references/libraries/antd_v6/components/space.md",
+      "sourceSha256": "411e3c805b77832aadff0bacc0e37fae0e9f0ab023b7a3751b4d0c960658a9e4"
+    },
+    {
+      "id": "antd_v6/components/spin.md",
+      "name": "spin",
+      "text": "Components: plasmic-antd6-spin\n# Spin\n\nLibrary: Ant Design v6.\n\n| Registered component | Registration key |\n| --- | --- |\n| Spin | `plasmic-antd6-spin` |\n\n## Generation rules\n\n### Design defaults\n\n- Use over a region whose content is being refreshed; first loading of a known structure uses Skeleton.\n\n### Busy region\n\nUse Spin for the actual busy region, keeping useful content visible during a background refresh when the flow permits it. spinning is business state; delay only controls presentation and must not become a submit lock. The native description, indicator, size and fullscreen controls follow this v6 registration.\n\n## Acceptance checks\n\n### Acceptance\n\nThe child region needs meaningful bounds; Spin does not create its scroll or height contract. Verify first load, refresh, fast completion, failure and repeated use with content-state composition. Use fullscreen only for an actual page-wide blocked operation, preserve keyboard/focus behavior and remove the spinner when work settles.\n",
+      "source": "ai/plasmic/references/libraries/antd_v6/components/spin.md",
+      "sourceSha256": "c7305077775487b969c06faee62ad1b30111ea9d568ff9c8e20a6134a10dbf52"
+    },
+    {
+      "id": "antd_v6/components/splitter.md",
+      "name": "splitter",
+      "text": "Components: plasmic-antd6-splitter, plasmic-antd6-splitter-panel\n# Splitter\n\nLibrary: Ant Design v6.\n\n| Registered component | Registration key |\n| --- | --- |\n| Splitter | `plasmic-antd6-splitter` |\n| Splitter.Panel | `plasmic-antd6-splitter-panel` |\n\n## Generation rules\n\n### Resizable sibling panels\n\nUse Splitter for a real user-resizable layout, with direct Splitter.Panel children in the registered Slot. The current registration uses orientation and onResize(sizes); panels expose defaultSize, min, max, resizable and collapsible. Read supported units and native size constraints rather than guessing them from an ordinary Flex layout.\n\n### Ownership and acceptance\n\nSplitter needs a meaningful bounded region from its container; the registration adds no default height. Each panel's content retains its own supported scroll contract without adding a parallel outer scrollbar. Verify drag and keyboard resize when supported, minimum/maximum size, collapse/restore, long content and action reachability. Persist panel size only when the workflow requires it; canvas selection must not alter saved business state.\n",
+      "source": "ai/plasmic/references/libraries/antd_v6/components/splitter.md",
+      "sourceSha256": "304aaeb00389fa97ac8fd8cbf68a31e7e85e2dff937dbb101146946ade5763f9"
+    },
+    {
+      "id": "antd_v6/components/statistic.md",
+      "name": "statistic",
+      "text": "Components: plasmic-antd6-statistic, plasmic-antd6-statistic-timer\n# Statistic\n\nLibrary: Ant Design v6.\n\n| Registered component | Registration key |\n| --- | --- |\n| Statistic | `plasmic-antd6-statistic` |\n| Statistic.Timer | `plasmic-antd6-statistic-timer` |\n\n## Generation rules\n\n### Design defaults\n\n- Use for an emphasized number: a total, count or rate that the user reads first.\n- The label goes in the title Slot (14px secondary), the unit in the suffix; value styling per metrics.\n- Placement: four metric Cards per row in an overview, or beside or directly above the data it counts.\n\n### Usage and behavior\n\nUse the registered Statistic for emphasized numeric business values. Read its actual Props/Slots and apply typography through supported content styling; never invent a prop to force font size or replace required numeric content with decorative text.\n\nMetric composition owns project typography defaults, label/value/unit roles, comparison placement and longest-content acceptance. Preserve complete values and legitimate zero.\n\n### Statistic.Timer and acceptance\n\nTimer uses its own type=countdown/countup, value, format and onFinish contract. The registered value is a Unix timestamp in milliseconds, not a duration or seconds. Displayed time does not prove an external operation completed; onFinish triggers only the consuming workflow's verified action. Do not recreate Timer as a constantly changing text expression or assume Statistic has Timer's value semantics.\n\nVerify metric value/precision/prefix/suffix/loading with zero, long and missing values; verify Timer initialization, boundary/finish, reopening and the required callback policy. Keep title/unit/action ownership and complete readable values under the metric composition, then save/reopen actual bindings.\n",
+      "source": "ai/plasmic/references/libraries/antd_v6/components/statistic.md",
+      "sourceSha256": "7886a657ce6d324cd415d27ab10b36f0396f5b57428c11ed1bdd360a4487d3d4"
+    },
+    {
+      "id": "antd_v6/components/steps.md",
+      "name": "steps",
+      "text": "Components: plasmic-antd6-steps\n# Steps\n\nLibrary: Ant Design v6.\n\n| Registered component | Registration key |\n| --- | --- |\n| Steps | `plasmic-antd6-steps` |\n\n## Generation rules\n\n### Design defaults\n\n- Use for a workflow with three to five ordered stages that the user moves through.\n- Horizontal, at the top of the step-form Page, outside any Card; titles are short stage nouns; the current stage comes from the workflow state.\n\n### Usage and behavior\n\nPreserve the installed Ant Design default current step unless the requirement supplies an explicit value. Registration hints must not seed a different runtime current step.\n\n### Stages and outcomes\n\nSteps describes the actual workflow's stages through items/current/status, not a fabricated progression animation. Use stable stage meaning and distinguish current stage from completed/failed status. A click/onChange reports the requested stage; it does not validate the Form, save data or authorize skipping prerequisites by itself.\n\n## Acceptance checks\n\n### Acceptance\n\nUse step-form composition when stages own fields. Verify initial/current index, allowed forward/back transitions, errors, disabled stages as supported, long titles and the required orientation/size. Check changing content and saved business state rather than accepting only the visible step highlight.\n",
+      "source": "ai/plasmic/references/libraries/antd_v6/components/steps.md",
+      "sourceSha256": "474ae04bdf7c476f22cfb81594950ef34b0fe31d9402ebc35275ac9e0b75515c"
+    },
+    {
+      "id": "antd_v6/components/switch.md",
+      "name": "switch",
+      "text": "Components: plasmic-antd6-switch\n# Switch\n\nLibrary: Ant Design v6.\n\n| Registered component | Registration key |\n| --- | --- |\n| Switch | `plasmic-antd6-switch` |\n\n## Generation rules\n\n### Design defaults\n\n- Use for a boolean field or a setting that takes effect immediately. A record state change in a Table uses row actions, unless the source draws an inline Switch.\n- Content-sized; the label states the enabled meaning.\n\n### Boolean field or immediate action\n\nA Switch expresses a boolean on/off state. Read the registered checked/defaultChecked and onChange(checked) contract; do not bind value instead of checked. Inside a business Form, keep it as the real Item control and let Form own the field. An immediate server mutation is a separate workflow: permission, pending state, rejection recovery and confirmation come from the requirement rather than from the Switch itself.\n\n## Acceptance checks\n\n### Acceptance\n\nExercise initial false/true, toggling, controlled and uncontrolled values, disabled behavior and the real Form payload. For an immediate action, verify exactly one mutation, the required pending policy and restored state after failure. The label must explain the enabled condition; apply keyboard/name checks.\n",
+      "source": "ai/plasmic/references/libraries/antd_v6/components/switch.md",
+      "sourceSha256": "4027fc3c516756d40acaaadba9fe14e0542b2e0363de05daba30c7459c04248e"
+    },
+    {
+      "id": "antd_v6/components/table.md",
+      "name": "table",
+      "text": "Components: plasmic-antd6-table, plasmic-antd6-table-column, plasmic-antd6-table-column-group, plasmic-antd6-table-expand-column\n# Table\n\nLibrary: Ant Design v6.\n\n| Registered component | Registration key |\n| --- | --- |\n| Table | `plasmic-antd6-table` |\n| Table.Column | `plasmic-antd6-table-column` |\n| Table.ColumnGroup | `plasmic-antd6-table-column-group` |\n| Table.ExpandColumn | `plasmic-antd6-table-expand-column` |\n\n**Hard constraints** (always delivered with any section):\n\n- Decide every Column's `width` in the plan before markup. The project default uses literal pixel widths, exactly one main text Column (`role:widget`, native text or a text Tooltip render) without width, and numeric Table `scroll.x` greater than the explicit widths sum. Native `max-content` is available through a source-backed `scroll.x` override; this is a project layout policy, not an Ant Design limitation. See content and scroll width.\n- Size each width from its title as well as its values; status/time/short fields are fixed, never the main column.\n- Row operations: registered ActionGroup in the last leaf Column.render, `fixed:\"right\"` and a numeric width estimated before insertion and measured before Saved-Page acceptance (operation column sizing).\n- Column presentation is a plan field: `text` leaves the native render Slot empty, `custom` composes registered components in it; status Columns render a mapped Badge, categories default to text.\n- Text columns expected to exceed their planned width use `ellipsis:{showTitle:false}` and a registered Tooltip in Column.render to expose the complete current-row value. Record `presentation:custom` for this render template. See columns and content.\n- Every paginated list needs a fixture larger than the initial pageSize. Prototype-owned paging (bound `current`/`pageSize`, a server query or a source page policy) also needs first/second/return `page-change` cases, plus `page-size` wh",
+      "source": "ai/plasmic/references/libraries/antd_v6/components/table.md",
+      "sourceSha256": "3b71e62a6bec32f071d06bda2b40591368e3152e8169f16080b3ad91207eb725"
+    },
+    {
+      "id": "antd_v6/components/tabs.md",
+      "name": "tabs",
+      "text": "Components: plasmic-antd6-tab-item, plasmic-antd6-tabs\n# Tabs\n\nLibrary: Ant Design v6.\n\n| Registered component | Registration key |\n| --- | --- |\n| Tabs.TabPane | `plasmic-antd6-tab-item` |\n| Tabs | `plasmic-antd6-tabs` |\n\n**Hard constraints** (always delivered with any section):\n\n- Tabs own content scopes or record sections; a field value choice uses Radio/Select/Segmented instead, and a single in-scope Tab is not rendered.\n- Independent Tab content owns its Table, pagination and state. Source-defined scopes over one shared Table follow query/list composition.\n- A Tabs-first Card is headerless with body `0 20px`; shared actions go in `tabBarExtraContentRight`. Tabs size is `medium`.\n- Choose an initial tab with `defaultActiveKey` and leave `activeKey` unset. Never use a fixed `activeKey` as a default; controlled Tabs require a state binding and an `onChange(activeKey)` handler that updates that same state.\n\n## Generation rules\n\n### Design defaults\n\n- Use for two or more mutually exclusive content scopes or record sections on one surface; a single in-scope Tab is not rendered as Tabs.\n- Type `line`. Labels are short nouns from the source. Shared actions of the Tabs go in its extra.\n- Tabs as first content of a Card makes the Card headerless with `0 20px` body padding (Card).\n\n### Usage and behavior\n\nRead the installed Tabs contract. Use actual items, never drawn tab labels. SearchForm + Tabs + Table owns independent/shared Table placement; Card spacing owns outer edge padding.\n\nFor ordinary content switching, set only `defaultActiveKey` when a specific initial tab is required; omit both key props when the component's default is sufficient. For example, `{\"defaultActiveKey\":\"base\"}` starts on Basic information and still allows user switching. Do not also set `activeKey` to that key.\n\nUse controlled Tabs only when business be",
+      "source": "ai/plasmic/references/libraries/antd_v6/components/tabs.md",
+      "sourceSha256": "febd1e26d6ea14fdb56fa55f9f7ee038f592dcfa72a63f2babf5b2656bb34ae5"
+    },
+    {
+      "id": "antd_v6/components/tag.md",
+      "name": "tag",
+      "text": "Components: plasmic-antd6-tag, plasmic-antd6-tag-checkable\n# Tag\n\nLibrary: Ant Design v6.\n\n| Registered component | Registration key |\n| --- | --- |\n| Tag | `plasmic-antd6-tag` |\n| Tag.CheckableTag | `plasmic-antd6-tag-checkable` |\n\n## Generation rules\n\n### Design defaults\n\n- Use for categories only when the source shows them as chips, or for several labels on one record; a single ordinary value stays text; states use Badge.\n- One fixed colour per category value, recorded with the reviewed mapping; never colour as the only meaning.\n\n### Tag or text\n\nCategory is a business meaning, not a requirement to use Tag. Ordinary single-value attributes default to text, including type, market, source and department. A short enum or a field named “type” is insufficient reason to add a Tag. Lifecycle/processing states follow Badge.\n\n| Source purpose and presentation | Choice |\n| --- | --- |\n| Ordinary single-value classification with no requested emphasis | Text |\n| Independent business labels, often several per record and read individually | Tag |\n| Classification explicitly shown as labels in the designated visual draft or required by an applicable design rule | Tag |\n| Selected filter criteria that can be removed individually | Closable Tag; closing removes that criterion |\n| A boolean selection expressed as a checkable label | Tag.CheckableTag |\n| Name, identifier, time, amount or description | Text or its appropriate dedicated presentation |\n\nHonor the current user's explicit presentation choice and applicable mandatory field rules; otherwise preserve the designated visual draft. This general Tag applicability guidance does not override a draft's plain text. Without a specified presentation, use the defaults above. Keep one presentation for the same field across rows and equivalent Tabs; Form choices, detail text and removable filters ",
+      "source": "ai/plasmic/references/libraries/antd_v6/components/tag.md",
+      "sourceSha256": "668ddaeddd0f7d6bbd932302b58639f441ec6a7182459a32d2465e22d17df061"
+    },
+    {
+      "id": "antd_v6/components/time-picker.md",
+      "name": "time-picker",
+      "text": "Components: plasmic-antd6-time-picker, plasmic-antd6-time-range-picker\n# TimePicker\n\nLibrary: Ant Design v6.\n\n| Registered component | Registration key |\n| --- | --- |\n| Time Picker | `plasmic-antd6-time-picker` |\n| TimePicker.RangePicker | `plasmic-antd6-time-range-picker` |\n\n## Generation rules\n\n### Design defaults\n\n- Use for a daily wall-clock time; a duration is a quantity (InputNumber with a unit).\n- Set `width:100%` in a Form column. Format `HH:mm:ss` or `HH:mm` per the required precision.\n\n### Time values\n\nUse this control for time-of-day fields, including daily cutoffs; use its RangePicker for a clock-time range. Follow field semantics for dates, dated instants and durations. A draft showing only a time in a bordered box does not justify replacing the picker with Input.\n\nThe maintained wrapper parses value with dayjs and emits an ISO string, or null on clear. Read the installed contract before binding; do not pass a bare `HH:mm:ss` value to that parser or assume `format=\"HH:mm:ss\"` changes the event payload. Display format, component value and business payload are separate contracts.\n\nFor a daily wall-clock field, preserve the business `HH:mm:ss` and its stated timezone/local-time semantics. Initialize the picker with a supported dated value through an explicit conversion, then convert the selected value back to the business clock time under the same policy. Any date used only to satisfy the picker must not enter the persisted daily-time field. Do not extract the time from a UTC ISO string unless UTC is the required business policy; do not default to the viewer's device timezone for a market-specific cutoff. Keep Form/Item as the native value owner and perform boundary conversion through verified bindings, without a competing control value. If the timezone policy is unspecified and affects the outcome, resolve it from the source or",
+      "source": "ai/plasmic/references/libraries/antd_v6/components/time-picker.md",
+      "sourceSha256": "619631c3a04c6d16a7263c222d3bf510fcfec16aa13a9356474494c8b56c65c6"
+    },
+    {
+      "id": "antd_v6/components/timeline.md",
+      "name": "timeline",
+      "text": "Components: plasmic-antd6-timeline\n# Timeline\n\nLibrary: Ant Design v6.\n\n| Registered component | Registration key |\n| --- | --- |\n| Timeline | `plasmic-antd6-timeline` |\n\n## Generation rules\n\n### Ordered history\n\nUse Timeline for actual ordered events. This registration uses items with title/content, mode=start/end/alternate and reverse. Preserve the requirement's chronology, timestamp meaning and distinction between completed, pending and failed events; do not present sample activity as real history or borrow another version's item field names.\n\n## Acceptance checks\n\n### Acceptance\n\nVerify ordering in both display directions when used, complete long event text, missing optional metadata and empty history. The outer region owns width/scrolling and section spacing. Check that meaningful states have readable labels and save/reopen the real data binding.\n",
+      "source": "ai/plasmic/references/libraries/antd_v6/components/timeline.md",
+      "sourceSha256": "694db31729c8c9f6e753160e269f16a87823d9928f35a92c19e60689cfd862e5"
+    },
+    {
+      "id": "antd_v6/components/tooltip.md",
+      "name": "tooltip",
+      "text": "Components: plasmic-antd6-tooltip\n# Tooltip\n\nLibrary: Ant Design v6.\n\n| Registered component | Registration key |\n| --- | --- |\n| Tooltip | `plasmic-antd6-tooltip` |\n\n## Generation rules\n\n### Design defaults\n\n- Use for supplemental help on an icon, the complete value of truncated table text, or the meaning of a metric; never for required instructions or the only path to an action. Text columns expected to exceed their width follow the Column ellipsis + Tooltip pattern.\n- Keep explanatory content concise. A truncated-value Tooltip preserves the complete value and may wrap across more lines.\n\n### Usage and behavior\n\nRead the installed Tooltip contract: it is the native Ant Design Tooltip and opens on its configured trigger whether or not the content overflows; it has no overflow detection. For long-text table columns, set Column `ellipsis:{showTitle:false}` and compose Tooltip in the native render Slot with `placement:topLeft`. Column controls truncation and suppresses the browser title; Tooltip exposes the complete current-row value. Bind the title Slot or titleText fallback and children to the same intended value, preserving 0/false; use an empty title for null/undefined/empty values. Multi-line and multi-field custom content use the same row scope. See Column rules for the presentation decision and example.\n\nEmpty/null title disables fallback content. Editable children/title Slots retain their actual bindings; selection may reveal the overlay for editing without persisting open state. Verify hover/focus, complete content, long and short values and empty/null title, and that hover never runs business actions or navigation. Check editor, Preview and saved/reopened readback; temporary reveals must not enter preview or exports.\n\nTable cells follow the Column ellipsis guidance and render templates for custo",
+      "source": "ai/plasmic/references/libraries/antd_v6/components/tooltip.md",
+      "sourceSha256": "c0c1e6356994ca622c160aa915a324d862d0862e8c03f29063e0e3cfd8f3ef95"
+    },
+    {
+      "id": "antd_v6/components/tour.md",
+      "name": "tour",
+      "text": "Components: plasmic-antd6-tour\n# Tour\n\nLibrary: Ant Design v6.\n\n| Registered component | Registration key |\n| --- | --- |\n| Tour | `plasmic-antd6-tour` |\n\n## Generation rules\n\n### Guided steps\n\nTour steps use the wrapper's title, description and targetSelector contract. Targets resolve inside the delivered canvas/page document, not Studio's outer document. Use stable actual targets and real step text; a missing target follows the native untargeted-step behavior rather than silently pointing to another control.\n\n## Acceptance checks\n\n### Acceptance\n\nBind open/close only through the actual registered contract. Test each target, relevant hidden or offscreen content, step transitions, dismissal and repeated entry. Guidance does not execute the underlying business action. Verify focus, viewport bounds and no persisted canvas-inspection state after save/reopen.\n",
+      "source": "ai/plasmic/references/libraries/antd_v6/components/tour.md",
+      "sourceSha256": "642483c6dbfbd1ff0a7bcefab2b736511a5564637e44ea730ec94533bf0222fd"
+    },
+    {
+      "id": "antd_v6/components/transfer.md",
+      "name": "transfer",
+      "text": "Components: plasmic-antd6-transfer\n# Transfer\n\nLibrary: Ant Design v6.\n\n| Registered component | Registration key |\n| --- | --- |\n| Transfer | `plasmic-antd6-transfer` |\n\n## Generation rules\n\n### Moving a selected subset\n\nTransfer expresses which records belong to a target set. dataSource keys and targetKeys are stable business identities; titles are display text. This wrapper renders the actual item's title or key and exposes targetKeys through onChange. Moving between panels changes the selected subset and does not itself save it to the server unless the requirement explicitly defines that workflow.\n\n## Acceptance checks\n\n### Acceptance\n\nTest initial membership, moving both directions or oneWay when used, disabled records, search, empty panels and unknown/deleted source keys under the actual native contract. Verify the submitted target keys, permissions and keyboard operation. Do not copy the default two sample records into a business deliverable.\n",
+      "source": "ai/plasmic/references/libraries/antd_v6/components/transfer.md",
+      "sourceSha256": "1feab699a719efb3fad3710bc232f2eda4660e242d68447886965221bf0f0cf1"
+    },
+    {
+      "id": "antd_v6/components/tree-select.md",
+      "name": "tree-select",
+      "text": "Components: plasmic-antd6-tree-select\n# TreeSelect\n\nLibrary: Ant Design v6.\n\n| Registered component | Registration key |\n| --- | --- |\n| Tree Select | `plasmic-antd6-tree-select` |\n\n## Generation rules\n\n### Design defaults\n\n- Use for choosing from a hierarchy where any level can be selected; a fixed-depth path uses Cascader.\n- Fills its column; `showSearch` above twenty nodes; `allowClear` in query and optional fields.\n\n### Usage and behavior\n\nSingle/multiple/checkable values may be scalars, arrays or labeled objects. Registered state and event types must represent those modes. For wrapper changes, test actual mode/value combinations and controlled/uncontrolled behavior against the installed Ant Design version.\n\n### Hierarchy and field ownership\n\nKeep stable unique treeData values, readable titles and the actual parent/child structure. Selection values are not Cascader path arrays; do not flatten the hierarchy into copied labels. Read treeCheckable/multiple and any labeled-value contract before forming a payload. Inside Form, retain the owning Item's value/change binding.\n\n## Acceptance checks\n\n### Acceptance\n\nVerify nested selection, parent/child check behavior, clearing, disabled controls, long labels, empty/reloaded options and selected-value recovery. Remote search/loading may use only a capability present in the current registration. Check actual scalar/array/object output, keyboard navigation and saved bindings in each required mode.\n",
+      "source": "ai/plasmic/references/libraries/antd_v6/components/tree-select.md",
+      "sourceSha256": "cfd4482f3e97a4b04c1be03c139bfafd4f2056bcad2c5b8bcb6b4062399c18b8"
+    },
+    {
+      "id": "antd_v6/components/tree.md",
+      "name": "tree",
+      "text": "Components: plasmic-antd6-directory-tree, plasmic-antd6-tree\n# Tree\n\nLibrary: Ant Design v6.\n\n| Registered component | Registration key |\n| --- | --- |\n| Tree.DirectoryTree | `plasmic-antd6-directory-tree` |\n| Tree | `plasmic-antd6-tree` |\n\n## Generation rules\n\nPreserve the installed Ant Design expansion defaults unless explicitly overridden by the requirement. Do not force Tree expansion through registration hints or injected runtime defaults.\n\n### Keys, selection and checks\n\nKeep treeData keys stable and unique. Selected, expanded and checked keys have different meanings; bind only the states required by the workflow and read each event's keys/info arguments and state helper. Parent/child checks, half-checked data and disabled nodes follow the actual native contract rather than a flat list of booleans. titleRender is a real node render Slot, with its registered node scope.\n\n### Tree.DirectoryTree and acceptance\n\nDirectoryTree is maintained here with its own registration/defaults. Do not assume its expandAction and checkable behavior matches an ordinary Tree. Verify nested expansion, selection/checking, disabled nodes, empty/reloaded data, long titles and actual event output. Use master-detail composition when selection controls another region; check keyboard behavior, the real scroll owner and saved bindings.\n",
+      "source": "ai/plasmic/references/libraries/antd_v6/components/tree.md",
+      "sourceSha256": "0d96f1ef42069acb1fa6b4bb0e08e1783e4e656f4aa0e25e32d49c0a38fad1c0"
+    },
+    {
+      "id": "antd_v6/components/typography.md",
+      "name": "typography",
+      "text": "Components: plasmic-antd6-typography, plasmic-antd6-typography-link, plasmic-antd6-typography-paragraph, plasmic-antd6-typography-text, plasmic-antd6-typography-title\n# Typography\n\nLibrary: Ant Design v6.\n\n| Registered component | Registration key |\n| --- | --- |\n| Typography | `plasmic-antd6-typography` |\n| Typography.Link | `plasmic-antd6-typography-link` |\n| Typography.Paragraph | `plasmic-antd6-typography-paragraph` |\n| Typography.Text | `plasmic-antd6-typography-text` |\n| Typography.Title | `plasmic-antd6-typography-title` |\n\n## Generation rules\n\n### Design defaults\n\n- Text for supporting and secondary copy (`type: \"secondary\"`); Link for navigation inside text; Title only for a section heading that has no component title Slot.\n- Sizes follow the scale type table. There is no Page title.\n\n### Text\n\n#### Supporting text hierarchy\n\nClassify text by its role before composition. Neutral supporting descriptions use the theme's **secondary** description hierarchy, whether they appear beside/below a control, under an editor, in a Card, or as a caption/usage constraint. This includes format/range instructions, SQL/data restrictions, supplementary context and routine explanatory notes. Their position does not change their hierarchy. Primary text is reserved for headings, labels and actual business values/content; do not mute a required value merely because it appears in a description region. Error, warning and success feedback retain their native semantic treatment; secondary is not a replacement for feedback colors.\n\nPrefer registered `Typography.Text` with the real `type=\"secondary\"` prop for standalone supporting text. Native Form.Item `extra` and other component-owned descriptions retain their native secondary styles; remove primary-color overrides and avoid inner text components that reset that hierarchy. Use the actual component's description Slot/prop only when its installed contract supports it. When native semantic text is neces",
+      "source": "ai/plasmic/references/libraries/antd_v6/components/typography.md",
+      "sourceSha256": "7e1a89dd1ad82cf521dd584b128efcfaf8d1ab3b4ea0a7cff25f63dcaff40a5d"
+    },
+    {
+      "id": "antd_v6/components/upload.md",
+      "name": "upload",
+      "text": "Components: plasmic-antd6-upload, plasmic-antd6-upload-dragger\n# Upload\n\nLibrary: Ant Design v6.\n\n| Registered component | Registration key |\n| --- | --- |\n| Upload | `plasmic-antd6-upload` |\n| Upload.Dragger | `plasmic-antd6-upload-dragger` |\n\n## Generation rules\n\n### Design defaults\n\n- Use inside a Form.Item for file fields. A Page whose main task is providing a file uses the drag area; other fields use a Button trigger with a text file list.\n- Accepted types and size limit are stated as a field instruction next to the control.\n\n### Usage and behavior\n\nUpload reads files locally as base64: done means local reading completed, not server upload success. Multiple selection preserves order; maxCount retains the newest files. Verify these semantics against actual file selections and do not report local completion as backend success.\n\n### Local Upload wrapper\n\nThe registered Upload uses files/onFilesChange with metadata, base64 contents and reading status. Its beforeUpload prevents native server uploading. dragAndDropFiles selects a drag surface within this same local wrapper. Read accept, multiple, maxCount, listType and showUploadList; file-size validation and persistence exist only when implemented in the consuming workflow. Remove and error states must retain the intended remaining files, and an accept hint does not certify file content.\n\n### Upload.Dragger\n\nThe separately registered Dragger forwards native action/name/multiple/accept/disabled and onChange(info). It does not expose the local wrapper's files/onFilesChange/base64 model. A drag surface therefore does not establish which upload workflow is active. Keep both registrations here, select the actual one and bind its real transport/status contract. Backend authentication, persistence and completion must be verified through the consuming project's actual implementation.\n\n## A",
+      "source": "ai/plasmic/references/libraries/antd_v6/components/upload.md",
+      "sourceSha256": "3c17eb511ca71542f77c1295b87f497f2c2893182810aa603980310bafc99846"
+    },
+    {
+      "id": "antd_v6/components/watermark.md",
+      "name": "watermark",
+      "text": "Components: plasmic-antd6-watermark\n# Watermark\n\nLibrary: Ant Design v6.\n\n| Registered component | Registration key |\n| --- | --- |\n| Watermark | `plasmic-antd6-watermark` |\n\n## Generation rules\n\n### Required watermark region\n\nUse Watermark only when the design requires it, with actual content or image, rotate, font and gap. Its children retain their normal layout and interaction ownership. A watermark is presentation, not an access-control mechanism or proof that data is protected. Do not add a demo Confidential label to ordinary business content.\n\n## Acceptance checks\n\n### Acceptance\n\nVerify the required region and text/image, readable underlying content, pointer/keyboard usability and long/scrolling content. Inspect theme contrast and repeated placement without another surface or scroll container, then save/reopen the actual properties.\n",
+      "source": "ai/plasmic/references/libraries/antd_v6/components/watermark.md",
+      "sourceSha256": "daa36efaa270ff4207c584eb59d9c6aaf731b9c6f287bed0d10f8a31efafd0d3"
+    },
+    {
+      "id": "overseas/components/app-shell.md",
+      "name": "app-shell",
+      "text": "Components: plasmic-overseas-app-shell\n# AppShell\n\nLibrary: Overseas.\n\n| Registered component | Registration key |\n| --- | --- |\n| AppShell | `plasmic-overseas-app-shell` |\n\n## Generation rules\n\n### Design defaults\n\n- One AppShell per standalone Page; it owns navigation, the header and the 16px content padding.\n- Its children Slot holds one full-width business layout following the decided Page structure: Flex gap 16 with the chosen direction, or Row gutter 16 for columns; no extra outer padding or Page title.\n\n### Standalone Page boilerplate\n\nStart from the golden boilerplate: keep the Page's existing default root and insert AppShell directly, with business content in `children`. AppShell's outer DOM owns `width:100%; height:var(--canvas-content-height, var(--viewport-height, 100vh)); min-width:0; min-height:var(--viewport-height, 100vh); flex-shrink:0`; registration defaults remain `width:100%; height:100vh`. The Studio variable anchors height to the authored viewport while its iframe measures content; Preview/export use the live viewport fallback. Studio's canvas-only \"Show full page height\" view defines `--canvas-content-height:auto`, so the shell grows with its content above the viewport minimum; it never changes the saved design. Do not append another sizing wrapper or configure ancestor heights to fill the shell. Reuse the existing shell when the host owns navigation.\n\nFor a standalone admin preview use the registered `plasmic-overseas-app-shell` component and its Page body slot; never duplicate its layout markup. The shell owns the outer 16px padding, so the slotted business container must not add another outer padding. Its geometry is: 239px white sidebar, 64px brand/header, header horizontal padding 24px, content background neutral and padding 16px. The page body fills available width and has no for",
+      "source": "ai/plasmic/references/libraries/overseas/components/app-shell.md",
+      "sourceSha256": "a07b162479254f71a2dc833d3128cc7616343e3983550fe3e392289753d3cb18"
+    },
+    {
+      "id": "overseas/components/search-form.md",
+      "name": "search-form",
+      "text": "Components: plasmic-overseas-search-form-item, plasmic-overseas-search-form\n# SearchForm\n\nLibrary: Overseas.\n\nInitial collapse configuration must remain interactive in Preview after saving and reopening.\n\n| Registered component | Registration key |\n| --- | --- |\n| SearchForm | `plasmic-overseas-search-form` |\n| SearchForm.Item | `plasmic-overseas-search-form-item` |\n\n**Hard constraints** (always delivered with any section):\n\n- Use only four columns (`colSpan=6`) or three columns (`colSpan=8`); choose three columns only for a visual draft with multiple aligned three-column rows. Any other value needs a requirement-document source exception.\n- `minRows=1` and initially collapsed at runtime; use the verified initial-state mapping or an event-backed controlled state. Never freeze runtime `collapsed` to a literal to specify an initial state. Items inherit the column span except a recorded measured or source span exception.\n- Every filter field is a real SearchForm.Item, declared in `components` and owned by the SearchForm `children` Slot; never drop or merge fields to fill a row.\n- Query and submission stay separate: submitted business fields use Form. SearchForm owns its card surface; never wrap it in a Card. Inside the content root Flex (gap 16) set `marginBottom` 0.\n- Select controls in multiple/tags mode must explicitly use `maxTagCount:\"responsive\"` and remain one native control row. Selected tags must not wrap, increase the filter row height or displace other fields and actions; preserve the full selection and configured grid.\n- Date-range shortcuts belong inside the date control's native `presets` popup. Do not place an independent quick-range choice group beside the picker; presets and manual dates share one range and the same query/reset behavior.\n\n## Plan decisions\n\nDeclare these native props in each planned instance before markup. `prepar",
+      "source": "ai/plasmic/references/libraries/overseas/components/search-form.md",
+      "sourceSha256": "b243049fc27be1a146127905a27fc4da7183d923bdaffa9d5bb846172d774b2a"
+    },
+    {
+      "id": "react_ui/components/action-group.md",
+      "name": "action-group",
+      "text": "Components: plasmic-react-ui-action-group\n# ActionGroup\n\nLibrary: React UI.\n\n| Registered component | Registration key |\n| --- | --- |\n| ActionGroup | `plasmic-react-ui-action-group` |\n\n## Plan decisions\n\nDeclare these native props in each planned instance before markup. `prepare_plan.py scaffold` writes `\"__DECIDE__\"` (or the baseline) for each; selection preflight rejects pending or missing values. `null` means deliberately unset and is accepted only where marked.\n\n| Registration | Prop | Decision |\n| --- | --- | --- |\n| `plasmic-react-ui-action-group` | `max` (baseline `3`) | Mandatory generation baseline; only a verified source override changes it. See rule. |\n\n## Generation rules\n\n### Design defaults\n\n- Use for record actions in a Table's fixed right column.\n- At most three visible actions, the rest folded; order by frequency (view, edit, then others), destructive actions last and behind confirmation; the column width equals the measured visible content.\n\n### Usage and behavior\n\nRead the registered @react/ui ActionGroup contract. Pass complete permission-filtered items and let the component fold them. **max=3 is the mandatory generation baseline**, including More as one of those three positions. Only an explicit current-user/source requirement may override it with verifiable source evidence. The number of actions, a wider viewport or the wish to show all buttons is not an exception. Do not truncate the authorized items; retain them in native folding. Rows with fewer authorized actions naturally show fewer controls. ActionGroup uses Antd6’s medium size spelling. Column owns operation-column measurements.\n\nItems carry only the native @react/ui fields key, label, disabled, danger and tooltip; the wrapper adds just onAction(key), because item onClick functions cannot be stored. Keep @react/ui's native More-on-",
+      "source": "ai/plasmic/references/libraries/react_ui/components/action-group.md",
+      "sourceSha256": "b889ef0758416cfbaafe4d136dbdd6c847765eff95d6b325a995ff413c5dabfa"
+    },
+    {
+      "id": "react_ui/components/resource-authorization.md",
+      "name": "resource-authorization",
+      "text": "Components: plasmic-react-ui-resource-authorization, plasmic-react-ui-resource-authorization-record\n# Resource authorization drawers\n\nLibrary: React UI.\n\n| Component | Registration |\n| --- | --- |\n| ResourceAuthorization | `plasmic-react-ui-resource-authorization` |\n| ResourceAuthorization.Record | `plasmic-react-ui-resource-authorization-record` |\n\n## Generation rules\n\nResourceAuthorization creates personalized authorization for a user or department.\nResourceAuthorization.Record views permissions and deletes personalized policies.\n\n### Trigger and open state\n\nPlace a Button in the wrapper's `trigger` slot to open the drawer. Bind the\nresource props directly to that row's values; each instance owns its open state\nwhen `open` is omitted. Trigger clicks emit `onOpenChange(true)`. Close emits\n`onOpenChange(false)` before `onClose()`. Existing Button click handlers are\npreserved; disabled buttons and clicks cancelled with `preventDefault()` do not\nopen the drawer. The drawer portal is a sibling of the trigger, so closing or\ninteracting with drawer contents cannot reopen it through the trigger.\n\nAn explicit `open` value is controlled: trigger/close only request changes through\n`onOpenChange`, and the bound owner supplies the next `open`. Keep writable\n`open` for a shared page-level drawer opened by multiple actions. `trigger` is\noptional and does not create a default button.\n\nBind `resourceTypeCode` and `resourceId` from the selected business record; also\nbind `resourceName` for ResourceAuthorization. `open` is writable through\n`onOpenChange`. `onClose()` has no arguments. `onSuccess()` has no arguments and\ncan refresh consuming page data. Creation emits success and then closes; deletion\nrefreshes permission details and emits success without closing the drawer.\n\n`title` is an optional slot. `width` defaults to 500 for creation and 600 for\ndetails. The form and permission l",
+      "source": "ai/plasmic/references/libraries/react_ui/components/resource-authorization.md",
+      "sourceSha256": "b935342afb5cbdfa24212050a0f6b3145f312e93e9559ab9286e489c570f2d2d"
+    }
+  ],
+  "cases": [
+    {
+      "id": "content-switch",
+      "intent": "在同一个页面内切换基本信息、操作记录、权限设置，选中项与可见内容保持同步，不跳转路由。",
+      "expected": [
+        "antd_v5/components/tabs.md",
+        "antd_v6/components/tabs.md"
+      ]
+    },
+    {
+      "id": "one-value",
+      "intent": "从多个互斥选项中选择一个值并提交到表单，不切换页面内容。",
+      "expected": [
+        "antd_v5/components/radio.md",
+        "antd_v5/components/segmented.md",
+        "antd_v5/components/select.md",
+        "antd_v6/components/radio.md",
+        "antd_v6/components/segmented.md",
+        "antd_v6/components/select.md"
+      ]
+    },
+    {
+      "id": "many-values",
+      "intent": "给一条记录选择多个分类，允许增加或取消已选项，并提交选中值列表。",
+      "expected": [
+        "antd_v5/components/checkbox.md",
+        "antd_v5/components/select.md",
+        "antd_v6/components/checkbox.md",
+        "antd_v6/components/select.md"
+      ]
+    },
+    {
+      "id": "daily-clock",
+      "intent": "设置每天执行任务的时刻，用户选择小时、分钟和秒，不包含日期。",
+      "expected": [
+        "antd_v6/components/time-picker.md"
+      ]
+    },
+    {
+      "id": "calendar-range",
+      "intent": "选择带具体年月日的预约起止时间，并能选择当天时分。",
+      "expected": [
+        "antd_v5/components/date-picker.md",
+        "antd_v6/components/date-picker.md"
+      ]
+    },
+    {
+      "id": "quantity",
+      "intent": "输入保留时长，单位小时，允许小数，设置最小值和最大值，并能递增递减。",
+      "expected": [
+        "antd_v5/components/input-number.md",
+        "antd_v6/components/input-number.md"
+      ]
+    },
+    {
+      "id": "identifier",
+      "intent": "录入客户标识符，允许前导零并原样保存为字符串，不进行数字加减。",
+      "expected": [
+        "antd_v5/components/input.md",
+        "antd_v6/components/input.md"
+      ]
+    },
+    {
+      "id": "password",
+      "intent": "输入访问密钥，默认隐藏内容，用户可以切换明文和掩码显示。",
+      "expected": [
+        "antd_v5/components/input.md",
+        "antd_v6/components/input.md"
+      ]
+    },
+    {
+      "id": "readonly-group",
+      "intent": "按业务分组展示一条客户记录的多个只读字段，每项都有字段名和值。",
+      "expected": [
+        "antd_v6/components/descriptions.md"
+      ]
+    },
+    {
+      "id": "records",
+      "intent": "展示多条客户记录，每行一条记录，每列对应字段，支持排序、选中行和分页。",
+      "expected": [
+        "antd_v5/components/table.md",
+        "antd_v6/components/table.md"
+      ]
+    },
+    {
+      "id": "list",
+      "intent": "逐项展示通知，每项包含标题、头像和说明文字，不需要字段列对齐。",
+      "expected": [
+        "antd_v6/components/list.md",
+        "antd_v6/components/listy.md"
+      ]
+    },
+    {
+      "id": "progress",
+      "intent": "展示文件处理完成比例，百分比变化时进度条同步更新。",
+      "expected": [
+        "antd_v5/components/progress.md",
+        "antd_v6/components/progress.md"
+      ]
+    },
+    {
+      "id": "status",
+      "intent": "展示任务生命周期状态，用状态点和可读文字区分成功、处理中和失败。",
+      "expected": [
+        "antd_v6/components/badge.md"
+      ]
+    },
+    {
+      "id": "categories",
+      "intent": "给内容显示多个可移除的分类标记，用户可以逐个移除标记。",
+      "expected": [
+        "antd_v6/components/tag.md"
+      ]
+    },
+    {
+      "id": "action-menu",
+      "intent": "点击一个入口展示多项操作菜单，选择后按菜单项的稳定键执行不同操作，不作为字段值选择。",
+      "expected": [
+        "antd_v5/components/dropdown.md",
+        "antd_v6/components/dropdown.md"
+      ]
+    },
+    {
+      "id": "row-actions",
+      "intent": "每行有多个业务操作，结合权限显示，超过数量的操作折叠到更多菜单。",
+      "expected": [
+        "react_ui/components/action-group.md"
+      ]
+    },
+    {
+      "id": "overlay-input",
+      "intent": "在覆盖层内编辑一条记录，提交前验证字段，用户可以确认或取消，不离开当前页面。",
+      "expected": [
+        "antd_v5/components/drawer.md",
+        "antd_v5/components/form.md",
+        "antd_v5/components/modal.md",
+        "antd_v6/components/drawer.md",
+        "antd_v6/components/form.md",
+        "antd_v6/components/modal.md"
+      ]
+    },
+    {
+      "id": "brief-help",
+      "intent": "鼠标悬停或键盘聚焦一个图标时显示简短说明，说明中没有输入或交互操作。",
+      "expected": [
+        "antd_v5/components/tooltip.md",
+        "antd_v6/components/tooltip.md"
+      ]
+    },
+    {
+      "id": "interactive-help",
+      "intent": "点击入口弹出一小块浮层，其中有说明、链接和可以点击的操作。",
+      "expected": [
+        "antd_v5/components/popover.md",
+        "antd_v6/components/popover.md"
+      ]
+    },
+    {
+      "id": "anchored-confirm",
+      "intent": "用户点击删除操作后，在该操作附近出现简短确认，确认才执行，取消保持原样，不收集输入。",
+      "expected": [
+        "antd_v6/components/popconfirm.md"
+      ]
+    },
+    {
+      "id": "page-outcome",
+      "intent": "操作完成后展示整页成功或失败结果，包含说明以及下一步操作入口。",
+      "expected": [
+        "antd_v6/components/result.md"
+      ]
+    },
+    {
+      "id": "empty",
+      "intent": "数据集合为空时，在内容区展示无记录状态和可选的新增入口。",
+      "expected": [
+        "antd_v6/components/empty.md"
+      ]
+    },
+    {
+      "id": "loading",
+      "intent": "异步请求尚未完成时，在内容区显示加载状态，完成后呈现真实内容。",
+      "expected": [
+        "antd_v6/components/skeleton.md",
+        "antd_v6/components/spin.md"
+      ]
+    },
+    {
+      "id": "route-menu",
+      "intent": "为多级业务路由提供导航入口，点击切换路由，并反映当前所在位置。",
+      "expected": [
+        "antd_v5/components/menu.md",
+        "antd_v6/components/menu.md"
+      ]
+    },
+    {
+      "id": "workflow",
+      "intent": "展示分步填写流程的当前步骤、已完成步骤和后续步骤，业务字段由每步表单负责。",
+      "expected": [
+        "antd_v5/components/steps.md",
+        "antd_v6/components/steps.md"
+      ]
+    },
+    {
+      "id": "breadcrumb",
+      "intent": "展示当前业务页面的上级路径，允许跳到上级目录。",
+      "expected": [
+        "antd_v5/components/breadcrumb.md",
+        "antd_v6/components/breadcrumb.md"
+      ]
+    },
+    {
+      "id": "calendar-month",
+      "intent": "在月历中查看每天的业务事项，允许切换月份和选中某一天。",
+      "expected": [
+        "antd_v6/components/calendar.md"
+      ]
+    },
+    {
+      "id": "finite-days",
+      "intent": "从预先给定的7天、30天、90天中选择一个保留周期，不允许任意输入数字。",
+      "expected": [
+        "antd_v5/components/radio.md",
+        "antd_v5/components/segmented.md",
+        "antd_v5/components/select.md",
+        "antd_v6/components/radio.md",
+        "antd_v6/components/segmented.md",
+        "antd_v6/components/select.md"
+      ]
+    },
+    {
+      "id": "cascade",
+      "intent": "逐级选择省市区，子级选项由上级决定，可以异步加载下一层。",
+      "expected": [
+        "antd_v6/components/cascader.md",
+        "antd_v6/components/tree-select.md"
+      ]
+    },
+    {
+      "id": "hierarchy",
+      "intent": "展示多层组织节点，允许展开折叠、选择和勾选节点。",
+      "expected": [
+        "antd_v5/components/tree.md",
+        "antd_v6/components/tree-select.md",
+        "antd_v6/components/tree.md"
+      ]
+    },
+    {
+      "id": "search-business",
+      "intent": "在记录列表上方提供查询条件，支持展开收起、查询和重置，维护草稿条件与已应用条件。",
+      "expected": [
+        "overseas/components/search-form.md"
+      ]
+    },
+    {
+      "id": "shell",
+      "intent": "提供业务系统的整体导航与用户入口，在统一外壳内承载各业务页面，并切换应用上下文。",
+      "expected": [
+        "antd_v6/components/app-shell.md",
+        "overseas/components/app-shell.md"
+      ]
+    },
+    {
+      "id": "file-upload",
+      "intent": "让用户选择或拖入多个文件，显示上传进度，并反馈失败与重试。",
+      "expected": [
+        "antd_v5/components/upload.md",
+        "antd_v6/components/upload.md"
+      ]
+    },
+    {
+      "id": "permission",
+      "intent": "根据角色以及记录所属资源范围，决定操作是否可用，不能只隐藏按钮而跳过提交权限判断。",
+      "expected": [
+        "react_ui/components/resource-authorization.md"
+      ]
+    },
+    {
+      "id": "numeric-en",
+      "intent": "Let users enter a bounded decimal quantity with increment and decrement controls, preserving empty versus zero.",
+      "expected": [
+        "antd_v5/components/input-number.md",
+        "antd_v6/components/input-number.md"
+      ]
+    },
+    {
+      "id": "tabs-en",
+      "intent": "Switch between information panels in the same page while keeping the selected header and visible panel synchronized.",
+      "expected": [
+        "antd_v5/components/tabs.md",
+        "antd_v6/components/tabs.md"
+      ]
+    },
+    {
+      "id": "readonly-en",
+      "intent": "Present grouped read-only attributes of one entity as label/value pairs rather than editable fields or repeated rows.",
+      "expected": [
+        "antd_v6/components/descriptions.md"
+      ]
+    },
+    {
+      "id": "custom-map",
+      "intent": "在地图上拖动多边形顶点编辑地理围栏，支持图层投影和地理坐标吸附。",
+      "expected": []
+    },
+    {
+      "id": "custom-node-editor",
+      "intent": "在无限画布上连接业务节点，支持自定义端口类型、边路由和执行图校验。",
+      "expected": []
+    },
+    {
+      "id": "spacing-only",
+      "intent": "将已有区域中的间距从12像素改成16像素，保留现有行为和组件。",
+      "expected": []
+    },
+    {
+      "id": "plain-copy",
+      "intent": "在页面放置一段普通的业务说明文字，没有点击、输入或状态变化。",
+      "expected": []
+    }
+  ],
+  "models": {
+    "e5": {
+      "repo": "Xenova/multilingual-e5-small",
+      "revision": "761b726dd34fb83930e26aab4e9ac3899aa1fa78"
+    },
+    "qwen": {
+      "repo": "onnx-community/Qwen3-Embedding-0.6B-ONNX",
+      "revision": "c25a394dd583836952667c12f008335071b3f43d"
+    },
+    "gemma": {
+      "repo": "onnx-community/embeddinggemma-2-ONNX",
+      "revision": "daa72c51243991dfcaf9f9137d2c573d8f7790c0"
+    }
+  }
+}

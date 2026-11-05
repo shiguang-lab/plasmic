@@ -35,6 +35,7 @@ export function AntdCollapsePanel(props: React.ComponentProps<typeof Collapse.Pa
 
 export function registerCollapse(loader?: Registerable) {
   registerComponentHelper(loader, AntdCollapse, {
+    description: "Expand or collapse labeled content sections, independently or in accordion mode. Keeps section headers available while their content is hidden.",
     name: collapseComponentName,
     displayName: "Collapse",
     defaultStyles: { width: "stretch" },

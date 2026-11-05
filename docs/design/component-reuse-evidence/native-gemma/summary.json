@@ -1,0 +1,411 @@
+{
+  "aggregation": "Each resource value is median/min/max across three fresh processes, not pooled-query percentiles. RSS bytes; Darwin getrusage maxRSS bytes.",
+  "baseline": {
+    "quality": {
+      "model": {
+        "repo": "onnx-community/embeddinggemma-2-ONNX",
+        "revision": "daa72c51243991dfcaf9f9137d2c573d8f7790c0"
+      },
+      "runtime": "@huggingface/transformers 4.3.2, CPU, q4, two intra-op threads, 512-token input cap",
+      "source": "Library-document candidate set with context-only documents excluded; see data.json for actual count and pinned hashes",
+      "documentCount": 101,
+      "positiveCases": 37,
+      "negativeOrOutOfScopeCases": 4,
+      "hitAt1": 24,
+      "hitAt3": 34,
+      "hitAt5": 34,
+      "mrr": 0.7567635304477409,
+      "warnings": [
+        "Manually authored labels and truncated component documentation; not independently reviewed, not current project contracts.",
+        "Negative rankings are descriptive only; no abstention threshold was calibrated.",
+        "No resource or latency benchmark was performed."
+      ]
+    },
+    "resources": {
+      "model": {
+        "repo": "onnx-community/embeddinggemma-2-ONNX",
+        "revision": "daa72c51243991dfcaf9f9137d2c573d8f7790c0"
+      },
+      "dtype": "q4",
+      "device": "CPU only",
+      "threads": {
+        "intra": 2,
+        "inter": 1
+      },
+      "hardware": {
+        "platform": "darwin",
+        "arch": "arm64",
+        "cpu": "Apple M4",
+        "logicalCpus": 10,
+        "ramBytes": 25769803776
+      },
+      "runtime": {
+        "node": "v24.20.0",
+        "transformers": "4.3.2",
+        "onnxruntime": "1.30.0"
+      },
+      "execution": "New process, local files only; OS disk cache not cleared; model setup excludes network download.",
+      "runtimeImportMs": 72.276208,
+      "localLoadMs": 515.18725,
+      "firstInferenceMs": 65.78408300000001,
+      "warmQueries": 30,
+      "warmP50Ms": 53.51316699999995,
+      "warmP95Ms": 63.130250000000046,
+      "warmMaxMs": 64.3113330000001,
+      "baselineRss": 47677440,
+      "rssAfterLoad": 608043008,
+      "rssAfterQueries": 646512640,
+      "sampledPeakRss": 646512640,
+      "resourceUsageMaxRssKiB": 631392,
+      "outputDimensions": [
+        1,
+        768
+      ],
+      "modelFiles": [
+        {
+          "name": "config.json",
+          "bytes": 5031
+        },
+        {
+          "name": "tokenizer.json",
+          "bytes": 32170510
+        },
+        {
+          "name": "tokenizer_config.json",
+          "bytes": 1599
+        },
+        {
+          "name": "onnx/model_q4.onnx",
+          "bytes": 490742
+        },
+        {
+          "name": "onnx/model_q4.onnx_data",
+          "bytes": 174028800
+        }
+      ],
+      "modelArtifactBytes": 206696682,
+      "limitations": [
+        "Embedding-only probe, not end-to-end component search, Electron package, UI responsiveness or MCP scan benchmark.",
+        "No active Studio interaction workload was controlled; not evidence of unchanged frame rate.",
+        "30 short Chinese queries from ten positive cases; not long documents, indexing or all target platforms.",
+        "Memory is whole Node worker RSS including runtime/tokenizer/model, not just tensor bytes."
+      ]
+    }
+  },
+  "models": {
+    "litert": {
+      "quality": {
+        "hitAt1": 22,
+        "hitAt3": 30,
+        "hitAt5": 33,
+        "mrr": 0.7175675675675676,
+        "indexMs": 10867.737583932467,
+        "maxBatchDifference": 0
+      },
+      "resources": {
+        "localLoadMs": {
+          "median": 87.35187503043562,
+          "min": 86.73162502236664,
+          "max": 138.16533400677145
+        },
+        "firstInferenceMs": {
+          "median": 38.254457991570234,
+          "min": 37.87624998949468,
+          "max": 39.022832992486656
+        },
+        "warmP50Ms": {
+          "median": 33.07745908387005,
+          "min": 33.05699990596622,
+          "max": 33.30074995756149
+        },
+        "warmP95Ms": {
+          "median": 33.510709065012634,
+          "min": 33.47575000952929,
+          "max": 38.076500059105456
+        },
+        "indexMs": {
+          "median": 10781.858499976806,
+          "min": 10779.062125016935,
+          "max": 10810.050291009247
+        },
+        "osMaxRssBytes": {
+          "median": 506822656,
+          "min": 506658816,
+          "max": 508100608
+        },
+        "sampledPeakRssBytes": {
+          "median": 506445824,
+          "min": 506281984,
+          "max": 507740160
+        },
+        "runtimeImportMs": {
+          "median": 12.61750003322959,
+          "min": 12.198082986287773,
+          "max": 13.063875027000904
+        },
+        "loadedRssBytes": {
+          "median": 314982400,
+          "min": 314769408,
+          "max": 315719680
+        },
+        "queriedRssBytes": {
+          "median": 402096128,
+          "min": 401899520,
+          "max": 402817024
+        },
+        "indexedRssBytes": {
+          "median": 506019840,
+          "min": 505839616,
+          "max": 507314176
+        },
+        "finishedRssBytes": {
+          "median": 506445824,
+          "min": 506249216,
+          "max": 507740160
+        }
+      },
+      "qualityRunOsPeakRssBytes": 582909952,
+      "maximumObservedOsPeakRssBytes": 582909952,
+      "onnxParity": {
+        "vectorSampleCount": 14,
+        "minimumCosine": 0.9659269012061129,
+        "meanCosine": 0.9760814912474347,
+        "vectors": [
+          {
+            "id": "doc:antd_v5/components/avatar.md",
+            "cosine": 0.9659269012061129,
+            "maxAbsoluteDifference": 0.02713227425329898
+          },
+          {
+            "id": "doc:antd_v5/components/breadcrumb.md",
+            "cosine": 0.967345017866212,
+            "maxAbsoluteDifference": 0.03585472105345319
+          },
+          {
+            "id": "doc:antd_v5/components/button.md",
+            "cosine": 0.9696225670190446,
+            "maxAbsoluteDifference": 0.033496556998346805
+          },
+          {
+            "id": "doc:antd_v5/components/checkbox.md",
+            "cosine": 0.9671045542206307,
+            "maxAbsoluteDifference": 0.03169425215891694
+          },
+          {
+            "id": "query:content-switch",
+            "cosine": 0.9781354629797253,
+            "maxAbsoluteDifference": 0.025211968695138726
+          },
+          {
+            "id": "query:one-value",
+            "cosine": 0.981806788988067,
+            "maxAbsoluteDifference": 0.0272712851760563
+          },
+          {
+            "id": "query:many-values",
+            "cosine": 0.9822687368284334,
+            "maxAbsoluteDifference": 0.023676174538475883
+          },
+          {
+            "id": "query:daily-clock",
+            "cosine": 0.9818959676131794,
+            "maxAbsoluteDifference": 0.025230794542957798
+          },
+          {
+            "id": "query:calendar-range",
+            "cosine": 0.9739025904584953,
+            "maxAbsoluteDifference": 0.0251692475336554
+          },
+          {
+            "id": "query:quantity",
+            "cosine": 0.9842871186658775,
+            "maxAbsoluteDifference": 0.02180347791806362
+          },
+          {
+            "id": "query:identifier",
+            "cosine": 0.9711586689770032,
+            "maxAbsoluteDifference": 0.028857685264164094
+          },
+          {
+            "id": "query:password",
+            "cosine": 0.9803366081489194,
+            "maxAbsoluteDifference": 0.02469331401463644
+          },
+          {
+            "id": "query:readonly-group",
+            "cosine": 0.9810919867756952,
+            "maxAbsoluteDifference": 0.024046691549614276
+          },
+          {
+            "id": "query:records",
+            "cosine": 0.9802579077166893,
+            "maxAbsoluteDifference": 0.022858791072417527
+          }
+        ],
+        "interpretation": "Different quantized artifacts and inference kernels; these checks do not establish equal outputs or isolate the cause of ranking changes.",
+        "tokenInputCheck": "Native LiteRT token IDs not exposed by this API; not verified."
+      },
+      "top3LostVsOnnx": [
+        "readonly-group",
+        "records",
+        "list",
+        "loading"
+      ],
+      "top3GainedVsOnnx": []
+    },
+    "gguf": {
+      "quality": {
+        "hitAt1": 20,
+        "hitAt3": 33,
+        "hitAt5": 34,
+        "mrr": 0.7017346127640245,
+        "indexMs": 34947.389916,
+        "maxBatchDifference": 0
+      },
+      "resources": {
+        "localLoadMs": {
+          "median": 437.441708,
+          "min": 426.37495800000005,
+          "max": 466.971125
+        },
+        "firstInferenceMs": {
+          "median": 36.63491699999999,
+          "min": 36.013917000000006,
+          "max": 36.82029200000003
+        },
+        "warmP50Ms": {
+          "median": 29.817834000000154,
+          "min": 29.092958000000003,
+          "max": 29.933374999999927
+        },
+        "warmP95Ms": {
+          "median": 34.37616700000001,
+          "min": 34.286291999999996,
+          "max": 34.38470800000004
+        },
+        "indexMs": {
+          "median": 35004.06654199999,
+          "min": 34942.521625,
+          "max": 35043.735540999995
+        },
+        "osMaxRssBytes": {
+          "median": 429031424,
+          "min": 428998656,
+          "max": 429047808
+        },
+        "sampledPeakRssBytes": {
+          "median": 429015040,
+          "min": 428982272,
+          "max": 429031424
+        },
+        "loadedRssBytes": {
+          "median": 368525312,
+          "min": 368492544,
+          "max": 368525312
+        },
+        "queriedRssBytes": {
+          "median": 377798656,
+          "min": 377749504,
+          "max": 377815040
+        },
+        "indexedRssBytes": {
+          "median": 429015040,
+          "min": 428982272,
+          "max": 429031424
+        },
+        "finishedRssBytes": {
+          "median": 429015040,
+          "min": 428982272,
+          "max": 429031424
+        }
+      },
+      "qualityRunOsPeakRssBytes": 430882816,
+      "maximumObservedOsPeakRssBytes": 430882816,
+      "onnxParity": {
+        "vectorSampleCount": 14,
+        "minimumCosine": 0.9734992933150819,
+        "meanCosine": 0.9822669268836594,
+        "vectors": [
+          {
+            "id": "doc:antd_v5/components/avatar.md",
+            "cosine": 0.97671474151284,
+            "maxAbsoluteDifference": 0.026907029510832296
+          },
+          {
+            "id": "doc:antd_v5/components/breadcrumb.md",
+            "cosine": 0.9758390600376349,
+            "maxAbsoluteDifference": 0.03142749391165345
+          },
+          {
+            "id": "doc:antd_v5/components/button.md",
+            "cosine": 0.9762609566695699,
+            "maxAbsoluteDifference": 0.026728299122221022
+          },
+          {
+            "id": "doc:antd_v5/components/checkbox.md",
+            "cosine": 0.9764040125176674,
+            "maxAbsoluteDifference": 0.03211108150225633
+          },
+          {
+            "id": "query:content-switch",
+            "cosine": 0.9849903969489141,
+            "maxAbsoluteDifference": 0.021386421037793715
+          },
+          {
+            "id": "query:one-value",
+            "cosine": 0.9844808385425374,
+            "maxAbsoluteDifference": 0.02156035134701654
+          },
+          {
+            "id": "query:many-values",
+            "cosine": 0.9878406161073533,
+            "maxAbsoluteDifference": 0.01955141718533368
+          },
+          {
+            "id": "query:daily-clock",
+            "cosine": 0.987020384614995,
+            "maxAbsoluteDifference": 0.018523119477712072
+          },
+          {
+            "id": "query:calendar-range",
+            "cosine": 0.9734992933150819,
+            "maxAbsoluteDifference": 0.02609390697802572
+          },
+          {
+            "id": "query:quantity",
+            "cosine": 0.9877634603389597,
+            "maxAbsoluteDifference": 0.020110802527401227
+          },
+          {
+            "id": "query:identifier",
+            "cosine": 0.9812497673731234,
+            "maxAbsoluteDifference": 0.027164575942143797
+          },
+          {
+            "id": "query:password",
+            "cosine": 0.986263569821061,
+            "maxAbsoluteDifference": 0.020517854968228805
+          },
+          {
+            "id": "query:readonly-group",
+            "cosine": 0.9877444661159713,
+            "maxAbsoluteDifference": 0.018252597283579364
+          },
+          {
+            "id": "query:records",
+            "cosine": 0.9856654124555216,
+            "maxAbsoluteDifference": 0.022667321081327546
+          }
+        ],
+        "interpretation": "Different quantized artifacts and inference kernels; these checks do not establish equal outputs or isolate the cause of ranking changes.",
+        "tokenInputCount": 142,
+        "identicalTokenInputCount": 142,
+        "differentTokenInputs": []
+      },
+      "top3LostVsOnnx": [
+        "list"
+      ],
+      "top3GainedVsOnnx": []
+    }
+  }
+}

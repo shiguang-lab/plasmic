@@ -145,3 +145,34 @@ it("awaits the native preview handoff across the host-to-top-frame API", async (
 });
 
 beforeEach(() => registerPresentationProject("0123456789", "project" as import("@/wab/shared/ApiSchema").ProjectId));
+
+it("forwards component reuse commands from HostFrame to Desktop and rejects another project", async () => {
+  const { appCtx, history } = fakeAppCtx();
+  const project = mock<ApiProject>({ id: toOpaque("component-project") });
+  const native = { sync: vi.fn().mockResolvedValue({ indexed: 1 }), review: vi.fn().mockResolvedValue({ suggestions: [] }), cancel: vi.fn(), activity: vi.fn(), release: vi.fn().mockResolvedValue(undefined) };
+  vi.stubGlobal("desktopComponentReuse", native);
+  const mounted = renderHook(
+    () => useTopFrameState({ appCtx, project, forceUpdate: vi.fn() }),
+    { wrapper: ({ children }: { children: React.ReactNode }) => <HistoryProvider history={history}>{children}</HistoryProvider> },
+  );
+  try {
+    const api = mounted.result.current.topFrameApi;
+    expect(await api.componentReuse({ command: "status" })).toEqual({ available: true });
+    const catalogue = { projectId: project.id, documents: [], unavailable: 0 };
+    expect(await api.componentReuse({ command: "sync", ...catalogue })).toEqual({ indexed: 1 });
+    expect(native.sync).toHaveBeenCalledWith(catalogue);
+    const query = { projectId: project.id, id: "query", regions: [] };
+    expect(await api.componentReuse({ command: "review", ...query })).toEqual({ suggestions: [] });
+    expect(native.review).toHaveBeenCalledWith(query);
+    await api.componentReuse({ command: "cancel", id: query.id });
+    await api.componentReuse({ command: "activity" });
+    await api.componentReuse({ command: "release", projectId: project.id });
+    expect(native.cancel).toHaveBeenCalledWith(query.id);
+    expect(native.activity).toHaveBeenCalledOnce();
+    expect(native.release).toHaveBeenCalledWith(project.id);
+    await expect(api.componentReuse({ command: "sync", ...catalogue, projectId: "other-project" })).rejects.toThrow("Invalid component review project");
+    expect(native.sync).toHaveBeenCalledOnce();
+    vi.unstubAllGlobals();
+    expect(await api.componentReuse({ command: "status" })).toEqual({ available: false });
+  } finally { mounted.unmount(); vi.unstubAllGlobals(); }
+});

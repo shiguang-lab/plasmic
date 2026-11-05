@@ -1,0 +1,231 @@
+{
+  "date": "2026-11-05",
+  "corpusSha256": "b7191a546a488cc1b8ac0dec708e342938b3d6a494db557dcb636d1a2dafcdd4",
+  "description": "Frozen pilot set, CPU, three fresh processes per model. Each displayed metric is the median of three run-level values; P95 is not a pooled P95. No production acceptance.",
+  "rows": [
+    {
+      "key": "bekko128",
+      "hitAt1": 7,
+      "hitAt3": 15,
+      "hitAt5": 18,
+      "mrr": 0.32138648531063385,
+      "positiveCases": 37,
+      "modelArtifactBytes": 31505839,
+      "threeFreshProcesses": {
+        "runtimeImportMs": {
+          "median": 44.859333,
+          "min": 43.72408300000001,
+          "max": 49.98741700000001
+        },
+        "localLoadMs": {
+          "median": 155.338542,
+          "min": 142.73804199999998,
+          "max": 161.500083
+        },
+        "firstInferenceMs": {
+          "median": 2.022790999999984,
+          "min": 1.9410000000000025,
+          "max": 2.2695830000000115
+        },
+        "warmP50Ms": {
+          "median": 0.06979200000000674,
+          "min": 0.06433299999997644,
+          "max": 0.07091700000000856
+        },
+        "warmP95Ms": {
+          "median": 0.1388330000000053,
+          "min": 0.12458300000000122,
+          "max": 0.15725000000000477
+        },
+        "rssAfterQueries": {
+          "median": 280854528,
+          "min": 280559616,
+          "max": 281165824
+        },
+        "queryOsMaxRssKiB": {
+          "median": 274272,
+          "min": 273984,
+          "max": 274576
+        },
+        "indexMs": {
+          "median": 28.565125000000023,
+          "min": 28.140792000000005,
+          "max": 29.320749999999975
+        },
+        "resourceUsageMaxRssKiB": {
+          "median": 298880,
+          "min": 298720,
+          "max": 299120
+        }
+      }
+    },
+    {
+      "key": "bekko256",
+      "hitAt1": 10,
+      "hitAt3": 19,
+      "hitAt5": 22,
+      "mrr": 0.4258009033167425,
+      "positiveCases": 37,
+      "modelArtifactBytes": 57105839,
+      "threeFreshProcesses": {
+        "runtimeImportMs": {
+          "median": 44.003209,
+          "min": 43.873,
+          "max": 44.308292
+        },
+        "localLoadMs": {
+          "median": 155.529292,
+          "min": 153.789917,
+          "max": 155.870125
+        },
+        "firstInferenceMs": {
+          "median": 1.9281249999999943,
+          "min": 1.9079169999999976,
+          "max": 2.346624999999989
+        },
+        "warmP50Ms": {
+          "median": 0.0776249999999834,
+          "min": 0.07245800000001168,
+          "max": 0.09475000000000477
+        },
+        "warmP95Ms": {
+          "median": 0.1776659999999879,
+          "min": 0.16045800000000554,
+          "max": 0.19191699999998946
+        },
+        "rssAfterQueries": {
+          "median": 379322368,
+          "min": 378863616,
+          "max": 379518976
+        },
+        "queryOsMaxRssKiB": {
+          "median": 370432,
+          "min": 369984,
+          "max": 370624
+        },
+        "indexMs": {
+          "median": 32.076374999999985,
+          "min": 31.574000000000012,
+          "max": 33.441542
+        },
+        "resourceUsageMaxRssKiB": {
+          "median": 394080,
+          "min": 393456,
+          "max": 394192
+        }
+      }
+    },
+    {
+      "key": "bge",
+      "hitAt1": 7,
+      "hitAt3": 15,
+      "hitAt5": 18,
+      "mrr": 0.33671957686917114,
+      "positiveCases": 37,
+      "modelArtifactBytes": 24451175,
+      "threeFreshProcesses": {
+        "runtimeImportMs": {
+          "median": 44.5695,
+          "min": 44.120875,
+          "max": 44.63933300000001
+        },
+        "localLoadMs": {
+          "median": 50.907042,
+          "min": 50.011624999999995,
+          "max": 52.179709
+        },
+        "firstInferenceMs": {
+          "median": 5.101375000000004,
+          "min": 4.9811670000000134,
+          "max": 5.261042000000003
+        },
+        "warmP50Ms": {
+          "median": 2.5401669999999967,
+          "min": 2.511374999999987,
+          "max": 2.5881669999999986
+        },
+        "warmP95Ms": {
+          "median": 2.955291999999986,
+          "min": 2.9287080000000003,
+          "max": 3.0799160000000256
+        },
+        "rssAfterQueries": {
+          "median": 175685632,
+          "min": 175538176,
+          "max": 175816704
+        },
+        "queryOsMaxRssKiB": {
+          "median": 171568,
+          "min": 171424,
+          "max": 171696
+        },
+        "indexMs": {
+          "median": 2585.5001660000003,
+          "min": 2562.7961250000003,
+          "max": 2620.713041
+        },
+        "resourceUsageMaxRssKiB": {
+          "median": 459104,
+          "min": 458976,
+          "max": 459200
+        }
+      }
+    },
+    {
+      "key": "granite",
+      "hitAt1": 20,
+      "hitAt3": 30,
+      "hitAt5": 33,
+      "mrr": 0.6978764478764479,
+      "positiveCases": 37,
+      "modelArtifactBytes": 123174716,
+      "threeFreshProcesses": {
+        "runtimeImportMs": {
+          "median": 44.886708,
+          "min": 44.758167,
+          "max": 46.888208
+        },
+        "localLoadMs": {
+          "median": 432.552291,
+          "min": 428.985625,
+          "max": 440.890958
+        },
+        "firstInferenceMs": {
+          "median": 24.24058299999996,
+          "min": 24.153249999999957,
+          "max": 25.565334000000007
+        },
+        "warmP50Ms": {
+          "median": 3.422792000000072,
+          "min": 3.4090830000000096,
+          "max": 3.499541999999906
+        },
+        "warmP95Ms": {
+          "median": 4.513332999999989,
+          "min": 4.456791000000067,
+          "max": 4.700624999999945
+        },
+        "rssAfterQueries": {
+          "median": 646545408,
+          "min": 645775360,
+          "max": 653918208
+        },
+        "queryOsMaxRssKiB": {
+          "median": 648752,
+          "min": 648320,
+          "max": 654592
+        },
+        "indexMs": {
+          "median": 5239.107292,
+          "min": 5161.058542,
+          "max": 5420.976542
+        },
+        "resourceUsageMaxRssKiB": {
+          "median": 842352,
+          "min": 841808,
+          "max": 850608
+        }
+      }
+    }
+  ]
+}

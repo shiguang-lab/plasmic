@@ -29,6 +29,7 @@ function AntdRadioGroup(props) {
 }
 function registerRadio(loader) {
   registerComponentHelper(loader, AntdRadio, {
+    description: "One mutually exclusive option, normally inside Radio Group, with a value and label.",
     name: radioComponentName,
     displayName: "Radio",
     props: {
@@ -62,6 +63,7 @@ function registerRadio(loader) {
     parentComponentName: radioGroupComponentName
   });
   registerComponentHelper(loader, AntdRadioButton, {
+    description: "One button-styled radio option inside Radio Group; selects a field value rather than a content panel.",
     name: radioButtonComponentName,
     displayName: "Radio Button",
     props: {
@@ -95,6 +97,7 @@ function registerRadio(loader) {
     parentComponentName: radioGroupComponentName
   });
   registerComponentHelper(loader, AntdRadioGroup, {
+    description: "Choose exactly one value from mutually exclusive options, using radios or radio buttons. Selection changes a field value rather than navigating content panels.",
     name: radioGroupComponentName,
     displayName: "Radio Group",
     props: {

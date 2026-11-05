@@ -89,6 +89,9 @@ a Select inside a Modal opens both containers.
 false keeps it closed, and unset follows selection and the configured `open`.
 This property is excluded from generated code. Interactive preview and published
 pages use the native `open` / `defaultOpen` and business interactions.
+The interactive canvas ignores editing reveals and restores the runtime open
+state. Tooltip exposes independent native `open` and `defaultOpen` props and
+reports native changes through `onOpenChange`.
 
 Use the Outline to select hidden content, then edit text, styles and child nodes
 on the canvas. Tooltip's `title`, Popover's `title` / `content`, Popconfirm's
@@ -97,10 +100,11 @@ or option nodes, enable Dropdown's **Use menu items slot** (`useMenuItemsSlot`) 
 **Use slot** (`useChildren`); JSON menu items/options remain property data.
 
 Automatic opening does not invoke open/close or confirmation callbacks, change
-business state, or trap focus inside Modal / Drawer. Modal, Drawer, Tooltip,
-Popover, Popconfirm and Dropdown unmount hidden editing content so nested portals
-cannot remain visible after their parent closes. Runtime caching settings remain
-native.
+business state, or trap focus inside Modal / Drawer. Dismissing Modal, Drawer,
+Tooltip, Popover, Popconfirm or Dropdown content within the design canvas unmounts
+it so nested portals cannot remain visible after their parent closes. Switching
+canvas modes retains mounted content according to the native caching settings
+and does not emit business open/close lifecycle callbacks.
 
 Publish and upgrade the Ant Design 6 hostless library metadata to expose the new
 **Preview open** property in existing Studio projects. Selection-driven opening

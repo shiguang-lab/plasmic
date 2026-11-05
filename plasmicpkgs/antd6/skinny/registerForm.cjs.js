@@ -22,7 +22,7 @@ require('./contexts-DbLDJr3k.cjs.js');
 require('@plasmicapp/data-sources');
 require('classnames');
 require('dayjs');
-require('./canvas-overlay-pJBoKL8M.cjs.js');
+require('./canvas-overlay-CK330rTr.cjs.js');
 require('@plasmicapp/host');
 require('./react-utils-CP3JYj1p.cjs.js');
 
@@ -449,7 +449,7 @@ function registerForm(loader) {
   utils.registerComponentHelper(loader, SchemaForm.FormWrapper, {
     name: names.formComponentName,
     displayName: "Form",
-    description: "[Learn how to use forms](https://docs.plasmic.app/learn/forms/)",
+    description: "Collect named input values, validate field rules and submit the complete values through form events. Supports editable Form Field children and repeated field groups. [Learn how to use forms](https://docs.plasmic.app/learn/forms/)",
     props: {
       disabled: { type: "boolean", defaultValueHint: false },
       mode: {

@@ -29,6 +29,7 @@ export const AntdCheckboxGroup = Checkbox.Group;
 
 export function registerCheckbox(loader?: Registerable) {
   registerComponentHelper(loader, AntdCheckbox, {
+    description: "Toggle a boolean choice such as consent or a single independent option.",
     name: checkboxComponentName,
     displayName: "Checkbox",
     props: {
@@ -86,6 +87,7 @@ export function registerCheckbox(loader?: Registerable) {
   });
 
   registerComponentHelper(loader, AntdCheckboxGroup, {
+    description: "Choose multiple independent values from a set of options; exposes the selected values as a collection.",
     name: checkboxGroupComponentName,
     displayName: "Checkbox Group",
     props: {

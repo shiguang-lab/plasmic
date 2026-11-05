@@ -13,7 +13,7 @@ var FormItem = require('./FormItem.cjs.js');
 require('./names-DbJduus8.cjs.js');
 require('classnames');
 require('dayjs');
-require('./canvas-overlay-pJBoKL8M.cjs.js');
+require('./canvas-overlay-CK330rTr.cjs.js');
 require('@plasmicapp/host');
 require('@plasmicapp/host/registerComponent');
 require('@plasmicapp/host/registerGlobalContext');

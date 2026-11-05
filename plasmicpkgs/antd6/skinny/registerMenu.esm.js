@@ -1,6 +1,6 @@
 import { Menu } from 'antd';
 import { usePlasmicCanvasContext, usePlasmicCanvasComponentInfo } from '@plasmicapp/host';
-import { r as renderCanvasSlot } from './canvas-overlay-CbpJk7_w.esm.js';
+import { r as renderCanvasSlot } from './canvas-overlay-27tNRB55.esm.js';
 import React from 'react';
 import { r as registerComponentHelper } from './utils-U416WEAa.esm.js';
 import '@plasmicapp/host/registerComponent';

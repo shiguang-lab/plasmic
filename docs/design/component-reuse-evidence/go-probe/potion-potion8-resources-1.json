@@ -1,0 +1,304 @@
+{
+  "samples": [
+    {
+      "caseId": "content-switch",
+      "characters": 43,
+      "ms": 0.01125
+    },
+    {
+      "caseId": "one-value",
+      "characters": 28,
+      "ms": 0.007334
+    },
+    {
+      "caseId": "many-values",
+      "characters": 32,
+      "ms": 0.012542
+    },
+    {
+      "caseId": "daily-clock",
+      "characters": 30,
+      "ms": 0.048542
+    },
+    {
+      "caseId": "calendar-range",
+      "characters": 25,
+      "ms": 0.010459
+    },
+    {
+      "caseId": "quantity",
+      "characters": 34,
+      "ms": 0.011625
+    },
+    {
+      "caseId": "identifier",
+      "characters": 31,
+      "ms": 0.007625
+    },
+    {
+      "caseId": "password",
+      "characters": 28,
+      "ms": 0.008084
+    },
+    {
+      "caseId": "readonly-group",
+      "characters": 31,
+      "ms": 0.019792
+    },
+    {
+      "caseId": "records",
+      "characters": 35,
+      "ms": 0.00825
+    },
+    {
+      "caseId": "content-switch",
+      "characters": 43,
+      "ms": 0.008208
+    },
+    {
+      "caseId": "one-value",
+      "characters": 28,
+      "ms": 0.005958
+    },
+    {
+      "caseId": "many-values",
+      "characters": 32,
+      "ms": 0.008
+    },
+    {
+      "caseId": "daily-clock",
+      "characters": 30,
+      "ms": 0.006375
+    },
+    {
+      "caseId": "calendar-range",
+      "characters": 25,
+      "ms": 0.005834
+    },
+    {
+      "caseId": "quantity",
+      "characters": 34,
+      "ms": 0.00675
+    },
+    {
+      "caseId": "identifier",
+      "characters": 31,
+      "ms": 0.006625
+    },
+    {
+      "caseId": "password",
+      "characters": 28,
+      "ms": 0.005833
+    },
+    {
+      "caseId": "readonly-group",
+      "characters": 31,
+      "ms": 0.007125
+    },
+    {
+      "caseId": "records",
+      "characters": 35,
+      "ms": 0.005459
+    },
+    {
+      "caseId": "content-switch",
+      "characters": 43,
+      "ms": 0.013125
+    },
+    {
+      "caseId": "one-value",
+      "characters": 28,
+      "ms": 0.006583
+    },
+    {
+      "caseId": "many-values",
+      "characters": 32,
+      "ms": 0.005291
+    },
+    {
+      "caseId": "daily-clock",
+      "characters": 30,
+      "ms": 0.005042
+    },
+    {
+      "caseId": "calendar-range",
+      "characters": 25,
+      "ms": 0.036917
+    },
+    {
+      "caseId": "quantity",
+      "characters": 34,
+      "ms": 0.01175
+    },
+    {
+      "caseId": "identifier",
+      "characters": 31,
+      "ms": 0.006208
+    },
+    {
+      "caseId": "password",
+      "characters": 28,
+      "ms": 0.009666
+    },
+    {
+      "caseId": "readonly-group",
+      "characters": 31,
+      "ms": 0.00875
+    },
+    {
+      "caseId": "records",
+      "characters": 35,
+      "ms": 0.009791
+    }
+  ],
+  "summary": {
+    "buildDependencies": [
+      {
+        "path": "github.com/nlpodyssey/safetensors",
+        "sum": "h1:n1I/GOYbUEUA+GlHCQRDtX/TO8WjcaOye7tzNZ0reV4=",
+        "version": "v0.0.0-20250209183917-bfb01cc25f7c"
+      },
+      {
+        "path": "github.com/rivo/uniseg",
+        "sum": "h1:WUdvkW8uEhrYfLC4ZzdpI2ztxP1I582+49Oc5Mq64VQ=",
+        "version": "v0.4.7"
+      },
+      {
+        "path": "github.com/tphakala/simd",
+        "sum": "h1:6DBkVfF/DEf/dnkfajbtu13+EZVReIIgIoUm2GNRs/k=",
+        "version": "v1.3.0"
+      },
+      {
+        "path": "github.com/trengrj/go-potion",
+        "sum": "h1:X2CWqqg7fUE3kJIlh0nBT2QCMB5y5XHf9OWJcBs2k+0=",
+        "version": "v0.1.2"
+      },
+      {
+        "path": "golang.org/x/sys",
+        "sum": "h1:XbzkgYJHdqh/8m2Uu0W/dQv8nktxx4BFHp1M0gROTXA=",
+        "version": "v0.49.0"
+      },
+      {
+        "path": "golang.org/x/text",
+        "sum": "h1:1QivrlhwAsnMOcqgOdl9my7s9OyZl8O5/UGUTJVXoWc=",
+        "version": "v0.43.0"
+      }
+    ],
+    "corpusSha256": "b7191a546a488cc1b8ac0dec708e342938b3d6a494db557dcb636d1a2dafcdd4",
+    "date": "2026-11-04T22:20:06.324011Z",
+    "dimensions": 256,
+    "execution": "New compiled Go process, local prepared assets only; OS disk cache not cleared. CPU only.",
+    "firstInferenceMs": 1.159792,
+    "goVersion": "go1.27.0",
+    "goarch": "arm64",
+    "gomaxprocs": 2,
+    "goos": "darwin",
+    "indexDocuments": 101,
+    "indexMs": 49.386458,
+    "limitations": [
+      "Manually authored frozen pilot set; no independent labels or holdout.",
+      "Not real Studio/MCP/Electron interaction or total scan latency.",
+      "No BM25, hybrid retrieval, reranker or calibrated abstention threshold.",
+      "Fresh-process setup excludes compilation and network download."
+    ],
+    "localLoadMs": 9.167958,
+    "logicalCPUs": 10,
+    "metadata": {
+      "backend": "pure Go, mmap-backed F32 weights",
+      "commit": "c3ca68d3e5dfcc54226acc597c19ddbcc8caef9f",
+      "library": "go-potion v0.1.2",
+      "limitation": "Library has no token cap option; uses same raw document fragments without token truncation. Not a same-model replacement for Bekko.",
+      "maxTokens": null,
+      "pooling": "token mean + L2 normalization",
+      "tokenizer": "native Go WordPiece or Unigram"
+    },
+    "mode": "resources",
+    "modelKey": "potion8",
+    "repeat": 1,
+    "warmMaxMs": 0.048542,
+    "warmP50Ms": 0.008,
+    "warmP95Ms": 0.036917,
+    "model": {
+      "repo": "minishlab/potion-base-8M",
+      "revision": "bf8b056651a2c21b8d2565580b8569da283cab23",
+      "cacheName": "BASE8M",
+      "files": [
+        {
+          "name": "tokenizer.json",
+          "bytes": 683666,
+          "sha256": "e67e803f624fb4d67dea1c730d06e1067e1b14d830e2c2202569e3ef0f70bb50"
+        },
+        {
+          "name": "model.safetensors",
+          "bytes": 30236760,
+          "sha256": "f65d0f325faadc1e121c319e2faa41170d3fa07d8c89abd48ca5358d9a223de2"
+        }
+      ],
+      "preparedFiles": [
+        {
+          "name": "model.safetensors",
+          "bytes": 30240768,
+          "sha256": "ef095a4f1a4d80bdcaf065bbd00f18fcb115a12578db709396d751e86bbbc8ee"
+        },
+        {
+          "name": "tokenizer.json",
+          "bytes": 683666,
+          "sha256": "e67e803f624fb4d67dea1c730d06e1067e1b14d830e2c2202569e3ef0f70bb50"
+        }
+      ],
+      "preparation": "go-potion aligns the safetensors header to a 4096-byte tensor offset; payload values remain unchanged. Source files were verified against Hub hashes before loading."
+    },
+    "memoryObserver": "macOS proc_pidinfo(PROC_PIDTASKINFO), external parent; child RSS only; sample every 20ms and at blocked phase checkpoints. Darwin getrusage maxRSS is bytes.",
+    "binarySha256": "73eee6143af947cde86d52e0f89d84b23f214212454d00dde9e1b25f07c2efb1",
+    "binaryBytes": 10350802,
+    "memoryStages": [
+      {
+        "event": "phase",
+        "goHeapAlloc": 787184,
+        "goSysBytes": 8669448,
+        "osMaxRssBytes": 12484608,
+        "phase": "baseline",
+        "rssBytes": 12566528,
+        "sampledPeakRssBytes": 12566528
+      },
+      {
+        "event": "phase",
+        "goHeapAlloc": 3846552,
+        "goSysBytes": 13732104,
+        "osMaxRssBytes": 16924672,
+        "phase": "loaded",
+        "rssBytes": 16924672,
+        "sampledPeakRssBytes": 16924672
+      },
+      {
+        "event": "phase",
+        "goHeapAlloc": 3129960,
+        "goSysBytes": 13797640,
+        "osMaxRssBytes": 17678336,
+        "phase": "queried",
+        "rssBytes": 17678336,
+        "sampledPeakRssBytes": 17678336
+      },
+      {
+        "event": "phase",
+        "goHeapAlloc": 2558848,
+        "goSysBytes": 14059784,
+        "osMaxRssBytes": 35274752,
+        "phase": "indexed",
+        "rssBytes": 35274752,
+        "sampledPeakRssBytes": 35274752
+      },
+      {
+        "event": "phase",
+        "goHeapAlloc": 2561440,
+        "goSysBytes": 14059784,
+        "osMaxRssBytes": 35274752,
+        "phase": "finished",
+        "rssBytes": 35274752,
+        "sampledPeakRssBytes": 35274752
+      }
+    ],
+    "sampledPeakRssBytes": 35274752,
+    "osMaxRssBytes": 35274752
+  }
+}

@@ -733,7 +733,7 @@ test("MCP can reuse or create the selected hierarchy and enter its Project befor
         await call("execute", { name: "read", input: {} });
         await call("execute", {
           name: "createComponent",
-          input: { name: "Orders", type: "page", path: "/orders" },
+          input: { name: "Orders", type: "page", path: "/orders", reviewContext: { purpose: "Create an orders page" } },
         });
         assert.equal(edits.length, 1);
         assert.equal(edits[0].projectId, project.id);

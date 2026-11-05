@@ -32,7 +32,7 @@ export function useLocalAiStatus(
     },
   );
   const models = useSWR<string[], Error>(
-    enabled && projectId && status.data?.configured
+    enabled && projectId
       ? ["local-ai-models", projectId]
       : null,
     async ([, id]: [string, string]) =>

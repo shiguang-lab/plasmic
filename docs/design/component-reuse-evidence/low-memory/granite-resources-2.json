@@ -1,0 +1,242 @@
+{
+  "summary": {
+    "model": {
+      "repo": "onnx-community/granite-embedding-97m-multilingual-r2-ONNX",
+      "revision": "536a9f241cb3f02a9c5995a1e708c784bd274859",
+      "modelFile": "onnx/model_quantized.onnx",
+      "kind": "cls",
+      "dimensions": 384,
+      "files": [
+        {
+          "name": "onnx/model_quantized.onnx",
+          "bytes": 97858099,
+          "sha256": "704c1ebca5fbb7cd83ced41827658ac4c9990c64f7f2874d22b78044e5022e22"
+        },
+        {
+          "name": "tokenizer.json",
+          "bytes": 25301671,
+          "sha256": "51947676cae1f991fa51c6b9a24e14ee5460e5f0b9f692f13bb3159829d1592a"
+        },
+        {
+          "name": "config.json",
+          "bytes": 1215,
+          "sha256": "ae74d55a56f779774cb9a8e63d3c2da9ae1af83c00229ffdff43d0b38407a0ee"
+        },
+        {
+          "name": "tokenizer_config.json",
+          "bytes": 12860,
+          "sha256": "6ed69389e30a8ecabfce2f9ebcdf0c908b34056f24d994340f2f216521c057d5"
+        },
+        {
+          "name": "special_tokens_map.json",
+          "bytes": 871,
+          "sha256": "013787ee251ff611722479197c00853b62113ad303cb0a36524231783c676c69"
+        }
+      ]
+    },
+    "mode": "resources",
+    "repeat": 2,
+    "date": "2026-11-04T21:57:46.843Z",
+    "corpusSha256": "b7191a546a488cc1b8ac0dec708e342938b3d6a494db557dcb636d1a2dafcdd4",
+    "runtime": {
+      "node": "v24.20.0",
+      "transformers": "4.3.2",
+      "onnxruntime": "1.30.0"
+    },
+    "hardware": {
+      "platform": "darwin",
+      "arch": "arm64",
+      "cpu": "Apple M4",
+      "logicalCpus": 10,
+      "ramBytes": 25769803776
+    },
+    "settings": {
+      "device": "cpu",
+      "intraOpNumThreads": 2,
+      "interOpNumThreads": 1,
+      "maxTokens": 512,
+      "documentBatchSize": 4,
+      "pooling": "CLS",
+      "normalize": "L2",
+      "queryPrefix": "",
+      "documentPrefix": ""
+    },
+    "execution": "New Node process, local pinned files only, OS disk cache not cleared; no network in timing.",
+    "runtimeImportMs": 44.886708,
+    "localLoadMs": 428.985625,
+    "firstInferenceMs": 24.153249999999957,
+    "warmQueries": 30,
+    "warmP50Ms": 3.422792000000072,
+    "warmP95Ms": 4.513332999999989,
+    "warmMaxMs": 4.545208000000002,
+    "baselineRss": 49512448,
+    "rssAfterLoad": 644169728,
+    "rssAfterQueries": 646545408,
+    "querySampledPeakRss": 646545408,
+    "queryOsMaxRssKiB": 648752,
+    "indexMs": 5239.107292,
+    "indexDocuments": 101,
+    "rssAfterIndex": 862568448,
+    "sampledPeakRss": 862568448,
+    "resourceUsageMaxRssKiB": 842352,
+    "modelArtifactBytes": 123174716,
+    "limitations": [
+      "Whole Node process RSS, including runtime, tokenizer and model; not pure weights.",
+      "Isolated CPU embedding and indexing probe, not real Studio/MCP/Electron workload.",
+      "30 short queries and one 101-document batch-4 index build per fresh process.",
+      "Prior Gemma probe did not measure indexing peak, so compare query RSS separately."
+    ]
+  },
+  "samples": [
+    {
+      "caseId": "content-switch",
+      "characters": 43,
+      "ms": 4.545208000000002
+    },
+    {
+      "caseId": "one-value",
+      "characters": 28,
+      "ms": 3.588999999999942
+    },
+    {
+      "caseId": "many-values",
+      "characters": 32,
+      "ms": 3.819708999999989
+    },
+    {
+      "caseId": "daily-clock",
+      "characters": 30,
+      "ms": 3.6209579999999733
+    },
+    {
+      "caseId": "calendar-range",
+      "characters": 25,
+      "ms": 3.2596659999999247
+    },
+    {
+      "caseId": "quantity",
+      "characters": 34,
+      "ms": 3.899291999999946
+    },
+    {
+      "caseId": "identifier",
+      "characters": 31,
+      "ms": 3.7544579999999996
+    },
+    {
+      "caseId": "password",
+      "characters": 28,
+      "ms": 3.5120000000000573
+    },
+    {
+      "caseId": "readonly-group",
+      "characters": 31,
+      "ms": 3.5353340000000344
+    },
+    {
+      "caseId": "records",
+      "characters": 35,
+      "ms": 3.808749999999918
+    },
+    {
+      "caseId": "content-switch",
+      "characters": 43,
+      "ms": 4.513332999999989
+    },
+    {
+      "caseId": "one-value",
+      "characters": 28,
+      "ms": 3.3078749999999673
+    },
+    {
+      "caseId": "many-values",
+      "characters": 32,
+      "ms": 3.3027499999999463
+    },
+    {
+      "caseId": "daily-clock",
+      "characters": 30,
+      "ms": 3.0059170000000677
+    },
+    {
+      "caseId": "calendar-range",
+      "characters": 25,
+      "ms": 2.7677909999999883
+    },
+    {
+      "caseId": "quantity",
+      "characters": 34,
+      "ms": 3.6601249999999936
+    },
+    {
+      "caseId": "identifier",
+      "characters": 31,
+      "ms": 3.422792000000072
+    },
+    {
+      "caseId": "password",
+      "characters": 28,
+      "ms": 3.1270410000000766
+    },
+    {
+      "caseId": "readonly-group",
+      "characters": 31,
+      "ms": 3.3369579999999814
+    },
+    {
+      "caseId": "records",
+      "characters": 35,
+      "ms": 3.425625000000082
+    },
+    {
+      "caseId": "content-switch",
+      "characters": 43,
+      "ms": 4.427083000000039
+    },
+    {
+      "caseId": "one-value",
+      "characters": 28,
+      "ms": 3.325958000000014
+    },
+    {
+      "caseId": "many-values",
+      "characters": 32,
+      "ms": 3.267333000000008
+    },
+    {
+      "caseId": "daily-clock",
+      "characters": 30,
+      "ms": 2.996499999999969
+    },
+    {
+      "caseId": "calendar-range",
+      "characters": 25,
+      "ms": 2.753832999999986
+    },
+    {
+      "caseId": "quantity",
+      "characters": 34,
+      "ms": 3.5985409999999547
+    },
+    {
+      "caseId": "identifier",
+      "characters": 31,
+      "ms": 3.1978750000000673
+    },
+    {
+      "caseId": "password",
+      "characters": 28,
+      "ms": 3.043707999999924
+    },
+    {
+      "caseId": "readonly-group",
+      "characters": 31,
+      "ms": 3.210374999999999
+    },
+    {
+      "caseId": "records",
+      "characters": 35,
+      "ms": 3.4464159999999993
+    }
+  ]
+}

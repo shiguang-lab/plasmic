@@ -1,4 +1,5 @@
 import { CanvasOverlayToolbar } from "@/wab/client/components/canvas/CanvasOverlayToolbar";
+import { CanvasSessionState } from "@/wab/client/components/canvas/canvas-session-state";
 import { setLanguagePreference } from "@/wab/client/i18n";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { mkBaseVariant } from "@/wab/shared/Variants";
@@ -55,7 +56,7 @@ test("one icon toggles effective auto-open state per instance without writing co
   const studioCtx = observable({ isInteractiveMode: false });
   const dom = observable.box(true);
   const viewCtx = Object.assign(Object.create(ViewCtx.prototype), {
-    _canvasOverlayStates: observable.map(),
+    canvasSessionState: new CanvasSessionState(),
     _autoOpenedUuid: observable.box<string | undefined>(),
     scheduleSync: vi.fn(),
     currentComponent: () => component,

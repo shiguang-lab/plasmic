@@ -179,6 +179,7 @@ function OutlineMessage() {
 
 export function registerTabs(loader?: Registerable) {
   registerComponentHelper(loader, AntdTabs, {
+    description: "Switch between named content panels within the same page, keeping the selected tab and visible panel synchronized. Use Tab Item children or configured items; this is content navigation, not selection of a form value.",
     name: tabsComponentName,
     displayName: "Tabs",
     defaultStyles: {
@@ -442,6 +443,7 @@ export function registerTabs(loader?: Registerable) {
   });
 
   registerComponentHelper(loader, AntdTabItem, {
+    description: "One labeled content panel inside Tabs. Its key identifies the active panel; place panel content in its children slot.",
     name: tabItemComponentName,
     displayName: "Tab Item",
     props: {

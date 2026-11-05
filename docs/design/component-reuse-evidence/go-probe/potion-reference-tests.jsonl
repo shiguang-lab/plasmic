@@ -1,0 +1,19 @@
+{"Time":"2026-11-05T06:18:10.269768+08:00","Action":"start","Package":"github.com/trengrj/go-potion"}
+{"Time":"2026-11-05T06:18:10.695777+08:00","Action":"run","Package":"github.com/trengrj/go-potion","Test":"TestLoadAndEncode"}
+{"Time":"2026-11-05T06:18:10.695845+08:00","Action":"output","Package":"github.com/trengrj/go-potion","Test":"TestLoadAndEncode","Output":"=== RUN   TestLoadAndEncode\n"}
+{"Time":"2026-11-05T06:18:10.695874+08:00","Action":"run","Package":"github.com/trengrj/go-potion","Test":"TestLoadAndEncode/BASE8M"}
+{"Time":"2026-11-05T06:18:10.695879+08:00","Action":"output","Package":"github.com/trengrj/go-potion","Test":"TestLoadAndEncode/BASE8M","Output":"=== RUN   TestLoadAndEncode/BASE8M\n"}
+{"Time":"2026-11-05T06:18:10.710231+08:00","Action":"output","Package":"github.com/trengrj/go-potion","Test":"TestLoadAndEncode/BASE8M","Output":"    potion_test.go:52: Failed to read validation/samples/BASE8M.json: open validation/samples/BASE8M.json: no such file or directory\n"}
+{"Time":"2026-11-05T06:18:10.710281+08:00","Action":"output","Package":"github.com/trengrj/go-potion","Test":"TestLoadAndEncode/BASE8M","Output":"--- FAIL: TestLoadAndEncode/BASE8M (0.01s)\n"}
+{"Time":"2026-11-05T06:18:10.710295+08:00","Action":"fail","Package":"github.com/trengrj/go-potion","Test":"TestLoadAndEncode/BASE8M","Elapsed":0.01}
+{"Time":"2026-11-05T06:18:10.710534+08:00","Action":"run","Package":"github.com/trengrj/go-potion","Test":"TestLoadAndEncode/MULTILINGUAL128M"}
+{"Time":"2026-11-05T06:18:10.710538+08:00","Action":"output","Package":"github.com/trengrj/go-potion","Test":"TestLoadAndEncode/MULTILINGUAL128M","Output":"=== RUN   TestLoadAndEncode/MULTILINGUAL128M\n"}
+{"Time":"2026-11-05T06:18:11.182435+08:00","Action":"output","Package":"github.com/trengrj/go-potion","Test":"TestLoadAndEncode/MULTILINGUAL128M","Output":"    potion_test.go:52: Failed to read validation/samples/MULTILINGUAL128M.json: open validation/samples/MULTILINGUAL128M.json: no such file or directory\n"}
+{"Time":"2026-11-05T06:18:11.182499+08:00","Action":"output","Package":"github.com/trengrj/go-potion","Test":"TestLoadAndEncode/MULTILINGUAL128M","Output":"--- FAIL: TestLoadAndEncode/MULTILINGUAL128M (0.47s)\n"}
+{"Time":"2026-11-05T06:18:11.182507+08:00","Action":"fail","Package":"github.com/trengrj/go-potion","Test":"TestLoadAndEncode/MULTILINGUAL128M","Elapsed":0.47}
+{"Time":"2026-11-05T06:18:11.182514+08:00","Action":"output","Package":"github.com/trengrj/go-potion","Test":"TestLoadAndEncode","Output":"--- FAIL: TestLoadAndEncode (0.49s)\n"}
+{"Time":"2026-11-05T06:18:11.182519+08:00","Action":"fail","Package":"github.com/trengrj/go-potion","Test":"TestLoadAndEncode","Elapsed":0.49}
+{"Time":"2026-11-05T06:18:11.182523+08:00","Action":"output","Package":"github.com/trengrj/go-potion","Output":"FAIL\n"}
+{"Time":"2026-11-05T06:18:11.184714+08:00","Action":"output","Package":"github.com/trengrj/go-potion","Output":"exit status 1\n"}
+{"Time":"2026-11-05T06:18:11.184763+08:00","Action":"output","Package":"github.com/trengrj/go-potion","Output":"FAIL\tgithub.com/trengrj/go-potion\t0.915s\n"}
+{"Time":"2026-11-05T06:18:11.184775+08:00","Action":"fail","Package":"github.com/trengrj/go-potion","Elapsed":0.915}

@@ -1,5 +1,6 @@
 import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import { COPILOT_TOOLS } from "@/wab/client/copilot";
+import { PROTOTYPE_TOOL_META } from "@/wab/shared/copilot/prototype-tools";
 import * as studioBundles from "@/wab/client/components/studio/studio-bundles";
 import * as scriptUtils from "@/wab/client/script-exec";
 import type { TeamId } from "@/wab/shared/ApiSchema";
@@ -54,7 +55,8 @@ function fixture(catalog: CatalogEntry[] = [], published: ProjectDependency[] = 
   });
   result.api.getPkgVersion.mockImplementation(async (id) => ({ pkg: ensure(versions.get(id), "Missing test publication"), depPkgs: [], etag: id }));
   const call = async (name: string, input: Record<string, unknown> = {}) =>
-    JSON.parse(await ensure(COPILOT_TOOLS[name], "Missing tool").execute(result.studioCtx, input));
+    JSON.parse(await ensure(COPILOT_TOOLS[name], "Missing tool").execute(result.studioCtx, "reviewContext" in PROTOTYPE_TOOL_META[name as keyof typeof PROTOTYPE_TOOL_META].inputSchema.shape
+      ? { ...input, reviewContext: { purpose: "安装并使用业务组件库" } } : input));
   return { ...result, call, versions };
 }
 
@@ -161,7 +163,7 @@ it("uses a discovered provider ID to install the library, then exposes its proje
   });
   const registry = vi.spyOn(studioCtx, "updateCcRegistry").mockResolvedValue(undefined);
   const match = (await call("searchLibraryComponents", { query: "AccountBook" })).components[0];
-  expect(await call("installLibrary", { projectId: match.projectId })).toEqual({ projectId: icons.projectId, version: icons.version, installed: true });
+  expect(await call("installLibrary", { projectId: match.projectId })).toEqual({ projectId: icons.projectId, version: icons.version, installed: true, componentReview: { status: "unavailable", indexed: 0, total: 0, elapsedMs: 0, suggestions: [] } });
   expect(add).toHaveBeenCalledWith(icons.projectId);
   expect(registry).toHaveBeenCalledWith(["antd-icons"]);
   expect((await call("listLibraries", { installed: true })).libraries[0].installedProjects[0].version).toBe(icons.version);

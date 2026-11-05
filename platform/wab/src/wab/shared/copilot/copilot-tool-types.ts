@@ -70,7 +70,7 @@ export function defineCopilotTool<
       const prettify = opts?.prettify ?? false;
       const checked = meta.inputSchema.safeParse(input);
       if (!checked.success) {
-        throw new Error(`${meta.toolName}: invalid input: ${checked.error.issues.map((issue) => `${issue.path.join(".") || "input"}: ${issue.message}`).join("; ")}. Read get_app_state toolNames:["${meta.toolName}"] for its input contract; execute uses {name,input}.`);
+        throw Object.assign(new Error(`${meta.toolName}: invalid input: ${checked.error.issues.map((issue) => `${issue.path.join(".") || "input"}: ${issue.message}`).join("; ")}. Read get_app_state toolNames:["${meta.toolName}"] for its input contract; execute uses {name,input}.`), { operationExecuted: false });
       }
       const parsedInput = checked.data;
       const output = meta.outputSchema.parse(

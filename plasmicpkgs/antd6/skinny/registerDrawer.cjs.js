@@ -3,7 +3,7 @@
 var Ant = require('antd');
 var cls = require('classnames');
 var React = require('react');
-var canvasOverlay$1 = require('./canvas-overlay-pJBoKL8M.cjs.js');
+var canvasOverlay$1 = require('./canvas-overlay-CK330rTr.cjs.js');
 var utils = require('./utils-Diqr9Iet.cjs.js');
 require('@plasmicapp/host');
 require('@plasmicapp/host/registerComponent');
@@ -17,7 +17,7 @@ var React__default = /*#__PURE__*/_interopDefault(React);
 
 const canvasOverlay = {};
 function AntdDrawer(props) {
-  const { props: canvasProps, open, isEditing } = canvasOverlay$1.useCanvasOverlay(props);
+  const { props: canvasProps, open, isEditing, destroyOnHidden } = canvasOverlay$1.useCanvasOverlay(props);
   const {
     onOpenChange,
     onClose,
@@ -42,10 +42,10 @@ function AntdDrawer(props) {
     {
       ...rest,
       onClose: isEditing ? void 0 : memoOnClose,
-      afterOpenChange: isEditing ? void 0 : props.afterOpenChange,
+      afterOpenChange: isEditing ? void 0 : canvasProps.afterOpenChange,
       rootClassName: cls__default.default(rootClassName, drawerScopeClassName),
       open,
-      destroyOnHidden: isEditing ? true : props.destroyOnHidden,
+      destroyOnHidden,
       forceRender: isEditing ? false : props.forceRender,
       autoFocus: isEditing ? false : props.autoFocus,
       focusable: isEditing ? { trap: false, focusTriggerAfterClose: false } : props.focusable,
@@ -56,6 +56,7 @@ function AntdDrawer(props) {
 }
 function registerDrawer(loader) {
   utils.registerComponentHelper(loader, AntdDrawer, {
+    description: "Reveal supplementary details or an editing form in a panel sliding from a page edge. Control its open state and close behavior without navigating away.",
     name: "plasmic-antd6-drawer",
     canvasOverlay,
     displayName: "Drawer",

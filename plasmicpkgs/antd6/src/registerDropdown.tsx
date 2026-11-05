@@ -52,6 +52,7 @@ export function AntdDropdown(
     props: canvasProps,
     open,
     isEditing,
+    destroyOnHidden,
   } = useCanvasOverlay(props, canvasOverlay.triggerSlot);
   const {
     children,
@@ -70,8 +71,8 @@ export function AntdDropdown(
     <Dropdown
       {...rest}
       open={open}
-      destroyOnHidden={isEditing ? true : props.destroyOnHidden}
-      onOpenChange={isEditing ? undefined : canvasProps.onOpenChange}
+      destroyOnHidden={destroyOnHidden}
+      onOpenChange={canvasProps.onOpenChange}
       trigger={[trigger]}
       popupRender={() => {
         const itemsChildren = useMenuItemsSlot

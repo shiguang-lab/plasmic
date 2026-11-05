@@ -1,0 +1,267 @@
+{
+  "summary": {
+    "corpusSha256": "b7191a546a488cc1b8ac0dec708e342938b3d6a494db557dcb636d1a2dafcdd4",
+    "documentCount": 101,
+    "queryPrefix": "task: search result | query: ",
+    "documentFormat": "title: {name} | text: {text}",
+    "documentBatchSize": 4,
+    "maxInputTokens": 512,
+    "outputDimensions": 768,
+    "normalization": "L2",
+    "firstInferenceMs": 36.013917000000006,
+    "warmP50Ms": 29.092958000000003,
+    "warmP95Ms": 34.286291999999996,
+    "warmMaxMs": 34.63712499999993,
+    "indexMs": 34942.521625,
+    "indexDocuments": 101,
+    "model": {
+      "repo": "unsloth/embeddinggemma-2-GGUF",
+      "revision": "031f0d4b35536f69ab3509d4893c923264fcf253",
+      "file": "embeddinggemma-2-UD-Q4_K_XL.gguf",
+      "quantization": "UD-Q4_K_XL",
+      "dimensions": 768,
+      "bytes": 175673856,
+      "sha256": "ea905fd08e8061db77a0031cbb5096d459d7cfd2bdd0ad2ba66e483f16719493"
+    },
+    "runtime": "llama.cpp v0.9.0",
+    "commit": "cd959bae99ff4bed22bef2604f45241c09bbb8c8",
+    "mode": "resources",
+    "repeat": 1,
+    "date": "2026-11-04T22:50:02.260901+00:00",
+    "platform": "macOS-26.6.2-arm64-arm-64bit",
+    "device": "CPU only, Metal disabled at build",
+    "threads": 2,
+    "localLoadMs": 426.37495800000005,
+    "loadDefinition": "Spawn through HTTP health ready, including dynamic library/model load; --no-warmup, first inference separate.",
+    "timing": "Loopback persistent HTTP: native /tokenize for each text, explicit first-512-token cap, then /v1/embeddings; includes JSON/IPC and normalization. No remote service.",
+    "modelSettings": {
+      "context": 512,
+      "logicalBatch": 512,
+      "physicalBatch": 512,
+      "parallelSlots": 1,
+      "pooling": "mean",
+      "normalization": 2,
+      "warmup": false,
+      "accelerateThreads": 2
+    },
+    "maxUntruncatedInputTokens": 526,
+    "uniqueInputsTruncated": 1,
+    "serverCommand": [
+      "/private/tmp/plasmic-gemma-native.amWJam/build/bin/llama-server",
+      "--model",
+      "/private/tmp/plasmic-gemma-native.amWJam/models/embeddinggemma-2-UD-Q4_K_XL.gguf",
+      "--embeddings",
+      "--pooling",
+      "mean",
+      "--embd-normalize",
+      "2",
+      "--ctx-size",
+      "512",
+      "--batch-size",
+      "512",
+      "--ubatch-size",
+      "512",
+      "--parallel",
+      "1",
+      "--threads",
+      "2",
+      "--threads-batch",
+      "2",
+      "--threads-http",
+      "1",
+      "--gpu-layers",
+      "0",
+      "--no-warmup",
+      "--host",
+      "127.0.0.1",
+      "--port",
+      "64933"
+    ],
+    "binaryBytes": 33472,
+    "binarySha256": "0d6675536069962d9daddea83918ebbe542d9b23170e16f930d3fbe980ee8bf7",
+    "limitations": [
+      "Frozen manually labeled pilot, no independent holdout.",
+      "Different quantization/tokenizer from ONNX q4; identical token cap does not prove identical encoded inputs.",
+      "Native server RSS excludes Python scoring/client observer.",
+      "Loopback HTTP timing is not pure inference time or remote service latency.",
+      "No actual Studio/Electron or other platform benchmark."
+    ],
+    "memoryStages": [
+      {
+        "phase": "loaded",
+        "rssBytes": 368525312,
+        "sampledPeakRssBytes": 368525312
+      },
+      {
+        "phase": "queried",
+        "rssBytes": 377815040,
+        "sampledPeakRssBytes": 377815040
+      },
+      {
+        "phase": "indexed",
+        "rssBytes": 429015040,
+        "sampledPeakRssBytes": 429015040
+      },
+      {
+        "phase": "finished",
+        "rssBytes": 429015040,
+        "sampledPeakRssBytes": 429015040
+      }
+    ],
+    "sampledPeakRssBytes": 429015040,
+    "osMaxRssBytes": 429031424,
+    "memoryObserver": "External macOS proc_pidinfo every 20 ms and phase boundaries; only llama-server child. Darwin RUSAGE_CHILDREN maxRSS bytes after exit, one child per observer."
+  },
+  "samples": [
+    {
+      "caseId": "content-switch",
+      "characters": 43,
+      "ms": 34.63712499999993
+    },
+    {
+      "caseId": "one-value",
+      "characters": 28,
+      "ms": 28.742791999999962
+    },
+    {
+      "caseId": "many-values",
+      "characters": 32,
+      "ms": 28.96404100000005
+    },
+    {
+      "caseId": "daily-clock",
+      "characters": 30,
+      "ms": 27.44170899999998
+    },
+    {
+      "caseId": "calendar-range",
+      "characters": 25,
+      "ms": 25.66829199999998
+    },
+    {
+      "caseId": "quantity",
+      "characters": 34,
+      "ms": 30.598667000000024
+    },
+    {
+      "caseId": "identifier",
+      "characters": 31,
+      "ms": 32.74241600000005
+    },
+    {
+      "caseId": "password",
+      "characters": 28,
+      "ms": 27.50429199999993
+    },
+    {
+      "caseId": "readonly-group",
+      "characters": 31,
+      "ms": 30.21395799999993
+    },
+    {
+      "caseId": "records",
+      "characters": 35,
+      "ms": 32.036666999999966
+    },
+    {
+      "caseId": "content-switch",
+      "characters": 43,
+      "ms": 34.286291999999996
+    },
+    {
+      "caseId": "one-value",
+      "characters": 28,
+      "ms": 29.092958000000003
+    },
+    {
+      "caseId": "many-values",
+      "characters": 32,
+      "ms": 28.865667000000037
+    },
+    {
+      "caseId": "daily-clock",
+      "characters": 30,
+      "ms": 27.237999999999985
+    },
+    {
+      "caseId": "calendar-range",
+      "characters": 25,
+      "ms": 25.58366699999992
+    },
+    {
+      "caseId": "quantity",
+      "characters": 34,
+      "ms": 30.8398339999999
+    },
+    {
+      "caseId": "identifier",
+      "characters": 31,
+      "ms": 31.93116699999998
+    },
+    {
+      "caseId": "password",
+      "characters": 28,
+      "ms": 26.87000000000017
+    },
+    {
+      "caseId": "readonly-group",
+      "characters": 31,
+      "ms": 29.92887500000019
+    },
+    {
+      "caseId": "records",
+      "characters": 35,
+      "ms": 31.65245799999994
+    },
+    {
+      "caseId": "content-switch",
+      "characters": 43,
+      "ms": 34.03108300000013
+    },
+    {
+      "caseId": "one-value",
+      "characters": 28,
+      "ms": 28.684708999999977
+    },
+    {
+      "caseId": "many-values",
+      "characters": 32,
+      "ms": 28.804708999999875
+    },
+    {
+      "caseId": "daily-clock",
+      "characters": 30,
+      "ms": 27.407540999999867
+    },
+    {
+      "caseId": "calendar-range",
+      "characters": 25,
+      "ms": 25.596249999999987
+    },
+    {
+      "caseId": "quantity",
+      "characters": 34,
+      "ms": 30.171125000000075
+    },
+    {
+      "caseId": "identifier",
+      "characters": 31,
+      "ms": 31.48150000000016
+    },
+    {
+      "caseId": "password",
+      "characters": 28,
+      "ms": 26.83308300000009
+    },
+    {
+      "caseId": "readonly-group",
+      "characters": 31,
+      "ms": 29.59487500000013
+    },
+    {
+      "caseId": "records",
+      "characters": 35,
+      "ms": 31.74954200000002
+    }
+  ]
+}

@@ -1,0 +1,100 @@
+[
+  {
+    "id": "content-panels",
+    "purpose": "查看客户的不同信息。选择基本信息、操作记录或权限设置；在同一页面切换内容，选中项与内容保持同步。不跳转路由",
+    "expected": [
+      "plasmic-antd6-tabs"
+    ],
+    "retrieval": {
+      "purpose": "View customer information content panels。Select Basic Information, Activity History or Permissions；Switch same-page content and keep the selected item in sync。No route navigation"
+    }
+  },
+  {
+    "id": "one-field-value",
+    "purpose": "设置客户的首选联系渠道。从电话、短信、邮件中选择一个；更新表单中保存的联系渠道值。只能选择一个值",
+    "expected": [
+      "plasmic-antd6-radio-group",
+      "plasmic-antd6-select",
+      "plasmic-antd6-segmented"
+    ],
+    "retrieval": {
+      "purpose": "Choose one preferred contact method。Select Phone, SMS or Email；Update the selected form field value。Only one value can be selected"
+    }
+  },
+  {
+    "id": "record-grid",
+    "purpose": "查看客户记录集合，每行一个客户，列为姓名、手机号和状态。选择页码或按列排序；显示对应页及排序后的客户记录。需要分页",
+    "expected": [
+      "plasmic-antd6-table"
+    ],
+    "retrieval": {
+      "purpose": "View customer records as rows with Name, Phone and Status columns。Select a page or sort a column；Show the corresponding page and sorted customer records。Pagination is required"
+    }
+  },
+  {
+    "id": "numeric-quantity",
+    "purpose": "调整商品购买数量。输入数量或点击加减按钮；更新购买数量。只允许整数。范围为1至99",
+    "expected": [
+      "plasmic-antd6-input-number"
+    ],
+    "retrieval": {
+      "purpose": "Change a purchase quantity。Type a quantity or click increment and decrement controls；Update the purchase quantity。Integers only。Minimum 1, maximum 99"
+    }
+  },
+  {
+    "id": "readonly-fields",
+    "purpose": "按业务分组展示客户只读字段，每个字段包含名称和值",
+    "expected": [
+      "plasmic-antd6-descriptions"
+    ],
+    "retrieval": {
+      "purpose": "Display grouped read-only customer fields with field labels and values"
+    }
+  },
+  {
+    "id": "business-search",
+    "purpose": "按客户姓名和状态筛选客户列表。填写筛选条件后点击查询或重置；查询返回筛选后的记录，重置恢复默认条件。折叠的查询字段也要参与提交",
+    "expected": [
+      "plasmic-overseas-search-form"
+    ],
+    "retrieval": {
+      "purpose": "Filter customer records by customer name and status。Fill query fields and click Search or Reset；Return filtered records on Search; restore default conditions on Reset。Include collapsed query fields in submission"
+    }
+  },
+  {
+    "id": "date-interval",
+    "purpose": "设置报表统计的起止日期。选择开始日期和结束日期；更新用于查询的日期区间。不需要选择时间",
+    "expected": [
+      "plasmic-antd6-date-range-picker"
+    ],
+    "retrieval": {
+      "purpose": "Select a report query date interval。Choose a start date and end date；Update the date interval used for the report query。No time selection"
+    }
+  },
+  {
+    "id": "submit-fields",
+    "purpose": "编辑并提交客户姓名和手机号。填写字段后点击提交；校验通过后提交全部字段值。必填字段不能为空",
+    "expected": [
+      "plasmic-antd6-form"
+    ],
+    "retrieval": {
+      "purpose": "Edit and submit customer name and phone fields。Fill the fields and click Submit；Validate and submit the complete field values。Required fields cannot be empty"
+    }
+  },
+  {
+    "id": "custom-geofence",
+    "purpose": "编辑地图上的地理围栏。拖动围栏多边形的顶点；更新经纬度坐标并吸附到附近边界。需要坐标吸附",
+    "expected": [],
+    "retrieval": {
+      "purpose": "Edit a geographic fence on a map。Drag vertices of the fence polygon；Update longitude and latitude and snap vertices to nearby boundaries。Coordinate snapping is required"
+    }
+  },
+  {
+    "id": "custom-node-canvas",
+    "purpose": "编辑可连线的流程节点画布。拖动节点并连接输入输出端口；生成连线，平移缩放后保持节点和连线位置正确。支持画布平移缩放",
+    "expected": [],
+    "retrieval": {
+      "purpose": "Edit a flow node canvas。Drag nodes and connect input and output ports；Keep nodes and edges aligned while panning and zooming the canvas。Support canvas panning and zooming"
+    }
+  }
+]

@@ -13,6 +13,7 @@ import { TopFrameTourState } from "@/wab/client/tours/tutorials/TutorialTours";
 import type { UiAppearance } from "@/wab/client/ui-theme";
 import { ApiBranch, ApiTeam, ProjectId } from "@/wab/shared/ApiSchema";
 import type { LocalAiStatus } from "@/wab/shared/copilot/local-edit";
+import type { ComponentReuseCommand } from "@/wab/shared/copilot/component-review";
 import { DataSourceType } from "@/wab/shared/data-sources-meta/data-source-registry";
 import { LocalizationConfig } from "@/wab/shared/localization";
 import { Listener } from "history";
@@ -46,6 +47,7 @@ export interface SavedEditorView {
 }
 
 export interface TopFrameApi {
+  componentReuse(request: ComponentReuseCommand): Promise<unknown>;
   openDesktopBrowser(): Promise<void>;
   openDesktopPreview(url: string): Promise<void>;
   getSavedEditorView(projectId: string): Promise<SavedEditorView | null>;

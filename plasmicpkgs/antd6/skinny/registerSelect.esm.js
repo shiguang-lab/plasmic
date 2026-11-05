@@ -1,7 +1,7 @@
 import { Select } from 'antd';
 import cls from 'classnames';
 import React from 'react';
-import { u as useCanvasOverlay, p as previewOpenProp } from './canvas-overlay-CbpJk7_w.esm.js';
+import { u as useCanvasOverlay, p as previewOpenProp } from './canvas-overlay-27tNRB55.esm.js';
 import { o as optionComponentName, g as optionGroupComponentName, s as selectComponentName } from './names-DQIzgrvq.esm.js';
 import { r as registerComponentHelper, t as traverseReactEltTree } from './utils-U416WEAa.esm.js';
 import '@plasmicapp/host';
@@ -33,7 +33,7 @@ function AntdSelect(props) {
     {
       ...curated,
       open,
-      onOpenChange: isEditing ? void 0 : canvasProps.onOpenChange,
+      onOpenChange: canvasProps.onOpenChange,
       onChange: isEditing ? void 0 : props.onChange,
       mode: !mode || mode === "single" ? void 0 : mode,
       classNames: (info) => {
@@ -58,6 +58,7 @@ function AntdSelect(props) {
 }
 function registerSelect(loader) {
   registerComponentHelper(loader, AntdSelect, {
+    description: "Choose one or multiple values from dropdown options. Supports configured search, clear and selection modes; selecting a value does not switch page content.",
     name: selectComponentName,
     canvasOverlay,
     displayName: "Select",
@@ -302,6 +303,7 @@ function registerSelect(loader) {
     importName: "AntdSelect"
   });
   registerComponentHelper(loader, AntdOption, {
+    description: "One labeled selectable value inside Select. Requires the owning Select.",
     name: optionComponentName,
     displayName: "Option",
     parentComponentName: selectComponentName,
@@ -319,6 +321,7 @@ function registerSelect(loader) {
     importName: "AntdOption"
   });
   registerComponentHelper(loader, AntdOptionGroup, {
+    description: "Group related Option children under a label inside Select. Requires the owning Select.",
     name: optionGroupComponentName,
     displayName: "Option Group",
     parentComponentName: selectComponentName,

@@ -10,6 +10,7 @@ AntdSwitch.__plasmicFormFieldMeta = { valueProp: "checked" };
 
 export function registerSwitch(loader?: Registerable) {
   registerComponentHelper(loader, AntdSwitch, {
+    description: "Toggle a boolean setting between on and off, with checked and change-event bindings.",
     name: switchComponentName,
     displayName: "Switch",
     props: {

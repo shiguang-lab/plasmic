@@ -44,6 +44,7 @@ export function AntdModal(
     props: canvasProps,
     open,
     isEditing,
+    destroyOnHidden,
   } = useCanvasOverlay(props, canvasOverlay.triggerSlot);
   const {
     onOpenChange,
@@ -102,10 +103,10 @@ export function AntdModal(
         onOk={isEditing ? undefined : onOk}
         width={widthProp}
         onCancel={isEditing ? undefined : memoOnCancel}
-        afterOpenChange={isEditing ? undefined : props.afterOpenChange}
-        afterClose={isEditing ? undefined : props.afterClose}
+        afterOpenChange={isEditing ? undefined : canvasProps.afterOpenChange}
+        afterClose={isEditing ? undefined : canvasProps.afterClose}
         open={open}
-        destroyOnHidden={isEditing ? true : props.destroyOnHidden}
+        destroyOnHidden={destroyOnHidden}
         forceRender={isEditing ? false : props.forceRender}
         focusable={
           isEditing
@@ -140,7 +141,7 @@ export function registerModal(loader?: Registerable) {
     displayName: "Modal",
     styleSections,
     description:
-      "[See tutorial video](https://www.youtube.com/watch?v=TkjxNJIFun8)",
+      "Open a dialog over the current page for focused confirmation, information or form editing. Control its open state and OK/cancel events. [See tutorial video](https://www.youtube.com/watch?v=TkjxNJIFun8)",
     props: {
       previewOpen: previewOpenProp,
       open: {

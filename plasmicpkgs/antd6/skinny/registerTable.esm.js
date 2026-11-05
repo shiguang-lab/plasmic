@@ -478,6 +478,7 @@ const AntdTable = React.forwardRef(function AntdTable2(props, ref) {
 });
 function registerTable(loader) {
   registerComponentHelper(loader, AntdTable, {
+    description: "Display structured records as rows and columns, with registered controls for sorting, filtering, row selection, pagination and expandable detail content. Configure the relevant data and event props for each behavior.",
     name: "plasmic-antd6-table",
     displayName: "Table",
     props: {
@@ -671,6 +672,7 @@ function registerTable(loader) {
     }
   });
   registerComponentHelper(loader, AntdColumn, {
+    description: "Define a data or action column inside Table, including its title, data field and cell renderer. Requires the owning Table.",
     name: "plasmic-antd6-table-column",
     displayName: "Column",
     styleSections: false,
@@ -783,6 +785,7 @@ function registerTable(loader) {
     importName: "AntdExpandColumn"
   });
   registerComponentHelper(loader, AntdColumnGroup, {
+    description: "Group related columns under a shared heading inside Table; contains Column definitions rather than standalone page content.",
     name: "plasmic-antd6-table-column-group",
     displayName: "Column Group",
     styleSections: false,

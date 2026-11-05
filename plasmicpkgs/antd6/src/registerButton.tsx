@@ -39,6 +39,7 @@ export function registerButton(loader?: Registerable) {
   registerComponentHelper(loader, AntdButton, {
     name: buttonComponentName,
     displayName: "Button",
+    description: "Trigger a user action such as submit, reset, confirm or open an overlay. Supports text, icons, loading and disabled states; use href for link navigation.",
     canvasText: { prop: "children", selector: ":scope > span:not(.ant-btn-icon)" },
     props: getButtonProps(),
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerButton",

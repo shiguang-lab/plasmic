@@ -2,7 +2,7 @@ import { usePlasmicCanvasContext, usePlasmicCanvasComponentInfo } from '@plasmic
 import { Tabs } from 'antd';
 import cls from 'classnames';
 import React, { useMemo } from 'react';
-import { a as getSelectedCanvasItemKey } from './canvas-overlay-CbpJk7_w.esm.js';
+import { a as getSelectedCanvasItemKey } from './canvas-overlay-27tNRB55.esm.js';
 import { r as registerComponentHelper, a as asArray, t as traverseReactEltTree } from './utils-U416WEAa.esm.js';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
@@ -118,6 +118,7 @@ function OutlineMessage() {
 }
 function registerTabs(loader) {
   registerComponentHelper(loader, AntdTabs, {
+    description: "Switch between named content panels within the same page, keeping the selected tab and visible panel synchronized. Use Tab Item children or configured items; this is content navigation, not selection of a form value.",
     name: tabsComponentName,
     displayName: "Tabs",
     defaultStyles: {
@@ -365,6 +366,7 @@ function registerTabs(loader) {
     importName: "AntdTabs"
   });
   registerComponentHelper(loader, AntdTabItem, {
+    description: "One labeled content panel inside Tabs. Its key identifies the active panel; place panel content in its children slot.",
     name: tabItemComponentName,
     displayName: "Tab Item",
     props: {

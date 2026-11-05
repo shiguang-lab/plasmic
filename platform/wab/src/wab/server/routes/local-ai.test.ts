@@ -17,18 +17,18 @@ beforeEach(() => {
   state.authorize.mockReset();
   state.models.mockReset().mockResolvedValue(["fixture", "alternate"]);
 });
-it("returns authorized configuration without waiting for discovery or exposing credentials", async () => {
-  state.models.mockReturnValue(new Promise(() => {}));
+it("returns the cached catalog with configuration without exposing credentials", async () => {
   const res = { json: vi.fn() } as unknown as Response;
   await localAiStatus(req, res);
   expect(state.authorize).toHaveBeenCalledWith("project","viewer","read AI service status");
-  expect(state.models).not.toHaveBeenCalled();
-  expect(res.json).toHaveBeenCalledWith({ configured: true,model: "fixture",models: ["fixture"],pageGenerationEnabled: true });
+  expect(state.models).toHaveBeenCalledWith();
+  expect(res.json).toHaveBeenCalledWith({ configured: true,model: "fixture",models: ["fixture", "alternate"],pageGenerationEnabled: true });
 });
 it("loads the model catalog separately after checking project permissions", async () => {
   const res = { json: vi.fn() } as unknown as Response;
   await localAiModels(req, res);
   expect(state.authorize).toHaveBeenCalledWith("project", "viewer", "read AI service status");
+  expect(state.models).toHaveBeenCalledWith({ waitForCatalog: true });
   expect(res.json).toHaveBeenCalledWith(["fixture", "alternate"]);
 });
 it.each([localAiStatus, localAiModels])("rejects unauthorized metadata requests", async (route) => {

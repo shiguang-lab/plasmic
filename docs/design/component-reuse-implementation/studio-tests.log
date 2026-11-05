@@ -1,0 +1,11 @@
+
+ RUN  v4.1.10 /Users/yanxianliang/shiguang/plasmic/platform/wab
+
+{"level":"warn","time":"2026-11-05T02:00:56.036Z","serviceName":"unknown-service","environment":"test","podName":"","message":"AI model catalog refresh failed","stage":"http","timeout":false}
+{"level":"warn","time":"1970-01-01T00:16:40.000Z","serviceName":"unknown-service","environment":"test","podName":"","message":"AI model catalog refresh failed","stage":"request","timeout":false}
+
+ Test Files  7 passed (7)
+      Tests  169 passed (169)
+   Start at  10:00:48
+   Duration  32.69s (transform 51.88s, setup 14.54s, import 91.45s, tests 20.73s, environment 5.06s)
+

@@ -91,6 +91,23 @@ export class CanvasSessionState {
     return this.entries.get(this.key(instance, name))?.value;
   }
 
+  getRuntime(instance: string, name: string) {
+    const entry = this.entries.get(this.key(instance, name));
+    return entry?.revealed ? entry.beforeReveal : entry?.value;
+  }
+
+  setRuntime(instance: string, name: string, value: unknown) {
+    const key = this.key(instance, name);
+    const entry = this.entries.get(key);
+    if (entry?.revealed) {
+      if (!isEqual(entry.beforeReveal, value)) {
+        this.entries.set(key, { ...entry, beforeReveal: cloneDeep(value) });
+      }
+    } else {
+      this.set(instance, name, value);
+    }
+  }
+
   has(instance: string, name: string) {
     return this.entries.has(this.key(instance, name));
   }
@@ -130,15 +147,28 @@ export function applyCanvasSessionState(
   specs: CanvasStateSpec[],
   interactive: boolean,
   onChange: () => void,
+  isOverlay = false,
 ) {
+  // The canvas overlay contract also applies when no implicit open state exists.
+  // Eagerly bind it so native events invalidate the cached canvas render.
+  if (isOverlay && !specs.some((spec) => spec.valueProp === "open")) {
+    specs = [...specs, {
+      valueProp: "open", onChangeProp: "onOpenChange", initialValueProp: "defaultOpen",
+      controlled: props.open !== undefined,
+    }];
+  }
   const nativeProps = { ...props };
+  const read = (name: string) => interactive && isOverlay && name === "open"
+    ? session.getRuntime(instance, name)
+    : session.get(instance, name);
   const bindings: Record<string, { value: unknown; reveal: (value: unknown) => unknown }> = {};
   const events = new Map<string, CanvasStateSpec[]>();
   for (const spec of specs) {
     const { valueProp, onChangeProp, initialValueProp } = spec;
     const nativeValue = props[valueProp];
     const initialValue = initialValueProp ? props[initialValueProp] : undefined;
-    const value = session.resolve(instance, valueProp, nativeValue, initialValue);
+    session.resolve(instance, valueProp, nativeValue, initialValue);
+    const value = read(valueProp);
     props[valueProp] = value;
     bindings[valueProp] = {
       value,
@@ -159,10 +189,17 @@ export function applyCanvasSessionState(
         const initialValue = initialValueProp ? nativeProps[initialValueProp] : undefined;
         // Explicit controlled bindings retain ownership when an actual event runs.
         // Editing reveals and mode switches never call the business handler.
-        const next = interactive && spec.controlled
+        const overlayOpen = isOverlay && valueProp === "open";
+        const next = (interactive || overlayOpen) && spec.controlled
           ? nativeValue !== undefined ? nativeValue : initialValue
           : spec.onChangeArgsToValue ? spec.onChangeArgsToValue(...args) : args[0];
-        session.set(instance, valueProp, next);
+        // A delayed native close can finish after entering editing mode. Keep
+        // its runtime value separate from the content revealed for editing.
+        if (!interactive && overlayOpen) {
+          session.setRuntime(instance, valueProp, next);
+        } else {
+          session.set(instance, valueProp, next);
+        }
       }
       onChange();
       return interactive ? handler?.(...args) : undefined;
@@ -175,7 +212,7 @@ export function applyCanvasSessionState(
     const initial = spec?.initialValueProp ? nativeProps[spec.initialValueProp] : initialValue;
     session.resolve(instance, name, source, initial);
     return {
-      get value() { return session.get(instance, name); },
+      get value() { return read(name); },
       reveal: (value: unknown) => session.reveal(instance, name, value),
       set: (value: unknown) => { session.set(instance, name, value); onChange(); },
     };

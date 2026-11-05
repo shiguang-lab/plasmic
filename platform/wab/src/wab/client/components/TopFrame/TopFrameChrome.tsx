@@ -1,6 +1,7 @@
 import { TopFrameDialogs } from "@/wab/client/components/TopFrame/TopFrameDialogs";
 import { AppCtx } from "@/wab/client/app-ctx";
 import { desktopDraftBridge } from "@/wab/client/desktop-drafts";
+import { desktopComponentReuse } from "@/wab/client/desktop-component-reuse";
 import { isPlasmicPath } from "@/wab/client/cli-routes";
 import { showRegenerateSecretTokenModal } from "@/wab/client/components/TopFrame/TopBar/RegenerateSecretTokenModal";
 import { isAnonymousQuotaReached } from "@/wab/client/components/copilot/anonymous-chat";
@@ -475,6 +476,10 @@ export function useTopFrameState({
 
   const topFrameApi = React.useMemo<TopFrameApi>(
     () => ({
+      componentReuse: async (request) => {
+        if ("projectId" in request) assert(request.projectId === project?.id, "Invalid component review project");
+        return desktopComponentReuse(request);
+      },
       openDesktopBrowser,
       openDesktopPreview,
       pushLocation(path, query, hash) {

@@ -6,6 +6,7 @@ import {
   revealCanvasElement,
 } from "@/wab/client/components/canvas/canvas-scroll";
 import { activityTargets } from "@/wab/client/copilot/activity";
+import { reviewInput, reviewComponents } from "@/wab/client/copilot/component-reuse";
 import { presentToolTarget } from "@/wab/client/copilot/present-target";
 import { getLibrary, listLibraries, searchLibraryComponents } from "@/wab/client/copilot/libraries";
 import {
@@ -241,6 +242,8 @@ const defineCopilotTool: typeof defineTool = (toolMeta, execute) =>
       const presentation = await presentOperationTarget(studio, toolMeta.toolName, input, output, signal);
       return presentation ? { ...output, presentation: { ...presentation, phase: "after" } } : output;
     }
+    const { context: reviewContext, operations: reviewOperations } = reviewInput(toolMeta.toolName, input);
+    const { reviewContext: _reviewContext, ...nativeInput } = input;
     const targets = activityTargets(toolMeta.toolName, input).map((target) => {
       const component =
         studio.site.components.find((c) => c.uuid === target.componentUuid) ??
@@ -268,10 +271,11 @@ const defineCopilotTool: typeof defineTool = (toolMeta, execute) =>
     try {
       const beforeDelete = ["deleteElement", "deleteComponent"].includes(toolMeta.toolName);
       const before = await presentOperationTarget(studio, toolMeta.toolName, input, undefined, signal);
-      const output = await execute(studio, input, caller, signal);
+      const output = await execute(studio, nativeInput as typeof input, caller, signal);
       const presentation = beforeDelete ? before : await presentOperationTarget(studio, toolMeta.toolName, input, output, signal);
+      const componentReview = await reviewComponents(studio, reviewOperations, toolMeta.toolName === "executeBatch" ? output.operations : [output], reviewContext, caller?.id, signal);
       finish("success");
-      return presentation ? { ...output, presentation: { ...presentation, phase: beforeDelete ? "before" : "after" } } : output;
+      return { ...output, componentReview, ...(presentation ? { presentation: { ...presentation, phase: beforeDelete ? "before" : "after" } } : {}) };
     } catch (error) {
       finish("error");
       throw error;
@@ -648,6 +652,7 @@ async function runNativeBatch(
         created.sort((a, b) => Number(b.kind === primaryKind) - Number(a.kind === primaryKind));
         const receipt: MutationReceipt = {
           name: operation.name, ...(operation.as ? { as: operation.as } : {}), created,
+          ...(operation.name === "insertHtml" && operation.input.location === "replace" && operation.input.elementUuid ? { replacedElementUuid: operation.input.elementUuid } : {}),
           ...("componentUuid" in operation.input && operation.input.componentUuid ? { componentUuid: operation.input.componentUuid } : {}),
           ...("elementUuid" in operation.input && operation.input.elementUuid ? { elementUuid: operation.input.elementUuid } : {}),
           ...(plan.messages?.length ? { messages: plan.messages } : {}),
@@ -1604,6 +1609,7 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
     async (studio, input, caller, signal) => {
       const binding = input.binding;
       assertLocalBinding(studio, binding);
+      const localReview = editTools.has(input.name) ? reviewInput(input.name, input.input) : undefined;
       if (binding.mode === "page") {
         assert(
           studio.appCtx.appConfig.enableLocalAiPageGeneration,
@@ -1698,7 +1704,7 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
             binding.mode === "page" && binding.componentUuid === null,
             "Create exactly one new page before generation.",
           );
-          const parsed = meta.createComponent.inputSchema.parse(input.input);
+          const { reviewContext: _review, ...parsed } = meta.createComponent.inputSchema.parse(input.input);
           assert(
             parsed.type === "page" && parsed.path,
             "Page generation requires a routed page.",
@@ -1711,7 +1717,8 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
           );
           const [result] = await runNativeBatch(studio, [{ name: "createComponent", input: parsed }], () => assertLocalBinding(studio, binding));
           const created = ensure(result.created.find((identity) => identity.kind === "Component"), "Created page resource is missing");
-          return await finish(JSON.stringify(result), before,
+          const componentReview = localReview ? await reviewComponents(studio, [{ name: "createComponent", input: parsed }], [result], localReview.context, caller?.id, signal) : undefined;
+          return await finish(JSON.stringify({ ...result, componentReview }), before,
             localSnapshot(studio, [findComponent(studio, created.uuid)]),
             { ...binding, componentUuid: created.uuid });
         }
@@ -1849,7 +1856,7 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
         const rawOperations =
           input.name === "executeBatch"
             ? meta.executeBatch.inputSchema.parse(input.input).operations
-            : [{ name: input.name, input: input.input }];
+            : [{ name: input.name, input: Object.fromEntries(Object.entries(input.input).filter(([key]) => key !== "reviewContext")) }];
         const validateOperation = (op: PrototypeMutation) => {
           assertLocalBinding(studio, binding);
           assert(
@@ -1941,7 +1948,8 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
           ];
           const before = localSnapshot(studio, components);
           const receipts = await runNativeBatch(studio, operations, validateOperation);
-          const result = finish(JSON.stringify({ operations: receipts }), before, localSnapshot(studio, components));
+          const componentReview = localReview ? await reviewComponents(studio, operations, receipts, localReview.context, caller?.id, signal) : undefined;
+          const result = await finish(JSON.stringify({ operations: receipts, componentReview }), before, localSnapshot(studio, components));
           finishActivity("success");
           return result;
         } catch (error) {

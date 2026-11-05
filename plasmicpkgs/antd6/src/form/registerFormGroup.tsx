@@ -5,6 +5,7 @@ import { COMMON_ACTIONS } from "./sharedRegistration";
 
 export function registerFormGroup(loader?: Registerable) {
   registerComponentHelper(loader, FormGroup, {
+    description: "Group related Form fields under a shared nested name path. Requires the owning Form; field values remain part of that Form.",
     name: formGroupComponentName,
     displayName: "Form Field Group",
     parentComponentName: formComponentName,

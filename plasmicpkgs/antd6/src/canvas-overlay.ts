@@ -2,7 +2,7 @@ import {
   usePlasmicCanvasComponentInfo,
   usePlasmicCanvasContext,
 } from "@plasmicapp/host";
-import React, { ReactElement, useEffect } from "react";
+import React, { ReactElement, useEffect, useRef } from "react";
 
 /** Child selection uses the same SDK contract as editing-only overlays. */
 export function getSelectedCanvasItemKey(items: ReactElement[]) {
@@ -45,7 +45,7 @@ export const previewOpenProp = {
 
 /** Selection controls only the design canvas; preview keeps the native open state. */
 export function useCanvasOverlay<
-  P extends CanvasOverlayProps & { open?: boolean },
+  P extends CanvasOverlayProps & { open?: boolean; defaultOpen?: boolean; destroyOnHidden?: boolean },
 >(props: P, triggerSlotName?: string) {
   const canvas = usePlasmicCanvasContext();
   const selection = usePlasmicCanvasComponentInfo(props);
@@ -62,13 +62,51 @@ export function useCanvasOverlay<
     !!selection?.isSelected &&
     (!triggerSlotName || selection.selectedSlotName !== triggerSlotName);
   const autoOpened = autoOpen && previewOpen === undefined && !open;
-  const state = canvas ? selection?.getState?.("open", open) : undefined;
+  const state = canvas ? selection?.getState?.("open", open, props.defaultOpen) : undefined;
   const editingOpen = previewOpen ?? (autoOpen || !!open);
   if (state && !selection?.states?.open) {
     const handler = (rest as { onOpenChange?: (...args: any[]) => void }).onOpenChange;
     (rest as { onOpenChange?: (...args: any[]) => void }).onOpenChange = (next: boolean, ...args: any[]) => {
       state.set(!isEditing && open !== undefined ? open : next);
       if (!isEditing) {handler?.(next, ...args);}
+    };
+  }
+
+  const resolvedOpen = state ? !!state.value : isEditing ? editingOpen : open;
+  const previous = useRef({ isEditing, open: resolvedOpen });
+  const silentTransition = useRef(false);
+  const destroyEditingContent = useRef(false);
+  // Dismissing content in the editor removes nested body portals. A mode switch
+  // only hides the editing reveal and must preserve the mounted runtime content.
+  if (!isEditing || resolvedOpen) {
+    destroyEditingContent.current = false;
+  } else if (previous.current.isEditing && previous.current.open) {
+    destroyEditingContent.current = true;
+  }
+  if (previous.current.open !== resolvedOpen) {
+    silentTransition.current = previous.current.isEditing !== isEditing;
+  }
+  previous.current = { isEditing, open: resolvedOpen };
+  const lifecycleProps = rest as {
+    onOpenChange?: (...args: any[]) => void;
+    afterOpenChange?: (open: boolean) => void;
+    afterClose?: () => void;
+  };
+  const { onOpenChange, afterOpenChange, afterClose } = lifecycleProps;
+  // Native events resume lifecycle callbacks after a silent mode transition.
+  lifecycleProps.onOpenChange = (next: boolean, ...args) => {
+    if (isEditing && (next || !state)) {return;}
+    if (!isEditing) {silentTransition.current = false;}
+    return onOpenChange?.(next, ...args);
+  };
+  if (afterOpenChange) {
+    lifecycleProps.afterOpenChange = (next) => {
+      if (!isEditing && !silentTransition.current) {afterOpenChange(next);}
+    };
+  }
+  if (afterClose) {
+    lifecycleProps.afterClose = () => {
+      if (!isEditing && !silentTransition.current) {afterClose();}
     };
   }
 
@@ -81,8 +119,9 @@ export function useCanvasOverlay<
   return {
     props: rest,
     isEditing,
+    destroyOnHidden: destroyEditingContent.current ? true : props.destroyOnHidden,
     // Studio already resolves the selection reveal. Its effective value must
     // not be fed back as a new reveal request after a real UI event closes it.
-    open: state ? !!state.value : isEditing ? editingOpen : open,
+    open: resolvedOpen,
   };
 }

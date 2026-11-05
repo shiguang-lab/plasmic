@@ -1,0 +1,242 @@
+{
+  "summary": {
+    "model": {
+      "repo": "Xenova/bge-small-zh-v1.5",
+      "revision": "75c43b069aac4d136ba6bc1122f995fedcfd2781",
+      "modelFile": "onnx/model_quantized.onnx",
+      "kind": "cls",
+      "dimensions": 512,
+      "files": [
+        {
+          "name": "onnx/model_quantized.onnx",
+          "bytes": 24010842,
+          "sha256": "15b717c382bcb518ba457b93ea6850ede7f4f1cd8937454aa06972366cd19bcc"
+        },
+        {
+          "name": "tokenizer.json",
+          "bytes": 439125,
+          "sha256": "48cea5d44424912a6fd1ea647bf4fe50b55ab8b1e5879c3275f80e339e8fae26"
+        },
+        {
+          "name": "config.json",
+          "bytes": 716,
+          "sha256": "d4193ead3a810fd694fa8a31d7fc72fbaebc0668b603e398734bf2f6538ff42f"
+        },
+        {
+          "name": "tokenizer_config.json",
+          "bytes": 367,
+          "sha256": "e6f3b96db926a37d4039995fbf5ad17de158dfb8f6343d607e4dbaad18d75f5a"
+        },
+        {
+          "name": "special_tokens_map.json",
+          "bytes": 125,
+          "sha256": "b6d346be366a7d1d48332dbc9fdf3bf8960b5d879522b7799ddba59e76237ee3"
+        }
+      ]
+    },
+    "mode": "resources",
+    "repeat": 1,
+    "date": "2026-11-04T21:57:32.208Z",
+    "corpusSha256": "b7191a546a488cc1b8ac0dec708e342938b3d6a494db557dcb636d1a2dafcdd4",
+    "runtime": {
+      "node": "v24.20.0",
+      "transformers": "4.3.2",
+      "onnxruntime": "1.30.0"
+    },
+    "hardware": {
+      "platform": "darwin",
+      "arch": "arm64",
+      "cpu": "Apple M4",
+      "logicalCpus": 10,
+      "ramBytes": 25769803776
+    },
+    "settings": {
+      "device": "cpu",
+      "intraOpNumThreads": 2,
+      "interOpNumThreads": 1,
+      "maxTokens": 512,
+      "documentBatchSize": 4,
+      "pooling": "CLS",
+      "normalize": "L2",
+      "queryPrefix": "为这个句子生成表示以用于检索相关文章：",
+      "documentPrefix": ""
+    },
+    "execution": "New Node process, local pinned files only, OS disk cache not cleared; no network in timing.",
+    "runtimeImportMs": 44.63933300000001,
+    "localLoadMs": 50.907042,
+    "firstInferenceMs": 5.261042000000003,
+    "warmQueries": 30,
+    "warmP50Ms": 2.511374999999987,
+    "warmP95Ms": 2.955291999999986,
+    "warmMaxMs": 3.1552919999999887,
+    "baselineRss": 49610752,
+    "rssAfterLoad": 173113344,
+    "rssAfterQueries": 175816704,
+    "querySampledPeakRss": 175816704,
+    "queryOsMaxRssKiB": 171696,
+    "indexMs": 2562.7961250000003,
+    "indexDocuments": 101,
+    "rssAfterIndex": 469991424,
+    "sampledPeakRss": 469991424,
+    "resourceUsageMaxRssKiB": 458976,
+    "modelArtifactBytes": 24451175,
+    "limitations": [
+      "Whole Node process RSS, including runtime, tokenizer and model; not pure weights.",
+      "Isolated CPU embedding and indexing probe, not real Studio/MCP/Electron workload.",
+      "30 short queries and one 101-document batch-4 index build per fresh process.",
+      "Prior Gemma probe did not measure indexing peak, so compare query RSS separately."
+    ]
+  },
+  "samples": [
+    {
+      "caseId": "content-switch",
+      "characters": 43,
+      "ms": 3.1552919999999887
+    },
+    {
+      "caseId": "one-value",
+      "characters": 28,
+      "ms": 2.459167000000008
+    },
+    {
+      "caseId": "many-values",
+      "characters": 32,
+      "ms": 2.5455420000000117
+    },
+    {
+      "caseId": "daily-clock",
+      "characters": 30,
+      "ms": 2.520417000000009
+    },
+    {
+      "caseId": "calendar-range",
+      "characters": 25,
+      "ms": 2.1759999999999877
+    },
+    {
+      "caseId": "quantity",
+      "characters": 34,
+      "ms": 2.7220839999999953
+    },
+    {
+      "caseId": "identifier",
+      "characters": 31,
+      "ms": 2.444958000000014
+    },
+    {
+      "caseId": "password",
+      "characters": 28,
+      "ms": 2.37308299999998
+    },
+    {
+      "caseId": "readonly-group",
+      "characters": 31,
+      "ms": 2.7064169999999876
+    },
+    {
+      "caseId": "records",
+      "characters": 35,
+      "ms": 2.797249999999991
+    },
+    {
+      "caseId": "content-switch",
+      "characters": 43,
+      "ms": 2.955291999999986
+    },
+    {
+      "caseId": "one-value",
+      "characters": 28,
+      "ms": 2.5679169999999942
+    },
+    {
+      "caseId": "many-values",
+      "characters": 32,
+      "ms": 2.692625000000021
+    },
+    {
+      "caseId": "daily-clock",
+      "characters": 30,
+      "ms": 2.5887500000000045
+    },
+    {
+      "caseId": "calendar-range",
+      "characters": 25,
+      "ms": 2.183374999999984
+    },
+    {
+      "caseId": "quantity",
+      "characters": 34,
+      "ms": 2.474333999999999
+    },
+    {
+      "caseId": "identifier",
+      "characters": 31,
+      "ms": 2.435292000000004
+    },
+    {
+      "caseId": "password",
+      "characters": 28,
+      "ms": 2.3658749999999884
+    },
+    {
+      "caseId": "readonly-group",
+      "characters": 31,
+      "ms": 2.4512089999999773
+    },
+    {
+      "caseId": "records",
+      "characters": 35,
+      "ms": 2.511374999999987
+    },
+    {
+      "caseId": "content-switch",
+      "characters": 43,
+      "ms": 2.866208999999998
+    },
+    {
+      "caseId": "one-value",
+      "characters": 28,
+      "ms": 2.6959580000000187
+    },
+    {
+      "caseId": "many-values",
+      "characters": 32,
+      "ms": 2.703958
+    },
+    {
+      "caseId": "daily-clock",
+      "characters": 30,
+      "ms": 2.596624999999989
+    },
+    {
+      "caseId": "calendar-range",
+      "characters": 25,
+      "ms": 2.2437089999999955
+    },
+    {
+      "caseId": "quantity",
+      "characters": 34,
+      "ms": 2.5950830000000167
+    },
+    {
+      "caseId": "identifier",
+      "characters": 31,
+      "ms": 2.4309159999999963
+    },
+    {
+      "caseId": "password",
+      "characters": 28,
+      "ms": 2.4109160000000145
+    },
+    {
+      "caseId": "readonly-group",
+      "characters": 31,
+      "ms": 2.4005830000000117
+    },
+    {
+      "caseId": "records",
+      "characters": 35,
+      "ms": 2.5088329999999814
+    }
+  ]
+}

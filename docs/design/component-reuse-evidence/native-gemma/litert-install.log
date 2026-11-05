@@ -1,0 +1,7 @@
+Using Python 3.11.15 environment at: pyenv
+Resolved 1 package in 818ms
+Downloading litert-lm-api (16.4MiB)
+ Downloaded litert-lm-api
+Prepared 1 package in 4.85s
+Installed 1 package in 5ms
+ + litert-lm-api==0.19.0

@@ -1,0 +1,9 @@
+panic: input video_features not recognized
+
+goroutine 1 [running]:
+plasmic-embedding-probe/internal/probe.Check(...)
+	/private/tmp/plasmic-go-embedding.tUTpF3/internal/probe/probe.go:29
+plasmic-embedding-probe/internal/probe.Run(0x105bc5030)
+	/private/tmp/plasmic-go-embedding.tUTpF3/internal/probe/probe.go:63 +0x3574
+main.main()
+	/private/tmp/plasmic-go-embedding.tUTpF3/cmd/hugot/main.go:45 +0x24

@@ -5,7 +5,7 @@ var cls = require('classnames');
 var React = require('react');
 var lodash = require('lodash');
 var registerButton = require('./registerButton.cjs.js');
-var canvasOverlay$1 = require('./canvas-overlay-pJBoKL8M.cjs.js');
+var canvasOverlay$1 = require('./canvas-overlay-CK330rTr.cjs.js');
 var utils = require('./utils-Diqr9Iet.cjs.js');
 require('./names-DbJduus8.cjs.js');
 require('@plasmicapp/host');
@@ -36,7 +36,8 @@ function AntdModal(props) {
   const {
     props: canvasProps,
     open,
-    isEditing
+    isEditing,
+    destroyOnHidden
   } = canvasOverlay$1.useCanvasOverlay(props, canvasOverlay.triggerSlot);
   const {
     onOpenChange,
@@ -84,10 +85,10 @@ function AntdModal(props) {
       onOk: isEditing ? void 0 : onOk,
       width: widthProp,
       onCancel: isEditing ? void 0 : memoOnCancel,
-      afterOpenChange: isEditing ? void 0 : props.afterOpenChange,
-      afterClose: isEditing ? void 0 : props.afterClose,
+      afterOpenChange: isEditing ? void 0 : canvasProps.afterOpenChange,
+      afterClose: isEditing ? void 0 : canvasProps.afterClose,
       open,
-      destroyOnHidden: isEditing ? true : props.destroyOnHidden,
+      destroyOnHidden,
       forceRender: isEditing ? false : props.forceRender,
       focusable: isEditing ? { trap: false, focusTriggerAfterClose: false } : props.focusable,
       footer: hideFooter ? null : footer,
@@ -110,7 +111,7 @@ function registerModal(loader) {
     },
     displayName: "Modal",
     styleSections,
-    description: "[See tutorial video](https://www.youtube.com/watch?v=TkjxNJIFun8)",
+    description: "Open a dialog over the current page for focused confirmation, information or form editing. Control its open state and OK/cancel events. [See tutorial video](https://www.youtube.com/watch?v=TkjxNJIFun8)",
     props: {
       previewOpen: canvasOverlay$1.previewOpenProp,
       open: {

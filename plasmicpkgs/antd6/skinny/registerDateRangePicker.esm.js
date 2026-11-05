@@ -3,7 +3,7 @@ import cls from 'classnames';
 import dayjs from 'dayjs';
 import kebabCase from 'lodash/kebabCase';
 import React, { useMemo } from 'react';
-import { u as useCanvasOverlay, p as previewOpenProp } from './canvas-overlay-CbpJk7_w.esm.js';
+import { u as useCanvasOverlay, p as previewOpenProp } from './canvas-overlay-27tNRB55.esm.js';
 import { r as registerComponentHelper, c as capitalize } from './utils-U416WEAa.esm.js';
 import localeData from 'dayjs/plugin/localeData';
 import weekday from 'dayjs/plugin/weekday';
@@ -60,7 +60,7 @@ function AntdDateRangePicker(props) {
     {
       ...rest,
       open,
-      onOpenChange: isEditing ? void 0 : canvasProps.onOpenChange,
+      onOpenChange: canvasProps.onOpenChange,
       onCalendarChange: isEditing ? void 0 : props.onCalendarChange,
       onPanelChange: isEditing ? void 0 : props.onPanelChange,
       picker,
@@ -104,6 +104,7 @@ const dateRangePickerHelpers = {
 };
 function registerDateRangePicker(loader) {
   registerComponentHelper(loader, AntdDateRangePicker, {
+    description: "Choose the start and end of a date range, with optional time selection and registered date restrictions.",
     name: dateRangePickerComponentName,
     canvasOverlay: {},
     displayName: "Date Range Picker",

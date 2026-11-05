@@ -551,8 +551,9 @@ export class ViewCtx extends WithDbCtx {
     fullKey: string,
     selectionOpen: boolean,
     nativeOpen: boolean | undefined,
+    defaultOpen?: boolean,
   ) {
-    this.canvasSessionState.resolve(fullKey, "open", nativeOpen);
+    this.canvasSessionState.resolve(fullKey, "open", nativeOpen, defaultOpen);
     return !!this.canvasSessionState.reveal(fullKey, "open", selectionOpen);
   }
 

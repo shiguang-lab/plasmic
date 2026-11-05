@@ -1,0 +1,20 @@
+{
+  "litert": {
+    "repo": "litert-community/embeddinggemma-2-text-270m-litert-lm",
+    "revision": "9be6e8b90982095dc05c2bd162e4b954ee4dbac7",
+    "file": "embeddinggemma-2-text-270m.litertlm",
+    "quantization": "INT4 per-channel QAT, text backbone and token embeddings",
+    "dimensions": 768,
+    "bytes": 164626432,
+    "sha256": "2d079ee2f6f066b1f368e8d7c819f55214eaef1d0513b312321901f30ab286fb"
+  },
+  "gguf": {
+    "repo": "unsloth/embeddinggemma-2-GGUF",
+    "revision": "031f0d4b35536f69ab3509d4893c923264fcf253",
+    "file": "embeddinggemma-2-UD-Q4_K_XL.gguf",
+    "quantization": "UD-Q4_K_XL",
+    "dimensions": 768,
+    "bytes": 175673856,
+    "sha256": "ea905fd08e8061db77a0031cbb5096d459d7cfd2bdd0ad2ba66e483f16719493"
+  }
+}

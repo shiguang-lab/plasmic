@@ -185,6 +185,7 @@ it("returns immediately on a cold cache while a hung background request times ou
   }));
   const started = performance.now();
   expect(await getLocalAiModels()).toEqual(["default"]);
+  const catalogRequest = getLocalAiModels({ waitForCatalog: true });
   expect(performance.now() - started).toBeLessThan(500);
   expect(await getLocalAiModels()).toEqual(["default"]);
   expect(fetchMock).toHaveBeenCalledOnce();
@@ -192,9 +193,35 @@ it("returns immediately on a cold cache while a hung background request times ou
     expect(fetchMock.mock.calls[0][1]?.signal?.aborted).toBe(true);
     expect(warn).toHaveBeenCalledOnce();
   }, { timeout: 5_000 });
+  expect(await catalogRequest).toEqual(["default"]);
   expect(warn).toHaveBeenCalledWith("AI model catalog refresh failed", {
     stage: "request", status: undefined, timeout: true,
   });
   expect(await getLocalAiModels()).toEqual(["default"]);
+  expect(fetchMock).toHaveBeenCalledOnce();
+});
+
+it("waits for one shared cold refresh for catalog requests while status stays immediate", async () => {
+  let complete: ((response: Response) => void) | undefined;
+  fetchMock.mockImplementation(() => new Promise(resolve => { complete = resolve; }));
+  expect(await getLocalAiModels()).toEqual(["default"]);
+  const pending = Array.from({ length: 32 }, () => getLocalAiModels({ waitForCatalog: true }));
+  let settled = false;
+  void Promise.all(pending).then(() => { settled = true; });
+  await Promise.resolve();
+  expect(settled).toBe(false);
+  expect(await getLocalAiModels()).toEqual(["default"]);
+  ensure(complete, "Cold refresh must be pending")(catalog("alternate"));
+  expect(await Promise.all(pending)).toEqual(Array.from({ length: 32 }, () => ["default", "alternate"]));
+  expect(fetchMock).toHaveBeenCalledOnce();
+  // A stale but usable catalog must never wait for its background refresh.
+  vi.setSystemTime(Date.now() + 5 * 60_000);
+  expect(await getLocalAiModels({ waitForCatalog: true })).toEqual(["default", "alternate"]);
+});
+
+it("finishes cold catalog requests on discovery failure and uses the cooldown", async () => {
+  fetchMock.mockRejectedValue(new Error("Offline"));
+  expect(await getLocalAiModels({ waitForCatalog: true })).toEqual(["default"]);
+  expect(await getLocalAiModels({ waitForCatalog: true })).toEqual(["default"]);
   expect(fetchMock).toHaveBeenCalledOnce();
 });

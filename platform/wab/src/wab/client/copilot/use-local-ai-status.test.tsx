@@ -80,10 +80,11 @@ it("prefetches before opening AI, coalesces pending consumers and reuses data af
     </SWRConfig>,
   );
   await waitFor(() =>
-    expect(request).toHaveBeenCalledExactlyOnceWith("project", "status"),
+    expect(request).toHaveBeenCalledWith("project", "status"),
   );
   fireEvent.click(screen.getByRole("button", { name: "Toggle AI" }));
-  expect(request).toHaveBeenCalledTimes(1);
+  expect(request).toHaveBeenCalledTimes(2);
+  expect(request).toHaveBeenCalledWith("project", "models");
   await act(async () => {
     finish(status);
   });
@@ -93,7 +94,7 @@ it("prefetches before opening AI, coalesces pending consumers and reuses data af
   fireEvent.click(screen.getByRole("button", { name: "Toggle AI" }));
   expect(screen.getByText("Panel: model")).toBeTruthy();
   expect(request).toHaveBeenCalledTimes(2);
-  expect(request).toHaveBeenLastCalledWith("project", "models");
+  expect(request).toHaveBeenCalledWith("project", "models");
 });
 it("respects feature enablement and fetches a separate catalog when switching projects", async () => {
   const cache = new Map();
@@ -165,4 +166,22 @@ it("keeps configured editing available if model discovery fails", async () => {
   expect(result.current.data?.configured).toBe(true);
   expect(result.current.data?.model).toBe("model");
   expect(result.current.error).toBeUndefined();
+});
+
+it("loads models without waiting for status and exposes a warm catalog during revalidation", async () => {
+  let finishStatus: (value: LocalAiStatus) => void = () => { throw new Error("Missing status request"); };
+  let finishModels: (value: string[]) => void = () => { throw new Error("Missing models request"); };
+  request.mockImplementation((_project: string, action: string) => action === "status"
+    ? new Promise<LocalAiStatus>(resolve => { finishStatus = resolve; })
+    : new Promise<string[]>(resolve => { finishModels = resolve; }));
+  const { result } = renderHook(() => useLocalAiStatus("parallel", true), {
+    wrapper: ({ children }) => <SWRConfig value={{ provider: () => new Map() }}>{children}</SWRConfig>,
+  });
+  await waitFor(() => expect(request).toHaveBeenCalledWith("parallel", "models"));
+  expect(result.current.data).toBeUndefined();
+  await act(async () => finishStatus(status));
+  expect(result.current.data?.models).toEqual(status.models);
+  expect(result.current.modelsLoaded).toBe(false);
+  await act(async () => finishModels([...status.models, "new"]));
+  expect(result.current.data?.models).toEqual([...status.models, "new"]);
 });

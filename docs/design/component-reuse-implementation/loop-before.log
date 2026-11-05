@@ -1,0 +1,1013 @@
+
+ RUN  v4.1.10 /Users/yanxianliang/shiguang/plasmic/platform/wab
+
+stdout | src/wab/client/copilot/component-reuse.test.ts > component advisory preflight > does not offer the same candidate again after repeated delete-and-rebuild edits
+Finished instrumenting model in 3ms; saw 53 instances
+Finished instrumenting model in 1ms; saw 51 instances
+
+stderr | src/wab/client/copilot/component-reuse.test.ts > component advisory preflight > does not offer the same candidate again after repeated delete-and-rebuild edits
+[MobX] Since strict-mode is enabled, changing (observed) observable values without using an action is not allowed. Tried to modify: ObservableValue@87
+[MobX] Since strict-mode is enabled, changing (observed) observable values without using an action is not allowed. Tried to modify: ObservableValue@265
+
+stdout | src/wab/client/copilot/component-reuse.test.ts > component advisory preflight > does not offer the same candidate again after repeated delete-and-rebuild edits
+[Studio load] all-frame-contexts-created {
+  elapsedMs: 69.60508300000038,
+  frameCount: 0,
+  entries: [
+    {
+      phase: 'initial-route',
+      frameUuid: undefined,
+      startMs: 5.037124999999833,
+      durationMs: 64.53237499999977
+    },
+    {
+      phase: 'all-frame-contexts-created',
+      frameUuid: undefined,
+      startMs: 69.59479199999987,
+      durationMs: 0
+    }
+  ]
+}
+[Studio load] all-frames-rendered {
+  elapsedMs: 69.73533299999963,
+  frameCount: 0,
+  entries: [
+    {
+      phase: 'initial-route',
+      frameUuid: undefined,
+      startMs: 5.037124999999833,
+      durationMs: 64.53237499999977
+    },
+    {
+      phase: 'all-frame-contexts-created',
+      frameUuid: undefined,
+      startMs: 69.59479199999987,
+      durationMs: 0
+    },
+    {
+      phase: 'all-frames-rendered',
+      frameUuid: undefined,
+      startMs: 69.73425000000043,
+      durationMs: 0
+    }
+  ]
+}
+[Studio load] all-frame-contexts-created {
+  elapsedMs: 24.050333000000137,
+  frameCount: 0,
+  entries: [
+    {
+      phase: 'initial-route',
+      frameUuid: undefined,
+      startMs: 2.929041000000325,
+      durationMs: 21.117459000000053
+    },
+    {
+      phase: 'all-frame-contexts-created',
+      frameUuid: undefined,
+      startMs: 24.049416000000747,
+      durationMs: 0
+    }
+  ]
+}
+[Studio load] all-frames-rendered {
+  elapsedMs: 24.099041000000398,
+  frameCount: 0,
+  entries: [
+    {
+      phase: 'initial-route',
+      frameUuid: undefined,
+      startMs: 2.929041000000325,
+      durationMs: 21.117459000000053
+    },
+    {
+      phase: 'all-frame-contexts-created',
+      frameUuid: undefined,
+      startMs: 24.049416000000747,
+      durationMs: 0
+    },
+    {
+      phase: 'all-frames-rendered',
+      frameUuid: undefined,
+      startMs: 24.098166000000674,
+      durationMs: 0
+    }
+  ]
+}
+
+stdout | src/wab/client/copilot/component-reuse.test.ts > component advisory preflight > does not offer the same candidate again after repeated delete-and-rebuild edits
+CHANGES: Site.components, Site.pageArenas, ArenaFrameRow.cols, ArenaFrame.width, ArenaFrame.height, Arena.children, ArenaFrame.left, ArenaFrame.top
+Change summary {
+  newTrees: Set(0) {},
+  updatedNodes: Set(0) {},
+  updatedComponents: Set(0) {},
+  deepUpdatedComponents: Set(0) {},
+  updatedRuleSets: Map(0) {},
+  styleForcesEval: false,
+  changesType: 2,
+  tokenOrMixinChangeType: 0,
+  regenMixins: Map(0) {},
+  deletedVariantSettings: Map(1) {
+    ClsVariantSetting {
+      variants: [Getter/Setter],
+      args: [Getter/Setter],
+      attrs: [Getter/Setter],
+      rs: [Getter/Setter],
+      dataCond: [Getter/Setter],
+      dataRep: [Getter/Setter],
+      text: [Getter/Setter],
+      columnsConfig: [Getter/Setter],
+      uid: 3000120,
+      Symbol(mobx administration): [Object]
+    } => ClsTplComponent {
+      uuid: [Getter/Setter],
+      parent: [Getter/Setter],
+      name: [Getter/Setter],
+      component: [Getter/Setter],
+      vsettings: [Getter/Setter],
+      locked: [Getter/Setter],
+      uid: 3000121,
+      Symbol(mobx administration): [Object]
+    }
+  },
+  updatedDeps: Set(0) {},
+  deletedDeps: Set(0) {},
+  rulesReorderedComponents: Set(0) {},
+  changes: [
+    {
+      type: 'array-splice',
+      object: [Array],
+      index: 0,
+      added: [Array],
+      removed: [],
+      path: [Array],
+      changeNode: [Object]
+    },
+    {
+      type: 'array-splice',
+      object: [Array],
+      index: 0,
+      added: [Array],
+      removed: [],
+      path: [Array],
+      changeNode: [Object]
+    },
+    {
+      type: 'array-splice',
+      object: [Array],
+      index: 1,
+      added: [],
+      removed: [Array],
+      path: [Array],
+      changeNode: [Object]
+    },
+    {
+      type: 'update',
+      oldValue: 1366,
+      newValue: 1440,
+      path: [Array],
+      changeNode: [Object]
+    },
+    {
+      type: 'update',
+      oldValue: 768,
+      newValue: 1024,
+      path: [Array],
+      changeNode: [Object]
+    },
+    {
+      type: 'array-splice',
+      object: [Array],
+      index: 0,
+      added: [Array],
+      removed: [],
+      path: [Array],
+      changeNode: [Object]
+    },
+    {
+      type: 'update',
+      oldValue: -680,
+      newValue: 0,
+      path: [Array],
+      changeNode: [Object]
+    },
+    {
+      type: 'update',
+      oldValue: -512,
+      newValue: 0,
+      path: [Array],
+      changeNode: [Object]
+    }
+  ]
+}
+
+stdout | src/wab/client/copilot/component-reuse.test.ts > component advisory preflight > does not offer the same candidate again after repeated delete-and-rebuild edits
+Mutated global state
+CHANGES: TplTag.children, TplTag.parent, Component.updatedAt
+Change summary {
+  newTrees: Set(1) {
+    ClsTplTag {
+      tag: [Getter/Setter],
+      uuid: [Getter/Setter],
+      name: [Getter/Setter],
+      children: [Getter/Setter],
+      parent: [Getter/Setter],
+      vsettings: [Getter/Setter],
+      type: [Getter/Setter],
+      locked: [Getter/Setter],
+      codeGenType: [Getter/Setter],
+      columnsSetting: [Getter/Setter],
+      uid: 3000145,
+      Symbol(mobx administration): [Object]
+    }
+  },
+  updatedNodes: Set(1) {
+    ClsTplTag {
+      tag: [Getter/Setter],
+      uuid: [Getter/Setter],
+      name: [Getter/Setter],
+      children: [Getter/Setter],
+      parent: [Getter/Setter],
+      vsettings: [Getter/Setter],
+      type: [Getter/Setter],
+      locked: [Getter/Setter],
+      codeGenType: [Getter/Setter],
+      columnsSetting: [Getter/Setter],
+      uid: 3000108,
+      Symbol(mobx administration): [Object]
+    }
+  },
+  updatedComponents: Set(1) {
+    ClsComponent {
+      uuid: [Getter/Setter],
+      name: [Getter/Setter],
+      params: [Getter/Setter],
+      tplTree: [Getter/Setter],
+      variants: [Getter/Setter],
+      variantGroups: [Getter/Setter],
+      pageMeta: [Getter/Setter],
+      codeComponentMeta: [Getter/Setter],
+      type: [Getter/Setter],
+      editableByContentEditor: [Getter/Setter],
+      hiddenFromContentEditor: [Getter/Setter],
+      superComp: [Getter/Setter],
+      subComps: [Getter/Setter],
+      plumeInfo: [Getter/Setter],
+      templateInfo: [Getter/Setter],
+      metadata: [Getter/Setter],
+      states: [Getter/Setter],
+      dataQueries: [Getter/Setter],
+      serverQueries: [Getter/Setter],
+      figmaMappings: [Getter/Setter],
+      alwaysAutoName: [Getter/Setter],
+      trapsFocus: [Getter/Setter],
+      updatedAt: [Getter/Setter],
+      uid: 3000110,
+      Symbol(mobx administration): [Object]
+    }
+  },
+  deepUpdatedComponents: Set(1) {
+    ClsComponent {
+      uuid: [Getter/Setter],
+      name: [Getter/Setter],
+      params: [Getter/Setter],
+      tplTree: [Getter/Setter],
+      variants: [Getter/Setter],
+      variantGroups: [Getter/Setter],
+      pageMeta: [Getter/Setter],
+      codeComponentMeta: [Getter/Setter],
+      type: [Getter/Setter],
+      editableByContentEditor: [Getter/Setter],
+      hiddenFromContentEditor: [Getter/Setter],
+      superComp: [Getter/Setter],
+      subComps: [Getter/Setter],
+      plumeInfo: [Getter/Setter],
+      templateInfo: [Getter/Setter],
+      metadata: [Getter/Setter],
+      states: [Getter/Setter],
+      dataQueries: [Getter/Setter],
+      serverQueries: [Getter/Setter],
+      figmaMappings: [Getter/Setter],
+      alwaysAutoName: [Getter/Setter],
+      trapsFocus: [Getter/Setter],
+      updatedAt: [Getter/Setter],
+      uid: 3000110,
+      Symbol(mobx administration): [Object]
+    }
+  },
+  updatedRuleSets: Map(2) {
+    ClsVariantSetting {
+      variants: [Getter/Setter],
+      args: [Getter/Setter],
+      attrs: [Getter/Setter],
+      rs: [Getter/Setter],
+      dataCond: [Getter/Setter],
+      dataRep: [Getter/Setter],
+      text: [Getter/Setter],
+      columnsConfig: [Getter/Setter],
+      uid: 3000147,
+      Symbol(mobx administration): [Object]
+    } => { tpl: [ClsTplTag] },
+    ClsVariantSetting {
+      variants: [Getter/Setter],
+      args: [Getter/Setter],
+      attrs: [Getter/Setter],
+      rs: [Getter/Setter],
+      dataCond: [Getter/Setter],
+      dataRep: [Getter/Setter],
+      text: [Getter/Setter],
+      columnsConfig: [Getter/Setter],
+      uid: 3000144,
+      Symbol(mobx administration): [Object]
+    } => { tpl: [ClsTplTag] }
+  },
+  styleForcesEval: false,
+  changesType: 2,
+  tokenOrMixinChangeType: 0,
+  regenMixins: Map(0) {},
+  deletedVariantSettings: Map(0) {},
+  updatedDeps: Set(0) {},
+  deletedDeps: Set(0) {},
+  rulesReorderedComponents: Set(0) {},
+  changes: [
+    {
+      type: 'array-splice',
+      object: [Array],
+      index: 0,
+      added: [Array],
+      removed: [],
+      path: [Array],
+      changeNode: [Object]
+    },
+    {
+      type: 'update',
+      oldValue: 1793843999554,
+      newValue: 1793843999577,
+      path: [Array],
+      changeNode: [Object]
+    }
+  ]
+}
+
+stdout | src/wab/client/copilot/component-reuse.test.ts > component advisory preflight > does not offer the same candidate again after repeated delete-and-rebuild edits
+CHANGES: TplTag.children, TplTag.parent, Component.updatedAt
+Change summary {
+  newTrees: Set(1) {
+    ClsTplTag {
+      tag: [Getter/Setter],
+      uuid: [Getter/Setter],
+      name: [Getter/Setter],
+      children: [Getter/Setter],
+      parent: [Getter/Setter],
+      vsettings: [Getter/Setter],
+      type: [Getter/Setter],
+      locked: [Getter/Setter],
+      codeGenType: [Getter/Setter],
+      columnsSetting: [Getter/Setter],
+      uid: 3000161,
+      Symbol(mobx administration): [Object]
+    }
+  },
+  updatedNodes: Set(1) {
+    ClsTplTag {
+      tag: [Getter/Setter],
+      uuid: [Getter/Setter],
+      name: [Getter/Setter],
+      children: [Getter/Setter],
+      parent: [Getter/Setter],
+      vsettings: [Getter/Setter],
+      type: [Getter/Setter],
+      locked: [Getter/Setter],
+      codeGenType: [Getter/Setter],
+      columnsSetting: [Getter/Setter],
+      uid: 3000108,
+      Symbol(mobx administration): [Object]
+    }
+  },
+  updatedComponents: Set(1) {
+    ClsComponent {
+      uuid: [Getter/Setter],
+      name: [Getter/Setter],
+      params: [Getter/Setter],
+      tplTree: [Getter/Setter],
+      variants: [Getter/Setter],
+      variantGroups: [Getter/Setter],
+      pageMeta: [Getter/Setter],
+      codeComponentMeta: [Getter/Setter],
+      type: [Getter/Setter],
+      editableByContentEditor: [Getter/Setter],
+      hiddenFromContentEditor: [Getter/Setter],
+      superComp: [Getter/Setter],
+      subComps: [Getter/Setter],
+      plumeInfo: [Getter/Setter],
+      templateInfo: [Getter/Setter],
+      metadata: [Getter/Setter],
+      states: [Getter/Setter],
+      dataQueries: [Getter/Setter],
+      serverQueries: [Getter/Setter],
+      figmaMappings: [Getter/Setter],
+      alwaysAutoName: [Getter/Setter],
+      trapsFocus: [Getter/Setter],
+      updatedAt: [Getter/Setter],
+      uid: 3000110,
+      Symbol(mobx administration): [Object]
+    }
+  },
+  deepUpdatedComponents: Set(1) {
+    ClsComponent {
+      uuid: [Getter/Setter],
+      name: [Getter/Setter],
+      params: [Getter/Setter],
+      tplTree: [Getter/Setter],
+      variants: [Getter/Setter],
+      variantGroups: [Getter/Setter],
+      pageMeta: [Getter/Setter],
+      codeComponentMeta: [Getter/Setter],
+      type: [Getter/Setter],
+      editableByContentEditor: [Getter/Setter],
+      hiddenFromContentEditor: [Getter/Setter],
+      superComp: [Getter/Setter],
+      subComps: [Getter/Setter],
+      plumeInfo: [Getter/Setter],
+      templateInfo: [Getter/Setter],
+      metadata: [Getter/Setter],
+      states: [Getter/Setter],
+      dataQueries: [Getter/Setter],
+      serverQueries: [Getter/Setter],
+      figmaMappings: [Getter/Setter],
+      alwaysAutoName: [Getter/Setter],
+      trapsFocus: [Getter/Setter],
+      updatedAt: [Getter/Setter],
+      uid: 3000110,
+      Symbol(mobx administration): [Object]
+    }
+  },
+  updatedRuleSets: Map(2) {
+    ClsVariantSetting {
+      variants: [Getter/Setter],
+      args: [Getter/Setter],
+      attrs: [Getter/Setter],
+      rs: [Getter/Setter],
+      dataCond: [Getter/Setter],
+      dataRep: [Getter/Setter],
+      text: [Getter/Setter],
+      columnsConfig: [Getter/Setter],
+      uid: 3000163,
+      Symbol(mobx administration): [Object]
+    } => { tpl: [ClsTplTag] },
+    ClsVariantSetting {
+      variants: [Getter/Setter],
+      args: [Getter/Setter],
+      attrs: [Getter/Setter],
+      rs: [Getter/Setter],
+      dataCond: [Getter/Setter],
+      dataRep: [Getter/Setter],
+      text: [Getter/Setter],
+      columnsConfig: [Getter/Setter],
+      uid: 3000160,
+      Symbol(mobx administration): [Object]
+    } => { tpl: [ClsTplTag] }
+  },
+  styleForcesEval: false,
+  changesType: 2,
+  tokenOrMixinChangeType: 0,
+  regenMixins: Map(0) {},
+  deletedVariantSettings: Map(2) {
+    ClsVariantSetting {
+      variants: [Getter/Setter],
+      args: [Getter/Setter],
+      attrs: [Getter/Setter],
+      rs: [Getter/Setter],
+      dataCond: [Getter/Setter],
+      dataRep: [Getter/Setter],
+      text: [Getter/Setter],
+      columnsConfig: [Getter/Setter],
+      uid: 3000147,
+      Symbol(mobx administration): [Object]
+    } => ClsTplTag {
+      tag: [Getter/Setter],
+      uuid: [Getter/Setter],
+      name: [Getter/Setter],
+      children: [Getter/Setter],
+      parent: [Getter/Setter],
+      vsettings: [Getter/Setter],
+      type: [Getter/Setter],
+      locked: [Getter/Setter],
+      codeGenType: [Getter/Setter],
+      columnsSetting: [Getter/Setter],
+      uid: 3000145,
+      Symbol(mobx administration): [Object]
+    },
+    ClsVariantSetting {
+      variants: [Getter/Setter],
+      args: [Getter/Setter],
+      attrs: [Getter/Setter],
+      rs: [Getter/Setter],
+      dataCond: [Getter/Setter],
+      dataRep: [Getter/Setter],
+      text: [Getter/Setter],
+      columnsConfig: [Getter/Setter],
+      uid: 3000144,
+      Symbol(mobx administration): [Object]
+    } => ClsTplTag {
+      tag: [Getter/Setter],
+      uuid: [Getter/Setter],
+      name: [Getter/Setter],
+      children: [Getter/Setter],
+      parent: [Getter/Setter],
+      vsettings: [Getter/Setter],
+      type: [Getter/Setter],
+      locked: [Getter/Setter],
+      codeGenType: [Getter/Setter],
+      columnsSetting: [Getter/Setter],
+      uid: 3000142,
+      Symbol(mobx administration): [Object]
+    }
+  },
+  updatedDeps: Set(0) {},
+  deletedDeps: Set(0) {},
+  rulesReorderedComponents: Set(0) {},
+  changes: [
+    {
+      type: 'array-splice',
+      object: [Array],
+      index: 0,
+      added: [],
+      removed: [Array],
+      path: [Array],
+      changeNode: [Object]
+    },
+    {
+      type: 'array-splice',
+      object: [Array],
+      index: 0,
+      added: [Array],
+      removed: [],
+      path: [Array],
+      changeNode: [Object]
+    },
+    {
+      type: 'update',
+      oldValue: 1793843999577,
+      newValue: 1793843999587,
+      path: [Array],
+      changeNode: [Object]
+    }
+  ]
+}
+
+stdout | src/wab/client/copilot/component-reuse.test.ts > component advisory preflight > does not offer the same candidate again after repeated delete-and-rebuild edits
+CHANGES: TplTag.children, TplTag.parent, Component.updatedAt
+Change summary {
+  newTrees: Set(1) {
+    ClsTplTag {
+      tag: [Getter/Setter],
+      uuid: [Getter/Setter],
+      name: [Getter/Setter],
+      children: [Getter/Setter],
+      parent: [Getter/Setter],
+      vsettings: [Getter/Setter],
+      type: [Getter/Setter],
+      locked: [Getter/Setter],
+      codeGenType: [Getter/Setter],
+      columnsSetting: [Getter/Setter],
+      uid: 3000177,
+      Symbol(mobx administration): [Object]
+    }
+  },
+  updatedNodes: Set(1) {
+    ClsTplTag {
+      tag: [Getter/Setter],
+      uuid: [Getter/Setter],
+      name: [Getter/Setter],
+      children: [Getter/Setter],
+      parent: [Getter/Setter],
+      vsettings: [Getter/Setter],
+      type: [Getter/Setter],
+      locked: [Getter/Setter],
+      codeGenType: [Getter/Setter],
+      columnsSetting: [Getter/Setter],
+      uid: 3000108,
+      Symbol(mobx administration): [Object]
+    }
+  },
+  updatedComponents: Set(1) {
+    ClsComponent {
+      uuid: [Getter/Setter],
+      name: [Getter/Setter],
+      params: [Getter/Setter],
+      tplTree: [Getter/Setter],
+      variants: [Getter/Setter],
+      variantGroups: [Getter/Setter],
+      pageMeta: [Getter/Setter],
+      codeComponentMeta: [Getter/Setter],
+      type: [Getter/Setter],
+      editableByContentEditor: [Getter/Setter],
+      hiddenFromContentEditor: [Getter/Setter],
+      superComp: [Getter/Setter],
+      subComps: [Getter/Setter],
+      plumeInfo: [Getter/Setter],
+      templateInfo: [Getter/Setter],
+      metadata: [Getter/Setter],
+      states: [Getter/Setter],
+      dataQueries: [Getter/Setter],
+      serverQueries: [Getter/Setter],
+      figmaMappings: [Getter/Setter],
+      alwaysAutoName: [Getter/Setter],
+      trapsFocus: [Getter/Setter],
+      updatedAt: [Getter/Setter],
+      uid: 3000110,
+      Symbol(mobx administration): [Object]
+    }
+  },
+  deepUpdatedComponents: Set(1) {
+    ClsComponent {
+      uuid: [Getter/Setter],
+      name: [Getter/Setter],
+      params: [Getter/Setter],
+      tplTree: [Getter/Setter],
+      variants: [Getter/Setter],
+      variantGroups: [Getter/Setter],
+      pageMeta: [Getter/Setter],
+      codeComponentMeta: [Getter/Setter],
+      type: [Getter/Setter],
+      editableByContentEditor: [Getter/Setter],
+      hiddenFromContentEditor: [Getter/Setter],
+      superComp: [Getter/Setter],
+      subComps: [Getter/Setter],
+      plumeInfo: [Getter/Setter],
+      templateInfo: [Getter/Setter],
+      metadata: [Getter/Setter],
+      states: [Getter/Setter],
+      dataQueries: [Getter/Setter],
+      serverQueries: [Getter/Setter],
+      figmaMappings: [Getter/Setter],
+      alwaysAutoName: [Getter/Setter],
+      trapsFocus: [Getter/Setter],
+      updatedAt: [Getter/Setter],
+      uid: 3000110,
+      Symbol(mobx administration): [Object]
+    }
+  },
+  updatedRuleSets: Map(2) {
+    ClsVariantSetting {
+      variants: [Getter/Setter],
+      args: [Getter/Setter],
+      attrs: [Getter/Setter],
+      rs: [Getter/Setter],
+      dataCond: [Getter/Setter],
+      dataRep: [Getter/Setter],
+      text: [Getter/Setter],
+      columnsConfig: [Getter/Setter],
+      uid: 3000179,
+      Symbol(mobx administration): [Object]
+    } => { tpl: [ClsTplTag] },
+    ClsVariantSetting {
+      variants: [Getter/Setter],
+      args: [Getter/Setter],
+      attrs: [Getter/Setter],
+      rs: [Getter/Setter],
+      dataCond: [Getter/Setter],
+      dataRep: [Getter/Setter],
+      text: [Getter/Setter],
+      columnsConfig: [Getter/Setter],
+      uid: 3000176,
+      Symbol(mobx administration): [Object]
+    } => { tpl: [ClsTplTag] }
+  },
+  styleForcesEval: false,
+  changesType: 2,
+  tokenOrMixinChangeType: 0,
+  regenMixins: Map(0) {},
+  deletedVariantSettings: Map(2) {
+    ClsVariantSetting {
+      variants: [Getter/Setter],
+      args: [Getter/Setter],
+      attrs: [Getter/Setter],
+      rs: [Getter/Setter],
+      dataCond: [Getter/Setter],
+      dataRep: [Getter/Setter],
+      text: [Getter/Setter],
+      columnsConfig: [Getter/Setter],
+      uid: 3000163,
+      Symbol(mobx administration): [Object]
+    } => ClsTplTag {
+      tag: [Getter/Setter],
+      uuid: [Getter/Setter],
+      name: [Getter/Setter],
+      children: [Getter/Setter],
+      parent: [Getter/Setter],
+      vsettings: [Getter/Setter],
+      type: [Getter/Setter],
+      locked: [Getter/Setter],
+      codeGenType: [Getter/Setter],
+      columnsSetting: [Getter/Setter],
+      uid: 3000161,
+      Symbol(mobx administration): [Object]
+    },
+    ClsVariantSetting {
+      variants: [Getter/Setter],
+      args: [Getter/Setter],
+      attrs: [Getter/Setter],
+      rs: [Getter/Setter],
+      dataCond: [Getter/Setter],
+      dataRep: [Getter/Setter],
+      text: [Getter/Setter],
+      columnsConfig: [Getter/Setter],
+      uid: 3000160,
+      Symbol(mobx administration): [Object]
+    } => ClsTplTag {
+      tag: [Getter/Setter],
+      uuid: [Getter/Setter],
+      name: [Getter/Setter],
+      children: [Getter/Setter],
+      parent: [Getter/Setter],
+      vsettings: [Getter/Setter],
+      type: [Getter/Setter],
+      locked: [Getter/Setter],
+      codeGenType: [Getter/Setter],
+      columnsSetting: [Getter/Setter],
+      uid: 3000158,
+      Symbol(mobx administration): [Object]
+    }
+  },
+  updatedDeps: Set(0) {},
+  deletedDeps: Set(0) {},
+  rulesReorderedComponents: Set(0) {},
+  changes: [
+    {
+      type: 'array-splice',
+      object: [Array],
+      index: 0,
+      added: [],
+      removed: [Array],
+      path: [Array],
+      changeNode: [Object]
+    },
+    {
+      type: 'array-splice',
+      object: [Array],
+      index: 0,
+      added: [Array],
+      removed: [],
+      path: [Array],
+      changeNode: [Object]
+    },
+    {
+      type: 'update',
+      oldValue: 1793843999587,
+      newValue: 1793843999597,
+      path: [Array],
+      changeNode: [Object]
+    }
+  ]
+}
+
+stdout | src/wab/client/copilot/component-reuse.test.ts > component advisory preflight > does not offer the same candidate again after repeated delete-and-rebuild edits
+CHANGES: TplTag.children, TplTag.parent, Component.updatedAt
+Change summary {
+  newTrees: Set(1) {
+    ClsTplTag {
+      tag: [Getter/Setter],
+      uuid: [Getter/Setter],
+      name: [Getter/Setter],
+      children: [Getter/Setter],
+      parent: [Getter/Setter],
+      vsettings: [Getter/Setter],
+      type: [Getter/Setter],
+      locked: [Getter/Setter],
+      codeGenType: [Getter/Setter],
+      columnsSetting: [Getter/Setter],
+      uid: 3000193,
+      Symbol(mobx administration): [Object]
+    }
+  },
+  updatedNodes: Set(1) {
+    ClsTplTag {
+      tag: [Getter/Setter],
+      uuid: [Getter/Setter],
+      name: [Getter/Setter],
+      children: [Getter/Setter],
+      parent: [Getter/Setter],
+      vsettings: [Getter/Setter],
+      type: [Getter/Setter],
+      locked: [Getter/Setter],
+      codeGenType: [Getter/Setter],
+      columnsSetting: [Getter/Setter],
+      uid: 3000108,
+      Symbol(mobx administration): [Object]
+    }
+  },
+  updatedComponents: Set(1) {
+    ClsComponent {
+      uuid: [Getter/Setter],
+      name: [Getter/Setter],
+      params: [Getter/Setter],
+      tplTree: [Getter/Setter],
+      variants: [Getter/Setter],
+      variantGroups: [Getter/Setter],
+      pageMeta: [Getter/Setter],
+      codeComponentMeta: [Getter/Setter],
+      type: [Getter/Setter],
+      editableByContentEditor: [Getter/Setter],
+      hiddenFromContentEditor: [Getter/Setter],
+      superComp: [Getter/Setter],
+      subComps: [Getter/Setter],
+      plumeInfo: [Getter/Setter],
+      templateInfo: [Getter/Setter],
+      metadata: [Getter/Setter],
+      states: [Getter/Setter],
+      dataQueries: [Getter/Setter],
+      serverQueries: [Getter/Setter],
+      figmaMappings: [Getter/Setter],
+      alwaysAutoName: [Getter/Setter],
+      trapsFocus: [Getter/Setter],
+      updatedAt: [Getter/Setter],
+      uid: 3000110,
+      Symbol(mobx administration): [Object]
+    }
+  },
+  deepUpdatedComponents: Set(1) {
+    ClsComponent {
+      uuid: [Getter/Setter],
+      name: [Getter/Setter],
+      params: [Getter/Setter],
+      tplTree: [Getter/Setter],
+      variants: [Getter/Setter],
+      variantGroups: [Getter/Setter],
+      pageMeta: [Getter/Setter],
+      codeComponentMeta: [Getter/Setter],
+      type: [Getter/Setter],
+      editableByContentEditor: [Getter/Setter],
+      hiddenFromContentEditor: [Getter/Setter],
+      superComp: [Getter/Setter],
+      subComps: [Getter/Setter],
+      plumeInfo: [Getter/Setter],
+      templateInfo: [Getter/Setter],
+      metadata: [Getter/Setter],
+      states: [Getter/Setter],
+      dataQueries: [Getter/Setter],
+      serverQueries: [Getter/Setter],
+      figmaMappings: [Getter/Setter],
+      alwaysAutoName: [Getter/Setter],
+      trapsFocus: [Getter/Setter],
+      updatedAt: [Getter/Setter],
+      uid: 3000110,
+      Symbol(mobx administration): [Object]
+    }
+  },
+  updatedRuleSets: Map(2) {
+    ClsVariantSetting {
+      variants: [Getter/Setter],
+      args: [Getter/Setter],
+      attrs: [Getter/Setter],
+      rs: [Getter/Setter],
+      dataCond: [Getter/Setter],
+      dataRep: [Getter/Setter],
+      text: [Getter/Setter],
+      columnsConfig: [Getter/Setter],
+      uid: 3000195,
+      Symbol(mobx administration): [Object]
+    } => { tpl: [ClsTplTag] },
+    ClsVariantSetting {
+      variants: [Getter/Setter],
+      args: [Getter/Setter],
+      attrs: [Getter/Setter],
+      rs: [Getter/Setter],
+      dataCond: [Getter/Setter],
+      dataRep: [Getter/Setter],
+      text: [Getter/Setter],
+      columnsConfig: [Getter/Setter],
+      uid: 3000192,
+      Symbol(mobx administration): [Object]
+    } => { tpl: [ClsTplTag] }
+  },
+  styleForcesEval: false,
+  changesType: 2,
+  tokenOrMixinChangeType: 0,
+  regenMixins: Map(0) {},
+  deletedVariantSettings: Map(2) {
+    ClsVariantSetting {
+      variants: [Getter/Setter],
+      args: [Getter/Setter],
+      attrs: [Getter/Setter],
+      rs: [Getter/Setter],
+      dataCond: [Getter/Setter],
+      dataRep: [Getter/Setter],
+      text: [Getter/Setter],
+      columnsConfig: [Getter/Setter],
+      uid: 3000179,
+      Symbol(mobx administration): [Object]
+    } => ClsTplTag {
+      tag: [Getter/Setter],
+      uuid: [Getter/Setter],
+      name: [Getter/Setter],
+      children: [Getter/Setter],
+      parent: [Getter/Setter],
+      vsettings: [Getter/Setter],
+      type: [Getter/Setter],
+      locked: [Getter/Setter],
+      codeGenType: [Getter/Setter],
+      columnsSetting: [Getter/Setter],
+      uid: 3000177,
+      Symbol(mobx administration): [Object]
+    },
+    ClsVariantSetting {
+      variants: [Getter/Setter],
+      args: [Getter/Setter],
+      attrs: [Getter/Setter],
+      rs: [Getter/Setter],
+      dataCond: [Getter/Setter],
+      dataRep: [Getter/Setter],
+      text: [Getter/Setter],
+      columnsConfig: [Getter/Setter],
+      uid: 3000176,
+      Symbol(mobx administration): [Object]
+    } => ClsTplTag {
+      tag: [Getter/Setter],
+      uuid: [Getter/Setter],
+      name: [Getter/Setter],
+      children: [Getter/Setter],
+      parent: [Getter/Setter],
+      vsettings: [Getter/Setter],
+      type: [Getter/Setter],
+      locked: [Getter/Setter],
+      codeGenType: [Getter/Setter],
+      columnsSetting: [Getter/Setter],
+      uid: 3000174,
+      Symbol(mobx administration): [Object]
+    }
+  },
+  updatedDeps: Set(0) {},
+  deletedDeps: Set(0) {},
+  rulesReorderedComponents: Set(0) {},
+  changes: [
+    {
+      type: 'array-splice',
+      object: [Array],
+      index: 0,
+      added: [],
+      removed: [Array],
+      path: [Array],
+      changeNode: [Object]
+    },
+    {
+      type: 'array-splice',
+      object: [Array],
+      index: 0,
+      added: [Array],
+      removed: [],
+      path: [Array],
+      changeNode: [Object]
+    },
+    {
+      type: 'update',
+      oldValue: 1793843999597,
+      newValue: 1793843999601,
+      path: [Array],
+      changeNode: [Object]
+    }
+  ]
+}
+
+stdout | src/wab/client/copilot/component-reuse.test.ts
+UNDO: Clear
+UNDO: Clear
+
+ ❯ |studio| src/wab/client/copilot/component-reuse.test.ts (19 tests | 1 failed | 18 skipped) 162ms
+     × does not offer the same candidate again after repeated delete-and-rebuild edits 131ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  |studio| src/wab/client/copilot/component-reuse.test.ts > component advisory preflight > does not offer the same candidate again after repeated delete-and-rebuild edits
+AssertionError: expected [ 1, 1, 1, 1 ] to deeply equal [ 1, +0, +0, +0 ]
+
+- Expected
++ Received
+
+  [
+    1,
+-   0,
+-   0,
+-   0,
++   1,
++   1,
++   1,
+  ]
+
+ ❯ src/wab/client/copilot/component-reuse.test.ts:116:20
+    114|       elementUuid = result.operations[1].created[0].uuid;
+    115|     }
+    116|     expect(counts).toEqual([1, 0, 0, 0]);
+       |                    ^
+    117|   });
+    118|   it("drops stale advice if the model changed during the query", async…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 18 skipped (19)
+   Start at  09:59:51
+   Duration  8.20s (transform 4.17s, setup 939ms, import 6.81s, tests 162ms, environment 217ms)
+

@@ -1,0 +1,242 @@
+{
+  "summary": {
+    "model": {
+      "repo": "Xenova/bge-small-zh-v1.5",
+      "revision": "75c43b069aac4d136ba6bc1122f995fedcfd2781",
+      "modelFile": "onnx/model_quantized.onnx",
+      "kind": "cls",
+      "dimensions": 512,
+      "files": [
+        {
+          "name": "onnx/model_quantized.onnx",
+          "bytes": 24010842,
+          "sha256": "15b717c382bcb518ba457b93ea6850ede7f4f1cd8937454aa06972366cd19bcc"
+        },
+        {
+          "name": "tokenizer.json",
+          "bytes": 439125,
+          "sha256": "48cea5d44424912a6fd1ea647bf4fe50b55ab8b1e5879c3275f80e339e8fae26"
+        },
+        {
+          "name": "config.json",
+          "bytes": 716,
+          "sha256": "d4193ead3a810fd694fa8a31d7fc72fbaebc0668b603e398734bf2f6538ff42f"
+        },
+        {
+          "name": "tokenizer_config.json",
+          "bytes": 367,
+          "sha256": "e6f3b96db926a37d4039995fbf5ad17de158dfb8f6343d607e4dbaad18d75f5a"
+        },
+        {
+          "name": "special_tokens_map.json",
+          "bytes": 125,
+          "sha256": "b6d346be366a7d1d48332dbc9fdf3bf8960b5d879522b7799ddba59e76237ee3"
+        }
+      ]
+    },
+    "mode": "resources",
+    "repeat": 2,
+    "date": "2026-11-04T21:57:34.991Z",
+    "corpusSha256": "b7191a546a488cc1b8ac0dec708e342938b3d6a494db557dcb636d1a2dafcdd4",
+    "runtime": {
+      "node": "v24.20.0",
+      "transformers": "4.3.2",
+      "onnxruntime": "1.30.0"
+    },
+    "hardware": {
+      "platform": "darwin",
+      "arch": "arm64",
+      "cpu": "Apple M4",
+      "logicalCpus": 10,
+      "ramBytes": 25769803776
+    },
+    "settings": {
+      "device": "cpu",
+      "intraOpNumThreads": 2,
+      "interOpNumThreads": 1,
+      "maxTokens": 512,
+      "documentBatchSize": 4,
+      "pooling": "CLS",
+      "normalize": "L2",
+      "queryPrefix": "为这个句子生成表示以用于检索相关文章：",
+      "documentPrefix": ""
+    },
+    "execution": "New Node process, local pinned files only, OS disk cache not cleared; no network in timing.",
+    "runtimeImportMs": 44.120875,
+    "localLoadMs": 52.179709,
+    "firstInferenceMs": 5.101375000000004,
+    "warmQueries": 30,
+    "warmP50Ms": 2.5401669999999967,
+    "warmP95Ms": 3.0799160000000256,
+    "warmMaxMs": 3.136166000000003,
+    "baselineRss": 49692672,
+    "rssAfterLoad": 172998656,
+    "rssAfterQueries": 175685632,
+    "querySampledPeakRss": 175685632,
+    "queryOsMaxRssKiB": 171568,
+    "indexMs": 2585.5001660000003,
+    "indexDocuments": 101,
+    "rssAfterIndex": 470122496,
+    "sampledPeakRss": 470122496,
+    "resourceUsageMaxRssKiB": 459104,
+    "modelArtifactBytes": 24451175,
+    "limitations": [
+      "Whole Node process RSS, including runtime, tokenizer and model; not pure weights.",
+      "Isolated CPU embedding and indexing probe, not real Studio/MCP/Electron workload.",
+      "30 short queries and one 101-document batch-4 index build per fresh process.",
+      "Prior Gemma probe did not measure indexing peak, so compare query RSS separately."
+    ]
+  },
+  "samples": [
+    {
+      "caseId": "content-switch",
+      "characters": 43,
+      "ms": 3.136166000000003
+    },
+    {
+      "caseId": "one-value",
+      "characters": 28,
+      "ms": 2.5747499999999945
+    },
+    {
+      "caseId": "many-values",
+      "characters": 32,
+      "ms": 2.6917499999999848
+    },
+    {
+      "caseId": "daily-clock",
+      "characters": 30,
+      "ms": 2.5689579999999808
+    },
+    {
+      "caseId": "calendar-range",
+      "characters": 25,
+      "ms": 2.3472089999999923
+    },
+    {
+      "caseId": "quantity",
+      "characters": 34,
+      "ms": 2.934375000000017
+    },
+    {
+      "caseId": "identifier",
+      "characters": 31,
+      "ms": 3.0799160000000256
+    },
+    {
+      "caseId": "password",
+      "characters": 28,
+      "ms": 2.5135410000000036
+    },
+    {
+      "caseId": "readonly-group",
+      "characters": 31,
+      "ms": 2.497458999999992
+    },
+    {
+      "caseId": "records",
+      "characters": 35,
+      "ms": 2.5574589999999944
+    },
+    {
+      "caseId": "content-switch",
+      "characters": 43,
+      "ms": 2.7973340000000064
+    },
+    {
+      "caseId": "one-value",
+      "characters": 28,
+      "ms": 2.5401669999999967
+    },
+    {
+      "caseId": "many-values",
+      "characters": 32,
+      "ms": 2.5291249999999934
+    },
+    {
+      "caseId": "daily-clock",
+      "characters": 30,
+      "ms": 2.5578330000000165
+    },
+    {
+      "caseId": "calendar-range",
+      "characters": 25,
+      "ms": 2.2241659999999968
+    },
+    {
+      "caseId": "quantity",
+      "characters": 34,
+      "ms": 2.670125000000013
+    },
+    {
+      "caseId": "identifier",
+      "characters": 31,
+      "ms": 2.5502910000000156
+    },
+    {
+      "caseId": "password",
+      "characters": 28,
+      "ms": 2.479834000000011
+    },
+    {
+      "caseId": "readonly-group",
+      "characters": 31,
+      "ms": 2.4360829999999964
+    },
+    {
+      "caseId": "records",
+      "characters": 35,
+      "ms": 2.563999999999993
+    },
+    {
+      "caseId": "content-switch",
+      "characters": 43,
+      "ms": 2.912292000000008
+    },
+    {
+      "caseId": "one-value",
+      "characters": 28,
+      "ms": 2.3744590000000017
+    },
+    {
+      "caseId": "many-values",
+      "characters": 32,
+      "ms": 2.4684589999999957
+    },
+    {
+      "caseId": "daily-clock",
+      "characters": 30,
+      "ms": 2.415916999999979
+    },
+    {
+      "caseId": "calendar-range",
+      "characters": 25,
+      "ms": 2.1584589999999935
+    },
+    {
+      "caseId": "quantity",
+      "characters": 34,
+      "ms": 2.516249999999985
+    },
+    {
+      "caseId": "identifier",
+      "characters": 31,
+      "ms": 2.3373339999999985
+    },
+    {
+      "caseId": "password",
+      "characters": 28,
+      "ms": 2.390416999999985
+    },
+    {
+      "caseId": "readonly-group",
+      "characters": 31,
+      "ms": 2.5525829999999985
+    },
+    {
+      "caseId": "records",
+      "characters": 35,
+      "ms": 2.743707999999998
+    }
+  ]
+}

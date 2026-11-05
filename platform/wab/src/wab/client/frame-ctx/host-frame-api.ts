@@ -98,6 +98,7 @@ export type HostFrameApi = {
 export type CopilotToolCallError = {
   message: string;
   type: "TOOL_NOT_FOUND" | "EXECUTION_FAILED";
+  operationExecuted?: false;
 };
 
 /** Serializable result of a tool call execution (crosses TopFrame and HostFrame boundary via Comlink) */

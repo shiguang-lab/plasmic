@@ -5,7 +5,7 @@ var cls = require('classnames');
 var dayjs = require('dayjs');
 var kebabCase = require('lodash/kebabCase');
 var React = require('react');
-var canvasOverlay = require('./canvas-overlay-pJBoKL8M.cjs.js');
+var canvasOverlay = require('./canvas-overlay-CK330rTr.cjs.js');
 var utils = require('./utils-Diqr9Iet.cjs.js');
 var localeData = require('dayjs/plugin/localeData');
 var weekday = require('dayjs/plugin/weekday');
@@ -71,7 +71,7 @@ function AntdDateRangePicker(props) {
     {
       ...rest,
       open,
-      onOpenChange: isEditing ? void 0 : canvasProps.onOpenChange,
+      onOpenChange: canvasProps.onOpenChange,
       onCalendarChange: isEditing ? void 0 : props.onCalendarChange,
       onPanelChange: isEditing ? void 0 : props.onPanelChange,
       picker,
@@ -115,6 +115,7 @@ const dateRangePickerHelpers = {
 };
 function registerDateRangePicker(loader) {
   utils.registerComponentHelper(loader, AntdDateRangePicker, {
+    description: "Choose the start and end of a date range, with optional time selection and registered date restrictions.",
     name: dateRangePickerComponentName,
     canvasOverlay: {},
     displayName: "Date Range Picker",

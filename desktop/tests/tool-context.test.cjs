@@ -213,7 +213,7 @@ test("context error and recovery survive RPC and MCP, allowing one explicit clos
     await client.connect(new StdioClientTransport(mcpTransport(profile)));
     assert.match(client.getInstructions(), /JSON \{msg,detail\}/);
     assert.match(client.getInstructions(), /detail\.operationExecuted/);
-    const args = { name: "changeElement", input: { componentUuid: "page", elementUuid: "node", name: "Content" } };
+    const args = { name: "changeElement", input: { componentUuid: "page", elementUuid: "node", name: "Content", reviewContext: { purpose: "Rename the content region" } } };
     const failed = await client.callTool({ name: "execute", arguments: args });
     assert.equal(failed.isError, true);
     const { msg, detail: error } = JSON.parse(failed.content[0].text);

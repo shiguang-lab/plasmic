@@ -1,6 +1,6 @@
 {
   "name": "@shiguang-lab/plasmic-desktop",
-  "version": "0.6.8",
+  "version": "0.6.9",
   "private": true,
   "description": "Locally bundled Plasmic Studio with the NAS backend",
   "main": "src/entry.cjs",
@@ -10,6 +10,7 @@
   "scripts": {
     "assets": "node scripts/prepare-assets.mjs",
     "build:mcp": "node scripts/build-mcp.mjs",
+    "prepare:component-reuse": "node scripts/prepare-component-reuse.mjs",
     "prestart": "npm run build:mcp",
     "start": "electron .",
     "test": "npm run test:go && node --test tests/*.test.cjs",

@@ -1,0 +1,340 @@
+{
+  "summary": {
+    "model": {
+      "repo": "onnx-community/Qwen3-Embedding-0.6B-ONNX",
+      "revision": "c25a394dd583836952667c12f008335071b3f43d"
+    },
+    "dtype": "q8",
+    "device": "CPU only",
+    "threads": {
+      "intra": 2,
+      "inter": 1
+    },
+    "hardware": {
+      "platform": "darwin",
+      "arch": "arm64",
+      "cpu": "Apple M4",
+      "logicalCpus": 10,
+      "ramBytes": 25769803776
+    },
+    "runtime": {
+      "node": "v24.20.0",
+      "transformers": "4.3.2",
+      "onnxruntime": "1.30.0"
+    },
+    "execution": "New process, local files only; OS disk cache not cleared; model setup excludes network download.",
+    "runtimeImportMs": 100.923375,
+    "localLoadMs": 594.047417,
+    "firstInferenceMs": 97.14741600000002,
+    "warmQueries": 30,
+    "warmP50Ms": 71.78666599999997,
+    "warmP95Ms": 78.9135839999999,
+    "warmMaxMs": 80.88887499999987,
+    "baselineRss": 47693824,
+    "rssAfterLoad": 1672183808,
+    "rssAfterQueries": 1730871296,
+    "sampledPeakRss": 1730887680,
+    "resourceUsageMaxRssKiB": 1690384,
+    "outputDimensions": [
+      1,
+      1024
+    ],
+    "modelFiles": [
+      {
+        "name": "config.json",
+        "bytes": 1576
+      },
+      {
+        "name": "tokenizer.json",
+        "bytes": 11423705
+      },
+      {
+        "name": "tokenizer_config.json",
+        "bytes": 9731
+      },
+      {
+        "name": "onnx/model_quantized.onnx",
+        "bytes": 613527631
+      }
+    ],
+    "modelArtifactBytes": 624962643,
+    "limitations": [
+      "Embedding-only probe, not end-to-end component search, Electron package, UI responsiveness or MCP scan benchmark.",
+      "No active Studio interaction workload was controlled; not evidence of unchanged frame rate.",
+      "30 short Chinese queries from ten positive cases; not long documents, indexing or all target platforms.",
+      "Memory is whole Node worker RSS including runtime/tokenizer/model, not just tensor bytes."
+    ]
+  },
+  "samples": [
+    {
+      "caseId": "content-switch",
+      "characters": 43,
+      "ms": 75.80933300000004,
+      "dimensions": [
+        1,
+        1024
+      ]
+    },
+    {
+      "caseId": "one-value",
+      "characters": 28,
+      "ms": 71.53849999999989,
+      "dimensions": [
+        1,
+        1024
+      ]
+    },
+    {
+      "caseId": "many-values",
+      "characters": 32,
+      "ms": 74.02487500000007,
+      "dimensions": [
+        1,
+        1024
+      ]
+    },
+    {
+      "caseId": "daily-clock",
+      "characters": 30,
+      "ms": 66.45012500000007,
+      "dimensions": [
+        1,
+        1024
+      ]
+    },
+    {
+      "caseId": "calendar-range",
+      "characters": 25,
+      "ms": 66.14887500000009,
+      "dimensions": [
+        1,
+        1024
+      ]
+    },
+    {
+      "caseId": "quantity",
+      "characters": 34,
+      "ms": 80.88887499999987,
+      "dimensions": [
+        1,
+        1024
+      ]
+    },
+    {
+      "caseId": "identifier",
+      "characters": 31,
+      "ms": 71.40987500000006,
+      "dimensions": [
+        1,
+        1024
+      ]
+    },
+    {
+      "caseId": "password",
+      "characters": 28,
+      "ms": 61.87712499999998,
+      "dimensions": [
+        1,
+        1024
+      ]
+    },
+    {
+      "caseId": "readonly-group",
+      "characters": 31,
+      "ms": 71.78666599999997,
+      "dimensions": [
+        1,
+        1024
+      ]
+    },
+    {
+      "caseId": "records",
+      "characters": 35,
+      "ms": 75.98908300000016,
+      "dimensions": [
+        1,
+        1024
+      ]
+    },
+    {
+      "caseId": "content-switch",
+      "characters": 43,
+      "ms": 76.48545899999999,
+      "dimensions": [
+        1,
+        1024
+      ]
+    },
+    {
+      "caseId": "one-value",
+      "characters": 28,
+      "ms": 74.91979199999992,
+      "dimensions": [
+        1,
+        1024
+      ]
+    },
+    {
+      "caseId": "many-values",
+      "characters": 32,
+      "ms": 73.86745899999983,
+      "dimensions": [
+        1,
+        1024
+      ]
+    },
+    {
+      "caseId": "daily-clock",
+      "characters": 30,
+      "ms": 65.23837500000013,
+      "dimensions": [
+        1,
+        1024
+      ]
+    },
+    {
+      "caseId": "calendar-range",
+      "characters": 25,
+      "ms": 67.42487500000016,
+      "dimensions": [
+        1,
+        1024
+      ]
+    },
+    {
+      "caseId": "quantity",
+      "characters": 34,
+      "ms": 74.67104199999994,
+      "dimensions": [
+        1,
+        1024
+      ]
+    },
+    {
+      "caseId": "identifier",
+      "characters": 31,
+      "ms": 72.92879199999993,
+      "dimensions": [
+        1,
+        1024
+      ]
+    },
+    {
+      "caseId": "password",
+      "characters": 28,
+      "ms": 64.150083,
+      "dimensions": [
+        1,
+        1024
+      ]
+    },
+    {
+      "caseId": "readonly-group",
+      "characters": 31,
+      "ms": 73.70600000000013,
+      "dimensions": [
+        1,
+        1024
+      ]
+    },
+    {
+      "caseId": "records",
+      "characters": 35,
+      "ms": 78.9135839999999,
+      "dimensions": [
+        1,
+        1024
+      ]
+    },
+    {
+      "caseId": "content-switch",
+      "characters": 43,
+      "ms": 76.51954099999966,
+      "dimensions": [
+        1,
+        1024
+      ]
+    },
+    {
+      "caseId": "one-value",
+      "characters": 28,
+      "ms": 71.35474999999997,
+      "dimensions": [
+        1,
+        1024
+      ]
+    },
+    {
+      "caseId": "many-values",
+      "characters": 32,
+      "ms": 71.51920799999971,
+      "dimensions": [
+        1,
+        1024
+      ]
+    },
+    {
+      "caseId": "daily-clock",
+      "characters": 30,
+      "ms": 67.10945900000024,
+      "dimensions": [
+        1,
+        1024
+      ]
+    },
+    {
+      "caseId": "calendar-range",
+      "characters": 25,
+      "ms": 68.12570800000003,
+      "dimensions": [
+        1,
+        1024
+      ]
+    },
+    {
+      "caseId": "quantity",
+      "characters": 34,
+      "ms": 76.76983400000017,
+      "dimensions": [
+        1,
+        1024
+      ]
+    },
+    {
+      "caseId": "identifier",
+      "characters": 31,
+      "ms": 71.06550000000016,
+      "dimensions": [
+        1,
+        1024
+      ]
+    },
+    {
+      "caseId": "password",
+      "characters": 28,
+      "ms": 62.62262499999997,
+      "dimensions": [
+        1,
+        1024
+      ]
+    },
+    {
+      "caseId": "readonly-group",
+      "characters": 31,
+      "ms": 72.25037500000008,
+      "dimensions": [
+        1,
+        1024
+      ]
+    },
+    {
+      "caseId": "records",
+      "characters": 35,
+      "ms": 78.26762499999995,
+      "dimensions": [
+        1,
+        1024
+      ]
+    }
+  ]
+}

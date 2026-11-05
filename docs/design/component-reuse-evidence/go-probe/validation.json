@@ -1,0 +1,123 @@
+{
+  "date": "2026-11-05",
+  "hugot": {
+    "bge": {
+      "tokenInputs": 142,
+      "identicalTokenInputs": 142,
+      "tokenDifferences": [],
+      "sampleVectorCount": 14,
+      "maxSampleVectorDifference": 2.208954713589506e-08,
+      "sampleVectorDifferences": {
+        "doc:antd_v5/components/avatar.md": 1.394402537879813e-08,
+        "doc:antd_v5/components/breadcrumb.md": 2.208954713589506e-08,
+        "doc:antd_v5/components/button.md": 1.8408041757567162e-08,
+        "doc:antd_v5/components/checkbox.md": 1.4790898950067799e-08,
+        "query:calendar-range": 9.069077488987887e-09,
+        "query:content-switch": 1.0536897215862595e-08,
+        "query:daily-clock": 7.163681758903806e-09,
+        "query:identifier": 1.0993247312462984e-08,
+        "query:many-values": 9.557826419204218e-09,
+        "query:one-value": 2.0106950049392225e-08,
+        "query:password": 9.423608143821482e-09,
+        "query:quantity": 1.7287147491273913e-08,
+        "query:readonly-group": 1.1775464103802591e-08,
+        "query:records": 7.95918422835662e-09
+      },
+      "limitation": "The 14 sample vectors do not cover all differing corpus documents; same hit@3 is not full tokenizer or model equivalence."
+    },
+    "granite": {
+      "tokenInputs": 142,
+      "identicalTokenInputs": 135,
+      "tokenDifferences": [
+        {
+          "id": "doc:antd_v5/components/date-picker.md",
+          "goTokens": 272,
+          "nodeTokens": 270,
+          "firstDifference": 267
+        },
+        {
+          "id": "doc:antd_v5/components/drawer.md",
+          "goTokens": 177,
+          "nodeTokens": 175,
+          "firstDifference": 145
+        },
+        {
+          "id": "doc:antd_v5/components/tabs.md",
+          "goTokens": 206,
+          "nodeTokens": 204,
+          "firstDifference": 161
+        },
+        {
+          "id": "doc:antd_v6/components/badge.md",
+          "goTokens": 435,
+          "nodeTokens": 431,
+          "firstDifference": 88
+        },
+        {
+          "id": "doc:antd_v6/components/card.md",
+          "goTokens": 483,
+          "nodeTokens": 484,
+          "firstDifference": 209
+        },
+        {
+          "id": "doc:antd_v6/components/carousel.md",
+          "goTokens": 179,
+          "nodeTokens": 177,
+          "firstDifference": 104
+        },
+        {
+          "id": "doc:antd_v6/components/tag.md",
+          "goTokens": 376,
+          "nodeTokens": 374,
+          "firstDifference": 186
+        }
+      ],
+      "sampleVectorCount": 14,
+      "maxSampleVectorDifference": 3.378140989163114e-08,
+      "sampleVectorDifferences": {
+        "doc:antd_v5/components/avatar.md": 2.1691210827512464e-08,
+        "doc:antd_v5/components/breadcrumb.md": 3.378140989163114e-08,
+        "doc:antd_v5/components/button.md": 8.193224987351755e-09,
+        "doc:antd_v5/components/checkbox.md": 3.129146108893366e-08,
+        "query:calendar-range": 1.0828415275554448e-08,
+        "query:content-switch": 9.194068645301812e-09,
+        "query:daily-clock": 1.766506352307573e-08,
+        "query:identifier": 5.787768361797951e-09,
+        "query:many-values": 4.885340770810487e-09,
+        "query:one-value": 2.310092928059504e-08,
+        "query:password": 2.172000013178632e-08,
+        "query:quantity": 2.1056729249124828e-08,
+        "query:readonly-group": 1.692622553228773e-08,
+        "query:records": 8.98860894049669e-09
+      },
+      "limitation": "The 14 sample vectors do not cover all differing corpus documents; same hit@3 is not full tokenizer or model equivalence."
+    }
+  },
+  "additionalAttempts": [
+    {
+      "library": "hugot",
+      "backend": "pure Go GoMLX",
+      "model": "bge",
+      "status": "stopped after 207 seconds without completing quality evaluation",
+      "elapsedSecondsAtStop": 207,
+      "rssKiBAtStop": 660352,
+      "note": "Optional diagnostic attempt, not one of the completed ORT benchmarks. Initial probe preserved terminal tokens on truncation; completed ORT probe matches the Node prefix cap. No quality or latency score claimed."
+    },
+    {
+      "library": "hugot",
+      "backend": "ORT",
+      "model": "Gemma 2 text q4",
+      "status": "unsupported input in unmodified loader",
+      "error": "input video_features not recognized",
+      "stderrFile": "hugot-gemma-quality.stderr.log"
+    },
+    {
+      "library": "go-potion",
+      "status": "upstream Python-reference test fixtures absent from module archive",
+      "testCommand": "go test -run '^TestLoadAndEncode/(BASE8M|MULTILINGUAL128M)$' -count=1 -json",
+      "error": "validation/samples/BASE8M.json and MULTILINGUAL128M.json missing",
+      "log": "potion-reference-tests.jsonl"
+    }
+  ],
+  "potionReference": "potion-python-parity.json: independent model2vec 0.8.2, same local weights, untruncated raw fragments. Upstream fixture suite was unavailable; its missing-fixture failure is preserved."
+}

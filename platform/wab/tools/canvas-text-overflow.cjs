@@ -31,7 +31,16 @@ async function main() {
       [108, "false"],
       [108, ""],
     ];
-    for (const rawText of [false, true]) {
+    for (const [interactive, rawText] of [false, true, false, true].flatMap(
+      (mode) => [[mode, false], [mode, true]],
+    )) {
+      await page.evaluate((interactive) => {
+        document.documentElement.className = interactive
+          ? "__interactive_canvas" : "__non_interactive_canvas";
+        const cell = document.querySelector("#canvas td");
+        if (interactive) cell.removeAttribute("data-plasmic-canvas-part");
+        else cell.setAttribute("data-plasmic-canvas-part", "column");
+      }, interactive);
       for (const [width, text] of values) {
         await page.evaluate(
           ({ width, text, rawText }) => {
@@ -71,12 +80,12 @@ async function main() {
         if (sizing.overflows) {
           assert(
             native.equals(canvas),
-            `Canvas differs from native ellipsis: ${JSON.stringify({ width, text, rawText })}`,
+            `Canvas differs from native ellipsis: ${JSON.stringify({ width, text, rawText, interactive })}`,
           );
         } else {
           assert(
             sizing.fits,
-            `Short value is clipped: ${JSON.stringify({ width, text, rawText })}`,
+            `Short value is clipped: ${JSON.stringify({ width, text, rawText, interactive })}`,
           );
         }
         assert.equal(
@@ -130,7 +139,7 @@ async function main() {
       tooltip: "normal",
     });
     console.log(
-      "Passed: 8 native/canvas ellipsis pixel comparisons, 8 short/empty value fit checks; complete text, active editing, non-ellipsis cells, nested widgets, authored styles and Tooltip wrapping.",
+      "Passed: 32 native/canvas ellipsis pixel comparisons, 32 short/empty value fit checks across repeated editing/interactive mode changes; complete text, active editing, non-ellipsis cells, nested widgets, authored styles and Tooltip wrapping.",
     );
   } finally {
     await browser.close();

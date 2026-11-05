@@ -1,0 +1,227 @@
+{
+  "summary": {
+    "model": {
+      "repo": "hotchpotch/bekko-static-embedding-v1",
+      "revision": "c18167b8f244c1bc6de21ce9b710bac8a29c4615",
+      "modelFile": "onnx/model_int8_dim128.onnx",
+      "kind": "static",
+      "dimensions": 128,
+      "files": [
+        {
+          "name": "onnx/model_int8_dim128.onnx",
+          "bytes": 26400965,
+          "sha256": "b848886b593c3b00e99815482ac1e963f93f194ed087390c2ee769d14206e1ab"
+        },
+        {
+          "name": "tokenizer.json",
+          "bytes": 5104874,
+          "sha256": "308823060352e35bf9fff6b42ef343f31cc68fa800e284568cc44e9cc0f70a73"
+        }
+      ]
+    },
+    "mode": "resources",
+    "repeat": 2,
+    "date": "2026-11-04T21:57:30.932Z",
+    "corpusSha256": "b7191a546a488cc1b8ac0dec708e342938b3d6a494db557dcb636d1a2dafcdd4",
+    "runtime": {
+      "node": "v24.20.0",
+      "transformers": "4.3.2",
+      "onnxruntime": "1.30.0"
+    },
+    "hardware": {
+      "platform": "darwin",
+      "arch": "arm64",
+      "cpu": "Apple M4",
+      "logicalCpus": 10,
+      "ramBytes": 25769803776
+    },
+    "settings": {
+      "device": "cpu",
+      "intraOpNumThreads": 2,
+      "interOpNumThreads": 1,
+      "maxTokens": 512,
+      "documentBatchSize": 4,
+      "pooling": "mean of tokens, model-provided sentence_embedding, no special tokens",
+      "normalize": "L2",
+      "queryPrefix": "",
+      "documentPrefix": ""
+    },
+    "execution": "New Node process, local pinned files only, OS disk cache not cleared; no network in timing.",
+    "runtimeImportMs": 43.72408300000001,
+    "localLoadMs": 142.73804199999998,
+    "firstInferenceMs": 2.022790999999984,
+    "warmQueries": 30,
+    "warmP50Ms": 0.06433299999997644,
+    "warmP95Ms": 0.12458300000000122,
+    "warmMaxMs": 0.13729100000000471,
+    "baselineRss": 49496064,
+    "rssAfterLoad": 276840448,
+    "rssAfterQueries": 280559616,
+    "querySampledPeakRss": 280559616,
+    "queryOsMaxRssKiB": 273984,
+    "indexMs": 29.320749999999975,
+    "indexDocuments": 101,
+    "rssAfterIndex": 305889280,
+    "sampledPeakRss": 305889280,
+    "resourceUsageMaxRssKiB": 298720,
+    "modelArtifactBytes": 31505839,
+    "limitations": [
+      "Whole Node process RSS, including runtime, tokenizer and model; not pure weights.",
+      "Isolated CPU embedding and indexing probe, not real Studio/MCP/Electron workload.",
+      "30 short queries and one 101-document batch-4 index build per fresh process.",
+      "Prior Gemma probe did not measure indexing peak, so compare query RSS separately."
+    ]
+  },
+  "samples": [
+    {
+      "caseId": "content-switch",
+      "characters": 43,
+      "ms": 0.12458300000000122
+    },
+    {
+      "caseId": "one-value",
+      "characters": 28,
+      "ms": 0.12116700000001401
+    },
+    {
+      "caseId": "many-values",
+      "characters": 32,
+      "ms": 0.13729100000000471
+    },
+    {
+      "caseId": "daily-clock",
+      "characters": 30,
+      "ms": 0.11320800000001441
+    },
+    {
+      "caseId": "calendar-range",
+      "characters": 25,
+      "ms": 0.10900000000000887
+    },
+    {
+      "caseId": "quantity",
+      "characters": 34,
+      "ms": 0.11479199999999423
+    },
+    {
+      "caseId": "identifier",
+      "characters": 31,
+      "ms": 0.11504200000001674
+    },
+    {
+      "caseId": "password",
+      "characters": 28,
+      "ms": 0.10262499999998909
+    },
+    {
+      "caseId": "readonly-group",
+      "characters": 31,
+      "ms": 0.08812500000001933
+    },
+    {
+      "caseId": "records",
+      "characters": 35,
+      "ms": 0.07441700000001106
+    },
+    {
+      "caseId": "content-switch",
+      "characters": 43,
+      "ms": 0.08354200000002265
+    },
+    {
+      "caseId": "one-value",
+      "characters": 28,
+      "ms": 0.06437499999998408
+    },
+    {
+      "caseId": "many-values",
+      "characters": 32,
+      "ms": 0.0589999999999975
+    },
+    {
+      "caseId": "daily-clock",
+      "characters": 30,
+      "ms": 0.07674999999997567
+    },
+    {
+      "caseId": "calendar-range",
+      "characters": 25,
+      "ms": 0.07091700000000856
+    },
+    {
+      "caseId": "quantity",
+      "characters": 34,
+      "ms": 0.0579580000000135
+    },
+    {
+      "caseId": "identifier",
+      "characters": 31,
+      "ms": 0.060374999999993406
+    },
+    {
+      "caseId": "password",
+      "characters": 28,
+      "ms": 0.052707999999995536
+    },
+    {
+      "caseId": "readonly-group",
+      "characters": 31,
+      "ms": 0.055499999999995
+    },
+    {
+      "caseId": "records",
+      "characters": 35,
+      "ms": 0.05504200000001447
+    },
+    {
+      "caseId": "content-switch",
+      "characters": 43,
+      "ms": 0.06041600000000358
+    },
+    {
+      "caseId": "one-value",
+      "characters": 28,
+      "ms": 0.06433299999997644
+    },
+    {
+      "caseId": "many-values",
+      "characters": 32,
+      "ms": 0.055582999999984395
+    },
+    {
+      "caseId": "daily-clock",
+      "characters": 30,
+      "ms": 0.05316700000000196
+    },
+    {
+      "caseId": "calendar-range",
+      "characters": 25,
+      "ms": 0.05029199999998468
+    },
+    {
+      "caseId": "quantity",
+      "characters": 34,
+      "ms": 0.05150000000000432
+    },
+    {
+      "caseId": "identifier",
+      "characters": 31,
+      "ms": 0.0539579999999944
+    },
+    {
+      "caseId": "password",
+      "characters": 28,
+      "ms": 0.05054200000000719
+    },
+    {
+      "caseId": "readonly-group",
+      "characters": 31,
+      "ms": 0.05187499999999545
+    },
+    {
+      "caseId": "records",
+      "characters": 35,
+      "ms": 0.07041700000002038
+    }
+  ]
+}

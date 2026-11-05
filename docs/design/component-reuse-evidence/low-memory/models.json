@@ -1,0 +1,108 @@
+{
+  "bekko128": {
+    "repo": "hotchpotch/bekko-static-embedding-v1",
+    "revision": "c18167b8f244c1bc6de21ce9b710bac8a29c4615",
+    "modelFile": "onnx/model_int8_dim128.onnx",
+    "kind": "static",
+    "dimensions": 128,
+    "files": [
+      {
+        "name": "onnx/model_int8_dim128.onnx",
+        "bytes": 26400965,
+        "sha256": "b848886b593c3b00e99815482ac1e963f93f194ed087390c2ee769d14206e1ab"
+      },
+      {
+        "name": "tokenizer.json",
+        "bytes": 5104874,
+        "sha256": "308823060352e35bf9fff6b42ef343f31cc68fa800e284568cc44e9cc0f70a73"
+      }
+    ]
+  },
+  "bekko256": {
+    "repo": "hotchpotch/bekko-static-embedding-v1",
+    "revision": "c18167b8f244c1bc6de21ce9b710bac8a29c4615",
+    "modelFile": "onnx/model_int8_dim256.onnx",
+    "kind": "static",
+    "dimensions": 256,
+    "files": [
+      {
+        "name": "onnx/model_int8_dim256.onnx",
+        "bytes": 52000965,
+        "sha256": "b79091ffcc23d499ea0dcc52d6d08e4aecccd1ca8b866d5c02e1f5c082d23158"
+      },
+      {
+        "name": "tokenizer.json",
+        "bytes": 5104874,
+        "sha256": "308823060352e35bf9fff6b42ef343f31cc68fa800e284568cc44e9cc0f70a73"
+      }
+    ]
+  },
+  "bge": {
+    "repo": "Xenova/bge-small-zh-v1.5",
+    "revision": "75c43b069aac4d136ba6bc1122f995fedcfd2781",
+    "modelFile": "onnx/model_quantized.onnx",
+    "kind": "cls",
+    "dimensions": 512,
+    "files": [
+      {
+        "name": "onnx/model_quantized.onnx",
+        "bytes": 24010842,
+        "sha256": "15b717c382bcb518ba457b93ea6850ede7f4f1cd8937454aa06972366cd19bcc"
+      },
+      {
+        "name": "tokenizer.json",
+        "bytes": 439125,
+        "sha256": "48cea5d44424912a6fd1ea647bf4fe50b55ab8b1e5879c3275f80e339e8fae26"
+      },
+      {
+        "name": "config.json",
+        "bytes": 716,
+        "sha256": "d4193ead3a810fd694fa8a31d7fc72fbaebc0668b603e398734bf2f6538ff42f"
+      },
+      {
+        "name": "tokenizer_config.json",
+        "bytes": 367,
+        "sha256": "e6f3b96db926a37d4039995fbf5ad17de158dfb8f6343d607e4dbaad18d75f5a"
+      },
+      {
+        "name": "special_tokens_map.json",
+        "bytes": 125,
+        "sha256": "b6d346be366a7d1d48332dbc9fdf3bf8960b5d879522b7799ddba59e76237ee3"
+      }
+    ]
+  },
+  "granite": {
+    "repo": "onnx-community/granite-embedding-97m-multilingual-r2-ONNX",
+    "revision": "536a9f241cb3f02a9c5995a1e708c784bd274859",
+    "modelFile": "onnx/model_quantized.onnx",
+    "kind": "cls",
+    "dimensions": 384,
+    "files": [
+      {
+        "name": "onnx/model_quantized.onnx",
+        "bytes": 97858099,
+        "sha256": "704c1ebca5fbb7cd83ced41827658ac4c9990c64f7f2874d22b78044e5022e22"
+      },
+      {
+        "name": "tokenizer.json",
+        "bytes": 25301671,
+        "sha256": "51947676cae1f991fa51c6b9a24e14ee5460e5f0b9f692f13bb3159829d1592a"
+      },
+      {
+        "name": "config.json",
+        "bytes": 1215,
+        "sha256": "ae74d55a56f779774cb9a8e63d3c2da9ae1af83c00229ffdff43d0b38407a0ee"
+      },
+      {
+        "name": "tokenizer_config.json",
+        "bytes": 12860,
+        "sha256": "6ed69389e30a8ecabfce2f9ebcdf0c908b34056f24d994340f2f216521c057d5"
+      },
+      {
+        "name": "special_tokens_map.json",
+        "bytes": 871,
+        "sha256": "013787ee251ff611722479197c00853b62113ad303cb0a36524231783c676c69"
+      }
+    ]
+  }
+}

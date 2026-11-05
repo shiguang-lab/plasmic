@@ -9,6 +9,7 @@ import { COMMON_ACTIONS } from "./sharedRegistration";
 
 export function registerFormList(loader?: Registerable) {
   registerComponentHelper(loader, FormListWrapper, {
+    description: "Manage a repeated array of Form field groups with add, remove and move actions. Requires the owning Form and a list name.",
     name: formListComponentName,
     parentComponentName: formComponentName,
     displayName: "Form List",

@@ -12,6 +12,7 @@ import { AntdPopover, registerPopover } from "../src/registerPopover";
 import { AntdOption, AntdSelect, registerSelect } from "../src/registerSelect";
 import { AntdTooltip, registerTooltip } from "../src/registerTooltip";
 import type { Registerable } from "../src/utils";
+import { createSessionCanvas } from "./canvas-session";
 
 function Canvas({
   children,
@@ -41,6 +42,46 @@ const content = (
   </span>
 );
 const trigger = <button>Trigger</button>;
+
+test("Tooltip editing reveals stay out of interactive mode, and repeated native hover remains dismissible", async () => {
+  const SessionCanvas = createSessionCanvas([registerTooltip]);
+  const onOpenChange = vi.fn(), afterOpenChange = vi.fn();
+  const page = (interactive: boolean) => (
+    <SessionCanvas interactive={interactive}>
+      <ConfigProvider theme={{ token: { motion: false } }}>
+        {[0, 1].map((row) => (
+          <AntdTooltip key={row} title={`Full text ${row}`} mouseEnterDelay={0} mouseLeaveDelay={0}
+            onOpenChange={onOpenChange} afterOpenChange={afterOpenChange}
+            __plasmic_selection_prop__={{ isSelected: true, selectedSlotName: "title" }}>
+            <button>{`Row ${row}`}</button>
+          </AntdTooltip>
+        ))}
+      </ConfigProvider>
+    </SessionCanvas>
+  );
+  const visible = () => document.querySelectorAll(".ant-tooltip:not(.ant-tooltip-hidden)");
+  const view = render(page(false));
+  await waitFor(() => expect(visible()).toHaveLength(2));
+  for (const mode of [true, false, true]) {
+    view.rerender(page(mode));
+    await waitFor(() => expect(visible()).toHaveLength(mode ? 0 : 2));
+  }
+  expect(onOpenChange).not.toHaveBeenCalled();
+  expect(afterOpenChange).not.toHaveBeenCalled();
+  for (const row of [0, 1, 0]) {
+    const target = screen.getByRole("button", { name: `Row ${row}` });
+    fireEvent.mouseEnter(target);
+    await waitFor(() => {
+      expect(visible()).toHaveLength(1);
+      expect(visible()[0].textContent).toBe(`Full text ${row}`);
+    });
+    fireEvent.mouseLeave(target);
+    await waitFor(() => expect(visible()).toHaveLength(0));
+  }
+  expect(onOpenChange.mock.calls).toEqual([[true], [false], [true], [false], [true], [false]]);
+  // Browser regression checks both lifecycle edges after real popup alignment.
+  expect(afterOpenChange).toHaveBeenLastCalledWith(false);
+});
 
 test("Modal exposes only its native buttons as editing parts, preserving props and runtime behavior", () => {
   let meta: any;

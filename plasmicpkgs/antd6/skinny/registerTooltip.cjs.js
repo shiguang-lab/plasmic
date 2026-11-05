@@ -3,7 +3,7 @@
 var Ant = require('antd');
 var cls = require('classnames');
 var React = require('react');
-var canvasOverlay$1 = require('./canvas-overlay-pJBoKL8M.cjs.js');
+var canvasOverlay$1 = require('./canvas-overlay-CK330rTr.cjs.js');
 var utils = require('./utils-Diqr9Iet.cjs.js');
 require('@plasmicapp/host');
 require('@plasmicapp/host/registerComponent');
@@ -20,7 +20,8 @@ function AntdTooltip(props) {
   const {
     props: canvasProps,
     open,
-    isEditing
+    isEditing,
+    destroyOnHidden
   } = canvasOverlay$1.useCanvasOverlay(props, canvasOverlay.triggerSlot);
   const { popupRootClassName, titleText, classNames, ...rest } = canvasProps;
   return /* @__PURE__ */ React__default.default.createElement(
@@ -28,9 +29,9 @@ function AntdTooltip(props) {
     {
       ...rest,
       open,
-      destroyOnHidden: isEditing ? true : props.destroyOnHidden,
-      onOpenChange: isEditing ? void 0 : canvasProps.onOpenChange,
-      afterOpenChange: isEditing ? void 0 : props.afterOpenChange,
+      destroyOnHidden,
+      onOpenChange: canvasProps.onOpenChange,
+      afterOpenChange: isEditing ? void 0 : canvasProps.afterOpenChange,
       classNames: (info) => {
         const names = typeof classNames === "function" ? classNames(info) : classNames;
         return { ...names, root: cls__default.default(names?.root, popupRootClassName) };
@@ -47,6 +48,18 @@ function registerTooltip(loader) {
     isAttachment: true,
     props: {
       previewOpen: canvasOverlay$1.previewOpenProp,
+      open: {
+        type: "boolean",
+        description: "Controlled open state of the tooltip."
+      },
+      defaultOpen: {
+        type: "boolean",
+        description: "Initial open state when open is not controlled."
+      },
+      onOpenChange: {
+        type: "eventHandler",
+        argTypes: [{ name: "open", type: "boolean" }]
+      },
       children: {
         type: "slot",
         defaultValue: {
@@ -99,6 +112,15 @@ function registerTooltip(loader) {
         ],
         description: "Default placement of tooltip",
         defaultValueHint: "top"
+      }
+    },
+    states: {
+      open: {
+        type: "writable",
+        valueProp: "open",
+        initialValueProp: "defaultOpen",
+        onChangeProp: "onOpenChange",
+        variableType: "boolean"
       }
     },
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerTooltip",

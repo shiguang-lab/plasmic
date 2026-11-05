@@ -489,14 +489,17 @@ Configure an OpenAI-compatible service in the server's `PLASMIC_SECRETS_FILE`:
 Preserve other fields in that file, keep it outside Git, and restrict its file
 permissions. `PLASMIC_AI_BASE_URL`, `PLASMIC_AI_API_KEY` and `PLASMIC_AI_MODEL`
 override those three fields. Use HTTPS except for local HTTP test services.
-The browser status endpoint returns configuration status and model name only.
+The browser status endpoint returns configuration status and cached model IDs,
+without service credentials.
 
 Model discovery uses a server-process cache shared by projects and clients.
-Reads always return immediately: a cached catalog, or the configured default
-model when no catalog younger than one hour is available. Catalogs are fresh
-for five minutes; subsequent reads trigger one background refresh while using
-the previous catalog. Background discovery has a three-second timeout and a
-30-second failure cooldown. Failed refreshes retain the previous catalog
+Status reads return immediately with a cached catalog, or the configured default
+model when no catalog younger than one hour is available. The browser requests
+status and models in parallel. Only a cold or expired model-list request waits
+for the shared discovery task, so its default fallback is not retained after a
+successful refresh. Catalogs are fresh for five minutes; subsequent reads trigger
+one background refresh while using the previous catalog. Discovery has a
+three-second timeout and a 30-second failure cooldown. Failed refreshes retain the previous catalog
 without extending its one-hour maximum age. Service URL, API key or default
 model changes replace the cache, and late responses cannot overwrite the new
 entry. The cache is cleared on server restart. Explicit `localAiEditing.models`

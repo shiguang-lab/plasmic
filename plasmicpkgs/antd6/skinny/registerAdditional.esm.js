@@ -2,7 +2,7 @@ import { usePlasmicCanvasContext } from '@plasmicapp/host';
 import * as Ant from 'antd';
 import dayjs from 'dayjs';
 import React from 'react';
-import { r as renderCanvasSlot, g as getCanvasItems, u as useCanvasOverlay, p as previewOpenProp } from './canvas-overlay-CbpJk7_w.esm.js';
+import { r as renderCanvasSlot, g as getCanvasItems, u as useCanvasOverlay, p as previewOpenProp } from './canvas-overlay-27tNRB55.esm.js';
 import { r as registerComponentHelper } from './utils-U416WEAa.esm.js';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
@@ -97,16 +97,17 @@ function AntdPopconfirm(props) {
   const {
     props: rest,
     open,
-    isEditing
+    isEditing,
+    destroyOnHidden
   } = useCanvasOverlay(props, canvasOverlay.triggerSlot);
   return /* @__PURE__ */ React.createElement(
     Ant.Popconfirm,
     {
       ...rest,
       open,
-      destroyOnHidden: isEditing ? true : props.destroyOnHidden,
-      onOpenChange: isEditing ? void 0 : rest.onOpenChange,
-      afterOpenChange: isEditing ? void 0 : props.afterOpenChange,
+      destroyOnHidden,
+      onOpenChange: rest.onOpenChange,
+      afterOpenChange: isEditing ? void 0 : rest.afterOpenChange,
       onConfirm: isEditing ? void 0 : props.onConfirm,
       onCancel: isEditing ? void 0 : props.onCancel
     }

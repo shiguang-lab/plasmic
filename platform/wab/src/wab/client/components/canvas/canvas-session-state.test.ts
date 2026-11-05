@@ -1,4 +1,63 @@
 import { applyCanvasSessionState, CanvasSessionState } from "@/wab/client/components/canvas/canvas-session-state";
+import { computed } from "mobx";
+
+it("observes native overlay events without an implicit state and isolates editing reveals", () => {
+  const session = new CanvasSessionState();
+  const onOpenChange = vi.fn();
+  session.resolve("tooltip[0]", "open", undefined, false);
+  session.reveal("tooltip[0]", "open", true);
+  const render = vi.fn(() => {
+    const props: Record<string, any> = { defaultOpen: false, onOpenChange };
+    const states = applyCanvasSessionState(session, "tooltip[0]", props, [], true, vi.fn(), true);
+    props.__plasmic_selection_prop__.states = states;
+    return props;
+  });
+  const cached = computed(render, { keepAlive: true });
+  expect(cached.get().open).toBe(false);
+  expect(cached.get().__plasmic_selection_prop__.getState("open").value).toBe(false);
+  expect(session.get("tooltip[0]", "open")).toBe(true);
+  expect(onOpenChange).not.toHaveBeenCalled();
+  cached.get().onOpenChange(true);
+  expect(cached.get().open).toBe(true);
+  cached.get().onOpenChange(false);
+  expect(cached.get().open).toBe(false);
+  expect(onOpenChange.mock.calls).toEqual([[true], [false]]);
+  expect(render).toHaveBeenCalledTimes(3);
+});
+
+it.each([undefined, false, true])("overlay defaults and controlled open retain native ownership: %s", (open) => {
+  const session = new CanvasSessionState();
+  const callback = vi.fn();
+  const render = (interactive: boolean) => {
+    const props = { open, defaultOpen: true, onOpenChange: callback };
+    applyCanvasSessionState(session, "overlay", props, [], interactive, vi.fn(), true);
+    return props;
+  };
+  const editing = render(false);
+  session.reveal("overlay", "open", false);
+  expect(render(false).open).toBe(false);
+  expect(render(true).open).toBe(open ?? true);
+  render(true).onOpenChange(false);
+  expect(render(true).open).toBe(open ?? false);
+  expect(callback).toHaveBeenCalledExactlyOnceWith(false);
+  expect(editing.defaultOpen).toBe(true);
+});
+
+it.each([undefined, true])("delayed overlay close updates runtime without dismissing the editing reveal or invoking business callbacks: %s", (open) => {
+  const session = new CanvasSessionState();
+  const callback = vi.fn();
+  const render = (interactive: boolean) => {
+    const props: Record<string, any> = { open, defaultOpen: false, onOpenChange: callback };
+    applyCanvasSessionState(session, "overlay", props, [], interactive, vi.fn(), true);
+    return props;
+  };
+  render(true).onOpenChange(true);
+  session.reveal("overlay", "open", true);
+  render(false).onOpenChange(false);
+  expect(render(false).open).toBe(true);
+  expect(render(true).open).toBe(open ?? false);
+  expect(callback).toHaveBeenCalledExactlyOnceWith(true);
+});
 
 it("preserves arbitrary registered state through both modes without invoking business handlers", () => {
   const session = new CanvasSessionState();

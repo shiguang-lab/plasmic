@@ -1,7 +1,7 @@
 'use strict';
 
 var host = require('@plasmicapp/host');
-var canvasOverlay = require('./canvas-overlay-pJBoKL8M.cjs.js');
+var canvasOverlay = require('./canvas-overlay-CK330rTr.cjs.js');
 var Ant = require('antd');
 var React = require('react');
 var utils = require('./utils-Diqr9Iet.cjs.js');
@@ -47,6 +47,7 @@ function AntdCollapsePanel(props) {
 }
 function registerCollapse(loader) {
   utils.registerComponentHelper(loader, AntdCollapse, {
+    description: "Expand or collapse labeled content sections, independently or in accordion mode. Keeps section headers available while their content is hidden.",
     name: collapseComponentName,
     displayName: "Collapse",
     defaultStyles: { width: "stretch" },

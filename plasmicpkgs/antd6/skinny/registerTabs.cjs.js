@@ -4,7 +4,7 @@ var host = require('@plasmicapp/host');
 var Ant = require('antd');
 var cls = require('classnames');
 var React = require('react');
-var canvasOverlay = require('./canvas-overlay-pJBoKL8M.cjs.js');
+var canvasOverlay = require('./canvas-overlay-CK330rTr.cjs.js');
 var utils = require('./utils-Diqr9Iet.cjs.js');
 require('@plasmicapp/host/registerComponent');
 require('@plasmicapp/host/registerGlobalContext');
@@ -125,6 +125,7 @@ function OutlineMessage() {
 }
 function registerTabs(loader) {
   utils.registerComponentHelper(loader, AntdTabs, {
+    description: "Switch between named content panels within the same page, keeping the selected tab and visible panel synchronized. Use Tab Item children or configured items; this is content navigation, not selection of a form value.",
     name: tabsComponentName,
     displayName: "Tabs",
     defaultStyles: {
@@ -372,6 +373,7 @@ function registerTabs(loader) {
     importName: "AntdTabs"
   });
   utils.registerComponentHelper(loader, AntdTabItem, {
+    description: "One labeled content panel inside Tabs. Its key identifies the active panel; place panel content in its children slot.",
     name: tabItemComponentName,
     displayName: "Tab Item",
     props: {

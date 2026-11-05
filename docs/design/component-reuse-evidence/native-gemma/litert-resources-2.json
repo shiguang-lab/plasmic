@@ -1,0 +1,244 @@
+{
+  "summary": {
+    "corpusSha256": "b7191a546a488cc1b8ac0dec708e342938b3d6a494db557dcb636d1a2dafcdd4",
+    "documentCount": 101,
+    "queryPrefix": "task: search result | query: ",
+    "documentFormat": "title: {name} | text: {text}",
+    "documentBatchSize": 4,
+    "maxInputTokens": 512,
+    "outputDimensions": 768,
+    "normalization": "L2",
+    "firstInferenceMs": 38.254457991570234,
+    "warmP50Ms": 33.07745908387005,
+    "warmP95Ms": 33.510709065012634,
+    "warmMaxMs": 33.58937497250736,
+    "indexMs": 10779.062125016935,
+    "indexDocuments": 101,
+    "model": {
+      "repo": "litert-community/embeddinggemma-2-text-270m-litert-lm",
+      "revision": "9be6e8b90982095dc05c2bd162e4b954ee4dbac7",
+      "file": "embeddinggemma-2-text-270m.litertlm",
+      "quantization": "INT4 per-channel QAT, text backbone and token embeddings",
+      "dimensions": 768,
+      "bytes": 164626432,
+      "sha256": "2d079ee2f6f066b1f368e8d7c819f55214eaef1d0513b312321901f30ab286fb"
+    },
+    "runtime": "litert-lm-api 0.19.0",
+    "python": "3.11.15 (main, Mar  3 2026, 00:52:57) [Clang 21.0.0 (clang-2100.0.123.102)]",
+    "platform": "macOS-26.6.2-arm64-arm-64bit",
+    "date": "2026-11-04T22:49:13.785993+00:00",
+    "mode": "resources",
+    "repeat": 2,
+    "device": "CPU only",
+    "threads": 2,
+    "maxInputSignature": 512,
+    "runtimeImportMs": 12.61750003322959,
+    "localLoadMs": 86.73162502236664,
+    "timing": "Direct Python API: input text formatting, native tokenization/inference, copying output and L2 normalization. No HTTP.",
+    "inputHandling": "Native insert-special-tokens default; InputOverflowStrategy.TRUNCATE. Text-only 270M model, no vision/audio encoder.",
+    "limitations": [
+      "Frozen manually labeled pilot, no independent holdout.",
+      "Different quantization and tokenizer/runtime from ONNX q4; equal token budget does not prove identical encoded input.",
+      "Not actual Studio/MCP or other platforms."
+    ],
+    "memoryStages": [
+      {
+        "event": "phase",
+        "phase": "baseline",
+        "osMaxRssBytes": 23953408,
+        "rssBytes": 23756800,
+        "sampledPeakRssBytes": 23756800
+      },
+      {
+        "event": "phase",
+        "phase": "imported",
+        "osMaxRssBytes": 27312128,
+        "rssBytes": 27181056,
+        "sampledPeakRssBytes": 27181056
+      },
+      {
+        "event": "phase",
+        "phase": "loaded",
+        "osMaxRssBytes": 314736640,
+        "rssBytes": 314769408,
+        "sampledPeakRssBytes": 314769408
+      },
+      {
+        "event": "phase",
+        "phase": "queried",
+        "osMaxRssBytes": 401899520,
+        "rssBytes": 401899520,
+        "sampledPeakRssBytes": 401899520
+      },
+      {
+        "event": "phase",
+        "phase": "indexed",
+        "osMaxRssBytes": 505823232,
+        "rssBytes": 505839616,
+        "sampledPeakRssBytes": 505839616
+      },
+      {
+        "event": "phase",
+        "phase": "finished",
+        "osMaxRssBytes": 506658816,
+        "rssBytes": 506249216,
+        "sampledPeakRssBytes": 506249216
+      }
+    ],
+    "sampledPeakRssBytes": 506281984,
+    "osMaxRssBytes": 506658816,
+    "memoryObserver": "External proc_pidinfo(PROC_PIDTASKINFO), child RSS only, sampled every 20 ms and at blocked phase checkpoints. Darwin maxRSS bytes."
+  },
+  "samples": [
+    {
+      "caseId": "content-switch",
+      "characters": 43,
+      "ms": 33.510709065012634
+    },
+    {
+      "caseId": "one-value",
+      "characters": 28,
+      "ms": 33.25066703837365
+    },
+    {
+      "caseId": "many-values",
+      "characters": 32,
+      "ms": 33.06312509812415
+    },
+    {
+      "caseId": "daily-clock",
+      "characters": 30,
+      "ms": 33.062375034205616
+    },
+    {
+      "caseId": "calendar-range",
+      "characters": 25,
+      "ms": 33.05349999573082
+    },
+    {
+      "caseId": "quantity",
+      "characters": 34,
+      "ms": 32.8740420518443
+    },
+    {
+      "caseId": "identifier",
+      "characters": 31,
+      "ms": 32.99162501934916
+    },
+    {
+      "caseId": "password",
+      "characters": 28,
+      "ms": 33.355999970808625
+    },
+    {
+      "caseId": "readonly-group",
+      "characters": 31,
+      "ms": 32.99874998629093
+    },
+    {
+      "caseId": "records",
+      "characters": 35,
+      "ms": 33.48679200280458
+    },
+    {
+      "caseId": "content-switch",
+      "characters": 43,
+      "ms": 33.42937503475696
+    },
+    {
+      "caseId": "one-value",
+      "characters": 28,
+      "ms": 33.17524993326515
+    },
+    {
+      "caseId": "many-values",
+      "characters": 32,
+      "ms": 33.15862501040101
+    },
+    {
+      "caseId": "daily-clock",
+      "characters": 30,
+      "ms": 33.419915940612555
+    },
+    {
+      "caseId": "calendar-range",
+      "characters": 25,
+      "ms": 33.27012492809445
+    },
+    {
+      "caseId": "quantity",
+      "characters": 34,
+      "ms": 33.156582969240844
+    },
+    {
+      "caseId": "identifier",
+      "characters": 31,
+      "ms": 33.03520800545812
+    },
+    {
+      "caseId": "password",
+      "characters": 28,
+      "ms": 33.34866696968675
+    },
+    {
+      "caseId": "readonly-group",
+      "characters": 31,
+      "ms": 33.248583087697625
+    },
+    {
+      "caseId": "records",
+      "characters": 35,
+      "ms": 33.23950001504272
+    },
+    {
+      "caseId": "content-switch",
+      "characters": 43,
+      "ms": 33.35537505336106
+    },
+    {
+      "caseId": "one-value",
+      "characters": 28,
+      "ms": 33.58937497250736
+    },
+    {
+      "caseId": "many-values",
+      "characters": 32,
+      "ms": 32.916791969910264
+    },
+    {
+      "caseId": "daily-clock",
+      "characters": 30,
+      "ms": 33.07745908387005
+    },
+    {
+      "caseId": "calendar-range",
+      "characters": 25,
+      "ms": 32.732625026255846
+    },
+    {
+      "caseId": "quantity",
+      "characters": 34,
+      "ms": 32.7772080199793
+    },
+    {
+      "caseId": "identifier",
+      "characters": 31,
+      "ms": 32.83679101150483
+    },
+    {
+      "caseId": "password",
+      "characters": 28,
+      "ms": 32.85000007599592
+    },
+    {
+      "caseId": "readonly-group",
+      "characters": 31,
+      "ms": 32.99704089295119
+    },
+    {
+      "caseId": "records",
+      "characters": 35,
+      "ms": 33.03466597571969
+    }
+  ]
+}

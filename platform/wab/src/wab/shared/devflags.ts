@@ -447,6 +447,7 @@ const DEFAULT_DEVFLAGS = {
   enableChatCopilot: false,
   enableLocalAiEditing: false,
   enableLocalAiPageGeneration: false,
+  enableComponentReuseAdvisory: true,
   enableQueryMigrationCopilot: false,
   chatCopilotModelProviderOpts: {
     provider: "VertexAnthropic",

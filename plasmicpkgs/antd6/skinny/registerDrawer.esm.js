@@ -1,7 +1,7 @@
 import { Drawer } from 'antd';
 import cls from 'classnames';
 import React from 'react';
-import { u as useCanvasOverlay, p as previewOpenProp } from './canvas-overlay-CbpJk7_w.esm.js';
+import { u as useCanvasOverlay, p as previewOpenProp } from './canvas-overlay-27tNRB55.esm.js';
 import { r as registerComponentHelper } from './utils-U416WEAa.esm.js';
 import '@plasmicapp/host';
 import '@plasmicapp/host/registerComponent';
@@ -10,7 +10,7 @@ import '@shiguang-lab/plasmic-antd6/thumbnails';
 
 const canvasOverlay = {};
 function AntdDrawer(props) {
-  const { props: canvasProps, open, isEditing } = useCanvasOverlay(props);
+  const { props: canvasProps, open, isEditing, destroyOnHidden } = useCanvasOverlay(props);
   const {
     onOpenChange,
     onClose,
@@ -35,10 +35,10 @@ function AntdDrawer(props) {
     {
       ...rest,
       onClose: isEditing ? void 0 : memoOnClose,
-      afterOpenChange: isEditing ? void 0 : props.afterOpenChange,
+      afterOpenChange: isEditing ? void 0 : canvasProps.afterOpenChange,
       rootClassName: cls(rootClassName, drawerScopeClassName),
       open,
-      destroyOnHidden: isEditing ? true : props.destroyOnHidden,
+      destroyOnHidden,
       forceRender: isEditing ? false : props.forceRender,
       autoFocus: isEditing ? false : props.autoFocus,
       focusable: isEditing ? { trap: false, focusTriggerAfterClose: false } : props.focusable,
@@ -49,6 +49,7 @@ function AntdDrawer(props) {
 }
 function registerDrawer(loader) {
   registerComponentHelper(loader, AntdDrawer, {
+    description: "Reveal supplementary details or an editing form in a panel sliding from a page edge. Control its open state and close behavior without navigating away.",
     name: "plasmic-antd6-drawer",
     canvasOverlay,
     displayName: "Drawer",

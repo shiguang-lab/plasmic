@@ -9,6 +9,7 @@ export function AntdSteps(props: React.ComponentProps<typeof Steps>) {
 export function registerSteps(loader?: Registerable) {
   const statusOptions = ["wait", "process", "finish", "error"];
   registerComponentHelper(loader, AntdSteps, {
+    description: "Display the current stage and progress through a sequence of steps. Use registered change events when allowing the user to select a stage; the owning page provides step content.",
     name: "plasmic-antd6-steps",
     displayName: "Steps",
     props: {

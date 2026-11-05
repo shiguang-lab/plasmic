@@ -284,6 +284,7 @@ export const TopFrameObserver = observer(function _TopFrameObserver({
             error: {
               message: formatErrorMessage(err),
               type: "EXECUTION_FAILED",
+              ...(err && typeof err === "object" && "operationExecuted" in err && err.operationExecuted === false ? { operationExecuted: false as const } : {}),
             },
           };
         } finally {

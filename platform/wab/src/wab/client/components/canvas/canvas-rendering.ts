@@ -1845,6 +1845,7 @@ function renderTplComponent(
         computeFullKey(ctx),
         props.previewOpen ?? (autoOpen || !!props.open),
         props.open,
+        props.defaultOpen,
       );
     }
     props["plasmicNotifyAutoOpenedContent"] = () => {
@@ -1859,6 +1860,7 @@ function renderTplComponent(
         ctx.viewCtx.canvasSessionState, computeFullKey(ctx), props, canvasStateSpecs,
         ctx.viewCtx.studioCtx.isInteractiveMode,
         () => ctx.viewCtx.scheduleSync({ eval: true, styles: false, asap: true }),
+        supportsCanvasOverlay(node),
       );
     }
   }

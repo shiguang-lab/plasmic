@@ -58,6 +58,7 @@ const paginationHelpers = {
 };
 function registerPagination(loader) {
   utils.registerComponentHelper(loader, AntdPagination, {
+    description: "Navigate pages of a record collection and change page size. Bind the current page, total and change events to the owning data list.",
     name: paginationComponentName,
     displayName: "Pagination",
     props: {

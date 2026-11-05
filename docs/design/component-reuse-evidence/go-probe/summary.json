@@ -1,0 +1,251 @@
+{
+  "date": "2026-11-05",
+  "corpusSha256": "b7191a546a488cc1b8ac0dec708e342938b3d6a494db557dcb636d1a2dafcdd4",
+  "rows": [
+    {
+      "library": "hugot",
+      "key": "bge",
+      "hitAt1": 7,
+      "hitAt3": 15,
+      "hitAt5": 18,
+      "mrr": 0.33671957686917114,
+      "positiveCases": 37,
+      "threeFreshProcesses": {
+        "localLoadMs": {
+          "median": 43.57075,
+          "min": 43.391333,
+          "max": 109.56575
+        },
+        "firstInferenceMs": {
+          "median": 3.026916,
+          "min": 2.997125,
+          "max": 4.625041
+        },
+        "warmP50Ms": {
+          "median": 2.403542,
+          "min": 2.390166,
+          "max": 2.473833
+        },
+        "warmP95Ms": {
+          "median": 2.773334,
+          "min": 2.772959,
+          "max": 2.934458
+        },
+        "indexMs": {
+          "median": 2847.64125,
+          "min": 2841.108167,
+          "max": 2849.562333
+        },
+        "osMaxRssBytes": {
+          "median": 488275968,
+          "min": 488194048,
+          "max": 525942784
+        },
+        "baselineRssBytes": {
+          "median": 21086208,
+          "min": 21020672,
+          "max": 21168128
+        },
+        "loadedRssBytes": {
+          "median": 107741184,
+          "min": 107708416,
+          "max": 107855872
+        },
+        "queriedRssBytes": {
+          "median": 111230976,
+          "min": 111149056,
+          "max": 112492544
+        },
+        "indexedRssBytes": {
+          "median": 488275968,
+          "min": 488194048,
+          "max": 525942784
+        }
+      }
+    },
+    {
+      "library": "hugot",
+      "key": "granite",
+      "hitAt1": 20,
+      "hitAt3": 30,
+      "hitAt5": 33,
+      "mrr": 0.6978764478764479,
+      "positiveCases": 37,
+      "threeFreshProcesses": {
+        "localLoadMs": {
+          "median": 476.148,
+          "min": 475.694,
+          "max": 522.651709
+        },
+        "firstInferenceMs": {
+          "median": 5.489458,
+          "min": 5.396459,
+          "max": 6.7
+        },
+        "warmP50Ms": {
+          "median": 3.74625,
+          "min": 3.736,
+          "max": 3.766417
+        },
+        "warmP95Ms": {
+          "median": 4.98475,
+          "min": 4.967583,
+          "max": 5.008083
+        },
+        "indexMs": {
+          "median": 5341.931459,
+          "min": 5297.564541,
+          "max": 5386.433083
+        },
+        "osMaxRssBytes": {
+          "median": 783024128,
+          "min": 752386048,
+          "max": 788889600
+        },
+        "baselineRssBytes": {
+          "median": 20987904,
+          "min": 20955136,
+          "max": 21069824
+        },
+        "loadedRssBytes": {
+          "median": 466124800,
+          "min": 465174528,
+          "max": 467173376
+        },
+        "queriedRssBytes": {
+          "median": 467435520,
+          "min": 466796544,
+          "max": 468697088
+        },
+        "indexedRssBytes": {
+          "median": 783024128,
+          "min": 752386048,
+          "max": 788889600
+        }
+      }
+    },
+    {
+      "library": "potion",
+      "key": "potion8",
+      "hitAt1": 4,
+      "hitAt3": 7,
+      "hitAt5": 12,
+      "mrr": 0.20359543260189084,
+      "positiveCases": 37,
+      "threeFreshProcesses": {
+        "localLoadMs": {
+          "median": 7.391625,
+          "min": 7.316125,
+          "max": 9.167958
+        },
+        "firstInferenceMs": {
+          "median": 0.069959,
+          "min": 0.03575,
+          "max": 1.159792
+        },
+        "warmP50Ms": {
+          "median": 0.007083,
+          "min": 0.006917,
+          "max": 0.008
+        },
+        "warmP95Ms": {
+          "median": 0.037167,
+          "min": 0.036917,
+          "max": 0.037333
+        },
+        "indexMs": {
+          "median": 2.543041,
+          "min": 2.160917,
+          "max": 49.386458
+        },
+        "osMaxRssBytes": {
+          "median": 35045376,
+          "min": 34258944,
+          "max": 35274752
+        },
+        "baselineRssBytes": {
+          "median": 12566528,
+          "min": 12337152,
+          "max": 12566528
+        },
+        "loadedRssBytes": {
+          "median": 16924672,
+          "min": 16695296,
+          "max": 16924672
+        },
+        "queriedRssBytes": {
+          "median": 17596416,
+          "min": 17465344,
+          "max": 17678336
+        },
+        "indexedRssBytes": {
+          "median": 35045376,
+          "min": 34258944,
+          "max": 35274752
+        }
+      }
+    },
+    {
+      "library": "potion",
+      "key": "potionMulti",
+      "hitAt1": 13,
+      "hitAt3": 20,
+      "hitAt5": 24,
+      "mrr": 0.4791319670635528,
+      "positiveCases": 37,
+      "threeFreshProcesses": {
+        "localLoadMs": {
+          "median": 351.852334,
+          "min": 351.520458,
+          "max": 365.161666
+        },
+        "firstInferenceMs": {
+          "median": 0.187,
+          "min": 0.170958,
+          "max": 6.444375
+        },
+        "warmP50Ms": {
+          "median": 0.036,
+          "min": 0.029917,
+          "max": 0.037292
+        },
+        "warmP95Ms": {
+          "median": 0.086375,
+          "min": 0.07475,
+          "max": 2.289666
+        },
+        "indexMs": {
+          "median": 503.053542,
+          "min": 460.379208,
+          "max": 594.333583
+        },
+        "osMaxRssBytes": {
+          "median": 160645120,
+          "min": 160645120,
+          "max": 160661504
+        },
+        "baselineRssBytes": {
+          "median": 12435456,
+          "min": 12304384,
+          "max": 12517376
+        },
+        "loadedRssBytes": {
+          "median": 121192448,
+          "min": 120995840,
+          "max": 121257984
+        },
+        "queriedRssBytes": {
+          "median": 123633664,
+          "min": 123437056,
+          "max": 123699200
+        },
+        "indexedRssBytes": {
+          "median": 160645120,
+          "min": 160645120,
+          "max": 160661504
+        }
+      }
+    }
+  ],
+  "note": "Each displayed metric is the median of three process-level values, including P95; not pooled P95. Child process RSS only; observer excluded. Model/weights/tokenization differ between Hugot and go-potion."
+}

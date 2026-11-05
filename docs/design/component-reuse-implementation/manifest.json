@@ -1,0 +1,211 @@
+{
+  "archivedAt": "2026-11-05T02:05:48.899876+00:00",
+  "sourceBaseline": "9c63fb4e48999c5a5d55f80cfc9fd8bec68ac084",
+  "environment": {
+    "cpu": "Apple M4",
+    "ramBytes": 25769803776,
+    "os": "macOS 26.6.2 (25G83)",
+    "platform": "darwin-arm64",
+    "node": "24.20.0",
+    "pnpm": "11.10.0",
+    "go": "1.26.5",
+    "nativeThreads": 2,
+    "gpu": false
+  },
+  "commands": [
+    {
+      "command": "node desktop/scripts/build-mcp.mjs",
+      "exitCode": 0,
+      "log": "mcp-build.log"
+    },
+    {
+      "command": "node --test desktop/tests/*.test.cjs",
+      "exitCode": 0,
+      "tests": 581,
+      "log": "desktop-tests.log"
+    },
+    {
+      "command": "go -C desktop/mcp test ./...",
+      "exitCode": 0,
+      "log": "go-tests.log"
+    },
+    {
+      "cwd": "platform/wab",
+      "command": "pnpm exec vitest run src/wab/shared/copilot/component-review.test.ts src/wab/client/copilot/component-reuse.test.ts src/wab/client/copilot/prototype.test.ts src/wab/client/copilot/libraries.test.ts src/wab/server/copilot/local-edit.test.ts src/wab/client/components/studio/TopFrameCopilotToolsBridge.test.tsx src/wab/client/components/TopFrame/TopFrameChrome.test.tsx",
+      "exitCode": 0,
+      "tests": 169,
+      "files": 7,
+      "log": "studio-tests.log"
+    },
+    {
+      "cwd": "platform/wab",
+      "command": "pnpm exec tsc --noEmit --pretty false --incremental --tsBuildInfoFile /tmp/plasmic-component-reuse.tsbuildinfo",
+      "exitCode": 0,
+      "log": "typecheck.log"
+    },
+    {
+      "command": "node desktop/scripts/component-review-contract.mjs --check",
+      "exitCode": 0
+    },
+    {
+      "command": "prepareComponentReuseIndex(path.resolve(\"desktop/component-reuse-runtime/darwin-arm64\"))",
+      "via": "Node ESM import of desktop/scripts/prepare-component-reuse-index.mjs",
+      "exitCode": 0,
+      "log": "public-seeds.log"
+    },
+    {
+      "command": "python3 docs/design/component-reuse-evidence/native-gemma/verify.py",
+      "exitCode": 0,
+      "verifiedEvidenceHashes": 110
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0
+    },
+    {
+      "command": "python3 docs/design/component-reuse-implementation/verify.py",
+      "exitCode": 0
+    },
+    {
+      "command": "node desktop/scripts/build-mcp.mjs",
+      "exitCode": 0,
+      "log": "flag-contract-build.log"
+    },
+    {
+      "cwd": "platform/wab",
+      "command": "pnpm exec vitest run src/wab/shared/copilot/component-review.test.ts src/wab/client/copilot/component-reuse.test.ts",
+      "exitCode": 0,
+      "tests": 30,
+      "log": "flag-contract-studio-tests.log"
+    },
+    {
+      "command": "node --test desktop/tests/component-review-contract.test.cjs",
+      "exitCode": 0,
+      "tests": 1,
+      "log": "flag-contract-mcp-tests.log"
+    },
+    {
+      "cwd": "platform/wab",
+      "command": "pnpm exec tsc --noEmit --pretty false --incremental --tsBuildInfoFile /tmp/plasmic-component-reuse.tsbuildinfo",
+      "exitCode": 0,
+      "log": "flag-contract-typecheck.log"
+    },
+    {
+      "command": "go -C desktop/mcp test ./...",
+      "exitCode": 0,
+      "log": "flag-contract-go-tests.log"
+    },
+    {
+      "cwd": "platform/wab",
+      "command": "pnpm exec vitest run src/wab/client/copilot/component-reuse.test.ts -t 'repeated delete-and-rebuild'",
+      "exitCode": 1,
+      "expectedFailureBeforeFix": true,
+      "log": "loop-before.log"
+    },
+    {
+      "cwd": "platform/wab",
+      "command": "pnpm exec vitest run src/wab/shared/copilot/component-review.test.ts src/wab/client/copilot/component-reuse.test.ts src/wab/client/copilot/prototype.test.ts src/wab/client/copilot/libraries.test.ts src/wab/server/copilot/local-edit.test.ts src/wab/client/components/studio/TopFrameCopilotToolsBridge.test.tsx src/wab/client/components/TopFrame/TopFrameChrome.test.tsx",
+      "exitCode": 0,
+      "tests": 169,
+      "log": "loop-after.log"
+    },
+    {
+      "cwd": "platform/wab",
+      "command": "pnpm exec tsc --noEmit --pretty false --incremental --tsBuildInfoFile /tmp/plasmic-component-reuse.tsbuildinfo",
+      "exitCode": 0,
+      "log": "loop-typecheck.log"
+    }
+  ],
+  "sourceSha256": {
+    "desktop/.gitignore": "38a891b86c4a6d747e3449cff0ac9ad535a28b492ee9df03db6a64820498d570",
+    "desktop/mcp/main.go": "cf521da0fd336a2205afb2e0c6c10a50854fb175c7f65f2e669f8d208070fb5e",
+    "desktop/package.json": "9c9da7c63592bb8626767b1d3483282981ca77c7ab361b4b3fe51bda80101774",
+    "desktop/scripts/build-mcp.mjs": "ce1980fca8b3aab611d4494dd855e5773bd9a72e5191f6c4ccb7fa2b98f39c52",
+    "desktop/scripts/component-review-contract.mjs": "80261a75600042ad097748bb329d493949fa29f409bd871a5102dd093ceb8f94",
+    "desktop/scripts/package.mjs": "7668dab5bc216a0442f90f879d90e15a1fc117b4494eb0962793deb3ee43b8f8",
+    "desktop/scripts/prepare-component-reuse-index.mjs": "f5506ac5dc9429e610858dc046266798b6145a58e8e5b98bfee26c9e4bcab719",
+    "desktop/scripts/prepare-component-reuse.mjs": "2d7aca29e437dac12c595494c507112f40939be6990a29554e6c0cb937942cd5",
+    "desktop/src/component-embedding.cjs": "617475ee9b5bec35e2baa825f7421a574fb7d096617901770f9eb8c7f1bf52e4",
+    "desktop/src/component-reuse-handler.cjs": "f4c96faa552f463a683e41916d37158522cd74d3f2bbe7a2c15dcd7448ec7e66",
+    "desktop/src/component-reuse.cjs": "723472850fd223ec8ad2080acbc793c476536a2363d92fd0bca5a63f83f069e8",
+    "desktop/src/component-review-contract.json": "33e965e3fbaf204655b38f181f46e9b4a9525356367c074f9febdf47ec366961",
+    "desktop/src/controller.cjs": "6719d22c8bd773417d3e1b949c83b206d52f23afb53e466c519817f08d6d8891",
+    "desktop/src/main.cjs": "2f386a955145f73721c8ac663cd6504f2d69dac1a80d8fddf5a35740c7a45542",
+    "desktop/src/mcp-contract.cjs": "4251ab5094687da7a248109b7453da09e7bc88705d43005380095fa979518814",
+    "desktop/src/preload.cjs": "13ac18d0ddbc7209c1eb2d5b12ad3e375fe68c273e21e816d5ee897010e804d0",
+    "desktop/tests/component-reuse.test.cjs": "d624098bcbe43e681269b4cf86442926488f1bdf92b04f3eefb956f5803323ef",
+    "desktop/tests/component-review-contract.test.cjs": "d098cac73d7f054e71c0bb75a2f61d0b92c8107e830ffea90af081a707a2ee5f",
+    "desktop/tests/mcp-management.test.cjs": "8d30dd9f1b615a72678e80cc510db64129db7eacc6384ae612d8cbb8fc8ba670",
+    "desktop/tests/mcp-model-contract.test.cjs": "8c1d1da37df75d21e32b9ad765bf26b09df3652e1336518ff22209372edae582",
+    "desktop/tests/performance/component-reuse-cases.json": "a972e924b6bdf7e5825df8dd72092f7a77ac891a0082153b6718e385420c4d5b",
+    "desktop/tests/performance/component-reuse-registrations.mjs": "64a134b42d1c440bfaa3de94713602bd4c5281145832e416b74c99a4f94c8663",
+    "desktop/tests/performance/component-reuse.cjs": "63604ed20fd63e9784c2aa19b53b7a2d2b8197637b642faeb1e103ab2b1a577c",
+    "desktop/tests/tool-context.test.cjs": "e8182e5c8ff5d8bb862240fa8c04009c09713ea5a2520cf9b0644814bc67a401",
+    "docs/design/component-reuse-advisory.md": "699dd829d119a882b56e4bf5757841eb2b50f4b9165441b550846f68469b0807",
+    "plasmicpkgs/antd6/src/form/registerForm.tsx": "042477e071d1a55ed6a52919440a1c5d70aceb83ae848770768609de2500a4aa",
+    "plasmicpkgs/antd6/src/form/registerFormGroup.tsx": "eb1126566c1760e1b71794b27a1b3d0e6d3094f7b8b975ba51e0a17dbbfeba51",
+    "plasmicpkgs/antd6/src/form/registerFormList.tsx": "065996a80edb06039f540af2dca540657a0f742fdea79d9e57afe7e5add86bfb",
+    "plasmicpkgs/antd6/src/registerButton.tsx": "2936a650780ab9745984e6551f061ec81eaf4cc8253fc49137c110260ad319e9",
+    "plasmicpkgs/antd6/src/registerCheckbox.tsx": "da138af5f086e52d20f66e3f876bc70f5fddf64ec26e4d45e3b6f9b109416447",
+    "plasmicpkgs/antd6/src/registerCollapse.tsx": "b94f518e1157222ee94e4d7636c642f33ed5f5c90023d4494e484f3110074549",
+    "plasmicpkgs/antd6/src/registerDatePicker.tsx": "52e95b8901bc84ac9f17286bd0518bb33ec0b18279d4a58b1ccb5b0699dd114e",
+    "plasmicpkgs/antd6/src/registerDateRangePicker.tsx": "6d7ba1c13d488d7e100375732c17a5bef0fb3087269840e80f0eb89d91383a37",
+    "plasmicpkgs/antd6/src/registerDrawer.tsx": "5822abb4a61cfbb4d38d15e56b924f534bcee8c26f17823f3800d8cd6c7e9059",
+    "plasmicpkgs/antd6/src/registerInput.tsx": "9f12f4910b1da437c1a7aae17def00da77059ebce926783478b6a818e2e2d114",
+    "plasmicpkgs/antd6/src/registerModal.tsx": "74cc440e915debe326dad9a7ffedff8c40487b53d3f3734dd6209429c32d57cd",
+    "plasmicpkgs/antd6/src/registerPagination.tsx": "de384c21650b149a3ba84a54c1ce98e10056367c6d4b4afd0484503f927bec75",
+    "plasmicpkgs/antd6/src/registerRadio.tsx": "8993a289f77ae4e23a1e8ed78470efbc5c853adba1ea8af959bd62a6dd21c59e",
+    "plasmicpkgs/antd6/src/registerSegmented.tsx": "dc3da964d59bdb53c262b5759f8ea5b46af53fbe5482ef35fab6b92f5f9ccd6e",
+    "plasmicpkgs/antd6/src/registerSelect.tsx": "de5535189bec4edafb31b4eeda2d29b92af909995aaa17b187b28f8ba99ee3fc",
+    "plasmicpkgs/antd6/src/registerSteps.tsx": "7d666cb18db81e5beac6e32ea58d5ab8f87febabe79e0a7a111149cbcf57b526",
+    "plasmicpkgs/antd6/src/registerSwitch.tsx": "b4c81bea9117fa06d6e9c7984a92a9ab99f4a8b6f098cb3c3b4558f6daf0fc54",
+    "plasmicpkgs/antd6/src/registerTable.tsx": "79c78c5336907a98bdf183f30eb50e9259a68399e4d85afaebf2e917250ab0b0",
+    "plasmicpkgs/antd6/src/registerTabs.tsx": "103f438d591ebc7d7d795b6afcf5384aad3e4e367e1917eaa064b40394bc0f0d",
+    "platform/wab/src/wab/client/components/TopFrame/TopFrameChrome.test.tsx": "dbffdcb9961a97ee1debdc9112e544889a01df0510edf30ccc550aa0a7b4b21a",
+    "platform/wab/src/wab/client/components/TopFrame/TopFrameChrome.tsx": "3e452d22382394977459a8792058a4e83b0fa5dbe22c0188469494a88160ac64",
+    "platform/wab/src/wab/client/components/studio/TopFrameObserver.tsx": "5447e18daf0c18a64fb078196e6bd9a9528640f86f19c8eafa6f72dc820574c7",
+    "platform/wab/src/wab/client/copilot/component-reuse.test.ts": "e191850d11512f694e68b0ff339c2a6c35715097388ad9d08873143c4dc05106",
+    "platform/wab/src/wab/client/copilot/component-reuse.ts": "bc101bd90da3c36d264bf4b9e164c37084c0ae2be06f097e7caaeba7be5323b9",
+    "platform/wab/src/wab/client/copilot/index.ts": "52c275c85af5529bf05668c4dba238fdbf16f9b1c5f4448bb9b04258e1da032e",
+    "platform/wab/src/wab/client/copilot/libraries.test.ts": "e1cd0fdd6945b607751ad25ae3fbddf3eaf5741ed3a16e113cb6037d854df983",
+    "platform/wab/src/wab/client/copilot/prototype.test.ts": "97b27caa25392d00ea09e6794f1d960b5e2b19003aa5963aabe25ad99af1b806",
+    "platform/wab/src/wab/client/desktop-component-reuse.ts": "bfbd8d32f9d4994c0004fcf12192a59213740230f000b014ddc32f641d048744",
+    "platform/wab/src/wab/client/frame-ctx/host-frame-api.ts": "b5f9d989e8085236c45a9988468564c3783a20ecf878b313c6428733ec137172",
+    "platform/wab/src/wab/client/frame-ctx/top-frame-api.ts": "f31acec4c7c47e4e27d76c25993378415774f3f9980ea8360b295fae2b8083e0",
+    "platform/wab/src/wab/client/studio-ctx/StudioCtx.tsx": "51254004387808d183cb9f4a1a5ce77a668d7fb25fedfb568bc48aa17338b20c",
+    "platform/wab/src/wab/server/copilot/local-edit.ts": "e82f6041d9033be1f41e3c5e2d8d975b8d9c8484b6632a7a8d5e78346ee8cf98",
+    "platform/wab/src/wab/shared/copilot/component-review.test.ts": "b93fb14102606e06c22c1d7af5485e89c2ba991b6ea232c1ef916cd47f89d577",
+    "platform/wab/src/wab/shared/copilot/component-review.ts": "bdcb8933ab9fb28b93a677707b662855b959813d0cc7ae08ebf0ad14171a099c",
+    "platform/wab/src/wab/shared/copilot/copilot-tool-types.ts": "a384d41522d39e4b23035246f882cf73bcee65e58d19088e4565f5519d022b7a",
+    "platform/wab/src/wab/shared/copilot/mutation-receipt.ts": "56c7a08d10350a6dfb592f3755878cc06e71a4cf48e8d842c11e2197af380324",
+    "platform/wab/src/wab/shared/copilot/prototype-tools.ts": "577a6b9ebe62f483815c1e41c6ea430fb63288b4484d9f4a773fc027ddaf0c19",
+    "platform/wab/src/wab/shared/devflags.ts": "4f1eda66f74ee54b28270522c152a6ca22a90473c8faa1869a6499eeea23f7c2",
+    "scripts/capture-component-contracts.mjs": "cf762d3bec9a40269cfc94e0b351e9d78eaa13c007ce1e90e0ed85de04cc6b82",
+    "desktop/scripts/generate-component-reuse-documents.mjs": "1e27d43b0247c5e063c11c06f442cab0e64273996eb56243875a2e9df714f34b",
+    "desktop/src/component-reuse-public-documents.json": "21bb5b5d7d1946768c4d7ae5d6c4938fa70ac5c99e8bb481b0a132c6494d4e58"
+  },
+  "evidenceSha256": {
+    "README.md": "3e8ec8236df3eae97675f787cd7510e20acbae3cb9902755af1ce1c833d413a8",
+    "desktop-tests.log": "1e118c00122caaab29334dd868accd8740a14a1bbb9404585b6b25fc6063a7cb",
+    "flag-contract-build.log": "67296c41222c17c968986d60442a01022d0cfe535f2df7f04f83a94ab3096a9c",
+    "flag-contract-go-tests.log": "0e1ea4394c2ccfb9bdba5677e887bf3e0949662d16b55acff2bfb76eb044b23d",
+    "flag-contract-mcp-tests.log": "901fd6fab07d39fa80912f82cde004b944bee47e661733b705ac7c130f87936d",
+    "flag-contract-studio-tests.log": "999be974e5965decdce98614dc74183b2f9dbcb48f42a3d8e63624ff6c502802",
+    "flag-contract-typecheck.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "go-tests.log": "0e1ea4394c2ccfb9bdba5677e887bf3e0949662d16b55acff2bfb76eb044b23d",
+    "loop-after.log": "7b6149b66efaa70918b29d3f86bfb86f512c1b9fff7a58cac1c6eaad21362a2c",
+    "loop-before.log": "0975c52b878ddda0d0be538d6787e06ff4fc567e431b4db8755de91709a00256",
+    "loop-typecheck.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "mcp-build.log": "67296c41222c17c968986d60442a01022d0cfe535f2df7f04f83a94ab3096a9c",
+    "native-final.json": "99d8433b15d294ef07afb9979626daab3910e81f101b0213bb1f4c5071eda23f",
+    "native.log": "97d79580685ebccada682d34ff4da871d5ed33daf7b5f2f39d56c0e4b9f95e3b",
+    "public-seeds.log": "f1dbbd8e5f49cb910e2a2f671b2cc673f444d07e50345a050cec5126a9e1ae48",
+    "registrations.json": "78bf4979dffe2f3f59233dcf18ee2ef6149c475623a84764735588036c952060",
+    "runtime-current.json": "4a4c178ba43985916b496421e083c271df696d49b471e5f63444e7c84a4455fb",
+    "runtime.json": "dbc581948b3a68496135fc8e61857e9b8f3f4459266ff5e093c38ab8921cd075",
+    "studio-tests.log": "7b6149b66efaa70918b29d3f86bfb86f512c1b9fff7a58cac1c6eaad21362a2c",
+    "typecheck.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verify.py": "27fc3f67353d6bd13c8dbfa8145cc58d0e77a56ea7f0ac62dc9958400656fdd6"
+  },
+  "scope": "Source and standalone Node/native runtime validation. No installed Electron UI, other target platforms, independent holdout or long-chat Flash acceptance run."
+}

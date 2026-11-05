@@ -21,6 +21,7 @@ AntdCheckbox.__plasmicFormFieldMeta = { valueProp: "checked" };
 const AntdCheckboxGroup = Checkbox.Group;
 function registerCheckbox(loader) {
   registerComponentHelper(loader, AntdCheckbox, {
+    description: "Toggle a boolean choice such as consent or a single independent option.",
     name: checkboxComponentName,
     displayName: "Checkbox",
     props: {
@@ -76,6 +77,7 @@ function registerCheckbox(loader) {
     importName: "AntdCheckbox"
   });
   registerComponentHelper(loader, AntdCheckboxGroup, {
+    description: "Choose multiple independent values from a set of options; exposes the selected values as a collection.",
     name: checkboxGroupComponentName,
     displayName: "Checkbox Group",
     props: {

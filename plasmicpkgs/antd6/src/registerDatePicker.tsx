@@ -30,7 +30,7 @@ export function AntdDatePicker(
       <DatePicker
         {...rest}
         open={open}
-        onOpenChange={isEditing ? undefined : canvasProps.onOpenChange}
+        onOpenChange={canvasProps.onOpenChange}
         onCalendarChange={isEditing ? undefined : props.onCalendarChange}
         onPanelChange={isEditing ? undefined : props.onPanelChange}
         picker={picker as any}
@@ -89,6 +89,7 @@ export const datePickerHelpers = {
 
 export function registerDatePicker(loader?: Registerable) {
   registerComponentHelper(loader, AntdDatePicker, {
+    description: "Choose one date or calendar period, with optional time selection and registered date restrictions.",
     name: datePickerComponentName,
     canvasOverlay: {},
     displayName: "DatePicker",

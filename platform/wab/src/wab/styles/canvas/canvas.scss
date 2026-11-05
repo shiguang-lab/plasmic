@@ -284,7 +284,7 @@ $placeholder-hue: black;
 // Native column ellipsis must cross the extra text boxes used for canvas editing.
 // Keep Slate's active editor and text inside other cell widgets untouched.
 :where(
-  td.ant-table-cell-ellipsis[data-plasmic-canvas-part="column"]
+  td.ant-table-cell-ellipsis
     > .__wab_text:not(.__wab_editing)
 ) {
   &,

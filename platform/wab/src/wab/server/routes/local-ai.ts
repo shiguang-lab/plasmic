@@ -28,7 +28,7 @@ export async function localAiStatus(req: Request, res: Response) {
     localAiStatusSchema.parse({
       configured: !!config,
       model: config?.model ?? null,
-      models: config ? [...new Set([config.model, ...(config.models ?? [])])] : [],
+      models: await getLocalAiModels(),
       pageGenerationEnabled: !!req.devflags.enableLocalAiPageGeneration,
     }),
   );
@@ -36,5 +36,5 @@ export async function localAiStatus(req: Request, res: Response) {
 
 export async function localAiModels(req: Request, res: Response) {
   await authorize(req);
-  res.json(await getLocalAiModels());
+  res.json(await getLocalAiModels({ waitForCatalog: true }));
 }

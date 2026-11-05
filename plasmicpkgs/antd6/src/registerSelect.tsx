@@ -50,7 +50,7 @@ export function AntdSelect(
     <Select
       {...curated}
       open={open}
-      onOpenChange={isEditing ? undefined : canvasProps.onOpenChange}
+      onOpenChange={canvasProps.onOpenChange}
       onChange={isEditing ? undefined : props.onChange}
       mode={!mode || (mode as any) === "single" ? undefined : mode}
       classNames={(info) => {
@@ -80,6 +80,7 @@ export function AntdSelect(
 
 export function registerSelect(loader?: Registerable) {
   registerComponentHelper(loader, AntdSelect, {
+    description: "Choose one or multiple values from dropdown options. Supports configured search, clear and selection modes; selecting a value does not switch page content.",
     name: selectComponentName,
     canvasOverlay,
     displayName: "Select",
@@ -338,6 +339,7 @@ export function registerSelect(loader?: Registerable) {
   });
 
   registerComponentHelper(loader, AntdOption, {
+    description: "One labeled selectable value inside Select. Requires the owning Select.",
     name: optionComponentName,
     displayName: "Option",
     parentComponentName: selectComponentName,
@@ -356,6 +358,7 @@ export function registerSelect(loader?: Registerable) {
   });
 
   registerComponentHelper(loader, AntdOptionGroup, {
+    description: "Group related Option children under a label inside Select. Requires the owning Select.",
     name: optionGroupComponentName,
     displayName: "Option Group",
     parentComponentName: selectComponentName,

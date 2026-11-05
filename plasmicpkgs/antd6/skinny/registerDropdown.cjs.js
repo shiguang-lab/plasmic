@@ -2,7 +2,7 @@
 
 var Ant = require('antd');
 var React = require('react');
-var canvasOverlay$1 = require('./canvas-overlay-pJBoKL8M.cjs.js');
+var canvasOverlay$1 = require('./canvas-overlay-CK330rTr.cjs.js');
 var registerMenu = require('./registerMenu.cjs.js');
 var utils = require('./utils-Diqr9Iet.cjs.js');
 require('@plasmicapp/host');
@@ -40,7 +40,8 @@ function AntdDropdown(props) {
   const {
     props: canvasProps,
     open,
-    isEditing
+    isEditing,
+    destroyOnHidden
   } = canvasOverlay$1.useCanvasOverlay(props, canvasOverlay.triggerSlot);
   const {
     children,
@@ -58,8 +59,8 @@ function AntdDropdown(props) {
     {
       ...rest,
       open,
-      destroyOnHidden: isEditing ? true : props.destroyOnHidden,
-      onOpenChange: isEditing ? void 0 : canvasProps.onOpenChange,
+      destroyOnHidden,
+      onOpenChange: canvasProps.onOpenChange,
       trigger: [trigger],
       popupRender: () => {
         const itemsChildren = useMenuItemsSlot ? menuItems?.() ?? [] : void 0;

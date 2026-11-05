@@ -108,7 +108,7 @@ export function AntdDateRangePicker(
       <RangePicker
         {...rest}
         open={open}
-        onOpenChange={isEditing ? undefined : canvasProps.onOpenChange}
+        onOpenChange={canvasProps.onOpenChange}
         onCalendarChange={isEditing ? undefined : props.onCalendarChange}
         onPanelChange={isEditing ? undefined : props.onPanelChange}
         picker={picker as any}
@@ -184,6 +184,7 @@ export const dateRangePickerHelpers = {
 
 export function registerDateRangePicker(loader?: Registerable) {
   registerComponentHelper(loader, AntdDateRangePicker, {
+    description: "Choose the start and end of a date range, with optional time selection and registered date restrictions.",
     name: dateRangePickerComponentName,
     canvasOverlay: {},
     displayName: "Date Range Picker",

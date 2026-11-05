@@ -2,7 +2,7 @@
 
 var Ant = require('antd');
 var host = require('@plasmicapp/host');
-var canvasOverlay = require('./canvas-overlay-pJBoKL8M.cjs.js');
+var canvasOverlay = require('./canvas-overlay-CK330rTr.cjs.js');
 var React = require('react');
 var utils = require('./utils-Diqr9Iet.cjs.js');
 require('@plasmicapp/host/registerComponent');

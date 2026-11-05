@@ -4,7 +4,7 @@ var Ant = require('antd');
 var cls = require('classnames');
 var dayjs = require('dayjs');
 var React = require('react');
-var canvasOverlay = require('./canvas-overlay-pJBoKL8M.cjs.js');
+var canvasOverlay = require('./canvas-overlay-CK330rTr.cjs.js');
 var utils = require('./utils-Diqr9Iet.cjs.js');
 require('@plasmicapp/host');
 require('@plasmicapp/host/registerComponent');
@@ -25,7 +25,7 @@ function AntdDatePicker(props) {
     {
       ...rest,
       open,
-      onOpenChange: isEditing ? void 0 : canvasProps.onOpenChange,
+      onOpenChange: canvasProps.onOpenChange,
       onCalendarChange: isEditing ? void 0 : props.onCalendarChange,
       onPanelChange: isEditing ? void 0 : props.onPanelChange,
       picker,
@@ -61,6 +61,7 @@ const datePickerHelpers = {
 };
 function registerDatePicker(loader) {
   utils.registerComponentHelper(loader, AntdDatePicker, {
+    description: "Choose one date or calendar period, with optional time selection and registered date restrictions.",
     name: datePickerComponentName,
     canvasOverlay: {},
     displayName: "DatePicker",

@@ -3,7 +3,7 @@
 var Ant = require('antd');
 var cls = require('classnames');
 var React = require('react');
-var canvasOverlay$1 = require('./canvas-overlay-pJBoKL8M.cjs.js');
+var canvasOverlay$1 = require('./canvas-overlay-CK330rTr.cjs.js');
 var utils = require('./utils-Diqr9Iet.cjs.js');
 require('@plasmicapp/host');
 require('@plasmicapp/host/registerComponent');
@@ -20,7 +20,8 @@ function AntdPopover(props) {
   const {
     props: canvasProps,
     open,
-    isEditing
+    isEditing,
+    destroyOnHidden
   } = canvasOverlay$1.useCanvasOverlay(props, canvasOverlay.triggerSlot);
   const {
     popupRootClassName,
@@ -49,9 +50,9 @@ function AntdPopover(props) {
       },
       ...rest,
       open,
-      destroyOnHidden: isEditing ? true : props.destroyOnHidden,
-      onOpenChange: isEditing ? void 0 : props.onOpenChange,
-      afterOpenChange: isEditing ? void 0 : props.afterOpenChange
+      destroyOnHidden,
+      onOpenChange: canvasProps.onOpenChange,
+      afterOpenChange: isEditing ? void 0 : canvasProps.afterOpenChange
     }
   );
 }

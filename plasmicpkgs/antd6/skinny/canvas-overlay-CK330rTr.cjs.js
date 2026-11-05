@@ -51,7 +51,7 @@ function useCanvasOverlay(props, triggerSlotName) {
   } = props;
   const autoOpen = isEditing && !!selection?.isSelected && (!triggerSlotName || selection.selectedSlotName !== triggerSlotName);
   const autoOpened = autoOpen && previewOpen === void 0 && !open;
-  const state = canvas ? selection?.getState?.("open", open) : void 0;
+  const state = canvas ? selection?.getState?.("open", open, props.defaultOpen) : void 0;
   const editingOpen = previewOpen ?? (autoOpen || !!open);
   if (state && !selection?.states?.open) {
     const handler = rest.onOpenChange;
@@ -59,6 +59,44 @@ function useCanvasOverlay(props, triggerSlotName) {
       state.set(!isEditing && open !== void 0 ? open : next);
       if (!isEditing) {
         handler?.(next, ...args);
+      }
+    };
+  }
+  const resolvedOpen = state ? !!state.value : isEditing ? editingOpen : open;
+  const previous = React.useRef({ isEditing, open: resolvedOpen });
+  const silentTransition = React.useRef(false);
+  const destroyEditingContent = React.useRef(false);
+  if (!isEditing || resolvedOpen) {
+    destroyEditingContent.current = false;
+  } else if (previous.current.isEditing && previous.current.open) {
+    destroyEditingContent.current = true;
+  }
+  if (previous.current.open !== resolvedOpen) {
+    silentTransition.current = previous.current.isEditing !== isEditing;
+  }
+  previous.current = { isEditing, open: resolvedOpen };
+  const lifecycleProps = rest;
+  const { onOpenChange, afterOpenChange, afterClose } = lifecycleProps;
+  lifecycleProps.onOpenChange = (next, ...args) => {
+    if (isEditing && (next || !state)) {
+      return;
+    }
+    if (!isEditing) {
+      silentTransition.current = false;
+    }
+    return onOpenChange?.(next, ...args);
+  };
+  if (afterOpenChange) {
+    lifecycleProps.afterOpenChange = (next) => {
+      if (!isEditing && !silentTransition.current) {
+        afterOpenChange(next);
+      }
+    };
+  }
+  if (afterClose) {
+    lifecycleProps.afterClose = () => {
+      if (!isEditing && !silentTransition.current) {
+        afterClose();
       }
     };
   }
@@ -70,9 +108,10 @@ function useCanvasOverlay(props, triggerSlotName) {
   return {
     props: rest,
     isEditing,
+    destroyOnHidden: destroyEditingContent.current ? true : props.destroyOnHidden,
     // Studio already resolves the selection reveal. Its effective value must
     // not be fed back as a new reveal request after a real UI event closes it.
-    open: state ? !!state.value : isEditing ? editingOpen : open
+    open: resolvedOpen
   };
 }
 
@@ -81,4 +120,4 @@ exports.getSelectedCanvasItemKey = getSelectedCanvasItemKey;
 exports.previewOpenProp = previewOpenProp;
 exports.renderCanvasSlot = renderCanvasSlot;
 exports.useCanvasOverlay = useCanvasOverlay;
-//# sourceMappingURL=canvas-overlay-pJBoKL8M.cjs.js.map
+//# sourceMappingURL=canvas-overlay-CK330rTr.cjs.js.map

@@ -45,7 +45,7 @@ for (const [name, Component, selector] of [
   ["Modal", AntdModal, ".ant-modal-wrap:not([style*='display: none'])"],
   ["Drawer", AntdDrawer, ".ant-drawer-open"],
 ] as const) {
-  test(`${name} retains an editing reveal and inner inputs through both modes, without changing saved open`, async () => {
+  test(`${name} keeps editing reveals out of runtime while retaining inner inputs without events`, async () => {
     const afterOpenChange = vi.fn(), onOpenChange = vi.fn();
     const props = { open: false, onOpenChange, afterOpenChange, __plasmic_selection_prop__: { isSelected: true, selectedSlotName: "children" } };
     const Overlay = Component as React.ComponentType<any>;
@@ -58,23 +58,15 @@ for (const [name, Component, selector] of [
     await waitFor(() => expect(document.querySelector(selector)).toBeTruthy());
     const field = screen.getByRole("textbox", { name: "Overlay draft" });
     fireEvent.change(field, { target: { value: "draft" } });
-    for (const mode of [true, false, true]) {
+    for (const mode of [true, false, true, false]) {
       view.rerender(page(mode));
-      expect(document.querySelector(selector)).toBeTruthy();
-      expect(screen.getByRole("textbox", { name: "Overlay draft" })).toBe(field);
+      await waitFor(() => expect(!!document.querySelector(selector)).toBe(!mode));
+      expect(document.querySelector('input[aria-label="Overlay draft"]')).toBe(field);
       expect((field as HTMLInputElement).value).toBe("draft");
     }
     expect(props.open).toBe(false);
     expect(onOpenChange).not.toHaveBeenCalled();
     expect(afterOpenChange).not.toHaveBeenCalled();
-    fireEvent.click(screen.getByRole("button", { name: "Close" }));
-    await waitFor(() => expect(document.querySelector(selector)).toBeFalsy());
-    expect(onOpenChange).toHaveBeenCalledExactlyOnceWith(false);
-    for (const mode of [false, true, false, true]) {
-      view.rerender(page(mode));
-      expect(document.querySelector(selector)).toBeFalsy();
-    }
-    expect(onOpenChange).toHaveBeenCalledTimes(1);
     view.unmount();
     render(page(true));
     expect(document.querySelector(selector)).toBeFalsy();

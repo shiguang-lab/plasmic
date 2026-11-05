@@ -21,15 +21,16 @@ export function AntdTooltip(
     props: canvasProps,
     open,
     isEditing,
+    destroyOnHidden,
   } = useCanvasOverlay(props, canvasOverlay.triggerSlot);
   const { popupRootClassName, titleText, classNames, ...rest } = canvasProps;
   return (
     <Tooltip
       {...rest}
       open={open}
-      destroyOnHidden={isEditing ? true : props.destroyOnHidden}
-      onOpenChange={isEditing ? undefined : canvasProps.onOpenChange}
-      afterOpenChange={isEditing ? undefined : props.afterOpenChange}
+      destroyOnHidden={destroyOnHidden}
+      onOpenChange={canvasProps.onOpenChange}
+      afterOpenChange={isEditing ? undefined : canvasProps.afterOpenChange}
       classNames={(info) => {
         const names =
           typeof classNames === "function" ? classNames(info) : classNames;
@@ -48,6 +49,18 @@ export function registerTooltip(loader?: Registerable) {
     isAttachment: true,
     props: {
       previewOpen: previewOpenProp,
+      open: {
+        type: "boolean",
+        description: "Controlled open state of the tooltip.",
+      },
+      defaultOpen: {
+        type: "boolean",
+        description: "Initial open state when open is not controlled.",
+      },
+      onOpenChange: {
+        type: "eventHandler",
+        argTypes: [{ name: "open", type: "boolean" }],
+      },
       children: {
         type: "slot",
         defaultValue: {
@@ -100,6 +113,15 @@ export function registerTooltip(loader?: Registerable) {
         ],
         description: "Default placement of tooltip",
         defaultValueHint: "top",
+      },
+    },
+    states: {
+      open: {
+        type: "writable",
+        valueProp: "open",
+        initialValueProp: "defaultOpen",
+        onChangeProp: "onOpenChange",
+        variableType: "boolean",
       },
     },
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerTooltip",

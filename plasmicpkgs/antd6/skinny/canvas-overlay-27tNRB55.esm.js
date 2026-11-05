@@ -1,5 +1,5 @@
 import { usePlasmicCanvasContext, usePlasmicCanvasComponentInfo } from '@plasmicapp/host';
-import React, { useEffect } from 'react';
+import React, { useRef, useEffect } from 'react';
 
 function getSelectedCanvasItemKey(items) {
   const index = items.findIndex((item) => item.props.__plasmic_selection_prop__?.isSelected);
@@ -45,7 +45,7 @@ function useCanvasOverlay(props, triggerSlotName) {
   } = props;
   const autoOpen = isEditing && !!selection?.isSelected && (!triggerSlotName || selection.selectedSlotName !== triggerSlotName);
   const autoOpened = autoOpen && previewOpen === void 0 && !open;
-  const state = canvas ? selection?.getState?.("open", open) : void 0;
+  const state = canvas ? selection?.getState?.("open", open, props.defaultOpen) : void 0;
   const editingOpen = previewOpen ?? (autoOpen || !!open);
   if (state && !selection?.states?.open) {
     const handler = rest.onOpenChange;
@@ -53,6 +53,44 @@ function useCanvasOverlay(props, triggerSlotName) {
       state.set(!isEditing && open !== void 0 ? open : next);
       if (!isEditing) {
         handler?.(next, ...args);
+      }
+    };
+  }
+  const resolvedOpen = state ? !!state.value : isEditing ? editingOpen : open;
+  const previous = useRef({ isEditing, open: resolvedOpen });
+  const silentTransition = useRef(false);
+  const destroyEditingContent = useRef(false);
+  if (!isEditing || resolvedOpen) {
+    destroyEditingContent.current = false;
+  } else if (previous.current.isEditing && previous.current.open) {
+    destroyEditingContent.current = true;
+  }
+  if (previous.current.open !== resolvedOpen) {
+    silentTransition.current = previous.current.isEditing !== isEditing;
+  }
+  previous.current = { isEditing, open: resolvedOpen };
+  const lifecycleProps = rest;
+  const { onOpenChange, afterOpenChange, afterClose } = lifecycleProps;
+  lifecycleProps.onOpenChange = (next, ...args) => {
+    if (isEditing && (next || !state)) {
+      return;
+    }
+    if (!isEditing) {
+      silentTransition.current = false;
+    }
+    return onOpenChange?.(next, ...args);
+  };
+  if (afterOpenChange) {
+    lifecycleProps.afterOpenChange = (next) => {
+      if (!isEditing && !silentTransition.current) {
+        afterOpenChange(next);
+      }
+    };
+  }
+  if (afterClose) {
+    lifecycleProps.afterClose = () => {
+      if (!isEditing && !silentTransition.current) {
+        afterClose();
       }
     };
   }
@@ -64,11 +102,12 @@ function useCanvasOverlay(props, triggerSlotName) {
   return {
     props: rest,
     isEditing,
+    destroyOnHidden: destroyEditingContent.current ? true : props.destroyOnHidden,
     // Studio already resolves the selection reveal. Its effective value must
     // not be fed back as a new reveal request after a real UI event closes it.
-    open: state ? !!state.value : isEditing ? editingOpen : open
+    open: resolvedOpen
   };
 }
 
 export { getSelectedCanvasItemKey as a, getCanvasItems as g, previewOpenProp as p, renderCanvasSlot as r, useCanvasOverlay as u };
-//# sourceMappingURL=canvas-overlay-CbpJk7_w.esm.js.map
+//# sourceMappingURL=canvas-overlay-27tNRB55.esm.js.map

@@ -8,8 +8,9 @@ import { AntdCollapse, AntdCollapsePanel, registerCollapse } from "../src/regist
 import { AntdMenu, AntdMenuItem, AntdSubMenu, registerMenu } from "../src/registerMenu";
 import { AntdDatePicker, registerDatePicker } from "../src/registerDatePicker";
 import { AntdTable, AntdColumn, registerTable } from "../src/registerTable";
+import { AntdTooltip, registerTooltip } from "../src/registerTooltip";
 
-const Canvas = createSessionCanvas([registerTabs, registerModal, registerDrawer, registerCollapse, registerMenu, registerDatePicker, registerTable]);
+const Canvas = createSessionCanvas([registerTabs, registerModal, registerDrawer, registerCollapse, registerMenu, registerDatePicker, registerTable, registerTooltip]);
 const calls: string[] = [];
 const changed = () => { calls.push("business event"); };
 const selected = { __plasmic_selection_prop__: { isSelected: true, selectedSlotName: "children" } };
@@ -29,6 +30,14 @@ function App() {
   const widget = new URLSearchParams(location.search).get("widget");
   let content: React.ReactElement;
   switch (widget) {
+    case "tooltip":
+      content = <>{[0, 1].map((row) => <AntdTooltip key={row} title={`Full text ${row}`}
+        onOpenChange={(open) => calls.push(`tooltip:${open}`)}
+        afterOpenChange={(open) => calls.push(`after:${open}`)}
+        __plasmic_selection_prop__={{ isSelected: true, selectedSlotName: "title" }}>
+        {row === 0 ? <input aria-label="Session draft" defaultValue="" /> : <button>Second tooltip</button>}
+      </AntdTooltip>)}</>;
+      break;
     case "modal":
       content = <AntdModal {...selected} open={initial.open} onOpenChange={changed} afterOpenChange={changed} modalScopeClassName="" wrapClassName=""><Field /></AntdModal>;
       break;

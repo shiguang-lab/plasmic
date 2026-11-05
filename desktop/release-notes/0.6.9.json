@@ -1,0 +1,7 @@
+{
+  "en": "- Suggest reusable components after AI edits with local embedding, incremental caching and repeated-advice prevention.\n- Preserve native overlay behavior across canvas editing and interaction modes.\n- Improve AI model discovery and component descriptions.",
+  "zh-CN": "- AI 编辑后推荐可复用组件，支持本地检索、增量缓存与重复提示抑制。\n- 修复画布编辑与交互模式切换时的原生浮层行为。\n- 改进 AI 模型发现和组件用途描述。",
+  "zh-TW": "- AI 編輯後推薦可重用元件，支援本機檢索、增量快取及重複提示抑制。\n- 修正畫布編輯與互動模式切換時的原生浮層行為。\n- 改善 AI 模型探索及元件用途描述。",
+  "ja": "- AI 編集後に再利用可能なコンポーネントを提案。ローカル検索、差分キャッシュ、重複提案の抑制に対応。\n- キャンバス編集と操作モードの切替時のオーバーレイ動作を修正。\n- AI モデルの検出とコンポーネントの説明を改善。",
+  "ko": "- AI 편집 후 재사용 가능한 컴포넌트를 제안하며 로컬 검색, 증분 캐시 및 중복 제안 방지를 지원합니다.\n- 캔버스 편집 및 상호작용 모드 전환 시 오버레이 동작을 수정합니다.\n- AI 모델 검색과 컴포넌트 설명을 개선합니다."
+}

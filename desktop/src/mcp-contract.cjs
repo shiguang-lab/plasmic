@@ -534,6 +534,16 @@ tools.push(
     },
   },
 );
+const reviewContextSchema = require("./component-review-contract.json");
+const batchTool = tools.find(tool => tool.name === "execute_batch");
+const reviewedMutations = [...batchTool.inputSchema.properties.operations.items.properties.name.enum, "installLibrary", "upgradeLibrary", "importWebPage"];
+batchTool.inputSchema.properties.reviewContext = reviewContextSchema;
+batchTool.inputSchema.required.push("reviewContext");
+batchTool.description += " Supply one reviewContext with purpose describing the whole batch and customOnly:true ONLY when the user explicitly requires implementing all affected functionality without existing registered components; otherwise always pass false. The editor derives affected regions; do not repeat reviewContext inside operations. Component suggestions are advisory; custom UI remains allowed.";
+const executeTool = tools.find(tool => tool.name === "execute");
+executeTool.inputSchema.properties.input = { type: "object", properties: { reviewContext: reviewContextSchema }, additionalProperties: true };
+executeTool.inputSchema.allOf = [{ if: { properties: { name: { enum: reviewedMutations } }, required: ["name"] }, then: { required: ["input"], properties: { input: { required: ["reviewContext"] } } } }];
+executeTool.description += " Design mutations require input.reviewContext:{purpose:<functional description>}, with customOnly:true ONLY when the user explicitly requires implementing the affected functionality without existing registered components; otherwise always pass false. Describe behavior and explicit constraints naturally. Read the native input contract; ordinary feature requests are not exemptions. Styles/text and existing registered components are programmatically checked before model retrieval.";
 const toolNames = new Set(tools.map((tool) => tool.name));
 function assertToolRouting(method, input = {}) {
   let message, recovery;

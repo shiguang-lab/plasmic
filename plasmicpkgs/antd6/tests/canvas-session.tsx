@@ -25,10 +25,10 @@ export function createSessionCanvas(registers: ((loader: Registerable) => void)[
         }));
         if (meta.canvasOverlay && !interactive) {
           const selection = props.__plasmic_selection_prop__;
-          session.resolve(instance, "open", props.open);
+          session.resolve(instance, "open", props.open, props.defaultOpen);
           props.previewOpen = session.reveal(instance, "open", props.previewOpen ?? (!!props.open || !!selection?.isSelected && (!meta.canvasOverlay.triggerSlot || selection.selectedSlotName !== meta.canvasOverlay.triggerSlot)));
         }
-        const states = applyCanvasSessionState(session, instance, props, specs, interactive, redraw);
+        const states = applyCanvasSessionState(session, instance, props, specs, interactive, redraw, !!meta.canvasOverlay);
         props.__plasmic_selection_prop__ = { ...props.__plasmic_selection_prop__, states };
       } else if (props.children && typeof props.children !== "function") {
         props.children = bind(props.children, instance);

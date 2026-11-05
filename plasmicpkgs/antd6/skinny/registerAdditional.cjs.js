@@ -4,7 +4,7 @@ var host = require('@plasmicapp/host');
 var Ant = require('antd');
 var dayjs = require('dayjs');
 var React = require('react');
-var canvasOverlay$1 = require('./canvas-overlay-pJBoKL8M.cjs.js');
+var canvasOverlay$1 = require('./canvas-overlay-CK330rTr.cjs.js');
 var utils = require('./utils-Diqr9Iet.cjs.js');
 require('@plasmicapp/host/registerComponent');
 require('@plasmicapp/host/registerGlobalContext');
@@ -123,16 +123,17 @@ function AntdPopconfirm(props) {
   const {
     props: rest,
     open,
-    isEditing
+    isEditing,
+    destroyOnHidden
   } = canvasOverlay$1.useCanvasOverlay(props, canvasOverlay.triggerSlot);
   return /* @__PURE__ */ React__default.default.createElement(
     Ant__namespace.Popconfirm,
     {
       ...rest,
       open,
-      destroyOnHidden: isEditing ? true : props.destroyOnHidden,
-      onOpenChange: isEditing ? void 0 : rest.onOpenChange,
-      afterOpenChange: isEditing ? void 0 : props.afterOpenChange,
+      destroyOnHidden,
+      onOpenChange: rest.onOpenChange,
+      afterOpenChange: isEditing ? void 0 : rest.afterOpenChange,
       onConfirm: isEditing ? void 0 : props.onConfirm,
       onCancel: isEditing ? void 0 : props.onCancel
     }

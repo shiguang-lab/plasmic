@@ -58,7 +58,7 @@ export function registerForm(loader?: Registerable) {
     name: formComponentName,
     displayName: "Form",
     description:
-      "[Learn how to use forms](https://docs.plasmic.app/learn/forms/)",
+      "Collect named input values, validate field rules and submit the complete values through form events. Supports editable Form Field children and repeated field groups. [Learn how to use forms](https://docs.plasmic.app/learn/forms/)",
     props: {
       disabled: { type: "boolean", defaultValueHint: false },
       mode: {

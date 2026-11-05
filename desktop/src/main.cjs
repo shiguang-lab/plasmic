@@ -507,6 +507,21 @@ async function startDesktop() {
     });
     desktopIdentity.on("changed", () => drafts.invalidate());
     ipcMain.handle("desktop:drafts", (event, command, input) => drafts.command(event, command, input));
+    const { ComponentEmbedding } = require("./component-embedding.cjs");
+    const { ComponentReuse } = require("./component-reuse.cjs");
+    const { createComponentReuseHandler } = require("./component-reuse-handler.cjs");
+    const componentRuntime = app.isPackaged ? path.join(process.resourcesPath, "component-reuse") : path.join(__dirname, "../component-reuse-runtime", process.platform + "-" + process.arch);
+    const embedding = new ComponentEmbedding(componentRuntime);
+    const componentReuse = createComponentReuseHandler({
+      service: new ComponentReuse({ directory: path.join(app.getPath("userData"), "component-vectors"), embedding }),
+      origin: config.studioOrigin, trustedSender: trustedAuthSender,
+      projectId: (url) => workspace.projectId(url), currentUser: async () => (await desktopIdentity.read()).user?.id,
+    });
+    // Integrity verification and cache preparation never hold the editor transaction.
+    void embedding.prepare().catch(() => {});
+    desktopIdentity.on("changed", () => componentReuse.reset());
+    ipcMain.handle("desktop:component-reuse", (event, command, input) => componentReuse.command(event, command, input));
+    app.once("will-quit", () => { void componentReuse.close(); });
     dashboardPreviews = createDashboardPreviews({
       session: desktopSession,
       studioOrigin: config.studioOrigin,

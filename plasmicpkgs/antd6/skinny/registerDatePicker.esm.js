@@ -2,7 +2,7 @@ import { DatePicker } from 'antd';
 import cls from 'classnames';
 import dayjs from 'dayjs';
 import React from 'react';
-import { u as useCanvasOverlay, p as previewOpenProp } from './canvas-overlay-CbpJk7_w.esm.js';
+import { u as useCanvasOverlay, p as previewOpenProp } from './canvas-overlay-27tNRB55.esm.js';
 import { r as registerComponentHelper, c as capitalize } from './utils-U416WEAa.esm.js';
 import '@plasmicapp/host';
 import '@plasmicapp/host/registerComponent';
@@ -17,7 +17,7 @@ function AntdDatePicker(props) {
     {
       ...rest,
       open,
-      onOpenChange: isEditing ? void 0 : canvasProps.onOpenChange,
+      onOpenChange: canvasProps.onOpenChange,
       onCalendarChange: isEditing ? void 0 : props.onCalendarChange,
       onPanelChange: isEditing ? void 0 : props.onPanelChange,
       picker,
@@ -53,6 +53,7 @@ const datePickerHelpers = {
 };
 function registerDatePicker(loader) {
   registerComponentHelper(loader, AntdDatePicker, {
+    description: "Choose one date or calendar period, with optional time selection and registered date restrictions.",
     name: datePickerComponentName,
     canvasOverlay: {},
     displayName: "DatePicker",

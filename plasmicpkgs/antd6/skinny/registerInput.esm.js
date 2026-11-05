@@ -114,6 +114,7 @@ const inputTypeOptions = [
 ];
 function registerInput(loader) {
   registerComponentHelper(loader, AntdInput, {
+    description: "Enter and edit a single-line text value, with value-change events and optional prefix, suffix and clear controls.",
     name: inputComponentName,
     displayName: "Input",
     styleSections: ["visibility"],
@@ -152,6 +153,7 @@ function registerInput(loader) {
 }
 function registerTextArea(loader) {
   registerComponentHelper(loader, AntdTextArea, {
+    description: "Enter and edit a multiline text value, with optional automatic sizing, character count and maximum length.",
     name: textAreaComponentName,
     parentComponentName: inputComponentName,
     displayName: "Text Area",
@@ -205,6 +207,7 @@ function registerTextArea(loader) {
 }
 function registerPasswordInput(loader) {
   registerComponentHelper(loader, AntdPassword, {
+    description: "Enter a password as masked text, with the registered visibility control when enabled.",
     name: passwordComponentName,
     parentComponentName: inputComponentName,
     displayName: "Password Input",
@@ -241,6 +244,7 @@ function registerPasswordInput(loader) {
 }
 function registerNumberInput(loader) {
   registerComponentHelper(loader, AntdInputNumber, {
+    description: "Enter a numeric value with step controls and optional bounds, precision, formatting and parsing.",
     name: inputNumberComponentName,
     parentComponentName: inputComponentName,
     displayName: "Number Input",

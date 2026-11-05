@@ -17,6 +17,7 @@ function AntdSegmented(props) {
 }
 function registerSegmented(loader) {
   utils.registerComponentHelper(loader, AntdSegmented, {
+    description: "Choose one value from a compact horizontal set of labeled or icon options. The owning page decides what the selected value changes; content panels are not provided by this control.",
     name: segmentedComponentName,
     displayName: "Segmented",
     props: {

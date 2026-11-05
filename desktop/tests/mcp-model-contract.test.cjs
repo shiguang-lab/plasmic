@@ -28,8 +28,9 @@ test("MCP advertises and routes library discovery, inspection, component search,
       assert.ok(execute.inputSchema.properties.name.enum.includes(name), name);
       assert.ok(state.inputSchema.properties.toolNames.items.enum.includes(name), name);
       assert.ok(!batch.inputSchema.properties.operations.items.properties.name.enum.includes(name), name);
-      const input = name === "listLibraries" ? { query: "icons" }
+      const nativeInput = name === "listLibraries" ? { query: "icons" }
         : name === "searchLibraryComponents" ? { query: "AccountBook" } : { projectId: "library-icons" };
+      const input = ["installLibrary", "upgradeLibrary"].includes(name) ? { ...nativeInput, reviewContext: { purpose: "安装业务组件库" } } : nativeInput;
       const envelope = { name, input };
       const result = await client.callTool({ name: "execute", arguments: envelope });
       assert.equal(result.isError, false, result.content[0].text);
@@ -56,7 +57,7 @@ test("MCP transports batch bindings, compact receipts and explicit read projecti
   const client = new Client({ name: "model-test", version: "1.0.0" });
   try {
     await client.connect(new StdioClientTransport(mcpTransport(profile)));
-    const batch = { operations: [
+    const batch = { reviewContext: { purpose: "创建并命名业务页面" }, operations: [
       { as: "page", name: "createComponent", input: { name: "Records", type: "page" } },
       { name: "changeElement", input: { componentUuid: "$page", elementUuid: "$page.root", name: "Root" } },
     ] };
@@ -97,7 +98,7 @@ test("MCP pages mutation receipts, SVG and CDP output without repeating RPC oper
       assert.equal(response.structuredContent, undefined);
       return JSON.parse(response.content[0].text);
     };
-    const ref = await call("execute_batch", { operations: [{ name: "createComponent", input: { name: "Page" } }] });
+    const ref = await call("execute_batch", { reviewContext: { purpose: "创建页面" }, operations: [{ name: "createComponent", input: { name: "Page" } }] });
     assert.equal(ref.__type, "ResultReference");
     const recovered = [];
     let offset = 0;

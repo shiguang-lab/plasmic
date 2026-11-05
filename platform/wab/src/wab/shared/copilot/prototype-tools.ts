@@ -1,3 +1,4 @@
+import { componentReviewContextSchema, componentReviewResultSchema } from "@/wab/shared/copilot/component-review";
 import { mutationReceiptSchema } from "@/wab/shared/copilot/mutation-receipt";
 import { toolPresentationSchema } from "@/wab/shared/copilot/presentation";
 import { modelReadOptions, modelReadResultSchema, projectCollections } from "@/wab/shared/copilot/model-read";
@@ -1091,8 +1092,48 @@ export const prototypeMutationSchema = z.discriminatedUnion("name", [
     .strict(),
 ]);
 export type PrototypeMutation = z.infer<typeof prototypeMutationSchema>;
+function reviewed<T extends { inputSchema: z.AnyZodObject; outputSchema: z.AnyZodObject; description: string }>(tool: T) {
+  const { inputSchema, outputSchema, ...metadata } = tool;
+  return { ...metadata, description: tool.description + " Supply reviewContext with one purpose for this call and customOnly:true only when the user explicitly requires implementing this functionality without existing registered components; otherwise pass false. The editor derives affected regions; candidates are advisory and custom UI remains allowed.",
+    inputSchema: inputSchema.extend({ reviewContext: componentReviewContextSchema }) as z.ZodObject<T["inputSchema"]["shape"] & { reviewContext: typeof componentReviewContextSchema }>,
+    outputSchema: outputSchema.extend({ componentReview: componentReviewResultSchema.optional() }) as z.ZodObject<T["outputSchema"]["shape"] & { componentReview: z.ZodOptional<typeof componentReviewResultSchema> }> };
+}
+
 export const PROTOTYPE_TOOL_META = {
   ...EDIT_TOOL_META,
+  deleteCanvas: reviewed(EDIT_TOOL_META.deleteCanvas),
+  updateCanvas: reviewed(EDIT_TOOL_META.updateCanvas),
+  updateArtboard: reviewed(EDIT_TOOL_META.updateArtboard),
+  setPageViewport: reviewed(EDIT_TOOL_META.setPageViewport),
+  deleteBreakpoint: reviewed(EDIT_TOOL_META.deleteBreakpoint),
+  createCanvas: reviewed(EDIT_TOOL_META.createCanvas),
+  createArtboard: reviewed(EDIT_TOOL_META.createArtboard),
+  updateVector: reviewed(EDIT_TOOL_META.updateVector),
+  createComponent: reviewed(EDIT_TOOL_META.createComponent),
+  insertHtml: reviewed(EDIT_TOOL_META.insertHtml),
+  changeElement: reviewed(EDIT_TOOL_META.changeElement),
+  deleteElement: reviewed(EDIT_TOOL_META.deleteElement),
+  createState: reviewed(EDIT_TOOL_META.createState),
+  createInteraction: reviewed(EDIT_TOOL_META.createInteraction),
+  createStyleToken: reviewed(EDIT_TOOL_META.createStyleToken),
+  updateInteraction: reviewed(EDIT_TOOL_META.updateInteraction),
+  deleteInteraction: reviewed(EDIT_TOOL_META.deleteInteraction),
+  copyElement: reviewed(EDIT_TOOL_META.copyElement),
+  moveElement: reviewed(EDIT_TOOL_META.moveElement),
+  updateState: reviewed(EDIT_TOOL_META.updateState),
+  deleteState: reviewed(EDIT_TOOL_META.deleteState),
+  updateStyleToken: reviewed(EDIT_TOOL_META.updateStyleToken),
+  deleteStyleToken: reviewed(EDIT_TOOL_META.deleteStyleToken),
+  createVariantGroup: reviewed(EDIT_TOOL_META.createVariantGroup),
+  createVariant: reviewed(EDIT_TOOL_META.createVariant),
+  createGlobalVariantGroup: reviewed(EDIT_TOOL_META.createGlobalVariantGroup),
+  createGlobalVariant: reviewed(EDIT_TOOL_META.createGlobalVariant),
+  createBreakpoint: reviewed(EDIT_TOOL_META.createBreakpoint),
+  deleteComponent: reviewed(EDIT_TOOL_META.deleteComponent),
+  installLibrary: reviewed(EDIT_TOOL_META.installLibrary),
+  upgradeLibrary: reviewed(EDIT_TOOL_META.upgradeLibrary),
+  importWebPage: reviewed(EDIT_TOOL_META.importWebPage),
+
   executeLocalEdit: {
     toolName: "executeLocalEdit",
     title: "Execute a canvas AI operation",
@@ -1130,10 +1171,10 @@ export const PROTOTYPE_TOOL_META = {
     toolName: "executeBatch",
     title: "Apply one atomic edit transaction",
     description:
-      "Apply 1–30 native mutations as one undoable transaction. Any failure rolls back every edit. Name an operation with as; later UUID fields can use $name (first created ID), $name.root (component root), or $name.1 (second created ID). References are call-local and backward-only. Returns compact identities and diagnostics, never implicit full models. Read explicitly for verification. Save separately. The visible editor automatically presents one target from the final operation after the atomic batch; inspect presentation for unresolved visibility rather than replaying mutations.",
+      "Apply 1–30 native mutations as one undoable transaction. Any failure rolls back every edit. Supply one outer reviewContext with a purpose describing the entire batch and customOnly:true only when the user explicitly requires implementing all affected functionality without existing registered components; otherwise pass false. The editor derives affected regions from actual operations and receipts. Do not repeat reviewContext inside operation inputs. Name an operation with as; later UUID fields can use $name (first created ID), $name.root (component root), or $name.1 (second created ID). References are call-local and backward-only. Returns compact identities and advisory diagnostics, never implicit full models. Custom UI remains allowed. Read explicitly for verification. Save separately. The visible editor automatically presents one target from the final operation after the atomic batch; inspect presentation for unresolved visibility rather than replaying mutations.",
     inputSchema: z
-      .object({ operations: z.array(prototypeMutationSchema).min(1).max(30) })
+      .object({ operations: z.array(prototypeMutationSchema).min(1).max(30), reviewContext: componentReviewContextSchema })
       .strict(),
-    outputSchema: z.object({ operations: z.array(mutationReceiptSchema), presentation: toolPresentationSchema.optional() }),
+    outputSchema: z.object({ operations: z.array(mutationReceiptSchema), presentation: toolPresentationSchema.optional(), componentReview: componentReviewResultSchema.optional() }),
   },
 };

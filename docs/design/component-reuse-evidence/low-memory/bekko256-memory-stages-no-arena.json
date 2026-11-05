@@ -1,0 +1,120 @@
+{
+  "model": {
+    "repo": "hotchpotch/bekko-static-embedding-v1",
+    "revision": "c18167b8f244c1bc6de21ce9b710bac8a29c4615",
+    "modelFile": "onnx/model_int8_dim256.onnx",
+    "kind": "static",
+    "dimensions": 256,
+    "files": [
+      {
+        "name": "onnx/model_int8_dim256.onnx",
+        "bytes": 52000965,
+        "sha256": "b79091ffcc23d499ea0dcc52d6d08e4aecccd1ca8b866d5c02e1f5c082d23158"
+      },
+      {
+        "name": "tokenizer.json",
+        "bytes": 5104874,
+        "sha256": "308823060352e35bf9fff6b42ef343f31cc68fa800e284568cc44e9cc0f70a73"
+      }
+    ]
+  },
+  "variant": "no-arena",
+  "options": {
+    "executionProviders": [
+      "cpu"
+    ],
+    "intraOpNumThreads": 2,
+    "interOpNumThreads": 1,
+    "enableCpuMemArena": false,
+    "enableMemPattern": false
+  },
+  "runtime": {
+    "node": "v24.20.0",
+    "transformers": "4.3.2",
+    "onnxruntime": "1.30.0"
+  },
+  "note": "Single diagnostic process, no GC until after indexing. RSS stage deltas are not exact ownership attribution. Forced GC and release are diagnostic, not product lifecycle measurements.",
+  "stages": [
+    {
+      "stage": "baseline",
+      "rss": 47185920,
+      "heapTotal": 6438912,
+      "heapUsed": 5061872,
+      "external": 1997729,
+      "arrayBuffers": 137503,
+      "osMaxRssKiB": 46096
+    },
+    {
+      "stage": "runtime-imported",
+      "rss": 90898432,
+      "heapTotal": 18677760,
+      "heapUsed": 12075160,
+      "external": 5368724,
+      "arrayBuffers": 279723,
+      "osMaxRssKiB": 88768
+    },
+    {
+      "stage": "tokenizer-loaded",
+      "rss": 213598208,
+      "heapTotal": 142639104,
+      "heapUsed": 104760264,
+      "external": 5368716,
+      "arrayBuffers": 214143,
+      "osMaxRssKiB": 208592
+    },
+    {
+      "stage": "model-loaded",
+      "rss": 375259136,
+      "heapTotal": 135446528,
+      "heapUsed": 67290560,
+      "external": 5303144,
+      "arrayBuffers": 214143,
+      "osMaxRssKiB": 366464
+    },
+    {
+      "stage": "short-queries-finished",
+      "rss": 378159104,
+      "heapTotal": 136757248,
+      "heapUsed": 69530656,
+      "external": 5352264,
+      "arrayBuffers": 263263,
+      "osMaxRssKiB": 369296
+    },
+    {
+      "stage": "index-finished",
+      "rss": 406011904,
+      "heapTotal": 137019392,
+      "heapUsed": 68676968,
+      "external": 5344600,
+      "arrayBuffers": 255599,
+      "osMaxRssKiB": 396496
+    },
+    {
+      "stage": "after-index-forced-gc",
+      "rss": 388481024,
+      "heapTotal": 106037248,
+      "heapUsed": 37365856,
+      "external": 5303144,
+      "arrayBuffers": 214143,
+      "osMaxRssKiB": 396624
+    },
+    {
+      "stage": "after-session-release-and-gc",
+      "rss": 388530176,
+      "heapTotal": 106037248,
+      "heapUsed": 37351640,
+      "external": 5303144,
+      "arrayBuffers": 214143,
+      "osMaxRssKiB": 396624
+    },
+    {
+      "stage": "after-tokenizer-release-and-gc",
+      "rss": 366985216,
+      "heapTotal": 78970880,
+      "heapUsed": 10355304,
+      "external": 5303144,
+      "arrayBuffers": 214143,
+      "osMaxRssKiB": 396624
+    }
+  ]
+}

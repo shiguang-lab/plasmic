@@ -71,6 +71,7 @@ import {
 import { personalProjectPaywallMessage } from "@/wab/client/components/widgets/plasmic/ShareDialogContent";
 import { clientToFramePt, frameToScalerRect } from "@/wab/client/coords";
 import { CopilotActivity } from "@/wab/client/copilot/activity";
+import { startComponentReuse } from "@/wab/client/copilot/component-reuse";
 import { DbCtx, WithDbCtx } from "@/wab/client/db";
 import {
   AddFakeItem,
@@ -817,6 +818,10 @@ export class StudioCtx extends WithDbCtx {
         this.revisions.replace(revision),
       ),
     );
+
+    this.runAfterInitialCanvasReady(async () => {
+      this.disposals.push(startComponentReuse(this));
+    });
 
     this.disposals.push(
       reaction(

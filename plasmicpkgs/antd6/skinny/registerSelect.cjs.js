@@ -3,7 +3,7 @@
 var Ant = require('antd');
 var cls = require('classnames');
 var React = require('react');
-var canvasOverlay$1 = require('./canvas-overlay-pJBoKL8M.cjs.js');
+var canvasOverlay$1 = require('./canvas-overlay-CK330rTr.cjs.js');
 var names = require('./names-DbJduus8.cjs.js');
 var utils = require('./utils-Diqr9Iet.cjs.js');
 require('@plasmicapp/host');
@@ -40,7 +40,7 @@ function AntdSelect(props) {
     {
       ...curated,
       open,
-      onOpenChange: isEditing ? void 0 : canvasProps.onOpenChange,
+      onOpenChange: canvasProps.onOpenChange,
       onChange: isEditing ? void 0 : props.onChange,
       mode: !mode || mode === "single" ? void 0 : mode,
       classNames: (info) => {
@@ -65,6 +65,7 @@ function AntdSelect(props) {
 }
 function registerSelect(loader) {
   utils.registerComponentHelper(loader, AntdSelect, {
+    description: "Choose one or multiple values from dropdown options. Supports configured search, clear and selection modes; selecting a value does not switch page content.",
     name: names.selectComponentName,
     canvasOverlay,
     displayName: "Select",
@@ -309,6 +310,7 @@ function registerSelect(loader) {
     importName: "AntdSelect"
   });
   utils.registerComponentHelper(loader, AntdOption, {
+    description: "One labeled selectable value inside Select. Requires the owning Select.",
     name: names.optionComponentName,
     displayName: "Option",
     parentComponentName: names.selectComponentName,
@@ -326,6 +328,7 @@ function registerSelect(loader) {
     importName: "AntdOption"
   });
   utils.registerComponentHelper(loader, AntdOptionGroup, {
+    description: "Group related Option children under a label inside Select. Requires the owning Select.",
     name: names.optionGroupComponentName,
     displayName: "Option Group",
     parentComponentName: names.selectComponentName,

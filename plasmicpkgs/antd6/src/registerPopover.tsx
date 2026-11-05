@@ -23,6 +23,7 @@ export function AntdPopover(
     props: canvasProps,
     open,
     isEditing,
+    destroyOnHidden,
   } = useCanvasOverlay(props, canvasOverlay.triggerSlot);
   const {
     popupRootClassName,
@@ -51,9 +52,9 @@ export function AntdPopover(
       }}
       {...rest}
       open={open}
-      destroyOnHidden={isEditing ? true : props.destroyOnHidden}
-      onOpenChange={isEditing ? undefined : props.onOpenChange}
-      afterOpenChange={isEditing ? undefined : props.afterOpenChange}
+      destroyOnHidden={destroyOnHidden}
+      onOpenChange={canvasProps.onOpenChange}
+      afterOpenChange={isEditing ? undefined : canvasProps.afterOpenChange}
     />
   );
 }

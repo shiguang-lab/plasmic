@@ -39,6 +39,20 @@ if (window.top === window) {
     },
     remove: (handle, id, sequence) => ipcRenderer.invoke("desktop:drafts", "remove", { handle, id, sequence }),
   });
+  contextBridge.exposeInMainWorld("desktopComponentReuse", {
+    sync: (input) => ipcRenderer.invoke("desktop:component-reuse", "sync", input),
+    review: (input) => ipcRenderer.invoke("desktop:component-reuse", "review", input),
+    cancel: (id) => { void ipcRenderer.invoke("desktop:component-reuse", "cancel", { id }).catch(() => {}); },
+    activity: () => { void ipcRenderer.invoke("desktop:component-reuse", "activity").catch(() => {}); },
+    release: (projectId) => ipcRenderer.invoke("desktop:component-reuse", "release", { projectId }),
+  });
+  let lastComponentActivity = 0;
+  for (const name of ["pointermove", "keydown", "wheel"]) window.addEventListener(name, () => {
+    if (Date.now() - lastComponentActivity > 350) {
+      lastComponentActivity = Date.now();
+      void ipcRenderer.invoke("desktop:component-reuse", "activity").catch(() => {});
+    }
+  }, { passive: true });
   let browserExpanded = false;
   let editorVisibility, editorInert;
   ipcRenderer.on("desktop:reference-browser-mode", (_event, { expanded }) => {

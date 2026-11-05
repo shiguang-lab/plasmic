@@ -1,7 +1,7 @@
 import { Popover } from 'antd';
 import cls from 'classnames';
 import React from 'react';
-import { u as useCanvasOverlay, p as previewOpenProp } from './canvas-overlay-CbpJk7_w.esm.js';
+import { u as useCanvasOverlay, p as previewOpenProp } from './canvas-overlay-27tNRB55.esm.js';
 import { r as registerComponentHelper } from './utils-U416WEAa.esm.js';
 import '@plasmicapp/host';
 import '@plasmicapp/host/registerComponent';
@@ -13,7 +13,8 @@ function AntdPopover(props) {
   const {
     props: canvasProps,
     open,
-    isEditing
+    isEditing,
+    destroyOnHidden
   } = useCanvasOverlay(props, canvasOverlay.triggerSlot);
   const {
     popupRootClassName,
@@ -42,9 +43,9 @@ function AntdPopover(props) {
       },
       ...rest,
       open,
-      destroyOnHidden: isEditing ? true : props.destroyOnHidden,
-      onOpenChange: isEditing ? void 0 : props.onOpenChange,
-      afterOpenChange: isEditing ? void 0 : props.afterOpenChange
+      destroyOnHidden,
+      onOpenChange: canvasProps.onOpenChange,
+      afterOpenChange: isEditing ? void 0 : canvasProps.afterOpenChange
     }
   );
 }

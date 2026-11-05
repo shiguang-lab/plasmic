@@ -58,7 +58,7 @@ class DesktopController {
       this.pending.delete(id);
       if (result?.success === false) {
         pending.reject(
-          new Error(result.error?.message || "Editor command failed"),
+          Object.assign(new Error(result.error?.message || "Editor command failed"), result.error?.operationExecuted === false ? { context: { code: "INVALID_TOOL_INPUT", operationExecuted: false } } : {}),
         );
       } else {
         pending.resolve(result);
@@ -659,7 +659,7 @@ class DesktopController {
     }
     if (method === "execute_batch") {
       if (input.operations.some((op) => ["preview", "executeBatch"].includes(op.name))) throw new Error("Use top-level preview for runtime operations and execute_batch for one native mutation batch");
-      return this.editor("executeBatch", { operations: input.operations });
+      return this.editor("executeBatch", { operations: input.operations, reviewContext: input.reviewContext });
     }
     if (method === "execute") {
       if (["preview", "executeBatch"].includes(input.name)) throw new Error("Use top-level preview or execute_batch so operation context is checked");

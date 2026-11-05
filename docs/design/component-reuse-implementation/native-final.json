@@ -1,0 +1,3075 @@
+{
+  "measuredAt": "2026-11-05T01:16:27.456Z",
+  "cacheDirectory": "/var/folders/by/mz1s49k13p3d7xvfr357w1kw0000gn/T/component-reuse-native-VimDSY",
+  "corpusSha256": "b7191a546a488cc1b8ac0dec708e342938b3d6a494db557dcb636d1a2dafcdd4",
+  "model": {
+    "repo": "unsloth/embeddinggemma-2-GGUF",
+    "revision": "031f0d4b35536f69ab3509d4893c923264fcf253",
+    "file": "embeddinggemma-2-UD-Q4_K_XL.gguf",
+    "sha256": "ea905fd08e8061db77a0031cbb5096d459d7cfd2bdd0ad2ba66e483f16719493",
+    "bytes": 175673856,
+    "dimensions": 768,
+    "signature": "embeddinggemma2-UD-Q4_K_XL-ea905fd0-search-result-title-mean-l2-768-first512-v1"
+  },
+  "platform": "darwin",
+  "arch": "arm64",
+  "baselineMemory": {
+    "nodeRssBytes": 56754176,
+    "nativeRssBytes": 0
+  },
+  "limitations": [
+    "Standalone production Node/native/cache/search path, not the installed Electron UI, MCP round trip or frame-rate acceptance.",
+    "Same manually labeled 101 repository documentation fragments and 41 queries as prior pilot; not full live installed contracts or independent holdout.",
+    "RSS phase checkpoints via ps; not a continuous peak or private physical footprint. OS disk cache not cleared.",
+    "Native build uses GGML_NATIVE=OFF for distribution; CPU 2 threads, no GPU. Quality includes production fragmenting, threshold and keyword/embedding fusion."
+  ],
+  "coldCatalogueMs": 23.796875,
+  "coldIndexMs": 58976.339125,
+  "coldCounters": {
+    "cacheHits": 0,
+    "documentEmbeddings": 154,
+    "queryEmbeddings": 0,
+    "queryCacheHits": 0
+  },
+  "afterIndexMemory": {
+    "nodeRssBytes": 121159680,
+    "nativeRssBytes": 408420352
+  },
+  "retrieval": {
+    "positiveCases": 37,
+    "hitAt3": 30,
+    "negativeCases": 4,
+    "negativeSuggestions": [
+      "spacing-only",
+      "plain-copy"
+    ],
+    "results": [
+      {
+        "id": "content-switch",
+        "expected": [
+          "antd_v5/components/tabs.md",
+          "antd_v6/components/tabs.md"
+        ],
+        "status": "completed",
+        "elapsedMs": 36.759290999994846,
+        "candidates": [
+          {
+            "componentUuid": "antd_v6/components/menu.md",
+            "name": "menu",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7430914200835115,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "antd_v6/components/transfer.md",
+            "name": "transfer",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7327214459075975,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "antd_v6/components/segmented.md",
+            "name": "segmented",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7238757271768107,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          }
+        ],
+        "hit": false
+      },
+      {
+        "id": "one-value",
+        "expected": [
+          "antd_v5/components/radio.md",
+          "antd_v5/components/segmented.md",
+          "antd_v5/components/select.md",
+          "antd_v6/components/radio.md",
+          "antd_v6/components/segmented.md",
+          "antd_v6/components/select.md"
+        ],
+        "status": "completed",
+        "elapsedMs": 31.219499999999243,
+        "candidates": [
+          {
+            "componentUuid": "antd_v5/components/select.md",
+            "name": "select",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7684510411995626,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "antd_v6/components/radio.md",
+            "name": "radio",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7554580109483339,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "antd_v6/components/select.md",
+            "name": "select",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7543572182348298,
+            "keywordCoverage": 0.09059813816319306,
+            "matchedTerms": [
+              "选择"
+            ],
+            "matchedBy": [
+              "keyword",
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          }
+        ],
+        "hit": true
+      },
+      {
+        "id": "many-values",
+        "expected": [
+          "antd_v5/components/checkbox.md",
+          "antd_v5/components/select.md",
+          "antd_v6/components/checkbox.md",
+          "antd_v6/components/select.md"
+        ],
+        "status": "completed",
+        "elapsedMs": 31.231292000004032,
+        "candidates": [
+          {
+            "componentUuid": "antd_v5/components/select.md",
+            "name": "select",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7669603486745237,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "antd_v6/components/select.md",
+            "name": "select",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7521076488747721,
+            "keywordCoverage": 0.06519053915625868,
+            "matchedTerms": [
+              "选择"
+            ],
+            "matchedBy": [
+              "keyword",
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "antd_v6/components/tree-select.md",
+            "name": "tree-select",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.744359418767799,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          }
+        ],
+        "hit": true
+      },
+      {
+        "id": "daily-clock",
+        "expected": [
+          "antd_v6/components/time-picker.md"
+        ],
+        "status": "completed",
+        "elapsedMs": 30.829750000004424,
+        "candidates": [
+          {
+            "componentUuid": "antd_v6/components/time-picker.md",
+            "name": "time-picker",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7292386079880753,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          }
+        ],
+        "hit": true
+      },
+      {
+        "id": "calendar-range",
+        "expected": [
+          "antd_v5/components/date-picker.md",
+          "antd_v6/components/date-picker.md"
+        ],
+        "status": "completed",
+        "elapsedMs": 27.633249999998952,
+        "candidates": [
+          {
+            "componentUuid": "antd_v6/components/calendar.md",
+            "name": "calendar",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.6977874493089066,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "antd_v6/components/date-picker.md",
+            "name": "date-picker",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.6869428882893878,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          }
+        ],
+        "hit": true
+      },
+      {
+        "id": "quantity",
+        "expected": [
+          "antd_v5/components/input-number.md",
+          "antd_v6/components/input-number.md"
+        ],
+        "status": "completed",
+        "elapsedMs": 32.78249999999389,
+        "candidates": [
+          {
+            "componentUuid": "antd_v6/components/time-picker.md",
+            "name": "time-picker",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7512423272346684,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "antd_v6/components/statistic.md",
+            "name": "statistic",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7391821714877104,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "antd_v6/components/input-number.md",
+            "name": "input-number",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.721959684794254,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          }
+        ],
+        "hit": true
+      },
+      {
+        "id": "identifier",
+        "expected": [
+          "antd_v5/components/input.md",
+          "antd_v6/components/input.md"
+        ],
+        "status": "completed",
+        "elapsedMs": 34.06399999999849,
+        "candidates": [
+          {
+            "componentUuid": "antd_v5/components/input-number.md",
+            "name": "input-number",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7009887573662316,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "antd_v6/components/input-number.md",
+            "name": "input-number",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.6904346608968608,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "antd_v6/components/input.md",
+            "name": "input",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.6854244804972998,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          }
+        ],
+        "hit": true
+      },
+      {
+        "id": "password",
+        "expected": [
+          "antd_v5/components/input.md",
+          "antd_v6/components/input.md"
+        ],
+        "status": "completed",
+        "elapsedMs": 28.923083000001498,
+        "candidates": [
+          {
+            "componentUuid": "antd_v5/components/input.md",
+            "name": "input",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7148358532426701,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "antd_v6/components/input.md",
+            "name": "input",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7115520524711383,
+            "keywordCoverage": 0.08101570785134392,
+            "matchedTerms": [
+              "输入"
+            ],
+            "matchedBy": [
+              "keyword",
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          }
+        ],
+        "hit": true
+      },
+      {
+        "id": "readonly-group",
+        "expected": [
+          "antd_v6/components/descriptions.md"
+        ],
+        "status": "completed",
+        "elapsedMs": 31.870708000002196,
+        "candidates": [],
+        "hit": false
+      },
+      {
+        "id": "records",
+        "expected": [
+          "antd_v5/components/table.md",
+          "antd_v6/components/table.md"
+        ],
+        "status": "completed",
+        "elapsedMs": 33.74041700000089,
+        "candidates": [],
+        "hit": false
+      },
+      {
+        "id": "list",
+        "expected": [
+          "antd_v6/components/list.md",
+          "antd_v6/components/listy.md"
+        ],
+        "status": "completed",
+        "elapsedMs": 33.28754199999821,
+        "candidates": [
+          {
+            "componentUuid": "antd_v6/components/tag.md",
+            "name": "tag",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7114847226840723,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "antd_v5/components/avatar.md",
+            "name": "avatar",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7038780492889789,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "antd_v6/components/avatar.md",
+            "name": "avatar",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.693332790205674,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          }
+        ],
+        "hit": false
+      },
+      {
+        "id": "progress",
+        "expected": [
+          "antd_v5/components/progress.md",
+          "antd_v6/components/progress.md"
+        ],
+        "status": "completed",
+        "elapsedMs": 26.393167000001995,
+        "candidates": [
+          {
+            "componentUuid": "antd_v6/components/progress.md",
+            "name": "progress",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7320006677285797,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "antd_v5/components/progress.md",
+            "name": "progress",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7243093012175567,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          }
+        ],
+        "hit": true
+      },
+      {
+        "id": "status",
+        "expected": [
+          "antd_v6/components/badge.md"
+        ],
+        "status": "completed",
+        "elapsedMs": 32.09304200000042,
+        "candidates": [
+          {
+            "componentUuid": "antd_v6/components/badge.md",
+            "name": "badge",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7436715399178657,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "antd_v6/components/progress.md",
+            "name": "progress",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7176465892853092,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "antd_v5/components/steps.md",
+            "name": "steps",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7136165393041896,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          }
+        ],
+        "hit": true
+      },
+      {
+        "id": "categories",
+        "expected": [
+          "antd_v6/components/tag.md"
+        ],
+        "status": "completed",
+        "elapsedMs": 27.536000000000058,
+        "candidates": [
+          {
+            "componentUuid": "antd_v6/components/tag.md",
+            "name": "tag",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7480168843609125,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "antd_v6/components/watermark.md",
+            "name": "watermark",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.6971173445523191,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "antd_v6/components/segmented.md",
+            "name": "segmented",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.6924210368221894,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          }
+        ],
+        "hit": true
+      },
+      {
+        "id": "action-menu",
+        "expected": [
+          "antd_v5/components/dropdown.md",
+          "antd_v6/components/dropdown.md"
+        ],
+        "status": "completed",
+        "elapsedMs": 36.5557919999992,
+        "candidates": [
+          {
+            "componentUuid": "antd_v6/components/menu.md",
+            "name": "menu",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7331430595690335,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "antd_v5/components/dropdown.md",
+            "name": "dropdown",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7219109393620627,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "antd_v5/components/menu.md",
+            "name": "menu",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.715851268290781,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          }
+        ],
+        "hit": true
+      },
+      {
+        "id": "row-actions",
+        "expected": [
+          "react_ui/components/action-group.md"
+        ],
+        "status": "completed",
+        "elapsedMs": 30.708749999997963,
+        "candidates": [
+          {
+            "componentUuid": "antd_v6/components/menu.md",
+            "name": "menu",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7322560458701591,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "react_ui/components/action-group.md",
+            "name": "action-group",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7134645984519176,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "antd_v5/components/menu.md",
+            "name": "menu",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7119113303697441,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          }
+        ],
+        "hit": true
+      },
+      {
+        "id": "overlay-input",
+        "expected": [
+          "antd_v5/components/drawer.md",
+          "antd_v5/components/form.md",
+          "antd_v5/components/modal.md",
+          "antd_v6/components/drawer.md",
+          "antd_v6/components/form.md",
+          "antd_v6/components/modal.md"
+        ],
+        "status": "completed",
+        "elapsedMs": 33.59008300000278,
+        "candidates": [
+          {
+            "componentUuid": "antd_v5/components/modal.md",
+            "name": "modal",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7237499998593483,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "antd_v6/components/popover.md",
+            "name": "popover",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7141829129134344,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "antd_v6/components/steps.md",
+            "name": "steps",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7077959155712533,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          }
+        ],
+        "hit": true
+      },
+      {
+        "id": "brief-help",
+        "expected": [
+          "antd_v5/components/tooltip.md",
+          "antd_v6/components/tooltip.md"
+        ],
+        "status": "completed",
+        "elapsedMs": 36.44625000000087,
+        "candidates": [
+          {
+            "componentUuid": "antd_v5/components/popover.md",
+            "name": "popover",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7026251831036459,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "antd_v5/components/tooltip.md",
+            "name": "tooltip",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.6953061368778796,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "antd_v6/components/float-button.md",
+            "name": "float-button",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.688523657414839,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          }
+        ],
+        "hit": true
+      },
+      {
+        "id": "interactive-help",
+        "expected": [
+          "antd_v5/components/popover.md",
+          "antd_v6/components/popover.md"
+        ],
+        "status": "completed",
+        "elapsedMs": 29.735584000001836,
+        "candidates": [
+          {
+            "componentUuid": "antd_v6/components/popconfirm.md",
+            "name": "popconfirm",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7066749181270044,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "antd_v6/components/popover.md",
+            "name": "popover",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.703274957054095,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "antd_v5/components/popover.md",
+            "name": "popover",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7026334302976865,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          }
+        ],
+        "hit": true
+      },
+      {
+        "id": "anchored-confirm",
+        "expected": [
+          "antd_v6/components/popconfirm.md"
+        ],
+        "status": "completed",
+        "elapsedMs": 35.43354099999851,
+        "candidates": [
+          {
+            "componentUuid": "antd_v6/components/popconfirm.md",
+            "name": "popconfirm",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7453468005072976,
+            "keywordCoverage": 0.06303574302494422,
+            "matchedTerms": [
+              "确认"
+            ],
+            "matchedBy": [
+              "keyword",
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "antd_v6/components/button.md",
+            "name": "button",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7109811801243386,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "antd_v5/components/button.md",
+            "name": "button",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7086655702817812,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          }
+        ],
+        "hit": true
+      },
+      {
+        "id": "page-outcome",
+        "expected": [
+          "antd_v6/components/result.md"
+        ],
+        "status": "completed",
+        "elapsedMs": 27.52970799999457,
+        "candidates": [
+          {
+            "componentUuid": "antd_v6/components/result.md",
+            "name": "result",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7292750058277871,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "antd_v5/components/modal.md",
+            "name": "modal",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.6983511643505594,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "antd_v6/components/progress.md",
+            "name": "progress",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.696341202983671,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          }
+        ],
+        "hit": true
+      },
+      {
+        "id": "empty",
+        "expected": [
+          "antd_v6/components/empty.md"
+        ],
+        "status": "completed",
+        "elapsedMs": 28.449832999998762,
+        "candidates": [
+          {
+            "componentUuid": "antd_v6/components/empty.md",
+            "name": "empty",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7954149497636045,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "antd_v6/components/skeleton.md",
+            "name": "skeleton",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7120750485666452,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "antd_v6/components/transfer.md",
+            "name": "transfer",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7113695904490329,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          }
+        ],
+        "hit": true
+      },
+      {
+        "id": "loading",
+        "expected": [
+          "antd_v6/components/skeleton.md",
+          "antd_v6/components/spin.md"
+        ],
+        "status": "completed",
+        "elapsedMs": 30.20354199999565,
+        "candidates": [
+          {
+            "componentUuid": "antd_v6/components/empty.md",
+            "name": "empty",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.6998567724586122,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "antd_v6/components/result.md",
+            "name": "result",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.6994229024923486,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "antd_v6/components/spin.md",
+            "name": "spin",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.6950001499575895,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          }
+        ],
+        "hit": true
+      },
+      {
+        "id": "route-menu",
+        "expected": [
+          "antd_v5/components/menu.md",
+          "antd_v6/components/menu.md"
+        ],
+        "status": "completed",
+        "elapsedMs": 29.552042000002984,
+        "candidates": [
+          {
+            "componentUuid": "antd_v6/components/menu.md",
+            "name": "menu",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7333555783129826,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "antd_v5/components/menu.md",
+            "name": "menu",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7117634233545618,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "antd_v6/components/breadcrumb.md",
+            "name": "breadcrumb",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7036635616745619,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          }
+        ],
+        "hit": true
+      },
+      {
+        "id": "workflow",
+        "expected": [
+          "antd_v5/components/steps.md",
+          "antd_v6/components/steps.md"
+        ],
+        "status": "completed",
+        "elapsedMs": 34.87800000000425,
+        "candidates": [
+          {
+            "componentUuid": "antd_v5/components/steps.md",
+            "name": "steps",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.716915121899642,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "antd_v6/components/steps.md",
+            "name": "steps",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7121021388148071,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "antd_v6/components/form.md",
+            "name": "form",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7077395405710563,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          }
+        ],
+        "hit": true
+      },
+      {
+        "id": "breadcrumb",
+        "expected": [
+          "antd_v5/components/breadcrumb.md",
+          "antd_v6/components/breadcrumb.md"
+        ],
+        "status": "completed",
+        "elapsedMs": 26.748166000004858,
+        "candidates": [
+          {
+            "componentUuid": "antd_v6/components/menu.md",
+            "name": "menu",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7063440742007392,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "antd_v5/components/tree.md",
+            "name": "tree",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.6868091139514234,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "antd_v6/components/breadcrumb.md",
+            "name": "breadcrumb",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.6867837275752283,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          }
+        ],
+        "hit": true
+      },
+      {
+        "id": "calendar-month",
+        "expected": [
+          "antd_v6/components/calendar.md"
+        ],
+        "status": "completed",
+        "elapsedMs": 28.66512500000681,
+        "candidates": [
+          {
+            "componentUuid": "antd_v6/components/calendar.md",
+            "name": "calendar",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7068381106774166,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          }
+        ],
+        "hit": true
+      },
+      {
+        "id": "finite-days",
+        "expected": [
+          "antd_v5/components/radio.md",
+          "antd_v5/components/segmented.md",
+          "antd_v5/components/select.md",
+          "antd_v6/components/radio.md",
+          "antd_v6/components/segmented.md",
+          "antd_v6/components/select.md"
+        ],
+        "status": "completed",
+        "elapsedMs": 35.51508299999841,
+        "candidates": [
+          {
+            "componentUuid": "antd_v6/components/date-picker.md",
+            "name": "date-picker",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.6928457314944785,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "antd_v6/components/time-picker.md",
+            "name": "time-picker",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.6914030917517573,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "antd_v6/components/calendar.md",
+            "name": "calendar",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.6814663950662226,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          }
+        ],
+        "hit": false
+      },
+      {
+        "id": "cascade",
+        "expected": [
+          "antd_v6/components/cascader.md",
+          "antd_v6/components/tree-select.md"
+        ],
+        "status": "completed",
+        "elapsedMs": 31.78299999999581,
+        "candidates": [
+          {
+            "componentUuid": "antd_v6/components/cascader.md",
+            "name": "cascader",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7349283516349341,
+            "keywordCoverage": 0.09059813816319306,
+            "matchedTerms": [
+              "选择"
+            ],
+            "matchedBy": [
+              "keyword",
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "antd_v6/components/tree-select.md",
+            "name": "tree-select",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7071816038296618,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "antd_v5/components/select.md",
+            "name": "select",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.6900894492173637,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          }
+        ],
+        "hit": true
+      },
+      {
+        "id": "hierarchy",
+        "expected": [
+          "antd_v5/components/tree.md",
+          "antd_v6/components/tree-select.md",
+          "antd_v6/components/tree.md"
+        ],
+        "status": "completed",
+        "elapsedMs": 27.21916599999531,
+        "candidates": [
+          {
+            "componentUuid": "antd_v5/components/tree.md",
+            "name": "tree",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7230617656432831,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "antd_v6/components/tree.md",
+            "name": "tree",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.713027456513837,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "antd_v6/components/cascader.md",
+            "name": "cascader",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7088261355429584,
+            "keywordCoverage": 0.10412556414920686,
+            "matchedTerms": [
+              "选择"
+            ],
+            "matchedBy": [
+              "keyword",
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          }
+        ],
+        "hit": true
+      },
+      {
+        "id": "search-business",
+        "expected": [
+          "overseas/components/search-form.md"
+        ],
+        "status": "completed",
+        "elapsedMs": 36.351457999997365,
+        "candidates": [
+          {
+            "componentUuid": "antd_v5/components/drawer.md",
+            "name": "drawer",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7057266754155027,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "antd_v6/components/tag.md",
+            "name": "tag",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.705600368698456,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "antd_v6/components/drawer.md",
+            "name": "drawer",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7042056797727057,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          }
+        ],
+        "hit": false
+      },
+      {
+        "id": "shell",
+        "expected": [
+          "antd_v6/components/app-shell.md",
+          "overseas/components/app-shell.md"
+        ],
+        "status": "completed",
+        "elapsedMs": 34.35054200000013,
+        "candidates": [
+          {
+            "componentUuid": "overseas/components/app-shell.md",
+            "name": "app-shell",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7240950183567577,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "antd_v6/components/form.md",
+            "name": "form",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7040812282422845,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "antd_v6/components/app-shell.md",
+            "name": "app-shell",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.6974306578696902,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          }
+        ],
+        "hit": true
+      },
+      {
+        "id": "file-upload",
+        "expected": [
+          "antd_v5/components/upload.md",
+          "antd_v6/components/upload.md"
+        ],
+        "status": "completed",
+        "elapsedMs": 30.9846250000046,
+        "candidates": [
+          {
+            "componentUuid": "antd_v6/components/upload.md",
+            "name": "upload",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7781564232684883,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "antd_v5/components/upload.md",
+            "name": "upload",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7586108280605875,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "antd_v6/components/transfer.md",
+            "name": "transfer",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.6896478062166249,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          }
+        ],
+        "hit": true
+      },
+      {
+        "id": "permission",
+        "expected": [
+          "react_ui/components/resource-authorization.md"
+        ],
+        "status": "completed",
+        "elapsedMs": 33.422499999993306,
+        "candidates": [
+          {
+            "componentUuid": "react_ui/components/resource-authorization.md",
+            "name": "resource-authorization",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.762779987604216,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "antd_v6/components/modal.md",
+            "name": "modal",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7253716319658945,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "antd_v5/components/button.md",
+            "name": "button",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.725094228365295,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          }
+        ],
+        "hit": true
+      },
+      {
+        "id": "numeric-en",
+        "expected": [
+          "antd_v5/components/input-number.md",
+          "antd_v6/components/input-number.md"
+        ],
+        "status": "completed",
+        "elapsedMs": 27.380541999998968,
+        "candidates": [
+          {
+            "componentUuid": "antd_v6/components/input-number.md",
+            "name": "input-number",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7985694332225709,
+            "keywordCoverage": 0.5200283207496802,
+            "matchedTerms": [
+              "decimal",
+              "quantity",
+              "increment",
+              "decrement",
+              "controls",
+              "empty",
+              "zero"
+            ],
+            "matchedBy": [
+              "keyword",
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "antd_v5/components/input-number.md",
+            "name": "input-number",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.791381730908962,
+            "keywordCoverage": 0.21334851630025867,
+            "matchedTerms": [
+              "decimal",
+              "controls",
+              "empty",
+              "zero"
+            ],
+            "matchedBy": [
+              "keyword",
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "antd_v5/components/rate.md",
+            "name": "rate",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7446771129175292,
+            "keywordCoverage": 0.05250881096500529,
+            "matchedTerms": [
+              "zero"
+            ],
+            "matchedBy": [
+              "keyword",
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          }
+        ],
+        "hit": true
+      },
+      {
+        "id": "tabs-en",
+        "expected": [
+          "antd_v5/components/tabs.md",
+          "antd_v6/components/tabs.md"
+        ],
+        "status": "completed",
+        "elapsedMs": 28.481542000001355,
+        "candidates": [
+          {
+            "componentUuid": "antd_v6/components/cascader.md",
+            "name": "cascader",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.6697298252326508,
+            "keywordCoverage": 0.26648529413829297,
+            "matchedTerms": [
+              "same",
+              "page",
+              "while",
+              "selected",
+              "panel"
+            ],
+            "matchedBy": [
+              "keyword",
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "antd_v6/components/collapse.md",
+            "name": "collapse",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7208825677142445,
+            "keywordCoverage": 0.0705112896232833,
+            "matchedTerms": [
+              "panel"
+            ],
+            "matchedBy": [
+              "keyword",
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "antd_v6/components/segmented.md",
+            "name": "segmented",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7033923449516869,
+            "keywordCoverage": 0.0705112896232833,
+            "matchedTerms": [
+              "panel"
+            ],
+            "matchedBy": [
+              "keyword",
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          }
+        ],
+        "hit": false
+      },
+      {
+        "id": "readonly-en",
+        "expected": [
+          "antd_v6/components/descriptions.md"
+        ],
+        "status": "completed",
+        "elapsedMs": 33.291292000001704,
+        "candidates": [
+          {
+            "componentUuid": "antd_v6/components/tag.md",
+            "name": "tag",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7153085538193892,
+            "keywordCoverage": 0.31580633454901824,
+            "matchedTerms": [
+              "read",
+              "only",
+              "attributes",
+              "one",
+              "label",
+              "value",
+              "rows"
+            ],
+            "matchedBy": [
+              "keyword",
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "antd_v6/components/list.md",
+            "name": "list",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7005132792927152,
+            "keywordCoverage": 0.29173545557638136,
+            "matchedTerms": [
+              "only",
+              "attributes",
+              "one",
+              "rather",
+              "than",
+              "repeated"
+            ],
+            "matchedBy": [
+              "keyword",
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "antd_v6/components/descriptions.md",
+            "name": "descriptions",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7423737665580342,
+            "keywordCoverage": 0.2151842250697613,
+            "matchedTerms": [
+              "only",
+              "one",
+              "label",
+              "value",
+              "editable",
+              "fields"
+            ],
+            "matchedBy": [
+              "keyword",
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          }
+        ],
+        "hit": true
+      },
+      {
+        "id": "custom-map",
+        "expected": [],
+        "status": "completed",
+        "elapsedMs": 33.35887499999808,
+        "candidates": [],
+        "hit": null
+      },
+      {
+        "id": "custom-node-editor",
+        "expected": [],
+        "status": "completed",
+        "elapsedMs": 30.630917000002228,
+        "candidates": [],
+        "hit": null
+      },
+      {
+        "id": "spacing-only",
+        "expected": [],
+        "status": "completed",
+        "elapsedMs": 31.756666000001132,
+        "candidates": [
+          {
+            "componentUuid": "antd_v6/components/flex.md",
+            "name": "flex",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7213170674307309,
+            "keywordCoverage": 0.06582038152120447,
+            "matchedTerms": [
+              "16"
+            ],
+            "matchedBy": [
+              "keyword",
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "antd_v6/components/space.md",
+            "name": "space",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7162140127723375,
+            "keywordCoverage": 0.06582038152120447,
+            "matchedTerms": [
+              "16"
+            ],
+            "matchedBy": [
+              "keyword",
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "antd_v6/components/affix.md",
+            "name": "affix",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7142026631602696,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          }
+        ],
+        "hit": null
+      },
+      {
+        "id": "plain-copy",
+        "expected": [],
+        "status": "completed",
+        "elapsedMs": 27.304250000001048,
+        "candidates": [
+          {
+            "componentUuid": "antd_v6/components/modal.md",
+            "name": "modal",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7003269885738704,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "antd_v6/components/popover.md",
+            "name": "popover",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7002838665732924,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "antd_v6/components/empty.md",
+            "name": "empty",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.6999069193785136,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          }
+        ],
+        "hit": null
+      }
+    ]
+  },
+  "incremental": {
+    "elapsedMs": 921.4669169999979,
+    "documentEmbeddings": 1
+  },
+  "warmReopen": [
+    {
+      "cacheLoadMs": 26.079875,
+      "indexed": 101,
+      "total": 101,
+      "cacheHits": 154,
+      "documentEmbeddings": 0,
+      "queryEmbeddings": 0,
+      "queryCacheHits": 0,
+      "nativeStarted": false
+    },
+    {
+      "cacheLoadMs": 23.496542,
+      "indexed": 101,
+      "total": 101,
+      "cacheHits": 154,
+      "documentEmbeddings": 0,
+      "queryEmbeddings": 0,
+      "queryCacheHits": 0,
+      "nativeStarted": false
+    },
+    {
+      "cacheLoadMs": 23.850709,
+      "indexed": 101,
+      "total": 101,
+      "cacheHits": 154,
+      "documentEmbeddings": 0,
+      "queryEmbeddings": 0,
+      "queryCacheHits": 0,
+      "nativeStarted": false
+    }
+  ],
+  "runtimeVerificationMs": 96.4142920000013,
+  "firstCachedQuery": {
+    "status": "completed",
+    "indexed": 101,
+    "total": 101,
+    "elapsedMs": 450.2844170000026,
+    "suggestions": [
+      {
+        "componentUuid": "page",
+        "elementUuid": "content-switch",
+        "intent": "在同一个页面内切换基本信息、操作记录、权限设置，选中项与可见内容保持同步，不跳转路由。",
+        "candidates": [
+          {
+            "componentUuid": "antd_v6/components/menu.md",
+            "name": "menu",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7430914200835115,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "antd_v6/components/transfer.md",
+            "name": "transfer",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7327214459075975,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          },
+          {
+            "componentUuid": "antd_v6/components/segmented.md",
+            "name": "segmented",
+            "fromProject": "frozen-document-fixture",
+            "version": "1",
+            "description": "",
+            "score": 0.7238757271768107,
+            "keywordCoverage": 0,
+            "matchedTerms": [],
+            "matchedBy": [
+              "embedding"
+            ],
+            "contract": {
+              "props": [],
+              "slots": [],
+              "events": []
+            },
+            "unknowns": [
+              "Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."
+            ]
+          }
+        ],
+        "guidance": "Reassess this region once using the applicable Plasmic rules (external MCP clients: top-level read_skill). Read each candidate's current contract with read view:contract, fromProject and componentUuids. Replace only if it satisfies the requirement; keep justified custom UI. Do not repeat a successful edit or loop merely because this advisory exists."
+      }
+    ]
+  },
+  "warmQuery": {
+    "p50Ms": 0.8144580000007409,
+    "p95Ms": 33.42504200000258,
+    "samples": [
+      {
+        "id": "content-switch",
+        "elapsedMs": 1.3374170000024606,
+        "status": "completed"
+      },
+      {
+        "id": "one-value",
+        "elapsedMs": 0.8342499999998836,
+        "status": "completed"
+      },
+      {
+        "id": "many-values",
+        "elapsedMs": 31.299958000003244,
+        "status": "completed"
+      },
+      {
+        "id": "daily-clock",
+        "elapsedMs": 30.186084000000847,
+        "status": "completed"
+      },
+      {
+        "id": "calendar-range",
+        "elapsedMs": 27.671458999997412,
+        "status": "completed"
+      },
+      {
+        "id": "quantity",
+        "elapsedMs": 32.33029200000601,
+        "status": "completed"
+      },
+      {
+        "id": "identifier",
+        "elapsedMs": 33.42504200000258,
+        "status": "completed"
+      },
+      {
+        "id": "password",
+        "elapsedMs": 28.872540999997,
+        "status": "completed"
+      },
+      {
+        "id": "readonly-group",
+        "elapsedMs": 32.03337499999907,
+        "status": "completed"
+      },
+      {
+        "id": "records",
+        "elapsedMs": 33.76875000000291,
+        "status": "completed"
+      },
+      {
+        "id": "content-switch",
+        "elapsedMs": 0.8706249999959255,
+        "status": "completed"
+      },
+      {
+        "id": "one-value",
+        "elapsedMs": 1.0787920000002487,
+        "status": "completed"
+      },
+      {
+        "id": "many-values",
+        "elapsedMs": 0.8288749999992433,
+        "status": "completed"
+      },
+      {
+        "id": "daily-clock",
+        "elapsedMs": 0.8482500000027358,
+        "status": "completed"
+      },
+      {
+        "id": "calendar-range",
+        "elapsedMs": 0.7868749999979627,
+        "status": "completed"
+      },
+      {
+        "id": "quantity",
+        "elapsedMs": 0.8144580000007409,
+        "status": "completed"
+      },
+      {
+        "id": "identifier",
+        "elapsedMs": 0.8925000000017462,
+        "status": "completed"
+      },
+      {
+        "id": "password",
+        "elapsedMs": 0.452832999995735,
+        "status": "completed"
+      },
+      {
+        "id": "readonly-group",
+        "elapsedMs": 0.15562499999941792,
+        "status": "completed"
+      },
+      {
+        "id": "records",
+        "elapsedMs": 0.15225000000646105,
+        "status": "completed"
+      },
+      {
+        "id": "content-switch",
+        "elapsedMs": 0.16633299999375595,
+        "status": "completed"
+      },
+      {
+        "id": "one-value",
+        "elapsedMs": 0.14862500000162981,
+        "status": "completed"
+      },
+      {
+        "id": "many-values",
+        "elapsedMs": 0.15745800000149757,
+        "status": "completed"
+      },
+      {
+        "id": "daily-clock",
+        "elapsedMs": 0.15133300000161398,
+        "status": "completed"
+      },
+      {
+        "id": "calendar-range",
+        "elapsedMs": 0.13500000000203727,
+        "status": "completed"
+      },
+      {
+        "id": "quantity",
+        "elapsedMs": 0.16058400000474649,
+        "status": "completed"
+      },
+      {
+        "id": "identifier",
+        "elapsedMs": 0.14804200000071432,
+        "status": "completed"
+      },
+      {
+        "id": "password",
+        "elapsedMs": 0.15483400000084657,
+        "status": "completed"
+      },
+      {
+        "id": "readonly-group",
+        "elapsedMs": 0.150166999999783,
+        "status": "completed"
+      },
+      {
+        "id": "records",
+        "elapsedMs": 0.1416250000038417,
+        "status": "completed"
+      }
+    ],
+    "counters": {
+      "cacheHits": 154,
+      "documentEmbeddings": 0,
+      "queryEmbeddings": 10,
+      "queryCacheHits": 22
+    },
+    "memory": {
+      "nodeRssBytes": 145784832,
+      "nativeRssBytes": 377815040
+    }
+  },
+  "cacheBytes": 481120
+}

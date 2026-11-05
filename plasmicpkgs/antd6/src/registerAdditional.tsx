@@ -113,14 +113,15 @@ export function AntdPopconfirm(
     props: rest,
     open,
     isEditing,
+    destroyOnHidden,
   } = useCanvasOverlay(props, canvasOverlay.triggerSlot);
   return (
     <Ant.Popconfirm
       {...rest}
       open={open}
-      destroyOnHidden={isEditing ? true : props.destroyOnHidden}
-      onOpenChange={isEditing ? undefined : rest.onOpenChange}
-      afterOpenChange={isEditing ? undefined : props.afterOpenChange}
+      destroyOnHidden={destroyOnHidden}
+      onOpenChange={rest.onOpenChange}
+      afterOpenChange={isEditing ? undefined : rest.afterOpenChange}
       onConfirm={isEditing ? undefined : props.onConfirm}
       onCancel={isEditing ? undefined : props.onCancel}
     />

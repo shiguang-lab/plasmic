@@ -45,13 +45,19 @@ import { vi } from "vitest";
 import { runInNewContext } from "node:vm";
 import { assertSiteInvariants } from "@/wab/shared/site-invariants";
 
+function reviewedInput(name: string, input: Record<string, unknown>): Record<string, unknown> {
+  if (name === "executeLocalEdit") return { ...input, input: reviewedInput(String(input.name), input.input as Record<string, unknown>) };
+  const tool = PROTOTYPE_TOOL_META[name as keyof typeof PROTOTYPE_TOOL_META];
+  return tool && "reviewContext" in tool.inputSchema.shape ? { ...input, reviewContext: input.reviewContext ?? { purpose: "执行本测试定义的业务操作" } } : input;
+}
+
 function fixture(site = createSite()) {
   const { studioCtx } = fakeStudioCtx({ site });
   const call = async (name: string, input: Record<string, unknown> = {}) =>
     JSON.parse(
       await ensure(COPILOT_TOOLS[name], "Tool not found").execute(
         studioCtx,
-        input,
+        reviewedInput(name, input),
       ),
     );
   const createPage = async (name = "Prototype") => {
@@ -1596,6 +1602,7 @@ describe("AI prototype editor tools", () => {
     studioCtx.copilotActivity.dispose();
     const caller = { id: "codex", name: "Codex" };
     await COPILOT_TOOLS.executeBatch.execute(studioCtx, {
+      reviewContext: { purpose: "调整现有内容颜色" },
       operations: [
         {
           name: "changeElement",
@@ -1627,7 +1634,7 @@ describe("AI prototype editor tools", () => {
     const page = await createPage("CancelledScan");
     studioCtx.copilotActivity.dispose();
     const controller = new AbortController();
-    const input = { operations: [{ name: "changeElement", input: {
+    const input = { reviewContext: { purpose: "调整现有内容颜色" }, operations: [{ name: "changeElement", input: {
       componentUuid: page.uuid, elementUuid: page.tplTree.uuid, styles: { color: "red" },
     } }] };
     const result = COPILOT_TOOLS.executeBatch.execute(studioCtx, input, { signal: controller.signal });
@@ -1898,6 +1905,7 @@ describe("AI prototype editor tools", () => {
         projectId: dependency.projectId,
         version: "1.0.0",
         installed: true,
+        componentReview: { status: "unavailable", indexed: 0, total: 0, elapsedMs: 0, suggestions: [] },
       });
       expect(add).toHaveBeenCalledWith(dependency.projectId);
       expect(registry).toHaveBeenCalledOnce();
@@ -1957,6 +1965,7 @@ describe("AI prototype editor tools", () => {
         previousVersion: "1.0.0",
         version: "1.1.0",
         upgraded: true,
+        componentReview: { status: "unavailable", indexed: 0, total: 0, elapsedMs: 0, suggestions: [] },
       });
       expect(fetch).toHaveBeenCalledWith(dependency.pkgId);
       expect(upgrade).toHaveBeenCalledWith([published]);
