@@ -3,7 +3,7 @@ import {
   RenderingCtx,
 } from "@/wab/client/components/canvas/canvas-rendering";
 import { SubDeps } from "@/wab/client/components/canvas/subdeps";
-import { CanvasSessionState } from "@/wab/client/components/canvas/canvas-session-state";
+import { applyCanvasSessionState, CanvasSessionState } from "@/wab/client/components/canvas/canvas-session-state";
 import { observable } from "mobx";
 import { setTplVisibility, TplVisibility } from "@/wab/shared/visibility-utils";
 import { interpolatedStringToTemplatedString } from "@/wab/shared/copilot/dynamic-value-input";
@@ -39,6 +39,8 @@ import { usePlasmicQueries } from "@plasmicapp/data-sources";
 import { $StateSpec, get, set, useDollarState } from "@plasmicapp/react-web";
 import { act, fireEvent, render } from "@testing-library/react";
 import React from "react";
+import { ConfigProvider, Table, Tooltip } from "antd";
+import { waitFor } from "@testing-library/react";
 
 const { getQueryFetcherHookCounts, useComponentLevelQueries } = _testOnlyUtils;
 
@@ -639,4 +641,57 @@ describe("authored canvas click interactions", () => {
     await act(async () => { fireEvent.click(view.getByRole("button")); });
     expect(env.$state.basicOpen).toBe(true);
   });
+});
+
+
+it("keeps one native Table render-slot tooltip open and retains RichText classes on hover", async () => {
+  const site = createSite();
+  const node = mkTplTagX("span");
+  const viewCtx = {
+    studioCtx: { isDevMode: true },
+    canvasCtx: { Sub: { DataContext: React.createContext({}) } },
+    trackCanvasObserver: vi.fn(), commitCanvasObserver: vi.fn(),
+    disposeCanvasObserver: (reaction: any) => reaction.dispose(),
+    addRerenderObserver: (rerender: () => void) => rerender(),
+  } as unknown as ViewCtx;
+  const ctx = {
+    viewCtx, site, env: { $ctx: {} }, valKey: "table.column.tooltip",
+    sub: { React, reactWeb: { createPlasmicElementProxy: (tag: any, { __plasmicRichText, ...props }: any) => React.createElement(tag, props) } },
+    reactHookSpecs: [],
+  } as unknown as RenderingCtx;
+  const RichText = _testOnlyUtils.mkRichText(React);
+  const session = new CanvasSessionState();
+  const callback = vi.fn();
+  function Cell({ text, implicitOpen, onChange }: { text: string; implicitOpen: boolean; onChange: (open: boolean) => void }) {
+    const scope = React.useId();
+    const [, redraw] = React.useReducer((value) => value + 1, 0);
+    const props: Record<string, any> = { open: implicitOpen, onOpenChange: (open: boolean) => { onChange(open); callback(text, open); } };
+    applyCanvasSessionState(session, _testOnlyUtils.computeCanvasSessionKey({ ...ctx, renderSlotInstance: scope }),
+      props, [{ valueProp: "open", onChangeProp: "onOpenChange", controlled: false }], true, redraw, true, {});
+    const { __plasmic_selection_prop__, ...nativeProps } = props;
+    return <Tooltip title={text} mouseEnterDelay={0} mouseLeaveDelay={0} {...nativeProps}>
+      <RichText ctx={ctx} node={node as any} tag="span" effectiveVs={new EffectiveVariantSetting(node, node.vsettings, site)}
+        attrs={{ className: "authored-device-text", children: <span className="__wab_rich_text">{text}</span> }} />
+    </Tooltip>;
+  }
+  const rows = ["Xiaomi Redmi Note 12", "Motorola Moto G54", "TECNO Spark 20", "Samsung Galaxy A54", "Xiaomi Redmi Note 12"].map((text, id) => ({ id, text }));
+  function Harness() {
+    const [implicitOpen, setImplicitOpen] = React.useState(false);
+    return <ConfigProvider theme={{ token: { motion: false } }}><Table pagination={false} rowKey="id" dataSource={rows}
+      columns={[{ dataIndex: "text", width: 124, ellipsis: { showTitle: false }, render: (text: string) => <Cell text={text} implicitOpen={implicitOpen} onChange={setImplicitOpen} /> }]} /></ConfigProvider>;
+  }
+  const view = render(<Harness />);
+  const cells = view.container.querySelectorAll("td > .authored-device-text");
+  expect(cells).toHaveLength(5);
+  for (const index of [4, 1, 0]) {
+    fireEvent.mouseEnter(cells[index]);
+    await waitFor(() => expect(document.querySelectorAll(".ant-tooltip:not(.ant-tooltip-hidden)")).toHaveLength(1));
+    await waitFor(() => expect(cells[index].classList.contains("ant-tooltip-open")).toBe(true));
+    expect(cells[index].classList.contains("__wab_text")).toBe(true);
+    expect(cells[index].classList.contains("authored-device-text")).toBe(true);
+    fireEvent.mouseLeave(cells[index]);
+    await waitFor(() => expect(document.querySelectorAll(".ant-tooltip:not(.ant-tooltip-hidden)")).toHaveLength(0));
+  }
+  expect(callback.mock.calls).toEqual([4, 1, 0].flatMap((index) => [[rows[index].text, true], [rows[index].text, false]]));
+  view.unmount();
 });

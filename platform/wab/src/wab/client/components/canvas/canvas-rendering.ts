@@ -10,7 +10,7 @@ import {
 } from "@/wab/client/components/canvas/canvas-cache";
 import { CanvasCtx } from "@/wab/client/components/canvas/canvas-ctx";
 import { wrapCanvasEventHandler } from "@/wab/client/components/canvas/canvas-interactions";
-import { applyCanvasSessionState, CanvasStateSpec } from "@/wab/client/components/canvas/canvas-session-state";
+import { applyCanvasSessionState, canvasSessionInstanceKey, CanvasStateSpec } from "@/wab/client/components/canvas/canvas-session-state";
 import {
   CanvasErrorBoundaryProps,
   mkCanvasErrorBoundary,
@@ -346,6 +346,7 @@ export interface RenderingCtx {
   site: Site;
   projectFlags: DevFlagsType;
   valKey: string;
+  renderSlotInstance?: string;
   ownersStack: string[]; // `ValComponent` keys
   // ownerComponent, ownerKey and nodeNamer can only be undefined for the
   // "top-level" TplComponent like ArenaFrame.container or global contexts tpls.
@@ -1532,6 +1533,7 @@ function renderTplComponent(
   };
 
   const props = computeTplComponentArgs(node, effectiveVs, ctx);
+  const sourceProps = { ...props };
   const isComponentRoot = ctx.ownerComponent?.tplTree === node;
   const positionClassName = uniqifyClassName(
     [
@@ -1841,11 +1843,12 @@ function renderTplComponent(
         codeComponentSelectionInfo.isSelected &&
         (!meta?.meta.canvasOverlay?.triggerSlot || codeComponentSelectionInfo.selectedSlotName !==
           meta.meta.canvasOverlay.triggerSlot);
+      const sessionSourceProps = ctx.renderSlotInstance ? sourceProps : props;
       props.previewOpen = ctx.viewCtx.syncCanvasOverlayState(
-        computeFullKey(ctx),
-        props.previewOpen ?? (autoOpen || !!props.open),
-        props.open,
-        props.defaultOpen,
+        computeCanvasSessionKey(ctx),
+        props.previewOpen ?? (autoOpen || !!sessionSourceProps.open),
+        sessionSourceProps.open,
+        sessionSourceProps.defaultOpen,
       );
     }
     props["plasmicNotifyAutoOpenedContent"] = () => {
@@ -1857,10 +1860,11 @@ function renderTplComponent(
     };
     if (!ctx.viewCtx.canvasExporting.get()) {
       props[INTERNAL_CC_CANVAS_SELECTION_PROP].states = applyCanvasSessionState(
-        ctx.viewCtx.canvasSessionState, computeFullKey(ctx), props, canvasStateSpecs,
+        ctx.viewCtx.canvasSessionState, computeCanvasSessionKey(ctx), props, canvasStateSpecs,
         ctx.viewCtx.studioCtx.isInteractiveMode,
         () => ctx.viewCtx.scheduleSync({ eval: true, styles: false, asap: true }),
         supportsCanvasOverlay(node),
+        ctx.renderSlotInstance ? sourceProps : undefined,
       );
     }
   }
@@ -2003,18 +2007,23 @@ function computeTplComponentArgs(
                 return ctx.sub.React.createElement(
                   mkCanvasObserver(ctx.sub, ctx.viewCtx),
                   {
-                    children: () =>
-                      ctx.sub.React.createElement(
+                    children: () => {
+                      const instance = ctx.sub.React.useId();
+                      return ctx.sub.React.createElement(
                         ctx.sub.React.Fragment,
                         {},
-                        computeRenderedArg(param, _expr.tpl, ctx, {
+                        computeRenderedArg(param, _expr.tpl, {
+                          ...ctx,
+                          renderSlotInstance: JSON.stringify([ctx.renderSlotInstance, param.uuid, instance]),
+                        }, {
                           ...envOverrides,
                           ...zipObject(
                             paramType.params.map((p) => p.argName),
                             args,
                           ),
                         }),
-                      ),
+                      );
+                    },
                   },
                 );
               };
@@ -3117,11 +3126,12 @@ interface RichTextProps {
   attrs: Record<string, any>;
   effectiveVs: EffectiveVariantSetting;
   tag: string | React.ElementType;
+  className?: string;
 }
 
 const mkRichText = ownedComputedFn((react: typeof React) =>
   react.forwardRef(function RichText(
-    { ctx, node, attrs, tag, effectiveVs, ...rest }: RichTextProps,
+    { ctx, node, attrs, tag, effectiveVs, className, ...rest }: RichTextProps,
     ref,
   ) {
     return mkUseCanvasObserver(ctx.sub, ctx.viewCtx)(
@@ -3185,7 +3195,7 @@ const mkRichText = ownedComputedFn((react: typeof React) =>
                 nodeOrComponent: node,
                 children: createPlasmicElementProxy(node, ctx, tag, {
                   ...attrs,
-                  className: cx(attrs.className, [
+                  className: cx(attrs.className, className, [
                     ...(isTextEditable
                       ? [
                           makeWabTextClassName({ targetEnv: "canvas" }),
@@ -3642,6 +3652,10 @@ function computeFullKey(ctx: RenderingCtx) {
     .join(".");
 }
 
+function computeCanvasSessionKey(ctx: RenderingCtx) {
+  return canvasSessionInstanceKey(computeFullKey(ctx), ctx.renderSlotInstance);
+}
+
 // We want to store the `env` for this node in the props. However, `tplSlots`
 // might render React fragments, which store all the data in the fragment key.
 // Since we can't stringify the envs, we need to create an ID for them.
@@ -4070,6 +4084,8 @@ function pinMapEquals(map1: PinMap, map2: PinMap) {
 }
 
 export const _testOnlyUtils = {
+  mkRichText,
+  computeCanvasSessionKey,
   mkInitFunc,
   mkInitFuncHash,
   computeActiveVariantsForMaybeDisabledTag,

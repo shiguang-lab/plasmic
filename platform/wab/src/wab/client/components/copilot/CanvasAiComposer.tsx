@@ -108,7 +108,9 @@ export function CanvasAiComposer({
     }
     return undefined;
   }, [enabled, loading, pickerOpen, session]);
-  const { data: status } = useLocalAiStatus(projectId, !!appCtx && enabled);
+  // Metadata uses the existing login cookie; the server checks the AI flag and
+  // project permissions without waiting for application or canvas readiness.
+  const { data: status, refreshModels } = useLocalAiStatus(projectId, enabled);
   const activeTask = session.activeRun;
   const archived = !!session.activeThread?.archivedAt;
   const threadId = session.activeThreadId;
@@ -182,6 +184,7 @@ export function CanvasAiComposer({
           scope={context?.scope ?? t("Current canvas")}
           models={status?.models}
           model={session.selectedModel ?? status?.model}
+          onModelMenuOpen={refreshModels}
           onModelChange={(model) => {
             session.selectedModel = model;
           }}

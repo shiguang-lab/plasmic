@@ -27,7 +27,7 @@ function Composer({
         onSubmit={submit}
         attachmentState={attachmentState}
         scope="StatusFilter"
-        models={["model"]}
+        models={[{ id: "model" }]}
         model="model"
         onModelChange={vi.fn()}
         canSubmit={canSubmit}

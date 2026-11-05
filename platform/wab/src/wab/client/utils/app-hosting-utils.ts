@@ -1,4 +1,5 @@
 import { reportError } from "@/wab/client/ErrorNotifications";
+import { ENV } from "@/wab/client/env";
 import { ApiBranch, ApiProject } from "@/wab/shared/ApiSchema";
 import { DEVFLAGS, DevFlagsType } from "@/wab/shared/devflags";
 
@@ -60,6 +61,23 @@ export function maybeToggleTrailingSlash(doToggle: boolean, hostUrl: string) {
   } else {
     return hostUrl + "/";
   }
+}
+
+/** Only this deployment's built-in Host can use the direct Studio document. */
+export function getStudioFrameUrl(hostUrl: string, defaultHostUrl: string) {
+  const url = new URL(hostUrl);
+  const builtIn = new URL(defaultHostUrl);
+  if (
+    defaultHostUrl === DEVFLAGS.defaultHostUrl &&
+    builtIn.pathname === "/static/host.html" &&
+    url.origin === builtIn.origin &&
+    url.search === builtIn.search &&
+    (url.pathname === builtIn.pathname ||
+      url.pathname === process.env.REACT_APP_VERSIONED_HOST_PATH)
+  ) {
+    url.pathname = `/static/studio.${ENV.COMMITHASH}.html`;
+  }
+  return url;
 }
 
 /** Only the immutable file emitted for this deployment is reusable across artboards. */

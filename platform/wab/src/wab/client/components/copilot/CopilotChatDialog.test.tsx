@@ -15,7 +15,7 @@ import { ensure } from "@/wab/shared/common";
 import { NetworkError } from "@/wab/shared/ApiErrors/ApiError";
 import { toOpaque } from "@/wab/commons/types";
 import { ApiProject, CopilotChatOpenOpts } from "@/wab/shared/ApiSchema";
-import type { LocalAiStatus } from "@/wab/shared/copilot/local-edit";
+import type { LocalAiModel, LocalAiStatus } from "@/wab/shared/copilot/local-edit";
 import { LocalAiContext } from "@/wab/shared/copilot/local-edit";
 import "@testing-library/jest-dom/vitest";
 import {
@@ -27,10 +27,8 @@ import {
   waitFor,
 } from "@testing-library/react";
 import * as React from "react";
-import { SWRConfig } from "swr";
 import { mock } from "vitest-mock-extended";
 
-let statusCache = new Map();
 const config = vi.hoisted(() => ({
   enableLocalAiEditing: true,
   enableLocalAiPageGeneration: false,
@@ -39,6 +37,8 @@ const state = vi.hoisted(() => ({
   session: undefined as LocalEditSession | undefined,
   configured: true,
   missingModels: false,
+  models: ["fixture-model", "alternate-model"],
+  modelRequests: 0,
 }));
 vi.mock("@/wab/client/contexts/AppContexts", () => ({
   useAppCtx: () => ({ appConfig: config }),
@@ -49,22 +49,29 @@ vi.mock("@/wab/client/copilot/local-edit-session", async (original) => {
   return {
     ...actual,
     getLocalEditSession: () => state.session,
-    localAiFetch: async (_project: string, action: string) => action === "models" ? ["fixture-model", "alternate-model"] : ({
+    localAiFetch: async (_project: string, action: string) => {
+      if (action === "models") {
+        state.modelRequests++;
+        return state.models.map(id => ({ id }));
+      }
+      return {
       configured: state.configured,
       model: "fixture-model",
       ...(state.missingModels
         ? {}
-        : { models: ["fixture-model", "alternate-model"] }),
+        : { models: state.models.map(id => ({ id })) }),
       pageGenerationEnabled: true,
-    }),
+    };
+    },
   };
 });
 afterEach(cleanup);
 beforeEach(() => {
-  statusCache = new Map();
   state.session = new LocalEditSession("project");
   state.configured = true;
   state.missingModels = false;
+  state.models = ["fixture-model", "alternate-model"];
+  state.modelRequests = 0;
   config.enableLocalAiEditing = true;
   config.enableLocalAiPageGeneration = false;
 });
@@ -77,7 +84,6 @@ function mount(chatOpenOpts?: CopilotChatOpenOpts) {
   return {
     onClose,
     ...render(
-      <SWRConfig value={{ provider: () => statusCache }}>
         <AntdConfigProvider productUI>
           <CopilotChatDialog
             project={project}
@@ -85,12 +91,11 @@ function mount(chatOpenOpts?: CopilotChatOpenOpts) {
             onDownloadAttachment={vi.fn().mockResolvedValue(undefined)}
             session={state.session as LocalEditSession}
             fetchStatus={() => localAiFetch<LocalAiStatus>("project", "status")}
-            fetchModels={() => localAiFetch<string[]>("project", "models")}
+            fetchModels={() => localAiFetch<LocalAiModel[]>("project", "models")}
             hiddenByModal={false}
             onClose={onClose}
           />
-        </AntdConfigProvider>
-      </SWRConfig>,
+        </AntdConfigProvider>,
     ),
   };
 }
@@ -385,6 +390,55 @@ const selection: LocalAiContext = {
     elementUuids: ["node"],
   },
 };
+
+it("shows the canvas model before app context loads without enabling submission or refetching on readiness", async () => {
+  const session = ensure(state.session, "Missing test AI session");
+  session.draft = { prompt: "Change padding", attachments: [] };
+  const run = vi.spyOn(session, "run").mockResolvedValue(undefined);
+  const appCtx = mock<AppCtx>();
+  Object.defineProperty(appCtx, "appConfig", { value: config });
+  const view = (contextLoaded: boolean, loading: boolean) => (
+    <AntdConfigProvider productUI>
+      <CanvasAiComposer
+        projectId="project"
+        appCtx={contextLoaded ? appCtx : undefined}
+        context={selection}
+        loading={loading}
+      />
+    </AntdConfigProvider>
+  );
+  const { rerender } = render(view(false, true));
+  expect(await screen.findByRole("button", { name: "AI model" })).toHaveTextContent("fixture-model");
+  expect(state.modelRequests).toBe(1);
+  const send = screen.getByRole("button", { name: "Send AI request" });
+  expect(send).toBeDisabled();
+  fireEvent.click(send);
+  expect(run).not.toHaveBeenCalled();
+
+  rerender(view(true, true));
+  expect(screen.getByRole("button", { name: "AI model" })).toHaveTextContent("fixture-model");
+  expect(send).toBeDisabled();
+  expect(state.modelRequests).toBe(1);
+
+  rerender(view(true, false));
+  expect(send).toBeEnabled();
+  expect(state.modelRequests).toBe(1);
+});
+
+it("does not request canvas models when AI editing is explicitly disabled", () => {
+  config.enableLocalAiEditing = false;
+  const appCtx = mock<AppCtx>();
+  Object.defineProperty(appCtx, "appConfig", { value: config });
+  render(
+    <AntdConfigProvider productUI>
+      <CanvasAiComposer projectId="project" appCtx={appCtx} context={selection} />
+    </AntdConfigProvider>,
+  );
+  expect(state.modelRequests).toBe(0);
+  expect(screen.queryByRole("button", { name: "AI model" })).toBeNull();
+  expect(screen.getByRole("button", { name: "Send AI request" })).toBeDisabled();
+});
+
 function AiModes({ context = selection }: { context?: LocalAiContext }) {
   const [panel, setPanel] = React.useState(false);
   const appCtx = mock<AppCtx>();
@@ -394,7 +448,6 @@ function AiModes({ context = selection }: { context?: LocalAiContext }) {
     name: "Project",
   });
   return (
-    <SWRConfig value={{ provider: () => statusCache }}>
       <AntdConfigProvider productUI>
         <button onClick={() => setPanel(true)}>Open panel</button>
         {panel ? (
@@ -404,7 +457,7 @@ function AiModes({ context = selection }: { context?: LocalAiContext }) {
             onDownloadAttachment={vi.fn().mockResolvedValue(undefined)}
             session={state.session as LocalEditSession}
             fetchStatus={() => localAiFetch<LocalAiStatus>("project", "status")}
-            fetchModels={() => localAiFetch<string[]>("project", "models")}
+            fetchModels={() => localAiFetch<LocalAiModel[]>("project", "models")}
             hiddenByModal={false}
             onClose={() => {
               setPanel(false);
@@ -420,9 +473,28 @@ function AiModes({ context = selection }: { context?: LocalAiContext }) {
           />
         )}
       </AntdConfigProvider>
-    </SWRConfig>
   );
 }
+
+it.each(["canvas", "panel"])("fetches the current server catalog every time the %s model menu opens", async mode => {
+  render(<AiModes />);
+  await screen.findByRole("button", { name: "AI model" });
+  if (mode === "panel") {
+    fireEvent.click(screen.getByRole("button", { name: "Open panel" }));
+    await screen.findByRole("button", { name: "AI model" });
+  }
+  await waitFor(() => expect(state.modelRequests).toBe(mode === "panel" ? 2 : 1));
+  const before = state.modelRequests;
+  state.models = ["fixture-model", "fresh-model"];
+  fireEvent.click(screen.getByRole("button", { name: "AI model" }));
+  fireEvent.click(await screen.findByText("fresh-model"));
+  expect(state.modelRequests).toBe(before + 1);
+  expect(state.session?.selectedModel).toBe("fresh-model");
+  state.models = ["fresh-model", "newest-model"];
+  fireEvent.click(screen.getByRole("button", { name: "AI model" }));
+  expect(await screen.findByText("newest-model")).toBeTruthy();
+  expect(state.modelRequests).toBe(before + 2);
+});
 
 it("switches top-frame modes without losing attachments, scope, model or multiline drafts", async () => {
   const rendered = render(<AiModes />);

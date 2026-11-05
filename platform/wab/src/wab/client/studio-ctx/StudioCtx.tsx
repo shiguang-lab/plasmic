@@ -1,3 +1,4 @@
+import { getHostWindow } from "@/wab/client/frame-ctx/host-window";
 import { scriptExec } from "@/wab/client/script-exec";
 import { LEFT_PANE_INIT_WIDTH } from "@/wab/client/ClientConstants";
 import { DragInsertManager } from "@/wab/client/Dnd";
@@ -738,6 +739,51 @@ export class StudioCtx extends WithDbCtx {
 
     this.loadTimings = args.loadTimings ?? new StudioLoadTimings();
     ({ dbCtx: this._dbCtx } = args);
+
+    const hostPageUrl = (toggleTrailingSlash: boolean) =>
+      maybeToggleTrailingSlash(
+        toggleTrailingSlash,
+        this.getHostUrl({ fixHostOrigin: true }),
+      );
+
+    const immutableHostPage = isImmutableHostPage(hostPageUrl(false));
+    const fetchHostPageHtml = async () => {
+      const fetchUrl = async (url: string) => {
+        const res = await fetch(url, {
+          redirect: "follow",
+          headers: this.siteInfo.extraData?.customHostConfig?.headers,
+        });
+        if (immutableHostPage && !res.ok) {
+          throw new Error(`Cannot load built-in Host HTML: ${res.status}`);
+        }
+        return await res.text();
+      };
+
+      try {
+        return await fetchUrl(hostPageUrl(false));
+      } catch {
+        return await fetchUrl(hostPageUrl(true));
+      }
+    };
+
+    // Start fetching now so the first artboard doesn't wait on it. Nothing may
+    // ever consume it, so keep a failure from surfacing as an unhandled
+    // rejection; the consumer still sees it.
+    let prefetched: Promise<string> | undefined = fetchHostPageHtml();
+    prefetched.catch(() => undefined);
+    this.fetchHostPageHtml = () => {
+      const html = prefetched ?? fetchHostPageHtml();
+      prefetched = immutableHostPage ? html : undefined;
+      if (immutableHostPage) {
+        html.catch(() => {
+          if (prefetched === html) {
+            prefetched = undefined;
+          }
+        });
+      }
+      return html;
+    };
+
     this.commentsCtx = new CommentsCtx(this);
 
     this.switchRightTab(RightTabKey.style);
@@ -795,7 +841,7 @@ export class StudioCtx extends WithDbCtx {
 
     this.fontManager = new FontManager(this.site);
     this.fontManager.installAllUsedFonts([$(document.head)]);
-    this.disposals.push(this.fontManager.observeHostFonts(window.parent));
+    this.disposals.push(this.fontManager.observeHostFonts(getHostWindow()));
 
     this.isDocs = !!APP_ROUTES.projectDocs.parse(location.pathname, false);
     const initialLoadTimer = setTimeout(() => {
@@ -1061,50 +1107,6 @@ export class StudioCtx extends WithDbCtx {
         },
       ),
     );
-
-    const hostPageUrl = (toggleTrailingSlash: boolean) =>
-      maybeToggleTrailingSlash(
-        toggleTrailingSlash,
-        this.getHostUrl({ fixHostOrigin: true }),
-      );
-
-    const immutableHostPage = isImmutableHostPage(hostPageUrl(false));
-    const fetchHostPageHtml = async () => {
-      const fetchUrl = async (url: string) => {
-        const res = await fetch(url, {
-          redirect: "follow",
-          headers: this.siteInfo.extraData?.customHostConfig?.headers,
-        });
-        if (immutableHostPage && !res.ok) {
-          throw new Error(`Cannot load built-in Host HTML: ${res.status}`);
-        }
-        return await res.text();
-      };
-
-      try {
-        return await fetchUrl(hostPageUrl(false));
-      } catch {
-        return await fetchUrl(hostPageUrl(true));
-      }
-    };
-
-    // Start fetching now so the first artboard doesn't wait on it. Nothing may
-    // ever consume it, so keep a failure from surfacing as an unhandled
-    // rejection; the consumer still sees it.
-    let prefetched: Promise<string> | undefined = fetchHostPageHtml();
-    prefetched.catch(() => undefined);
-    this.fetchHostPageHtml = () => {
-      const html = prefetched ?? fetchHostPageHtml();
-      prefetched = immutableHostPage ? html : undefined;
-      if (immutableHostPage) {
-        html.catch(() => {
-          if (prefetched === html) {
-            prefetched = undefined;
-          }
-        });
-      }
-      return html;
-    };
   }
 
   private setHostLessPkgs() {
@@ -4609,7 +4611,7 @@ export class StudioCtx extends WithDbCtx {
   };
 
   private _ccRegistry = new CodeComponentsRegistry(
-    window.parent,
+    getHostWindow(),
     getBuiltinComponentRegistrations(),
   );
 
@@ -4707,7 +4709,7 @@ export class StudioCtx extends WithDbCtx {
     ];
   }
 
-  private _traitRegistry = new TraitRegistry(window.parent);
+  private _traitRegistry = new TraitRegistry(getHostWindow());
   get traitRegistry() {
     return this._traitRegistry;
   }

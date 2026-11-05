@@ -68,6 +68,7 @@ export const CanvasOverlayToolbar = observer(function CanvasOverlayToolbar({
       .map((val) => ({
         tpl,
         fullKey: val.fullKey,
+        sessionInstance: val.codeComponentProps?.__plasmic_selection_prop__?.sessionInstance ?? val.fullKey,
       })),
   );
   if (!overlays.length) {
@@ -86,10 +87,10 @@ export const CanvasOverlayToolbar = observer(function CanvasOverlayToolbar({
         event.stopPropagation();
       }}
     >
-      {overlays.map(({ tpl, fullKey }) => {
+      {overlays.map(({ tpl, fullKey, sessionInstance }) => {
         const label =
           tpl.name || tpl.component.name.replace("plasmic-antd6-", "");
-        const open = viewCtx.canvasOverlayOpen(fullKey);
+        const open = viewCtx.canvasOverlayOpen(sessionInstance);
         const action = uiT(
           open ? "Hide {name} content" : "Show {name} content",
           { name: label },
@@ -102,7 +103,7 @@ export const CanvasOverlayToolbar = observer(function CanvasOverlayToolbar({
             title={action}
             aria-label={action}
             aria-pressed={open}
-            onClick={() => viewCtx.setCanvasOverlayOpen(fullKey, !open)}
+            onClick={() => viewCtx.setCanvasOverlayOpen(sessionInstance, !open)}
           >
             <EyeIcon aria-hidden="true" />
           </button>

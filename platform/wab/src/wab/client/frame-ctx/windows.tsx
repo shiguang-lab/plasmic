@@ -1,3 +1,4 @@
+import { getHostWindow } from "@/wab/client/frame-ctx/host-window";
 import type { SubDeps } from "@/wab/client/components/canvas/subdeps";
 import { ensureCanvasRuntime } from "@/wab/client/components/studio/studio-bundles";
 import { getUiLocale } from "@/wab/client/i18n";
@@ -18,13 +19,13 @@ export interface PlasmicWindowInternals {
 }
 
 /**
- * window.parent is the root window of the host app (either user's host app or our own),
+ * getHostWindow() is the root window of the host app (either user's host app or our own),
  * where @plasmicapp/host is loaded.
  * We use this to get the SubDeps from the host app.
  */
 let rootSub: SubDeps | undefined = undefined;
 try {
-  rootSub = (window.parent as any).__Sub;
+  rootSub = (getHostWindow() as any).__Sub;
 } catch {}
 
 export function getRootSub(): SubDeps {
@@ -71,9 +72,9 @@ export function checkRootSubHostVersion() {
 }
 
 export async function initRootCanvasPkgs() {
-  await ensureCanvasRuntime(window.parent);
+  await ensureCanvasRuntime(getHostWindow());
   rootSub = {
     ...rootSub,
-    ...(window.parent as any).__CanvasPkgs,
+    ...(getHostWindow() as any).__CanvasPkgs,
   };
 }

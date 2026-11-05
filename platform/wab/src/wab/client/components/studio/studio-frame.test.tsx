@@ -161,7 +161,7 @@ it("preserves the visible skeleton through metadata, host registration and dialo
     elementUuids: [],
   } };
   frame.status.mockReturnValue({ data: {
-    configured: true, model: "default-model", models: ["default-model"], pageGenerationEnabled: false,
+    configured: true, model: "default-model", models: [{ id: "default-model" }], pageGenerationEnabled: false,
   } });
   rendered.rerender(view());
   expect(screen.getByRole("status")).toBe(skeleton);

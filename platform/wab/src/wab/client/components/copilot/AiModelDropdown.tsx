@@ -1,4 +1,5 @@
 import { useI18n } from "@/wab/client/i18n";
+import type { LocalAiModel } from "@/wab/shared/copilot/local-edit";
 import { DownOutlined } from "@ant-design/icons";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { Dropdown } from "antd";
@@ -40,11 +41,13 @@ export function AiModelDropdown({
   model,
   disabled,
   onChange,
+  onOpen,
 }: {
-  models: string[];
+  models: LocalAiModel[];
   model: string;
   disabled?: boolean;
   onChange: (model: string) => void;
+  onOpen?: () => void;
 }) {
   const { t } = useI18n();
   const { styles } = useStyles();
@@ -56,13 +59,18 @@ export function AiModelDropdown({
       placement="topRight"
       disabled={disabled}
       open={open && !disabled}
-      onOpenChange={setOpen}
+      onOpenChange={(nextOpen) => {
+        setOpen(nextOpen);
+        if (nextOpen) {
+          onOpen?.();
+        }
+      }}
       autoFocus
       menu={{
         style: { maxHeight: "none", overflow: "visible" },
-        items: models.map((id) => ({
+        items: models.map(({ id, name }) => ({
           key: id,
-          label: <span className={styles.name}>{id}</span>,
+          label: <span className={styles.name}>{name || id}</span>,
         })),
         selectable: true,
         selectedKeys: [model],
@@ -98,7 +106,7 @@ export function AiModelDropdown({
         aria-expanded={open && !disabled}
         disabled={disabled}
       >
-        <span className={styles.name}>{model}</span>
+        <span className={styles.name}>{models.find(option => option.id === model)?.name || model}</span>
         <DownOutlined />
       </button>
     </Dropdown>

@@ -306,7 +306,7 @@ const appConfig = defineConfig({
               : undefined,
           ),
         ),
-        new StudioHtmlPlugin(commitHash),
+        new StudioHtmlPlugin(commitHash, hostPage.html),
       ],
     },
   },

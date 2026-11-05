@@ -41,6 +41,7 @@ function computeHashFromStableFields(node: TplNode, ctx: RenderingCtx) {
     // ctx.site, // `site` can't change if ctx.sub hasn't changed
     node,
     ctx.valKey,
+    ctx.renderSlotInstance,
     // ctx.ownersStack, // `ownersStack` can't change if `valKey` hasn't changed
     // ctx.ownerKey, // `ownerKey` can't change if `valKey` hasn't changed
     ctx.rootClassName,
@@ -74,6 +75,7 @@ function computeHashFromStableFields(node: TplNode, ctx: RenderingCtx) {
 // to RenderingCtx to make sure the hash will be updated properly
 type HandledCtxFields =
   | "valKey"
+  | "renderSlotInstance"
   | "sub"
   | "viewCtx"
   | "site"

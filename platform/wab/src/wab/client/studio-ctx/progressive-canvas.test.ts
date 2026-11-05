@@ -145,6 +145,7 @@ it.each([
   const target = arena.children[3];
   const savedProps = JSON.stringify(target.container.vsettings);
   const api = mock<TopFrameApi>();
+  api.componentReuse.mockResolvedValue({ available: false });
   const savedPadding = expandedSurface
     ? new Pt(9000, 3000) : new Pt(950, 760);
   const savedScroll = expandedSurface

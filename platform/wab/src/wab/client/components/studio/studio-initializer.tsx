@@ -11,6 +11,7 @@ import {
 } from "@/wab/client/components/live/PreviewCtx";
 import { StudioChrome } from "@/wab/client/components/studio/StudioChrome";
 import { Studio } from "@/wab/client/components/studio/studio";
+import { prefetchCanvasResources } from "@/wab/client/components/studio/studio-bundles";
 import { ViewEditor } from "@/wab/client/components/studio/view-editor";
 import * as widgets from "@/wab/client/components/widgets";
 import { LoadingError } from "@/wab/client/components/widgets/LoadingError";
@@ -114,6 +115,7 @@ class StudioInitializer_ extends React.Component<
     const preferencesDone = loadTimings.begin("startup-preferences");
     initializePlasmicExtension();
     const { hostFrameCtx, appCtx, onRefreshUi, projectId } = this.props;
+    prefetchCanvasResources();
 
     const plexusStorageKey = plexusKey(projectId);
     const plexusInStorage = await appCtx.api.getStorageItem(plexusStorageKey);

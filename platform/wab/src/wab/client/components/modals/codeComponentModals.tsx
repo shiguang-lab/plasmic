@@ -1,3 +1,4 @@
+import { getHostWindow } from "@/wab/client/frame-ctx/host-window";
 import { showError } from "@/wab/client/ErrorNotifications";
 import { getUiLocale, useI18n } from "@/wab/client/i18n";
 import { translate } from "@/wab/client/i18n/locales";
@@ -831,7 +832,7 @@ export function checkAndNotifyUnsupportedHostVersion(requiredVersion?: number) {
   if (!requiredVersion) {
     return false;
   }
-  if (+((window.parent as any).__PlasmicHostVersion ?? "2") < requiredVersion) {
+  if (+((getHostWindow() as any).__PlasmicHostVersion ?? "2") < requiredVersion) {
     notification.error({
       message: (
         <>

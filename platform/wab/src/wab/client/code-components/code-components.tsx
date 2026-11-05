@@ -1,3 +1,4 @@
+import { getHostWindow } from "@/wab/client/frame-ctx/host-window";
 import { showError, reportError } from "@/wab/client/ErrorNotifications";
 import { confirmRemovedCodeComponentVariants, confirmRemovedTokens, fixInvalidReactVersion, fixMissingCodeComponents, notifyInvalidImportName, promptHostLessPackageInfo, showModalToRefreshCodeComponentProps } from "@/wab/client/components/modals/codeComponentModals";
 import { updateSiteCustomFunctions } from "@/wab/client/components/modals/customFunctionModals";
@@ -325,12 +326,12 @@ export async function maybeConvertToHostLessProject(studioCtx: StudioCtx) {
 
       // First, install the deps
       for (const [_depName, depModule] of await getSortedHostLessPkgs(
-        window.parent,
+        getHostWindow(),
         studioCtx.appCtx.api,
         pkg.deps,
-        getVersionForCanvasPackages(window.parent),
+        getVersionForCanvasPackages(getHostWindow()),
       )) {
-        scriptExec(window.parent, depModule);
+        scriptExec(getHostWindow(), depModule);
       }
       studioCtx.codeComponentsRegistry.clear();
       await syncCodeComponentsAndHandleErrors(studioCtx, { force: true });
@@ -356,12 +357,12 @@ export async function maybeConvertToHostLessProject(studioCtx: StudioCtx) {
 
       // Now install the actual package
       scriptExec(
-        window.parent,
+        getHostWindow(),
         await getHostLessPkg(
-          window.parent,
+          getHostWindow(),
         studioCtx.appCtx.api,
           pkg.name,
-          getVersionForCanvasPackages(window.parent),
+          getVersionForCanvasPackages(getHostWindow()),
         ),
       );
       studioCtx.codeComponentsRegistry.clear();

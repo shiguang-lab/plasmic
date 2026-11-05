@@ -1,7 +1,6 @@
 import {
   generateLocalEditStep,
   getLocalAiConfig,
-  getLocalAiModels,
   localEditMessages,
   resolveLocalAiIntent,
 } from "@/wab/server/copilot/local-edit";
@@ -19,6 +18,9 @@ const config = vi.hoisted(() => ({
 }));
 vi.mock("@/wab/server/secrets", () => ({
   loadSecrets: () => ({ localAiEditing: config }),
+}));
+vi.mock("@/wab/server/copilot/local-ai-model-catalog", () => ({
+  getLocalAiModelCatalog: vi.fn(),
 }));
 
 const request: LocalEditRequest = {
@@ -352,101 +354,6 @@ it("rejects a model outside the server catalog before calling the provider", asy
     ),
   ).rejects.toThrow("not available");
 });
-it("discovers and caches service models without returning credentials", async () => {
-  const original = config.models;
-  config.models = undefined;
-  const fetchMock = vi.fn().mockResolvedValue({
-    ok: true,
-    json: async () => ({
-      data: [{ id: "alternate-model" }, { id: "alternate-model" }],
-    }),
-  });
-  vi.stubGlobal("fetch", fetchMock);
-  vi.stubEnv("PLASMIC_AI_BASE_URL", "https://model-catalog.example/v1");
-  try {
-    expect(await getLocalAiModels()).toEqual(["fixture-model"]);
-    await vi.waitFor(async () => {
-      expect(await getLocalAiModels()).toEqual([
-        "fixture-model",
-        "alternate-model",
-      ]);
-    });
-    expect(await getLocalAiModels()).toEqual([
-      "fixture-model",
-      "alternate-model",
-    ]);
-    expect(fetchMock).toHaveBeenCalledOnce();
-    expect(fetchMock.mock.calls[0][0]).toBe(
-      "https://model-catalog.example/v1/models",
-    );
-    expect(fetchMock.mock.calls[0][1].headers.Authorization).toBe(
-      "Bearer fixture-key",
-    );
-  } finally {
-    config.models = original;
-    vi.unstubAllGlobals();
-  }
-});
-it("uses explicitly configured models without discovery", async () => {
-  vi.stubEnv(
-    "PLASMIC_AI_MODELS",
-    " alternate-model, custom-model, alternate-model ",
-  );
-  expect(await getLocalAiModels()).toEqual([
-    "fixture-model",
-    "alternate-model",
-    "custom-model",
-  ]);
-});
-it("retains the default model when discovery is unsupported", async () => {
-  const original = config.models;
-  config.models = undefined;
-  vi.stubEnv("PLASMIC_AI_BASE_URL", "https://no-catalog.example/v1");
-  vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false }));
-  try {
-    expect(await getLocalAiModels()).toEqual(["fixture-model"]);
-  } finally {
-    config.models = original;
-    vi.unstubAllGlobals();
-  }
-});
-
-it("cools down discovery failures before retrying instead of caching the fallback indefinitely", async () => {
-  const original = config.models;
-  config.models = undefined;
-  vi.stubEnv("PLASMIC_AI_BASE_URL", "https://transient-catalog.example/v1");
-  const fetchMock = vi
-    .fn()
-    .mockRejectedValueOnce(new Error("Transient failure"))
-    .mockResolvedValue({
-      ok: true,
-      json: async () => ({ data: [{ id: "alternate-model" }] }),
-    });
-  vi.stubGlobal("fetch", fetchMock);
-  const now = vi.spyOn(Date, "now").mockReturnValue(1_000_000);
-  try {
-    expect(await getLocalAiModels()).toEqual(["fixture-model"]);
-    expect(await getLocalAiModels()).toEqual(["fixture-model"]);
-    expect(fetchMock).toHaveBeenCalledOnce();
-    now.mockReturnValue(1_030_000);
-    expect(await getLocalAiModels()).toEqual(["fixture-model"]);
-    await vi.waitFor(async () => {
-      expect(await getLocalAiModels()).toEqual([
-        "fixture-model",
-        "alternate-model",
-      ]);
-    });
-    expect(await getLocalAiModels()).toEqual([
-      "fixture-model",
-      "alternate-model",
-    ]);
-    expect(fetchMock).toHaveBeenCalledTimes(2);
-  } finally {
-    config.models = original;
-    vi.unstubAllGlobals();
-  }
-});
-
 it("sends High thinking and streams upstream reasoning separately from the tool-free final answer", async () => {
   const chunks: { type: string; text: string; complete: boolean }[] = [];
   server = createServer(async (req, res) => {

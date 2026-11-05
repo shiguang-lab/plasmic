@@ -1,0 +1,293 @@
+{
+  "date": "2026-11-05",
+  "status": "Integrated into current workspace; no git commit, installed App replacement or deployment",
+  "build": {
+    "studioOrigin": "https://plasmic-studio.shiguanglab.com",
+    "canvasOrigin": "https://plasmic-canvas.shiguanglab.com",
+    "webImage": "ghcr.io/shiguang-lab/plasmic-web:0.6.6",
+    "updateUrl": "https://plasmic-studio.shiguanglab.com/desktop-updates",
+    "revision": "cc50fd519d0df382f0657afbfe6b977528155898",
+    "build": {
+      "kind": "diagnostic",
+      "variant": "direct-formal",
+      "sourceRoot": "/tmp/plasmic-startup-experiments-20261105/source",
+      "runtimeRevision": "cc50fd519d0df382f0657afbfe6b977528155898",
+      "rendererHash": "1aae2f2b6eca9cf0679595408fb3f77566ebf1674346f97a7a875f1d3e761f22"
+    },
+    "files": 1230,
+    "bytes": 102051785
+  },
+  "verifiedBuildSourceSha256": {
+    "platform/sub/public/static/host.html": "0f0cca0ddb36bb618fb4d8efd0f4afe9bef0881a86fe394e0ec399df2ecd4f13",
+    "platform/wab/rsbuild.config.ts": "3f5e92be77969b750c21e6812e1f26c22d20d6decc6782058623ca820505a204",
+    "platform/wab/tools/webpack/StudioHtmlPlugin.ts": "a6b5d58640ef7b404acfbc1a4a6c3b4bc6aaaa53481eba40a4ff2926e6482622",
+    "platform/wab/tools/webpack/builtin-studio.ts": "9bbab1d9e29fc51266b8b9f7103b6c4abe9ecc293744c636bf19c2df67b4c5bf",
+    "platform/wab/src/wab/client/frame-ctx/host-window.ts": "83e0fd4c983fd65c0af647bdcda30e432b013b1adf732de287675432830247d3",
+    "platform/wab/src/wab/client/frame-ctx/host-frame-ctx.tsx": "6ca7aed31d82170acdf97b7579762e9ba3ccb800a531269a7c1726e6bae86b84",
+    "platform/wab/src/wab/client/frame-ctx/windows.tsx": "5920cc8e8b3aec9933f5dc5d5788076cd30a386c2af5fb60010a96bdf35d7257",
+    "platform/wab/src/wab/client/dom-utils.ts": "ec0bc671ee628d970aa037b93f4252d8d0bb7a2ccf17f68e8829fff6c9158f04",
+    "platform/wab/src/wab/client/utils/app-hosting-utils.ts": "6d822ca22019ddac26b9fa272311113f1df92401344139009144ed8d7fd34a53",
+    "platform/wab/src/wab/client/components/studio/studio-frame.tsx": "2a171f592d28a500bd9e6e8563ab356086f9f60e19e4fd31d3a34c632fafc24a",
+    "platform/wab/src/wab/client/code-components/code-components.tsx": "8f8eb0124ee7e8ac7aa198ab97bbef8963c02e1c6f70cdb1480280a3d851a2d8",
+    "platform/wab/src/wab/client/components/modals/codeComponentModals.tsx": "1f529290d6506409038b66f50a7cb384f7732f9b97bbf022e7c9811000df5673",
+    "platform/wab/src/wab/client/components/widgets/ColorPicker/client-token-resolver.tsx": "25bad2ef3c65eedb1300a92e6809e227c9ca833104bfcaa70c8d47ef3418e04f",
+    "platform/wab/src/wab/client/studio-ctx/StudioCtx.tsx": "ef0563ae70362aa36f3b45beda0ceac0d3e148c4069210eac21656626f2833f6",
+    "platform/wab/src/wab/client/components/studio/studio-bundles.ts": "3a243c89bef93db4ced10f5b245c0114b5ecff60b91d7d04c374a43499124ae8",
+    "platform/wab/src/wab/client/components/studio/studio-initializer.tsx": "ffe88f5e797ea481acd4242e682645eee670cd23b57e98e66904dfa1dd97e1b0",
+    "platform/wab/src/wab/client/components/studio/studio.tsx": "abb415a60bdde71a82667d6b39b590df7b1a61319b39a178e454dfb47608cfb8"
+  },
+  "checks": {
+    "relatedVitest": {
+      "files": 16,
+      "tests": 112,
+      "exit": 0,
+      "log": "/tmp/plasmic-startup-experiments-20261105/direct-formal-unit.log"
+    },
+    "finalBootstrapVitest": {
+      "files": 1,
+      "tests": 3,
+      "exit": 0,
+      "log": "/tmp/plasmic-startup-experiments-20261105/direct-formal-bootstrap-unit.log"
+    },
+    "fullTypecheck": {
+      "exit": 0,
+      "log": "/tmp/plasmic-startup-experiments-20261105/direct-formal-typecheck-final.log"
+    },
+    "lint": {
+      "exit": 0,
+      "errors": 0,
+      "logs": [
+        "/tmp/plasmic-startup-experiments-20261105/direct-formal-lint.log",
+        "/tmp/plasmic-startup-experiments-20261105/direct-formal-bootstrap-lint.log"
+      ]
+    },
+    "productionBuild": {
+      "exit": 0,
+      "log": "/tmp/plasmic-startup-experiments-20261105/direct-formal-build.log"
+    },
+    "isolatedNginxAndConfigureWeb": {
+      "tests": 5,
+      "exit": 0,
+      "log": "/tmp/plasmic-startup-experiments-20261105/direct-formal-deploy.log"
+    }
+  },
+  "nativeOfflineFunctionalRuns": [
+    {
+      "fixture": "gp",
+      "mode": "qual-direct-formal-gp",
+      "rendererErrors": [],
+      "blockedWrites": [],
+      "qualification": {
+        "canvasDocs": [
+          {
+            "height": 732,
+            "width": 1029.375
+          }
+        ],
+        "direct": true,
+        "hasHostScaffold": false,
+        "parentIsTop": true,
+        "registered": 981,
+        "runtimeScripts": [
+          "https://plasmic-canvas.shiguanglab.com/static/sub/build/client.cc50fd.js"
+        ],
+        "studioUrl": "https://plasmic-canvas.shiguanglab.com/static/studio.cc50fd.html"
+      },
+      "hostFonts": {
+        "available": true,
+        "modelRestored": true,
+        "ownerIsEditor": true,
+        "unusedFaceStatus": "unloaded"
+      },
+      "functional": {
+        "cases": [
+          {
+            "case": "switch-artboard",
+            "frame": "dO6gEmTQ80cE",
+            "rendered": true
+          },
+          {
+            "case": "rename-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "rendered-style-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "frame-position-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "preview-business-pagination-return",
+            "passed": true
+          }
+        ],
+        "revision": 159,
+        "reopen": true
+      },
+      "knownDashboardPreviewFixtureErrors": 1
+    },
+    {
+      "fixture": "complex",
+      "mode": "qual-direct-formal-complex",
+      "rendererErrors": [],
+      "blockedWrites": [],
+      "qualification": {
+        "canvasDocs": [
+          {
+            "height": 128.70330810546875,
+            "width": 180.989013671875
+          },
+          {
+            "height": 128.70330810546875,
+            "width": 180.989013671875
+          },
+          {
+            "height": 128.70330810546875,
+            "width": 180.989013671875
+          },
+          {
+            "height": 128.70330810546875,
+            "width": 180.989013671875
+          },
+          {
+            "height": 128.7032470703125,
+            "width": 180.989013671875
+          },
+          {
+            "height": 128.7032470703125,
+            "width": 180.989013671875
+          },
+          {
+            "height": 128.7032470703125,
+            "width": 180.989013671875
+          },
+          {
+            "height": 128.7032470703125,
+            "width": 180.989013671875
+          },
+          {
+            "height": 128.703369140625,
+            "width": 80.4395751953125
+          },
+          {
+            "height": 128.703369140625,
+            "width": 80.4395751953125
+          }
+        ],
+        "direct": true,
+        "hasHostScaffold": false,
+        "parentIsTop": true,
+        "registered": 981,
+        "runtimeScripts": [
+          "https://plasmic-canvas.shiguanglab.com/static/sub/build/client.cc50fd.js"
+        ],
+        "studioUrl": "https://plasmic-canvas.shiguanglab.com/static/studio.cc50fd.html"
+      },
+      "hostFonts": {
+        "available": true,
+        "modelRestored": true,
+        "ownerIsEditor": true,
+        "unusedFaceStatus": "unloaded"
+      },
+      "functional": {
+        "cases": [
+          {
+            "case": "switch-artboard",
+            "frame": "g6iKNJJfK8J6",
+            "rendered": true
+          },
+          {
+            "case": "switch-artboard",
+            "frame": "58rcnoga5nrA",
+            "rendered": true
+          },
+          {
+            "case": "switch-artboard",
+            "frame": "yqGY4RQZ5MAn",
+            "rendered": true
+          },
+          {
+            "case": "rename-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "rendered-style-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "frame-position-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "cold-frame-undo-selection-style",
+            "passed": true
+          },
+          {
+            "case": "cold-frame-redo-rendered-style",
+            "passed": true
+          }
+        ],
+        "revision": 1,
+        "reopen": true
+      },
+      "knownDashboardPreviewFixtureErrors": 1
+    },
+    {
+      "fixture": "custom-gp",
+      "mode": "qual-direct-custom-gp",
+      "rendererErrors": [],
+      "blockedWrites": [],
+      "qualification": {
+        "canvasDocs": [
+          {
+            "height": 732,
+            "width": 1029.375
+          }
+        ],
+        "direct": false,
+        "hasHostScaffold": false,
+        "parentIsTop": false,
+        "registered": 981,
+        "runtimeScripts": [],
+        "studioUrl": "https://plasmic-canvas.shiguanglab.com/static/host.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.html"
+      },
+      "hostFonts": {
+        "available": true,
+        "modelRestored": true,
+        "ownerIsEditor": false,
+        "unusedFaceStatus": "unloaded"
+      },
+      "functional": {
+        "cases": [
+          {
+            "case": "switch-artboard",
+            "frame": "dO6gEmTQ80cE",
+            "rendered": true
+          },
+          {
+            "case": "rename-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "rendered-style-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "frame-position-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "preview-business-pagination-return",
+            "passed": true
+          }
+        ],
+        "revision": 159,
+        "reopen": true
+      },
+      "knownDashboardPreviewFixtureErrors": 1
+    }
+  ],
+  "scope": "Functional verification; no new controlled performance comparison. Real frozen models with isolated HTTP/WebSocket/save fixtures; excludes live API/auth, draft IPC, server save and installer acceptance."
+}

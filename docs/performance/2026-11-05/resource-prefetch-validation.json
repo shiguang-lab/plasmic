@@ -1,0 +1,93 @@
+{
+  "implementation": "Pure source prefetch integrated in the current workspace; no prepared canvas, frame adoption, early script execution or direct-editor entry.",
+  "productionSources": {
+    "platform/wab/src/wab/client/components/studio/studio-bundles.ts": "3a243c89bef93db4ced10f5b245c0114b5ecff60b91d7d04c374a43499124ae8",
+    "platform/wab/src/wab/client/components/studio/studio-initializer.tsx": "ffe88f5e797ea481acd4242e682645eee670cd23b57e98e66904dfa1dd97e1b0",
+    "platform/wab/src/wab/client/components/studio/studio.tsx": "abb415a60bdde71a82667d6b39b590df7b1a61319b39a178e454dfb47608cfb8",
+    "platform/wab/src/wab/client/studio-ctx/StudioCtx.tsx": "9407cc674cf93a9572cf444b6d2891d6d251c4fa1e01e5707124c2f74875ebbc"
+  },
+  "validation": {
+    "unitTestFiles": 5,
+    "unitTests": 52,
+    "typecheckExitCode": 0,
+    "eslintExitCode": 0,
+    "eslintWarnings": 3,
+    "build": "production-mode diagnostic build",
+    "rendererHash": "50e94f4902da7d075e212b1acd8e5f07ae8b263469517ff8766165a4fdf4e518"
+  },
+  "functional": {
+    "gp": {
+      "cases": [
+        {
+          "name": "switch-artboard",
+          "passed": true
+        },
+        {
+          "name": "rename-undo-redo",
+          "passed": true
+        },
+        {
+          "name": "rendered-style-undo-redo",
+          "passed": true
+        },
+        {
+          "name": "frame-position-undo-redo",
+          "passed": true
+        },
+        {
+          "name": "preview-business-pagination-return",
+          "passed": true
+        }
+      ],
+      "savedModelAndRevisionMatchOnReopen": true,
+      "rendererErrors": [],
+      "unexpectedBlockedWrites": 0,
+      "knownThumbnailFixtureErrors": 1,
+      "registeredComponents": 981,
+      "preparedDocuments": 0
+    },
+    "complex": {
+      "cases": [
+        {
+          "name": "switch-artboard",
+          "passed": true
+        },
+        {
+          "name": "switch-artboard",
+          "passed": true
+        },
+        {
+          "name": "switch-artboard",
+          "passed": true
+        },
+        {
+          "name": "rename-undo-redo",
+          "passed": true
+        },
+        {
+          "name": "rendered-style-undo-redo",
+          "passed": true
+        },
+        {
+          "name": "frame-position-undo-redo",
+          "passed": true
+        },
+        {
+          "name": "cold-frame-undo-selection-style",
+          "passed": true
+        },
+        {
+          "name": "cold-frame-redo-rendered-style",
+          "passed": true
+        }
+      ],
+      "savedModelAndRevisionMatchOnReopen": true,
+      "rendererErrors": [],
+      "unexpectedBlockedWrites": 0,
+      "knownThumbnailFixtureErrors": 1,
+      "registeredComponents": 981,
+      "preparedDocuments": 0
+    }
+  },
+  "scope": "Offline exact-dependency fixtures, isolated Electron profiles; no live API/IAM, native draft bridge, production save, installation or deployment. No new speed claim."
+}

@@ -25,6 +25,7 @@ vi.mock(
     getCanvasPkgs: async () => "",
     ensureCanvasRuntime: async () => undefined,
     getReactWebBundle: async () => "",
+    prefetchCanvasResources: vi.fn(),
     getLiveFrameClientJs: async () => "",
     getHostLessPkg: async () => "",
     getSortedHostLessPkgs: async (_win, _api, pkgs) =>

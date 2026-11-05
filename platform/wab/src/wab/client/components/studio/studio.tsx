@@ -3,11 +3,7 @@ import { BottomModalsProvider } from "@/wab/client/components/BottomModal";
 import { showPlasmicImgModal } from "@/wab/client/components/modals/PlasmicImgModal";
 import { ShortcutsModal } from "@/wab/client/components/studio/Shortcuts";
 import { StudioLayout } from "@/wab/client/components/studio/StudioLayout";
-import {
-  getCanvasPkgs,
-  getLiveFrameClientJs,
-  getReactWebBundle,
-} from "@/wab/client/components/studio/studio-bundles";
+import { getLiveFrameClientJs } from "@/wab/client/components/studio/studio-bundles";
 import { fixStudioIframePositionAndOverflow } from "@/wab/client/dom-utils";
 import { getUiLocale } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
@@ -45,9 +41,6 @@ export class Studio extends React.Component<StudioProps, {}> {
       ProjectName: this.props.studioCtx.siteInfo.name,
     });
 
-    // Load all chunks we'll need in advance:
-    spawn(getCanvasPkgs());
-    spawn(getReactWebBundle());
     spawn(getLiveFrameClientJs());
     spawn(maybeConvertToHostLessProject(studioCtx));
     if (!appConfig.usePlasmicImg && studioCtx.canEditProject()) {

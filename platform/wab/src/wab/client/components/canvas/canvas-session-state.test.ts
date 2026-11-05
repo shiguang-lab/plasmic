@@ -1,4 +1,4 @@
-import { applyCanvasSessionState, CanvasSessionState } from "@/wab/client/components/canvas/canvas-session-state";
+import { applyCanvasSessionState, canvasSessionInstanceKey, CanvasSessionState } from "@/wab/client/components/canvas/canvas-session-state";
 import { computed } from "mobx";
 
 it("observes native overlay events without an implicit state and isolates editing reveals", () => {
@@ -164,4 +164,30 @@ it("keeps an explicit canvas visibility choice across selection changes, includi
   session.hideReveals();
   expect(session.reveal("overlay", "open", true)).toBe(false);
   expect(session.resolve("overlay", "open", true)).toBe(true);
+});
+
+
+it("isolates render-slot clones despite shared generated implicit-state props", () => {
+  const session = new CanvasSessionState();
+  let implicitOpen = false;
+  const callback = vi.fn((open: boolean) => { implicitOpen = open; });
+  const render = (scope: string, controlled = false) => {
+    const props: Record<string, any> = { open: implicitOpen, onOpenChange: callback };
+    applyCanvasSessionState(session, canvasSessionInstanceKey("column.tooltip[0]", scope), props,
+      [{ valueProp: "open", onChangeProp: "onOpenChange", controlled }], true, vi.fn(), true,
+      controlled ? { open: implicitOpen } : {});
+    return props;
+  };
+  const first = render("row-a");
+  expect(first.open).toBeUndefined();
+  first.onOpenChange(true);
+  expect(implicitOpen).toBe(true);
+  expect(render("row-a").open).toBe(true);
+  expect(render("row-b").open).toBeUndefined();
+  expect(render("row-b", true).open).toBe(true);
+  render("row-a").onOpenChange(false);
+  expect(render("row-a").open).toBe(false);
+  expect(render("row-b").open).toBeUndefined();
+  expect(callback.mock.calls).toEqual([[true], [false]]);
+  expect(first.__plasmic_selection_prop__.sessionInstance).toBe(canvasSessionInstanceKey("column.tooltip[0]", "row-a"));
 });

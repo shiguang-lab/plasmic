@@ -50,10 +50,16 @@ export const localAiAttachmentsSchema = z
       ) <= LOCAL_AI_ATTACHMENT_MAX_BYTES,
   );
 
+export const localAiModelSchema = z.object({
+  id: z.string().min(1).max(200),
+  name: z.string().trim().max(200).optional(),
+});
+export type LocalAiModel = z.infer<typeof localAiModelSchema>;
+
 export const localAiStatusSchema = z.object({
   configured: z.boolean(),
   model: z.string().nullable(),
-  models: z.array(z.string().min(1).max(200)),
+  models: z.array(localAiModelSchema),
   pageGenerationEnabled: z.boolean(),
 });
 export type LocalAiStatus = z.infer<typeof localAiStatusSchema>;

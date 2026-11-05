@@ -48,6 +48,63 @@ function targetWindow() {
 
 afterEach(() => { vi.unstubAllGlobals(); flags.hostLessComponents = []; });
 
+test("prefetch shares pending source reads with canvas initialization without executing scripts", async () => {
+  const runtime = Promise.withResolvers<string>();
+  const reactWeb = Promise.withResolvers<string>();
+  const fetchMock = vi.fn(async (url: string) => ({
+    ok: true,
+    text: () => url.includes("react-web-bundle") ? reactWeb.promise : runtime.promise,
+  }));
+  vi.stubGlobal("fetch", fetchMock);
+
+  bundles.prefetchCanvasResources();
+  const canvasSource = bundles.getCanvasPkgs();
+  const reactWebSource = bundles.getReactWebBundle();
+  bundles.prefetchCanvasResources();
+  expect(bundles.getCanvasPkgs()).toBe(canvasSource);
+  expect(bundles.getReactWebBundle()).toBe(reactWebSource);
+  expect(fetchMock).toHaveBeenCalledTimes(2);
+  expect(scriptExec).not.toHaveBeenCalled();
+
+  runtime.resolve("window.initializations++; window.__CanvasPkgs = { Antd6: window.__Sub.Antd6 };");
+  reactWeb.resolve("react-web source");
+  await Promise.all([canvasSource, reactWebSource]);
+  expect(scriptExec).not.toHaveBeenCalled();
+  await bundles.ensureCanvasRuntime(targetWindow());
+  expect(scriptExec).toHaveBeenCalledOnce();
+  expect(fetchMock).toHaveBeenCalledTimes(2);
+});
+
+test.each(["network", "status", "body"])("failed react-web prefetch (%s) allows the consumer to retry", async (failure) => {
+  const source = "window.__CanvasPkgs = { Antd6: {} };";
+  let attempts = 0;
+  const fetchMock = vi.fn(async (url: string) => {
+    if (!url.includes("react-web-bundle")) {
+      return { ok: true, text: async () => source };
+    }
+    if (++attempts === 1) {
+      if (failure === "network") {
+        throw new Error("Network unavailable");
+      }
+      return {
+        ok: failure !== "status",
+        status: 503,
+        text: async () => { throw new Error("Body unavailable"); },
+      };
+    }
+    return { ok: true, text: async () => "react-web source" };
+  });
+  vi.stubGlobal("fetch", fetchMock);
+  bundles.prefetchCanvasResources();
+  await expect(bundles.getReactWebBundle()).rejects.toThrow();
+
+  const retry = bundles.getReactWebBundle();
+  expect(bundles.getReactWebBundle()).toBe(retry);
+  await expect(retry).resolves.toBe("react-web source");
+  expect(attempts).toBe(2);
+  expect(scriptExec).not.toHaveBeenCalled();
+});
+
 test("concurrent bootstrap and library loads share the pending initialization, then omit runtime source", async () => {
   const pending = Promise.withResolvers<string>();
   const fetchMock = vi.fn(async (url: string) => ({

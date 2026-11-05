@@ -6,6 +6,7 @@ import { AntdConfigProvider } from "@/wab/client/antd-theme";
 import { syncCodeComponentsAndHandleErrors } from "@/wab/client/code-components/code-components";
 import { StudioChrome } from "@/wab/client/components/studio/StudioChrome";
 import { StudioInitializer } from "@/wab/client/components/studio/studio-initializer";
+import * as studioBundles from "@/wab/client/components/studio/studio-bundles";
 import { providesAppCtx } from "@/wab/client/contexts/AppContexts";
 import { LoadingAnimationContext } from "@/wab/client/contexts/LoadingAnimationContext";
 import { providesFrameCtx } from "@/wab/client/frame-ctx/frame-ctx";
@@ -124,6 +125,7 @@ it("restores local loading when retrying after initialization revealed an error"
 });
 
 it("shows shared editor controls before project data, then preserves the project shell while dependencies load", async () => {
+  const prefetch = vi.spyOn(studioBundles, "prefetchCanvasResources").mockClear();
   const { studioCtx, appCtx } = fakeStudioCtx({
     devFlagOverrides: { ccStubs: false },
   });
@@ -174,6 +176,7 @@ it("shows shared editor controls before project data, then preserves the project
     ).toBe(true);
     expect(screen.getByRole("toolbar", { name: "Canvas view" })).toBeTruthy();
     expect(screen.queryByTestId("editor-shell")).toBeNull();
+    await waitFor(() => expect(prefetch).toHaveBeenCalled());
     await act(async () => {
       releaseProject();
       await projectData;

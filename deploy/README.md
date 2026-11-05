@@ -489,21 +489,36 @@ Configure an OpenAI-compatible service in the server's `PLASMIC_SECRETS_FILE`:
 Preserve other fields in that file, keep it outside Git, and restrict its file
 permissions. `PLASMIC_AI_BASE_URL`, `PLASMIC_AI_API_KEY` and `PLASMIC_AI_MODEL`
 override those three fields. Use HTTPS except for local HTTP test services.
-The browser status endpoint returns configuration status and cached model IDs,
+The browser status endpoint returns configuration status and cached model metadata,
 without service credentials.
 
-Model discovery uses a server-process cache shared by projects and clients.
-Status reads return immediately with a cached catalog, or the configured default
-model when no catalog younger than one hour is available. The browser requests
-status and models in parallel. Only a cold or expired model-list request waits
-for the shared discovery task, so its default fallback is not retained after a
-successful refresh. Catalogs are fresh for five minutes; subsequent reads trigger
-one background refresh while using the previous catalog. Discovery has a
-three-second timeout and a 30-second failure cooldown. Failed refreshes retain the previous catalog
-without extending its one-hour maximum age. Service URL, API key or default
-model changes replace the cache, and late responses cannot overwrite the new
-entry. The cache is cleared on server restart. Explicit `localAiEditing.models`
-or comma-separated `PLASMIC_AI_MODELS` bypass upstream discovery entirely.
+Model discovery stores its last successful catalog and refresh deadline in
+PostgreSQL's existing `generic_key_value` table under `copilot-cache`. The key
+contains a SHA-256 digest of the service URL and API key; credentials are not
+stored in cache records. Server and Worker processes, restarts, and rolling
+releases share this persisted catalog. A PostgreSQL advisory transaction lock
+serializes refreshes across processes. Memory only tracks pending refresh tasks.
+
+Catalogs are fresh for five minutes. Later reads return the last successful
+catalog immediately and start a background refresh. Discovery has a three-second
+timeout and a persisted 30-second failure cooldown. Errors, timeouts and invalid
+or empty responses preserve the successful catalog without an age limit. The
+configured default model is the fallback only when no successful catalog exists;
+that fallback is never persisted as a successful catalog. Cold model-list
+requests wait for discovery, while status reads return without waiting for the
+upstream service. Explicit `localAiEditing.models` or comma-separated
+`PLASMIC_AI_MODELS` bypass discovery.
+
+The status and model-list endpoints expose models as `{id, name?}` objects. Model
+menus and the current selection show `name` when nonempty, otherwise `id`.
+Selections and model requests always use `id`. Each mounted AI view reads status
+and models in parallel without a shared client cache. Opening the model menu,
+returning focus or reconnecting requests the model list again.
+
+The catalog persistence integration test uses a dedicated local
+`plasmic_catalog_test` PostgreSQL database, selected by
+`AI_MODEL_CATALOG_TEST_DB`. It verifies named catalog recovery in new server
+processes and shared refresh locking/cooldown against the real database.
 
 The assistant binds the project, branch, editor session, change counter, page,
 artboard and selected subtree at submission. Read, selection and scroll tools

@@ -36,6 +36,7 @@ class EdgeIntegrationTest(unittest.TestCase):
             static = cls.root / ("static" + suffix)
             (static / "static").mkdir(parents=True)
             (static / "static/host.html").write_text("fixture-host")
+            (static / "static/studio.abcdef.html").write_text("fixture-studio")
             cls.start("web" + suffix, ["web" + suffix], Path(__file__).with_name("nginx.conf"),
                       ["--hostname", "web" + suffix, "-v", f"{static}:/usr/share/nginx/html:ro"])
         edge = cls.root / "edge"
@@ -113,6 +114,13 @@ class EdgeIntegrationTest(unittest.TestCase):
         self.docker("exec", web, "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/static/host.html")
         with self.assertRaises(subprocess.CalledProcessError):
             self.docker("exec", web, "wget", "-q", "-T", "2", "-O", "/dev/null", "http://127.0.0.1:8080/healthcheck")
+
+    def test_direct_studio_document_is_immutable_on_studio_and_canvas_ports(self):
+        web = f"{self.network}-web"
+        for port in (8080, 8081):
+            output = self.docker("exec", web, "wget", "-S", "-O", "-", f"http://127.0.0.1:{port}/static/studio.abcdef.html")
+            self.assertIn("Cache-Control: public, max-age=31536000, immutable", output)
+            self.assertIn("fixture-studio", output)
 
 
 if __name__ == "__main__":

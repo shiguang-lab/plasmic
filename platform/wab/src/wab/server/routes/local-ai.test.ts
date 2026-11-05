@@ -15,21 +15,21 @@ const req = {
 } as unknown as Request;
 beforeEach(() => {
   state.authorize.mockReset();
-  state.models.mockReset().mockResolvedValue(["fixture", "alternate"]);
+  state.models.mockReset().mockResolvedValue([{ id: "fixture", name: "Fixture" }, { id: "alternate" }]);
 });
 it("returns the cached catalog with configuration without exposing credentials", async () => {
   const res = { json: vi.fn() } as unknown as Response;
   await localAiStatus(req, res);
   expect(state.authorize).toHaveBeenCalledWith("project","viewer","read AI service status");
   expect(state.models).toHaveBeenCalledWith();
-  expect(res.json).toHaveBeenCalledWith({ configured: true,model: "fixture",models: ["fixture", "alternate"],pageGenerationEnabled: true });
+  expect(res.json).toHaveBeenCalledWith({ configured: true,model: "fixture",models: [{ id: "fixture", name: "Fixture" }, { id: "alternate" }],pageGenerationEnabled: true });
 });
 it("loads the model catalog separately after checking project permissions", async () => {
   const res = { json: vi.fn() } as unknown as Response;
   await localAiModels(req, res);
   expect(state.authorize).toHaveBeenCalledWith("project", "viewer", "read AI service status");
   expect(state.models).toHaveBeenCalledWith({ waitForCatalog: true });
-  expect(res.json).toHaveBeenCalledWith(["fixture", "alternate"]);
+  expect(res.json).toHaveBeenCalledWith([{ id: "fixture", name: "Fixture" }, { id: "alternate" }]);
 });
 it.each([localAiStatus, localAiModels])("rejects unauthorized metadata requests", async (route) => {
   state.authorize.mockRejectedValue(new Error("Access denied"));

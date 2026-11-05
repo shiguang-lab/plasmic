@@ -3,6 +3,7 @@ import { Buffer } from "buffer";
 import fs from "fs";
 import HtmlWebpackPlugin from "html-webpack-plugin";
 import { parse } from "node-html-parser";
+import { buildBuiltinStudioHtml } from "./builtin-studio";
 
 const PLUGIN_NAME = "StudioHtmlPlugin";
 
@@ -16,7 +17,7 @@ const PLUGIN_NAME = "StudioHtmlPlugin";
 export class StudioHtmlPlugin implements RspackPluginInstance {
   commitHash: string;
 
-  constructor(commitHash: string) {
+  constructor(commitHash: string, private builtinHostHtml: string) {
     this.commitHash = commitHash;
   }
   apply(compiler: Compiler) {
@@ -122,6 +123,17 @@ ${template}
           };
           compilation.assets["static/js/studio.js"] = source;
           compilation.assets[`static/js/studio.${this.commitHash}.js`] = source;
+
+          const builtinHtml = buildBuiltinStudioHtml(root.toString(), this.builtinHostHtml);
+          compilation.assets[`static/studio.${this.commitHash}.html`] = {
+            ...source,
+            source: () => builtinHtml,
+            buffer: () => Buffer.from(builtinHtml),
+            size: () => Buffer.byteLength(builtinHtml),
+            map: () => null,
+            updateHash: () => {},
+            sourceAndMap: () => ({ source: builtinHtml, map: null }),
+          };
 
           // Tell webpack to move on.
           cb(null, data);

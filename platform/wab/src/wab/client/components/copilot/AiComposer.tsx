@@ -5,6 +5,7 @@ import {
 } from "@/wab/client/components/copilot/AiAttachments";
 import { AiModelDropdown } from "@/wab/client/components/copilot/AiModelDropdown";
 import { useI18n } from "@/wab/client/i18n";
+import type { LocalAiModel } from "@/wab/shared/copilot/local-edit";
 import { StopOutlined } from "@ant-design/icons";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { Button, Tooltip } from "antd";
@@ -17,9 +18,10 @@ interface AiComposerProps {
   onSubmit: () => void;
   attachmentState: ReturnType<typeof useAiAttachments>;
   scope: string;
-  models?: string[];
+  models?: LocalAiModel[];
   model?: string | null;
   onModelChange: (model: string) => void;
+  onModelMenuOpen?: () => void;
   disabled?: boolean;
   canSubmit: boolean;
   running?: boolean;
@@ -186,6 +188,7 @@ export function AiComposer({
   models,
   model,
   onModelChange,
+  onModelMenuOpen,
   disabled = false,
   canSubmit,
   running = false,
@@ -335,6 +338,7 @@ export function AiComposer({
             model={model}
             disabled={locked}
             onChange={onModelChange}
+            onOpen={onModelMenuOpen}
           />
         )}
         <Tooltip

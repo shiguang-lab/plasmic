@@ -1,0 +1,7 @@
+{
+  "en": "- Show AI model names and refresh model menus directly from the server.\n- Persist model catalogs across deployments and retain the last successful list during outages.\n- Streamline built-in Studio startup, prefetch resources and improve canvas session and interaction recovery.",
+  "zh-CN": "- AI 模型优先显示名称，打开模型菜单直接获取服务端列表。\n- 模型目录持久化，发布重启及上游故障时保留上次成功列表。\n- 精简内置编辑器启动链路、预取资源，改善画布会话与交互恢复。",
+  "zh-TW": "- AI 模型優先顯示名稱，開啟模型選單直接取得伺服器清單。\n- 持久保存模型目錄，發佈重啟及上游故障時保留上次成功清單。\n- 精簡內建編輯器啟動流程、預取資源，改善畫布工作階段與互動恢復。",
+  "ja": "- AI モデル名を優先表示し、メニューを開く際にサーバーから一覧を取得。\n- モデル一覧を永続化し、更新や上流障害時も最後に取得できた一覧を保持。\n- 内蔵 Studio の起動とリソース先読みを改善し、キャンバスの状態と操作の復元を改善。",
+  "ko": "- AI 모델 이름을 우선 표시하고 메뉴를 열 때 서버에서 목록을 가져옵니다.\n- 모델 목록을 영구 저장하여 배포 및 상위 서비스 장애 후에도 마지막 성공 목록을 유지합니다.\n- 내장 Studio 시작과 리소스 미리 로드를 개선하고 캔버스 상태 및 상호작용 복구를 개선합니다."
+}

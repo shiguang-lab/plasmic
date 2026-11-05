@@ -139,6 +139,10 @@ export interface CanvasStateSpec {
   onChangeArgsToValue?: (...args: any[]) => unknown;
 }
 
+export function canvasSessionInstanceKey(instance: string, renderSlotInstance?: string) {
+  return renderSlotInstance ? JSON.stringify([instance, renderSlotInstance]) : instance;
+}
+
 /** Bind the actual registered props/events; no component names or persisted schema. */
 export function applyCanvasSessionState(
   session: CanvasSessionState,
@@ -148,16 +152,21 @@ export function applyCanvasSessionState(
   interactive: boolean,
   onChange: () => void,
   isOverlay = false,
+  sourceProps: Record<string, any> = props,
 ) {
+  const authoredProps = { ...sourceProps };
   // The canvas overlay contract also applies when no implicit open state exists.
   // Eagerly bind it so native events invalidate the cached canvas render.
   if (isOverlay && !specs.some((spec) => spec.valueProp === "open")) {
     specs = [...specs, {
       valueProp: "open", onChangeProp: "onOpenChange", initialValueProp: "defaultOpen",
-      controlled: props.open !== undefined,
+      controlled: authoredProps.open !== undefined,
     }];
   }
   const nativeProps = { ...props };
+  // Generated implicit-state props may be shared by render-slot clones. Native
+  // uncontrolled instances initialize from authored props, not another clone's event.
+  const stateSource = (spec: CanvasStateSpec) => spec.controlled ? nativeProps : authoredProps;
   const read = (name: string) => interactive && isOverlay && name === "open"
     ? session.getRuntime(instance, name)
     : session.get(instance, name);
@@ -165,8 +174,9 @@ export function applyCanvasSessionState(
   const events = new Map<string, CanvasStateSpec[]>();
   for (const spec of specs) {
     const { valueProp, onChangeProp, initialValueProp } = spec;
-    const nativeValue = props[valueProp];
-    const initialValue = initialValueProp ? props[initialValueProp] : undefined;
+    const source = stateSource(spec);
+    const nativeValue = source[valueProp];
+    const initialValue = initialValueProp ? source[initialValueProp] : undefined;
     session.resolve(instance, valueProp, nativeValue, initialValue);
     const value = read(valueProp);
     props[valueProp] = value;
@@ -185,8 +195,9 @@ export function applyCanvasSessionState(
     props[event] = (...args: any[]) => {
       for (const spec of states) {
         const { valueProp, initialValueProp } = spec;
-        const nativeValue = nativeProps[valueProp];
-        const initialValue = initialValueProp ? nativeProps[initialValueProp] : undefined;
+        const source = stateSource(spec);
+        const nativeValue = source[valueProp];
+        const initialValue = initialValueProp ? source[initialValueProp] : undefined;
         // Explicit controlled bindings retain ownership when an actual event runs.
         // Editing reveals and mode switches never call the business handler.
         const overlayOpen = isOverlay && valueProp === "open";
@@ -206,10 +217,11 @@ export function applyCanvasSessionState(
     };
   }
   const selection = props.__plasmic_selection_prop__ ?? (props.__plasmic_selection_prop__ = {});
+  selection.sessionInstance = instance;
   selection.getState = (name: string, nativeValue: unknown, initialValue?: unknown) => {
     const spec = specs.find((item) => item.valueProp === name);
-    const source = spec ? nativeProps[name] : nativeValue;
-    const initial = spec?.initialValueProp ? nativeProps[spec.initialValueProp] : initialValue;
+    const source = spec ? stateSource(spec)[name] : nativeValue;
+    const initial = spec?.initialValueProp ? stateSource(spec)[spec.initialValueProp] : initialValue;
     session.resolve(instance, name, source, initial);
     return {
       get value() { return read(name); },

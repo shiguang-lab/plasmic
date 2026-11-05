@@ -1,3 +1,4 @@
+import { isBuiltinStudioDocument } from "@/wab/client/frame-ctx/host-window";
 import { AppCtx } from "@/wab/client/app-ctx";
 import { hasLayoutBox } from "@/wab/client/dom";
 import { getUiLocale } from "@/wab/client/i18n";
@@ -741,6 +742,10 @@ export function downloadImageAsset(asset: ImageAsset) {
 }
 
 export function fixStudioIframePositionAndOverflow() {
+  if (isBuiltinStudioDocument()) {
+    document.body.style.overflow = "hidden";
+    return;
+  }
   // Make the studio iframe span the full viewport. You don't know what
   // default margins etc. the host app has.
   const elt = ensureHTMLElt(

@@ -33,7 +33,15 @@ const fetchCanvasRuntime = memoize((bundle: "client" | "antd6-runtime") => {
 const fetchReactWebBundle = memoizeOne(() =>
   fetch(
     `${getStaticBaseUrl()}/react-web-bundle/build/client.${ENV.COMMITHASH}.js`,
-  ).then((res) => res.text()),
+  ).then((res) => {
+    if (!res.ok) {
+      throw new Error(`Unable to load react-web runtime: ${res.status}`);
+    }
+    return res.text();
+  }).catch((error) => {
+    fetchReactWebBundle.clear();
+    throw error;
+  }),
 );
 const fetchLiveFrameClient = memoizeOne(() =>
   fetch(
@@ -125,6 +133,12 @@ export function ensureCanvasRuntime(win: Window): Promise<void> {
 
 export function getReactWebBundle() {
   return fetchReactWebBundle();
+}
+
+/** Fetch source only; each canvas still initializes its own runtime. */
+export function prefetchCanvasResources() {
+  void getCanvasPkgs().catch(() => undefined);
+  void getReactWebBundle().catch(() => undefined);
 }
 
 export function getLiveFrameClientJs() {

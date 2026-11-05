@@ -19,6 +19,7 @@ it.each(["saved", "suspended-layout", "suspended-commit", "missing-frame", "miss
   const arena = mkMixedArena("Overview");
   site.arenas.push(arena);
   const topFrameApi = mock<TopFrameApi>();
+  topFrameApi.componentReuse.mockResolvedValue({ available: false });
   topFrameApi.getSavedEditorView.mockResolvedValue(JSON.parse(JSON.stringify({
     arenaId: arena.name, arenaType: "custom",
     frameUuid: mode === "missing-frame" ? "deleted" : null,

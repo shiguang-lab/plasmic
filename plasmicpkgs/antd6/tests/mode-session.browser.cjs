@@ -32,13 +32,102 @@ const { chromium } = require(path.join(wab, "node_modules/playwright"));
     await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
     browser = await chromium.launch({ headless: true });
     const results = [];
-    for (const widget of ["tabs", "modal", "drawer", "collapse", "menu", "table", "picker", "tooltip"]) {
+    for (const widget of ["tabs", "modal", "drawer", "collapse", "menu", "table", "picker", "tooltip", "table-tooltip", "table-popover", "table-popconfirm", "table-dropdown", "table-popover-click", "table-dropdown-click"]) {
       const page = await browser.newPage({ viewport: { width: 1500, height: 1000 } });
       const errors = [];
       page.on("pageerror", (error) => errors.push(error.message));
       await page.goto(`http://127.0.0.1:${server.address().port}/?widget=${widget}`);
       const frame = page.frames().find((candidate) => candidate.url().includes("/frame?"));
       assert(frame, "The canvas iframe must exist");
+      if (widget.startsWith("table-")) {
+        const kind = widget.split("-")[1];
+        const click = kind === "popconfirm" || widget.endsWith("-click");
+        const popupSelector = kind === "tooltip" ? ".ant-tooltip:not(.ant-tooltip-hidden)" : kind === "dropdown" ? ".ant-dropdown:not(.ant-dropdown-hidden)" : ".ant-popover:not(.ant-popover-hidden)";
+        await frame.addStyleTag({ content: `td.ant-table-cell-ellipsis > .__wab_text, td.ant-table-cell-ellipsis > .__wab_text > .__wab_rich_text { display:block; max-width:100%; overflow:hidden; text-overflow:inherit; white-space:inherit }` });
+        const popups = frame.locator(popupSelector);
+        const outside = frame.locator("[data-outside]");
+        const visibleRows = () => popups.locator("[data-popup-row]").evaluateAll((elements) => elements.map((element) => Number(element.dataset.popupRow)).sort((a, b) => a - b));
+        const expectRows = async (rows) => {
+          await frame.waitForFunction(({ selector, rows }) => {
+            const visible = [...document.querySelectorAll(selector + " [data-popup-row]")].map((element) => Number(element.dataset.popupRow)).sort((a, b) => a - b);
+            return JSON.stringify(visible) === JSON.stringify(rows);
+          }, { selector: popupSelector, rows }, { timeout: 5000 }).catch(async () => {
+            assert.deepEqual(await visibleRows(), rows, `${widget}: unexpected popup rows`);
+          });
+          assert.equal(await popups.count(), rows.length, `${widget}: another row's popup opened`);
+          assert.deepEqual(await visibleRows(), rows);
+        };
+        const resetCalls = () => frame.evaluate(() => { window.sessionCheck.calls.length = 0; });
+        const readCalls = () => frame.evaluate(() => [...window.sessionCheck.calls]);
+        const toggle = async (interactive) => {
+          const before = await readCalls();
+          // Changing canvas mode must not itself generate pointer or business events.
+          await page.locator("#mode").evaluate((button) => button.click());
+          await frame.locator(`[data-mode="${interactive ? "interactive" : "editing"}"]`).waitFor();
+          await frame.evaluate(async () => { for (let index = 0; index < 4; index++) await new Promise(requestAnimationFrame); });
+          assert.deepEqual(await readCalls(), before, `${widget}: mode change emitted business callbacks`);
+        };
+        const open = async (row) => {
+          const target = frame.locator(`[data-row="${row}"]`);
+          if (click) { await target.click(); } else { await target.hover(); }
+          await expectRows([row]);
+          const css = await target.evaluate((element) => ({ overflow: getComputedStyle(element).overflow, ellipsis: getComputedStyle(element).textOverflow, truncated: element.firstElementChild.scrollWidth > element.firstElementChild.clientWidth }));
+          assert.deepEqual(css, { overflow: "hidden", ellipsis: "ellipsis", truncated: true }, `${widget}: cell lost ellipsis`);
+          assert.equal(await popups.locator("[data-popup-row]").innerText(), await target.innerText());
+        };
+        const close = async () => {
+          if (click) { await outside.click(); } else { await outside.hover(); }
+          await expectRows([]);
+        };
+        const exercise = async () => {
+          await resetCalls();
+          for (const row of [4, 1, 0]) { await open(row); await close(); }
+          const expected = [4, 1, 0].flatMap((row) => [`open:${row}:true${kind === "dropdown" ? ":trigger" : ""}`, `open:${row}:false${kind === "dropdown" ? ":trigger" : ""}`]);
+          assert.deepEqual(await readCalls(), expected, `${widget}: open/close callbacks affected another row or ran twice`);
+          if (kind === "popconfirm") {
+            await open(1);
+            await popups.getByRole("button", { name: "Confirm", exact: true }).click();
+            await expectRows([]);
+            await open(4);
+            await popups.getByRole("button", { name: "Cancel", exact: true }).click();
+            await expectRows([]);
+            assert.deepEqual((await readCalls()).filter((call) => /^(confirm|cancel):/.test(call)), ["confirm:1", "cancel:4"]);
+          }
+          if (kind === "dropdown") {
+            await open(1);
+            await popups.getByRole("menuitem").click();
+            await expectRows([]);
+            assert.deepEqual((await readCalls()).filter((call) => call.startsWith("action:")), ["action:1:details"]);
+          }
+          return readCalls();
+        };
+        await frame.locator('[data-row="4"]').waitFor();
+        await expectRows([4]); // Selection reveal belongs only to the editing canvas.
+        assert.deepEqual(await readCalls(), []);
+        await toggle(true);
+        await expectRows([]);
+        const baseline = await exercise();
+        await frame.evaluate(() => { window.trackedCell = document.querySelector('[data-row="0"]'); });
+        for (let round = 0; round < 2; round++) {
+          await open(0);
+          await toggle(false);
+          await expectRows([0]);
+          await toggle(true);
+          await expectRows([0]);
+          assert.equal(await frame.evaluate(() => window.trackedCell === document.querySelector('[data-row="0"]')), true, `${widget}: mode change remounted the cell`);
+          await close();
+          assert.deepEqual(await exercise(), baseline, `${widget}: behavior changed after a mode round trip`);
+        }
+        await page.locator("#standalone").click();
+        await expectRows([]);
+        assert.deepEqual(await exercise(), baseline, `${widget}: interactive mode differs from native preview`);
+        assert.deepEqual(errors, []);
+        results.push({ widget, passed: true, rows: [4, 1, 0], roundTripsWhileOpen: 2,
+          modes: ["interactive", "interactive-after-editing", "preview"], callbacksMatchPreview: true,
+          rowIsolation: true, ellipsisPreserved: true, actions: kind === "popconfirm" ? ["confirm", "cancel"] : kind === "dropdown" ? ["menu action"] : [] });
+        await page.close();
+        continue;
+      }
       const input = frame.getByRole("textbox").first();
       await input.waitFor({ state: "visible" });
       if (widget !== "picker") {await input.fill("retained draft");}

@@ -1,9 +1,11 @@
 import {
   getHostUrl,
+  getStudioFrameUrl,
   isImmutableHostPage,
 } from "@/wab/client/utils/app-hosting-utils";
 import type { ApiBranch, ApiProject } from "@/wab/shared/ApiSchema";
 import { DEVFLAGS } from "@/wab/shared/devflags";
+import { ENV } from "@/wab/client/env";
 
 const project = {} as ApiProject;
 const previousHostUrl = DEVFLAGS.hostUrl;
@@ -71,4 +73,26 @@ it("does not rewrite a customized default Host or reuse an unrelated hashed Host
   expect(isImmutableHostPage(`https://canvas.example${path}`)).toBe(true);
   expect(isImmutableHostPage(`https://custom.example${path}`)).toBe(false);
   expect(isImmutableHostPage(config.defaultHostUrl)).toBe(false);
+});
+
+it("opens the current built-in Studio on the same Host origin", () => {
+  for (const host of [config.defaultHostUrl, `https://canvas.example${path}`]) {
+    const url = getStudioFrameUrl(host, config.defaultHostUrl);
+    expect(url.origin).toBe("https://canvas.example");
+    expect(url.pathname).toBe(`/static/studio.${ENV.COMMITHASH}.html`);
+  }
+});
+
+it.each([
+  "https://custom.example/static/host.html",
+  "https://canvas.example/custom-host",
+  "https://canvas.example/static/host.html?custom=true",
+  `https://canvas.example/static/host.${"b".repeat(64)}.html`,
+])("preserves the custom Host destination %s", (host) => {
+  expect(getStudioFrameUrl(host, config.defaultHostUrl).href).toBe(host);
+});
+
+it("does not intercept a customized application default Host", () => {
+  const host = "https://custom.example/static/host.html";
+  expect(getStudioFrameUrl(host, host).href).toBe(host);
 });

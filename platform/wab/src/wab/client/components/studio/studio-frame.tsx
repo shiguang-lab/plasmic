@@ -26,7 +26,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import { translate } from "@/wab/client/i18n/locales";
 import { useLocation } from "@/wab/client/route/HistoryProvider";
 import { useForceUpdate } from "@/wab/client/useForceUpdate";
-import { getHostUrl } from "@/wab/client/utils/app-hosting-utils";
+import { getHostUrl, getStudioFrameUrl } from "@/wab/client/utils/app-hosting-utils";
 import { useBrowserNotification } from "@/wab/client/utils/useBrowserNotification";
 import { ForbiddenError } from "@/wab/shared/ApiErrors/errors";
 import {
@@ -287,7 +287,7 @@ export function StudioFrame({
   useBrowserNotification();
 
   const src = project
-    ? new URL(getHostUrl(project, branch, appCtx.appConfig))
+    ? getStudioFrameUrl(getHostUrl(project, branch, appCtx.appConfig), appCtx.appConfig.defaultHostUrl)
     : undefined;
 
   if (untrustedHost && src && project) {

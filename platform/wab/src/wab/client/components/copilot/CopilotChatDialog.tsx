@@ -14,7 +14,7 @@ import { useLocalAiStatus } from "@/wab/client/copilot/use-local-ai-status";
 import { useI18n } from "@/wab/client/i18n";
 import { ApiProject, CopilotChatOpenOpts } from "@/wab/shared/ApiSchema";
 import type { AiTask } from "@/wab/shared/copilot/ai-chat";
-import type { LocalAiStatus } from "@/wab/shared/copilot/local-edit";
+import type { LocalAiModel, LocalAiStatus } from "@/wab/shared/copilot/local-edit";
 import { getPublicUrl } from "@/wab/shared/urls";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { Alert, Button, Image, Spin, Tag } from "antd";
@@ -28,7 +28,7 @@ export interface CopilotChatDialogProps {
   project: ApiProject;
   session: AiSessionView;
   fetchStatus: () => Promise<LocalAiStatus>;
-  fetchModels: () => Promise<string[]>;
+  fetchModels: () => Promise<LocalAiModel[]>;
   onDownloadAttachment: (file: AiTask["files"][number]) => Promise<void>;
   chatOpenOpts?: CopilotChatOpenOpts;
   onClose: () => void;
@@ -142,7 +142,7 @@ export function CopilotChatDialog({
     attachments => session.setThreadAttachments(threadId, attachments),
     threadId,
   );
-  const { data: status, error, modelsLoaded } = useLocalAiStatus(
+  const { data: status, error, modelsLoaded, refreshModels } = useLocalAiStatus(
     project.id,
     enabled,
     fetchStatus,
@@ -154,7 +154,7 @@ export function CopilotChatDialog({
   React.useEffect(() => {
     if (status) {
       const selected = session.selectedModel;
-      if (!selected || (modelsLoaded && !status.models.includes(selected))) {
+      if (!selected || (modelsLoaded && !status.models.some(option => option.id === selected))) {
         session.selectedModel = status.model ?? undefined;
       }
     }
@@ -437,6 +437,7 @@ export function CopilotChatDialog({
               : t("Current canvas"))
           }
           models={status?.models}
+          onModelMenuOpen={refreshModels}
           model={model ?? status?.model}
           onModelChange={(value) => {
             session.selectedModel = value;

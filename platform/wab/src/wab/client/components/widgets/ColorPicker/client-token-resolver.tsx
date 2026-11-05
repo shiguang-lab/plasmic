@@ -1,3 +1,4 @@
+import { getHostWindow } from "@/wab/client/frame-ctx/host-window";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
@@ -51,10 +52,9 @@ function makeClientTokenResolver(
     clientCtx instanceof ViewCtx ? clientCtx : studioCtx?.viewCtxs[0];
 
   const getTokenElement = (token: StyleToken) => {
-    // If viewCtx exists, then use the artboard document. Else, use the parent
-    // document; we are in studio frame, so the parent document is the
-    // top-level custom host frame.
-    const doc = viewCtx ? viewCtx.canvasCtx.doc() : window.parent.document;
+    // Resolve canvas tokens in their artboard; other registered tokens belong
+    // to the Host runtime document.
+    const doc = viewCtx ? viewCtx.canvasCtx.doc() : getHostWindow().document;
     if (token.isRegistered && studioCtx && token.regKey) {
       const reg = studioCtx.getTokenRegistration(token);
       if (reg?.selector) {

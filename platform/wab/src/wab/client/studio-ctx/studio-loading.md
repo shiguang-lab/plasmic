@@ -1,5 +1,14 @@
 # Studio canvas startup
 
+The deployment's built-in Host opens `/static/studio.<commit>.html` directly on
+the Host origin. This document initializes the original Host runtime once, before
+Studio modules, and owns its component registrations, fonts and property controls.
+Its parent is the TopFrame; artboards keep their separate Documents and runtimes.
+`getHostWindow()` and `getTopFrameWindow()` express this ownership for runtime
+access and the Comlink bridge. The versioned Studio HTML is immutable in Web;
+Desktop packages it with the other generated assets. Custom Hosts retain the
+embedded Studio document and existing trust checks.
+
 Project routes use the startup contract below. Other routes fetch bundle version
 and application data concurrently. Application-data retries reuse a successful
 bundle lookup. Desktop recent-project refresh runs when the File menu opens
@@ -45,6 +54,14 @@ separate `antd6-runtime` bundle in parallel and executes it after the base bundl
 Library registration waits for both. Concurrent callers share initialization;
 failed downloads or execution can retry, and navigation cannot inject into the
 replacement document. React, Slate and DOM ownership remain local to each frame.
+
+Base canvas and ReactWeb source prefetch starts before Studio's preference and
+project-model awaits. Normal frame initialization consumes the same cached
+promises and still owns script execution. Failed prefetches are handled without
+blocking startup; failed source reads are evicted so consumers can retry.
+Host HTML prefetch starts after assigning StudioCtx's database context, before
+hostless-library setup and the remaining startup work. The first frame consumes that original
+promise; immutable-host reuse and custom-host refresh behavior stay unchanged.
 
 ## Timings
 

@@ -6,13 +6,14 @@ import {
   useFrameCtx,
 } from "@/wab/client/frame-ctx/frame-ctx";
 import { FrameMessage } from "@/wab/client/frame-ctx/frame-message-types";
+import { getTopFrameWindow } from "@/wab/client/frame-ctx/host-window";
 import { HostFrameApi } from "@/wab/client/frame-ctx/host-frame-api";
 import { getPlasmicStudioArgs } from "@/wab/client/frame-ctx/plasmic-studio-args";
 import { TopFrameFullApi } from "@/wab/client/frame-ctx/top-frame-api";
 import { setUiLocale } from "@/wab/client/i18n";
 import { setUiAppearance } from "@/wab/client/ui-theme";
 import { PromisifyMethods } from "@/wab/commons/promisify-methods";
-import { ensure, spawn } from "@/wab/shared/common";
+import { spawn } from "@/wab/shared/common";
 import * as Comlink from "comlink";
 import {
   Action,
@@ -44,10 +45,7 @@ export function HostFrameCtxProvider({ children }: HostFrameCtxProviderProps) {
   >(undefined);
 
   React.useEffect(() => {
-    // This should be the same thing as window.top, but we'll just stick with a
-    // 'relative path' in case the top-most frame ever wants to run inside an
-    // iframe itself.
-    const topFrame = ensure(window.parent?.parent, "Missing top frame");
+    const topFrame = getTopFrameWindow();
 
     const plasmicOrigin = getPlasmicStudioArgs().origin;
 
